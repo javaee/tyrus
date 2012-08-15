@@ -1,0 +1,11 @@
+wstestbeans.HttpSessionTest;
+wstestbeans.Buddies;
+wstestbeans.Quotes;
+wstestbeans.Twitter;
+
+
+
+
+
+
+

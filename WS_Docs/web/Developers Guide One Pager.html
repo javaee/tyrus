@@ -1,0 +1,205 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+  <head>
+    <meta content="text/html; charset=ISO-8859-1"
+      http-equiv="Content-Type">
+    <title>Developers Guide One Pager</title>
+  </head>
+  <body>
+    Quick Guide to the Annotations in the Web Socket SDK<br>
+    Danny Coward<br>
+    April 2012<br>
+    <br>
+    The starting point here is to look at the two classes<span
+      style="font-weight: bold;"> WSEndpoint</span> and <span
+      style="font-weight: bold;">Peer</span>.<br>
+    <br>
+    The <span style="font-weight: bold;">WSEndpoint</span> is an
+    interface that represents the end point in your application,
+    including all the callbacks for processing incoming websocket
+    messages, and the websocket lifecycle. Such as:-<br>
+    &nbsp;&nbsp;&nbsp; /** Called whenever a peer first connects to this
+    end point.*/<br>
+    <span style="font-weight: bold;">&nbsp;&nbsp;&nbsp; public void
+      onOpen(Peer p);</span><br>
+    &nbsp;&nbsp;&nbsp; /** Called when a peer sends a text message to
+    this end point.*/<br>
+    <span style="font-weight: bold;">&nbsp;&nbsp;&nbsp; public void
+      onMessage(Peer p, String message);</span><br>
+    <br>
+    <br>
+    The <span style="font-weight: bold;">Peer</span> interface
+    represents the 'other end' of your web socket conversation. So it
+    includes, for example, methods to send messages and to manage the
+    connection, like<br>
+    <br>
+    &nbsp;/** Send a message to the remote peer this object
+    represents.*/<br>
+    <span style="font-weight: bold;">&nbsp;&nbsp;&nbsp; public void
+      sendMessage(String data) throws IOException;</span><br>
+    &nbsp;&nbsp;&nbsp; /** Close this remote object. i.e. end the
+    conversation, close the underlying<br>
+    &nbsp;&nbsp;&nbsp;&nbsp; * web socket connection.*/<br>
+    <span style="font-weight: bold;">&nbsp;&nbsp;&nbsp; public void
+      doClose(int code, String reason) throws IOException;</span><br>
+    <br>
+    Everything else in the API supports this basic interaction between a
+    <span style="font-weight: bold;">WSEndpoint</span> and a <span
+      style="font-weight: bold;">Peer</span>.<br>
+    <br>
+    You might think that most developers will implement <span
+      style="font-weight: bold;">WSEndpoint</span> and register it
+    somewhere under a URL to write their application. <br>
+    <br>
+    But I expect many developers instead will write a POJO and use the
+    annotations to declare things as websockets. Like this:-<br>
+    <br>
+    <span style="font-weight: bold;">import
+      org.glassfish.websockets.api.annotations.*;</span><br
+      style="font-weight: bold;">
+    <br style="font-weight: bold;">
+    <span style="font-weight: bold;">&nbsp;&nbsp;&nbsp;
+      @WebSocket(path="/hello")</span><br style="font-weight: bold;">
+    <span style="font-weight: bold;">public class HelloTest {</span><br
+      style="font-weight: bold;">
+    <span style="font-weight: bold;">&nbsp;&nbsp;&nbsp; </span><br
+      style="font-weight: bold;">
+    <span style="font-weight: bold;">&nbsp;&nbsp;&nbsp;
+      @WebSocketMessage</span><br style="font-weight: bold;">
+    <span style="font-weight: bold;">&nbsp;&nbsp;&nbsp; public String
+      doThis(String thiz) {</span><br style="font-weight: bold;">
+    <span style="font-weight: bold;">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+      return "hello you !!-()()(!*&amp;";</span><br style="font-weight:
+      bold;">
+    <span style="font-weight: bold;">&nbsp;&nbsp;&nbsp; }</span><br
+      style="font-weight: bold;">
+    <span style="font-weight: bold;">&nbsp;&nbsp;&nbsp; </span><br
+      style="font-weight: bold;">
+    <span style="font-weight: bold;">}</span><br>
+    <br>
+    which creates a Web Socket endpoint at
+    "ws://hostname:port/&lt;web-context-root&gt;/hello" which processes
+    text messages, and immediately responds to each one with a string
+    message in return. Everything is a variation on this basic idea. The
+    <span style="font-weight: bold;">@WebSocket</span> annotations turns
+    POJOs into more sophisticated <span style="font-weight: bold;">WSEndpoint</span>s,
+    and the <span style="font-weight: bold;">@WebSocketRemote</span>
+    turns application interfaces with lots of meaningful API methods
+    suitable for your application into sophisticated <span
+      style="font-weight: bold;">Peer</span> instances.<br>
+    <br>
+    Let's take a look:-<br>
+    <br>
+    <span style="font-weight: bold;">@WebSocket</span><br>
+    <br>
+    This is the core annotation that is used at the classlevel to
+    declare that a POJO is an websocket endpoint. The knobs you can turn
+    on this annotation are<br>
+    <span style="font-weight: bold;">path</span>: the URI relative to
+    the web context root where the endpoint will be deployed.<br>
+    <span style="font-weight: bold;">subprotocols</span>: a list of the
+    names of any websocket subprotocol supported by this POJO.<br>
+    <span style="font-weight: bold;">remote</span>: the classname of
+    another class within the same application that this websocket may
+    use to represent a Peer object. This allows developers to create
+    custom interfaces to represent the 'other end' of a web socket
+    conversation rather than be stuck with the utilitarian dull Peer
+    interface.<br>
+    <span style="font-weight: bold;">encoders</span>: a list of classes
+    that can encode outgoing messages in this websocket. Like, perhaps
+    the developer has an object representing a list of cars, and an
+    encoder class that turns that list into its string representation to
+    send to the client.<br>
+    <span style="font-weight: bold;">decoders</span>: a list of classes
+    that can decode incoming messages for this websocket. Like, perhaps
+    the developer has an object representing a shopping order, and a
+    decoder class that creates that shopping order object from a string
+    sent from the client.<br>
+    <br>
+    Once a POJO is decorated at the class level with a WebSocket
+    annotation, you're ready to use some of the method level annotations
+    to get things working. Here are the basic lifecycle annotations:-<br>
+    <br>
+    <span style="font-weight: bold;">@WebSocketOpen</span>: asks that
+    the decorated method is called when a client connects to this
+    websocket endpoint.<br>
+    <span style="font-weight: bold;">@WebSocketClose</span>: asks that
+    the decorated method is called when a client disconnects from this
+    websocket endpoint.<br>
+    <span style="font-weight: bold;">@WebSocketError</span>: asks that
+    the decorated method is called when an error occurs in the websocket
+    session.<br>
+    <br>
+    you should look at the javadoc to check what form the methods must
+    take in order for this to work, as restrictions apply !<br>
+    <br>
+    and here is the main event:-<br>
+    <br>
+    <span style="font-weight: bold;">@WebSocketMessage</span>: asks that
+    the decorated method be called when a client sends a message to this
+    websocket endpoint.<br>
+    <br>
+    This has one parameter: dynamicPath, which can be used to further
+    multiplex incoming messages in the URI-space: the decorated method
+    will process an incoming message to /path/dynamicPath where path is
+    the path defined at the class level WebSocket annotation, and
+    dynamicPath is specified in this WebSocketMessage annotation. The
+    kinds of methods that can be decorated with this annotation are also
+    restricted (though there is quite a lot of useful freedom) - check
+    the javadoc for more details.<br>
+    <br>
+    Now for developers who want a more customized view of the other end
+    of the websocket conversation, they can write their own interface
+    that extends Peer and mark it with the class level<br>
+    <br>
+    <span style="font-weight: bold;">@WebSocketRemote</span><br>
+    <br>
+    annotation. Now this interface will be passed into the websocket
+    endpoint methods instead of the plan old Peer interface. For
+    example,<br>
+    <br>
+    instead of<br>
+    <br>
+    <span style="font-weight: bold;">@WebSocketMessage</span><br
+      style="font-weight: bold;">
+    <span style="font-weight: bold;">public void handlePurchase(String
+      items, Peer p) {</span><br style="font-weight: bold;">
+    <span style="font-weight: bold;">&nbsp;&nbsp;&nbsp; &nbsp;&nbsp;
+      &nbsp;&nbsp;&nbsp;&nbsp; </span><br style="font-weight: bold;">
+    <span style="font-weight: bold;">}</span><br>
+    <br>
+    and elsewhere:<br>
+    <br style="font-weight: bold;">
+    <span style="font-weight: bold;">p.sendMessage(orderCompleteMessage);</span><br
+      style="font-weight: bold;">
+    <span style="font-weight: bold;">...</span><br style="font-weight:
+      bold;">
+    <span style="font-weight: bold;">p.sendMessage(trytoUpsellMessage);</span><br>
+    <br>
+    ...you could define:-<br>
+    <br>
+    <span style="font-weight: bold;">@WebSocketRemote</span><br>
+    public interface Shopper extends Peer {<br>
+    &nbsp;&nbsp;&nbsp; public void confirmOrder(Order o);<br>
+    &nbsp;&nbsp;&nbsp; public void makeOffer(Product p);<br>
+    }<br>
+    <br>
+    and use that instead:-<br>
+    <br>
+    <span style="font-weight: bold;">@WebSocketMessage</span><br>
+    <span style="font-weight: bold;">public void handlePurchase(String
+      items, Shopper sh) {</span><br style="font-weight: bold;">
+    <span style="font-weight: bold;">
+      &nbsp;&nbsp;&nbsp; &nbsp;&nbsp; &nbsp;&nbsp;&nbsp;&nbsp; </span><br
+      style="font-weight: bold;">
+    <span style="font-weight: bold;">
+      }</span><br>
+    <br>
+    So that's it. Further reading is to take a look at the sample apps
+    and tests in the repo.<br>
+    <br>
+    <br>
+    <br>
+    <br>
+  </body>
+</html>
