@@ -56,8 +56,6 @@ public class APITest {
     public String doThis(String message, RemoteEndpoint remote) {
         String s = "";
         s = s + "Message: " + message;
-        s = s + "<br>from " + remote.getAddress();
-        s = s + "<br>connected ? " + remote.isConnected();
         s = s + "<br>context ? " + remote.getContext();
         EndpointContext context = remote.getContext();
         s = s + "<br>context properties ? " + context.getProperties();
@@ -69,9 +67,9 @@ public class APITest {
         s = s + "<br>context container context path ? " + context.getContainerContext().getPath();
         s = s + "<br>context container context port ? " + context.getContainerContext().getPort();
         s = s + "<br>context container context properties ? " + context.getContainerContext().getProperties();
-        s = s + "<br>converation ? " + remote.getConversation();
-        s = s + "<br>converation properties ? " + remote.getConversation().XXgetProperties();
-        s = s + "<br>converation active ? " + remote.getConversation().isActive();
+        s = s + "<br>converation ? " + remote.getSession();
+        s = s + "<br>converation properties ? " + remote.getSession().XXgetProperties();
+        s = s + "<br>converation active ? " + remote.getSession().isActive();
         return s;
     }
 

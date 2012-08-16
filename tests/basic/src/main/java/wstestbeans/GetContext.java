@@ -66,7 +66,7 @@ public class GetContext {
         for (Session session : myContext.getConversations()) {
             RemoteEndpoint remote = session.getRemote();
             try {
-                remote.sendMessage("Broadcasting to you !");
+                remote.sendString("Broadcasting to you !");
             } catch (Exception e) {
                 e.printStackTrace();
             }

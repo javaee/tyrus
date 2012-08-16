@@ -76,25 +76,18 @@ class CustomEndpointUsingInterface extends Endpoint {
         System.out.println("Initializing dynamically deployed end point implementing interface");
     }
             /** Called whenever a peer first connects to this end point.*/
+    @Override
     public void onOpen(Session session) {
         System.out.println("Opened dynamically deployed end point which implements the interface");
+        session.addMessageHandler(new MyMessageHandler(session, "interface implementing dynamically deployed end point"));
     }
-    /** Called when a peer sends a text message to this end point.*/
-    public void onMessage(RemoteEndpoint p, String message) {
-        System.out.println("dynamically deployed end point using interface got message " + message);
-        try {
-            p.sendMessage("PASS (interface implementing dynamically deployed end point): Thanks for your message: " + message);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-    /** Called when a peer sends a binary message to this end point.*/
-    public void onMessage(RemoteEndpoint p, byte[] data) {
+    
 
-    }
     /** Called when a peer disconnects from this end point.*/
-    public void onClose(RemoteEndpoint p, CloseEvent ce) {
+    @Override
+    public void onClose(Session session) {
         System.out.println("Closing dynamically deployed end point implementing interface");
+        
     }
     /** Called when there us an error on the connection from the supplied peer
      * to this end point.
@@ -110,32 +103,45 @@ class CustomEndpointUsingInterface extends Endpoint {
     public void remove() {
         System.out.println("Removed dynamically deployed interface implementing end point");
     }
-
 }
 
-class CustomEndpointUsingAdapter extends MessageHandlingEndpointAdapter {
+class MyMessageHandler implements MessageHandler.Text {
+    private Session session;
+    private String msg;
+    
+    public MyMessageHandler(Session session, String msg) {
+        this.session = session;
+        this.msg = msg;
+    }
+    
+    public void onMessage(String message) {
+        System.out.println(msg + " got message " + message);
+        try {
+            session.getRemote().sendString("PASS (" + msg + "): Thanks for your message: " + message);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        
+    }
+}
+
+class CustomEndpointUsingAdapter extends Endpoint {
     public void initialize(EndpointContext epcontext){
         System.out.println("Initializing dynamically deployed end point extending adapter");
     }
             /** Called whenever a peer first connects to this end point.*/
-    public void onOpen(RemoteEndpoint p) {
+    public void onOpen(Session session) {
         System.out.println("Opened dynamically deployed end point which extending adapter");
+        session.addMessageHandler(new MyMessageHandler(session, "dynamically deployed end point which extending adapter"));
     }
-    /** Called when a peer sends a text message to this end point.*/
-    public void onMessage(RemoteEndpoint p, String message) {
-        System.out.println("dynamically deployed end point extending adapter got message " + message);
-        try {
-            p.sendMessage("PASS (adapter extending dynamically deployed end point): Thanks for your message: " + message);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+   
     /** Called when a peer sends a binary message to this end point.*/
     public void onMessage(RemoteEndpoint p, byte[] data) {
 
     }
     /** Called when a peer disconnects from this end point.*/
-    public void onClose(RemoteEndpoint p, CloseEvent ce) {
+    @Override
+    public void onClose(Session session) {
         System.out.println("Closing dynamically deployed end point extending adapter");
     }
     /** Called when there us an error on the connection from the supplied peer

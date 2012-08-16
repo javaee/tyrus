@@ -64,7 +64,7 @@ public class GroupDrawServer {
     @WebSocketMessage
     public void shapeCreated(DrawingMessage message, GroupDrawRemote client) throws IOException, EncodeException {
         for (Session otherSession : context.getConversations()) {
-            if (!otherSession.equals(client.getConversation())) {
+            if (!otherSession.equals(client.getSession())) {
                 GroupDrawRemote gdr = (GroupDrawRemote) otherSession.getRemote();
                 //if (gdr != null) {
                     gdr.sendDrawingUpdate(message);

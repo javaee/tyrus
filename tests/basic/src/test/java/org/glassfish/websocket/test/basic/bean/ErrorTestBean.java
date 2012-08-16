@@ -67,7 +67,7 @@ public class ErrorTestBean {
     public void handleError(Exception e, RemoteEndpoint p) {
         try {
             System.out.println("############################################handleError");
-            remote.sendMessage("Error");
+            remote.sendString("Error");
         } catch (Exception ee) {
 
             System.out.println("I give up");

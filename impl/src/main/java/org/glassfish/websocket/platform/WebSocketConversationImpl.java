@@ -130,7 +130,9 @@ public class WebSocketConversationImpl implements Session {
     @Override
     public void close(CloseReason closeReason) throws IOException {
         this.closeReason = closeReason;
-        getWebSocketWrapper().doClose(closeReason.getCode().getCode(), closeReason.getReasonPhrase());
+        getWebSocketWrapper().close(closeReason);
+        
+        
     }
 
     @Override
@@ -197,6 +199,17 @@ public class WebSocketConversationImpl implements Session {
     public URI getRequestURI() {
         if (true) throw new UnsupportedOperationException();
         return null;
+    }
+    
+    void notifyMessageHandlers(String message) {
+        for (MessageHandler mh : this.messageHandlers) {
+            if (mh instanceof MessageHandler.Text) {
+                System.out.println("Notify " + mh + " of " + message);
+                ((MessageHandler.Text) mh).onMessage(message);
+            } else {
+                throw new UnsupportedOperationException("don't handle types other than MessageHandler.Text so far.");
+            }
+        }
     }
     
     

@@ -82,21 +82,21 @@ public class Quotes implements Broadcaster {
             this.initThread();
         } else if (message.startsWith("add:")) {
             String symbol = message.substring(4, message.trim().length());
-            HttpSession httpSession = remote.getConversation().getHttpSession();
+            HttpSession httpSession = remote.getSession().getHttpSession();
             ApplicationPreferences preferences = (ApplicationPreferences) httpSession.getAttribute(ApplicationPreferences.APP_PREFERENCES);
             preferences.addTicker(symbol);
             Buddies buddies = (Buddies) context.getProperties().get(Buddies.BUDDIES);
             buddies.broadcastActivity(httpSession, Activity.ADDED, symbol);
         } else if (message.startsWith("remove:")) {
             String symbol = message.substring(7, message.trim().length());
-            HttpSession httpSession = remote.getConversation().getHttpSession();
+            HttpSession httpSession = remote.getSession().getHttpSession();
             ApplicationPreferences preferences = (ApplicationPreferences) httpSession.getAttribute(ApplicationPreferences.APP_PREFERENCES);
             preferences.removeTicker(symbol);
             Buddies buddies = (Buddies) context.getProperties().get(Buddies.BUDDIES);
             buddies.broadcastActivity(httpSession, Activity.REMOVED, symbol);
         } else {
             try {
-                remote.getConversation().close(new CloseReason(CloseReason.Code.NORMAL_CLOSURE, "User logged off"));
+                remote.getSession().close(new CloseReason(CloseReason.Code.NORMAL_CLOSURE, "User logged off"));
             } catch (IOException ioe) {}
             if (myContext.getConversations().size() == 0 && this.updateThread != null) {
                 this.updateThread.halt();

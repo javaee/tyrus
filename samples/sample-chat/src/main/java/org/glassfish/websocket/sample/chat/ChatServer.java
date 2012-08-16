@@ -103,7 +103,7 @@ public class ChatServer {
     @WebSocketClose
     public void handleClientClose(ChatClientRemote ccr) {
         logger.info("The web socket closed");
-        String username = (String) ccr.getConversation().XXgetProperties().get("username");
+        String username = (String) ccr.getSession().XXgetProperties().get("username");
         if (username != null) {
             this.removeUserAndBroadcast(username);
             this.addToTranscriptAndNotify(username, " has just left...rather abruptly !");
@@ -186,7 +186,7 @@ public class ChatServer {
                 return this.registerNewUsername(newUsername + "1", chatClient);
             }
         }
-        chatClient.getConversation().XXgetProperties().put("username", newUsername);
+        chatClient.getSession().XXgetProperties().put("username", newUsername);
         return newUsername;
     }
 }

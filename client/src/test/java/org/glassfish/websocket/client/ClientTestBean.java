@@ -71,7 +71,7 @@ public class ClientTestBean {
     public void onOpen(ClientTestRemote p) {
         try {
             if(messageType){
-                p.sendMessage(SENT_MESSAGE);
+                p.sendString(SENT_MESSAGE);
             }else{
                 p.sendTestMessage(new TestMessage(SENT_TEST_MESSAGE));
             }

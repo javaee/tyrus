@@ -54,7 +54,7 @@ public class SessionAndContextsTest {
     public String handleMessage(String s, RemoteEndpoint remote) {
 
         String ret = "I have: <br>";
-        ret = ret + remote.getConversation() + "<br>";
+        ret = ret + remote.getSession() + "<br>";
         ret = ret + remote.getContext() + "<br>";
         ret = ret + remote.getContext().getConversations() + "<br>";
         ret = ret + remote.getContext().getContainerContext() + "<br>";

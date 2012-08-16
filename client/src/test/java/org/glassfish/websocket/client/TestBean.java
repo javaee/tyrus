@@ -60,7 +60,7 @@ public class TestBean {
 
             System.out.println("##### Test Bean: Received message: "+message);
 
-            p.sendMessage(message);
+            p.sendString(message);
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -59,6 +59,7 @@ public class TwoMethodRemoteTestBean {
             remote.sendEncodedMessage(eMessage);
             Thread.sleep(200);
             remote.sendStringA(message);
+            System.out.println("Blah");
         } catch (Exception e) {
             e.printStackTrace();
         }

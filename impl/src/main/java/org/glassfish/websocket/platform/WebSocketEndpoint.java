@@ -64,23 +64,16 @@ import org.glassfish.websocket.spi.SPIRemoteEndpoint;
 public class WebSocketEndpoint implements SPIEndpoint {
 
     private String path; // this is relative to the servlet context path
-    private Object myBean;
-    private Set<Class<?>> decoders;
-    private Set<Class<?>> encoders;
+    private Model model;
+
     private Set<Class<?>> allDecoders = Collections.newSetFromMap(new ConcurrentHashMap<Class<?>, Boolean>());
     private Set<Class<?>> allEncoders = Collections.newSetFromMap(new ConcurrentHashMap<Class<?>, Boolean>());
     private EndpointContextImpl endpointContext;
     private HttpSession httpSessionForNextOnConnect = null;
     private String originAddressForNextOnConnect = null;
     private String fullPathForNextOnConnect = "";
-    private List supportedSubprotocols = new ArrayList();
-    private Set<Method> onOpenMethods;
-    private Set<Method> onCloseMethods;
-    private Set<Method> onErrorMethods;
-    private ArrayList<Method> onMessageMethods;
-    private Field contextField;
-    private Class remoteInterface;
-    private boolean server = true;
+    private boolean isServer = true;
+    
 
     public WebSocketEndpoint(ServerContainer containerContext) {
         this.endpointContext = new EndpointContextImpl(containerContext, this);
@@ -88,35 +81,30 @@ public class WebSocketEndpoint implements SPIEndpoint {
 
     public void doInit(String subPath,Model model) {
         if (!model.getRemoteInterface().isInterface()) {
-            throw new IllegalArgumentException(remoteInterface + " is not an interface");
+            throw new IllegalArgumentException(model.getRemoteInterface() + " is not an interface");
         }
         this.setPath(subPath);
-        this.setBean(model.getInstance());
-        this.setEncoders(model.getEncoders());
-        this.setDecoders(model.getDecoders());
-        this.onOpenMethods = model.getOnOpenMethods();
-        this.onCloseMethods = model.getOnCloseMethods();
-        this.onErrorMethods = model.getOnErrorMethods();
-        this.onMessageMethods = new ArrayList<Method>(model.getOnMessageMethods());
-        Collections.sort(this.onMessageMethods,new MethodComparator());
-        this.contextField = model.getContextField();
-        this.supportedSubprotocols = model.getSubprotocols();
-        this.remoteInterface = model.getRemoteInterface();
+        this.model = model;
+        
         this.init();
+    }
+    
+    boolean isServer() {
+        return this.isServer;
     }
 
     public void doInit(String subPath,Model model, Boolean server) {
-        this.server = server;
+        this.isServer = server;
         doInit(subPath,model);
     }
 
     private void init() {
-        if (this.contextField != null) {
+        if (this.model.getContextField() != null) {
             try {
-                if (!contextField.isAccessible()) {
-                    contextField.setAccessible(true);
+                if (!model.getContextField().isAccessible()) {
+                    model.getContextField().setAccessible(true);
                 }
-                this.contextField.set(myBean, this.getEndpointContext());
+                this.model.getContextField().set(model.getBean(), this.getEndpointContext());
             } catch (Exception e) {
                 throw new RuntimeException("Oops, error setting context");
             }
@@ -129,17 +117,6 @@ public class WebSocketEndpoint implements SPIEndpoint {
         this.path = path;
     }
 
-    protected void setEncoders(Set<Class<?>> encoders) {
-        this.encoders = encoders;
-    }
-
-    protected void setDecoders(Set<Class<?>> decoders) {
-        this.decoders = decoders;
-    }
-
-    protected void setBean(Object myBean) {
-        this.myBean = myBean;
-    }
 
     // rudimentary path matching algorithm
     protected boolean doesPathMatch(String dynamicPath) {
@@ -157,7 +134,7 @@ public class WebSocketEndpoint implements SPIEndpoint {
 
 
     private void initAllEncoders() {
-        allEncoders.addAll(encoders);
+        allEncoders.addAll(model.getEncoders());
         allEncoders.add(org.glassfish.websocket.platform.encoders.StringEncoderNoOp.class);
         allEncoders.add(org.glassfish.websocket.platform.encoders.BooleanEncoder.class);
         allEncoders.add(org.glassfish.websocket.platform.encoders.ByteEncoder.class);
@@ -171,7 +148,7 @@ public class WebSocketEndpoint implements SPIEndpoint {
     }
 
     private void initAllDecoders() {
-        allDecoders.addAll(decoders);
+        allDecoders.addAll(this.model.getDecoders());
         allDecoders.add(org.glassfish.websocket.platform.decoders.StringDecoderNoOp.class);
         allDecoders.add(org.glassfish.websocket.platform.decoders.BooleanDecoder.class);
         allDecoders.add(org.glassfish.websocket.platform.decoders.IntegerDecoder.class);
@@ -241,7 +218,7 @@ public class WebSocketEndpoint implements SPIEndpoint {
                     Class returnC = m.getReturnType();
                     //System.out.println("Return decoder " + returnC);
                     ClassLoader cl = null;
-                    if(server){
+                    if(isServer){
                         cl = ((ContainerContextImpl) endpointContext.getContainerContext()).getApplicationLevelClassLoader();
                     }else{
                         cl = nextClass.getClassLoader();
@@ -328,7 +305,7 @@ public class WebSocketEndpoint implements SPIEndpoint {
     public List<String> getSupportedProtocols(List<String> subProtocol) {
         List<String> supported = new ArrayList<String>();
         for (String nextRequestedProtocolName : subProtocol) {
-            if (this.supportedSubprotocols.contains(nextRequestedProtocolName)) {
+            if (this.model.getSubprotocols().contains(nextRequestedProtocolName)) {
                 supported.add(nextRequestedProtocolName);
             }
         }
@@ -346,7 +323,7 @@ public class WebSocketEndpoint implements SPIEndpoint {
          ServerCookie sc = cookies.getCookie(i);
          //System.out.println("---" + sc.getValue());
          String potentialSessionID = sc.getValue().toString();
-         HttpSession session = HttpSessionManager.getInstance().findSessionByID(potentialSessionID);
+         HttpSession session = HttpSessionManager.getBean().findSessionByID(potentialSessionID);
          if (session != null) {
          //System.out.println("got " + session);
          return session;
@@ -369,15 +346,15 @@ public class WebSocketEndpoint implements SPIEndpoint {
         wsw.setAddress(this.originAddressForNextOnConnect);
         if (ContainerContextImpl.WEB_MODE) {
             if (httpSessionForNextOnConnect != null) {
-                ((WebSocketConversationImpl) wsw.getConversation()).setHttpSession(httpSessionForNextOnConnect);
+                ((WebSocketConversationImpl) wsw.getSession()).setHttpSession(httpSessionForNextOnConnect);
                 httpSessionForNextOnConnect = null;
             } else {
 //                throw new RuntimeException("Failed to connect the http session with this web socket session");
             }
         }
-        if(server){
+        if (isServer){
             this.onGeneratedBeanConnect(wsw);
-        }else{
+        } else {
             this.onGeneratedBeanConnect(peer);
         }
 
@@ -386,45 +363,46 @@ public class WebSocketEndpoint implements SPIEndpoint {
     public void onMessage(SPIRemoteEndpoint gs, byte[] messageBytes) {
         throw new UnsupportedOperationException("Not yet implemented");
     }
-
-    @Override
-    public void onMessage(SPIRemoteEndpoint gs, String messageString) {
-        RemoteEndpoint peer = getPeer(gs);
-        for (Method m : this.onMessageMethods) {
+    
+    
+    void doIt(RemoteEndpoint peer, String messageString) {
+        //RemoteEndpoint peer = getPeer(gs);
+        for (Method m : this.model.getOnMessageMethods()) {
             // check path...
             try {
                 WebSocketMessage wsm = m.getAnnotation(WebSocketMessage.class);
                 String dynamicPath = wsm.dynamicPath();
 
-                if (!server || this.doesPathMatch(dynamicPath)) {
+                if (!isServer || this.doesPathMatch(dynamicPath)) {
 
                     int noOfParameters = m.getParameterTypes().length;
                     Object decodedMessageObject = this.doDecode(messageString, m.getParameterTypes()[0].getName());
 
                     if (decodedMessageObject != null) {
                         Object returned = null;
-                        //System.out.println("Invoke " + m.getName() + " on " + this.myBean + " with " + m.getParameterTypes().length + " parameters");
-                        //System.out.println("decoded message object is " + decodedMessageObject);
+                        System.out.println("Invoke " + m.getName() + " on " + this.model.getBean() + " with " + m.getParameterTypes().length + " parameters");
+                        System.out.println("decoded message object is " + decodedMessageObject);
                         if (noOfParameters == 1) {
-                            returned = m.invoke(this.myBean, decodedMessageObject);
+                            returned = m.invoke(this.model.getBean(), decodedMessageObject);
                         } else if (noOfParameters == 2) {
                             if (m.getParameterTypes()[1].equals(String.class)) {
-                                returned = m.invoke(this.myBean, decodedMessageObject, dynamicPath);
+                                returned = m.invoke(this.model.getBean(), decodedMessageObject, dynamicPath);
                             } else {
-                                returned = m.invoke(this.myBean, decodedMessageObject, peer);
+                                System.out.println("Peer is " + peer);
+                                returned = m.invoke(this.model.getBean(), decodedMessageObject, peer);
                             }
                         } else if (noOfParameters == 3) {
                             if (m.getParameterTypes()[1].equals(String.class)) {
-                                returned = m.invoke(this.myBean, decodedMessageObject, dynamicPath, peer);
+                                returned = m.invoke(this.model.getBean(), decodedMessageObject, dynamicPath, peer);
                             } else {
-                                returned = m.invoke(this.myBean, decodedMessageObject, peer, dynamicPath);
+                                returned = m.invoke(this.model.getBean(), decodedMessageObject, peer, dynamicPath);
                             }
                         } else {
                             throw new RuntimeException("can't deal with " + noOfParameters + " parameters.");
                         }
                         if (returned != null) {
                             String messageToSendAsString = this.doEncode(returned);
-                            peer.sendMessage(messageToSendAsString);
+                            peer.sendString(messageToSendAsString);
 //                            one / all messages are called.
 //                            break;
                         }
@@ -440,6 +418,15 @@ public class WebSocketEndpoint implements SPIEndpoint {
             }
         }
     }
+    
+
+    @Override
+    public void onMessage(SPIRemoteEndpoint gs, String messageString) {
+        RemoteEndpoint peer = getPeer(gs);
+        
+        this.doIt( peer, messageString);
+        
+    }
 
     @Override
     public void onClose(SPIRemoteEndpoint gs) {
@@ -447,11 +434,11 @@ public class WebSocketEndpoint implements SPIEndpoint {
     }
 
     public void handleGeneratedBeanException(RemoteEndpoint peer, Exception e) {
-        for (Method m : this.onErrorMethods) {
+        for (Method m : this.model.getOnErrorMethods()) {
             try {
                 System.out.println("Error replying to client " + e.getMessage());
                 e.printStackTrace();
-                m.invoke(myBean, e, peer.getConversation());
+                m.invoke(model.getBean(), e, peer.getSession());
             } catch (Exception ex) {
                 ex.printStackTrace();
                 throw new RuntimeException("Error invoking it");
@@ -460,10 +447,11 @@ public class WebSocketEndpoint implements SPIEndpoint {
     }
 
     public void onGeneratedBeanConnect(RemoteEndpoint peer) {
-        for (Method m : this.onOpenMethods) {
+        
+
+        for (Method m : this.model.getOnOpenMethods()) {
             try {
-                //System.out.println("invoke: " + m + " on " + myBean);
-                m.invoke(myBean, peer);
+                m.invoke(model.getBean(), peer);
             } catch (Exception e) {
                 e.printStackTrace();
                 throw new RuntimeException("Error invoking it");
@@ -473,9 +461,9 @@ public class WebSocketEndpoint implements SPIEndpoint {
     }
 
     public void onGeneratedBeanClose(RemoteEndpoint peer) {
-        for (Method m : this.onCloseMethods) {
+        for (Method m : this.model.getOnCloseMethods()) {
             try {
-                m.invoke(myBean, peer);
+                m.invoke(model.getBean(), peer);
             } catch (Exception e) {
                 e.printStackTrace();
                 throw new RuntimeException("Error invoking it");
@@ -484,7 +472,7 @@ public class WebSocketEndpoint implements SPIEndpoint {
     }
 
     protected final RemoteEndpoint getPeer(SPIRemoteEndpoint gs) {
-        return WebSocketWrapper.getPeer(gs, this, remoteInterface,server);
+        return WebSocketWrapper.getPeer(gs, this, model.getRemoteInterface(), isServer);
     }
 
     /**

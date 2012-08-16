@@ -70,7 +70,7 @@ public class Buddies {
         if (thiz.equals("register")) {
 
         } else {
-            this.logout(remote.getConversation().getHttpSession());
+            this.logout(remote.getSession().getHttpSession());
         }
         this.broadcast();
     }
@@ -87,7 +87,7 @@ public class Buddies {
          activities.add(activity);
          for (Session wsSession : myContext.getConversations()) {
              BuddiesRemote remote = (BuddiesRemote) wsSession.getRemote();
-             if (remote.getConversation().getHttpSession() != httpSession) {}
+             if (remote.getSession().getHttpSession() != httpSession) {}
              try {
                 remote.sendActivityUpdate(activities);
              } catch (Exception e) {

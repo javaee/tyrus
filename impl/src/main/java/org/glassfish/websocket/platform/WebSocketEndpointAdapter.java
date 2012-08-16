@@ -40,8 +40,8 @@
 
 package org.glassfish.websocket.platform;
 
-import org.glassfish.websocket.api.ServerContainer;
 import org.glassfish.websocket.api.Endpoint;
+import org.glassfish.websocket.api.ServerContainer;
 import org.glassfish.websocket.spi.SPIRemoteEndpoint;
 
 /**
@@ -64,22 +64,24 @@ public class WebSocketEndpointAdapter extends WebSocketEndpoint {
 
     public void onConnect(SPIRemoteEndpoint gs) {
         super.onConnect(gs);
-        this.endpoint.onOpen(getPeer(gs).getConversation());
+        getPeer(gs).getSession().addMessageHandler(new MessageHandlerTextImpl(this.endpoint, getPeer(gs)));
+        this.endpoint.onOpen(getPeer(gs).getSession());
     }
 
     @Override
     public void onMessage(SPIRemoteEndpoint gs, String messageString) {
-        this.endpoint.onMessage(getPeer(gs), messageString);
+        ((WebSocketConversationImpl) getPeer(gs).getSession()).notifyMessageHandlers(messageString);
+        //this.endpoint.onMessage(getPeer(gs), messageString);
     }
 
     public void onMessage(SPIRemoteEndpoint gs, byte[] data) {
-        this.endpoint.onMessage(getPeer(gs), data);
+        throw new UnsupportedOperationException("Not implemented yet");
     }
 
     @Override
     public void onClose(SPIRemoteEndpoint gs) {
         super.onClose(gs);
-        this.endpoint.onClose(getPeer(gs).getConversation()); 
+        this.endpoint.onClose(getPeer(gs).getSession()); 
     }
 
     @Override

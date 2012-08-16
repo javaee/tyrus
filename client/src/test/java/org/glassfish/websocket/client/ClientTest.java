@@ -88,6 +88,7 @@ public class ClientTest {
                 public void onMessage(SPIRemoteEndpoint gs, String message) {
                     receivedMessage = message;
                     messageLatch.countDown();
+                    System.out.println("Received message = " + message);
                 }
             });
             messageLatch.await(5, TimeUnit.SECONDS);

@@ -87,7 +87,7 @@ public class Twitter implements Broadcaster {
             this.initThread();
         } else {
             try {
-                tr.getConversation().close(new CloseReason(CloseReason.Code.NORMAL_CLOSURE, "User logged off"));
+                tr.getSession().close(new CloseReason(CloseReason.Code.NORMAL_CLOSURE, "User logged off"));
             } catch (IOException ioe ) {}
 
             if (myContext.getConversations().size() == 0 && this.updateThread != null) {

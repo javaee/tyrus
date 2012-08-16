@@ -41,6 +41,7 @@
 package org.glassfish.websocket.api;
 
 import java.io.*;
+import java.util.concurrent.Future;
 
 /**
  * An object that represents the 'other end' of the web socket conversation
@@ -48,29 +49,36 @@ import java.io.*;
  * @author dannycoward
  */
 
-public interface RemoteEndpoint {
-    /** Return the context of the end point that this remote is a peer of
-     * in a web socket conversation.
-     * @return
+public interface RemoteEndpoint<T> {
+    /** No
      */
     public EndpointContext getContext();
-    /** Return the conversation to which this remote peer is part of.*/
-    public Session getConversation();
-    /** Send a message to the remote peer this object represents.*/
-    public void sendMessage(String data) throws IOException;
-    /** Send a message to the remote peer this object represents.*/
-    public void sendMessage(byte[] data) throws IOException;
-    /** Close this remote object. i.e. end the conversation, close the underlying
-     * web socket connection.*/
-    public void doClose(int code, String reason) throws IOException;
-    /** Test whether this remote object is active, i.e. the underlying web
-     * socket connection which connects the remote peer is open or not.
-     * @return
-     */
-    public boolean isConnected();
-    /** Obtain the remote address of the remote peer. This is obtained from
-     * the initial web socket handshake ( the 'Origin' header ).
-     * @return
-     */
-    public String getAddress();
+    /** No*/
+    public Session getSession();
+    /** Adapt.*/
+    public void sendString(String data) throws IOException;
+    /** Adapt.*/
+    public void sendBytes(byte[] data) throws IOException;
+    
+    public void sendPartialString(String fragment, boolean isLast) throws IOException;
+    
+    public void sendPartialBytes(byte[] partialByte, boolean isLast) throws IOException; // or Iterable<byte[]>
+
+    public OutputStream getSendStream() throws IOException;
+    public Writer getSendWriter() throws IOException;
+
+    //public void sendObject(T o) throws IOException, EncodeException;
+
+    public Future<SendResult> sendString(String text, SendHandler completion);
+    public Future<SendResult> sendBytes(byte[] data, SendHandler completion); 
+    //public Future<SendResult> sendObject(T o, SendHandler handler);
+    public void sendPing(byte[] applicationData);
+    public void sendPong(byte[] applicationData);
+    
+ 
+
+    
+    
+ 
+    
 }

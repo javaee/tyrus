@@ -55,7 +55,7 @@ public class HttpSessionTest {
 
             @WebSocketMessage
     public String doThis(String thiz, RemoteEndpoint peer) {
-        HttpSession httpSession = peer.getConversation().getHttpSession();
+        HttpSession httpSession = peer.getSession().getHttpSession();
         return "Obtained Http Session with ID: " + httpSession.getId();
     }
 }

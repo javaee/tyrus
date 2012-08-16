@@ -64,7 +64,7 @@ public class Model {
     private Field contextField;
     private List<String> subprotocols;
     private Class remoteInterface;
-    private Object instance;
+    private Object myBean;
 
     public Model(Class<?> annotatedClass){
         this(annotatedClass, null);
@@ -86,14 +86,14 @@ public class Model {
         remoteInterface = parseRemoteInterface(annotatedClass);
         if(instance == null){
             try {
-                this.instance = annotatedClass.newInstance();
+                this.myBean = annotatedClass.newInstance();
             } catch (InstantiationException e) {
                 e.printStackTrace();
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             }
         }else{
-            this.instance = instance;
+            this.myBean = instance;
         }
     }
 
@@ -174,8 +174,8 @@ public class Model {
         return onMessageMethods;
     }
 
-    public Object getInstance() {
-        return instance;
+    public Object getBean() {
+        return myBean;
     }
 
     public Set<Class<?>> getEncoders() {

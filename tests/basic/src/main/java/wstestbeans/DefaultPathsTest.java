@@ -63,7 +63,7 @@ public class DefaultPathsTest {
         }
         @WebSocketMessage
         public void onMessage(String s, RemoteEndpoint remote) throws IOException, EncodeException {
-            remote.sendMessage("Passed the default path test");
+            remote.sendString("Passed the default path test");
         }
 
         @WebSocketClose

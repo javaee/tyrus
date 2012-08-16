@@ -40,7 +40,7 @@
 
 package org.glassfish.websocket.platform;
 
-import org.glassfish.websocket.api.Session;
+import org.glassfish.websocket.api.*;
 import org.glassfish.websocket.api.EncodeException;
 import org.glassfish.websocket.api.EndpointContext;
 import org.glassfish.websocket.api.RemoteEndpoint;
@@ -48,7 +48,7 @@ import org.glassfish.websocket.api.Encoder;
 import org.glassfish.websocket.api.annotations.WebSocketRemote;
 import org.glassfish.websocket.spi.SPIRemoteEndpoint;
 
-import java.io.IOException;
+import java.io.*;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -60,6 +60,7 @@ import java.util.List;
 import java.util.Set;
 
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.*;
 
 
 /**
@@ -68,7 +69,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Danny Coward
  * @author Martin Matula (martin.matula at oracle.com)
  */
-public final class WebSocketWrapper implements RemoteEndpoint, InvocationHandler {
+public final class WebSocketWrapper<T> implements RemoteEndpoint, InvocationHandler {
     private final SPIRemoteEndpoint providedRemoteEndpoint;
     private final WebSocketConversationImpl webSocketSession;
     private final EndpointContextImpl webSocketContext;
@@ -128,7 +129,6 @@ public final class WebSocketWrapper implements RemoteEndpoint, InvocationHandler
 
     // *** RemoteEndpoint interface implementation ***
 
-    @Override
     public String getAddress() {
         return this.clientAddress;
     }
@@ -139,23 +139,64 @@ public final class WebSocketWrapper implements RemoteEndpoint, InvocationHandler
     }
 
     @Override
-    public Session getConversation() {
+    public Session getSession() {
         return this.webSocketSession;
     }
 
-    @Override
     public boolean isConnected() {
         return this.providedRemoteEndpoint.isConnected();
     }
 
     @Override
-    public void sendMessage(String data) throws IOException {
+    public void sendString(String data) throws IOException {
         this.providedRemoteEndpoint.send(data);
     }
 
     @Override
-    public void sendMessage(byte[] data) throws IOException {
+    public void sendBytes(byte[] data) throws IOException {
         this.providedRemoteEndpoint.send(data);
+    }
+    
+    public void sendPartialString(String fragment, boolean isLast) throws IOException {
+        if (true) throw new UnsupportedOperationException("Not yet implemented");
+    }
+    
+    
+    public void sendPartialBytes(byte[] partialByte, boolean isLast) throws IOException {
+        if (true) throw new UnsupportedOperationException("Not yet implemented");
+    }
+
+    public OutputStream getSendStream() throws IOException {
+        if (true) throw new UnsupportedOperationException("Not yet implemented");
+        return null;
+        
+    }
+    public Writer getSendWriter() throws IOException {
+        if (true) throw new UnsupportedOperationException("Not yet implemented");
+        return null;
+    }
+
+    public void sendObject(T o) throws IOException, EncodeException {
+        if (true) throw new UnsupportedOperationException("Not yet implemented");
+    }
+
+    public Future<SendResult> sendString(String text, SendHandler completion) {
+        if (true) throw new UnsupportedOperationException("Not yet implemented");
+        return null;
+    }
+    public Future<SendResult> sendBytes(byte[] data, SendHandler completion) {
+        if (true) throw new UnsupportedOperationException("Not yet implemented");
+        return null;
+    } 
+    public Future<SendResult> sendObject(T o, SendHandler handler) {
+        if (true) throw new UnsupportedOperationException("Not yet implemented");
+        return null;
+    }
+    public void sendPing(byte[] applicationData) {
+        if (true) throw new UnsupportedOperationException("Not yet implemented");
+    }
+    public void sendPong(byte[] applicationData) {
+        if (true) throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
@@ -163,10 +204,6 @@ public final class WebSocketWrapper implements RemoteEndpoint, InvocationHandler
         return "Wrapped: " + getClass().getSimpleName();
     }
 
-    @Override
-    public void doClose(int code, String reason) throws IOException {
-        this.providedRemoteEndpoint.close(code, reason);
-    }
 
     // *** InvocationHandler implementation ***
 
@@ -233,7 +270,7 @@ public final class WebSocketWrapper implements RemoteEndpoint, InvocationHandler
     private static void weedExpiredWebSocketWrappers() {
         Set<RemoteEndpoint> expired = new HashSet<RemoteEndpoint>();
         for (RemoteEndpoint wsw : wrappers) {
-            if (!wsw.isConnected()) {
+            if (!(wsw).getSession().isActive()) {
                 expired.add(wsw);
             }
         }
@@ -245,7 +282,7 @@ public final class WebSocketWrapper implements RemoteEndpoint, InvocationHandler
     private void sendPrimitiveMessage(Object data) throws IOException, EncodeException {
 
         if (isPrimitiveData(data)) {
-            this.sendMessage(data.toString());
+            this.sendString(data.toString());
         } else {
             throw new EncodeException("object " + data + " is not a primitive type.", data);
         }
@@ -254,7 +291,7 @@ public final class WebSocketWrapper implements RemoteEndpoint, InvocationHandler
     @SuppressWarnings("unchecked")
     private void sendPolymorphic(Object o) throws IOException, EncodeException {
         if (o instanceof String) {
-            this.sendMessage((String) o);
+            this.sendString((String) o);
             return;
         }
         if (encoders != null) {
@@ -269,7 +306,7 @@ public final class WebSocketWrapper implements RemoteEndpoint, InvocationHandler
                             if (m != null) {
                                 Encoder.Text te = (Encoder.Text) encoder.newInstance();
                                 String toSendString = te.encode(o);
-                                this.sendMessage(toSendString);
+                                this.sendString(toSendString);
                                 return;
                             }
                         } catch (NoSuchMethodException nsme) {
@@ -306,5 +343,9 @@ public final class WebSocketWrapper implements RemoteEndpoint, InvocationHandler
                 dataClass.equals(Double.class) ||
                 dataClass.equals(Boolean.class) ||
                 dataClass.equals(Character.class));
+    }
+    
+    public void close(CloseReason reason) throws IOException {
+        this.providedRemoteEndpoint.close(reason.getCode().getCode(), reason.getReasonPhrase());
     }
 }

@@ -41,12 +41,12 @@
 package org.glassfish.websocket.api;
 
 /**
- * Developers can subclass this no-op implementation of the Endpoint interface
+ * Developers can subclass this no-op implementation of the EndpointAndSimpleMessageHandler interface
  * as a convenient way not to have to implement all the methods; just override the
  * ones you want to do something.
  * @author dannycoward
  */
-public class MessageHandlingEndpointAdapter extends Endpoint {
+ class MessageHandlingEndpointAdapter extends EndpointAndSimpleMessageHandler {
 
     /** Called whenever a peer first connects to this end point.*/
     @Override
@@ -56,6 +56,7 @@ public class MessageHandlingEndpointAdapter extends Endpoint {
     /** Called when a peer sends a text message to this end point.*/
     @Override
     public void onMessage(RemoteEndpoint p, String message) {
+        
     }
     /** Called when a peer sends a binary message to this end point.*/
     @Override

@@ -64,7 +64,7 @@ public class ErrorTest {
     @WebSocketError
     public void handleError(Exception e, RemoteEndpoint p) {
         try {
-            remote.sendMessage("Pass: got an error(" + e.getMessage() + ") from " + p);
+            remote.sendString("Pass: got an error(" + e.getMessage() + ") from " + p);
         } catch (Exception ee) {
 
             System.out.println("I give up");

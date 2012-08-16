@@ -37,27 +37,19 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.websocket.platform;
+package org.glassfish.websocket.api;
 
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.List;
-import java.util.Set;
-/**
- *
+/*
+ * For developers who would rather implement an interface than
+ * use annotations, here is an interface that can be implemented
+ * to make an end point.
+
  * @author dannycoward
  */
-public interface Initable {
-    public void doInit(String subPath, 
-                        Set decoders, 
-                        Set encoders, 
-                        Object beanInstance, 
-                        Set methods, 
-                        Set<Method> onOpenMethods,
-                        Set<Method> onCloseMethods,
-                        Set<Method> onErrorMethods,
-                        Set<Method> onMessageMethods,
-                        Field contextField,
-                        List<String> subprotocols,
-                        Class remoteInterface);
+ abstract class EndpointAndSimpleMessageHandler extends Endpoint {
+    /** Called when a peer sends a text message to this end point.*/
+    public void onMessage(RemoteEndpoint p, String message) {}
+    /** Called when a peer sends a binary message to this end point.*/
+    public void onMessage(RemoteEndpoint p, byte[] data) {}
+
 }
