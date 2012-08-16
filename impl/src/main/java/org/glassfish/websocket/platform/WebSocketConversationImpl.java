@@ -60,7 +60,7 @@ import org.glassfish.websocket.api.extension.Extension;
  *
  * @author Danny Coward
  */
-public class WebSocketConversationImpl implements Session<RemoteEndpoint> {
+public class WebSocketConversationImpl implements Session {
      private Map<String, Object> properties = new ConcurrentHashMap<String, Object>();
     private final long conversationID;
     private RemoteEndpoint peer;
@@ -88,18 +88,22 @@ public class WebSocketConversationImpl implements Session<RemoteEndpoint> {
         this.httpSession = httpSession;
     }
 
+    @Override
     public HttpSession getHttpSession() {
         return this.httpSession;
     }
 
+    @Override
     public String getNegotiatedSubprotocol() {
         return "not implemented";
     }
 
+    @Override
     public RemoteEndpoint getRemote() {
         return peer;
     }
     
+    @Override
     public RemoteEndpoint getRemote(Class c) {
         return peer;
     }
@@ -117,16 +121,19 @@ public class WebSocketConversationImpl implements Session<RemoteEndpoint> {
         return getWebSocketWrapper().getActivationTime();
     }
     
+    @Override
     public void close() throws IOException {
         this.close(new CloseReason(CloseReason.Code.NORMAL_CLOSURE, "no reason given"));
     }
 
     /** Closes the underlying connection this session is based upon.*/
+    @Override
     public void close(CloseReason closeReason) throws IOException {
         this.closeReason = closeReason;
         getWebSocketWrapper().doClose(closeReason.getCode().getCode(), closeReason.getReasonPhrase());
     }
 
+    @Override
     public String toString() {
         return "Session("+conversationID+", "+this.isActive()+")";
     }

@@ -83,7 +83,7 @@ public interface Session {
      * conversation was part of, if applicable.
      * @return 
      */
-    public HttpSession getSession();
+    public HttpSession getHttpSession();
     /** Close the current conversation with a normal status code and no reason phrase. */
     public void close() throws IOException;
     
