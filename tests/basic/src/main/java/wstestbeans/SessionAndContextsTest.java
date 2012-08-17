@@ -41,13 +41,13 @@
 package wstestbeans;
 
 import org.glassfish.websocket.api.annotations.WebSocketMessage;
-import org.glassfish.websocket.api.annotations.WebSocket;
+import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
 import org.glassfish.websocket.api.RemoteEndpoint;
 /**
  *
  * @author dannycoward
  */
-    @WebSocket(path="/sessionandcontexts")
+    @WebSocketEndpoint(path="/sessionandcontexts")
 public class SessionAndContextsTest {
 
         @WebSocketMessage

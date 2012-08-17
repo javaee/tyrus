@@ -41,7 +41,7 @@
 package wstestbeans.eremote;
 
 import org.glassfish.websocket.api.annotations.WebSocketMessage;
-import org.glassfish.websocket.api.annotations.WebSocket;
+import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
 import remote.EncodedRemote;
 import wstestbeans.EncodedMessage;
 
@@ -49,8 +49,8 @@ import wstestbeans.EncodedMessage;
  *
  * @author dannycoward
  */
-    @WebSocket(path="/customremote/encoded",
-            remote=remote.EncodedRemote.class)
+    @WebSocketEndpoint(path="/customremote/encoded",
+            Xremote=remote.EncodedRemote.class)
 public class Encoded {
     private String lastMessage;
 

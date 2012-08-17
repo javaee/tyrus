@@ -39,14 +39,14 @@
  */
 package wstestbeans.stin;
 
-import org.glassfish.websocket.api.annotations.WebSocket;
+import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
 import org.glassfish.websocket.api.annotations.WebSocketMessage;
 import wstestbeans.*;
 /**
  *
  * @author dannycoward
  */
-    @WebSocket(
+    @WebSocketEndpoint(
         path="/standardInputTypes/char"
     )
 public class STINChar {

@@ -40,13 +40,13 @@
 package org.glassfish.websocket.sample.simplelife;
 
 import org.glassfish.websocket.api.RemoteEndpoint;
-import org.glassfish.websocket.api.annotations.WebSocket;
+import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
 import org.glassfish.websocket.api.annotations.WebSocketClose;
 import org.glassfish.websocket.api.annotations.WebSocketMessage;
 import org.glassfish.websocket.api.annotations.WebSocketOpen;
 
 
-    @WebSocket(
+    @WebSocketEndpoint(
         path="/simplelife"
     )
 public class SimpleLifeBean {

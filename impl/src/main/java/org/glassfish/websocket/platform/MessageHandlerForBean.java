@@ -18,9 +18,9 @@ public class MessageHandlerForBean implements MessageHandler.Text {
     private Model model;
     private RemoteEndpoint peer;
     private boolean isServer;
-    private WebSocketEndpoint endpoint;
+    private WebSocketEndpointImpl endpoint;
     
-    public MessageHandlerForBean(Model model, RemoteEndpoint peer, WebSocketEndpoint endpoint) {
+    public MessageHandlerForBean(Model model, RemoteEndpoint peer, WebSocketEndpointImpl endpoint) {
         this.model = model;
         this.peer = peer;
         this.endpoint = endpoint;
@@ -34,7 +34,7 @@ public class MessageHandlerForBean implements MessageHandler.Text {
             // check path...
             try {
                 WebSocketMessage wsm = m.getAnnotation(WebSocketMessage.class);
-                String dynamicPath = wsm.dynamicPath();
+                String dynamicPath = wsm.XdynamicPath();
 
                 if (!endpoint.isServer() || this.endpoint.doesPathMatch(dynamicPath)) {
 

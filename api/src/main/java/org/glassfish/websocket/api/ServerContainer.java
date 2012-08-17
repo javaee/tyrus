@@ -50,19 +50,28 @@ import java.util.*;
  * in the runtime.
  * @author dannycoward
  */
-public interface ServerContainer {
+public interface ServerContainer extends ClientContainer {
     /** Basic transient storage of application data visible across the
      * runtime */
     public Map<String, Object> getProperties();
     /** Return the URI to this runtime.*/
     public String getPath();
-    /** Return the port on which this runtime support web sockets */
-    public int getPort();
+
     /** A list of the endpoint contexts in this container. */
     public List<EndpointContext> getEndpointContexts();
 
-    /** For dynamically registering end points.*/
+    
+    
+    /** Turn into publishServer.*/
     public void deploy(Endpoint endpoint, String path);
+    
+    /** Publish the given endpoint with the provided configuration
+     * information. 
+     * @param endpoint
+     * @param ilc 
+     */
+    public void publishServer(Endpoint endpoint, ServerConfiguration ilc);
+    
 
 
 }

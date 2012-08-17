@@ -42,7 +42,7 @@ package org.glassfish.websocket.client;
 
 
 import org.glassfish.websocket.api.RemoteEndpoint;
-import org.glassfish.websocket.api.annotations.WebSocket;
+import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
 import org.glassfish.websocket.api.annotations.WebSocketMessage;
 
 import java.io.IOException;
@@ -52,7 +52,7 @@ import java.io.IOException;
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 
-@WebSocket(path = "/echo")
+@WebSocketEndpoint(path = "/echo")
 public class TestBean {
     @WebSocketMessage
     public void helloWorld(String message, RemoteEndpoint p) {

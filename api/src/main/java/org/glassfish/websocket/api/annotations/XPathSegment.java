@@ -44,11 +44,11 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 /**
- * Used to inject the instance of the WSContext into an instance
- * variable on a web socket end point.
+ * The XPathSegment annotation is used to annotate a method parameter for a method using
+ * the WebSocketMessage annotation when it wishes to be passed path information.
  * @author dannycoward
  */
 @Retention(RetentionPolicy.RUNTIME)
-public @interface WebSocketContext {
+public @interface XPathSegment {
 
 }

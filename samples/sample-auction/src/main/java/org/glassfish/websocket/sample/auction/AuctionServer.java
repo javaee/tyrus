@@ -59,8 +59,8 @@ import java.util.logging.Logger;
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-@WebSocket(path = "/auction",
-remote = org.glassfish.websocket.sample.auction.AuctionRemoteClient.class,
+@WebSocketEndpoint(path = "/auction",
+Xremote = org.glassfish.websocket.sample.auction.AuctionRemoteClient.class,
 decoders = {org.glassfish.websocket.sample.auction.decoders.LoginRequestDecoder.class,
     org.glassfish.websocket.sample.auction.decoders.BidRequestDecoder.class,
     org.glassfish.websocket.sample.auction.decoders.LogoutRequestDecoder.class,
@@ -78,7 +78,7 @@ public class AuctionServer {
     /*
      * The Endpoint Context
      */
-    @WebSocketContext
+    @XWebSocketContext
     public EndpointContext context;
 
     /*

@@ -51,7 +51,7 @@ import org.glassfish.websocket.api.RemoteEndpoint;
  * For example: <br>
  * <p>
  * <code>
- *  &nbsp&nbsp&nbsp@WebSocketError<br>
+ *  &nbsp&nbsp&nbsp@XWebSocketError<br>
     public void handleError(Exception e, RemoteEndpoint p) {<br>
     &nbsp&nbsp&nbsp// handle the error here<br>
     }
@@ -59,5 +59,5 @@ import org.glassfish.websocket.api.RemoteEndpoint;
  * @author dannycoward
  */
 @Retention(RetentionPolicy.RUNTIME)
-public @interface WebSocketError {
+public @interface XWebSocketError {
 }

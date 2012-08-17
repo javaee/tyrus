@@ -42,9 +42,9 @@ package wstestbeans;
 
 
 import org.glassfish.websocket.api.annotations.WebSocketMessage;
-import org.glassfish.websocket.api.annotations.WebSocket;
+import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
 
-    @WebSocket(
+    @WebSocketEndpoint(
             path="/decodermultiplexer",
             decoders={enc.DecoderA.class, enc.DecoderB.class}
             )

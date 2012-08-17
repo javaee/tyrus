@@ -41,13 +41,13 @@
 package wstestbeans;
 
 import org.glassfish.websocket.api.annotations.WebSocketMessage;
-import org.glassfish.websocket.api.annotations.WebSocket;
+import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
 import org.glassfish.websocket.api.EndpointContext;
 import org.glassfish.websocket.api.RemoteEndpoint;
 
 /* @author dannycoward */
 
-    @WebSocket(
+    @WebSocketEndpoint(
         path="/api"
     )
 public class APITest {
@@ -65,7 +65,6 @@ public class APITest {
 
         s = s + "<br>context container context ? " + context.getContainerContext();
         s = s + "<br>context container context path ? " + context.getContainerContext().getPath();
-        s = s + "<br>context container context port ? " + context.getContainerContext().getPort();
         s = s + "<br>context container context properties ? " + context.getContainerContext().getProperties();
         s = s + "<br>converation ? " + remote.getSession();
         s = s + "<br>converation properties ? " + remote.getSession().XXgetProperties();

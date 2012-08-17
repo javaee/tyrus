@@ -44,13 +44,13 @@ package org.glassfish.websocket.sample.draw;
 
 import org.glassfish.websocket.api.RemoteEndpoint;
 import org.glassfish.websocket.api.EncodeException;
-import org.glassfish.websocket.api.annotations.WebSocketRemote;
+import org.glassfish.websocket.api.annotations.XWebSocketRemote;
 import java.io.*;
 /**
  *
  * @author dannycoward
  */
-        @WebSocketRemote(
+        @XWebSocketRemote(
              encoders={org.glassfish.websocket.sample.draw.DrawingMessage.class}
              )
 

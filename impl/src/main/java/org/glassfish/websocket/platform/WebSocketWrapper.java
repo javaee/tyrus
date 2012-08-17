@@ -45,7 +45,7 @@ import org.glassfish.websocket.api.EncodeException;
 import org.glassfish.websocket.api.EndpointContext;
 import org.glassfish.websocket.api.RemoteEndpoint;
 import org.glassfish.websocket.api.Encoder;
-import org.glassfish.websocket.api.annotations.WebSocketRemote;
+import org.glassfish.websocket.api.annotations.XWebSocketRemote;
 import org.glassfish.websocket.spi.SPIRemoteEndpoint;
 
 import java.io.*;
@@ -64,7 +64,7 @@ import java.util.concurrent.*;
 
 
 /**
- * Service class for the WebSocketEndpoint.
+ * Service class for the WebSocketEndpointImpl.
  *
  * @author Danny Coward
  * @author Martin Matula (martin.matula at oracle.com)
@@ -83,7 +83,7 @@ public final class WebSocketWrapper<T> implements RemoteEndpoint, InvocationHand
 
     @SuppressWarnings("unchecked")
 
-    public static <T extends RemoteEndpoint> T getPeer(SPIRemoteEndpoint socket, WebSocketEndpoint application, Class<T> remoteInterface, boolean serverEndpoint) {
+    public static <T extends RemoteEndpoint> T getPeer(SPIRemoteEndpoint socket, WebSocketEndpointImpl application, Class<T> remoteInterface, boolean serverEndpoint) {
 
         T result = (T) WebSocketWrapper.findWebSocketWrapper(socket);
         if (result == null) {
@@ -91,11 +91,11 @@ public final class WebSocketWrapper<T> implements RemoteEndpoint, InvocationHand
             if (RemoteEndpoint.class == remoteInterface) {
                 result = (T) new WebSocketWrapper(socket, application.getEndpointContext(), null);
             } else if (RemoteEndpoint.class.isAssignableFrom(remoteInterface)) {
-                WebSocketRemote wsrAnnotation = remoteInterface.getAnnotation(WebSocketRemote.class);
+                XWebSocketRemote wsrAnnotation = remoteInterface.getAnnotation(XWebSocketRemote.class);
                 Class[] encoders = wsrAnnotation == null ? null : wsrAnnotation.encoders();
                 ClassLoader cl = null;
                 if(serverEndpoint){
-                    cl = ((ContainerContextImpl) application.getEndpointContext().getContainerContext())
+                    cl = ((ServerContainerImpl) application.getEndpointContext().getContainerContext())
                         .getApplicationLevelClassLoader();
                 }else{
                     cl = remoteInterface.getClassLoader();

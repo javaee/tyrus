@@ -39,9 +39,9 @@
  */
 package org.glassfish.websocket.client;
 
-import org.glassfish.websocket.platform.ContainerContextImpl;
+import org.glassfish.websocket.platform.ServerContainerImpl;
 import org.glassfish.websocket.platform.Model;
-import org.glassfish.websocket.platform.WebSocketEndpoint;
+import org.glassfish.websocket.platform.WebSocketEndpointImpl;
 import org.glassfish.websocket.spi.SPIEndpoint;
 
 import java.net.URI;
@@ -88,8 +88,8 @@ public class WebSocketClient {
             if (endpoint instanceof SPIEndpoint) {
                 gws.addEndpoint((SPIEndpoint)endpoint);
             } else {
-                ContainerContextImpl cci = new ContainerContextImpl(null,uri.getPath(),uri.getPort());
-                WebSocketEndpoint clientEndpoint = new WebSocketEndpoint(cci);
+                ServerContainerImpl cci = new ServerContainerImpl(null,uri.getPath(),uri.getPort());
+                WebSocketEndpointImpl clientEndpoint = new WebSocketEndpointImpl(cci);
                 Model model = null;
                 try {
                     model = new Model(endpoint);

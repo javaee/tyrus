@@ -79,7 +79,7 @@
 
 package org.glassfish.websocket.platform.web;
 
-import org.glassfish.websocket.api.annotations.WebSocket;
+import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
 
 import javax.servlet.ServletContainerInitializer;
 import javax.servlet.ServletContext;
@@ -88,11 +88,11 @@ import javax.servlet.annotation.HandlesTypes;
 import java.util.Set;
 
 /**
- * Registers a context listener to handle WebSocket endpoints.
+ * Registers a context listener to handle WebSocketEndpoint endpoints.
  *
  * @author Jitendra Kotamraju
  */
-@HandlesTypes(WebSocket.class)
+@HandlesTypes(WebSocketEndpoint.class)
 public class WebSocketServletContainerInitializer implements ServletContainerInitializer {
 
     public void onStartup(Set<Class<?>> set, ServletContext ctx) throws ServletException {

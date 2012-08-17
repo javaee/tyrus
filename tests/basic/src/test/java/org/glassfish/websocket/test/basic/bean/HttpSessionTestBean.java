@@ -41,7 +41,7 @@
 package org.glassfish.websocket.test.basic.bean;
 
 import org.glassfish.websocket.api.RemoteEndpoint;
-import org.glassfish.websocket.api.annotations.WebSocket;
+import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
 import org.glassfish.websocket.api.annotations.WebSocketMessage;
 
 import javax.servlet.http.HttpSession;
@@ -50,7 +50,7 @@ import javax.servlet.http.HttpSession;
  *
  * @author dannycoward
  */
-    @WebSocket(
+    @WebSocketEndpoint(
         path="/httpsession"
     )
 public class HttpSessionTestBean {

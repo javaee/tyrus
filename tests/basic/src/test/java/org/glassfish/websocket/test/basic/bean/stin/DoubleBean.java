@@ -39,7 +39,7 @@
  */
 package org.glassfish.websocket.test.basic.bean.stin;
 
-import org.glassfish.websocket.api.annotations.WebSocket;
+import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
 import org.glassfish.websocket.api.annotations.WebSocketMessage;
 import org.glassfish.websocket.test.basic.remote.DoubleRemote;
 import wstestbeans.Util;
@@ -48,9 +48,9 @@ import wstestbeans.Util;
  *
  * @author dannycoward
  */
-    @WebSocket(
+    @WebSocketEndpoint(
         path="/standardInputTypes/double",
-            remote=org.glassfish.websocket.test.basic.remote.DoubleRemote.class
+            Xremote=org.glassfish.websocket.test.basic.remote.DoubleRemote.class
     )
 public class DoubleBean {
 
@@ -63,7 +63,7 @@ public class DoubleBean {
         }
     }
 
-    @WebSocketMessage(dynamicPath = "/remote")
+    @WebSocketMessage(XdynamicPath = "/remote")
     public void remoteDoubleTest(String s, DoubleRemote r) {
         try {
             r.sendDoubleMessage(42.0);

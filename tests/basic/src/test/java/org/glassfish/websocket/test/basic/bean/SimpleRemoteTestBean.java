@@ -40,7 +40,7 @@
 
 package org.glassfish.websocket.test.basic.bean;
 
-import org.glassfish.websocket.api.annotations.WebSocket;
+import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
 import org.glassfish.websocket.api.annotations.WebSocketMessage;
 import org.glassfish.websocket.test.basic.remote.SimpleRemote;
 
@@ -49,8 +49,8 @@ import org.glassfish.websocket.test.basic.remote.SimpleRemote;
  *
  * @author dannycoward
  */
-    @WebSocket(path="/customremote/hello",
-               remote=org.glassfish.websocket.test.basic.remote.SimpleRemote.class)
+    @WebSocketEndpoint(path="/customremote/hello",
+               Xremote=org.glassfish.websocket.test.basic.remote.SimpleRemote.class)
 public class SimpleRemoteTestBean {
     @WebSocketMessage
     public void handleIncomingMessage(String message, SimpleRemote remote) {

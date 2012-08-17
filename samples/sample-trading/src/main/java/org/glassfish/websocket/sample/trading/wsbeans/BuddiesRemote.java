@@ -43,13 +43,13 @@ package org.glassfish.websocket.sample.trading.wsbeans;
 import java.io.IOException;
 import org.glassfish.websocket.api.EncodeException;
 import org.glassfish.websocket.api.RemoteEndpoint;
-import org.glassfish.websocket.api.annotations.WebSocketRemote;
+import org.glassfish.websocket.api.annotations.XWebSocketRemote;
 import java.util.*;
 /**
  *
  * @author dannycoward
  */
-    @WebSocketRemote(
+    @XWebSocketRemote(
             encoders={org.glassfish.websocket.sample.trading.wsbeans.UsernamesEncoder.class, org.glassfish.websocket.sample.trading.wsbeans.Activity.class}
             )
 

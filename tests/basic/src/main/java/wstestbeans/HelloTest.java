@@ -41,9 +41,9 @@
 package wstestbeans;
 
 import org.glassfish.websocket.api.annotations.WebSocketMessage;
-import org.glassfish.websocket.api.annotations.WebSocket;
+import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
 
-    @WebSocket(
+    @WebSocketEndpoint(
         path="/hello"
     )
 public class HelloTest {

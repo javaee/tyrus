@@ -41,7 +41,7 @@
 package wstestbeans.eremote;
 
 import org.glassfish.websocket.api.annotations.WebSocketMessage;
-import org.glassfish.websocket.api.annotations.WebSocket;
+import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
 import remote.IntRemote;
 import remote.LongRemote;
 
@@ -49,8 +49,8 @@ import remote.LongRemote;
  *
  * @author dannycoward
  */
-    @WebSocket(path="/customremote/long",
-            remote=remote.LongRemote.class)
+    @WebSocketEndpoint(path="/customremote/long",
+            Xremote=remote.LongRemote.class)
 public class ERLong {
     private long lastLong;
 

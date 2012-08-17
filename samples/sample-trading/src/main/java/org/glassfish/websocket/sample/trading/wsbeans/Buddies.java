@@ -41,9 +41,9 @@
 package org.glassfish.websocket.sample.trading.wsbeans;
 
 
-import org.glassfish.websocket.api.annotations.WebSocketContext;
+import org.glassfish.websocket.api.annotations.XWebSocketContext;
 import org.glassfish.websocket.api.annotations.WebSocketMessage;
-import org.glassfish.websocket.api.annotations.WebSocket;
+import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
 import org.glassfish.websocket.api.Session;
 import org.glassfish.websocket.api.EndpointContext;
 import org.glassfish.websocket.platform.web.WebSocketServerWebIntegration;
@@ -51,8 +51,8 @@ import javax.servlet.http.*;
 import java.util.*;
 import java.security.*;
 
-    @WebSocket(
-        path="/buddies",remote=org.glassfish.websocket.sample.trading.wsbeans.BuddiesRemote.class
+    @WebSocketEndpoint(
+        path="/buddies",Xremote=org.glassfish.websocket.sample.trading.wsbeans.BuddiesRemote.class
     )
 /**
  *
@@ -60,7 +60,7 @@ import java.security.*;
  */
 public class Buddies {
    public static String BUDDIES = "buddies";
-   @WebSocketContext
+   @XWebSocketContext
    public EndpointContext myContext;
 
          @WebSocketMessage

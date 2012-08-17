@@ -61,7 +61,7 @@ import org.glassfish.websocket.spi.SPIRemoteEndpoint;
  */
 
 
-public class WebSocketEndpoint implements SPIEndpoint {
+public class WebSocketEndpointImpl implements SPIEndpoint {
 
     private String path; // this is relative to the servlet context path
     private Model model;
@@ -75,7 +75,7 @@ public class WebSocketEndpoint implements SPIEndpoint {
     private boolean isServer = true;
     
 
-    public WebSocketEndpoint(ServerContainer containerContext) {
+    public WebSocketEndpointImpl(ServerContainer containerContext) {
         this.endpointContext = new EndpointContextImpl(containerContext, this);
     }
 
@@ -219,7 +219,7 @@ public class WebSocketEndpoint implements SPIEndpoint {
                     //System.out.println("Return decoder " + returnC);
                     ClassLoader cl = null;
                     if(isServer){
-                        cl = ((ContainerContextImpl) endpointContext.getContainerContext()).getApplicationLevelClassLoader();
+                        cl = ((ServerContainerImpl) endpointContext.getContainerContext()).getApplicationLevelClassLoader();
                     }else{
                         cl = nextClass.getClassLoader();
                     }
@@ -344,7 +344,7 @@ public class WebSocketEndpoint implements SPIEndpoint {
         RemoteEndpoint peer = getPeer(gs);
         WebSocketWrapper wsw = WebSocketWrapper.getWebSocketWrapper(peer);
         wsw.setAddress(this.originAddressForNextOnConnect);
-        if (ContainerContextImpl.WEB_MODE) {
+        if (ServerContainerImpl.WEB_MODE) {
             if (httpSessionForNextOnConnect != null) {
                 ((WebSocketConversationImpl) wsw.getSession()).setHttpSession(httpSessionForNextOnConnect);
                 httpSessionForNextOnConnect = null;
@@ -371,7 +371,7 @@ public class WebSocketEndpoint implements SPIEndpoint {
             // check path...
             try {
                 WebSocketMessage wsm = m.getAnnotation(WebSocketMessage.class);
-                String dynamicPath = wsm.dynamicPath();
+                String dynamicPath = wsm.XdynamicPath();
 
                 if (!isServer || this.doesPathMatch(dynamicPath)) {
 
@@ -476,16 +476,16 @@ public class WebSocketEndpoint implements SPIEndpoint {
     }
 
     /**
-     * Sorts the methods in the list in a way that the methods with (dynamicPath == "*") are in the end of the list.
+     * Sorts the methods in the list in a way that the methods with (XdynamicPath == "*") are in the end of the list.
      */
     private class MethodComparator implements Comparator<Method>{
 
         @Override
         public int compare(Method m1, Method m2) {
             WebSocketMessage wsm1 = m1.getAnnotation(WebSocketMessage.class);
-            String dynamicPath1 = wsm1.dynamicPath();
+            String dynamicPath1 = wsm1.XdynamicPath();
             WebSocketMessage wsm2 = m2.getAnnotation(WebSocketMessage.class);
-            String dynamicPath2 = wsm2.dynamicPath();
+            String dynamicPath2 = wsm2.XdynamicPath();
 
             if(dynamicPath1.equals("*")){
                 if(dynamicPath2.equals("*")){

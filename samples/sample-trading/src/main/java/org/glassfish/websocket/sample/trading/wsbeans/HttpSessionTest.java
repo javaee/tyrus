@@ -42,12 +42,12 @@ package org.glassfish.websocket.sample.trading.wsbeans;
 
 
 import org.glassfish.websocket.api.annotations.WebSocketMessage;
-import org.glassfish.websocket.api.annotations.WebSocket;
+import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
 import org.glassfish.websocket.api.Session;
 import org.glassfish.websocket.api.RemoteEndpoint;
 import javax.servlet.http.*;
 
-    @WebSocket(
+    @WebSocketEndpoint(
         path="/httpsession"
     )
 

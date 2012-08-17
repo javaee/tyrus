@@ -48,15 +48,15 @@ import javax.servlet.http.HttpSession;
 import org.glassfish.websocket.api.CloseReason;
 import org.glassfish.websocket.api.EndpointContext;
 import org.glassfish.websocket.api.Session;
-import org.glassfish.websocket.api.annotations.WebSocket;
-import org.glassfish.websocket.api.annotations.WebSocketContext;
+import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
+import org.glassfish.websocket.api.annotations.XWebSocketContext;
 import org.glassfish.websocket.api.annotations.WebSocketMessage;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-    @WebSocket(
+    @WebSocketEndpoint(
         path="/twitter",
-        remote=org.glassfish.websocket.sample.trading.wsbeans.TwitterRemote.class
+        Xremote=org.glassfish.websocket.sample.trading.wsbeans.TwitterRemote.class
     )
     // http://search.twitter.com/search.json?q=%40ORCL
     // https://dev.twitter.com/docs/api/1/get/search
@@ -67,7 +67,7 @@ import org.json.JSONObject;
  */
 public class Twitter implements Broadcaster {
     UpdateThread updateThread = null;
-    @WebSocketContext
+    @XWebSocketContext
     public EndpointContext myContext;
     String maxResults = "8";
     //List<TwitterRemote> remotes = new ArrayList<TwitterRemote>();

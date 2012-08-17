@@ -40,8 +40,8 @@
 package org.glassfish.websocket.sample.draw;
 
 
-import org.glassfish.websocket.api.annotations.WebSocket;
-import org.glassfish.websocket.api.annotations.WebSocketContext;
+import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
+import org.glassfish.websocket.api.annotations.XWebSocketContext;
 import org.glassfish.websocket.api.annotations.WebSocketMessage;
 import org.glassfish.websocket.api.Session;
 import org.glassfish.websocket.api.EncodeException;
@@ -53,12 +53,12 @@ import java.io.*;
  *
  * @author dannycoward
  */
-    @WebSocket(path="/draw",
-            remote=org.glassfish.websocket.sample.draw.GroupDrawRemote.class,
+    @WebSocketEndpoint(path="/draw",
+            Xremote=org.glassfish.websocket.sample.draw.GroupDrawRemote.class,
             decoders={org.glassfish.websocket.sample.draw.DrawingMessage.class}
     )
 public class GroupDrawServer {
-    @WebSocketContext
+    @XWebSocketContext
     public EndpointContext context;
 
     @WebSocketMessage

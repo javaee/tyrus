@@ -44,14 +44,14 @@ package remote;
 import java.io.IOException;
 import org.glassfish.websocket.api.EncodeException;
 import org.glassfish.websocket.api.RemoteEndpoint;
-import org.glassfish.websocket.api.annotations.WebSocketRemote;
+import org.glassfish.websocket.api.annotations.XWebSocketRemote;
 import wstestbeans.EncodedMessage;
 import wstestbeans.EncodedMessage;
 /**
  *
  * @author dannycoward
  */
-    @WebSocketRemote(encoders={wstestbeans.EncodedMessageEncoder.class})
+    @XWebSocketRemote(encoders={wstestbeans.EncodedMessageEncoder.class})
 public interface TwoMethodRemote extends RemoteEndpoint {
 
 

@@ -41,7 +41,7 @@
 package wstestbeans;
 
 import org.glassfish.websocket.api.annotations.WebSocketMessage;
-import org.glassfish.websocket.api.annotations.WebSocket;
+import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
 import org.glassfish.websocket.api.annotations.WebSocketOpen;
 import org.glassfish.websocket.api.annotations.WebSocketClose;
 import org.glassfish.websocket.api.RemoteEndpoint;
@@ -49,7 +49,7 @@ import org.glassfish.websocket.api.RemoteEndpoint;
  *
  * @author dannycoward
  */
- @WebSocket (path="/lifecycle")
+ @WebSocketEndpoint (path="/lifecycle")
 public class LifecycleBeanTest {
 
     @WebSocketOpen

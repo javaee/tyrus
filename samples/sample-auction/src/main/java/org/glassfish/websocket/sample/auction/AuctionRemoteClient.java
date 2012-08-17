@@ -49,13 +49,13 @@ import org.glassfish.websocket.sample.auction.message.LoginResponseMessage;
 import java.io.IOException;
 import org.glassfish.websocket.api.EncodeException;
 import org.glassfish.websocket.api.RemoteEndpoint;
-import org.glassfish.websocket.api.annotations.WebSocketRemote;
+import org.glassfish.websocket.api.annotations.XWebSocketRemote;
 
 /**
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-@WebSocketRemote(encoders = {org.glassfish.websocket.sample.auction.encoders.LoginResponseEncoder.class,
+@XWebSocketRemote(encoders = {org.glassfish.websocket.sample.auction.encoders.LoginResponseEncoder.class,
     org.glassfish.websocket.sample.auction.encoders.PriceUpdateResponseEncoder.class,
     org.glassfish.websocket.sample.auction.encoders.AuctionClosedResponseEncoder.class,
     org.glassfish.websocket.sample.auction.encoders.PreAuctionTimeBroadcastEncoder.class,

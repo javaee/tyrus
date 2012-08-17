@@ -41,13 +41,13 @@
 package wstestbeans.stout;
 
 import org.glassfish.websocket.api.annotations.WebSocketMessage;
-import org.glassfish.websocket.api.annotations.WebSocket;
+import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
 
 /**
  *
  * @author dannycoward
  */
-@WebSocket(
+@WebSocketEndpoint(
         path="/standardOutputTypes/double"
     )
 public class STOUTDouble {

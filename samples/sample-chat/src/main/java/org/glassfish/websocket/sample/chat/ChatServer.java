@@ -48,8 +48,8 @@ import org.glassfish.websocket.api.annotations.*;
 import org.glassfish.websocket.sample.chat.chatdata.*;
 
 
-@WebSocket(path = "/chat",
-remote = org.glassfish.websocket.sample.chat.ChatClientRemote.class,
+@WebSocketEndpoint(path = "/chat",
+Xremote = org.glassfish.websocket.sample.chat.ChatClientRemote.class,
 decoders = {org.glassfish.websocket.sample.chat.chatdata.LoginRequestDecoder.class,
     org.glassfish.websocket.sample.chat.chatdata.ChatUpdateDecoder.class,
     org.glassfish.websocket.sample.chat.chatdata.DisconnectRequestDecoder.class},
@@ -57,7 +57,7 @@ encoders = {org.glassfish.websocket.sample.chat.chatdata.DisconnectResponseEncod
 public class ChatServer {
 
     final static Logger logger = Logger.getLogger("application");
-    @WebSocketContext
+    @XWebSocketContext
     public EndpointContext context;
     private List<String> chatTranscript = new ArrayList<String>();
     static int transcriptMaxLines = 20;

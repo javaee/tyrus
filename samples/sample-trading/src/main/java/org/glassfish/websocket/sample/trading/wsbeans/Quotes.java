@@ -48,11 +48,11 @@ import org.glassfish.websocket.api.CloseReason;
 import org.glassfish.websocket.api.EndpointContext;
 import org.glassfish.websocket.api.ServerContainer;
 import org.glassfish.websocket.api.Session;
-import org.glassfish.websocket.api.annotations.WebSocket;
-import org.glassfish.websocket.api.annotations.WebSocketContext;
+import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
+import org.glassfish.websocket.api.annotations.XWebSocketContext;
 import org.glassfish.websocket.api.annotations.WebSocketMessage;
-    @WebSocket(
-        path="/quotes",remote=org.glassfish.websocket.sample.trading.wsbeans.QuoteRemote.class
+    @WebSocketEndpoint(
+        path="/quotes",Xremote=org.glassfish.websocket.sample.trading.wsbeans.QuoteRemote.class
     )
 /**
  *
@@ -62,7 +62,7 @@ import org.glassfish.websocket.api.annotations.WebSocketMessage;
 public class Quotes implements Broadcaster {
     UpdateThread updateThread = null;
     //private List<QuoteRemote> remotes = new ArrayList<QuoteRemote>();
-    @WebSocketContext
+    @XWebSocketContext
     public EndpointContext myContext;
 
 

@@ -39,7 +39,7 @@
  */
 package org.glassfish.websocket.test.basic.bean.stin;
 
-import org.glassfish.websocket.api.annotations.WebSocket;
+import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
 import org.glassfish.websocket.api.annotations.WebSocketMessage;
 import org.glassfish.websocket.test.basic.remote.LongRemote;
 import wstestbeans.Util;
@@ -48,9 +48,9 @@ import wstestbeans.Util;
  *
  * @author dannycoward
  */
-    @WebSocket(
+    @WebSocketEndpoint(
         path="/standardInputTypes/long",
-            remote=org.glassfish.websocket.test.basic.remote.LongRemote.class
+            Xremote=org.glassfish.websocket.test.basic.remote.LongRemote.class
     )
 public class LongBean {
 
@@ -63,7 +63,7 @@ public class LongBean {
         }
     }
 
-    @WebSocketMessage(dynamicPath = "/remote")
+    @WebSocketMessage(XdynamicPath = "/remote")
     public void remoteLongTest(String s, LongRemote r) {
         try {
             r.sendLongMessage((long) 42);

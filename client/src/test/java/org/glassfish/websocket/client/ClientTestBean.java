@@ -41,7 +41,7 @@ package org.glassfish.websocket.client;
 
 import org.glassfish.websocket.api.EncodeException;
 import org.glassfish.websocket.api.RemoteEndpoint;
-import org.glassfish.websocket.api.annotations.WebSocket;
+import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
 import org.glassfish.websocket.api.annotations.WebSocketMessage;
 import org.glassfish.websocket.api.annotations.WebSocketOpen;
 
@@ -52,8 +52,8 @@ import java.io.IOException;
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-@WebSocket(path = "/test",
-        remote = org.glassfish.websocket.client.ClientTestRemote.class,
+@WebSocketEndpoint(path = "/test",
+        Xremote = org.glassfish.websocket.client.ClientTestRemote.class,
         decoders = {org.glassfish.websocket.client.TestDecoder.class})
 public class ClientTestBean {
 

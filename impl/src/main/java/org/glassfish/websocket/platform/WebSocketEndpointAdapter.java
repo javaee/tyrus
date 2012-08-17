@@ -48,7 +48,7 @@ import org.glassfish.websocket.spi.SPIRemoteEndpoint;
  *
  * @author dannycoward
  */
-public class WebSocketEndpointAdapter extends WebSocketEndpoint {
+public class WebSocketEndpointAdapter extends WebSocketEndpointImpl {
     private Endpoint endpoint;
 
 

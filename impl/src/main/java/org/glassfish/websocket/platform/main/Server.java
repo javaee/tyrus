@@ -49,7 +49,7 @@ import java.util.logging.Logger;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.grizzly.websockets.WebSocketAddOn;
 import org.glassfish.websocket.platform.BeanServer;
-import org.glassfish.websocket.platform.ContainerContextImpl;
+import org.glassfish.websocket.platform.ServerContainerImpl;
 
 /**
  * Implementation of the WebSocket Server.
@@ -95,7 +95,7 @@ public class Server {
      * @param b web node mode
      */
     public static void setWebMode(boolean b) {
-        ContainerContextImpl.setWebMode(b);
+        ServerContainerImpl.setWebMode(b);
     }
 
     /**

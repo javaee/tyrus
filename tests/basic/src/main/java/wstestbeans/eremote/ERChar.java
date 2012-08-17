@@ -41,7 +41,7 @@
 package wstestbeans.eremote;
 
 import org.glassfish.websocket.api.annotations.WebSocketMessage;
-import org.glassfish.websocket.api.annotations.WebSocket;
+import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
 import remote.CharRemote;
 import remote.IntRemote;
 
@@ -49,8 +49,8 @@ import remote.IntRemote;
  *
  * @author dannycoward
  */
-    @WebSocket(path="/customremote/char",
-            remote=remote.CharRemote.class)
+    @WebSocketEndpoint(path="/customremote/char",
+            Xremote=remote.CharRemote.class)
 public class ERChar {
     private char lastChar;
 

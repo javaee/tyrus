@@ -39,7 +39,7 @@
  */
 package org.glassfish.websocket.test.basic.bean.stin;
 
-import org.glassfish.websocket.api.annotations.WebSocket;
+import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
 import org.glassfish.websocket.api.annotations.WebSocketMessage;
 import org.glassfish.websocket.test.basic.remote.CharRemote;
 import wstestbeans.Util;
@@ -48,9 +48,9 @@ import wstestbeans.Util;
  *
  * @author dannycoward
  */
-    @WebSocket(
+    @WebSocketEndpoint(
         path="/standardInputTypes/char",
-            remote = org.glassfish.websocket.test.basic.remote.CharRemote.class
+            Xremote = org.glassfish.websocket.test.basic.remote.CharRemote.class
     )
 public class CharBean {
 
@@ -63,7 +63,7 @@ public class CharBean {
         }
     }
 
-    @WebSocketMessage(dynamicPath = "/remote")
+    @WebSocketMessage(XdynamicPath = "/remote")
     public void remoteCharTest(String s, CharRemote r) {
         try {
             r.sendCharMessage('c');

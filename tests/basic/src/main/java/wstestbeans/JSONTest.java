@@ -41,7 +41,7 @@
 package wstestbeans;
 
 
-import org.glassfish.websocket.api.annotations.WebSocket;
+import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
 import org.glassfish.websocket.api.annotations.WebSocketMessage;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -49,7 +49,7 @@ import org.json.JSONObject;
  *
  * @author dannycoward
  */
-    @WebSocket(
+    @WebSocketEndpoint(
             path = "/json",
             encoders={enc.JSONEncoder.class},
             decoders={enc.JSONDecoder.class}

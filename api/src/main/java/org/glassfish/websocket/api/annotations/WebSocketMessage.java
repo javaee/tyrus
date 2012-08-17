@@ -122,6 +122,6 @@ public @interface WebSocketMessage {
      * starts with <root uri>
      * @return
      */
-    public String dynamicPath() default "";
+    public String XdynamicPath() default "";
 
 }

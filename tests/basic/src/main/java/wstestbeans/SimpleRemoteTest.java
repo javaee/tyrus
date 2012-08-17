@@ -41,14 +41,14 @@
 package wstestbeans;
 
 import org.glassfish.websocket.api.annotations.WebSocketMessage;
-import org.glassfish.websocket.api.annotations.WebSocket;
+import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
 import remote.SimpleRemote;
 /**
  *
  * @author dannycoward
  */
-    @WebSocket(path="/customremote/hello",
-               remote=remote.SimpleRemote.class)
+    @WebSocketEndpoint(path="/customremote/hello",
+               Xremote=remote.SimpleRemote.class)
 public class SimpleRemoteTest {
     String lastMessage;
 

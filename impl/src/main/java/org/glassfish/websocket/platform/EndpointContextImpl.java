@@ -55,7 +55,7 @@ import org.glassfish.websocket.api.EndpointContext;
 public class EndpointContextImpl extends WithProperties implements EndpointContext {
     private Set<Session> webSocketSessions = Collections.newSetFromMap(new ConcurrentHashMap<Session, Boolean>());
     private ServerContainer containerContext;
-    private WebSocketEndpoint application;
+    private WebSocketEndpointImpl application;
     
 
     @Override
@@ -67,7 +67,7 @@ public class EndpointContextImpl extends WithProperties implements EndpointConte
         return application.getClass().getClassLoader();
     }
 
-    public EndpointContextImpl(ServerContainer containerContext, WebSocketEndpoint application) {
+    public EndpointContextImpl(ServerContainer containerContext, WebSocketEndpointImpl application) {
         this.containerContext = containerContext;
         this.application = application;
     }

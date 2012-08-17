@@ -43,55 +43,33 @@ package org.glassfish.websocket.api.annotations;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
-import org.glassfish.websocket.api.RemoteEndpoint;
-
 /**
- *  This is the annotation you need to use at the class level of your end point to declare
- * that this class will have methods that accept web socket messages.
- * This is the annotation you use to specify the URL path of the web socket.
- * Note that containers may use multiple instances of these POJOs to support
- * an endpoint, particularly in distributed web servers. So developers are cautioned
- * when using member variables to hold application state.
- * <br>For example: <br>
- * <code><p>&nbsp&nbsp&nbsp@WebSocket(path="/hello") <br>
- * public class HelloSocket { <br>
- * &nbsp&nbsp&nbsp...<br>
- * }
- * </code>
+ * This class level annotation is used to indicate the class is a developer provided custom peer interface (i.e. one that extends
+ * Peer) will be used to send a message to the remote client the interface
+ * represents. Any methods on the class method may only have one parameter that represents the message
+ * to be sent to the client. The type may be String, byte[], any Java primitive type
+ * or corresponding Java class. Or the type may be a developer provided type, in which case
+ * an encoder class must also be provided.
+ * <br>For example:<br>
+ * <code>
+ * &nbsp&nbsp&nbsp&nbsp&nbsp@XWebSocketRemote(<br>
+         &nbsp&nbsp&nbsp&nbsp&nbsp&nbspencoder="wstestbeans.EncodedMessageEncoder")<br>
+ * public interface MyCustomClient extends Peer {<br><br>
+
+
+        &nbsp&nbsp&nbsppublic void sendStringMessage(String message) throws IOException, ConversionException;<br><br>
+
+    &nbsp&nbsp&nbsppublic void sendEncodedMessage(EncodedMessage message) throws IOException, ConversionException;<br><br>
+
+}
+ * <br></code>
+
  * @author dannycoward
  */
 @Retention(RetentionPolicy.RUNTIME)
-public @interface WebSocket {
-    /** The relative URL to this end point. The path is relative to the
-     * root of the URL-space of the host on which the end point is deployed. All
-     * paths begin with "/".
-     * @return
-     */
-    String path();
-    /**
-     * An array of the subprotocols supported by this web socket end point, in descending
-     * order of importance.
-     * @return
-     */
-    String[] subprotocols() default {};
-    /** The Java type of the custom remote implementation used by this web socket end point. The default remote
-     * implementation is a platform provided implementation of the RemoteEndpoint interface.
-     *
-     * @return
-     */
-    Class remote() default RemoteEndpoint.class;
-
-        /**  The list of Classes that this endpoint may use to decode incoming messages. For endpoints
-         * that have methods with parameter types that are not primitive types or String will need
-         * to provide a decoder to transform the message off the wire into that type.
-     * @return
-     */
-    Class[] decoders() default {};
-    /**
-     * The list of Classes that this endpoint may use to encode outgoing messages. For endpoints
-         * that have methods with return types that are not primitive types or String will need
-         * to provide a decoder to transform the return type into a String or byte[].
-     * @return
+public @interface XWebSocketRemote {
+    /** The fully qualified classname of the encoder
+     * to be used to encode the message.
      * @return
      */
     Class[] encoders() default {};

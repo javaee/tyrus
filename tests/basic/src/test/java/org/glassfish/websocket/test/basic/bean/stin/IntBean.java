@@ -40,7 +40,7 @@
 
 package org.glassfish.websocket.test.basic.bean.stin;
 
-import org.glassfish.websocket.api.annotations.WebSocket;
+import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
 import org.glassfish.websocket.api.annotations.WebSocketMessage;
 import org.glassfish.websocket.test.basic.remote.IntRemote;
 import wstestbeans.Util;
@@ -49,9 +49,9 @@ import wstestbeans.Util;
  *
  * @author dannycoward
  */
-    @WebSocket(
+    @WebSocketEndpoint(
         path="/standardInputTypes/int",
-            remote=org.glassfish.websocket.test.basic.remote.IntRemote.class
+            Xremote=org.glassfish.websocket.test.basic.remote.IntRemote.class
     )
 public class IntBean {
 
@@ -64,7 +64,7 @@ public class IntBean {
         }
     }
 
-    @WebSocketMessage(dynamicPath = "/remote")
+    @WebSocketMessage(XdynamicPath = "/remote")
     public void remoteIntTest(String s, IntRemote r) {
         try {
             r.sendIntMessage(42);

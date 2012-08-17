@@ -42,11 +42,11 @@ package wstestbeans;
 
 
 import org.glassfish.websocket.api.*;
-import org.glassfish.websocket.api.annotations.WebSocket;
+import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
 import org.glassfish.websocket.api.annotations.WebSocketMessage;
 
 
-    @WebSocket(
+    @WebSocketEndpoint(
         path="/hellodeployhello"
     )
 /**

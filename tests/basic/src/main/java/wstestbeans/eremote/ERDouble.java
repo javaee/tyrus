@@ -41,7 +41,7 @@
 package wstestbeans.eremote;
 
 import org.glassfish.websocket.api.annotations.WebSocketMessage;
-import org.glassfish.websocket.api.annotations.WebSocket;
+import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
 import remote.DoubleRemote;
 import remote.IntRemote;
 
@@ -49,8 +49,8 @@ import remote.IntRemote;
  *
  * @author dannycoward
  */
-    @WebSocket(path="/customremote/double",
-            remote=remote.DoubleRemote.class)
+    @WebSocketEndpoint(path="/customremote/double",
+            Xremote=remote.DoubleRemote.class)
 public class ERDouble {
     private double lastDouble;
 

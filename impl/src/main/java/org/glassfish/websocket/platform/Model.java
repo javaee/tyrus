@@ -50,7 +50,7 @@ import java.util.Arrays;
 import java.util.Collections;
 
 /**
- * Model of a class annotated using the WebSocket annotations
+ * Model of a class annotated using the WebSocketEndpoint annotations
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
@@ -77,7 +77,7 @@ public class Model {
     private Model(Class<?> annotatedClass, Object instance){
         onOpenMethods = parseAnnotatedMethods(annotatedClass, WebSocketOpen.class);
         onCloseMethods = parseAnnotatedMethods(annotatedClass, WebSocketClose.class);
-        onErrorMethods = parseAnnotatedMethods(annotatedClass, WebSocketError.class);
+        onErrorMethods = parseAnnotatedMethods(annotatedClass, XWebSocketError.class);
         onMessageMethods = parseAnnotatedMethods(annotatedClass, WebSocketMessage.class);
         encoders = parseEncoders(annotatedClass);
         decoders = parseDecoders(annotatedClass);
@@ -100,7 +100,7 @@ public class Model {
 
     private Set<Class<?>> parseDecoders(Class wsClass){
         Set<Class<?>> decs = new HashSet<Class<?>>();
-        org.glassfish.websocket.api.annotations.WebSocket wsClassAnnotation = (org.glassfish.websocket.api.annotations.WebSocket) wsClass.getAnnotation(org.glassfish.websocket.api.annotations.WebSocket.class);
+        org.glassfish.websocket.api.annotations.WebSocketEndpoint wsClassAnnotation = (org.glassfish.websocket.api.annotations.WebSocketEndpoint) wsClass.getAnnotation(org.glassfish.websocket.api.annotations.WebSocketEndpoint.class);
         if(wsClassAnnotation != null){
             for (Class decoder : wsClassAnnotation.decoders()) {
                 decs.add(decoder);
@@ -112,7 +112,7 @@ public class Model {
 
     private Set<Class<?>> parseEncoders(Class wsClass){
         Set<Class<?>> encs = new HashSet<Class<?>>();
-        org.glassfish.websocket.api.annotations.WebSocket wsClassAnnotation = (org.glassfish.websocket.api.annotations.WebSocket) wsClass.getAnnotation(org.glassfish.websocket.api.annotations.WebSocket.class);
+        org.glassfish.websocket.api.annotations.WebSocketEndpoint wsClassAnnotation = (org.glassfish.websocket.api.annotations.WebSocketEndpoint) wsClass.getAnnotation(org.glassfish.websocket.api.annotations.WebSocketEndpoint.class);
         if(wsClassAnnotation != null){
             for (Class encoder : wsClassAnnotation.encoders()) {
                 encs.add(encoder);
@@ -133,7 +133,7 @@ public class Model {
 
     private Field parseContextField(Class wsClass) {
         for (Field f : wsClass.getDeclaredFields()) {
-            if (f.getAnnotation(WebSocketContext.class) != null) {
+            if (f.getAnnotation(XWebSocketContext.class) != null) {
                 return f;
             }
         }
@@ -141,7 +141,7 @@ public class Model {
     }
 
     public static List<String> parseSubprotocols(Class wsClass) {
-        WebSocket ws = (WebSocket) wsClass.getAnnotation(WebSocket.class);
+        org.glassfish.websocket.api.annotations.WebSocketEndpoint ws = (org.glassfish.websocket.api.annotations.WebSocketEndpoint) wsClass.getAnnotation(org.glassfish.websocket.api.annotations.WebSocketEndpoint.class);
         if(ws != null){
             return Arrays.asList(ws.subprotocols());
         }else{
@@ -150,9 +150,9 @@ public class Model {
     }
 
     public static Class parseRemoteInterface(Class wsClass) {
-        WebSocket ws = (WebSocket) wsClass.getAnnotation(WebSocket.class);
+        org.glassfish.websocket.api.annotations.WebSocketEndpoint ws = (org.glassfish.websocket.api.annotations.WebSocketEndpoint) wsClass.getAnnotation(org.glassfish.websocket.api.annotations.WebSocketEndpoint.class);
         if(ws!=null){
-            return ws.remote();
+            return ws.Xremote();
         }else{
             return null;
         }

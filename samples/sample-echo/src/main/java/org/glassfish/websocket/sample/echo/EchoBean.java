@@ -40,10 +40,10 @@
 
 package org.glassfish.websocket.sample.echo;
 
-import org.glassfish.websocket.api.annotations.WebSocket;
+import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
 import org.glassfish.websocket.api.annotations.WebSocketMessage;
 
-    @WebSocket(path="/echo")
+    @WebSocketEndpoint(path="/echo")
 public class EchoBean {
 
     @WebSocketMessage

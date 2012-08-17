@@ -41,15 +41,15 @@
 package org.glassfish.websocket.test.basic.bean;
 
 import org.glassfish.websocket.api.RemoteEndpoint;
-import org.glassfish.websocket.api.annotations.WebSocket;
-import org.glassfish.websocket.api.annotations.WebSocketError;
+import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
+import org.glassfish.websocket.api.annotations.XWebSocketError;
 import org.glassfish.websocket.api.annotations.WebSocketMessage;
 
 /**
  *
  * @author dannycoward
  */
-    @WebSocket(
+    @WebSocketEndpoint(
         path="/error",
         encoders={org.glassfish.websocket.test.basic.encoder.ErrorEncoder.class}
     )
@@ -63,7 +63,7 @@ public class ErrorTestBean {
         return "anything";
     }
 
-    @WebSocketError
+    @XWebSocketError
     public void handleError(Exception e, RemoteEndpoint p) {
         try {
             System.out.println("############################################handleError");

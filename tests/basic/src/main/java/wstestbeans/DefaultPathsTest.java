@@ -42,10 +42,10 @@ package wstestbeans;
 
 
 import org.glassfish.websocket.api.annotations.WebSocketMessage;
-import org.glassfish.websocket.api.annotations.WebSocket;
+import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
 import org.glassfish.websocket.api.annotations.WebSocketOpen;
 import org.glassfish.websocket.api.annotations.WebSocketClose;
-import org.glassfish.websocket.api.annotations.WebSocketError;
+import org.glassfish.websocket.api.annotations.XWebSocketError;
 import java.io.IOException;
 import org.glassfish.websocket.api.EncodeException;
 import org.glassfish.websocket.api.RemoteEndpoint;
@@ -54,7 +54,7 @@ import org.glassfish.websocket.api.RemoteEndpoint;
  *
  * @author dannycoward
  */
-    @WebSocket(path="/defaultpath")
+    @WebSocketEndpoint(path="/defaultpath")
 public class DefaultPathsTest {
 
         @WebSocketOpen
@@ -71,7 +71,7 @@ public class DefaultPathsTest {
             System.out.println("Disconnected");
         }
 
-        @WebSocketError
+        @XWebSocketError
         public void handleError(Exception e, RemoteEndpoint p) {
             System.out.println("Error from " + p);
         }

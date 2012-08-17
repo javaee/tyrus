@@ -44,17 +44,17 @@ import java.io.IOException;
 import org.glassfish.websocket.api.Session;
 import org.glassfish.websocket.api.EncodeException;
 import org.glassfish.websocket.api.EndpointContext;
-import org.glassfish.websocket.api.annotations.WebSocket;
-import org.glassfish.websocket.api.annotations.WebSocketContext;
+import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
+import org.glassfish.websocket.api.annotations.XWebSocketContext;
 import org.glassfish.websocket.api.annotations.WebSocketMessage;
 import org.glassfish.websocket.test.basic.remote.SimpleRemote;
 
 /**
  * @author Martin Matula (martin.matula at oracle.com)
  */
-@WebSocket(path = "/broadcast", remote = SimpleRemote.class)
+@WebSocketEndpoint(path = "/broadcast", Xremote = SimpleRemote.class)
 public class BroadcasterTestBean {
-    @WebSocketContext
+    @XWebSocketContext
     private EndpointContext context;
 
     @WebSocketMessage

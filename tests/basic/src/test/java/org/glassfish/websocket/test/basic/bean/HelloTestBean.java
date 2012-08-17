@@ -40,7 +40,7 @@
 
 package org.glassfish.websocket.test.basic.bean;
 
-import org.glassfish.websocket.api.annotations.WebSocket;
+import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
 import org.glassfish.websocket.api.annotations.WebSocketMessage;
 
 /**
@@ -49,7 +49,7 @@ import org.glassfish.websocket.api.annotations.WebSocketMessage;
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 
-@WebSocket(
+@WebSocketEndpoint(
     path="/hello"
 )
 public class HelloTestBean {

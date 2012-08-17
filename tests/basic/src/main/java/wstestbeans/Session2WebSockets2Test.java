@@ -40,7 +40,7 @@
 package wstestbeans;
 
 import org.glassfish.websocket.api.annotations.WebSocketMessage;
-import org.glassfish.websocket.api.annotations.WebSocket;
+import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
 import org.glassfish.websocket.api.RemoteEndpoint;
 import org.glassfish.websocket.api.ServerContainer;
 import remote.*;
@@ -48,7 +48,7 @@ import java.util.*;
 
 
 
-    @WebSocket(path="/session2websockets2")
+    @WebSocketEndpoint(path="/session2websockets2")
 public class Session2WebSockets2Test {
 
         @WebSocketMessage

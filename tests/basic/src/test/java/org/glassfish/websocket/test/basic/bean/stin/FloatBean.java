@@ -39,7 +39,7 @@
  */
 package org.glassfish.websocket.test.basic.bean.stin;
 
-import org.glassfish.websocket.api.annotations.WebSocket;
+import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
 import org.glassfish.websocket.api.annotations.WebSocketMessage;
 import org.glassfish.websocket.test.basic.remote.FloatRemote;
 import wstestbeans.Util;
@@ -48,9 +48,9 @@ import wstestbeans.Util;
  *
  * @author dannycoward
  */
-    @WebSocket(
+    @WebSocketEndpoint(
         path="/standardInputTypes/float",
-            remote=org.glassfish.websocket.test.basic.remote.FloatRemote.class
+            Xremote=org.glassfish.websocket.test.basic.remote.FloatRemote.class
     )
 public class FloatBean {
 
@@ -63,7 +63,7 @@ public class FloatBean {
         }
     }
 
-    @WebSocketMessage(dynamicPath = "/remote")
+    @WebSocketMessage(XdynamicPath = "/remote")
     public void remoteFloatTest(String s, FloatRemote r) {
         try {
             r.sendFloatMessage((float)42.0);

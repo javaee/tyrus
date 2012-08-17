@@ -40,7 +40,7 @@
 package wstestbeans;
 
 import org.glassfish.websocket.api.annotations.WebSocketMessage;
-import org.glassfish.websocket.api.annotations.WebSocket;
+import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
 import remote.TwoMethodRemote;
 import java.io.*;
 import wstestbeans.EncodedMessage;
@@ -48,8 +48,8 @@ import wstestbeans.EncodedMessage;
  *
  * @author dannycoward
  */
-    @WebSocket(path="/twomethodremote",
-            remote=remote.TwoMethodRemote.class)
+    @WebSocketEndpoint(path="/twomethodremote",
+            Xremote=remote.TwoMethodRemote.class)
 public class TwoMethodRemoteTest {
 
     @WebSocketMessage
