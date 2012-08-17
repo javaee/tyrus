@@ -76,6 +76,9 @@ public interface RemoteEndpoint<T> {
     public void sendPong(byte[] applicationData);
     
  
+    /** No
+     */
+    public boolean isConnected();
 
     
     

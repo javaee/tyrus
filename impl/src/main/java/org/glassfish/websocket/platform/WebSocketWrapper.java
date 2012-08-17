@@ -270,7 +270,7 @@ public final class WebSocketWrapper<T> implements RemoteEndpoint, InvocationHand
     private static void weedExpiredWebSocketWrappers() {
         Set<RemoteEndpoint> expired = new HashSet<RemoteEndpoint>();
         for (RemoteEndpoint wsw : wrappers) {
-            if (!(wsw).getSession().isActive()) {
+            if (!(wsw).isConnected()) {
                 expired.add(wsw);
             }
         }
