@@ -49,7 +49,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.glassfish.websocket.api.ServerContainer;
-import org.glassfish.websocket.api.EndpointContext;
+import org.glassfish.websocket.api.refactor.XEndpointContext;
 
 /**
  *
@@ -88,7 +88,7 @@ public class CDIServlet extends HttpServlet {
             out.println("<body>");
             out.println("<h1>Servlet CDIServlet at " + request.getContextPath() + "</h1>");
             out.println("<h1>WebSocket Endpoints Listing: </h1>");
-            for (EndpointContext epc : websocketContainerContext.getEndpointContexts()) {
+            for (XEndpointContext epc : websocketContainerContext.XgetEndpointContexts()) {
                 out.println("<h1>WebSocket Endpoint at " + epc.getPath() + "</h1>");
             }
             out.println("</body>");

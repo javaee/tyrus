@@ -39,7 +39,7 @@
  */
 package org.glassfish.websocket.spi;
 
-import org.glassfish.websocket.api.EndpointContext;
+import org.glassfish.websocket.api.refactor.XEndpointContext;
 
 /**
  * The provider implements this interface in order to
@@ -55,7 +55,7 @@ public interface SPIRegisteredEndpoint {
 
    /* Called handle back to the endpoint context.
     *
-    * @return EndpointContext of this endpoint.
+    * @return XEndpointContext of this endpoint.
     */
-    public EndpointContext getEndpointContext();
+    public XEndpointContext getEndpointContext();
 }

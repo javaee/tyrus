@@ -39,7 +39,7 @@
  */
 package org.glassfish.websocket.spi;
 
-import org.glassfish.websocket.api.EndpointContext;
+import org.glassfish.websocket.api.refactor.XEndpointContext;
 
 import java.util.List;
 
@@ -119,7 +119,7 @@ public interface SPIEndpoint {
      * Allows the provider a handle to the endpoint context for this
      * endpoint.
      *
-     * @return EndpointContext of the web socket.
+     * @return XEndpointContext of the web socket.
      */
-    public EndpointContext getEndpointContext();
+    public XEndpointContext getEndpointContext();
 }

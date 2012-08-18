@@ -40,7 +40,7 @@
 
 package remote;
 
-import org.glassfish.websocket.api.annotations.XWebSocketRemote;
+import org.glassfish.websocket.api.refactor.XWebSocketRemote;
 import java.io.*;
 import org.glassfish.websocket.api.EncodeException;
 import org.glassfish.websocket.api.RemoteEndpoint;

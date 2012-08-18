@@ -38,26 +38,17 @@
  * holder.
  */
 
-package org.glassfish.websocket.api.annotations;
+package org.glassfish.websocket.api.refactor;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import org.glassfish.websocket.api.RemoteEndpoint;
 
 /**
- * Method level annotation indicating that this Java method will be called on an end point class
- * when an error occurs in the web socket connection.
- * The single parameter of the method this annotation decorates must be of type Exception..<br>
- * For example: <br>
- * <p>
- * <code>
- *  &nbsp&nbsp&nbsp@XWebSocketError<br>
-    public void handleError(Exception e, RemoteEndpoint p) {<br>
-    &nbsp&nbsp&nbsp// handle the error here<br>
-    }
- * </code>
+ * Used to inject the instance of the WSContext into an instance
+ * variable on a web socket end point.
  * @author dannycoward
  */
 @Retention(RetentionPolicy.RUNTIME)
-public @interface XWebSocketError {
+public @interface XWebSocketContext {
+
 }

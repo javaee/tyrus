@@ -41,7 +41,7 @@
 package org.glassfish.websocket.platform;
 
 import org.glassfish.websocket.api.*;
-import org.glassfish.websocket.api.EndpointContext;
+import org.glassfish.websocket.api.refactor.XEndpointContext;
 import org.glassfish.websocket.api.Endpoint;
 import org.glassfish.websocket.spi.SPIRegisteredEndpoint;
 
@@ -81,10 +81,10 @@ public class ServerContainerImpl extends WithProperties implements ServerContain
         return this.wsPath;
     }
 
-    public List<EndpointContext> getEndpointContexts() {
-        List<EndpointContext> list = new ArrayList<EndpointContext>();
+    public List<XEndpointContext> XgetEndpointContexts() {
+        List<XEndpointContext> list = new ArrayList<XEndpointContext>();
         for (SPIRegisteredEndpoint ge : this.beanServer.endpoints) {
-            EndpointContext wsc = ge.getEndpointContext();
+            XEndpointContext wsc = ge.getEndpointContext();
             list.add(wsc);
         }
         return list;
@@ -95,7 +95,7 @@ public class ServerContainerImpl extends WithProperties implements ServerContain
     }
 
     @Override
-    public void deploy(Endpoint endpoint, String path) {
+    public void Xdeploy(Endpoint endpoint, String path) {
         WebSocketEndpointAdapter adapter = new WebSocketEndpointAdapter(this, endpoint, path);
         adapter.init();
         this.beanServer.deploy(adapter);

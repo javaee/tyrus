@@ -38,37 +38,17 @@
  * holder.
  */
 
-package org.glassfish.websocket.api;
+package org.glassfish.websocket.api.refactor;
 
-import java.util.*;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
 /**
- * Each web socket end point has one and only one EndpointContext object. From this object
- * the end point can obtain all the active conversations this end point is part of. The
- * EndpointContext can be used to store data that is sharable across all conversations.
+ * The XPathSegment annotation is used to annotate a method parameter for a method using
+ * the WebSocketMessage annotation when it wishes to be passed path information.
  * @author dannycoward
  */
-public interface EndpointContext {
-    /** Obtain a collection of all the active conversations
-     * the end point to which this EndpointContext is associated. For example, in
-     * a chat application, this call will return a collection of conversation
-     * objects representing all the active web socket connections to the
-     * end point.
-     * @return
-     */
-    public Set<Session> getConversations();
-    /** Get a reference to the container context to which this context belongs. */
-    public ServerContainer getContainerContext();
-     /** A read/write map of properties. Applications may use this to share
-     * application data throughout the lifetime of this web socket end point.
-     * @return
-     */
-    public Map<String, Object> getProperties();
-
-        /** Return the protocol used: ws or wss */
-    public String getProtocol();
-    /** Obtain the URI relative to the root of the web socket runtime for the end point to which this context belongs. For example,
-     if the web socket is at ws:/example.com/hello, this call returns "/hello". */
-    public String getPath();
+@Retention(RetentionPolicy.RUNTIME)
+public @interface XPathSegment {
 
 }

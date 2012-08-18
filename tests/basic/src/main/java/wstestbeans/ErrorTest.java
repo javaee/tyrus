@@ -42,7 +42,7 @@ package wstestbeans;
 
 import org.glassfish.websocket.api.annotations.WebSocketMessage;
 import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
-import org.glassfish.websocket.api.annotations.XWebSocketError;
+import org.glassfish.websocket.api.refactor.XWebSocketError;
 import org.glassfish.websocket.api.RemoteEndpoint;
 /**
  *

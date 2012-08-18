@@ -45,7 +45,7 @@ import org.glassfish.websocket.api.annotations.WebSocketMessage;
 import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
 import org.glassfish.websocket.api.annotations.WebSocketOpen;
 import org.glassfish.websocket.api.annotations.WebSocketClose;
-import org.glassfish.websocket.api.annotations.XWebSocketError;
+import org.glassfish.websocket.api.refactor.XWebSocketError;
 import java.io.IOException;
 import org.glassfish.websocket.api.EncodeException;
 import org.glassfish.websocket.api.RemoteEndpoint;

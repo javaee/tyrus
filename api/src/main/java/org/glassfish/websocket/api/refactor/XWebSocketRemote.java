@@ -38,7 +38,7 @@
  * holder.
  */
 
-package org.glassfish.websocket.api.annotations;
+package org.glassfish.websocket.api.refactor;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

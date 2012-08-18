@@ -346,7 +346,7 @@ public class WebSocketEndpointImpl implements SPIEndpoint {
         wsw.setAddress(this.originAddressForNextOnConnect);
         if (ServerContainerImpl.WEB_MODE) {
             if (httpSessionForNextOnConnect != null) {
-                ((WebSocketConversationImpl) wsw.getSession()).setHttpSession(httpSessionForNextOnConnect);
+                ((WebSocketConversationImpl) wsw.XgetSession()).setHttpSession(httpSessionForNextOnConnect);
                 httpSessionForNextOnConnect = null;
             } else {
 //                throw new RuntimeException("Failed to connect the http session with this web socket session");
@@ -438,7 +438,7 @@ public class WebSocketEndpointImpl implements SPIEndpoint {
             try {
                 System.out.println("Error replying to client " + e.getMessage());
                 e.printStackTrace();
-                m.invoke(model.getBean(), e, peer.getSession());
+                m.invoke(model.getBean(), e, peer.XgetSession());
             } catch (Exception ex) {
                 ex.printStackTrace();
                 throw new RuntimeException("Error invoking it");

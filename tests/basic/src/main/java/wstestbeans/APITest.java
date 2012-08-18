@@ -42,7 +42,7 @@ package wstestbeans;
 
 import org.glassfish.websocket.api.annotations.WebSocketMessage;
 import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
-import org.glassfish.websocket.api.EndpointContext;
+import org.glassfish.websocket.api.refactor.XEndpointContext;
 import org.glassfish.websocket.api.RemoteEndpoint;
 
 /* @author dannycoward */
@@ -57,18 +57,16 @@ public class APITest {
         String s = "";
         s = s + "Message: " + message;
         s = s + "<br>context ? " + remote.getContext();
-        EndpointContext context = remote.getContext();
-        s = s + "<br>context properties ? " + context.getProperties();
+        XEndpointContext context = remote.getContext();
+        s = s + "<br>context properties ? " + context.XgetProperties();
         s = s + "<br>context conversations ? " + context.getConversations();
         s = s + "<br>context  path? " + context.getPath();
-        s = s + "<br>context protocol ? " + context.getProtocol();
 
         s = s + "<br>context container context ? " + context.getContainerContext();
-        s = s + "<br>context container context path ? " + context.getContainerContext().getPath();
-        s = s + "<br>context container context properties ? " + context.getContainerContext().getProperties();
-        s = s + "<br>converation ? " + remote.getSession();
-        s = s + "<br>converation properties ? " + remote.getSession().XXgetProperties();
-        s = s + "<br>converation active ? " + remote.getSession().isActive();
+        s = s + "<br>context container context properties ? " + context.getContainerContext().XgetProperties();
+        s = s + "<br>converation ? " + remote.XgetSession();
+        s = s + "<br>converation properties ? " + remote.XgetSession().XXgetProperties();
+        s = s + "<br>converation active ? " + remote.XgetSession().isActive();
         return s;
     }
 

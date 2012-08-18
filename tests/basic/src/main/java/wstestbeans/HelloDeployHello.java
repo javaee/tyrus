@@ -41,6 +41,7 @@
 package wstestbeans;
 
 
+import org.glassfish.websocket.api.refactor.XEndpointContext;
 import org.glassfish.websocket.api.*;
 import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
 import org.glassfish.websocket.api.annotations.WebSocketMessage;
@@ -63,16 +64,16 @@ public class HelloDeployHello {
 
             Endpoint endpoint = new CustomEndpointUsingInterface();
             ServerContainer containerContext = p.getContext().getContainerContext();
-            containerContext.deploy(endpoint, pathToDeployIfc);
+            containerContext.Xdeploy(endpoint, pathToDeployIfc);
             endpoint = new CustomEndpointUsingAdapter();
-            containerContext.deploy(endpoint, pathToDeployAdapt);
+            containerContext.Xdeploy(endpoint, pathToDeployAdapt);
 
             return "Deployed to : " + pathToDeployIfc + " and " + pathToDeployAdapt;
         }
 }
 
 class CustomEndpointUsingInterface extends Endpoint {
-    public void initialize(EndpointContext epcontext){
+    public void initialize(XEndpointContext epcontext){
         System.out.println("Initializing dynamically deployed end point implementing interface");
     }
             /** Called whenever a peer first connects to this end point.*/
@@ -126,7 +127,7 @@ class MyMessageHandler implements MessageHandler.Text {
 }
 
 class CustomEndpointUsingAdapter extends Endpoint {
-    public void initialize(EndpointContext epcontext){
+    public void initialize(XEndpointContext epcontext){
         System.out.println("Initializing dynamically deployed end point extending adapter");
     }
             /** Called whenever a peer first connects to this end point.*/

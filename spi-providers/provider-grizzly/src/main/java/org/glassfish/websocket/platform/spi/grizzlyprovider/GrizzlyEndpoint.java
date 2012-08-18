@@ -43,7 +43,7 @@ import org.glassfish.grizzly.http.HttpRequestPacket;
 import org.glassfish.grizzly.websockets.DataFrame;
 import org.glassfish.grizzly.websockets.WebSocket;
 import org.glassfish.grizzly.websockets.WebSocketApplication;
-import org.glassfish.websocket.api.EndpointContext;
+import org.glassfish.websocket.api.refactor.XEndpointContext;
 import org.glassfish.websocket.spi.SPIEndpoint;
 import org.glassfish.websocket.spi.SPIRegisteredEndpoint;
 
@@ -86,7 +86,7 @@ class GrizzlyEndpoint extends WebSocketApplication implements SPIRegisteredEndpo
         this.endpoint.remove();
     }
 
-    public EndpointContext getEndpointContext() {
+    public XEndpointContext getEndpointContext() {
         return this.endpoint.getEndpointContext();
     }
 

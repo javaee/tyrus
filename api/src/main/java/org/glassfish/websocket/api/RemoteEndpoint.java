@@ -40,6 +40,7 @@
 
 package org.glassfish.websocket.api;
 
+import org.glassfish.websocket.api.refactor.XEndpointContext;
 import java.io.*;
 import java.util.concurrent.Future;
 
@@ -50,14 +51,13 @@ import java.util.concurrent.Future;
  */
 
 public interface RemoteEndpoint<T> {
-    /** No
-     */
-    public EndpointContext getContext();
-    /** No*/
-    public Session getSession();
-    /** Adapt.*/
+
+    public XEndpointContext getContext();
+    public boolean XisConnected();
+    public Session XgetSession();
+    
+    
     public void sendString(String data) throws IOException;
-    /** Adapt.*/
     public void sendBytes(byte[] data) throws IOException;
     
     public void sendPartialString(String fragment, boolean isLast) throws IOException;
@@ -75,10 +75,7 @@ public interface RemoteEndpoint<T> {
     public void sendPing(byte[] applicationData);
     public void sendPong(byte[] applicationData);
     
- 
-    /** No
-     */
-    public boolean isConnected();
+
 
     
     

@@ -39,6 +39,8 @@
  */
 package org.glassfish.websocket.sample.chat;
 
+import org.glassfish.websocket.api.refactor.XWebSocketContext;
+import org.glassfish.websocket.api.refactor.XEndpointContext;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -58,7 +60,7 @@ public class ChatServer {
 
     final static Logger logger = Logger.getLogger("application");
     @XWebSocketContext
-    public EndpointContext context;
+    public XEndpointContext context;
     private List<String> chatTranscript = new ArrayList<String>();
     static int transcriptMaxLines = 20;
 
@@ -103,7 +105,7 @@ public class ChatServer {
     @WebSocketClose
     public void handleClientClose(ChatClientRemote ccr) {
         logger.info("The web socket closed");
-        String username = (String) ccr.getSession().XXgetProperties().get("username");
+        String username = (String) ccr.XgetSession().XXgetProperties().get("username");
         if (username != null) {
             this.removeUserAndBroadcast(username);
             this.addToTranscriptAndNotify(username, " has just left...rather abruptly !");
@@ -186,7 +188,7 @@ public class ChatServer {
                 return this.registerNewUsername(newUsername + "1", chatClient);
             }
         }
-        chatClient.getSession().XXgetProperties().put("username", newUsername);
+        chatClient.XgetSession().XXgetProperties().put("username", newUsername);
         return newUsername;
     }
 }

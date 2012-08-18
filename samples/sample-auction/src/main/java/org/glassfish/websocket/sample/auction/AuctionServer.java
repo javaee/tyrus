@@ -39,8 +39,9 @@
  */
 package org.glassfish.websocket.sample.auction;
 
+import org.glassfish.websocket.api.refactor.XWebSocketContext;
 import org.glassfish.websocket.api.EncodeException;
-import org.glassfish.websocket.api.EndpointContext;
+import org.glassfish.websocket.api.refactor.XEndpointContext;
 import org.glassfish.websocket.api.RemoteEndpoint;
 import org.glassfish.websocket.api.annotations.*;
 import org.glassfish.websocket.sample.auction.message.*;
@@ -79,7 +80,7 @@ public class AuctionServer {
      * The Endpoint Context
      */
     @XWebSocketContext
-    public EndpointContext context;
+    public XEndpointContext context;
 
     /*
      * Used just to generate test data

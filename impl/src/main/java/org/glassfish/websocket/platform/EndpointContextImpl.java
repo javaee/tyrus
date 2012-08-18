@@ -47,12 +47,12 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.glassfish.websocket.api.ServerContainer;
 import org.glassfish.websocket.api.Session;
-import org.glassfish.websocket.api.EndpointContext;
+import org.glassfish.websocket.api.refactor.XEndpointContext;
 /**
  *
  * @author dannycoward
  */
-public class EndpointContextImpl extends WithProperties implements EndpointContext {
+public class EndpointContextImpl extends WithProperties implements XEndpointContext {
     private Set<Session> webSocketSessions = Collections.newSetFromMap(new ConcurrentHashMap<Session, Boolean>());
     private ServerContainer containerContext;
     private WebSocketEndpointImpl application;
@@ -72,7 +72,6 @@ public class EndpointContextImpl extends WithProperties implements EndpointConte
         this.application = application;
     }
 
-    @Override
     public String getProtocol() {
         return "ws";
     }

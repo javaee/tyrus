@@ -40,7 +40,7 @@
 
 package org.glassfish.websocket.test.basic.bean;
 
-import org.glassfish.websocket.api.annotations.XPathSegment;
+import org.glassfish.websocket.api.refactor.XPathSegment;
 import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
 import org.glassfish.websocket.api.annotations.WebSocketMessage;
 

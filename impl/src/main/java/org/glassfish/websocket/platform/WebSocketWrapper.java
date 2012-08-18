@@ -42,10 +42,10 @@ package org.glassfish.websocket.platform;
 
 import org.glassfish.websocket.api.*;
 import org.glassfish.websocket.api.EncodeException;
-import org.glassfish.websocket.api.EndpointContext;
+import org.glassfish.websocket.api.refactor.XEndpointContext;
 import org.glassfish.websocket.api.RemoteEndpoint;
 import org.glassfish.websocket.api.Encoder;
-import org.glassfish.websocket.api.annotations.XWebSocketRemote;
+import org.glassfish.websocket.api.refactor.XWebSocketRemote;
 import org.glassfish.websocket.spi.SPIRemoteEndpoint;
 
 import java.io.*;
@@ -134,16 +134,16 @@ public final class WebSocketWrapper<T> implements RemoteEndpoint, InvocationHand
     }
 
     @Override
-    public EndpointContext getContext() {
+    public XEndpointContext getContext() {
         return this.webSocketContext;
     }
 
     @Override
-    public Session getSession() {
+    public Session XgetSession() {
         return this.webSocketSession;
     }
 
-    public boolean isConnected() {
+    public boolean XisConnected() {
         return this.providedRemoteEndpoint.isConnected();
     }
 
@@ -270,7 +270,7 @@ public final class WebSocketWrapper<T> implements RemoteEndpoint, InvocationHand
     private static void weedExpiredWebSocketWrappers() {
         Set<RemoteEndpoint> expired = new HashSet<RemoteEndpoint>();
         for (RemoteEndpoint wsw : wrappers) {
-            if (!(wsw).isConnected()) {
+            if (!(wsw).XisConnected()) {
                 expired.add(wsw);
             }
         }

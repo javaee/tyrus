@@ -38,17 +38,38 @@
  * holder.
  */
 
-package org.glassfish.websocket.api.annotations;
+package org.glassfish.websocket.api.refactor;
 
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
+import java.util.*;
+import org.glassfish.websocket.api.ServerContainer;
+import org.glassfish.websocket.api.Session;
 
 /**
- * Used to inject the instance of the WSContext into an instance
- * variable on a web socket end point.
+ * Each web socket end point has one and only one XEndpointContext object. From this object
+ * the end point can obtain all the active conversations this end point is part of. The
+ * XEndpointContext can be used to store data that is sharable across all conversations.
  * @author dannycoward
  */
-@Retention(RetentionPolicy.RUNTIME)
-public @interface XWebSocketContext {
+public interface XEndpointContext {
+    /** Obtain a collection of all the active conversations
+     * the end point to which this XEndpointContext is associated. For example, in
+     * a chat application, this call will return a collection of conversation
+     * objects representing all the active web socket connections to the
+     * end point.
+     * @return
+     */
+    public Set<Session> getConversations();
+    /** Get a reference to the container context to which this context belongs. */
+    public ServerContainer getContainerContext();
+     /** A read/write map of properties. Applications may use this to share
+     * application data throughout the lifetime of this web socket end point.
+     * @return
+     */
+    public Map<String, Object> XgetProperties();
+
+
+    /** Obtain the URI relative to the root of the web socket runtime for the end point to which this context belongs. For example,
+     if the web socket is at ws:/example.com/hello, this call returns "/hello". */
+    public String getPath();
 
 }

@@ -44,7 +44,7 @@ package org.glassfish.websocket.sample.draw;
 
 import org.glassfish.websocket.api.RemoteEndpoint;
 import org.glassfish.websocket.api.EncodeException;
-import org.glassfish.websocket.api.annotations.XWebSocketRemote;
+import org.glassfish.websocket.api.refactor.XWebSocketRemote;
 import java.io.*;
 /**
  *

@@ -39,6 +39,8 @@
  */
 package org.glassfish.websocket.platform;
 
+import org.glassfish.websocket.api.refactor.XWebSocketError;
+import org.glassfish.websocket.api.refactor.XWebSocketContext;
 import org.glassfish.websocket.api.annotations.*;
 
 import java.lang.reflect.Field;

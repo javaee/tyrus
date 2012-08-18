@@ -41,11 +41,11 @@ package org.glassfish.websocket.sample.draw;
 
 
 import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
-import org.glassfish.websocket.api.annotations.XWebSocketContext;
+import org.glassfish.websocket.api.refactor.XWebSocketContext;
 import org.glassfish.websocket.api.annotations.WebSocketMessage;
 import org.glassfish.websocket.api.Session;
 import org.glassfish.websocket.api.EncodeException;
-import org.glassfish.websocket.api.EndpointContext;
+import org.glassfish.websocket.api.refactor.XEndpointContext;
 import java.util.*;
 import java.io.*;
 
@@ -59,12 +59,12 @@ import java.io.*;
     )
 public class GroupDrawServer {
     @XWebSocketContext
-    public EndpointContext context;
+    public XEndpointContext context;
 
     @WebSocketMessage
     public void shapeCreated(DrawingMessage message, GroupDrawRemote client) throws IOException, EncodeException {
         for (Session otherSession : context.getConversations()) {
-            if (!otherSession.equals(client.getSession())) {
+            if (!otherSession.equals(client.XgetSession())) {
                 GroupDrawRemote gdr = (GroupDrawRemote) otherSession.getRemote();
                 //if (gdr != null) {
                     gdr.sendDrawingUpdate(message);

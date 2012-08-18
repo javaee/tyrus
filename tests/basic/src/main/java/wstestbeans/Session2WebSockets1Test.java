@@ -56,7 +56,7 @@ public class Session2WebSockets1Test {
             System.out.println("hi 2 " + remote.getContext().getConversations());
             System.out.println("app context " + remote.getContext());
             ServerContainer containerContext = remote.getContext().getContainerContext();
-            containerContext.getProperties().put("key", message);
+            containerContext.XgetProperties().put("key", message);
             return "done";
         }
 }

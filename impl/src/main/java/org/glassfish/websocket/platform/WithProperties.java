@@ -52,7 +52,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
     WithProperties() {}
 
-    public Map<String, Object> getProperties() {
+    public Map<String, Object> XgetProperties() {
         return this.properties;
     }
 

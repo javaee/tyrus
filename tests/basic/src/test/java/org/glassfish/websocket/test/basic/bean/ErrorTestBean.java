@@ -42,7 +42,7 @@ package org.glassfish.websocket.test.basic.bean;
 
 import org.glassfish.websocket.api.RemoteEndpoint;
 import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
-import org.glassfish.websocket.api.annotations.XWebSocketError;
+import org.glassfish.websocket.api.refactor.XWebSocketError;
 import org.glassfish.websocket.api.annotations.WebSocketMessage;
 
 /**

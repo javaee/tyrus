@@ -56,7 +56,7 @@ public class Session2WebSockets2Test {
         public String handleIncoming(String message, RemoteEndpoint remote) {
             System.out.println("hi 2 " + remote.getContext().getConversations());
             ServerContainer containerContext = remote.getContext().getContainerContext();
-            String lastMessage = (String) containerContext.getProperties().get("key");
+            String lastMessage = (String) containerContext.XgetProperties().get("key");
             if (lastMessage == null) {
                 lastMessage = "Nothing there";
             }

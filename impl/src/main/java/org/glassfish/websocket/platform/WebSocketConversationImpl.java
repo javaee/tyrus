@@ -114,7 +114,7 @@ public class WebSocketConversationImpl implements Session {
     }
 
     public boolean isActive() {
-        return getWebSocketWrapper().isConnected();
+        return getWebSocketWrapper().XisConnected();
     }
 
     public Date getActivationTime() {

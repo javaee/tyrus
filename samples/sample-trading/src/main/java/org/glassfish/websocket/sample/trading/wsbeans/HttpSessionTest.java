@@ -55,7 +55,7 @@ public class HttpSessionTest {
 
     @WebSocketMessage
     public String doThis(String thiz, RemoteEndpoint remote) {
-        Session wsSession = remote.getSession();
+        Session wsSession = remote.XgetSession();
         HttpSession httpSession = wsSession.getHttpSession();
         String s = "session id: " + wsSession;
         s = s + " and http Session id is " + httpSession;

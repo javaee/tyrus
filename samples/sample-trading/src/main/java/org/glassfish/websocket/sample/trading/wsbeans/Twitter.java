@@ -46,10 +46,10 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.servlet.http.HttpSession;
 import org.glassfish.websocket.api.CloseReason;
-import org.glassfish.websocket.api.EndpointContext;
+import org.glassfish.websocket.api.refactor.XEndpointContext;
 import org.glassfish.websocket.api.Session;
 import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
-import org.glassfish.websocket.api.annotations.XWebSocketContext;
+import org.glassfish.websocket.api.refactor.XWebSocketContext;
 import org.glassfish.websocket.api.annotations.WebSocketMessage;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -68,7 +68,7 @@ import org.json.JSONObject;
 public class Twitter implements Broadcaster {
     UpdateThread updateThread = null;
     @XWebSocketContext
-    public EndpointContext myContext;
+    public XEndpointContext myContext;
     String maxResults = "8";
     //List<TwitterRemote> remotes = new ArrayList<TwitterRemote>();
     //String searchTerm = "%40ORCL%20OR%20%40MSFT";
@@ -87,7 +87,7 @@ public class Twitter implements Broadcaster {
             this.initThread();
         } else {
             try {
-                tr.getSession().close(new CloseReason(CloseReason.Code.NORMAL_CLOSURE, "User logged off"));
+                tr.XgetSession().close(new CloseReason(CloseReason.Code.NORMAL_CLOSURE, "User logged off"));
             } catch (IOException ioe ) {}
 
             if (myContext.getConversations().size() == 0 && this.updateThread != null) {

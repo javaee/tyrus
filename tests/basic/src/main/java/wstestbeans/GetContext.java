@@ -42,8 +42,8 @@ package wstestbeans;
 
 import org.glassfish.websocket.api.annotations.WebSocketMessage;
 import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
-import org.glassfish.websocket.api.annotations.XWebSocketContext;
-import org.glassfish.websocket.api.EndpointContext;
+import org.glassfish.websocket.api.refactor.XWebSocketContext;
+import org.glassfish.websocket.api.refactor.XEndpointContext;
 import org.glassfish.websocket.api.Session;
 import org.glassfish.websocket.api.RemoteEndpoint;
 /**
@@ -55,7 +55,7 @@ import org.glassfish.websocket.api.RemoteEndpoint;
     )
 public class GetContext {
     @XWebSocketContext
-    public EndpointContext myContext;
+    public XEndpointContext myContext;
 
     @WebSocketMessage
     public void onMessage(String message) {

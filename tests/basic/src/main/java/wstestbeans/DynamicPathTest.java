@@ -43,7 +43,7 @@ package wstestbeans;
 
 import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
 import org.glassfish.websocket.api.annotations.WebSocketMessage;
-import org.glassfish.websocket.api.annotations.XPathSegment;
+import org.glassfish.websocket.api.refactor.XPathSegment;
 
 /**
  *

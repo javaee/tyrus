@@ -40,6 +40,7 @@
 
 package org.glassfish.websocket.api;
 
+import org.glassfish.websocket.api.refactor.XEndpointContext;
 import java.util.*;
 /**
  * There is one instance of this object available to all the web sockets
@@ -53,17 +54,16 @@ import java.util.*;
 public interface ServerContainer extends ClientContainer {
     /** Basic transient storage of application data visible across the
      * runtime */
-    public Map<String, Object> getProperties();
-    /** Return the URI to this runtime.*/
-    public String getPath();
+    public Map<String, Object> XgetProperties();
+
 
     /** A list of the endpoint contexts in this container. */
-    public List<EndpointContext> getEndpointContexts();
+    public List<XEndpointContext> XgetEndpointContexts();
 
     
     
     /** Turn into publishServer.*/
-    public void deploy(Endpoint endpoint, String path);
+    public void Xdeploy(Endpoint endpoint, String path);
     
     /** Publish the given endpoint with the provided configuration
      * information. 

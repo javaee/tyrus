@@ -64,13 +64,13 @@ public class WebSocketEndpointAdapter extends WebSocketEndpointImpl {
 
     public void onConnect(SPIRemoteEndpoint gs) {
         super.onConnect(gs);
-        getPeer(gs).getSession().addMessageHandler(new MessageHandlerTextImpl(this.endpoint, getPeer(gs)));
-        this.endpoint.onOpen(getPeer(gs).getSession());
+        getPeer(gs).XgetSession().addMessageHandler(new MessageHandlerTextImpl(this.endpoint, getPeer(gs)));
+        this.endpoint.onOpen(getPeer(gs).XgetSession());
     }
 
     @Override
     public void onMessage(SPIRemoteEndpoint gs, String messageString) {
-        ((WebSocketConversationImpl) getPeer(gs).getSession()).notifyMessageHandlers(messageString);
+        ((WebSocketConversationImpl) getPeer(gs).XgetSession()).notifyMessageHandlers(messageString);
         //this.endpoint.onMessage(getPeer(gs), messageString);
     }
 
@@ -81,7 +81,7 @@ public class WebSocketEndpointAdapter extends WebSocketEndpointImpl {
     @Override
     public void onClose(SPIRemoteEndpoint gs) {
         super.onClose(gs);
-        this.endpoint.onClose(getPeer(gs).getSession()); 
+        this.endpoint.onClose(getPeer(gs).XgetSession()); 
     }
 
     @Override
