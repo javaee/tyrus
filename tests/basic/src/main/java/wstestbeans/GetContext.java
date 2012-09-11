@@ -40,12 +40,8 @@
 
 package wstestbeans;
 
-import org.glassfish.websocket.api.annotations.WebSocketMessage;
 import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
-import org.glassfish.websocket.api.refactor.XWebSocketContext;
-import org.glassfish.websocket.api.refactor.XEndpointContext;
-import org.glassfish.websocket.api.Session;
-import org.glassfish.websocket.api.RemoteEndpoint;
+import org.glassfish.websocket.api.annotations.WebSocketMessage;
 /**
  *
  * @author dannycoward
@@ -54,22 +50,22 @@ import org.glassfish.websocket.api.RemoteEndpoint;
         path="/getcontext"
     )
 public class GetContext {
-    @XWebSocketContext
-    public XEndpointContext myContext;
+//    @XWebSocketContext
+//    public XEndpointContext myContext;
 
     @WebSocketMessage
     public void onMessage(String message) {
-        this.broadcast();
+//        this.broadcast();
     }
 
-    private void broadcast() {
-        for (Session session : myContext.getConversations()) {
-            RemoteEndpoint remote = session.getRemote();
-            try {
-                remote.sendString("Broadcasting to you !");
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
+//    private void broadcast() {
+//        for (Session session : myContext.getConversations()) {
+//            RemoteEndpoint remote = session.getRemote();
+//            try {
+//                remote.sendString("Broadcasting to you !");
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
+//        }
+//    }
 }

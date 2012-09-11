@@ -41,7 +41,6 @@ package org.glassfish.websocket.client;
 
 import org.glassfish.websocket.api.EncodeException;
 import org.glassfish.websocket.api.RemoteEndpoint;
-import org.glassfish.websocket.api.refactor.XWebSocketRemote;
 
 import java.io.IOException;
 
@@ -50,7 +49,7 @@ import java.io.IOException;
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-@XWebSocketRemote(encoders = {org.glassfish.websocket.client.TestEncoder.class})
+//@XWebSocketRemote(encoders = {org.glassfish.websocket.client.TestEncoder.class})
 public interface ClientTestRemote extends RemoteEndpoint {
 
     public void sendTestMessage(TestMessage testMessage) throws IOException, EncodeException;

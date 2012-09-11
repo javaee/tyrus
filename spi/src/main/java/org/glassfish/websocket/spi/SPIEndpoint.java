@@ -39,8 +39,6 @@
  */
 package org.glassfish.websocket.spi;
 
-import org.glassfish.websocket.api.refactor.XEndpointContext;
-
 import java.util.List;
 
 /**
@@ -114,12 +112,4 @@ public interface SPIEndpoint {
      * this endpoint, and after the endpoint has been removed from service.
      */
     public void remove();
-
-    /**
-     * Allows the provider a handle to the endpoint context for this
-     * endpoint.
-     *
-     * @return XEndpointContext of the web socket.
-     */
-    public XEndpointContext getEndpointContext();
 }

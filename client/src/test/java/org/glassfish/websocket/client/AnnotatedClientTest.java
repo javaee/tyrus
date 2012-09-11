@@ -41,6 +41,7 @@ package org.glassfish.websocket.client;
 
 import org.glassfish.websocket.platform.main.Server;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.util.concurrent.CountDownLatch;
@@ -60,6 +61,7 @@ public class AnnotatedClientTest {
 
     private CountDownLatch messageLatch;
 
+    @Ignore
     @Test
     public void testSimpleMessage() {
 
@@ -81,6 +83,7 @@ public class AnnotatedClientTest {
         }
     }
 
+    @Ignore
     @Test
     public void testMessageWith() {
         Server server = new Server("org.glassfish.websocket.client.TestBean");

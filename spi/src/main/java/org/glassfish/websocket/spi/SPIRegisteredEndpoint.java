@@ -39,8 +39,6 @@
  */
 package org.glassfish.websocket.spi;
 
-import org.glassfish.websocket.api.refactor.XEndpointContext;
-
 /**
  * The provider implements this interface in order to
  * provide the web socket SDK a handle to the deployed
@@ -53,9 +51,4 @@ public interface SPIRegisteredEndpoint {
     /* Called by the SDK when it is cleaning up or needs to shut down.*/
     public void remove();
 
-   /* Called handle back to the endpoint context.
-    *
-    * @return XEndpointContext of this endpoint.
-    */
-    public XEndpointContext getEndpointContext();
 }

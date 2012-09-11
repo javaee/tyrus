@@ -40,14 +40,15 @@
 
 package org.glassfish.websocket.sample.draw;
 
+import org.glassfish.websocket.platform.main.Server;
+
 import java.io.IOException;
 import java.util.HashSet;
-
-import org.glassfish.websocket.platform.main.Server;
 
 /**
  *
  * @author dannycoward
+ * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 public class Main {
 
@@ -60,7 +61,7 @@ public class Main {
         }
 
         Server.setWebMode(false);
-        Server server = new Server("localhost", 8080, "/sample-draw", beans);
+        Server server = new Server("localhost", 8025, "/sample-draw", beans);
 
         try {
             server.start();

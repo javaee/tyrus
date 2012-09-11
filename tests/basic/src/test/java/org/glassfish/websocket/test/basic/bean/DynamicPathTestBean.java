@@ -40,7 +40,6 @@
 
 package org.glassfish.websocket.test.basic.bean;
 
-import org.glassfish.websocket.api.refactor.XPathSegment;
 import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
 import org.glassfish.websocket.api.annotations.WebSocketMessage;
 
@@ -65,13 +64,13 @@ public class DynamicPathTestBean {
     }
 
     @WebSocketMessage(XdynamicPath = "/foo/bar")
-    public String fooBarPath(String message, @XPathSegment String segment) {
+    public String fooBarPath(String message) {
         System.out.println("###DynamicPathTestBean reply: "+"/foo/bar");
         return "FB";
     }
 
     @WebSocketMessage(XdynamicPath = "*")
-    public String starPath(String message, @XPathSegment String segment) {
+    public String starPath(String message) {
         System.out.println("###DynamicPathTestBean reply: "+"*");
         return "*";
     }

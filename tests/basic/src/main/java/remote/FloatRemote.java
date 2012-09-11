@@ -40,16 +40,16 @@
 
 package remote;
 
-import java.io.IOException;
 import org.glassfish.websocket.api.EncodeException;
 import org.glassfish.websocket.api.RemoteEndpoint;
-import org.glassfish.websocket.api.refactor.XWebSocketRemote;
+
+import java.io.IOException;
 
 /**
  *
  * @author dannycoward
  */
-    @XWebSocketRemote
+//    @XWebSocketRemote
 public interface FloatRemote extends RemoteEndpoint {
 
     public void sendFloatMessage(float f) throws IOException, EncodeException;

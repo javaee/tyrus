@@ -39,36 +39,43 @@
  */
 package org.glassfish.websocket.sample.draw;
 
-
-import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
-import org.glassfish.websocket.api.refactor.XWebSocketContext;
-import org.glassfish.websocket.api.annotations.WebSocketMessage;
-import org.glassfish.websocket.api.Session;
 import org.glassfish.websocket.api.EncodeException;
-import org.glassfish.websocket.api.refactor.XEndpointContext;
-import java.util.*;
-import java.io.*;
+import org.glassfish.websocket.api.Session;
+import org.glassfish.websocket.api.annotations.WebSocketClose;
+import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
+import org.glassfish.websocket.api.annotations.WebSocketMessage;
+import org.glassfish.websocket.api.annotations.WebSocketOpen;
+
+import java.io.IOException;
+import java.util.Collections;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
- *
  * @author dannycoward
  */
-    @WebSocketEndpoint(path="/draw",
-            Xremote=org.glassfish.websocket.sample.draw.GroupDrawRemote.class,
-            decoders={org.glassfish.websocket.sample.draw.DrawingMessage.class}
-    )
+
+@WebSocketEndpoint(path = "/draw")
 public class GroupDrawServer {
-    @XWebSocketContext
-    public XEndpointContext context;
+
+    private Set<Session> peers = Collections.newSetFromMap(new ConcurrentHashMap<Session, Boolean>());
+
+    @WebSocketOpen
+    public void onOpen(Session session) {
+        peers.add(session);
+    }
+
+    @WebSocketClose
+    public void onClose(Session session){
+        peers.remove(session);
+    }
 
     @WebSocketMessage
-    public void shapeCreated(DrawingMessage message, GroupDrawRemote client) throws IOException, EncodeException {
-        for (Session otherSession : context.getConversations()) {
-            if (!otherSession.equals(client.XgetSession())) {
-                GroupDrawRemote gdr = (GroupDrawRemote) otherSession.getRemote();
-                //if (gdr != null) {
-                    gdr.sendDrawingUpdate(message);
-                //}
+    public void shapeCreated(String message, Session client) throws IOException, EncodeException {
+        System.out.println("Received message: "+message);
+        for (Session otherSession : peers) {
+            if (!otherSession.equals(client)) {
+                otherSession.getRemote().sendString(message);
             }
         }
 

@@ -48,25 +48,25 @@
         <meta charset="utf-8">
         <title>Web Socket JavaScript Echo Client</title>
         <script language="javascript" type="text/javascript">
-            var wsUri = "ws://localhost:8080/sample-echo/echo";
+            var wsUri = "ws://localhost:8025/sample-echo/echo";
 
             function init() {
                 output = document.getElementById("output");
             }
 
             function send_echo() {
-                
+
                 websocket = new WebSocket(wsUri);
                 websocket.onopen = function(evt) { onOpen(evt) };
                 websocket.onmessage = function(evt) { onMessage(evt) };
                 websocket.onerror = function(evt) { onError(evt) };
-                
+
             }
 
             function onOpen(evt) {
                 writeToScreen("CONNECTED");
                 doSend(textID.value);
-                
+
             }
 
             function onMessage(evt) {
@@ -98,8 +98,8 @@
         <div style="text-align: center;"><img style=" width: 64px; height: 64px;" alt=""src="HTML5_Logo_512.png"></div>
         <br></br>
         <div style="text-align: center;">
-            <form action=""> 
-                <input onclick="send_echo()" value="Press me" type="button"> 
+            <form action="">
+                <input onclick="send_echo()" value="Press me" type="button">
                 <input id="textID" name="message" value="Hello Web Sockets !" type="text"><br>
             </form>
         </div>

@@ -66,7 +66,7 @@ public class DynamicPathTest {
                     messageLatch.countDown();
                 }
             });
-            messageLatch.await(10000, TimeUnit.SECONDS);
+            messageLatch.await(5, TimeUnit.SECONDS);
             System.out.println("Expected response:"+response+".");
             System.out.println("Real response:"+receivedMessage+".");
             Assert.assertTrue("The received message does not equal the required response", receivedMessage.equals(response));

@@ -40,17 +40,17 @@
 
 package remote;
 
-import java.io.IOException;
 import org.glassfish.websocket.api.EncodeException;
 import org.glassfish.websocket.api.RemoteEndpoint;
-import org.glassfish.websocket.api.refactor.XWebSocketRemote;
+
+import java.io.IOException;
 
 /**
  *
  * @author dannycoward
  */
 
-    @XWebSocketRemote
+//    @XWebSocketRemote
 public interface ShortRemote extends RemoteEndpoint {
 
     public void sendShortMessage(short s) throws IOException, EncodeException;

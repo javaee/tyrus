@@ -42,14 +42,14 @@ package org.glassfish.websocket.test.basic.remote;
 
 import org.glassfish.websocket.api.EncodeException;
 import org.glassfish.websocket.api.RemoteEndpoint;
-import org.glassfish.websocket.api.refactor.XWebSocketRemote;
 
 import java.io.IOException;
 
 /**
  *
  * @author dannycoward
- */ @XWebSocketRemote
+ */
+//@XWebSocketRemote
 public interface BooleanRemote extends RemoteEndpoint {
 
     public void sendBooleanMessage(boolean b) throws IOException, EncodeException;

@@ -51,7 +51,6 @@ public class StringDecoderNoOp implements Decoder.Text<String> {
 
     @Override
     public String decode(String s) throws DecodeException {
-        //System.out.println("Hit the no-op string decoder");
         return s;
     }
 

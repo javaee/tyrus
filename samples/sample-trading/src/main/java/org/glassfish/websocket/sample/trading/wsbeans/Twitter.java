@@ -46,10 +46,8 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.servlet.http.HttpSession;
 import org.glassfish.websocket.api.CloseReason;
-import org.glassfish.websocket.api.refactor.XEndpointContext;
 import org.glassfish.websocket.api.Session;
 import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
-import org.glassfish.websocket.api.refactor.XWebSocketContext;
 import org.glassfish.websocket.api.annotations.WebSocketMessage;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -87,7 +85,7 @@ public class Twitter implements Broadcaster {
             this.initThread();
         } else {
             try {
-                tr.XgetSession().close(new CloseReason(CloseReason.Code.NORMAL_CLOSURE, "User logged off"));
+                tr.getSession().close(new CloseReason(CloseReason.Code.NORMAL_CLOSURE, "User logged off"));
             } catch (IOException ioe ) {}
 
             if (myContext.getConversations().size() == 0 && this.updateThread != null) {

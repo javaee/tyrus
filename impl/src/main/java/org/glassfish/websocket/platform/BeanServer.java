@@ -40,6 +40,11 @@
 
 package org.glassfish.websocket.platform;
 
+/**
+ *
+ * @author dannycoward
+ */
+
 import org.glassfish.websocket.spi.SPIRegisteredEndpoint;
 import org.glassfish.websocket.spi.SPIWebSocketProvider;
 
@@ -53,16 +58,35 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 /**
+ * Server that processes the client applications and creates respective {@link org.glassfish.websocket.spi.SPIEndpoint}.
  *
  * @author dannycoward
+ * @author Stepan Kopriva (stepan.kopriva at oracle.com).
  */
 
 public class BeanServer {
-    final static Logger logger = Logger.getLogger("wsplatform");
-    Set<SPIRegisteredEndpoint> endpoints = Collections.newSetFromMap(new ConcurrentHashMap<SPIRegisteredEndpoint, Boolean>());
-    private ServerContainerImpl containerContext;
-    private SPIWebSocketProvider engine;
 
+    /**
+     * Endpoints registered with the server.
+     */
+    Set<SPIRegisteredEndpoint> endpoints = Collections.newSetFromMap(new ConcurrentHashMap<SPIRegisteredEndpoint, Boolean>());
+
+    /**
+     * Container context.
+     */
+    private ServerContainerImpl containerContext;
+
+    /**
+     * WebSocket engine.
+     */
+    private SPIWebSocketProvider engine;
+    final static Logger logger = Logger.getLogger("wsplatform");
+
+    /**
+     * Create new BeanServer.
+     *
+     * @param engineProviderClassname engine provider.
+     */
     public BeanServer(String engineProviderClassname) {
         try {
             Class engineProviderClazz = Class.forName(engineProviderClassname);
@@ -76,21 +100,23 @@ public class BeanServer {
         logger.info("Provider class loaded: " + engineProviderClassname);
     }
 
-
-    public BeanServer(SPIWebSocketProvider engine) {
-        this.setEngine(engine);
-    }
-
-
     private void setEngine(SPIWebSocketProvider engine) {
         this.engine = engine;
         logger.info("Provider class instance: " + engine + " of class " + this.engine.getClass() + " assigned in the BeanServer");
     }
 
+    /**
+     * Returns the ContainerContext.
+     *
+     * @return ContainerContext
+     */
     public ServerContainerImpl getContainerContext() {
         return containerContext;
     }
 
+    /**
+     * Stop the bean server.
+     */
     public void closeWebSocketServer() {
         for (SPIRegisteredEndpoint wsa : this.endpoints) {
             wsa.remove();
@@ -99,50 +125,45 @@ public class BeanServer {
         }
     }
 
+    /**
+     * Inits the server.
+     *
+     * @param wsPath        address.
+     * @param port          port.
+     * @param fqWSBeanNames application classes.
+     * @throws Exception
+     */
     public void initWebSocketServer(String wsPath, int port, Set<Class<?>> fqWSBeanNames) throws Exception {
         this.containerContext = new ServerContainerImpl(this, wsPath, port);
         for (Class webSocketApplicationBeanClazz : fqWSBeanNames) {
             this.containerContext.setApplicationLevelClassLoader(webSocketApplicationBeanClazz.getClassLoader());
 
             // introspect the bean and find all the paths....
-            Map methodPathMap = this.getMethodToPathMap(webSocketApplicationBeanClazz);
+            Map<Method, String> methodPathMap = this.getMethodToPathMap(webSocketApplicationBeanClazz);
             if (methodPathMap.isEmpty()) {
                 logger.warning(webSocketApplicationBeanClazz + " has no path mappings");
             }
 
-            Set<String> allPathsForBean = new HashSet(methodPathMap.values());
+            Set<String> allPathsForBean = new HashSet<String>(methodPathMap.values());
 
             // create one adapter per path. So each class may have multiple adapters.
             for (String nextPath : allPathsForBean) {
                 Model model = new Model(webSocketApplicationBeanClazz);
                 String wrapperBeanPath = wsPath + nextPath;
-                WebSocketEndpointImpl webSocketEndpoint = new WebSocketEndpointImpl(this.containerContext);
-                webSocketEndpoint.doInit(wrapperBeanPath,model);
+                WebSocketEndpointImpl webSocketEndpoint = new WebSocketEndpointImpl(this.containerContext, wrapperBeanPath, model);
                 this.deploy(webSocketEndpoint);
             }
         }
     }
 
     void deploy(WebSocketEndpointImpl wsa) {
-        SPIRegisteredEndpoint ge  = this.engine.register(wsa);
+        SPIRegisteredEndpoint ge = this.engine.register(wsa);
         this.endpoints.add(ge);
         logger.info("Registered a " + wsa.getClass() + " at " + wsa.getPath());
     }
 
-    private Set getMethodsForPath(Class beanClazz, String path) throws Exception {
-        Set<Method> s = new HashSet<Method>();
-        Map<Method, String> methodPath = this.getMethodToPathMap(beanClazz);
-        for (Method m : methodPath.keySet()) {
-            String p = methodPath.get(m);
-            if (p.equals(path)) {
-                s.add(m);
-            }
-        }
-        return s;
-    }
-
     private Map<Method, String> getMethodToPathMap(Class beanClazz) throws Exception {
-        Map<Method, String> pathMappings = new HashMap();
+        Map<Method, String> pathMappings = new HashMap<Method, String>();
         Method[] methods = beanClazz.getDeclaredMethods();
         for (Method method : methods) {
             org.glassfish.websocket.api.annotations.WebSocketEndpoint wsClass = (org.glassfish.websocket.api.annotations.WebSocketEndpoint) beanClazz.getAnnotation(org.glassfish.websocket.api.annotations.WebSocketEndpoint.class);
@@ -151,3 +172,99 @@ public class BeanServer {
         return pathMappings;
     }
 }
+
+
+//public class BeanServer {
+//    final static Logger logger = Logger.getLogger("wsplatform");
+//    Set<SPIRegisteredEndpoint> endpoints = Collections.newSetFromMap(new ConcurrentHashMap<SPIRegisteredEndpoint, Boolean>());
+//    private ServerContainerImpl containerContext;
+//    private SPIWebSocketProvider engine;
+//
+//    public BeanServer(String engineProviderClassname) {
+//        try {
+//            Class engineProviderClazz = Class.forName(engineProviderClassname);
+//            this.setEngine((SPIWebSocketProvider) engineProviderClazz.newInstance());
+//        } catch (Exception e) {
+//            throw new RuntimeException("Failed to load provider class: " + engineProviderClassname + ". The provider class defaults to"
+//                    + "the grizzly provider. If you wish to provide your own implementation of the provider SPI, you can configure"
+//                    + "the provider class in the web.xml of the application using a"
+//                    + "context initialization parameter with key org.glassfish.websocket.provider.class, and using the full classname as the value.");
+//        }
+//        logger.info("Provider class loaded: " + engineProviderClassname);
+//    }
+//
+//
+//    public BeanServer(SPIWebSocketProvider engine) {
+//        this.setEngine(engine);
+//    }
+//
+//
+//    private void setEngine(SPIWebSocketProvider engine) {
+//        this.engine = engine;
+//        logger.info("Provider class instance: " + engine + " of class " + this.engine.getClass() + " assigned in the BeanServer");
+//    }
+//
+//    public ServerContainerImpl getContainerContext() {
+//        return containerContext;
+//    }
+//
+//    public void closeWebSocketServer() {
+//        for (SPIRegisteredEndpoint wsa : this.endpoints) {
+//            wsa.remove();
+//            this.engine.unregister(wsa);
+//            logger.info("Closing down : " + wsa);
+//        }
+//    }
+//
+//    public void initWebSocketServer(String wsPath, int port, Set<Class<?>> fqWSBeanNames) throws Exception {
+//        this.containerContext = new ServerContainerImpl(this, wsPath, port);
+//        for (Class webSocketApplicationBeanClazz : fqWSBeanNames) {
+//            this.containerContext.setApplicationLevelClassLoader(webSocketApplicationBeanClazz.getClassLoader());
+//
+//            // introspect the bean and find all the paths....
+//            Map methodPathMap = this.getMethodToPathMap(webSocketApplicationBeanClazz);
+//            if (methodPathMap.isEmpty()) {
+//                logger.warning(webSocketApplicationBeanClazz + " has no path mappings");
+//            }
+//
+//            Set<String> allPathsForBean = new HashSet(methodPathMap.values());
+//
+//            // create one adapter per path. So each class may have multiple adapters.
+//            for (String nextPath : allPathsForBean) {
+//                Model model = new Model(webSocketApplicationBeanClazz);
+//                String wrapperBeanPath = wsPath + nextPath;
+//                WebSocketEndpointImpl webSocketEndpoint = new WebSocketEndpointImpl(this.containerContext);
+//                webSocketEndpoint.doInit(wrapperBeanPath,model);
+//                this.deploy(webSocketEndpoint);
+//            }
+//        }
+//    }
+//
+//    void deploy(WebSocketEndpointImpl wsa) {
+//        SPIRegisteredEndpoint ge  = this.engine.register(wsa);
+//        this.endpoints.add(ge);
+//        logger.info("Registered a " + wsa.getClass() + " at " + wsa.getPath());
+//    }
+//
+//    private Set getMethodsForPath(Class beanClazz, String path) throws Exception {
+//        Set<Method> s = new HashSet<Method>();
+//        Map<Method, String> methodPath = this.getMethodToPathMap(beanClazz);
+//        for (Method m : methodPath.keySet()) {
+//            String p = methodPath.get(m);
+//            if (p.equals(path)) {
+//                s.add(m);
+//            }
+//        }
+//        return s;
+//    }
+//
+//    private Map<Method, String> getMethodToPathMap(Class beanClazz) throws Exception {
+//        Map<Method, String> pathMappings = new HashMap();
+//        Method[] methods = beanClazz.getDeclaredMethods();
+//        for (Method method : methods) {
+//            org.glassfish.websocket.api.annotations.WebSocketEndpoint wsClass = (org.glassfish.websocket.api.annotations.WebSocketEndpoint) beanClazz.getAnnotation(org.glassfish.websocket.api.annotations.WebSocketEndpoint.class);
+//            pathMappings.put(method, wsClass.path());
+//        }
+//        return pathMappings;
+//    }
+//}

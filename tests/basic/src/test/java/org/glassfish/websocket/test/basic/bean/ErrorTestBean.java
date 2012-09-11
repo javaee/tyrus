@@ -42,7 +42,6 @@ package org.glassfish.websocket.test.basic.bean;
 
 import org.glassfish.websocket.api.RemoteEndpoint;
 import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
-import org.glassfish.websocket.api.refactor.XWebSocketError;
 import org.glassfish.websocket.api.annotations.WebSocketMessage;
 
 /**
@@ -63,14 +62,14 @@ public class ErrorTestBean {
         return "anything";
     }
 
-    @XWebSocketError
-    public void handleError(Exception e, RemoteEndpoint p) {
-        try {
-            System.out.println("############################################handleError");
-            remote.sendString("Error");
-        } catch (Exception ee) {
-
-            System.out.println("I give up");
-        }
-    }
+//    @XWebSocketError
+//    public void handleError(Exception e, RemoteEndpoint p) {
+//        try {
+//            System.out.println("############################################handleError");
+//            remote.sendString("Error");
+//        } catch (Exception ee) {
+//
+//            System.out.println("I give up");
+//        }
+//    }
 }

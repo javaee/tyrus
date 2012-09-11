@@ -40,7 +40,6 @@
 
 package org.glassfish.websocket.api;
 
-import org.glassfish.websocket.api.refactor.XEndpointContext;
 import java.util.*;
 /**
  * There is one instance of this object available to all the web sockets
@@ -56,22 +55,16 @@ public interface ServerContainer extends ClientContainer {
      * runtime */
     public Map<String, Object> XgetProperties();
 
-
-    /** A list of the endpoint contexts in this container. */
-    public List<XEndpointContext> XgetEndpointContexts();
-
-    
-    
     /** Turn into publishServer.*/
     public void Xdeploy(Endpoint endpoint, String path);
-    
+
     /** Publish the given endpoint with the provided configuration
-     * information. 
+     * information.
      * @param endpoint
-     * @param ilc 
+     * @param ilc
      */
     public void publishServer(Endpoint endpoint, ServerConfiguration ilc);
-    
+
 
 
 }

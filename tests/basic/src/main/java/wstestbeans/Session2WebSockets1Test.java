@@ -39,24 +39,19 @@
  */
 package wstestbeans;
 
-import org.glassfish.websocket.api.annotations.WebSocketMessage;
 import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
-import org.glassfish.websocket.api.RemoteEndpoint;
-import org.glassfish.websocket.api.ServerContainer;
-import remote.*;
-import java.util.*;
 
 
 
     @WebSocketEndpoint(path="/session2websockets1")
 public class Session2WebSockets1Test {
-
-        @WebSocketMessage
-        public String handleIncoming(String message, RemoteEndpoint remote) {
-            System.out.println("hi 2 " + remote.getContext().getConversations());
-            System.out.println("app context " + remote.getContext());
-            ServerContainer containerContext = remote.getContext().getContainerContext();
-            containerContext.XgetProperties().put("key", message);
-            return "done";
-        }
+//
+//        @WebSocketMessage
+//        public String handleIncoming(String message, RemoteEndpoint remote) {
+//            System.out.println("hi 2 " + remote.getContext().getConversations());
+//            System.out.println("app context " + remote.getContext());
+//            ServerContainer containerContext = remote.getContext().getContainerContext();
+//            containerContext.XgetProperties().put("key", message);
+//            return "done";
+//        }
 }

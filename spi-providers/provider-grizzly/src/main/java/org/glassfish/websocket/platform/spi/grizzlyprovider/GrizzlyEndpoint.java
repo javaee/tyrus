@@ -41,9 +41,10 @@ package org.glassfish.websocket.platform.spi.grizzlyprovider;
 
 import org.glassfish.grizzly.http.HttpRequestPacket;
 import org.glassfish.grizzly.websockets.DataFrame;
+import org.glassfish.grizzly.websockets.ProtocolHandler;
 import org.glassfish.grizzly.websockets.WebSocket;
 import org.glassfish.grizzly.websockets.WebSocketApplication;
-import org.glassfish.websocket.api.refactor.XEndpointContext;
+import org.glassfish.grizzly.websockets.WebSocketListener;
 import org.glassfish.websocket.spi.SPIEndpoint;
 import org.glassfish.websocket.spi.SPIRegisteredEndpoint;
 
@@ -62,6 +63,11 @@ class GrizzlyEndpoint extends WebSocketApplication implements SPIRegisteredEndpo
     @Override
     public boolean isApplicationRequest(HttpRequestPacket o) {
         return endpoint.checkHandshake(new GrizzlyHandshakeRequest(o));
+    }
+
+    @Override
+    public WebSocket createSocket(final ProtocolHandler handler, final HttpRequestPacket requestPacket, final WebSocketListener... listeners) {
+        return new GrizzlySocket(handler, requestPacket, listeners);
     }
 
     @Override
@@ -84,10 +90,6 @@ class GrizzlyEndpoint extends WebSocketApplication implements SPIRegisteredEndpo
 
     public void remove() {
         this.endpoint.remove();
-    }
-
-    public XEndpointContext getEndpointContext() {
-        return this.endpoint.getEndpointContext();
     }
 
     @Override

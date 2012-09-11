@@ -42,10 +42,8 @@ package org.glassfish.websocket.platform;
 
 import org.glassfish.websocket.api.*;
 import org.glassfish.websocket.api.EncodeException;
-import org.glassfish.websocket.api.refactor.XEndpointContext;
 import org.glassfish.websocket.api.RemoteEndpoint;
 import org.glassfish.websocket.api.Encoder;
-import org.glassfish.websocket.api.refactor.XWebSocketRemote;
 import org.glassfish.websocket.spi.SPIRemoteEndpoint;
 
 import java.io.*;
@@ -68,45 +66,64 @@ import java.util.concurrent.*;
  *
  * @author Danny Coward
  * @author Martin Matula (martin.matula at oracle.com)
+ * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public final class WebSocketWrapper<T> implements RemoteEndpoint, InvocationHandler {
+public final class WebSocketWrapper<T> implements RemoteEndpoint<T>, InvocationHandler {
     private final SPIRemoteEndpoint providedRemoteEndpoint;
-    private final WebSocketConversationImpl webSocketSession;
-    private final EndpointContextImpl webSocketContext;
+    private final SessionImpl webSocketSession;
     private final Date activationTime;
     private final Class[] encoders;
     private String clientAddress;
-
-
     private static Set<RemoteEndpoint> wrappers = Collections.newSetFromMap(new ConcurrentHashMap<RemoteEndpoint, Boolean>());
 
-
+    //    /**
+//     * Provides a Peer for the given socket. If Peer does not exist yet, it is created.
+//     *
+//     * @param socket          remote endpoint which is represented by returned Peer
+//     * @param application     used to create new Peer if it doesn't exist yet
+//     * @param remoteInterface instance of this interface is going to be created
+//     * @param serverEndpoint  server / client Endpoint
+//     * @param <T>
+//     * @return Peer corresponding to socket
+//     */
     @SuppressWarnings("unchecked")
+//    public static <T extends RemoteEndpoint> T getPeer(SPIRemoteEndpoint socket, WebSocketEndpointImpl application, Class<T> remoteInterface, boolean serverEndpoint) {
+//
+//        T result = (T) WebSocketWrapper.findWebSocketWrapper(socket);
+//        if (result == null) {
+//            // no wrapper cached - create one
+//            if (RemoteEndpoint.class == remoteInterface) {
+//                result = (T) new WebSocketWrapper(socket,  null);
+//            } else if (RemoteEndpoint.class.isAssignableFrom(remoteInterface)) {
+//                XWebSocketRemote wsrAnnotation = remoteInterface.getAnnotation(XWebSocketRemote.class);
+//                Class[] encoders = wsrAnnotation == null ? null : wsrAnnotation.encoders();
+//                ClassLoader cl = null;
+//                if (serverEndpoint) {
+//                    cl = ((ServerContainerImpl) application.getContainerContext())
+//                            .getApplicationLevelClassLoader();
+//                } else {
+//                    cl = remoteInterface.getClassLoader();
+//                }
+//                result = (T) Proxy.newProxyInstance(cl, new Class[]{remoteInterface},
+//                        new WebSocketWrapper(socket, encoders));
+//            } else {
+//                throw new IllegalArgumentException(remoteInterface.getName() + " does not implement Peer.");
+//            }
+//
+//            if (serverEndpoint) {
+//                getWebSocketWrapper(result).setConversationRemote(result);
+//            }
+//            wrappers.add(result);
+//        }
+//        return result;
+//    }
 
-    public static <T extends RemoteEndpoint> T getPeer(SPIRemoteEndpoint socket, WebSocketEndpointImpl application, Class<T> remoteInterface, boolean serverEndpoint) {
+    public static RemoteEndpoint getPeer(SPIRemoteEndpoint socket, WebSocketEndpointImpl application, boolean serverEndpoint) {
 
-        T result = (T) WebSocketWrapper.findWebSocketWrapper(socket);
+        RemoteEndpoint result = WebSocketWrapper.findWebSocketWrapper(socket);
         if (result == null) {
-            // no wrapper cached - create one
-            if (RemoteEndpoint.class == remoteInterface) {
-                result = (T) new WebSocketWrapper(socket, application.getEndpointContext(), null);
-            } else if (RemoteEndpoint.class.isAssignableFrom(remoteInterface)) {
-                XWebSocketRemote wsrAnnotation = remoteInterface.getAnnotation(XWebSocketRemote.class);
-                Class[] encoders = wsrAnnotation == null ? null : wsrAnnotation.encoders();
-                ClassLoader cl = null;
-                if(serverEndpoint){
-                    cl = ((ServerContainerImpl) application.getEndpointContext().getContainerContext())
-                        .getApplicationLevelClassLoader();
-                }else{
-                    cl = remoteInterface.getClassLoader();
-                }
-                result = (T) Proxy.newProxyInstance(cl, new Class[] {remoteInterface},
-                        new WebSocketWrapper(socket, application.getEndpointContext(), encoders));
-            } else {
-                throw new IllegalArgumentException(remoteInterface.getName() + " does not implement Peer.");
-            }
-
-            if(serverEndpoint){
+            result = new WebSocketWrapper(socket, null);
+            if (serverEndpoint) {
                 getWebSocketWrapper(result).setConversationRemote(result);
             }
             wrappers.add(result);
@@ -114,36 +131,28 @@ public final class WebSocketWrapper<T> implements RemoteEndpoint, InvocationHand
         return result;
     }
 
-    private WebSocketWrapper(SPIRemoteEndpoint providedRemoteEndpoint, EndpointContextImpl webSocketContext, Class[] encoders) {
+    private WebSocketWrapper(SPIRemoteEndpoint providedRemoteEndpoint, Class[] encoders) {
         this.activationTime = new Date();
         this.providedRemoteEndpoint = providedRemoteEndpoint;
-        this.webSocketContext = webSocketContext;
         this.encoders = encoders;
-        this.webSocketSession = new WebSocketConversationImpl();
-        webSocketContext.addWebSocketSession(webSocketSession);
+        this.webSocketSession = new SessionImpl();
+        this.webSocketSession.setPeer(this);
     }
 
     private void setConversationRemote(RemoteEndpoint remote) {
         webSocketSession.setPeer(remote);
     }
 
-    // *** RemoteEndpoint interface implementation ***
-
     public String getAddress() {
         return this.clientAddress;
     }
 
     @Override
-    public XEndpointContext getContext() {
-        return this.webSocketContext;
-    }
-
-    @Override
-    public Session XgetSession() {
+    public Session getSession() {
         return this.webSocketSession;
     }
 
-    public boolean XisConnected() {
+    public boolean isConnected() {
         return this.providedRemoteEndpoint.isConnected();
     }
 
@@ -156,47 +165,47 @@ public final class WebSocketWrapper<T> implements RemoteEndpoint, InvocationHand
     public void sendBytes(byte[] data) throws IOException {
         this.providedRemoteEndpoint.send(data);
     }
-    
+
     public void sendPartialString(String fragment, boolean isLast) throws IOException {
-        if (true) throw new UnsupportedOperationException("Not yet implemented");
+        throw new UnsupportedOperationException("Not yet implemented");
     }
-    
-    
+
+
     public void sendPartialBytes(byte[] partialByte, boolean isLast) throws IOException {
-        if (true) throw new UnsupportedOperationException("Not yet implemented");
+        throw new UnsupportedOperationException("Not yet implemented");
     }
 
     public OutputStream getSendStream() throws IOException {
-        if (true) throw new UnsupportedOperationException("Not yet implemented");
-        return null;
-        
+        throw new UnsupportedOperationException("Not yet implemented");
+
     }
+
     public Writer getSendWriter() throws IOException {
-        if (true) throw new UnsupportedOperationException("Not yet implemented");
-        return null;
+        throw new UnsupportedOperationException("Not yet implemented");
     }
 
     public void sendObject(T o) throws IOException, EncodeException {
-        if (true) throw new UnsupportedOperationException("Not yet implemented");
+        throw new UnsupportedOperationException("Not yet implemented");
     }
 
     public Future<SendResult> sendString(String text, SendHandler completion) {
-        if (true) throw new UnsupportedOperationException("Not yet implemented");
-        return null;
+        throw new UnsupportedOperationException("Not yet implemented");
     }
+
     public Future<SendResult> sendBytes(byte[] data, SendHandler completion) {
-        if (true) throw new UnsupportedOperationException("Not yet implemented");
-        return null;
-    } 
+        throw new UnsupportedOperationException("Not yet implemented");
+    }
+
     public Future<SendResult> sendObject(T o, SendHandler handler) {
-        if (true) throw new UnsupportedOperationException("Not yet implemented");
-        return null;
+        throw new UnsupportedOperationException("Not yet implemented");
     }
+
     public void sendPing(byte[] applicationData) {
-        if (true) throw new UnsupportedOperationException("Not yet implemented");
+        throw new UnsupportedOperationException("Not yet implemented");
     }
+
     public void sendPong(byte[] applicationData) {
-        if (true) throw new UnsupportedOperationException("Not yet implemented");
+        throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
@@ -204,23 +213,17 @@ public final class WebSocketWrapper<T> implements RemoteEndpoint, InvocationHand
         return "Wrapped: " + getClass().getSimpleName();
     }
 
-
-    // *** InvocationHandler implementation ***
-
     @Override
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         Method wswMethod;
         try {
             wswMethod = getClass().getMethod(method.getName(), method.getParameterTypes());
-            // only use wswMethod if it is declared in RemoteEndpoint interface or Object class
-            // (i.e. if the next call does not throw exception)
             try {
                 Object.class.getMethod(method.getName(), method.getParameterTypes());
             } catch (NoSuchMethodException e) {
                 RemoteEndpoint.class.getMethod(method.getName(), method.getParameterTypes());
             }
         } catch (NoSuchMethodException e) {
-            // either there is no such method in WebSocketWrapper, or the method does not come from the RemoteEndpoint interface
             wswMethod = null;
         }
 
@@ -235,8 +238,6 @@ public final class WebSocketWrapper<T> implements RemoteEndpoint, InvocationHand
             return null;
         }
     }
-
-    // *** package private methods ***
 
     static WebSocketWrapper getWebSocketWrapper(RemoteEndpoint peer) {
         return (WebSocketWrapper) (peer instanceof WebSocketWrapper ? peer : Proxy.getInvocationHandler(peer));
@@ -260,8 +261,6 @@ public final class WebSocketWrapper<T> implements RemoteEndpoint, InvocationHand
         this.clientAddress = clientAddress;
     }
 
-    // *** private methods ***
-
     private static Set<RemoteEndpoint> getPeers() {
         weedExpiredWebSocketWrappers();
         return wrappers;
@@ -270,7 +269,7 @@ public final class WebSocketWrapper<T> implements RemoteEndpoint, InvocationHand
     private static void weedExpiredWebSocketWrappers() {
         Set<RemoteEndpoint> expired = new HashSet<RemoteEndpoint>();
         for (RemoteEndpoint wsw : wrappers) {
-            if (!(wsw).XisConnected()) {
+            if (!(wsw).isConnected()) {
                 expired.add(wsw);
             }
         }
@@ -280,7 +279,6 @@ public final class WebSocketWrapper<T> implements RemoteEndpoint, InvocationHand
     }
 
     private void sendPrimitiveMessage(Object data) throws IOException, EncodeException {
-
         if (isPrimitiveData(data)) {
             this.sendString(data.toString());
         } else {
@@ -299,8 +297,6 @@ public final class WebSocketWrapper<T> implements RemoteEndpoint, InvocationHand
                 try {
                     List interfaces = Arrays.asList(encoder.getInterfaces());
                     if (interfaces.contains(org.glassfish.websocket.api.Encoder.Text.class)) {
-                        //System.out.println("Class " + encoder);
-                        //System.out.println("Object " + o);
                         try {
                             Method m = encoder.getMethod("encode", o.getClass());
                             if (m != null) {
@@ -344,7 +340,7 @@ public final class WebSocketWrapper<T> implements RemoteEndpoint, InvocationHand
                 dataClass.equals(Boolean.class) ||
                 dataClass.equals(Character.class));
     }
-    
+
     public void close(CloseReason reason) throws IOException {
         this.providedRemoteEndpoint.close(reason.getCode().getCode(), reason.getReasonPhrase());
     }

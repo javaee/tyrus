@@ -39,8 +39,6 @@
  */
 package org.glassfish.websocket.platform;
 
-import org.glassfish.websocket.api.refactor.XWebSocketError;
-import org.glassfish.websocket.api.refactor.XWebSocketContext;
 import org.glassfish.websocket.api.annotations.*;
 
 import java.lang.reflect.Field;
@@ -59,7 +57,7 @@ import java.util.Collections;
 public class Model {
     private Set<Method> onOpenMethods;
     private Set<Method> onCloseMethods;
-    private Set<Method> onErrorMethods;
+//    private Set<Method> onErrorMethods;
     private Set<Method> onMessageMethods;
     private Set<Class<?>> encoders;
     private Set<Class<?>> decoders;
@@ -79,11 +77,11 @@ public class Model {
     private Model(Class<?> annotatedClass, Object instance){
         onOpenMethods = parseAnnotatedMethods(annotatedClass, WebSocketOpen.class);
         onCloseMethods = parseAnnotatedMethods(annotatedClass, WebSocketClose.class);
-        onErrorMethods = parseAnnotatedMethods(annotatedClass, XWebSocketError.class);
+//        onErrorMethods = parseAnnotatedMethods(annotatedClass, XWebSocketError.class);
         onMessageMethods = parseAnnotatedMethods(annotatedClass, WebSocketMessage.class);
         encoders = parseEncoders(annotatedClass);
         decoders = parseDecoders(annotatedClass);
-        contextField = parseContextField(annotatedClass);
+//        contextField = parseContextField(annotatedClass);
         subprotocols = parseSubprotocols(annotatedClass);
         remoteInterface = parseRemoteInterface(annotatedClass);
         if(instance == null){
@@ -133,14 +131,14 @@ public class Model {
         return meths;
     }
 
-    private Field parseContextField(Class wsClass) {
-        for (Field f : wsClass.getDeclaredFields()) {
-            if (f.getAnnotation(XWebSocketContext.class) != null) {
-                return f;
-            }
-        }
-        return null;
-    }
+//    private Field parseContextField(Class wsClass) {
+//        for (Field f : wsClass.getDeclaredFields()) {
+//            if (f.getAnnotation(XWebSocketContext.class) != null) {
+//                return f;
+//            }
+//        }
+//        return null;
+//    }
 
     public static List<String> parseSubprotocols(Class wsClass) {
         org.glassfish.websocket.api.annotations.WebSocketEndpoint ws = (org.glassfish.websocket.api.annotations.WebSocketEndpoint) wsClass.getAnnotation(org.glassfish.websocket.api.annotations.WebSocketEndpoint.class);
@@ -168,9 +166,9 @@ public class Model {
         return onCloseMethods;
     }
 
-    public Set<Method> getOnErrorMethods() {
-        return onErrorMethods;
-    }
+//    public Set<Method> getOnErrorMethods() {
+//        return onErrorMethods;
+//    }
 
     public Set<Method> getOnMessageMethods() {
         return onMessageMethods;

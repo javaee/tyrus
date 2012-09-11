@@ -39,29 +39,25 @@
  */
 package org.glassfish.websocket.test.basic.bean;
 
-import java.io.IOException;
-
-import org.glassfish.websocket.api.Session;
 import org.glassfish.websocket.api.EncodeException;
-import org.glassfish.websocket.api.refactor.XEndpointContext;
 import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
-import org.glassfish.websocket.api.refactor.XWebSocketContext;
 import org.glassfish.websocket.api.annotations.WebSocketMessage;
 import org.glassfish.websocket.test.basic.remote.SimpleRemote;
+
+import java.io.IOException;
 
 /**
  * @author Martin Matula (martin.matula at oracle.com)
  */
 @WebSocketEndpoint(path = "/broadcast", Xremote = SimpleRemote.class)
 public class BroadcasterTestBean {
-    @XWebSocketContext
-    private XEndpointContext context;
+
 
     @WebSocketMessage
     public void message(String message, SimpleRemote client) throws IOException, EncodeException {
-        for (Session sessions : context.getConversations()) {
-            SimpleRemote gdr = (SimpleRemote) sessions.getRemote();
-            gdr.sendSimpleMessage(message);
-        }
+//        for (Session sessions : context.getConversations()) {
+//            SimpleRemote gdr = (SimpleRemote) sessions.getRemote();
+//            gdr.sendSimpleMessage(message);
+//        }
     }
 }

@@ -43,7 +43,6 @@ package wstestbeans;
 
 import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
 import org.glassfish.websocket.api.annotations.WebSocketMessage;
-import org.glassfish.websocket.api.refactor.XPathSegment;
 
 /**
  *
@@ -61,12 +60,12 @@ public class DynamicPathTest {
         }
 
         @WebSocketMessage(XdynamicPath = "*")
-        public String dynamicPath(String message, @XPathSegment String segment) {
-            return "hit the * path with segment: " + segment;
+        public String dynamicPath(String message) {
+            return "hit the * path with segment: ";
         }
 
         @WebSocketMessage(XdynamicPath = "/foo/bar")
-        public String dynamicPath2(String message, @XPathSegment String segment) {
-            return "hit the /foo/bar path with segment: " + segment;
+        public String dynamicPath2(String message) {
+            return "hit the /foo/bar path with segment: ";
         }
 }

@@ -40,15 +40,13 @@
 
 package org.glassfish.websocket.platform;
 
-import org.glassfish.websocket.api.*;
-import org.glassfish.websocket.api.refactor.XEndpointContext;
+import org.glassfish.websocket.api.ClientConfiguration;
 import org.glassfish.websocket.api.Endpoint;
-import org.glassfish.websocket.spi.SPIRegisteredEndpoint;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
 import org.glassfish.websocket.api.ServerConfiguration;
+import org.glassfish.websocket.api.ServerContainer;
+import org.glassfish.websocket.api.Session;
+
+import java.util.Set;
 
 /**
  *
@@ -81,15 +79,6 @@ public class ServerContainerImpl extends WithProperties implements ServerContain
         return this.wsPath;
     }
 
-    public List<XEndpointContext> XgetEndpointContexts() {
-        List<XEndpointContext> list = new ArrayList<XEndpointContext>();
-        for (SPIRegisteredEndpoint ge : this.beanServer.endpoints) {
-            XEndpointContext wsc = ge.getEndpointContext();
-            list.add(wsc);
-        }
-        return list;
-    }
-
     public int getPort() {
         return this.port;
     }
@@ -109,65 +98,65 @@ public class ServerContainerImpl extends WithProperties implements ServerContain
     public String toString() {
         return "ContainerContext("+this.wsPath+")";
     }
-    
+
     /** Publish the given endpoint with the provided configuration
-     * information. 
+     * information.
      * @param endpoint
-     * @param ilc 
+     * @param ilc
      */
     public void publishServer(Endpoint endpoint, ServerConfiguration ilc) {
-        
+
         throw new UnsupportedOperationException("");
     }
-    
+
     public void connectToServer(Endpoint endpoint, ClientConfiguration olc) {
          throw new UnsupportedOperationException("");
     }
     /** Return an unordered collection of the currently active web socket sessions.
-     * @return 
+     * @return
      */
     public Set<Session> getActiveSessions() {
          throw new UnsupportedOperationException("");
     }
-    
+
     /** Return the maximum time in seconds that a web socket session may be idle before
      * the container may close it.
-     * @return 
+     * @return
      */
     public long getMaxSessionIdleTimeout() {
          throw new UnsupportedOperationException("");
     }
     /** Sets the maximum time in seconds that a web socket session may be idle before
      * the container may close it.
-     * @return 
+     * @return
      */
     public void setMaxSessionIdleTimeout(long timeout) {
          throw new UnsupportedOperationException("");
     }
-     /** Returns the maximum size of binary message in number of bytes that this container 
-      * will buffer. 
-      * @return 
+     /** Returns the maximum size of binary message in number of bytes that this container
+      * will buffer.
+      * @return
       */
     public long getMaxBinaryMessageBufferSize() {
          throw new UnsupportedOperationException("");
     }
-    /** Sets the maximum size of binary message in number of bytes that this container 
-      * will buffer. 
-      * @return 
+    /** Sets the maximum size of binary message in number of bytes that this container
+      * will buffer.
+      * @return
       */
     public void setMaxBinaryMessageBufferSize(long max) {
          throw new UnsupportedOperationException("");
     }
-    /** Sets the maximum size of text message in number of bytes that this container 
-     * will buffer. 
-     * @return 
+    /** Sets the maximum size of text message in number of bytes that this container
+     * will buffer.
+     * @return
      */
     public long getMaxTextMessageBufferSize() {
          throw new UnsupportedOperationException("");
     }
-     /** Returns the maximum size of text message in number of bytes that this container 
-      * will buffer. 
-      * @return 
+     /** Returns the maximum size of text message in number of bytes that this container
+      * will buffer.
+      * @return
       */
     public void setMaxTextMessageBufferSize(long max) {
          throw new UnsupportedOperationException("");

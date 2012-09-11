@@ -40,13 +40,7 @@
 
 package wstestbeans;
 
-import org.glassfish.websocket.api.annotations.WebSocketMessage;
 import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
-import org.glassfish.websocket.api.Session;
-import org.glassfish.websocket.api.RemoteEndpoint;
-import remote.*;
-
-import java.util.*;
 
 /**
  *
@@ -57,20 +51,20 @@ public class SessionExpiryTest {
 
 
 
-        @WebSocketMessage
-    public String handleMessage(String message, RemoteEndpoint remote) {
-        return getSessionPrintout(remote);
-    }
+//        @WebSocketMessage
+//    public String handleMessage(String message, RemoteEndpoint remote) {
+//        return getSessionPrintout(remote);
+//    }
 
-    public static String getSessionPrintout(RemoteEndpoint remote) {
-        Set<Session> sessions = remote.getContext().getConversations();
-
-        String s = "There are " + sessions.size() + " sessions<br>";
-        for (Session session : sessions) {
-            s = s + session + "<br>";
-        }
-
-        return s;
-
-    }
+//    public static String getSessionPrintout(RemoteEndpoint remote) {
+//        Set<Session> sessions = remote.getContext().getConversations();
+//
+//        String s = "There are " + sessions.size() + " sessions<br>";
+//        for (Session session : sessions) {
+//            s = s + session + "<br>";
+//        }
+//
+//        return s;
+//
+//    }
 }

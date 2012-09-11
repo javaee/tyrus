@@ -42,19 +42,16 @@ package org.glassfish.websocket.sample.draw;
 
 
 
-import org.glassfish.websocket.api.RemoteEndpoint;
-import org.glassfish.websocket.api.EncodeException;
-import org.glassfish.websocket.api.refactor.XWebSocketRemote;
-import java.io.*;
+import java.io.IOException;
 /**
  *
  * @author dannycoward
  */
-        @XWebSocketRemote(
-             encoders={org.glassfish.websocket.sample.draw.DrawingMessage.class}
-             )
+//        @XWebSocketRemote(
+//             encoders={org.glassfish.websocket.sample.draw.DrawingMessage.class}
+//             )
 
-public interface GroupDrawRemote extends RemoteEndpoint {
+public interface GroupDrawRemote {
 
-    public void sendDrawingUpdate(DrawingMessage dm) throws IOException, EncodeException;
+    public void sendDrawingUpdate(DrawingMessage dm) throws IOException;
 }

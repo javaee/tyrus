@@ -95,4 +95,12 @@ public class GrizzlyRemoteEndpoint implements SPIRemoteEndpoint {
         this.socket.close(code, reason);
     }
 
+    @Override
+    public String getUri() {
+        if(socket instanceof GrizzlySocket){
+            return ((GrizzlySocket)socket).getRequest().getRequestURI();
+        }
+        return null;
+    }
+
 }

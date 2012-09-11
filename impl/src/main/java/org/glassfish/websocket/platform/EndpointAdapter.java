@@ -39,7 +39,6 @@
  */
 package org.glassfish.websocket.platform;
 
-import org.glassfish.websocket.api.refactor.XEndpointContext;
 import org.glassfish.websocket.spi.SPIEndpoint;
 import org.glassfish.websocket.spi.SPIHandshakeRequest;
 import org.glassfish.websocket.spi.SPIRemoteEndpoint;
@@ -85,10 +84,5 @@ public class EndpointAdapter implements SPIEndpoint{
     @Override
     public void remove() {
 
-    }
-
-    @Override
-    public XEndpointContext getEndpointContext() {
-        return null;
     }
 }

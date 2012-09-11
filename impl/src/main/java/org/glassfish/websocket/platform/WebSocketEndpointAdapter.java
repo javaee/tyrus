@@ -45,6 +45,7 @@ import org.glassfish.websocket.api.ServerContainer;
 import org.glassfish.websocket.spi.SPIRemoteEndpoint;
 
 /**
+ * Provides convenient implementation of WebSocketEndpoint for developers.
  *
  * @author dannycoward
  */
@@ -53,40 +54,38 @@ public class WebSocketEndpointAdapter extends WebSocketEndpointImpl {
 
 
     WebSocketEndpointAdapter(ServerContainer containerContext, Endpoint endpoint, String path) {
-        super(containerContext);
+        super(containerContext, path, null);
         this.endpoint = endpoint;
-        super.setPath(path);
     }
 
     void init() {
-        
+
     }
 
     public void onConnect(SPIRemoteEndpoint gs) {
         super.onConnect(gs);
-        getPeer(gs).XgetSession().addMessageHandler(new MessageHandlerTextImpl(this.endpoint, getPeer(gs)));
-        this.endpoint.onOpen(getPeer(gs).XgetSession());
+        getPeer(gs).getSession().addMessageHandler(new MessageHandlerTextImpl(this.endpoint, getPeer(gs)));
+        this.endpoint.onOpen(getPeer(gs).getSession());
     }
 
     @Override
     public void onMessage(SPIRemoteEndpoint gs, String messageString) {
-        ((WebSocketConversationImpl) getPeer(gs).XgetSession()).notifyMessageHandlers(messageString);
-        //this.endpoint.onMessage(getPeer(gs), messageString);
+        ((SessionImpl) getPeer(gs).getSession()).notifyMessageHandlers(messageString);
     }
 
     public void onMessage(SPIRemoteEndpoint gs, byte[] data) {
-        throw new UnsupportedOperationException("Not implemented yet");
+        ((SessionImpl) getPeer(gs).getSession()).notifyMessageHandlers(data);
     }
 
     @Override
     public void onClose(SPIRemoteEndpoint gs) {
         super.onClose(gs);
-        this.endpoint.onClose(getPeer(gs).XgetSession()); 
+        this.endpoint.onClose(getPeer(gs).getSession());
     }
 
     @Override
     public void remove() {
-        
+
     }
 
 }

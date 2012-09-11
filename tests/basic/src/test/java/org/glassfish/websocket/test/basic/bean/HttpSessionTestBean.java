@@ -57,7 +57,7 @@ public class HttpSessionTestBean {
 
     @WebSocketMessage
     public String doThis(String thiz, RemoteEndpoint peer) {
-        HttpSession httpSession = peer.XgetSession().getHttpSession();
+        HttpSession httpSession = peer.getSession().getHttpSession();
         return httpSession.getId();
     }
 }

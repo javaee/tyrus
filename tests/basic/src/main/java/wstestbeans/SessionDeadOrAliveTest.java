@@ -39,21 +39,17 @@
  */
 package wstestbeans;
 
-import org.glassfish.websocket.api.annotations.WebSocketMessage;
 import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
-import org.glassfish.websocket.api.RemoteEndpoint;
-import remote.*;
-import java.util.*;
 
 
 
     @WebSocketEndpoint(path="/sessiondeadoralive")
 public class SessionDeadOrAliveTest {
-
-        @WebSocketMessage
-
-        public String handleIncoming(String message, RemoteEndpoint remote) {
-
-            return "Sessions: " + remote.getContext().getConversations();
-        }
+//
+//        @WebSocketMessage
+//
+//        public String handleIncoming(String message, RemoteEndpoint remote) {
+//
+//            return "Sessions: " + remote.getContext().getConversations();
+//        }
 }

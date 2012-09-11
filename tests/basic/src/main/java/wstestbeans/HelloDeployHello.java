@@ -41,10 +41,11 @@
 package wstestbeans;
 
 
-import org.glassfish.websocket.api.refactor.XEndpointContext;
-import org.glassfish.websocket.api.*;
+import org.glassfish.websocket.api.Endpoint;
+import org.glassfish.websocket.api.MessageHandler;
+import org.glassfish.websocket.api.RemoteEndpoint;
+import org.glassfish.websocket.api.Session;
 import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
-import org.glassfish.websocket.api.annotations.WebSocketMessage;
 
 
     @WebSocketEndpoint(
@@ -55,40 +56,40 @@ import org.glassfish.websocket.api.annotations.WebSocketMessage;
  * @author dannycoward
  */
 public class HelloDeployHello {
-    @WebSocketMessage
-        public String onMessage(String path, RemoteEndpoint p) {
-            String myPath = p.getContext().getPath();
-            String pathToDeployIfc = myPath + path + "_ifc";
-            String pathToDeployAdapt = myPath + path + "_adapt";
-            System.out.println("Deploying new end points to: " + pathToDeployIfc + " and " + pathToDeployAdapt);
-
-            Endpoint endpoint = new CustomEndpointUsingInterface();
-            ServerContainer containerContext = p.getContext().getContainerContext();
-            containerContext.Xdeploy(endpoint, pathToDeployIfc);
-            endpoint = new CustomEndpointUsingAdapter();
-            containerContext.Xdeploy(endpoint, pathToDeployAdapt);
-
-            return "Deployed to : " + pathToDeployIfc + " and " + pathToDeployAdapt;
-        }
+//    @WebSocketMessage
+//        public String onMessage(String path, RemoteEndpoint p) {
+//            String myPath = p.getContext().getPath();
+//            String pathToDeployIfc = myPath + path + "_ifc";
+//            String pathToDeployAdapt = myPath + path + "_adapt";
+//            System.out.println("Deploying new end points to: " + pathToDeployIfc + " and " + pathToDeployAdapt);
+//
+//            Endpoint endpoint = new CustomEndpointUsingInterface();
+//            ServerContainer containerContext = p.getContext().getContainerContext();
+//            containerContext.Xdeploy(endpoint, pathToDeployIfc);
+//            endpoint = new CustomEndpointUsingAdapter();
+//            containerContext.Xdeploy(endpoint, pathToDeployAdapt);
+//
+//            return "Deployed to : " + pathToDeployIfc + " and " + pathToDeployAdapt;
+//        }
 }
 
 class CustomEndpointUsingInterface extends Endpoint {
-    public void initialize(XEndpointContext epcontext){
-        System.out.println("Initializing dynamically deployed end point implementing interface");
-    }
+//    public void initialize(XEndpointContext epcontext){
+//        System.out.println("Initializing dynamically deployed end point implementing interface");
+//    }
             /** Called whenever a peer first connects to this end point.*/
     @Override
     public void onOpen(Session session) {
         System.out.println("Opened dynamically deployed end point which implements the interface");
         session.addMessageHandler(new MyMessageHandler(session, "interface implementing dynamically deployed end point"));
     }
-    
+
 
     /** Called when a peer disconnects from this end point.*/
     @Override
     public void onClose(Session session) {
         System.out.println("Closing dynamically deployed end point implementing interface");
-        
+
     }
     /** Called when there us an error on the connection from the supplied peer
      * to this end point.
@@ -109,12 +110,12 @@ class CustomEndpointUsingInterface extends Endpoint {
 class MyMessageHandler implements MessageHandler.Text {
     private Session session;
     private String msg;
-    
+
     public MyMessageHandler(Session session, String msg) {
         this.session = session;
         this.msg = msg;
     }
-    
+
     public void onMessage(String message) {
         System.out.println(msg + " got message " + message);
         try {
@@ -122,20 +123,20 @@ class MyMessageHandler implements MessageHandler.Text {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        
+
     }
 }
 
 class CustomEndpointUsingAdapter extends Endpoint {
-    public void initialize(XEndpointContext epcontext){
-        System.out.println("Initializing dynamically deployed end point extending adapter");
-    }
+//    public void initialize(XEndpointContext epcontext){
+//        System.out.println("Initializing dynamically deployed end point extending adapter");
+//    }
             /** Called whenever a peer first connects to this end point.*/
     public void onOpen(Session session) {
         System.out.println("Opened dynamically deployed end point which extending adapter");
         session.addMessageHandler(new MyMessageHandler(session, "dynamically deployed end point which extending adapter"));
     }
-   
+
     /** Called when a peer sends a binary message to this end point.*/
     public void onMessage(RemoteEndpoint p, byte[] data) {
 

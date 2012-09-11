@@ -40,10 +40,7 @@
 
 package wstestbeans;
 
-import org.glassfish.websocket.api.annotations.WebSocketMessage;
 import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
-import remote.*;
-import java.util.*;
 
 
 
@@ -51,10 +48,10 @@ import java.util.*;
             Xremote=remote.IntRemote.class)
 public class SessionExpiryCustomRemote {
 
-        @WebSocketMessage
-    public String handleOtherMessage(String message, IntRemote remote) {
-            System.out.println("Handle Other Message ");
-        return SessionExpiryTest.getSessionPrintout(remote);
-    }
+//        @WebSocketMessage
+//    public String handleOtherMessage(String message, IntRemote remote) {
+//            System.out.println("Handle Other Message ");
+//        return SessionExpiryTest.getSessionPrintout(remote);
+//    }
 
 }

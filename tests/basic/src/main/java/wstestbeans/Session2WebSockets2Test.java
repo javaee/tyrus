@@ -39,30 +39,25 @@
  */
 package wstestbeans;
 
-import org.glassfish.websocket.api.annotations.WebSocketMessage;
 import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
-import org.glassfish.websocket.api.RemoteEndpoint;
-import org.glassfish.websocket.api.ServerContainer;
-import remote.*;
-import java.util.*;
 
 
 
     @WebSocketEndpoint(path="/session2websockets2")
 public class Session2WebSockets2Test {
 
-        @WebSocketMessage
-
-        public String handleIncoming(String message, RemoteEndpoint remote) {
-            System.out.println("hi 2 " + remote.getContext().getConversations());
-            ServerContainer containerContext = remote.getContext().getContainerContext();
-            String lastMessage = (String) containerContext.XgetProperties().get("key");
-            if (lastMessage == null) {
-                lastMessage = "Nothing there";
-            }
-            String messageBack = "There should be two sessions: " + remote.getContext().getConversations() + "<br>";
-            messageBack = messageBack + " and this addition should work, because of storing things in the container context: <br>";
-            messageBack = messageBack + lastMessage + " + " + message + " = " + "three !";
-            return messageBack;
-        }
+//        @WebSocketMessage
+//
+//        public String handleIncoming(String message, RemoteEndpoint remote) {
+//            System.out.println("hi 2 " + remote.getContext().getConversations());
+//            ServerContainer containerContext = remote.getContext().getContainerContext();
+//            String lastMessage = (String) containerContext.XgetProperties().get("key");
+//            if (lastMessage == null) {
+//                lastMessage = "Nothing there";
+//            }
+//            String messageBack = "There should be two sessions: " + remote.getContext().getConversations() + "<br>";
+//            messageBack = messageBack + " and this addition should work, because of storing things in the container context: <br>";
+//            messageBack = messageBack + lastMessage + " + " + message + " = " + "three !";
+//            return messageBack;
+//        }
 }

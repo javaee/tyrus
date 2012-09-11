@@ -40,10 +40,10 @@
 
 package org.glassfish.websocket.sample.echo;
 
+import org.glassfish.websocket.platform.main.Server;
+
 import java.io.IOException;
 import java.util.HashSet;
-
-import org.glassfish.websocket.platform.main.Server;
 
 /**
  *
@@ -60,7 +60,7 @@ public class Main {
         }
 
         Server.setWebMode(false);
-        Server server = new Server("localhost", 8080, "/sample-echo", beans);
+        Server server = new Server("localhost", 8025, "/sample-echo", beans);
 
         try {
             server.start();

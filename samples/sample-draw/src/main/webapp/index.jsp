@@ -52,7 +52,7 @@
     <body>
         <h1 style="text-align:center">Group Drawing</h1>
         <p style="text-align:center">Click to draw below (use SHIFT key too) <p>
-        
+
         <form style="text-align:center">
             <select id="shapeID">
                 <option value="bigcircle">Big Circle</option>
@@ -68,10 +68,10 @@
             </select>
             <input onclick="clear_canvas()" value="Clear" type="button">
             <input onclick="clone()" value="Clone" type="button">
-            
+
         </form>
-        
-        
+
+
         <table style="text-align: left; width: 500px; margin-left: auto;
         margin-right: auto;" border="1" cellpadding="2" cellspacing="2">
             <tbody>
@@ -81,14 +81,14 @@
                     </td>
                 </tr>
             </tbody>
-        </table>        
+        </table>
         <div id="output"></div>
     </body>
          <script language="javascript" type="text/javascript">
             var drawingCanvas = document.getElementById('myDrawing');
             var websocket;
             var output;
-            
+
             //alert(drawingCanvas);
             drawingCanvas.addEventListener("mousedown", mouseDown, false);
             drawingCanvas.addEventListener("mousemove", mouseMove, false);
@@ -98,19 +98,19 @@
             } else {
                 alter("oops");
             }
-            
+
              function mouseMove(event) {
                  if (event.shiftKey) {
                     drawCircle(event.layerX, event.layerY);
                  }
-                 
-            }           
-            
+
+            }
+
             function mouseDown(event) {
-                
+
                 drawCircle(event.layerX, event.layerY);
             }
-            
+
             function drawCircleX(x, y, color, shape, notify) {
                 var context = drawingCanvas.getContext('2d');
                 var radius = 8;
@@ -136,25 +136,25 @@
                 } else {
                     alert(shape);
                 }
-   
+
                 if (notify) {
                     message = "{'"+shape+"': '" + x + "," + y + "," + radius+"'}";
                     websocket.send(message);
                 }
             }
-            
+
             function drawCircle(x, y) {
                 var shapeElt = document.getElementById('shapeID');
                 var colElt = document.getElementById('colorID');
                 drawCircleX(x, y, colElt.value, shapeElt.value, true);
             }
-            
+
             function updateShape(shape) {
                 //var shape = '{"Circle":"173,137,10"}';
-                
+
                 var startDataIndex = shape.search(":");
                 var shapeName =  shape.substring(2, startDataIndex-1);
-                
+
                 var definition = shape.substring(startDataIndex+2, shape.length-1);
                 var nextIndex = definition.search(",");
                 var x = definition.substring(0, nextIndex);
@@ -163,41 +163,42 @@
                 var y = definition.substring(0, nextIndex);
                 var radius = definition.substring(nextIndex+1, definition.length-1);
                 //alert(shapeName);
-                drawCircleX(x, y, "pink", shapeName, false);
-                
+                drawCircleX(x, y, "blue", shapeName, false);
+                drawCircleX(x, y, "blue", shapeName, false);
+                drawCircleX(x, y, "blue", shapeName, false);
             }
- 
+
             function init() {
                 output = document.getElementById("output");
-                websocket = new WebSocket("ws://localhost:8080/sample-draw/draw");
+                websocket = new WebSocket("ws://localhost:8025/sample-draw/draw");
                 websocket.onopen = function(evt) { onOpen(evt) };
                 websocket.onmessage = function(evt) { onMessage(evt) };
                 websocket.onerror = function(evt) { onError(evt) };
             }
-            
+
             function clone() {
                 window.open("drawingexample.jsp", "clone");
             }
-            
+
             function testit() {
                 var elt = document.getElementById('shapeID');
                 alert(elt.value)
             }
-            
+
             function clear_canvas() {
                 var context = drawingCanvas.getContext('2d');
                 context.fillStyle = "white";
                 context.fillRect(0,0,500,500);
                 context.fill();
             }
-            
+
             function onMessage(evt) {
-                updateShape(evt.data);  
+                updateShape(evt.data);
             }
-            
+
             function onOpen(evt) {}
             function onError(evt) {}
-            
+
             window.addEventListener("load", init, false);
         </script>
 </html>

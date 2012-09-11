@@ -45,11 +45,9 @@ import java.io.IOException;
 import java.util.List;
 import javax.servlet.http.HttpSession;
 import org.glassfish.websocket.api.CloseReason;
-import org.glassfish.websocket.api.refactor.XEndpointContext;
 import org.glassfish.websocket.api.ServerContainer;
 import org.glassfish.websocket.api.Session;
 import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
-import org.glassfish.websocket.api.refactor.XWebSocketContext;
 import org.glassfish.websocket.api.annotations.WebSocketMessage;
     @WebSocketEndpoint(
         path="/quotes",Xremote=org.glassfish.websocket.sample.trading.wsbeans.QuoteRemote.class
@@ -82,21 +80,21 @@ public class Quotes implements Broadcaster {
             this.initThread();
         } else if (message.startsWith("add:")) {
             String symbol = message.substring(4, message.trim().length());
-            HttpSession httpSession = remote.XgetSession().getHttpSession();
+            HttpSession httpSession = remote.getSession().getHttpSession();
             ApplicationPreferences preferences = (ApplicationPreferences) httpSession.getAttribute(ApplicationPreferences.APP_PREFERENCES);
             preferences.addTicker(symbol);
             Buddies buddies = (Buddies) context.XgetProperties().get(Buddies.BUDDIES);
             buddies.broadcastActivity(httpSession, Activity.ADDED, symbol);
         } else if (message.startsWith("remove:")) {
             String symbol = message.substring(7, message.trim().length());
-            HttpSession httpSession = remote.XgetSession().getHttpSession();
+            HttpSession httpSession = remote.getSession().getHttpSession();
             ApplicationPreferences preferences = (ApplicationPreferences) httpSession.getAttribute(ApplicationPreferences.APP_PREFERENCES);
             preferences.removeTicker(symbol);
             Buddies buddies = (Buddies) context.XgetProperties().get(Buddies.BUDDIES);
             buddies.broadcastActivity(httpSession, Activity.REMOVED, symbol);
         } else {
             try {
-                remote.XgetSession().close(new CloseReason(CloseReason.Code.NORMAL_CLOSURE, "User logged off"));
+                remote.getSession().close(new CloseReason(CloseReason.Code.NORMAL_CLOSURE, "User logged off"));
             } catch (IOException ioe) {}
             if (myContext.getConversations().size() == 0 && this.updateThread != null) {
                 this.updateThread.halt();

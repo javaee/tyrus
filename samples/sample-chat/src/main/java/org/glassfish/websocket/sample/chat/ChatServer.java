@@ -39,8 +39,6 @@
  */
 package org.glassfish.websocket.sample.chat;
 
-import org.glassfish.websocket.api.refactor.XWebSocketContext;
-import org.glassfish.websocket.api.refactor.XEndpointContext;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -105,7 +103,7 @@ public class ChatServer {
     @WebSocketClose
     public void handleClientClose(ChatClientRemote ccr) {
         logger.info("The web socket closed");
-        String username = (String) ccr.XgetSession().XXgetProperties().get("username");
+        String username = (String) ccr.getSession().getProperties().get("username");
         if (username != null) {
             this.removeUserAndBroadcast(username);
             this.addToTranscriptAndNotify(username, " has just left...rather abruptly !");
@@ -115,7 +113,7 @@ public class ChatServer {
     private List<String> getUsernames() {
         List<String> usernames = new ArrayList<String>();
         for (Session nextSession : this.context.getConversations()) {
-            String nextUsername = (String) nextSession.XXgetProperties().get("username");
+            String nextUsername = (String) nextSession.getProperties().get("username");
             if (nextUsername != null) {
                 usernames.add(nextUsername);
             }
@@ -141,7 +139,7 @@ public class ChatServer {
     private void removeUserAndBroadcast(String username) {
         logger.info("Removing " + username + " from chat.");
         for (Session nextSession : this.context.getConversations()) {
-            if (username.equals(nextSession.XXgetProperties().get("username"))) {
+            if (username.equals(nextSession.getProperties().get("username"))) {
                 try {
                     nextSession.close(new CloseReason(CloseReason.Code.NORMAL_CLOSURE, "User logged off"));
                 } catch (IOException ioe) {
@@ -184,11 +182,11 @@ public class ChatServer {
 
     private String registerNewUsername(String newUsername, ChatClientRemote chatClient) {
         for (Session session : this.context.getConversations()) {
-            if (newUsername.equals(session.XXgetProperties().get("username"))) {
+            if (newUsername.equals(session.getProperties().get("username"))) {
                 return this.registerNewUsername(newUsername + "1", chatClient);
             }
         }
-        chatClient.XgetSession().XXgetProperties().put("username", newUsername);
+        chatClient.getSession().getProperties().put("username", newUsername);
         return newUsername;
     }
 }

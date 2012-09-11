@@ -43,6 +43,7 @@ import org.glassfish.websocket.platform.EndpointAdapter;
 import org.glassfish.websocket.platform.main.Server;
 import org.glassfish.websocket.spi.SPIRemoteEndpoint;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -62,6 +63,7 @@ public class ClientTest {
 
     private static final String SENT_MESSAGE = "hello";
 
+    @Ignore
     @Test
     public void testClient() {
         Server server = new Server("org.glassfish.websocket.client.TestBean");

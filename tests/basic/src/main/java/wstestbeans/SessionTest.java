@@ -39,11 +39,7 @@
  */
 package wstestbeans;
 
-import org.glassfish.websocket.api.annotations.WebSocketMessage;
 import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
-import org.glassfish.websocket.api.RemoteEndpoint;
-
-import java.util.*;
 
 /**
  *
@@ -52,8 +48,8 @@ import java.util.*;
     @WebSocketEndpoint(path="/sessions")
 public class SessionTest {
 
-        @WebSocketMessage
-    public String handleMessage(String s, RemoteEndpoint remote) {
-        return "my sessions: " + remote.getContext().getConversations();
-    }
+//        @WebSocketMessage
+//    public String handleMessage(String s, RemoteEndpoint remote) {
+//        return "my sessions: " + remote.getContext().getConversations();
+//    }
 }

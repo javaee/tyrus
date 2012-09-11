@@ -40,9 +40,7 @@
 
 package wstestbeans;
 
-import org.glassfish.websocket.api.annotations.WebSocketMessage;
 import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
-import org.glassfish.websocket.api.RemoteEndpoint;
 /**
  *
  * @author dannycoward
@@ -50,15 +48,15 @@ import org.glassfish.websocket.api.RemoteEndpoint;
     @WebSocketEndpoint(path="/sessionandcontexts")
 public class SessionAndContextsTest {
 
-        @WebSocketMessage
-    public String handleMessage(String s, RemoteEndpoint remote) {
-
-        String ret = "I have: <br>";
-        ret = ret + remote.XgetSession() + "<br>";
-        ret = ret + remote.getContext() + "<br>";
-        ret = ret + remote.getContext().getConversations() + "<br>";
-        ret = ret + remote.getContext().getContainerContext() + "<br>";
-
-        return ret;
-    }
+//        @WebSocketMessage
+//    public String handleMessage(String s, RemoteEndpoint remote) {
+//
+//        String ret = "I have: <br>";
+//        ret = ret + remote.getSession() + "<br>";
+//        ret = ret + remote.getContext() + "<br>";
+//        ret = ret + remote.getContext().getConversations() + "<br>";
+//        ret = ret + remote.getContext().getContainerContext() + "<br>";
+//
+//        return ret;
+//    }
 }

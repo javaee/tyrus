@@ -43,7 +43,6 @@ package org.glassfish.websocket.sample.chat;
 import org.glassfish.websocket.sample.chat.chatdata.UserListUpdateMessage;
 import org.glassfish.websocket.sample.chat.chatdata.ChatTranscriptUpdateMessage;
 import org.glassfish.websocket.sample.chat.chatdata.LoginResponseMessage;
-import org.glassfish.websocket.api.refactor.XWebSocketRemote;
 import org.glassfish.websocket.api.RemoteEndpoint;
 import java.io.*;
 import org.glassfish.websocket.api.EncodeException;

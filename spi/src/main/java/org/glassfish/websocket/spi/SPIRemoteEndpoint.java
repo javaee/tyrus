@@ -82,4 +82,11 @@ public interface SPIRemoteEndpoint {
      * @param reason for closing.
      */
     public void close(int code, String reason) throws IOException;
+
+    /**
+     * Returns the URI http request as a String.
+     *
+     * @return URI as a String.
+     */
+    public String getUri();
 }

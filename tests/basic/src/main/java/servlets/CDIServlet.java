@@ -41,15 +41,15 @@ package servlets;
 
 
 
-import java.io.IOException;
-import java.io.PrintWriter;
+import org.glassfish.websocket.api.ServerContainer;
+
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.glassfish.websocket.api.ServerContainer;
-import org.glassfish.websocket.api.refactor.XEndpointContext;
+import java.io.IOException;
+import java.io.PrintWriter;
 
 /**
  *
@@ -88,9 +88,9 @@ public class CDIServlet extends HttpServlet {
             out.println("<body>");
             out.println("<h1>Servlet CDIServlet at " + request.getContextPath() + "</h1>");
             out.println("<h1>WebSocket Endpoints Listing: </h1>");
-            for (XEndpointContext epc : websocketContainerContext.XgetEndpointContexts()) {
-                out.println("<h1>WebSocket Endpoint at " + epc.getPath() + "</h1>");
-            }
+//            for (XEndpointContext epc : websocketContainerContext.XgetEndpointContexts()) {
+//                out.println("<h1>WebSocket Endpoint at " + epc.getPath() + "</h1>");
+//            }
             out.println("</body>");
             out.println("</html>");
         } finally {

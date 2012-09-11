@@ -45,6 +45,7 @@ import org.glassfish.websocket.platform.EndpointAdapter;
 import org.glassfish.websocket.platform.main.Server;
 import org.glassfish.websocket.spi.SPIRemoteEndpoint;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -65,6 +66,7 @@ public class SimpleRemoteTest {
     private String receivedMessage;
     private static final String SENT_MESSAGE = "Hello World";
 
+    @Ignore
     @Test
     public void testSimpleRemote() {
         final CountDownLatch messageLatch = new CountDownLatch(1);
@@ -98,6 +100,7 @@ public class SimpleRemoteTest {
         }
     }
 
+    @Ignore
     @Test
     public void testSimpleRemoteMT() {
         final int iterations = 5;

@@ -5,22 +5,30 @@
 package org.glassfish.websocket.api;
 
 /**
- *
  * @author dannycoward
  */
 public interface Decoder {
     public interface Binary<T> {
-        /** The method the runtime will call to make the conversion.*/
+        /**
+         * The method the runtime will call to make the conversion.
+         */
         public T decode(byte[] bytes) throws DecodeException;
-        /** Decide whether you will decode the incoming byte array message.*/
-        public boolean willDecode(byte[] bytes);
 
+        /**
+         * Decide whether you will decode the incoming byte array message.
+         */
+        public boolean willDecode(byte[] bytes);
     }
-    
+
     public interface Text<T> {
-        /** Decode the incoming String parameter into an instance of the custom type.*/
+        /**
+         * Decode the incoming String parameter into an instance of the custom type.
+         */
         public T decode(String s) throws DecodeException;
-        /** Decide whether you will decode the incoming String message.*/
+
+        /**
+         * Decide whether you will decode the incoming String message.
+         */
         public boolean willDecode(String s);
     }
 }

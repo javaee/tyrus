@@ -25,78 +25,143 @@
 package org.glassfish.websocket.api;
 
 import org.glassfish.websocket.api.extension.Extension;
+
 import javax.servlet.http.HttpSession;
 import java.io.*;
 import java.util.*;
 import java.net.*;
 
 /**
- * A Web Socket session represents a conversation between two web socket endpoints. As soon 
+ * A Web Socket session represents a conversation between two web socket endpoints. As soon
  * as the websocket handshake completes successfully, the web socket implementation provides
- * the endpoint an active websocket session. The endpoint can then register interest in incoming 
+ * the endpoint an active websocket session. The endpoint can then register interest in incoming
  * messages that are part of this newly created conversation by providing a MessageHandler to the
  * session, and can send messages to the other end of the conversation by means of the RemoteEndpoint object
  * obtained from this session.
+ *
  * @author dannycoward
  * @since DRAFT 001
  */
 public interface Session {
-    
+
     public void addEncoder(Encoder tme);
-    /** Register to handle to incoming messages in this conversation. */
+
+    public Set<Encoder> getEncoders();
+
+    /**
+     * Register to handle to incoming messages in this conversation.
+     */
     public void addMessageHandler(MessageHandler listener);
-    /** Return an unmodifiable copy of the set of MessageHandlers for this Session. */
+
+    /**
+     * Return an unmodifiable copy of the set of MessageHandlers for this Session.
+     */
     public Set getMessageHandlers();
-    /** Remove the given MessageHandler from the set belonging to this session. 
-     * TBD Threading issues wrt handler invocations vs removal*/
+
+    /**
+     * Remove the given MessageHandler from the set belonging to this session.
+     * TBD Threading issues wrt handler invocations vs removal
+     */
     public void removeMessageHandler(MessageHandler listener);
-    /** Returns the version of the websocket protocol currently being used. This is taken
-     as the value of the Sec-WebSocket-Version header used in the opening handshake. i.e. "13".*/
-    
-    
+
+    /**
+     * Returns the version of the websocket protocol currently being used. This is taken
+     * as the value of the Sec-WebSocket-Version header used in the opening handshake. i.e. "13".
+     */
+
+
     public String getProtocolVersion();
-    /** Return the sub protocol agreed during the websocket handshake for this conversation. */
+
+    /**
+     * Return the sub protocol agreed during the websocket handshake for this conversation.
+     */
     public String getNegotiatedSubprotocol();
-    /** Return the list of extensions currently in use for this conversation. */
+
+    /**
+     * Return the list of extensions currently in use for this conversation.
+     */
     public List<Extension> getNegotiatedExtensions();
-    /** Return true if and only if the underlying socket is using a secure transport.*/
+
+    /**
+     * Return true if and only if the underlying socket is using a secure transport.
+     */
     public boolean isSecure();
-    /** Return the number of seconds since the underlying connection had any activity. */
+
+    /**
+     * Return the number of seconds since the underlying connection had any activity.
+     */
     public long getInactiveTime();
-    /** Return true if and only if the underlying socket is open. */
+
+    /**
+     * Return true if and only if the underlying socket is open.
+     */
     public boolean isActive();
-    /** Return the number of seconds before this conversation will be closed by the 
-     * container if it is inactive, ie no messages are either sent or received in that time. */
+
+    /**
+     * Return the number of seconds before this conversation will be closed by the
+     * container if it is inactive, ie no messages are either sent or received in that time.
+     */
     public long getTimeout();
-    /** Set the number of seconds before this conversation will be closed by the 
-     * container if it is inactive, ie no messages are either sent or received. */
+
+    /**
+     * Set the number of seconds before this conversation will be closed by the
+     * container if it is inactive, ie no messages are either sent or received.
+     */
     public void setTimeout(long seconds);
-    /** Sets the maximum total length of messages, text or binary, that this Session can handle.*/
+
+    /**
+     * Sets the maximum total length of messages, text or binary, that this Session can handle.
+     */
     public void setMaximumMessageSize(long length);
-    /** The maximum total length of messages, text or binary, that this Session can handle.*/
+
+    /**
+     * The maximum total length of messages, text or binary, that this Session can handle.
+     */
     public long getMaximumMessageSize();
-    /** Return a reference to the RemoteEndpoint object representing the other end of this conversation.*/
+
+    /**
+     * Return a reference to the RemoteEndpoint object representing the other end of this conversation.
+     */
     public RemoteEndpoint getRemote();
-    /** Return a reference to the RemoteEndpoint that can send messages in the form of objects of class c.*/
+
+    /**
+     * Return a reference to the RemoteEndpoint that can send messages in the form of objects of class c.
+     */
     public RemoteEndpoint getRemote(Class c);
-    /** Return a reference to the HttpSession that the web socket handshake that started this
+
+    /**
+     * Return a reference to the HttpSession that the web socket handshake that started this
      * conversation was part of, if applicable.
-     * @return 
+     *
+     * @return
      */
     public HttpSession getHttpSession();
-    /** Close the current conversation with a normal status code and no reason phrase. */
+
+    /**
+     * Close the current conversation with a normal status code and no reason phrase.
+     */
     public void close() throws IOException;
-    
-    /** Close the current conversation, giving a reason for the closure. Note the websocket spec defines the
-     acceptable uses of status codes and reason phrases. */
+
+    /**
+     * Close the current conversation, giving a reason for the closure. Note the websocket spec defines the
+     * acceptable uses of status codes and reason phrases.
+     */
     public void close(CloseReason closeStatus) throws IOException;
-    /** If this session is no longer active, returns the reason for closure. Otherwise, if the
-     session is active, return null. */
+
+    /**
+     * If this session is no longer active, returns the reason for closure. Otherwise, if the
+     * session is active, return null.
+     */
     public CloseReason getCloseStatus();
-    /** Return the URI that this session was opened under. */
+
+    /**
+     * Return the URI that this session was opened under.
+     */
     public URI getRequestURI();
-    
-    /** THIS TO BE REMOVED. */
-    public Map<String, Object> XXgetProperties();
-    
+
+    /**
+     * THIS TO BE REMOVED.
+     */
+    public Map<String, Object> getProperties();
+
 }

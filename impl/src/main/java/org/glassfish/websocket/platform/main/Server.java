@@ -39,17 +39,17 @@
  */
 package org.glassfish.websocket.platform.main;
 
+import org.glassfish.grizzly.http.server.HttpServer;
+import org.glassfish.grizzly.websockets.WebSocketAddOn;
+import org.glassfish.websocket.platform.BeanServer;
+import org.glassfish.websocket.platform.ServerContainerImpl;
+
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.logging.Logger;
-
-import org.glassfish.grizzly.http.server.HttpServer;
-import org.glassfish.grizzly.websockets.WebSocketAddOn;
-import org.glassfish.websocket.platform.BeanServer;
-import org.glassfish.websocket.platform.ServerContainerImpl;
 
 /**
  * Implementation of the WebSocket Server.
@@ -70,10 +70,20 @@ public class Server {
     private static final String DEFAULT_HOST_NAME = "localhost";
     private static final String DEFAULT_ROOT_PATH = "/websockets/tests";
 
+    /**
+     * Create new server instance.
+     *
+     * @param beans to be registered with the server
+     */
     public Server(Class<?>... beans) {
         this(null, 0, null, beans);
     }
 
+    /**
+     * Create new server instance.
+     *
+     * @param beanNames beans to be registered with the server
+     */
     public Server(String... beanNames) {
         this(null, 0, null, new HashSet<Class<?>>());
         for (String beanName : beanNames) {
@@ -85,8 +95,31 @@ public class Server {
         }
     }
 
+    /**
+     * Construct new server.
+     *
+     * @param hostName hostName of the server.
+     * @param port     port of the server.
+     * @param rootPath root path to the server App.
+     * @param beans    registered application classes.
+     */
     public Server(String hostName, int port, String rootPath, Class<?>... beans) {
         this(hostName, port, rootPath, new HashSet<Class<?>>(Arrays.asList(beans)));
+    }
+
+    /**
+     * Construct new server.
+     *
+     * @param hostName hostName of the server.
+     * @param port     port of the server.
+     * @param rootPath root path to the server App.
+     * @param beans    registered application classes.
+     */
+    public Server(String hostName, int port, String rootPath, Set<Class<?>> beans) {
+        this.hostName = hostName == null ? DEFAULT_HOST_NAME : hostName;
+        this.port = port == 0 ? DEFAULT_PORT : port;
+        this.rootPath = rootPath == null ? DEFAULT_ROOT_PATH : rootPath;
+        this.beans = beans;
     }
 
     /**
@@ -96,21 +129,6 @@ public class Server {
      */
     public static void setWebMode(boolean b) {
         ServerContainerImpl.setWebMode(b);
-    }
-
-    /**
-     * Construct new server.
-     *
-     * @param hostName
-     * @param port
-     * @param rootPath
-     * @param beans
-     */
-    public Server(String hostName, int port, String rootPath, Set<Class<?>> beans) {
-        this.hostName = hostName == null ? DEFAULT_HOST_NAME : hostName;
-        this.port = port == 0 ? DEFAULT_PORT : port;
-        this.rootPath = rootPath == null ? DEFAULT_ROOT_PATH : rootPath;
-        this.beans = beans;
     }
 
     /**

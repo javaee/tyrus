@@ -39,47 +39,52 @@
  */
 package org.glassfish.websocket.platform;
 
-import java.io.IOException;
-import java.util.Date;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.concurrent.atomic.AtomicLong;
-import java.net.*;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-
-import javax.servlet.http.HttpSession;
-
-import org.glassfish.websocket.api.*;
+import org.glassfish.websocket.api.CloseReason;
+import org.glassfish.websocket.api.Encoder;
+import org.glassfish.websocket.api.MessageHandler;
+import org.glassfish.websocket.api.RemoteEndpoint;
+import org.glassfish.websocket.api.Session;
 import org.glassfish.websocket.api.extension.Extension;
 
+import javax.servlet.http.HttpSession;
+import java.io.IOException;
+import java.net.URI;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
+
 /**
+ * Implementation of the WebSocketConversation.
  *
  * @author Danny Coward
+ * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class WebSocketConversationImpl implements Session {
-     private Map<String, Object> properties = new ConcurrentHashMap<String, Object>();
+public class SessionImpl implements Session {
+    private Map<String, Object> properties = new ConcurrentHashMap<String, Object>();
     private final long conversationID;
     private RemoteEndpoint peer;
     private HttpSession httpSession;
     private CloseReason closeReason = null;
-    private long timeout = 60*1000;
+    private long timeout = 60 * 1000000;
     private long maximumMessageSize = 8192;
     private Set<MessageHandler> messageHandlers = new HashSet<MessageHandler>();
+    private Set<Encoder> encoders = new HashSet<Encoder>();
 
     private static final AtomicLong count = new AtomicLong();
 
-    WebSocketConversationImpl() {
+    SessionImpl() {
         this.conversationID = count.getAndIncrement();
     }
-    
-    public Map<String, Object> XXgetProperties() {
+
+    public Map<String, Object> getProperties() {
         return this.properties;
     }
-    
+
     public String getProtocolVersion() {
         return "13";
     }
@@ -102,42 +107,46 @@ public class WebSocketConversationImpl implements Session {
     public RemoteEndpoint getRemote() {
         return peer;
     }
-    
+
     @Override
     public RemoteEndpoint getRemote(Class c) {
         return peer;
     }
 
-     /** Return a unique ID for this session.*/
+    /**
+     * Return a unique ID for this session.
+     */
     public Long getConversationID() {
         return count.get();
     }
 
     public boolean isActive() {
-        return getWebSocketWrapper().XisConnected();
+        return getWebSocketWrapper().isConnected();
     }
 
     public Date getActivationTime() {
         return getWebSocketWrapper().getActivationTime();
     }
-    
+
     @Override
     public void close() throws IOException {
         this.close(new CloseReason(CloseReason.Code.NORMAL_CLOSURE, "no reason given"));
     }
 
-    /** Closes the underlying connection this session is based upon.*/
+    /**
+     * Closes the underlying connection this session is based upon.
+     */
     @Override
     public void close(CloseReason closeReason) throws IOException {
         this.closeReason = closeReason;
         getWebSocketWrapper().close(closeReason);
-        
-        
+
+
     }
 
     @Override
     public String toString() {
-        return "Session("+conversationID+", "+this.isActive()+")";
+        return "Session(" + conversationID + ", " + this.isActive() + ")";
     }
 
     private WebSocketWrapper getWebSocketWrapper() {
@@ -147,70 +156,82 @@ public class WebSocketConversationImpl implements Session {
     void setPeer(RemoteEndpoint peer) {
         this.peer = peer;
     }
-    
+
     @Override
     public CloseReason getCloseStatus() {
         return this.closeReason;
     }
-    
+
     public long getTimeout() {
         return this.timeout;
     }
+
     public void setTimeout(long seconds) {
-        this.timeout = timeout;
+        this.timeout = seconds;
     }
-    
+
     public void setMaximumMessageSize(long maximumMessageSize) {
         this.maximumMessageSize = maximumMessageSize;
     }
+
     public long getMaximumMessageSize() {
         return this.maximumMessageSize;
     }
-    
+
     public List<Extension> getNegotiatedExtensions() {
-        if (true) throw new UnsupportedOperationException();
-        return null;
+        throw new UnsupportedOperationException();
     }
+
     public boolean isSecure() {
-        if (true) throw new UnsupportedOperationException();
-        return false;
+        throw new UnsupportedOperationException();
     }
-    
+
     public long getInactiveTime() {
-        if (true) throw new UnsupportedOperationException();
-        return -1;
+        throw new UnsupportedOperationException();
     }
-    
-    public void addEncoder(Encoder tme) {
-        if (true) throw new UnsupportedOperationException();
-        
+
+    public void addEncoder(Encoder encoder) {
+        encoders.add(encoder);
     }
+
+    @Override
+    public Set<Encoder> getEncoders() {
+        return Collections.unmodifiableSet(this.encoders);
+    }
+
     public void addMessageHandler(MessageHandler listener) {
         this.messageHandlers.add(listener);
     }
+
     public Set getMessageHandlers() {
         return Collections.unmodifiableSet(this.messageHandlers);
     }
-    
+
     public void removeMessageHandler(MessageHandler listener) {
         this.messageHandlers.remove(listener);
     }
-    
+
     public URI getRequestURI() {
-        if (true) throw new UnsupportedOperationException();
-        return null;
+        throw new UnsupportedOperationException();
     }
-    
+
     void notifyMessageHandlers(String message) {
         for (MessageHandler mh : this.messageHandlers) {
             if (mh instanceof MessageHandler.Text) {
-                System.out.println("Notify " + mh + " of " + message);
                 ((MessageHandler.Text) mh).onMessage(message);
             } else {
                 throw new UnsupportedOperationException("don't handle types other than MessageHandler.Text so far.");
             }
         }
     }
-    
-    
+
+    void notifyMessageHandlers(byte[] message) {
+        for (MessageHandler mh : this.messageHandlers) {
+            if (mh instanceof MessageHandler.Binary) {
+                ((MessageHandler.Binary) mh).onMessage(message);
+            } else {
+                throw new UnsupportedOperationException("don't handle types other than MessageHandler.Text so far.");
+            }
+        }
+    }
 }

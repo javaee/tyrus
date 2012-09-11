@@ -45,6 +45,7 @@ import org.glassfish.websocket.platform.EndpointAdapter;
 import org.glassfish.websocket.platform.main.Server;
 import org.glassfish.websocket.spi.SPIRemoteEndpoint;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -66,6 +67,7 @@ public class TwoRemoteTest {
 
     private static final String SENT_MESSAGE = "Hello World";
 
+    @Ignore
     @Test
     public void twoRemoteTest() {
         Server server = new Server("org.glassfish.websocket.test.basic.bean.TwoMethodRemoteTestBean");

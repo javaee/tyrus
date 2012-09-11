@@ -42,7 +42,6 @@ package org.glassfish.websocket.test.basic.remote;
 
 import org.glassfish.websocket.api.EncodeException;
 import org.glassfish.websocket.api.RemoteEndpoint;
-import org.glassfish.websocket.api.refactor.XWebSocketRemote;
 
 import java.io.IOException;
 
@@ -50,7 +49,8 @@ import java.io.IOException;
  *
  * @author dannycoward
  */
-    @XWebSocketRemote
+
+//@XWebSocketRemote
 public interface SimpleRemote extends RemoteEndpoint {
 
     public void sendSimpleMessage(String message) throws EncodeException, IOException;

@@ -41,11 +41,9 @@
 package org.glassfish.websocket.sample.trading.wsbeans;
 
 
-import org.glassfish.websocket.api.refactor.XWebSocketContext;
 import org.glassfish.websocket.api.annotations.WebSocketMessage;
 import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
 import org.glassfish.websocket.api.Session;
-import org.glassfish.websocket.api.refactor.XEndpointContext;
 import org.glassfish.websocket.platform.web.WebSocketServerWebIntegration;
 import javax.servlet.http.*;
 import java.util.*;
@@ -60,17 +58,17 @@ import java.security.*;
  */
 public class Buddies {
    public static String BUDDIES = "buddies";
-   @XWebSocketContext
-   public XEndpointContext myContext;
+//   @XWebSocketContext
+//   public XEndpointContext myContext;
 
          @WebSocketMessage
     public void register(String thiz, BuddiesRemote remote) {
         System.out.println("Here");
-        remote.getContext().getContainerContext().XgetProperties().put(BUDDIES, this);
+//        remote.getContext().getContainerContext().XgetProperties().put(BUDDIES, this);
         if (thiz.equals("register")) {
 
         } else {
-            this.logout(remote.XgetSession().getHttpSession());
+            this.logout(remote.getSession().getHttpSession());
         }
         this.broadcast();
     }
@@ -87,7 +85,7 @@ public class Buddies {
          activities.add(activity);
          for (Session wsSession : myContext.getConversations()) {
              BuddiesRemote remote = (BuddiesRemote) wsSession.getRemote();
-             if (remote.XgetSession().getHttpSession() != httpSession) {}
+             if (remote.getSession().getHttpSession() != httpSession) {}
              try {
                 remote.sendActivityUpdate(activities);
              } catch (Exception e) {

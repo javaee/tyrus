@@ -42,7 +42,6 @@ package wstestbeans;
 
 import org.glassfish.websocket.api.annotations.WebSocketMessage;
 import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
-import org.glassfish.websocket.api.refactor.XWebSocketError;
 import org.glassfish.websocket.api.RemoteEndpoint;
 /**
  *
@@ -61,7 +60,7 @@ public class ErrorTest {
         return "anything";
     }
 
-    @XWebSocketError
+//    @XWebSocketError
     public void handleError(Exception e, RemoteEndpoint p) {
         try {
             remote.sendString("Pass: got an error(" + e.getMessage() + ") from " + p);

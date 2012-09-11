@@ -40,10 +40,7 @@
 
 package wstestbeans;
 
-import org.glassfish.websocket.api.annotations.WebSocketMessage;
 import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
-import org.glassfish.websocket.api.refactor.XEndpointContext;
-import org.glassfish.websocket.api.RemoteEndpoint;
 
 /* @author dannycoward */
 
@@ -52,22 +49,22 @@ import org.glassfish.websocket.api.RemoteEndpoint;
     )
 public class APITest {
 
-    @WebSocketMessage
-    public String doThis(String message, RemoteEndpoint remote) {
-        String s = "";
-        s = s + "Message: " + message;
-        s = s + "<br>context ? " + remote.getContext();
-        XEndpointContext context = remote.getContext();
-        s = s + "<br>context properties ? " + context.XgetProperties();
-        s = s + "<br>context conversations ? " + context.getConversations();
-        s = s + "<br>context  path? " + context.getPath();
-
-        s = s + "<br>context container context ? " + context.getContainerContext();
-        s = s + "<br>context container context properties ? " + context.getContainerContext().XgetProperties();
-        s = s + "<br>converation ? " + remote.XgetSession();
-        s = s + "<br>converation properties ? " + remote.XgetSession().XXgetProperties();
-        s = s + "<br>converation active ? " + remote.XgetSession().isActive();
-        return s;
-    }
+//    @WebSocketMessage
+//    public String doThis(String message, RemoteEndpoint remote) {
+//        String s = "";
+//        s = s + "Message: " + message;
+//        s = s + "<br>context ? " + remote.getContext();
+//        XEndpointContext context = remote.getContext();
+//        s = s + "<br>context properties ? " + context.XgetProperties();
+//        s = s + "<br>context conversations ? " + context.getConversations();
+//        s = s + "<br>context  path? " + context.getPath();
+//
+//        s = s + "<br>context container context ? " + context.getContainerContext();
+//        s = s + "<br>context container context properties ? " + context.getContainerContext().XgetProperties();
+//        s = s + "<br>converation ? " + remote.getSession();
+//        s = s + "<br>converation properties ? " + remote.getSession().getProperties();
+//        s = s + "<br>converation active ? " + remote.getSession().isActive();
+//        return s;
+//    }
 
 }
