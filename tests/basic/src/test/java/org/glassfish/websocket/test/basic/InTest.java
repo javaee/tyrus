@@ -45,7 +45,6 @@ import org.glassfish.websocket.platform.EndpointAdapter;
 import org.glassfish.websocket.platform.main.Server;
 import org.glassfish.websocket.spi.SPIRemoteEndpoint;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -63,49 +62,41 @@ public class InTest {
 
     private String receivedMessage;
 
-    @Ignore
     @Test
     public void testBoolean(){
          testPojo(org.glassfish.websocket.test.basic.bean.stin.BooleanBean.class,"/standardInputTypes/boolean","true","PASS");
     }
 
-    @Ignore
     @Test
     public void testChar(){
         testPojo(org.glassfish.websocket.test.basic.bean.stin.CharBean.class,"/standardInputTypes/char","c","PASS");
     }
 
-    @Ignore
     @Test
     public void testDouble(){
         testPojo(org.glassfish.websocket.test.basic.bean.stin.DoubleBean.class,"/standardInputTypes/double","42.0","PASS");
     }
 
-    @Ignore
     @Test
     public void testFloat(){
         testPojo(org.glassfish.websocket.test.basic.bean.stin.FloatBean.class,"/standardInputTypes/float","42.0","PASS");
     }
 
-    @Ignore
     @Test
     public void testInt(){
         testPojo(org.glassfish.websocket.test.basic.bean.stin.IntBean.class,"/standardInputTypes/int","42","PASS");
     }
 
-    @Ignore
     @Test
     public void testLong(){
         testPojo(org.glassfish.websocket.test.basic.bean.stin.LongBean.class,"/standardInputTypes/long","42","PASS");
     }
 
-    @Ignore
     @Test
     public void testShort(){
         testPojo(org.glassfish.websocket.test.basic.bean.stin.ShortBean.class,"/standardInputTypes/short","42","PASS");
     }
 
-    @Ignore
     @Test
     public void testString(){
         testPojo(org.glassfish.websocket.test.basic.bean.stin.StringBean.class,"/standardInputTypes/String","String","PASS");
