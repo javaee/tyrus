@@ -41,9 +41,9 @@
 package org.glassfish.websocket.sample.trading.wsbeans;
 
 
-import org.glassfish.websocket.api.annotations.WebSocketMessage;
-import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
-import org.glassfish.websocket.api.Session;
+import javax.net.websocket.annotations.WebSocketMessage;
+import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.Session;
 import org.glassfish.websocket.platform.web.WebSocketServerWebIntegration;
 import javax.servlet.http.*;
 import java.util.*;

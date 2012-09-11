@@ -39,19 +39,21 @@
  */
 package org.glassfish.websocket.test.basic.bean.stin;
 
-import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
-import org.glassfish.websocket.api.annotations.WebSocketMessage;
-import org.glassfish.websocket.test.basic.remote.FloatRemote;
 import wstestbeans.Util;
+
+import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketMessage;
 
 /**
  *
  * @author dannycoward
  */
-    @WebSocketEndpoint(
-        path="/standardInputTypes/float",
-            Xremote=org.glassfish.websocket.test.basic.remote.FloatRemote.class
-    )
+//    @WebSocketEndpoint(
+//        path="/standardInputTypes/float",
+//            Xremote=org.glassfish.websocket.test.basic.remote.FloatRemote.class
+//    )
+@WebSocketEndpoint(
+        path="/standardInputTypes/float")
 public class FloatBean {
 
         @WebSocketMessage
@@ -63,12 +65,12 @@ public class FloatBean {
         }
     }
 
-    @WebSocketMessage(XdynamicPath = "/remote")
-    public void remoteFloatTest(String s, FloatRemote r) {
-        try {
-            r.sendFloatMessage((float)42.0);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+//    @WebSocketMessage(XdynamicPath = "/remote")
+//    public void remoteFloatTest(String s, FloatRemote r) {
+//        try {
+//            r.sendFloatMessage((float)42.0);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//    }
 }

@@ -40,19 +40,21 @@
 
 package org.glassfish.websocket.test.basic.bean.stin;
 
-import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
-import org.glassfish.websocket.api.annotations.WebSocketMessage;
-import org.glassfish.websocket.test.basic.remote.BooleanRemote;
 import wstestbeans.Util;
+
+import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketMessage;
 
 /**
  *
  * @author dannycoward
  */
+//    @WebSocketEndpoint(
+//        path="/standardInputTypes/boolean",
+//        Xremote = org.glassfish.websocket.test.basic.remote.BooleanRemote.class
+//    )
     @WebSocketEndpoint(
-        path="/standardInputTypes/boolean",
-        Xremote = org.glassfish.websocket.test.basic.remote.BooleanRemote.class
-    )
+        path="/standardInputTypes/boolean")
 public class BooleanBean {
 
      @WebSocketMessage
@@ -64,12 +66,12 @@ public class BooleanBean {
          }
      }
 
-    @WebSocketMessage(XdynamicPath = "/remote")
-    public void remoteBooleanTest(String s, BooleanRemote r) {
-        try {
-            r.sendBooleanMessage(true);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+//    @WebSocketMessage(XdynamicPath = "/remote")
+//    public void remoteBooleanTest(String s, BooleanRemote r) {
+//        try {
+//            r.sendBooleanMessage(true);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//    }
 }

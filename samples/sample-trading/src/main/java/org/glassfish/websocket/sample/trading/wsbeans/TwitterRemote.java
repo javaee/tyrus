@@ -40,8 +40,8 @@
 package org.glassfish.websocket.sample.trading.wsbeans;
 
 import java.io.IOException;
-import org.glassfish.websocket.api.EncodeException;
-import org.glassfish.websocket.api.RemoteEndpoint;
+import javax.net.websocket.EncodeException;
+import javax.net.websocket.RemoteEndpoint;
 
 import java.util.*;
 /**

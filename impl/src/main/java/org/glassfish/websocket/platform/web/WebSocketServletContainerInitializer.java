@@ -79,7 +79,7 @@
 
 package org.glassfish.websocket.platform.web;
 
-import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketEndpoint;
 
 import javax.servlet.ServletContainerInitializer;
 import javax.servlet.ServletContext;

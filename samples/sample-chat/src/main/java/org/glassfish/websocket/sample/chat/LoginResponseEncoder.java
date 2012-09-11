@@ -40,9 +40,11 @@
 
 package org.glassfish.websocket.sample.chat;
 
-import org.glassfish.websocket.api.Encoder;
-import org.glassfish.websocket.api.EncodeException;
+import javax.net.websocket.Encoder;
+import javax.net.websocket.EncodeException;
+
 import org.glassfish.websocket.sample.chat.chatdata.LoginResponseMessage;
+
 /**
  *
  * @author dannycoward

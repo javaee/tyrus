@@ -40,10 +40,7 @@
 
 package wstestbeans;
 
-import org.glassfish.websocket.api.annotations.WebSocketMessage;
-import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
-import org.glassfish.websocket.api.RemoteEndpoint;
-import javax.servlet.http.HttpSession;
+import javax.net.websocket.annotations.WebSocketEndpoint;
 /**
  *
  * @author dannycoward
@@ -53,9 +50,9 @@ import javax.servlet.http.HttpSession;
     )
 public class HttpSessionTest {
 
-            @WebSocketMessage
-    public String doThis(String thiz, RemoteEndpoint peer) {
-        HttpSession httpSession = peer.getSession().getHttpSession();
-        return "Obtained Http Session with ID: " + httpSession.getId();
-    }
+//            @WebSocketMessage
+//    public String doThis(String thiz, RemoteEndpoint peer) {
+//        HttpSession httpSession = peer.getSession().getHttpSession();
+//        return "Obtained Http Session with ID: " + httpSession.getId();
+//    }
 }

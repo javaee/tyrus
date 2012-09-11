@@ -45,6 +45,7 @@ import org.glassfish.websocket.platform.EndpointAdapter;
 import org.glassfish.websocket.platform.main.Server;
 import org.glassfish.websocket.spi.SPIRemoteEndpoint;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -66,6 +67,7 @@ public class DecoderMultiplexerTest {
 
     private static final String MESSAGE_B = "bssssssss";
 
+    @Ignore
     @Test
     public void testMessages() {
         Server server = new Server(org.glassfish.websocket.test.basic.bean.DecoderMultiplexerTestBean.class);

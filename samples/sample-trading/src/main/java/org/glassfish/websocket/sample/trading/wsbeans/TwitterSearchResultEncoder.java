@@ -40,10 +40,10 @@
 
 package org.glassfish.websocket.sample.trading.wsbeans;
 
-import org.glassfish.websocket.api.Encoder;
-import org.glassfish.websocket.api.EncodeException;
+import javax.net.websocket.EncodeException;
+import javax.net.websocket.Encoder;
 import java.util.*;
-import java.text.*;
+
 /**
  *
  * @author dannycoward

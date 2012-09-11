@@ -39,17 +39,18 @@
  */
 package org.glassfish.websocket.test.basic.bean;
 
-import org.glassfish.websocket.api.EncodeException;
-import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
-import org.glassfish.websocket.api.annotations.WebSocketMessage;
 import org.glassfish.websocket.test.basic.remote.SimpleRemote;
 
+import javax.net.websocket.EncodeException;
+import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketMessage;
 import java.io.IOException;
 
 /**
  * @author Martin Matula (martin.matula at oracle.com)
  */
-@WebSocketEndpoint(path = "/broadcast", Xremote = SimpleRemote.class)
+@WebSocketEndpoint(path = "/broadcast")
+//@WebSocketEndpoint(path = "/broadcast", Xremote = SimpleRemote.class)
 public class BroadcasterTestBean {
 
 

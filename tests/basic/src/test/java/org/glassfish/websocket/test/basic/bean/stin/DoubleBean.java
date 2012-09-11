@@ -39,19 +39,21 @@
  */
 package org.glassfish.websocket.test.basic.bean.stin;
 
-import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
-import org.glassfish.websocket.api.annotations.WebSocketMessage;
-import org.glassfish.websocket.test.basic.remote.DoubleRemote;
 import wstestbeans.Util;
+
+import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketMessage;
 
 /**
  *
  * @author dannycoward
  */
-    @WebSocketEndpoint(
-        path="/standardInputTypes/double",
-            Xremote=org.glassfish.websocket.test.basic.remote.DoubleRemote.class
-    )
+//    @WebSocketEndpoint(
+//        path="/standardInputTypes/double",
+//            Xremote=org.glassfish.websocket.test.basic.remote.DoubleRemote.class
+//    )
+@WebSocketEndpoint(
+        path="/standardInputTypes/double")
 public class DoubleBean {
 
         @WebSocketMessage
@@ -63,12 +65,12 @@ public class DoubleBean {
         }
     }
 
-    @WebSocketMessage(XdynamicPath = "/remote")
-    public void remoteDoubleTest(String s, DoubleRemote r) {
-        try {
-            r.sendDoubleMessage(42.0);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+//    @WebSocketMessage(XdynamicPath = "/remote")
+//    public void remoteDoubleTest(String s, DoubleRemote r) {
+//        try {
+//            r.sendDoubleMessage(42.0);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//    }
 }

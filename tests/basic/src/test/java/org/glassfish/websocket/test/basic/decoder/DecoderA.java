@@ -40,8 +40,9 @@
 
 package org.glassfish.websocket.test.basic.decoder;
 
-import org.glassfish.websocket.api.DecodeException;
-import org.glassfish.websocket.api.Decoder;
+import javax.net.websocket.DecodeException;
+import javax.net.websocket.Decoder;
+
 import org.glassfish.websocket.test.basic.message.MessageA;
 
 /**

@@ -40,17 +40,16 @@
 
 package wstestbeans.eremote;
 
-import org.glassfish.websocket.api.annotations.WebSocketMessage;
-import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
 import remote.FloatRemote;
-import remote.IntRemote;
+
+import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketMessage;
 
 /**
  *
  * @author dannycoward
  */
-    @WebSocketEndpoint(path="/customremote/float",
-            Xremote=remote.FloatRemote.class)
+    @WebSocketEndpoint(path="/customremote/float")
 public class ERFloat {
     private float lastFloat;
 

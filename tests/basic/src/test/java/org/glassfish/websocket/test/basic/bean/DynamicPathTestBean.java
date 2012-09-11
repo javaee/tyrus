@@ -40,8 +40,8 @@
 
 package org.glassfish.websocket.test.basic.bean;
 
-import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
-import org.glassfish.websocket.api.annotations.WebSocketMessage;
+import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketMessage;
 
 /**
 <<<<<<< .mine
@@ -63,15 +63,15 @@ public class DynamicPathTestBean {
         return "A";
     }
 
-    @WebSocketMessage(XdynamicPath = "/foo/bar")
-    public String fooBarPath(String message) {
-        System.out.println("###DynamicPathTestBean reply: "+"/foo/bar");
-        return "FB";
-    }
-
-    @WebSocketMessage(XdynamicPath = "*")
-    public String starPath(String message) {
-        System.out.println("###DynamicPathTestBean reply: "+"*");
-        return "*";
-    }
+//    @WebSocketMessage(XdynamicPath = "/foo/bar")
+//    public String fooBarPath(String message) {
+//        System.out.println("###DynamicPathTestBean reply: "+"/foo/bar");
+//        return "FB";
+//    }
+//
+//    @WebSocketMessage(XdynamicPath = "*")
+//    public String starPath(String message) {
+//        System.out.println("###DynamicPathTestBean reply: "+"*");
+//        return "*";
+//    }
 }

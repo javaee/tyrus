@@ -43,7 +43,7 @@ import java.io.IOException;
 import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.glassfish.websocket.api.EncodeException;
+import javax.net.websocket.EncodeException;
 import org.glassfish.websocket.sample.auction.message.PreAuctionTimeBroadcastMessage;
 
 /**

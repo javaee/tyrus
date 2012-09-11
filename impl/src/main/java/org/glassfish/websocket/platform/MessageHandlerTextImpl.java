@@ -1,6 +1,8 @@
 package org.glassfish.websocket.platform;
 
-import org.glassfish.websocket.api.*;
+import javax.net.websocket.Endpoint;
+import javax.net.websocket.MessageHandler;
+import javax.net.websocket.RemoteEndpoint;
 
 /**
  *

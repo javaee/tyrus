@@ -39,12 +39,12 @@
  */
 package org.glassfish.websocket.sample.draw;
 
-import org.glassfish.websocket.api.EncodeException;
-import org.glassfish.websocket.api.Session;
-import org.glassfish.websocket.api.annotations.WebSocketClose;
-import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
-import org.glassfish.websocket.api.annotations.WebSocketMessage;
-import org.glassfish.websocket.api.annotations.WebSocketOpen;
+import javax.net.websocket.EncodeException;
+import javax.net.websocket.Session;
+import javax.net.websocket.annotations.WebSocketClose;
+import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketMessage;
+import javax.net.websocket.annotations.WebSocketOpen;
 
 import java.io.IOException;
 import java.util.Collections;

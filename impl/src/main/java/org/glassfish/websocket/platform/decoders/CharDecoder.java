@@ -40,8 +40,8 @@
 
 package org.glassfish.websocket.platform.decoders;
 
-import org.glassfish.websocket.api.DecodeException;
-import org.glassfish.websocket.api.Decoder;
+import javax.net.websocket.Decoder;
+import javax.net.websocket.DecodeException;
 
 /**
  *

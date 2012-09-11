@@ -40,7 +40,7 @@
 
 package wstestbeans;
 
-import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketEndpoint;
 
 /**
  *

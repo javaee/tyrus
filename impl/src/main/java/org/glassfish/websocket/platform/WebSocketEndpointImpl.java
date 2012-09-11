@@ -46,18 +46,18 @@ package org.glassfish.websocket.platform;
  */
 
 
-import org.glassfish.websocket.api.DecodeException;
-import org.glassfish.websocket.api.Decoder;
-import org.glassfish.websocket.api.EncodeException;
-import org.glassfish.websocket.api.Encoder;
-import org.glassfish.websocket.api.RemoteEndpoint;
-import org.glassfish.websocket.api.ServerContainer;
-import org.glassfish.websocket.api.annotations.WebSocketMessage;
 import org.glassfish.websocket.platform.utils.PrimitivesToBoxing;
 import org.glassfish.websocket.spi.SPIEndpoint;
 import org.glassfish.websocket.spi.SPIHandshakeRequest;
 import org.glassfish.websocket.spi.SPIRemoteEndpoint;
 
+import javax.net.websocket.DecodeException;
+import javax.net.websocket.Decoder;
+import javax.net.websocket.EncodeException;
+import javax.net.websocket.Encoder;
+import javax.net.websocket.RemoteEndpoint;
+import javax.net.websocket.ServerContainer;
+import javax.net.websocket.annotations.WebSocketMessage;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -112,7 +112,7 @@ public class WebSocketEndpointImpl implements SPIEndpoint {
      * Creates new endpoint.
      *
      * @param containerContext container context.
-     * @param path             address of this endpoint as annotated by {@link org.glassfish.websocket.api.annotations.WebSocketEndpoint} annotation.
+     * @param path             address of this endpoint as annotated by {@link javax.net.websocket.annotations.WebSocketEndpoint} annotation.
      * @param model            model of the application class.
      */
     public WebSocketEndpointImpl(ServerContainer containerContext, String path, Model model) {
@@ -132,7 +132,7 @@ public class WebSocketEndpointImpl implements SPIEndpoint {
      * Creates new endpoint - see above.
      *
      * @param containerContext container context.
-     * @param path             address of this endpoint as annotated by {@link org.glassfish.websocket.api.annotations.WebSocketEndpoint} annotation.
+     * @param path             address of this endpoint as annotated by {@link javax.net.websocket.annotations.WebSocketEndpoint} annotation.
      * @param model            model of the application class.
      * @param server           server / client endpoint.
      */
@@ -160,7 +160,7 @@ public class WebSocketEndpointImpl implements SPIEndpoint {
      * Checks whether the provided dynamicPath matches with this endpoint, i.e. if there is a method that can process the request.
      *
      * @param remoteUri   path to be checked.
-     * @param dynamicPath taken from the {@link org.glassfish.websocket.api.annotations.WebSocketMessage} method annotation.
+     * @param dynamicPath taken from the {@link javax.net.websocket.annotations.WebSocketMessage} method annotation.
      * @return {@code true} if the paths match, {@code false} otherwise.
      */
     protected boolean doesPathMatch(String remoteUri, String dynamicPath) {
@@ -224,7 +224,7 @@ public class WebSocketEndpointImpl implements SPIEndpoint {
             Class nextClass = (Class) next;
             List interfaces = Arrays.asList(nextClass.getInterfaces());
 
-            if (interfaces.contains(org.glassfish.websocket.api.Decoder.Text.class)) {
+            if (interfaces.contains(Decoder.Text.class)) {
                 try {
                     Method m = nextClass.getDeclaredMethod("decode", String.class);
                     Class returnC = m.getReturnType();
@@ -265,7 +265,7 @@ public class WebSocketEndpointImpl implements SPIEndpoint {
         for (Object next : this.encoders) {
             Class nextClass = (Class) next;
             List interfaces = Arrays.asList(nextClass.getInterfaces());
-            if (interfaces.contains(org.glassfish.websocket.api.Encoder.Text.class)) {
+            if (interfaces.contains(Encoder.Text.class)) {
                 try {
                     Method m = nextClass.getMethod("encode", o.getClass());
                     if (m != null) {
@@ -313,7 +313,7 @@ public class WebSocketEndpointImpl implements SPIEndpoint {
 
     @Override
     public void onConnect(SPIRemoteEndpoint gs) {
-        RemoteEndpoint peer = getPeer(gs);
+        WebSocketWrapper peer = getPeer(gs);
         WebSocketWrapper wsw = WebSocketWrapper.getWebSocketWrapper(peer);
         wsw.setAddress(gs.getUri());
         if (server) {
@@ -334,7 +334,7 @@ public class WebSocketEndpointImpl implements SPIEndpoint {
     }
 
     public void processMessage(SPIRemoteEndpoint gs, Object o) {
-        RemoteEndpoint peer = getPeer(gs);
+        WebSocketWrapper peer = getPeer(gs);
         for (Method m : model.getOnMessageMethods()) {
             try {
                 Class<?>[] paramTypes = m.getParameterTypes();
@@ -343,9 +343,10 @@ public class WebSocketEndpointImpl implements SPIEndpoint {
                 }
 
                 WebSocketMessage wsm = m.getAnnotation(WebSocketMessage.class);
-                String dynamicPath = wsm.XdynamicPath();
+//                String dynamicPath = wsm.XdynamicPath();
 
-                if (!server || this.doesPathMatch(gs.getUri(), dynamicPath)) {
+//                if (!server || this.doesPathMatch(gs.getUri(), dynamicPath)) {
+//                if (!server) {
                     int noOfParameters = m.getParameterTypes().length;
 
                     Object decodedMessageObject = o;
@@ -366,7 +367,7 @@ public class WebSocketEndpointImpl implements SPIEndpoint {
                                 case 2:
 
                                     if (paramTypes[1].equals(String.class)) {
-                                        returned = m.invoke(model.getBean(), decodedMessageObject, dynamicPath);
+//                                        returned = m.invoke(model.getBean(), decodedMessageObject, dynamicPath);
                                     } else {
                                         returned = m.invoke(model.getBean(), decodedMessageObject, peer.getSession());
                                     }
@@ -375,9 +376,9 @@ public class WebSocketEndpointImpl implements SPIEndpoint {
                                 case 3:
 
                                     if (paramTypes[1].equals(String.class)) {
-                                        returned = m.invoke(model.getBean(), decodedMessageObject, dynamicPath, peer.getSession());
+//                                        returned = m.invoke(model.getBean(), decodedMessageObject, dynamicPath, peer.getSession());
                                     } else {
-                                        returned = m.invoke(model.getBean(), decodedMessageObject, peer.getSession(), dynamicPath);
+//                                        returned = m.invoke(model.getBean(), decodedMessageObject, peer.getSession(), dynamicPath);
                                     }
 
                                     break;
@@ -395,7 +396,7 @@ public class WebSocketEndpointImpl implements SPIEndpoint {
                             }
                         }
                     }
-                }
+//                }
             } catch (IOException ioe) {
                 this.handleGeneratedBeanException(peer, ioe);
             } catch (DecodeException de) {
@@ -426,7 +427,7 @@ public class WebSocketEndpointImpl implements SPIEndpoint {
 //        }
     }
 
-    public void onGeneratedBeanConnect(RemoteEndpoint peer) {
+    public void onGeneratedBeanConnect(WebSocketWrapper peer) {
         for (Method m : model.getOnOpenMethods()) {
             try {
                 m.invoke(model.getBean(), peer.getSession());
@@ -437,7 +438,7 @@ public class WebSocketEndpointImpl implements SPIEndpoint {
         }
     }
 
-    public void onGeneratedBeanClose(RemoteEndpoint peer) {
+    public void onGeneratedBeanClose(WebSocketWrapper peer) {
         for (Method m : model.getOnCloseMethods()) {
             try {
                 m.invoke(model.getBean(), peer.getSession());
@@ -449,7 +450,7 @@ public class WebSocketEndpointImpl implements SPIEndpoint {
     }
 
     @SuppressWarnings("unchecked")
-    protected final RemoteEndpoint getPeer(SPIRemoteEndpoint gs) {
+    protected final WebSocketWrapper getPeer(SPIRemoteEndpoint gs) {
         return WebSocketWrapper.getPeer(gs, this, server);
     }
 

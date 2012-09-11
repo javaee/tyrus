@@ -40,17 +40,16 @@
 
 package wstestbeans.eremote;
 
-import org.glassfish.websocket.api.annotations.WebSocketMessage;
-import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
 import remote.BooleanRemote;
-import remote.IntRemote;
+
+import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketMessage;
 
 /**
  *
  * @author dannycoward
  */
-    @WebSocketEndpoint(path="/customremote/boolean",
-            Xremote=remote.BooleanRemote.class)
+    @WebSocketEndpoint(path="/customremote/boolean")
 public class ERBoolean {
     private boolean lastBoolean;
 

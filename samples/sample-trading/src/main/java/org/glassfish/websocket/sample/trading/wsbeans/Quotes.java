@@ -42,13 +42,13 @@ package org.glassfish.websocket.sample.trading.wsbeans;
 
 
 import java.io.IOException;
+import javax.net.websocket.ServerContainer;
+import javax.net.websocket.CloseReason;
+import javax.net.websocket.Session;
 import java.util.List;
 import javax.servlet.http.HttpSession;
-import org.glassfish.websocket.api.CloseReason;
-import org.glassfish.websocket.api.ServerContainer;
-import org.glassfish.websocket.api.Session;
-import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
-import org.glassfish.websocket.api.annotations.WebSocketMessage;
+import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketMessage;
     @WebSocketEndpoint(
         path="/quotes",Xremote=org.glassfish.websocket.sample.trading.wsbeans.QuoteRemote.class
     )

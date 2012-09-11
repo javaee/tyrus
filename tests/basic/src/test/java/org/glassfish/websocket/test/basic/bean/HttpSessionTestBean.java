@@ -40,11 +40,7 @@
 
 package org.glassfish.websocket.test.basic.bean;
 
-import org.glassfish.websocket.api.RemoteEndpoint;
-import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
-import org.glassfish.websocket.api.annotations.WebSocketMessage;
-
-import javax.servlet.http.HttpSession;
+import javax.net.websocket.annotations.WebSocketEndpoint;
 
 /**
  *
@@ -55,9 +51,9 @@ import javax.servlet.http.HttpSession;
     )
 public class HttpSessionTestBean {
 
-    @WebSocketMessage
-    public String doThis(String thiz, RemoteEndpoint peer) {
-        HttpSession httpSession = peer.getSession().getHttpSession();
-        return httpSession.getId();
-    }
+//    @WebSocketMessage
+//    public String doThis(String thiz, RemoteEndpoint peer) {
+//        HttpSession httpSession = peer.getSession().getHttpSession();
+//        return httpSession.getId();
+//    }
 }

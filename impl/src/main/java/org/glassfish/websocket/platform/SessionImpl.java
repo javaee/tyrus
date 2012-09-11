@@ -39,13 +39,12 @@
  */
 package org.glassfish.websocket.platform;
 
-import org.glassfish.websocket.api.CloseReason;
-import org.glassfish.websocket.api.Encoder;
-import org.glassfish.websocket.api.MessageHandler;
-import org.glassfish.websocket.api.RemoteEndpoint;
-import org.glassfish.websocket.api.Session;
-import org.glassfish.websocket.api.extension.Extension;
-
+import javax.net.websocket.CloseReason;
+import javax.net.websocket.Encoder;
+import javax.net.websocket.MessageHandler;
+import javax.net.websocket.RemoteEndpoint;
+import javax.net.websocket.Session;
+import javax.net.websocket.extensions.Extension;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.net.URI;
@@ -94,7 +93,7 @@ public class SessionImpl implements Session {
     }
 
     @Override
-    public HttpSession getHttpSession() {
+    public HttpSession getSession() {
         return this.httpSession;
     }
 
@@ -192,11 +191,6 @@ public class SessionImpl implements Session {
 
     public void addEncoder(Encoder encoder) {
         encoders.add(encoder);
-    }
-
-    @Override
-    public Set<Encoder> getEncoders() {
-        return Collections.unmodifiableSet(this.encoders);
     }
 
     public void addMessageHandler(MessageHandler listener) {

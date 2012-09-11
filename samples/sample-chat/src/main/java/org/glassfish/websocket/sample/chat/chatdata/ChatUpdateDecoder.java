@@ -40,7 +40,7 @@
 
 package org.glassfish.websocket.sample.chat.chatdata;
 
-import org.glassfish.websocket.api.Decoder;
+import javax.net.websocket.Decoder;
 /**
  *
  * @author dannycoward

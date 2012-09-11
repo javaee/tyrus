@@ -42,13 +42,13 @@ package org.glassfish.websocket.sample.trading.wsbeans;
 
 
 import java.io.IOException;
+import javax.net.websocket.Session;
 import java.util.ArrayList;
 import java.util.List;
+import javax.net.websocket.CloseReason;
 import javax.servlet.http.HttpSession;
-import org.glassfish.websocket.api.CloseReason;
-import org.glassfish.websocket.api.Session;
-import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
-import org.glassfish.websocket.api.annotations.WebSocketMessage;
+import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketMessage;
 import org.json.JSONArray;
 import org.json.JSONObject;
 

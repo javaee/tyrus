@@ -40,18 +40,19 @@
 
 package remote;
 
-import org.glassfish.websocket.api.EncodeException;
-import org.glassfish.websocket.api.RemoteEndpoint;
+import javax.net.websocket.EncodeException;
+import javax.net.websocket.RemoteEndpoint;
 import wstestbeans.EncodedMessage;
 
 import java.io.IOException;
+
 /**
  *
  * @author dannycoward
  */
 //    @XWebSocketRemote(
 //            encoders={wstestbeans.EncodedMessageEncoder.class})
-public interface EncodedRemote extends RemoteEndpoint  {
+public interface EncodedRemote extends RemoteEndpoint {
 
 
     public void sendEncodedMessage(EncodedMessage message) throws IOException, EncodeException;

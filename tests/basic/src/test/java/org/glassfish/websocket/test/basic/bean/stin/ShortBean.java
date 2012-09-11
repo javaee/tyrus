@@ -39,19 +39,19 @@
  */
 package org.glassfish.websocket.test.basic.bean.stin;
 
-import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
-import org.glassfish.websocket.api.annotations.WebSocketMessage;
-import org.glassfish.websocket.test.basic.remote.ShortRemote;
 import wstestbeans.Util;
+
+import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketMessage;
 
 /**
  *
  * @author dannycoward
  */
     @WebSocketEndpoint(
-        path="/standardInputTypes/short",
-            Xremote=org.glassfish.websocket.test.basic.remote.ShortRemote.class
-    )
+        path="/standardInputTypes/short")
+//            Xremote=org.glassfish.websocket.test.basic.remote.ShortRemote.class
+//    )
 public class ShortBean {
 
         @WebSocketMessage
@@ -63,12 +63,12 @@ public class ShortBean {
         }
     }
 
-    @WebSocketMessage(XdynamicPath = "/remote")
-    public void remoteShortTest(String s, ShortRemote r) {
-        try {
-            r.sendShortMessage((short)42);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+//    @WebSocketMessage(XdynamicPath = "/remote")
+//    public void remoteShortTest(String s, ShortRemote r) {
+//        try {
+//            r.sendShortMessage((short)42);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//    }
 }

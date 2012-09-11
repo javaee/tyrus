@@ -40,11 +40,12 @@
 
 package wstestbeans;
 
-import org.glassfish.websocket.api.annotations.WebSocketMessage;
-import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
-import org.glassfish.websocket.api.annotations.WebSocketOpen;
-import org.glassfish.websocket.api.annotations.WebSocketClose;
-import org.glassfish.websocket.api.RemoteEndpoint;
+import javax.net.websocket.annotations.WebSocketMessage;
+import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketOpen;
+import javax.net.websocket.annotations.WebSocketClose;
+import javax.net.websocket.RemoteEndpoint;
+
 /**
  *
  * @author dannycoward

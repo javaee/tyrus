@@ -39,9 +39,8 @@
  */
 package org.glassfish.websocket.sample.auction.decoders;
 
-import org.glassfish.websocket.api.Decoder;
+import javax.net.websocket.Decoder;
 import org.glassfish.websocket.sample.auction.message.LoginRequestMessage;
-import org.glassfish.websocket.api.Decoder.Text;
 
 /**
  *

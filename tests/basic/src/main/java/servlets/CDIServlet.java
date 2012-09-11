@@ -41,7 +41,7 @@ package servlets;
 
 
 
-import org.glassfish.websocket.api.ServerContainer;
+import javax.net.websocket.ServerContainer;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;

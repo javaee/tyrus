@@ -44,6 +44,8 @@ import org.glassfish.websocket.sample.auction.message.BidRequestMessage;
 import org.glassfish.websocket.sample.auction.message.LoginResponseMessage;
 import org.glassfish.websocket.sample.auction.message.PriceUpdateResponseMessage;
 import org.glassfish.websocket.sample.auction.message.LoginRequestMessage;
+
+import javax.net.websocket.EncodeException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -51,7 +53,6 @@ import java.util.List;
 import java.util.Timer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.glassfish.websocket.api.EncodeException;
 
 /**
  * Implements the auction protocol

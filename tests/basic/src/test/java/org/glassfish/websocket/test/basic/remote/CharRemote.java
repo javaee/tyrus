@@ -40,8 +40,8 @@
 
 package org.glassfish.websocket.test.basic.remote;
 
-import org.glassfish.websocket.api.EncodeException;
-import org.glassfish.websocket.api.RemoteEndpoint;
+import javax.net.websocket.EncodeException;
+import javax.net.websocket.RemoteEndpoint;
 
 import java.io.IOException;
 
@@ -50,7 +50,7 @@ import java.io.IOException;
  * @author dannycoward
  */
 //    @XWebSocketRemote
-public interface CharRemote extends RemoteEndpoint{
+public interface CharRemote extends RemoteEndpoint {
 
     public void sendCharMessage(char c) throws IOException, EncodeException;
 }

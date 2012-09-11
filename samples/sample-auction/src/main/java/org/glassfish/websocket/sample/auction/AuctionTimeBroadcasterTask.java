@@ -40,10 +40,11 @@
 package org.glassfish.websocket.sample.auction;
 
 import java.io.IOException;
+import javax.net.websocket.EncodeException;
 import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.glassfish.websocket.api.EncodeException;
+
 import org.glassfish.websocket.sample.auction.message.AuctionTimeBroadcastMessage;
 
 /**

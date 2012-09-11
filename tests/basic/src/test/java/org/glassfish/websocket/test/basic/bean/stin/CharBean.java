@@ -39,19 +39,21 @@
  */
 package org.glassfish.websocket.test.basic.bean.stin;
 
-import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
-import org.glassfish.websocket.api.annotations.WebSocketMessage;
-import org.glassfish.websocket.test.basic.remote.CharRemote;
 import wstestbeans.Util;
+
+import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketMessage;
 
 /**
  *
  * @author dannycoward
  */
-    @WebSocketEndpoint(
-        path="/standardInputTypes/char",
-            Xremote = org.glassfish.websocket.test.basic.remote.CharRemote.class
-    )
+//    @WebSocketEndpoint(
+//        path="/standardInputTypes/char",
+//            Xremote = org.glassfish.websocket.test.basic.remote.CharRemote.class
+//    )
+@WebSocketEndpoint(
+        path="/standardInputTypes/char")
 public class CharBean {
 
         @WebSocketMessage
@@ -63,12 +65,12 @@ public class CharBean {
         }
     }
 
-    @WebSocketMessage(XdynamicPath = "/remote")
-    public void remoteCharTest(String s, CharRemote r) {
-        try {
-            r.sendCharMessage('c');
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+//    @WebSocketMessage(XdynamicPath = "/remote")
+//    public void remoteCharTest(String s, CharRemote r) {
+//        try {
+//            r.sendCharMessage('c');
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//    }
 }

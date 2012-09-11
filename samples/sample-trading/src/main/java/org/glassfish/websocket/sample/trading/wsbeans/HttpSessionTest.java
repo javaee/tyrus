@@ -41,13 +41,13 @@
 package org.glassfish.websocket.sample.trading.wsbeans;
 
 
-import org.glassfish.websocket.api.annotations.WebSocketMessage;
-import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
-import org.glassfish.websocket.api.Session;
-import org.glassfish.websocket.api.RemoteEndpoint;
+import javax.net.websocket.annotations.WebSocketMessage;
+import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.Session;
+import javax.net.websocket.RemoteEndpoint;
 import javax.servlet.http.*;
 
-    @WebSocketEndpoint(
+@WebSocketEndpoint(
         path="/httpsession"
     )
 

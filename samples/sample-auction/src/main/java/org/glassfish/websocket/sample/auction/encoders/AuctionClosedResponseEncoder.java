@@ -39,8 +39,9 @@
  */
 package org.glassfish.websocket.sample.auction.encoders;
 
-import org.glassfish.websocket.api.EncodeException;
-import org.glassfish.websocket.api.Encoder;
+import javax.net.websocket.EncodeException;
+import javax.net.websocket.Encoder;
+
 import org.glassfish.websocket.sample.auction.message.AuctionClosedResponseMessage;
 
 /**

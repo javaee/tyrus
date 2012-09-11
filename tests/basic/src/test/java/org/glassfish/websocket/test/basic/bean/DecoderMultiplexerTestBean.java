@@ -46,10 +46,11 @@ package org.glassfish.websocket.test.basic.bean;
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 
-import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
-import org.glassfish.websocket.api.annotations.WebSocketMessage;
 import org.glassfish.websocket.test.basic.message.MessageA;
 import org.glassfish.websocket.test.basic.message.MessageB;
+
+import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketMessage;
 
 @WebSocketEndpoint(
         path="/decodermultiplexer",

@@ -41,14 +41,14 @@
 package wstestbeans;
 
 
-import org.glassfish.websocket.api.Endpoint;
-import org.glassfish.websocket.api.MessageHandler;
-import org.glassfish.websocket.api.RemoteEndpoint;
-import org.glassfish.websocket.api.Session;
-import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
+import javax.net.websocket.Endpoint;
+import javax.net.websocket.MessageHandler;
+import javax.net.websocket.Session;
+import javax.net.websocket.RemoteEndpoint;
+import javax.net.websocket.annotations.WebSocketEndpoint;
 
 
-    @WebSocketEndpoint(
+@WebSocketEndpoint(
         path="/hellodeployhello"
     )
 /**

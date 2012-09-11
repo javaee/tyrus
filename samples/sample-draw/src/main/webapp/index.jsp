@@ -114,6 +114,9 @@
             function drawCircleX(x, y, color, shape, notify) {
                 var context = drawingCanvas.getContext('2d');
                 var radius = 8;
+
+
+
                 //Canvas commands go here
                 //context.strokeStyle = "#000000";
                 context.fillStyle = color;

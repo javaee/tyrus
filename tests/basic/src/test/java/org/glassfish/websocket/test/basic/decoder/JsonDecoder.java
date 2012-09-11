@@ -40,10 +40,11 @@
 
 package org.glassfish.websocket.test.basic.decoder;
 
-import org.glassfish.websocket.api.DecodeException;
-import org.glassfish.websocket.api.Decoder;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import javax.net.websocket.DecodeException;
+import javax.net.websocket.Decoder;
 
 /**
  *
@@ -55,7 +56,7 @@ public class JsonDecoder implements Decoder.Text<JSONObject> {
         try {
             return new JSONObject(s);
         } catch (JSONException je) {
-            throw new DecodeException(je.getMessage(), s);
+            throw new DecodeException();
         }
     }
 

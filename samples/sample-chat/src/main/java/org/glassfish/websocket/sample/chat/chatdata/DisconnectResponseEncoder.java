@@ -40,7 +40,7 @@
 
 package org.glassfish.websocket.sample.chat.chatdata;
 
-import org.glassfish.websocket.api.Encoder;
+import javax.net.websocket.Encoder;
 
 public class DisconnectResponseEncoder implements Encoder.Text<DisconnectResponseMessage> {
 

@@ -40,8 +40,8 @@
 
 package enc;
 
-import org.glassfish.websocket.api.DecodeException;
-import org.glassfish.websocket.api.Decoder;
+import javax.net.websocket.DecodeException;
+import javax.net.websocket.Decoder;
 
 /**
  *

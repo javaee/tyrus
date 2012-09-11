@@ -39,14 +39,14 @@
  */
 package org.glassfish.websocket.sample.simplelife;
 
-import org.glassfish.websocket.api.RemoteEndpoint;
-import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
-import org.glassfish.websocket.api.annotations.WebSocketClose;
-import org.glassfish.websocket.api.annotations.WebSocketMessage;
-import org.glassfish.websocket.api.annotations.WebSocketOpen;
+import javax.net.websocket.RemoteEndpoint;
+import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketClose;
+import javax.net.websocket.annotations.WebSocketMessage;
+import javax.net.websocket.annotations.WebSocketOpen;
 
 
-    @WebSocketEndpoint(
+@WebSocketEndpoint(
         path="/simplelife"
     )
 public class SimpleLifeBean {

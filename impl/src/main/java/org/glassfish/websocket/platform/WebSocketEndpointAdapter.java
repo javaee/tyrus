@@ -40,9 +40,10 @@
 
 package org.glassfish.websocket.platform;
 
-import org.glassfish.websocket.api.Endpoint;
-import org.glassfish.websocket.api.ServerContainer;
 import org.glassfish.websocket.spi.SPIRemoteEndpoint;
+
+import javax.net.websocket.Endpoint;
+import javax.net.websocket.ServerContainer;
 
 /**
  * Provides convenient implementation of WebSocketEndpoint for developers.

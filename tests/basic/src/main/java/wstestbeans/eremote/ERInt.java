@@ -40,16 +40,17 @@
 
 package wstestbeans.eremote;
 
-import org.glassfish.websocket.api.annotations.WebSocketMessage;
-import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
 import remote.IntRemote;
+
+import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketMessage;
 
 /**
  *
  * @author dannycoward
  */
-    @WebSocketEndpoint(path="/customremote/int",
-            Xremote=remote.IntRemote.class)
+    @WebSocketEndpoint(path="/customremote/int")
+//            Xremote=remote.IntRemote.class)
 public class ERInt {
     private int lastInt;
 

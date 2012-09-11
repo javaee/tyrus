@@ -40,11 +40,6 @@
 
 package org.glassfish.websocket.platform;
 
-/**
- *
- * @author dannycoward
- */
-
 import org.glassfish.websocket.spi.SPIRegisteredEndpoint;
 import org.glassfish.websocket.spi.SPIWebSocketProvider;
 
@@ -166,7 +161,7 @@ public class BeanServer {
         Map<Method, String> pathMappings = new HashMap<Method, String>();
         Method[] methods = beanClazz.getDeclaredMethods();
         for (Method method : methods) {
-            org.glassfish.websocket.api.annotations.WebSocketEndpoint wsClass = (org.glassfish.websocket.api.annotations.WebSocketEndpoint) beanClazz.getAnnotation(org.glassfish.websocket.api.annotations.WebSocketEndpoint.class);
+            javax.net.websocket.annotations.WebSocketEndpoint wsClass = (javax.net.websocket.annotations.WebSocketEndpoint) beanClazz.getAnnotation(javax.net.websocket.annotations.WebSocketEndpoint.class);
             pathMappings.put(method, wsClass.path());
         }
         return pathMappings;
@@ -262,7 +257,7 @@ public class BeanServer {
 //        Map<Method, String> pathMappings = new HashMap();
 //        Method[] methods = beanClazz.getDeclaredMethods();
 //        for (Method method : methods) {
-//            org.glassfish.websocket.api.annotations.WebSocketEndpoint wsClass = (org.glassfish.websocket.api.annotations.WebSocketEndpoint) beanClazz.getAnnotation(org.glassfish.websocket.api.annotations.WebSocketEndpoint.class);
+//            javax.net.websocket.annotations.WebSocketEndpoint wsClass = (javax.net.websocket.annotations.WebSocketEndpoint) beanClazz.getAnnotation(javax.net.websocket.annotations.WebSocketEndpoint.class);
 //            pathMappings.put(method, wsClass.path());
 //        }
 //        return pathMappings;

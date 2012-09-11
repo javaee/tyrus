@@ -40,8 +40,8 @@
 
 package org.glassfish.websocket.test.basic.bean;
 
-import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
-import org.glassfish.websocket.api.annotations.WebSocketMessage;
+import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketMessage;
 
 /**
  * Bean for basic echo test
@@ -49,13 +49,11 @@ import org.glassfish.websocket.api.annotations.WebSocketMessage;
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 
-@WebSocketEndpoint(
-    path="/hello"
-)
+@WebSocketEndpoint(path="/hello")
 public class HelloTestBean {
 
     @WebSocketMessage
-    public String doThis(String message) {
+    public String doThat(String message) {
         return message;
     }
 }

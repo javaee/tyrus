@@ -40,12 +40,11 @@
 
 package wstestbeans;
 
-import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketEndpoint;
 
 
 
-    @WebSocketEndpoint(path="/sessionexpirycustom",
-            Xremote=remote.IntRemote.class)
+    @WebSocketEndpoint(path="/sessionexpirycustom")
 public class SessionExpiryCustomRemote {
 
 //        @WebSocketMessage

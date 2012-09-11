@@ -40,9 +40,10 @@
 
 package enc;
 
-import org.glassfish.websocket.api.EncodeException;
-import org.glassfish.websocket.api.Encoder;
 import org.json.JSONObject;
+
+import javax.net.websocket.EncodeException;
+import javax.net.websocket.Encoder;
 
 /**
  *

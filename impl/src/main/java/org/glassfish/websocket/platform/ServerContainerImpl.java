@@ -40,11 +40,11 @@
 
 package org.glassfish.websocket.platform;
 
-import org.glassfish.websocket.api.ClientConfiguration;
-import org.glassfish.websocket.api.Endpoint;
-import org.glassfish.websocket.api.ServerConfiguration;
-import org.glassfish.websocket.api.ServerContainer;
-import org.glassfish.websocket.api.Session;
+import javax.net.websocket.ClientConfiguration;
+import javax.net.websocket.Endpoint;
+import javax.net.websocket.ServerConfiguration;
+import javax.net.websocket.ServerContainer;
+import javax.net.websocket.Session;
 
 import java.util.Set;
 
@@ -83,12 +83,12 @@ public class ServerContainerImpl extends WithProperties implements ServerContain
         return this.port;
     }
 
-    @Override
-    public void Xdeploy(Endpoint endpoint, String path) {
-        WebSocketEndpointAdapter adapter = new WebSocketEndpointAdapter(this, endpoint, path);
-        adapter.init();
-        this.beanServer.deploy(adapter);
-    }
+//    @Override
+//    public void Xdeploy(Endpoint endpoint, String path) {
+//        WebSocketEndpointAdapter adapter = new WebSocketEndpointAdapter(this, endpoint, path);
+//        adapter.init();
+//        this.beanServer.deploy(adapter);
+//    }
 
     public static void setWebMode(boolean b) {
         WEB_MODE = b;
@@ -105,7 +105,6 @@ public class ServerContainerImpl extends WithProperties implements ServerContain
      * @param ilc
      */
     public void publishServer(Endpoint endpoint, ServerConfiguration ilc) {
-
         throw new UnsupportedOperationException("");
     }
 

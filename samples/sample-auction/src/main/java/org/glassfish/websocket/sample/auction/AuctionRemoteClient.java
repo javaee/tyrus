@@ -46,9 +46,10 @@ import org.glassfish.websocket.sample.auction.message.PreAuctionTimeBroadcastMes
 import org.glassfish.websocket.sample.auction.message.AuctionListResponseMessage;
 import org.glassfish.websocket.sample.auction.message.PriceUpdateResponseMessage;
 import org.glassfish.websocket.sample.auction.message.LoginResponseMessage;
+
+import javax.net.websocket.EncodeException;
+import javax.net.websocket.RemoteEndpoint;
 import java.io.IOException;
-import org.glassfish.websocket.api.EncodeException;
-import org.glassfish.websocket.api.RemoteEndpoint;
 
 /**
  *

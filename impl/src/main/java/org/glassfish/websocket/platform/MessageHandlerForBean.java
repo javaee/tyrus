@@ -4,7 +4,7 @@
  */
 package org.glassfish.websocket.platform;
 
-import org.glassfish.websocket.api.MessageHandler;
+import javax.net.websocket.MessageHandler;
 
 /**
  *

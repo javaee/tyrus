@@ -39,7 +39,7 @@
  */
 package org.glassfish.websocket.platform;
 
-import org.glassfish.websocket.api.annotations.*;
+import javax.net.websocket.annotations.*;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -63,7 +63,7 @@ public class Model {
     private Set<Class<?>> decoders;
     private Field contextField;
     private List<String> subprotocols;
-    private Class remoteInterface;
+//    private Class remoteInterface;
     private Object myBean;
 
     public Model(Class<?> annotatedClass){
@@ -83,7 +83,7 @@ public class Model {
         decoders = parseDecoders(annotatedClass);
 //        contextField = parseContextField(annotatedClass);
         subprotocols = parseSubprotocols(annotatedClass);
-        remoteInterface = parseRemoteInterface(annotatedClass);
+//        remoteInterface = parseRemoteInterface(annotatedClass);
         if(instance == null){
             try {
                 this.myBean = annotatedClass.newInstance();
@@ -100,7 +100,7 @@ public class Model {
 
     private Set<Class<?>> parseDecoders(Class wsClass){
         Set<Class<?>> decs = new HashSet<Class<?>>();
-        org.glassfish.websocket.api.annotations.WebSocketEndpoint wsClassAnnotation = (org.glassfish.websocket.api.annotations.WebSocketEndpoint) wsClass.getAnnotation(org.glassfish.websocket.api.annotations.WebSocketEndpoint.class);
+        javax.net.websocket.annotations.WebSocketEndpoint wsClassAnnotation = (javax.net.websocket.annotations.WebSocketEndpoint) wsClass.getAnnotation(javax.net.websocket.annotations.WebSocketEndpoint.class);
         if(wsClassAnnotation != null){
             for (Class decoder : wsClassAnnotation.decoders()) {
                 decs.add(decoder);
@@ -112,7 +112,7 @@ public class Model {
 
     private Set<Class<?>> parseEncoders(Class wsClass){
         Set<Class<?>> encs = new HashSet<Class<?>>();
-        org.glassfish.websocket.api.annotations.WebSocketEndpoint wsClassAnnotation = (org.glassfish.websocket.api.annotations.WebSocketEndpoint) wsClass.getAnnotation(org.glassfish.websocket.api.annotations.WebSocketEndpoint.class);
+        javax.net.websocket.annotations.WebSocketEndpoint wsClassAnnotation = (javax.net.websocket.annotations.WebSocketEndpoint) wsClass.getAnnotation(javax.net.websocket.annotations.WebSocketEndpoint.class);
         if(wsClassAnnotation != null){
             for (Class encoder : wsClassAnnotation.encoders()) {
                 encs.add(encoder);
@@ -141,7 +141,7 @@ public class Model {
 //    }
 
     public static List<String> parseSubprotocols(Class wsClass) {
-        org.glassfish.websocket.api.annotations.WebSocketEndpoint ws = (org.glassfish.websocket.api.annotations.WebSocketEndpoint) wsClass.getAnnotation(org.glassfish.websocket.api.annotations.WebSocketEndpoint.class);
+        javax.net.websocket.annotations.WebSocketEndpoint ws = (javax.net.websocket.annotations.WebSocketEndpoint) wsClass.getAnnotation(javax.net.websocket.annotations.WebSocketEndpoint.class);
         if(ws != null){
             return Arrays.asList(ws.subprotocols());
         }else{
@@ -149,14 +149,14 @@ public class Model {
         }
     }
 
-    public static Class parseRemoteInterface(Class wsClass) {
-        org.glassfish.websocket.api.annotations.WebSocketEndpoint ws = (org.glassfish.websocket.api.annotations.WebSocketEndpoint) wsClass.getAnnotation(org.glassfish.websocket.api.annotations.WebSocketEndpoint.class);
-        if(ws!=null){
-            return ws.Xremote();
-        }else{
-            return null;
-        }
-    }
+//    public static Class parseRemoteInterface(Class wsClass) {
+//        javax.net.websocket.annotations.WebSocketEndpoint ws = (javax.net.websocket.annotations.WebSocketEndpoint) wsClass.getAnnotation(javax.net.websocket.annotations.WebSocketEndpoint.class);
+//        if(ws!=null){
+//            return ws.Xremote();
+//        }else{
+//            return null;
+//        }
+//    }
 
     public Set<Method> getOnOpenMethods() {
         return onOpenMethods;
@@ -194,7 +194,7 @@ public class Model {
         return subprotocols;
     }
 
-    public Class getRemoteInterface() {
-        return remoteInterface;
-    }
+//    public Class getRemoteInterface() {
+//        return remoteInterface;
+//    }
 }

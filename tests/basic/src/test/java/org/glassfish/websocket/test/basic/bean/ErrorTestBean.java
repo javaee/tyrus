@@ -40,9 +40,9 @@
 
 package org.glassfish.websocket.test.basic.bean;
 
-import org.glassfish.websocket.api.RemoteEndpoint;
-import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
-import org.glassfish.websocket.api.annotations.WebSocketMessage;
+import javax.net.websocket.RemoteEndpoint;
+import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketMessage;
 
 /**
  *

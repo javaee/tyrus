@@ -39,17 +39,19 @@
  */
 package org.glassfish.websocket.test.basic.bean;
 
-import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
-import org.glassfish.websocket.api.annotations.WebSocketMessage;
 import org.glassfish.websocket.test.basic.remote.TwoMethodRemote;
 import wstestbeans.EncodedMessage;
+
+import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketMessage;
 
 /**
  *
  * @author dannycoward
  */
-    @WebSocketEndpoint(path="/twomethodremote",
-            Xremote=org.glassfish.websocket.test.basic.remote.TwoMethodRemote.class)
+//    @WebSocketEndpoint(path="/twomethodremote",
+//            Xremote=org.glassfish.websocket.test.basic.remote.TwoMethodRemote.class)
+@WebSocketEndpoint(path="/twomethodremote")
 public class TwoMethodRemoteTestBean {
 
     @WebSocketMessage

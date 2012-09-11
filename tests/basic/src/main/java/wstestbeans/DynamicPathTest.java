@@ -41,8 +41,8 @@
 package wstestbeans;
 
 
-import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
-import org.glassfish.websocket.api.annotations.WebSocketMessage;
+import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketMessage;
 
 /**
  *
@@ -59,12 +59,12 @@ public class DynamicPathTest {
             return "hit the root path";
         }
 
-        @WebSocketMessage(XdynamicPath = "*")
+//        @WebSocketMessage(XdynamicPath = "*")
         public String dynamicPath(String message) {
             return "hit the * path with segment: ";
         }
 
-        @WebSocketMessage(XdynamicPath = "/foo/bar")
+//        @WebSocketMessage(XdynamicPath = "/foo/bar")
         public String dynamicPath2(String message) {
             return "hit the /foo/bar path with segment: ";
         }

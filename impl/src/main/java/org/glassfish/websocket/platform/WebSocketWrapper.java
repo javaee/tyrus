@@ -40,13 +40,18 @@
 
 package org.glassfish.websocket.platform;
 
-import org.glassfish.websocket.api.*;
-import org.glassfish.websocket.api.EncodeException;
-import org.glassfish.websocket.api.RemoteEndpoint;
-import org.glassfish.websocket.api.Encoder;
 import org.glassfish.websocket.spi.SPIRemoteEndpoint;
 
-import java.io.*;
+import javax.net.websocket.CloseReason;
+import javax.net.websocket.EncodeException;
+import javax.net.websocket.Encoder;
+import javax.net.websocket.RemoteEndpoint;
+import javax.net.websocket.SendHandler;
+import javax.net.websocket.SendResult;
+import javax.net.websocket.Session;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.Writer;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
@@ -56,9 +61,8 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.*;
+import java.util.concurrent.Future;
 
 
 /**
@@ -74,7 +78,7 @@ public final class WebSocketWrapper<T> implements RemoteEndpoint<T>, InvocationH
     private final Date activationTime;
     private final Class[] encoders;
     private String clientAddress;
-    private static Set<RemoteEndpoint> wrappers = Collections.newSetFromMap(new ConcurrentHashMap<RemoteEndpoint, Boolean>());
+    private static Set<WebSocketWrapper> wrappers = Collections.newSetFromMap(new ConcurrentHashMap<WebSocketWrapper, Boolean>());
 
     //    /**
 //     * Provides a Peer for the given socket. If Peer does not exist yet, it is created.
@@ -118,9 +122,9 @@ public final class WebSocketWrapper<T> implements RemoteEndpoint<T>, InvocationH
 //        return result;
 //    }
 
-    public static RemoteEndpoint getPeer(SPIRemoteEndpoint socket, WebSocketEndpointImpl application, boolean serverEndpoint) {
+    public static WebSocketWrapper getPeer(SPIRemoteEndpoint socket, WebSocketEndpointImpl application, boolean serverEndpoint) {
 
-        RemoteEndpoint result = WebSocketWrapper.findWebSocketWrapper(socket);
+        WebSocketWrapper result = WebSocketWrapper.findWebSocketWrapper(socket);
         if (result == null) {
             result = new WebSocketWrapper(socket, null);
             if (serverEndpoint) {
@@ -145,11 +149,6 @@ public final class WebSocketWrapper<T> implements RemoteEndpoint<T>, InvocationH
 
     public String getAddress() {
         return this.clientAddress;
-    }
-
-    @Override
-    public Session getSession() {
-        return this.webSocketSession;
     }
 
     public boolean isConnected() {
@@ -243,8 +242,8 @@ public final class WebSocketWrapper<T> implements RemoteEndpoint<T>, InvocationH
         return (WebSocketWrapper) (peer instanceof WebSocketWrapper ? peer : Proxy.getInvocationHandler(peer));
     }
 
-    static RemoteEndpoint findWebSocketWrapper(SPIRemoteEndpoint re) {
-        for (RemoteEndpoint peer : getPeers()) {
+    static WebSocketWrapper findWebSocketWrapper(SPIRemoteEndpoint re) {
+        for (WebSocketWrapper peer : getPeers()) {
             WebSocketWrapper wsw = getWebSocketWrapper(peer);
             if (wsw.providedRemoteEndpoint == re) {
                 return peer;
@@ -261,7 +260,7 @@ public final class WebSocketWrapper<T> implements RemoteEndpoint<T>, InvocationH
         this.clientAddress = clientAddress;
     }
 
-    private static Set<RemoteEndpoint> getPeers() {
+    private static Set<WebSocketWrapper> getPeers() {
         weedExpiredWebSocketWrappers();
         return wrappers;
     }
@@ -269,9 +268,9 @@ public final class WebSocketWrapper<T> implements RemoteEndpoint<T>, InvocationH
     private static void weedExpiredWebSocketWrappers() {
         Set<RemoteEndpoint> expired = new HashSet<RemoteEndpoint>();
         for (RemoteEndpoint wsw : wrappers) {
-            if (!(wsw).isConnected()) {
+//            if (!(wsw).isConnected()) {
                 expired.add(wsw);
-            }
+//            }
         }
         for (RemoteEndpoint toRemove : expired) {
             wrappers.remove(toRemove);
@@ -296,7 +295,7 @@ public final class WebSocketWrapper<T> implements RemoteEndpoint<T>, InvocationH
             for (Class encoder : encoders) {
                 try {
                     List interfaces = Arrays.asList(encoder.getInterfaces());
-                    if (interfaces.contains(org.glassfish.websocket.api.Encoder.Text.class)) {
+                    if (interfaces.contains(Encoder.Text.class)) {
                         try {
                             Method m = encoder.getMethod("encode", o.getClass());
                             if (m != null) {
@@ -341,7 +340,11 @@ public final class WebSocketWrapper<T> implements RemoteEndpoint<T>, InvocationH
                 dataClass.equals(Character.class));
     }
 
-    public void close(CloseReason reason) throws IOException {
-        this.providedRemoteEndpoint.close(reason.getCode().getCode(), reason.getReasonPhrase());
+    public void close(CloseReason cr) throws IOException {
+        this.providedRemoteEndpoint.close(1000, null);
+    }
+
+    public Session getSession(){
+        return webSocketSession;
     }
 }

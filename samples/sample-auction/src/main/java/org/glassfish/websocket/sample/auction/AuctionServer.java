@@ -39,9 +39,9 @@
  */
 package org.glassfish.websocket.sample.auction;
 
-import org.glassfish.websocket.api.EncodeException;
-import org.glassfish.websocket.api.RemoteEndpoint;
-import org.glassfish.websocket.api.annotations.*;
+import javax.net.websocket.EncodeException;
+import javax.net.websocket.RemoteEndpoint;
+import javax.net.websocket.annotations.*;
 import org.glassfish.websocket.sample.auction.message.*;
 
 import java.io.IOException;

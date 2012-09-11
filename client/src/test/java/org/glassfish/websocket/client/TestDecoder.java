@@ -39,8 +39,8 @@
  */
 package org.glassfish.websocket.client;
 
-import org.glassfish.websocket.api.DecodeException;
-import org.glassfish.websocket.api.Decoder;
+import javax.net.websocket.DecodeException;
+import javax.net.websocket.Decoder;
 
 /**
  *  Decoder for the TestMessage

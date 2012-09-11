@@ -41,10 +41,11 @@
 package org.glassfish.websocket.test.basic.bean;
 
 
-import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
-import org.glassfish.websocket.api.annotations.WebSocketMessage;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketMessage;
 
 /**
  *

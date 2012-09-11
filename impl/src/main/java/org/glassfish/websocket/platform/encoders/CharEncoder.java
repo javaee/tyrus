@@ -40,8 +40,9 @@
 
 package org.glassfish.websocket.platform.encoders;
 
-import org.glassfish.websocket.api.EncodeException;
-import org.glassfish.websocket.api.Encoder;
+import javax.net.websocket.EncodeException;
+import javax.net.websocket.Encoder;
+
 /**
  *
  * @author dannycoward

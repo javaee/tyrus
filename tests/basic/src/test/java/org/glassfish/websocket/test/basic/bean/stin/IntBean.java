@@ -40,19 +40,21 @@
 
 package org.glassfish.websocket.test.basic.bean.stin;
 
-import org.glassfish.websocket.api.annotations.WebSocketEndpoint;
-import org.glassfish.websocket.api.annotations.WebSocketMessage;
-import org.glassfish.websocket.test.basic.remote.IntRemote;
 import wstestbeans.Util;
+
+import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketMessage;
 
 /**
  *
  * @author dannycoward
  */
-    @WebSocketEndpoint(
-        path="/standardInputTypes/int",
-            Xremote=org.glassfish.websocket.test.basic.remote.IntRemote.class
-    )
+//    @WebSocketEndpoint(
+//        path="/standardInputTypes/int",
+//            Xremote=org.glassfish.websocket.test.basic.remote.IntRemote.class
+//    )
+@WebSocketEndpoint(
+        path="/standardInputTypes/int")
 public class IntBean {
 
      @WebSocketMessage
@@ -64,12 +66,12 @@ public class IntBean {
         }
     }
 
-    @WebSocketMessage(XdynamicPath = "/remote")
-    public void remoteIntTest(String s, IntRemote r) {
-        try {
-            r.sendIntMessage(42);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+//    @WebSocketMessage(XdynamicPath = "/remote")
+//    public void remoteIntTest(String s, IntRemote r) {
+//        try {
+//            r.sendIntMessage(42);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//    }
 }

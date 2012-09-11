@@ -40,11 +40,14 @@
 package org.glassfish.websocket.sample.chat;
 
 import java.io.IOException;
+import javax.net.websocket.CloseReason;
+import javax.net.websocket.EncodeException;
+import javax.net.websocket.RemoteEndpoint;
+import javax.net.websocket.Session;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
-import org.glassfish.websocket.api.*;
-import org.glassfish.websocket.api.annotations.*;
+import javax.net.websocket.annotations.*;
 import org.glassfish.websocket.sample.chat.chatdata.*;
 
 

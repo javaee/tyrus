@@ -42,12 +42,13 @@ package org.glassfish.websocket.sample.draw;
 
 
 
-import org.glassfish.websocket.api.DecodeException;
-import org.glassfish.websocket.api.EncodeException;
-import org.glassfish.websocket.api.Decoder;
-import org.glassfish.websocket.api.Encoder;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import javax.net.websocket.DecodeException;
+import javax.net.websocket.Decoder;
+import javax.net.websocket.EncodeException;
+import javax.net.websocket.Encoder;
 
 /**
  *
@@ -64,7 +65,7 @@ public class DrawingMessage implements Decoder.Text<DrawingMessage>, Encoder.Tex
             //System.out.println(s);
             this.jsonObject = new JSONObject(s);
         } catch (JSONException e) {
-            throw new DecodeException(e.getMessage(), s);
+            throw new DecodeException();
         }
         return this;
     }
