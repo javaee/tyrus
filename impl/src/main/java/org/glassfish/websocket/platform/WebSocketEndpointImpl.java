@@ -261,7 +261,7 @@ public class WebSocketEndpointImpl implements SPIEndpoint {
     }
 
     @SuppressWarnings("unchecked")
-    private String doEncode(Object o) throws EncodeException {
+    String doEncode(Object o) throws EncodeException {
         for (Object next : this.encoders) {
             Class nextClass = (Class) next;
             List interfaces = Arrays.asList(nextClass.getInterfaces());

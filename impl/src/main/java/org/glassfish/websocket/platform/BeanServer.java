@@ -144,7 +144,8 @@ public class BeanServer {
             // create one adapter per path. So each class may have multiple adapters.
             for (String nextPath : allPathsForBean) {
                 Model model = new Model(webSocketApplicationBeanClazz);
-                String wrapperBeanPath = wsPath + nextPath;
+                String wrapperBeanPath = (wsPath.endsWith("/") ? wsPath.substring(0, wsPath.length() - 1) : wsPath)
+                        + "/" + (nextPath.startsWith("/") ? nextPath.substring(1) : nextPath);
                 WebSocketEndpointImpl webSocketEndpoint = new WebSocketEndpointImpl(this.containerContext, wrapperBeanPath, model);
                 this.deploy(webSocketEndpoint);
             }

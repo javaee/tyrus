@@ -76,7 +76,7 @@ public final class WebSocketWrapper<T> implements RemoteEndpoint<T>, InvocationH
     private final SPIRemoteEndpoint providedRemoteEndpoint;
     private final SessionImpl webSocketSession;
     private final Date activationTime;
-    private final Class[] encoders;
+    private final WebSocketEndpointImpl wse;
     private String clientAddress;
     private static Set<WebSocketWrapper> wrappers = Collections.newSetFromMap(new ConcurrentHashMap<WebSocketWrapper, Boolean>());
 
@@ -126,7 +126,7 @@ public final class WebSocketWrapper<T> implements RemoteEndpoint<T>, InvocationH
 
         WebSocketWrapper result = WebSocketWrapper.findWebSocketWrapper(socket);
         if (result == null) {
-            result = new WebSocketWrapper(socket, null);
+            result = new WebSocketWrapper(socket, application);
             if (serverEndpoint) {
                 getWebSocketWrapper(result).setConversationRemote(result);
             }
@@ -135,10 +135,10 @@ public final class WebSocketWrapper<T> implements RemoteEndpoint<T>, InvocationH
         return result;
     }
 
-    private WebSocketWrapper(SPIRemoteEndpoint providedRemoteEndpoint, Class[] encoders) {
+    private WebSocketWrapper(SPIRemoteEndpoint providedRemoteEndpoint, WebSocketEndpointImpl wse) {
         this.activationTime = new Date();
         this.providedRemoteEndpoint = providedRemoteEndpoint;
-        this.encoders = encoders;
+        this.wse = wse;
         this.webSocketSession = new SessionImpl();
         this.webSocketSession.setPeer(this);
     }
@@ -183,8 +183,9 @@ public final class WebSocketWrapper<T> implements RemoteEndpoint<T>, InvocationH
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
+    @Override
     public void sendObject(T o) throws IOException, EncodeException {
-        throw new UnsupportedOperationException("Not yet implemented");
+        sendPolymorphic(o);
     }
 
     public Future<SendResult> sendString(String text, SendHandler completion) {
@@ -266,15 +267,14 @@ public final class WebSocketWrapper<T> implements RemoteEndpoint<T>, InvocationH
     }
 
     private static void weedExpiredWebSocketWrappers() {
-        Set<RemoteEndpoint> expired = new HashSet<RemoteEndpoint>();
-        for (RemoteEndpoint wsw : wrappers) {
-//            if (!(wsw).isConnected()) {
+        Set<WebSocketWrapper> expired = new HashSet<WebSocketWrapper>();
+        for (WebSocketWrapper wsw : wrappers) {
+            
+            if (!wsw.isConnected()) {
                 expired.add(wsw);
-//            }
+            }
         }
-        for (RemoteEndpoint toRemove : expired) {
-            wrappers.remove(toRemove);
-        }
+        wrappers.removeAll(expired);
     }
 
     private void sendPrimitiveMessage(Object data) throws IOException, EncodeException {
@@ -289,43 +289,12 @@ public final class WebSocketWrapper<T> implements RemoteEndpoint<T>, InvocationH
     private void sendPolymorphic(Object o) throws IOException, EncodeException {
         if (o instanceof String) {
             this.sendString((String) o);
-            return;
-        }
-        if (encoders != null) {
-            for (Class encoder : encoders) {
-                try {
-                    List interfaces = Arrays.asList(encoder.getInterfaces());
-                    if (interfaces.contains(Encoder.Text.class)) {
-                        try {
-                            Method m = encoder.getMethod("encode", o.getClass());
-                            if (m != null) {
-                                Encoder.Text te = (Encoder.Text) encoder.newInstance();
-                                String toSendString = te.encode(o);
-                                this.sendString(toSendString);
-                                return;
-                            }
-                        } catch (NoSuchMethodException nsme) {
-                            //skip it, wrong parameter type.
-                            nsme.printStackTrace();
-                        }
-                    }
-                } catch (EncodeException e) {
-                    throw e;
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    throw new IOException(e.getMessage() + ": Could not send message object " + o
-                            + " which is of type " + o.getClass()
-                            + " with encoders " + Arrays.asList(encoders));
-                }
-            }
-        }
-        if (isPrimitiveData(o)) {
+        } else if (isPrimitiveData(o)) {
             this.sendPrimitiveMessage(o);
-            return;
+        } else {
+            String stringToSend = wse.doEncode(o);
+            this.sendString(stringToSend);
         }
-        throw new RuntimeException("Could not send message object " + o
-                + " which is of type " + o.getClass()
-                + " with encoders " + (encoders == null ? null : Arrays.asList(encoders)));
     }
 
     private boolean isPrimitiveData(Object data) {

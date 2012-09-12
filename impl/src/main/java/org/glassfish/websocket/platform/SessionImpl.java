@@ -206,7 +206,7 @@ public class SessionImpl implements Session {
     }
 
     public URI getRequestURI() {
-        throw new UnsupportedOperationException();
+        return URI.create(WebSocketWrapper.getWebSocketWrapper(peer).getAddress());
     }
 
     void notifyMessageHandlers(String message) {
