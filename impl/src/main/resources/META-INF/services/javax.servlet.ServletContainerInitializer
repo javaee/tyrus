@@ -1,1 +1,1 @@
-org.glassfish.websocket.platform.web.WebSocketServletContainerInitializer
+org.glassfish.tyrus.platform.web.WebSocketServletContainerInitializer

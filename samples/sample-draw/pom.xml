@@ -44,7 +44,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.glassfish.websocket</groupId>
+        <groupId>org.glassfish.tyrus</groupId>
         <artifactId>websocket-samples</artifactId>
         <version>0.3-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
@@ -53,7 +53,7 @@
     <packaging>war</packaging>
     <version>0.3-SNAPSHOT</version>
     <url>http://maven.apache.org</url>
-    <groupId>org.glassfish.websocket</groupId>
+    <groupId>org.glassfish.tyrus</groupId>
     <artifactId>websocket-sample-draw</artifactId>
 
     <name>WebSocket Draw Sample</name>
@@ -68,13 +68,13 @@
         </dependency>
 -->
         <dependency>
-            <groupId>org.glassfish.websocket</groupId>
+            <groupId>org.glassfish.tyrus</groupId>
             <artifactId>websocket-impl</artifactId>
             <version>${project.version}</version>
             <!--<scope>provided</scope>-->
         </dependency>
         <dependency>
-            <groupId>org.glassfish.websocket</groupId>
+            <groupId>org.glassfish.tyrus</groupId>
             <artifactId>websocket-provider-grizzly</artifactId>
             <version>${project.version}</version>
         </dependency>
