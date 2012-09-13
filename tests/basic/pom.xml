@@ -59,12 +59,14 @@
     <name>WebSocket Basic Test</name>
 
     <dependencies>
+<!--
         <dependency>
             <groupId>org.glassfish.websocket</groupId>
             <artifactId>websocket-api</artifactId>
             <version>${project.version}</version>
             <scope>provided</scope>
         </dependency>
+-->
         <dependency>
             <groupId>org.glassfish.websocket</groupId>
             <artifactId>websocket-impl</artifactId>

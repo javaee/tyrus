@@ -53,11 +53,13 @@
     <name>WebSocket Implementation</name>
 
     <dependencies>
+<!--
         <dependency>
             <groupId>org.glassfish.websocket</groupId>
             <artifactId>websocket-api</artifactId>
             <version>${project.version}</version>
         </dependency>
+-->
         <dependency>
             <groupId>org.glassfish.websocket</groupId>
             <artifactId>websocket-provider-grizzly</artifactId>
