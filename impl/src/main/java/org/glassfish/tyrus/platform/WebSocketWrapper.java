@@ -40,26 +40,22 @@
 
 package org.glassfish.tyrus.platform;
 
-import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
-
-import javax.net.websocket.CloseReason;
-import javax.net.websocket.EncodeException;
-import javax.net.websocket.RemoteEndpoint;
-import javax.net.websocket.SendHandler;
-import javax.net.websocket.SendResult;
-import javax.net.websocket.Session;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Writer;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
-import java.util.Collections;
 import java.util.Date;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
+import javax.net.websocket.CloseReason;
+import javax.net.websocket.EncodeException;
+import javax.net.websocket.RemoteEndpoint;
+import javax.net.websocket.SendHandler;
+import javax.net.websocket.SendResult;
+import javax.net.websocket.Session;
+import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
 
 
 /**
@@ -75,7 +71,8 @@ public final class WebSocketWrapper<T> implements RemoteEndpoint<T>, InvocationH
     private final Date activationTime;
     private final WebSocketEndpointImpl wse;
     private String clientAddress;
-    private static Set<WebSocketWrapper> wrappers = Collections.newSetFromMap(new ConcurrentHashMap<WebSocketWrapper, Boolean>());
+    private static ConcurrentHashMap<SPIRemoteEndpoint, WebSocketWrapper> wrappers
+            = new ConcurrentHashMap<SPIRemoteEndpoint, WebSocketWrapper>();
 
     //    /**
 //     * Provides a Peer for the given socket. If Peer does not exist yet, it is created.
@@ -127,11 +124,12 @@ public final class WebSocketWrapper<T> implements RemoteEndpoint<T>, InvocationH
             if (serverEndpoint) {
                 getWebSocketWrapper(result).setConversationRemote(result);
             }
-            wrappers.add(result);
+            wrappers.put(socket, result);
         }
         return result;
     }
 
+    @SuppressWarnings("LeakingThisInConstructor")
     private WebSocketWrapper(SPIRemoteEndpoint providedRemoteEndpoint, WebSocketEndpointImpl wse) {
         this.activationTime = new Date();
         this.providedRemoteEndpoint = providedRemoteEndpoint;
@@ -162,20 +160,24 @@ public final class WebSocketWrapper<T> implements RemoteEndpoint<T>, InvocationH
         this.providedRemoteEndpoint.send(data);
     }
 
+    @Override
     public void sendPartialString(String fragment, boolean isLast) throws IOException {
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
 
+    @Override
     public void sendPartialBytes(byte[] partialByte, boolean isLast) throws IOException {
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
+    @Override
     public OutputStream getSendStream() throws IOException {
         throw new UnsupportedOperationException("Not yet implemented");
 
     }
 
+    @Override
     public Writer getSendWriter() throws IOException {
         throw new UnsupportedOperationException("Not yet implemented");
     }
@@ -185,22 +187,27 @@ public final class WebSocketWrapper<T> implements RemoteEndpoint<T>, InvocationH
         sendPolymorphic(o);
     }
 
+    @Override
     public Future<SendResult> sendString(String text, SendHandler completion) {
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
+    @Override
     public Future<SendResult> sendBytes(byte[] data, SendHandler completion) {
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
+    @Override
     public Future<SendResult> sendObject(T o, SendHandler handler) {
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
+    @Override
     public void sendPing(byte[] applicationData) {
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
+    @Override
     public void sendPong(byte[] applicationData) {
         throw new UnsupportedOperationException("Not yet implemented");
     }
@@ -241,13 +248,7 @@ public final class WebSocketWrapper<T> implements RemoteEndpoint<T>, InvocationH
     }
 
     static WebSocketWrapper findWebSocketWrapper(SPIRemoteEndpoint re) {
-        for (WebSocketWrapper peer : getPeers()) {
-            WebSocketWrapper wsw = getWebSocketWrapper(peer);
-            if (wsw.providedRemoteEndpoint == re) {
-                return peer;
-            }
-        }
-        return null;
+        return wrappers.get(re);
     }
 
     Date getActivationTime() {
@@ -257,21 +258,9 @@ public final class WebSocketWrapper<T> implements RemoteEndpoint<T>, InvocationH
     void setAddress(String clientAddress) {
         this.clientAddress = clientAddress;
     }
-
-    private static Set<WebSocketWrapper> getPeers() {
-        weedExpiredWebSocketWrappers();
-        return wrappers;
-    }
-
-    private static void weedExpiredWebSocketWrappers() {
-        Set<WebSocketWrapper> expired = new HashSet<WebSocketWrapper>();
-        for (WebSocketWrapper wsw : wrappers) {
-
-            if (!wsw.isConnected()) {
-                expired.add(wsw);
-            }
-        }
-        wrappers.removeAll(expired);
+    
+    void discard() {
+        wrappers.remove(this.providedRemoteEndpoint);
     }
 
     private void sendPrimitiveMessage(Object data) throws IOException, EncodeException {

@@ -40,24 +40,6 @@
 
 package org.glassfish.tyrus.platform;
 
-/**
- * @author dannycoward
- * @author Stepan Kopriva (stepan.kopriva at oracle.com)
- */
-
-
-import org.glassfish.tyrus.platform.utils.PrimitivesToBoxing;
-import org.glassfish.tyrus.spi.SPIEndpoint;
-import org.glassfish.tyrus.spi.SPIHandshakeRequest;
-import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
-
-import javax.net.websocket.DecodeException;
-import javax.net.websocket.Decoder;
-import javax.net.websocket.EncodeException;
-import javax.net.websocket.Encoder;
-import javax.net.websocket.RemoteEndpoint;
-import javax.net.websocket.ServerContainer;
-import javax.net.websocket.annotations.WebSocketMessage;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -66,6 +48,17 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import javax.net.websocket.DecodeException;
+import javax.net.websocket.Decoder;
+import javax.net.websocket.EncodeException;
+import javax.net.websocket.Encoder;
+import javax.net.websocket.RemoteEndpoint;
+import javax.net.websocket.ServerContainer;
+import javax.net.websocket.annotations.WebSocketMessage;
+import org.glassfish.tyrus.platform.utils.PrimitivesToBoxing;
+import org.glassfish.tyrus.spi.SPIEndpoint;
+import org.glassfish.tyrus.spi.SPIHandshakeRequest;
+import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
 
 /**
  * Handles the registered application class.
@@ -410,7 +403,9 @@ public class WebSocketEndpointImpl implements SPIEndpoint {
 
     @Override
     public void onClose(SPIRemoteEndpoint gs) {
-        this.onGeneratedBeanClose(getPeer(gs));
+        WebSocketWrapper wsw = getPeer(gs);
+        this.onGeneratedBeanClose(wsw);
+        wsw.discard();
     }
 
     public void handleGeneratedBeanException(RemoteEndpoint peer, Exception e) {
@@ -453,7 +448,7 @@ public class WebSocketEndpointImpl implements SPIEndpoint {
     protected final WebSocketWrapper getPeer(SPIRemoteEndpoint gs) {
         return WebSocketWrapper.getPeer(gs, this, server);
     }
-
+    
     public ServerContainer getContainerContext() {
         return containerContext;
     }

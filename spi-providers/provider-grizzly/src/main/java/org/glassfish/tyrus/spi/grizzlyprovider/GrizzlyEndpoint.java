@@ -39,6 +39,7 @@
  */
 package org.glassfish.tyrus.spi.grizzlyprovider;
 
+import java.util.List;
 import org.glassfish.grizzly.http.HttpRequestPacket;
 import org.glassfish.grizzly.websockets.DataFrame;
 import org.glassfish.grizzly.websockets.ProtocolHandler;
@@ -47,8 +48,6 @@ import org.glassfish.grizzly.websockets.WebSocketApplication;
 import org.glassfish.grizzly.websockets.WebSocketListener;
 import org.glassfish.tyrus.spi.SPIEndpoint;
 import org.glassfish.tyrus.spi.SPIRegisteredEndpoint;
-
-import java.util.List;
 
 /**
  * @author dannycoward
@@ -86,8 +85,10 @@ class GrizzlyEndpoint extends WebSocketApplication implements SPIRegisteredEndpo
     public void onClose(WebSocket socket, DataFrame frame) {
         GrizzlyRemoteEndpoint gs = GrizzlyRemoteEndpoint.get(socket);
         this.endpoint.onClose(gs);
+        GrizzlyRemoteEndpoint.remove(socket);
     }
 
+    @Override
     public void remove() {
         this.endpoint.remove();
     }

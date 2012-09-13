@@ -39,42 +39,39 @@
  */
 package org.glassfish.tyrus.spi.grizzlyprovider;
 
+import java.io.IOException;
+import java.util.concurrent.ConcurrentHashMap;
 import org.glassfish.grizzly.websockets.WebSocket;
 import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
-
-import java.io.IOException;
-import java.util.Collections;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  *
  * @author dannycoward
  */
-
 public class GrizzlyRemoteEndpoint implements SPIRemoteEndpoint {
     private WebSocket socket;
-    private static Set<GrizzlyRemoteEndpoint> sockets = Collections.newSetFromMap(new ConcurrentHashMap<GrizzlyRemoteEndpoint, Boolean>());
+    private static ConcurrentHashMap<WebSocket, GrizzlyRemoteEndpoint> sockets = new ConcurrentHashMap<WebSocket, GrizzlyRemoteEndpoint>();
 
     public GrizzlyRemoteEndpoint(WebSocket socket) {
         this.socket = socket;
     }
 
     public static GrizzlyRemoteEndpoint get(WebSocket socket) {
-        for (GrizzlyRemoteEndpoint gs : sockets) {
-            if (gs.socket == socket) {
-                return gs;
-            }
+        GrizzlyRemoteEndpoint s = sockets.get(socket);
+        if (s == null) {
+            s = new GrizzlyRemoteEndpoint(socket);
+            sockets.put(socket, s);
         }
-        GrizzlyRemoteEndpoint s = new GrizzlyRemoteEndpoint(socket);
-        sockets.add(s);
         return s;
     }
 
+    public static void remove(WebSocket socket) {
+        sockets.remove(socket);
+    }
 
     @Override
     public boolean isConnected() {
-        return  this.socket.isConnected();
+        return this.socket.isConnected();
     }
 
     @Override
@@ -86,10 +83,11 @@ public class GrizzlyRemoteEndpoint implements SPIRemoteEndpoint {
         }
     }
 
+    @Override
     public void send(byte[] data) throws IOException {
         this.socket.send(data);
     }
-
+    
     @Override
     public void close(int code, String reason) throws IOException {
         this.socket.close(code, reason);
@@ -102,5 +100,4 @@ public class GrizzlyRemoteEndpoint implements SPIRemoteEndpoint {
         }
         return null;
     }
-
 }
