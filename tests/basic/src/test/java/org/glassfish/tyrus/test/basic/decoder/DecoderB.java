@@ -37,38 +37,28 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package main;
 
-import org.glassfish.tyrus.platform.main.Server;
+package org.glassfish.tyrus.test.basic.decoder;
 
-import java.io.File;
-import java.io.FileInputStream;
+import javax.net.websocket.DecodeException;
+import javax.net.websocket.Decoder;
 
-    // localhost 8021 /websockets/tests filename.txt
+import org.glassfish.tyrus.test.basic.message.MessageB;
 
 /**
  *
  * @author dannycoward
  */
-public class TestMain {
+public class DecoderB implements Decoder.Text<MessageB> {
 
-    public static void main(String args[]) throws Exception {
+    @Override
+    public MessageB decode(String s) throws DecodeException {
+        System.out.println("Decoding with DecoderB");
+        return new MessageB(s);
+    }
 
-        String filename = args[3];
-
-        File f = new File(filename);
-        FileInputStream fis = new FileInputStream(filename);
-        String rawClassList = "";
-
-        int i;
-        while ( (i=fis.read()) >=0 ) {
-            rawClassList = rawClassList + (char) i;
-        }
-        fis.close();
-        args[3] = rawClassList;
-        Server.setWebMode(false);
-
-        //Server.main(args);
+    public boolean willDecode(String s) {
+        return s.startsWith("b");
     }
 
 }

@@ -37,38 +37,50 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package main;
 
-import org.glassfish.tyrus.platform.main.Server;
+package org.glassfish.tyrus.sample.trading.wsbeans;
 
-import java.io.File;
-import java.io.FileInputStream;
-
-    // localhost 8021 /websockets/tests filename.txt
-
+import java.net.*;
+import java.io.*;
+import java.util.*;
 /**
  *
  * @author dannycoward
  */
-public class TestMain {
+public class Util {
+    static List<String> tickers;
 
-    public static void main(String args[]) throws Exception {
-
-        String filename = args[3];
-
-        File f = new File(filename);
-        FileInputStream fis = new FileInputStream(filename);
-        String rawClassList = "";
-
+    public static String getData(String urlString) throws Exception {
+        URL url = new URL(urlString);
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.connect();
+        InputStream is = connection.getInputStream();
         int i;
-        while ( (i=fis.read()) >=0 ) {
-            rawClassList = rawClassList + (char) i;
+        String incomingMessage = "";
+        while ((i=is.read()) != -1) {
+            incomingMessage = incomingMessage + (char) i;
         }
-        fis.close();
-        args[3] = rawClassList;
-        Server.setWebMode(false);
-
-        //Server.main(args);
+        is.close();
+        connection.disconnect();
+        return incomingMessage;
     }
 
+    public static List<String> getDefaultStockTickers() {
+        if (tickers == null) {
+            tickers = new ArrayList<String>();
+            tickers.add("MSFT");
+            tickers.add("GOOG");
+            tickers.add("ORCL");
+            tickers.add("USO");
+            tickers.add("IBM");
+            tickers.add("HP");
+            tickers.add("GE");
+            tickers.add("AAPL");
+            tickers.add("JPM");
+            tickers.add("WF");
+            tickers.add("AONE");
+            tickers.add("VFINX");
+        }
+        return tickers;
+    }
 }

@@ -37,38 +37,29 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package main;
 
-import org.glassfish.tyrus.platform.main.Server;
+package org.glassfish.tyrus.sample.chat.chatdata;
 
-import java.io.File;
-import java.io.FileInputStream;
-
-    // localhost 8021 /websockets/tests filename.txt
+import javax.net.websocket.Decoder;
 
 /**
  *
  * @author dannycoward
  */
-public class TestMain {
+public class LoginRequestDecoder implements Decoder.Text {
 
-    public static void main(String args[]) throws Exception {
+    public LoginRequestDecoder() {
+        System.out.println("Created a LoginRequestDecoder");
+    }
 
-        String filename = args[3];
+    public LoginRequestMessage decode(String s) {
+        LoginRequestMessage lrm = new LoginRequestMessage();
+        lrm.fromString(s);
+        return lrm;
+    }
 
-        File f = new File(filename);
-        FileInputStream fis = new FileInputStream(filename);
-        String rawClassList = "";
-
-        int i;
-        while ( (i=fis.read()) >=0 ) {
-            rawClassList = rawClassList + (char) i;
-        }
-        fis.close();
-        args[3] = rawClassList;
-        Server.setWebMode(false);
-
-        //Server.main(args);
+    public boolean willDecode(String s) {
+        return s.startsWith(LoginRequestMessage.LOGIN_REQUEST);
     }
 
 }

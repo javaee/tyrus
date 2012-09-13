@@ -37,38 +37,22 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package main;
 
-import org.glassfish.tyrus.platform.main.Server;
+package org.glassfish.tyrus.test.basic.encoder;
 
-import java.io.File;
-import java.io.FileInputStream;
+import javax.net.websocket.EncodeException;
+import javax.net.websocket.Encoder;
+import org.json.JSONObject;
 
-    // localhost 8021 /websockets/tests filename.txt
 
 /**
  *
  * @author dannycoward
  */
-public class TestMain {
+public class JsonEncoder implements Encoder.Text<JSONObject> {
 
-    public static void main(String args[]) throws Exception {
-
-        String filename = args[3];
-
-        File f = new File(filename);
-        FileInputStream fis = new FileInputStream(filename);
-        String rawClassList = "";
-
-        int i;
-        while ( (i=fis.read()) >=0 ) {
-            rawClassList = rawClassList + (char) i;
-        }
-        fis.close();
-        args[3] = rawClassList;
-        Server.setWebMode(false);
-
-        //Server.main(args);
+    @Override
+    public String encode(JSONObject o) throws EncodeException {
+        return o.toString();
     }
-
 }

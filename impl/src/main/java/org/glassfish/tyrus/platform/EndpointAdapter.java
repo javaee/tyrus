@@ -37,38 +37,52 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package main;
+package org.glassfish.tyrus.platform;
 
-import org.glassfish.tyrus.platform.main.Server;
+import org.glassfish.tyrus.spi.SPIEndpoint;
+import org.glassfish.tyrus.spi.SPIHandshakeRequest;
+import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
 
-import java.io.File;
-import java.io.FileInputStream;
-
-    // localhost 8021 /websockets/tests filename.txt
+import java.util.List;
 
 /**
+ * Adapter to make the implementation easy for developers.
  *
- * @author dannycoward
+ * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class TestMain {
-
-    public static void main(String args[]) throws Exception {
-
-        String filename = args[3];
-
-        File f = new File(filename);
-        FileInputStream fis = new FileInputStream(filename);
-        String rawClassList = "";
-
-        int i;
-        while ( (i=fis.read()) >=0 ) {
-            rawClassList = rawClassList + (char) i;
-        }
-        fis.close();
-        args[3] = rawClassList;
-        Server.setWebMode(false);
-
-        //Server.main(args);
+public class EndpointAdapter implements SPIEndpoint{
+    @Override
+    public boolean checkHandshake(SPIHandshakeRequest hr) {
+        return false;
     }
 
+    @Override
+    public void onConnect(SPIRemoteEndpoint gs) {
+
+    }
+
+    @Override
+    public void onMessage(SPIRemoteEndpoint gs, String messageString) {
+
+    }
+
+    @Override
+    public void onMessage(SPIRemoteEndpoint gs, byte[] messageBytes) {
+
+    }
+
+    @Override
+    public void onClose(SPIRemoteEndpoint gs) {
+
+    }
+
+    @Override
+    public List<String> getSupportedProtocols(List<String> subProtocols) {
+        return null;
+    }
+
+    @Override
+    public void remove() {
+
+    }
 }

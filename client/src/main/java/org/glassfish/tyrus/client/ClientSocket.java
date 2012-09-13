@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011 - 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -37,38 +37,28 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package main;
+package org.glassfish.tyrus.client;
 
-import org.glassfish.tyrus.platform.main.Server;
+import org.glassfish.tyrus.spi.SPIEndpoint;
 
-import java.io.File;
-import java.io.FileInputStream;
-
-    // localhost 8021 /websockets/tests filename.txt
+import java.util.Set;
 
 /**
+ * Client Web Socket.
  *
- * @author dannycoward
+ * @author Stepan Kopriva (stepan.kopirva at oracle.com)
  */
-public class TestMain {
+public interface ClientSocket {
 
-    public static void main(String args[]) throws Exception {
+    /**
+     * Returns the mutable Set of endpoints registered
+     *
+     * @return mutable {@link Set} of endpoints registered on socket.
+     */
+    public Set<SPIEndpoint> getEndpoints();
 
-        String filename = args[3];
-
-        File f = new File(filename);
-        FileInputStream fis = new FileInputStream(filename);
-        String rawClassList = "";
-
-        int i;
-        while ( (i=fis.read()) >=0 ) {
-            rawClassList = rawClassList + (char) i;
-        }
-        fis.close();
-        args[3] = rawClassList;
-        Server.setWebMode(false);
-
-        //Server.main(args);
-    }
-
+    /**
+     * Close the socket.
+     */
+    public void close();
 }

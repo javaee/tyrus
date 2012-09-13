@@ -37,38 +37,57 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package main;
+package org.glassfish.tyrus.client;
 
-import org.glassfish.tyrus.platform.main.Server;
+import javax.net.websocket.RemoteEndpoint;
+import javax.net.websocket.EncodeException;
+import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketMessage;
+import javax.net.websocket.annotations.WebSocketOpen;
 
-import java.io.File;
-import java.io.FileInputStream;
-
-    // localhost 8021 /websockets/tests filename.txt
+import java.io.IOException;
 
 /**
+ * Testing the basic annotations.
  *
- * @author dannycoward
+ * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class TestMain {
+@WebSocketEndpoint(path = "/test",
+        decoders = {TestDecoder.class})
+public class ClientTestBean {
 
-    public static void main(String args[]) throws Exception {
+    private static final String SENT_MESSAGE = "hello";
+    private static final String SENT_TEST_MESSAGE = "testHello";
+    private AnnotatedClientTest act;
+    private boolean messageType;
 
-        String filename = args[3];
-
-        File f = new File(filename);
-        FileInputStream fis = new FileInputStream(filename);
-        String rawClassList = "";
-
-        int i;
-        while ( (i=fis.read()) >=0 ) {
-            rawClassList = rawClassList + (char) i;
-        }
-        fis.close();
-        args[3] = rawClassList;
-        Server.setWebMode(false);
-
-        //Server.main(args);
+    public ClientTestBean(AnnotatedClientTest act, boolean messageType) {
+        this.messageType = messageType;
+        this.act = act;
     }
 
+    @WebSocketOpen
+    public void onOpen(ClientTestRemote p) {
+        try {
+            if(messageType){
+                p.sendString(SENT_MESSAGE);
+            }else{
+                p.sendTestMessage(new TestMessage(SENT_TEST_MESSAGE));
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (EncodeException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @WebSocketMessage
+    public void onMessage(String message, RemoteEndpoint p) {
+        act.setReceivedMessage(message);
+    }
+
+    @WebSocketMessage
+    public void onTestMesage(TestMessage tm, RemoteEndpoint p){
+        act.setReceivedTestMessage(tm.getData());
+    }
 }

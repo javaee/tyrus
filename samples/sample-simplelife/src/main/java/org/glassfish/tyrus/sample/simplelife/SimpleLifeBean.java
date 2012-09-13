@@ -37,38 +37,33 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package main;
+package org.glassfish.tyrus.sample.simplelife;
 
-import org.glassfish.tyrus.platform.main.Server;
+import javax.net.websocket.RemoteEndpoint;
+import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketClose;
+import javax.net.websocket.annotations.WebSocketMessage;
+import javax.net.websocket.annotations.WebSocketOpen;
 
-import java.io.File;
-import java.io.FileInputStream;
 
-    // localhost 8021 /websockets/tests filename.txt
+@WebSocketEndpoint(
+        path="/simplelife"
+    )
+public class SimpleLifeBean {
 
-/**
- *
- * @author dannycoward
- */
-public class TestMain {
+    @WebSocketOpen
+    public void hi(RemoteEndpoint remote) {
+        System.out.println("Someone connected...");
+    }
 
-    public static void main(String args[]) throws Exception {
+    @WebSocketMessage
+    public void handleMessage(String message) {
+        System.out.println("Someone sent me this message: " + message);
+    }
 
-        String filename = args[3];
-
-        File f = new File(filename);
-        FileInputStream fis = new FileInputStream(filename);
-        String rawClassList = "";
-
-        int i;
-        while ( (i=fis.read()) >=0 ) {
-            rawClassList = rawClassList + (char) i;
-        }
-        fis.close();
-        args[3] = rawClassList;
-        Server.setWebMode(false);
-
-        //Server.main(args);
+    @WebSocketClose
+    public void bye(RemoteEndpoint remote) {
+        System.out.println("Someone is disconnecting...");
     }
 
 }

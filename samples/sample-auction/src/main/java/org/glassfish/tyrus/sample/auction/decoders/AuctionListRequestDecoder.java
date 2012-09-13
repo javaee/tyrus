@@ -37,38 +37,30 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package main;
+package org.glassfish.tyrus.sample.auction.decoders;
 
-import org.glassfish.tyrus.platform.main.Server;
-
-import java.io.File;
-import java.io.FileInputStream;
-
-    // localhost 8021 /websockets/tests filename.txt
+import javax.net.websocket.Decoder;
+import org.glassfish.tyrus.sample.auction.message.AuctionListRequestMessage;
+import org.glassfish.tyrus.sample.auction.message.BidRequestMessage;
 
 /**
  *
- * @author dannycoward
+ * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class TestMain {
+public class AuctionListRequestDecoder implements Decoder.Text{
 
-    public static void main(String args[]) throws Exception {
+    @Override
+    public AuctionListRequestMessage decode(String s) {
+        System.out.println("public AuctionListRequestMessage decode(String s) ");
+        String[] tokens = s.split(":");
 
-        String filename = args[3];
-
-        File f = new File(filename);
-        FileInputStream fis = new FileInputStream(filename);
-        String rawClassList = "";
-
-        int i;
-        while ( (i=fis.read()) >=0 ) {
-            rawClassList = rawClassList + (char) i;
-        }
-        fis.close();
-        args[3] = rawClassList;
-        Server.setWebMode(false);
-
-        //Server.main(args);
+        AuctionListRequestMessage arm = new AuctionListRequestMessage(tokens[1], tokens[2]);
+        return arm;
     }
 
+    @Override
+    public boolean willDecode(String s) {
+        return s.startsWith(BidRequestMessage.AUCTION_LIST_REQUEST);
+    }
 }
+

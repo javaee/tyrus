@@ -37,38 +37,27 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package main;
+package org.glassfish.tyrus.platform.web;
 
-import org.glassfish.tyrus.platform.main.Server;
 
-import java.io.File;
-import java.io.FileInputStream;
 
-    // localhost 8021 /websockets/tests filename.txt
+import javax.servlet.annotation.WebListener;
+import javax.servlet.http.*;
 
 /**
- *
+ * Web application lifecycle listener.
  * @author dannycoward
  */
-public class TestMain {
+@WebListener()
+public class WSSessionTracker implements HttpSessionListener {
 
-    public static void main(String args[]) throws Exception {
-
-        String filename = args[3];
-
-        File f = new File(filename);
-        FileInputStream fis = new FileInputStream(filename);
-        String rawClassList = "";
-
-        int i;
-        while ( (i=fis.read()) >=0 ) {
-            rawClassList = rawClassList + (char) i;
-        }
-        fis.close();
-        args[3] = rawClassList;
-        Server.setWebMode(false);
-
-        //Server.main(args);
+    @Override
+    public void sessionCreated(HttpSessionEvent se) {
+        HttpSessionManager.getInstance().registerSession(se.getSession());
     }
 
+    @Override
+    public void sessionDestroyed(HttpSessionEvent se) {
+        HttpSessionManager.getInstance().deregisterSession(se.getSession());
+    }
 }

@@ -37,38 +37,24 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package main;
+package org.glassfish.tyrus.client;
 
-import org.glassfish.tyrus.platform.main.Server;
-
-import java.io.File;
-import java.io.FileInputStream;
-
-    // localhost 8021 /websockets/tests filename.txt
+import javax.net.websocket.DecodeException;
+import javax.net.websocket.Decoder;
 
 /**
+ *  Decoder for the TestMessage
  *
- * @author dannycoward
+ * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class TestMain {
-
-    public static void main(String args[]) throws Exception {
-
-        String filename = args[3];
-
-        File f = new File(filename);
-        FileInputStream fis = new FileInputStream(filename);
-        String rawClassList = "";
-
-        int i;
-        while ( (i=fis.read()) >=0 ) {
-            rawClassList = rawClassList + (char) i;
-        }
-        fis.close();
-        args[3] = rawClassList;
-        Server.setWebMode(false);
-
-        //Server.main(args);
+public class TestDecoder implements Decoder.Text<TestMessage>{
+    @Override
+    public TestMessage decode(String s) throws DecodeException {
+        return new TestMessage(s.substring(TestMessage.PREFIX.length(),s.length()));
     }
 
+    @Override
+    public boolean willDecode(String s) {
+        return s.startsWith(TestMessage.PREFIX);
+    }
 }

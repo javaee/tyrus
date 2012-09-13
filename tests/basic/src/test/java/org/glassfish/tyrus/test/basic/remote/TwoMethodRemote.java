@@ -37,38 +37,25 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package main;
+package org.glassfish.tyrus.test.basic.remote;
 
-import org.glassfish.tyrus.platform.main.Server;
 
-import java.io.File;
-import java.io.FileInputStream;
+import javax.net.websocket.EncodeException;
+import javax.net.websocket.RemoteEndpoint;
+import wstestbeans.EncodedMessage;
 
-    // localhost 8021 /websockets/tests filename.txt
+import java.io.IOException;
 
 /**
  *
  * @author dannycoward
  */
-public class TestMain {
 
-    public static void main(String args[]) throws Exception {
+//@XWebSocketRemote(encoders={wstestbeans.EncodedMessageEncoder.class})
+public interface TwoMethodRemote extends RemoteEndpoint {
 
-        String filename = args[3];
+    public void sendStringA(String a) throws IOException, EncodeException;
 
-        File f = new File(filename);
-        FileInputStream fis = new FileInputStream(filename);
-        String rawClassList = "";
-
-        int i;
-        while ( (i=fis.read()) >=0 ) {
-            rawClassList = rawClassList + (char) i;
-        }
-        fis.close();
-        args[3] = rawClassList;
-        Server.setWebMode(false);
-
-        //Server.main(args);
-    }
+    public void sendEncodedMessage(EncodedMessage message) throws IOException, EncodeException;
 
 }

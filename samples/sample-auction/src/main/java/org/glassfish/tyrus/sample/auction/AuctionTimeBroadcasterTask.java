@@ -37,38 +37,49 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package main;
+package org.glassfish.tyrus.sample.auction;
 
-import org.glassfish.tyrus.platform.main.Server;
+import java.io.IOException;
+import javax.net.websocket.EncodeException;
+import java.util.TimerTask;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-import java.io.File;
-import java.io.FileInputStream;
-
-    // localhost 8021 /websockets/tests filename.txt
+import org.glassfish.tyrus.sample.auction.message.AuctionTimeBroadcastMessage;
 
 /**
  *
- * @author dannycoward
+ * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class TestMain {
+public class AuctionTimeBroadcasterTask extends TimerTask {
 
-    public static void main(String args[]) throws Exception {
+    private Auction owner;
+    private int timeoutCounter;
 
-        String filename = args[3];
-
-        File f = new File(filename);
-        FileInputStream fis = new FileInputStream(filename);
-        String rawClassList = "";
-
-        int i;
-        while ( (i=fis.read()) >=0 ) {
-            rawClassList = rawClassList + (char) i;
-        }
-        fis.close();
-        args[3] = rawClassList;
-        Server.setWebMode(false);
-
-        //Server.main(args);
+    public AuctionTimeBroadcasterTask(Auction owner, int timeoutCounter) {
+        this.owner = owner;
+        this.timeoutCounter = timeoutCounter;
     }
 
+    @Override
+    public void run() {
+        if (timeoutCounter < 0) {
+            owner.switchStateToAuctionFinished();
+        } else {
+            if (!owner.getRemoteClients().isEmpty()) {
+                AuctionTimeBroadcastMessage atbm = new AuctionTimeBroadcastMessage(owner.getId(), timeoutCounter);
+
+                for (AuctionRemoteClient arc : owner.getRemoteClients()) {
+                    try {
+                        arc.sendAuctionTimeBroadcast(atbm);
+                    } catch (IOException ex) {
+                        Logger.getLogger(PreAuctionTimeBroadcasterTask.class.getName()).log(Level.SEVERE, null, ex);
+                    } catch (EncodeException ex) {
+                        Logger.getLogger(PreAuctionTimeBroadcasterTask.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+            }
+        }
+        timeoutCounter--;
+    }
 }

@@ -37,38 +37,40 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package main;
+package org.glassfish.tyrus.test.basic.bean.stin;
 
-import org.glassfish.tyrus.platform.main.Server;
+import wstestbeans.Util;
 
-import java.io.File;
-import java.io.FileInputStream;
-
-    // localhost 8021 /websockets/tests filename.txt
+import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketMessage;
 
 /**
  *
  * @author dannycoward
  */
-public class TestMain {
+//    @WebSocketEndpoint(
+//        path="/standardInputTypes/char",
+//            Xremote = org.glassfish.tyrus.test.basic.remote.CharRemote.class
+//    )
+@WebSocketEndpoint(
+        path="/standardInputTypes/char")
+public class CharBean {
 
-    public static void main(String args[]) throws Exception {
-
-        String filename = args[3];
-
-        File f = new File(filename);
-        FileInputStream fis = new FileInputStream(filename);
-        String rawClassList = "";
-
-        int i;
-        while ( (i=fis.read()) >=0 ) {
-            rawClassList = rawClassList + (char) i;
+        @WebSocketMessage
+    public String charTest(char c) {
+        if (c == 'c') {
+            return Util.PASS;
+        } else {
+            return Util.FAIL;
         }
-        fis.close();
-        args[3] = rawClassList;
-        Server.setWebMode(false);
-
-        //Server.main(args);
     }
 
+//    @WebSocketMessage(XdynamicPath = "/remote")
+//    public void remoteCharTest(String s, CharRemote r) {
+//        try {
+//            r.sendCharMessage('c');
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//    }
 }

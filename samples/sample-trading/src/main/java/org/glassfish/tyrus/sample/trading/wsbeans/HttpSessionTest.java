@@ -37,38 +37,30 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package main;
 
-import org.glassfish.tyrus.platform.main.Server;
+package org.glassfish.tyrus.sample.trading.wsbeans;
 
-import java.io.File;
-import java.io.FileInputStream;
 
-    // localhost 8021 /websockets/tests filename.txt
+import javax.net.websocket.annotations.WebSocketMessage;
+import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.Session;
+import javax.net.websocket.RemoteEndpoint;
+import javax.servlet.http.*;
 
-/**
- *
- * @author dannycoward
- */
-public class TestMain {
+@WebSocketEndpoint(
+        path="/httpsession"
+    )
 
-    public static void main(String args[]) throws Exception {
+public class HttpSessionTest {
 
-        String filename = args[3];
-
-        File f = new File(filename);
-        FileInputStream fis = new FileInputStream(filename);
-        String rawClassList = "";
-
-        int i;
-        while ( (i=fis.read()) >=0 ) {
-            rawClassList = rawClassList + (char) i;
-        }
-        fis.close();
-        args[3] = rawClassList;
-        Server.setWebMode(false);
-
-        //Server.main(args);
+    @WebSocketMessage
+    public String doThis(String thiz, RemoteEndpoint remote) {
+        Session wsSession = remote.getSession();
+        HttpSession httpSession = wsSession.getHttpSession();
+        String s = "session id: " + wsSession;
+        s = s + " and http Session id is " + httpSession;
+        System.out.println(s);
+        return s;
     }
 
 }

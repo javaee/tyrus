@@ -37,38 +37,39 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package main;
 
-import org.glassfish.tyrus.platform.main.Server;
+package org.glassfish.tyrus.test.basic.bean;
 
-import java.io.File;
-import java.io.FileInputStream;
 
-    // localhost 8021 /websockets/tests filename.txt
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketMessage;
 
 /**
  *
  * @author dannycoward
  */
-public class TestMain {
+    @WebSocketEndpoint(
+            path = "/json",
+            encoders={org.glassfish.tyrus.test.basic.encoder.JsonEncoder.class},
+            decoders={org.glassfish.tyrus.test.basic.decoder.JsonDecoder.class}
+            )
 
-    public static void main(String args[]) throws Exception {
+public class JsonTestBean {
 
-        String filename = args[3];
-
-        File f = new File(filename);
-        FileInputStream fis = new FileInputStream(filename);
-        String rawClassList = "";
-
-        int i;
-        while ( (i=fis.read()) >=0 ) {
-            rawClassList = rawClassList + (char) i;
+    @WebSocketMessage
+    public JSONObject helloWorld(JSONObject message) {
+        JSONObject reply = new JSONObject();
+        try {
+            String name = message.getString("NAME");
+            reply.put("REPLY", name);
+            System.out.println("############################################reply: "+reply.toString());
+            return reply;
+        } catch (JSONException e) {
+            return reply;
         }
-        fis.close();
-        args[3] = rawClassList;
-        Server.setWebMode(false);
-
-        //Server.main(args);
     }
 
 }

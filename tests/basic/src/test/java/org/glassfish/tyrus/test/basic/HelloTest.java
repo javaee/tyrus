@@ -37,38 +37,65 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package main;
 
+package org.glassfish.tyrus.test.basic;
+
+import org.glassfish.tyrus.client.WebSocketClient;
+import org.glassfish.tyrus.platform.EndpointAdapter;
 import org.glassfish.tyrus.platform.main.Server;
+import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
+import org.junit.Assert;
+import org.junit.Test;
 
-import java.io.File;
-import java.io.FileInputStream;
-
-    // localhost 8021 /websockets/tests filename.txt
+import java.io.IOException;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
+ * Tests the basic echo
  *
- * @author dannycoward
+ * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class TestMain {
+public class HelloTest {
 
-    public static void main(String args[]) throws Exception {
+    private CountDownLatch messageLatch;
 
-        String filename = args[3];
+    private String receivedMessage;
 
-        File f = new File(filename);
-        FileInputStream fis = new FileInputStream(filename);
-        String rawClassList = "";
+    private static final String SENT_MESSAGE = "Hello World";
 
-        int i;
-        while ( (i=fis.read()) >=0 ) {
-            rawClassList = rawClassList + (char) i;
+    @Test
+    public void testHello() {
+        Server server = new Server(org.glassfish.tyrus.test.basic.bean.HelloTestBean.class);
+        server.start();
+        try {
+            messageLatch = new CountDownLatch(1);
+
+            WebSocketClient client = WebSocketClient.createClient();
+            client.openSocket("ws://localhost:8025/websockets/tests/hello", 10000, new EndpointAdapter() {
+
+                @Override
+                public void onConnect(SPIRemoteEndpoint p) {
+                    try {
+                        p.send(SENT_MESSAGE);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                @Override
+                public void onMessage(SPIRemoteEndpoint p, String message) {
+                    receivedMessage = message;
+                    messageLatch.countDown();
+                }
+            });
+            messageLatch.await(5, TimeUnit.SECONDS);
+            Assert.assertTrue("The received message is the same as the sent one", receivedMessage.equals(SENT_MESSAGE));
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            server.stop();
         }
-        fis.close();
-        args[3] = rawClassList;
-        Server.setWebMode(false);
-
-        //Server.main(args);
     }
-
 }

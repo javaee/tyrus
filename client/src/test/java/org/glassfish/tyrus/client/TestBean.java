@@ -37,38 +37,32 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package main;
 
-import org.glassfish.tyrus.platform.main.Server;
+package org.glassfish.tyrus.client;
 
-import java.io.File;
-import java.io.FileInputStream;
 
-    // localhost 8021 /websockets/tests filename.txt
+import javax.net.websocket.RemoteEndpoint;
+import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketMessage;
+
+import java.io.IOException;
 
 /**
  *
- * @author dannycoward
+ * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class TestMain {
 
-    public static void main(String args[]) throws Exception {
+@WebSocketEndpoint(path = "/echo")
+public class TestBean {
+    @WebSocketMessage
+    public void helloWorld(String message, RemoteEndpoint p) {
+        try {
 
-        String filename = args[3];
+            System.out.println("##### Test Bean: Received message: "+message);
 
-        File f = new File(filename);
-        FileInputStream fis = new FileInputStream(filename);
-        String rawClassList = "";
-
-        int i;
-        while ( (i=fis.read()) >=0 ) {
-            rawClassList = rawClassList + (char) i;
+            p.sendString(message);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        fis.close();
-        args[3] = rawClassList;
-        Server.setWebMode(false);
-
-        //Server.main(args);
     }
-
 }

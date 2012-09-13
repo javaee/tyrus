@@ -37,38 +37,48 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package main;
+package org.glassfish.tyrus.sample.draw;
 
-import org.glassfish.tyrus.platform.main.Server;
 
-import java.io.File;
-import java.io.FileInputStream;
 
-    // localhost 8021 /websockets/tests filename.txt
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import javax.net.websocket.DecodeException;
+import javax.net.websocket.Decoder;
+import javax.net.websocket.EncodeException;
+import javax.net.websocket.Encoder;
 
 /**
  *
  * @author dannycoward
  */
-public class TestMain {
+public class DrawingMessage implements Decoder.Text<DrawingMessage>, Encoder.Text<DrawingMessage> {
+    private JSONObject jsonObject;
 
-    public static void main(String args[]) throws Exception {
+    public DrawingMessage decode(String s) throws DecodeException {
 
-        String filename = args[3];
-
-        File f = new File(filename);
-        FileInputStream fis = new FileInputStream(filename);
-        String rawClassList = "";
-
-        int i;
-        while ( (i=fis.read()) >=0 ) {
-            rawClassList = rawClassList + (char) i;
+        try {
+            //String myString = new JSONObject().put("Circle", "55,45,10").toString();
+            //System.out.println(myString);
+            //System.out.println(s);
+            this.jsonObject = new JSONObject(s);
+        } catch (JSONException e) {
+            throw new DecodeException();
         }
-        fis.close();
-        args[3] = rawClassList;
-        Server.setWebMode(false);
-
-        //Server.main(args);
+        return this;
     }
 
+    public boolean willDecode(String s) {
+        return true;
+    }
+
+    public JSONObject getJSONObject() {
+        return this.jsonObject;
+    }
+
+    public String encode(DrawingMessage data) throws EncodeException {
+        return data.getJSONObject().toString();
+    }
 }

@@ -37,38 +37,38 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package main;
 
-import org.glassfish.tyrus.platform.main.Server;
+package org.glassfish.tyrus.test.basic.bean;
 
-import java.io.File;
-import java.io.FileInputStream;
+/**
+ * Bean for testing two different methods
+ *
+ * @author Stepan Kopriva (stepan.kopriva at oracle.com)
+ */
 
-    // localhost 8021 /websockets/tests filename.txt
+import org.glassfish.tyrus.test.basic.message.MessageA;
+import org.glassfish.tyrus.test.basic.message.MessageB;
 
+import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketMessage;
+
+@WebSocketEndpoint(
+        path="/decodermultiplexer",
+        decoders={org.glassfish.tyrus.test.basic.decoder.DecoderA.class, org.glassfish.tyrus.test.basic.decoder.DecoderB.class}
+)
 /**
  *
  * @author dannycoward
  */
-public class TestMain {
+public class DecoderMultiplexerTestBean {
 
-    public static void main(String args[]) throws Exception {
-
-        String filename = args[3];
-
-        File f = new File(filename);
-        FileInputStream fis = new FileInputStream(filename);
-        String rawClassList = "";
-
-        int i;
-        while ( (i=fis.read()) >=0 ) {
-            rawClassList = rawClassList + (char) i;
-        }
-        fis.close();
-        args[3] = rawClassList;
-        Server.setWebMode(false);
-
-        //Server.main(args);
+    @WebSocketMessage
+    public String onMessageA(MessageA message) {
+        return "A: " + message.getData();
     }
 
+    @WebSocketMessage
+    public String onMessageB(MessageB message) {
+        return "B: " + message.getData();
+    }
 }

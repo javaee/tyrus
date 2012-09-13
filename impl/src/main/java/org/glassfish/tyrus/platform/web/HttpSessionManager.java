@@ -37,38 +37,45 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package main;
 
-import org.glassfish.tyrus.platform.main.Server;
+package org.glassfish.tyrus.platform.web;
 
-import java.io.File;
-import java.io.FileInputStream;
-
-    // localhost 8021 /websockets/tests filename.txt
+import javax.servlet.http.*;
+import java.util.*;
 
 /**
  *
  * @author dannycoward
  */
-public class TestMain {
+public class HttpSessionManager {
+   private Set<HttpSession> sessions = new HashSet<HttpSession>();
+    private static HttpSessionManager instance;
 
-    public static void main(String args[]) throws Exception {
-
-        String filename = args[3];
-
-        File f = new File(filename);
-        FileInputStream fis = new FileInputStream(filename);
-        String rawClassList = "";
-
-        int i;
-        while ( (i=fis.read()) >=0 ) {
-            rawClassList = rawClassList + (char) i;
+    public static HttpSessionManager getInstance() {
+        if (instance == null) {
+            instance = new HttpSessionManager();
         }
-        fis.close();
-        args[3] = rawClassList;
-        Server.setWebMode(false);
-
-        //Server.main(args);
+        return instance;
     }
 
+    public void registerSession(HttpSession session) {
+        System.out.println("Session added: " + session.getId());
+        sessions.add(session);
+    }
+
+    public void deregisterSession(HttpSession session) {
+
+        sessions.remove(session);
+    }
+
+    public HttpSession findSessionByID(String id) {
+        //System.out.println("Find session of id " + id + " in " + sessions);
+        for (HttpSession session : this.sessions) {
+            //System.out.println("--next session id " + session.getId());
+            if (session.getId().equals(id)) {
+                return session;
+            }
+        }
+        return null;
+    }
 }

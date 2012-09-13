@@ -37,38 +37,55 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package main;
+package org.glassfish.tyrus.platform.web;
 
-import org.glassfish.tyrus.platform.main.Server;
+import org.glassfish.tyrus.platform.BeanServer;
 
-import java.io.File;
-import java.io.FileInputStream;
-
-    // localhost 8021 /websockets/tests filename.txt
+import javax.servlet.ServletContextEvent;
+import javax.servlet.ServletContextListener;
+import javax.servlet.annotation.WebListener;
+import java.util.Set;
 
 /**
+ * Web application lifecycle listener.
  *
  * @author dannycoward
  */
-public class TestMain {
+@WebListener()
+public class WebSocketServerWebIntegration implements ServletContextListener {
+    static final String ENDPOINT_CLASS_SET = "org.glassfish.websockets.platform.web.endpoint.class.set";
+    // TODO: move somewhere sensible
+    private static final String defaultProviderClassname = "org.glassfish.tyrus.spi.grizzlyprovider.GrizzlyEngine";
+    private static final String PROVIDER_CLASSNAME_KEY = "org.glassfish.websocket.provider.class";
+    private static final String websocketroot = "/websockets";
+    public static final String PRINCIPAL = "ws_principal";
+    private static final int informational_fixed_port = 8080;
 
-    public static void main(String args[]) throws Exception {
+    private BeanServer bs = null;
 
-        String filename = args[3];
-
-        File f = new File(filename);
-        FileInputStream fis = new FileInputStream(filename);
-        String rawClassList = "";
-
-        int i;
-        while ( (i=fis.read()) >=0 ) {
-            rawClassList = rawClassList + (char) i;
+    @Override
+    public void contextInitialized(ServletContextEvent sce) {
+        Set<Class<?>> endpointClassSet = (Set<Class<?>>) sce.getServletContext().getAttribute(ENDPOINT_CLASS_SET);
+        if (endpointClassSet == null || endpointClassSet.isEmpty()) {
+            return;
         }
-        fis.close();
-        args[3] = rawClassList;
-        Server.setWebMode(false);
+        String engineProviderClassname = defaultProviderClassname;
+        if (sce.getServletContext().getInitParameter(PROVIDER_CLASSNAME_KEY) != null) {
+            engineProviderClassname = (String) sce.getServletContext().getInitParameter(PROVIDER_CLASSNAME_KEY);
+        }
 
-        //Server.main(args);
+        bs = new BeanServer(engineProviderClassname);
+        String contextRoot = sce.getServletContext().getContextPath();
+        try {
+            // bs.initWebSocketServer(this.websocketroot, informational_fixed_port, endpointClassSet);
+            bs.initWebSocketServer(contextRoot, informational_fixed_port, endpointClassSet);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void contextDestroyed(ServletContextEvent sce) {
+        bs.closeWebSocketServer();
     }
 
 }

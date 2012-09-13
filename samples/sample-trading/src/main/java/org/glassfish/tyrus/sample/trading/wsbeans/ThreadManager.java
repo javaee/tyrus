@@ -37,38 +37,50 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package main;
+package org.glassfish.tyrus.sample.trading.wsbeans;
 
-import org.glassfish.tyrus.platform.main.Server;
 
-import java.io.File;
-import java.io.FileInputStream;
 
-    // localhost 8021 /websockets/tests filename.txt
+import javax.servlet.ServletContextEvent;
+import javax.servlet.ServletContextListener;
+import javax.servlet.annotation.WebListener;
+import java.util.*;
 
 /**
- *
+ * Web application lifecycle listener.
  * @author dannycoward
  */
-public class TestMain {
+@WebListener()
+public class ThreadManager implements ServletContextListener {
+    private static ThreadManager instance;
+    private List<Thread> threads = new ArrayList<Thread>();
 
-    public static void main(String args[]) throws Exception {
-
-        String filename = args[3];
-
-        File f = new File(filename);
-        FileInputStream fis = new FileInputStream(filename);
-        String rawClassList = "";
-
-        int i;
-        while ( (i=fis.read()) >=0 ) {
-            rawClassList = rawClassList + (char) i;
-        }
-        fis.close();
-        args[3] = rawClassList;
-        Server.setWebMode(false);
-
-        //Server.main(args);
+    public ThreadManager() {
+        instance = this;
     }
 
+    public static ThreadManager get() {
+        return instance;
+    }
+
+    public void registerThread(Thread t) {
+        threads.add(t);
+    }
+
+    @Override
+    public void contextInitialized(ServletContextEvent sce) {
+
+    }
+
+    public static void stopThreads() {
+        ThreadManager tm = get();
+        for (Thread t : tm.threads) {
+            t.stop();
+        }
+    }
+
+    @Override
+    public void contextDestroyed(ServletContextEvent sce) {
+        stopThreads();
+    }
 }

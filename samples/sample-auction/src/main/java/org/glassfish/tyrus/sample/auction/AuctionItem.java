@@ -37,38 +37,69 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package main;
-
-import org.glassfish.tyrus.platform.main.Server;
-
-import java.io.File;
-import java.io.FileInputStream;
-
-    // localhost 8021 /websockets/tests filename.txt
+package org.glassfish.tyrus.sample.auction;
 
 /**
  *
- * @author dannycoward
+ * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class TestMain {
+public class AuctionItem {
 
-    public static void main(String args[]) throws Exception {
+    /*
+     * Name of the item.
+     */
+    private final String name;
 
-        String filename = args[3];
+    /*
+     * Description of the item.
+     */
+    private final String description;
 
-        File f = new File(filename);
-        FileInputStream fis = new FileInputStream(filename);
-        String rawClassList = "";
+    /*
+     * The initial price of the item.
+     */
+    private final double startingPrice;
 
-        int i;
-        while ( (i=fis.read()) >=0 ) {
-            rawClassList = rawClassList + (char) i;
-        }
-        fis.close();
-        args[3] = rawClassList;
-        Server.setWebMode(false);
+    /*
+     * Time when the auction starts in unix time (since 1.1.1970).
+     */
+    private final long auctionStartTime;
 
-        //Server.main(args);
+    /*
+     * Timeout which is applied for one bid.
+     */
+    private final int bidTimeoutS;
+
+    public AuctionItem(String name, String description, double startingPrice, long auctionStartTime, int bidTimeoutS) {
+        this.name = name;
+        this.description = description;
+        this.startingPrice = startingPrice;
+        this.auctionStartTime = auctionStartTime;
+        this.bidTimeoutS = bidTimeoutS;
     }
 
+    @Override
+    public String toString() {
+        return name + Auction.SEPARATOR + description + Auction.SEPARATOR + startingPrice + Auction.SEPARATOR + auctionStartTime + Auction.SEPARATOR + bidTimeoutS + " seconds";
+    }
+
+    public int getBidTimeoutS() {
+        return bidTimeoutS;
+    }
+
+    public long getAuctionStartTime() {
+        return auctionStartTime;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public double getStartingPrice() {
+        return startingPrice;
+    }
+
+    public String getName() {
+        return name;
+    }
 }

@@ -37,38 +37,61 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package main;
+package org.glassfish.tyrus.sample.auction.message;
 
-import org.glassfish.tyrus.platform.main.Server;
-
-import java.io.File;
-import java.io.FileInputStream;
-
-    // localhost 8021 /websockets/tests filename.txt
+import org.glassfish.tyrus.sample.auction.Auction;
+import org.glassfish.tyrus.sample.auction.Auction;
 
 /**
  *
- * @author dannycoward
+ *
+ * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class TestMain {
+public abstract class AuctionMessage<T> {
 
-    public static void main(String args[]) throws Exception {
+    public static String LOGIN_REQUEST = "lreq";
+    public static String LOGIN_RESPONSE = "lres";
+    public static String BID_REQUEST = "breq";
+    public static String PRICE_UPDATE_RESPONSE = "pres";
+    public static String LOGOUT_REQUEST = "dreq";
+    public static String LOGOUT_RESPONSE = "dres";
+    public static String PRE_AUCTION_TIME_RESPONSE = "tres";
+    public static String AUCTION_TIME_RESPONSE = "ares";
+    public static String RESULT_RESPONSE = "rres";
+    public static String AUCTION_LIST_REQUEST = "xreq";
+    public static String AUCTION_LIST_RESPONSE = "xres";
+    public static String SEP = ":";
 
-        String filename = args[3];
+    /*
+     * Message type
+     */
+    private String type;
 
-        File f = new File(filename);
-        FileInputStream fis = new FileInputStream(filename);
-        String rawClassList = "";
+    /*
+     * Message data
+     */
+    private T data;
 
-        int i;
-        while ( (i=fis.read()) >=0 ) {
-            rawClassList = rawClassList + (char) i;
-        }
-        fis.close();
-        args[3] = rawClassList;
-        Server.setWebMode(false);
+    /*
+     * ID used for communication purposes
+     */
+    private String communicationId;
 
-        //Server.main(args);
+    public AuctionMessage(String type, String communicationId, T data) {
+        this.type = type;
+        this.communicationId = communicationId;
+        this.data = data;
     }
 
+    public String asString() {
+        return type + Auction.SEPARATOR+communicationId+ Auction.SEPARATOR +data.toString();
+    }
+
+    public T getData() {
+        return data;
+    }
+
+    public String getCommunicationId(){
+        return communicationId;
+    }
 }

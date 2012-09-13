@@ -37,38 +37,21 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package main;
+package org.glassfish.tyrus.sample.draw;
 
-import org.glassfish.tyrus.platform.main.Server;
 
-import java.io.File;
-import java.io.FileInputStream;
 
-    // localhost 8021 /websockets/tests filename.txt
 
+import java.io.IOException;
 /**
  *
  * @author dannycoward
  */
-public class TestMain {
+//        @XWebSocketRemote(
+//             encoders={org.glassfish.tyrus.sample.draw.DrawingMessage.class}
+//             )
 
-    public static void main(String args[]) throws Exception {
+public interface GroupDrawRemote {
 
-        String filename = args[3];
-
-        File f = new File(filename);
-        FileInputStream fis = new FileInputStream(filename);
-        String rawClassList = "";
-
-        int i;
-        while ( (i=fis.read()) >=0 ) {
-            rawClassList = rawClassList + (char) i;
-        }
-        fis.close();
-        args[3] = rawClassList;
-        Server.setWebMode(false);
-
-        //Server.main(args);
-    }
-
+    public void sendDrawingUpdate(DrawingMessage dm) throws IOException;
 }

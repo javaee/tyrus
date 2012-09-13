@@ -37,38 +37,40 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package main;
+
+package org.glassfish.tyrus.sample.simplelife;
+
+import java.io.IOException;
+import java.util.HashSet;
 
 import org.glassfish.tyrus.platform.main.Server;
-
-import java.io.File;
-import java.io.FileInputStream;
-
-    // localhost 8021 /websockets/tests filename.txt
 
 /**
  *
  * @author dannycoward
  */
-public class TestMain {
+public class Main {
 
-    public static void main(String args[]) throws Exception {
-
-        String filename = args[3];
-
-        File f = new File(filename);
-        FileInputStream fis = new FileInputStream(filename);
-        String rawClassList = "";
-
-        int i;
-        while ( (i=fis.read()) >=0 ) {
-            rawClassList = rawClassList + (char) i;
+    public static void main(String[] args) {
+        HashSet<Class<?>> beans = new HashSet<Class<?>>();
+        try {
+            beans.add(Class.forName("org.glassfish.tyrus.sample.simplelife.SimpleLifeBean"));
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
         }
-        fis.close();
-        args[3] = rawClassList;
+
         Server.setWebMode(false);
+        Server server = new Server("localhost", 8080, "/sample-simplelife", beans);
 
-        //Server.main(args);
+        try {
+            server.start();
+            System.out.println("Press any key to stop the server...");
+            System.in.read();
+        } catch (IOException ioe) {
+            System.out.println("weird...");
+        } finally {
+            server.stop();
+            System.out.println("Server stopped.");
+        }
     }
-
 }

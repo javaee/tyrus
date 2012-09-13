@@ -37,38 +37,38 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package main;
 
-import org.glassfish.tyrus.platform.main.Server;
+package org.glassfish.tyrus.sample.trading.wsbeans;
 
-import java.io.File;
-import java.io.FileInputStream;
-
-    // localhost 8021 /websockets/tests filename.txt
+import javax.net.websocket.EncodeException;
+import javax.net.websocket.Encoder;
+import java.util.*;
 
 /**
  *
  * @author dannycoward
  */
-public class TestMain {
-
-    public static void main(String args[]) throws Exception {
-
-        String filename = args[3];
-
-        File f = new File(filename);
-        FileInputStream fis = new FileInputStream(filename);
-        String rawClassList = "";
-
-        int i;
-        while ( (i=fis.read()) >=0 ) {
-            rawClassList = rawClassList + (char) i;
+public class TwitterSearchResultEncoder implements Encoder.Text<List<TwitterSearchResult>> {
+    public String encode(List<TwitterSearchResult> data) throws EncodeException {
+        String encodedString = "";
+        for (TwitterSearchResult tsr : data) {
+            if (encodedString.equals("")) {
+                encodedString = this.encodeTwitterSearchResult(tsr);
+            } else {
+                encodedString = encodedString + "," + this.encodeTwitterSearchResult(tsr);
+            }
         }
-        fis.close();
-        args[3] = rawClassList;
-        Server.setWebMode(false);
-
-        //Server.main(args);
+        return encodedString;
     }
 
+    private String rpl(String s) {
+        String ret = s.replaceAll(",", " ");
+        ret = ret.replaceAll(";", " ");
+        return ret;
+    }
+
+    private String encodeTwitterSearchResult(TwitterSearchResult tsr) {
+        return rpl(tsr.getUsername()) + ";" + rpl(tsr.getText()) + ";" + rpl(tsr.getPicURL()) + ";" + rpl(tsr.getUsercode());
+
+    }
 }

@@ -37,38 +37,35 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package main;
 
-import org.glassfish.tyrus.platform.main.Server;
+package org.glassfish.tyrus.sample.chat.chatdata;
 
-import java.io.File;
-import java.io.FileInputStream;
 
-    // localhost 8021 /websockets/tests filename.txt
 
 /**
  *
  * @author dannycoward
  */
-public class TestMain {
+public class ChatUpdateMessage extends ListMessage {
 
-    public static void main(String args[]) throws Exception {
+    public ChatUpdateMessage(String username, String message) {
+        super(ChatMessage.CHAT_MESSAGE, username, message);
+    }
 
-        String filename = args[3];
+    public ChatUpdateMessage() {
+        super(ChatMessage.CHAT_MESSAGE);
+    }
 
-        File f = new File(filename);
-        FileInputStream fis = new FileInputStream(filename);
-        String rawClassList = "";
+    public String getUsername() {
+        return (String) super.getData().get(0);
+    }
 
-        int i;
-        while ( (i=fis.read()) >=0 ) {
-            rawClassList = rawClassList + (char) i;
-        }
-        fis.close();
-        args[3] = rawClassList;
-        Server.setWebMode(false);
+    public String getMessage() {
+        return (String) super.getData().get(1);
+    }
 
-        //Server.main(args);
+    public void fromString(String s) {
+        super.parseDataString(s.substring(CHAT_MESSAGE.length()));
     }
 
 }

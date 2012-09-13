@@ -37,38 +37,60 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package main;
 
-import org.glassfish.tyrus.platform.main.Server;
+package org.glassfish.tyrus.sample.chat.chatdata;
 
-import java.io.File;
-import java.io.FileInputStream;
+import java.util.*;
 
-    // localhost 8021 /websockets/tests filename.txt
+abstract class ListMessage extends ChatMessage {
+    List dataList = new ArrayList();
 
-/**
- *
- * @author dannycoward
- */
-public class TestMain {
-
-    public static void main(String args[]) throws Exception {
-
-        String filename = args[3];
-
-        File f = new File(filename);
-        FileInputStream fis = new FileInputStream(filename);
-        String rawClassList = "";
-
-        int i;
-        while ( (i=fis.read()) >=0 ) {
-            rawClassList = rawClassList + (char) i;
-        }
-        fis.close();
-        args[3] = rawClassList;
-        Server.setWebMode(false);
-
-        //Server.main(args);
+    ListMessage(String type, String dataString) {
+        super(type);
+        parseDataString(dataString);
     }
+
+    ListMessage(String type) {
+        super(type);
+    }
+
+    void parseDataString(String dataString) {
+        StringTokenizer st = new StringTokenizer(dataString, SEP);
+        while (st.hasMoreTokens()) {
+            String s = st.nextToken();
+            if (!"".equals(s)) {
+                dataList.add(s);
+            }
+        }
+    }
+
+    ListMessage(String type, List dataList) {
+        super(type);
+        this.dataList = dataList;
+    }
+
+    ListMessage(String type, Set dataSet) {
+        this(type, new ArrayList(dataSet));
+    }
+
+    ListMessage(String type, String elt1, String elt2) {
+        this(type, new ArrayList());
+        dataList.add(elt1);
+        dataList.add(elt2);
+    }
+
+    public String asString() {
+        String dataString = "";
+        for (Iterator itr = dataList.iterator(); itr.hasNext();) {
+            dataString = dataString + SEP + itr.next();
+        }
+        return type + dataString;
+    }
+
+    List getData() {
+        return dataList;
+    }
+
+
 
 }

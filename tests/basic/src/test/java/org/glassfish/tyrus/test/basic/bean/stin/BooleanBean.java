@@ -37,38 +37,41 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package main;
 
-import org.glassfish.tyrus.platform.main.Server;
+package org.glassfish.tyrus.test.basic.bean.stin;
 
-import java.io.File;
-import java.io.FileInputStream;
+import wstestbeans.Util;
 
-    // localhost 8021 /websockets/tests filename.txt
+import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketMessage;
 
 /**
  *
  * @author dannycoward
  */
-public class TestMain {
+//    @WebSocketEndpoint(
+//        path="/standardInputTypes/boolean",
+//        Xremote = org.glassfish.tyrus.test.basic.remote.BooleanRemote.class
+//    )
+    @WebSocketEndpoint(
+        path="/standardInputTypes/boolean")
+public class BooleanBean {
 
-    public static void main(String args[]) throws Exception {
+     @WebSocketMessage
+     public String booleanTest(boolean b) {
+         if (b == true) {
+            return Util.PASS;
+         } else {
+             return Util.FAIL;
+         }
+     }
 
-        String filename = args[3];
-
-        File f = new File(filename);
-        FileInputStream fis = new FileInputStream(filename);
-        String rawClassList = "";
-
-        int i;
-        while ( (i=fis.read()) >=0 ) {
-            rawClassList = rawClassList + (char) i;
-        }
-        fis.close();
-        args[3] = rawClassList;
-        Server.setWebMode(false);
-
-        //Server.main(args);
-    }
-
+//    @WebSocketMessage(XdynamicPath = "/remote")
+//    public void remoteBooleanTest(String s, BooleanRemote r) {
+//        try {
+//            r.sendBooleanMessage(true);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//    }
 }

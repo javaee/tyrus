@@ -37,38 +37,41 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package main;
 
-import org.glassfish.tyrus.platform.main.Server;
+package org.glassfish.tyrus.sample.trading.wsbeans;
 
-import java.io.File;
-import java.io.FileInputStream;
-
-    // localhost 8021 /websockets/tests filename.txt
+import java.util.*;
+import java.security.*;
 
 /**
  *
  * @author dannycoward
  */
-public class TestMain {
+public class ApplicationPreferences {
+    public static String APP_PREFERENCES = "apppreferences";
+    List<String> tickers = new ArrayList();
+    private Principal principal;
 
-    public static void main(String args[]) throws Exception {
-
-        String filename = args[3];
-
-        File f = new File(filename);
-        FileInputStream fis = new FileInputStream(filename);
-        String rawClassList = "";
-
-        int i;
-        while ( (i=fis.read()) >=0 ) {
-            rawClassList = rawClassList + (char) i;
-        }
-        fis.close();
-        args[3] = rawClassList;
-        Server.setWebMode(false);
-
-        //Server.main(args);
+    public ApplicationPreferences(Principal principal) {
+        this.load(principal);
     }
 
+
+    public void load(Principal principal) {
+        this.tickers = Util.getDefaultStockTickers();
+    }
+
+    public List getTickers() {
+        return new ArrayList(this.tickers);
+    }
+
+    public void addTicker(String ticker) {
+        if (!"".equals(ticker) && ticker != null && !tickers.contains(ticker)) {
+            tickers.add(ticker);
+        }
+    }
+
+    public void removeTicker(String ticker) {
+        tickers.remove(ticker);
+    }
 }

@@ -37,38 +37,23 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package main;
 
-import org.glassfish.tyrus.platform.main.Server;
+package org.glassfish.tyrus.sample.trading.wsbeans;
 
-import java.io.File;
-import java.io.FileInputStream;
+import java.io.IOException;
+import javax.net.websocket.EncodeException;
+import javax.net.websocket.RemoteEndpoint;
 
-    // localhost 8021 /websockets/tests filename.txt
-
+import java.util.*;
 /**
  *
  * @author dannycoward
  */
-public class TestMain {
+    @XWebSocketRemote(
+            encoders= org.glassfish.tyrus.sample.trading.wsbeans.QuotesEncoder.class
+            )
 
-    public static void main(String args[]) throws Exception {
+public interface QuoteRemote extends RemoteEndpoint {
 
-        String filename = args[3];
-
-        File f = new File(filename);
-        FileInputStream fis = new FileInputStream(filename);
-        String rawClassList = "";
-
-        int i;
-        while ( (i=fis.read()) >=0 ) {
-            rawClassList = rawClassList + (char) i;
-        }
-        fis.close();
-        args[3] = rawClassList;
-        Server.setWebMode(false);
-
-        //Server.main(args);
-    }
-
+    public void sendQuotes(List<Quote> quotes) throws IOException, EncodeException;
 }

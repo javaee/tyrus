@@ -37,38 +37,56 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package main;
 
-import org.glassfish.tyrus.platform.main.Server;
+package org.glassfish.tyrus.platform;
 
-import java.io.File;
-import java.io.FileInputStream;
+import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
 
-    // localhost 8021 /websockets/tests filename.txt
+import javax.net.websocket.Endpoint;
+import javax.net.websocket.ServerContainer;
 
 /**
+ * Provides convenient implementation of WebSocketEndpoint for developers.
  *
  * @author dannycoward
  */
-public class TestMain {
+public class WebSocketEndpointAdapter extends WebSocketEndpointImpl {
+    private Endpoint endpoint;
 
-    public static void main(String args[]) throws Exception {
 
-        String filename = args[3];
+    WebSocketEndpointAdapter(ServerContainer containerContext, Endpoint endpoint, String path) {
+        super(containerContext, path, null);
+        this.endpoint = endpoint;
+    }
 
-        File f = new File(filename);
-        FileInputStream fis = new FileInputStream(filename);
-        String rawClassList = "";
+    void init() {
 
-        int i;
-        while ( (i=fis.read()) >=0 ) {
-            rawClassList = rawClassList + (char) i;
-        }
-        fis.close();
-        args[3] = rawClassList;
-        Server.setWebMode(false);
+    }
 
-        //Server.main(args);
+    public void onConnect(SPIRemoteEndpoint gs) {
+        super.onConnect(gs);
+        getPeer(gs).getSession().addMessageHandler(new MessageHandlerTextImpl(this.endpoint, getPeer(gs)));
+        this.endpoint.onOpen(getPeer(gs).getSession());
+    }
+
+    @Override
+    public void onMessage(SPIRemoteEndpoint gs, String messageString) {
+        ((SessionImpl) getPeer(gs).getSession()).notifyMessageHandlers(messageString);
+    }
+
+    public void onMessage(SPIRemoteEndpoint gs, byte[] data) {
+        ((SessionImpl) getPeer(gs).getSession()).notifyMessageHandlers(data);
+    }
+
+    @Override
+    public void onClose(SPIRemoteEndpoint gs) {
+        super.onClose(gs);
+        this.endpoint.onClose(getPeer(gs).getSession());
+    }
+
+    @Override
+    public void remove() {
+
     }
 
 }

@@ -37,38 +37,37 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package main;
+package org.glassfish.tyrus.sample.trading.wsbeans;
 
-import org.glassfish.tyrus.platform.main.Server;
-
-import java.io.File;
-import java.io.FileInputStream;
-
-    // localhost 8021 /websockets/tests filename.txt
+import javax.net.websocket.EncodeException;
+import javax.net.websocket.Encoder;
+import java.util.*;
+import java.text.*;
 
 /**
  *
  * @author dannycoward
  */
-public class TestMain {
+public class QuotesEncoder implements Encoder.Text<List<Quote>> {
 
-    public static void main(String args[]) throws Exception {
-
-        String filename = args[3];
-
-        File f = new File(filename);
-        FileInputStream fis = new FileInputStream(filename);
-        String rawClassList = "";
-
-        int i;
-        while ( (i=fis.read()) >=0 ) {
-            rawClassList = rawClassList + (char) i;
+    public String encode(List<Quote> data) throws EncodeException {
+        String encodedString = "";
+        for (Quote q : data) {
+            if (encodedString.equals("")) {
+                encodedString = this.encodeQuote(q);
+            } else {
+                encodedString = encodedString + "," + this.encodeQuote(q);
+            }
         }
-        fis.close();
-        args[3] = rawClassList;
-        Server.setWebMode(false);
+        return encodedString;
+    }
 
-        //Server.main(args);
+    String encodeQuote(Quote q) {
+        DecimalFormat df = new DecimalFormat("#.##");
+        double qt = q.getQuote();
+        double delta = q.getDelta();
+        String encodedQuote =  q.getSymbol() + ";" + df.format(qt) + ";" + df.format(delta) + "%;" + q.getVolume();
+        return encodedQuote;
     }
 
 }

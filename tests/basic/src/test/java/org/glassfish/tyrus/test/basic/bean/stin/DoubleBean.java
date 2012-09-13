@@ -37,38 +37,40 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package main;
+package org.glassfish.tyrus.test.basic.bean.stin;
 
-import org.glassfish.tyrus.platform.main.Server;
+import wstestbeans.Util;
 
-import java.io.File;
-import java.io.FileInputStream;
-
-    // localhost 8021 /websockets/tests filename.txt
+import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketMessage;
 
 /**
  *
  * @author dannycoward
  */
-public class TestMain {
+//    @WebSocketEndpoint(
+//        path="/standardInputTypes/double",
+//            Xremote=org.glassfish.tyrus.test.basic.remote.DoubleRemote.class
+//    )
+@WebSocketEndpoint(
+        path="/standardInputTypes/double")
+public class DoubleBean {
 
-    public static void main(String args[]) throws Exception {
-
-        String filename = args[3];
-
-        File f = new File(filename);
-        FileInputStream fis = new FileInputStream(filename);
-        String rawClassList = "";
-
-        int i;
-        while ( (i=fis.read()) >=0 ) {
-            rawClassList = rawClassList + (char) i;
+        @WebSocketMessage
+    public String doubleTest(double d) {
+        if (d == 42.0) {
+            return Util.PASS;
+        } else {
+            return Util.FAIL;
         }
-        fis.close();
-        args[3] = rawClassList;
-        Server.setWebMode(false);
-
-        //Server.main(args);
     }
 
+//    @WebSocketMessage(XdynamicPath = "/remote")
+//    public void remoteDoubleTest(String s, DoubleRemote r) {
+//        try {
+//            r.sendDoubleMessage(42.0);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//    }
 }

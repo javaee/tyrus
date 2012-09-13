@@ -37,38 +37,41 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package main;
 
-import org.glassfish.tyrus.platform.main.Server;
+package org.glassfish.tyrus.test.basic.bean;
 
-import java.io.File;
-import java.io.FileInputStream;
-
-    // localhost 8021 /websockets/tests filename.txt
+import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketMessage;
 
 /**
+<<<<<<< .mine
+ * Bean testing various dynamic paths.
  *
- * @author dannycoward
+ * @author Stepan Kopriva (stepan.kopriva at oracle.com)
+=======
+ * @author Stepan Kopriva (stepan.kopriva at oracle.com)
+>>>>>>> .r381
  */
-public class TestMain {
+@WebSocketEndpoint(
+        path="/dynamicpath"
+)
+public class DynamicPathTestBean {
 
-    public static void main(String args[]) throws Exception {
-
-        String filename = args[3];
-
-        File f = new File(filename);
-        FileInputStream fis = new FileInputStream(filename);
-        String rawClassList = "";
-
-        int i;
-        while ( (i=fis.read()) >=0 ) {
-            rawClassList = rawClassList + (char) i;
-        }
-        fis.close();
-        args[3] = rawClassList;
-        Server.setWebMode(false);
-
-        //Server.main(args);
+    @WebSocketMessage
+    public String basicPath(String message) {
+        System.out.println("###DynamicPathTestBean reply: "+"A");
+        return "A";
     }
 
+//    @WebSocketMessage(XdynamicPath = "/foo/bar")
+//    public String fooBarPath(String message) {
+//        System.out.println("###DynamicPathTestBean reply: "+"/foo/bar");
+//        return "FB";
+//    }
+//
+//    @WebSocketMessage(XdynamicPath = "*")
+//    public String starPath(String message) {
+//        System.out.println("###DynamicPathTestBean reply: "+"*");
+//        return "*";
+//    }
 }

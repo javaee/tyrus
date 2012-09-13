@@ -37,38 +37,49 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package main;
+package org.glassfish.tyrus.sample.draw;
 
-import org.glassfish.tyrus.platform.main.Server;
+import javax.net.websocket.EncodeException;
+import javax.net.websocket.Session;
+import javax.net.websocket.annotations.WebSocketClose;
+import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketMessage;
+import javax.net.websocket.annotations.WebSocketOpen;
 
-import java.io.File;
-import java.io.FileInputStream;
-
-    // localhost 8021 /websockets/tests filename.txt
+import java.io.IOException;
+import java.util.Collections;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
- *
  * @author dannycoward
  */
-public class TestMain {
 
-    public static void main(String args[]) throws Exception {
+@WebSocketEndpoint(path = "/draw")
+public class GroupDrawServer {
 
-        String filename = args[3];
+    private Set<Session> peers = Collections.newSetFromMap(new ConcurrentHashMap<Session, Boolean>());
 
-        File f = new File(filename);
-        FileInputStream fis = new FileInputStream(filename);
-        String rawClassList = "";
-
-        int i;
-        while ( (i=fis.read()) >=0 ) {
-            rawClassList = rawClassList + (char) i;
-        }
-        fis.close();
-        args[3] = rawClassList;
-        Server.setWebMode(false);
-
-        //Server.main(args);
+    @WebSocketOpen
+    public void onOpen(Session session) {
+        peers.add(session);
     }
+
+    @WebSocketClose
+    public void onClose(Session session){
+        peers.remove(session);
+    }
+
+    @WebSocketMessage
+    public void shapeCreated(String message, Session client) throws IOException, EncodeException {
+        System.out.println("Received message: "+message);
+        for (Session otherSession : peers) {
+            if (!otherSession.equals(client)) {
+                otherSession.getRemote().sendString(message);
+            }
+        }
+
+    }
+
 
 }

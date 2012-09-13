@@ -56,11 +56,11 @@
     <name>WebSocket Samples</name>
 
     <modules>
-        <!--<module>sample-trading</module>
-        <module>sample-auction</module> -->
         <module>sample-draw</module>
         <module>sample-echo</module>
-        <!--<module>sample-chat</module>
-        <module>sample-simplelife</module> -->
+        <!--<module>sample-trading</module>
+        <module>sample-auction</module>
+        <module>sample-chat</module>
+        <module>sample-simplelife</module>-->
     </modules>
 </project>

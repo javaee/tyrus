@@ -37,38 +37,19 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package main;
+package org.glassfish.tyrus.sample.auction.encoders;
 
-import org.glassfish.tyrus.platform.main.Server;
-
-import java.io.File;
-import java.io.FileInputStream;
-
-    // localhost 8021 /websockets/tests filename.txt
+import javax.net.websocket.EncodeException;
+import javax.net.websocket.Encoder;
+import org.glassfish.tyrus.sample.auction.message.AuctionListResponseMessage;
 
 /**
  *
- * @author dannycoward
+ * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class TestMain {
-
-    public static void main(String args[]) throws Exception {
-
-        String filename = args[3];
-
-        File f = new File(filename);
-        FileInputStream fis = new FileInputStream(filename);
-        String rawClassList = "";
-
-        int i;
-        while ( (i=fis.read()) >=0 ) {
-            rawClassList = rawClassList + (char) i;
-        }
-        fis.close();
-        args[3] = rawClassList;
-        Server.setWebMode(false);
-
-        //Server.main(args);
+public class AuctionListResponseEncoder implements Encoder.Text<AuctionListResponseMessage>{
+    @Override
+    public String encode(AuctionListResponseMessage alr) throws EncodeException {
+        return alr.asString();
     }
-
 }

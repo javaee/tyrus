@@ -37,38 +37,25 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package main;
 
-import org.glassfish.tyrus.platform.main.Server;
-
-import java.io.File;
-import java.io.FileInputStream;
-
-    // localhost 8021 /websockets/tests filename.txt
+package org.glassfish.tyrus.sample.chat.chatdata;
 
 /**
  *
  * @author dannycoward
  */
-public class TestMain {
+public class DisconnectResponseMessage extends SimpleMessage {
 
-    public static void main(String args[]) throws Exception {
+    public DisconnectResponseMessage(String username) {
+        super(DISCONNECT_RESPONSE, username);
+    }
 
-        String filename = args[3];
+    public DisconnectResponseMessage() {
+        super(DISCONNECT_RESPONSE, "");
+    }
 
-        File f = new File(filename);
-        FileInputStream fis = new FileInputStream(filename);
-        String rawClassList = "";
-
-        int i;
-        while ( (i=fis.read()) >=0 ) {
-            rawClassList = rawClassList + (char) i;
-        }
-        fis.close();
-        args[3] = rawClassList;
-        Server.setWebMode(false);
-
-        //Server.main(args);
+    public String getUsername() {
+        return super.getData();
     }
 
 }

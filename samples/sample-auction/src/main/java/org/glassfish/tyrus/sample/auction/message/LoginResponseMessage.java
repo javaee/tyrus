@@ -37,38 +37,13 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package main;
+package org.glassfish.tyrus.sample.auction.message;
 
-import org.glassfish.tyrus.platform.main.Server;
+import org.glassfish.tyrus.sample.auction.AuctionItem;
 
-import java.io.File;
-import java.io.FileInputStream;
+public class LoginResponseMessage extends AuctionMessage {
 
-    // localhost 8021 /websockets/tests filename.txt
-
-/**
- *
- * @author dannycoward
- */
-public class TestMain {
-
-    public static void main(String args[]) throws Exception {
-
-        String filename = args[3];
-
-        File f = new File(filename);
-        FileInputStream fis = new FileInputStream(filename);
-        String rawClassList = "";
-
-        int i;
-        while ( (i=fis.read()) >=0 ) {
-            rawClassList = rawClassList + (char) i;
-        }
-        fis.close();
-        args[3] = rawClassList;
-        Server.setWebMode(false);
-
-        //Server.main(args);
+    public LoginResponseMessage(String communicationId, AuctionItem item) {
+        super(LOGIN_RESPONSE, communicationId, item);
     }
-
 }

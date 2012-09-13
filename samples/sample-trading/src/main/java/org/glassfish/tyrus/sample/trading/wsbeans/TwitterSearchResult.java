@@ -37,38 +37,43 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package main;
 
-import org.glassfish.tyrus.platform.main.Server;
-
-import java.io.File;
-import java.io.FileInputStream;
-
-    // localhost 8021 /websockets/tests filename.txt
+package org.glassfish.tyrus.sample.trading.wsbeans;
 
 /**
  *
  * @author dannycoward
  */
-public class TestMain {
+public class TwitterSearchResult {
+    private String username;
+    private String text;
+    private String picURL;
+    private String usercode;
 
-    public static void main(String args[]) throws Exception {
-
-        String filename = args[3];
-
-        File f = new File(filename);
-        FileInputStream fis = new FileInputStream(filename);
-        String rawClassList = "";
-
-        int i;
-        while ( (i=fis.read()) >=0 ) {
-            rawClassList = rawClassList + (char) i;
-        }
-        fis.close();
-        args[3] = rawClassList;
-        Server.setWebMode(false);
-
-        //Server.main(args);
+    public TwitterSearchResult(String username, String text, String picURL, String usercode) {
+        this.username = username;
+        this.text = text;
+        this.picURL = picURL;
+        this.usercode = usercode;
     }
 
+    public String getUsername() {
+        return this.username;
+    }
+
+    public String getText() {
+        return this.text;
+    }
+
+    public String getPicURL() {
+        return this.picURL;
+    }
+
+    public String getUsercode() {
+        return this.usercode;
+    }
+
+    public String toString() {
+        return "TSR("+username +":"+text+":" + picURL+":" + usercode+")";
+    }
 }
