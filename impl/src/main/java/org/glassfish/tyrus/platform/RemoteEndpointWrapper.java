@@ -40,112 +40,95 @@
 
 package org.glassfish.tyrus.platform;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.Writer;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
-import java.util.Date;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Future;
+import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
+
 import javax.net.websocket.CloseReason;
 import javax.net.websocket.EncodeException;
 import javax.net.websocket.RemoteEndpoint;
 import javax.net.websocket.SendHandler;
 import javax.net.websocket.SendResult;
 import javax.net.websocket.Session;
-import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.Writer;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
 
 
 /**
- * Service class for the WebSocketEndpointImpl.
+ * Wrapps the {@link RemoteEndpoint} and represents the other side of the websocket connection.
  *
  * @author Danny Coward
  * @author Martin Matula (martin.matula at oracle.com)
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public final class WebSocketWrapper<T> implements RemoteEndpoint<T>, InvocationHandler {
+public final class RemoteEndpointWrapper<T> implements RemoteEndpoint<T>{
+
+    /**
+     * Remote endpoint.
+     */
     private final SPIRemoteEndpoint providedRemoteEndpoint;
+
+    /**
+     * WebSocket Session implementation.
+     */
     private final SessionImpl webSocketSession;
-    private final Date activationTime;
-    private final WebSocketEndpointImpl wse;
-    private String clientAddress;
-    private static ConcurrentHashMap<SPIRemoteEndpoint, WebSocketWrapper> wrappers
-            = new ConcurrentHashMap<SPIRemoteEndpoint, WebSocketWrapper>();
 
-    //    /**
-//     * Provides a Peer for the given socket. If Peer does not exist yet, it is created.
-//     *
-//     * @param socket          remote endpoint which is represented by returned Peer
-//     * @param application     used to create new Peer if it doesn't exist yet
-//     * @param remoteInterface instance of this interface is going to be created
-//     * @param serverEndpoint  server / client Endpoint
-//     * @param <T>
-//     * @return Peer corresponding to socket
-//     */
-    @SuppressWarnings("unchecked")
-//    public static <T extends RemoteEndpoint> T getPeer(SPIRemoteEndpoint socket, WebSocketEndpointImpl application, Class<T> remoteInterface, boolean serverEndpoint) {
-//
-//        T result = (T) WebSocketWrapper.findWebSocketWrapper(socket);
-//        if (result == null) {
-//            // no wrapper cached - create one
-//            if (RemoteEndpoint.class == remoteInterface) {
-//                result = (T) new WebSocketWrapper(socket,  null);
-//            } else if (RemoteEndpoint.class.isAssignableFrom(remoteInterface)) {
-//                XWebSocketRemote wsrAnnotation = remoteInterface.getAnnotation(XWebSocketRemote.class);
-//                Class[] encoders = wsrAnnotation == null ? null : wsrAnnotation.encoders();
-//                ClassLoader cl = null;
-//                if (serverEndpoint) {
-//                    cl = ((ServerContainerImpl) application.getContainerContext())
-//                            .getApplicationLevelClassLoader();
-//                } else {
-//                    cl = remoteInterface.getClassLoader();
-//                }
-//                result = (T) Proxy.newProxyInstance(cl, new Class[]{remoteInterface},
-//                        new WebSocketWrapper(socket, encoders));
-//            } else {
-//                throw new IllegalArgumentException(remoteInterface.getName() + " does not implement Peer.");
-//            }
-//
-//            if (serverEndpoint) {
-//                getWebSocketWrapper(result).setConversationRemote(result);
-//            }
-//            wrappers.add(result);
-//        }
-//        return result;
-//    }
+    /**
+     * Endpoint to which is this class the other side of connection.
+     */
+    private final WebSocketEndpointImpl correspondingEndpoint;
 
-    public static WebSocketWrapper getPeer(SPIRemoteEndpoint socket, WebSocketEndpointImpl application, boolean serverEndpoint) {
+    /**
+     * URI to which this remote endpoint connected during the handshake phase.
+     */
+    private String connectedToAddress;
 
-        WebSocketWrapper result = WebSocketWrapper.findWebSocketWrapper(socket);
+    /**
+     * All wrappers.
+     */
+    private static ConcurrentHashMap<SPIRemoteEndpoint, RemoteEndpointWrapper> wrappers
+            = new ConcurrentHashMap<SPIRemoteEndpoint, RemoteEndpointWrapper>();
+
+    /**
+     * Get the RemoteEndpoint wrapper.
+     *
+     * @param socket socket corresponding to the required wrapper
+     * @param application web socket endpoint for which the wrapper represents the other side of the connection
+     * @param serverEndpoint server / client endpoint
+     * @return wrapper corresponding to socket
+     */
+    public static RemoteEndpointWrapper getRemoteWrapper(SPIRemoteEndpoint socket, WebSocketEndpointImpl application, boolean serverEndpoint) {
+        RemoteEndpointWrapper result = wrappers.get(socket);
         if (result == null) {
-            result = new WebSocketWrapper(socket, application);
-            if (serverEndpoint) {
-                getWebSocketWrapper(result).setConversationRemote(result);
-            }
+            result = new RemoteEndpointWrapper(socket, application);
             wrappers.put(socket, result);
         }
         return result;
     }
 
     @SuppressWarnings("LeakingThisInConstructor")
-    private WebSocketWrapper(SPIRemoteEndpoint providedRemoteEndpoint, WebSocketEndpointImpl wse) {
-        this.activationTime = new Date();
+    private RemoteEndpointWrapper(SPIRemoteEndpoint providedRemoteEndpoint, WebSocketEndpointImpl correspondingEndpoint) {
         this.providedRemoteEndpoint = providedRemoteEndpoint;
-        this.wse = wse;
+        this.correspondingEndpoint = correspondingEndpoint;
         this.webSocketSession = new SessionImpl();
         this.webSocketSession.setPeer(this);
     }
 
-    private void setConversationRemote(RemoteEndpoint remote) {
-        webSocketSession.setPeer(remote);
-    }
-
+    /**
+     * URI to which the remote originally connected.
+     *
+     * @return URI
+     */
     public String getAddress() {
-        return this.clientAddress;
+        return this.connectedToAddress;
     }
 
+    /**
+     * The endpoint is connected.
+     *
+     * @return {@code true} iff the endpoint is connected, {@code false} otherwise.
+     */
     public boolean isConnected() {
         return this.providedRemoteEndpoint.isConnected();
     }
@@ -217,48 +200,10 @@ public final class WebSocketWrapper<T> implements RemoteEndpoint<T>, InvocationH
         return "Wrapped: " + getClass().getSimpleName();
     }
 
-    @Override
-    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-        Method wswMethod;
-        try {
-            wswMethod = getClass().getMethod(method.getName(), method.getParameterTypes());
-            try {
-                Object.class.getMethod(method.getName(), method.getParameterTypes());
-            } catch (NoSuchMethodException e) {
-                RemoteEndpoint.class.getMethod(method.getName(), method.getParameterTypes());
-            }
-        } catch (NoSuchMethodException e) {
-            wswMethod = null;
-        }
-
-        if (wswMethod != null) {
-            // delegate
-            return wswMethod.invoke(this, args);
-        } else {
-            if (args.length != 1) {
-                throw new RuntimeException("Can't invoke " + method + ". Only single argument peer methods are supported.");
-            }
-            sendPolymorphic(args[0]);
-            return null;
-        }
-    }
-
-    static WebSocketWrapper getWebSocketWrapper(RemoteEndpoint peer) {
-        return (WebSocketWrapper) (peer instanceof WebSocketWrapper ? peer : Proxy.getInvocationHandler(peer));
-    }
-
-    static WebSocketWrapper findWebSocketWrapper(SPIRemoteEndpoint re) {
-        return wrappers.get(re);
-    }
-
-    Date getActivationTime() {
-        return activationTime;
-    }
-
     void setAddress(String clientAddress) {
-        this.clientAddress = clientAddress;
+        this.connectedToAddress = clientAddress;
     }
-    
+
     void discard() {
         wrappers.remove(this.providedRemoteEndpoint);
     }
@@ -278,7 +223,7 @@ public final class WebSocketWrapper<T> implements RemoteEndpoint<T>, InvocationH
         } else if (isPrimitiveData(o)) {
             this.sendPrimitiveMessage(o);
         } else {
-            String stringToSend = wse.doEncode(o);
+            String stringToSend = correspondingEndpoint.doEncode(o);
             this.sendString(stringToSend);
         }
     }
@@ -299,7 +244,7 @@ public final class WebSocketWrapper<T> implements RemoteEndpoint<T>, InvocationH
         this.providedRemoteEndpoint.close(1000, null);
     }
 
-    public Session getSession(){
+    public Session getSession() {
         return webSocketSession;
     }
 }

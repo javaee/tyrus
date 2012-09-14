@@ -49,7 +49,6 @@ import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Collections;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -64,26 +63,57 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 public class SessionImpl implements Session {
+
+    /**
+     * Session properties.
+     */
     private Map<String, Object> properties = new ConcurrentHashMap<String, Object>();
-    private final long conversationID;
-    private RemoteEndpoint peer;
+
+    /**
+     * ID.
+     */
+    private final long id;
+
+    /**
+     * Owner of this session.
+     */
+    private RemoteEndpointWrapper peer;
+
+    /**
+     * HttpSession form the initial handshake.
+     */
     private HttpSession httpSession;
+
+    /**
+     * Reason for closure.
+     */
     private CloseReason closeReason = null;
+
+    /**
+     * Session timeout.
+     */
     private long timeout = 60 * 1000000;
+
+    /**
+     * Max. size of message
+     */
     private long maximumMessageSize = 8192;
+
+
     private Set<MessageHandler> messageHandlers = new HashSet<MessageHandler>();
     private Set<Encoder> encoders = new HashSet<Encoder>();
 
     private static final AtomicLong count = new AtomicLong();
 
     SessionImpl() {
-        this.conversationID = count.getAndIncrement();
+        this.id = count.getAndIncrement();
     }
 
-    public Map<String, Object> getProperties() {
-        return this.properties;
-    }
-
+    /**
+     * Web Socket protocol version used.
+     *
+     * @return protocol version
+     */
     public String getProtocolVersion() {
         return "13";
     }
@@ -114,17 +144,21 @@ public class SessionImpl implements Session {
 
     /**
      * Return a unique ID for this session.
+     *
+     * @return id
      */
-    public Long getConversationID() {
+    public Long getId() {
         return count.get();
     }
 
+    @Override
     public boolean isActive() {
-        return getWebSocketWrapper().isConnected();
+        return peer.isConnected();
     }
 
-    public Date getActivationTime() {
-        return getWebSocketWrapper().getActivationTime();
+    @Override
+    public long getTimeout() {
+        return timeout;
     }
 
     @Override
@@ -138,21 +172,15 @@ public class SessionImpl implements Session {
     @Override
     public void close(CloseReason closeReason) throws IOException {
         this.closeReason = closeReason;
-        getWebSocketWrapper().close(closeReason);
-
-
+        peer.close(closeReason);
     }
 
     @Override
     public String toString() {
-        return "Session(" + conversationID + ", " + this.isActive() + ")";
+        return "Session(" + id + ", " + this.isActive() + ")";
     }
 
-    private WebSocketWrapper getWebSocketWrapper() {
-        return WebSocketWrapper.getWebSocketWrapper(peer);
-    }
-
-    void setPeer(RemoteEndpoint peer) {
+    void setPeer(RemoteEndpointWrapper peer) {
         this.peer = peer;
     }
 
@@ -161,52 +189,58 @@ public class SessionImpl implements Session {
         return this.closeReason;
     }
 
-    public long getTimeout() {
-        return this.timeout;
-    }
-
     public void setTimeout(long seconds) {
         this.timeout = seconds;
     }
 
+    @Override
     public void setMaximumMessageSize(long maximumMessageSize) {
         this.maximumMessageSize = maximumMessageSize;
     }
 
+    @Override
     public long getMaximumMessageSize() {
         return this.maximumMessageSize;
     }
 
+    @Override
     public List<Extension> getNegotiatedExtensions() {
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public boolean isSecure() {
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public long getInactiveTime() {
         throw new UnsupportedOperationException();
     }
 
+    @Override
     public void addEncoder(Encoder encoder) {
         encoders.add(encoder);
     }
 
+    @Override
     public void addMessageHandler(MessageHandler listener) {
         this.messageHandlers.add(listener);
     }
 
+    @Override
     public Set getMessageHandlers() {
         return Collections.unmodifiableSet(this.messageHandlers);
     }
 
+    @Override
     public void removeMessageHandler(MessageHandler listener) {
         this.messageHandlers.remove(listener);
     }
 
+    @Override
     public URI getRequestURI() {
-        return URI.create(WebSocketWrapper.getWebSocketWrapper(peer).getAddress());
+        return URI.create(peer.getAddress());
     }
 
     void notifyMessageHandlers(String message) {

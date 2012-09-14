@@ -40,6 +40,18 @@
 
 package org.glassfish.tyrus.platform;
 
+import org.glassfish.tyrus.platform.utils.PrimitivesToBoxing;
+import org.glassfish.tyrus.spi.SPIEndpoint;
+import org.glassfish.tyrus.spi.SPIHandshakeRequest;
+import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
+
+import javax.net.websocket.DecodeException;
+import javax.net.websocket.Decoder;
+import javax.net.websocket.EncodeException;
+import javax.net.websocket.Encoder;
+import javax.net.websocket.RemoteEndpoint;
+import javax.net.websocket.ServerContainer;
+import javax.net.websocket.annotations.WebSocketMessage;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -48,17 +60,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import javax.net.websocket.DecodeException;
-import javax.net.websocket.Decoder;
-import javax.net.websocket.EncodeException;
-import javax.net.websocket.Encoder;
-import javax.net.websocket.RemoteEndpoint;
-import javax.net.websocket.ServerContainer;
-import javax.net.websocket.annotations.WebSocketMessage;
-import org.glassfish.tyrus.platform.utils.PrimitivesToBoxing;
-import org.glassfish.tyrus.spi.SPIEndpoint;
-import org.glassfish.tyrus.spi.SPIHandshakeRequest;
-import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
 
 /**
  * Handles the registered application class.
@@ -83,11 +84,6 @@ public class WebSocketEndpointImpl implements SPIEndpoint {
      * Message decoders (user provided and SDK provided).
      */
     private Set<Class<?>> encoders = Collections.newSetFromMap(new ConcurrentHashMap<Class<?>, Boolean>());
-
-//    /**
-//     * Remote Interface (represents the other endpoint of the communication) Class.
-//     */
-//    private final Class remoteInterface;
 
     /**
      * Server / client endpoint.
@@ -226,7 +222,7 @@ public class WebSocketEndpointImpl implements SPIEndpoint {
 //                    if (server) {
 //                        cl = ((ServerContainerImpl) endpointContext.getContainerContext()).getApplicationLevelClassLoader();
 //                    } else {
-                        cl = nextClass.getClassLoader();
+                    cl = nextClass.getClassLoader();
 //                    }
 
                     Class proposedType = cl.loadClass(type);
@@ -276,7 +272,7 @@ public class WebSocketEndpointImpl implements SPIEndpoint {
             }
         }
 
-        throw new EncodeException("Unable to encode ",o);
+        throw new EncodeException("Unable to encode ", o);
     }
 
     String getPath() {
@@ -306,14 +302,9 @@ public class WebSocketEndpointImpl implements SPIEndpoint {
 
     @Override
     public void onConnect(SPIRemoteEndpoint gs) {
-        WebSocketWrapper peer = getPeer(gs);
-        WebSocketWrapper wsw = WebSocketWrapper.getWebSocketWrapper(peer);
-        wsw.setAddress(gs.getUri());
-        if (server) {
-            this.onGeneratedBeanConnect(wsw);
-        } else {
-            this.onGeneratedBeanConnect(peer);
-        }
+        RemoteEndpointWrapper peer = getPeer(gs);
+        peer.setAddress(gs.getUri());
+        this.onGeneratedBeanConnect(peer);
     }
 
     @Override
@@ -327,7 +318,7 @@ public class WebSocketEndpointImpl implements SPIEndpoint {
     }
 
     public void processMessage(SPIRemoteEndpoint gs, Object o) {
-        WebSocketWrapper peer = getPeer(gs);
+        RemoteEndpointWrapper peer = getPeer(gs);
         for (Method m : model.getOnMessageMethods()) {
             try {
                 Class<?>[] paramTypes = m.getParameterTypes();
@@ -340,55 +331,55 @@ public class WebSocketEndpointImpl implements SPIEndpoint {
 
 //                if (!server || this.doesPathMatch(gs.getUri(), dynamicPath)) {
 //                if (!server) {
-                    int noOfParameters = m.getParameterTypes().length;
+                int noOfParameters = m.getParameterTypes().length;
 
-                    Object decodedMessageObject = o;
+                Object decodedMessageObject = o;
 
-                    if (o instanceof String) {
-                        decodedMessageObject = this.doDecode((String) o, paramTypes[0].getName());
-                    }
+                if (o instanceof String) {
+                    decodedMessageObject = this.doDecode((String) o, paramTypes[0].getName());
+                }
 
-                    if (decodedMessageObject != null) {
-                        Object returned = null;
+                if (decodedMessageObject != null) {
+                    Object returned = null;
 
-                        if (paramTypes[0].equals(decodedMessageObject.getClass()) ||
-                                PrimitivesToBoxing.getBoxing(paramTypes[0]).equals(decodedMessageObject.getClass())) {
-                            switch (noOfParameters) {
-                                case 1:
-                                    returned = m.invoke(model.getBean(), decodedMessageObject);
-                                    break;
-                                case 2:
+                    if (paramTypes[0].equals(decodedMessageObject.getClass()) ||
+                            PrimitivesToBoxing.getBoxing(paramTypes[0]).equals(decodedMessageObject.getClass())) {
+                        switch (noOfParameters) {
+                            case 1:
+                                returned = m.invoke(model.getBean(), decodedMessageObject);
+                                break;
+                            case 2:
 
-                                    if (paramTypes[1].equals(String.class)) {
+                                if (paramTypes[1].equals(String.class)) {
 //                                        returned = m.invoke(model.getBean(), decodedMessageObject, dynamicPath);
-                                    } else {
-                                        returned = m.invoke(model.getBean(), decodedMessageObject, peer.getSession());
-                                    }
-
-                                    break;
-                                case 3:
-
-                                    if (paramTypes[1].equals(String.class)) {
-//                                        returned = m.invoke(model.getBean(), decodedMessageObject, dynamicPath, peer.getSession());
-                                    } else {
-//                                        returned = m.invoke(model.getBean(), decodedMessageObject, peer.getSession(), dynamicPath);
-                                    }
-
-                                    break;
-                                default:
-                                    throw new RuntimeException("can't deal with " + noOfParameters + " parameters.");
-                            }
-
-                            if (returned != null) {
-                                if (o instanceof String) {
-                                    String messageToSendAsString = this.doEncode(returned);
-                                    peer.sendString(messageToSendAsString);
-                                } else if (returned instanceof byte[]) {
-                                    peer.sendBytes((byte[]) returned);
+                                } else {
+                                    returned = m.invoke(model.getBean(), decodedMessageObject, peer.getSession());
                                 }
+
+                                break;
+                            case 3:
+
+                                if (paramTypes[1].equals(String.class)) {
+//                                        returned = m.invoke(model.getBean(), decodedMessageObject, dynamicPath, peer.getSession());
+                                } else {
+//                                        returned = m.invoke(model.getBean(), decodedMessageObject, peer.getSession(), dynamicPath);
+                                }
+
+                                break;
+                            default:
+                                throw new RuntimeException("can't deal with " + noOfParameters + " parameters.");
+                        }
+
+                        if (returned != null) {
+                            if (o instanceof String) {
+                                String messageToSendAsString = this.doEncode(returned);
+                                peer.sendString(messageToSendAsString);
+                            } else if (returned instanceof byte[]) {
+                                peer.sendBytes((byte[]) returned);
                             }
                         }
                     }
+                }
 //                }
             } catch (IOException ioe) {
                 this.handleGeneratedBeanException(peer, ioe);
@@ -403,7 +394,7 @@ public class WebSocketEndpointImpl implements SPIEndpoint {
 
     @Override
     public void onClose(SPIRemoteEndpoint gs) {
-        WebSocketWrapper wsw = getPeer(gs);
+        RemoteEndpointWrapper wsw = getPeer(gs);
         this.onGeneratedBeanClose(wsw);
         wsw.discard();
     }
@@ -422,7 +413,7 @@ public class WebSocketEndpointImpl implements SPIEndpoint {
 //        }
     }
 
-    public void onGeneratedBeanConnect(WebSocketWrapper peer) {
+    public void onGeneratedBeanConnect(RemoteEndpointWrapper peer) {
         for (Method m : model.getOnOpenMethods()) {
             try {
                 m.invoke(model.getBean(), peer.getSession());
@@ -433,7 +424,7 @@ public class WebSocketEndpointImpl implements SPIEndpoint {
         }
     }
 
-    public void onGeneratedBeanClose(WebSocketWrapper peer) {
+    public void onGeneratedBeanClose(RemoteEndpointWrapper peer) {
         for (Method m : model.getOnCloseMethods()) {
             try {
                 m.invoke(model.getBean(), peer.getSession());
@@ -445,10 +436,10 @@ public class WebSocketEndpointImpl implements SPIEndpoint {
     }
 
     @SuppressWarnings("unchecked")
-    protected final WebSocketWrapper getPeer(SPIRemoteEndpoint gs) {
-        return WebSocketWrapper.getPeer(gs, this, server);
+    protected final RemoteEndpointWrapper getPeer(SPIRemoteEndpoint gs) {
+        return RemoteEndpointWrapper.getRemoteWrapper(gs, this, server);
     }
-    
+
     public ServerContainer getContainerContext() {
         return containerContext;
     }

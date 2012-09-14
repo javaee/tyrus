@@ -49,6 +49,7 @@ import javax.net.websocket.Session;
 import java.util.Set;
 
 /**
+ * Server Container Implementation.
  *
  * @author dannycoward
  */
