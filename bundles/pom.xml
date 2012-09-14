@@ -54,5 +54,6 @@
 
     <modules>
         <module>websocket-osgi</module>
+        <module>tyrus-servlet</module>
     </modules>
 </project>
