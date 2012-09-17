@@ -56,12 +56,12 @@
     <packaging>pom</packaging>
     <name>WebSocket</name>
     <description>WebSocket API and Implementation</description>
-    <url>http://websocket-sdk.java.net</url>
+    <url>http://tyrus.java.net</url>
 
     <scm>
-        <connection>scm:svn:svn+ssh://jitu@svn.java.net/websocket-sdk~source-code-repository/trunk</connection>
-        <developerConnection>scm:svn:svn+ssh://jitu@svn.java.net/websocket-sdk~source-code-repository/trunk</developerConnection>
-        <url>http://java.net/projects/websocket-sdk/sources/source-code-repository/show</url>
+        <connection>scm:svn:svn+ssh://jitu@svn.java.net/tyrus~source-code-repository/trunk</connection>
+        <developerConnection>scm:svn:svn+ssh://jitu@svn.java.net/tyrus~source-code-repository/trunk</developerConnection>
+        <url>http://java.net/projects/tyrus/sources/source-code-repository/show</url>
     </scm>
 
     <licenses>
