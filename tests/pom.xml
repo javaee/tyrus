@@ -46,13 +46,13 @@
     <parent>
         <groupId>org.glassfish.tyrus</groupId>
         <artifactId>websocket</artifactId>
-        <version>1.0-b03</version>
+        <version>1.0-b03-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <groupId>org.glassfish.tyrus</groupId>
     <artifactId>websocket-tests</artifactId>
-    <version>1.0-b03</version>
+    <version>1.0-b03-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>WebSocket Tests</name>
 
