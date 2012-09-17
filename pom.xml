@@ -59,8 +59,8 @@
     <url>http://websocket-sdk.java.net</url>
 
     <scm>
-        <connection>scm:svn:svn+ssh://janey@svn.java.net/websocket-sdk~source-code-repository/trunk</connection>
-        <developerConnection>scm:svn:svn+ssh://janey@svn.java.net/websocket-sdk~source-code-repository/trunk</developerConnection>
+        <connection>scm:svn:svn+ssh://jitu@svn.java.net/websocket-sdk~source-code-repository/trunk</connection>
+        <developerConnection>scm:svn:svn+ssh://jitu@svn.java.net/websocket-sdk~source-code-repository/trunk</developerConnection>
         <url>http://java.net/projects/websocket-sdk/sources/source-code-repository/show</url>
     </scm>
 
