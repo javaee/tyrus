@@ -317,7 +317,7 @@ public class WebSocketEndpointImpl implements SPIEndpoint {
         processMessage(gs, messageString);
     }
 
-    public void processMessage(SPIRemoteEndpoint gs, Object o) {
+    private void processMessage(SPIRemoteEndpoint gs, Object o) {
         RemoteEndpointWrapper peer = getPeer(gs);
         for (Method m : model.getOnMessageMethods()) {
             try {
@@ -328,11 +328,8 @@ public class WebSocketEndpointImpl implements SPIEndpoint {
 
                 WebSocketMessage wsm = m.getAnnotation(WebSocketMessage.class);
 //                String dynamicPath = wsm.XdynamicPath();
-
 //                if (!server || this.doesPathMatch(gs.getUri(), dynamicPath)) {
 //                if (!server) {
-                int noOfParameters = m.getParameterTypes().length;
-
                 Object decodedMessageObject = o;
 
                 if (o instanceof String) {
@@ -340,45 +337,19 @@ public class WebSocketEndpointImpl implements SPIEndpoint {
                 }
 
                 if (decodedMessageObject != null) {
-                    Object returned = null;
+                    Object returned = invokeMethod(decodedMessageObject, m, peer);
 
-                    if (paramTypes[0].equals(decodedMessageObject.getClass()) ||
-                            PrimitivesToBoxing.getBoxing(paramTypes[0]).equals(decodedMessageObject.getClass())) {
-                        switch (noOfParameters) {
-                            case 1:
-                                returned = m.invoke(model.getBean(), decodedMessageObject);
-                                break;
-                            case 2:
-
-                                if (paramTypes[1].equals(String.class)) {
-//                                        returned = m.invoke(model.getBean(), decodedMessageObject, dynamicPath);
-                                } else {
-                                    returned = m.invoke(model.getBean(), decodedMessageObject, peer.getSession());
-                                }
-
-                                break;
-                            case 3:
-
-                                if (paramTypes[1].equals(String.class)) {
-//                                        returned = m.invoke(model.getBean(), decodedMessageObject, dynamicPath, peer.getSession());
-                                } else {
-//                                        returned = m.invoke(model.getBean(), decodedMessageObject, peer.getSession(), dynamicPath);
-                                }
-
-                                break;
-                            default:
-                                throw new RuntimeException("can't deal with " + noOfParameters + " parameters.");
-                        }
-
-                        if (returned != null) {
-                            if (o instanceof String) {
-                                String messageToSendAsString = this.doEncode(returned);
-                                peer.sendString(messageToSendAsString);
-                            } else if (returned instanceof byte[]) {
-                                peer.sendBytes((byte[]) returned);
-                            }
+                    if (returned != null) {
+                        if (o instanceof String) {
+                            String messageToSendAsString = this.doEncode(returned);
+                            peer.sendString(messageToSendAsString);
+                        } else if (returned instanceof byte[]) {
+                            peer.sendBytes((byte[]) returned);
                         }
                     }
+
+                } else {
+                    throw new DecodeException();
                 }
 //                }
             } catch (IOException ioe) {
@@ -390,6 +361,36 @@ public class WebSocketEndpointImpl implements SPIEndpoint {
                 throw new RuntimeException("Error invoking " + m);
             }
         }
+    }
+
+    private Object invokeMethod(Object decodedMessageObject, Method method, RemoteEndpointWrapper peer) throws Exception {
+        Object result;
+        int noOfParameters = method.getParameterTypes().length;
+        Class<?>[] paramTypes = method.getParameterTypes();
+        Object param0 = model.getBean();
+        Object param1, param2;
+
+        if (paramTypes[0].equals(decodedMessageObject.getClass()) ||
+                PrimitivesToBoxing.getBoxing(paramTypes[0]).equals(decodedMessageObject.getClass())) {
+            param1 = decodedMessageObject;
+            param2 = peer.getSession();
+        }else{
+            param1 = peer.getSession();
+            param2 = decodedMessageObject;
+        }
+
+            switch (noOfParameters) {
+            case 1:
+                result = method.invoke(param0, param1);
+                break;
+            case 2:
+                result = method.invoke(param0,param1,param2);
+                break;
+            default:
+                throw new RuntimeException("can't deal with " + noOfParameters + " parameters.");
+        }
+
+        return result;
     }
 
     @Override

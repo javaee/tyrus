@@ -40,6 +40,7 @@
 
 package org.glassfish.tyrus.test.basic.bean;
 
+import javax.net.websocket.Session;
 import javax.net.websocket.annotations.WebSocketEndpoint;
 import javax.net.websocket.annotations.WebSocketMessage;
 
@@ -53,7 +54,7 @@ import javax.net.websocket.annotations.WebSocketMessage;
 public class HelloTestBean {
 
     @WebSocketMessage
-    public String doThat(String message) {
+    public String doThat(String message, Session peer) {
         return message;
     }
 }
