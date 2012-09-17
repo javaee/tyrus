@@ -52,16 +52,16 @@
 
     <groupId>org.glassfish.tyrus</groupId>
     <artifactId>websocket</artifactId>
-    <version>1.0-b03-SNAPSHOT</version>
+    <version>1.0-b03</version>
     <packaging>pom</packaging>
     <name>WebSocket</name>
     <description>WebSocket API and Implementation</description>
     <url>http://websocket-sdk.java.net</url>
 
     <scm>
-        <connection>scm:svn:svn+ssh://janey@svn.java.net/websocket-sdk~source-code-repository/trunk</connection>
-        <developerConnection>scm:svn:svn+ssh://janey@svn.java.net/websocket-sdk~source-code-repository/trunk</developerConnection>
-        <url>http://java.net/projects/websocket-sdk/sources/source-code-repository/show</url>
+        <connection>scm:svn:svn+ssh://janey@svn.java.net/websocket-sdk~source-code-repository/tags/websocket-1.0-b03</connection>
+        <developerConnection>scm:svn:svn+ssh://janey@svn.java.net/websocket-sdk~source-code-repository/tags/websocket-1.0-b03</developerConnection>
+        <url>http://java.net/projects/websocket-sdk/sources/source-code-repository/show/tags/websocket-1.0-b03</url>
     </scm>
 
     <licenses>
