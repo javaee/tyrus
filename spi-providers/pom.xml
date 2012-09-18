@@ -45,13 +45,13 @@
     <parent>
         <groupId>org.glassfish.tyrus</groupId>
         <artifactId>websocket</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>1.0-b04</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <groupId>org.glassfish.tyrus</groupId>
     <artifactId>websocket-spi-providers</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0-b04</version>
     <packaging>pom</packaging>
     <name>WebSocket SPI Providers</name>
 
