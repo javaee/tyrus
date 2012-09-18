@@ -52,7 +52,7 @@
 
     <groupId>org.glassfish.tyrus</groupId>
     <artifactId>websocket</artifactId>
-    <version>1.0-b03-SNAPSHOT</version>
+    <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>WebSocket</name>
     <description>WebSocket API and Implementation</description>
@@ -112,7 +112,7 @@
         <spec_version>0.0</spec_version>
         <new_spec_version>1.0</new_spec_version>
         <new_impl_version>1.0</new_impl_version>
-        <build_number>03</build_number>
+        <build_number>04</build_number>
         <spec_impl_version>1.0.0</spec_impl_version>
         <impl_version>0.0.0</impl_version>
 
