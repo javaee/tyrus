@@ -38,20 +38,23 @@
  * holder.
  */
 
-package org.glassfish.tyrus.platform.encoders;
+package org.glassfish.tyrus.test.basic.bean;
 
-import javax.net.websocket.EncodeException;
-import javax.net.websocket.Encoder;
+import javax.net.websocket.Session;
+import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketMessage;
+import java.io.IOException;
 
 /**
+ * Bean to test correct processing of binary message.
  *
- * @author dannycoward
+ * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class StringEncoderNoOp implements Encoder.Text<String> {
+@WebSocketEndpoint(path="/binary")
+public class BinaryBean {
 
-    @Override
-    public String encode(String b) throws EncodeException {
-        return b;
+    @WebSocketMessage
+    public void doThat(byte[] message, Session peer) throws IOException {
+        peer.getRemote().sendBytes(message);
     }
-
 }

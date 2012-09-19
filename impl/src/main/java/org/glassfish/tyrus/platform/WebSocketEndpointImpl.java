@@ -51,7 +51,7 @@ import javax.net.websocket.EncodeException;
 import javax.net.websocket.Encoder;
 import javax.net.websocket.RemoteEndpoint;
 import javax.net.websocket.ServerContainer;
-import javax.net.websocket.annotations.WebSocketMessage;
+import javax.net.websocket.Session;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -164,12 +164,13 @@ public class WebSocketEndpointImpl implements SPIEndpoint {
     private void initEncoders(Set<Class<?>> encodersToInit) {
         encoders.addAll(encodersToInit);
         encoders.add(org.glassfish.tyrus.platform.encoders.StringEncoderNoOp.class);
+        encoders.add(org.glassfish.tyrus.platform.encoders.BinaryEncoderNoOp.class);
         encoders.add(org.glassfish.tyrus.platform.encoders.BooleanEncoder.class);
         encoders.add(org.glassfish.tyrus.platform.encoders.ByteEncoder.class);
         encoders.add(org.glassfish.tyrus.platform.encoders.CharEncoder.class);
         encoders.add(org.glassfish.tyrus.platform.encoders.DoubleEncoder.class);
         encoders.add(org.glassfish.tyrus.platform.encoders.FloatEncoder.class);
-        encoders.add(org.glassfish.tyrus.platform.encoders.IntEncoder.class);
+        encoders.add(org.glassfish.tyrus.platform.encoders.IntegerEncoder.class);
         encoders.add(org.glassfish.tyrus.platform.encoders.LongEncoder.class);
         encoders.add(org.glassfish.tyrus.platform.encoders.ShortEncoder.class);
 
@@ -178,7 +179,9 @@ public class WebSocketEndpointImpl implements SPIEndpoint {
     private void initDecoders(Set<Class<?>> decodersToInit) {
         decoders.addAll(decodersToInit);
         decoders.add(org.glassfish.tyrus.platform.decoders.StringDecoderNoOp.class);
+        decoders.add(org.glassfish.tyrus.platform.decoders.BinaryDecoderNoOp.class);
         decoders.add(org.glassfish.tyrus.platform.decoders.BooleanDecoder.class);
+        decoders.add(org.glassfish.tyrus.platform.decoders.ByteDecoder.class);
         decoders.add(org.glassfish.tyrus.platform.decoders.IntegerDecoder.class);
         decoders.add(org.glassfish.tyrus.platform.decoders.LongDecoder.class);
         decoders.add(org.glassfish.tyrus.platform.decoders.ShortDecoder.class);
@@ -187,62 +190,42 @@ public class WebSocketEndpointImpl implements SPIEndpoint {
         decoders.add(org.glassfish.tyrus.platform.decoders.CharDecoder.class);
     }
 
-    public static String getClassTypeForTypeThatMightBePrimitive(String possiblyPrimitiveType) {
-        String type = possiblyPrimitiveType;
-        if (possiblyPrimitiveType.equals("boolean")) {
-            type = "java.lang.Boolean";
-        } else if (possiblyPrimitiveType.equals("char")) {
-            type = "java.lang.Character";
-        } else if (possiblyPrimitiveType.equals("double")) {
-            type = "java.lang.Double";
-        } else if (possiblyPrimitiveType.equals("float")) {
-            type = "java.lang.Float";
-        } else if (possiblyPrimitiveType.equals("int")) {
-            type = "java.lang.Integer";
-        } else if (possiblyPrimitiveType.equals("long")) {
-            type = "java.lang.Long";
-        } else if (possiblyPrimitiveType.equals("short")) {
-            type = "java.lang.Short";
+    private Object decodeMessage(Object message, Class<?>[] methodParamTypes, boolean isString) throws DecodeException {
+        Class<?> type = null;
+
+        for (Class<?> methodParamType : methodParamTypes) {
+            if (!methodParamType.equals(Session.class)) {
+                type = (PrimitivesToBoxing.getBoxing(methodParamType) == null) ? methodParamType : PrimitivesToBoxing.getBoxing(methodParamType);
+                break;
+            }
         }
-        return type;
-    }
 
-    private Object doDecode(String message, String possiblyPrimitiveType) throws DecodeException {
-        String type = getClassTypeForTypeThatMightBePrimitive(possiblyPrimitiveType);
-        for (Object next : decoders) {
-            Class nextClass = (Class) next;
-            List interfaces = Arrays.asList(nextClass.getInterfaces());
+        for (Class dec: decoders) {
+            try {
+                List interfaces = Arrays.asList(dec.getInterfaces());
 
-            if (interfaces.contains(Decoder.Text.class)) {
-                try {
-                    Method m = nextClass.getDeclaredMethod("decode", String.class);
-                    Class returnC = m.getReturnType();
-                    ClassLoader cl;
-
-//                    if (server) {
-//                        cl = ((ServerContainerImpl) endpointContext.getContainerContext()).getApplicationLevelClassLoader();
-//                    } else {
-                    cl = nextClass.getClassLoader();
-//                    }
-
-                    Class proposedType = cl.loadClass(type);
-
-                    if (proposedType.equals(returnC)) {
-                        Decoder.Text decoder = (Decoder.Text) nextClass.newInstance();
-                        boolean willItDecode = decoder.willDecode(message);
-
-                        if (willItDecode) {
-                            return decoder.decode(message);
+                if (isString && interfaces.contains(Decoder.Text.class)) {
+                    Method m = dec.getDeclaredMethod("decode", String.class);
+                    if (type!=null && type.equals(m.getReturnType())) {
+                        Decoder.Text decoder = (Decoder.Text) dec.newInstance();
+                        if (decoder.willDecode((String) message)) {
+                            return decoder.decode((String)message);
                         }
                     }
-
-                } catch (DecodeException de) {
-                    de.printStackTrace();
-                    throw de;
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    throw new RuntimeException(e);
+                } else if(!isString && interfaces.contains(Decoder.Binary.class)){
+                    Method m = dec.getDeclaredMethod("decode", byte[].class);
+                    if (type!=null && type.equals(m.getReturnType())) {
+                        Decoder.Binary decoder = (Decoder.Binary) dec.newInstance();
+                        if (decoder.willDecode((byte[]) message)) {
+                            return decoder.decode((byte[])message);
+                        }
+                    }
                 }
+
+            } catch (DecodeException de) {
+                de.printStackTrace();
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
 
@@ -309,32 +292,27 @@ public class WebSocketEndpointImpl implements SPIEndpoint {
 
     @Override
     public void onMessage(SPIRemoteEndpoint gs, byte[] messageBytes) {
-        processMessage(gs, messageBytes);
+        processMessage(gs, messageBytes, false);
     }
 
     @Override
     public void onMessage(SPIRemoteEndpoint gs, String messageString) {
-        processMessage(gs, messageString);
+        processMessage(gs, messageString, true);
     }
 
-    private void processMessage(SPIRemoteEndpoint gs, Object o) {
+    private void processMessage(SPIRemoteEndpoint gs, Object o, boolean isString) {
         RemoteEndpointWrapper peer = getPeer(gs);
+
         for (Method m : model.getOnMessageMethods()) {
             try {
                 Class<?>[] paramTypes = m.getParameterTypes();
-                if (paramTypes[0].equals(byte[].class) && (o instanceof String)) {
-                    continue;
-                }
 
-                WebSocketMessage wsm = m.getAnnotation(WebSocketMessage.class);
+//                WebSocketMessage wsm = m.getAnnotation(WebSocketMessage.class);
 //                String dynamicPath = wsm.XdynamicPath();
 //                if (!server || this.doesPathMatch(gs.getUri(), dynamicPath)) {
 //                if (!server) {
-                Object decodedMessageObject = o;
 
-                if (o instanceof String) {
-                    decodedMessageObject = this.doDecode((String) o, paramTypes[0].getName());
-                }
+                Object decodedMessageObject = this.decodeMessage(o, paramTypes, isString);
 
                 if (decodedMessageObject != null) {
                     Object returned = invokeMethod(decodedMessageObject, m, peer);
@@ -363,34 +341,50 @@ public class WebSocketEndpointImpl implements SPIEndpoint {
         }
     }
 
-    private Object invokeMethod(Object decodedMessageObject, Method method, RemoteEndpointWrapper peer) throws Exception {
+    private Object invokeMethod(Object object, Method method, RemoteEndpointWrapper peer) throws Exception {
         Object result;
-        int noOfParameters = method.getParameterTypes().length;
         Class<?>[] paramTypes = method.getParameterTypes();
+        int noOfParameters = paramTypes.length;
         Object param0 = model.getBean();
         Object param1, param2;
 
-        if (paramTypes[0].equals(decodedMessageObject.getClass()) ||
-                PrimitivesToBoxing.getBoxing(paramTypes[0]).equals(decodedMessageObject.getClass())) {
-            param1 = decodedMessageObject;
-            param2 = peer.getSession();
-        }else{
-            param1 = peer.getSession();
-            param2 = decodedMessageObject;
+        if (!parameterBelongsToMethod(method, object)) {
+            return null;
         }
 
-            switch (noOfParameters) {
+        if (paramTypes[0].equals(object.getClass()) ||
+                PrimitivesToBoxing.getBoxing(paramTypes[0]).equals(object.getClass())) {
+            param1 = object;
+            param2 = peer.getSession();
+        } else {
+            param1 = peer.getSession();
+            param2 = object;
+        }
+
+        switch (noOfParameters) {
             case 1:
                 result = method.invoke(param0, param1);
                 break;
             case 2:
-                result = method.invoke(param0,param1,param2);
+                result = method.invoke(param0, param1, param2);
                 break;
             default:
                 throw new RuntimeException("can't deal with " + noOfParameters + " parameters.");
         }
 
         return result;
+    }
+
+    private boolean parameterBelongsToMethod(Method method, Object parameter) {
+        Class<?>[] paramTypes = method.getParameterTypes();
+
+        for (Class<?> paramType : paramTypes) {
+            if (PrimitivesToBoxing.getBoxing(paramType).equals(parameter.getClass())) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     @Override

@@ -47,7 +47,7 @@ import javax.net.websocket.Encoder;
  *
  * @author dannycoward
  */
-public class IntEncoder implements Encoder.Text<Integer> {
+public class IntegerEncoder implements Encoder.Text<Integer> {
 
     @Override
     public String encode(Integer b) throws EncodeException {

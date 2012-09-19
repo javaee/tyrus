@@ -1,4 +1,3 @@
-
 <!--
 
     DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
@@ -103,7 +102,7 @@
     </developers>
 
     <properties>
-        <websocket-api.version>1.0-b04</websocket-api.version>
+        <websocket-api.version>1.0-b05-SNAPSHOT</websocket-api.version>
 
         <servlet.api.version>3.0.1</servlet.api.version>
         <grizzly.version>2.2.9</grizzly.version>

@@ -53,7 +53,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Advanced remote testsvn
+ * Advanced remote test.
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */

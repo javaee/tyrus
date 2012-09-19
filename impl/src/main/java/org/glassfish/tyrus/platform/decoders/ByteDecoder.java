@@ -37,21 +37,23 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+package org.glassfish.tyrus.platform.decoders;
 
-package org.glassfish.tyrus.platform.encoders;
-
-import javax.net.websocket.EncodeException;
-import javax.net.websocket.Encoder;
+import javax.net.websocket.DecodeException;
+import javax.net.websocket.Decoder;
 
 /**
- *
- * @author dannycoward
+ * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class StringEncoderNoOp implements Encoder.Text<String> {
+public class ByteDecoder implements Decoder.Text<Byte> {
 
     @Override
-    public String encode(String b) throws EncodeException {
-        return b;
+    public Byte decode(String s) throws DecodeException {
+        return Byte.valueOf(s);
     }
 
+    @Override
+    public boolean willDecode(String s) {
+        return true;
+    }
 }

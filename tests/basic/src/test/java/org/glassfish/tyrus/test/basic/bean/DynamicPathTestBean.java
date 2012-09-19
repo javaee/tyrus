@@ -48,9 +48,6 @@ import javax.net.websocket.annotations.WebSocketMessage;
  * Bean testing various dynamic paths.
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
-=======
- * @author Stepan Kopriva (stepan.kopriva at oracle.com)
->>>>>>> .r381
  */
 @WebSocketEndpoint(
         path="/dynamicpath"
