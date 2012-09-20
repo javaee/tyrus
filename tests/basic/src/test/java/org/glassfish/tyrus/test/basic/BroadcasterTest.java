@@ -76,14 +76,12 @@ public class BroadcasterTest {
             final WebSocketClient client2 = WebSocketClient.createClient();
             client2.openSocket("ws://localhost:8025/websockets/tests/broadcast", 10000, ea1);
 
-            //noinspection SynchronizationOnLocalVariableOrMethodParameter
             synchronized (ea1) {
                 if (ea1.peer == null) {
                     ea1.wait();
                 }
             }
 
-            //noinspection SynchronizationOnLocalVariableOrMethodParameter
             synchronized (ea2) {
                 if (ea2.peer == null) {
                     ea2.wait();

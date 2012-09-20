@@ -42,8 +42,7 @@ package wstestbeans;
 import javax.net.websocket.annotations.WebSocketEndpoint;
 
 
-
-    @WebSocketEndpoint(path="/session2websockets1")
+@WebSocketEndpoint(path = "/session2websockets1")
 public class Session2WebSockets1Test {
 //
 //        @WebSocketMessage

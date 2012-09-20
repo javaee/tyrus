@@ -47,10 +47,9 @@ import javax.net.websocket.annotations.WebSocketClose;
 import javax.net.websocket.RemoteEndpoint;
 
 /**
- *
  * @author dannycoward
  */
- @WebSocketEndpoint (path="/lifecycle")
+@WebSocketEndpoint(path = "/lifecycle")
 public class LifecycleBeanTest {
 
     @WebSocketOpen
@@ -67,6 +66,4 @@ public class LifecycleBeanTest {
     public void bye(RemoteEndpoint remote) {
 
     }
-
-
 }

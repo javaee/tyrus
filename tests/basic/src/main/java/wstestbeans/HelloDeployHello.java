@@ -49,8 +49,8 @@ import javax.net.websocket.annotations.WebSocketEndpoint;
 
 
 @WebSocketEndpoint(
-        path="/hellodeployhello"
-    )
+        path = "/hellodeployhello"
+)
 /**
  *
  * @author dannycoward
@@ -77,7 +77,10 @@ class CustomEndpointUsingInterface extends Endpoint {
 //    public void initialize(XEndpointContext epcontext){
 //        System.out.println("Initializing dynamically deployed end point implementing interface");
 //    }
-            /** Called whenever a peer first connects to this end point.*/
+
+    /**
+     * Called whenever a peer first connects to this end point.
+     */
     @Override
     public void onOpen(Session session) {
         System.out.println("Opened dynamically deployed end point which implements the interface");
@@ -85,21 +88,28 @@ class CustomEndpointUsingInterface extends Endpoint {
     }
 
 
-    /** Called when a peer disconnects from this end point.*/
+    /**
+     * Called when a peer disconnects from this end point.
+     */
     @Override
     public void onClose(Session session) {
         System.out.println("Closing dynamically deployed end point implementing interface");
 
     }
-    /** Called when there us an error on the connection from the supplied peer
+
+    /**
+     * Called when there us an error on the connection from the supplied peer
      * to this end point.
+     *
      * @param p
      * @param e
      */
     public void onError(RemoteEndpoint p, Exception e) {
         System.out.println("Error");
     }
-    /** Called by the container when this end point is about to be taken out of
+
+    /**
+     * Called by the container when this end point is about to be taken out of
      * service.
      */
     public void remove() {
@@ -131,30 +141,43 @@ class CustomEndpointUsingAdapter extends Endpoint {
 //    public void initialize(XEndpointContext epcontext){
 //        System.out.println("Initializing dynamically deployed end point extending adapter");
 //    }
-            /** Called whenever a peer first connects to this end point.*/
+
+    /**
+     * Called whenever a peer first connects to this end point.
+     */
     public void onOpen(Session session) {
         System.out.println("Opened dynamically deployed end point which extending adapter");
         session.addMessageHandler(new MyMessageHandler(session, "dynamically deployed end point which extending adapter"));
     }
 
-    /** Called when a peer sends a binary message to this end point.*/
+    /**
+     * Called when a peer sends a binary message to this end point.
+     */
     public void onMessage(RemoteEndpoint p, byte[] data) {
 
     }
-    /** Called when a peer disconnects from this end point.*/
+
+    /**
+     * Called when a peer disconnects from this end point.
+     */
     @Override
     public void onClose(Session session) {
         System.out.println("Closing dynamically deployed end point extending adapter");
     }
-    /** Called when there us an error on the connection from the supplied peer
+
+    /**
+     * Called when there us an error on the connection from the supplied peer
      * to this end point.
+     *
      * @param p
      * @param e
      */
     public void onError(RemoteEndpoint p, Exception e) {
         System.out.println("Error");
     }
-    /** Called by the container when this end point is about to be taken out of
+
+    /**
+     * Called by the container when this end point is about to be taken out of
      * service.
      */
     public void remove() {

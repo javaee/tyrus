@@ -42,15 +42,15 @@ package wstestbeans;
 
 import javax.net.websocket.annotations.WebSocketMessage;
 import javax.net.websocket.annotations.WebSocketEndpoint;
+
 /**
- *
  * @author dannycoward
  */
 
-    @WebSocketEndpoint(
-            path="/subprotocols",
-            subprotocols={"protocol1"}
-            )
+@WebSocketEndpoint(
+        path = "/subprotocols",
+        subprotocols = {"protocol1"}
+)
 public class SubprotocolsTest {
 
     @WebSocketMessage()

@@ -44,7 +44,6 @@ import javax.net.websocket.EncodeException;
 import javax.net.websocket.Encoder;
 
 /**
- *
  * @author dannycoward
  */
 public class EncodedMessageEncoder implements Encoder.Text<EncodedMessage> {

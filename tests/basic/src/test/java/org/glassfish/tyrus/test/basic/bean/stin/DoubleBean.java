@@ -45,18 +45,13 @@ import javax.net.websocket.annotations.WebSocketEndpoint;
 import javax.net.websocket.annotations.WebSocketMessage;
 
 /**
- *
  * @author dannycoward
  */
-//    @WebSocketEndpoint(
-//        path="/standardInputTypes/double",
-//            Xremote=org.glassfish.tyrus.test.basic.remote.DoubleRemote.class
-//    )
 @WebSocketEndpoint(
-        path="/standardInputTypes/double")
+        path = "/standardInputTypes/double")
 public class DoubleBean {
 
-        @WebSocketMessage
+    @WebSocketMessage
     public String doubleTest(double d) {
         if (d == 42.0) {
             return Util.PASS;
@@ -64,13 +59,4 @@ public class DoubleBean {
             return Util.FAIL;
         }
     }
-
-//    @WebSocketMessage(XdynamicPath = "/remote")
-//    public void remoteDoubleTest(String s, DoubleRemote r) {
-//        try {
-//            r.sendDoubleMessage(42.0);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//    }
 }

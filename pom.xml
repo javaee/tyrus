@@ -129,6 +129,7 @@
     </properties>
 
     <modules>
+        <module>api</module>
         <module>impl</module>
         <module>bundles</module>
         <module>tests</module>

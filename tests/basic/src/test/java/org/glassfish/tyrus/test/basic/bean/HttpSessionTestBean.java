@@ -52,8 +52,8 @@ import javax.net.websocket.annotations.WebSocketEndpoint;
 public class HttpSessionTestBean {
 
 //    @WebSocketMessage
-//    public String doThis(String thiz, RemoteEndpoint peer) {
-//        HttpSession httpSession = peer.getSession().getHttpSession();
+//    public String doThis(String message, Session peer) {
+//        HttpSession httpSession = peer.getSession()
 //        return httpSession.getId();
 //    }
 }

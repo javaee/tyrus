@@ -41,17 +41,17 @@
 package wstestbeans;
 
 
-import javax.net.websocket.annotations.WebSocketMessage;
 import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketMessage;
 
-    @WebSocketEndpoint(
-            path="/decodermultiplexer",
-            decoders={enc.DecoderA.class, enc.DecoderB.class}
-            )
+
 /**
- *
  * @author dannycoward
  */
+@WebSocketEndpoint(
+        path = "/decodermultiplexer",
+        decoders = {enc.DecoderA.class, enc.DecoderB.class}
+)
 public class DecoderMultiplexerTest {
 
     @WebSocketMessage

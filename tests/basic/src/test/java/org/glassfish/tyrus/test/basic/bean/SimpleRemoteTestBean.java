@@ -50,8 +50,6 @@ import javax.net.websocket.annotations.WebSocketMessage;
  *
  * @author dannycoward
  */
-//    @WebSocketEndpoint(path="/customremote/hello",
-//               Xremote=org.glassfish.tyrus.test.basic.remote.SimpleRemote.class)
 @WebSocketEndpoint(path="/customremote/hello")
 public class SimpleRemoteTestBean {
     @WebSocketMessage

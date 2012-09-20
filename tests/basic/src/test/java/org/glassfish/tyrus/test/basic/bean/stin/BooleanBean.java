@@ -46,32 +46,18 @@ import javax.net.websocket.annotations.WebSocketEndpoint;
 import javax.net.websocket.annotations.WebSocketMessage;
 
 /**
- *
  * @author dannycoward
  */
-//    @WebSocketEndpoint(
-//        path="/standardInputTypes/boolean",
-//        Xremote = org.glassfish.tyrus.test.basic.remote.BooleanRemote.class
-//    )
-    @WebSocketEndpoint(
-        path="/standardInputTypes/boolean")
+@WebSocketEndpoint(
+        path = "/standardInputTypes/boolean")
 public class BooleanBean {
 
-     @WebSocketMessage
-     public String booleanTest(boolean b) {
-         if (b == true) {
+    @WebSocketMessage
+    public String booleanTest(boolean b) {
+        if (b == true) {
             return Util.PASS;
-         } else {
-             return Util.FAIL;
-         }
-     }
-
-//    @WebSocketMessage(XdynamicPath = "/remote")
-//    public void remoteBooleanTest(String s, BooleanRemote r) {
-//        try {
-//            r.sendBooleanMessage(true);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//    }
+        } else {
+            return Util.FAIL;
+        }
+    }
 }

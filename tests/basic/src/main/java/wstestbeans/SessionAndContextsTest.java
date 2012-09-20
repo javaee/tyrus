@@ -41,11 +41,11 @@
 package wstestbeans;
 
 import javax.net.websocket.annotations.WebSocketEndpoint;
+
 /**
- *
  * @author dannycoward
  */
-    @WebSocketEndpoint(path="/sessionandcontexts")
+@WebSocketEndpoint(path = "/sessionandcontexts")
 public class SessionAndContextsTest {
 
 //        @WebSocketMessage

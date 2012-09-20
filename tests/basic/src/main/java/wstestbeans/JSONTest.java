@@ -41,19 +41,20 @@
 package wstestbeans;
 
 
-import javax.net.websocket.annotations.WebSocketEndpoint;
-import javax.net.websocket.annotations.WebSocketMessage;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketMessage;
+
 /**
- *
  * @author dannycoward
  */
-    @WebSocketEndpoint(
-            path = "/json",
-            encoders={enc.JSONEncoder.class},
-            decoders={enc.JSONDecoder.class}
-            )
+@WebSocketEndpoint(
+        path = "/json",
+        encoders = {enc.JSONEncoder.class},
+        decoders = {enc.JSONDecoder.class}
+)
 
 public class JSONTest {
 

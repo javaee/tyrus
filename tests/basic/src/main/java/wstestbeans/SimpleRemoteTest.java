@@ -44,15 +44,15 @@ import remote.SimpleRemote;
 
 import javax.net.websocket.annotations.WebSocketEndpoint;
 import javax.net.websocket.annotations.WebSocketMessage;
+
 /**
- *
  * @author dannycoward
  */
-    @WebSocketEndpoint(path="/customremote/hello")
+@WebSocketEndpoint(path = "/customremote/hello")
 public class SimpleRemoteTest {
     String lastMessage;
 
-        @WebSocketMessage
+    @WebSocketMessage
     public void handleIncoming(String message, SimpleRemote remote) {
         this.lastMessage = message;
         this.makeCallback(remote);

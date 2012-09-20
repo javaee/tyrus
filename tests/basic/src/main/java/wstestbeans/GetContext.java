@@ -42,13 +42,13 @@ package wstestbeans;
 
 import javax.net.websocket.annotations.WebSocketEndpoint;
 import javax.net.websocket.annotations.WebSocketMessage;
+
 /**
- *
  * @author dannycoward
  */
-    @WebSocketEndpoint(
-        path="/getcontext"
-    )
+@WebSocketEndpoint(
+        path = "/getcontext"
+)
 public class GetContext {
 //    @XWebSocketContext
 //    public XEndpointContext myContext;

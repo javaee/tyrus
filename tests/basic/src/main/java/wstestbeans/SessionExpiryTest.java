@@ -43,13 +43,10 @@ package wstestbeans;
 import javax.net.websocket.annotations.WebSocketEndpoint;
 
 /**
- *
  * @author dannycoward
  */
-    @WebSocketEndpoint(path="/sessionexpiry")
+@WebSocketEndpoint(path = "/sessionexpiry")
 public class SessionExpiryTest {
-
-
 
 //        @WebSocketMessage
 //    public String handleMessage(String message, RemoteEndpoint remote) {

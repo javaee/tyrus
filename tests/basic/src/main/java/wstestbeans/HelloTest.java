@@ -43,9 +43,9 @@ package wstestbeans;
 import javax.net.websocket.annotations.WebSocketMessage;
 import javax.net.websocket.annotations.WebSocketEndpoint;
 
-    @WebSocketEndpoint(
-        path="/hello"
-    )
+@WebSocketEndpoint(
+        path = "/hello"
+)
 public class HelloTest {
 
     @WebSocketMessage

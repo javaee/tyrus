@@ -41,13 +41,13 @@
 package wstestbeans;
 
 import javax.net.websocket.annotations.WebSocketEndpoint;
+
 /**
- *
  * @author dannycoward
  */
-    @WebSocketEndpoint(
-        path="/httpsession"
-    )
+@WebSocketEndpoint(
+        path = "/httpsession"
+)
 public class HttpSessionTest {
 
 //            @WebSocketMessage

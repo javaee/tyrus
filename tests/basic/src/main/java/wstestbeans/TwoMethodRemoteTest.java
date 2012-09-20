@@ -45,10 +45,9 @@ import javax.net.websocket.annotations.WebSocketEndpoint;
 import javax.net.websocket.annotations.WebSocketMessage;
 
 /**
- *
  * @author dannycoward
  */
-    @WebSocketEndpoint(path="/twomethodremote")
+@WebSocketEndpoint(path = "/twomethodremote")
 public class TwoMethodRemoteTest {
 
     @WebSocketMessage

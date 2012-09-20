@@ -49,8 +49,6 @@ import javax.net.websocket.annotations.WebSocketMessage;
  *
  * @author dannycoward
  */
-//    @WebSocketEndpoint(path="/twomethodremote",
-//            Xremote=org.glassfish.tyrus.test.basic.remote.TwoMethodRemote.class)
 @WebSocketEndpoint(path="/twomethodremote")
 public class TwoMethodRemoteTestBean {
 

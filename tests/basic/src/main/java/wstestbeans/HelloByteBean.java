@@ -44,8 +44,8 @@ import javax.net.websocket.annotations.WebSocketMessage;
 import javax.net.websocket.annotations.WebSocketEndpoint;
 
 @WebSocketEndpoint(
-        path="/hellobyte"
-    )
+        path = "/hellobyte"
+)
 public class HelloByteBean {
 
     @WebSocketMessage

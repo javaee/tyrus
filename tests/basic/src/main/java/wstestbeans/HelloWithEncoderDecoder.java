@@ -44,20 +44,19 @@ import javax.net.websocket.annotations.WebSocketMessage;
 import javax.net.websocket.annotations.WebSocketEndpoint;
 
 /**
- *
  * @author dannycoward
  */
-    @WebSocketEndpoint(
-        path="/helloencoderdecoder",
-        encoders={enc.StringEncoder.class},
-        decoders={enc.StringDecoder.class}
+@WebSocketEndpoint(
+        path = "/helloencoderdecoder",
+        encoders = {enc.StringEncoder.class},
+        decoders = {enc.StringDecoder.class}
 
-    )
+)
 public class HelloWithEncoderDecoder {
 
 
     @WebSocketMessage
     public String doThis(String thiz) {
-        return "Bean (" + thiz+ ")";
+        return "Bean (" + thiz + ")";
     }
 }

@@ -45,18 +45,13 @@ import javax.net.websocket.annotations.WebSocketEndpoint;
 import javax.net.websocket.annotations.WebSocketMessage;
 
 /**
- *
  * @author dannycoward
  */
-//    @WebSocketEndpoint(
-//        path="/standardInputTypes/char",
-//            Xremote = org.glassfish.tyrus.test.basic.remote.CharRemote.class
-//    )
 @WebSocketEndpoint(
-        path="/standardInputTypes/char")
+        path = "/standardInputTypes/char")
 public class CharBean {
 
-        @WebSocketMessage
+    @WebSocketMessage
     public String charTest(char c) {
         if (c == 'c') {
             return Util.PASS;
@@ -64,13 +59,4 @@ public class CharBean {
             return Util.FAIL;
         }
     }
-
-//    @WebSocketMessage(XdynamicPath = "/remote")
-//    public void remoteCharTest(String s, CharRemote r) {
-//        try {
-//            r.sendCharMessage('c');
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//    }
 }

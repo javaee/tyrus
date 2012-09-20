@@ -45,13 +45,12 @@ import javax.net.websocket.annotations.WebSocketMessage;
 import javax.net.websocket.annotations.WebSocketEndpoint;
 
 /**
- *
  * @author dannycoward
  */
-    @WebSocketEndpoint(
-        path="/error",
-        encoders={enc.ErrorEncoder.class}
-    )
+@WebSocketEndpoint(
+        path = "/error",
+        encoders = {enc.ErrorEncoder.class}
+)
 public class ErrorTest {
     private RemoteEndpoint remote;
 
@@ -61,7 +60,7 @@ public class ErrorTest {
         return "anything";
     }
 
-//    @XWebSocketError
+    //    @XWebSocketError
     public void handleError(Exception e, RemoteEndpoint p) {
         try {
             remote.sendString("Pass: got an error(" + e.getMessage() + ") from " + p);

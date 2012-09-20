@@ -51,23 +51,23 @@ import javax.net.websocket.annotations.WebSocketOpen;
 import java.io.IOException;
 
 /**
- *
  * @author dannycoward
  */
-    @WebSocketEndpoint(path="/defaultpath")
+@WebSocketEndpoint(path = "/defaultpath")
 public class DefaultPathsTest {
 
-        @WebSocketOpen
-        public void onOpen(RemoteEndpoint remote) {
-            System.out.println("Connected");
-        }
-        @WebSocketMessage
-        public void onMessage(String s, RemoteEndpoint remote) throws IOException, EncodeException {
-            remote.sendString("Passed the default path test");
-        }
+    @WebSocketOpen
+    public void onOpen(RemoteEndpoint remote) {
+        System.out.println("Connected");
+    }
 
-        @WebSocketClose
-        public void onClose(RemoteEndpoint remote) {
-            System.out.println("Disconnected");
-        }
+    @WebSocketMessage
+    public void onMessage(String s, RemoteEndpoint remote) throws IOException, EncodeException {
+        remote.sendString("Passed the default path test");
+    }
+
+    @WebSocketClose
+    public void onClose(RemoteEndpoint remote) {
+        System.out.println("Disconnected");
+    }
 }

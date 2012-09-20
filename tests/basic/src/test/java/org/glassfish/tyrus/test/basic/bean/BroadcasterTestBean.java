@@ -39,26 +39,33 @@
  */
 package org.glassfish.tyrus.test.basic.bean;
 
-import org.glassfish.tyrus.test.basic.remote.SimpleRemote;
-
 import javax.net.websocket.EncodeException;
+import javax.net.websocket.Session;
 import javax.net.websocket.annotations.WebSocketEndpoint;
 import javax.net.websocket.annotations.WebSocketMessage;
+import javax.net.websocket.annotations.WebSocketOpen;
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author Martin Matula (martin.matula at oracle.com)
+ * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 @WebSocketEndpoint(path = "/broadcast")
-//@WebSocketEndpoint(path = "/broadcast", Xremote = SimpleRemote.class)
 public class BroadcasterTestBean {
 
+    private Set<Session> connections = new HashSet<Session>();
+
+    @WebSocketOpen
+    public void onOpen(Session session){
+        connections.add(session);
+    }
 
     @WebSocketMessage
-    public void message(String message, SimpleRemote client) throws IOException, EncodeException {
-//        for (Session sessions : context.getConversations()) {
-//            SimpleRemote gdr = (SimpleRemote) sessions.getRemote();
-//            gdr.sendSimpleMessage(message);
-//        }
+    public void message(String message, Session session) throws IOException, EncodeException {
+        for (Session s : connections) {
+            s.getRemote().sendString(message);
+        }
     }
 }
