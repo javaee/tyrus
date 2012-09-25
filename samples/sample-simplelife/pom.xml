@@ -59,12 +59,12 @@
     <name>WebSocket Simple Life Sample</name>
 
     <dependencies>
-        <dependency>
+        <!--<dependency>
             <groupId>org.glassfish.tyrus</groupId>
             <artifactId>websocket-api</artifactId>
             <version>${project.version}</version>
-            <!--<scope>provided</scope>-->
-        </dependency>
+            <scope>provided</scope>
+        </dependency>-->
         <dependency>
             <groupId>org.glassfish.tyrus</groupId>
             <artifactId>websocket-impl</artifactId>

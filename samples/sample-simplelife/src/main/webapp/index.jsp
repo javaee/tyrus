@@ -39,7 +39,7 @@
     holder.
 
 --%>
-<%-- 
+<%--
     Document   : simplelife
     Created on : Sep 29, 2011, 11:01:23 AM
     Author     : dannycoward
@@ -66,11 +66,11 @@
                 websocket.onerror = function(evt) { onError(evt) };
                 websocket.onclose = function(evt) { onClose(evt) };
             }
-            
+
             function close_life() {
                 websocket.close();
             }
-            
+
             function run_life() {
                 if (websocket.readyState == 1) {
                     websocket.send("This is your friendly JavaScript page calling");
@@ -91,9 +91,9 @@
             function onError(evt) {
                 writeToScreen('<span style="color: red;">ERROR:</span> ' + evt.data);
             }
-            
+
             function onClose(evt) {
-               writeToScreen("DISCONNECTED from " + wsUri); 
+               writeToScreen("DISCONNECTED from " + wsUri);
             }
 
             function writeToScreen(message)
@@ -112,10 +112,10 @@
         <div style="text-align: center;"><img style=" width: 64px; height: 64px;" alt=""src="HTML5_Logo_512.png"></div>
         <br></br>
         <div style="text-align: center;">
-            <form action=""> 
+            <form action="">
                 <input onclick="open_life()" value="Connect" type="button">
                 <input onclick="run_life()" value="Send" type="button">
-                <input onclick="close_life()" value="Disconnect" type="button"> 
+                <input onclick="close_life()" value="Disconnect" type="button">
                 <br>
             </form>
         </div>

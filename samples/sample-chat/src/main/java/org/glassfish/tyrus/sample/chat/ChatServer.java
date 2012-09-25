@@ -52,16 +52,14 @@ import org.glassfish.tyrus.sample.chat.chatdata.*;
 
 
 @WebSocketEndpoint(path = "/chat",
-Xremote = ChatClientRemote.class,
-decoders = {org.glassfish.tyrus.sample.chat.chatdata.LoginRequestDecoder.class,
+    decoders = {org.glassfish.tyrus.sample.chat.chatdata.LoginRequestDecoder.class,
     org.glassfish.tyrus.sample.chat.chatdata.ChatUpdateDecoder.class,
     org.glassfish.tyrus.sample.chat.chatdata.DisconnectRequestDecoder.class},
 encoders = {org.glassfish.tyrus.sample.chat.chatdata.DisconnectResponseEncoder.class})
 public class ChatServer {
 
     final static Logger logger = Logger.getLogger("application");
-    @XWebSocketContext
-    public XEndpointContext context;
+
     private List<String> chatTranscript = new ArrayList<String>();
     static int transcriptMaxLines = 20;
 
