@@ -46,12 +46,12 @@
     <parent>
         <groupId>org.glassfish.tyrus</groupId>
         <artifactId>websocket-samples</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>1.0-b05</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <packaging>war</packaging>
-    <version>1.0-SNAPSHOT</version>
+    <version>1.0-b05</version>
     <url>http://maven.apache.org</url>
     <groupId>org.glassfish.tyrus</groupId>
     <artifactId>websocket-sample-echo</artifactId>
