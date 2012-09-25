@@ -90,6 +90,7 @@ class GrizzlyEndpoint extends WebSocketApplication implements SPIRegisteredEndpo
 
     @Override
     public void onClose(WebSocket socket, DataFrame frame) {
+        System.out.println("Grizzly endpoint onClose");
         GrizzlyRemoteEndpoint gs = GrizzlyRemoteEndpoint.get(socket);
         this.endpoint.onClose(gs);
         GrizzlyRemoteEndpoint.remove(socket);

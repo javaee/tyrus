@@ -200,24 +200,24 @@ public class WebSocketEndpointImpl implements SPIEndpoint {
             }
         }
 
-        for (Class dec: decoders) {
+        for (Class dec : decoders) {
             try {
                 List interfaces = Arrays.asList(dec.getInterfaces());
 
                 if (isString && interfaces.contains(Decoder.Text.class)) {
                     Method m = dec.getDeclaredMethod("decode", String.class);
-                    if (type!=null && type.equals(m.getReturnType())) {
+                    if (type != null && type.equals(m.getReturnType())) {
                         Decoder.Text decoder = (Decoder.Text) dec.newInstance();
                         if (decoder.willDecode((String) message)) {
-                            return decoder.decode((String)message);
+                            return decoder.decode((String) message);
                         }
                     }
-                } else if(!isString && interfaces.contains(Decoder.Binary.class)){
+                } else if (!isString && interfaces.contains(Decoder.Binary.class)) {
                     Method m = dec.getDeclaredMethod("decode", byte[].class);
-                    if (type!=null && type.equals(m.getReturnType())) {
+                    if (type != null && type.equals(m.getReturnType())) {
                         Decoder.Binary decoder = (Decoder.Binary) dec.newInstance();
                         if (decoder.willDecode((byte[]) message)) {
-                            return decoder.decode((byte[])message);
+                            return decoder.decode((byte[]) message);
                         }
                     }
                 }
@@ -303,15 +303,11 @@ public class WebSocketEndpointImpl implements SPIEndpoint {
     private void processMessage(SPIRemoteEndpoint gs, Object o, boolean isString) {
         RemoteEndpointWrapper peer = getPeer(gs);
 
-        for (Method m : model.getOnMessageMethods()) {
-            try {
+        try {
+
+            for (Method m : model.getOnMessageMethods()) {
+
                 Class<?>[] paramTypes = m.getParameterTypes();
-
-//                WebSocketMessage wsm = m.getAnnotation(WebSocketMessage.class);
-//                String dynamicPath = wsm.XdynamicPath();
-//                if (!server || this.doesPathMatch(gs.getUri(), dynamicPath)) {
-//                if (!server) {
-
                 Object decodedMessageObject = this.decodeMessage(o, paramTypes, isString);
 
                 if (decodedMessageObject != null) {
@@ -325,19 +321,18 @@ public class WebSocketEndpointImpl implements SPIEndpoint {
                             peer.sendBytes((byte[]) returned);
                         }
                     }
-
-                } else {
-                    throw new DecodeException();
+                return;
                 }
-//                }
-            } catch (IOException ioe) {
-                this.handleGeneratedBeanException(peer, ioe);
-            } catch (DecodeException de) {
-                this.handleGeneratedBeanException(peer, de);
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                throw new RuntimeException("Error invoking " + m);
             }
+
+            throw new DecodeException();
+        } catch (IOException ioe) {
+            this.handleGeneratedBeanException(peer, ioe);
+        } catch (DecodeException de) {
+            this.handleGeneratedBeanException(peer, de);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            throw new RuntimeException("Error invoking message decoding");
         }
     }
 
@@ -395,6 +390,7 @@ public class WebSocketEndpointImpl implements SPIEndpoint {
     }
 
     public void handleGeneratedBeanException(RemoteEndpoint peer, Exception e) {
+        e.printStackTrace();
         throw new RuntimeException("Error handling not supported yet.");
 //        for (Method m : model.getOnErrorMethods()) {
 //            try {

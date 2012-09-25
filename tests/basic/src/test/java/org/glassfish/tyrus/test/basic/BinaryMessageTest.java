@@ -87,7 +87,7 @@ public class BinaryMessageTest {
                     messageLatch.countDown();
                 }
             });
-            messageLatch.await(5000, TimeUnit.SECONDS);
+            messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertArrayEquals("The received message is the same as the sent one", receivedMessage, BINARY_MESSAGE);
         } catch (Exception e) {
             e.printStackTrace();

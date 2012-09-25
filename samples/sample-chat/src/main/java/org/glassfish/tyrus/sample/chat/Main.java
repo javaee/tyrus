@@ -40,10 +40,10 @@
 
 package org.glassfish.tyrus.sample.chat;
 
+import org.glassfish.tyrus.platform.main.Server;
+
 import java.io.IOException;
 import java.util.HashSet;
-
-import org.glassfish.tyrus.platform.main.Server;
 
 /**
  *
@@ -60,7 +60,7 @@ public class Main {
         }
 
         Server.setWebMode(false);
-        Server server = new Server("localhost", 8080, "/sample-chat", beans);
+        Server server = new Server("localhost", 8025, "/sample-chat", beans);
 
         try {
             server.start();

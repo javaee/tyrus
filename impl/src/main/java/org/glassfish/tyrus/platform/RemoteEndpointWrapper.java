@@ -241,6 +241,7 @@ public final class RemoteEndpointWrapper<T> implements RemoteEndpoint<T>{
     }
 
     public void close(CloseReason cr) throws IOException {
+        System.out.println("Close  public void close(CloseReason cr)");
         this.providedRemoteEndpoint.close(1000, null);
     }
 

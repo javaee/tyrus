@@ -39,16 +39,26 @@
  */
 package org.glassfish.tyrus.sample.chat;
 
-import java.io.IOException;
+import org.glassfish.tyrus.sample.chat.chatdata.ChatTranscriptUpdateMessage;
+import org.glassfish.tyrus.sample.chat.chatdata.ChatUpdateMessage;
+import org.glassfish.tyrus.sample.chat.chatdata.DisconnectRequestMessage;
+import org.glassfish.tyrus.sample.chat.chatdata.DisconnectResponseMessage;
+import org.glassfish.tyrus.sample.chat.chatdata.LoginRequestMessage;
+import org.glassfish.tyrus.sample.chat.chatdata.LoginResponseMessage;
+import org.glassfish.tyrus.sample.chat.chatdata.UserListUpdateMessage;
+
 import javax.net.websocket.CloseReason;
-import javax.net.websocket.EncodeException;
 import javax.net.websocket.RemoteEndpoint;
 import javax.net.websocket.Session;
+import javax.net.websocket.annotations.WebSocketClose;
+import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketMessage;
+import javax.net.websocket.annotations.WebSocketOpen;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
-import javax.net.websocket.annotations.*;
-import org.glassfish.tyrus.sample.chat.chatdata.*;
 
 
 @WebSocketEndpoint(path = "/chat",
@@ -60,26 +70,25 @@ public class ChatServer {
 
     final static Logger logger = Logger.getLogger("application");
 
+    private ConcurrentHashMap<String, Session> connections = new ConcurrentHashMap<String, Session>();
+
     private List<String> chatTranscript = new ArrayList<String>();
     static int transcriptMaxLines = 20;
 
     @WebSocketOpen
-    public void init(RemoteEndpoint remote) {
+    public void init(Session s) {
         logger.info("############Someone connected...");
     }
 
     @WebSocketMessage
-    public void handleLoginRequest(LoginRequestMessage lrm, ChatClientRemote ccr) {
-
-        String newUsername = this.registerNewUsername(lrm.getUsername(), ccr);
+    public void handleLoginRequest(LoginRequestMessage lrm, Session session) {
+        String newUsername = this.registerNewUsername(lrm.getUsername(), session);
         logger.info("Signing " + newUsername + " into chat.");
         LoginResponseMessage lres = new LoginResponseMessage(newUsername);
         try {
-            ccr.sendLoginResponseChanged(lres);
+            session.getRemote().sendString(lres.asString());
         } catch (IOException ioe) {
             logger.warning("Error signing " + lrm.getUsername() + " into chat : " + ioe.getMessage());
-        } catch (EncodeException ce) {
-            logger.warning("Error serializing message " + lres + " : " + ce.getMessage());
         }
 
         this.addToTranscriptAndNotify(newUsername, " has just joined.");
@@ -102,54 +111,45 @@ public class ChatServer {
     }
 
     @WebSocketClose
-    public void handleClientClose(ChatClientRemote ccr) {
+    public void handleClientClose(Session session) {
+        String username = null;
         logger.info("The web socket closed");
-        String username = (String) ccr.getSession().getProperties().get("username");
+        for (String s : connections.keySet()) {
+            if(session.equals(connections.get(s))){
+                username = s;
+            }
+        }
+
         if (username != null) {
             this.removeUserAndBroadcast(username);
             this.addToTranscriptAndNotify(username, " has just left...rather abruptly !");
         }
     }
 
-    private List<String> getUsernames() {
-        List<String> usernames = new ArrayList<String>();
-        for (Session nextSession : this.context.getConversations()) {
-            String nextUsername = (String) nextSession.getProperties().get("username");
-            if (nextUsername != null) {
-                usernames.add(nextUsername);
-            }
-        }
-        return usernames;
-    }
-
     private void broadcastUserList() {
         logger.info("Broadcasting updated user list");
-        UserListUpdateMessage ulum = new UserListUpdateMessage(this.getUsernames());
-        for (Session nextSession : this.context.getConversations()) {
-            ChatClientRemote chatClient = (ChatClientRemote) nextSession.getRemote();
+        UserListUpdateMessage ulum = new UserListUpdateMessage(new ArrayList(connections.keySet()));
+        for (Session nextSession : connections.values()) {
+            RemoteEndpoint remote = nextSession.getRemote();
             try {
-                chatClient.sendUserListUpdate(ulum);
+                remote.sendString(ulum.asString());
             } catch (IOException ioe) {
-                logger.warning("Error updating a client " + chatClient + " : " + ioe.getMessage());
-            } catch (EncodeException ce) {
-                logger.warning("Error serializing message " + ulum);
+                logger.warning("Error updating a client " + remote + " : " + ioe.getMessage());
             }
         }
     }
 
     private void removeUserAndBroadcast(String username) {
         logger.info("Removing " + username + " from chat.");
-        for (Session nextSession : this.context.getConversations()) {
-            if (username.equals(nextSession.getProperties().get("username"))) {
-                try {
-                    nextSession.close(new CloseReason(CloseReason.Code.NORMAL_CLOSURE, "User logged off"));
-                } catch (IOException ioe) {
-                    System.out.println("Failed to expire the session: " + ioe.getMessage());
-                }
+        Session nextSession = connections.get(username);
 
-            }
+        try {
+            nextSession.close(new CloseReason(CloseReason.Code.NORMAL_CLOSURE, "User logged off"));
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        ChatMessage cm = new UserListUpdateMessage(this.getUsernames());
+
+        connections.remove(username);
         this.broadcastUserList();
     }
 
@@ -158,16 +158,14 @@ public class ChatServer {
         transcriptEntry.add(this.chatTranscript.get(this.chatTranscript.size() - 1).toString());
         logger.info("Broadcasting updated transcript with " + transcriptEntry);
 
-        for (Session nextSession : this.context.getConversations()) {
-            ChatClientRemote chatClient = (ChatClientRemote) nextSession.getRemote();
-            if (chatClient != null) {
+        for (Session nextSession : connections.values()) {
+             RemoteEndpoint remote = nextSession.getRemote();
+            if (remote != null) {
                 ChatTranscriptUpdateMessage cm = new ChatTranscriptUpdateMessage(transcriptEntry);
                 try {
-                    chatClient.sendChatTranscriptUpdate(cm);
+                    remote.sendString(cm.asString());
                 } catch (IOException ioe) {
-                    logger.warning("Error updating a client " + chatClient + " : " + ioe.getMessage());
-                } catch (EncodeException ce) {
-                    logger.warning("Error serializing message " + cm);
+                    logger.warning("Error updating a client " + remote + " : " + ioe.getMessage());
                 }
             }
         }
@@ -181,13 +179,12 @@ public class ChatServer {
         this.broadcastUpdatedTranscript();
     }
 
-    private String registerNewUsername(String newUsername, ChatClientRemote chatClient) {
-        for (Session session : this.context.getConversations()) {
-            if (newUsername.equals(session.getProperties().get("username"))) {
-                return this.registerNewUsername(newUsername + "1", chatClient);
-            }
+    private String registerNewUsername(String newUsername, Session session) {
+        if(connections.containsKey(newUsername)){
+            return this.registerNewUsername(newUsername + "1", session);
         }
-        chatClient.getSession().getProperties().put("username", newUsername);
+
+        connections.put(newUsername, session);
         return newUsername;
     }
 }

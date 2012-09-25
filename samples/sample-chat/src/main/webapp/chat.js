@@ -1,5 +1,5 @@
 
-  var wsUri = "ws://localhost:8080/sample-chat/chat";
+  var wsUri = "ws://localhost:8025/sample-chat/chat";
   var output;
   var username = "";
   var debug = false;
@@ -14,12 +14,12 @@
     //chatTranscriptElt = document.getElementByID("chatTranscriptID");
     refreshForUsernameChange();
   }
-  
+
   function test() {
       writeToScreen(chatMessageTextID.value);
- 
+
   }
-  
+
   function clone() {
       alert("agh");
       //window.open("mychat.jsp", "chat2");
@@ -36,13 +36,13 @@
         websocket.onerror = function(evt) { onError(evt) };
     }
   }
-  
+
   function login()
   {
     writeToScreen("onOpen");
     websocket.send("lreq"+username);
   }
-  
+
   function handleResponse(evt) {
     var mString = evt.data.toString();
     if (mString.search("lres") == 0) {
@@ -56,7 +56,7 @@
     if (mString.search("ctupd") == 0) {
         var transcriptUpdate = mString.substring(6, mString.length);
         updateTranscript(transcriptUpdate);
-    } 
+    }
     if (mString.search("ulupd") == 0) {
         writeToScreen("Userlistupdate: " + mString);
         var updateString = mString.substring(6, mString.length);
@@ -66,15 +66,16 @@
     }
     writeToScreen('<span style="color: blue;">RESPONSE: ' + evt.data+'</span>');
   }
- 
-  
+
+
   function do_logout() {
       websocket.send("dreq" + username);
       username = "";
       refreshForUsernameChange();
+      writeToScreen("ClosinG!!!");
       websocket.close();
   }
-  
+
   function send_chatmessage() {
       var chatString = chatMessageTextID.value;
       if (chatString.length > 0) {
@@ -87,11 +88,11 @@
   {
     writeToScreen('<span style="color: red;">ERROR:</span> ' + evt.data);
   }
-  
+
   function isLoggedIn() {
       return (username != "");
   }
-  
+
   function handleLoginLogout() {
       if (isLoggedIn()) {
           do_logout();
@@ -99,7 +100,7 @@
           do_login();
       }
   }
-  
+
   function writeToScreen(message) {
       if (debug) {
         var pre = document.createElement("p");
@@ -108,7 +109,7 @@
         output.appendChild(pre);
     }
   }
-  
+
   function refreshForUsernameChange() {
       writeToScreen("Refresh for " + username);
       var newTitle = "WSBean Chat Client"
@@ -128,12 +129,12 @@
       var titleNode = document.getElementById("titleID");
       titleNode.textContent = newTitle;
   }
-  
+
   function updateTranscript(str) {
       chatTranscriptID.textContent = chatTranscriptID.textContent + "\n" + str;
 
   }
-  
+
   function refresh_userlist(rawStr) {
       var indexOfNext = -1;
       var stringLeft = rawStr;
@@ -156,9 +157,9 @@
           }
       }
   }
-  
+
 
 
   window.addEventListener("load", init, false);
- 
+
 

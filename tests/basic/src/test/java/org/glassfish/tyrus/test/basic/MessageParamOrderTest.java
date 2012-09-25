@@ -124,7 +124,7 @@ public class MessageParamOrderTest {
                     messageLatch.countDown();
                 }
             });
-            messageLatch.await(5000, TimeUnit.SECONDS);
+            messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertTrue("The received message is the same as the sent one", receivedMessage.equals(SENT_MESSAGE));
         } catch (Exception e) {
             e.printStackTrace();
