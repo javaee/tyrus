@@ -55,7 +55,6 @@ import java.util.Set;
  */
 public class ServerContainerImpl extends WithProperties implements ServerContainer {
     static ServerContainerImpl instance;
-    static boolean WEB_MODE = true;
     private String wsPath;
     private int port;
     private BeanServer beanServer;
@@ -82,17 +81,6 @@ public class ServerContainerImpl extends WithProperties implements ServerContain
 
     public int getPort() {
         return this.port;
-    }
-
-//    @Override
-//    public void Xdeploy(Endpoint endpoint, String path) {
-//        WebSocketEndpointAdapter adapter = new WebSocketEndpointAdapter(this, endpoint, path);
-//        adapter.init();
-//        this.beanServer.deploy(adapter);
-//    }
-
-    public static void setWebMode(boolean b) {
-        WEB_MODE = b;
     }
 
     @Override

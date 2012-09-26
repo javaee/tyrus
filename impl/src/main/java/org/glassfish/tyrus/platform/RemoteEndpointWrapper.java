@@ -136,21 +136,25 @@ public final class RemoteEndpointWrapper<T> implements RemoteEndpoint<T>{
     @Override
     public void sendString(String data) throws IOException {
         this.providedRemoteEndpoint.send(data);
+        this.webSocketSession.updateLastConnectionActivity();
     }
 
     @Override
     public void sendBytes(byte[] data) throws IOException {
         this.providedRemoteEndpoint.send(data);
+        this.webSocketSession.updateLastConnectionActivity();
     }
 
     @Override
     public void sendPartialString(String fragment, boolean isLast) throws IOException {
+        this.webSocketSession.updateLastConnectionActivity();
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
 
     @Override
     public void sendPartialBytes(byte[] partialByte, boolean isLast) throws IOException {
+        this.webSocketSession.updateLastConnectionActivity();
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
@@ -167,31 +171,37 @@ public final class RemoteEndpointWrapper<T> implements RemoteEndpoint<T>{
 
     @Override
     public void sendObject(T o) throws IOException, EncodeException {
+        this.webSocketSession.updateLastConnectionActivity();
         sendPolymorphic(o);
     }
 
     @Override
     public Future<SendResult> sendString(String text, SendHandler completion) {
+        this.webSocketSession.updateLastConnectionActivity();
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
     public Future<SendResult> sendBytes(byte[] data, SendHandler completion) {
+        this.webSocketSession.updateLastConnectionActivity();
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
     public Future<SendResult> sendObject(T o, SendHandler handler) {
+        this.webSocketSession.updateLastConnectionActivity();
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
     public void sendPing(byte[] applicationData) {
+        this.webSocketSession.updateLastConnectionActivity();
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
     public void sendPong(byte[] applicationData) {
+        this.webSocketSession.updateLastConnectionActivity();
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
@@ -247,5 +257,9 @@ public final class RemoteEndpointWrapper<T> implements RemoteEndpoint<T>{
 
     public Session getSession() {
         return webSocketSession;
+    }
+
+    public void updateLastConnectionActivity(){
+        webSocketSession.updateLastConnectionActivity();
     }
 }

@@ -72,7 +72,7 @@ public class HelloTest {
             messageLatch = new CountDownLatch(1);
 
             WebSocketClient client = WebSocketClient.createClient();
-            client.openSocket("ws://localhost:8025/websockets/tests/hello", 10000, new EndpointAdapter() {
+            client.openSocket("wss://localhost:8025/websockets/tests/hello", 10000, new EndpointAdapter() {
 
                 @Override
                 public void onConnect(SPIRemoteEndpoint p) {

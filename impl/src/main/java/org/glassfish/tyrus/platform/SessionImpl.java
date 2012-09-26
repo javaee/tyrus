@@ -92,18 +92,47 @@ public class SessionImpl implements Session {
     /**
      * Session timeout.
      */
-    private long timeout = 60 * 1000000;
+    private long timeout;
 
     /**
-     * Max. size of message
+     * Max. size of message.
      */
     private long maximumMessageSize = 8192;
 
-
+    /**
+     * Registered message handlers.
+     */
     private Set<MessageHandler> messageHandlers = new HashSet<MessageHandler>();
+
+    /**
+     * Registered encoders.
+     */
     private Set<Encoder> encoders = new HashSet<Encoder>();
 
+    /**
+     * Used for ID computation.
+     */
     private static final AtomicLong count = new AtomicLong();
+
+    /**
+     * Sub-protocol negotiated during the handshake phase.
+     */
+    private String negotiatedSubprotocol;
+
+    /**
+     * Extensions used for this Session.
+     */
+    private List<Extension> negotiatedExtensions;
+
+    /**
+     * This Session is secure.
+     */
+    private boolean isSecure;
+
+    /**
+     * Timestamp of the last send/receive message activity.
+     */
+    private long lastConnectionActivity;
 
     SessionImpl() {
         this.id = count.getAndIncrement();
@@ -129,7 +158,7 @@ public class SessionImpl implements Session {
 
     @Override
     public String getNegotiatedSubprotocol() {
-        return "not implemented";
+        return negotiatedSubprotocol;
     }
 
     @Override
@@ -191,6 +220,7 @@ public class SessionImpl implements Session {
 
     public void setTimeout(long seconds) {
         this.timeout = seconds;
+
     }
 
     @Override
@@ -205,17 +235,17 @@ public class SessionImpl implements Session {
 
     @Override
     public List<Extension> getNegotiatedExtensions() {
-        throw new UnsupportedOperationException();
+        return this.negotiatedExtensions;
     }
 
     @Override
     public boolean isSecure() {
-        throw new UnsupportedOperationException();
+        return isSecure;
     }
 
     @Override
     public long getInactiveTime() {
-        throw new UnsupportedOperationException();
+        return (System.currentTimeMillis() - this.lastConnectionActivity)/1000;
     }
 
     @Override
@@ -241,6 +271,10 @@ public class SessionImpl implements Session {
     @Override
     public URI getRequestURI() {
         return URI.create(peer.getAddress());
+    }
+
+    protected void updateLastConnectionActivity(){
+        this.lastConnectionActivity = System.currentTimeMillis();
     }
 
     void notifyMessageHandlers(String message) {

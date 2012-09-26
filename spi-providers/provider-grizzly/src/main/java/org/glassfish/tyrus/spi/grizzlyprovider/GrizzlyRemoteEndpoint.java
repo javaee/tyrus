@@ -39,10 +39,11 @@
  */
 package org.glassfish.tyrus.spi.grizzlyprovider;
 
-import java.io.IOException;
-import java.util.concurrent.ConcurrentHashMap;
 import org.glassfish.grizzly.websockets.WebSocket;
 import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
+
+import java.io.IOException;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  *
@@ -87,7 +88,7 @@ public class GrizzlyRemoteEndpoint implements SPIRemoteEndpoint {
     public void send(byte[] data) throws IOException {
         this.socket.send(data);
     }
-    
+
     @Override
     public void close(int code, String reason) throws IOException {
         this.socket.close(code, reason);

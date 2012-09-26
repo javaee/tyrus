@@ -302,6 +302,7 @@ public class WebSocketEndpointImpl implements SPIEndpoint {
 
     private void processMessage(SPIRemoteEndpoint gs, Object o, boolean isString) {
         RemoteEndpointWrapper peer = getPeer(gs);
+        peer.updateLastConnectionActivity();
 
         try {
 

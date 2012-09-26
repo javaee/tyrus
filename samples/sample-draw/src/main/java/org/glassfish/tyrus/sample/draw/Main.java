@@ -60,7 +60,6 @@ public class Main {
             e.printStackTrace();
         }
 
-        Server.setWebMode(false);
         Server server = new Server("localhost", 8025, "/sample-draw", beans);
 
         try {

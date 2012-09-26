@@ -42,7 +42,6 @@ package org.glassfish.tyrus.platform.main;
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.grizzly.websockets.WebSocketAddOn;
 import org.glassfish.tyrus.platform.BeanServer;
-import org.glassfish.tyrus.platform.ServerContainerImpl;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -122,14 +121,6 @@ public class Server {
         this.beans = beans;
     }
 
-    /**
-     * Sets the web node.
-     *
-     * @param b web node mode
-     */
-    public static void setWebMode(boolean b) {
-        ServerContainerImpl.setWebMode(b);
-    }
 
     /**
      * Start the server.

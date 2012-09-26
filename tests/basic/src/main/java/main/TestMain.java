@@ -39,8 +39,6 @@
  */
 package main;
 
-import org.glassfish.tyrus.platform.main.Server;
-
 import java.io.File;
 import java.io.FileInputStream;
 
@@ -66,9 +64,6 @@ public class TestMain {
         }
         fis.close();
         args[3] = rawClassList;
-        Server.setWebMode(false);
-
-        //Server.main(args);
     }
 
 }
