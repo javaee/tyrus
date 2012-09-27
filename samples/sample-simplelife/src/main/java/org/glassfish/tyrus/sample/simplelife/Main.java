@@ -40,10 +40,10 @@
 
 package org.glassfish.tyrus.sample.simplelife;
 
+import org.glassfish.tyrus.platform.main.Server;
+
 import java.io.IOException;
 import java.util.HashSet;
-
-import org.glassfish.tyrus.platform.main.Server;
 
 /**
  *
@@ -59,7 +59,6 @@ public class Main {
             e.printStackTrace();
         }
 
-        Server.setWebMode(false);
         Server server = new Server("localhost", 8080, "/sample-simplelife", beans);
 
         try {

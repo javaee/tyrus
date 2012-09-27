@@ -39,10 +39,10 @@
  */
 package org.glassfish.tyrus.sample.auction;
 
+import org.glassfish.tyrus.platform.main.Server;
+
 import java.io.IOException;
 import java.util.HashSet;
-
-import org.glassfish.tyrus.platform.main.Server;
 
 /**
  * Starts the server using the command line arguments
@@ -58,8 +58,7 @@ public class Main {
             e.printStackTrace();
         }
 
-        Server.setWebMode(false);
-        Server server = new Server("localhost", 8080, "/sample-auction", beans);
+        Server server = new Server("localhost", 8025, "/sample-auction", beans);
 
         try {
             server.start();

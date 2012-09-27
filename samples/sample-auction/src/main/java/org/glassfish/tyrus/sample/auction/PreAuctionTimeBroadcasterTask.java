@@ -39,12 +39,13 @@
  */
 package org.glassfish.tyrus.sample.auction;
 
+import org.glassfish.tyrus.sample.auction.message.PreAuctionTimeBroadcastMessage;
+
+import javax.net.websocket.Session;
 import java.io.IOException;
 import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.net.websocket.EncodeException;
-import org.glassfish.tyrus.sample.auction.message.PreAuctionTimeBroadcastMessage;
 
 /**
  *
@@ -75,12 +76,10 @@ public class PreAuctionTimeBroadcasterTask extends TimerTask {
                 String diffString = convertTimeDiffToString(diff);
                 PreAuctionTimeBroadcastMessage tbm = new PreAuctionTimeBroadcastMessage("0", diffString);
 
-                for (AuctionRemoteClient arc : owner.getRemoteClients()) {
+                for (Session arc : owner.getRemoteClients()) {
                     try {
-                        arc.sendPreAuctionTimeBroadcast(tbm);
+                        arc.getRemote().sendString(tbm.asString());
                     } catch (IOException ex) {
-                        Logger.getLogger(PreAuctionTimeBroadcasterTask.class.getName()).log(Level.SEVERE, null, ex);
-                    } catch (EncodeException ex) {
                         Logger.getLogger(PreAuctionTimeBroadcasterTask.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }

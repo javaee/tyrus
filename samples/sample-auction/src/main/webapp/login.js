@@ -1,4 +1,4 @@
-var wsUri = "ws://localhost:8080/sample-auction/auction";
+var wsUri = "ws://localhost:8025/sample-auction/auction";
 var output;
 var debug = false;
 var websocket;
@@ -25,7 +25,7 @@ function login(){
 }
 
 function doLogin(){
-    var myStr = "xlog"+separator+id+separator+document.getElementById( "loginID" ).value;
+    var myStr = "lreq"+separator+id+separator+document.getElementById( "loginID" ).value;
     websocket.send(myStr);
     window.setTimeout('to_select()', 10);
 }
