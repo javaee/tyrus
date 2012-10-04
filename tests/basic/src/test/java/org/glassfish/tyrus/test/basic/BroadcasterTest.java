@@ -40,7 +40,7 @@
 
 package org.glassfish.tyrus.test.basic;
 
-import org.glassfish.tyrus.client.WebSocketClient;
+import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.platform.EndpointAdapter;
 import org.glassfish.tyrus.platform.main.Server;
 import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
@@ -71,9 +71,9 @@ public class BroadcasterTest {
             final TestEndpointAdapter ea1 = new TestEndpointAdapter(messageLatch);
             final TestEndpointAdapter ea2 = new TestEndpointAdapter(messageLatch);
 
-            final WebSocketClient client1 = WebSocketClient.createClient();
+            final ClientManager client1 = ClientManager.createClient();
             client1.openSocket("ws://localhost:8025/websockets/tests/broadcast",10000,ea1);
-            final WebSocketClient client2 = WebSocketClient.createClient();
+            final ClientManager client2 = ClientManager.createClient();
             client2.openSocket("ws://localhost:8025/websockets/tests/broadcast", 10000, ea1);
 
             synchronized (ea1) {

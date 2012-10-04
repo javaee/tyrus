@@ -44,27 +44,33 @@ import org.glassfish.tyrus.platform.ServerContainerImpl;
 import org.glassfish.tyrus.platform.WebSocketEndpointImpl;
 import org.glassfish.tyrus.spi.SPIEndpoint;
 
+import javax.net.websocket.ClientConfiguration;
+import javax.net.websocket.ClientContainer;
+import javax.net.websocket.Endpoint;
+import javax.net.websocket.Session;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashSet;
 import java.util.Set;
 
 /**
- * WebSocketClient implementation.
+ * ClientManager implementation.
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class WebSocketClient {
+public class ClientManager implements ClientContainer {
 
     private Set<GrizzlyWebSocket> sockets = new HashSet<GrizzlyWebSocket>();
 
+    private long timeout;
+
     /**
-     * Create new WebSocketClient instance.
+     * Create new ClientManager instance.
      *
-     * @return new WebSocketClient instance.
+     * @return new ClientManager instance.
      */
-    public static WebSocketClient createClient() {
-        return new WebSocketClient();
+    public static ClientManager createClient() {
+        return new ClientManager();
     }
 
     /**
@@ -105,5 +111,49 @@ public class WebSocketClient {
         gws.connect();
         sockets.add(gws);
         return gws;
+    }
+
+    //implementing ClientContainer methods
+
+    @Override
+    public void connectToServer(Endpoint endpoint, ClientConfiguration olc) {
+        if(olc instanceof ProvidedClientConfiguration){
+            this.openSocket(((ProvidedClientConfiguration) olc).getUri().toString(), 10000, endpoint);
+        }
+    }
+
+    @Override
+    public Set<Session> getActiveSessions() {
+        return null;
+    }
+
+    @Override
+    public long getMaxSessionIdleTimeout() {
+        return 0;
+    }
+
+    @Override
+    public void setMaxSessionIdleTimeout(long timeout) {
+
+    }
+
+    @Override
+    public long getMaxBinaryMessageBufferSize() {
+        return 0;
+    }
+
+    @Override
+    public void setMaxBinaryMessageBufferSize(long max) {
+
+    }
+
+    @Override
+    public long getMaxTextMessageBufferSize() {
+        return 0;
+    }
+
+    @Override
+    public void setMaxTextMessageBufferSize(long max) {
+
     }
 }

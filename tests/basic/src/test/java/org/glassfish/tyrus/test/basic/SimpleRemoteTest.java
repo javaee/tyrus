@@ -40,7 +40,7 @@
 
 package org.glassfish.tyrus.test.basic;
 
-import org.glassfish.tyrus.client.WebSocketClient;
+import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.platform.EndpointAdapter;
 import org.glassfish.tyrus.platform.main.Server;
 import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
@@ -73,7 +73,7 @@ public class SimpleRemoteTest {
         Server server = new Server(org.glassfish.tyrus.test.basic.bean.SimpleRemoteTestBean.class);
         server.start();
         try {
-            final WebSocketClient client = WebSocketClient.createClient();
+            final ClientManager client = ClientManager.createClient();
             client.openSocket("ws://localhost:8025/websockets/tests/hello", 10000, new EndpointAdapter() {
                 @Override
                 public void onConnect(SPIRemoteEndpoint p) {
@@ -116,9 +116,9 @@ public class SimpleRemoteTest {
                         final CountDownLatch perClientLatch = new CountDownLatch(2);
                         final String[] message = new String[] {SENT_MESSAGE + msgNumber.incrementAndGet(),
                                 SENT_MESSAGE + msgNumber.incrementAndGet()};
-                        // replace WebSocketClient with MockWebSocketClient to confirm the test passes if the backend
+                        // replace ClientManager with MockWebSocketClient to confirm the test passes if the backend
                         // does not have issues
-                        final WebSocketClient client = WebSocketClient.createClient();
+                        final ClientManager client = ClientManager.createClient();
                         client.openSocket("ws://localhost:8025/websockets/tests/customremote/hello", 10000, new EndpointAdapter() {
 
                             @Override

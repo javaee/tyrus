@@ -49,7 +49,7 @@ import org.glassfish.grizzly.websockets.WebSocketListener;
 /**
  * Mock client that can be used to confirm that the test is written correctly. When writing a test and not sure if the
  * failures happen due to issues in the test or issues in the web socket runtime, you can simply replace usages of
- * WebSocketClient in the test by this class and see if the test passes.
+ * ClientManager in the test by this class and see if the test passes.
  *
  *  @author Martin Matula (martin.matula at oracle.com)
  */

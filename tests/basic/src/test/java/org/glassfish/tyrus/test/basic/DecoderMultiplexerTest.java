@@ -40,7 +40,7 @@
 
 package org.glassfish.tyrus.test.basic;
 
-import org.glassfish.tyrus.client.WebSocketClient;
+import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.platform.EndpointAdapter;
 import org.glassfish.tyrus.platform.main.Server;
 import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
@@ -75,7 +75,7 @@ public class DecoderMultiplexerTest {
         try {
             messageLatch = new CountDownLatch(1);
 
-            WebSocketClient client = WebSocketClient.createClient();
+            ClientManager client = ClientManager.createClient();
 
             TestAdapter ta = new TestAdapter();
             client.openSocket("ws://localhost:8025/websockets/tests/decodermultiplexer", 10000, ta);

@@ -51,6 +51,7 @@ import java.io.IOException;
  * for example.
  *
  * @author dannycoward
+ * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 public interface SPIRemoteEndpoint {
 

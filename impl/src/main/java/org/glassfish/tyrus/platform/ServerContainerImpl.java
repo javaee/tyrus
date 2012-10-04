@@ -93,16 +93,19 @@ public class ServerContainerImpl extends WithProperties implements ServerContain
      * @param endpoint
      * @param ilc
      */
+    @Override
     public void publishServer(Endpoint endpoint, ServerConfiguration ilc) {
         throw new UnsupportedOperationException("");
     }
 
+    @Override
     public void connectToServer(Endpoint endpoint, ClientConfiguration olc) {
          throw new UnsupportedOperationException("");
     }
     /** Return an unordered collection of the currently active web socket sessions.
      * @return
      */
+    @Override
     public Set<Session> getActiveSessions() {
          throw new UnsupportedOperationException("");
     }
@@ -111,6 +114,7 @@ public class ServerContainerImpl extends WithProperties implements ServerContain
      * the container may close it.
      * @return
      */
+    @Override
     public long getMaxSessionIdleTimeout() {
          throw new UnsupportedOperationException("");
     }
@@ -118,6 +122,7 @@ public class ServerContainerImpl extends WithProperties implements ServerContain
      * the container may close it.
      * @return
      */
+    @Override
     public void setMaxSessionIdleTimeout(long timeout) {
          throw new UnsupportedOperationException("");
     }
@@ -125,6 +130,7 @@ public class ServerContainerImpl extends WithProperties implements ServerContain
       * will buffer.
       * @return
       */
+     @Override
     public long getMaxBinaryMessageBufferSize() {
          throw new UnsupportedOperationException("");
     }
@@ -132,6 +138,7 @@ public class ServerContainerImpl extends WithProperties implements ServerContain
       * will buffer.
       * @return
       */
+    @Override
     public void setMaxBinaryMessageBufferSize(long max) {
          throw new UnsupportedOperationException("");
     }
@@ -139,6 +146,7 @@ public class ServerContainerImpl extends WithProperties implements ServerContain
      * will buffer.
      * @return
      */
+    @Override
     public long getMaxTextMessageBufferSize() {
          throw new UnsupportedOperationException("");
     }
@@ -146,6 +154,7 @@ public class ServerContainerImpl extends WithProperties implements ServerContain
       * will buffer.
       * @return
       */
+     @Override
     public void setMaxTextMessageBufferSize(long max) {
          throw new UnsupportedOperationException("");
     }

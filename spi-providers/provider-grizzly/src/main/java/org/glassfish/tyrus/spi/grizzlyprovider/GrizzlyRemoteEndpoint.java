@@ -42,14 +42,21 @@ package org.glassfish.tyrus.spi.grizzlyprovider;
 import org.glassfish.grizzly.websockets.WebSocket;
 import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
 
+import javax.net.websocket.EncodeException;
+import javax.net.websocket.RemoteEndpoint;
+import javax.net.websocket.SendHandler;
+import javax.net.websocket.SendResult;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.Writer;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
 
 /**
  *
  * @author dannycoward
  */
-public class GrizzlyRemoteEndpoint implements SPIRemoteEndpoint {
+public class GrizzlyRemoteEndpoint implements SPIRemoteEndpoint, RemoteEndpoint {
     private WebSocket socket;
     private static ConcurrentHashMap<WebSocket, GrizzlyRemoteEndpoint> sockets = new ConcurrentHashMap<WebSocket, GrizzlyRemoteEndpoint>();
 
@@ -100,5 +107,68 @@ public class GrizzlyRemoteEndpoint implements SPIRemoteEndpoint {
             return ((GrizzlySocket)socket).getRequest().getRequestURI();
         }
         return null;
+    }
+
+
+    // Implementation of RemoteEndpoint methods, will be removed once the client side works.
+
+    @Override
+    public void sendString(String text) throws IOException {
+        this.socket.send(text);
+    }
+
+    @Override
+    public void sendBytes(byte[] data) throws IOException {
+        this.socket.send(data);
+    }
+
+    @Override
+    public void sendPartialString(String fragment, boolean isLast) throws IOException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void sendPartialBytes(byte[] partialByte, boolean isLast) throws IOException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public OutputStream getSendStream() throws IOException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Writer getSendWriter() throws IOException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void sendObject(Object o) throws IOException, EncodeException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Future<SendResult> sendString(String text, SendHandler completion) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Future<SendResult> sendBytes(byte[] data, SendHandler completion) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Future<SendResult> sendObject(Object o, SendHandler handler) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void sendPing(byte[] applicationData) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void sendPong(byte[] applicationData) {
+        throw new UnsupportedOperationException();
     }
 }

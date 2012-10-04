@@ -61,7 +61,6 @@ public class AnnotatedClientTest {
 
     private CountDownLatch messageLatch;
 
-    @Ignore
     @Test
     public void testSimpleMessage() {
 
@@ -70,7 +69,7 @@ public class AnnotatedClientTest {
         messageLatch = new CountDownLatch(1);
 
         try {
-            WebSocketClient client = WebSocketClient.createClient();
+            ClientManager client = ClientManager.createClient();
             client.openSocket("ws://localhost:8025/websockets/tests/echo", 10000,new ClientTestBean(this, true));
 
             messageLatch.await(5, TimeUnit.SECONDS);
@@ -91,7 +90,7 @@ public class AnnotatedClientTest {
         messageLatch = new CountDownLatch(1);
 
         try {
-            WebSocketClient client = WebSocketClient.createClient();
+            ClientManager client = ClientManager.createClient();
             client.openSocket("ws://localhost:8025/websockets/tests/echo", 10000,new ClientTestBean(this,false));
             messageLatch.await(5, TimeUnit.SECONDS);
             System.out.println("### Test receivedTestMessage: "+receivedTestMessage);

@@ -43,30 +43,23 @@ package org.glassfish.tyrus.sample.echo;
 import org.glassfish.tyrus.platform.main.Server;
 
 import java.io.IOException;
-import java.util.HashSet;
 
 /**
  *
  * @author dannycoward
+ * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 public class Main {
 
     public static void main(String[] args) {
-        HashSet<Class<?>> beans = new HashSet<Class<?>>();
-        try {
-            beans.add(Class.forName("org.glassfish.tyrus.sample.echo.EchoBean"));
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-
-        Server server = new Server("localhost", 8025, "/sample-echo", beans);
+        Server server = new Server("localhost", 8025, "/sample-echo", org.glassfish.tyrus.sample.echo.EchoBean.class);
 
         try {
             server.start();
             System.out.println("Press any key to stop the server...");
             System.in.read();
         } catch (IOException ioe) {
-            System.out.println("weird...");
+            ioe.printStackTrace();
         } finally {
             server.stop();
             System.out.println("Server stopped.");

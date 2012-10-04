@@ -39,12 +39,10 @@
  */
 package org.glassfish.tyrus.client;
 
-import javax.net.websocket.RemoteEndpoint;
-import javax.net.websocket.EncodeException;
+import javax.net.websocket.Session;
 import javax.net.websocket.annotations.WebSocketEndpoint;
 import javax.net.websocket.annotations.WebSocketMessage;
 import javax.net.websocket.annotations.WebSocketOpen;
-
 import java.io.IOException;
 
 /**
@@ -67,27 +65,25 @@ public class ClientTestBean {
     }
 
     @WebSocketOpen
-    public void onOpen(ClientTestRemote p) {
+    public void onOpen(Session p) {
         try {
             if(messageType){
-                p.sendString(SENT_MESSAGE);
+                p.getRemote().sendString(SENT_MESSAGE);
             }else{
-                p.sendTestMessage(new TestMessage(SENT_TEST_MESSAGE));
+                p.getRemote().sendString(SENT_TEST_MESSAGE);
             }
         } catch (IOException e) {
-            e.printStackTrace();
-        } catch (EncodeException e) {
             e.printStackTrace();
         }
     }
 
     @WebSocketMessage
-    public void onMessage(String message, RemoteEndpoint p) {
+    public void onMessage(String message) {
         act.setReceivedMessage(message);
     }
 
     @WebSocketMessage
-    public void onTestMesage(TestMessage tm, RemoteEndpoint p){
+    public void onTestMesage(TestMessage tm){
         act.setReceivedTestMessage(tm.getData());
     }
 }

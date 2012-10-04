@@ -148,7 +148,6 @@ public final class RemoteEndpointWrapper<T> implements RemoteEndpoint<T>{
     @Override
     public void sendPartialString(String fragment, boolean isLast) throws IOException {
         this.webSocketSession.updateLastConnectionActivity();
-        throw new UnsupportedOperationException("Not yet implemented");
     }
 
 

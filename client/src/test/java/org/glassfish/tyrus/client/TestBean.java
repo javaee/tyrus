@@ -41,10 +41,9 @@
 package org.glassfish.tyrus.client;
 
 
-import javax.net.websocket.RemoteEndpoint;
+import javax.net.websocket.Session;
 import javax.net.websocket.annotations.WebSocketEndpoint;
 import javax.net.websocket.annotations.WebSocketMessage;
-
 import java.io.IOException;
 
 /**
@@ -55,12 +54,12 @@ import java.io.IOException;
 @WebSocketEndpoint(path = "/echo")
 public class TestBean {
     @WebSocketMessage
-    public void helloWorld(String message, RemoteEndpoint p) {
+    public void helloWorld(String message, Session session) {
         try {
 
             System.out.println("##### Test Bean: Received message: "+message);
 
-            p.sendString(message);
+            session.getRemote().sendString(message);
         } catch (IOException e) {
             e.printStackTrace();
         }

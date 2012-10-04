@@ -40,7 +40,7 @@
 
 package org.glassfish.tyrus.test.basic;
 
-import org.glassfish.tyrus.client.WebSocketClient;
+import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.platform.EndpointAdapter;
 import org.glassfish.tyrus.platform.main.Server;
 import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
@@ -74,7 +74,7 @@ public class TwoRemoteTest {
         server.start();
         try {
             messageLatch = new CountDownLatch(2);
-            final WebSocketClient client = WebSocketClient.createClient();
+            final ClientManager client = ClientManager.createClient();
             client.openSocket("ws://localhost:8025/websockets/tests/twomethodremote", 10000, new EndpointAdapter() {
                 @Override
                 public void onConnect(SPIRemoteEndpoint p) {

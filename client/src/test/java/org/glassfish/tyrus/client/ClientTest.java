@@ -43,7 +43,6 @@ import org.glassfish.tyrus.platform.EndpointAdapter;
 import org.glassfish.tyrus.platform.main.Server;
 import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.IOException;
@@ -63,7 +62,6 @@ public class ClientTest {
 
     private static final String SENT_MESSAGE = "hello";
 
-    @Ignore
     @Test
     public void testClient() {
         Server server = new Server("org.glassfish.tyrus.client.TestBean");
@@ -73,7 +71,7 @@ public class ClientTest {
 
         try {
 
-            WebSocketClient client = (WebSocketClient) WebSocketClient.createClient();
+            ClientManager client = ClientManager.createClient();
             client.openSocket("ws://localhost:8025/websockets/tests/echo", 100000, new EndpointAdapter() {
 
                 @Override

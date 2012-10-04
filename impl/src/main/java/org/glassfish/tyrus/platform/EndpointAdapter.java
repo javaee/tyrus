@@ -50,7 +50,7 @@ import java.util.List;
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class EndpointAdapter implements SPIEndpoint{
+public class EndpointAdapter extends SPIEndpoint{
     @Override
     public boolean checkHandshake(SPIHandshakeRequest hr) {
         return false;

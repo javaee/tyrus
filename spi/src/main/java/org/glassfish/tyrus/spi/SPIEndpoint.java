@@ -39,6 +39,8 @@
  */
 package org.glassfish.tyrus.spi;
 
+import javax.net.websocket.Endpoint;
+import javax.net.websocket.Session;
 import java.util.List;
 
 /**
@@ -48,7 +50,7 @@ import java.util.List;
  *
  * @author dannycoward
  */
-public interface SPIEndpoint {
+public abstract class SPIEndpoint extends Endpoint {
 
     /**
      * This method must be called by the provider during
@@ -61,7 +63,7 @@ public interface SPIEndpoint {
      * @param hr <code>SPIHandshakeRequest</code> that is going to be checked.
      * @return <code>true</code> if handshake is successful <code>false</code> otherwise.
      */
-    public boolean checkHandshake(SPIHandshakeRequest hr);
+    public abstract boolean checkHandshake(SPIHandshakeRequest hr);
 
     /**
      * Called by the provider when the web socket connection
@@ -69,7 +71,7 @@ public interface SPIEndpoint {
      *
      * @param gs SPIRemoteEndpoint who has just connected to this web socket endpoint.
      */
-    public void onConnect(SPIRemoteEndpoint gs);
+    public abstract void onConnect(SPIRemoteEndpoint gs);
 
     /**
      * Called by the provider when the web socket connection
@@ -78,7 +80,7 @@ public interface SPIEndpoint {
      * @param gs            <code>SPIRemoteEndpoint</code> who sent the message.
      * @param messageString the String message.
      */
-    public void onMessage(SPIRemoteEndpoint gs, String messageString);
+    public abstract void onMessage(SPIRemoteEndpoint gs, String messageString);
 
     /**
      * Called by the provider when the web socket connection
@@ -87,7 +89,7 @@ public interface SPIEndpoint {
      * @param gs           <code>SPIRemoteEndpoint</code> who sent the message.
      * @param messageBytes the <code>byte[]</code> message.
      */
-    public void onMessage(SPIRemoteEndpoint gs, byte[] messageBytes);
+    public abstract void onMessage(SPIRemoteEndpoint gs, byte[] messageBytes);
 
     /**
      * Called by the provider when the web socket connection
@@ -95,7 +97,7 @@ public interface SPIEndpoint {
      *
      * @param gs SPIRemoteEndpoint who has just closed the connection.
      */
-    public void onClose(SPIRemoteEndpoint gs);
+    public abstract void onClose(SPIRemoteEndpoint gs);
 
     /**
      * Called by the provider during the handshake to determine
@@ -105,11 +107,15 @@ public interface SPIEndpoint {
      * @param subProtocols the subprotocols to be checked.
      * @return List of supported subprotocols.
      */
-    public List<String> getSupportedProtocols(List<String> subProtocols);
+    public abstract List<String> getSupportedProtocols(List<String> subProtocols);
 
     /**
      * Called by the provider after all connections have been closed to
      * this endpoint, and after the endpoint has been removed from service.
      */
-    public void remove();
+    public abstract void remove();
+
+    //Endpoint method implementation
+
+    public void onOpen(Session session){}
 }

@@ -40,7 +40,7 @@
 
 package org.glassfish.tyrus.test.basic;
 
-import org.glassfish.tyrus.client.WebSocketClient;
+import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.platform.EndpointAdapter;
 import org.glassfish.tyrus.platform.main.Server;
 import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
@@ -77,7 +77,7 @@ public class JsonTest {
         messageLatch = new CountDownLatch(1);
 
         try {
-            WebSocketClient client = WebSocketClient.createClient();
+            ClientManager client = ClientManager.createClient();
             client.openSocket("ws://localhost:8025/websockets/tests/json", 10000, new EndpointAdapter() {
 
                 @Override

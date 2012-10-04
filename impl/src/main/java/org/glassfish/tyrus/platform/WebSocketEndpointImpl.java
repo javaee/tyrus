@@ -68,7 +68,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author dannycoward
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class WebSocketEndpointImpl implements SPIEndpoint {
+public class WebSocketEndpointImpl extends SPIEndpoint {
 
     /**
      * Path relative to the servlet context path
@@ -430,9 +430,5 @@ public class WebSocketEndpointImpl implements SPIEndpoint {
     @SuppressWarnings("unchecked")
     protected final RemoteEndpointWrapper getPeer(SPIRemoteEndpoint gs) {
         return RemoteEndpointWrapper.getRemoteWrapper(gs, this, server);
-    }
-
-    public ServerContainer getContainerContext() {
-        return containerContext;
     }
 }
