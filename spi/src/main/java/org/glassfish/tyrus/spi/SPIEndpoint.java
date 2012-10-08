@@ -40,6 +40,7 @@
 package org.glassfish.tyrus.spi;
 
 import javax.net.websocket.Endpoint;
+import javax.net.websocket.RemoteEndpoint;
 import javax.net.websocket.Session;
 import java.util.List;
 
@@ -71,7 +72,7 @@ public abstract class SPIEndpoint extends Endpoint {
      *
      * @param gs SPIRemoteEndpoint who has just connected to this web socket endpoint.
      */
-    public abstract void onConnect(SPIRemoteEndpoint gs);
+    public abstract void onConnect(RemoteEndpoint gs);
 
     /**
      * Called by the provider when the web socket connection
@@ -80,7 +81,7 @@ public abstract class SPIEndpoint extends Endpoint {
      * @param gs            <code>SPIRemoteEndpoint</code> who sent the message.
      * @param messageString the String message.
      */
-    public abstract void onMessage(SPIRemoteEndpoint gs, String messageString);
+    public abstract void onMessage(RemoteEndpoint gs, String messageString);
 
     /**
      * Called by the provider when the web socket connection
@@ -89,7 +90,7 @@ public abstract class SPIEndpoint extends Endpoint {
      * @param gs           <code>SPIRemoteEndpoint</code> who sent the message.
      * @param messageBytes the <code>byte[]</code> message.
      */
-    public abstract void onMessage(SPIRemoteEndpoint gs, byte[] messageBytes);
+    public abstract void onMessage(RemoteEndpoint gs, byte[] messageBytes);
 
     /**
      * Called by the provider when the web socket connection
@@ -97,7 +98,7 @@ public abstract class SPIEndpoint extends Endpoint {
      *
      * @param gs SPIRemoteEndpoint who has just closed the connection.
      */
-    public abstract void onClose(SPIRemoteEndpoint gs);
+    public abstract void onClose(RemoteEndpoint gs);
 
     /**
      * Called by the provider during the handshake to determine

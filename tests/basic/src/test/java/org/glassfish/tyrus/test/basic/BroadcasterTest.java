@@ -43,11 +43,11 @@ package org.glassfish.tyrus.test.basic;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.platform.EndpointAdapter;
 import org.glassfish.tyrus.platform.main.Server;
-import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
 import org.glassfish.tyrus.test.basic.bean.BroadcasterTestBean;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import javax.net.websocket.RemoteEndpoint;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -88,7 +88,7 @@ public class BroadcasterTest {
                 }
             }
 
-            ea1.peer.send(SENT_MESSAGE);
+            ea1.peer.sendString(SENT_MESSAGE);
 
             assertTrue("Timeout reached. Message latch value: " + messageLatch.getCount(),
                     messageLatch.await(5, TimeUnit.SECONDS));
@@ -102,20 +102,20 @@ public class BroadcasterTest {
 
     private static class TestEndpointAdapter extends EndpointAdapter {
         private final CountDownLatch messageLatch;
-        public SPIRemoteEndpoint peer;
+        public RemoteEndpoint peer;
 
         TestEndpointAdapter(CountDownLatch messageLatch) {
             this.messageLatch = messageLatch;
         }
 
         @Override
-        public synchronized void onConnect(SPIRemoteEndpoint gs) {
+        public synchronized void onConnect(RemoteEndpoint gs) {
             this.peer = gs;
             notifyAll();
         }
 
         @Override
-        public void onMessage(SPIRemoteEndpoint gs, String messageString) {
+        public void onMessage(RemoteEndpoint gs, String messageString) {
             messageLatch.countDown();
         }
     }

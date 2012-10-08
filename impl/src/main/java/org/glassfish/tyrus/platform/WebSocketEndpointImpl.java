@@ -43,7 +43,6 @@ package org.glassfish.tyrus.platform;
 import org.glassfish.tyrus.platform.utils.PrimitivesToBoxing;
 import org.glassfish.tyrus.spi.SPIEndpoint;
 import org.glassfish.tyrus.spi.SPIHandshakeRequest;
-import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
 
 import javax.net.websocket.DecodeException;
 import javax.net.websocket.Decoder;
@@ -284,23 +283,24 @@ public class WebSocketEndpointImpl extends SPIEndpoint {
     }
 
     @Override
-    public void onConnect(SPIRemoteEndpoint gs) {
+    public void onConnect(RemoteEndpoint gs) {
         RemoteEndpointWrapper peer = getPeer(gs);
-        peer.setAddress(gs.getUri());
+//        peer.setAddress(gs.getUri()); TODO set the correct address!
+        peer.setAddress(null);
         this.onGeneratedBeanConnect(peer);
     }
 
     @Override
-    public void onMessage(SPIRemoteEndpoint gs, byte[] messageBytes) {
+    public void onMessage(RemoteEndpoint gs, byte[] messageBytes) {
         processMessage(gs, messageBytes, false);
     }
 
     @Override
-    public void onMessage(SPIRemoteEndpoint gs, String messageString) {
+    public void onMessage(RemoteEndpoint gs, String messageString) {
         processMessage(gs, messageString, true);
     }
 
-    private void processMessage(SPIRemoteEndpoint gs, Object o, boolean isString) {
+    private void processMessage(RemoteEndpoint gs, Object o, boolean isString) {
         RemoteEndpointWrapper peer = getPeer(gs);
         peer.updateLastConnectionActivity();
 
@@ -384,7 +384,7 @@ public class WebSocketEndpointImpl extends SPIEndpoint {
     }
 
     @Override
-    public void onClose(SPIRemoteEndpoint gs) {
+    public void onClose(RemoteEndpoint gs) {
         RemoteEndpointWrapper wsw = getPeer(gs);
         this.onGeneratedBeanClose(wsw);
         wsw.discard();
@@ -428,7 +428,7 @@ public class WebSocketEndpointImpl extends SPIEndpoint {
     }
 
     @SuppressWarnings("unchecked")
-    protected final RemoteEndpointWrapper getPeer(SPIRemoteEndpoint gs) {
+    protected final RemoteEndpointWrapper getPeer(RemoteEndpoint gs) {
         return RemoteEndpointWrapper.getRemoteWrapper(gs, this, server);
     }
 }

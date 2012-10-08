@@ -43,11 +43,11 @@ package org.glassfish.tyrus.test.basic;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.platform.EndpointAdapter;
 import org.glassfish.tyrus.platform.main.Server;
-import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import javax.net.websocket.RemoteEndpoint;
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -96,27 +96,27 @@ public class DecoderMultiplexerTest {
     }
 
     private class TestAdapter extends EndpointAdapter {
-        private SPIRemoteEndpoint peer;
+        private RemoteEndpoint peer;
 
         @Override
-        public void onConnect(SPIRemoteEndpoint re) {
+        public void onConnect(RemoteEndpoint re) {
             try {
                 peer = re;
-                peer.send(MESSAGE_A);
+                peer.sendString(MESSAGE_A);
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
 
         @Override
-        public void onMessage(SPIRemoteEndpoint re, String message) {
+        public void onMessage(RemoteEndpoint re, String message) {
             receivedMessage = message;
             messageLatch.countDown();
         }
 
         public void sendMessage(String message) {
             try {
-                peer.send(message);
+                peer.sendString(message);
             } catch (IOException e) {
                 e.printStackTrace();
             }

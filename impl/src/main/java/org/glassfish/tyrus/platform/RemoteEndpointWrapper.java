@@ -40,8 +40,6 @@
 
 package org.glassfish.tyrus.platform;
 
-import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
-
 import javax.net.websocket.CloseReason;
 import javax.net.websocket.EncodeException;
 import javax.net.websocket.RemoteEndpoint;
@@ -67,7 +65,7 @@ public final class RemoteEndpointWrapper<T> implements RemoteEndpoint<T>{
     /**
      * Remote endpoint.
      */
-    private final SPIRemoteEndpoint providedRemoteEndpoint;
+    private final RemoteEndpoint providedRemoteEndpoint;
 
     /**
      * WebSocket Session implementation.
@@ -87,8 +85,8 @@ public final class RemoteEndpointWrapper<T> implements RemoteEndpoint<T>{
     /**
      * All wrappers.
      */
-    private static ConcurrentHashMap<SPIRemoteEndpoint, RemoteEndpointWrapper> wrappers
-            = new ConcurrentHashMap<SPIRemoteEndpoint, RemoteEndpointWrapper>();
+    private static ConcurrentHashMap<RemoteEndpoint, RemoteEndpointWrapper> wrappers
+            = new ConcurrentHashMap<RemoteEndpoint, RemoteEndpointWrapper>();
 
     /**
      * Get the RemoteEndpoint wrapper.
@@ -98,7 +96,7 @@ public final class RemoteEndpointWrapper<T> implements RemoteEndpoint<T>{
      * @param serverEndpoint server / client endpoint
      * @return wrapper corresponding to socket
      */
-    public static RemoteEndpointWrapper getRemoteWrapper(SPIRemoteEndpoint socket, WebSocketEndpointImpl application, boolean serverEndpoint) {
+    public static RemoteEndpointWrapper getRemoteWrapper(RemoteEndpoint socket, WebSocketEndpointImpl application, boolean serverEndpoint) {
         RemoteEndpointWrapper result = wrappers.get(socket);
         if (result == null) {
             result = new RemoteEndpointWrapper(socket, application);
@@ -108,7 +106,7 @@ public final class RemoteEndpointWrapper<T> implements RemoteEndpoint<T>{
     }
 
     @SuppressWarnings("LeakingThisInConstructor")
-    private RemoteEndpointWrapper(SPIRemoteEndpoint providedRemoteEndpoint, WebSocketEndpointImpl correspondingEndpoint) {
+    private RemoteEndpointWrapper(RemoteEndpoint providedRemoteEndpoint, WebSocketEndpointImpl correspondingEndpoint) {
         this.providedRemoteEndpoint = providedRemoteEndpoint;
         this.correspondingEndpoint = correspondingEndpoint;
         this.webSocketSession = new SessionImpl();
@@ -130,18 +128,19 @@ public final class RemoteEndpointWrapper<T> implements RemoteEndpoint<T>{
      * @return {@code true} iff the endpoint is connected, {@code false} otherwise.
      */
     public boolean isConnected() {
-        return this.providedRemoteEndpoint.isConnected();
+//        return this.providedRemoteEndpoint.isConnected(); TODO change
+        return true;
     }
 
     @Override
     public void sendString(String data) throws IOException {
-        this.providedRemoteEndpoint.send(data);
+        this.providedRemoteEndpoint.sendString(data);
         this.webSocketSession.updateLastConnectionActivity();
     }
 
     @Override
     public void sendBytes(byte[] data) throws IOException {
-        this.providedRemoteEndpoint.send(data);
+        this.providedRemoteEndpoint.sendBytes(data);
         this.webSocketSession.updateLastConnectionActivity();
     }
 
@@ -251,7 +250,7 @@ public final class RemoteEndpointWrapper<T> implements RemoteEndpoint<T>{
 
     public void close(CloseReason cr) throws IOException {
         System.out.println("Close  public void close(CloseReason cr)");
-        this.providedRemoteEndpoint.close(1000, null);
+//        this.providedRemoteEndpoint.close(1000, null);
     }
 
     public Session getSession() {

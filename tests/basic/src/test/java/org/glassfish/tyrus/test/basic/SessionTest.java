@@ -44,8 +44,8 @@ import junit.framework.Assert;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.platform.EndpointAdapter;
 import org.glassfish.tyrus.platform.main.Server;
-import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
 
+import javax.net.websocket.RemoteEndpoint;
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -73,16 +73,16 @@ public class SessionTest {
             client.openSocket("ws://localhost:8025/websockets/tests/session", 10000, new EndpointAdapter() {
 
                 @Override
-                public void onConnect(SPIRemoteEndpoint p) {
+                public void onConnect(RemoteEndpoint p) {
                     try {
-                        p.send(SENT_MESSAGE);
+                        p.sendString(SENT_MESSAGE);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                 }
 
                 @Override
-                public void onMessage(SPIRemoteEndpoint p, String message) {
+                public void onMessage(RemoteEndpoint p, String message) {
                     receivedMessage = message;
                     messageLatch.countDown();
                 }

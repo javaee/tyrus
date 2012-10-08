@@ -41,10 +41,10 @@ package org.glassfish.tyrus.client;
 
 import org.glassfish.tyrus.platform.EndpointAdapter;
 import org.glassfish.tyrus.platform.main.Server;
-import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
 import org.junit.Assert;
 import org.junit.Test;
 
+import javax.net.websocket.RemoteEndpoint;
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -75,9 +75,9 @@ public class ClientTest {
             client.openSocket("ws://localhost:8025/websockets/tests/echo", 100000, new EndpointAdapter() {
 
                 @Override
-                public void onConnect(SPIRemoteEndpoint gs) {
+                public void onConnect(RemoteEndpoint gs) {
                     try {
-                        gs.send(SENT_MESSAGE);
+                        gs.sendString(SENT_MESSAGE);
                         System.out.println("Sent message: " + SENT_MESSAGE);
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -85,7 +85,7 @@ public class ClientTest {
                 }
 
                 @Override
-                public void onMessage(SPIRemoteEndpoint gs, String message) {
+                public void onMessage(RemoteEndpoint gs, String message) {
                     receivedMessage = message;
                     messageLatch.countDown();
                     System.out.println("Received message = " + message);

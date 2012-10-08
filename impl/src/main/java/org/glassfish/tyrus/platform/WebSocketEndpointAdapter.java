@@ -40,9 +40,8 @@
 
 package org.glassfish.tyrus.platform;
 
-import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
-
 import javax.net.websocket.Endpoint;
+import javax.net.websocket.RemoteEndpoint;
 import javax.net.websocket.ServerContainer;
 
 /**
@@ -63,23 +62,23 @@ public class WebSocketEndpointAdapter extends WebSocketEndpointImpl {
 
     }
 
-    public void onConnect(SPIRemoteEndpoint gs) {
+    public void onConnect(RemoteEndpoint gs) {
         super.onConnect(gs);
         getPeer(gs).getSession().addMessageHandler(new MessageHandlerTextImpl(this.endpoint, getPeer(gs)));
         this.endpoint.onOpen(getPeer(gs).getSession());
     }
 
     @Override
-    public void onMessage(SPIRemoteEndpoint gs, String messageString) {
+    public void onMessage(RemoteEndpoint gs, String messageString) {
         ((SessionImpl) getPeer(gs).getSession()).notifyMessageHandlers(messageString);
     }
 
-    public void onMessage(SPIRemoteEndpoint gs, byte[] data) {
+    public void onMessage(RemoteEndpoint gs, byte[] data) {
         ((SessionImpl) getPeer(gs).getSession()).notifyMessageHandlers(data);
     }
 
     @Override
-    public void onClose(SPIRemoteEndpoint gs) {
+    public void onClose(RemoteEndpoint gs) {
         super.onClose(gs);
         this.endpoint.onClose(getPeer(gs).getSession());
     }

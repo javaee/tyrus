@@ -40,7 +40,6 @@
 package org.glassfish.tyrus.spi.grizzlyprovider;
 
 import org.glassfish.grizzly.websockets.WebSocket;
-import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
 
 import javax.net.websocket.EncodeException;
 import javax.net.websocket.RemoteEndpoint;
@@ -56,7 +55,7 @@ import java.util.concurrent.Future;
  *
  * @author dannycoward
  */
-public class GrizzlyRemoteEndpoint implements SPIRemoteEndpoint, RemoteEndpoint {
+public class GrizzlyRemoteEndpoint implements RemoteEndpoint {
     private WebSocket socket;
     private static ConcurrentHashMap<WebSocket, GrizzlyRemoteEndpoint> sockets = new ConcurrentHashMap<WebSocket, GrizzlyRemoteEndpoint>();
 
@@ -77,40 +76,16 @@ public class GrizzlyRemoteEndpoint implements SPIRemoteEndpoint, RemoteEndpoint 
         sockets.remove(socket);
     }
 
-    @Override
     public boolean isConnected() {
         return this.socket.isConnected();
     }
 
-    @Override
-    public void send(String data) throws IOException {
-        try {
-            this.socket.send(data);
-        } catch (Throwable t) {
-            throw new IOException(t);
-        }
-    }
-
-    @Override
-    public void send(byte[] data) throws IOException {
-        this.socket.send(data);
-    }
-
-    @Override
-    public void close(int code, String reason) throws IOException {
-        this.socket.close(code, reason);
-    }
-
-    @Override
     public String getUri() {
         if(socket instanceof GrizzlySocket){
             return ((GrizzlySocket)socket).getRequest().getRequestURI();
         }
         return null;
     }
-
-
-    // Implementation of RemoteEndpoint methods, will be removed once the client side works.
 
     @Override
     public void sendString(String text) throws IOException {
@@ -124,7 +99,7 @@ public class GrizzlyRemoteEndpoint implements SPIRemoteEndpoint, RemoteEndpoint 
 
     @Override
     public void sendPartialString(String fragment, boolean isLast) throws IOException {
-        throw new UnsupportedOperationException();
+        socket.stream(isLast,fragment);
     }
 
     @Override

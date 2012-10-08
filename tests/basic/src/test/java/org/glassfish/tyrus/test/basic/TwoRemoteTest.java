@@ -43,11 +43,11 @@ package org.glassfish.tyrus.test.basic;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.platform.EndpointAdapter;
 import org.glassfish.tyrus.platform.main.Server;
-import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import javax.net.websocket.RemoteEndpoint;
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -77,16 +77,16 @@ public class TwoRemoteTest {
             final ClientManager client = ClientManager.createClient();
             client.openSocket("ws://localhost:8025/websockets/tests/twomethodremote", 10000, new EndpointAdapter() {
                 @Override
-                public void onConnect(SPIRemoteEndpoint p) {
+                public void onConnect(RemoteEndpoint p) {
                     try {
-                        p.send(SENT_MESSAGE);
+                        p.sendString(SENT_MESSAGE);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                 }
 
                 @Override
-                public void onMessage(SPIRemoteEndpoint p, String s) {
+                public void onMessage(RemoteEndpoint p, String s) {
                     System.out.println("Received msg: " + s);
                     if (messageLatch.getCount() == 2) {
                         receivedMessage1 = s;

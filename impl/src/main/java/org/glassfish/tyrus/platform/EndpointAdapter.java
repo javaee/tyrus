@@ -41,8 +41,8 @@ package org.glassfish.tyrus.platform;
 
 import org.glassfish.tyrus.spi.SPIEndpoint;
 import org.glassfish.tyrus.spi.SPIHandshakeRequest;
-import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
 
+import javax.net.websocket.RemoteEndpoint;
 import java.util.List;
 
 /**
@@ -57,22 +57,22 @@ public class EndpointAdapter extends SPIEndpoint{
     }
 
     @Override
-    public void onConnect(SPIRemoteEndpoint gs) {
+    public void onConnect(RemoteEndpoint gs) {
 
     }
 
     @Override
-    public void onMessage(SPIRemoteEndpoint gs, String messageString) {
+    public void onMessage(RemoteEndpoint gs, String messageString) {
 
     }
 
     @Override
-    public void onMessage(SPIRemoteEndpoint gs, byte[] messageBytes) {
+    public void onMessage(RemoteEndpoint gs, byte[] messageBytes) {
 
     }
 
     @Override
-    public void onClose(SPIRemoteEndpoint gs) {
+    public void onClose(RemoteEndpoint gs) {
 
     }
 
