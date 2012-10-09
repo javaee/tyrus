@@ -41,13 +41,12 @@
 package org.glassfish.tyrus.test.basic;
 
 import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.platform.EndpointAdapter;
 import org.glassfish.tyrus.platform.main.Server;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import javax.net.websocket.RemoteEndpoint;
+import javax.net.websocket.Session;
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -74,18 +73,18 @@ public class SimpleRemoteTest {
         server.start();
         try {
             final ClientManager client = ClientManager.createClient();
-            client.openSocket("ws://localhost:8025/websockets/tests/hello", 10000, new EndpointAdapter() {
+            client.openSocket("ws://localhost:8025/websockets/tests/hello", 10000, new TestEndpointAdapter() {
                 @Override
-                public void onConnect(RemoteEndpoint p) {
+                public void onOpen(Session session) {
                     try {
-                        p.sendString(SENT_MESSAGE);
+                        session.getRemote().sendString(SENT_MESSAGE);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                 }
 
                 @Override
-                public void onMessage(RemoteEndpoint p, String message) {
+                public void onMessage(String message) {
                     receivedMessage = message;
                     messageLatch.countDown();
                 }
@@ -119,21 +118,21 @@ public class SimpleRemoteTest {
                         // replace ClientManager with MockWebSocketClient to confirm the test passes if the backend
                         // does not have issues
                         final ClientManager client = ClientManager.createClient();
-                        client.openSocket("ws://localhost:8025/websockets/tests/customremote/hello", 10000, new EndpointAdapter() {
+                        client.openSocket("ws://localhost:8025/websockets/tests/customremote/hello", 10000, new TestEndpointAdapter() {
 
                             @Override
-                            public void onConnect(RemoteEndpoint p) {
+                            public void onOpen(Session session) {
                                 try{
-                                    p.sendString(message[1]);
+                                    session.getRemote().sendString(message[1]);
                                     Thread.sleep(1000);
-                                    p.sendString(message[0]);
+                                    session.getRemote().sendString(message[0]);
                                 } catch(Exception e){
                                     e.printStackTrace();
                                 }
                             }
 
                             @Override
-                            public void onMessage(RemoteEndpoint p, String s) {
+                            public void onMessage(String s) {
                                 perClientLatch.countDown();
                                 String testString = message[(int) perClientLatch.getCount()];
                                 assertEquals(testString, s);

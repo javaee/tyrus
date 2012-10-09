@@ -61,6 +61,7 @@ public class AnnotatedClientTest {
 
     private CountDownLatch messageLatch;
 
+    @Ignore
     @Test
     public void testSimpleMessage() {
 

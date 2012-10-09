@@ -41,13 +41,13 @@
 package org.glassfish.tyrus.test.basic;
 
 import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.platform.EndpointAdapter;
 import org.glassfish.tyrus.platform.main.Server;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.net.websocket.RemoteEndpoint;
+import javax.net.websocket.Session;
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -95,13 +95,13 @@ public class DecoderMultiplexerTest {
         }
     }
 
-    private class TestAdapter extends EndpointAdapter {
+    private class TestAdapter extends TestEndpointAdapter {
         private RemoteEndpoint peer;
 
         @Override
-        public void onConnect(RemoteEndpoint re) {
+        public void onOpen(Session session) {
             try {
-                peer = re;
+                peer = session.getRemote();
                 peer.sendString(MESSAGE_A);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -109,7 +109,7 @@ public class DecoderMultiplexerTest {
         }
 
         @Override
-        public void onMessage(RemoteEndpoint re, String message) {
+        public void onMessage(String message) {
             receivedMessage = message;
             messageLatch.countDown();
         }

@@ -39,50 +39,28 @@
  */
 package org.glassfish.tyrus.platform;
 
-import org.glassfish.tyrus.spi.SPIEndpoint;
-import org.glassfish.tyrus.spi.SPIHandshakeRequest;
-
-import javax.net.websocket.RemoteEndpoint;
-import java.util.List;
+import javax.net.websocket.Endpoint;
+import javax.net.websocket.Session;
 
 /**
  * Adapter to make the implementation easy for developers.
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class EndpointAdapter extends SPIEndpoint{
-    @Override
-    public boolean checkHandshake(SPIHandshakeRequest hr) {
-        return false;
-    }
+public class EndpointAdapter extends Endpoint{
 
     @Override
-    public void onConnect(RemoteEndpoint gs) {
+    public void onOpen(Session session) {
 
     }
 
     @Override
-    public void onMessage(RemoteEndpoint gs, String messageString) {
+    public void onClose(Session session){
 
     }
 
     @Override
-    public void onMessage(RemoteEndpoint gs, byte[] messageBytes) {
-
-    }
-
-    @Override
-    public void onClose(RemoteEndpoint gs) {
-
-    }
-
-    @Override
-    public List<String> getSupportedProtocols(List<String> subProtocols) {
-        return null;
-    }
-
-    @Override
-    public void remove() {
+    public void onError(Throwable thr, Session s){
 
     }
 }

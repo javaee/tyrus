@@ -14,9 +14,9 @@ public class MessageHandlerForBean implements MessageHandler.Text {
 //    private Model model;
 //    private RemoteEndpoint peer;
 //    private boolean isServer;
-//    private WebSocketEndpointImpl endpoint;
+//    private EndpointWrapper endpoint;
 //
-//    public MessageHandlerForBean(Model model, RemoteEndpoint peer, WebSocketEndpointImpl endpoint) {
+//    public MessageHandlerForBean(Model model, RemoteEndpoint peer, EndpointWrapper endpoint) {
 //        this.model = model;
 //        this.peer = peer;
 //        this.endpoint = endpoint;

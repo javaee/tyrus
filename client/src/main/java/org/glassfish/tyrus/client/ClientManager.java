@@ -39,10 +39,9 @@
  */
 package org.glassfish.tyrus.client;
 
+import org.glassfish.tyrus.platform.DefaultServerEndpointConfiguration;
+import org.glassfish.tyrus.platform.EndpointWrapper;
 import org.glassfish.tyrus.platform.Model;
-import org.glassfish.tyrus.platform.ServerContainerImpl;
-import org.glassfish.tyrus.platform.WebSocketEndpointImpl;
-import org.glassfish.tyrus.spi.SPIEndpoint;
 
 import javax.net.websocket.ClientConfiguration;
 import javax.net.websocket.ClientContainer;
@@ -91,10 +90,6 @@ public class ClientManager implements ClientContainer {
         GrizzlyWebSocket gws = new GrizzlyWebSocket(uri,timeoutMs);
 
         for (Object endpoint : endpoints) {
-            if (endpoint instanceof SPIEndpoint) {
-                gws.addEndpoint((SPIEndpoint)endpoint);
-            } else {
-                ServerContainerImpl cci = new ServerContainerImpl(null,uri.getPath(),uri.getPort());
                 Model model = null;
                 try {
                     model = new Model(endpoint);
@@ -103,9 +98,8 @@ public class ClientManager implements ClientContainer {
                 } catch (InstantiationException e) {
                     e.printStackTrace();
                 }
-                WebSocketEndpointImpl clientEndpoint = new WebSocketEndpointImpl(cci, null, model, false);
+                EndpointWrapper clientEndpoint = new EndpointWrapper(null, model, new DefaultServerEndpointConfiguration(model));
                 gws.addEndpoint(clientEndpoint);
-            }
         }
 
         gws.connect();

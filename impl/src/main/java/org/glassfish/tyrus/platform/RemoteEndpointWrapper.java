@@ -49,7 +49,6 @@ import javax.net.websocket.Session;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Writer;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 
 
@@ -75,7 +74,7 @@ public final class RemoteEndpointWrapper<T> implements RemoteEndpoint<T>{
     /**
      * Endpoint to which is this class the other side of connection.
      */
-    private final WebSocketEndpointImpl correspondingEndpoint;
+    private final EndpointWrapper correspondingEndpoint;
 
     /**
      * URI to which this remote endpoint connected during the handshake phase.
@@ -83,30 +82,18 @@ public final class RemoteEndpointWrapper<T> implements RemoteEndpoint<T>{
     private String connectedToAddress;
 
     /**
-     * All wrappers.
-     */
-    private static ConcurrentHashMap<RemoteEndpoint, RemoteEndpointWrapper> wrappers
-            = new ConcurrentHashMap<RemoteEndpoint, RemoteEndpointWrapper>();
-
-    /**
      * Get the RemoteEndpoint wrapper.
      *
      * @param socket socket corresponding to the required wrapper
      * @param application web socket endpoint for which the wrapper represents the other side of the connection
-     * @param serverEndpoint server / client endpoint
      * @return wrapper corresponding to socket
      */
-    public static RemoteEndpointWrapper getRemoteWrapper(RemoteEndpoint socket, WebSocketEndpointImpl application, boolean serverEndpoint) {
-        RemoteEndpointWrapper result = wrappers.get(socket);
-        if (result == null) {
-            result = new RemoteEndpointWrapper(socket, application);
-            wrappers.put(socket, result);
-        }
-        return result;
+    public static RemoteEndpointWrapper getRemoteWrapper(RemoteEndpoint socket, EndpointWrapper application) {
+        return new RemoteEndpointWrapper(socket, application);
     }
 
     @SuppressWarnings("LeakingThisInConstructor")
-    private RemoteEndpointWrapper(RemoteEndpoint providedRemoteEndpoint, WebSocketEndpointImpl correspondingEndpoint) {
+    private RemoteEndpointWrapper(RemoteEndpoint providedRemoteEndpoint, EndpointWrapper correspondingEndpoint) {
         this.providedRemoteEndpoint = providedRemoteEndpoint;
         this.correspondingEndpoint = correspondingEndpoint;
         this.webSocketSession = new SessionImpl();
@@ -210,10 +197,6 @@ public final class RemoteEndpointWrapper<T> implements RemoteEndpoint<T>{
 
     void setAddress(String clientAddress) {
         this.connectedToAddress = clientAddress;
-    }
-
-    void discard() {
-        wrappers.remove(this.providedRemoteEndpoint);
     }
 
     private void sendPrimitiveMessage(Object data) throws IOException, EncodeException {

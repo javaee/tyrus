@@ -41,12 +41,11 @@
 package org.glassfish.tyrus.test.basic;
 
 import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.platform.EndpointAdapter;
 import org.glassfish.tyrus.platform.main.Server;
 import org.junit.Assert;
 import org.junit.Test;
 
-import javax.net.websocket.RemoteEndpoint;
+import javax.net.websocket.Session;
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -133,7 +132,7 @@ public class InTest {
         }
     }
 
-    private class TestAdapter extends EndpointAdapter {
+    private class TestAdapter extends TestEndpointAdapter {
         private final String message;
 
         private TestAdapter(String message) {
@@ -141,16 +140,17 @@ public class InTest {
         }
 
         @Override
-        public void onConnect(RemoteEndpoint p) {
+        public void onOpen(Session session) {
             try {
-                p.sendString(message);
+                session.addMessageHandler(new TestTextMessageHandler(this));
+                session.getRemote().sendString(message);
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
 
         @Override
-        public void onMessage(RemoteEndpoint p, String message) {
+        public void onMessage(String message) {
             receivedMessage = message;
             messageLatch.countDown();
         }

@@ -39,15 +39,39 @@
  */
 package org.glassfish.tyrus.platform;
 
-import javax.net.websocket.annotations.*;
+import org.glassfish.tyrus.platform.decoders.BinaryDecoderNoOp;
+import org.glassfish.tyrus.platform.decoders.BooleanDecoder;
+import org.glassfish.tyrus.platform.decoders.ByteDecoder;
+import org.glassfish.tyrus.platform.decoders.CharDecoder;
+import org.glassfish.tyrus.platform.decoders.DoubleDecoder;
+import org.glassfish.tyrus.platform.decoders.FloatDecoder;
+import org.glassfish.tyrus.platform.decoders.IntegerDecoder;
+import org.glassfish.tyrus.platform.decoders.LongDecoder;
+import org.glassfish.tyrus.platform.decoders.ShortDecoder;
+import org.glassfish.tyrus.platform.decoders.StringDecoderNoOp;
+import org.glassfish.tyrus.platform.encoders.BinaryEncoderNoOp;
+import org.glassfish.tyrus.platform.encoders.BooleanEncoder;
+import org.glassfish.tyrus.platform.encoders.ByteEncoder;
+import org.glassfish.tyrus.platform.encoders.CharEncoder;
+import org.glassfish.tyrus.platform.encoders.DoubleEncoder;
+import org.glassfish.tyrus.platform.encoders.FloatEncoder;
+import org.glassfish.tyrus.platform.encoders.IntegerEncoder;
+import org.glassfish.tyrus.platform.encoders.LongEncoder;
+import org.glassfish.tyrus.platform.encoders.ShortEncoder;
+import org.glassfish.tyrus.platform.encoders.StringEncoderNoOp;
 
-import java.lang.reflect.Field;
+import javax.net.websocket.Decoder;
+import javax.net.websocket.Encoder;
+import javax.net.websocket.annotations.WebSocketClose;
+import javax.net.websocket.annotations.WebSocketMessage;
+import javax.net.websocket.annotations.WebSocketOpen;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.Arrays;
-import java.util.Collections;
 
 /**
  * Model of a class annotated using the WebSocketEndpoint annotations
@@ -57,34 +81,33 @@ import java.util.Collections;
 public class Model {
     private Set<Method> onOpenMethods;
     private Set<Method> onCloseMethods;
-//    private Set<Method> onErrorMethods;
+    //    private Set<Method> onErrorMethods;
     private Set<Method> onMessageMethods;
-    private Set<Class<?>> encoders;
-    private Set<Class<?>> decoders;
-    private Field contextField;
+    private List<Encoder> encoders;
+    private List<Decoder> decoders;
     private List<String> subprotocols;
-//    private Class remoteInterface;
     private Object myBean;
+    private boolean annotated = false;
 
-    public Model(Class<?> annotatedClass){
+    public Model(Class<?> annotatedClass) {
         this(annotatedClass, null);
     }
 
-    public Model(Object endpoint)  throws IllegalAccessException, InstantiationException  {
-        this(endpoint.getClass(),endpoint);
+    public Model(Object endpoint) throws IllegalAccessException, InstantiationException {
+        this(endpoint.getClass(), endpoint);
     }
 
-    private Model(Class<?> annotatedClass, Object instance){
+    private Model(Class<?> annotatedClass, Object instance) {
         onOpenMethods = parseAnnotatedMethods(annotatedClass, WebSocketOpen.class);
         onCloseMethods = parseAnnotatedMethods(annotatedClass, WebSocketClose.class);
-//        onErrorMethods = parseAnnotatedMethods(annotatedClass, XWebSocketError.class);
+//        onErrorMethods = parseAnnotatedMethods(annotatedClass, WebSocketError.class);
         onMessageMethods = parseAnnotatedMethods(annotatedClass, WebSocketMessage.class);
-        encoders = parseEncoders(annotatedClass);
-        decoders = parseDecoders(annotatedClass);
-//        contextField = parseContextField(annotatedClass);
+        initEncoders(parseEncoders(annotatedClass));
+        initDecoders(parseDecoders(annotatedClass));
         subprotocols = parseSubprotocols(annotatedClass);
-//        remoteInterface = parseRemoteInterface(annotatedClass);
-        if(instance == null){
+
+        if (instance == null) {
+            annotated = true;
             try {
                 this.myBean = annotatedClass.newInstance();
             } catch (InstantiationException e) {
@@ -92,16 +115,16 @@ public class Model {
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             }
-        }else{
+        } else {
             this.myBean = instance;
         }
     }
 
 
-    private Set<Class<?>> parseDecoders(Class wsClass){
+    private Set<Class<?>> parseDecoders(Class wsClass) {
         Set<Class<?>> decs = new HashSet<Class<?>>();
         javax.net.websocket.annotations.WebSocketEndpoint wsClassAnnotation = (javax.net.websocket.annotations.WebSocketEndpoint) wsClass.getAnnotation(javax.net.websocket.annotations.WebSocketEndpoint.class);
-        if(wsClassAnnotation != null){
+        if (wsClassAnnotation != null) {
             for (Class decoder : wsClassAnnotation.decoders()) {
                 decs.add(decoder);
             }
@@ -110,10 +133,10 @@ public class Model {
     }
 
 
-    private Set<Class<?>> parseEncoders(Class wsClass){
+    private Set<Class<?>> parseEncoders(Class wsClass) {
         Set<Class<?>> encs = new HashSet<Class<?>>();
         javax.net.websocket.annotations.WebSocketEndpoint wsClassAnnotation = (javax.net.websocket.annotations.WebSocketEndpoint) wsClass.getAnnotation(javax.net.websocket.annotations.WebSocketEndpoint.class);
-        if(wsClassAnnotation != null){
+        if (wsClassAnnotation != null) {
             for (Class encoder : wsClassAnnotation.encoders()) {
                 encs.add(encoder);
             }
@@ -131,32 +154,78 @@ public class Model {
         return meths;
     }
 
-//    private Field parseContextField(Class wsClass) {
-//        for (Field f : wsClass.getDeclaredFields()) {
-//            if (f.getAnnotation(XWebSocketContext.class) != null) {
-//                return f;
-//            }
-//        }
-//        return null;
-//    }
-
     public static List<String> parseSubprotocols(Class wsClass) {
         javax.net.websocket.annotations.WebSocketEndpoint ws = (javax.net.websocket.annotations.WebSocketEndpoint) wsClass.getAnnotation(javax.net.websocket.annotations.WebSocketEndpoint.class);
-        if(ws != null){
+        if (ws != null) {
             return Arrays.asList(ws.subprotocols());
-        }else{
+        } else {
             return Collections.emptyList();
         }
     }
 
-//    public static Class parseRemoteInterface(Class wsClass) {
-//        javax.net.websocket.annotations.WebSocketEndpoint ws = (javax.net.websocket.annotations.WebSocketEndpoint) wsClass.getAnnotation(javax.net.websocket.annotations.WebSocketEndpoint.class);
-//        if(ws!=null){
-//            return ws.Xremote();
-//        }else{
-//            return null;
-//        }
-//    }
+    private void initEncoders(Set<Class<?>> clientEncoders) {
+        encoders = new ArrayList<Encoder>();
+        if (clientEncoders != null) {
+            for (Class<?> encoderClass : clientEncoders) {
+                try {
+                    Object encoder = encoderClass.newInstance();
+                    if (encoder instanceof Encoder) {
+                        encoders.add((Encoder) encoder);
+                    } else {
+                        throw new Exception("Provided encoder does not implement Encoder interface");
+                    }
+                } catch (InstantiationException e) {
+                    e.printStackTrace();
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        encoders.add(new StringEncoderNoOp());
+        encoders.add(new BinaryEncoderNoOp());
+        encoders.add(new BooleanEncoder());
+        encoders.add(new ByteEncoder());
+        encoders.add(new CharEncoder());
+        encoders.add(new DoubleEncoder());
+        encoders.add(new FloatEncoder());
+        encoders.add(new IntegerEncoder());
+        encoders.add(new LongEncoder());
+        encoders.add(new ShortEncoder());
+    }
+
+    private void initDecoders(Set<Class<?>> clientDecoders) {
+        decoders = new ArrayList<Decoder>();
+        if (clientDecoders != null) {
+            for (Class<?> encoderClass : clientDecoders) {
+                try {
+                    Object decoder = encoderClass.newInstance();
+                    if (decoder instanceof Decoder) {
+                        decoders.add((Decoder) decoder);
+                    } else {
+                        throw new Exception("Provided encoder does not implement Decoder interface");
+                    }
+                } catch (InstantiationException e) {
+                    e.printStackTrace();
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        decoders.add(new StringDecoderNoOp());
+        decoders.add(new BinaryDecoderNoOp());
+        decoders.add(new BooleanDecoder());
+        decoders.add(new ByteDecoder());
+        decoders.add(new IntegerDecoder());
+        decoders.add(new LongDecoder());
+        decoders.add(new ShortDecoder());
+        decoders.add(new FloatDecoder());
+        decoders.add(new DoubleDecoder());
+        decoders.add(new CharDecoder());
+    }
 
     public Set<Method> getOnOpenMethods() {
         return onOpenMethods;
@@ -178,23 +247,19 @@ public class Model {
         return myBean;
     }
 
-    public Set<Class<?>> getEncoders() {
+    public List<Encoder> getEncoders() {
         return encoders;
     }
 
-    public Set<Class<?>> getDecoders() {
+    public List<Decoder> getDecoders() {
         return decoders;
-    }
-
-    public Field getContextField() {
-        return contextField;
     }
 
     public List<String> getSubprotocols() {
         return subprotocols;
     }
 
-//    public Class getRemoteInterface() {
-//        return remoteInterface;
-//    }
+    public boolean wasAnnotated() {
+        return annotated;
+    }
 }

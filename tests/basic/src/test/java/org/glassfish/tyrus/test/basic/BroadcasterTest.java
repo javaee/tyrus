@@ -41,13 +41,13 @@
 package org.glassfish.tyrus.test.basic;
 
 import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.platform.EndpointAdapter;
 import org.glassfish.tyrus.platform.main.Server;
 import org.glassfish.tyrus.test.basic.bean.BroadcasterTestBean;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.net.websocket.RemoteEndpoint;
+import javax.net.websocket.Session;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -68,8 +68,8 @@ public class BroadcasterTest {
         Server server = new Server(BroadcasterTestBean.class);
         server.start();
         try {
-            final TestEndpointAdapter ea1 = new TestEndpointAdapter(messageLatch);
-            final TestEndpointAdapter ea2 = new TestEndpointAdapter(messageLatch);
+            final TEndpointAdapter ea1 = new TEndpointAdapter(messageLatch);
+            final TEndpointAdapter ea2 = new TEndpointAdapter(messageLatch);
 
             final ClientManager client1 = ClientManager.createClient();
             client1.openSocket("ws://localhost:8025/websockets/tests/broadcast",10000,ea1);
@@ -100,22 +100,22 @@ public class BroadcasterTest {
         }
     }
 
-    private static class TestEndpointAdapter extends EndpointAdapter {
+    private static class TEndpointAdapter extends TestEndpointAdapter {
         private final CountDownLatch messageLatch;
         public RemoteEndpoint peer;
 
-        TestEndpointAdapter(CountDownLatch messageLatch) {
+        TEndpointAdapter(CountDownLatch messageLatch) {
             this.messageLatch = messageLatch;
         }
 
         @Override
-        public synchronized void onConnect(RemoteEndpoint gs) {
-            this.peer = gs;
+        public synchronized void onOpen(Session session) {
+            this.peer = session.getRemote();
             notifyAll();
         }
 
         @Override
-        public void onMessage(RemoteEndpoint gs, String messageString) {
+        public void onMessage(String message) {
             messageLatch.countDown();
         }
     }

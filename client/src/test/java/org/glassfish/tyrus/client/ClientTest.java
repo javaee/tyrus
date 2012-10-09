@@ -39,13 +39,13 @@
  */
 package org.glassfish.tyrus.client;
 
-import org.glassfish.tyrus.platform.EndpointAdapter;
 import org.glassfish.tyrus.platform.main.Server;
 import org.junit.Assert;
 import org.junit.Test;
 
-import javax.net.websocket.RemoteEndpoint;
+import javax.net.websocket.Session;
 import java.io.IOException;
+import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -70,27 +70,27 @@ public class ClientTest {
         messageLatch = new CountDownLatch(1);
 
         try {
-
             ClientManager client = ClientManager.createClient();
-            client.openSocket("ws://localhost:8025/websockets/tests/echo", 100000, new EndpointAdapter() {
+            client.connectToServer(new TestEndpointAdapter() {
+                @Override
+                public void messageReceived(String message) {
+                    receivedMessage = message;
+                    messageLatch.countDown();
+                    System.out.println("Received message = " + message);
+                }
 
                 @Override
-                public void onConnect(RemoteEndpoint gs) {
+                public void onOpen(Session session) {
                     try {
-                        gs.sendString(SENT_MESSAGE);
+                        session.addMessageHandler(new TestTextMessageHandler(this));
+                        session.getRemote().sendString(SENT_MESSAGE);
                         System.out.println("Sent message: " + SENT_MESSAGE);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                 }
+            },new ProvidedClientConfiguration(new URI("ws://localhost:8025/websockets/tests/echo")));
 
-                @Override
-                public void onMessage(RemoteEndpoint gs, String message) {
-                    receivedMessage = message;
-                    messageLatch.countDown();
-                    System.out.println("Received message = " + message);
-                }
-            });
             messageLatch.await(5, TimeUnit.SECONDS);
 
             Assert.assertTrue("The received message is the same as the sent one", receivedMessage.equals(SENT_MESSAGE));

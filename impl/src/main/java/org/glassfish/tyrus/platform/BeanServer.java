@@ -146,13 +146,13 @@ public class BeanServer {
                 Model model = new Model(webSocketApplicationBeanClazz);
                 String wrapperBeanPath = (wsPath.endsWith("/") ? wsPath.substring(0, wsPath.length() - 1) : wsPath)
                         + "/" + (nextPath.startsWith("/") ? nextPath.substring(1) : nextPath);
-                WebSocketEndpointImpl webSocketEndpoint = new WebSocketEndpointImpl(this.containerContext, wrapperBeanPath, model);
-                this.deploy(webSocketEndpoint);
+                EndpointWrapper endpoint = new EndpointWrapper(wrapperBeanPath, model, new DefaultServerEndpointConfiguration(model));
+                this.deploy(endpoint);
             }
         }
     }
 
-    void deploy(WebSocketEndpointImpl wsa) {
+    void deploy(EndpointWrapper wsa) {
         SPIRegisteredEndpoint ge = this.engine.register(wsa);
         this.endpoints.add(ge);
         logger.info("Registered a " + wsa.getClass() + " at " + wsa.getPath());
