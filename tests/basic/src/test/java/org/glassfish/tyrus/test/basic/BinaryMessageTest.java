@@ -49,6 +49,7 @@ import org.junit.Test;
 import javax.net.websocket.Session;
 import java.io.IOException;
 import java.net.URI;
+import java.nio.ByteBuffer;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -78,7 +79,7 @@ public class BinaryMessageTest {
                 @Override
                 public void onOpen(Session session) {
                     try {
-                        session.getRemote().sendBytes(BINARY_MESSAGE);
+                        session.getRemote().sendBytes(ByteBuffer.wrap(BINARY_MESSAGE));
                     } catch (IOException e) {
                         e.printStackTrace();
                     }

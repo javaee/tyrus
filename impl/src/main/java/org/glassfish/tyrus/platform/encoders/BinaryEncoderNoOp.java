@@ -2,6 +2,7 @@ package org.glassfish.tyrus.platform.encoders;
 
 import javax.net.websocket.EncodeException;
 import javax.net.websocket.Encoder;
+import java.nio.ByteBuffer;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
@@ -9,7 +10,7 @@ import javax.net.websocket.Encoder;
 public class BinaryEncoderNoOp implements Encoder.Binary{
 
     @Override
-    public byte[] encode(Object object) throws EncodeException {
-        return (byte[]) object;
+    public ByteBuffer encode(Object object) throws EncodeException {
+        return (ByteBuffer) object;
     }
 }

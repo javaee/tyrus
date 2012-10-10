@@ -53,7 +53,7 @@ import java.io.IOException;
 /**
  * @author dannycoward
  */
-@WebSocketEndpoint(path = "/defaultpath")
+@WebSocketEndpoint(value = "/defaultpath")
 public class DefaultPathsTest {
 
     @WebSocketOpen
@@ -63,7 +63,7 @@ public class DefaultPathsTest {
 
     @WebSocketMessage
     public void onMessage(String s, RemoteEndpoint remote) throws IOException, EncodeException {
-        remote.sendString("Passed the default path test");
+        remote.sendString("Passed the default value test");
     }
 
     @WebSocketClose

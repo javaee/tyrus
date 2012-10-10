@@ -42,7 +42,7 @@ package wstestbeans;
 import javax.net.websocket.annotations.WebSocketEndpoint;
 
 
-@WebSocketEndpoint(path = "/sessiondeadoralive")
+@WebSocketEndpoint(value = "/sessiondeadoralive")
 public class SessionDeadOrAliveTest {
 //
 //        @WebSocketMessage

@@ -48,7 +48,7 @@ import javax.net.websocket.annotations.WebSocketMessage;
  * @author dannycoward
  */
 @WebSocketEndpoint(
-        path = "/standardInputTypes/char")
+        value = "/standardInputTypes/char")
 public class CharBean {
 
     @WebSocketMessage

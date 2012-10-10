@@ -48,6 +48,7 @@ import javax.net.websocket.SendResult;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Writer;
+import java.nio.ByteBuffer;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 
@@ -93,8 +94,8 @@ public class GrizzlyRemoteEndpoint implements RemoteEndpoint {
     }
 
     @Override
-    public void sendBytes(byte[] data) throws IOException {
-        this.socket.send(data);
+    public void sendBytes(ByteBuffer byteBuffer) throws IOException {
+
     }
 
     @Override
@@ -103,8 +104,8 @@ public class GrizzlyRemoteEndpoint implements RemoteEndpoint {
     }
 
     @Override
-    public void sendPartialBytes(byte[] partialByte, boolean isLast) throws IOException {
-        throw new UnsupportedOperationException();
+    public void sendPartialBytes(ByteBuffer byteBuffer, boolean b) throws IOException {
+
     }
 
     @Override
@@ -128,8 +129,8 @@ public class GrizzlyRemoteEndpoint implements RemoteEndpoint {
     }
 
     @Override
-    public Future<SendResult> sendBytes(byte[] data, SendHandler completion) {
-        throw new UnsupportedOperationException();
+    public Future<SendResult> sendBytes(ByteBuffer byteBuffer, SendHandler sendHandler) {
+        return null;
     }
 
     @Override
@@ -138,12 +139,12 @@ public class GrizzlyRemoteEndpoint implements RemoteEndpoint {
     }
 
     @Override
-    public void sendPing(byte[] applicationData) {
-        throw new UnsupportedOperationException();
+    public void sendPing(ByteBuffer byteBuffer) {
+
     }
 
     @Override
-    public void sendPong(byte[] applicationData) {
-        throw new UnsupportedOperationException();
+    public void sendPong(ByteBuffer byteBuffer) {
+
     }
 }

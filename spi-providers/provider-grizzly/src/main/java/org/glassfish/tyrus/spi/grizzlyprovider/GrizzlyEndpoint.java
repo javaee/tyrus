@@ -48,6 +48,7 @@ import org.glassfish.grizzly.websockets.WebSocketListener;
 import org.glassfish.tyrus.spi.SPIEndpoint;
 import org.glassfish.tyrus.spi.SPIRegisteredEndpoint;
 
+import java.nio.ByteBuffer;
 import java.util.List;
 
 /**
@@ -85,7 +86,7 @@ class GrizzlyEndpoint extends WebSocketApplication implements SPIRegisteredEndpo
     @Override
     public void onMessage(WebSocket socket, byte[] bytes) {
         GrizzlyRemoteEndpoint gs = GrizzlyRemoteEndpoint.get(socket);
-        this.endpoint.onMessage(gs, bytes);
+        this.endpoint.onMessage(gs, ByteBuffer.wrap(bytes));
     }
 
     @Override

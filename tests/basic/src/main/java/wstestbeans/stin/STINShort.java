@@ -47,7 +47,7 @@ import wstestbeans.*;
  * @author dannycoward
  */
     @WebSocketEndpoint(
-        path="/standardInputTypes/short"
+        value="/standardInputTypes/short"
     )
 public class STINShort {
 

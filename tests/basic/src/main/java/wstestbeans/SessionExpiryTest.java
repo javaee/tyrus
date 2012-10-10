@@ -45,7 +45,7 @@ import javax.net.websocket.annotations.WebSocketEndpoint;
 /**
  * @author dannycoward
  */
-@WebSocketEndpoint(path = "/sessionexpiry")
+@WebSocketEndpoint(value = "/sessionexpiry")
 public class SessionExpiryTest {
 
 //        @WebSocketMessage

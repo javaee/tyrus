@@ -44,17 +44,18 @@ import javax.net.websocket.Session;
 import javax.net.websocket.annotations.WebSocketEndpoint;
 import javax.net.websocket.annotations.WebSocketMessage;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 /**
  * Bean to test correct processing of binary message.
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-@WebSocketEndpoint(path="/binary")
+@WebSocketEndpoint(value="/binary")
 public class BinaryBean {
 
     @WebSocketMessage
     public void doThat(byte[] message, Session peer) throws IOException {
-        peer.getRemote().sendBytes(message);
+        peer.getRemote().sendBytes(ByteBuffer.wrap(message));
     }
 }

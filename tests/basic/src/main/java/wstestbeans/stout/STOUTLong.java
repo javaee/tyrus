@@ -48,7 +48,7 @@ import javax.net.websocket.annotations.WebSocketEndpoint;
  * @author dannycoward
  */
 @WebSocketEndpoint(
-        path="/standardOutputTypes/long"
+        value="/standardOutputTypes/long"
     )
 public class STOUTLong {
         @WebSocketMessage

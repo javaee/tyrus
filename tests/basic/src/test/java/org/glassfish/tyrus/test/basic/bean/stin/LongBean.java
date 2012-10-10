@@ -49,7 +49,7 @@ import javax.net.websocket.annotations.WebSocketMessage;
  * @author dannycoward
  */
     @WebSocketEndpoint(
-        path="/standardInputTypes/long")
+            value="/standardInputTypes/long")
 //            Xremote=org.glassfish.tyrus.test.basic.remote.LongRemote.class
 //    )
 public class LongBean {

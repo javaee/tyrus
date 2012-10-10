@@ -163,7 +163,7 @@ public class BeanServer {
         Method[] methods = beanClazz.getDeclaredMethods();
         for (Method method : methods) {
             javax.net.websocket.annotations.WebSocketEndpoint wsClass = (javax.net.websocket.annotations.WebSocketEndpoint) beanClazz.getAnnotation(javax.net.websocket.annotations.WebSocketEndpoint.class);
-            pathMappings.put(method, wsClass.path());
+            pathMappings.put(method, wsClass.value());
         }
         return pathMappings;
     }

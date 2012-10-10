@@ -64,7 +64,7 @@ import java.util.logging.Logger;
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-@WebSocketEndpoint(path = "/auction",
+@WebSocketEndpoint(value = "/auction",
 decoders = {org.glassfish.tyrus.sample.auction.decoders.LoginRequestDecoder.class,
     org.glassfish.tyrus.sample.auction.decoders.BidRequestDecoder.class,
     org.glassfish.tyrus.sample.auction.decoders.LogoutRequestDecoder.class,

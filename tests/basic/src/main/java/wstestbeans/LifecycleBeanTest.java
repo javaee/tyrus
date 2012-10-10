@@ -49,7 +49,7 @@ import javax.net.websocket.RemoteEndpoint;
 /**
  * @author dannycoward
  */
-@WebSocketEndpoint(path = "/lifecycle")
+@WebSocketEndpoint(value = "/lifecycle")
 public class LifecycleBeanTest {
 
     @WebSocketOpen

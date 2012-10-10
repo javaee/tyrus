@@ -50,7 +50,7 @@ import java.io.IOException;
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-@WebSocketEndpoint(path = "/test",
+@WebSocketEndpoint(value = "/test",
         decoders = {TestDecoder.class})
 public class ClientTestBean {
 

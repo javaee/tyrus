@@ -39,6 +39,7 @@
  */
 package org.glassfish.tyrus.platform;
 
+import javax.net.websocket.CloseReason;
 import javax.net.websocket.Endpoint;
 import javax.net.websocket.Session;
 
@@ -55,7 +56,7 @@ public class EndpointAdapter extends Endpoint{
     }
 
     @Override
-    public void onClose(Session session){
+    public void onClose(Session session, CloseReason closeReason){
 
     }
 

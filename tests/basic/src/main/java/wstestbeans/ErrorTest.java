@@ -48,7 +48,7 @@ import javax.net.websocket.annotations.WebSocketEndpoint;
  * @author dannycoward
  */
 @WebSocketEndpoint(
-        path = "/error",
+        value = "/error",
         encoders = {enc.ErrorEncoder.class}
 )
 public class ErrorTest {

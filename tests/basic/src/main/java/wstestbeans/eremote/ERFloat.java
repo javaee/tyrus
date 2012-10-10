@@ -49,7 +49,7 @@ import javax.net.websocket.annotations.WebSocketMessage;
  *
  * @author dannycoward
  */
-    @WebSocketEndpoint(path="/customremote/float")
+    @WebSocketEndpoint(value="/customremote/float")
 public class ERFloat {
     private float lastFloat;
 

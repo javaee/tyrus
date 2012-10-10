@@ -45,7 +45,7 @@ import javax.net.websocket.annotations.WebSocketEndpoint;
 /**
  * @author dannycoward
  */
-@WebSocketEndpoint(path = "/sessionandcontexts")
+@WebSocketEndpoint(value = "/sessionandcontexts")
 public class SessionAndContextsTest {
 
 //        @WebSocketMessage

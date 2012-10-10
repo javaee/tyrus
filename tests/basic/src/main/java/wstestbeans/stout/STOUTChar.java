@@ -48,7 +48,7 @@ import javax.net.websocket.annotations.WebSocketEndpoint;
  * @author dannycoward
  */
 @WebSocketEndpoint(
-        path="/standardOutputTypes/char"
+        value="/standardOutputTypes/char"
     )
 public class STOUTChar {
         @WebSocketMessage

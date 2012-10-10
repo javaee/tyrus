@@ -49,7 +49,7 @@ import javax.net.websocket.annotations.WebSocketMessage;
  *
  * @author dannycoward
  */
-    @WebSocketEndpoint(path="/customremote/boolean")
+    @WebSocketEndpoint(value="/customremote/boolean")
 public class ERBoolean {
     private boolean lastBoolean;
 

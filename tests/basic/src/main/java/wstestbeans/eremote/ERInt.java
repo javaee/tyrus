@@ -49,7 +49,7 @@ import javax.net.websocket.annotations.WebSocketMessage;
  *
  * @author dannycoward
  */
-    @WebSocketEndpoint(path="/customremote/int")
+    @WebSocketEndpoint(value="/customremote/int")
 //            Xremote=remote.IntRemote.class)
 public class ERInt {
     private int lastInt;

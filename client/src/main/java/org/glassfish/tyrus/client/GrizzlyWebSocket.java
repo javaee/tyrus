@@ -56,13 +56,13 @@ import org.glassfish.grizzly.websockets.WebSocketEngine;
 import org.glassfish.grizzly.websockets.WebSocketFilter;
 import org.glassfish.grizzly.websockets.WebSocketListener;
 import org.glassfish.grizzly.websockets.draft06.ClosingFrame;
-import org.glassfish.tyrus.spi.grizzlyprovider.GrizzlyRemoteEndpoint;
-import org.glassfish.tyrus.spi.grizzlyprovider.GrizzlyRemoteEndpoint;
 import org.glassfish.tyrus.spi.SPIEndpoint;
+import org.glassfish.tyrus.spi.grizzlyprovider.GrizzlyRemoteEndpoint;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
+import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -225,7 +225,7 @@ class GrizzlyWebSocket implements WebSocket, ClientSocket{
     @Override
     public void onMessage(byte[] bytes) {
         for (SPIEndpoint endpoint : endpoints) {
-            endpoint.onMessage(remoteEndpoint, bytes);
+            endpoint.onMessage(remoteEndpoint, ByteBuffer.wrap(bytes));
         }
     }
 

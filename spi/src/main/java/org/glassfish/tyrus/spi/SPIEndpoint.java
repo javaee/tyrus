@@ -42,6 +42,7 @@ package org.glassfish.tyrus.spi;
 import javax.net.websocket.Endpoint;
 import javax.net.websocket.RemoteEndpoint;
 import javax.net.websocket.Session;
+import java.nio.ByteBuffer;
 import java.util.List;
 
 /**
@@ -88,9 +89,9 @@ public abstract class SPIEndpoint extends Endpoint {
      * has an incoming binary message from the given remote endpoint.
      *
      * @param gs           <code>SPIRemoteEndpoint</code> who sent the message.
-     * @param messageBytes the <code>byte[]</code> message.
+     * @param bytes the message.
      */
-    public abstract void onMessage(RemoteEndpoint gs, byte[] messageBytes);
+    public abstract void onMessage(RemoteEndpoint gs, ByteBuffer bytes);
 
     /**
      * Called by the provider when the web socket connection

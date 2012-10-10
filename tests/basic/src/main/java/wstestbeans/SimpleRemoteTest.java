@@ -48,7 +48,7 @@ import javax.net.websocket.annotations.WebSocketMessage;
 /**
  * @author dannycoward
  */
-@WebSocketEndpoint(path = "/customremote/hello")
+@WebSocketEndpoint(value = "/customremote/hello")
 public class SimpleRemoteTest {
     String lastMessage;
 

@@ -51,7 +51,7 @@ import javax.net.websocket.annotations.WebSocketMessage;
  * @author dannycoward
  */
 @WebSocketEndpoint(
-        path = "/json",
+        value = "/json",
         encoders = {enc.JSONEncoder.class},
         decoders = {enc.JSONDecoder.class}
 )

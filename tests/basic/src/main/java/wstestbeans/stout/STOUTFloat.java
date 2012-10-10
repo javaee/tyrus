@@ -48,7 +48,7 @@ import javax.net.websocket.annotations.WebSocketEndpoint;
  * @author dannycoward
  */
 @WebSocketEndpoint(
-        path="/standardOutputTypes/float"
+        value="/standardOutputTypes/float"
     )
 public class STOUTFloat {
         @WebSocketMessage

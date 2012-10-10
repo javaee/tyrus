@@ -65,7 +65,7 @@ public class DrawingMessage implements Decoder.Text<DrawingMessage>, Encoder.Tex
             //System.out.println(s);
             this.jsonObject = new JSONObject(s);
         } catch (JSONException e) {
-            throw new DecodeException();
+            throw new DecodeException(s, "Problem with JSON Decoding");
         }
         return this;
     }

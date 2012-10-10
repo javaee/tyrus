@@ -53,7 +53,7 @@ import javax.net.websocket.annotations.WebSocketMessage;
 //            Xremote=org.glassfish.tyrus.test.basic.remote.FloatRemote.class
 //    )
 @WebSocketEndpoint(
-        path="/standardInputTypes/float")
+        value="/standardInputTypes/float")
 public class FloatBean {
 
         @WebSocketMessage

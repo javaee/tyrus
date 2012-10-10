@@ -48,7 +48,7 @@ import wstestbeans.*;
  * @author dannycoward
  */
     @WebSocketEndpoint(
-        path="/standardInputTypes/boolean"
+        value="/standardInputTypes/boolean"
     )
 public class STINBoolean {
 

@@ -50,7 +50,7 @@ import javax.net.websocket.annotations.WebSocketMessage;
  *
  * @author dannycoward
  */
-    @WebSocketEndpoint(path="/customremote/encoded")
+    @WebSocketEndpoint(value="/customremote/encoded")
 public class Encoded {
     private String lastMessage;
 

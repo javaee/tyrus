@@ -55,7 +55,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author dannycoward
  */
 
-@WebSocketEndpoint(path = "/draw")
+@WebSocketEndpoint(value = "/draw")
 public class GroupDrawServer {
 
     private Set<Session> peers = Collections.newSetFromMap(new ConcurrentHashMap<Session, Boolean>());

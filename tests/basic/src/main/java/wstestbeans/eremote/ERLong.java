@@ -49,7 +49,7 @@ import javax.net.websocket.annotations.WebSocketMessage;
  *
  * @author dannycoward
  */
-    @WebSocketEndpoint(path="/customremote/long")
+    @WebSocketEndpoint(value="/customremote/long")
 public class ERLong {
     private long lastLong;
 

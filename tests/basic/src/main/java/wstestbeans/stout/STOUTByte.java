@@ -48,7 +48,7 @@ import javax.net.websocket.annotations.WebSocketEndpoint;
  * @author dannycoward
  */
 @WebSocketEndpoint(
-        path="/standardOutputTypes/byte"
+        value="/standardOutputTypes/byte"
     )
 public class STOUTByte {
         @WebSocketMessage

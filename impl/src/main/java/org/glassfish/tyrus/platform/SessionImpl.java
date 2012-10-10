@@ -39,15 +39,17 @@
  */
 package org.glassfish.tyrus.platform;
 
+
+import javax.net.websocket.ClientContainer;
 import javax.net.websocket.CloseReason;
 import javax.net.websocket.Encoder;
 import javax.net.websocket.MessageHandler;
 import javax.net.websocket.RemoteEndpoint;
 import javax.net.websocket.Session;
 import javax.net.websocket.extensions.Extension;
-import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.net.URI;
+import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -62,7 +64,7 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author Danny Coward
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class SessionImpl implements Session {
+public class SessionImpl<T> implements Session<T> {
 
     /**
      * Session properties.
@@ -78,11 +80,6 @@ public class SessionImpl implements Session {
      * Owner of this session.
      */
     private RemoteEndpointWrapper peer;
-
-    /**
-     * HttpSession form the initial handshake.
-     */
-    private HttpSession httpSession;
 
     /**
      * Reason for closure.
@@ -147,15 +144,6 @@ public class SessionImpl implements Session {
         return "13";
     }
 
-    void setHttpSession(HttpSession httpSession) {
-        this.httpSession = httpSession;
-    }
-
-    @Override
-    public HttpSession getSession() {
-        return this.httpSession;
-    }
-
     @Override
     public String getNegotiatedSubprotocol() {
         return negotiatedSubprotocol;
@@ -167,8 +155,8 @@ public class SessionImpl implements Session {
     }
 
     @Override
-    public RemoteEndpoint getRemote(Class c) {
-        return peer;
+    public RemoteEndpoint<T> getRemoteL(Class<T> aClass) {
+        return null;
     }
 
     /**
@@ -192,7 +180,7 @@ public class SessionImpl implements Session {
 
     @Override
     public void close() throws IOException {
-        this.close(new CloseReason(CloseReason.Code.NORMAL_CLOSURE, "no reason given"));
+        this.close(new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, "no reason given"));
     }
 
     /**
@@ -211,11 +199,6 @@ public class SessionImpl implements Session {
 
     void setPeer(RemoteEndpointWrapper peer) {
         this.peer = peer;
-    }
-
-    @Override
-    public CloseReason getCloseStatus() {
-        return this.closeReason;
     }
 
     public void setTimeout(long seconds) {
@@ -249,8 +232,13 @@ public class SessionImpl implements Session {
     }
 
     @Override
-    public void addEncoder(Encoder encoder) {
-        encoders.add(encoder);
+    public ClientContainer getContainer() {
+        return null;
+    }
+
+    @Override
+    public void setEncoders(List<Encoder> encoders) {
+        //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @Override
@@ -273,6 +261,16 @@ public class SessionImpl implements Session {
         return URI.create(peer.getAddress());
     }
 
+    @Override
+    public Map<String, String[]> getParameterMap() {
+        return null;
+    }
+
+    @Override
+    public String getQueryString() {
+        return null;
+    }
+
     protected void updateLastConnectionActivity(){
         this.lastConnectionActivity = System.currentTimeMillis();
     }
@@ -287,7 +285,7 @@ public class SessionImpl implements Session {
         }
     }
 
-    void notifyMessageHandlers(byte[] message) {
+    void notifyMessageHandlers(ByteBuffer message) {
         for (MessageHandler mh : this.messageHandlers) {
             if (mh instanceof MessageHandler.Binary) {
                 ((MessageHandler.Binary) mh).onMessage(message);

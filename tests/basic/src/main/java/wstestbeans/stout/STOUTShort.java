@@ -48,7 +48,7 @@ import javax.net.websocket.annotations.WebSocketEndpoint;
  * @author dannycoward
  */
 @WebSocketEndpoint(
-        path="/standardOutputTypes/short"
+        value="/standardOutputTypes/short"
     )
 public class STOUTShort {
         @WebSocketMessage

@@ -49,7 +49,7 @@ import javax.net.websocket.annotations.WebSocketMessage;
  * @author dannycoward
  */
 @WebSocketEndpoint(
-        path = "/standardInputTypes/boolean")
+        value = "/standardInputTypes/boolean")
 public class BooleanBean {
 
     @WebSocketMessage

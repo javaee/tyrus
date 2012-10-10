@@ -47,7 +47,7 @@ import wstestbeans.*;
  * @author dannycoward
  */
     @WebSocketEndpoint(
-        path="/standardInputTypes/long"
+        value="/standardInputTypes/long"
     )
 public class STINLong {
 

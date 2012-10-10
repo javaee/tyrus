@@ -49,6 +49,7 @@ import javax.net.websocket.Session;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Writer;
+import java.nio.ByteBuffer;
 import java.util.concurrent.Future;
 
 
@@ -126,7 +127,7 @@ public final class RemoteEndpointWrapper<T> implements RemoteEndpoint<T>{
     }
 
     @Override
-    public void sendBytes(byte[] data) throws IOException {
+    public void sendBytes(ByteBuffer data) throws IOException {
         this.providedRemoteEndpoint.sendBytes(data);
         this.webSocketSession.updateLastConnectionActivity();
     }
@@ -138,7 +139,7 @@ public final class RemoteEndpointWrapper<T> implements RemoteEndpoint<T>{
 
 
     @Override
-    public void sendPartialBytes(byte[] partialByte, boolean isLast) throws IOException {
+    public void sendPartialBytes(ByteBuffer byteBuffer, boolean isLast) throws IOException {
         this.webSocketSession.updateLastConnectionActivity();
         throw new UnsupportedOperationException("Not yet implemented");
     }
@@ -167,7 +168,7 @@ public final class RemoteEndpointWrapper<T> implements RemoteEndpoint<T>{
     }
 
     @Override
-    public Future<SendResult> sendBytes(byte[] data, SendHandler completion) {
+    public Future<SendResult> sendBytes(ByteBuffer data, SendHandler completion) {
         this.webSocketSession.updateLastConnectionActivity();
         throw new UnsupportedOperationException("Not yet implemented");
     }
@@ -179,13 +180,13 @@ public final class RemoteEndpointWrapper<T> implements RemoteEndpoint<T>{
     }
 
     @Override
-    public void sendPing(byte[] applicationData) {
+    public void sendPing(ByteBuffer applicationData) {
         this.webSocketSession.updateLastConnectionActivity();
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
-    public void sendPong(byte[] applicationData) {
+    public void sendPong(ByteBuffer applicationData) {
         this.webSocketSession.updateLastConnectionActivity();
         throw new UnsupportedOperationException("Not yet implemented");
     }

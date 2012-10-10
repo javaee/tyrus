@@ -48,7 +48,7 @@ import javax.net.websocket.annotations.WebSocketEndpoint;
  * @author dannycoward
  */
 @WebSocketEndpoint(
-        path="/standardOutputTypes/double"
+        value="/standardOutputTypes/double"
     )
 public class STOUTDouble {
 

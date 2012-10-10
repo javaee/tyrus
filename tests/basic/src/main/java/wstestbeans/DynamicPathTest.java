@@ -49,18 +49,18 @@ import javax.net.websocket.annotations.WebSocketMessage;
  */
 
 @WebSocketEndpoint(
-        path = "/dynamicpath"
+        value = "/dynamicpath"
 )
 public class DynamicPathTest {
 
     @WebSocketMessage
     public String basicPath(String message) {
-        return "hit the root path";
+        return "hit the root value";
     }
 
     //        @WebSocketMessage(XdynamicPath = "*")
     public String dynamicPath(String message) {
-        return "hit the * path with segment: ";
+        return "hit the * value with segment: ";
     }
 
     //        @WebSocketMessage(XdynamicPath = "/foo/bar")

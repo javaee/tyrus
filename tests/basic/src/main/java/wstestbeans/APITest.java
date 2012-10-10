@@ -45,7 +45,7 @@ import javax.net.websocket.annotations.WebSocketEndpoint;
 /* @author dannycoward */
 
     @WebSocketEndpoint(
-        path="/api"
+        value="/api"
     )
 public class APITest {
 
@@ -57,7 +57,7 @@ public class APITest {
 //        XEndpointContext context = remote.getContext();
 //        s = s + "<br>context properties ? " + context.XgetProperties();
 //        s = s + "<br>context conversations ? " + context.getConversations();
-//        s = s + "<br>context  path? " + context.getPath();
+//        s = s + "<br>context  value? " + context.getPath();
 //
 //        s = s + "<br>context container context ? " + context.getContainerContext();
 //        s = s + "<br>context container context properties ? " + context.getContainerContext().XgetProperties();

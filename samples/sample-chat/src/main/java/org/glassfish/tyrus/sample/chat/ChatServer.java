@@ -61,7 +61,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 
-@WebSocketEndpoint(path = "/chat",
+@WebSocketEndpoint(value = "/chat",
     decoders = {org.glassfish.tyrus.sample.chat.chatdata.LoginRequestDecoder.class,
     org.glassfish.tyrus.sample.chat.chatdata.ChatUpdateDecoder.class,
     org.glassfish.tyrus.sample.chat.chatdata.DisconnectRequestDecoder.class},
@@ -144,7 +144,7 @@ public class ChatServer {
         Session nextSession = connections.get(username);
 
         try {
-            nextSession.close(new CloseReason(CloseReason.Code.NORMAL_CLOSURE, "User logged off"));
+            nextSession.close(new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, "User logged off"));
         } catch (IOException e) {
             e.printStackTrace();
         }

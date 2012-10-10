@@ -41,6 +41,7 @@ package org.glassfish.tyrus.platform.decoders;
 
 import javax.net.websocket.DecodeException;
 import javax.net.websocket.Decoder;
+import java.nio.ByteBuffer;
 
 /**
  *
@@ -48,12 +49,12 @@ import javax.net.websocket.Decoder;
  */
 public class BinaryDecoderNoOp implements Decoder.Binary{
     @Override
-    public byte[] decode(byte[] bytes) throws DecodeException {
+    public ByteBuffer decode(ByteBuffer bytes) throws DecodeException {
         return bytes;
     }
 
     @Override
-    public boolean willDecode(byte[] bytes) {
+    public boolean willDecode(ByteBuffer bytes) {
         return true;
     }
 }

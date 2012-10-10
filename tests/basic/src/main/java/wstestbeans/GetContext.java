@@ -47,7 +47,7 @@ import javax.net.websocket.annotations.WebSocketMessage;
  * @author dannycoward
  */
 @WebSocketEndpoint(
-        path = "/getcontext"
+        value = "/getcontext"
 )
 public class GetContext {
 //    @XWebSocketContext

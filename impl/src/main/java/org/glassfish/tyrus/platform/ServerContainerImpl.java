@@ -40,12 +40,12 @@
 
 package org.glassfish.tyrus.platform;
 
-import javax.net.websocket.ClientConfiguration;
+import javax.net.websocket.ClientEndpointConfiguration;
 import javax.net.websocket.Endpoint;
-import javax.net.websocket.ServerConfiguration;
 import javax.net.websocket.ServerContainer;
+import javax.net.websocket.ServerEndpointConfiguration;
 import javax.net.websocket.Session;
-
+import javax.net.websocket.extensions.Extension;
 import java.util.Set;
 
 /**
@@ -88,20 +88,17 @@ public class ServerContainerImpl extends WithProperties implements ServerContain
         return "ContainerContext("+this.wsPath+")";
     }
 
-    /** Publish the given endpoint with the provided configuration
-     * information.
-     * @param endpoint
-     * @param ilc
-     */
+
     @Override
-    public void publishServer(Endpoint endpoint, ServerConfiguration ilc) {
-        throw new UnsupportedOperationException("");
+    public void publishServer(Endpoint endpoint, ServerEndpointConfiguration serverEndpointConfiguration) {
+
     }
 
     @Override
-    public void connectToServer(Endpoint endpoint, ClientConfiguration olc) {
-         throw new UnsupportedOperationException("");
+    public void connectToServer(Endpoint endpoint, ClientEndpointConfiguration clientEndpointConfiguration) {
+        //To change body of implemented methods use File | Settings | File Templates.
     }
+
     /** Return an unordered collection of the currently active web socket sessions.
      * @return
      */
@@ -157,5 +154,10 @@ public class ServerContainerImpl extends WithProperties implements ServerContain
      @Override
     public void setMaxTextMessageBufferSize(long max) {
          throw new UnsupportedOperationException("");
+    }
+
+    @Override
+    public Set<Extension> getInstalledExtensions() {
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 }

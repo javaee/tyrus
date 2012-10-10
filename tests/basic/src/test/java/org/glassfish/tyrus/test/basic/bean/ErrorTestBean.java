@@ -49,7 +49,7 @@ import javax.net.websocket.annotations.WebSocketMessage;
  * @author dannycoward
  */
     @WebSocketEndpoint(
-        path="/error",
+            value="/error",
         encoders={org.glassfish.tyrus.test.basic.encoder.ErrorEncoder.class}
     )
 public class ErrorTestBean {

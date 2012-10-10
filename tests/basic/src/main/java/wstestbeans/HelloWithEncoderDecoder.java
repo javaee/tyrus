@@ -47,7 +47,7 @@ import javax.net.websocket.annotations.WebSocketEndpoint;
  * @author dannycoward
  */
 @WebSocketEndpoint(
-        path = "/helloencoderdecoder",
+        value = "/helloencoderdecoder",
         encoders = {enc.StringEncoder.class},
         decoders = {enc.StringDecoder.class}
 

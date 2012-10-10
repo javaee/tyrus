@@ -49,7 +49,7 @@ import javax.net.websocket.annotations.WebSocketMessage;
  * @author dannycoward
  */
 @WebSocketEndpoint(
-        path = "/decodermultiplexer",
+        value = "/decodermultiplexer",
         decoders = {enc.DecoderA.class, enc.DecoderB.class}
 )
 public class DecoderMultiplexerTest {

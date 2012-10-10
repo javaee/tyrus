@@ -47,7 +47,7 @@ import wstestbeans.*;
  * @author dannycoward
  */
     @WebSocketEndpoint(
-        path="/standardInputTypes/char"
+        value="/standardInputTypes/char"
     )
 public class STINChar {
 

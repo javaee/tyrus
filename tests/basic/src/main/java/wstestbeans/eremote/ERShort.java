@@ -49,7 +49,7 @@ import javax.net.websocket.annotations.WebSocketMessage;
  *
  * @author dannycoward
  */
-    @WebSocketEndpoint(path="/customremote/short")
+    @WebSocketEndpoint(value="/customremote/short")
 public class ERShort {
     private short lastShort;
 

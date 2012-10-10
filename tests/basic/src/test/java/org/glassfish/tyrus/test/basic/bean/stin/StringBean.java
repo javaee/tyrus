@@ -40,16 +40,17 @@
 
 package org.glassfish.tyrus.test.basic.bean.stin;
 
+import wstestbeans.Util;
+
 import javax.net.websocket.annotations.WebSocketEndpoint;
 import javax.net.websocket.annotations.WebSocketMessage;
-import wstestbeans.Util;
 
 /**
  *
  * @author dannycoward
  */
     @WebSocketEndpoint(
-        path="/standardInputTypes/String"
+            value="/standardInputTypes/String"
     )
 public class StringBean {
 

@@ -50,7 +50,7 @@ import javax.net.websocket.annotations.WebSocketMessage;
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 @WebSocketEndpoint(
-        path="/dynamicpath"
+        value="/dynamicpath"
 )
 public class DynamicPathTestBean {
 

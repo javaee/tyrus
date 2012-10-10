@@ -56,7 +56,7 @@ public class JSONDecoder implements Decoder.Text<JSONObject> {
         try {
             return new JSONObject(s);
         } catch (JSONException je) {
-            throw new DecodeException();
+            throw new DecodeException(s, "JSON not decoded");
         }
     }
 

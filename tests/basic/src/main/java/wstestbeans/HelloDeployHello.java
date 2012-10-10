@@ -41,6 +41,7 @@
 package wstestbeans;
 
 
+import javax.net.websocket.CloseReason;
 import javax.net.websocket.Endpoint;
 import javax.net.websocket.MessageHandler;
 import javax.net.websocket.Session;
@@ -49,7 +50,7 @@ import javax.net.websocket.annotations.WebSocketEndpoint;
 
 
 @WebSocketEndpoint(
-        path = "/hellodeployhello"
+        value = "/hellodeployhello"
 )
 /**
  *
@@ -74,9 +75,7 @@ public class HelloDeployHello {
 }
 
 class CustomEndpointUsingInterface extends Endpoint {
-//    public void initialize(XEndpointContext epcontext){
-//        System.out.println("Initializing dynamically deployed end point implementing interface");
-//    }
+
 
     /**
      * Called whenever a peer first connects to this end point.
@@ -92,7 +91,7 @@ class CustomEndpointUsingInterface extends Endpoint {
      * Called when a peer disconnects from this end point.
      */
     @Override
-    public void onClose(Session session) {
+    public void onClose(Session session, CloseReason reason) {
         System.out.println("Closing dynamically deployed end point implementing interface");
 
     }
@@ -161,7 +160,7 @@ class CustomEndpointUsingAdapter extends Endpoint {
      * Called when a peer disconnects from this end point.
      */
     @Override
-    public void onClose(Session session) {
+    public void onClose(Session session, CloseReason reason) {
         System.out.println("Closing dynamically deployed end point extending adapter");
     }
 

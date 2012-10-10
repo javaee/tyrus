@@ -51,7 +51,7 @@ import java.io.IOException;
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 
-@WebSocketEndpoint(path = "/echo")
+@WebSocketEndpoint(value = "/echo")
 public class TestBean {
     @WebSocketMessage
     public void helloWorld(String message, Session session) {

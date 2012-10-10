@@ -4,6 +4,7 @@ import javax.net.websocket.Endpoint;
 import javax.net.websocket.HandshakeRequest;
 import javax.net.websocket.HandshakeResponse;
 import javax.net.websocket.ServerConfiguration;
+import javax.net.websocket.ServerEndpointConfiguration;
 import javax.net.websocket.extensions.Extension;
 import java.net.URI;
 import java.util.Collections;
@@ -16,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class DefaultServerEndpointConfiguration extends DefaultEndpointConfiguration implements ServerConfiguration {
+public class DefaultServerEndpointConfiguration extends DefaultEndpointConfiguration implements ServerEndpointConfiguration {
 
     /**
      * {@link Endpoint} extensions (user provided).

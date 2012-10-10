@@ -48,7 +48,7 @@ import javax.net.websocket.annotations.WebSocketEndpoint;
  */
 
 @WebSocketEndpoint(
-        path = "/subprotocols",
+        value = "/subprotocols",
         subprotocols = {"protocol1"}
 )
 public class SubprotocolsTest {

@@ -54,7 +54,7 @@ import javax.net.websocket.annotations.WebSocketMessage;
 //            Xremote=org.glassfish.tyrus.test.basic.remote.IntRemote.class
 //    )
 @WebSocketEndpoint(
-        path="/standardInputTypes/int")
+        value="/standardInputTypes/int")
 public class IntBean {
 
      @WebSocketMessage

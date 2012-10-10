@@ -47,7 +47,7 @@ import wstestbeans.*;
  * @author dannycoward
  */
     @WebSocketEndpoint(
-        path="/standardInputTypes/float"
+        value="/standardInputTypes/float"
     )
 public class STINFloat {
 

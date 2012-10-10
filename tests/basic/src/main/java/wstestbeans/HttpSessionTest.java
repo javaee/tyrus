@@ -46,7 +46,7 @@ import javax.net.websocket.annotations.WebSocketEndpoint;
  * @author dannycoward
  */
 @WebSocketEndpoint(
-        path = "/httpsession"
+        value = "/httpsession"
 )
 public class HttpSessionTest {
 

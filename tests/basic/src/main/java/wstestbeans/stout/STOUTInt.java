@@ -48,7 +48,7 @@ import javax.net.websocket.annotations.WebSocketEndpoint;
  * @author dannycoward
  */
 @WebSocketEndpoint(
-        path="/standardOutputTypes/int"
+        value="/standardOutputTypes/int"
     )
 public class STOUTInt {
         @WebSocketMessage

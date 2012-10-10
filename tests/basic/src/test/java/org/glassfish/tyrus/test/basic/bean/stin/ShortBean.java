@@ -49,7 +49,7 @@ import javax.net.websocket.annotations.WebSocketMessage;
  * @author dannycoward
  */
     @WebSocketEndpoint(
-        path="/standardInputTypes/short")
+            value="/standardInputTypes/short")
 //            Xremote=org.glassfish.tyrus.test.basic.remote.ShortRemote.class
 //    )
 public class ShortBean {

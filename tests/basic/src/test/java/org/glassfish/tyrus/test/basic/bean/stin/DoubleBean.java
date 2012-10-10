@@ -48,7 +48,7 @@ import javax.net.websocket.annotations.WebSocketMessage;
  * @author dannycoward
  */
 @WebSocketEndpoint(
-        path = "/standardInputTypes/double")
+        value = "/standardInputTypes/double")
 public class DoubleBean {
 
     @WebSocketMessage

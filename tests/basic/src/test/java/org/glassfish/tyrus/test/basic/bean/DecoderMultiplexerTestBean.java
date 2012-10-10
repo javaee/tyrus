@@ -58,7 +58,7 @@ import javax.net.websocket.annotations.WebSocketMessage;
  * @author dannycoward
  */
 @WebSocketEndpoint(
-        path="/decodermultiplexer",
+        value="/decodermultiplexer",
         decoders={org.glassfish.tyrus.test.basic.decoder.DecoderA.class, org.glassfish.tyrus.test.basic.decoder.DecoderB.class}
 )
 public class DecoderMultiplexerTestBean {

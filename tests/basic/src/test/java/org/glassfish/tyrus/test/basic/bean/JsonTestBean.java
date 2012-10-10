@@ -52,7 +52,7 @@ import javax.net.websocket.annotations.WebSocketMessage;
  * @author dannycoward
  */
     @WebSocketEndpoint(
-            path = "/json",
+            value = "/json",
             encoders={org.glassfish.tyrus.test.basic.encoder.JsonEncoder.class},
             decoders={org.glassfish.tyrus.test.basic.decoder.JsonDecoder.class}
             )

@@ -49,7 +49,7 @@ import javax.net.websocket.annotations.WebSocketMessage;
  *
  * @author dannycoward
  */
-    @WebSocketEndpoint(path="/customremote/char")
+    @WebSocketEndpoint(value="/customremote/char")
 public class ERChar {
     private char lastChar;
 

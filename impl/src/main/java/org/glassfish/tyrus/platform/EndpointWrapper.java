@@ -44,6 +44,7 @@ import org.glassfish.tyrus.platform.utils.PrimitivesToBoxing;
 import org.glassfish.tyrus.spi.SPIEndpoint;
 import org.glassfish.tyrus.spi.SPIHandshakeRequest;
 
+import javax.net.websocket.CloseReason;
 import javax.net.websocket.DecodeException;
 import javax.net.websocket.Decoder;
 import javax.net.websocket.EncodeException;
@@ -55,6 +56,7 @@ import javax.net.websocket.RemoteEndpoint;
 import javax.net.websocket.Session;
 import java.io.IOException;
 import java.lang.reflect.Method;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -138,10 +140,10 @@ public class EndpointWrapper extends SPIEndpoint {
                         }
                     }
                 } else if (!isString && interfaces.contains(Decoder.Binary.class)) {
-                    Method m = dec.getClass().getDeclaredMethod("decode", byte[].class);
+                    Method m = dec.getClass().getDeclaredMethod("decode", ByteBuffer.class);
                     if (type != null && type.equals(m.getReturnType())) {
-                        if (((Decoder.Binary) dec).willDecode((byte[]) message)) {
-                            return ((Decoder.Binary) dec).decode((byte[]) message);
+                        if (((Decoder.Binary) dec).willDecode((ByteBuffer) message)) {
+                            return ((Decoder.Binary) dec).decode((ByteBuffer) message);
                         }
                     }
                 }
@@ -212,7 +214,7 @@ public class EndpointWrapper extends SPIEndpoint {
     }
 
     @Override
-    public void onMessage(RemoteEndpoint gs, byte[] messageBytes) {
+    public void onMessage(RemoteEndpoint gs, ByteBuffer messageBytes) {
         RemoteEndpointWrapper peer = getPeer(gs);
         peer.updateLastConnectionActivity();
         processCompleteMessage(gs, messageBytes, false);
@@ -244,7 +246,7 @@ public class EndpointWrapper extends SPIEndpoint {
                 }
             } else {
                 if (handler instanceof MessageHandler.Binary) {
-                    ((MessageHandler.Binary) handler).onMessage((byte[]) o);
+                    ((MessageHandler.Binary) handler).onMessage((ByteBuffer) o);
                     decoded=true;
                 }
             }
@@ -272,7 +274,7 @@ public class EndpointWrapper extends SPIEndpoint {
                             String messageToSendAsString = this.doEncode(returned);
                             peer.sendString(messageToSendAsString);
                         } else if (returned instanceof byte[]) {
-                            peer.sendBytes((byte[]) returned);
+                            peer.sendBytes((ByteBuffer) returned);
                         }
                     }
                     decoded = true;
@@ -280,7 +282,7 @@ public class EndpointWrapper extends SPIEndpoint {
             }
 
             if (!decoded) {
-                throw new DecodeException();
+                throw new Exception();
             }
 
         } catch (IOException ioe) {
@@ -395,7 +397,7 @@ public class EndpointWrapper extends SPIEndpoint {
                 }
             }
         } else if (model.getBean() instanceof Endpoint) {
-            ((Endpoint) model.getBean()).onClose(peer.getSession());
+            ((Endpoint) model.getBean()).onClose(peer.getSession(), new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, "Normal Closure."));
         }else{
             try {
                 throw new Exception("onClose could not be invoked.");

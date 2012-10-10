@@ -47,7 +47,7 @@ import wstestbeans.*;
  * @author dannycoward
  */
     @WebSocketEndpoint(
-        path="/standardInputTypes/double"
+        value="/standardInputTypes/double"
     )
 public class STINDouble {
 

@@ -49,7 +49,7 @@ import javax.net.websocket.annotations.WebSocketMessage;
  *
  * @author dannycoward
  */
-    @WebSocketEndpoint(path="/customremote/double")
+    @WebSocketEndpoint(value="/customremote/double")
 public class ERDouble {
     private double lastDouble;
 

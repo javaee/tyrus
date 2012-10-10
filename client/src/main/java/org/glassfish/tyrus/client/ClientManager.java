@@ -43,10 +43,11 @@ import org.glassfish.tyrus.platform.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.platform.EndpointWrapper;
 import org.glassfish.tyrus.platform.Model;
 
-import javax.net.websocket.ClientConfiguration;
 import javax.net.websocket.ClientContainer;
+import javax.net.websocket.ClientEndpointConfiguration;
 import javax.net.websocket.Endpoint;
 import javax.net.websocket.Session;
+import javax.net.websocket.extensions.Extension;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -72,7 +73,7 @@ public class ClientManager implements ClientContainer {
 
 
     @Override
-    public void connectToServer(Endpoint endpoint, ClientConfiguration clc) {
+    public void connectToServer(Endpoint endpoint, ClientEndpointConfiguration clc) {
         DefaultClientEndpointConfiguration dcec = null;
         if (clc instanceof DefaultClientEndpointConfiguration) {
             dcec = (DefaultClientEndpointConfiguration) clc;
@@ -128,5 +129,10 @@ public class ClientManager implements ClientContainer {
     @Override
     public void setMaxTextMessageBufferSize(long max) {
 
+    }
+
+    @Override
+    public Set<Extension> getInstalledExtensions() {
+        return null;
     }
 }

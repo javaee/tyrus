@@ -1,6 +1,6 @@
 package org.glassfish.tyrus.platform;
 
-import javax.net.websocket.ClientConfiguration;
+import javax.net.websocket.ClientEndpointConfiguration;
 import javax.net.websocket.extensions.Extension;
 import java.net.URI;
 import java.util.ArrayList;
@@ -11,7 +11,7 @@ import java.util.List;
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class DefaultClientEndpointConfiguration extends DefaultEndpointConfiguration implements ClientConfiguration{
+public class DefaultClientEndpointConfiguration extends DefaultEndpointConfiguration implements ClientEndpointConfiguration {
 
     private URI uri;
     private List<String> preferredSubprotocols = new ArrayList<String>();

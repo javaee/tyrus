@@ -47,7 +47,7 @@ import javax.net.websocket.annotations.WebSocketMessage;
 /* @author dannycoward */
 
 @WebSocketEndpoint(
-    path="/api"
+        value="/api"
 )
 public class ApiTestBean {
 

@@ -52,7 +52,7 @@ import java.util.Set;
  * @author Martin Matula (martin.matula at oracle.com)
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-@WebSocketEndpoint(path = "/broadcast")
+@WebSocketEndpoint(value = "/broadcast")
 public class BroadcasterTestBean {
 
     private Set<Session> connections = new HashSet<Session>();
