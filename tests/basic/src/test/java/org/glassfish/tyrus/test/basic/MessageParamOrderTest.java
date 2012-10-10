@@ -40,6 +40,7 @@
 package org.glassfish.tyrus.test.basic;
 
 import org.glassfish.tyrus.client.ClientManager;
+import org.glassfish.tyrus.platform.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.platform.main.Server;
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -47,6 +48,7 @@ import org.junit.Test;
 
 import javax.net.websocket.Session;
 import java.io.IOException;
+import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -74,7 +76,7 @@ public class MessageParamOrderTest {
             messageLatch = new CountDownLatch(1);
 
             ClientManager client = ClientManager.createClient();
-            client.openSocket("ws://localhost:8025/websockets/tests/hello", 10000, new TestEndpointAdapter() {
+            client.connectToServer(new TestEndpointAdapter() {
 
                 @Override
                 public void onOpen(Session session) {
@@ -90,7 +92,7 @@ public class MessageParamOrderTest {
                     receivedMessage = message;
                     messageLatch.countDown();
                 }
-            });
+            }, new DefaultClientEndpointConfiguration(new URI("ws://localhost:8025/websockets/tests/hello")));
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertTrue("The received message is the same as the sent one", receivedMessage.equals(SENT_MESSAGE));
         } catch (Exception e) {
@@ -109,7 +111,7 @@ public class MessageParamOrderTest {
         try {
             messageLatch = new CountDownLatch(1);
             ClientManager client = ClientManager.createClient();
-            client.openSocket("ws://localhost:8025/websockets/tests/hello", 10000, new TestEndpointAdapter() {
+            client.connectToServer(new TestEndpointAdapter() {
 
                 @Override
                 public void onOpen(Session session) {
@@ -125,7 +127,7 @@ public class MessageParamOrderTest {
                     receivedMessage = message;
                     messageLatch.countDown();
                 }
-            });
+            }, new DefaultClientEndpointConfiguration(new URI("ws://localhost:8025/websockets/tests/hello")));
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertTrue("The received message is the same as the sent one", receivedMessage.equals(SENT_MESSAGE));
         } catch (Exception e) {

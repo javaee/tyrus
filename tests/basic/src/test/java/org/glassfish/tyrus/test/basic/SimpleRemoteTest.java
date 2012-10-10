@@ -41,6 +41,7 @@
 package org.glassfish.tyrus.test.basic;
 
 import org.glassfish.tyrus.client.ClientManager;
+import org.glassfish.tyrus.platform.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.platform.main.Server;
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -48,6 +49,7 @@ import org.junit.Test;
 
 import javax.net.websocket.Session;
 import java.io.IOException;
+import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -73,7 +75,7 @@ public class SimpleRemoteTest {
         server.start();
         try {
             final ClientManager client = ClientManager.createClient();
-            client.openSocket("ws://localhost:8025/websockets/tests/hello", 10000, new TestEndpointAdapter() {
+            client.connectToServer(new TestEndpointAdapter() {
                 @Override
                 public void onOpen(Session session) {
                     try {
@@ -88,7 +90,7 @@ public class SimpleRemoteTest {
                     receivedMessage = message;
                     messageLatch.countDown();
                 }
-            });
+            }, new DefaultClientEndpointConfiguration(new URI("ws://localhost:8025/websockets/tests/hello")));
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertTrue("The received message is the same as the sent one", receivedMessage.equals(SENT_MESSAGE));
         } catch (Exception e) {
@@ -118,7 +120,7 @@ public class SimpleRemoteTest {
                         // replace ClientManager with MockWebSocketClient to confirm the test passes if the backend
                         // does not have issues
                         final ClientManager client = ClientManager.createClient();
-                        client.openSocket("ws://localhost:8025/websockets/tests/customremote/hello", 10000, new TestEndpointAdapter() {
+                        client.connectToServer( new TestEndpointAdapter() {
 
                             @Override
                             public void onOpen(Session session) {
@@ -138,7 +140,7 @@ public class SimpleRemoteTest {
                                 assertEquals(testString, s);
                                 messageLatch.countDown();
                             }
-                        });
+                        }, new DefaultClientEndpointConfiguration(new URI("ws://localhost:8025/websockets/tests/customremote/hello")));
                         perClientLatch.await(5, TimeUnit.SECONDS);
                     } catch (Exception e) {
                         e.printStackTrace();

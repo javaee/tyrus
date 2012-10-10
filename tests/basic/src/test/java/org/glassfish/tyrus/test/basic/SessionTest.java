@@ -42,11 +42,12 @@ package org.glassfish.tyrus.test.basic;
 
 import junit.framework.Assert;
 import org.glassfish.tyrus.client.ClientManager;
+import org.glassfish.tyrus.platform.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.platform.main.Server;
 
-import javax.net.websocket.RemoteEndpoint;
 import javax.net.websocket.Session;
 import java.io.IOException;
+import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -70,7 +71,7 @@ public class SessionTest {
             messageLatch = new CountDownLatch(1);
 
             ClientManager client = ClientManager.createClient();
-            client.openSocket("ws://localhost:8025/websockets/tests/session", 10000, new TestEndpointAdapter() {
+            client.connectToServer(new TestEndpointAdapter() {
 
                 @Override
                 public void onOpen(Session session) {
@@ -86,7 +87,7 @@ public class SessionTest {
                     receivedMessage = message;
                     messageLatch.countDown();
                 }
-            });
+            }, new DefaultClientEndpointConfiguration(new URI("ws://localhost:8025/websockets/tests/session")));
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertTrue(receivedMessage.length() > 0);
         } catch (Exception e) {

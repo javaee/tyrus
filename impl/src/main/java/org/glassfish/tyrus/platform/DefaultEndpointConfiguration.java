@@ -17,10 +17,6 @@ public class DefaultEndpointConfiguration implements EndpointConfiguration{
      */
     Model model;
 
-    public DefaultEndpointConfiguration(Model model) {
-        this.model = model;
-    }
-
     @Override
     public List<Encoder> getEncoders() {
         return model.getEncoders();
@@ -29,5 +25,14 @@ public class DefaultEndpointConfiguration implements EndpointConfiguration{
     @Override
     public List<Decoder> getDecoders() {
         return model.getDecoders();
+    }
+
+    /**
+     * Set the {@link Model} for this endpoint configuration.
+     *
+     * @param model {@link Model} which will be set to the configuration.
+     */
+    public void setModel(Model model) {
+        this.model = model;
     }
 }

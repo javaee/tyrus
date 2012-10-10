@@ -29,13 +29,17 @@ public class DefaultServerEndpointConfiguration extends DefaultEndpointConfigura
     private Set<String> subprotocols = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
 
     /**
+     * Create new configuration.
+     */
+    public DefaultServerEndpointConfiguration(){}
+
+    /**
      * Creates new configuration for {@link Endpoint} which is used on the server side.
      *
      * @param model Model of the {@link Endpoint}.
      */
     public DefaultServerEndpointConfiguration(Model model){
-        super(model);
-        this.model = model;
+        super.setModel(model);
     }
 
     @Override

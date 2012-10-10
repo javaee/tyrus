@@ -71,7 +71,7 @@ public class AnnotatedClientTest {
 
         try {
             ClientManager client = ClientManager.createClient();
-            client.openSocket("ws://localhost:8025/websockets/tests/echo", 10000,new ClientTestBean(this, true));
+//            client.openSocket("ws://localhost:8025/websockets/tests/echo", 10000,new ClientTestBean(this, true));
 
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertTrue("The received message is the same as the sent one", receivedMessage.equals("hello"));
@@ -92,7 +92,7 @@ public class AnnotatedClientTest {
 
         try {
             ClientManager client = ClientManager.createClient();
-            client.openSocket("ws://localhost:8025/websockets/tests/echo", 10000,new ClientTestBean(this,false));
+//            client.openSocket("ws://localhost:8025/websockets/tests/echo", 10000,new ClientTestBean(this,false));
             messageLatch.await(5, TimeUnit.SECONDS);
             System.out.println("### Test receivedTestMessage: "+receivedTestMessage);
             Assert.assertTrue("The received message is the same as the sent one", receivedTestMessage.equals("testHello"));

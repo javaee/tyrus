@@ -1,5 +1,6 @@
 package org.glassfish.tyrus.client;
 
+import org.glassfish.tyrus.platform.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.platform.main.Server;
 import org.junit.Assert;
 import org.junit.Test;
@@ -17,8 +18,6 @@ import java.util.concurrent.TimeUnit;
  */
 public class ClientManagerTest {
 
-    private CountDownLatch messageLatch;
-
     private String receivedMessage;
 
     private static final String SENT_MESSAGE = "hello";
@@ -28,7 +27,7 @@ public class ClientManagerTest {
         Server server = new Server("org.glassfish.tyrus.client.TestBean");
         server.start();
 
-        messageLatch = new CountDownLatch(1);
+        CountDownLatch messageLatch = new CountDownLatch(1);
 
         try {
 
@@ -51,7 +50,7 @@ public class ClientManagerTest {
                     receivedMessage = message;
                     System.out.println("Received message = " + message);
                 }
-            }, new ProvidedClientConfiguration(new URI("ws://localhost:8025/websockets/tests/echo")));
+            }, new DefaultClientEndpointConfiguration(new URI("ws://localhost:8025/websockets/tests/echo")));
 
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertTrue("The received message is the same as the sent one", receivedMessage.equals(SENT_MESSAGE));

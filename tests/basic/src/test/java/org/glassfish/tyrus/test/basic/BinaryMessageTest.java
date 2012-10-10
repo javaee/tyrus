@@ -40,6 +40,7 @@
 package org.glassfish.tyrus.test.basic;
 
 import org.glassfish.tyrus.client.ClientManager;
+import org.glassfish.tyrus.platform.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.platform.main.Server;
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -47,6 +48,7 @@ import org.junit.Test;
 
 import javax.net.websocket.Session;
 import java.io.IOException;
+import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -71,7 +73,7 @@ public class BinaryMessageTest {
             messageLatch = new CountDownLatch(1);
 
             ClientManager client = ClientManager.createClient();
-            client.openSocket("ws://localhost:8025/websockets/tests/binary", 10000, new TestEndpointAdapter() {
+            client.connectToServer(new TestEndpointAdapter() {
 
                 @Override
                 public void onOpen(Session session) {
@@ -86,7 +88,7 @@ public class BinaryMessageTest {
                     receivedMessage = message;
                     messageLatch.countDown();
                 }
-            });
+            }, new DefaultClientEndpointConfiguration(new URI("ws://localhost:8025/websockets/tests/binary")));
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertArrayEquals("The received message is the same as the sent one", receivedMessage, BINARY_MESSAGE);
         } catch (Exception e) {

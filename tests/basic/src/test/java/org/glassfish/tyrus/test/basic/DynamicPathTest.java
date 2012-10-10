@@ -41,6 +41,7 @@
 package org.glassfish.tyrus.test.basic;
 
 import org.glassfish.tyrus.client.ClientManager;
+import org.glassfish.tyrus.platform.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.platform.main.Server;
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -48,6 +49,7 @@ import org.junit.Test;
 
 import javax.net.websocket.Session;
 import java.io.IOException;
+import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -89,7 +91,8 @@ public class DynamicPathTest {
         messageLatch = new CountDownLatch(1);
         try {
             ClientManager client = ClientManager.createClient();
-            client.openSocket("ws://localhost:8025/websockets/tests/dynamicpath" + segmentPath, 10000,new TestEndpointAdapter() {
+            client.connectToServer(new TestEndpointAdapter() {
+                //            client.openSocket("ws://localhost:8025/websockets/tests/dynamicpath" + segmentPath, 10000,new TestEndpointAdapter() {
                 @Override
                 public void onOpen(Session session) {
                     try {
@@ -104,7 +107,7 @@ public class DynamicPathTest {
                     receivedMessage = message;
                     messageLatch.countDown();
                 }
-            });
+            }, new DefaultClientEndpointConfiguration( new URI("ws://localhost:8025/websockets/tests/dynamicpath" + segmentPath)));
             messageLatch.await(5, TimeUnit.SECONDS);
             System.out.println("Expected response:"+response+".");
             System.out.println("Real response:"+receivedMessage+".");

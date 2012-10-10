@@ -39,6 +39,7 @@
  */
 package org.glassfish.tyrus.client;
 
+import org.glassfish.tyrus.platform.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.platform.main.Server;
 import org.junit.Assert;
 import org.junit.Test;
@@ -89,7 +90,7 @@ public class ClientTest {
                         e.printStackTrace();
                     }
                 }
-            },new ProvidedClientConfiguration(new URI("ws://localhost:8025/websockets/tests/echo")));
+            },new DefaultClientEndpointConfiguration(new URI("ws://localhost:8025/websockets/tests/echo")));
 
             messageLatch.await(5, TimeUnit.SECONDS);
 

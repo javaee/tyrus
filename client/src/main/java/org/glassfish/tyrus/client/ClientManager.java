@@ -39,7 +39,7 @@
  */
 package org.glassfish.tyrus.client;
 
-import org.glassfish.tyrus.platform.DefaultServerEndpointConfiguration;
+import org.glassfish.tyrus.platform.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.platform.EndpointWrapper;
 import org.glassfish.tyrus.platform.Model;
 
@@ -47,8 +47,6 @@ import javax.net.websocket.ClientConfiguration;
 import javax.net.websocket.ClientContainer;
 import javax.net.websocket.Endpoint;
 import javax.net.websocket.Session;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -72,48 +70,29 @@ public class ClientManager implements ClientContainer {
         return new ClientManager();
     }
 
-    /**
-     * Open new WebSocket connection.
-     *
-     * @param url Address to which the connection connects.
-     * @param timeoutMs Connection timeout.
-     * @param endpoints Endpoints that will be registered with the socket.
-     * @return newly created {@link ClientSocket}.
-     */
-    public ClientSocket openSocket(String url, long timeoutMs, Object... endpoints) {
-        URI uri = null;
+
+    @Override
+    public void connectToServer(Endpoint endpoint, ClientConfiguration clc) {
+        DefaultClientEndpointConfiguration dcec = null;
+        if (clc instanceof DefaultClientEndpointConfiguration) {
+            dcec = (DefaultClientEndpointConfiguration) clc;
+        }
+        GrizzlyWebSocket gws = new GrizzlyWebSocket(dcec.getUri(), 10000);
+
+        Model model = null;
         try {
-            uri = new URI(url);
-        } catch (URISyntaxException e) {
+            model = new Model(endpoint);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InstantiationException e) {
             e.printStackTrace();
         }
-        GrizzlyWebSocket gws = new GrizzlyWebSocket(uri,timeoutMs);
-
-        for (Object endpoint : endpoints) {
-                Model model = null;
-                try {
-                    model = new Model(endpoint);
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                } catch (InstantiationException e) {
-                    e.printStackTrace();
-                }
-                EndpointWrapper clientEndpoint = new EndpointWrapper(null, model, new DefaultServerEndpointConfiguration(model));
-                gws.addEndpoint(clientEndpoint);
-        }
+        dcec.setModel(model);
+        EndpointWrapper clientEndpoint = new EndpointWrapper(null, model, clc);
+        gws.addEndpoint(clientEndpoint);
 
         gws.connect();
         sockets.add(gws);
-        return gws;
-    }
-
-    //implementing ClientContainer methods
-
-    @Override
-    public void connectToServer(Endpoint endpoint, ClientConfiguration olc) {
-        if(olc instanceof ProvidedClientConfiguration){
-            this.openSocket(((ProvidedClientConfiguration) olc).getUri().toString(), 10000, endpoint);
-        }
     }
 
     @Override

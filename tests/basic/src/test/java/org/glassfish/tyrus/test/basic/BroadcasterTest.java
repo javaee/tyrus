@@ -41,6 +41,7 @@
 package org.glassfish.tyrus.test.basic;
 
 import org.glassfish.tyrus.client.ClientManager;
+import org.glassfish.tyrus.platform.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.platform.main.Server;
 import org.glassfish.tyrus.test.basic.bean.BroadcasterTestBean;
 import org.junit.Ignore;
@@ -48,6 +49,7 @@ import org.junit.Test;
 
 import javax.net.websocket.RemoteEndpoint;
 import javax.net.websocket.Session;
+import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -72,9 +74,9 @@ public class BroadcasterTest {
             final TEndpointAdapter ea2 = new TEndpointAdapter(messageLatch);
 
             final ClientManager client1 = ClientManager.createClient();
-            client1.openSocket("ws://localhost:8025/websockets/tests/broadcast",10000,ea1);
+            client1.connectToServer(ea1, new DefaultClientEndpointConfiguration(new URI("ws://localhost:8025/websockets/tests/broadcast")));
             final ClientManager client2 = ClientManager.createClient();
-            client2.openSocket("ws://localhost:8025/websockets/tests/broadcast", 10000, ea1);
+            client1.connectToServer(ea2, new DefaultClientEndpointConfiguration(new URI("ws://localhost:8025/websockets/tests/broadcast")));
 
             synchronized (ea1) {
                 if (ea1.peer == null) {

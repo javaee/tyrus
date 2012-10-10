@@ -41,12 +41,14 @@
 package org.glassfish.tyrus.test.basic;
 
 import org.glassfish.tyrus.client.ClientManager;
+import org.glassfish.tyrus.platform.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.platform.main.Server;
 import org.junit.Assert;
 import org.junit.Test;
 
 import javax.net.websocket.Session;
 import java.io.IOException;
+import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -115,11 +117,10 @@ public class InTest {
             messageLatch = new CountDownLatch(1);
 
             ClientManager client = ClientManager.createClient();
-
             TestAdapter ta = new TestAdapter(message);
-
             String address = "ws://localhost:8025/websockets/tests"+segmentPath;
-            client.openSocket(address, 10000,ta);
+
+            client.connectToServer(ta, new DefaultClientEndpointConfiguration(new URI(address)));
 
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertTrue("The received message equals the required response", receivedMessage.equals(response));
