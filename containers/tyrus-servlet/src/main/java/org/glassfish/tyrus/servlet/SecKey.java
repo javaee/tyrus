@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2010-2011 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -40,31 +40,67 @@
 
 package org.glassfish.tyrus.servlet;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.ProtocolHandler;
-import java.io.IOException;
-import java.util.logging.Logger;
+
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 /**
- * @author Jitendra Kotamraju
+ * Class represents WebSocket's security key, used during the handshake phase.
+ *
+ * @author Alexey Stashok
  */
-public class WebSocketServlet extends HttpServlet {
+public class SecKey {
+    public static final String SERVER_KEY_HASH = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
-    private static final Logger LOGGER = Logger.getLogger(WebSocketServlet.class.getName());
+    /**
+     * Security key string representation, which includes chars and spaces.
+     */
+    private final String secKey;
 
-    public void service(HttpServletRequest req, HttpServletResponse res)
-            throws IOException, ServletException {
-        LOGGER.info("Setting up WebSocket protocol handler");
-        ProtocolHandler handler = new WebSocketProtocolHandler();
-        req.upgrade(handler);
-        HandShake handShake = new HandShake(req);
-        handShake.setHeaders(res);
-        LOGGER.info("Handshake Complete");
+    SecKey(String base64) {
+        if(base64 == null) {
+            throw new HandshakeException("Null keys are not allowed.");
+        }
+        secKey = base64;
+    }
 
-        res.flushBuffer();
+    /**
+     * Generate server-side security key, which gets passed to the client during
+     * the handshake phase as part of message payload.
+     *
+     * @param clientKey client's Sec-WebSocket-Key
+     * @return server key.
+     *
+     */
+    public static SecKey generateServerKey(SecKey clientKey) throws HandshakeException {
+        String key = clientKey.getSecKey() + SERVER_KEY_HASH;
+        final MessageDigest instance;
+        try {
+            instance = MessageDigest.getInstance("SHA-1");
+            instance.update(key.getBytes());
+            final byte[] digest = instance.digest();
+            if(digest.length != 20) {
+                throw new HandshakeException("Invalid key length.  Should be 20: " + digest.length);
+            }
+
+            return new SecKey(Base64Utils.encodeToString(digest, false));
+        } catch (NoSuchAlgorithmException e) {
+            throw new HandshakeException(e.getMessage());
+        }
+    }
+
+    /**
+     * Gets security key string representation, which includes chars and spaces.
+     *
+     * @return Security key string representation, which includes chars and spaces.
+     */
+    public String getSecKey() {
+        return secKey;
+    }
+
+    @Override
+    public String toString() {
+        return secKey;
     }
 
 }

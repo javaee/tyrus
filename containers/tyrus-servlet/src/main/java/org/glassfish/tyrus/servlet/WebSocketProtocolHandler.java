@@ -71,10 +71,12 @@ public class WebSocketProtocolHandler implements ProtocolHandler, ReadListener {
         try {
             is = wc.getInputStream();
             os = wc.getOutputStream();
+LOGGER.info("*** Data Availabe="+is.available());
         } catch (IOException ioe) {
             throw new RuntimeException(ioe);
         }
         is.setReadListener(this);
+onDataAvailable();
     }
 
     @Override
@@ -200,7 +202,8 @@ public class WebSocketProtocolHandler implements ProtocolHandler, ReadListener {
                     if (buf.remaining() < state.length) {
                         return null;
                     }
-                    byte[] data = buf.get(new byte[(int)state.length]).array();
+                    byte[] data = new byte[(int)state.length];
+                    buf.get(data);
                     unmask(state.mask, data, 0, data.length);
                     dataFrame = new DataFrame(DataFrame.Type.TEXT, data);
 

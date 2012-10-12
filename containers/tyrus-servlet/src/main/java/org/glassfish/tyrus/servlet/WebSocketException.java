@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -40,31 +40,15 @@
 
 package org.glassfish.tyrus.servlet;
 
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.ProtocolHandler;
-import java.io.IOException;
-import java.util.logging.Logger;
-
-/**
- * @author Jitendra Kotamraju
- */
-public class WebSocketServlet extends HttpServlet {
-
-    private static final Logger LOGGER = Logger.getLogger(WebSocketServlet.class.getName());
-
-    public void service(HttpServletRequest req, HttpServletResponse res)
-            throws IOException, ServletException {
-        LOGGER.info("Setting up WebSocket protocol handler");
-        ProtocolHandler handler = new WebSocketProtocolHandler();
-        req.upgrade(handler);
-        HandShake handShake = new HandShake(req);
-        handShake.setHeaders(res);
-        LOGGER.info("Handshake Complete");
-
-        res.flushBuffer();
+public class WebSocketException extends RuntimeException {
+    public WebSocketException(String message) {
+        super(message);
     }
 
+    public WebSocketException(String message, Throwable throwable) {
+        super(message, throwable);
+    }
+    public WebSocketException(Throwable throwable) {
+        super(throwable);
+    }
 }
