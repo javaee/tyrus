@@ -51,16 +51,16 @@
 
     <groupId>org.glassfish.tyrus</groupId>
     <artifactId>websocket</artifactId>
-    <version>1.0</version>
+    <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>WebSocket</name>
     <description>WebSocket API and Implementation</description>
     <url>http://tyrus.java.net</url>
 
     <scm>
-        <connection>scm:svn:https://tyrusrobot@svn.java.net/tyrus~source-code-repository/tags/websocket-1.0</connection>
-        <developerConnection>scm:svn:https://tyrusrobot@svn.java.net/tyrus~source-code-repository/tags/websocket-1.0</developerConnection>
-        <url>http://java.net/projects/tyrus/sources/source-code-repository/show/tags/websocket-1.0</url>
+        <connection>scm:svn:https://tyrusrobot@svn.java.net/tyrus~source-code-repository/trunk</connection>
+        <developerConnection>scm:svn:https://tyrusrobot@svn.java.net/tyrus~source-code-repository/trunk</developerConnection>
+        <url>http://java.net/projects/tyrus/sources/source-code-repository/show</url>
     </scm>
 
     <licenses>
