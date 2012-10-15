@@ -58,8 +58,8 @@
     <url>http://tyrus.java.net</url>
 
     <scm>
-        <connection>scm:svn:https://tyrusrobot@svn.java.net/tyrus~source-code-repository/trunk</connection>
-        <developerConnection>scm:svn:https://tyrusrobot@svn.java.net/tyrus~source-code-repository/trunk</developerConnection>
+        <connection>scm:svn:https://svn.java.net/tyrus~source-code-repository/trunk</connection>
+        <developerConnection>scm:svn:https://svn.java.net/tyrus~source-code-repository/trunk</developerConnection>
         <url>http://java.net/projects/tyrus/sources/source-code-repository/show</url>
     </scm>
 
