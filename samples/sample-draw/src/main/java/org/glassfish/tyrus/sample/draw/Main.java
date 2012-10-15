@@ -60,7 +60,7 @@ public class Main {
             e.printStackTrace();
         }
 
-        Server server = new Server("localhost", 8025, "/sample-draw", beans);
+        Server server = new Server("localhost", 8080, "/sample-draw", beans);
 
         try {
             server.start();

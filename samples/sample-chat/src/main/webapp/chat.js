@@ -1,5 +1,5 @@
 
-  var wsUri = "ws://localhost:8025/sample-chat/chat";
+  var wsUri = "ws://"+ document.location.host +"/sample-chat/chat";
   var output;
   var username = "";
   var debug = false;

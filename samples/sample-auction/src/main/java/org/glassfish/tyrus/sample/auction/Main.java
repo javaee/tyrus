@@ -58,7 +58,7 @@ public class Main {
             e.printStackTrace();
         }
 
-        Server server = new Server("localhost", 8025, "/sample-auction", beans);
+        Server server = new Server("localhost", 8080, "/sample-auction", beans);
 
         try {
             server.start();

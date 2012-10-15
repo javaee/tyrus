@@ -52,7 +52,7 @@ import java.io.IOException;
 public class Main {
 
     public static void main(String[] args) {
-        Server server = new Server("localhost", 8025, "/sample-echo", org.glassfish.tyrus.sample.echo.EchoBean.class);
+        Server server = new Server("localhost", 8080, "/sample-echo", org.glassfish.tyrus.sample.echo.EchoBean.class);
 
         try {
             server.start();

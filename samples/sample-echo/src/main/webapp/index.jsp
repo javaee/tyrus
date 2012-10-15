@@ -48,7 +48,7 @@
         <meta charset="utf-8">
         <title>Web Socket JavaScript Echo Client</title>
         <script language="javascript" type="text/javascript">
-            var wsUri = "ws://localhost:8025/sample-echo/echo";
+            var wsUri = "ws://"+ document.location.host +"/sample-echo/echo";
 
             function init() {
                 output = document.getElementById("output");

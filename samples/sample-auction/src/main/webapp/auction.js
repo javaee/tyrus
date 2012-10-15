@@ -1,5 +1,5 @@
 
-var wsUri = "ws://localhost:8025/sample-auction/auction";
+var wsUri = "ws://"+ document.location.host +"/sample-auction/auction";
 var output;
 var username = "";
 var debug = false;

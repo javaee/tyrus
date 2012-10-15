@@ -59,7 +59,7 @@ public class Main {
             e.printStackTrace();
         }
 
-        Server server = new Server("localhost", 8025, "/sample-chat", beans);
+        Server server = new Server("localhost", 8080, "/sample-chat", beans);
 
         try {
             server.start();

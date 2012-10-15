@@ -112,15 +112,21 @@
             }
 
             function computeCoordinates(event) {
-                var rect = drawingCanvas.getBoundingClientRect();
-                var root = document.documentElement;
+                var totalOffsetX = 0;
+                var totalOffsetY = 0;
+                var currentElement = drawingCanvas;
 
-                var mouseX = event.clientX - rect.left - root.scrollTop;
-                var mouseY = event.clientY - rect.top - root.scrollLeft;
+                do {
+                    totalOffsetX += currentElement.offsetLeft;
+                    totalOffsetY += currentElement.offsetTop;
+                } while (currentElement = currentElement.offsetParent);
+
+                var posx = event.pageX - totalOffsetX;
+                var posy = event.pageY - totalOffsetY;
 
                 return {
-                    x: mouseX,
-                    y: mouseY
+                    x: posx,
+                    y: posy
                 };
             }
 
@@ -183,7 +189,7 @@
 
             function init() {
                 output = document.getElementById("output");
-                websocket = new WebSocket("ws://localhost:8025/sample-draw/draw");
+                websocket = new WebSocket("ws://" + document.location.host + "/sample-draw/draw");
                 websocket.onopen = function(evt) { onOpen(evt) };
                 websocket.onmessage = function(evt) { onMessage(evt) };
                 websocket.onerror = function(evt) { onError(evt) };
