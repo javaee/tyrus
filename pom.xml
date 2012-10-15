@@ -54,7 +54,7 @@
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>WebSocket</name>
-    <description>WebSocket API and Implementation</description>
+    <description>WebSocket API JSR 356 and Implementation</description>
     <url>http://tyrus.java.net</url>
 
     <scm>
