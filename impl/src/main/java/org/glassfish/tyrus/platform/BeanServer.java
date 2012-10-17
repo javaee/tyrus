@@ -146,7 +146,7 @@ public class BeanServer {
                 Model model = new Model(webSocketApplicationBeanClazz);
                 String wrapperBeanPath = (wsPath.endsWith("/") ? wsPath.substring(0, wsPath.length() - 1) : wsPath)
                         + "/" + (nextPath.startsWith("/") ? nextPath.substring(1) : nextPath);
-                EndpointWrapper endpoint = new EndpointWrapper(wrapperBeanPath, model, new DefaultServerEndpointConfiguration(model));
+                EndpointWrapper endpoint = new EndpointWrapper(wrapperBeanPath, model, new DefaultServerEndpointConfiguration(model), this.containerContext);
                 this.deploy(endpoint);
             }
         }

@@ -97,7 +97,7 @@ public final class RemoteEndpointWrapper<T> implements RemoteEndpoint<T>{
     private RemoteEndpointWrapper(RemoteEndpoint providedRemoteEndpoint, EndpointWrapper correspondingEndpoint) {
         this.providedRemoteEndpoint = providedRemoteEndpoint;
         this.correspondingEndpoint = correspondingEndpoint;
-        this.webSocketSession = new SessionImpl();
+        this.webSocketSession = new SessionImpl(correspondingEndpoint.getContainer());
         this.webSocketSession.setPeer(this);
     }
 

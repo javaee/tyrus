@@ -53,6 +53,7 @@ import javax.net.websocket.Endpoint;
 import javax.net.websocket.EndpointConfiguration;
 import javax.net.websocket.MessageHandler;
 import javax.net.websocket.RemoteEndpoint;
+import javax.net.websocket.ClientContainer;
 import javax.net.websocket.Session;
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -71,6 +72,10 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 public class EndpointWrapper extends SPIEndpoint {
+     /**
+     * The container for this session.
+     */
+    private ClientContainer container;
 
     /**
      * Server configuration.
@@ -104,11 +109,12 @@ public class EndpointWrapper extends SPIEndpoint {
      * @param path  address of this endpoint as annotated by {@link javax.net.websocket.annotations.WebSocketEndpoint} annotation.
      * @param model model of the application class.
      */
-    public EndpointWrapper(String path, Model model, EndpointConfiguration configuration) {
+    public EndpointWrapper(String path, Model model, EndpointConfiguration configuration, ClientContainer container) {
         this.path = path;
         this.model = model;
         this.configuration = configuration;
         this.annotated = model.wasAnnotated();
+        this.container = container;
     }
 
     /**
@@ -125,6 +131,10 @@ public class EndpointWrapper extends SPIEndpoint {
             return true;
         }
         return false;
+    }
+    
+    ClientContainer getContainer() {
+        return this.container;
     }
 
     private Object decodeMessage(Object message, Class<?> type, boolean isString) throws DecodeException {

@@ -65,6 +65,11 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 public class SessionImpl<T> implements Session<T> {
+    
+    /**
+     * The container for this session.
+     */
+    private ClientContainer container;
 
     /**
      * Session properties.
@@ -131,7 +136,8 @@ public class SessionImpl<T> implements Session<T> {
      */
     private long lastConnectionActivity;
 
-    SessionImpl() {
+    SessionImpl(ClientContainer container) {
+        this.container = container;
         this.id = count.getAndIncrement();
     }
 
@@ -233,7 +239,7 @@ public class SessionImpl<T> implements Session<T> {
 
     @Override
     public ClientContainer getContainer() {
-        return null;
+        return this.container;
     }
 
     @Override
