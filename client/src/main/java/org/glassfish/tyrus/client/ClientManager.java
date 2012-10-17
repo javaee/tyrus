@@ -89,7 +89,7 @@ public class ClientManager implements ClientContainer {
             e.printStackTrace();
         }
         dcec.setModel(model);
-        EndpointWrapper clientEndpoint = new EndpointWrapper(null, model, clc);
+        EndpointWrapper clientEndpoint = new EndpointWrapper(null, model, clc, this);
         gws.addEndpoint(clientEndpoint);
 
         gws.connect();
