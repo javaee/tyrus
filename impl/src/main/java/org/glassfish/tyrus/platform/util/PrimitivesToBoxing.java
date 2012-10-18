@@ -1,4 +1,4 @@
-package org.glassfish.tyrus.platform.utils;
+package org.glassfish.tyrus.platform.util;
 
 import java.util.HashMap;
 

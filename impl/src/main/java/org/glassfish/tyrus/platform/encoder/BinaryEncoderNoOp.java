@@ -1,4 +1,4 @@
-package org.glassfish.tyrus.platform.encoders;
+package org.glassfish.tyrus.platform.encoder;
 
 import javax.net.websocket.EncodeException;
 import javax.net.websocket.Encoder;

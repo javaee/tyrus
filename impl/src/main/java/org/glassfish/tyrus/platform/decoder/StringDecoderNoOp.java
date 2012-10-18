@@ -38,7 +38,7 @@
  * holder.
  */
 
-package org.glassfish.tyrus.platform.decoders;
+package org.glassfish.tyrus.platform.decoder;
 
 import javax.net.websocket.DecodeException;
 import javax.net.websocket.Decoder;
@@ -47,11 +47,11 @@ import javax.net.websocket.Decoder;
  *
  * @author dannycoward
  */
-public class FloatDecoder implements Decoder.Text<Float> {
+public class StringDecoderNoOp implements Decoder.Text<String> {
 
     @Override
-    public Float decode(String s) throws DecodeException {
-        return Float.valueOf(s);
+    public String decode(String s) throws DecodeException {
+        return s;
     }
 
     @Override

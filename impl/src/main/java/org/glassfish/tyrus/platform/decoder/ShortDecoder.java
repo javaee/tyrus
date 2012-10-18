@@ -38,20 +38,24 @@
  * holder.
  */
 
-package org.glassfish.tyrus.platform.encoders;
+package org.glassfish.tyrus.platform.decoder;
 
-import javax.net.websocket.EncodeException;
-import javax.net.websocket.Encoder;
+import javax.net.websocket.DecodeException;
+import javax.net.websocket.Decoder;
+
 /**
  *
  * @author dannycoward
  */
-public class FloatEncoder implements Encoder.Text<Float> {
+public class ShortDecoder implements Decoder.Text<Short> {
 
     @Override
-    public String encode(Float b) throws EncodeException {
-
-        return b.toString();
+    public Short decode(String s) throws DecodeException {
+        return Short.valueOf(s);
     }
 
+    @Override
+    public boolean willDecode(String s) {
+        return true;
+    }
 }

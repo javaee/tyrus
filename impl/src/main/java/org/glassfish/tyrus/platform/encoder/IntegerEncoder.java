@@ -38,24 +38,22 @@
  * holder.
  */
 
-package org.glassfish.tyrus.platform.decoders;
+package org.glassfish.tyrus.platform.encoder;
 
-import javax.net.websocket.Decoder;
-import javax.net.websocket.DecodeException;
+import javax.net.websocket.EncodeException;
+import javax.net.websocket.Encoder;
 
 /**
  *
  * @author dannycoward
  */
-public class CharDecoder implements Decoder.Text<Character> {
+public class IntegerEncoder implements Encoder.Text<Integer> {
 
     @Override
-    public Character decode(String s) throws DecodeException {
-        return new Character(s.charAt(0));
+    public String encode(Integer b) throws EncodeException {
+
+        return b.toString();
     }
 
-    @Override
-    public boolean willDecode(String s) {
-        return true;
-    }
 }
+

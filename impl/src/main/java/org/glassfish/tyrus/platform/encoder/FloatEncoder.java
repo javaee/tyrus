@@ -38,19 +38,18 @@
  * holder.
  */
 
-package org.glassfish.tyrus.platform.encoders;
+package org.glassfish.tyrus.platform.encoder;
 
 import javax.net.websocket.EncodeException;
 import javax.net.websocket.Encoder;
-
 /**
  *
  * @author dannycoward
  */
-public class ShortEncoder implements Encoder.Text<Short> {
+public class FloatEncoder implements Encoder.Text<Float> {
 
     @Override
-    public String encode(Short b) throws EncodeException {
+    public String encode(Float b) throws EncodeException {
 
         return b.toString();
     }

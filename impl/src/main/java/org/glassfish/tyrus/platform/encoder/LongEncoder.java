@@ -37,24 +37,22 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.platform.decoders;
 
-import javax.net.websocket.DecodeException;
-import javax.net.websocket.Decoder;
-import java.nio.ByteBuffer;
+package org.glassfish.tyrus.platform.encoder;
+
+import javax.net.websocket.EncodeException;
+import javax.net.websocket.Encoder;
 
 /**
  *
- * @author stepan.kopriva(stepan.kopriva at oracle.com)
+ * @author dannycoward
  */
-public class BinaryDecoderNoOp implements Decoder.Binary{
-    @Override
-    public ByteBuffer decode(ByteBuffer bytes) throws DecodeException {
-        return bytes;
-    }
+public class LongEncoder implements Encoder.Text<Long> {
 
     @Override
-    public boolean willDecode(ByteBuffer bytes) {
-        return true;
+    public String encode(Long b) throws EncodeException {
+
+        return b.toString();
     }
+
 }

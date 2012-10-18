@@ -37,19 +37,21 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.platform.decoders;
+
+package org.glassfish.tyrus.platform.decoder;
 
 import javax.net.websocket.DecodeException;
 import javax.net.websocket.Decoder;
 
 /**
- * @author Stepan Kopriva (stepan.kopriva at oracle.com)
+ *
+ * @author dannycoward
  */
-public class ByteDecoder implements Decoder.Text<Byte> {
+public class DoubleDecoder implements Decoder.Text<Double> {
 
     @Override
-    public Byte decode(String s) throws DecodeException {
-        return Byte.valueOf(s);
+    public Double decode(String s) throws DecodeException {
+        return Double.valueOf(s);
     }
 
     @Override

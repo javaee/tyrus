@@ -38,25 +38,21 @@
  * holder.
  */
 
-package org.glassfish.tyrus.platform.decoders;
+package org.glassfish.tyrus.platform.encoder;
 
-import javax.net.websocket.Decoder;
-import javax.net.websocket.DecodeException;
+import javax.net.websocket.EncodeException;
+import javax.net.websocket.Encoder;
 
 /**
- * Used to decode Boolean
  *
  * @author dannycoward
  */
-public class BooleanDecoder implements Decoder.Text<Boolean> {
+public class DoubleEncoder implements Encoder.Text<Double> {
 
     @Override
-    public Boolean decode(String s) throws DecodeException {
-        return Boolean.valueOf(s);
+    public String encode(Double b) throws EncodeException {
+
+        return b.toString();
     }
 
-    @Override
-    public boolean willDecode(String s) {
-        return true;
-    }
 }

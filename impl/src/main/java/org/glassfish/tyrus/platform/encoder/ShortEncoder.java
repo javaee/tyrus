@@ -38,7 +38,7 @@
  * holder.
  */
 
-package org.glassfish.tyrus.platform.encoders;
+package org.glassfish.tyrus.platform.encoder;
 
 import javax.net.websocket.EncodeException;
 import javax.net.websocket.Encoder;
@@ -47,10 +47,10 @@ import javax.net.websocket.Encoder;
  *
  * @author dannycoward
  */
-public class DoubleEncoder implements Encoder.Text<Double> {
+public class ShortEncoder implements Encoder.Text<Short> {
 
     @Override
-    public String encode(Double b) throws EncodeException {
+    public String encode(Short b) throws EncodeException {
 
         return b.toString();
     }

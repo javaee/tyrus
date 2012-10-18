@@ -39,7 +39,7 @@
  */
 package org.glassfish.tyrus.client;
 
-import org.glassfish.tyrus.platform.DefaultClientEndpointConfiguration;
+import org.glassfish.tyrus.platform.configuration.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.platform.EndpointWrapper;
 import org.glassfish.tyrus.platform.Model;
 

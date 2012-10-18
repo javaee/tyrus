@@ -40,7 +40,7 @@
 
 package org.glassfish.tyrus.platform;
 
-import org.glassfish.tyrus.platform.utils.PrimitivesToBoxing;
+import org.glassfish.tyrus.platform.util.PrimitivesToBoxing;
 import org.glassfish.tyrus.spi.SPIEndpoint;
 import org.glassfish.tyrus.spi.SPIHandshakeRequest;
 
@@ -132,7 +132,7 @@ public class EndpointWrapper extends SPIEndpoint {
         }
         return false;
     }
-    
+
     ClientContainer getContainer() {
         return this.container;
     }

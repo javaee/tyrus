@@ -47,6 +47,7 @@ import javax.net.websocket.MessageHandler;
 import javax.net.websocket.RemoteEndpoint;
 import javax.net.websocket.Session;
 import javax.net.websocket.extensions.Extension;
+
 import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
@@ -65,11 +66,11 @@ import java.util.concurrent.atomic.AtomicLong;
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 public class SessionImpl<T> implements Session<T> {
-    
+
     /**
      * The container for this session.
      */
-    private ClientContainer container;
+    private final ClientContainer container;
 
     /**
      * Session properties.

@@ -38,22 +38,21 @@
  * holder.
  */
 
-package org.glassfish.tyrus.platform.encoders;
+package org.glassfish.tyrus.platform.encoder;
 
-import javax.net.websocket.EncodeException;
 import javax.net.websocket.Encoder;
+import javax.net.websocket.EncodeException;
 
 /**
  *
  * @author dannycoward
  */
-public class IntegerEncoder implements Encoder.Text<Integer> {
+public class BooleanEncoder implements Encoder.Text<Boolean> {
 
     @Override
-    public String encode(Integer b) throws EncodeException {
+    public String encode(Boolean b) throws EncodeException {
 
         return b.toString();
     }
 
 }
-

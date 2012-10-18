@@ -39,26 +39,26 @@
  */
 package org.glassfish.tyrus.platform;
 
-import org.glassfish.tyrus.platform.decoders.BinaryDecoderNoOp;
-import org.glassfish.tyrus.platform.decoders.BooleanDecoder;
-import org.glassfish.tyrus.platform.decoders.ByteDecoder;
-import org.glassfish.tyrus.platform.decoders.CharDecoder;
-import org.glassfish.tyrus.platform.decoders.DoubleDecoder;
-import org.glassfish.tyrus.platform.decoders.FloatDecoder;
-import org.glassfish.tyrus.platform.decoders.IntegerDecoder;
-import org.glassfish.tyrus.platform.decoders.LongDecoder;
-import org.glassfish.tyrus.platform.decoders.ShortDecoder;
-import org.glassfish.tyrus.platform.decoders.StringDecoderNoOp;
-import org.glassfish.tyrus.platform.encoders.BinaryEncoderNoOp;
-import org.glassfish.tyrus.platform.encoders.BooleanEncoder;
-import org.glassfish.tyrus.platform.encoders.ByteEncoder;
-import org.glassfish.tyrus.platform.encoders.CharEncoder;
-import org.glassfish.tyrus.platform.encoders.DoubleEncoder;
-import org.glassfish.tyrus.platform.encoders.FloatEncoder;
-import org.glassfish.tyrus.platform.encoders.IntegerEncoder;
-import org.glassfish.tyrus.platform.encoders.LongEncoder;
-import org.glassfish.tyrus.platform.encoders.ShortEncoder;
-import org.glassfish.tyrus.platform.encoders.StringEncoderNoOp;
+import org.glassfish.tyrus.platform.decoder.BinaryDecoderNoOp;
+import org.glassfish.tyrus.platform.decoder.BooleanDecoder;
+import org.glassfish.tyrus.platform.decoder.ByteDecoder;
+import org.glassfish.tyrus.platform.decoder.CharDecoder;
+import org.glassfish.tyrus.platform.decoder.DoubleDecoder;
+import org.glassfish.tyrus.platform.decoder.FloatDecoder;
+import org.glassfish.tyrus.platform.decoder.IntegerDecoder;
+import org.glassfish.tyrus.platform.decoder.LongDecoder;
+import org.glassfish.tyrus.platform.decoder.ShortDecoder;
+import org.glassfish.tyrus.platform.decoder.StringDecoderNoOp;
+import org.glassfish.tyrus.platform.encoder.BinaryEncoderNoOp;
+import org.glassfish.tyrus.platform.encoder.BooleanEncoder;
+import org.glassfish.tyrus.platform.encoder.ByteEncoder;
+import org.glassfish.tyrus.platform.encoder.CharEncoder;
+import org.glassfish.tyrus.platform.encoder.DoubleEncoder;
+import org.glassfish.tyrus.platform.encoder.FloatEncoder;
+import org.glassfish.tyrus.platform.encoder.IntegerEncoder;
+import org.glassfish.tyrus.platform.encoder.LongEncoder;
+import org.glassfish.tyrus.platform.encoder.ShortEncoder;
+import org.glassfish.tyrus.platform.encoder.StringEncoderNoOp;
 
 import javax.net.websocket.Decoder;
 import javax.net.websocket.Encoder;
