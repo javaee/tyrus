@@ -40,7 +40,6 @@
 
 package org.glassfish.tyrus.platform;
 
-import org.glassfish.tyrus.platform.configuration.DefaultServerEndpointConfiguration;
 import org.glassfish.tyrus.spi.SPIRegisteredEndpoint;
 import org.glassfish.tyrus.spi.SPIWebSocketProvider;
 
