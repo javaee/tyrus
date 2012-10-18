@@ -134,6 +134,7 @@ public final class RemoteEndpointWrapper<T> implements RemoteEndpoint<T>{
 
     @Override
     public void sendPartialString(String fragment, boolean isLast) throws IOException {
+        this.providedRemoteEndpoint.sendPartialString(fragment, isLast);
         this.webSocketSession.updateLastConnectionActivity();
     }
 
