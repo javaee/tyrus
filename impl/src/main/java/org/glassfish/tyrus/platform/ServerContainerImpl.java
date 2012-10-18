@@ -91,7 +91,8 @@ public class ServerContainerImpl extends WithProperties implements ServerContain
 
     @Override
     public void publishServer(Endpoint endpoint, ServerEndpointConfiguration serverEndpointConfiguration) {
-
+        throw new UnsupportedOperationException("not implemented");
+        
     }
 
     @Override
