@@ -41,7 +41,7 @@
 package org.glassfish.tyrus.test.basic;
 
 import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.platform.configuration.DefaultClientEndpointConfiguration;
+import org.glassfish.tyrus.platform.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.platform.main.Server;
 import org.glassfish.tyrus.test.basic.bean.BroadcasterTestBean;
 import org.junit.Ignore;
