@@ -236,6 +236,33 @@ public class EndpointWrapper extends SPIEndpoint {
         peer.updateLastConnectionActivity();
         processCompleteMessage(gs, messageString, true);
     }
+        
+    
+    /* 
+     * Initial implementation policy:
+     * - if there is a streaming message handler invoke it
+     * - otherwise cache the message up to the limit and process the whole thing.
+     */
+    @Override
+    public void onPartialMessage(RemoteEndpoint gs, String partialString, boolean last) {
+        boolean handled = false;
+        RemoteEndpointWrapper peer = getPeer(gs);
+        for (MessageHandler handler : (Set<MessageHandler>) peer.getSession().getMessageHandlers()) {
+            if (handler instanceof MessageHandler.AsyncText) {
+                ((MessageHandler.AsyncText) handler).onMessagePart(partialString, last);
+                if (last) {
+                    handled = true;
+                }
+            } 
+        }
+        if (last && !handled) {
+            System.out.println("Unhandled message in EndpointWrapper");
+        }
+        
+    }
+    
+    
+
 
     /**
      * Processes just messages that come in one part, i.e. not streamed messages.
@@ -257,7 +284,7 @@ public class EndpointWrapper extends SPIEndpoint {
             } else {
                 if (handler instanceof MessageHandler.Binary) {
                     ((MessageHandler.Binary) handler).onMessage((ByteBuffer) o);
-                    decoded=true;
+                    decoded = true;
                 }
             }
         }
@@ -275,10 +302,9 @@ public class EndpointWrapper extends SPIEndpoint {
                 }
 
                 Object decodedMessageObject = this.decodeMessage(o, type, isString);
-
+                
                 if (decodedMessageObject != null) {
                     Object returned = invokeMethod(decodedMessageObject, m, peer);
-
                     if (returned != null) {
                         if (o instanceof String) {
                             String messageToSendAsString = this.doEncode(returned);
@@ -288,11 +314,12 @@ public class EndpointWrapper extends SPIEndpoint {
                         }
                     }
                     decoded = true;
+                    
                 }
             }
-
+             
             if (!decoded) {
-                throw new Exception();
+                throw new Exception("Couldn't decode");
             }
 
         } catch (IOException ioe) {
