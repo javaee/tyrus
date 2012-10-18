@@ -83,6 +83,20 @@ public abstract class SPIEndpoint extends Endpoint {
      * @param messageString the String message.
      */
     public abstract void onMessage(RemoteEndpoint gs, String messageString);
+    
+    
+        /**
+     * Called by the provider when the web socket connection
+     * has an incoming partial text message from the given remote endpoint. Partial
+     * text messages are passed in sequential order, one piece at a time. If an implementation
+     * does not support streaming, it will need to reconstruct the message here and pass the whole 
+     * thing along.
+     *
+     * @param gs            <code>SPIRemoteEndpoint</code> who sent the message.
+     * @param messageString the String message.
+     * @param last to indicate if this is the last partial string in the sequence
+     */
+    public abstract void onPartialMessage(RemoteEndpoint gs, String partialString, boolean last);
 
     /**
      * Called by the provider when the web socket connection
