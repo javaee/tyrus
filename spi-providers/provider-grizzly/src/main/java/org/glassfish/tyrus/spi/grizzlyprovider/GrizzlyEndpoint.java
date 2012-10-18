@@ -76,12 +76,29 @@ class GrizzlyEndpoint extends WebSocketApplication implements SPIRegisteredEndpo
         GrizzlyRemoteEndpoint gs = GrizzlyRemoteEndpoint.get(socket);
         this.endpoint.onConnect(gs);
     }
+    
+    
+    
+    @Override
+    public void onFragment(WebSocket socket, String fragment, boolean last) {
+        GrizzlyRemoteEndpoint gs = GrizzlyRemoteEndpoint.get(socket);
+        this.endpoint.onPartialMessage(gs, fragment, last);
+    }
+    
+    @Override
+    public void onFragment(WebSocket socket, byte[] fragment, boolean last) {
+        System.out.println("Grizzly on Fragment(b): " + fragment + " " + last);
+    }
+    
 
     @Override
     public void onMessage(WebSocket socket, String messageString) {
         GrizzlyRemoteEndpoint gs = GrizzlyRemoteEndpoint.get(socket);
         this.endpoint.onMessage(gs, messageString);
+        
+       
     }
+
 
     @Override
     public void onMessage(WebSocket socket, byte[] bytes) {
@@ -91,7 +108,6 @@ class GrizzlyEndpoint extends WebSocketApplication implements SPIRegisteredEndpo
 
     @Override
     public void onClose(WebSocket socket, DataFrame frame) {
-        System.out.println("Grizzly endpoint onClose");
         GrizzlyRemoteEndpoint gs = GrizzlyRemoteEndpoint.get(socket);
         this.endpoint.onClose(gs);
         GrizzlyRemoteEndpoint.remove(socket);

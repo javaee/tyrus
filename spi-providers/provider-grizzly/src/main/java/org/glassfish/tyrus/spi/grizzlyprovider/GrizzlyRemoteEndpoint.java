@@ -100,7 +100,9 @@ public class GrizzlyRemoteEndpoint implements RemoteEndpoint {
 
     @Override
     public void sendPartialString(String fragment, boolean isLast) throws IOException {
-        socket.stream(isLast,fragment);
+        //System.out.println("GrizzlyRemoteEndpoint.sendPartialString");
+        socket.stream(isLast, fragment);
+        //System.out.println("GrizzlyRemoteEndpoint.sendPartialString done ");
     }
 
     @Override
