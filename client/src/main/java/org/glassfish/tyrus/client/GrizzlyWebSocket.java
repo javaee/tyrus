@@ -170,7 +170,11 @@ class GrizzlyWebSocket implements WebSocket, ClientSocket{
 
     @Override
     public GrizzlyFuture<DataFrame> stream(boolean b, String s) {
-        throw new UnsupportedOperationException();
+        if (isConnected()) {
+            return protocolHandler.stream(b, s);
+        } else {
+            throw new RuntimeException("Socket is not connected.");
+        }
     }
 
     @Override
@@ -231,7 +235,9 @@ class GrizzlyWebSocket implements WebSocket, ClientSocket{
 
     @Override
     public void onFragment(boolean b, String s) {
-        throw new UnsupportedOperationException();
+        for (SPIEndpoint endpoint : endpoints) {
+            endpoint.onPartialMessage(remoteEndpoint, s, b);
+        }
     }
 
     @Override
