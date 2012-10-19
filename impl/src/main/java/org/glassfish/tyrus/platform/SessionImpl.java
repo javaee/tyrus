@@ -282,6 +282,7 @@ public class SessionImpl<T> implements Session<T> {
         this.lastConnectionActivity = System.currentTimeMillis();
     }
 
+    // dannyc these are not used anywhere ?
     void notifyMessageHandlers(String message) {
         for (MessageHandler mh : this.messageHandlers) {
             if (mh instanceof MessageHandler.Text) {
@@ -292,6 +293,7 @@ public class SessionImpl<T> implements Session<T> {
         }
     }
 
+    // dannyc these are not used anywhere ?
     void notifyMessageHandlers(ByteBuffer message) {
         for (MessageHandler mh : this.messageHandlers) {
             if (mh instanceof MessageHandler.Binary) {

@@ -102,7 +102,7 @@ public class EndpointWrapper extends SPIEndpoint {
      * The corresponding {@link Endpoint} was created from annotated class / instance.
      */
     private boolean annotated;
-
+    
     /**
      * Creates new endpoint wrapper.
      *
@@ -235,30 +235,34 @@ public class EndpointWrapper extends SPIEndpoint {
         RemoteEndpointWrapper peer = getPeer(gs);
         peer.updateLastConnectionActivity();
         processCompleteMessage(gs, messageString, true);
-    }
-        
+    }   
     
     /* 
      * Initial implementation policy:
      * - if there is a streaming message handler invoke it
-     * - otherwise cache the message up to the limit and process the whole thing.
+     * - if there is a blocking handler, use an adapter to invoke it
      */
     @Override
     public void onPartialMessage(RemoteEndpoint gs, String partialString, boolean last) {
         boolean handled = false;
         RemoteEndpointWrapper peer = getPeer(gs);
         for (MessageHandler handler : (Set<MessageHandler>) peer.getSession().getMessageHandlers()) {
+            MessageHandler.AsyncText baseHandler = null;
             if (handler instanceof MessageHandler.AsyncText) {
-                ((MessageHandler.AsyncText) handler).onMessagePart(partialString, last);
+                baseHandler = (MessageHandler.AsyncText) handler;
+            } else if (handler instanceof MessageHandler.CharacterStream) {
+                baseHandler = new AsyncTextToCharStreamAdapterImpl((MessageHandler.CharacterStream) handler);
+            }
+            if (baseHandler != null) {
+                baseHandler.onMessagePart(partialString, last);
                 if (last) {
                     handled = true;
                 }
-            } 
+            }
         }
         if (last && !handled) {
             System.out.println("Unhandled message in EndpointWrapper");
         }
-        
     }
     
     
