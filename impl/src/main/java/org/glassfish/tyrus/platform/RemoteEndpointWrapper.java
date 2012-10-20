@@ -153,7 +153,7 @@ public final class RemoteEndpointWrapper<T> implements RemoteEndpoint<T>{
 
     @Override
     public Writer getSendWriter() throws IOException {
-        throw new UnsupportedOperationException("Not yet implemented");
+        return new WriterToAsyncTextAdapter(this);
     }
 
     @Override

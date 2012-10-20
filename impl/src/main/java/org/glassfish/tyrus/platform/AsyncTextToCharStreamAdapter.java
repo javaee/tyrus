@@ -12,7 +12,7 @@ import java.util.*;
  * 
  * @author dannycoward
  */
-public class AsyncTextToCharStreamAdapterImpl implements BufferedStringSource, MessageHandler.AsyncText {
+public class AsyncTextToCharStreamAdapter implements BufferedStringSource, MessageHandler.AsyncText {
     private List<String> bufferedFragments = new ArrayList<String>();
     private boolean receivedLast = false;
     private BufferedStringSourceReader reader = null;
@@ -20,7 +20,7 @@ public class AsyncTextToCharStreamAdapterImpl implements BufferedStringSource, M
     private static long MAX_BUFFER_SIZE = 8 * 1024;
     private MessageHandler.CharacterStream mh;
     
-    public AsyncTextToCharStreamAdapterImpl(MessageHandler.CharacterStream mh) {
+    public AsyncTextToCharStreamAdapter(MessageHandler.CharacterStream mh) {
         this.mh = mh;
     }
     

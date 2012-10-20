@@ -251,7 +251,7 @@ public class EndpointWrapper extends SPIEndpoint {
             if (handler instanceof MessageHandler.AsyncText) {
                 baseHandler = (MessageHandler.AsyncText) handler;
             } else if (handler instanceof MessageHandler.CharacterStream) {
-                baseHandler = new AsyncTextToCharStreamAdapterImpl((MessageHandler.CharacterStream) handler);
+                baseHandler = new AsyncTextToCharStreamAdapter((MessageHandler.CharacterStream) handler);
             }
             if (baseHandler != null) {
                 baseHandler.onMessagePart(partialString, last);
