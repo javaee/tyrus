@@ -41,12 +41,13 @@
 package org.glassfish.tyrus.test.basic;
 
 import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.platform.DefaultClientEndpointConfiguration;
+import org.glassfish.tyrus.platform.configuration.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.platform.main.Server;
 import org.junit.Assert;
 import org.junit.Test;
 
 import javax.net.websocket.Session;
+
 import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.CountDownLatch;
@@ -72,6 +73,9 @@ public class HelloTest {
         try {
             messageLatch = new CountDownLatch(1);
 
+            final DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder(new URI("wss://localhost:8025/websockets/tests/hello"));
+            final DefaultClientEndpointConfiguration dcec = builder.build();
+
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new TestEndpointAdapter() {
 //            client.openSocket("wss://localhost:8025/websockets/tests/hello", 10000, new TestEndpointAdapter() {
@@ -81,6 +85,7 @@ public class HelloTest {
                     try {
                         session.addMessageHandler(new TestTextMessageHandler(this));
                         session.getRemote().sendString(SENT_MESSAGE);
+                        System.out.println("Hello message sent.");
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -91,7 +96,7 @@ public class HelloTest {
                     receivedMessage = message;
                     messageLatch.countDown();
                 }
-            }, new DefaultClientEndpointConfiguration(new URI("wss://localhost:8025/websockets/tests/hello")));
+            }, dcec);
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertTrue("The received message is the same as the sent one", receivedMessage.equals(SENT_MESSAGE));
         } catch (Exception e) {

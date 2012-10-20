@@ -44,12 +44,21 @@ import org.glassfish.grizzly.websockets.DataFrame;
 import org.glassfish.grizzly.websockets.ProtocolHandler;
 import org.glassfish.grizzly.websockets.WebSocket;
 import org.glassfish.grizzly.websockets.WebSocketApplication;
+import org.glassfish.grizzly.websockets.WebSocketEngine;
 import org.glassfish.grizzly.websockets.WebSocketListener;
 import org.glassfish.tyrus.spi.SPIEndpoint;
 import org.glassfish.tyrus.spi.SPIRegisteredEndpoint;
 
+import javax.net.websocket.ServerEndpointConfiguration;
+import javax.net.websocket.extensions.Extension;
+import javax.net.websocket.extensions.FrameHandler;
+
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author dannycoward
@@ -68,6 +77,22 @@ class GrizzlyEndpoint extends WebSocketApplication implements SPIRegisteredEndpo
 
     @Override
     public WebSocket createSocket(final ProtocolHandler handler, final HttpRequestPacket requestPacket, final WebSocketListener... listeners) {
+
+        List<String> desiredProtocols = createList(requestPacket.getHeader(WebSocketEngine.SEC_WS_PROTOCOL_HEADER));
+        List<Extension> desiredExtensions = createExtensionList(requestPacket.getHeader(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER));
+
+        ServerEndpointConfiguration configuration;
+
+        if(endpoint.getConfiguration() instanceof ServerEndpointConfiguration){
+            configuration = (ServerEndpointConfiguration) endpoint.getConfiguration();
+        }else{
+            return null;
+        }
+
+        String subprotocol = configuration.getNegotiatedSubprotocol(desiredProtocols);
+        List<Extension> extensions = configuration.getNegotiatedExtensions(desiredExtensions);
+
+        GrizzlyProtocolHandler gph = new GrizzlyProtocolHandler(false, subprotocol, extensions);
         return new GrizzlySocket(handler, requestPacket, listeners);
     }
 
@@ -118,8 +143,72 @@ class GrizzlyEndpoint extends WebSocketApplication implements SPIRegisteredEndpo
         this.endpoint.remove();
     }
 
-    @Override
-    public List<String> getSupportedProtocols(List<String> subProtocol) {
-        return this.endpoint.getSupportedProtocols(subProtocol);
+    /**
+     * Creates a {@link List} from {@link String} in which the data values are separated by commas.
+     *
+     * @param input data values separated by commas.
+     * @return data in {@link List}.
+     */
+    @SuppressWarnings("unchecked")
+    private List<String> createList (String input){
+        if(input == null){
+            List<String> result = Collections.emptyList();
+            return result;
+        }
+        String delimiter = ",";
+        String[] tokens = input.split(delimiter);
+
+        return Arrays.asList(tokens);
     }
+
+    @SuppressWarnings("unchecked")
+    private List<Extension> createExtensionList(String input){
+        if(input == null){
+            List<Extension> result = Collections.emptyList();
+            return result;
+        }
+
+        String delimiter = ",";
+        String[] tokens = input.split(delimiter);
+
+        ArrayList<Extension> result = new ArrayList<Extension>();
+        for (String token : tokens) {
+            result.add(new GrizzlyExtension(token));
+        }
+
+        return result;
+    }
+
+    /**
+     * Needed just to convert List<String> => List<Extension>, will be removed once this is changed in API.
+     */
+    private class GrizzlyExtension implements Extension{
+
+        private String name;
+
+        private GrizzlyExtension(String name) {
+            this.name = name;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public Map<String, String> getParameters() {
+            return null;
+        }
+
+        @Override
+        public FrameHandler createIncomingFrameHandler(FrameHandler downstream) {
+            return null;
+        }
+
+        @Override
+        public FrameHandler createOutgoingFrameHandler(FrameHandler upstream) {
+            return null;
+        }
+    }
+
 }

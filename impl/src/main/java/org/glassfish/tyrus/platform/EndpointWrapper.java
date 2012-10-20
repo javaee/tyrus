@@ -44,6 +44,7 @@ import org.glassfish.tyrus.platform.util.PrimitivesToBoxing;
 import org.glassfish.tyrus.spi.SPIEndpoint;
 import org.glassfish.tyrus.spi.SPIHandshakeRequest;
 
+import javax.net.websocket.ClientContainer;
 import javax.net.websocket.CloseReason;
 import javax.net.websocket.DecodeException;
 import javax.net.websocket.Decoder;
@@ -53,12 +54,12 @@ import javax.net.websocket.Endpoint;
 import javax.net.websocket.EndpointConfiguration;
 import javax.net.websocket.MessageHandler;
 import javax.net.websocket.RemoteEndpoint;
-import javax.net.websocket.ClientContainer;
+import javax.net.websocket.ServerEndpointConfiguration;
 import javax.net.websocket.Session;
+
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
@@ -196,23 +197,25 @@ public class EndpointWrapper extends SPIEndpoint {
 
     @Override
     public boolean checkHandshake(SPIHandshakeRequest hr) {
-        return hr.getRequestURI().startsWith(path);
-    }
 
-    @Override
-    public List<String> getSupportedProtocols(List<String> subProtocol) {
-        List<String> supported = new ArrayList<String>();
-        for (String nextRequestedProtocolName : subProtocol) {
-            if (model.getSubprotocols().contains(nextRequestedProtocolName)) {
-                supported.add(nextRequestedProtocolName);
-            }
+        ServerEndpointConfiguration sep;
+        if(configuration instanceof ServerEndpointConfiguration){
+            sep = (ServerEndpointConfiguration) configuration;
+        }else{
+            return false;
         }
-        return supported;
+
+        return hr.getRequestURI().matches(path) && sep.checkOrigin(hr.getHeader("Origin"));
     }
 
     @Override
     public void remove() {
 
+    }
+
+    @Override
+    public EndpointConfiguration getConfiguration() {
+        return configuration;
     }
 
     @Override

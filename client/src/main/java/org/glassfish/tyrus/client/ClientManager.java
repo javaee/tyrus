@@ -39,16 +39,19 @@
  */
 package org.glassfish.tyrus.client;
 
-import java.util.HashSet;
-import java.util.Set;
+import org.glassfish.tyrus.platform.EndpointWrapper;
+import org.glassfish.tyrus.platform.Model;
+import org.glassfish.tyrus.platform.configuration.DefaultClientEndpointConfiguration;
+
 import javax.net.websocket.ClientContainer;
 import javax.net.websocket.ClientEndpointConfiguration;
 import javax.net.websocket.Endpoint;
 import javax.net.websocket.Session;
 import javax.net.websocket.extensions.Extension;
-import org.glassfish.tyrus.platform.DefaultClientEndpointConfiguration;
-import org.glassfish.tyrus.platform.EndpointWrapper;
-import org.glassfish.tyrus.platform.Model;
+
+import java.net.ConnectException;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * ClientManager implementation.
@@ -74,25 +77,33 @@ public class ClientManager implements ClientContainer {
     @Override
     public void connectToServer(Endpoint endpoint, ClientEndpointConfiguration clc) {
         DefaultClientEndpointConfiguration dcec = null;
-        if (clc instanceof DefaultClientEndpointConfiguration) {
-            dcec = (DefaultClientEndpointConfiguration) clc;
-        }
-        GrizzlyWebSocket gws = new GrizzlyWebSocket(dcec.getUri(), 10000);
 
-        Model model = null;
+        //TODO change this mechanism once the method signature is modified in API.
         try {
-            model = new Model(endpoint);
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (InstantiationException e) {
+            if (clc instanceof DefaultClientEndpointConfiguration) {
+                dcec = (DefaultClientEndpointConfiguration) clc;
+            } else {
+                throw new ConnectException("Provided configuration is not the supported one.");
+            }
+            GrizzlyWebSocket gws = new GrizzlyWebSocket(dcec.getUri(), clc, 10000);
+
+            Model model = null;
+            try {
+                model = new Model(endpoint);
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (InstantiationException e) {
+                e.printStackTrace();
+            }
+
+            EndpointWrapper clientEndpoint = new EndpointWrapper(null, model, clc, this);
+            gws.addEndpoint(clientEndpoint);
+
+            gws.connect();
+            sockets.add(gws);
+        } catch (Exception e) {
             e.printStackTrace();
         }
-        dcec.setModel(model);
-        EndpointWrapper clientEndpoint = new EndpointWrapper(null, model, clc, this);
-        gws.addEndpoint(clientEndpoint);
-
-        gws.connect();
-        sockets.add(gws);
     }
 
     @Override

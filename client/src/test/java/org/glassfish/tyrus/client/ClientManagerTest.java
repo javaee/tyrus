@@ -1,11 +1,12 @@
 package org.glassfish.tyrus.client;
 
-import org.glassfish.tyrus.platform.DefaultClientEndpointConfiguration;
+import org.glassfish.tyrus.platform.configuration.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.platform.main.Server;
 import org.junit.Assert;
 import org.junit.Test;
 
 import javax.net.websocket.Session;
+
 import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.CountDownLatch;
@@ -30,6 +31,8 @@ public class ClientManagerTest {
         CountDownLatch messageLatch = new CountDownLatch(1);
 
         try {
+            DefaultClientEndpointConfiguration.Builder builder= new DefaultClientEndpointConfiguration.Builder(new URI("ws://localhost:8025/websockets/tests/echo"));
+            DefaultClientEndpointConfiguration dcec = builder.build();
 
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new TestEndpointAdapter(){
@@ -50,7 +53,7 @@ public class ClientManagerTest {
                     receivedMessage = message;
                     System.out.println("Received message = " + message);
                 }
-            }, new DefaultClientEndpointConfiguration(new URI("ws://localhost:8025/websockets/tests/echo")));
+            }, dcec);
 
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertTrue("The received message is the same as the sent one", receivedMessage.equals(SENT_MESSAGE));

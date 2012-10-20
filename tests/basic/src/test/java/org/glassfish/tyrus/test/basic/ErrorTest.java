@@ -41,13 +41,14 @@
 package org.glassfish.tyrus.test.basic;
 
 import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.platform.DefaultClientEndpointConfiguration;
+import org.glassfish.tyrus.platform.configuration.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.platform.main.Server;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.net.websocket.Session;
+
 import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.CountDownLatch;
@@ -72,6 +73,9 @@ public class ErrorTest {
         Server server = new Server(org.glassfish.tyrus.test.basic.bean.ErrorTestBean.class);
         server.start();
         try {
+            final DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder(new URI("ws://localhost:8025/websockets/tests/error"));
+            final DefaultClientEndpointConfiguration dcec = builder.build();
+
             messageLatch = new CountDownLatch(1);
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new TestEndpointAdapter() {
@@ -89,7 +93,7 @@ public class ErrorTest {
                     receivedMessage = message;
                     messageLatch.countDown();
                 }
-            }, new DefaultClientEndpointConfiguration(new URI("ws://localhost:8025/websockets/tests/error")));
+            }, dcec);
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertTrue("The received message is 'Error'", receivedMessage.equals("Error"));
         } catch (Exception e) {

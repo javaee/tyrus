@@ -48,7 +48,7 @@ import java.util.Set;
  *
  * @author Stepan Kopriva (stepan.kopirva at oracle.com)
  */
-public interface ClientSocket {
+interface ClientSocket {
 
     /**
      * Returns the mutable Set of endpoints registered

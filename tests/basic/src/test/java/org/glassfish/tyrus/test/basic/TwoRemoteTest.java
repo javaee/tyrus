@@ -41,13 +41,14 @@
 package org.glassfish.tyrus.test.basic;
 
 import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.platform.DefaultClientEndpointConfiguration;
+import org.glassfish.tyrus.platform.configuration.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.platform.main.Server;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import javax.net.websocket.Session;
+
 import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.CountDownLatch;
@@ -75,6 +76,10 @@ public class TwoRemoteTest {
         server.start();
         try {
             messageLatch = new CountDownLatch(2);
+
+            final DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder(new URI("ws://localhost:8025/websockets/tests/twomethodremote"));
+            final DefaultClientEndpointConfiguration dcec = builder.build();
+
             final ClientManager client = ClientManager.createClient();
             client.connectToServer(new TestEndpointAdapter() {
                 @Override
@@ -96,7 +101,7 @@ public class TwoRemoteTest {
                     }
                     messageLatch.countDown();
                 }
-            }, new DefaultClientEndpointConfiguration(new URI("ws://localhost:8025/websockets/tests/twomethodremote")));
+            }, dcec);
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertTrue("The received message is encoded", receivedMessage1.equals("enc("+SENT_MESSAGE+")"));
             Assert.assertTrue("The received message is the same as the sent one", receivedMessage2.equals(SENT_MESSAGE));

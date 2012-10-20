@@ -39,11 +39,10 @@
  */
 package org.glassfish.tyrus.spi;
 
-import javax.net.websocket.Endpoint;
+import javax.net.websocket.EndpointConfiguration;
 import javax.net.websocket.RemoteEndpoint;
-import javax.net.websocket.Session;
+
 import java.nio.ByteBuffer;
-import java.util.List;
 
 /**
  * The WebSocket SDK implements SPIEndpoint with its representation of
@@ -51,8 +50,9 @@ import java.util.List;
  * messages.
  *
  * @author dannycoward
+ * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public abstract class SPIEndpoint extends Endpoint {
+public abstract class SPIEndpoint {
 
     /**
      * This method must be called by the provider during
@@ -116,22 +116,10 @@ public abstract class SPIEndpoint extends Endpoint {
     public abstract void onClose(RemoteEndpoint gs);
 
     /**
-     * Called by the provider during the handshake to determine
-     * a list of subprotocols this endpoint will support of those
-     * passed in.
-     *
-     * @param subProtocols the subprotocols to be checked.
-     * @return List of supported subprotocols.
-     */
-    public abstract List<String> getSupportedProtocols(List<String> subProtocols);
-
-    /**
      * Called by the provider after all connections have been closed to
      * this endpoint, and after the endpoint has been removed from service.
      */
     public abstract void remove();
 
-    //Endpoint method implementation
-
-    public void onOpen(Session session){}
+    public abstract EndpointConfiguration getConfiguration();
 }

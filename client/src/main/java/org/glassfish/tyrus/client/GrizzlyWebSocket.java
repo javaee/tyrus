@@ -49,6 +49,7 @@ import org.glassfish.grizzly.nio.transport.TCPNIOConnectorHandler;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransportBuilder;
 import org.glassfish.grizzly.websockets.DataFrame;
+import org.glassfish.grizzly.websockets.HandShake;
 import org.glassfish.grizzly.websockets.HandshakeException;
 import org.glassfish.grizzly.websockets.ProtocolHandler;
 import org.glassfish.grizzly.websockets.WebSocket;
@@ -59,10 +60,14 @@ import org.glassfish.grizzly.websockets.draft06.ClosingFrame;
 import org.glassfish.tyrus.spi.SPIEndpoint;
 import org.glassfish.tyrus.spi.grizzlyprovider.GrizzlyRemoteEndpoint;
 
+import javax.net.websocket.ClientEndpointConfiguration;
+import javax.net.websocket.extensions.Extension;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -86,27 +91,29 @@ class GrizzlyWebSocket implements WebSocket, ClientSocket{
     private final AtomicReference<State> state = new AtomicReference<State>(State.NEW);
     private GrizzlyRemoteEndpoint remoteEndpoint;
     private long timeoutMs;
+    private ClientEndpointConfiguration clc;
 
     enum State {
         NEW, CONNECTED, CLOSING, CLOSED
     }
 
-    public GrizzlyWebSocket(URI uri, long timeoutMs, SPIEndpoint... endpoints) {
-        this(uri, timeoutMs);
-        for (SPIEndpoint endpoint : endpoints) {
-            this.addEndpoint(endpoint);
-        }
-    }
+//    public GrizzlyWebSocket(URI uri, long timeoutMs, SPIEndpoint... endpoints) {
+//        this(uri, timeoutMs);
+//        for (SPIEndpoint endpoint : endpoints) {
+//            this.addEndpoint(endpoint);
+//        }
+//    }
 
-    GrizzlyWebSocket(URI uri, long timeoutMs) {
+    GrizzlyWebSocket(URI uri, ClientEndpointConfiguration clc, long timeoutMs) {
         this.uri = uri;
+        this.clc = clc;
         protocolHandler = WebSocketEngine.DEFAULT_VERSION.createHandler(true);
         remoteEndpoint = new GrizzlyRemoteEndpoint(this);
         this.timeoutMs = timeoutMs;
     }
 
     /**
-     * Connects to the given url.
+     * Connects to the given {@link URI}.
      */
     public void connect() {
         try {
@@ -120,6 +127,7 @@ class GrizzlyWebSocket implements WebSocket, ClientSocket{
                     WebSocketEngine.WebSocketHolder holder = WebSocketEngine.getEngine().setWebSocketHolder(conn, protocolHandler,
                             GrizzlyWebSocket.this);
                     holder.handshake = protocolHandler.createHandShake(uri);
+                    prepareHandshake(holder.handshake);
                 }
             };
             connectorHandler.setProcessor(createFilterChain());
@@ -129,6 +137,15 @@ class GrizzlyWebSocket implements WebSocket, ClientSocket{
             e.printStackTrace();
             throw new HandshakeException(e.getMessage());
         }
+    }
+
+    private void prepareHandshake(HandShake handshake){
+        ArrayList<String> extensions = new ArrayList<String>();
+        for (Extension extension : clc.getExtensions()) {
+            extensions.add(extension.getName());
+        }
+        handshake.setExtensions(extensions);
+        handshake.setSubProtocol(clc.getPreferredSubprotocols());
     }
 
     /**

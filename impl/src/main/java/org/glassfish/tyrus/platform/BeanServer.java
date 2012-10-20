@@ -40,10 +40,12 @@
 
 package org.glassfish.tyrus.platform;
 
+import org.glassfish.tyrus.platform.configuration.DefaultServerEndpointConfiguration;
 import org.glassfish.tyrus.spi.SPIRegisteredEndpoint;
 import org.glassfish.tyrus.spi.SPIWebSocketProvider;
 
 import java.lang.reflect.Method;
+import java.net.URI;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -135,6 +137,7 @@ public class BeanServer {
 
             // introspect the bean and find all the paths....
             Map<Method, String> methodPathMap = this.getMethodToPathMap(webSocketApplicationBeanClazz);
+
             if (methodPathMap.isEmpty()) {
                 logger.warning(webSocketApplicationBeanClazz + " has no path mappings");
             }
@@ -146,7 +149,10 @@ public class BeanServer {
                 Model model = new Model(webSocketApplicationBeanClazz);
                 String wrapperBeanPath = (wsPath.endsWith("/") ? wsPath.substring(0, wsPath.length() - 1) : wsPath)
                         + "/" + (nextPath.startsWith("/") ? nextPath.substring(1) : nextPath);
-                EndpointWrapper endpoint = new EndpointWrapper(wrapperBeanPath, model, new DefaultServerEndpointConfiguration(model), this.containerContext);
+
+                DefaultServerEndpointConfiguration.Builder builder = new DefaultServerEndpointConfiguration.Builder(new URI(wrapperBeanPath));
+                DefaultServerEndpointConfiguration dsec = builder.encoders(model.getEncoders()).decoders(model.getDecoders()).build();
+                EndpointWrapper endpoint = new EndpointWrapper(wrapperBeanPath, model, dsec, this.containerContext);
                 this.deploy(endpoint);
             }
         }
