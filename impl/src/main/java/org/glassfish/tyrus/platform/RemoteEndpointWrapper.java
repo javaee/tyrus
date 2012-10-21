@@ -164,8 +164,11 @@ public final class RemoteEndpointWrapper<T> implements RemoteEndpoint<T>{
 
     @Override
     public Future<SendResult> sendString(String text, SendHandler completion) {
+        SendCompletionAdapter goesAway = new SendCompletionAdapter(this);
+        Future<SendResult> fsr = goesAway.sendString(text, completion);
         this.webSocketSession.updateLastConnectionActivity();
-        throw new UnsupportedOperationException("Not yet implemented");
+        return fsr;
+        
     }
 
     @Override
