@@ -58,18 +58,14 @@
             <artifactId>tyrus-core</artifactId>
         </dependency>
         <dependency>
-            <!-- TODO: this should not depend on a particular container -->
-            <groupId>org.glassfish.tyrus</groupId>
-            <artifactId>tyrus-container-grizzly</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.glassfish.tyrus</groupId>
-            <artifactId>tyrus-spi</artifactId>
-        </dependency>
-        <dependency>
             <!-- TODO: move non-unit tests to e2e to get rid of this dependency -->
             <groupId>org.glassfish.tyrus</groupId>
             <artifactId>tyrus-server</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.tyrus</groupId>
+            <artifactId>tyrus-container-grizzly</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

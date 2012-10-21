@@ -39,6 +39,7 @@
  */
 package org.glassfish.tyrus.client;
 
+import java.util.logging.Logger;
 import org.glassfish.tyrus.EndpointWrapper;
 import org.glassfish.tyrus.Model;
 
@@ -51,6 +52,8 @@ import javax.net.websocket.extensions.Extension;
 import java.net.ConnectException;
 import java.util.HashSet;
 import java.util.Set;
+import org.glassfish.tyrus.spi.TyrusClientSocket;
+import org.glassfish.tyrus.spi.TyrusContainer;
 
 /**
  * ClientManager implementation.
@@ -58,24 +61,37 @@ import java.util.Set;
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 public class ClientManager implements ClientContainer {
+    private static final String ENGINE_PROVIDER_CLASSNAME = "org.glassfish.tyrus.grizzly.GrizzlyEngine";
 
-    private Set<GrizzlyWebSocket> sockets = new HashSet<GrizzlyWebSocket>();
+    private final Set<TyrusClientSocket> sockets = new HashSet<TyrusClientSocket>();
+    private final TyrusContainer engine;
 
-    private long timeout;
+    public static ClientManager createClient() {
+        return createClient(ENGINE_PROVIDER_CLASSNAME);
+    }
 
     /**
      * Create new ClientManager instance.
      *
      * @return new ClientManager instance.
      */
-    public static ClientManager createClient() {
-        return new ClientManager();
+    public static ClientManager createClient(String engineProviderClassname) {
+        try {
+            Class engineProviderClazz = Class.forName(engineProviderClassname);
+            Logger.getLogger(ClientManager.class.getName()).info("Provider class loaded: " + engineProviderClassname);
+            return new ClientManager((TyrusContainer) engineProviderClazz.newInstance());
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to load provider class: " + engineProviderClassname + ".");
+        }
     }
 
+    private ClientManager(TyrusContainer engine) {
+        this.engine = engine;
+    }
 
     @Override
     public void connectToServer(Endpoint endpoint, ClientEndpointConfiguration clc) {
-        DefaultClientEndpointConfiguration dcec = null;
+        DefaultClientEndpointConfiguration dcec;
 
         //TODO change this mechanism once the method signature is modified in API.
         try {
@@ -84,8 +100,6 @@ public class ClientManager implements ClientContainer {
             } else {
                 throw new ConnectException("Provided configuration is not the supported one.");
             }
-            GrizzlyWebSocket gws = new GrizzlyWebSocket(dcec.getUri(), clc, 10000);
-
             Model model = null;
             try {
                 model = new Model(endpoint);
@@ -96,10 +110,9 @@ public class ClientManager implements ClientContainer {
             }
 
             EndpointWrapper clientEndpoint = new EndpointWrapper(null, model, clc, this);
-            gws.addEndpoint(clientEndpoint);
-
-            gws.connect();
-            sockets.add(gws);
+            TyrusClientSocket clientSocket = engine.openClientSocket(
+                    dcec.getUri(), clc, clientEndpoint);
+            sockets.add(clientSocket);
         } catch (Exception e) {
             e.printStackTrace();
         }

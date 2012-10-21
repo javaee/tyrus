@@ -37,8 +37,22 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.client;
+package org.glassfish.tyrus.grizzly;
 
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.URI;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+import javax.net.websocket.ClientEndpointConfiguration;
+import javax.net.websocket.extensions.Extension;
 import org.glassfish.grizzly.Connection;
 import org.glassfish.grizzly.GrizzlyFuture;
 import org.glassfish.grizzly.Processor;
@@ -58,30 +72,14 @@ import org.glassfish.grizzly.websockets.WebSocketFilter;
 import org.glassfish.grizzly.websockets.WebSocketListener;
 import org.glassfish.grizzly.websockets.draft06.ClosingFrame;
 import org.glassfish.tyrus.spi.SPIEndpoint;
-import org.glassfish.tyrus.spi.grizzlyprovider.GrizzlyRemoteEndpoint;
-
-import javax.net.websocket.ClientEndpointConfiguration;
-import javax.net.websocket.extensions.Extension;
-
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.URI;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
+import org.glassfish.tyrus.spi.TyrusClientSocket;
 
 /**
  * Implementation of the WebSocket interface from Grizzly.
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-class GrizzlyWebSocket implements WebSocket, ClientSocket{
+class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
 
     private URI uri;
     private ProtocolHandler protocolHandler;
@@ -97,14 +95,14 @@ class GrizzlyWebSocket implements WebSocket, ClientSocket{
         NEW, CONNECTED, CLOSING, CLOSED
     }
 
-//    public GrizzlyWebSocket(URI uri, long timeoutMs, SPIEndpoint... endpoints) {
+//    public GrizzlyClientSocket(URI uri, long timeoutMs, SPIEndpoint... endpoints) {
 //        this(uri, timeoutMs);
 //        for (SPIEndpoint endpoint : endpoints) {
 //            this.addEndpoint(endpoint);
 //        }
 //    }
 
-    GrizzlyWebSocket(URI uri, ClientEndpointConfiguration clc, long timeoutMs) {
+    GrizzlyClientSocket(URI uri, ClientEndpointConfiguration clc, long timeoutMs) {
         this.uri = uri;
         this.clc = clc;
         protocolHandler = WebSocketEngine.DEFAULT_VERSION.createHandler(true);
@@ -125,7 +123,7 @@ class GrizzlyWebSocket implements WebSocket, ClientSocket{
                     super.preConfigure(conn);
                     protocolHandler.setConnection(conn);
                     WebSocketEngine.WebSocketHolder holder = WebSocketEngine.getEngine().setWebSocketHolder(conn, protocolHandler,
-                            GrizzlyWebSocket.this);
+                            GrizzlyClientSocket.this);
                     holder.handshake = protocolHandler.createHandShake(uri);
                     prepareHandshake(holder.handshake);
                 }

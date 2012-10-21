@@ -43,7 +43,7 @@ package org.glassfish.tyrus.server;
 import org.glassfish.tyrus.EndpointWrapper;
 import org.glassfish.tyrus.Model;
 import org.glassfish.tyrus.spi.SPIRegisteredEndpoint;
-import org.glassfish.tyrus.spi.SPIWebSocketProvider;
+import org.glassfish.tyrus.spi.TyrusContainer;
 
 import java.lang.reflect.Method;
 import java.net.URI;
@@ -54,6 +54,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
+import org.glassfish.tyrus.spi.TyrusServer;
 
 /**
  * Server that processes the client applications and creates respective {@link org.glassfish.tyrus.spi.SPIEndpoint}.
@@ -77,7 +78,7 @@ public class BeanServer {
     /**
      * WebSocket engine.
      */
-    private SPIWebSocketProvider engine;
+    private TyrusContainer engine;
     final static Logger logger = Logger.getLogger("wsplatform");
 
     /**
@@ -88,7 +89,7 @@ public class BeanServer {
     public BeanServer(String engineProviderClassname) {
         try {
             Class engineProviderClazz = Class.forName(engineProviderClassname);
-            this.setEngine((SPIWebSocketProvider) engineProviderClazz.newInstance());
+            this.setEngine((TyrusContainer) engineProviderClazz.newInstance());
         } catch (Exception e) {
             throw new RuntimeException("Failed to load provider class: " + engineProviderClassname + ". The provider class defaults to"
                     + "the grizzly provider. If you wish to provide your own implementation of the provider SPI, you can configure"
@@ -98,7 +99,11 @@ public class BeanServer {
         logger.info("Provider class loaded: " + engineProviderClassname);
     }
 
-    private void setEngine(SPIWebSocketProvider engine) {
+    public TyrusServer createServer(String rootUri, int port) {
+        return engine.createServer(rootUri, port);
+    }
+
+    private void setEngine(TyrusContainer engine) {
         this.engine = engine;
         logger.info("Provider class instance: " + engine + " of class " + this.engine.getClass() + " assigned in the BeanServer");
     }

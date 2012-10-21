@@ -67,6 +67,14 @@
             <groupId>org.glassfish.grizzly</groupId>
             <artifactId>grizzly-websockets</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.glassfish.grizzly</groupId>
+            <artifactId>grizzly-framework</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.grizzly</groupId>
+            <artifactId>grizzly-http-server</artifactId>
+        </dependency>
     </dependencies>
     <build>
         <plugins>

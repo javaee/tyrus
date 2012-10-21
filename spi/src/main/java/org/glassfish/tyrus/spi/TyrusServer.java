@@ -37,34 +37,24 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.spi.grizzlyprovider;
+package org.glassfish.tyrus.spi;
 
-import org.glassfish.grizzly.websockets.WebSocketEngine;
-import org.glassfish.tyrus.spi.SPIEndpoint;
-import org.glassfish.tyrus.spi.SPIRegisteredEndpoint;
-import org.glassfish.tyrus.spi.SPIWebSocketProvider;
+import java.io.IOException;
 
 /**
+ * HTTP server abstraction.
  *
- * @author dannycoward
+ * @author Martin Matula (martin.matula at oracle.com)
  */
-public class GrizzlyEngine implements SPIWebSocketProvider {
-    private WebSocketEngine engine;
+public interface TyrusServer {
+    /**
+     * Starts the server.
+     * @throws IOException if something goes wrong.
+     */
+    void start() throws IOException;
 
-    public GrizzlyEngine() {
-        engine = WebSocketEngine.getEngine();
-    }
-
-    @Override
-    public SPIRegisteredEndpoint register(SPIEndpoint endpoint) {
-        GrizzlyEndpoint ge =  new GrizzlyEndpoint(endpoint);
-        this.engine.register(ge);
-        return ge;
-    }
-
-    @Override
-    public void unregister(SPIRegisteredEndpoint ge) {
-        this.engine.unregister((GrizzlyEndpoint) ge);
-    }
-
+    /**
+     * Stops the server.
+     */
+    void stop();
 }

@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.spi.grizzlyprovider;
+package org.glassfish.tyrus.grizzly;
 
 import org.glassfish.grizzly.http.HttpRequestPacket;
 import org.glassfish.tyrus.spi.SPIHandshakeRequest;

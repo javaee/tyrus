@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.spi.grizzlyprovider;
+package org.glassfish.tyrus.grizzly;
 
 import org.glassfish.grizzly.http.HttpRequestPacket;
 import org.glassfish.grizzly.websockets.DataFrame;
@@ -101,27 +101,27 @@ class GrizzlyEndpoint extends WebSocketApplication implements SPIRegisteredEndpo
         GrizzlyRemoteEndpoint gs = GrizzlyRemoteEndpoint.get(socket);
         this.endpoint.onConnect(gs);
     }
-    
-    
-    
+
+
+
     @Override
     public void onFragment(WebSocket socket, String fragment, boolean last) {
         GrizzlyRemoteEndpoint gs = GrizzlyRemoteEndpoint.get(socket);
         this.endpoint.onPartialMessage(gs, fragment, last);
     }
-    
+
     @Override
     public void onFragment(WebSocket socket, byte[] fragment, boolean last) {
         System.out.println("Grizzly on Fragment(b): " + fragment + " " + last);
     }
-    
+
 
     @Override
     public void onMessage(WebSocket socket, String messageString) {
         GrizzlyRemoteEndpoint gs = GrizzlyRemoteEndpoint.get(socket);
         this.endpoint.onMessage(gs, messageString);
-        
-       
+
+
     }
 
 

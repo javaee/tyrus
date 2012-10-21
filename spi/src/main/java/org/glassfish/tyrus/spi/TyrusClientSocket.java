@@ -39,29 +39,21 @@
  */
 package org.glassfish.tyrus.spi;
 
+import java.util.Set;
 
 /**
- * The SPIWebSocketProvider is the starting point of the provider SPI. The provider must implement this
- * class with a public no args constructor. The new provider can be configured
- * in the web.xml of the web application requesting the new provider by specifying a servlet context
- * initialization parameter of key org.glassfish.websocket.provider.class and value the fully qualified classname
- * of the provider class.
- * @author dannycoward
+ * @author Martin Matula (martin.matula at oracle.com)
  */
-public interface SPIWebSocketProvider {
-
-    /** The register method is called by the SDK when it
-     * has created a web socket endpoint it wishes to be managed.
+public interface TyrusClientSocket {
+    /**
+     * Returns the mutable Set of endpoints registered
      *
-     * @param endpoint SPIEndpoint to be registered.
-     * @return SPIRegisteredEndpoint.
+     * @return mutable {@link java.util.Set} of endpoints registered on socket.
      */
-    public SPIRegisteredEndpoint register(SPIEndpoint endpoint);
+    public Set<SPIEndpoint> getEndpoints();
 
-    /** The SDK calls unregister when it no longer wishes the endpoint to be
-     * in service.
-     *
-     * @param ge the endpoint which is going to be unregistered.
+    /**
+     * Close the socket.
      */
-    public void unregister(SPIRegisteredEndpoint ge);
+    public void close();
 }

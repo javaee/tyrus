@@ -1,4 +1,4 @@
-package org.glassfish.tyrus.spi.grizzlyprovider;
+package org.glassfish.tyrus.grizzly;
 
 import org.glassfish.grizzly.http.HttpContent;
 import org.glassfish.grizzly.http.HttpRequestPacket;

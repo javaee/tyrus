@@ -39,15 +39,13 @@
  */
 package org.glassfish.tyrus.server;
 
-import org.glassfish.grizzly.http.server.HttpServer;
-import org.glassfish.grizzly.websockets.WebSocketAddOn;
-
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.logging.Logger;
+import org.glassfish.tyrus.spi.TyrusServer;
 
 /**
  * Implementation of the WebSocket Server.
@@ -55,14 +53,14 @@ import java.util.logging.Logger;
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 public class Server {
-    private HttpServer server;
+    private TyrusServer server;
     private BeanServer beanServer;
     private final Set<Class<?>> beans;
     private final String hostName;
     private final int port;
     private final String rootPath;
 
-    private static final String ENGINE_PROVIDER_CLASSNAME = "org.glassfish.tyrus.spi.grizzlyprovider.GrizzlyEngine";
+    private static final String ENGINE_PROVIDER_CLASSNAME = "org.glassfish.tyrus.grizzly.GrizzlyEngine";
     private static final Logger LOGGER = Logger.getLogger(Server.class.getClass().getName());
     private static final int DEFAULT_PORT = 8025;
     private static final String DEFAULT_HOST_NAME = "localhost";
@@ -127,10 +125,9 @@ public class Server {
     public synchronized void start(){
         try {
             if(server == null){
-                server = HttpServer.createSimpleServer(this.rootPath, this.port);
-                server.getListener("grizzly").registerAddOn(new WebSocketAddOn());
-                server.start();
                 beanServer = new BeanServer(ENGINE_PROVIDER_CLASSNAME);
+                server = beanServer.createServer(this.rootPath, this.port);
+                server.start();
                 try {
                     beanServer.initWebSocketServer(this.rootPath, this.port, beans);
                 } catch (Exception e) {
