@@ -44,23 +44,23 @@
 
     <parent>
         <groupId>org.glassfish.tyrus</groupId>
-        <artifactId>websocket</artifactId>
+        <artifactId>tyrus-project</artifactId>
         <version>1.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <groupId>org.glassfish.tyrus</groupId>
-    <artifactId>websocket-samples</artifactId>
+    <groupId>org.glassfish.tyrus.samples</groupId>
+    <artifactId>tyrus-samples-project</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
-    <name>WebSocket Samples</name>
+    <name>Tyrus Samples</name>
 
     <modules>
-        <module>sample-draw</module>
-        <module>sample-echo</module>
-        <!--<module>sample-trading</module>-->
-        <module>sample-auction</module>
-        <module>sample-chat</module>
-        <module>sample-simplelife</module>
+        <module>auction</module>
+        <module>chat</module>
+        <module>draw</module>
+        <module>echo</module>
+        <module>simplelife</module>
+        <!--<module>trading</module>-->
     </modules>
 </project>

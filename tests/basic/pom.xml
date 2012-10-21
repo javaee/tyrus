@@ -44,65 +44,47 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.glassfish.tyrus</groupId>
-        <artifactId>websocket-tests</artifactId>
+        <groupId>org.glassfish.tyrus.tests</groupId>
+        <artifactId>tyrus-tests-project</artifactId>
         <version>1.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <packaging>war</packaging>
     <version>1.0-SNAPSHOT</version>
-    <url>http://maven.apache.org</url>
-    <groupId>org.glassfish.tyrus</groupId>
-    <artifactId>websocket-basic-test</artifactId>
+    <groupId>org.glassfish.tyrus.tests</groupId>
+    <artifactId>tyrus-tests-basic</artifactId>
 
-    <name>WebSocket Basic Test</name>
+    <name>Tyrus Basic Tests</name>
 
     <dependencies>
         <dependency>
             <groupId>javax.net.websocket</groupId>
             <artifactId>javax.net.websocket-api</artifactId>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.glassfish.tyrus</groupId>
-            <artifactId>websocket-impl</artifactId>
-            <version>${project.version}</version>
-            <scope>provided</scope>
+            <artifactId>tyrus-core</artifactId>
         </dependency>
         <dependency>
             <groupId>org.glassfish.tyrus</groupId>
-            <artifactId>websocket-provider-grizzly</artifactId>
-            <version>${project.version}</version>
-            <scope>provided</scope>
+            <artifactId>tyrus-container-grizzly</artifactId>
         </dependency>
         <dependency>
             <groupId>org.glassfish.tyrus</groupId>
-            <artifactId>websocket-client</artifactId>
-            <version>${project.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>javax</groupId>
-            <artifactId>javaee-web-api</artifactId>
-            <version>6.0</version>
-            <scope>provided</scope>
+            <artifactId>tyrus-client</artifactId>
         </dependency>
         <dependency>
 	        <groupId>org.json</groupId>
 	        <artifactId>json</artifactId>
-	        <version>20090211</version>
         </dependency>
         <dependency>
             <groupId>org.glassfish.grizzly</groupId>
             <artifactId>grizzly-websockets</artifactId>
-            <version>${grizzly.version}</version>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.10</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -123,13 +105,8 @@
                 <version>2.1.1</version>
                 <configuration>
                     <failOnMissingWebXml>false</failOnMissingWebXml>
-                    <contextPath>/</contextPath>
                 </configuration>
             </plugin>
         </plugins>
-        <finalName>websocket-basic-test</finalName>
     </build>
-    <properties>
-        <netbeans.hint.deploy.server>gfv3ee6</netbeans.hint.deploy.server>
-    </properties>
 </project>

@@ -43,42 +43,29 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <parent>
         <groupId>org.glassfish.tyrus</groupId>
-        <artifactId>websocket</artifactId>
+        <artifactId>tyrus-project</artifactId>
         <version>1.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>websocket-client</artifactId>
+    <artifactId>tyrus-client</artifactId>
     <packaging>jar</packaging>
-    <name>WebSocket Client</name>
+    <name>Tyrus Client</name>
 
     <dependencies>
         <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-        </dependency>
-<!--
-        <dependency>
-            <groupId>org.glassfish.websocket</groupId>
-            <artifactId>websocket-api</artifactId>
-            <version>${project.version}</version>
-            <scope>provided</scope>
-        </dependency>
--->
-        <dependency>
             <groupId>org.glassfish.tyrus</groupId>
-            <artifactId>websocket-impl</artifactId>
-            <version>${project.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.glassfish.tyrus</groupId>
-            <artifactId>websocket-provider-grizzly</artifactId>
+            <artifactId>tyrus-core</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>org.glassfish.tyrus</groupId>
-            <artifactId>websocket-spi</artifactId>
+            <artifactId>tyrus-container-grizzly</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.tyrus</groupId>
+            <artifactId>tyrus-spi</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -91,6 +78,7 @@
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
             <version>20090211</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

@@ -43,26 +43,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <parent>
         <groupId>org.glassfish.tyrus</groupId>
-        <artifactId>websocket</artifactId>
+        <artifactId>tyrus-project</artifactId>
         <version>1.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>websocket-spi</artifactId>
+    <artifactId>tyrus-spi</artifactId>
     <packaging>jar</packaging>
-    <name>WebSocket SPI</name>
-
-    <dependencies>
-<!--
-        <dependency>
-            <groupId>org.glassfish.websocket</groupId>
-            <artifactId>websocket-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>
--->
-        <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-        </dependency>
-    </dependencies>
+    <name>Tyrus Container SPI</name>
 </project>

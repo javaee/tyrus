@@ -44,7 +44,7 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <parent>
         <groupId>org.glassfish.tyrus</groupId>
-        <artifactId>websocket-bundles</artifactId>
+        <artifactId>tyrus-bundles</artifactId>
         <version>1.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
@@ -93,14 +93,28 @@
                                 </artifactItem>
                                 <artifactItem>
                                     <groupId>${project.groupId}</groupId>
-                                    <artifactId>websocket-impl</artifactId>
+                                    <artifactId>tyrus-core</artifactId>
+                                    <classifier>sources</classifier>
+                                    <overWrite>false</overWrite>
+                                    <outputDirectory>${generated.sources.dir}</outputDirectory>
+                                </artifactItem>
+                                <!--artifactItem>
+                                    <groupId>${project.groupId}</groupId>
+                                    <artifactId>tyrus-server</artifactId>
+                                    <classifier>sources</classifier>
+                                    <overWrite>false</overWrite>
+                                    <outputDirectory>${generated.sources.dir}</outputDirectory>
+                                </artifactItem-->
+                                <artifactItem>
+                                    <groupId>${project.groupId}</groupId>
+                                    <artifactId>tyrus-client</artifactId>
                                     <classifier>sources</classifier>
                                     <overWrite>false</overWrite>
                                     <outputDirectory>${generated.sources.dir}</outputDirectory>
                                 </artifactItem>
                                 <artifactItem>
                                     <groupId>${project.groupId}</groupId>
-                                    <artifactId>websocket-provider-grizzly</artifactId>
+                                    <artifactId>tyrus-container-grizzly</artifactId>
                                     <classifier>sources</classifier>
                                     <overWrite>false</overWrite>
                                     <outputDirectory>${generated.sources.dir}</outputDirectory>
@@ -178,20 +192,17 @@
         </dependency>
         <dependency>
             <groupId>org.glassfish.tyrus</groupId>
-            <artifactId>websocket-impl</artifactId>
-            <version>${project.version}</version>
+            <artifactId>tyrus-client</artifactId>
             <optional>true</optional>
         </dependency>
-        <dependency>
+        <!--dependency>
             <groupId>org.glassfish.tyrus</groupId>
-            <artifactId>websocket-spi</artifactId>
-            <version>${project.version}</version>
+            <artifactId>tyrus-server</artifactId>
             <optional>true</optional>
-        </dependency>
+        </dependency-->
         <dependency>
             <groupId>org.glassfish.tyrus</groupId>
-            <artifactId>websocket-provider-grizzly</artifactId>
-            <version>${project.version}</version>
+            <artifactId>tyrus-container-grizzly</artifactId>
             <optional>true</optional>
         </dependency>
     </dependencies>

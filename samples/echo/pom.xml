@@ -44,40 +44,29 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.glassfish.tyrus</groupId>
-        <artifactId>websocket-spi-providers</artifactId>
+        <groupId>org.glassfish.tyrus.samples</groupId>
+        <artifactId>tyrus-samples-project</artifactId>
         <version>1.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <packaging>jar</packaging>
-    <version>1.0-SNAPSHOT</version>
-    <url>http://maven.apache.org</url>
-    <groupId>org.glassfish.tyrus</groupId>
-    <artifactId>websocket-provider-grizzly</artifactId>
+    <packaging>war</packaging>
+    <artifactId>tyrus-sample-echo</artifactId>
 
-    <name>WebSocket Grizzly SPI Provider</name>
+    <name>Tyrus Echo Sample</name>
 
     <dependencies>
-<!--
-        <dependency>
-            <groupId>org.glassfish.websocket</groupId>
-            <artifactId>websocket-api</artifactId>
-            <version>${project.version}</version>
-            <scope>provided</scope>
-        </dependency>
--->
         <dependency>
             <groupId>org.glassfish.tyrus</groupId>
-            <artifactId>websocket-spi</artifactId>
-            <version>${project.version}</version>
-            <scope>provided</scope>
+            <artifactId>tyrus-core</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.glassfish.grizzly</groupId>
-            <artifactId>grizzly-websockets</artifactId>
-            <version>${grizzly.version}</version>
-            <scope>provided</scope>
+            <groupId>org.glassfish.tyrus</groupId>
+            <artifactId>tyrus-container-grizzly</artifactId>
+        </dependency>
+        <dependency>
+	        <groupId>org.json</groupId>
+	        <artifactId>json</artifactId>
         </dependency>
     </dependencies>
     <build>
@@ -97,13 +86,8 @@
                 <version>2.1.1</version>
                 <configuration>
                     <failOnMissingWebXml>false</failOnMissingWebXml>
-                    <contextPath>/</contextPath>
                 </configuration>
             </plugin>
         </plugins>
-        <finalName>websocket-provider-grizzly</finalName>
     </build>
-    <properties>
-        <netbeans.hint.deploy.server>gfv3ee6</netbeans.hint.deploy.server>
-    </properties>
 </project>

@@ -44,46 +44,29 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.glassfish.tyrus</groupId>
-        <artifactId>websocket-samples</artifactId>
+        <groupId>org.glassfish.tyrus.samples</groupId>
+        <artifactId>tyrus-samples-project</artifactId>
         <version>1.0-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
 
     <packaging>war</packaging>
-    <version>1.0-SNAPSHOT</version>
-    <url>http://maven.apache.org</url>
-    <groupId>org.glassfish.tyrus</groupId>
-    <artifactId>websocket-sample-auction</artifactId>
+    <artifactId>tyrus-sample-draw</artifactId>
 
-    <name>WebSocket Auction</name>
-
+    <name>Tyrus Draw Sample</name>
 
     <dependencies>
-        <!--<dependency>
-            <groupId>org.glassfish.tyrus</groupId>
-            <artifactId>websocket-api</artifactId>
-            <version>${project.version}</version>
-        </dependency>-->
         <dependency>
             <groupId>org.glassfish.tyrus</groupId>
-            <artifactId>websocket-impl</artifactId>
-            <version>${project.version}</version>
+            <artifactId>tyrus-core</artifactId>
         </dependency>
         <dependency>
-            <groupId>javax</groupId>
-            <artifactId>javaee-web-api</artifactId>
-            <version>6.0</version>
+            <groupId>org.glassfish.tyrus</groupId>
+            <artifactId>tyrus-container-grizzly</artifactId>
         </dependency>
         <dependency>
 	        <groupId>org.json</groupId>
 	        <artifactId>json</artifactId>
-	        <version>20090211</version>
-        </dependency>
-        <dependency>
-            <groupId>org.glassfish.tyrus</groupId>
-            <artifactId>websocket-provider-grizzly</artifactId>
-            <version>${project.version}</version>
         </dependency>
     </dependencies>
     <build>
@@ -97,19 +80,14 @@
                     <target>1.6</target>
                 </configuration>
             </plugin>
-            <plugin>
+           <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
                 <version>2.1.1</version>
                 <configuration>
                     <failOnMissingWebXml>false</failOnMissingWebXml>
-                    <contextPath>/</contextPath>
                 </configuration>
             </plugin>
         </plugins>
-        <finalName>websocket-sample-auction</finalName>
     </build>
-    <properties>
-        <netbeans.hint.deploy.server>gfv3ee6</netbeans.hint.deploy.server>
-    </properties>
 </project>
