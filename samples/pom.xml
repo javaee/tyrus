@@ -63,4 +63,11 @@
         <module>simplelife</module>
         <!--<module>trading</module>-->
     </modules>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.glassfish.tyrus</groupId>
+            <artifactId>tyrus-server</artifactId>
+        </dependency>
+    </dependencies>
 </project>

@@ -39,7 +39,7 @@
  */
 package org.glassfish.tyrus.client;
 
-import org.glassfish.tyrus.platform.main.Server;
+import org.glassfish.tyrus.server.Server;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;

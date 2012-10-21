@@ -39,9 +39,8 @@
  */
 package org.glassfish.tyrus.client;
 
-import org.glassfish.tyrus.platform.EndpointWrapper;
-import org.glassfish.tyrus.platform.Model;
-import org.glassfish.tyrus.platform.configuration.DefaultClientEndpointConfiguration;
+import org.glassfish.tyrus.EndpointWrapper;
+import org.glassfish.tyrus.Model;
 
 import javax.net.websocket.ClientContainer;
 import javax.net.websocket.ClientEndpointConfiguration;

@@ -42,8 +42,8 @@ package org.glassfish.tyrus.test.basic;
 
 import junit.framework.Assert;
 import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.platform.configuration.DefaultClientEndpointConfiguration;
-import org.glassfish.tyrus.platform.main.Server;
+import org.glassfish.tyrus.client.DefaultClientEndpointConfiguration;
+import org.glassfish.tyrus.server.Server;
 
 import javax.net.websocket.Session;
 

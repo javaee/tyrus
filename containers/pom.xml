@@ -53,7 +53,8 @@
     <name>Tyrus Container Modules</name>
 
     <modules>
-        <module>tyrus-servlet</module>
+        <!--module>tyrus-servlet</module-->
         <module>grizzly</module>
+        <module>oldservlet</module>
     </modules>
 </project>

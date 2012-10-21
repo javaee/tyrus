@@ -40,7 +40,7 @@
 
 package org.glassfish.tyrus.sample.simplelife;
 
-import org.glassfish.tyrus.platform.main.Server;
+import org.glassfish.tyrus.server.Server;
 
 import java.io.IOException;
 import java.util.HashSet;
