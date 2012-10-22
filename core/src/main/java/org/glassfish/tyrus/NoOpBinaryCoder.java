@@ -49,10 +49,8 @@ import javax.net.websocket.Encoder;
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class NoOpEncoderDecoder implements Decoder.Binary<ByteBuffer>, Encoder.Binary<ByteBuffer>,
-        Decoder.Text<String>, Encoder.Text<String> {
-
-    public static final NoOpEncoderDecoder INSTANCE = new NoOpEncoderDecoder();
+public class NoOpBinaryCoder implements Decoder.Binary<ByteBuffer>, Encoder.Binary<ByteBuffer> {
+    public static final NoOpBinaryCoder INSTANCE = new NoOpBinaryCoder();
 
     @Override
     public boolean willDecode(ByteBuffer bytes) {
@@ -65,22 +63,7 @@ public class NoOpEncoderDecoder implements Decoder.Binary<ByteBuffer>, Encoder.B
     }
 
     @Override
-    public boolean willDecode(String s) {
-        return true;
-    }
-
-    @Override
-    public String decode(String s) throws DecodeException {
-        return s;
-    }
-
-    @Override
     public ByteBuffer encode(ByteBuffer object) throws EncodeException {
-        return object;
-    }
-
-    @Override
-    public String encode(String object) throws EncodeException {
         return object;
     }
 }

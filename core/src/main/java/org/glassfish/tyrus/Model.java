@@ -106,7 +106,7 @@ public class Model {
         Set<Class<?>> decs = new HashSet<Class<?>>();
         WebSocketEndpoint wsClassAnnotation = wsClass.getAnnotation(WebSocketEndpoint.class);
         if (wsClassAnnotation != null) {
-            Collections.addAll(decs, wsClassAnnotation.decoders());
+            Collections.addAll(decs, (Class<?>[]) wsClassAnnotation.decoders());
         }
         return decs;
     }
@@ -116,7 +116,7 @@ public class Model {
         Set<Class<?>> encs = new HashSet<Class<?>>();
         WebSocketEndpoint wsClassAnnotation = wsClass.getAnnotation(WebSocketEndpoint.class);
         if (wsClassAnnotation != null) {
-            Collections.addAll(encs, wsClassAnnotation.encoders());
+            Collections.addAll(encs, (Class<?>[]) wsClassAnnotation.encoders());
         }
         return encs;
     }
@@ -160,7 +160,8 @@ public class Model {
                 }
             }
         }
-        encoders.add(NoOpEncoderDecoder.INSTANCE);
+        encoders.add(NoOpBinaryCoder.INSTANCE);
+        encoders.add(NoOpTextCoder.INSTANCE);
         encoders.add(ToStringEncoder.INSTANCE);
     }
 
@@ -185,7 +186,8 @@ public class Model {
             }
         }
         decoders.addAll(PrimitiveDecoders.ALL);
-        decoders.add(NoOpEncoderDecoder.INSTANCE);
+        decoders.add(NoOpBinaryCoder.INSTANCE);
+        decoders.add(NoOpTextCoder.INSTANCE);
     }
 
     public Set<Method> getOnOpenMethods() {
