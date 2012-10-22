@@ -67,7 +67,7 @@ public class ClientTest {
     public void testClient() {
         Server server = new Server("org.glassfish.tyrus.client.TestBean");
         server.start();
-
+        
         try {
             messageLatch = new CountDownLatch(1);
             DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder(new URI("ws://localhost:8025/websockets/tests/echo"));

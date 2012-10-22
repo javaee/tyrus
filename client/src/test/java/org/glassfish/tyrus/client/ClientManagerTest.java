@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import org.junit.Ignore;
 
 /**
  * Tests the implementation of {@link javax.net.websocket.ClientContainer}.
@@ -22,6 +23,7 @@ public class ClientManagerTest {
 
     private static final String SENT_MESSAGE = "hello";
 
+    @Ignore
     @Test
     public void testClient() {
         Server server = new Server("org.glassfish.tyrus.client.TestBean");
