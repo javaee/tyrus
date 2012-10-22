@@ -246,12 +246,10 @@ public class EndpointWrapper extends SPIEndpoint {
     public void onPartialMessage(RemoteEndpoint gs, String partialString, boolean last) {
         boolean handled = false;
         RemoteEndpointWrapper peer = getPeer(gs);
-        for (MessageHandler handler : (List<MessageHandler>) peer.getSession().getMessageHandlers()) {
+        for (MessageHandler handler : (Set<MessageHandler>) ((SessionImpl)peer.getSession()).getInvokableMessageHandlers()) {
             MessageHandler.AsyncText baseHandler = null;
             if (handler instanceof MessageHandler.AsyncText) {
                 baseHandler = (MessageHandler.AsyncText) handler;
-            } else if (handler instanceof MessageHandler.CharacterStream) {
-                baseHandler = new AsyncTextToCharStreamAdapter((MessageHandler.CharacterStream) handler);
             }
             if (baseHandler != null) {
                 baseHandler.onMessagePart(partialString, last);

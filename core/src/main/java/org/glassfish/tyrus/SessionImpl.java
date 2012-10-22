@@ -257,6 +257,19 @@ public class SessionImpl<T> implements Session<T> {
     public Set<MessageHandler> getMessageHandlers() {
         return Collections.unmodifiableSet(this.messageHandlers);
     }
+    
+    Set<MessageHandler> getInvokableMessageHandlers() {
+        Set<MessageHandler> imh = new HashSet<MessageHandler>();
+        for (MessageHandler mh : this.getMessageHandlers()) {
+            if (mh instanceof MessageHandler.CharacterStream) {
+                imh.add(new AsyncTextToCharStreamAdapter((MessageHandler.CharacterStream) mh));
+            } else {
+                imh.add(mh);
+            }
+        }
+        return imh;
+        
+    }
 
     @Override
     public void removeMessageHandler(MessageHandler listener) {
