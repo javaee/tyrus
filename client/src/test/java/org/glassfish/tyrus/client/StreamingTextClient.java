@@ -39,29 +39,38 @@
  */
 package org.glassfish.tyrus.client;
 
+import java.io.IOException;
+import java.util.concurrent.CountDownLatch;
 import javax.net.websocket.Endpoint;
 import javax.net.websocket.MessageHandler;
 import javax.net.websocket.Session;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)
+ * @author Martin Matula (martin.matula at oracle.com)
  */
 public class StreamingTextClient extends Endpoint {
     boolean gotSomethingBack = false;
+    private final CountDownLatch messageLatch;
+    private Session session;
+
+    public StreamingTextClient(CountDownLatch messageLatch) {
+        this.messageLatch = messageLatch;
+    }
 
     public void onOpen(Session session) {
         System.out.println("STREAMINGCLIENT opened !");
 
+        this.session = session;
+
         try {
-            //session.getRemote().sendString("hello");
-            session.getRemote().sendPartialString("here ", false);
-            session.getRemote().sendPartialString("is ", false);
-            session.getRemote().sendPartialString("a ", false);
-            session.getRemote().sendPartialString("stream.", true);
+            sendPartial("here", false);
+            sendPartial("is ", false);
+            sendPartial("a ", false);
+            sendPartial("stream.", true);
         } catch (Exception e) {
             e.printStackTrace();
         }
-        final Session theSession = session;
         session.addMessageHandler(new MessageHandler.AsyncText() {
             StringBuilder sb = new StringBuilder();
 
@@ -72,15 +81,20 @@ public class StreamingTextClient extends Endpoint {
                     System.out.println("STREAMINGCLIENT received whole message: " + sb.toString());
                     sb = new StringBuilder();
                     gotSomethingBack = true;
+                    messageLatch.countDown();
                 }
-
-
             }
-
         });
-
-
     }
 
-
+    private void sendPartial(String partialString, boolean isLast) throws IOException, InterruptedException {
+        System.out.println("Client sending: " + partialString);
+        session.getRemote().sendPartialString(partialString, isLast);
+        if (!isLast) {
+            System.out.println("Waiting for the server to process the partial string...");
+            synchronized (StreamingTextServer.class) {
+                StreamingTextServer.class.wait(5000);
+            }
+        }
+    }
 }

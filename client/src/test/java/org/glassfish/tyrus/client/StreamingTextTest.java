@@ -50,27 +50,21 @@ import org.junit.Test;
  * Tests the basic client behavior, sending and receiving message
  *
  * @author Danny Coward (danny.coward at oracle.com)
+ * @author Martin Matula (martin.matula at oracle.com)
  */
 public class StreamingTextTest {
-
-    private CountDownLatch messageLatch;
-
-    private String receivedMessage;
-
-    private static final String SENT_MESSAGE = "hello danny !!!";
-
     @Test
     public void testClient() {
-        Server server = new Server("org.glassfish.tyrus.client.StreamingTextServer");
+        Server server = new Server(StreamingTextServer.class.getName());
         server.start();
 
-
         try {
-            messageLatch = new CountDownLatch(1);
+            CountDownLatch messageLatch = new CountDownLatch(2);
+            StreamingTextServer.messageLatch = messageLatch;
             DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder(new URI("ws://localhost:8025/websockets/tests/streamingtext"));
             DefaultClientEndpointConfiguration dcec = builder.build();
 
-            StreamingTextClient stc = new StreamingTextClient();
+            StreamingTextClient stc = new StreamingTextClient(messageLatch);
             ClientManager client = ClientManager.createClient();
             client.connectToServer(stc, dcec);
 

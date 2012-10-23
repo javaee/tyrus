@@ -41,63 +41,71 @@ package org.glassfish.tyrus.client;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.util.concurrent.CountDownLatch;
 import javax.net.websocket.Endpoint;
 import javax.net.websocket.MessageHandler;
 import javax.net.websocket.Session;
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)
  */
 public class BlockingStreamingTextClient extends Endpoint {
-    boolean gotSomethingBack = false;
+    String receivedMessage;
+    private final CountDownLatch messageLatch;
+
+    public BlockingStreamingTextClient(CountDownLatch messageLatch) {
+        this.messageLatch = messageLatch;
+    }
 
     public void onOpen(Session session) {
         System.out.println("BLOCKINGCLIENT opened !");
 
         send(session);
 
-        final Session theSession = session;
-
         session.addMessageHandler(new MessageHandler.CharacterStream() {
             StringBuilder sb = new StringBuilder();
 
             public void onMessage(Reader r) {
                 try {
-                    int i = 0;
-                    while ((i = r.read()) != -1) {
-                        System.out.println("BLOCKINGCLIENT: " + (char) i);
-                        sb.append((char) i);
+                    for (int i = 0; i < 10; i++) {
+                        char c = (char) r.read();
+                        sb.append(c);
+                        System.out.println("Reading char on the client: " + c);
+                        assertEquals(Character.forDigit(i, 10), c);
+                        System.out.println("Resuming the server");
+                        synchronized (BlockingStreamingTextServer.class) {
+                            BlockingStreamingTextServer.class.notify();
+                        }
                     }
-                    System.out.println("BLOCKINGCLIENT WHOLE MESSAGE = " + sb.toString());
-                    gotSomethingBack = true;
+                    char c = (char) r.read();
+                    System.out.println("Reading #");
+                    sb.append(c);
+                    assertEquals('#', c);
+                    receivedMessage = sb.toString();
+                    messageLatch.countDown();
                 } catch (IOException ioe) {
                     ioe.printStackTrace();
                 }
 
 
             }
-
-
         });
-
-
-        //session.getRemote().sendString("SClient says stream");
-
-
     }
 
     public void send(Session session) {
         try {
             for (int i = 0; i < 10; i++) {
-                session.getRemote().sendPartialString("blk" + i + "", false);
-                //Thread.sleep(500);
+                System.out.println("Sending bulk #" + i);
+                session.getRemote().sendPartialString("blk" + i, false);
+                System.out.println("Waiting for the server to process it");
+                synchronized (BlockingStreamingTextServer.class) {
+                    BlockingStreamingTextServer.class.wait(5000);
+                }
             }
             session.getRemote().sendPartialString("END", true);
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
-
-
 }

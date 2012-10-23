@@ -46,17 +46,16 @@ import javax.net.websocket.MessageHandler;
 import javax.net.websocket.Session;
 import javax.net.websocket.annotations.WebSocketEndpoint;
 import javax.net.websocket.annotations.WebSocketOpen;
+import static org.junit.Assert.assertEquals;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)
+ * @author Martin Matula (martin.matula at oracle.com)
  */
 @WebSocketEndpoint("/blockingstreaming")
 public class BlockingStreamingTextServer extends Endpoint {
-
-
     class MyCharacterStreamHandler implements MessageHandler.CharacterStream {
         Session session;
-        StringBuilder sb = new StringBuilder();
 
         MyCharacterStreamHandler(Session session) {
             this.session = session;
@@ -67,22 +66,35 @@ public class BlockingStreamingTextServer extends Endpoint {
             System.out.println("BLOCKINGSTREAMSERVER: on message reader called");
 
             try {
-                int i = 0;
-                while ((i = r.read()) != -1) {
-                    sb.append((char) i);
-                    System.out.println("BLOCKINGSTREAMSERVER:" + (char) i);
-
+                for (int i = 0; i < 10; i++) {
+                    System.out.println("Reading bulk #" + i);
+                    assertEquals('b', (char) r.read());
+                    assertEquals('l', (char) r.read());
+                    assertEquals('k', (char) r.read());
+                    assertEquals(Character.forDigit(i, 10), (char) r.read());
+                    System.out.println("Resuming the client");
+                    synchronized (BlockingStreamingTextServer.class) {
+                        BlockingStreamingTextServer.class.notify();
+                    }
                 }
-                System.out.println("BLOCKINGSTREAMSERVER - fully processed message: " + sb.toString());
-
+                System.out.println("Reading END");
+                assertEquals('E', (char) r.read());
+                assertEquals('N', (char) r.read());
+                assertEquals('D', (char) r.read());
+                assertEquals(-1, r.read());
 
                 Writer w = session.getRemote().getSendWriter();
-                w.write("hi there");
-                pause();
-                w.write("you");
-                pause();
-                w.write("how are things ?");
-                pause();
+                for (int i = 0; i < 10; i++) {
+                    System.out.println("Streaming char to the client: " + i);
+                    w.write(Character.forDigit(i, 10));
+                    w.flush();
+                    System.out.println("Waiting for the client to process it");
+                    synchronized (BlockingStreamingTextServer.class) {
+                        BlockingStreamingTextServer.class.wait(5000);
+                    }
+                }
+                System.out.println("Writing #");
+                w.write('#');
                 w.close();
 
 
@@ -92,20 +104,10 @@ public class BlockingStreamingTextServer extends Endpoint {
         }
     }
 
-    private void pause() {
-        try {
-            Thread.sleep(100);
-        } catch (Exception e) {
-        }
-    }
-
     @WebSocketOpen
     public void onOpen(Session session) {
-
         System.out.println("BLOCKINGSERVER opened !");
         session.addMessageHandler(new MyCharacterStreamHandler(session));
-
-
     }
 
 }

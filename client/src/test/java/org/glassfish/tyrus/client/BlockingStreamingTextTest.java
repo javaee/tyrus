@@ -44,16 +44,19 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.glassfish.tyrus.server.Server;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  * Tests the basic client behavior, sending and receiving message
  *
  * @author Danny Coward (danny.coward at oracle.com)
+ * @author Martin Matula (martin.matula at oracle.com)
  */
 public class BlockingStreamingTextTest {
 
     @Test
+    @Ignore // TODO: unignore once TYRUS-43 is fixed
     public void testClient() {
         Server server = new Server(BlockingStreamingTextServer.class.getName());
         server.start();
@@ -63,12 +66,12 @@ public class BlockingStreamingTextTest {
             DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder(new URI("ws://localhost:8025/websockets/tests/blockingstreaming"));
             DefaultClientEndpointConfiguration dcec = builder.build();
 
-            BlockingStreamingTextClient bstc = new BlockingStreamingTextClient();
+            BlockingStreamingTextClient bstc = new BlockingStreamingTextClient(messageLatch);
             ClientManager client = ClientManager.createClient();
             client.connectToServer(bstc, dcec);
 
             messageLatch.await(5, TimeUnit.SECONDS);
-            Assert.assertTrue("The client got something back", bstc.gotSomethingBack);
+            Assert.assertEquals("0123456789#", bstc.receivedMessage);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);

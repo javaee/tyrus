@@ -39,6 +39,8 @@
  */
 package org.glassfish.tyrus.client;
 
+import java.io.IOException;
+import java.util.concurrent.CountDownLatch;
 import javax.net.websocket.Endpoint;
 import javax.net.websocket.MessageHandler;
 import javax.net.websocket.Session;
@@ -47,13 +49,17 @@ import javax.net.websocket.annotations.WebSocketOpen;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)
+ * @author Martin Matula (martin.matula at oracle.com)
  */
 @WebSocketEndpoint("/streamingtext")
 public class StreamingTextServer extends Endpoint {
+    private Session session;
+    static CountDownLatch messageLatch;
 
     @WebSocketOpen
     public void onOpen(Session session) {
         System.out.println("STREAMINGSERVER opened !");
+        this.session = session;
 
         session.addMessageHandler(new MessageHandler.AsyncText() {
             StringBuilder sb = new StringBuilder();
@@ -65,25 +71,33 @@ public class StreamingTextServer extends Endpoint {
                 if (last) {
                     System.out.println("STREAMINGSERVER whole message: " + sb.toString());
                     sb = new StringBuilder();
+                    messageLatch.countDown();
+                } else {
+                    System.out.println("Resuming the client...");
+                    synchronized (StreamingTextServer.class) {
+                        StreamingTextServer.class.notify();
+                    }
                 }
             }
 
         });
 
         try {
-            //session.getRemote().sendString("send me something !");
             System.out.println(session.getRemote());
-            session.getRemote().sendPartialString("thank ", false);
-            session.getRemote().sendPartialString("you ", false);
-            session.getRemote().sendPartialString("very ", false);
-            session.getRemote().sendPartialString("much ", false);
-            session.getRemote().sendPartialString("!", true);
+            sendPartial("thank ", false);
+            sendPartial("you ", false);
+            sendPartial("very ", false);
+            sendPartial("much ", false);
+            sendPartial("!", true);
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-
     }
 
+
+    private void sendPartial(String partialString, boolean isLast) throws IOException, InterruptedException {
+        System.out.println("Server sending: " + partialString);
+        session.getRemote().sendPartialString(partialString, isLast);
+    }
 }
 
