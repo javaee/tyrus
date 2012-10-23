@@ -39,19 +39,17 @@
  */
 package org.glassfish.tyrus.client;
 
+import java.net.ConnectException;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Logger;
-import org.glassfish.tyrus.EndpointWrapper;
-import org.glassfish.tyrus.Model;
-
 import javax.net.websocket.ClientContainer;
 import javax.net.websocket.ClientEndpointConfiguration;
 import javax.net.websocket.Endpoint;
 import javax.net.websocket.Session;
 import javax.net.websocket.extensions.Extension;
-
-import java.net.ConnectException;
-import java.util.HashSet;
-import java.util.Set;
+import org.glassfish.tyrus.EndpointWrapper;
+import org.glassfish.tyrus.Model;
 import org.glassfish.tyrus.spi.TyrusClientSocket;
 import org.glassfish.tyrus.spi.TyrusContainer;
 

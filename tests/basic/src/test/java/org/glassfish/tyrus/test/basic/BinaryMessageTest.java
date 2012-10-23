@@ -39,6 +39,12 @@
  */
 package org.glassfish.tyrus.test.basic;
 
+import java.io.IOException;
+import java.net.URI;
+import java.nio.ByteBuffer;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import javax.net.websocket.Session;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.client.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.server.Server;
@@ -46,21 +52,13 @@ import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import javax.net.websocket.Session;
-
-import java.io.IOException;
-import java.net.URI;
-import java.nio.ByteBuffer;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
 /**
  * Tests the correct processing of binary message and replying.
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 public class BinaryMessageTest {
-    private static final byte[] BINARY_MESSAGE = new byte[]{1,2,3,4};
+    private static final byte[] BINARY_MESSAGE = new byte[]{1, 2, 3, 4};
 
     private CountDownLatch messageLatch;
 

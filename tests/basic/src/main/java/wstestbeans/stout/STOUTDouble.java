@@ -40,22 +40,21 @@
 
 package wstestbeans.stout;
 
-import javax.net.websocket.annotations.WebSocketMessage;
 import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketMessage;
 
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 @WebSocketEndpoint(
-        value="/standardOutputTypes/double"
-    )
+        value = "/standardOutputTypes/double"
+)
 public class STOUTDouble {
 
-        @WebSocketMessage
-     public double doubleTest(String s) {
-         return 1;
-     }
+    @WebSocketMessage
+    public double doubleTest(String s) {
+        return 1;
+    }
 
 
 }

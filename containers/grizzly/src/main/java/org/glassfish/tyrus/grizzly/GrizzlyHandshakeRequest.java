@@ -43,15 +43,14 @@ import org.glassfish.grizzly.http.HttpRequestPacket;
 import org.glassfish.tyrus.spi.SPIHandshakeRequest;
 
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 class GrizzlyHandshakeRequest implements SPIHandshakeRequest {
     private HttpRequestPacket rp;
 
     public GrizzlyHandshakeRequest(HttpRequestPacket rp) {
         this.rp = rp;
-        System.out.println("Request URI: "+rp.getRequestURI());
+        System.out.println("Request URI: " + rp.getRequestURI());
     }
 
     @Override

@@ -42,22 +42,22 @@ package wstestbeans.stin;
 
 import javax.net.websocket.annotations.WebSocketEndpoint;
 import javax.net.websocket.annotations.WebSocketMessage;
-import wstestbeans.*;
+import wstestbeans.Util;
+
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
-    @WebSocketEndpoint(
-        value="/standardInputTypes/boolean"
-    )
+@WebSocketEndpoint(
+        value = "/standardInputTypes/boolean"
+)
 public class STINBoolean {
 
-     @WebSocketMessage
-     public String booleanTest(boolean b) {
-         if (b == true) {
+    @WebSocketMessage
+    public String booleanTest(boolean b) {
+        if (b == true) {
             return Util.PASS;
-         } else {
-             return Util.FAIL;
-         }
-     }
+        } else {
+            return Util.FAIL;
+        }
+    }
 }

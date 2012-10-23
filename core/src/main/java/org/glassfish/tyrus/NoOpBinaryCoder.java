@@ -46,7 +46,6 @@ import javax.net.websocket.EncodeException;
 import javax.net.websocket.Encoder;
 
 /**
- *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 public class NoOpBinaryCoder implements Decoder.Binary<ByteBuffer>, Encoder.Binary<ByteBuffer> {

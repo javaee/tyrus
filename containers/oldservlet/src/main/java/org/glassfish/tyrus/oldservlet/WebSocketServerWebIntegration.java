@@ -39,17 +39,16 @@
  */
 package org.glassfish.tyrus.oldservlet;
 
-import org.glassfish.tyrus.server.BeanServer;
-
+import java.util.Set;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
-import java.util.Set;
+import org.glassfish.tyrus.server.BeanServer;
 
 /**
  * Web application lifecycle listener.
  *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 @WebListener()
 public class WebSocketServerWebIntegration implements ServletContextListener {
@@ -57,7 +56,6 @@ public class WebSocketServerWebIntegration implements ServletContextListener {
     // TODO: move somewhere sensible
     private static final String defaultProviderClassname = "org.glassfish.tyrus.spi.grizzlyprovider.GrizzlyEngine";
     private static final String PROVIDER_CLASSNAME_KEY = "org.glassfish.websocket.provider.class";
-    private static final String websocketroot = "/websockets";
     public static final String PRINCIPAL = "ws_principal";
     private static final int informational_fixed_port = 8080;
 
@@ -65,19 +63,21 @@ public class WebSocketServerWebIntegration implements ServletContextListener {
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
+        @SuppressWarnings("unchecked")
         Set<Class<?>> endpointClassSet = (Set<Class<?>>) sce.getServletContext().getAttribute(ENDPOINT_CLASS_SET);
+
         if (endpointClassSet == null || endpointClassSet.isEmpty()) {
             return;
         }
+
         String engineProviderClassname = defaultProviderClassname;
         if (sce.getServletContext().getInitParameter(PROVIDER_CLASSNAME_KEY) != null) {
-            engineProviderClassname = (String) sce.getServletContext().getInitParameter(PROVIDER_CLASSNAME_KEY);
+            engineProviderClassname = sce.getServletContext().getInitParameter(PROVIDER_CLASSNAME_KEY);
         }
 
         bs = new BeanServer(engineProviderClassname);
         String contextRoot = sce.getServletContext().getContextPath();
         try {
-            // bs.initWebSocketServer(this.websocketroot, informational_fixed_port, endpointClassSet);
             bs.initWebSocketServer(contextRoot, informational_fixed_port, endpointClassSet);
         } catch (Exception e) {
             e.printStackTrace();

@@ -72,7 +72,7 @@ public class DefaultServerEndpointConfiguration extends DefaultEndpointConfigura
      */
     protected DefaultServerEndpointConfiguration(List<Encoder> encoders, List<Decoder> decoders,
                                                  List<String> subprotocols, List<Extension> extensions,
-                                                 List<String> origins){
+                                                 List<String> origins) {
         super(encoders, decoders, subprotocols, extensions);
         this.origins = origins == null ? Collections.<String>emptyList() : Collections.unmodifiableList(origins);
     }
@@ -80,7 +80,7 @@ public class DefaultServerEndpointConfiguration extends DefaultEndpointConfigura
     @Override
     public String getNegotiatedSubprotocol(List<String> requestedSubprotocols) {
         for (String serverProtocol : subProtocols) {
-            if(requestedSubprotocols.contains(serverProtocol)){
+            if (requestedSubprotocols.contains(serverProtocol)) {
                 return serverProtocol;
             }
         }
@@ -93,7 +93,7 @@ public class DefaultServerEndpointConfiguration extends DefaultEndpointConfigura
         List<Extension> result = new ArrayList<Extension>();
 
         for (Extension requestedExtension : requestedExtensions) {
-            if(extensions.contains(requestedExtension)){
+            if (extensions.contains(requestedExtension)) {
                 result.add(requestedExtension);
             }
         }
@@ -138,7 +138,7 @@ public class DefaultServerEndpointConfiguration extends DefaultEndpointConfigura
          * @param origins from which the connection is allowed.
          * @return
          */
-        public Builder origins(List<String> origins){
+        public Builder origins(List<String> origins) {
             this.origins = origins;
             return this;
         }
@@ -148,7 +148,7 @@ public class DefaultServerEndpointConfiguration extends DefaultEndpointConfigura
          *
          * @return new {@link DefaultServerEndpointConfiguration} instance.
          */
-        public DefaultServerEndpointConfiguration build(){
+        public DefaultServerEndpointConfiguration build() {
             return new DefaultServerEndpointConfiguration(encoders, decoders, protocols, extensions, origins);
         }
     }

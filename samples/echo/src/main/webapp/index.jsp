@@ -40,69 +40,77 @@
 
 --%>
 <html>
-    <head>
-        <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
-    </head>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+</head>
 
-    <body>
-        <meta charset="utf-8">
-        <title>Web Socket JavaScript Echo Client</title>
-        <script language="javascript" type="text/javascript">
-            var wsUri = "ws://"+ document.location.host +"/sample-echo/echo";
+<body>
+<meta charset="utf-8">
+<title>Web Socket JavaScript Echo Client</title>
+<script language="javascript" type="text/javascript">
+    var wsUri = "ws://" + document.location.host + "/sample-echo/echo";
 
-            function init() {
-                output = document.getElementById("output");
-            }
+    function init() {
+        output = document.getElementById("output");
+    }
 
-            function send_echo() {
+    function send_echo() {
 
-                websocket = new WebSocket(wsUri);
-                websocket.onopen = function(evt) { onOpen(evt) };
-                websocket.onmessage = function(evt) { onMessage(evt) };
-                websocket.onerror = function(evt) { onError(evt) };
+        websocket = new WebSocket(wsUri);
+        websocket.onopen = function (evt) {
+            onOpen(evt)
+        };
+        websocket.onmessage = function (evt) {
+            onMessage(evt)
+        };
+        websocket.onerror = function (evt) {
+            onError(evt)
+        };
 
-            }
+    }
 
-            function onOpen(evt) {
-                writeToScreen("CONNECTED");
-                doSend(textID.value);
+    function onOpen(evt) {
+        writeToScreen("CONNECTED");
+        doSend(textID.value);
 
-            }
+    }
 
-            function onMessage(evt) {
-                writeToScreen("RECEIVED: " + evt.data);
-            }
+    function onMessage(evt) {
+        writeToScreen("RECEIVED: " + evt.data);
+    }
 
-            function onError(evt) {
-                writeToScreen('<span style="color: red;">ERROR:</span> ' + evt.data);
-            }
+    function onError(evt) {
+        writeToScreen('<span style="color: red;">ERROR:</span> ' + evt.data);
+    }
 
-            function doSend(message) {
-                writeToScreen("SENT: " + message);
-                websocket.send(message);
-            }
+    function doSend(message) {
+        writeToScreen("SENT: " + message);
+        websocket.send(message);
+    }
 
-            function writeToScreen(message) {
-                var pre = document.createElement("p");
-                pre.style.wordWrap = "break-word";
-                pre.innerHTML = message;
-                //alert(output);
-                output.appendChild(pre);
-            }
+    function writeToScreen(message) {
+        var pre = document.createElement("p");
+        pre.style.wordWrap = "break-word";
+        pre.innerHTML = message;
+        //alert(output);
+        output.appendChild(pre);
+    }
 
-            window.addEventListener("load", init, false);
+    window.addEventListener("load", init, false);
 
-        </script>
+</script>
 
-        <h2 style="text-align: center;">Web Socket Echo Client</h2>
-        <div style="text-align: center;"><img style=" width: 64px; height: 64px;" alt=""src="HTML5_Logo_512.png"></div>
-        <br></br>
-        <div style="text-align: center;">
-            <form action="">
-                <input onclick="send_echo()" value="Press me" type="button">
-                <input id="textID" name="message" value="Hello Web Sockets !" type="text"><br>
-            </form>
-        </div>
-        <div id="output"></div>
-    </body>
+<h2 style="text-align: center;">Web Socket Echo Client</h2>
+
+<div style="text-align: center;"><img style=" width: 64px; height: 64px;" alt="" src="HTML5_Logo_512.png"></div>
+<br></br>
+
+<div style="text-align: center;">
+    <form action="">
+        <input onclick="send_echo()" value="Press me" type="button">
+        <input id="textID" name="message" value="Hello Web Sockets !" type="text"><br>
+    </form>
+</div>
+<div id="output"></div>
+</body>
 </html>

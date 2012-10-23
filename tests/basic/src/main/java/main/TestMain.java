@@ -42,11 +42,10 @@ package main;
 import java.io.File;
 import java.io.FileInputStream;
 
-    // localhost 8021 /websockets/tests filename.txt
+// localhost 8021 /websockets/tests filename.txt
 
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 public class TestMain {
 
@@ -59,7 +58,7 @@ public class TestMain {
         String rawClassList = "";
 
         int i;
-        while ( (i=fis.read()) >=0 ) {
+        while ((i = fis.read()) >= 0) {
             rawClassList = rawClassList + (char) i;
         }
         fis.close();

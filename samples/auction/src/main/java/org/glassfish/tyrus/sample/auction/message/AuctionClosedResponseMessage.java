@@ -40,12 +40,11 @@
 package org.glassfish.tyrus.sample.auction.message;
 
 /**
- *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 public class AuctionClosedResponseMessage extends AuctionMessage {
 
     public AuctionClosedResponseMessage(String communicationId, String message) {
-        super(LOGIN_RESPONSE,communicationId, message);
+        super(LOGIN_RESPONSE, communicationId, message);
     }
 }

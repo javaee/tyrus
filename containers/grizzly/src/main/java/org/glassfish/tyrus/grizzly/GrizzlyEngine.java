@@ -52,8 +52,7 @@ import org.glassfish.tyrus.spi.TyrusContainer;
 import org.glassfish.tyrus.spi.TyrusServer;
 
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 public class GrizzlyEngine implements TyrusContainer {
     private WebSocketEngine engine;
@@ -89,7 +88,7 @@ public class GrizzlyEngine implements TyrusContainer {
 
     @Override
     public SPIRegisteredEndpoint register(SPIEndpoint endpoint) {
-        GrizzlyEndpoint ge =  new GrizzlyEndpoint(endpoint);
+        GrizzlyEndpoint ge = new GrizzlyEndpoint(endpoint);
         this.engine.register(ge);
         return ge;
     }

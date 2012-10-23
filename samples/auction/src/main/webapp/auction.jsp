@@ -41,7 +41,7 @@
 --%>
 <!DOCTYPE html>
 
-<meta charset="utf-8" />
+<meta charset="utf-8"/>
 
 <title id="titleID">Web Sockets Auction Client</title>
 
@@ -51,86 +51,91 @@
 <div id="userID" style="text-align: right;"></div>
 
 <h2 style="text-align: center;">Web Sockets Auction Client</h2>
+
 <div style="text-align: center;">
-    <img style=" width: 64px; height: 64px;" alt=""src="HTML5_Logo_512.png">
-    <img style=" width: 64px; height: 64px;" alt=""src="websocket-sdk.png">
+    <img style=" width: 64px; height: 64px;" alt="" src="HTML5_Logo_512.png">
+    <img style=" width: 64px; height: 64px;" alt="" src="websocket-sdk.png">
 </div>
 <br></br>
 
 <table style=" text-align: center; " cellpadding="5" align="center"
        cellspacing="5">
     <tbody>
-        <tr>
-            <td>
+    <tr>
+        <td>
 
-                <table style=" text-align: center; " cellpadding="5" align="center"
-                       cellspacing="5">
-                    <tbody>
-                        <tr>
-                            <td style="vertical-align: top;" align="left">
-                                <p><font color="blue">Item name</font></p>
-                            </td>
-                            <td style=" vertical-align: center; background-color: #E8E8E8;" align="left">
-                                <div id="nameID"></div>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td style="vertical-align: top;" align="left">
-                                <p><font color="blue">Item description</font></p>
-                            </td>
-                            <td style=" vertical-align: center; background-color: #E8E8E8;" align="left">
-                                <div id="descriptionID"></div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </td>
-            <td>
-                <table style=" text-align: center; " cellpadding="5" align="center"
-                       cellspacing="5">
-                    <tbody>
-                        <tr>
-                            <td style="vertical-align: top;" align="left">
-                                <p><font color="blue">Auction starts in:</font></p>
-                            </td>
-                            <td style=" vertical-align: center; background-color: #E8E8E8;">
-                                <textarea id ="startTimeID" rows="1" cols="30" readonly="readonly"></textarea>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td style="vertical-align: top; " align="left">
-                                <p><font color="blue">Current price is:</font></p>
-                            </td>
-                            <td style=" vertical-align: center; background-color: #E8E8E8;">
-                                <textarea id ="currentPriceID" rows="1" cols="30" readonly="readonly"></textarea>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td style="vertical-align: top;" align="left">
-                                <p><font color="blue">Remaining bid time:</font></p>
-                            </td>
-                            <td style=" vertical-align: center; background-color: #E8E8E8;">
-                                <textarea id ="remainingTimeID" rows="1" cols="30" readonly="readonly"></textarea>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </td>
-        </tr>
+            <table style=" text-align: center; " cellpadding="5" align="center"
+                   cellspacing="5">
+                <tbody>
+                <tr>
+                    <td style="vertical-align: top;" align="left">
+                        <p><font color="blue">Item name</font></p>
+                    </td>
+                    <td style=" vertical-align: center; background-color: #E8E8E8;" align="left">
+                        <div id="nameID"></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="vertical-align: top;" align="left">
+                        <p><font color="blue">Item description</font></p>
+                    </td>
+                    <td style=" vertical-align: center; background-color: #E8E8E8;" align="left">
+                        <div id="descriptionID"></div>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </td>
+        <td>
+            <table style=" text-align: center; " cellpadding="5" align="center"
+                   cellspacing="5">
+                <tbody>
+                <tr>
+                    <td style="vertical-align: top;" align="left">
+                        <p><font color="blue">Auction starts in:</font></p>
+                    </td>
+                    <td style=" vertical-align: center; background-color: #E8E8E8;">
+                        <textarea id="startTimeID" rows="1" cols="30" readonly="readonly"></textarea>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="vertical-align: top; " align="left">
+                        <p><font color="blue">Current price is:</font></p>
+                    </td>
+                    <td style=" vertical-align: center; background-color: #E8E8E8;">
+                        <textarea id="currentPriceID" rows="1" cols="30" readonly="readonly"></textarea>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="vertical-align: top;" align="left">
+                        <p><font color="blue">Remaining bid time:</font></p>
+                    </td>
+                    <td style=" vertical-align: center; background-color: #E8E8E8;">
+                        <textarea id="remainingTimeID" rows="1" cols="30" readonly="readonly"></textarea>
+                    </td>
+                </tr>
+                </tbody>
+            </table>
+        </td>
+    </tr>
     </tbody>
 </table>
 <br></br>
+
 <div id="resultID" style="text-align: center;"></div>
 <br></br>
+
 <div style="text-align: center;">
     <h3>Your New Bid:</h3>
+
     <form action="">
         <input id="bidID" size="20" name="bidtext" value="" type="text"></input><br>
     </form>
     <br>
+
     <form action="">
-        <input type="button" id ="sendBidID" onclick="sendBid()" value="Bid" >
-        <input type="button" id ="backButtonID" onclick="goBack()" value="Exit the auction" >
+        <input type="button" id="sendBidID" onclick="sendBid()" value="Bid">
+        <input type="button" id="backButtonID" onclick="goBack()" value="Exit the auction">
     </form>
 </div>
 

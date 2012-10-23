@@ -44,7 +44,6 @@ import javax.net.websocket.Encoder;
 import org.glassfish.tyrus.sample.auction.message.PreAuctionTimeBroadcastMessage;
 
 /**
- *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 public class PreAuctionTimeBroadcastEncoder implements Encoder.Text<PreAuctionTimeBroadcastMessage> {

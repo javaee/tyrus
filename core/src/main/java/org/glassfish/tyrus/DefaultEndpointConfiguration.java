@@ -39,14 +39,13 @@
  */
 package org.glassfish.tyrus;
 
+import java.net.URI;
+import java.util.Collections;
+import java.util.List;
 import javax.net.websocket.Decoder;
 import javax.net.websocket.Encoder;
 import javax.net.websocket.EndpointConfiguration;
 import javax.net.websocket.extensions.Extension;
-
-import java.net.URI;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Default configuration implementation, immutable.
@@ -76,29 +75,29 @@ public abstract class DefaultEndpointConfiguration implements EndpointConfigurat
     protected final List<Extension> extensions;
 
     protected DefaultEndpointConfiguration(List<Encoder> encoders, List<Decoder> decoders, List<String> subprotocols, List<Extension> extensions) {
-        if(encoders != null){
+        if (encoders != null) {
             this.encoders = Collections.unmodifiableList(encoders);
-        } else{
+        } else {
             List<Encoder> emptyList = Collections.emptyList();
             this.encoders = Collections.unmodifiableList(emptyList);
         }
 
-        if(decoders != null){
+        if (decoders != null) {
             this.decoders = Collections.unmodifiableList(decoders);
-        } else{
+        } else {
             List<Decoder> emptyList = Collections.emptyList();
             this.decoders = Collections.unmodifiableList(emptyList);
         }
 
-        if(subprotocols != null){
+        if (subprotocols != null) {
             this.subProtocols = Collections.unmodifiableList(subprotocols);
-        }else{
+        } else {
             this.subProtocols = Collections.emptyList();
         }
 
-        if(extensions != null){
+        if (extensions != null) {
             this.extensions = Collections.unmodifiableList(extensions);
-        }else{
+        } else {
             this.extensions = Collections.emptyList();
         }
     }

@@ -49,21 +49,24 @@ import javax.net.websocket.ClientEndpointConfiguration;
  * in the web.xml of the web application requesting the new provider by specifying a servlet context
  * initialization parameter of key org.glassfish.websocket.provider.class and value the fully qualified classname
  * of the provider class.
- * @author dannycoward
+ *
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 public interface TyrusContainer {
     /**
      * Creates a new embedded HTTP server (if supported) listening to incoming connections at a given root path
      * and port.
+     *
      * @param rootPath context root
-     * @param port TCP port
+     * @param port     TCP port
      * @return server that can be started and stopped
      */
     public TyrusServer createServer(String rootPath, int port);
 
     public TyrusClientSocket openClientSocket(URI uri, ClientEndpointConfiguration cec, SPIEndpoint endpoint);
 
-    /** The register method is called by the SDK when it
+    /**
+     * The register method is called by the SDK when it
      * has created a web socket endpoint it wishes to be managed.
      *
      * @param endpoint SPIEndpoint to be registered.
@@ -71,7 +74,8 @@ public interface TyrusContainer {
      */
     public SPIRegisteredEndpoint register(SPIEndpoint endpoint);
 
-    /** The SDK calls unregister when it no longer wishes the endpoint to be
+    /**
+     * The SDK calls unregister when it no longer wishes the endpoint to be
      * in service.
      *
      * @param ge the endpoint which is going to be unregistered.

@@ -42,17 +42,17 @@ package wstestbeans.stin;
 
 import javax.net.websocket.annotations.WebSocketEndpoint;
 import javax.net.websocket.annotations.WebSocketMessage;
-import wstestbeans.*;
+import wstestbeans.Util;
+
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
-    @WebSocketEndpoint(
-        value="/standardInputTypes/int"
-    )
+@WebSocketEndpoint(
+        value = "/standardInputTypes/int"
+)
 public class STINInt {
 
-     @WebSocketMessage
+    @WebSocketMessage
     public String intTest(int i) {
         if (i == 42) {
             return Util.PASS;

@@ -39,12 +39,15 @@
  */
 package org.glassfish.tyrus.servlet;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.logging.Logger;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.net.URI;
-import java.util.*;
-import java.util.logging.Logger;
 
 /**
  * @author Justin Lee
@@ -65,7 +68,6 @@ public class HandShake {
     public static final String CONNECTION = "connection";
     public static final String CLIENT_WS_ORIGIN_HEADER = "Origin";
     public static final int INITIAL_BUFFER_SIZE = 8192;
-
 
 
     private static final Logger LOGGER = Logger.getLogger(HandShake.class.getName());
@@ -121,7 +123,6 @@ public class HandShake {
         builder.append(resourcePath);
         location = builder.toString();
     }
-
 
 
     public String getLocation() {
@@ -214,14 +215,14 @@ public class HandShake {
 
     private void validate(String header, String validValue, String value) {
         boolean found = false;
-        if(value.contains(",")) {
-            for(String part: value.split(",")) {
+        if (value.contains(",")) {
+            for (String part : value.split(",")) {
                 found |= part.trim().equalsIgnoreCase(validValue);
             }
         } else {
             found = value.equalsIgnoreCase(validValue);
         }
-        if(!found) {
+        if (!found) {
             throw new HandshakeException(String.format("Invalid %s header returned: '%s'", header, value));
         }
     }

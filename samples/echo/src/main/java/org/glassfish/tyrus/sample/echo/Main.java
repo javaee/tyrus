@@ -40,13 +40,11 @@
 
 package org.glassfish.tyrus.sample.echo;
 
+import java.io.IOException;
 import org.glassfish.tyrus.server.Server;
 
-import java.io.IOException;
-
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 public class Main {

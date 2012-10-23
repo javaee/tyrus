@@ -40,24 +40,22 @@
 
 package org.glassfish.tyrus.test.basic.bean.stin;
 
-import wstestbeans.Util;
-
 import javax.net.websocket.annotations.WebSocketEndpoint;
 import javax.net.websocket.annotations.WebSocketMessage;
+import wstestbeans.Util;
 
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 //    @WebSocketEndpoint(
 //        path="/standardInputTypes/int",
 //            Xremote=org.glassfish.tyrus.test.basic.remote.IntRemote.class
 //    )
 @WebSocketEndpoint(
-        value="/standardInputTypes/int")
+        value = "/standardInputTypes/int")
 public class IntBean {
 
-     @WebSocketMessage
+    @WebSocketMessage
     public String intTest(int i) {
         if (i == 42) {
             return Util.PASS;

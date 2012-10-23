@@ -40,15 +40,16 @@
 package org.glassfish.tyrus.sample.trading.wsbeans;
 
 
-
+import java.util.ArrayList;
+import java.util.List;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
-import java.util.*;
 
 /**
  * Web application lifecycle listener.
- * @author dannycoward
+ *
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 @WebListener()
 public class ThreadManager implements ServletContextListener {

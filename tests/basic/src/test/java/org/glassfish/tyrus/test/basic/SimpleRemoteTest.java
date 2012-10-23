@@ -40,23 +40,20 @@
 
 package org.glassfish.tyrus.test.basic;
 
-import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.client.DefaultClientEndpointConfiguration;
-import org.glassfish.tyrus.server.Server;
-import org.junit.Assert;
-import org.junit.Ignore;
-import org.junit.Test;
-
-import javax.net.websocket.Session;
-
 import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-
+import javax.net.websocket.Session;
+import org.glassfish.tyrus.client.ClientManager;
+import org.glassfish.tyrus.client.DefaultClientEndpointConfiguration;
+import org.glassfish.tyrus.server.Server;
+import org.junit.Assert;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import org.junit.Ignore;
+import org.junit.Test;
 
 /**
  * Tests the basic behaviour of remote
@@ -109,7 +106,7 @@ public class SimpleRemoteTest {
     @Test
     public void testSimpleRemoteMT() {
         final int iterations = 5;
-        final CountDownLatch messageLatch = new CountDownLatch(2*iterations);
+        final CountDownLatch messageLatch = new CountDownLatch(2 * iterations);
         final AtomicInteger msgNumber = new AtomicInteger(0);
         Server server = new Server(org.glassfish.tyrus.test.basic.bean.SimpleRemoteTestBean.class);
         server.start();
@@ -122,20 +119,20 @@ public class SimpleRemoteTest {
                         final DefaultClientEndpointConfiguration dcec = builder.build();
 
                         final CountDownLatch perClientLatch = new CountDownLatch(2);
-                        final String[] message = new String[] {SENT_MESSAGE + msgNumber.incrementAndGet(),
+                        final String[] message = new String[]{SENT_MESSAGE + msgNumber.incrementAndGet(),
                                 SENT_MESSAGE + msgNumber.incrementAndGet()};
                         // replace ClientManager with MockWebSocketClient to confirm the test passes if the backend
                         // does not have issues
                         final ClientManager client = ClientManager.createClient();
-                        client.connectToServer( new TestEndpointAdapter() {
+                        client.connectToServer(new TestEndpointAdapter() {
 
                             @Override
                             public void onOpen(Session session) {
-                                try{
+                                try {
                                     session.getRemote().sendString(message[1]);
                                     Thread.sleep(1000);
                                     session.getRemote().sendString(message[0]);
-                                } catch(Exception e){
+                                } catch (Exception e) {
                                     e.printStackTrace();
                                 }
                             }

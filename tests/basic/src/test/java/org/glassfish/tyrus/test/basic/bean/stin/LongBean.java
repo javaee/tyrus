@@ -39,22 +39,20 @@
  */
 package org.glassfish.tyrus.test.basic.bean.stin;
 
-import wstestbeans.Util;
-
 import javax.net.websocket.annotations.WebSocketEndpoint;
 import javax.net.websocket.annotations.WebSocketMessage;
+import wstestbeans.Util;
 
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
-    @WebSocketEndpoint(
-            value="/standardInputTypes/long")
+@WebSocketEndpoint(
+        value = "/standardInputTypes/long")
 //            Xremote=org.glassfish.tyrus.test.basic.remote.LongRemote.class
 //    )
 public class LongBean {
 
-        @WebSocketMessage
+    @WebSocketMessage
     public String longTest(long l) {
         if (l == 42) {
             return Util.PASS;

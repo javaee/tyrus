@@ -39,13 +39,11 @@
  */
 package org.glassfish.tyrus.sample.auction.encoders;
 
+import javax.net.websocket.EncodeException;
+import javax.net.websocket.Encoder;
 import org.glassfish.tyrus.sample.auction.message.LoginResponseMessage;
 
-import javax.net.websocket.Encoder;
-import javax.net.websocket.EncodeException;
-
 /**
- *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 public class LoginResponseEncoder implements Encoder.Text<LoginResponseMessage> {

@@ -41,8 +41,7 @@
 package org.glassfish.tyrus.sample.trading.wsbeans;
 
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 public interface Broadcaster {
 

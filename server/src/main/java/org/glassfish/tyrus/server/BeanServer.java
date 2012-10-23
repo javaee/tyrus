@@ -40,11 +40,6 @@
 
 package org.glassfish.tyrus.server;
 
-import org.glassfish.tyrus.EndpointWrapper;
-import org.glassfish.tyrus.Model;
-import org.glassfish.tyrus.spi.SPIRegisteredEndpoint;
-import org.glassfish.tyrus.spi.TyrusContainer;
-
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.Collections;
@@ -54,6 +49,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
+import org.glassfish.tyrus.EndpointWrapper;
+import org.glassfish.tyrus.Model;
+import org.glassfish.tyrus.spi.SPIRegisteredEndpoint;
+import org.glassfish.tyrus.spi.TyrusContainer;
 import org.glassfish.tyrus.spi.TyrusServer;
 
 /**

@@ -41,9 +41,11 @@ package org.glassfish.tyrus;
 
 /**
  * Simple interface for the reading of a simple string buffer.
+ *
  * @author Danny Coward (danny.coward at oracle.com)
  */
 interface BufferedStringSource {
     public char[] getNextChars(int numberOfChars);
+
     public void finishedReading();
 }

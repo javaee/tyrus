@@ -39,13 +39,12 @@
  */
 package org.glassfish.tyrus.test.basic.bean.stin;
 
-import wstestbeans.Util;
-
 import javax.net.websocket.annotations.WebSocketEndpoint;
 import javax.net.websocket.annotations.WebSocketMessage;
+import wstestbeans.Util;
 
 /**
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 @WebSocketEndpoint(
         value = "/standardInputTypes/char")

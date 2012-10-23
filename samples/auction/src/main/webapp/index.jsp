@@ -41,7 +41,7 @@
 --%>
 <!DOCTYPE html>
 
-<meta charset="utf-8" />
+<meta charset="utf-8"/>
 
 <title id="titleID">Web Sockets Auction Client</title>
 
@@ -49,19 +49,21 @@
 </script>
 
 <h2 style="text-align: center;">Web Sockets Auction Client</h2>
+
 <div style="text-align: center;">
-    <img style=" width: 64px; height: 64px;" alt=""src="HTML5_Logo_512.png">
-    <img style=" width: 64px; height: 64px;" alt=""src="websocket-sdk.png">
+    <img style=" width: 64px; height: 64px;" alt="" src="HTML5_Logo_512.png">
+    <img style=" width: 64px; height: 64px;" alt="" src="websocket-sdk.png">
 
-<br></br>
-
-<form action="">
-    <br></br><br></br><br></br>
-    <h3> Enter your username: </h3>
-    <input id="loginID" size="20" name="logintext" value="" type="text"></input>
     <br></br>
-    <input type="button" id ="loginButtonID" onclick="doLogin()" value="Login" >
-</form>
+
+    <form action="">
+        <br></br><br></br><br></br>
+
+        <h3> Enter your username: </h3>
+        <input id="loginID" size="20" name="logintext" value="" type="text"></input>
+        <br></br>
+        <input type="button" id="loginButtonID" onclick="doLogin()" value="Login">
+    </form>
 </div>
 <div id="output"></div>
 

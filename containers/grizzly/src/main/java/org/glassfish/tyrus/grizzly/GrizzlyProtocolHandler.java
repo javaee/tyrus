@@ -1,23 +1,21 @@
 package org.glassfish.tyrus.grizzly;
 
+import java.util.ArrayList;
+import java.util.List;
+import javax.net.websocket.ClientEndpointConfiguration;
+import javax.net.websocket.extensions.Extension;
 import org.glassfish.grizzly.http.HttpContent;
 import org.glassfish.grizzly.http.HttpRequestPacket;
 import org.glassfish.grizzly.websockets.HandShake;
 import org.glassfish.grizzly.websockets.draft17.Draft17Handler;
 import org.glassfish.grizzly.websockets.draft17.HandShake17;
 
-import javax.net.websocket.ClientEndpointConfiguration;
-import javax.net.websocket.extensions.Extension;
-
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * {@link org.glassfish.grizzly.websockets.ProtocolHandler} that supports sub-protocol and {@link javax.net.websocket.extensions.Extension} insertion.
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class GrizzlyProtocolHandler extends Draft17Handler{
+public class GrizzlyProtocolHandler extends Draft17Handler {
 
     private ClientEndpointConfiguration clc;
 
@@ -28,9 +26,9 @@ public class GrizzlyProtocolHandler extends Draft17Handler{
     /**
      * Construct new {@link GrizzlyProtocolHandler}.
      *
-     * @param mask data mask, see {@link org.glassfish.grizzly.websockets.ProtocolHandler}.
+     * @param mask        data mask, see {@link org.glassfish.grizzly.websockets.ProtocolHandler}.
      * @param subprotocol selected by server.
-     * @param extensions supported by server.
+     * @param extensions  supported by server.
      */
     public GrizzlyProtocolHandler(boolean mask, String subprotocol, List<Extension> extensions) {
         super(mask);

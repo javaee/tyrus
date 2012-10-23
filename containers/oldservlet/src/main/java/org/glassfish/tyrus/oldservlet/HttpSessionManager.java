@@ -40,15 +40,15 @@
 
 package org.glassfish.tyrus.oldservlet;
 
-import javax.servlet.http.*;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
+import javax.servlet.http.HttpSession;
 
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 public class HttpSessionManager {
-   private Set<HttpSession> sessions = new HashSet<HttpSession>();
+    private Set<HttpSession> sessions = new HashSet<HttpSession>();
     private static HttpSessionManager instance;
 
     public static HttpSessionManager getInstance() {

@@ -37,20 +37,19 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
- 
+
 package wstestbeans;
 
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 public class DecodedMessage {
     private String message;
-    
+
     public DecodedMessage(String s) {
         this.message = s.substring(1, s.length());
     }
-    
+
     public String asString() {
         return "X" + this.message;
     }

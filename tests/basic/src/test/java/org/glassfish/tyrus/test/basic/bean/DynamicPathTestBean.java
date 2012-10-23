@@ -44,19 +44,19 @@ import javax.net.websocket.annotations.WebSocketEndpoint;
 import javax.net.websocket.annotations.WebSocketMessage;
 
 /**
-<<<<<<< .mine
+ * <<<<<<< .mine
  * Bean testing various dynamic paths.
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 @WebSocketEndpoint(
-        value="/dynamicpath"
+        value = "/dynamicpath"
 )
 public class DynamicPathTestBean {
 
     @WebSocketMessage
     public String basicPath(String message) {
-        System.out.println("###DynamicPathTestBean reply: "+"A");
+        System.out.println("###DynamicPathTestBean reply: " + "A");
         return "A";
     }
 

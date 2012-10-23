@@ -39,13 +39,13 @@
  */
 
 package org.glassfish.tyrus.sample.trading.wsbeans;
+
+import java.util.List;
 import javax.net.websocket.EncodeException;
 import javax.net.websocket.Encoder;
-import java.util.*;
 
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 public class Activity implements Encoder.Text<List<Activity>> {
     private String username;
@@ -60,7 +60,8 @@ public class Activity implements Encoder.Text<List<Activity>> {
         this.symbol = symbol;
     }
 
-    public Activity() {}
+    public Activity() {
+    }
 
     public String asString() {
         return this.username + "@" + this.action + "@" + symbol;

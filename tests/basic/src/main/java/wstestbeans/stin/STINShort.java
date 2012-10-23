@@ -41,17 +41,17 @@ package wstestbeans.stin;
 
 import javax.net.websocket.annotations.WebSocketEndpoint;
 import javax.net.websocket.annotations.WebSocketMessage;
-import wstestbeans.*;
+import wstestbeans.Util;
+
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
-    @WebSocketEndpoint(
-        value="/standardInputTypes/short"
-    )
+@WebSocketEndpoint(
+        value = "/standardInputTypes/short"
+)
 public class STINShort {
 
-        @WebSocketMessage
+    @WebSocketMessage
     public String shortTest(short s) {
         if (s == 42) {
             return Util.PASS;

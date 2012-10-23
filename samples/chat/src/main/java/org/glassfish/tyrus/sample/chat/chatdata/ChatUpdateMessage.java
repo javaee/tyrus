@@ -41,10 +41,8 @@
 package org.glassfish.tyrus.sample.chat.chatdata;
 
 
-
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 public class ChatUpdateMessage extends ListMessage {
 

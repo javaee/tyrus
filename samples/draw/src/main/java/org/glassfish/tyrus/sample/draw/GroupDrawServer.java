@@ -39,6 +39,10 @@
  */
 package org.glassfish.tyrus.sample.draw;
 
+import java.io.IOException;
+import java.util.Collections;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.net.websocket.EncodeException;
 import javax.net.websocket.Session;
 import javax.net.websocket.annotations.WebSocketClose;
@@ -46,13 +50,8 @@ import javax.net.websocket.annotations.WebSocketEndpoint;
 import javax.net.websocket.annotations.WebSocketMessage;
 import javax.net.websocket.annotations.WebSocketOpen;
 
-import java.io.IOException;
-import java.util.Collections;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-
 /**
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 
 @WebSocketEndpoint(value = "/draw")
@@ -66,13 +65,13 @@ public class GroupDrawServer {
     }
 
     @WebSocketClose
-    public void onClose(Session session){
+    public void onClose(Session session) {
         peers.remove(session);
     }
 
     @WebSocketMessage
     public void shapeCreated(String message, Session client) throws IOException, EncodeException {
-        System.out.println("Received message: "+message);
+        System.out.println("Received message: " + message);
         for (Session otherSession : peers) {
             if (!otherSession.equals(client)) {
                 otherSession.getRemote().sendString(message);

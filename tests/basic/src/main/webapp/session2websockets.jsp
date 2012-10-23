@@ -39,150 +39,167 @@
     holder.
 
 --%>
-<%-- 
+<%--
     Document   : sessions
     Created on : Nov 3, 2011, 3:20:54 PM
-    Author     : dannycoward
+    Author     : Danny Coward (danny.coward at oracle.com)
 --%>
 
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@page contentType="text/html" pageEncoding="UTF-8" %>
 <!DOCTYPE html>
 <html>
 
-    <head>
-        <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
-    </head>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+</head>
 
-    <body>
-        <meta charset="utf-8">
-        <title>Web Socket JavaScript Echo Client</title>
-        <script language="javascript" type="text/javascript">
-            var websocket1;
-            var websocket2;
-            var baseUri = 'ws://' + document.location.host + '/basic-tests'
+<body>
+<meta charset="utf-8">
+<title>Web Socket JavaScript Echo Client</title>
+<script language="javascript" type="text/javascript">
+    var websocket1;
+    var websocket2;
+    var baseUri = 'ws://' + document.location.host + '/basic-tests'
 
-            function init() {
-                output = document.getElementById("output");
-            }
-
-            
-            function session_1() {
-               if (websocket1 == null) {
-                websocket1 = new WebSocket(baseUri+ "/session2websockets1");
-                websocket1.onopen = function(evt) { onOpen1(evt, "one") };
-                websocket1.onmessage = function(evt) { onMessage(evt) };
-                websocket1.onerror = function(evt) { onError(evt) };
-               } else {
-                    writeToScreen("SENT: " + "one");
-                    websocket1.send("one");
-                }
-            }
-            
-            function session_2() {
-               if (websocket2 == null) {
-                websocket2 = new WebSocket(baseUri+ "/session2websockets2");
-                websocket2.onopen = function(evt) { onOpen2(evt, "two") };
-                websocket2.onmessage = function(evt) { onMessage(evt) };
-                websocket2.onerror = function(evt) { onError(evt) };
-               } else {
-                    writeToScreen("SENT: " + "two");
-                    websocket2.send("two");
-                }
-            }
-            
-            function session_3() {
-                websocket3 = new WebSocket(baseUri+"/sessiondeadoralive");
-                websocket3.onopen = function(evt) { onOpen3(evt, websocket3) };
-                websocket3.onmessage = function(evt) { onMessage3(evt) };
-                websocket3.onerror = function(evt) { onError(evt) };
-                websocket3.onClose() = function(evt) { onClose3(evt) };
-                //websocket3.close();
-                alert("here");
-            }
-            
-            function clear_screen() {
-                if ( output.hasChildNodes() ) {
-                    while ( output.childNodes.length >= 1 )
-                    {
-                        output.removeChild( output.firstChild );       
-                    } 
-                }
-            }
+    function init() {
+        output = document.getElementById("output");
+    }
 
 
-            
-            function clone() {
-                window.open("http://localhost:8080/WSTestClients/sessions.jsp", "new");
-            }
+    function session_1() {
+        if (websocket1 == null) {
+            websocket1 = new WebSocket(baseUri + "/session2websockets1");
+            websocket1.onopen = function (evt) {
+                onOpen1(evt, "one")
+            };
+            websocket1.onmessage = function (evt) {
+                onMessage(evt)
+            };
+            websocket1.onerror = function (evt) {
+                onError(evt)
+            };
+        } else {
+            writeToScreen("SENT: " + "one");
+            websocket1.send("one");
+        }
+    }
 
-            function onOpen1(evt, data) {
-                writeToScreen("CONNECTED");
-               
-                writeToScreen("SENT: " + data);
-                websocket1.send(data);
+    function session_2() {
+        if (websocket2 == null) {
+            websocket2 = new WebSocket(baseUri + "/session2websockets2");
+            websocket2.onopen = function (evt) {
+                onOpen2(evt, "two")
+            };
+            websocket2.onmessage = function (evt) {
+                onMessage(evt)
+            };
+            websocket2.onerror = function (evt) {
+                onError(evt)
+            };
+        } else {
+            writeToScreen("SENT: " + "two");
+            websocket2.send("two");
+        }
+    }
+
+    function session_3() {
+        websocket3 = new WebSocket(baseUri + "/sessiondeadoralive");
+        websocket3.onopen = function (evt) {
+            onOpen3(evt, websocket3)
+        };
+        websocket3.onmessage = function (evt) {
+            onMessage3(evt)
+        };
+        websocket3.onerror = function (evt) {
+            onError(evt)
+        };
+        websocket3.onClose() = function (evt) {
+            onClose3(evt)
+        };
+        //websocket3.close();
+        alert("here");
+    }
+
+    function clear_screen() {
+        if (output.hasChildNodes()) {
+            while (output.childNodes.length >= 1) {
+                output.removeChild(output.firstChild);
             }
-            
-            function onOpen2(evt, data) {
-                writeToScreen("CONNECTED");
-               
-                writeToScreen("SENT: " + data);
-                websocket2.send(data);
-            }
-            
-            function onOpen3(evt, websocket3) {
-                writeToScreen("CONNECTED");
-                writeToScreen("SENT: " + "hi");
-                websocket3.send("hi");
-            }
-            
+        }
+    }
 
 
-            function onMessage(evt) {
-                writeToScreen("RECEIVED: " + evt.data);
-            }
-            
-            function onMessage3(evt, websocket3) {
-                writeToScreen("RECEIVED: " + evt.data);
-                //alert("not closed");
-                websocket3.close();
-                
-                alert("closed");
-            }
+    function clone() {
+        window.open("http://localhost:8080/WSTestClients/sessions.jsp", "new");
+    }
 
-            function onError(evt) {
-                writeToScreen('<span style="color: red;">ERROR:</span> ' + evt.data);
-            }
-            
-            function onClose3(evt) {
-                writeToScreen("Web socket closed");
-            }
+    function onOpen1(evt, data) {
+        writeToScreen("CONNECTED");
 
-            function doSend(message) {
-                
-            }
-            
+        writeToScreen("SENT: " + data);
+        websocket1.send(data);
+    }
 
-            function writeToScreen(message) {
-                var pre = document.createElement("p");
-                pre.style.wordWrap = "break-word";
-                pre.innerHTML = message;
-                //alert(output);
-                output.appendChild(pre);
-            }
+    function onOpen2(evt, data) {
+        writeToScreen("CONNECTED");
 
-            window.addEventListener("load", init, false);
+        writeToScreen("SENT: " + data);
+        websocket2.send(data);
+    }
 
-        </script>
+    function onOpen3(evt, websocket3) {
+        writeToScreen("CONNECTED");
+        writeToScreen("SENT: " + "hi");
+        websocket3.send("hi");
+    }
 
-        <h2 style="text-align: center;">Hello Test</h2>
-        
-        <div style="text-align: center;">
-            <form action=""> 
-                <input onclick="session_1()" value="Press first" type="button">
-                <input onclick="session_2()" value="Press for result" type="button">
-                <input onclick="session_3()" value="Press over and over" type="button">
-            </form>
-        </div>
-        <div id="output"></div>
-    </body>
+
+    function onMessage(evt) {
+        writeToScreen("RECEIVED: " + evt.data);
+    }
+
+    function onMessage3(evt, websocket3) {
+        writeToScreen("RECEIVED: " + evt.data);
+        //alert("not closed");
+        websocket3.close();
+
+        alert("closed");
+    }
+
+    function onError(evt) {
+        writeToScreen('<span style="color: red;">ERROR:</span> ' + evt.data);
+    }
+
+    function onClose3(evt) {
+        writeToScreen("Web socket closed");
+    }
+
+    function doSend(message) {
+
+    }
+
+
+    function writeToScreen(message) {
+        var pre = document.createElement("p");
+        pre.style.wordWrap = "break-word";
+        pre.innerHTML = message;
+        //alert(output);
+        output.appendChild(pre);
+    }
+
+    window.addEventListener("load", init, false);
+
+</script>
+
+<h2 style="text-align: center;">Hello Test</h2>
+
+<div style="text-align: center;">
+    <form action="">
+        <input onclick="session_1()" value="Press first" type="button">
+        <input onclick="session_2()" value="Press for result" type="button">
+        <input onclick="session_3()" value="Press over and over" type="button">
+    </form>
+</div>
+<div id="output"></div>
+</body>
 </html>

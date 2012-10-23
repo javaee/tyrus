@@ -42,11 +42,11 @@ package wstestbeans;
 
 import javax.net.websocket.annotations.WebSocketEndpoint;
 
-/* @author dannycoward */
+/* @author Danny Coward (danny.coward at oracle.com) */
 
-    @WebSocketEndpoint(
-        value="/api"
-    )
+@WebSocketEndpoint(
+        value = "/api"
+)
 public class APITest {
 
 //    @WebSocketMessage

@@ -39,13 +39,12 @@
  */
 package org.glassfish.tyrus.client;
 
+import java.net.URI;
+import java.util.List;
 import javax.net.websocket.ClientEndpointConfiguration;
 import javax.net.websocket.Decoder;
 import javax.net.websocket.Encoder;
 import javax.net.websocket.extensions.Extension;
-
-import java.net.URI;
-import java.util.List;
 import org.glassfish.tyrus.DefaultEndpointConfiguration;
 
 /**
@@ -64,7 +63,6 @@ public class DefaultClientEndpointConfiguration extends DefaultEndpointConfigura
     /**
      * Creates a client configuration that will attempt
      * to connect to the given URI.
-     *
      */
     private DefaultClientEndpointConfiguration(List<Encoder> encoders, List<Decoder> decoders,
                                                List<String> subprotocols, List<Extension> extensions,
@@ -105,7 +103,7 @@ public class DefaultClientEndpointConfiguration extends DefaultEndpointConfigura
     /**
      * Builder class used to build the {@link DefaultClientEndpointConfiguration}.
      */
-    public static class Builder extends DefaultEndpointConfiguration.Builder{
+    public static class Builder extends DefaultEndpointConfiguration.Builder {
 
         /**
          * Create new {@link Builder}.

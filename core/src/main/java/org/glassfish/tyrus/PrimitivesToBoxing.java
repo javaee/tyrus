@@ -7,7 +7,7 @@ import java.util.HashMap;
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class PrimitivesToBoxing{
+public class PrimitivesToBoxing {
 
     private static HashMap<Class<?>, Class<?>> conversionMap = null;
 
@@ -17,17 +17,17 @@ public class PrimitivesToBoxing{
      * @param input primitive type
      * @return boxing class if input is primitive type, input otherwise
      */
-    public static Class<?> getBoxing(Class<?> input){
-        if(!input.isPrimitive()){
+    public static Class<?> getBoxing(Class<?> input) {
+        if (!input.isPrimitive()) {
             return input;
         }
-        if(conversionMap == null){
+        if (conversionMap == null) {
             initConversionMap();
         }
         return conversionMap.containsKey(input) ? conversionMap.get(input) : input;
     }
 
-    private static void initConversionMap(){
+    private static void initConversionMap() {
         conversionMap = new HashMap<Class<?>, Class<?>>();
         conversionMap.put(int.class, Integer.class);
         conversionMap.put(short.class, Short.class);

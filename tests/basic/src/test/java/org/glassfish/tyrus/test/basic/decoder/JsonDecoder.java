@@ -40,15 +40,13 @@
 
 package org.glassfish.tyrus.test.basic.decoder;
 
+import javax.net.websocket.DecodeException;
+import javax.net.websocket.Decoder;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import javax.net.websocket.DecodeException;
-import javax.net.websocket.Decoder;
-
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 public class JsonDecoder implements Decoder.Text<JSONObject> {
 

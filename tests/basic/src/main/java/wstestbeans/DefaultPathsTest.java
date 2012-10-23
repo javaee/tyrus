@@ -41,6 +41,7 @@
 package wstestbeans;
 
 
+import java.io.IOException;
 import javax.net.websocket.EncodeException;
 import javax.net.websocket.RemoteEndpoint;
 import javax.net.websocket.annotations.WebSocketClose;
@@ -48,10 +49,8 @@ import javax.net.websocket.annotations.WebSocketEndpoint;
 import javax.net.websocket.annotations.WebSocketMessage;
 import javax.net.websocket.annotations.WebSocketOpen;
 
-import java.io.IOException;
-
 /**
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 @WebSocketEndpoint(value = "/defaultpath")
 public class DefaultPathsTest {

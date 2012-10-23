@@ -46,20 +46,18 @@ package org.glassfish.tyrus.test.basic.bean;
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 
+import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketMessage;
 import org.glassfish.tyrus.test.basic.message.MessageA;
 import org.glassfish.tyrus.test.basic.message.MessageB;
 
-import javax.net.websocket.annotations.WebSocketEndpoint;
-import javax.net.websocket.annotations.WebSocketMessage;
-
 
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 @WebSocketEndpoint(
-        value="/decodermultiplexer",
-        decoders={org.glassfish.tyrus.test.basic.decoder.DecoderA.class, org.glassfish.tyrus.test.basic.decoder.DecoderB.class}
+        value = "/decodermultiplexer",
+        decoders = {org.glassfish.tyrus.test.basic.decoder.DecoderA.class, org.glassfish.tyrus.test.basic.decoder.DecoderB.class}
 )
 public class DecoderMultiplexerTestBean {
 

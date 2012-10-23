@@ -49,6 +49,7 @@ import java.io.IOException;
 public interface TyrusServer {
     /**
      * Starts the server.
+     *
      * @throws IOException if something goes wrong.
      */
     void start() throws IOException;

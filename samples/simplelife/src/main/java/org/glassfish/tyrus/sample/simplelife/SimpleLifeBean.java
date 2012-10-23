@@ -47,8 +47,8 @@ import javax.net.websocket.annotations.WebSocketOpen;
 
 
 @WebSocketEndpoint(
-        value="/simplelife"
-    )
+        value = "/simplelife"
+)
 public class SimpleLifeBean {
 
     @WebSocketOpen

@@ -40,21 +40,20 @@
 
 package wstestbeans.stout;
 
-import javax.net.websocket.annotations.WebSocketMessage;
 import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketMessage;
 
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 @WebSocketEndpoint(
-        value="/standardOutputTypes/short"
-    )
+        value = "/standardOutputTypes/short"
+)
 public class STOUTShort {
-        @WebSocketMessage
-     public short shortTest(String s) {
-         return 1;
-     }
+    @WebSocketMessage
+    public short shortTest(String s) {
+        return 1;
+    }
 
 
 }

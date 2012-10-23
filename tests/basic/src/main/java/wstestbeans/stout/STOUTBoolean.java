@@ -40,21 +40,20 @@
 
 package wstestbeans.stout;
 
-import javax.net.websocket.annotations.WebSocketMessage;
 import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketMessage;
 
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 @WebSocketEndpoint(
-        value="/standardOutputTypes/boolean"
-    )
+        value = "/standardOutputTypes/boolean"
+)
 public class STOUTBoolean {
-        @WebSocketMessage
-     public boolean booleanTest(String s) {
-         return true;
-     }
+    @WebSocketMessage
+    public boolean booleanTest(String s) {
+        return true;
+    }
 
 
 }

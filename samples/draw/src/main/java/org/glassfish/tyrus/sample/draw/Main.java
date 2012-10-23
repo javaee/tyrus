@@ -40,14 +40,12 @@
 
 package org.glassfish.tyrus.sample.draw;
 
-import org.glassfish.tyrus.server.Server;
-
 import java.io.IOException;
 import java.util.HashSet;
+import org.glassfish.tyrus.server.Server;
 
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 public class Main {

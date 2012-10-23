@@ -40,23 +40,25 @@
 
 package org.glassfish.tyrus.sample.trading.wsbeans;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.StringTokenizer;
+
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 //http://download.finance.yahoo.com/d/quotes.csv?s=ORCL&f=sl1d1t1c1ohgv&e=.csv
 
-    // http://download.finance.yahoo.com/d/quotes.csv?s=GE&e=.csv
+// http://download.finance.yahoo.com/d/quotes.csv?s=GE&e=.csv
 
-    // "GE",16.59,"12/7/2011","2:14pm",-0.13,16.68,16.75,16.53,40773384
+// "GE",16.59,"12/7/2011","2:14pm",-0.13,16.68,16.75,16.53,40773384
 public class Quote {
     private String symbol;
     private Double quote;
     private Double delta;
     private Long volume;
     public static long HIGH_VOLUME = 30000000;
-                                   //40773384
+    //40773384
 
     public static List<Quote> getQuotes(List<String> symbols) throws Exception {
         List<Quote> quotes = new ArrayList<Quote>();
@@ -81,14 +83,14 @@ public class Quote {
         q.symbol = symbol;
         double d = Math.random() * 100;
         q.quote = new Double(d);
-        q.delta = new Double ( (Math.random() * 4) -2);
-        double dd = (Math.random()/2)   * 40773384;
+        q.delta = new Double((Math.random() * 4) - 2);
+        double dd = (Math.random() / 2) * 40773384;
         q.volume = new Long((long) dd);
         return q;
     }
 
     public static Quote getQuote(String symbol) throws Exception {
-        String incomingMessage = Util.getData("http://download.finance.yahoo.com/d/quotes.csv?s="+symbol+"&f=sl1d1t1c1ohgv&e=.csv");
+        String incomingMessage = Util.getData("http://download.finance.yahoo.com/d/quotes.csv?s=" + symbol + "&f=sl1d1t1c1ohgv&e=.csv");
         return new Quote(incomingMessage);
 
 

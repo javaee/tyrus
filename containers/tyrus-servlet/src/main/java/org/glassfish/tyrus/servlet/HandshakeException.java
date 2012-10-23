@@ -43,7 +43,7 @@ package org.glassfish.tyrus.servlet;
 /**
  * {@link Exception}, which describes the error, occurred during the
  * handshake phase.
- * 
+ *
  * @author Alexey Stashok
  */
 public class HandshakeException extends WebSocketException {
@@ -61,7 +61,7 @@ public class HandshakeException extends WebSocketException {
     /**
      * Construct a <tt>HandshakeException</tt>.
      *
-     * @param code error code
+     * @param code    error code
      * @param message error description
      */
     public HandshakeException(int code, String message) {

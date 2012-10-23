@@ -44,16 +44,16 @@ import javax.net.websocket.RemoteEndpoint;
 import javax.net.websocket.annotations.WebSocketEndpoint;
 import javax.net.websocket.annotations.WebSocketMessage;
 
-/* @author dannycoward */
+/* @author Danny Coward (danny.coward at oracle.com) */
 
 @WebSocketEndpoint(
-        value="/api"
+        value = "/api"
 )
 public class ApiTestBean {
 
-@WebSocketMessage
-public String doThis(String message, RemoteEndpoint remote) {
-    String s = "";
+    @WebSocketMessage
+    public String doThis(String message, RemoteEndpoint remote) {
+        String s = "";
 //    s = s + "Message: " + message;
 //    s = s + "<br>context ? " + remote.getContext();
 //    XEndpointContext context = remote.getContext();
@@ -66,7 +66,7 @@ public String doThis(String message, RemoteEndpoint remote) {
 //    s = s + "<br>converation ? " + remote.getSession();
 //    s = s + "<br>converation properties ? " + remote.getSession().getProperties();
 //    s = s + "<br>converation active ? " + remote.getSession().isActive();
-    return s;
-}
+        return s;
+    }
 
 }

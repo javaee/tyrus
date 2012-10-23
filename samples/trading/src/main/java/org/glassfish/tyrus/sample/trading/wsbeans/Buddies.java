@@ -41,27 +41,28 @@
 package org.glassfish.tyrus.sample.trading.wsbeans;
 
 
-import javax.net.websocket.annotations.WebSocketMessage;
-import javax.net.websocket.annotations.WebSocketEndpoint;
+import java.security.Principal;
+import java.util.ArrayList;
+import java.util.List;
 import javax.net.websocket.Session;
+import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketMessage;
+import javax.servlet.http.HttpSession;
 import org.glassfish.tyrus.oldservlet.web.WebSocketServerWebIntegration;
-import javax.servlet.http.*;
-import java.util.*;
-import java.security.*;
 
-    @WebSocketEndpoint(
-        path="/buddies",Xremote= org.glassfish.tyrus.sample.trading.wsbeans.BuddiesRemote.class
-    )
+@WebSocketEndpoint(
+        path = "/buddies", Xremote = org.glassfish.tyrus.sample.trading.wsbeans.BuddiesRemote.class
+)
 /**
  *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 public class Buddies {
-   public static String BUDDIES = "buddies";
+    public static String BUDDIES = "buddies";
 //   @XWebSocketContext
 //   public XEndpointContext myContext;
 
-         @WebSocketMessage
+    @WebSocketMessage
     public void register(String thiz, BuddiesRemote remote) {
         System.out.println("Here");
 //        remote.getContext().getContainerContext().XgetProperties().put(BUDDIES, this);
@@ -78,35 +79,36 @@ public class Buddies {
         httpSession.invalidate(); // this should invalidate the remotes....
     }
 
-     public void broadcastActivity(HttpSession httpSession, String action, String symbol) {
-         String username = this.getUsername(httpSession);
-         Activity activity = new Activity(username, action, symbol);
-         List<Activity> activities = new ArrayList<Activity>();
-         activities.add(activity);
-         for (Session wsSession : myContext.getConversations()) {
-             BuddiesRemote remote = (BuddiesRemote) wsSession.getRemote();
-             if (remote.getSession().getHttpSession() != httpSession) {}
-             try {
+    public void broadcastActivity(HttpSession httpSession, String action, String symbol) {
+        String username = this.getUsername(httpSession);
+        Activity activity = new Activity(username, action, symbol);
+        List<Activity> activities = new ArrayList<Activity>();
+        activities.add(activity);
+        for (Session wsSession : myContext.getConversations()) {
+            BuddiesRemote remote = (BuddiesRemote) wsSession.getRemote();
+            if (remote.getSession().getHttpSession() != httpSession) {
+            }
+            try {
                 remote.sendActivityUpdate(activities);
-             } catch (Exception e) {
+            } catch (Exception e) {
                 System.out.println("Error notifying client of activity update " + e.getMessage());
-             }
-         }
-     }
+            }
+        }
+    }
 
-     private String getUsername(HttpSession httpSession) {
-         Principal principal = (Principal) httpSession.getAttribute(WebSocketServerWebIntegration.PRINCIPAL);
-         String username;
-         if (principal == null) {
+    private String getUsername(HttpSession httpSession) {
+        Principal principal = (Principal) httpSession.getAttribute(WebSocketServerWebIntegration.PRINCIPAL);
+        String username;
+        if (principal == null) {
             username = "guest" + Math.random();
-         } else {
-             username = principal.getName();
-         }
-         if (httpSession.getAttribute(ApplicationPreferences.APP_PREFERENCES) == null ) {
+        } else {
+            username = principal.getName();
+        }
+        if (httpSession.getAttribute(ApplicationPreferences.APP_PREFERENCES) == null) {
             httpSession.setAttribute(ApplicationPreferences.APP_PREFERENCES, new ApplicationPreferences(principal));
-         }
-         return username;
-     }
+        }
+        return username;
+    }
 
     public void broadcast() {
         List<String> buddies = new ArrayList<String>();
@@ -124,7 +126,6 @@ public class Buddies {
                 System.out.println("Error notifying client " + e.getMessage());
             }
         }
-
 
 
     }

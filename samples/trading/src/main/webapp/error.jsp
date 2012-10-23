@@ -39,28 +39,30 @@
     holder.
 
 --%>
-<%-- 
+<%--
     Document   : error
     Created on : Dec 9, 2011, 10:13:28 AM
-    Author     : dannycoward
+    Author     : Danny Coward (danny.coward at oracle.com)
 --%>
 
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@page contentType="text/html" pageEncoding="UTF-8" %>
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title>Error</title>
-    </head>
-    <body>
-        <p align="center">
-            <img src ="banner.jpg"  ></img>
-        </p> 
-        <p align="center" style="font:24px Bank Gothic,sans-serif">
-            There was a problem processing that login
-        </p>
-        <p align="center" style="font:24px Bank Gothic,sans-serif">
-            <a href="/web/home.jsp">Try again</a>
-        </p>
-    </body>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Error</title>
+</head>
+<body>
+<p align="center">
+    <img src="banner.jpg"></img>
+</p>
+
+<p align="center" style="font:24px Bank Gothic,sans-serif">
+    There was a problem processing that login
+</p>
+
+<p align="center" style="font:24px Bank Gothic,sans-serif">
+    <a href="/web/home.jsp">Try again</a>
+</p>
+</body>
 </html>

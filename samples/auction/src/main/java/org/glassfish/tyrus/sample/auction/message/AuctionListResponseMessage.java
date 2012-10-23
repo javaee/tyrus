@@ -40,10 +40,9 @@
 package org.glassfish.tyrus.sample.auction.message;
 
 /**
- *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class AuctionListResponseMessage extends AuctionMessage{
+public class AuctionListResponseMessage extends AuctionMessage {
 
     public AuctionListResponseMessage(String communicationId, String data) {
         super(AUCTION_LIST_RESPONSE, communicationId, data);

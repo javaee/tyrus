@@ -42,83 +42,92 @@
 <%--
     Document   : simplelife
     Created on : Sep 29, 2011, 11:01:23 AM
-    Author     : dannycoward
+    Author     : Danny Coward (danny.coward at oracle.com)
 --%>
 
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@page contentType="text/html" pageEncoding="UTF-8" %>
 <!DOCTYPE html>
 <html>
-    <body>
-        <meta charset="utf-8">
-        <title>Web Socket JavaScript Simple Life</title>
-        <script language="javascript" type="text/javascript">
-            var wsUri = "ws://localhost:8080/sample-simplelife/simplelife";
-            var output;
+<body>
+<meta charset="utf-8">
+<title>Web Socket JavaScript Simple Life</title>
+<script language="javascript" type="text/javascript">
+    var wsUri = "ws://localhost:8080/sample-simplelife/simplelife";
+    var output;
 
-            function init() {
-                output = document.getElementById("output");
-            }
+    function init() {
+        output = document.getElementById("output");
+    }
 
-            function open_life() {
-                websocket = new WebSocket(wsUri);
-                websocket.onopen = function(evt) { onOpen(evt) };
-                websocket.onmessage = function(evt) { onMessage(evt) };
-                websocket.onerror = function(evt) { onError(evt) };
-                websocket.onclose = function(evt) { onClose(evt) };
-            }
+    function open_life() {
+        websocket = new WebSocket(wsUri);
+        websocket.onopen = function (evt) {
+            onOpen(evt)
+        };
+        websocket.onmessage = function (evt) {
+            onMessage(evt)
+        };
+        websocket.onerror = function (evt) {
+            onError(evt)
+        };
+        websocket.onclose = function (evt) {
+            onClose(evt)
+        };
+    }
 
-            function close_life() {
-                websocket.close();
-            }
+    function close_life() {
+        websocket.close();
+    }
 
-            function run_life() {
-                if (websocket.readyState == 1) {
-                    websocket.send("This is your friendly JavaScript page calling");
-                    writeToScreen("SENT MESSAGE to " + wsUri);
-                } else {
-                     writeToScreen("try reconnecting...");
-                }
-            }
+    function run_life() {
+        if (websocket.readyState == 1) {
+            websocket.send("This is your friendly JavaScript page calling");
+            writeToScreen("SENT MESSAGE to " + wsUri);
+        } else {
+            writeToScreen("try reconnecting...");
+        }
+    }
 
-            function onOpen(evt) {
-                writeToScreen("CONNECTED to " + wsUri);
-            }
+    function onOpen(evt) {
+        writeToScreen("CONNECTED to " + wsUri);
+    }
 
-            function onMessage(evt) {
-                writeToScreen("RECEIVED: " + evt.data);
-            }
+    function onMessage(evt) {
+        writeToScreen("RECEIVED: " + evt.data);
+    }
 
-            function onError(evt) {
-                writeToScreen('<span style="color: red;">ERROR:</span> ' + evt.data);
-            }
+    function onError(evt) {
+        writeToScreen('<span style="color: red;">ERROR:</span> ' + evt.data);
+    }
 
-            function onClose(evt) {
-               writeToScreen("DISCONNECTED from " + wsUri);
-            }
+    function onClose(evt) {
+        writeToScreen("DISCONNECTED from " + wsUri);
+    }
 
-            function writeToScreen(message)
-            {
-            var pre = document.createElement("p");
-            pre.style.wordWrap = "break-word";
-            pre.innerHTML = message;
-            output.appendChild(pre);
-            }
+    function writeToScreen(message) {
+        var pre = document.createElement("p");
+        pre.style.wordWrap = "break-word";
+        pre.innerHTML = message;
+        output.appendChild(pre);
+    }
 
-            window.addEventListener("load", init, false);
+    window.addEventListener("load", init, false);
 
-        </script>
+</script>
 
-        <h2 style="text-align: center;">Web Socket Simple Life Client</h2>
-        <div style="text-align: center;"><img style=" width: 64px; height: 64px;" alt=""src="HTML5_Logo_512.png"></div>
-        <br></br>
-        <div style="text-align: center;">
-            <form action="">
-                <input onclick="open_life()" value="Connect" type="button">
-                <input onclick="run_life()" value="Send" type="button">
-                <input onclick="close_life()" value="Disconnect" type="button">
-                <br>
-            </form>
-        </div>
-        <div style="text-align: center;" id="output"></div>
-    </body>
+<h2 style="text-align: center;">Web Socket Simple Life Client</h2>
+
+<div style="text-align: center;"><img style=" width: 64px; height: 64px;" alt="" src="HTML5_Logo_512.png"></div>
+<br></br>
+
+<div style="text-align: center;">
+    <form action="">
+        <input onclick="open_life()" value="Connect" type="button">
+        <input onclick="run_life()" value="Send" type="button">
+        <input onclick="close_life()" value="Disconnect" type="button">
+        <br>
+    </form>
+</div>
+<div style="text-align: center;" id="output"></div>
+</body>
 </html>

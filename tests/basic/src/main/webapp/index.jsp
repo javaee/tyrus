@@ -39,24 +39,24 @@
     holder.
 
 --%>
-<%-- 
+<%--
     Document   : index
     Created on : Oct 27, 2011, 11:08:50 AM
-    Author     : dannycoward
+    Author     : Danny Coward (danny.coward at oracle.com)
 --%>
 
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@page contentType="text/html" pageEncoding="UTF-8" %>
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title>JSP Page</title>
-    </head>
-    <body>
-        <h1>Hello World!</h1>
-        <a href="hello.jsp">Hello</a>
-        <a href="helloWithEncoderDecoder.jsp">Encode.Decode</a>
-        <a href="TwoWebSocketClient.jsp">TwoWebSocketClient</a>
-        <a href="AutomatedTestPage.jsp">Automated</a>
-    </body>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>JSP Page</title>
+</head>
+<body>
+<h1>Hello World!</h1>
+<a href="hello.jsp">Hello</a>
+<a href="helloWithEncoderDecoder.jsp">Encode.Decode</a>
+<a href="TwoWebSocketClient.jsp">TwoWebSocketClient</a>
+<a href="AutomatedTestPage.jsp">Automated</a>
+</body>
 </html>

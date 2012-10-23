@@ -39,82 +39,87 @@
     holder.
 
 --%>
-<%-- 
+<%--
     Document   : decodermultiplexer
     Created on : Nov 16, 2011, 3:51:16 AM
-    Author     : dannycoward
+    Author     : Danny Coward (danny.coward at oracle.com)
 --%>
 
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@page contentType="text/html" pageEncoding="UTF-8" %>
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title>JSP Page</title>
-    <head>
-        <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
-    </head>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>JSP Page</title>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+</head>
 
-    <body>
-        <meta charset="utf-8">
-        <title>Web Socket JavaScript Echo Client</title>
-        <script language="javascript" type="text/javascript">
-            var websocket;
-            var baseUri = 'ws://' + document.location.host + '/basic-tests'
+<body>
+<meta charset="utf-8">
+<title>Web Socket JavaScript Echo Client</title>
+<script language="javascript" type="text/javascript">
+    var websocket;
+    var baseUri = 'ws://' + document.location.host + '/basic-tests'
 
 
-            function init() {
-                output = document.getElementById("output");
-            }
+    function init() {
+        output = document.getElementById("output");
+    }
 
-            function say_hello(message) {
-                var url = baseUri + '/decodermultiplexer';
-                websocket = new WebSocket(url);
-                websocket.onopen = function(evt) { onOpen(message, evt) };
-                websocket.onmessage = function(evt) { onMessage(evt) };
-                websocket.onerror = function(evt) { onError(evt) };
-            }
-            
-            
+    function say_hello(message) {
+        var url = baseUri + '/decodermultiplexer';
+        websocket = new WebSocket(url);
+        websocket.onopen = function (evt) {
+            onOpen(message, evt)
+        };
+        websocket.onmessage = function (evt) {
+            onMessage(evt)
+        };
+        websocket.onerror = function (evt) {
+            onError(evt)
+        };
+    }
 
-            function onOpen(message, evt) {
-                writeToScreen("CONNECTED");
-                websocket.send(message);
-                writeToScreen("SENT: " + "hello"); 
-            }
 
-            function onMessage(evt) {
-                writeToScreen("RECEIVED: " + evt.data);
-            }
+    function onOpen(message, evt) {
+        writeToScreen("CONNECTED");
+        websocket.send(message);
+        writeToScreen("SENT: " + "hello");
+    }
 
-            function onError(evt) {
-                writeToScreen('<span style="color: red;">ERROR:</span> ' + evt.data);
-            }
+    function onMessage(evt) {
+        writeToScreen("RECEIVED: " + evt.data);
+    }
 
-            function doSend(message) {
-                
-            }
+    function onError(evt) {
+        writeToScreen('<span style="color: red;">ERROR:</span> ' + evt.data);
+    }
 
-            function writeToScreen(message) {
-                var pre = document.createElement("p");
-                pre.style.wordWrap = "break-word";
-                pre.innerHTML = message;
-                //alert(output);
-                output.appendChild(pre);
-            }
+    function doSend(message) {
 
-            window.addEventListener("load", init, false);
+    }
 
-        </script>
+    function writeToScreen(message) {
+        var pre = document.createElement("p");
+        pre.style.wordWrap = "break-word";
+        pre.innerHTML = message;
+        //alert(output);
+        output.appendChild(pre);
+    }
 
-        <h2 style="text-align: center;">Hello Test</h2>
-        
-        <div style="text-align: center;">
-            <form action=""> 
-                <input onclick="say_hello('amessagea')" value="A" type="button">
-                <input onclick="say_hello('bmessageb')" value="B" type="button">
-            </form>
-        </div>
-        <div id="output"></div>
-    </body>
+    window.addEventListener("load", init, false);
+
+</script>
+
+<h2 style="text-align: center;">Hello Test</h2>
+
+<div style="text-align: center;">
+    <form action="">
+        <input onclick="say_hello('amessagea')" value="A" type="button">
+        <input onclick="say_hello('bmessageb')" value="B" type="button">
+    </form>
+</div>
+<div id="output"></div>
+</body>
 </html>

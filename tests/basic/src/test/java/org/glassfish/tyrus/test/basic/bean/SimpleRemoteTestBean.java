@@ -40,17 +40,15 @@
 
 package org.glassfish.tyrus.test.basic.bean;
 
-import org.glassfish.tyrus.test.basic.remote.SimpleRemote;
-
 import javax.net.websocket.annotations.WebSocketEndpoint;
 import javax.net.websocket.annotations.WebSocketMessage;
+import org.glassfish.tyrus.test.basic.remote.SimpleRemote;
 
 
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
-@WebSocketEndpoint(value="/customremote/hello")
+@WebSocketEndpoint(value = "/customremote/hello")
 public class SimpleRemoteTestBean {
     @WebSocketMessage
     public void handleIncomingMessage(String message, SimpleRemote remote) {

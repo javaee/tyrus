@@ -41,7 +41,7 @@
 package wstestbeans;
 
 /**
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 public class EncodedMessage {
     private String message;

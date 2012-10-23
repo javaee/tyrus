@@ -39,22 +39,20 @@
  */
 package org.glassfish.tyrus.grizzly;
 
-import org.glassfish.grizzly.websockets.WebSocket;
-
-import javax.net.websocket.EncodeException;
-import javax.net.websocket.RemoteEndpoint;
-import javax.net.websocket.SendHandler;
-import javax.net.websocket.SendResult;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Writer;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
+import javax.net.websocket.EncodeException;
+import javax.net.websocket.RemoteEndpoint;
+import javax.net.websocket.SendHandler;
+import javax.net.websocket.SendResult;
+import org.glassfish.grizzly.websockets.WebSocket;
 
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 public class GrizzlyRemoteEndpoint implements RemoteEndpoint {
     private WebSocket socket;
@@ -82,8 +80,8 @@ public class GrizzlyRemoteEndpoint implements RemoteEndpoint {
     }
 
     public String getUri() {
-        if(socket instanceof GrizzlySocket){
-            return ((GrizzlySocket)socket).getRequest().getRequestURI();
+        if (socket instanceof GrizzlySocket) {
+            return ((GrizzlySocket) socket).getRequest().getRequestURI();
         }
         return null;
     }

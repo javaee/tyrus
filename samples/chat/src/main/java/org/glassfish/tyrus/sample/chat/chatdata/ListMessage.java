@@ -40,7 +40,11 @@
 
 package org.glassfish.tyrus.sample.chat.chatdata;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
+import java.util.StringTokenizer;
 
 abstract class ListMessage extends ChatMessage {
     List dataList = new ArrayList();
@@ -81,7 +85,7 @@ abstract class ListMessage extends ChatMessage {
 
     public String asString() {
         String dataString = "";
-        for (Iterator itr = dataList.iterator(); itr.hasNext();) {
+        for (Iterator itr = dataList.iterator(); itr.hasNext(); ) {
             dataString = dataString + SEP + itr.next();
         }
         return type + dataString;
@@ -90,7 +94,6 @@ abstract class ListMessage extends ChatMessage {
     List getData() {
         return dataList;
     }
-
 
 
 }

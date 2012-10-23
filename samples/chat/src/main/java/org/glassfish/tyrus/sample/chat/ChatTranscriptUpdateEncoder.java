@@ -40,15 +40,13 @@
 
 package org.glassfish.tyrus.sample.chat;
 
-import org.glassfish.tyrus.sample.chat.chatdata.ChatTranscriptUpdateMessage;
 import javax.net.websocket.EncodeException;
 import javax.net.websocket.Encoder;
-
+import org.glassfish.tyrus.sample.chat.chatdata.ChatTranscriptUpdateMessage;
 
 
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 public class ChatTranscriptUpdateEncoder implements Encoder.Text<ChatTranscriptUpdateMessage> {
     public String encode(ChatTranscriptUpdateMessage ctum) throws EncodeException {

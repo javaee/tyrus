@@ -40,16 +40,14 @@
 
 package wstestbeans.eremote;
 
-import remote.BooleanRemote;
-
 import javax.net.websocket.annotations.WebSocketEndpoint;
 import javax.net.websocket.annotations.WebSocketMessage;
+import remote.BooleanRemote;
 
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
-    @WebSocketEndpoint(value="/customremote/boolean")
+@WebSocketEndpoint(value = "/customremote/boolean")
 public class ERBoolean {
     private boolean lastBoolean;
 

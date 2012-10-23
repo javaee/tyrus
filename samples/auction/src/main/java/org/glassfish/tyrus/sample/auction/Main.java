@@ -39,10 +39,9 @@
  */
 package org.glassfish.tyrus.sample.auction;
 
-import org.glassfish.tyrus.server.Server;
-
 import java.io.IOException;
 import java.util.HashSet;
+import org.glassfish.tyrus.server.Server;
 
 /**
  * Starts the server using the command line arguments

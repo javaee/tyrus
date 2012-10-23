@@ -41,17 +41,17 @@ package wstestbeans.stin;
 
 import javax.net.websocket.annotations.WebSocketEndpoint;
 import javax.net.websocket.annotations.WebSocketMessage;
-import wstestbeans.*;
+import wstestbeans.Util;
+
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
-    @WebSocketEndpoint(
-        value="/standardInputTypes/long"
-    )
+@WebSocketEndpoint(
+        value = "/standardInputTypes/long"
+)
 public class STINLong {
 
-        @WebSocketMessage
+    @WebSocketMessage
     public String longTest(long l) {
         if (l == 42) {
             return Util.PASS;

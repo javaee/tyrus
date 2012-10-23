@@ -41,48 +41,48 @@
 --%>
 
 
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@page contentType="text/html" pageEncoding="UTF-8" %>
 <!DOCTYPE html>
 <html>
 
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title>JSP Page</title>
-    </head>
-    <body>
-        <h1>Hello World!</h1>
-        <canvas id="myDrawing" width="500" height="500">
-        <p>Your browser doesn't support canvas.</p>
-        </canvas>
-    </body>
-         <script language="javascript" type="text/javascript">
-            
-            var drawingCanvas = document.getElementById('myDrawing');
-            //alert(drawingCanvas);
-            drawingCanvas.addEventListener("mousedown", mouseDown, false);
-            // Check the element is in the DOM and the browser supports canvas
-            if(drawingCanvas.getContext) {
-                // Initaliase a 2-dimensional drawing context
-            } else {
-                alter("oops");
-            }
-            
-            function mouseDown(event) {
-                //event.
-                drawCircle(event.layerX, event.layerY);
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>JSP Page</title>
+</head>
+<body>
+<h1>Hello World!</h1>
+<canvas id="myDrawing" width="500" height="500">
+    <p>Your browser doesn't support canvas.</p>
+</canvas>
+</body>
+<script language="javascript" type="text/javascript">
 
-            }
-            
-            function drawCircle(x, y) {
-                var context = drawingCanvas.getContext('2d');
-                //Canvas commands go here
-                context.strokeStyle = "#000000";
-                context.fillStyle = "#FFFF00";
-                context.beginPath();
-                context.arc(x,y,10,0,Math.PI*2,true);
-                context.closePath();
-                context.stroke();
-                context.fill();
-            }
-        </script>
+    var drawingCanvas = document.getElementById('myDrawing');
+    //alert(drawingCanvas);
+    drawingCanvas.addEventListener("mousedown", mouseDown, false);
+    // Check the element is in the DOM and the browser supports canvas
+    if (drawingCanvas.getContext) {
+        // Initaliase a 2-dimensional drawing context
+    } else {
+        alter("oops");
+    }
+
+    function mouseDown(event) {
+        //event.
+        drawCircle(event.layerX, event.layerY);
+
+    }
+
+    function drawCircle(x, y) {
+        var context = drawingCanvas.getContext('2d');
+        //Canvas commands go here
+        context.strokeStyle = "#000000";
+        context.fillStyle = "#FFFF00";
+        context.beginPath();
+        context.arc(x, y, 10, 0, Math.PI * 2, true);
+        context.closePath();
+        context.stroke();
+        context.fill();
+    }
+</script>
 </html>

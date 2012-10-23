@@ -40,12 +40,11 @@
 
 package org.glassfish.tyrus.test.basic.encoder;
 
-import javax.net.websocket.Encoder;
 import javax.net.websocket.EncodeException;
+import javax.net.websocket.Encoder;
 
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 public class ErrorEncoder implements Encoder.Text<String> {
 

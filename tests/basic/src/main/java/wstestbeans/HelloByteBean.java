@@ -40,8 +40,8 @@
 
 package wstestbeans;
 
-import javax.net.websocket.annotations.WebSocketMessage;
 import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketMessage;
 
 @WebSocketEndpoint(
         value = "/hellobyte"

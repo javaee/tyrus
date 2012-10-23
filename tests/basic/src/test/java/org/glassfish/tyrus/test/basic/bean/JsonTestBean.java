@@ -41,21 +41,19 @@
 package org.glassfish.tyrus.test.basic.bean;
 
 
+import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketMessage;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import javax.net.websocket.annotations.WebSocketEndpoint;
-import javax.net.websocket.annotations.WebSocketMessage;
-
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
-    @WebSocketEndpoint(
-            value = "/json",
-            encoders={org.glassfish.tyrus.test.basic.encoder.JsonEncoder.class},
-            decoders={org.glassfish.tyrus.test.basic.decoder.JsonDecoder.class}
-            )
+@WebSocketEndpoint(
+        value = "/json",
+        encoders = {org.glassfish.tyrus.test.basic.encoder.JsonEncoder.class},
+        decoders = {org.glassfish.tyrus.test.basic.decoder.JsonDecoder.class}
+)
 
 public class JsonTestBean {
 
@@ -65,7 +63,7 @@ public class JsonTestBean {
         try {
             String name = message.getString("NAME");
             reply.put("REPLY", name);
-            System.out.println("############################################reply: "+reply.toString());
+            System.out.println("############################################reply: " + reply.toString());
             return reply;
         } catch (JSONException e) {
             return reply;

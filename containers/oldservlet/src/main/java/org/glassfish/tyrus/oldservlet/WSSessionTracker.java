@@ -40,13 +40,14 @@
 package org.glassfish.tyrus.oldservlet;
 
 
-
 import javax.servlet.annotation.WebListener;
-import javax.servlet.http.*;
+import javax.servlet.http.HttpSessionEvent;
+import javax.servlet.http.HttpSessionListener;
 
 /**
  * Web application lifecycle listener.
- * @author dannycoward
+ *
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 @WebListener()
 public class WSSessionTracker implements HttpSessionListener {

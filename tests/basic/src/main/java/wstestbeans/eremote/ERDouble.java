@@ -40,16 +40,14 @@
 
 package wstestbeans.eremote;
 
-import remote.DoubleRemote;
-
 import javax.net.websocket.annotations.WebSocketEndpoint;
 import javax.net.websocket.annotations.WebSocketMessage;
+import remote.DoubleRemote;
 
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
-    @WebSocketEndpoint(value="/customremote/double")
+@WebSocketEndpoint(value = "/customremote/double")
 public class ERDouble {
     private double lastDouble;
 
@@ -59,7 +57,7 @@ public class ERDouble {
         makeCallback(doubleRemote);
     }
 
-     private void makeCallback(DoubleRemote remote) {
+    private void makeCallback(DoubleRemote remote) {
         try {
             Thread.sleep(100);
             remote.sendDoubleMessage(lastDouble);

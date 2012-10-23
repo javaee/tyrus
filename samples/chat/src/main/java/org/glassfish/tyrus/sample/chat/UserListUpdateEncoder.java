@@ -40,15 +40,13 @@
 
 package org.glassfish.tyrus.sample.chat;
 
-import org.glassfish.tyrus.sample.chat.chatdata.UserListUpdateMessage;
-
-import javax.net.websocket.Encoder;
 import javax.net.websocket.EncodeException;
+import javax.net.websocket.Encoder;
+import org.glassfish.tyrus.sample.chat.chatdata.UserListUpdateMessage;
 
 
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 public class UserListUpdateEncoder implements Encoder.Text<UserListUpdateMessage> {
     @Override

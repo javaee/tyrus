@@ -40,74 +40,86 @@
 
 --%>
 <html>
-    <head>
-        <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
-    </head>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+</head>
 
-    <body>
-        <meta charset="utf-8">
-        <title>Web Socket JavaScript Echo Client</title>
-        <script language="javascript" type="text/javascript">
-            var websocket;
+<body>
+<meta charset="utf-8">
+<title>Web Socket JavaScript Echo Client</title>
+<script language="javascript" type="text/javascript">
+    var websocket;
 
-            function init() {
-                output = document.getElementById("output");
-            }
+    function init() {
+        output = document.getElementById("output");
+    }
 
-            function say_hello() {
-                websocket = new WebSocket("ws://localhost:8080/foo");
-                websocket.onopen = function(evt) { onOpen(true, evt) };
-                websocket.onmessage = function(evt) { onMessage(evt) };
-                websocket.onerror = function(evt) { onError(evt) };
-            }
-            
-            function say_hello_binary() {
-                websocket = new WebSocket("ws://localhost:8080/baa");
-                websocket.onopen = function(evt) { onOpen(true, evt) };
-                websocket.onmessage = function(evt) { onMessage(evt) };
-                websocket.onerror = function(evt) { onError(evt) };
-            }
+    function say_hello() {
+        websocket = new WebSocket("ws://localhost:8080/foo");
+        websocket.onopen = function (evt) {
+            onOpen(true, evt)
+        };
+        websocket.onmessage = function (evt) {
+            onMessage(evt)
+        };
+        websocket.onerror = function (evt) {
+            onError(evt)
+        };
+    }
 
-            function onOpen(bool, evt) {
-                writeToScreen("CONNECTED");
-                writeToScreen("SENT: " + "hello");
-                websocket.send("hello");
-                
-            }
+    function say_hello_binary() {
+        websocket = new WebSocket("ws://localhost:8080/baa");
+        websocket.onopen = function (evt) {
+            onOpen(true, evt)
+        };
+        websocket.onmessage = function (evt) {
+            onMessage(evt)
+        };
+        websocket.onerror = function (evt) {
+            onError(evt)
+        };
+    }
 
-            function onMessage(evt) {
-                writeToScreen("RECEIVED: " + evt.data);
-                websocket.close();
-            }
+    function onOpen(bool, evt) {
+        writeToScreen("CONNECTED");
+        writeToScreen("SENT: " + "hello");
+        websocket.send("hello");
 
-            function onError(evt) {
-                writeToScreen('<span style="color: red;">ERROR:</span> ' + evt.data);
-            }
+    }
 
-            function doSend(message) {
-                
-            }
+    function onMessage(evt) {
+        writeToScreen("RECEIVED: " + evt.data);
+        websocket.close();
+    }
 
-            function writeToScreen(message) {
-                var pre = document.createElement("p");
-                pre.style.wordWrap = "break-word";
-                pre.innerHTML = message;
-                //alert(output);
-                output.appendChild(pre);
-            }
+    function onError(evt) {
+        writeToScreen('<span style="color: red;">ERROR:</span> ' + evt.data);
+    }
 
-            window.addEventListener("load", init, false);
+    function doSend(message) {
 
-        </script>
+    }
 
-        <h2 style="text-align: center;">Hello Test</h2>
-        
-        <div style="text-align: center;">
-            <form action=""> 
-                <input onclick="say_hello()" value="Say Hello" type="button">
-                <input onclick="say_hello_binary()" value="Say Hello Binary" type="button">
-            </form>
-        </div>
-        <div id="output"></div>
-    </body>
+    function writeToScreen(message) {
+        var pre = document.createElement("p");
+        pre.style.wordWrap = "break-word";
+        pre.innerHTML = message;
+        //alert(output);
+        output.appendChild(pre);
+    }
+
+    window.addEventListener("load", init, false);
+
+</script>
+
+<h2 style="text-align: center;">Hello Test</h2>
+
+<div style="text-align: center;">
+    <form action="">
+        <input onclick="say_hello()" value="Say Hello" type="button">
+        <input onclick="say_hello_binary()" value="Say Hello Binary" type="button">
+    </form>
+</div>
+<div id="output"></div>
+</body>
 </html>

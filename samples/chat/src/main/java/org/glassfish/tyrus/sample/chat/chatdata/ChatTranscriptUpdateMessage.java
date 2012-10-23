@@ -41,7 +41,7 @@
 package org.glassfish.tyrus.sample.chat.chatdata;
 
 
-import java.util.*;
+import java.util.List;
 
 public class ChatTranscriptUpdateMessage extends ListMessage {
 

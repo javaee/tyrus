@@ -41,7 +41,8 @@
 package org.glassfish.tyrus.sample.chat.chatdata;
 
 
-import java.util.*;
+import java.util.List;
+import java.util.Set;
 
 public class UserListUpdateMessage extends ListMessage {
 

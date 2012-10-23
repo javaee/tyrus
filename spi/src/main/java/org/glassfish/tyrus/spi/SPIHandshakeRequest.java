@@ -42,11 +42,13 @@ package org.glassfish.tyrus.spi;
 /**
  * The provider passes the handshake request to
  * the SDK created endpoint
- * @author dannycoward
+ *
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 public interface SPIHandshakeRequest {
 
-    /** Get the Http Header value for the given header name
+    /**
+     * Get the Http Header value for the given header name
      * in the underlying Http handshake request.
      *
      * @param name the name of the header.
@@ -54,6 +56,8 @@ public interface SPIHandshakeRequest {
      */
     public String getHeader(String name);
 
-    /** Get the Http request uri  underlying Http handshake request.*/
+    /**
+     * Get the Http request uri  underlying Http handshake request.
+     */
     public String getRequestURI();
 }

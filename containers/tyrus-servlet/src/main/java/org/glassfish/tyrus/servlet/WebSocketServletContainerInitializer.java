@@ -40,16 +40,15 @@
 
 package org.glassfish.tyrus.servlet;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import javax.net.websocket.annotations.WebSocketEndpoint;
-
 import javax.servlet.ServletContainerInitializer;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRegistration;
 import javax.servlet.annotation.HandlesTypes;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
 
 /**
  * Registers a servlet for upgrade handshake.
@@ -66,7 +65,7 @@ public class WebSocketServletContainerInitializer implements ServletContainerIni
 
         List<String> urlPatternList = new ArrayList<String>();
 
-        for(Class<?> clazz : set) {
+        for (Class<?> clazz : set) {
             WebSocketEndpoint endpoint = clazz.getAnnotation(WebSocketEndpoint.class);
             urlPatternList.add(endpoint.value());
         }

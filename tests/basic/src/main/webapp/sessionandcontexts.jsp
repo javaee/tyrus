@@ -39,111 +39,123 @@
     holder.
 
 --%>
-<%-- 
+<%--
     Document   : sessions
     Created on : Nov 3, 2011, 3:20:54 PM
-    Author     : dannycoward
+    Author     : Danny Coward (danny.coward at oracle.com)
 --%>
 
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@page contentType="text/html" pageEncoding="UTF-8" %>
 <!DOCTYPE html>
 <html>
 
-    <head>
-        <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
-    </head>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+</head>
 
-    <body>
-        <meta charset="utf-8">
-        <title>Web Socket JavaScript Echo Client</title>
-        <script language="javascript" type="text/javascript">
-            var websocket;
+<body>
+<meta charset="utf-8">
+<title>Web Socket JavaScript Echo Client</title>
+<script language="javascript" type="text/javascript">
+    var websocket;
 
-            function init() {
-                output = document.getElementById("output");
+    function init() {
+        output = document.getElementById("output");
+    }
+
+    function say_hello() {
+        if (websocket == null) {
+            websocket = new WebSocket("ws://localhost:8080/websockets/basic-tests/sessionandcontexts");
+            websocket.onopen = function (evt) {
+                onOpen(true, evt)
+            };
+            websocket.onmessage = function (evt) {
+                onMessage(evt)
+            };
+            websocket.onerror = function (evt) {
+                onError(evt)
+            };
+        } else {
+            writeToScreen("SENT: " + "hello");
+            websocket.send("hello");
+        }
+    }
+
+    function session_expiry() {
+        if (websocket == null) {
+            websocket = new WebSocket("ws://localhost:8080/websockets/basic-tests/sessionexpiry");
+            websocket.onopen = function (evt) {
+                onOpen(true, evt)
+            };
+            websocket.onmessage = function (evt) {
+                onMessage(evt)
+            };
+            websocket.onerror = function (evt) {
+                onError(evt)
+            };
+        } else {
+            writeToScreen("SENT: " + "hello");
+            websocket.send("hello");
+        }
+    }
+
+    function clone() {
+        window.open("http://localhost:8080/WSTestClients/sessions.jsp", "new");
+    }
+
+    function onOpen(bool, evt) {
+        writeToScreen("CONNECTED");
+        if (bool) {
+            writeToScreen("SENT: " + "hello");
+            websocket.send("hello");
+        } else {
+            alert("hi");
+            writeToScreen("SENT: " + "hello");
+            var buf = new ArrayBuffer(16);
+            var bytes = new Uint8Array(buf);
+            for (var i = 0; i < bytes.length; i++) {
+                bytes[i] = 0xFF;
             }
+            websocket.send(buf);
+        }
 
-            function say_hello() {
-               if (websocket == null) {
-                websocket = new WebSocket("ws://localhost:8080/websockets/basic-tests/sessionandcontexts");
-                websocket.onopen = function(evt) { onOpen(true, evt) };
-                websocket.onmessage = function(evt) { onMessage(evt) };
-                websocket.onerror = function(evt) { onError(evt) };
-                } else {
-                    writeToScreen("SENT: " + "hello");
-                    websocket.send("hello");
-                }
-            }
-            
-            function session_expiry() {
-               if (websocket == null) {
-                websocket = new WebSocket("ws://localhost:8080/websockets/basic-tests/sessionexpiry");
-                websocket.onopen = function(evt) { onOpen(true, evt) };
-                websocket.onmessage = function(evt) { onMessage(evt) };
-                websocket.onerror = function(evt) { onError(evt) };
-                } else {
-                    writeToScreen("SENT: " + "hello");
-                    websocket.send("hello");
-                }
-            }
-            
-            function clone() {
-                window.open("http://localhost:8080/WSTestClients/sessions.jsp", "new");
-            }
+    }
 
-            function onOpen(bool, evt) {
-                writeToScreen("CONNECTED");
-                if (bool) {
-                    writeToScreen("SENT: " + "hello");
-                    websocket.send("hello");
-                } else {
-                    alert("hi");
-                    writeToScreen("SENT: " + "hello");
-                    var buf = new ArrayBuffer(16);
-                    var bytes = new Uint8Array(buf);
-                    for (var i = 0; i < bytes.length; i++) {
-                      bytes[i] = 0xFF;
-                    }
-                    websocket.send(buf);
-                }
-                
-            }
+    function onMessage(evt) {
+        writeToScreen("RECEIVED: " + evt.data);
+        //websocket.close();
+    }
 
-            function onMessage(evt) {
-                writeToScreen("RECEIVED: " + evt.data);
-                //websocket.close();
-            }
+    function onError(evt) {
+        writeToScreen('<span style="color: red;">ERROR:</span> ' + evt.data);
+    }
 
-            function onError(evt) {
-                writeToScreen('<span style="color: red;">ERROR:</span> ' + evt.data);
-            }
+    function doSend(message) {
 
-            function doSend(message) {
-                
-            }
-            
+    }
 
-            function writeToScreen(message) {
-                var pre = document.createElement("p");
-                pre.style.wordWrap = "break-word";
-                pre.innerHTML = message;
-                //alert(output);
-                output.appendChild(pre);
-            }
 
-            window.addEventListener("load", init, false);
+    function writeToScreen(message) {
+        var pre = document.createElement("p");
+        pre.style.wordWrap = "break-word";
+        pre.innerHTML = message;
+        //alert(output);
+        output.appendChild(pre);
+    }
 
-        </script>
+    window.addEventListener("load", init, false);
 
-        <h2 style="text-align: center;">Session Test</h2>
-        
-        <div style="text-align: center;">
-            <form action=""> 
-                <input onclick="say_hello()" value="session" type="button">
-                <input onclick="session_expiry()" value="session remotes" type="button">
-                <input onclick="clone()" value="Clone" type="button">
-            </form>
-        </div>
-        <div id="output"></div>
-    </body>
+</script>
+
+<h2 style="text-align: center;">Session Test</h2>
+
+<div style="text-align: center;">
+    <form action="">
+        <input onclick="say_hello()" value="session" type="button">
+        <input onclick="session_expiry()" value="session remotes" type="button">
+        <input onclick="clone()" value="Clone" type="button">
+    </form>
+</div>
+<div id="output"></div>
+</body>
 </html>

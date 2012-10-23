@@ -39,17 +39,6 @@
  */
 package org.glassfish.tyrus.sample.auction;
 
-import org.glassfish.tyrus.sample.auction.message.AuctionListRequestMessage;
-import org.glassfish.tyrus.sample.auction.message.AuctionListResponseMessage;
-import org.glassfish.tyrus.sample.auction.message.BidRequestMessage;
-import org.glassfish.tyrus.sample.auction.message.LoginRequestMessage;
-import org.glassfish.tyrus.sample.auction.message.LogoutRequestMessage;
-
-import javax.net.websocket.Session;
-import javax.net.websocket.annotations.WebSocketClose;
-import javax.net.websocket.annotations.WebSocketEndpoint;
-import javax.net.websocket.annotations.WebSocketMessage;
-import javax.net.websocket.annotations.WebSocketOpen;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -58,6 +47,16 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.net.websocket.Session;
+import javax.net.websocket.annotations.WebSocketClose;
+import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketMessage;
+import javax.net.websocket.annotations.WebSocketOpen;
+import org.glassfish.tyrus.sample.auction.message.AuctionListRequestMessage;
+import org.glassfish.tyrus.sample.auction.message.AuctionListResponseMessage;
+import org.glassfish.tyrus.sample.auction.message.BidRequestMessage;
+import org.glassfish.tyrus.sample.auction.message.LoginRequestMessage;
+import org.glassfish.tyrus.sample.auction.message.LogoutRequestMessage;
 
 /**
  * Runs multiple auctions.
@@ -65,12 +64,12 @@ import java.util.logging.Logger;
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 @WebSocketEndpoint(value = "/auction",
-decoders = {org.glassfish.tyrus.sample.auction.decoders.LoginRequestDecoder.class,
-    org.glassfish.tyrus.sample.auction.decoders.BidRequestDecoder.class,
-    org.glassfish.tyrus.sample.auction.decoders.LogoutRequestDecoder.class,
-    org.glassfish.tyrus.sample.auction.decoders.AuctionListRequestDecoder.class,
-    org.glassfish.tyrus.sample.auction.decoders.LogoutRequestDecoder.class},
-encoders = {org.glassfish.tyrus.sample.auction.encoders.LogoutResponseEncoder.class})
+        decoders = {org.glassfish.tyrus.sample.auction.decoders.LoginRequestDecoder.class,
+                org.glassfish.tyrus.sample.auction.decoders.BidRequestDecoder.class,
+                org.glassfish.tyrus.sample.auction.decoders.LogoutRequestDecoder.class,
+                org.glassfish.tyrus.sample.auction.decoders.AuctionListRequestDecoder.class,
+                org.glassfish.tyrus.sample.auction.decoders.LogoutRequestDecoder.class},
+        encoders = {org.glassfish.tyrus.sample.auction.encoders.LogoutResponseEncoder.class})
 public class AuctionServer {
 
     /*

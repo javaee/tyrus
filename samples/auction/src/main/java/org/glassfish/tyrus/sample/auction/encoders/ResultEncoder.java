@@ -44,10 +44,9 @@ import javax.net.websocket.Encoder;
 import org.glassfish.tyrus.sample.auction.message.ResultMessage;
 
 /**
- *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class ResultEncoder implements Encoder.Text<ResultMessage>{
+public class ResultEncoder implements Encoder.Text<ResultMessage> {
     public String encode(ResultMessage rm) throws EncodeException {
         return rm.asString();
     }

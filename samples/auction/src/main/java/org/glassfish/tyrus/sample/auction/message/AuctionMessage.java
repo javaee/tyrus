@@ -40,11 +40,8 @@
 package org.glassfish.tyrus.sample.auction.message;
 
 import org.glassfish.tyrus.sample.auction.Auction;
-import org.glassfish.tyrus.sample.auction.Auction;
 
 /**
- *
- *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 public abstract class AuctionMessage<T> {
@@ -84,14 +81,14 @@ public abstract class AuctionMessage<T> {
     }
 
     public String asString() {
-        return type + Auction.SEPARATOR+communicationId+ Auction.SEPARATOR +data.toString();
+        return type + Auction.SEPARATOR + communicationId + Auction.SEPARATOR + data.toString();
     }
 
     public T getData() {
         return data;
     }
 
-    public String getCommunicationId(){
+    public String getCommunicationId() {
         return communicationId;
     }
 }

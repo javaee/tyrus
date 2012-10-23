@@ -40,82 +40,87 @@
 
 --%>
 <html>
-    <head>
-        <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
-    </head>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+</head>
 
-    <body>
-        <meta charset="utf-8">
-        <title>Web Socket JavaScript Echo Client</title>
-        <script language="javascript" type="text/javascript">
-            var websocket;
-            var baseUri = 'ws://' + document.location.host + '/websockets'
+<body>
+<meta charset="utf-8">
+<title>Web Socket JavaScript Echo Client</title>
+<script language="javascript" type="text/javascript">
+    var websocket;
+    var baseUri = 'ws://' + document.location.host + '/websockets'
 
 
-            function init() {
-                output = document.getElementById("output");
+    function init() {
+        output = document.getElementById("output");
+    }
+
+    function say_hello() {
+        var url = baseUri + '/httpsession';
+        websocket = new WebSocket(url);
+        websocket.onopen = function (evt) {
+            onOpen(true, evt)
+        };
+        websocket.onmessage = function (evt) {
+            onMessage(evt)
+        };
+        websocket.onerror = function (evt) {
+            onError(evt)
+        };
+    }
+
+
+    function onOpen(bool, evt) {
+        writeToScreen("CONNECTED");
+        if (bool) {
+            writeToScreen("SENT: " + "hello");
+            websocket.send("hello");
+        } else {
+            alert("hi");
+            writeToScreen("SENT: " + "hello");
+            var buf = new ArrayBuffer(16);
+            var bytes = new Uint8Array(buf);
+            for (var i = 0; i < bytes.length; i++) {
+                bytes[i] = 0xFF;
             }
+            websocket.send(buf);
+        }
 
-            function say_hello() {
-                var url = baseUri + '/httpsession';
-                websocket = new WebSocket(url);
-                websocket.onopen = function(evt) { onOpen(true, evt) };
-                websocket.onmessage = function(evt) { onMessage(evt) };
-                websocket.onerror = function(evt) { onError(evt) };
-            }
-            
-            
+    }
 
-            function onOpen(bool, evt) {
-                writeToScreen("CONNECTED");
-                if (bool) {
-                    writeToScreen("SENT: " + "hello");
-                    websocket.send("hello");
-                } else {
-                    alert("hi");
-                    writeToScreen("SENT: " + "hello");
-                    var buf = new ArrayBuffer(16);
-                    var bytes = new Uint8Array(buf);
-                    for (var i = 0; i < bytes.length; i++) {
-                      bytes[i] = 0xFF;
-                    }
-                    websocket.send(buf);
-                }
-                
-            }
+    function onMessage(evt) {
+        writeToScreen("RECEIVED: " + evt.data);
+        websocket.close();
+    }
 
-            function onMessage(evt) {
-                writeToScreen("RECEIVED: " + evt.data);
-                websocket.close();
-            }
+    function onError(evt) {
+        writeToScreen('<span style="color: red;">ERROR:</span> ' + evt.data);
+    }
 
-            function onError(evt) {
-                writeToScreen('<span style="color: red;">ERROR:</span> ' + evt.data);
-            }
+    function doSend(message) {
 
-            function doSend(message) {
-                
-            }
+    }
 
-            function writeToScreen(message) {
-                var pre = document.createElement("p");
-                pre.style.wordWrap = "break-word";
-                pre.innerHTML = message;
-                //alert(output);
-                output.appendChild(pre);
-            }
+    function writeToScreen(message) {
+        var pre = document.createElement("p");
+        pre.style.wordWrap = "break-word";
+        pre.innerHTML = message;
+        //alert(output);
+        output.appendChild(pre);
+    }
 
-            window.addEventListener("load", init, false);
+    window.addEventListener("load", init, false);
 
-        </script>
+</script>
 
-        <h2 style="text-align: center;">Hello Test</h2>
-        
-        <div style="text-align: center;">
-            <form action=""> 
-                <input onclick="say_hello()" value="Get HttpSession" type="button">
-            </form>
-        </div>
-        <div id="output"></div>
-    </body>
+<h2 style="text-align: center;">Hello Test</h2>
+
+<div style="text-align: center;">
+    <form action="">
+        <input onclick="say_hello()" value="Get HttpSession" type="button">
+    </form>
+</div>
+<div id="output"></div>
+</body>
 </html>

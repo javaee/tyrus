@@ -44,7 +44,6 @@ import javax.net.websocket.Encoder;
 import org.glassfish.tyrus.sample.auction.message.PriceUpdateResponseMessage;
 
 /**
- *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 public class PriceUpdateResponseEncoder implements Encoder.Text<PriceUpdateResponseMessage> {

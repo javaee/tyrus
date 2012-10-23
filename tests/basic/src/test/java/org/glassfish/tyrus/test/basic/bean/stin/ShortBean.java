@@ -39,22 +39,20 @@
  */
 package org.glassfish.tyrus.test.basic.bean.stin;
 
-import wstestbeans.Util;
-
 import javax.net.websocket.annotations.WebSocketEndpoint;
 import javax.net.websocket.annotations.WebSocketMessage;
+import wstestbeans.Util;
 
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
-    @WebSocketEndpoint(
-            value="/standardInputTypes/short")
+@WebSocketEndpoint(
+        value = "/standardInputTypes/short")
 //            Xremote=org.glassfish.tyrus.test.basic.remote.ShortRemote.class
 //    )
 public class ShortBean {
 
-        @WebSocketMessage
+    @WebSocketMessage
     public String shortTest(short s) {
         if (s == 42) {
             return Util.PASS;

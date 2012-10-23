@@ -58,7 +58,7 @@ public class SecKey {
     private final String secKey;
 
     SecKey(String base64) {
-        if(base64 == null) {
+        if (base64 == null) {
             throw new HandshakeException("Null keys are not allowed.");
         }
         secKey = base64;
@@ -70,7 +70,6 @@ public class SecKey {
      *
      * @param clientKey client's Sec-WebSocket-Key
      * @return server key.
-     *
      */
     public static SecKey generateServerKey(SecKey clientKey) throws HandshakeException {
         String key = clientKey.getSecKey() + SERVER_KEY_HASH;
@@ -79,7 +78,7 @@ public class SecKey {
             instance = MessageDigest.getInstance("SHA-1");
             instance.update(key.getBytes());
             final byte[] digest = instance.digest();
-            if(digest.length != 20) {
+            if (digest.length != 20) {
                 throw new HandshakeException("Invalid key length.  Should be 20: " + digest.length);
             }
 

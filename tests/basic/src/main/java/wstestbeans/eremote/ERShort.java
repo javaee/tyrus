@@ -40,16 +40,14 @@
 
 package wstestbeans.eremote;
 
-import remote.ShortRemote;
-
 import javax.net.websocket.annotations.WebSocketEndpoint;
 import javax.net.websocket.annotations.WebSocketMessage;
+import remote.ShortRemote;
 
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
-    @WebSocketEndpoint(value="/customremote/short")
+@WebSocketEndpoint(value = "/customremote/short")
 public class ERShort {
     private short lastShort;
 

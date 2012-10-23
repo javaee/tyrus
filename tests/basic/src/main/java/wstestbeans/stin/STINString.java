@@ -42,22 +42,22 @@ package wstestbeans.stin;
 
 import javax.net.websocket.annotations.WebSocketEndpoint;
 import javax.net.websocket.annotations.WebSocketMessage;
-import wstestbeans.*;
+import wstestbeans.Util;
+
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
-    @WebSocketEndpoint(
-        value="/standardInputTypes/String"
-    )
+@WebSocketEndpoint(
+        value = "/standardInputTypes/String"
+)
 public class STINString {
 
-        @WebSocketMessage
-     public String stringTest(String s) {
-         if (s.equals("String")) {
+    @WebSocketMessage
+    public String stringTest(String s) {
+        if (s.equals("String")) {
             return Util.PASS;
-         } else {
-             return Util.FAIL;
-         }
-     }
+        } else {
+            return Util.FAIL;
+        }
+    }
 }

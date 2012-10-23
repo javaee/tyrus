@@ -42,12 +42,10 @@ package org.glassfish.tyrus.test.basic.decoder;
 
 import javax.net.websocket.DecodeException;
 import javax.net.websocket.Decoder;
-
 import org.glassfish.tyrus.test.basic.message.MessageB;
 
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 public class DecoderB implements Decoder.Text<MessageB> {
 

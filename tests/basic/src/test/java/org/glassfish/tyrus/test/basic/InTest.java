@@ -40,18 +40,16 @@
 
 package org.glassfish.tyrus.test.basic;
 
+import java.io.IOException;
+import java.net.URI;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import javax.net.websocket.Session;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.client.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.server.Server;
 import org.junit.Assert;
 import org.junit.Test;
-
-import javax.net.websocket.Session;
-
-import java.io.IOException;
-import java.net.URI;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Tests the basic data types
@@ -65,59 +63,59 @@ public class InTest {
     private String receivedMessage;
 
     @Test
-    public void testBoolean(){
-         testPojo(org.glassfish.tyrus.test.basic.bean.stin.BooleanBean.class,"/standardInputTypes/boolean","true","PASS");
+    public void testBoolean() {
+        testPojo(org.glassfish.tyrus.test.basic.bean.stin.BooleanBean.class, "/standardInputTypes/boolean", "true", "PASS");
     }
 
 
     @Test
-    public void testChar(){
-        testPojo(org.glassfish.tyrus.test.basic.bean.stin.CharBean.class,"/standardInputTypes/char","c","PASS");
+    public void testChar() {
+        testPojo(org.glassfish.tyrus.test.basic.bean.stin.CharBean.class, "/standardInputTypes/char", "c", "PASS");
     }
 
 
     @Test
-    public void testDouble(){
-        testPojo(org.glassfish.tyrus.test.basic.bean.stin.DoubleBean.class,"/standardInputTypes/double","42.0","PASS");
+    public void testDouble() {
+        testPojo(org.glassfish.tyrus.test.basic.bean.stin.DoubleBean.class, "/standardInputTypes/double", "42.0", "PASS");
     }
 
 
     @Test
-    public void testFloat(){
-        testPojo(org.glassfish.tyrus.test.basic.bean.stin.FloatBean.class,"/standardInputTypes/float","42.0","PASS");
+    public void testFloat() {
+        testPojo(org.glassfish.tyrus.test.basic.bean.stin.FloatBean.class, "/standardInputTypes/float", "42.0", "PASS");
     }
 
 
     @Test
-    public void testInt(){
-        testPojo(org.glassfish.tyrus.test.basic.bean.stin.IntBean.class,"/standardInputTypes/int","42","PASS");
+    public void testInt() {
+        testPojo(org.glassfish.tyrus.test.basic.bean.stin.IntBean.class, "/standardInputTypes/int", "42", "PASS");
     }
 
 
     @Test
-    public void testLong(){
-        testPojo(org.glassfish.tyrus.test.basic.bean.stin.LongBean.class,"/standardInputTypes/long","42","PASS");
+    public void testLong() {
+        testPojo(org.glassfish.tyrus.test.basic.bean.stin.LongBean.class, "/standardInputTypes/long", "42", "PASS");
     }
 
 
     @Test
-    public void testShort(){
-        testPojo(org.glassfish.tyrus.test.basic.bean.stin.ShortBean.class,"/standardInputTypes/short","42","PASS");
+    public void testShort() {
+        testPojo(org.glassfish.tyrus.test.basic.bean.stin.ShortBean.class, "/standardInputTypes/short", "42", "PASS");
     }
 
 
     @Test
-    public void testString(){
-        testPojo(org.glassfish.tyrus.test.basic.bean.stin.StringBean.class,"/standardInputTypes/String","String","PASS");
+    public void testString() {
+        testPojo(org.glassfish.tyrus.test.basic.bean.stin.StringBean.class, "/standardInputTypes/String", "String", "PASS");
     }
 
-    public void testPojo(Class<?> bean, String segmentPath,final String message, String response) {
+    public void testPojo(Class<?> bean, String segmentPath, final String message, String response) {
         Server server = new Server(bean);
         server.start();
         try {
             messageLatch = new CountDownLatch(1);
 
-            String address = "ws://localhost:8025/websockets/tests"+segmentPath;
+            String address = "ws://localhost:8025/websockets/tests" + segmentPath;
 
             final DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder(new URI(address));
             final DefaultClientEndpointConfiguration dcec = builder.build();

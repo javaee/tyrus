@@ -39,83 +39,95 @@
     holder.
 
 --%>
-<%-- 
+<%--
     Document   : index
     Created on : Oct 12, 2011, 5:52:25 PM
-    Author     : dannycoward
+    Author     : Danny Coward (danny.coward at oracle.com)
 --%>
 
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@page contentType="text/html" pageEncoding="UTF-8" %>
 <!DOCTYPE html>
 <html>
-    <script language="javascript" type="text/javascript">
-            var thisWsUri = "ws://localhost:8080/websockets/tests/this";
-            var thatWsUri = "ws://localhost:8080/websockets/tests/that";
+<script language="javascript" type="text/javascript">
+    var thisWsUri = "ws://localhost:8080/websockets/tests/this";
+    var thatWsUri = "ws://localhost:8080/websockets/tests/that";
 
-            function init() {
-                output = document.getElementById("output");
-            }
+    function init() {
+        output = document.getElementById("output");
+    }
 
-            function do_this() {
-                websocket = new WebSocket(thisWsUri);
-                websocket.onopen = function(evt) { onOpen("THIS", evt) };
-                websocket.onmessage = function(evt) { onMessage("THIS", evt) };
-                websocket.onerror = function(evt) { onError(evt) };
-                
-            }
-            
-            function do_that() {
+    function do_this() {
+        websocket = new WebSocket(thisWsUri);
+        websocket.onopen = function (evt) {
+            onOpen("THIS", evt)
+        };
+        websocket.onmessage = function (evt) {
+            onMessage("THIS", evt)
+        };
+        websocket.onerror = function (evt) {
+            onError(evt)
+        };
 
-                websocket = new WebSocket(thatWsUri);
-                websocket.onopen = function(evt) { onOpen("THAT", evt) };
-                websocket.onmessage = function(evt) { onMessage("THAT", evt) };
-                websocket.onerror = function(evt) { onError(evt) };
-                
-            }
+    }
 
-            function onOpen(who, evt) {
-                writeToScreen(who + " connected");
-                doSend(who, "hello from JavaScript (" + who + ")");
-                
-            }
+    function do_that() {
 
-            function onMessage(who, evt) {
-                writeToScreen(who + " got: " + evt.data);
-            }
+        websocket = new WebSocket(thatWsUri);
+        websocket.onopen = function (evt) {
+            onOpen("THAT", evt)
+        };
+        websocket.onmessage = function (evt) {
+            onMessage("THAT", evt)
+        };
+        websocket.onerror = function (evt) {
+            onError(evt)
+        };
 
-            function onError(evt) {
-                writeToScreen('<span style="color: red;">ERROR:</span> ' + evt.data);
-            }
+    }
 
-            function doSend(who, message) {
-                writeToScreen(who + " sent: " + message);
-                websocket.send(message);
-            }
+    function onOpen(who, evt) {
+        writeToScreen(who + " connected");
+        doSend(who, "hello from JavaScript (" + who + ")");
 
-            function writeToScreen(message) {
-                var pre = document.createElement("p");
-                pre.style.wordWrap = "break-word";
-                pre.innerHTML = message;
-                //alert(output);
-                output.appendChild(pre);
-            }
+    }
 
-            window.addEventListener("load", init, false);
+    function onMessage(who, evt) {
+        writeToScreen(who + " got: " + evt.data);
+    }
 
-        </script>
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title>JSP Page</title>
-    </head>
-    <body>
-        This page tests the creation of two web sockets mapped to
-        distinct URLs.
-        <div style="text-align: center;">
-            <form action=""> 
-                <input onclick="do_this()" value="Do This" type="button"> 
-                <input onclick="do_that()" value="Do That" type="button"> 
-            </form>
-        </div>
-        <div id="output"></div>
-    </body>
+    function onError(evt) {
+        writeToScreen('<span style="color: red;">ERROR:</span> ' + evt.data);
+    }
+
+    function doSend(who, message) {
+        writeToScreen(who + " sent: " + message);
+        websocket.send(message);
+    }
+
+    function writeToScreen(message) {
+        var pre = document.createElement("p");
+        pre.style.wordWrap = "break-word";
+        pre.innerHTML = message;
+        //alert(output);
+        output.appendChild(pre);
+    }
+
+    window.addEventListener("load", init, false);
+
+</script>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>JSP Page</title>
+</head>
+<body>
+This page tests the creation of two web sockets mapped to
+distinct URLs.
+<div style="text-align: center;">
+    <form action="">
+        <input onclick="do_this()" value="Do This" type="button">
+        <input onclick="do_that()" value="Do That" type="button">
+    </form>
+</div>
+<div id="output"></div>
+</body>
 </html>

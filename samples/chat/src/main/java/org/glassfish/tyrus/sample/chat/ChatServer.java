@@ -39,6 +39,18 @@
  */
 package org.glassfish.tyrus.sample.chat;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Logger;
+import javax.net.websocket.CloseReason;
+import javax.net.websocket.RemoteEndpoint;
+import javax.net.websocket.Session;
+import javax.net.websocket.annotations.WebSocketClose;
+import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketMessage;
+import javax.net.websocket.annotations.WebSocketOpen;
 import org.glassfish.tyrus.sample.chat.chatdata.ChatTranscriptUpdateMessage;
 import org.glassfish.tyrus.sample.chat.chatdata.ChatUpdateMessage;
 import org.glassfish.tyrus.sample.chat.chatdata.DisconnectRequestMessage;
@@ -47,25 +59,12 @@ import org.glassfish.tyrus.sample.chat.chatdata.LoginRequestMessage;
 import org.glassfish.tyrus.sample.chat.chatdata.LoginResponseMessage;
 import org.glassfish.tyrus.sample.chat.chatdata.UserListUpdateMessage;
 
-import javax.net.websocket.CloseReason;
-import javax.net.websocket.RemoteEndpoint;
-import javax.net.websocket.Session;
-import javax.net.websocket.annotations.WebSocketClose;
-import javax.net.websocket.annotations.WebSocketEndpoint;
-import javax.net.websocket.annotations.WebSocketMessage;
-import javax.net.websocket.annotations.WebSocketOpen;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Logger;
-
 
 @WebSocketEndpoint(value = "/chat",
-    decoders = {org.glassfish.tyrus.sample.chat.chatdata.LoginRequestDecoder.class,
-    org.glassfish.tyrus.sample.chat.chatdata.ChatUpdateDecoder.class,
-    org.glassfish.tyrus.sample.chat.chatdata.DisconnectRequestDecoder.class},
-encoders = {org.glassfish.tyrus.sample.chat.chatdata.DisconnectResponseEncoder.class})
+        decoders = {org.glassfish.tyrus.sample.chat.chatdata.LoginRequestDecoder.class,
+                org.glassfish.tyrus.sample.chat.chatdata.ChatUpdateDecoder.class,
+                org.glassfish.tyrus.sample.chat.chatdata.DisconnectRequestDecoder.class},
+        encoders = {org.glassfish.tyrus.sample.chat.chatdata.DisconnectResponseEncoder.class})
 public class ChatServer {
 
     final static Logger logger = Logger.getLogger("application");
@@ -115,7 +114,7 @@ public class ChatServer {
         String username = null;
         logger.info("The web socket closed");
         for (String s : connections.keySet()) {
-            if(session.equals(connections.get(s))){
+            if (session.equals(connections.get(s))) {
                 username = s;
             }
         }
@@ -159,7 +158,7 @@ public class ChatServer {
         logger.info("Broadcasting updated transcript with " + transcriptEntry);
 
         for (Session nextSession : connections.values()) {
-             RemoteEndpoint remote = nextSession.getRemote();
+            RemoteEndpoint remote = nextSession.getRemote();
             if (remote != null) {
                 ChatTranscriptUpdateMessage cm = new ChatTranscriptUpdateMessage(transcriptEntry);
                 try {
@@ -180,7 +179,7 @@ public class ChatServer {
     }
 
     private String registerNewUsername(String newUsername, Session session) {
-        if(connections.containsKey(newUsername)){
+        if (connections.containsKey(newUsername)) {
             return this.registerNewUsername(newUsername + "1", session);
         }
 

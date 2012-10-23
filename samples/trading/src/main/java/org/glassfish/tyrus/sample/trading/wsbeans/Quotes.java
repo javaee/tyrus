@@ -42,19 +42,20 @@ package org.glassfish.tyrus.sample.trading.wsbeans;
 
 
 import java.io.IOException;
-import javax.net.websocket.ServerContainer;
-import javax.net.websocket.CloseReason;
-import javax.net.websocket.Session;
 import java.util.List;
-import javax.servlet.http.HttpSession;
+import javax.net.websocket.CloseReason;
+import javax.net.websocket.ServerContainer;
+import javax.net.websocket.Session;
 import javax.net.websocket.annotations.WebSocketEndpoint;
 import javax.net.websocket.annotations.WebSocketMessage;
-    @WebSocketEndpoint(
-        path="/quotes",Xremote= org.glassfish.tyrus.sample.trading.wsbeans.QuoteRemote.class
-    )
+import javax.servlet.http.HttpSession;
+
+@WebSocketEndpoint(
+        path = "/quotes", Xremote = org.glassfish.tyrus.sample.trading.wsbeans.QuoteRemote.class
+)
 /**
  *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 
 public class Quotes implements Broadcaster {
@@ -65,11 +66,11 @@ public class Quotes implements Broadcaster {
 
 
     public void initThread() {
-       if (this.updateThread == null) {
+        if (this.updateThread == null) {
             this.updateThread = new UpdateThread("quotes", 3, this);
             ThreadManager.get().registerThread(updateThread);
             updateThread.start();
-       }
+        }
     }
 
 
@@ -95,7 +96,8 @@ public class Quotes implements Broadcaster {
         } else {
             try {
                 remote.getSession().close(new CloseReason(CloseReason.Code.NORMAL_CLOSURE, "User logged off"));
-            } catch (IOException ioe) {}
+            } catch (IOException ioe) {
+            }
             if (myContext.getConversations().size() == 0 && this.updateThread != null) {
                 this.updateThread.halt();
                 this.updateThread = null;
@@ -103,7 +105,7 @@ public class Quotes implements Broadcaster {
         }
     }
 
-    public void broadcast()  {
+    public void broadcast() {
         List<String> symbols = Util.getDefaultStockTickers();
         for (Session session : myContext.getConversations()) {
             try {

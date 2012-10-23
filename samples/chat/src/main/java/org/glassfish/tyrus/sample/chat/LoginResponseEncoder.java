@@ -40,14 +40,12 @@
 
 package org.glassfish.tyrus.sample.chat;
 
-import javax.net.websocket.Encoder;
 import javax.net.websocket.EncodeException;
-
+import javax.net.websocket.Encoder;
 import org.glassfish.tyrus.sample.chat.chatdata.LoginResponseMessage;
 
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 public class LoginResponseEncoder implements Encoder.Text<LoginResponseMessage> {
     public String encode(LoginResponseMessage lrm) throws EncodeException {

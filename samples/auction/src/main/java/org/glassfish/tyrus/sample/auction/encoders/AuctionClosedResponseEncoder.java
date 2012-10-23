@@ -41,14 +41,12 @@ package org.glassfish.tyrus.sample.auction.encoders;
 
 import javax.net.websocket.EncodeException;
 import javax.net.websocket.Encoder;
-
 import org.glassfish.tyrus.sample.auction.message.AuctionClosedResponseMessage;
 
 /**
- *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class AuctionClosedResponseEncoder implements Encoder.Text<AuctionClosedResponseMessage>{
+public class AuctionClosedResponseEncoder implements Encoder.Text<AuctionClosedResponseMessage> {
     @Override
     public String encode(AuctionClosedResponseMessage acrm) throws EncodeException {
         return acrm.asString();

@@ -137,7 +137,7 @@ class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
         }
     }
 
-    private void prepareHandshake(HandShake handshake){
+    private void prepareHandshake(HandShake handshake) {
         ArrayList<String> extensions = new ArrayList<String>();
         for (Extension extension : clc.getExtensions()) {
             extensions.add(extension.getName());

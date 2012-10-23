@@ -43,6 +43,7 @@ import java.io.Reader;
 
 /**
  * Simple Reader of a StringSource.
+ *
  * @author Danny Coward (danny.coward at oracle.com)
  */
 class BufferedStringSourceReader extends Reader {

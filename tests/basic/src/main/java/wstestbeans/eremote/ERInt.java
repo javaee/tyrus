@@ -40,16 +40,14 @@
 
 package wstestbeans.eremote;
 
-import remote.IntRemote;
-
 import javax.net.websocket.annotations.WebSocketEndpoint;
 import javax.net.websocket.annotations.WebSocketMessage;
+import remote.IntRemote;
 
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
-    @WebSocketEndpoint(value="/customremote/int")
+@WebSocketEndpoint(value = "/customremote/int")
 //            Xremote=remote.IntRemote.class)
 public class ERInt {
     private int lastInt;

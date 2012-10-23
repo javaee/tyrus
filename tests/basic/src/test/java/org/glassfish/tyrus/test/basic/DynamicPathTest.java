@@ -40,19 +40,17 @@
 
 package org.glassfish.tyrus.test.basic;
 
+import java.io.IOException;
+import java.net.URI;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import javax.net.websocket.Session;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.client.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.server.Server;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
-
-import javax.net.websocket.Session;
-
-import java.io.IOException;
-import java.net.URI;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Tests the dynamic path including the * path pattern
@@ -73,22 +71,22 @@ public class DynamicPathTest {
 
     @Ignore
     @Test
-    public void testDynamicPath(){
+    public void testDynamicPath() {
         Server server = new Server(org.glassfish.tyrus.test.basic.bean.DynamicPathTestBean.class);
         server.start();
 
-        try{
-            this.testPath("",BASIC_MESSAGE,"A");
-            this.testPath(FOO_BAR_SEGMENT,BASIC_MESSAGE,"FB");
-            this.testPath(DYNAMIC_SEGMENT,BASIC_MESSAGE,"*");
-        }catch (Exception e){
+        try {
+            this.testPath("", BASIC_MESSAGE, "A");
+            this.testPath(FOO_BAR_SEGMENT, BASIC_MESSAGE, "FB");
+            this.testPath(DYNAMIC_SEGMENT, BASIC_MESSAGE, "*");
+        } catch (Exception e) {
             e.printStackTrace();
-        }finally{
+        } finally {
             server.stop();
         }
     }
 
-    private void testPath(String segmentPath, final String message,final String response) {
+    private void testPath(String segmentPath, final String message, final String response) {
         messageLatch = new CountDownLatch(1);
         try {
             final DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder(new URI("ws://localhost:8025/websockets/tests/dynamicpath" + segmentPath));
@@ -113,10 +111,10 @@ public class DynamicPathTest {
                 }
             }, dcec);
             messageLatch.await(5, TimeUnit.SECONDS);
-            System.out.println("Expected response:"+response+".");
-            System.out.println("Real response:"+receivedMessage+".");
+            System.out.println("Expected response:" + response + ".");
+            System.out.println("Real response:" + receivedMessage + ".");
             Assert.assertTrue("The received message does not equal the required response", receivedMessage.equals(response));
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
     }

@@ -41,8 +41,7 @@
 package org.glassfish.tyrus.sample.trading.wsbeans;
 
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 public class UpdateThread extends Thread {
     private String name;
@@ -55,18 +54,19 @@ public class UpdateThread extends Thread {
         this.name = name;
     }
 
-     public void run() {
+    public void run() {
         while (true) {
             //System.out.println("looping the "+ name + " thread....");
             broadcaster.broadcast();
             try {
                 Thread.sleep(seconds * 1000);
-            } catch (Exception e) {}
+            } catch (Exception e) {
+            }
         }
-     }
+    }
 
-     public void halt() {
-         //System.out.println("Stopping the " + name + " thread");
-         super.stop();
-     }
+    public void halt() {
+        //System.out.println("Stopping the " + name + " thread");
+        super.stop();
+    }
 }

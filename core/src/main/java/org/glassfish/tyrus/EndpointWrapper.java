@@ -40,9 +40,13 @@
 
 package org.glassfish.tyrus;
 
-import org.glassfish.tyrus.spi.SPIEndpoint;
-import org.glassfish.tyrus.spi.SPIHandshakeRequest;
-
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.net.websocket.ClientContainer;
 import javax.net.websocket.CloseReason;
 import javax.net.websocket.DecodeException;
@@ -55,14 +59,8 @@ import javax.net.websocket.MessageHandler;
 import javax.net.websocket.RemoteEndpoint;
 import javax.net.websocket.ServerEndpointConfiguration;
 import javax.net.websocket.Session;
-
-import java.io.IOException;
-import java.lang.reflect.Method;
-import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import org.glassfish.tyrus.spi.SPIEndpoint;
+import org.glassfish.tyrus.spi.SPIHandshakeRequest;
 
 /**
  * Wrapps the registered application class.
@@ -72,7 +70,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 public class EndpointWrapper extends SPIEndpoint {
-     /**
+    /**
      * The container for this session.
      */
     private ClientContainer container;
@@ -196,9 +194,9 @@ public class EndpointWrapper extends SPIEndpoint {
     public boolean checkHandshake(SPIHandshakeRequest hr) {
 
         ServerEndpointConfiguration sep;
-        if(configuration instanceof ServerEndpointConfiguration){
+        if (configuration instanceof ServerEndpointConfiguration) {
             sep = (ServerEndpointConfiguration) configuration;
-        }else{
+        } else {
             return false;
         }
 
@@ -246,7 +244,7 @@ public class EndpointWrapper extends SPIEndpoint {
     public void onPartialMessage(RemoteEndpoint gs, String partialString, boolean last) {
         boolean handled = false;
         RemoteEndpointWrapper peer = getPeer(gs);
-        for (MessageHandler handler : (Set<MessageHandler>) ((SessionImpl)peer.getSession()).getInvokableMessageHandlers()) {
+        for (MessageHandler handler : (Set<MessageHandler>) ((SessionImpl) peer.getSession()).getInvokableMessageHandlers()) {
             MessageHandler.AsyncText baseHandler = null;
             if (handler instanceof MessageHandler.AsyncText) {
                 baseHandler = (MessageHandler.AsyncText) handler;
@@ -262,8 +260,6 @@ public class EndpointWrapper extends SPIEndpoint {
             System.out.println("Unhandled message in EndpointWrapper");
         }
     }
-
-
 
 
     /**
@@ -416,7 +412,7 @@ public class EndpointWrapper extends SPIEndpoint {
 
         } else if (model.getBean() instanceof Endpoint) {
             ((Endpoint) model.getBean()).onOpen(peer.getSession());
-        }else{
+        } else {
             try {
                 throw new Exception("onConnect could not be invoked.");
             } catch (Exception e) {
@@ -437,7 +433,7 @@ public class EndpointWrapper extends SPIEndpoint {
             }
         } else if (model.getBean() instanceof Endpoint) {
             ((Endpoint) model.getBean()).onClose(peer.getSession(), new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, "Normal Closure."));
-        }else{
+        } else {
             try {
                 throw new Exception("onClose could not be invoked.");
             } catch (Exception e) {

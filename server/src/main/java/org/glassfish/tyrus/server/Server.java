@@ -122,9 +122,9 @@ public class Server {
     /**
      * Start the server.
      */
-    public synchronized void start(){
+    public synchronized void start() {
         try {
-            if(server == null){
+            if (server == null) {
                 beanServer = new BeanServer(ENGINE_PROVIDER_CLASSNAME);
                 server = beanServer.createServer(this.rootPath, this.port);
                 server.start();
@@ -144,8 +144,8 @@ public class Server {
     /**
      * Stop the server.
      */
-    public synchronized void stop(){
-        if(server != null){
+    public synchronized void stop() {
+        if (server != null) {
             server.stop();
             server = null;
             beanServer = null;

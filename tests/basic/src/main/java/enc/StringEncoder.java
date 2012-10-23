@@ -44,12 +44,12 @@ import javax.net.websocket.EncodeException;
 import javax.net.websocket.Encoder;
 
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 public class StringEncoder implements Encoder.Text<String> {
 
-    public StringEncoder() {}
+    public StringEncoder() {
+    }
 
     @Override
     public String encode(String data) throws EncodeException {

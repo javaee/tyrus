@@ -45,13 +45,12 @@ import javax.net.websocket.annotations.WebSocketEndpoint;
 import javax.net.websocket.annotations.WebSocketMessage;
 
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
-    @WebSocketEndpoint(
-            value="/error",
-        encoders={org.glassfish.tyrus.test.basic.encoder.ErrorEncoder.class}
-    )
+@WebSocketEndpoint(
+        value = "/error",
+        encoders = {org.glassfish.tyrus.test.basic.encoder.ErrorEncoder.class}
+)
 public class ErrorTestBean {
     private RemoteEndpoint remote;
 

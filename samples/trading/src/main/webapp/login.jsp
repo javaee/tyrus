@@ -39,46 +39,55 @@
     holder.
 
 --%>
-<%-- 
+<%--
     Document   : login.jsp
     Created on : Oct 5, 2011, 1:35:41 PM
-    Author     : dannycoward
+    Author     : Danny Coward (danny.coward at oracle.com)
 --%>
 
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@page contentType="text/html" pageEncoding="UTF-8" %>
 <!DOCTYPE html>
 <html>
-    <script language="javascript" type="text/javascript">
-        function clear() {
-            username = "";
-            password = "";
-        }
-        
-    </script>
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title>Stock Console Welcome</title>
-    </head>
-    <body>
-        <p align="center">
-            <img src ="banner.jpg"  ></img>
-        </p> 
-        <table style="text-align: left; width: 100%; font:24px Bank Gothic,sans-serif" border="0"
-cellpadding="2" cellspacing="15">
-            <tr><td></td><td></td><td></td></tr>
-            <tr><td></td><td align="center">
-                <form action="j_security_check" method=post >
-                    <p>Username
-                    <input id ="username" type="text" name="j_username" value ="danny" size="15"  >
-                    </p>
-                    <p>Password
-                    <input id="password" type="password" size="15" name="j_password" value ="danny">
-                    </p>
-                    <input type="submit" value="Submit">
-                    
-                </form>      
-            </td><td></td></tr>
-            
-        </table>
-    </body>
+<script language="javascript" type="text/javascript">
+    function clear() {
+        username = "";
+        password = "";
+    }
+
+</script>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Stock Console Welcome</title>
+</head>
+<body>
+<p align="center">
+    <img src="banner.jpg"></img>
+</p>
+<table style="text-align: left; width: 100%; font:24px Bank Gothic,sans-serif" border="0"
+       cellpadding="2" cellspacing="15">
+    <tr>
+        <td></td>
+        <td></td>
+        <td></td>
+    </tr>
+    <tr>
+        <td></td>
+        <td align="center">
+            <form action="j_security_check" method=post>
+                <p>Username
+                    <input id="username" type="text" name="j_username" value="danny" size="15">
+                </p>
+
+                <p>Password
+                    <input id="password" type="password" size="15" name="j_password" value="danny">
+                </p>
+                <input type="submit" value="Submit">
+
+            </form>
+        </td>
+        <td></td>
+    </tr>
+
+</table>
+</body>
 </html>

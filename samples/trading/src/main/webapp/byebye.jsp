@@ -39,30 +39,32 @@
     holder.
 
 --%>
-<%-- 
+<%--
     Document   : byebye
     Created on : Dec 9, 2011, 3:38:25 PM
-    Author     : dannycoward
+    Author     : Danny Coward (danny.coward at oracle.com)
 --%>
 
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@page contentType="text/html" pageEncoding="UTF-8" %>
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title>Logged out</title>
-    </head>
-    <body>
-        <p align="center" >
-            <img src ="banner.jpg"  ></img>
-        </p>
-        <p align="center" style="font:24px Bank Gothic,sans-serif">
-            You have been logged out successfully
-        </p>
-        <p align="center" style="font:24px Bank Gothic,sans-serif">
-            <a href="/web/home.jsp">Login</a>
-        </p>
-        
-        
-    </body>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>Logged out</title>
+</head>
+<body>
+<p align="center">
+    <img src="banner.jpg"></img>
+</p>
+
+<p align="center" style="font:24px Bank Gothic,sans-serif">
+    You have been logged out successfully
+</p>
+
+<p align="center" style="font:24px Bank Gothic,sans-serif">
+    <a href="/web/home.jsp">Login</a>
+</p>
+
+
+</body>
 </html>

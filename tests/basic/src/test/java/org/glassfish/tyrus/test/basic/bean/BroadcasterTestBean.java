@@ -39,14 +39,14 @@
  */
 package org.glassfish.tyrus.test.basic.bean;
 
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 import javax.net.websocket.EncodeException;
 import javax.net.websocket.Session;
 import javax.net.websocket.annotations.WebSocketEndpoint;
 import javax.net.websocket.annotations.WebSocketMessage;
 import javax.net.websocket.annotations.WebSocketOpen;
-import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * @author Martin Matula (martin.matula at oracle.com)
@@ -58,7 +58,7 @@ public class BroadcasterTestBean {
     private Set<Session> connections = new HashSet<Session>();
 
     @WebSocketOpen
-    public void onOpen(Session session){
+    public void onOpen(Session session) {
         connections.add(session);
     }
 

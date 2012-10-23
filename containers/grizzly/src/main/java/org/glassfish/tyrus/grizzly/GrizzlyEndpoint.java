@@ -39,6 +39,15 @@
  */
 package org.glassfish.tyrus.grizzly;
 
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import javax.net.websocket.ServerEndpointConfiguration;
+import javax.net.websocket.extensions.Extension;
+import javax.net.websocket.extensions.FrameHandler;
 import org.glassfish.grizzly.http.HttpRequestPacket;
 import org.glassfish.grizzly.websockets.DataFrame;
 import org.glassfish.grizzly.websockets.ProtocolHandler;
@@ -49,19 +58,8 @@ import org.glassfish.grizzly.websockets.WebSocketListener;
 import org.glassfish.tyrus.spi.SPIEndpoint;
 import org.glassfish.tyrus.spi.SPIRegisteredEndpoint;
 
-import javax.net.websocket.ServerEndpointConfiguration;
-import javax.net.websocket.extensions.Extension;
-import javax.net.websocket.extensions.FrameHandler;
-
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-
 /**
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 class GrizzlyEndpoint extends WebSocketApplication implements SPIRegisteredEndpoint {
     private SPIEndpoint endpoint;
@@ -83,9 +81,9 @@ class GrizzlyEndpoint extends WebSocketApplication implements SPIRegisteredEndpo
 
         ServerEndpointConfiguration configuration;
 
-        if(endpoint.getConfiguration() instanceof ServerEndpointConfiguration){
+        if (endpoint.getConfiguration() instanceof ServerEndpointConfiguration) {
             configuration = (ServerEndpointConfiguration) endpoint.getConfiguration();
-        }else{
+        } else {
             return null;
         }
 
@@ -103,9 +101,8 @@ class GrizzlyEndpoint extends WebSocketApplication implements SPIRegisteredEndpo
     }
 
 
-
     @Override
-    public void onFragment(WebSocket socket, String fragment, boolean last) {        
+    public void onFragment(WebSocket socket, String fragment, boolean last) {
         GrizzlyRemoteEndpoint gs = GrizzlyRemoteEndpoint.get(socket);
         try {
             this.endpoint.onPartialMessage(gs, fragment, last);
@@ -155,8 +152,8 @@ class GrizzlyEndpoint extends WebSocketApplication implements SPIRegisteredEndpo
      * @return data in {@link List}.
      */
     @SuppressWarnings("unchecked")
-    private List<String> createList (String input){
-        if(input == null){
+    private List<String> createList(String input) {
+        if (input == null) {
             List<String> result = Collections.emptyList();
             return result;
         }
@@ -167,8 +164,8 @@ class GrizzlyEndpoint extends WebSocketApplication implements SPIRegisteredEndpo
     }
 
     @SuppressWarnings("unchecked")
-    private List<Extension> createExtensionList(String input){
-        if(input == null){
+    private List<Extension> createExtensionList(String input) {
+        if (input == null) {
             List<Extension> result = Collections.emptyList();
             return result;
         }
@@ -187,7 +184,7 @@ class GrizzlyEndpoint extends WebSocketApplication implements SPIRegisteredEndpo
     /**
      * Needed just to convert List<String> => List<Extension>, will be removed once this is changed in API.
      */
-    private class GrizzlyExtension implements Extension{
+    private class GrizzlyExtension implements Extension {
 
         private String name;
 

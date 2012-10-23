@@ -44,8 +44,8 @@ package wstestbeans;
 import javax.net.websocket.CloseReason;
 import javax.net.websocket.Endpoint;
 import javax.net.websocket.MessageHandler;
-import javax.net.websocket.Session;
 import javax.net.websocket.RemoteEndpoint;
+import javax.net.websocket.Session;
 import javax.net.websocket.annotations.WebSocketEndpoint;
 
 
@@ -54,7 +54,7 @@ import javax.net.websocket.annotations.WebSocketEndpoint;
 )
 /**
  *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 public class HelloDeployHello {
 //    @WebSocketMessage

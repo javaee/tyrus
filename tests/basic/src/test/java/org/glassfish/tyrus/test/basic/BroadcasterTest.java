@@ -40,21 +40,18 @@
 
 package org.glassfish.tyrus.test.basic;
 
+import java.net.URI;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import javax.net.websocket.RemoteEndpoint;
+import javax.net.websocket.Session;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.client.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.basic.bean.BroadcasterTestBean;
+import static org.junit.Assert.assertTrue;
 import org.junit.Ignore;
 import org.junit.Test;
-
-import javax.net.websocket.RemoteEndpoint;
-import javax.net.websocket.Session;
-
-import java.net.URI;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
-import static org.junit.Assert.assertTrue;
 
 /**
  * Tests broadcasting to several clients.

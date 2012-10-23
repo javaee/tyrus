@@ -40,15 +40,13 @@
 
 package remote;
 
+import java.io.IOException;
 import javax.net.websocket.EncodeException;
 import javax.net.websocket.RemoteEndpoint;
 import wstestbeans.EncodedMessage;
 
-import java.io.IOException;
-
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 //    @XWebSocketRemote(
 //            encoders={wstestbeans.EncodedMessageEncoder.class})

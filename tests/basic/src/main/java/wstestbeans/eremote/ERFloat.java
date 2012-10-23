@@ -40,16 +40,14 @@
 
 package wstestbeans.eremote;
 
-import remote.FloatRemote;
-
 import javax.net.websocket.annotations.WebSocketEndpoint;
 import javax.net.websocket.annotations.WebSocketMessage;
+import remote.FloatRemote;
 
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
-    @WebSocketEndpoint(value="/customremote/float")
+@WebSocketEndpoint(value = "/customremote/float")
 public class ERFloat {
     private float lastFloat;
 

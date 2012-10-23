@@ -39,13 +39,12 @@
  */
 package wstestbeans;
 
-import remote.TwoMethodRemote;
-
 import javax.net.websocket.annotations.WebSocketEndpoint;
 import javax.net.websocket.annotations.WebSocketMessage;
+import remote.TwoMethodRemote;
 
 /**
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 @WebSocketEndpoint(value = "/twomethodremote")
 public class TwoMethodRemoteTest {

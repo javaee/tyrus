@@ -39,14 +39,13 @@
  */
 package org.glassfish.tyrus.sample.trading.wsbeans;
 
+import java.text.DecimalFormat;
+import java.util.List;
 import javax.net.websocket.EncodeException;
 import javax.net.websocket.Encoder;
-import java.util.*;
-import java.text.*;
 
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 public class QuotesEncoder implements Encoder.Text<List<Quote>> {
 
@@ -66,7 +65,7 @@ public class QuotesEncoder implements Encoder.Text<List<Quote>> {
         DecimalFormat df = new DecimalFormat("#.##");
         double qt = q.getQuote();
         double delta = q.getDelta();
-        String encodedQuote =  q.getSymbol() + ";" + df.format(qt) + ";" + df.format(delta) + "%;" + q.getVolume();
+        String encodedQuote = q.getSymbol() + ";" + df.format(qt) + ";" + df.format(delta) + "%;" + q.getVolume();
         return encodedQuote;
     }
 

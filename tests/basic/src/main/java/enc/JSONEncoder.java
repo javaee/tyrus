@@ -40,14 +40,12 @@
 
 package enc;
 
-import org.json.JSONObject;
-
 import javax.net.websocket.EncodeException;
 import javax.net.websocket.Encoder;
+import org.json.JSONObject;
 
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 public class JSONEncoder implements Encoder.Text<JSONObject> {
 

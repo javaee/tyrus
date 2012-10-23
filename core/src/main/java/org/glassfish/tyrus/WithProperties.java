@@ -44,13 +44,13 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- *
  * @author Danny Coward (danny.coward at oracle.com)
  */
 public class WithProperties {
     private Map<String, Object> properties = new ConcurrentHashMap<String, Object>();
 
-    protected WithProperties() {}
+    protected WithProperties() {
+    }
 
     public Map<String, Object> getProperties() {
         return this.properties;

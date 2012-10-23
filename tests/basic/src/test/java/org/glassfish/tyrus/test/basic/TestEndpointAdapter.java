@@ -6,9 +6,18 @@ import javax.net.websocket.Session;
 
 public class TestEndpointAdapter extends Endpoint {
 
-    public void onMessage(String message){};
+    public void onMessage(String message) {
+    }
 
-    public void onMessage(byte[] message){};
+    ;
 
-    public void onOpen(Session session){};
+    public void onMessage(byte[] message) {
+    }
+
+    ;
+
+    public void onOpen(Session session) {
+    }
+
+    ;
 }

@@ -41,17 +41,17 @@ package wstestbeans.stin;
 
 import javax.net.websocket.annotations.WebSocketEndpoint;
 import javax.net.websocket.annotations.WebSocketMessage;
-import wstestbeans.*;
+import wstestbeans.Util;
+
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
-    @WebSocketEndpoint(
-        value="/standardInputTypes/float"
-    )
+@WebSocketEndpoint(
+        value = "/standardInputTypes/float"
+)
 public class STINFloat {
 
-        @WebSocketMessage
+    @WebSocketMessage
     public String floatTest(float f) {
         if (f == 42.0) {
             return Util.PASS;

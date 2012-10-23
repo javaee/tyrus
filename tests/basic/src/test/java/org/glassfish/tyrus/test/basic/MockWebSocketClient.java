@@ -51,7 +51,7 @@ import org.glassfish.grizzly.websockets.WebSocketListener;
  * failures happen due to issues in the test or issues in the web socket runtime, you can simply replace usages of
  * ClientManager in the test by this class and see if the test passes.
  *
- *  @author Martin Matula (martin.matula at oracle.com)
+ * @author Martin Matula (martin.matula at oracle.com)
  */
 class MockWebSocketClient implements WebSocket {
     private final WebSocketAdapter adapter;

@@ -40,102 +40,113 @@
 
 --%>
 <html>
-    <head>
-        <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
-    </head>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+</head>
 
-    <body>
-        <meta charset="utf-8">
-        <title>Web Socket JavaScript Echo Client</title>
-        <script language="javascript" type="text/javascript">
-            var websocket;
-            var baseUri = 'ws://' + document.location.host + '/basic-tests'
+<body>
+<meta charset="utf-8">
+<title>Web Socket JavaScript Echo Client</title>
+<script language="javascript" type="text/javascript">
+    var websocket;
+    var baseUri = 'ws://' + document.location.host + '/basic-tests'
 
-            function init() {
-                output = document.getElementById("output");
+    function init() {
+        output = document.getElementById("output");
+    }
+
+    function say_hello() {
+        var myprotocols = new Array();
+        myprotocols[0] = "protocol1";
+        //myprotocols[1] = "protocol2";
+
+        var url = baseUri + '/subprotocols'
+        websocket = new WebSocket(url, myprotocols);
+        //websocket = new WebSocket("ws://localhost:8021/websockets/tests/subprotocols");
+
+        websocket.onopen = function (evt) {
+            onOpen(true, evt)
+        };
+        websocket.onmessage = function (evt) {
+            onMessage(evt)
+        };
+        websocket.onerror = function (evt) {
+            onError(evt)
+        };
+    }
+
+    function say_unsupported() {
+        var myprotocols = new Array();
+        myprotocols[0] = "protocol1";
+        myprotocols[1] = "protocol2";
+
+        var url = baseUri + '/subprotocols'
+        websocket = new WebSocket(url, myprotocols);
+
+        websocket.onopen = function (evt) {
+            onOpen(true, evt)
+        };
+        websocket.onmessage = function (evt) {
+            onMessage(evt)
+        };
+        websocket.onerror = function (evt) {
+            onError(evt)
+        };
+        writeToScreen("Tried to create a web socket :(");
+    }
+
+
+    function onOpen(bool, evt) {
+        writeToScreen("CONNECTED");
+        if (bool) {
+            writeToScreen("SENT: " + "hello");
+            websocket.send("hello");
+        } else {
+            alert("hi");
+            writeToScreen("SENT: " + "hello");
+            var buf = new ArrayBuffer(16);
+            var bytes = new Uint8Array(buf);
+            for (var i = 0; i < bytes.length; i++) {
+                bytes[i] = 0xFF;
             }
+            websocket.send(buf);
+        }
 
-            function say_hello() {
-                var myprotocols = new Array();
-                myprotocols[0] = "protocol1";
-                //myprotocols[1] = "protocol2";
-                
-                var url = baseUri + '/subprotocols'
-                websocket = new WebSocket(url, myprotocols);
-                //websocket = new WebSocket("ws://localhost:8021/websockets/tests/subprotocols");
+    }
 
-                websocket.onopen = function(evt) { onOpen(true, evt) };
-                websocket.onmessage = function(evt) { onMessage(evt) };
-                websocket.onerror = function(evt) { onError(evt) };
-            }
-            
-            function say_unsupported() {
-                var myprotocols = new Array();
-                myprotocols[0] = "protocol1";
-                myprotocols[1] = "protocol2";
-                
-                var url = baseUri + '/subprotocols'
-                websocket = new WebSocket(url, myprotocols);
+    function onMessage(evt) {
+        writeToScreen("RECEIVED: " + evt.data);
+        websocket.close();
+    }
 
-                websocket.onopen = function(evt) { onOpen(true, evt) };
-                websocket.onmessage = function(evt) { onMessage(evt) };
-                websocket.onerror = function(evt) { onError(evt) };
-                writeToScreen("Tried to create a web socket :(");
-            }
-            
+    function onError(evt) {
+        writeToScreen('<span style="color: red;">ERROR:</span> ' + evt.data);
+    }
 
+    function doSend(message) {
 
-            function onOpen(bool, evt) {
-                writeToScreen("CONNECTED");
-                if (bool) {
-                    writeToScreen("SENT: " + "hello");
-                    websocket.send("hello");
-                } else {
-                    alert("hi");
-                    writeToScreen("SENT: " + "hello");
-                    var buf = new ArrayBuffer(16);
-                    var bytes = new Uint8Array(buf);
-                    for (var i = 0; i < bytes.length; i++) {
-                      bytes[i] = 0xFF;
-                    }
-                    websocket.send(buf);
-                }
-                
-            }
+    }
 
-            function onMessage(evt) {
-                writeToScreen("RECEIVED: " + evt.data);
-                websocket.close();
-            }
+    function writeToScreen(message) {
+        var pre = document.createElement("p");
+        pre.style.wordWrap = "break-word";
+        pre.innerHTML = message;
+        //alert(output);
+        output.appendChild(pre);
+    }
 
-            function onError(evt) {
-                writeToScreen('<span style="color: red;">ERROR:</span> ' + evt.data);
-            }
+    window.addEventListener("load", init, false);
 
-            function doSend(message) {
-                
-            }
+</script>
 
-            function writeToScreen(message) {
-                var pre = document.createElement("p");
-                pre.style.wordWrap = "break-word";
-                pre.innerHTML = message;
-                //alert(output);
-                output.appendChild(pre);
-            }
+<h2 style="text-align: center;">Sub Protocol Tests</h2>
 
-            window.addEventListener("load", init, false);
-
-        </script>
-
-        <h2 style="text-align: center;">Sub Protocol Tests</h2>
-        
-        <div style="text-align: center;">
-            <form action=""> 
-                <input onclick="say_hello()" value="This should work" type="button">
-                <input onclick="say_unsupported()" value="This shouldn't work" type="button">
-            </form>
-        </div>
-        <div id="output"></div>
-    </body>
+<div style="text-align: center;">
+    <form action="">
+        <input onclick="say_hello()" value="This should work" type="button">
+        <input onclick="say_unsupported()" value="This shouldn't work" type="button">
+    </form>
+</div>
+<div id="output"></div>
+</body>
 </html>

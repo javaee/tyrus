@@ -39,24 +39,22 @@
  */
 package org.glassfish.tyrus.test.basic.bean.stin;
 
-import wstestbeans.Util;
-
 import javax.net.websocket.annotations.WebSocketEndpoint;
 import javax.net.websocket.annotations.WebSocketMessage;
+import wstestbeans.Util;
 
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 //    @WebSocketEndpoint(
 //        path="/standardInputTypes/float",
 //            Xremote=org.glassfish.tyrus.test.basic.remote.FloatRemote.class
 //    )
 @WebSocketEndpoint(
-        value="/standardInputTypes/float")
+        value = "/standardInputTypes/float")
 public class FloatBean {
 
-        @WebSocketMessage
+    @WebSocketMessage
     public String floatTest(float f) {
         if (f == 42.0) {
             return Util.PASS;

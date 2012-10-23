@@ -41,17 +41,17 @@ package wstestbeans.stin;
 
 import javax.net.websocket.annotations.WebSocketEndpoint;
 import javax.net.websocket.annotations.WebSocketMessage;
-import wstestbeans.*;
+import wstestbeans.Util;
+
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
-    @WebSocketEndpoint(
-        value="/standardInputTypes/char"
-    )
+@WebSocketEndpoint(
+        value = "/standardInputTypes/char"
+)
 public class STINChar {
 
-        @WebSocketMessage
+    @WebSocketMessage
     public String charTest(char c) {
         if (c == 'c') {
             return Util.PASS;

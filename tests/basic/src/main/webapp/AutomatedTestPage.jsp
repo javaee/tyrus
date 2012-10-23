@@ -39,150 +39,155 @@
     holder.
 
 --%>
-<%-- 
+<%--
     Document   : index
     Created on : Oct 12, 2011, 5:52:25 PM
-    Author     : dannycoward
+    Author     : Danny Coward (danny.coward at oracle.com)
 --%>
 
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@page contentType="text/html" pageEncoding="UTF-8" %>
 <!DOCTYPE html>
 <html>
-    <script language="javascript" type="text/javascript">
-            var baseUri = 'ws://' + document.location.host + '/basic-tests'
-           
+<script language="javascript" type="text/javascript">
+    var baseUri = 'ws://' + document.location.host + '/basic-tests'
 
-            function init() {
-                output = document.getElementById("output");
-            }
-            
-            function clearoutput() {
-               if ( output.hasChildNodes() ) {
-                    while ( output.childNodes.length >= 1 )
-                    {
-                        output.removeChild( output.firstChild );       
-                    } 
-                }
-            }
-            
-            function run_new_window_test(uri) {
-                window.open(uri, uri);
-            }
-            
-            function run_input_tests() {
-                do_this(baseUri + "/standardInputTypes/String", "StringIn Test", "String");
-                window.setTimeout('do_this(baseUri + "/standardInputTypes/boolean", "boolean Test", "true")', 1000);
-                window.setTimeout('do_this(baseUri + "/standardInputTypes/int", "int Test", "42")', 1500);
-                window.setTimeout('do_this(baseUri + "/standardInputTypes/short", "short Test", "42")', 2000);
-                window.setTimeout('do_this(baseUri + "/standardInputTypes/long", "long Test", "42")', 2500);
-                window.setTimeout('do_this(baseUri + "/standardInputTypes/char", "char Test", "c")', 3000);
-                window.setTimeout('do_this(baseUri + "/standardInputTypes/float", "float Test", "42.0")', 3500);
-                window.setTimeout('do_this(baseUri + "/standardInputTypes/double", "double Test", "42.0")', 4000);
-                
-            } 
-            
-            function run_output_tests() {
-                do_this(baseUri + "/standardOutputTypes/byte", "byte out Test", "String");
-                window.setTimeout('do_this(baseUri + "/standardOutputTypes/short", "short Test", "x")', 1000);
-                window.setTimeout('do_this(baseUri + "/standardOutputTypes/int", "int Test", "x")', 1500);
-                window.setTimeout('do_this(baseUri + "/standardOutputTypes/long", "long Test", "x")', 2000);
-                window.setTimeout('do_this(baseUri + "/standardOutputTypes/float", "float Test", "x")', 2500);
-                window.setTimeout('do_this(baseUri + "/standardOutputTypes/double", "double Test", "x")', 3000);
-                window.setTimeout('do_this(baseUri + "/standardOutputTypes/boolean", "boolean Test", "x")', 3500);
-                window.setTimeout('do_this(baseUri + "/standardOutputTypes/char", "char Test", "x")', 4000);
-            }
-            
-            function run_context_tests() {
-                do_this(baseUri + "/getcontext", "context injection", "x");
-                
-            }
-            
-            function run_custom_client_tests() {
-                do_this(baseUri + "/customremote/hello", "hellocustomclient", "hello");
-                window.setTimeout('do_this(baseUri + "/customremote/encoded", "encodedcustomclient", "rawstring")', 1000);
-                window.setTimeout('do_this(baseUri + "/customremote/int", "intcustomclient", "42")', 1500);
-                window.setTimeout('do_this(baseUri + "/customremote/byte", "bytecustomclient", "1")', 2000);
-                window.setTimeout('do_this(baseUri + "/customremote/short", "shortcustomclient", "1")', 2500);
-                window.setTimeout('do_this(baseUri + "/customremote/long", "longcustomclient", "100")', 3000);
-                window.setTimeout('do_this(baseUri + "/customremote/float", "floatcustomclient", "1.5")', 3500);
-                window.setTimeout('do_this(baseUri + "/customremote/double", "doublecustomclient", "1.50")', 4000);
-                window.setTimeout('do_this(baseUri + "/customremote/boolean", "booleancustomclient", "true")', 4500);
-                window.setTimeout('do_this(baseUri + "/customremote/char", "charcustomclient", "c")', 5000);
 
+    function init() {
+        output = document.getElementById("output");
+    }
+
+    function clearoutput() {
+        if (output.hasChildNodes()) {
+            while (output.childNodes.length >= 1) {
+                output.removeChild(output.firstChild);
             }
+        }
+    }
 
-            function do_this(uri, testname, testmessage) {
-                //writeToScreen("attempting " + uri);
-                websocket = new WebSocket(uri);
-                websocket.onopen = function(evt) { onOpen(websocket, testmessage, testname, evt) };
-                websocket.onmessage = function(evt) { onMessage(websocket, testname, evt) };
-                websocket.onerror = function(evt) { onError(testname, evt) };
-                writeToScreen("Connected to " + uri);
-            }
-            
+    function run_new_window_test(uri) {
+        window.open(uri, uri);
+    }
 
-            function onOpen(websocket, testmessage, who, evt) {
-                
-                //writeToScreen(who + " connected");
-                doSend(websocket, who, testmessage);
-                
-                
-            }
+    function run_input_tests() {
+        do_this(baseUri + "/standardInputTypes/String", "StringIn Test", "String");
+        window.setTimeout('do_this(baseUri + "/standardInputTypes/boolean", "boolean Test", "true")', 1000);
+        window.setTimeout('do_this(baseUri + "/standardInputTypes/int", "int Test", "42")', 1500);
+        window.setTimeout('do_this(baseUri + "/standardInputTypes/short", "short Test", "42")', 2000);
+        window.setTimeout('do_this(baseUri + "/standardInputTypes/long", "long Test", "42")', 2500);
+        window.setTimeout('do_this(baseUri + "/standardInputTypes/char", "char Test", "c")', 3000);
+        window.setTimeout('do_this(baseUri + "/standardInputTypes/float", "float Test", "42.0")', 3500);
+        window.setTimeout('do_this(baseUri + "/standardInputTypes/double", "double Test", "42.0")', 4000);
 
-            function onMessage(websocket, who, evt) {
-                writeToScreen(who + " : " + evt.data);
-                websocket.close();
-            }
+    }
 
-            function onError(who, evt) {
-                writeToScreen('<span style="color: red;">ERROR:</span> ' + evt.data);
-            }
+    function run_output_tests() {
+        do_this(baseUri + "/standardOutputTypes/byte", "byte out Test", "String");
+        window.setTimeout('do_this(baseUri + "/standardOutputTypes/short", "short Test", "x")', 1000);
+        window.setTimeout('do_this(baseUri + "/standardOutputTypes/int", "int Test", "x")', 1500);
+        window.setTimeout('do_this(baseUri + "/standardOutputTypes/long", "long Test", "x")', 2000);
+        window.setTimeout('do_this(baseUri + "/standardOutputTypes/float", "float Test", "x")', 2500);
+        window.setTimeout('do_this(baseUri + "/standardOutputTypes/double", "double Test", "x")', 3000);
+        window.setTimeout('do_this(baseUri + "/standardOutputTypes/boolean", "boolean Test", "x")', 3500);
+        window.setTimeout('do_this(baseUri + "/standardOutputTypes/char", "char Test", "x")', 4000);
+    }
 
-            function doSend(websocket, who, message) {
-                //writeToScreen(who + " sending: " + message);
-                websocket.send(message);
-                //writeToScreen("message sent to " + who);
-            }
+    function run_context_tests() {
+        do_this(baseUri + "/getcontext", "context injection", "x");
 
-            function writeToScreen(message) {
-                var pre = document.createElement("p");
-                pre.style.wordWrap = "break-word";
-                pre.innerHTML = message;
-                //alert(output);
-                output.appendChild(pre);
-            }
+    }
 
-            window.addEventListener("load", init, false);
+    function run_custom_client_tests() {
+        do_this(baseUri + "/customremote/hello", "hellocustomclient", "hello");
+        window.setTimeout('do_this(baseUri + "/customremote/encoded", "encodedcustomclient", "rawstring")', 1000);
+        window.setTimeout('do_this(baseUri + "/customremote/int", "intcustomclient", "42")', 1500);
+        window.setTimeout('do_this(baseUri + "/customremote/byte", "bytecustomclient", "1")', 2000);
+        window.setTimeout('do_this(baseUri + "/customremote/short", "shortcustomclient", "1")', 2500);
+        window.setTimeout('do_this(baseUri + "/customremote/long", "longcustomclient", "100")', 3000);
+        window.setTimeout('do_this(baseUri + "/customremote/float", "floatcustomclient", "1.5")', 3500);
+        window.setTimeout('do_this(baseUri + "/customremote/double", "doublecustomclient", "1.50")', 4000);
+        window.setTimeout('do_this(baseUri + "/customremote/boolean", "booleancustomclient", "true")', 4500);
+        window.setTimeout('do_this(baseUri + "/customremote/char", "charcustomclient", "c")', 5000);
 
-        </script>
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title>JSP Page</title>
-    </head>
-    <body>
-        This page does some automated testing.
-        <div style="text-align: center;">
-            <form action=""> 
-                <input onclick="run_input_tests()" value="Run Input Tests" type="button"> 
-                <input onclick="run_output_tests()" value="Run Output Tests" type="button"> 
-                <input onclick="run_custom_client_tests()" value="Custom Remote Tests" type="button"> 
-                <input onclick="run_context_tests()" value="Context Tests" type="button"> 
-                <input onclick="run_new_window_test('twoMethodRemote.jsp')" value="2 meth remote" type="button">
-                <input onclick="run_new_window_test('sessions.jsp')" value="Sessions" type="button">
-                <input onclick="run_new_window_test('jsonhello.jsp')" value="JSON" type="button">
-                <input onclick="run_new_window_test('errortest.jsp')" value="Error" type="button">
-                <input onclick="run_new_window_test('decodermultiplexer.jsp')" value="DecoderMultiplexer" type="button">
-                <input onclick="run_new_window_test('sessionremoteobjects.jsp')" value="Number of sessions" type="button">
-                <input onclick="run_new_window_test('session2websockets.jsp')" value="2 sessions one context" type="button">
-                <input onclick="run_new_window_test('subprotocols.jsp')" value="Subprotocols" type="button">
-                <input onclick="run_new_window_test('hellodeployhello.jsp')" value="dynamic deploy" type="button">
-                <input onclick="run_new_window_test('dynamicpathstest.jsp')" value="dynamic paths" type="button">
-                <input onclick="window.open('/basic/CDIServlet')" value="CDI Monitoring" type="button">
+    }
 
-                <input onclick="clearoutput()" value="Clear" type="button">
-            </form>
-        </div>
-        <div id="output"></div>
-    </body>
+    function do_this(uri, testname, testmessage) {
+        //writeToScreen("attempting " + uri);
+        websocket = new WebSocket(uri);
+        websocket.onopen = function (evt) {
+            onOpen(websocket, testmessage, testname, evt)
+        };
+        websocket.onmessage = function (evt) {
+            onMessage(websocket, testname, evt)
+        };
+        websocket.onerror = function (evt) {
+            onError(testname, evt)
+        };
+        writeToScreen("Connected to " + uri);
+    }
+
+
+    function onOpen(websocket, testmessage, who, evt) {
+
+        //writeToScreen(who + " connected");
+        doSend(websocket, who, testmessage);
+
+
+    }
+
+    function onMessage(websocket, who, evt) {
+        writeToScreen(who + " : " + evt.data);
+        websocket.close();
+    }
+
+    function onError(who, evt) {
+        writeToScreen('<span style="color: red;">ERROR:</span> ' + evt.data);
+    }
+
+    function doSend(websocket, who, message) {
+        //writeToScreen(who + " sending: " + message);
+        websocket.send(message);
+        //writeToScreen("message sent to " + who);
+    }
+
+    function writeToScreen(message) {
+        var pre = document.createElement("p");
+        pre.style.wordWrap = "break-word";
+        pre.innerHTML = message;
+        //alert(output);
+        output.appendChild(pre);
+    }
+
+    window.addEventListener("load", init, false);
+
+</script>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>JSP Page</title>
+</head>
+<body>
+This page does some automated testing.
+<div style="text-align: center;">
+    <form action="">
+        <input onclick="run_input_tests()" value="Run Input Tests" type="button">
+        <input onclick="run_output_tests()" value="Run Output Tests" type="button">
+        <input onclick="run_custom_client_tests()" value="Custom Remote Tests" type="button">
+        <input onclick="run_context_tests()" value="Context Tests" type="button">
+        <input onclick="run_new_window_test('twoMethodRemote.jsp')" value="2 meth remote" type="button">
+        <input onclick="run_new_window_test('sessions.jsp')" value="Sessions" type="button">
+        <input onclick="run_new_window_test('jsonhello.jsp')" value="JSON" type="button">
+        <input onclick="run_new_window_test('errortest.jsp')" value="Error" type="button">
+        <input onclick="run_new_window_test('decodermultiplexer.jsp')" value="DecoderMultiplexer" type="button">
+        <input onclick="run_new_window_test('sessionremoteobjects.jsp')" value="Number of sessions" type="button">
+        <input onclick="run_new_window_test('session2websockets.jsp')" value="2 sessions one context" type="button">
+        <input onclick="run_new_window_test('subprotocols.jsp')" value="Subprotocols" type="button">
+        <input onclick="run_new_window_test('hellodeployhello.jsp')" value="dynamic deploy" type="button">
+        <input onclick="run_new_window_test('dynamicpathstest.jsp')" value="dynamic paths" type="button">
+        <input onclick="window.open('/basic/CDIServlet')" value="CDI Monitoring" type="button">
+
+        <input onclick="clearoutput()" value="Clear" type="button">
+    </form>
+</div>
+<div id="output"></div>
+</body>
 </html>
 

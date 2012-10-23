@@ -40,14 +40,14 @@
 
 package wstestbeans;
 
-import javax.net.websocket.annotations.WebSocketMessage;
-import javax.net.websocket.annotations.WebSocketEndpoint;
-import javax.net.websocket.annotations.WebSocketOpen;
-import javax.net.websocket.annotations.WebSocketClose;
 import javax.net.websocket.RemoteEndpoint;
+import javax.net.websocket.annotations.WebSocketClose;
+import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketMessage;
+import javax.net.websocket.annotations.WebSocketOpen;
 
 /**
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 @WebSocketEndpoint(value = "/lifecycle")
 public class LifecycleBeanTest {

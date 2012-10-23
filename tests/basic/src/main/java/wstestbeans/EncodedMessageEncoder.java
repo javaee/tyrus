@@ -44,7 +44,7 @@ import javax.net.websocket.EncodeException;
 import javax.net.websocket.Encoder;
 
 /**
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 public class EncodedMessageEncoder implements Encoder.Text<EncodedMessage> {
     public String encode(EncodedMessage data) throws EncodeException {

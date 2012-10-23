@@ -40,19 +40,17 @@
 
 package org.glassfish.tyrus.test.basic;
 
+import java.io.IOException;
+import java.net.URI;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import javax.net.websocket.Session;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.client.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.server.Server;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
-
-import javax.net.websocket.Session;
-
-import java.io.IOException;
-import java.net.URI;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Tests the WebSocket remote for basic types
@@ -67,47 +65,47 @@ public class RemoteTest {
 
     @Ignore
     @Test
-    public void testBoolean(){
-        testPojo(org.glassfish.tyrus.test.basic.bean.stin.BooleanBean.class,"/standardInputTypes/boolean/remote","String","true");
+    public void testBoolean() {
+        testPojo(org.glassfish.tyrus.test.basic.bean.stin.BooleanBean.class, "/standardInputTypes/boolean/remote", "String", "true");
     }
 
     @Ignore
     @Test
-    public void testChar(){
-        testPojo(org.glassfish.tyrus.test.basic.bean.stin.CharBean.class,"/standardInputTypes/char/remote","String","c");
+    public void testChar() {
+        testPojo(org.glassfish.tyrus.test.basic.bean.stin.CharBean.class, "/standardInputTypes/char/remote", "String", "c");
     }
 
     @Ignore
     @Test
-    public void testDouble(){
-        testPojo(org.glassfish.tyrus.test.basic.bean.stin.DoubleBean.class,"/standardInputTypes/double/remote","String","42.0");
+    public void testDouble() {
+        testPojo(org.glassfish.tyrus.test.basic.bean.stin.DoubleBean.class, "/standardInputTypes/double/remote", "String", "42.0");
     }
 
     @Ignore
     @Test
-    public void testFloat(){
-        testPojo(org.glassfish.tyrus.test.basic.bean.stin.FloatBean.class,"/standardInputTypes/float/remote","String","42.0");
+    public void testFloat() {
+        testPojo(org.glassfish.tyrus.test.basic.bean.stin.FloatBean.class, "/standardInputTypes/float/remote", "String", "42.0");
     }
 
     @Ignore
     @Test
-    public void testInt(){
-        testPojo(org.glassfish.tyrus.test.basic.bean.stin.IntBean.class,"/standardInputTypes/int/remote","String","42");
+    public void testInt() {
+        testPojo(org.glassfish.tyrus.test.basic.bean.stin.IntBean.class, "/standardInputTypes/int/remote", "String", "42");
     }
 
     @Ignore
     @Test
-    public void testLong(){
-        testPojo(org.glassfish.tyrus.test.basic.bean.stin.LongBean.class,"/standardInputTypes/long/remote","String","42");
+    public void testLong() {
+        testPojo(org.glassfish.tyrus.test.basic.bean.stin.LongBean.class, "/standardInputTypes/long/remote", "String", "42");
     }
 
     @Ignore
     @Test
-    public void testShort(){
-        testPojo(org.glassfish.tyrus.test.basic.bean.stin.ShortBean.class,"/standardInputTypes/short/remote","Short","42");
+    public void testShort() {
+        testPojo(org.glassfish.tyrus.test.basic.bean.stin.ShortBean.class, "/standardInputTypes/short/remote", "Short", "42");
     }
 
-    public void testPojo(Class<?> bean, String segmentPath,final String message, String response) {
+    public void testPojo(Class<?> bean, String segmentPath, final String message, String response) {
         Server server = new Server(bean);
         server.start();
 

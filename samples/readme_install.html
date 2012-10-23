@@ -1,72 +1,109 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN"
-    "http://www.w3.org/TR/html4/strict.dtd">
+        "http://www.w3.org/TR/html4/strict.dtd">
 <html>
-  <head>
+<head>
     <title>Websocket SDK Getting Started</title>
-  </head>
-  <body>
-  <h3>Outline</h3>
-   <p>Once you have done everything on this page successfully, you will have set    up the SDK, compiled and run the sample applications. We have prepared two sample groups - simple samples (Echo, Chat, Drawing and Simple life) and the Glassfish integration sample (Trading sample). 
-   </p>
-   
-   <p>
-   The Echo sample, for example, is a simple Web Socket application with one end    point and a client. The end point is a POJO decorated with the Web Socket annotations that are part of the Web Socket SDK API that replies to messages it receives synchronously. The client is a web page that contains some JavaScript code that contacts the end point using the native support for web sockets in your browser (Chrome, Safari...), and displays the returning message. Once you have that up and running, you'll have a pretty good idea how to use the SDK to run some of the more complicated samples, and even to start writing some of your own !</p>
-   
-  <h3>Project checkout</h3>
-  <h4>System requirements</h4>
-  <p>
-  JDK 1.6+</BR>
-  Glassfish 3.1.2</BR> 
-  Maven</BR>
-  a Web Socket enabled browser. e.g. latest Safari, Chrome.</BR>
-  Some Java IDE (optional)</BR>
-  </p>
-  
-  <h4>Check out and building websockets</h4>
-  <p>Our repository is https://svn.java.net/svn/websocket-sdk~source-code-repository. Checkout the project &lt;repo&gt;/modules from trunk</p>
+</head>
+<body>
+<h3>Outline</h3>
 
-  <p>We are using Maven to build the application - run the command <FONT FACE="courier"> mvn clean install </FONT> in the /modules directory. </p>   
-  <p>Now you are good to go, you can run the samples.</p> 
+<p>Once you have done everything on this page successfully, you will have set up the SDK, compiled and run the sample
+    applications. We have prepared two sample groups - simple samples (Echo, Chat, Drawing and Simple life) and the
+    Glassfish integration sample (Trading sample).
+</p>
 
-  <h3>Simple samples</h3>
-  
-  <h4>Server side</h4>
-  <p>To run the simple samples, it is necessary to run the server side and the application side. The server side is in the /modules/samples/sample-beans folder. The main class for the server side is org.glassfish.websockets.sample.bean.Main. The application has got several input arguments (see the class). To run successfully the sample, run the application with following arguments: </p>
+<p>
+    The Echo sample, for example, is a simple Web Socket application with one end point and a client. The end point is a
+    POJO decorated with the Web Socket annotations that are part of the Web Socket SDK API that replies to messages it
+    receives synchronously. The client is a web page that contains some JavaScript code that contacts the end point
+    using the native support for web sockets in your browser (Chrome, Safari...), and displays the returning message.
+    Once you have that up and running, you'll have a pretty good idea how to use the SDK to run some of the more
+    complicated samples, and even to start writing some of your own !</p>
 
-<FONT FACE="courier">localhost 8021 /websockets/samples org.glassfish.websockets.sample.bean.ChatServer;org.glassfish.websockets.sample.bean.EchoBean;org.glassfish.websockets.sample.bean.SimpleLifeBean;org.glassfish.websockets.sample.bean.GroupDrawServer</FONT>
+<h3>Project checkout</h3>
+<h4>System requirements</h4>
+
+<p>
+    JDK 1.6+</BR>
+    Glassfish 3.1.2</BR>
+    Maven</BR>
+    a Web Socket enabled browser. e.g. latest Safari, Chrome.</BR>
+    Some Java IDE (optional)</BR>
+</p>
+
+<h4>Check out and building websockets</h4>
+
+<p>Our repository is https://svn.java.net/svn/websocket-sdk~source-code-repository. Checkout the project &lt;repo&gt;/modules
+    from trunk</p>
+
+<p>We are using Maven to build the application - run the command <FONT FACE="courier"> mvn clean install </FONT> in the
+    /modules directory. </p>
+
+<p>Now you are good to go, you can run the samples.</p>
+
+<h3>Simple samples</h3>
+
+<h4>Server side</h4>
+
+<p>To run the simple samples, it is necessary to run the server side and the application side. The server side is in the
+    /modules/samples/sample-beans folder. The main class for the server side is
+    org.glassfish.websockets.sample.bean.Main. The application has got several input arguments (see the class). To run
+    successfully the sample, run the application with following arguments: </p>
+
+<FONT FACE="courier">localhost 8021 /websockets/samples
+    org.glassfish.websockets.sample.bean.ChatServer;org.glassfish.websockets.sample.bean.EchoBean;org.glassfish.websockets.sample.bean.SimpleLifeBean;org.glassfish.websockets.sample.bean.GroupDrawServer</FONT>
 
 <p>If you want to run the application from command line, you will run the command:</p>
 
-<FONT FACE="courier"> java org.glassfish.websockets.sample.bean.Main localhost 8021 /websockets/samples org.glassfish.websockets.sample.bean.ChatServer;org.glassfish.websockets.sample.bean.EchoBean;org.glassfish.websockets.sample.bean.SimpleLifeBean;org.glassfish.websockets.sample.bean.GroupDrawServer</FONT>
-   
-  <h4>Client side</h4>
-  <p>Running the client side is easy - it is located in /modules/samples/sample-pages (contains just JSPs and JavaScript), so you are good to go there. Deploy the application on Glassfish and then connect to it using your browser. Remember, you have to use browser that supports websockets.</p>
-  
-  <h3>Trading  sample</h3>
-    <p>So far you have only used the SDK in standalone mode. This is useful when learning about Web Sockets and the SDK API, but its much more useful to be able to use web sockets within the larger context of the Java EE platform. In particular, web sockets that are part of a web application would like to know who is logged in, and any other information held in the HttpSession for each user of the web application. Or some people might even like to expose their EJBs as web sockets !</p>
+<FONT FACE="courier"> java org.glassfish.websockets.sample.bean.Main localhost 8021 /websockets/samples
+    org.glassfish.websockets.sample.bean.ChatServer;org.glassfish.websockets.sample.bean.EchoBean;org.glassfish.websockets.sample.bean.SimpleLifeBean;org.glassfish.websockets.sample.bean.GroupDrawServer</FONT>
 
-<p>The SDK can also run as an extension to Glassfish, for now embedded in the web container. Maybe coming to the EJB container too, we'll see.</p>
+<h4>Client side</h4>
 
-<p>I'll outline below how you can create Java EE applications that run on the Web Sockets SDK running in Glassfish. I'll do it bu helping you run the Group Trading application that uses HttpSessions to coordinate the actions of three separate web socket end points embedded in the Group Trading web page.</p>
-      
-  <h4>Configuring Glassfish</h4>
+<p>Running the client side is easy - it is located in /modules/samples/sample-pages (contains just JSPs and JavaScript),
+    so you are good to go there. Deploy the application on Glassfish and then connect to it using your browser.
+    Remember, you have to use browser that supports websockets.</p>
+
+<h3>Trading sample</h3>
+
+<p>So far you have only used the SDK in standalone mode. This is useful when learning about Web Sockets and the SDK API,
+    but its much more useful to be able to use web sockets within the larger context of the Java EE platform. In
+    particular, web sockets that are part of a web application would like to know who is logged in, and any other
+    information held in the HttpSession for each user of the web application. Or some people might even like to expose
+    their EJBs as web sockets !</p>
+
+<p>The SDK can also run as an extension to Glassfish, for now embedded in the web container. Maybe coming to the EJB
+    container too, we'll see.</p>
+
+<p>I'll outline below how you can create Java EE applications that run on the Web Sockets SDK running in Glassfish. I'll
+    do it bu helping you run the Group Trading application that uses HttpSessions to coordinate the actions of three
+    separate web socket end points embedded in the Group Trading web page.</p>
+
+<h4>Configuring Glassfish</h4>
+
 <p>First, you need to turn on the native support for Web Sockets in Glassfish. You can do in the admin tool.</p>
 
-<FONT FACE="courier"> asadmin set configs.config.server-config.network-config.protocols.protocol.http-listener-1.http.websockets-support-enabled=true </FONT>
+<FONT FACE="courier"> asadmin set
+    configs.config.server-config.network-config.protocols.protocol.http-listener-1.http.websockets-support-enabled=true </FONT>
 
-<p>Secondly and lastly, you'll need to tell Glassfish about the users of the application. You'll need to add a couple of username/password combinations to Glassfish. Using the admin tool, add two users to the file realm, and make them part of the 'managers' role. Before you proceed, you'll need to make sure that you make a mapping in the glassfish descriptor WEB-INF/glassfish-web.xml in the application something like this:</p>
+<p>Secondly and lastly, you'll need to tell Glassfish about the users of the application. You'll need to add a couple of
+    username/password combinations to Glassfish. Using the admin tool, add two users to the file realm, and make them
+    part of the 'managers' role. Before you proceed, you'll need to make sure that you make a mapping in the glassfish
+    descriptor WEB-INF/glassfish-web.xml in the application something like this:</p>
 
 <xmp>
-<security-role-mapping>
-    <role-name>managers</role-name>
-    <principal-name>your-username1</principal-name>
-    <principal-name>your-username2</principal-name>
-    <group-name>managersGroup</group-name>
-</security-role-mapping>
+    <security-role-mapping>
+        <role-name>managers</role-name>
+        <principal-name>your-username1</principal-name>
+        <principal-name>your-username2</principal-name>
+        <group-name>managersGroup</group-name>
+    </security-role-mapping>
 </xmp>
 
-  <h4>Running the sample</h4>
-  <p>The sample is in the folder /modules/samples/sample-trading. Assuming you have built the whole project using Maven, you can just deploy this application on Glassfish, login with one of the username passwords, and enjoy. </p>
+<h4>Running the sample</h4>
 
-  </body>
+<p>The sample is in the folder /modules/samples/sample-trading. Assuming you have built the whole project using Maven,
+    you can just deploy this application on Glassfish, login with one of the username passwords, and enjoy. </p>
+
+</body>
 </html>

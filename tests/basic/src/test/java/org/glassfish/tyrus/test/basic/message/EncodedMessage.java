@@ -41,14 +41,13 @@
 package org.glassfish.tyrus.test.basic.message;
 
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 public class EncodedMessage {
     private String message;
 
     public EncodedMessage(String s) {
-        this.message = "enc("+s+")";
+        this.message = "enc(" + s + ")";
     }
 
     public String getString() {

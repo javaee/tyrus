@@ -40,17 +40,15 @@
 
 package wstestbeans.eremote;
 
+import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketMessage;
 import remote.EncodedRemote;
 import wstestbeans.EncodedMessage;
 
-import javax.net.websocket.annotations.WebSocketEndpoint;
-import javax.net.websocket.annotations.WebSocketMessage;
-
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
-    @WebSocketEndpoint(value="/customremote/encoded")
+@WebSocketEndpoint(value = "/customremote/encoded")
 public class Encoded {
     private String lastMessage;
 

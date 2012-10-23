@@ -84,7 +84,7 @@ class ServerContainerImpl extends WithProperties implements ServerContainer {
 
     @Override
     public String toString() {
-        return "ContainerContext("+this.wsPath+")";
+        return "ContainerContext(" + this.wsPath + ")";
     }
 
 
@@ -99,61 +99,80 @@ class ServerContainerImpl extends WithProperties implements ServerContainer {
         //To change body of implemented methods use File | Settings | File Templates.
     }
 
-    /** Return an unordered collection of the currently active web socket sessions.
+    /**
+     * Return an unordered collection of the currently active web socket sessions.
+     *
      * @return
      */
     @Override
     public Set<Session> getActiveSessions() {
-         throw new UnsupportedOperationException("");
+        throw new UnsupportedOperationException("");
     }
 
-    /** Return the maximum time in seconds that a web socket session may be idle before
+    /**
+     * Return the maximum time in seconds that a web socket session may be idle before
      * the container may close it.
+     *
      * @return
      */
     @Override
     public long getMaxSessionIdleTimeout() {
-         throw new UnsupportedOperationException("");
+        throw new UnsupportedOperationException("");
     }
-    /** Sets the maximum time in seconds that a web socket session may be idle before
+
+    /**
+     * Sets the maximum time in seconds that a web socket session may be idle before
      * the container may close it.
+     *
      * @return
      */
     @Override
     public void setMaxSessionIdleTimeout(long timeout) {
-         throw new UnsupportedOperationException("");
+        throw new UnsupportedOperationException("");
     }
-     /** Returns the maximum size of binary message in number of bytes that this container
-      * will buffer.
-      * @return
-      */
-     @Override
+
+    /**
+     * Returns the maximum size of binary message in number of bytes that this container
+     * will buffer.
+     *
+     * @return
+     */
+    @Override
     public long getMaxBinaryMessageBufferSize() {
-         throw new UnsupportedOperationException("");
+        throw new UnsupportedOperationException("");
     }
-    /** Sets the maximum size of binary message in number of bytes that this container
-      * will buffer.
-      * @return
-      */
+
+    /**
+     * Sets the maximum size of binary message in number of bytes that this container
+     * will buffer.
+     *
+     * @return
+     */
     @Override
     public void setMaxBinaryMessageBufferSize(long max) {
-         throw new UnsupportedOperationException("");
+        throw new UnsupportedOperationException("");
     }
-    /** Sets the maximum size of text message in number of bytes that this container
+
+    /**
+     * Sets the maximum size of text message in number of bytes that this container
      * will buffer.
+     *
      * @return
      */
     @Override
     public long getMaxTextMessageBufferSize() {
-         throw new UnsupportedOperationException("");
+        throw new UnsupportedOperationException("");
     }
-     /** Returns the maximum size of text message in number of bytes that this container
-      * will buffer.
-      * @return
-      */
-     @Override
+
+    /**
+     * Returns the maximum size of text message in number of bytes that this container
+     * will buffer.
+     *
+     * @return
+     */
+    @Override
     public void setMaxTextMessageBufferSize(long max) {
-         throw new UnsupportedOperationException("");
+        throw new UnsupportedOperationException("");
     }
 
     @Override

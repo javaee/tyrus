@@ -41,11 +41,8 @@
 package org.glassfish.tyrus.servlet;
 
 import java.io.IOException;
-import java.lang.Exception;
-
 import java.nio.ByteBuffer;
 import java.util.logging.Logger;
-
 import javax.servlet.ReadListener;
 import javax.servlet.ServletInputStream;
 import javax.servlet.ServletOutputStream;
@@ -71,12 +68,12 @@ public class WebSocketProtocolHandler implements ProtocolHandler, ReadListener {
         try {
             is = wc.getInputStream();
             os = wc.getOutputStream();
-LOGGER.info("*** Data Availabe="+is.available());
+            LOGGER.info("*** Data Availabe=" + is.available());
         } catch (IOException ioe) {
             throw new RuntimeException(ioe);
         }
         is.setReadListener(this);
-onDataAvailable();
+        onDataAvailable();
     }
 
     @Override
@@ -90,7 +87,7 @@ onDataAvailable();
                     LOGGER.info("Got a DataFrame");
                 }
                 state = new ParsingState();
-            } while(is.available() > 0);
+            } while (is.available() > 0);
         } catch (IOException ioe) {
             throw new RuntimeException(ioe);
         }
@@ -107,8 +104,8 @@ onDataAvailable();
         } else {
             int rem = buf.remaining();
             byte[] orig = buf.array();
-            byte[] b = new byte[rem+data.length];
-            System.arraycopy(orig, orig.length-rem, b, 0, rem);
+            byte[] b = new byte[rem + data.length];
+            System.arraycopy(orig, orig.length - rem, b, 0, rem);
             System.arraycopy(data, 0, b, rem, data.length);
             buf = ByteBuffer.wrap(b);
         }
@@ -202,7 +199,7 @@ onDataAvailable();
                     if (buf.remaining() < state.length) {
                         return null;
                     }
-                    byte[] data = new byte[(int)state.length];
+                    byte[] data = new byte[(int) state.length];
                     buf.get(data);
                     unmask(state.mask, data, 0, data.length);
                     dataFrame = new DataFrame(DataFrame.Type.TEXT, data);
@@ -293,7 +290,7 @@ onDataAvailable();
 
     private static class ParsingState {
         int state = 0;
-        byte opcode = (byte)-1;
+        byte opcode = (byte) -1;
         long length = -1;
         //FrameType frameType;
         boolean masked;
@@ -305,7 +302,7 @@ onDataAvailable();
 
 
     static void unmask(byte[] mask, byte[] data, int offset, int length) {
-        for (int i = offset, index=0; i < length; i++) {
+        for (int i = offset, index = 0; i < length; i++) {
             data[i] ^= mask[index++ % MASK_SIZE];
         }
     }

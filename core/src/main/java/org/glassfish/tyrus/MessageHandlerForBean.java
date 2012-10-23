@@ -42,7 +42,6 @@ package org.glassfish.tyrus;
 import javax.net.websocket.MessageHandler;
 
 /**
- *
  * @author Danny Coward (danny.coward at oracle.com)
  */
 public class MessageHandlerForBean implements MessageHandler.Text {

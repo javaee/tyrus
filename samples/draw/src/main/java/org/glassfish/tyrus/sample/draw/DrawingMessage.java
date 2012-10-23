@@ -40,19 +40,15 @@
 package org.glassfish.tyrus.sample.draw;
 
 
-
-
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import javax.net.websocket.DecodeException;
 import javax.net.websocket.Decoder;
 import javax.net.websocket.EncodeException;
 import javax.net.websocket.Encoder;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 public class DrawingMessage implements Decoder.Text<DrawingMessage>, Encoder.Text<DrawingMessage> {
     private JSONObject jsonObject;

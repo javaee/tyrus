@@ -39,29 +39,29 @@
     holder.
 
 --%>
-<%-- 
+<%--
     Document   : play
     Created on : Dec 13, 2011, 10:56:22 AM
-    Author     : dannycoward
+    Author     : Danny Coward (danny.coward at oracle.com)
 --%>
 
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@page contentType="text/html" pageEncoding="UTF-8" %>
 <!DOCTYPE html>
 <html>
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title>JSP Page</title>
-        <script type="text/javascript" src="tooltip.js"></script>
-        <link rel="stylesheet" href="tooltip.css" type="text/css"/> 
-    </head>
-    <body>
-        <div id="t1" class="tip">This is a Javascript Tooltip</div>
-        <!--<a href="#" onmouseout="popUp(event,'t1')" onmouseover="popUp(event,'t1')" onclick="return false"> 
-        here is some text</a>
-        -->
-        <br><br>
-        
-        <a href="#" onmouseout="popXUp(40, -50,'t1')" onmouseover="popXUp(40, -50,'t1')" onclick="return false"> 
-        here is some more text</a>
-    </body>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>JSP Page</title>
+    <script type="text/javascript" src="tooltip.js"></script>
+    <link rel="stylesheet" href="tooltip.css" type="text/css"/>
+</head>
+<body>
+<div id="t1" class="tip">This is a Javascript Tooltip</div>
+<!--<a href="#" onmouseout="popUp(event,'t1')" onmouseover="popUp(event,'t1')" onclick="return false">
+here is some text</a>
+-->
+<br><br>
+
+<a href="#" onmouseout="popXUp(40, -50,'t1')" onmouseover="popXUp(40, -50,'t1')" onclick="return false">
+    here is some more text</a>
+</body>
 </html>

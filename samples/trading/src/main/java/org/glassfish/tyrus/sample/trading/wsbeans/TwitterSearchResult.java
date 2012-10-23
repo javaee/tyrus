@@ -41,8 +41,7 @@
 package org.glassfish.tyrus.sample.trading.wsbeans;
 
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 public class TwitterSearchResult {
     private String username;
@@ -74,6 +73,6 @@ public class TwitterSearchResult {
     }
 
     public String toString() {
-        return "TSR("+username +":"+text+":" + picURL+":" + usercode+")";
+        return "TSR(" + username + ":" + text + ":" + picURL + ":" + usercode + ")";
     }
 }

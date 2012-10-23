@@ -7,6 +7,7 @@ import org.glassfish.grizzly.websockets.WebSocketListener;
 
 /**
  * Socket used for the Grizzly SPI implementation.
+ *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 public class GrizzlySocket extends DefaultWebSocket {
@@ -20,6 +21,7 @@ public class GrizzlySocket extends DefaultWebSocket {
 
     /**
      * Returns the http request used for the handshake before opening this socket.
+     *
      * @return http request used for the handshake.
      */
     public HttpRequestPacket getRequest() {

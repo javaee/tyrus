@@ -3,8 +3,7 @@ package org.glassfish.tyrus.test.basic;
 import javax.net.websocket.MessageHandler;
 
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 public class TestTextMessageHandler implements MessageHandler.Text {
 

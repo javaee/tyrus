@@ -44,10 +44,9 @@ import org.glassfish.tyrus.sample.auction.message.AuctionListRequestMessage;
 import org.glassfish.tyrus.sample.auction.message.BidRequestMessage;
 
 /**
- *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class AuctionListRequestDecoder implements Decoder.Text{
+public class AuctionListRequestDecoder implements Decoder.Text {
 
     @Override
     public AuctionListRequestMessage decode(String s) {

@@ -40,12 +40,12 @@
 
 package org.glassfish.tyrus.sample.trading.wsbeans;
 
-import java.util.*;
-import java.security.*;
+import java.security.Principal;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 public class ApplicationPreferences {
     public static String APP_PREFERENCES = "apppreferences";

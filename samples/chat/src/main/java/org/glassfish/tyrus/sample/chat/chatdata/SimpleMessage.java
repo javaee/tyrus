@@ -41,8 +41,6 @@
 package org.glassfish.tyrus.sample.chat.chatdata;
 
 
-
-
 abstract class SimpleMessage extends ChatMessage {
     String dataString;
 

@@ -43,7 +43,6 @@ import javax.net.websocket.Decoder;
 import org.glassfish.tyrus.sample.auction.message.BidRequestMessage;
 
 /**
- *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 public class BidRequestDecoder implements Decoder.Text {

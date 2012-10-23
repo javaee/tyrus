@@ -45,7 +45,6 @@ import javax.net.websocket.EncodeException;
 import javax.net.websocket.Encoder;
 
 /**
- *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 public class NoOpTextCoder implements Decoder.Text<String>, Encoder.Text<String> {

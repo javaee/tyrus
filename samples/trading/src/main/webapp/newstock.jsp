@@ -39,54 +39,57 @@
     holder.
 
 --%>
-<%-- 
+<%--
     Document   : newstock
     Created on : Dec 8, 2011, 4:41:08 PM
-    Author     : dannycoward
+    Author     : Danny Coward (danny.coward at oracle.com)
 --%>
 
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@page contentType="text/html" pageEncoding="UTF-8" %>
 <!DOCTYPE html>
 <html>
-    <script language="javascript" type="text/javascript">
-        
-        function dosubmit() {
-            document.forms["myform"].submit();
+<script language="javascript" type="text/javascript">
+
+    function dosubmit() {
+        document.forms["myform"].submit();
+    }
+
+    function doanothersubmit() {
+        //alert("h");
+        var myRequest = new XMLHttpRequest();
+        myRequest.open("GET", "http://www.yahoo.com/");
+        //request.open('GET', 'http://localhost:8080/web/AddStockServlet');
+        //myRequest.readyState = popup(myRequest);
+        //myRequest.responseBody = popup(myRequest);
+        myRequest.onreadystatechange = popup(myRequest);
+        myRequest.send();
+
+    }
+
+    function popup(myRequest) {
+        if (myRequest.myRequest != 4) {
+            return;
         }
-        
-        function doanothersubmit() {
-            //alert("h");
-            var myRequest = new XMLHttpRequest();
-            myRequest.open("GET", "http://www.yahoo.com/");
-            //request.open('GET', 'http://localhost:8080/web/AddStockServlet');
-            //myRequest.readyState = popup(myRequest);
-            //myRequest.responseBody = popup(myRequest);
-            myRequest.onreadystatechange = popup(myRequest);
-            myRequest.send();
-            
-        }
-        
-        function popup(myRequest) {
-            if (myRequest.myRequest != 4)  { return; }
-            var serverResponse = xhReq.responseText;
-            alert(serverResponse);
-        }
-        
-    </script>
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title>JSP Page</title>
-    </head>
-    <body>
-        <h1>Hello World!</h1>
-        <FORM action="AddStockServlet" method="post" name="myform">
-            <P>Symbol <INPUT type="text" id="ya" name="symbol" value="foo"><BR>
-   
-                <INPUT type="submit" value="Send"> 
-                <INPUT type="reset">
-            </P>
-        </FORM>
-        
-        <INPUT type="submit" value="JS" onclick="doanothersubmit()"> 
-    </body>
+        var serverResponse = xhReq.responseText;
+        alert(serverResponse);
+    }
+
+</script>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>JSP Page</title>
+</head>
+<body>
+<h1>Hello World!</h1>
+
+<FORM action="AddStockServlet" method="post" name="myform">
+    <P>Symbol <INPUT type="text" id="ya" name="symbol" value="foo"><BR>
+
+        <INPUT type="submit" value="Send">
+        <INPUT type="reset">
+    </P>
+</FORM>
+
+<INPUT type="submit" value="JS" onclick="doanothersubmit()">
+</body>
 </html>

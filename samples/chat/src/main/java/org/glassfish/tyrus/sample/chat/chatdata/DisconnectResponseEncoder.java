@@ -44,7 +44,8 @@ import javax.net.websocket.Encoder;
 
 public class DisconnectResponseEncoder implements Encoder.Text<DisconnectResponseMessage> {
 
-    public DisconnectResponseEncoder() {}
+    public DisconnectResponseEncoder() {
+    }
 
     @Override
     public String encode(DisconnectResponseMessage data) {

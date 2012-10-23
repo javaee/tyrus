@@ -44,7 +44,7 @@ package org.glassfish.tyrus.spi;
  * provide the web socket SDK a handle to the deployed
  * endpoint that it may use later to unregister.
  *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 public interface SPIRegisteredEndpoint {
 

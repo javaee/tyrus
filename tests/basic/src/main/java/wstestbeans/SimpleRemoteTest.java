@@ -40,13 +40,12 @@
 
 package wstestbeans;
 
-import remote.SimpleRemote;
-
 import javax.net.websocket.annotations.WebSocketEndpoint;
 import javax.net.websocket.annotations.WebSocketMessage;
+import remote.SimpleRemote;
 
 /**
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 @WebSocketEndpoint(value = "/customremote/hello")
 public class SimpleRemoteTest {

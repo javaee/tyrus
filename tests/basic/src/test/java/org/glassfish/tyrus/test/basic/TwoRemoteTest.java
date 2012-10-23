@@ -40,19 +40,17 @@
 
 package org.glassfish.tyrus.test.basic;
 
+import java.io.IOException;
+import java.net.URI;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import javax.net.websocket.Session;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.client.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.server.Server;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
-
-import javax.net.websocket.Session;
-
-import java.io.IOException;
-import java.net.URI;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Advanced remote test.
@@ -103,7 +101,7 @@ public class TwoRemoteTest {
                 }
             }, dcec);
             messageLatch.await(5, TimeUnit.SECONDS);
-            Assert.assertTrue("The received message is encoded", receivedMessage1.equals("enc("+SENT_MESSAGE+")"));
+            Assert.assertTrue("The received message is encoded", receivedMessage1.equals("enc(" + SENT_MESSAGE + ")"));
             Assert.assertTrue("The received message is the same as the sent one", receivedMessage2.equals(SENT_MESSAGE));
         } catch (Exception e) {
             e.printStackTrace();

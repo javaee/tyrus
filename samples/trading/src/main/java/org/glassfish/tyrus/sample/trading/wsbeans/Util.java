@@ -40,12 +40,14 @@
 
 package org.glassfish.tyrus.sample.trading.wsbeans;
 
-import java.net.*;
-import java.io.*;
-import java.util.*;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 public class Util {
     static List<String> tickers;
@@ -57,7 +59,7 @@ public class Util {
         InputStream is = connection.getInputStream();
         int i;
         String incomingMessage = "";
-        while ((i=is.read()) != -1) {
+        while ((i = is.read()) != -1) {
             incomingMessage = incomingMessage + (char) i;
         }
         is.close();

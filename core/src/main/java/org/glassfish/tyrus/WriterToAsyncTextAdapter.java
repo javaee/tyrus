@@ -42,9 +42,11 @@ package org.glassfish.tyrus;
 import java.io.IOException;
 import java.io.Writer;
 import javax.net.websocket.RemoteEndpoint;
+
 /**
  * Simple Writer that writes its data to
  * an async sink.
+ *
  * @author Danny Coward (danny.coward at oracle.com)
  */
 public class WriterToAsyncTextAdapter extends Writer {
@@ -64,7 +66,7 @@ public class WriterToAsyncTextAdapter extends Writer {
         if (buffer != null) {
             this.sendBuffer(false);
         }
-        buffer = new String(chars, index, len -1);
+        buffer = new String(chars, index, len - 1);
     }
 
     @Override

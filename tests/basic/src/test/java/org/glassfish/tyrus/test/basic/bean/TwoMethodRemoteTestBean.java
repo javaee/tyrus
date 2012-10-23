@@ -39,17 +39,15 @@
  */
 package org.glassfish.tyrus.test.basic.bean;
 
+import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketMessage;
 import org.glassfish.tyrus.test.basic.remote.TwoMethodRemote;
 import wstestbeans.EncodedMessage;
 
-import javax.net.websocket.annotations.WebSocketEndpoint;
-import javax.net.websocket.annotations.WebSocketMessage;
-
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
-@WebSocketEndpoint(value="/twomethodremote")
+@WebSocketEndpoint(value = "/twomethodremote")
 public class TwoMethodRemoteTestBean {
 
     @WebSocketMessage

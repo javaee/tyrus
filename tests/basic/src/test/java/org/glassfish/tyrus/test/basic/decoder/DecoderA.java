@@ -42,19 +42,17 @@ package org.glassfish.tyrus.test.basic.decoder;
 
 import javax.net.websocket.DecodeException;
 import javax.net.websocket.Decoder;
-
 import org.glassfish.tyrus.test.basic.message.MessageA;
 
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 public class DecoderA implements Decoder.Text<MessageA> {
 
     @Override
     public MessageA decode(String s) throws DecodeException {
-       System.out.println("Decoding with DecoderA");
-       return new MessageA(s);
+        System.out.println("Decoding with DecoderA");
+        return new MessageA(s);
     }
 
     public boolean willDecode(String s) {

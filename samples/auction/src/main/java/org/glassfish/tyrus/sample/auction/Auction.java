@@ -39,13 +39,6 @@
  */
 package org.glassfish.tyrus.sample.auction;
 
-import org.glassfish.tyrus.sample.auction.message.BidRequestMessage;
-import org.glassfish.tyrus.sample.auction.message.LoginRequestMessage;
-import org.glassfish.tyrus.sample.auction.message.LoginResponseMessage;
-import org.glassfish.tyrus.sample.auction.message.PriceUpdateResponseMessage;
-import org.glassfish.tyrus.sample.auction.message.ResultMessage;
-
-import javax.net.websocket.Session;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -53,6 +46,12 @@ import java.util.List;
 import java.util.Timer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.net.websocket.Session;
+import org.glassfish.tyrus.sample.auction.message.BidRequestMessage;
+import org.glassfish.tyrus.sample.auction.message.LoginRequestMessage;
+import org.glassfish.tyrus.sample.auction.message.LoginResponseMessage;
+import org.glassfish.tyrus.sample.auction.message.PriceUpdateResponseMessage;
+import org.glassfish.tyrus.sample.auction.message.ResultMessage;
 
 /**
  * Implements the auction protocol
@@ -131,7 +130,7 @@ public class Auction {
         arcList.add(arc);
     }
 
-    public synchronized void removeArc(Session arc){
+    public synchronized void removeArc(Session arc) {
         arcList.remove(arc);
     }
 
@@ -140,12 +139,12 @@ public class Auction {
      */
     public void handleLoginRequest(LoginRequestMessage lrm, Session arc) {
         this.addArc(arc);
-            LoginResponseMessage response = new LoginResponseMessage(id, item);
-            try {
-                arc.getRemote().sendString(response.asString());
-            } catch (IOException ex) {
-                Logger.getLogger(Auction.class.getName()).log(Level.SEVERE, null, ex);
-            }
+        LoginResponseMessage response = new LoginResponseMessage(id, item);
+        try {
+            arc.getRemote().sendString(response.asString());
+        } catch (IOException ex) {
+            Logger.getLogger(Auction.class.getName()).log(Level.SEVERE, null, ex);
+        }
 
         //first client connected
         if (arcList.size() == 1) {
@@ -208,7 +207,7 @@ public class Auction {
             }
         }
 
-        ResultMessage loserMessage = new ResultMessage(id, "User "+"");
+        ResultMessage loserMessage = new ResultMessage(id, "User " + "");
         for (Session arc : arcList) {
             if (arc != bestBidder) {
                 try {

@@ -40,28 +40,29 @@
 
 package org.glassfish.tyrus.sample.chat.chatdata;
 
-    /**
-    *   loginRequest: username (no commas)
-    *   loginResponse: username / blank
-    *   userList: comma sep: list of usernames
-    *   chat transcript update: list of data
-    *   disconnect request
-    *   disconnect response
-    */
+/**
+ *   loginRequest: username (no commas)
+ *   loginResponse: username / blank
+ *   userList: comma sep: list of usernames
+ *   chat transcript update: list of data
+ *   disconnect request
+ *   disconnect response
+ */
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class ChatMessage {
-     static String LOGIN_REQUEST = "lreq";
-     static String LOGIN_RESPONSE = "lres";
-     static String USERLIST_UPDATE = "ulupd";
-     static String CHAT_MESSAGE = "ctmsg";
-     static String CHATTRANSCRIPT_UPDATE = "ctupd";
-     static String DISCONNECT_REQUEST = "dreq";
-     static String DISCONNECT_RESPONSE = "dres";
-     static String SEP = ":";
+    static String LOGIN_REQUEST = "lreq";
+    static String LOGIN_RESPONSE = "lres";
+    static String USERLIST_UPDATE = "ulupd";
+    static String CHAT_MESSAGE = "ctmsg";
+    static String CHATTRANSCRIPT_UPDATE = "ctupd";
+    static String DISCONNECT_REQUEST = "dreq";
+    static String DISCONNECT_RESPONSE = "dres";
+    static String SEP = ":";
 
-     String type;
+    String type;
 
     public static void main(String args[]) {
         ChatMessage login = new LoginRequestMessage("Danny");
@@ -104,15 +105,15 @@ public abstract class ChatMessage {
             chatMessage = new LoginRequestMessage();
         } else if (s.startsWith(LOGIN_RESPONSE)) {
             chatMessage = new LoginResponseMessage();
-        }  else if (s.startsWith(DISCONNECT_REQUEST)) {
+        } else if (s.startsWith(DISCONNECT_REQUEST)) {
             chatMessage = new DisconnectRequestMessage();
-        }  else if (s.startsWith(DISCONNECT_RESPONSE)) {
+        } else if (s.startsWith(DISCONNECT_RESPONSE)) {
             chatMessage = new DisconnectResponseMessage();
-        }  else if (s.startsWith(CHAT_MESSAGE)) {
+        } else if (s.startsWith(CHAT_MESSAGE)) {
             chatMessage = new ChatUpdateMessage();
-        }  else if (s.startsWith(USERLIST_UPDATE)) {
+        } else if (s.startsWith(USERLIST_UPDATE)) {
             chatMessage = new UserListUpdateMessage();
-        }  else if (s.startsWith(CHATTRANSCRIPT_UPDATE)) {
+        } else if (s.startsWith(CHATTRANSCRIPT_UPDATE)) {
             chatMessage = new ChatTranscriptUpdateMessage();
         } else {
             throw new RuntimeException("Unknown message: " + s);
@@ -123,6 +124,7 @@ public abstract class ChatMessage {
 
 
     public abstract String asString();
+
     public abstract void fromString(String s);
 
 

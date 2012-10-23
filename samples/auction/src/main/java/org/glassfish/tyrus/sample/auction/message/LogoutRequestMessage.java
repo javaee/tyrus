@@ -40,8 +40,7 @@
 package org.glassfish.tyrus.sample.auction.message;
 
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 public class LogoutRequestMessage extends AuctionMessage {
 

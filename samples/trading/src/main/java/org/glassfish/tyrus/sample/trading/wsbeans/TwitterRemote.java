@@ -40,18 +40,17 @@
 package org.glassfish.tyrus.sample.trading.wsbeans;
 
 import java.io.IOException;
+import java.util.List;
 import javax.net.websocket.EncodeException;
 import javax.net.websocket.RemoteEndpoint;
 
-import java.util.*;
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 
-    @XWebSocketRemote(
-            encoders= org.glassfish.tyrus.sample.trading.wsbeans.TwitterSearchResultEncoder.class
-            )
+@XWebSocketRemote(
+        encoders = org.glassfish.tyrus.sample.trading.wsbeans.TwitterSearchResultEncoder.class
+)
 public interface TwitterRemote extends RemoteEndpoint {
 
     public void sendSearchResults(List<TwitterSearchResult> quotes) throws IOException, EncodeException;

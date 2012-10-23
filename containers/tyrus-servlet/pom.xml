@@ -41,7 +41,8 @@
 
 -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <parent>
         <groupId>org.glassfish.tyrus</groupId>
         <artifactId>tyrus-containers-project</artifactId>
@@ -130,29 +131,29 @@
                     </instructions>
                 </configuration>
             </plugin>
-           <!-- remove the generated src dir-->
-<!--
-           <plugin>
-                <artifactId>maven-clean-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>clean-unpacked-src-dir</id>
-                        <phase>install</phase>
-                        <goals>
-                            <goal>clean</goal>
-                        </goals>
-                        <configuration>
-                            <excludeDefaultDirectories>true</excludeDefaultDirectories>
-                            <filesets>
-                                <fileset>
-                                    <directory>${generated.sources.dir}</directory>
-                                </fileset>
-                            </filesets>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
--->
+            <!-- remove the generated src dir-->
+            <!--
+                       <plugin>
+                            <artifactId>maven-clean-plugin</artifactId>
+                            <executions>
+                                <execution>
+                                    <id>clean-unpacked-src-dir</id>
+                                    <phase>install</phase>
+                                    <goals>
+                                        <goal>clean</goal>
+                                    </goals>
+                                    <configuration>
+                                        <excludeDefaultDirectories>true</excludeDefaultDirectories>
+                                        <filesets>
+                                            <fileset>
+                                                <directory>${generated.sources.dir}</directory>
+                                            </fileset>
+                                        </filesets>
+                                    </configuration>
+                                </execution>
+                            </executions>
+                        </plugin>
+            -->
         </plugins>
     </build>
 

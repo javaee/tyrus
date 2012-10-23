@@ -44,8 +44,7 @@ import javax.net.websocket.DecodeException;
 import javax.net.websocket.Decoder;
 
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 public class DecoderB implements Decoder.Text<String> {
     public String decode(String s) throws DecodeException {

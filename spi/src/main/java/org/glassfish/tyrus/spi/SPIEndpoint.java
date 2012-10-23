@@ -39,17 +39,16 @@
  */
 package org.glassfish.tyrus.spi;
 
+import java.nio.ByteBuffer;
 import javax.net.websocket.EndpointConfiguration;
 import javax.net.websocket.RemoteEndpoint;
-
-import java.nio.ByteBuffer;
 
 /**
  * The WebSocket SDK implements SPIEndpoint with its representation of
  * a websocket endpoint mapped to a base URI that wishes to handle incoming
  * messages.
  *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 public abstract class SPIEndpoint {
@@ -83,18 +82,18 @@ public abstract class SPIEndpoint {
      * @param messageString the String message.
      */
     public abstract void onMessage(RemoteEndpoint gs, String messageString);
-    
-    
-        /**
+
+
+    /**
      * Called by the provider when the web socket connection
      * has an incoming partial text message from the given remote endpoint. Partial
      * text messages are passed in sequential order, one piece at a time. If an implementation
-     * does not support streaming, it will need to reconstruct the message here and pass the whole 
+     * does not support streaming, it will need to reconstruct the message here and pass the whole
      * thing along.
      *
      * @param gs            <code>SPIRemoteEndpoint</code> who sent the message.
      * @param messageString the String message.
-     * @param last to indicate if this is the last partial string in the sequence
+     * @param last          to indicate if this is the last partial string in the sequence
      */
     public abstract void onPartialMessage(RemoteEndpoint gs, String partialString, boolean last);
 
@@ -102,7 +101,7 @@ public abstract class SPIEndpoint {
      * Called by the provider when the web socket connection
      * has an incoming binary message from the given remote endpoint.
      *
-     * @param gs           <code>SPIRemoteEndpoint</code> who sent the message.
+     * @param gs    <code>SPIRemoteEndpoint</code> who sent the message.
      * @param bytes the message.
      */
     public abstract void onMessage(RemoteEndpoint gs, ByteBuffer bytes);

@@ -40,63 +40,68 @@
 
 --%>
 <html>
-    <head>
-        <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
-    </head>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+</head>
 
-    <body>
-        <meta charset="utf-8">
-        <title>Web Socket Glassfish basic tests</title>
-        <script language="javascript" type="text/javascript">
-            var websocket1;
+<body>
+<meta charset="utf-8">
+<title>Web Socket Glassfish basic tests</title>
+<script language="javascript" type="text/javascript">
+    var websocket1;
 
-            function init() {
-                output = document.getElementById("output");
-            }
+    function init() {
+        output = document.getElementById("output");
+    }
 
-            function simple_session_test() {
-                websocket1 = new WebSocket("ws://localhost:8080/websockets/httpsession");
-                websocket1.onopen = function(evt) { onOpen(evt) };
-                websocket1.onmessage = function(evt) { onMessage(evt) };
-                websocket1.onerror = function(evt) { onError(evt) };
-            }
-            
-            
-
-            function onOpen(bool, evt) {
-                writeToScreen("CONNECTED");
-                writeToScreen("SENT: " + "hello");
-                websocket1.send("hello");
-            }
-
-            function onMessage(evt) {
-                writeToScreen("RECEIVED: " + evt.data);
-            }
-
-            function onError(evt) {
-                writeToScreen('<span style="color: red;">ERROR:</span> ' + evt.data);
-            }
+    function simple_session_test() {
+        websocket1 = new WebSocket("ws://localhost:8080/websockets/httpsession");
+        websocket1.onopen = function (evt) {
+            onOpen(evt)
+        };
+        websocket1.onmessage = function (evt) {
+            onMessage(evt)
+        };
+        websocket1.onerror = function (evt) {
+            onError(evt)
+        };
+    }
 
 
-            function writeToScreen(message) {
-                var pre = document.createElement("p");
-                pre.style.wordWrap = "break-word";
-                pre.innerHTML = message;
-                //alert(output);
-                output.appendChild(pre);
-            }
+    function onOpen(bool, evt) {
+        writeToScreen("CONNECTED");
+        writeToScreen("SENT: " + "hello");
+        websocket1.send("hello");
+    }
 
-            window.addEventListener("load", init, false);
+    function onMessage(evt) {
+        writeToScreen("RECEIVED: " + evt.data);
+    }
 
-        </script>
+    function onError(evt) {
+        writeToScreen('<span style="color: red;">ERROR:</span> ' + evt.data);
+    }
 
-        <h2 style="text-align: center;">Hello Test</h2>
-        
-        <div style="text-align: center;">
-            <form action=""> 
-                <input onclick="simple_session_test()" value="Simple Session" type="button">
-            </form>
-        </div>
-        <div id="output"></div>
-    </body>
+
+    function writeToScreen(message) {
+        var pre = document.createElement("p");
+        pre.style.wordWrap = "break-word";
+        pre.innerHTML = message;
+        //alert(output);
+        output.appendChild(pre);
+    }
+
+    window.addEventListener("load", init, false);
+
+</script>
+
+<h2 style="text-align: center;">Hello Test</h2>
+
+<div style="text-align: center;">
+    <form action="">
+        <input onclick="simple_session_test()" value="Simple Session" type="button">
+    </form>
+</div>
+<div id="output"></div>
+</body>
 </html>

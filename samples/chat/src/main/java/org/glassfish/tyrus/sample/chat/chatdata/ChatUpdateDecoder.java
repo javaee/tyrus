@@ -41,9 +41,9 @@
 package org.glassfish.tyrus.sample.chat.chatdata;
 
 import javax.net.websocket.Decoder;
+
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 public class ChatUpdateDecoder implements Decoder.Text {
 

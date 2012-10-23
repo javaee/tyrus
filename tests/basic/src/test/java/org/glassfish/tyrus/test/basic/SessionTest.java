@@ -40,17 +40,15 @@
 
 package org.glassfish.tyrus.test.basic;
 
-import junit.framework.Assert;
-import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.client.DefaultClientEndpointConfiguration;
-import org.glassfish.tyrus.server.Server;
-
-import javax.net.websocket.Session;
-
 import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import javax.net.websocket.Session;
+import junit.framework.Assert;
+import org.glassfish.tyrus.client.ClientManager;
+import org.glassfish.tyrus.client.DefaultClientEndpointConfiguration;
+import org.glassfish.tyrus.server.Server;
 
 /**
  * Tests the httpSession

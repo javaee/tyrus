@@ -42,26 +42,26 @@ package org.glassfish.tyrus.sample.trading.wsbeans;
 
 
 import java.io.IOException;
-import javax.net.websocket.Session;
 import java.util.ArrayList;
 import java.util.List;
 import javax.net.websocket.CloseReason;
-import javax.servlet.http.HttpSession;
+import javax.net.websocket.Session;
 import javax.net.websocket.annotations.WebSocketEndpoint;
 import javax.net.websocket.annotations.WebSocketMessage;
+import javax.servlet.http.HttpSession;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-    @WebSocketEndpoint(
-        path="/twitter",
-        Xremote= org.glassfish.tyrus.sample.trading.wsbeans.TwitterRemote.class
-    )
-    // http://search.twitter.com/search.json?q=%40ORCL
-    // https://dev.twitter.com/docs/api/1/get/search
+@WebSocketEndpoint(
+        path = "/twitter",
+        Xremote = org.glassfish.tyrus.sample.trading.wsbeans.TwitterRemote.class
+)
+// http://search.twitter.com/search.json?q=%40ORCL
+// https://dev.twitter.com/docs/api/1/get/search
 
 /**
  *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 public class Twitter implements Broadcaster {
     UpdateThread updateThread = null;
@@ -71,13 +71,13 @@ public class Twitter implements Broadcaster {
     //List<TwitterRemote> remotes = new ArrayList<TwitterRemote>();
     //String searchTerm = "%40ORCL%20OR%20%40MSFT";
 
-   public void initThread() {
-       if (this.updateThread == null) {
+    public void initThread() {
+        if (this.updateThread == null) {
             this.updateThread = new UpdateThread("twitter", 4, this);
             ThreadManager.get().registerThread(updateThread);
             updateThread.start();
-       }
-   }
+        }
+    }
 
     @WebSocketMessage
     public void startSession(String message, TwitterRemote tr) {
@@ -86,7 +86,8 @@ public class Twitter implements Broadcaster {
         } else {
             try {
                 tr.getSession().close(new CloseReason(CloseReason.Code.NORMAL_CLOSURE, "User logged off"));
-            } catch (IOException ioe ) {}
+            } catch (IOException ioe) {
+            }
 
             if (myContext.getConversations().size() == 0 && this.updateThread != null) {
                 this.updateThread.halt();
@@ -114,8 +115,7 @@ public class Twitter implements Broadcaster {
     }
 
 
-
-     public List<TwitterSearchResult> doSearch(List<String> symbols) throws Exception {
+    public List<TwitterSearchResult> doSearch(List<String> symbols) throws Exception {
         List<TwitterSearchResult> resultList = new ArrayList<TwitterSearchResult>();
         String searchTerm = "";
         for (String symbol : symbols) {
@@ -125,7 +125,7 @@ public class Twitter implements Broadcaster {
                 searchTerm = searchTerm + "%20OR%20%23" + symbol;
             }
         }
-        String result = Util.getData("http://search.twitter.com/search.json?q="+searchTerm + "&rpp="+maxResults + "&result_type=recent");
+        String result = Util.getData("http://search.twitter.com/search.json?q=" + searchTerm + "&rpp=" + maxResults + "&result_type=recent");
         JSONObject json = new JSONObject(result);
         JSONArray results = (JSONArray) json.get("results");
         for (int i = 0; i < results.length(); i++) {

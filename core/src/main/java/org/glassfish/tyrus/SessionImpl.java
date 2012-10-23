@@ -40,14 +40,6 @@
 package org.glassfish.tyrus;
 
 
-import javax.net.websocket.ClientContainer;
-import javax.net.websocket.CloseReason;
-import javax.net.websocket.Encoder;
-import javax.net.websocket.MessageHandler;
-import javax.net.websocket.RemoteEndpoint;
-import javax.net.websocket.Session;
-import javax.net.websocket.extensions.Extension;
-
 import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
@@ -58,6 +50,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import javax.net.websocket.ClientContainer;
+import javax.net.websocket.CloseReason;
+import javax.net.websocket.Encoder;
+import javax.net.websocket.MessageHandler;
+import javax.net.websocket.RemoteEndpoint;
+import javax.net.websocket.Session;
+import javax.net.websocket.extensions.Extension;
 
 /**
  * Implementation of the WebSocketConversation.
@@ -235,7 +234,7 @@ public class SessionImpl<T> implements Session<T> {
 
     @Override
     public long getInactiveTime() {
-        return (System.currentTimeMillis() - this.lastConnectionActivity)/1000;
+        return (System.currentTimeMillis() - this.lastConnectionActivity) / 1000;
     }
 
     @Override
@@ -257,7 +256,7 @@ public class SessionImpl<T> implements Session<T> {
     public Set<MessageHandler> getMessageHandlers() {
         return Collections.unmodifiableSet(this.messageHandlers);
     }
-    
+
     Set<MessageHandler> getInvokableMessageHandlers() {
         Set<MessageHandler> imh = new HashSet<MessageHandler>();
         for (MessageHandler mh : this.getMessageHandlers()) {
@@ -268,7 +267,7 @@ public class SessionImpl<T> implements Session<T> {
             }
         }
         return imh;
-        
+
     }
 
     @Override
@@ -291,7 +290,7 @@ public class SessionImpl<T> implements Session<T> {
         return null;
     }
 
-    protected void updateLastConnectionActivity(){
+    protected void updateLastConnectionActivity() {
         this.lastConnectionActivity = System.currentTimeMillis();
     }
 

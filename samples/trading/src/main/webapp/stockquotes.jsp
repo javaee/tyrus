@@ -39,18 +39,18 @@
     holder.
 
 --%>
-<%-- 
+<%--
     Document   : stockquotes
     Created on : Dec 7, 2011, 10:48:58 AM
-    Author     : dannycoward
+    Author     : Danny Coward (danny.coward at oracle.com)
 --%>
 
-<%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@page contentType="text/html" pageEncoding="UTF-8" %>
 <!DOCTYPE html>
 <html>
-    
-    <script type="text/javascript" src="http://www.google.com/jsapi"></script>
-    <script type="text/javascript">
+
+<script type="text/javascript" src="http://www.google.com/jsapi"></script>
+<script type="text/javascript">
 
     // Load the latest version of the Google Data JavaScript Client
     google.load('gdata', '2.x');
@@ -59,24 +59,24 @@
         alert("no");
         var quote = new google.finance.Quote();
         alert(quote);
-        quote.enableDomUpdates( { 'GOOG' : '_IG_SYM1', 'AAPL' : '_IG_SYM2', 'INTC' : '_IG_SYM3' } );
+        quote.enableDomUpdates({ 'GOOG':'_IG_SYM1', 'AAPL':'_IG_SYM2', 'INTC':'_IG_SYM3' });
         quote.getQuotes(["GOOG", "AAPL", "INTC"]);
     }
 
-  // Call function once the client has loaded
+    // Call function once the client has loaded
     google.setOnLoadCallback(onGoogleDataLoad);
 
-    </script>
-    <head>
-        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-        <title>JSP Page</title>
-    </head>
-    <body>
-        <h1>Hello World!</h1>
-        Hello world!
-        Here is your portfolio:<br/>
-        GOOG: <span id=_IG_SYM1_l></span> (<span id=_IG_SYM1_c></span>)<br/>
-        AAPL: <span id=_IG_SYM2_l></span> (<span id=_IG_SYM2_c></span>)<br/>
-        INTC: <span id=_IG_SYM3_l></span> (<span id=_IG_SYM3_c></span>)<br/>
-    </body>
+</script>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>JSP Page</title>
+</head>
+<body>
+<h1>Hello World!</h1>
+Hello world!
+Here is your portfolio:<br/>
+GOOG: <span id=_IG_SYM1_l></span> (<span id=_IG_SYM1_c></span>)<br/>
+AAPL: <span id=_IG_SYM2_l></span> (<span id=_IG_SYM2_c></span>)<br/>
+INTC: <span id=_IG_SYM3_l></span> (<span id=_IG_SYM3_c></span>)<br/>
+</body>
 </html>

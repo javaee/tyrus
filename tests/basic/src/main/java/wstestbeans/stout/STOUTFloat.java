@@ -40,21 +40,20 @@
 
 package wstestbeans.stout;
 
-import javax.net.websocket.annotations.WebSocketMessage;
 import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketMessage;
 
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 @WebSocketEndpoint(
-        value="/standardOutputTypes/float"
-    )
+        value = "/standardOutputTypes/float"
+)
 public class STOUTFloat {
-        @WebSocketMessage
-     public float floatTest(String s) {
-         return 1;
-     }
+    @WebSocketMessage
+    public float floatTest(String s) {
+        return 1;
+    }
 
 
 }

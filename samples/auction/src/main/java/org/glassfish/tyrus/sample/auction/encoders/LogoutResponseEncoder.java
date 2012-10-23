@@ -44,10 +44,9 @@ import javax.net.websocket.Encoder;
 import org.glassfish.tyrus.sample.auction.message.LogoutResponseMessage;
 
 /**
- *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class LogoutResponseEncoder implements Encoder.Text<LogoutResponseMessage>{
+public class LogoutResponseEncoder implements Encoder.Text<LogoutResponseMessage> {
 
     @Override
     public String encode(LogoutResponseMessage lrm) throws EncodeException {

@@ -40,16 +40,14 @@
 
 package wstestbeans.eremote;
 
-import remote.LongRemote;
-
 import javax.net.websocket.annotations.WebSocketEndpoint;
 import javax.net.websocket.annotations.WebSocketMessage;
+import remote.LongRemote;
 
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
-    @WebSocketEndpoint(value="/customremote/long")
+@WebSocketEndpoint(value = "/customremote/long")
 public class ERLong {
     private long lastLong;
 

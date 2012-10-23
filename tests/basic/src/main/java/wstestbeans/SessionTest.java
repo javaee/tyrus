@@ -42,10 +42,9 @@ package wstestbeans;
 import javax.net.websocket.annotations.WebSocketEndpoint;
 
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
-    @WebSocketEndpoint(value="/sessions")
+@WebSocketEndpoint(value = "/sessions")
 public class SessionTest {
 
 //        @WebSocketMessage

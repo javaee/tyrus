@@ -40,16 +40,14 @@
 
 package wstestbeans.eremote;
 
-import remote.CharRemote;
-
 import javax.net.websocket.annotations.WebSocketEndpoint;
 import javax.net.websocket.annotations.WebSocketMessage;
+import remote.CharRemote;
 
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
-    @WebSocketEndpoint(value="/customremote/char")
+@WebSocketEndpoint(value = "/customremote/char")
 public class ERChar {
     private char lastChar;
 

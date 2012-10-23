@@ -46,8 +46,7 @@ import org.json.JSONObject;
 
 
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 public class JsonEncoder implements Encoder.Text<JSONObject> {
 

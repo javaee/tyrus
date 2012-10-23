@@ -43,11 +43,10 @@ package wstestbeans.eremote;
 import remote.ByteRemote;
 
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
-    //@WebSocket(path="/customremote/byte",
-      //      remote=remote.ByteRemote.class)
+//@WebSocket(path="/customremote/byte",
+//      remote=remote.ByteRemote.class)
 public class ERByte {
     private byte lastByte;
 

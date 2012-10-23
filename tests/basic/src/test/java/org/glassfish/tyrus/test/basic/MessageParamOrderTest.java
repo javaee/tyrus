@@ -39,19 +39,17 @@
  */
 package org.glassfish.tyrus.test.basic;
 
+import java.io.IOException;
+import java.net.URI;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import javax.net.websocket.Session;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.client.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.server.Server;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
-
-import javax.net.websocket.Session;
-
-import java.io.IOException;
-import java.net.URI;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Tests the correct behavior of various orders of parameters of methods annotated with {@link javax.net.websocket.annotations.WebSocketMessage}

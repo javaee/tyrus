@@ -40,7 +40,6 @@
 package org.glassfish.tyrus.sample.auction.message;
 
 /**
- *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 public class BidRequestMessage extends AuctionMessage {

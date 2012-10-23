@@ -40,14 +40,12 @@
 
 package org.glassfish.tyrus.test.basic.remote;
 
+import java.io.IOException;
 import javax.net.websocket.EncodeException;
 import javax.net.websocket.RemoteEndpoint;
 
-import java.io.IOException;
-
 /**
- *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 
 //@XWebSocketRemote
