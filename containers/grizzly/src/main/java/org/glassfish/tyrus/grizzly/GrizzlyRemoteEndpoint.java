@@ -93,7 +93,7 @@ public class GrizzlyRemoteEndpoint implements RemoteEndpoint {
 
     @Override
     public void sendBytes(ByteBuffer byteBuffer) throws IOException {
-
+        this.socket.send(byteBuffer.array());
     }
 
     @Override
