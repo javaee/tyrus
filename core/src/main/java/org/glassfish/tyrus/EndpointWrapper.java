@@ -248,8 +248,6 @@ public class EndpointWrapper extends SPIEndpoint {
             MessageHandler.AsyncText baseHandler = null;
             if (handler instanceof MessageHandler.AsyncText) {
                 baseHandler = (MessageHandler.AsyncText) handler;
-            }
-            if (baseHandler != null) {
                 baseHandler.onMessagePart(partialString, last);
                 if (last) {
                     handled = true;
@@ -257,9 +255,27 @@ public class EndpointWrapper extends SPIEndpoint {
             }
         }
         if (last && !handled) {
-            System.out.println("Unhandled message in EndpointWrapper");
+            System.out.println("Unhandled text message in EndpointWrapper");
         }
     }
+    
+    @Override
+    public void onPartialMessage(RemoteEndpoint gs, ByteBuffer partialBytes, boolean last) {
+        RemoteEndpointWrapper peer = getPeer(gs);
+        boolean handled = false;
+        for (MessageHandler handler : (Set<MessageHandler>) ((SessionImpl) peer.getSession()).getMessageHandlers()) {
+            if (handler instanceof MessageHandler.AsyncBinary) {
+                
+                ((MessageHandler.AsyncBinary) handler).onMessagePart(partialBytes, last);
+                handled = true;
+            }
+        }
+        if (!handled) {
+            System.out.println("Unhandled binary message in EndpointWrapper");
+        }
+        
+    }
+
 
 
     /**

@@ -139,8 +139,8 @@ public final class RemoteEndpointWrapper<T> implements RemoteEndpoint<T> {
 
     @Override
     public void sendPartialBytes(ByteBuffer byteBuffer, boolean isLast) throws IOException {
+        this.providedRemoteEndpoint.sendPartialBytes(byteBuffer, isLast);
         this.webSocketSession.updateLastConnectionActivity();
-        throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
