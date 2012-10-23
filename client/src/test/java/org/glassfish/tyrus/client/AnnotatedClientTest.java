@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011 - 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -39,13 +39,12 @@
  */
 package org.glassfish.tyrus.client;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import org.glassfish.tyrus.server.Server;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
-
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 
 /**
@@ -78,7 +77,7 @@ public class AnnotatedClientTest {
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
-        }finally{
+        } finally {
             server.stop();
         }
     }
@@ -94,23 +93,23 @@ public class AnnotatedClientTest {
             ClientManager client = ClientManager.createClient();
 //            client.openSocket("ws://localhost:8025/websockets/tests/echo", 10000,new ClientTestBean(this,false));
             messageLatch.await(5, TimeUnit.SECONDS);
-            System.out.println("### Test receivedTestMessage: "+receivedTestMessage);
+            System.out.println("### Test receivedTestMessage: " + receivedTestMessage);
             Assert.assertTrue("The received message is the same as the sent one", receivedTestMessage.equals("testHello"));
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
-        }finally {
+        } finally {
             server.stop();
         }
     }
 
-    public void setReceivedMessage(String receivedMessage){
+    public void setReceivedMessage(String receivedMessage) {
         System.out.println("### setReceivedMessage");
         this.receivedMessage = receivedMessage;
         messageLatch.countDown();
     }
 
-    public void setReceivedTestMessage(String receivedTestMessage){
+    public void setReceivedTestMessage(String receivedTestMessage) {
         System.out.println("### setReceivedTestMessage");
         this.receivedTestMessage = receivedTestMessage;
         messageLatch.countDown();

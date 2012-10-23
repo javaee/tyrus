@@ -96,7 +96,7 @@ public class DynamicPathTest {
 
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new TestEndpointAdapter() {
-                //            client.openSocket("ws://localhost:8025/websockets/tests/dynamicpath" + segmentPath, 10000,new TestEndpointAdapter() {
+                //            client.openSocket("ws://localhost:8025/websockets/tests/dynamicpath" + segmentPath, 10000, new AbstractTestEndpoint() {
                 @Override
                 public void onOpen(Session session) {
                     try {

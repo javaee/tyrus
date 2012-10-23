@@ -37,30 +37,13 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-
 package org.glassfish.tyrus.client;
 
-
-import java.io.IOException;
-import javax.net.websocket.Session;
-import javax.net.websocket.annotations.WebSocketEndpoint;
-import javax.net.websocket.annotations.WebSocketMessage;
+import javax.net.websocket.Endpoint;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-
-@WebSocketEndpoint(value = "/echo")
-public class TestBean {
-    @WebSocketMessage
-    public void helloWorld(String message, Session session) {
-        try {
-
-            System.out.println("##### Test Bean: Received message: " + message);
-
-            session.getRemote().sendString(message);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+public abstract class AbstractTestEndpoint extends Endpoint {
+    public abstract void messageReceived(String message);
 }

@@ -39,10 +39,9 @@
  */
 package org.glassfish.tyrus.client;
 
+import java.io.IOException;
 import javax.net.websocket.EncodeException;
 import javax.net.websocket.RemoteEndpoint;
-
-import java.io.IOException;
 
 /**
  * Remote used for the ClientApplicationBean

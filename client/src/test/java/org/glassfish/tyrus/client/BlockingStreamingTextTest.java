@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011 - 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -39,37 +39,27 @@
  */
 package org.glassfish.tyrus.client;
 
+import java.net.URI;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import org.glassfish.tyrus.server.Server;
 import org.junit.Assert;
 import org.junit.Test;
 
-import javax.net.websocket.Session;
-
-import java.io.IOException;
-import java.net.URI;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
 /**
  * Tests the basic client behavior, sending and receiving message
  *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  */
 public class BlockingStreamingTextTest {
 
-    private CountDownLatch messageLatch;
-
-    private String receivedMessage;
-
-    private static final String SENT_MESSAGE = "hello danny !!!";
-
     @Test
     public void testClient() {
-        Server server = new Server("org.glassfish.tyrus.client.BlockingStreamingTextServer");
+        Server server = new Server(BlockingStreamingTextServer.class.getName());
         server.start();
 
         try {
-            messageLatch = new CountDownLatch(1);
+            CountDownLatch messageLatch = new CountDownLatch(1);
             DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder(new URI("ws://localhost:8025/websockets/tests/blockingstreaming"));
             DefaultClientEndpointConfiguration dcec = builder.build();
 

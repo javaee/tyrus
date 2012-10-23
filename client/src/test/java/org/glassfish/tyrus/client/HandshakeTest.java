@@ -1,19 +1,17 @@
 package org.glassfish.tyrus.client;
 
-import org.glassfish.tyrus.server.Server;
-import org.junit.Assert;
-import org.junit.Test;
-
-import javax.net.websocket.Session;
-import javax.net.websocket.extensions.Extension;
-import javax.net.websocket.extensions.FrameHandler;
-
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import javax.net.websocket.Session;
+import javax.net.websocket.extensions.Extension;
+import javax.net.websocket.extensions.FrameHandler;
+import org.glassfish.tyrus.server.Server;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Tests whether the HandShake parameters (sub-protoxols, extensions) are sent correctly.
@@ -50,7 +48,7 @@ public class HandshakeTest {
             DefaultClientEndpointConfiguration dcec = builder.build();
 
             ClientManager client = ClientManager.createClient();
-            client.connectToServer(new TestEndpointAdapter() {
+            client.connectToServer(new AbstractTestEndpoint() {
                 @Override
                 public void messageReceived(String message) {
                     receivedMessage = message;
@@ -80,7 +78,7 @@ public class HandshakeTest {
         }
     }
 
-    private class TestExtension implements Extension{
+    private class TestExtension implements Extension {
 
         private final String name;
 

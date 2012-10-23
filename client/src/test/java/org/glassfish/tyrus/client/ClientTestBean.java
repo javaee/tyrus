@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011 - 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -39,11 +39,11 @@
  */
 package org.glassfish.tyrus.client;
 
+import java.io.IOException;
 import javax.net.websocket.Session;
 import javax.net.websocket.annotations.WebSocketEndpoint;
 import javax.net.websocket.annotations.WebSocketMessage;
 import javax.net.websocket.annotations.WebSocketOpen;
-import java.io.IOException;
 
 /**
  * Testing the basic annotations.
@@ -67,9 +67,9 @@ public class ClientTestBean {
     @WebSocketOpen
     public void onOpen(Session p) {
         try {
-            if(messageType){
+            if (messageType) {
                 p.getRemote().sendString(SENT_MESSAGE);
-            }else{
+            } else {
                 p.getRemote().sendString(SENT_TEST_MESSAGE);
             }
         } catch (IOException e) {
@@ -83,7 +83,7 @@ public class ClientTestBean {
     }
 
     @WebSocketMessage
-    public void onTestMesage(TestMessage tm){
+    public void onTestMesage(TestMessage tm) {
         act.setReceivedTestMessage(tm.getData());
     }
 }

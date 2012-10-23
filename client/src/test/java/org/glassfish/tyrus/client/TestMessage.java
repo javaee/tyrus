@@ -59,6 +59,6 @@ public class TestMessage {
 
     @Override
     public String toString() {
-        return PREFIX+data;
+        return PREFIX + data;
     }
 }

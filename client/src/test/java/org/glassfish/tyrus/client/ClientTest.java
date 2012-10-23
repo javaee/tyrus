@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011 - 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -39,16 +39,14 @@
  */
 package org.glassfish.tyrus.client;
 
-import org.glassfish.tyrus.server.Server;
-import org.junit.Assert;
-import org.junit.Test;
-
-import javax.net.websocket.Session;
-
 import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import javax.net.websocket.Session;
+import org.glassfish.tyrus.server.Server;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Tests the basic client behavior, sending and receiving message
@@ -67,14 +65,14 @@ public class ClientTest {
     public void testClient() {
         Server server = new Server("org.glassfish.tyrus.client.TestBean");
         server.start();
-        
+
         try {
             messageLatch = new CountDownLatch(1);
             DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder(new URI("ws://localhost:8025/websockets/tests/echo"));
             DefaultClientEndpointConfiguration dcec = builder.build();
 
             ClientManager client = ClientManager.createClient();
-            client.connectToServer(new TestEndpointAdapter() {
+            client.connectToServer(new AbstractTestEndpoint() {
                 @Override
                 public void messageReceived(String message) {
                     receivedMessage = message;

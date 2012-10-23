@@ -78,7 +78,7 @@ public class HelloTest {
 
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new TestEndpointAdapter() {
-//            client.openSocket("wss://localhost:8025/websockets/tests/hello", 10000, new TestEndpointAdapter() {
+//            client.openSocket("wss://localhost:8025/websockets/tests/hello", 10000, new AbstractTestEndpoint() {
 
                 @Override
                 public void onOpen(Session session) {

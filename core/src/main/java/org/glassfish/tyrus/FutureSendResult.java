@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011 - 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -48,55 +48,54 @@ import javax.net.websocket.SendResult;
 /**
  * Implementation of Future for SendResults.
  * Currently this does not support cancelling the operations but it may in the future.
- * @author dannycoward
+ *
+ * @author Danny Coward (danny.coward at oracle.com)
+ * @author Martin Matula (martin.matula at oracle.com)
  */
 public class FutureSendResult implements Future<SendResult> {
 
     private enum State {
         NEW,
-        CANCELLING,
-        CANCELLED,
         DONE,
-        ERROR
     }
 
-    private final Object stateLock;
-    private FutureSendResult.State state = FutureSendResult.State.NEW;
+    private volatile FutureSendResult.State state = State.NEW;
     private SendResult sr = null;
-    
-    public FutureSendResult() {
-        this.stateLock = new Object();
+
+    synchronized void setResult(SendResult sr) {
+        this.sr = sr;
+        this.state = State.DONE;
+        this.notifyAll();
     }
-    
-    void setResult(SendResult sr) {
-        synchronized(stateLock) {
-            this.sr = sr;
-            this.state = FutureSendResult.State.DONE;
-            this.stateLock.notifyAll();
-        }
-    }
-    
+
+    @Override
     public boolean cancel(boolean mayInterruptIfRunning) {
         return false;
     }
-    
+
+    @Override
     public boolean isCancelled() {
         return false;
     }
-    
+
+    @Override
     public boolean isDone() {
         return this.state == FutureSendResult.State.DONE;
     }
-    
-    public SendResult get() throws InterruptedException, ExecutionException {
-        synchronized(stateLock) {
-            stateLock.wait();
+
+    @Override
+    public synchronized SendResult get() throws InterruptedException, ExecutionException {
+        if (state == State.NEW) {
+            this.wait();
         }
         return sr;
     }
-    
-    public SendResult get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-        throw new UnsupportedOperationException("Not implemented yet");
+
+    @Override
+    public synchronized SendResult get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+        if (state == State.NEW) {
+            unit.timedWait(this, timeout);
+        }
+        return sr;
     }
-    
 }

@@ -1,16 +1,14 @@
 package org.glassfish.tyrus.client;
 
-import org.glassfish.tyrus.server.Server;
-import org.junit.Assert;
-import org.junit.Test;
-
-import javax.net.websocket.Session;
-
 import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import javax.net.websocket.Session;
+import org.glassfish.tyrus.server.Server;
+import org.junit.Assert;
 import org.junit.Ignore;
+import org.junit.Test;
 
 /**
  * Tests the implementation of {@link javax.net.websocket.ClientContainer}.
@@ -32,11 +30,11 @@ public class ClientManagerTest {
         CountDownLatch messageLatch = new CountDownLatch(1);
 
         try {
-            DefaultClientEndpointConfiguration.Builder builder= new DefaultClientEndpointConfiguration.Builder(new URI("ws://localhost:8025/websockets/tests/echo"));
+            DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder(new URI("ws://localhost:8025/websockets/tests/echo"));
             DefaultClientEndpointConfiguration dcec = builder.build();
 
             ClientManager client = ClientManager.createClient();
-            client.connectToServer(new TestEndpointAdapter(){
+            client.connectToServer(new AbstractTestEndpoint() {
 
                 @Override
                 public void onOpen(Session session) {

@@ -69,42 +69,42 @@ public abstract class PrimitiveDecoders<T> implements Decoder.Text<T> {
                     return Byte.valueOf(s);
                 }
             },
-                new PrimitiveDecoders<Character>() {
-                    @Override
-                    public Character decode(String s) throws DecodeException {
-                        return s.charAt(0);
-                    }
-                },
-                new PrimitiveDecoders<Double>() {
-                    @Override
-                    public Double decode(String s) throws DecodeException {
-                        return Double.valueOf(s);
-                    }
-                },
-                new PrimitiveDecoders<Float>() {
-                    @Override
-                    public Float decode(String s) throws DecodeException {
-                        return Float.valueOf(s);
-                    }
-                },
-                new PrimitiveDecoders<Integer>() {
-                    @Override
-                    public Integer decode(String s) throws DecodeException {
-                        return Integer.valueOf(s);
-                    }
-                },
-                new PrimitiveDecoders<Long>() {
-                    @Override
-                    public Long decode(String s) throws DecodeException {
-                        return Long.valueOf(s);
-                    }
-                },
-                new PrimitiveDecoders<Short>() {
-                    @Override
-                    public Short decode(String s) throws DecodeException {
-                        return Short.valueOf(s);
-                    }
-                },
+            new PrimitiveDecoders<Character>() {
+                @Override
+                public Character decode(String s) throws DecodeException {
+                    return s.charAt(0);
+                }
+            },
+            new PrimitiveDecoders<Double>() {
+                @Override
+                public Double decode(String s) throws DecodeException {
+                    return Double.valueOf(s);
+                }
+            },
+            new PrimitiveDecoders<Float>() {
+                @Override
+                public Float decode(String s) throws DecodeException {
+                    return Float.valueOf(s);
+                }
+            },
+            new PrimitiveDecoders<Integer>() {
+                @Override
+                public Integer decode(String s) throws DecodeException {
+                    return Integer.valueOf(s);
+                }
+            },
+            new PrimitiveDecoders<Long>() {
+                @Override
+                public Long decode(String s) throws DecodeException {
+                    return Long.valueOf(s);
+                }
+            },
+            new PrimitiveDecoders<Short>() {
+                @Override
+                public Short decode(String s) throws DecodeException {
+                    return Short.valueOf(s);
+                }
+            },
         };
 
         ALL = Collections.unmodifiableList(Arrays.asList(decoders));

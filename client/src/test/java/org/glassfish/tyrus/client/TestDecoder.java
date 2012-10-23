@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011 - 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -43,14 +43,14 @@ import javax.net.websocket.DecodeException;
 import javax.net.websocket.Decoder;
 
 /**
- *  Decoder for the TestMessage
+ * Decoder for the TestMessage
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class TestDecoder implements Decoder.Text<TestMessage>{
+public class TestDecoder implements Decoder.Text<TestMessage> {
     @Override
     public TestMessage decode(String s) throws DecodeException {
-        return new TestMessage(s.substring(TestMessage.PREFIX.length(),s.length()));
+        return new TestMessage(s.substring(TestMessage.PREFIX.length(), s.length()));
     }
 
     @Override
