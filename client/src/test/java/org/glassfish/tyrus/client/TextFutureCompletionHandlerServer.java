@@ -39,6 +39,7 @@
  */
 package org.glassfish.tyrus.client;
 
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import javax.net.websocket.SendHandler;
@@ -55,6 +56,7 @@ import javax.net.websocket.annotations.WebSocketOpen;
 public class TextFutureCompletionHandlerServer {
     static Future<SendResult> fsr = null;
     static SendResult sr = null;
+    static CountDownLatch messageLatch;
 
     @WebSocketOpen
     public void init(Session session) {
@@ -93,5 +95,6 @@ public class TextFutureCompletionHandlerServer {
         } catch (ExecutionException e) {
             e.printStackTrace();
         }
+        messageLatch.countDown();
     }
 }

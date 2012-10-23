@@ -59,7 +59,8 @@ public class TextFutureCompletionHandlerTest {
         server.start();
 
         try {
-            CountDownLatch messageLatch = new CountDownLatch(1);
+            CountDownLatch messageLatch = new CountDownLatch(2);
+            TextFutureCompletionHandlerServer.messageLatch = messageLatch;
             DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder(new URI("ws://localhost:8025/websockets/tests/hellocompletionhandlerfuture"));
             DefaultClientEndpointConfiguration dcec = builder.build();
 
@@ -83,7 +84,8 @@ public class TextFutureCompletionHandlerTest {
         server.start();
 
         try {
-            CountDownLatch messageLatch = new CountDownLatch(1);
+            CountDownLatch messageLatch = new CountDownLatch(2);
+            TextFutureCompletionHandlerServer.messageLatch = messageLatch;
             DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder(new URI("ws://localhost:8025/websockets/tests/hellocompletionhandlerfuture"));
             DefaultClientEndpointConfiguration dcec = builder.build();
 
