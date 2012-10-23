@@ -98,14 +98,13 @@ public class GrizzlyRemoteEndpoint implements RemoteEndpoint {
 
     @Override
     public void sendPartialString(String fragment, boolean isLast) throws IOException {
-        //System.out.println("GrizzlyRemoteEndpoint.sendPartialString");
-        socket.stream(isLast, fragment);
-        //System.out.println("GrizzlyRemoteEndpoint.sendPartialString done ");
+        this.socket.stream(isLast, fragment);
     }
 
     @Override
     public void sendPartialBytes(ByteBuffer byteBuffer, boolean b) throws IOException {
-
+        byte[] bytes = byteBuffer.array();
+        this.socket.stream(b, bytes, 0, bytes.length);
     }
 
     @Override

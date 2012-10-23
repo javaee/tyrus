@@ -194,7 +194,13 @@ class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
 
     @Override
     public GrizzlyFuture<DataFrame> stream(boolean b, byte[] bytes, int i, int i1) {
-        throw new UnsupportedOperationException();
+        
+        if (isConnected()) {
+            return protocolHandler.stream(b, bytes, i, i1);
+        } else {
+            throw new RuntimeException("Socket is not connected.");
+        }
+        
     }
 
     @Override
@@ -256,8 +262,10 @@ class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
     }
 
     @Override
-    public void onFragment(boolean b, byte[] bytes) {
-        throw new UnsupportedOperationException();
+    public void onFragment(boolean bool, byte[] bytes) {
+        for (SPIEndpoint endpoint : endpoints) {
+            endpoint.onPartialMessage(remoteEndpoint, ByteBuffer.wrap(bytes), bool);
+        }
     }
 
     @Override

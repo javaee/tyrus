@@ -114,7 +114,13 @@ class GrizzlyEndpoint extends WebSocketApplication implements SPIRegisteredEndpo
 
     @Override
     public void onFragment(WebSocket socket, byte[] fragment, boolean last) {
-        System.out.println("Grizzly on Fragment(b): " + fragment + " " + last);
+        GrizzlyRemoteEndpoint gs = GrizzlyRemoteEndpoint.get(socket);
+        try {
+            this.endpoint.onPartialMessage(gs, ByteBuffer.wrap(fragment), last);
+        } catch (Throwable t) {
+            System.out.println("ERROR !!" + t);
+            t.printStackTrace();
+        }
     }
 
 
