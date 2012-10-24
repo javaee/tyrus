@@ -53,7 +53,7 @@ import org.junit.Test;
  */
 public class PingPongTest {
 
-    @Test
+    //@Test
     public void testClient() {
         Server server = new Server(PingPongServer.class.getName());
         server.start();
