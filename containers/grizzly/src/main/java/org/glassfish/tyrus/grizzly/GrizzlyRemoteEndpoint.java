@@ -49,7 +49,8 @@ import javax.net.websocket.EncodeException;
 import javax.net.websocket.RemoteEndpoint;
 import javax.net.websocket.SendHandler;
 import javax.net.websocket.SendResult;
-import org.glassfish.grizzly.websockets.WebSocket;
+import org.glassfish.grizzly.websockets.*;
+import org.glassfish.grizzly.websockets.frametypes.*;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)
@@ -139,11 +140,11 @@ public class GrizzlyRemoteEndpoint implements RemoteEndpoint {
 
     @Override
     public void sendPing(ByteBuffer byteBuffer) {
-
+        this.socket.sendPing(byteBuffer.array());
     }
 
     @Override
     public void sendPong(ByteBuffer byteBuffer) {
-
+        this.socket.sendPong(byteBuffer.array());
     }
 }

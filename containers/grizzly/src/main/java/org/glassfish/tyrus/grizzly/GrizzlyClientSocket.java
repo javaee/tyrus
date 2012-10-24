@@ -70,6 +70,8 @@ import org.glassfish.grizzly.websockets.WebSocket;
 import org.glassfish.grizzly.websockets.WebSocketEngine;
 import org.glassfish.grizzly.websockets.WebSocketFilter;
 import org.glassfish.grizzly.websockets.WebSocketListener;
+import org.glassfish.grizzly.websockets.frametypes.*;
+
 import org.glassfish.grizzly.websockets.draft06.ClosingFrame;
 import org.glassfish.tyrus.spi.SPIEndpoint;
 import org.glassfish.tyrus.spi.TyrusClientSocket;
@@ -175,12 +177,16 @@ class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
 
     @Override
     public GrizzlyFuture<DataFrame> sendPing(byte[] bytes) {
-        throw new UnsupportedOperationException();
+        DataFrame df = new DataFrame(new PingFrameType(), bytes);
+        GrizzlyFuture<DataFrame> gf = this.protocolHandler.send(df);
+        return gf;
     }
 
     @Override
     public GrizzlyFuture<DataFrame> sendPong(byte[] bytes) {
-        throw new UnsupportedOperationException();
+        DataFrame df = new DataFrame(new PongFrameType(), bytes);
+        GrizzlyFuture<DataFrame> gf = this.protocolHandler.send(df);
+        return gf;
     }
 
     @Override
@@ -284,12 +290,16 @@ class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
 
     @Override
     public void onPing(DataFrame dataFrame) {
-        throw new UnsupportedOperationException();
+        for (SPIEndpoint endpoint : endpoints) {
+            endpoint.onPing(remoteEndpoint, ByteBuffer.wrap(dataFrame.getBytes()));
+        }
     }
 
     @Override
     public void onPong(DataFrame dataFrame) {
-        throw new UnsupportedOperationException();
+        for (SPIEndpoint endpoint : endpoints) {
+            endpoint.onPong(remoteEndpoint, ByteBuffer.wrap(dataFrame.getBytes()));
+        }
     }
 
     @Override
