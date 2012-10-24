@@ -272,10 +272,37 @@ public class EndpointWrapper extends SPIEndpoint {
             }
         }
         if (!handled) {
-            System.out.println("Unhandled binary message in EndpointWrapper");
+            System.out.println("Unhandled partial binary message in EndpointWrapper");
         }
         
     }
+    
+    
+    @Override
+    public void onPong(RemoteEndpoint gs, ByteBuffer bytes) {
+        RemoteEndpointWrapper peer = getPeer(gs);
+        //System.out.println("EndpointWrapper----" + ((SessionImpl) peer.getSession()).getInvokableMessageHandlers());
+        boolean handled = false;
+        for (MessageHandler handler : (Set<MessageHandler>) ((SessionImpl) peer.getSession()).getMessageHandlers()) {
+            if (handler instanceof MessageHandler.Pong) {
+                //System.out.println("async binary");
+                ((MessageHandler.Pong) handler).onPong(bytes);
+                handled = true;
+            }
+        }
+        if (!handled) {
+            System.out.println("Unhandled pong message in EndpointWrapper");
+        }
+        
+    }
+    
+    // the endpoint needs to respond as soon as possible (see the websocket RFC)
+    // no involvement from application layer, there is no ping listener
+    public void onPing(RemoteEndpoint gs, ByteBuffer bytes) {
+        RemoteEndpointWrapper peer = getPeer(gs);
+        peer.sendPong(bytes);
+    }
+    
 
 
 

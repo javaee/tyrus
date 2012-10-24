@@ -181,14 +181,14 @@ public final class RemoteEndpointWrapper<T> implements RemoteEndpoint<T> {
 
     @Override
     public void sendPing(ByteBuffer applicationData) {
+        this.providedRemoteEndpoint.sendPing(applicationData);
         this.webSocketSession.updateLastConnectionActivity();
-        throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
     public void sendPong(ByteBuffer applicationData) {
+        this.providedRemoteEndpoint.sendPong(applicationData);
         this.webSocketSession.updateLastConnectionActivity();
-        throw new UnsupportedOperationException("Not yet implemented");
     }
 
     @Override
