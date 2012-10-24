@@ -145,8 +145,7 @@ public final class RemoteEndpointWrapper<T> implements RemoteEndpoint<T> {
 
     @Override
     public OutputStream getSendStream() throws IOException {
-        throw new UnsupportedOperationException("Not yet implemented");
-
+        return new OutputStreamToAsyncBinaryAdapter(this);
     }
 
     @Override

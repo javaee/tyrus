@@ -262,6 +262,8 @@ public class SessionImpl<T> implements Session<T> {
         for (MessageHandler mh : this.getMessageHandlers()) {
             if (mh instanceof MessageHandler.CharacterStream) {
                 imh.add(new AsyncTextToCharStreamAdapter((MessageHandler.CharacterStream) mh));
+            } else if (mh instanceof MessageHandler.BinaryStream) {
+                imh.add(new AsyncBinaryToOutputStreamAdapter((MessageHandler.BinaryStream) mh));
             } else {
                 imh.add(mh);
             }

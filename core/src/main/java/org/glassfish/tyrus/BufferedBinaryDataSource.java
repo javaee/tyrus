@@ -44,7 +44,7 @@ package org.glassfish.tyrus;
  *
  * @author Danny Coward (danny.coward at oracle.com)
  */
-interface BufferedStringSource {
-    public char[] getNextChars(int numberOfChars);
+interface BufferedBinaryDataSource {
+    public byte[] getNextBytes(int numberOfBytes);
     public void finishedReading();
 }

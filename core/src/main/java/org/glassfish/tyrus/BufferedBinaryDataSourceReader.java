@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011 - 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -39,12 +39,30 @@
  */
 package org.glassfish.tyrus;
 
+import java.io.*;
+
 /**
- * Simple interface for the reading of a simple string buffer.
+ * Simple Reader of a StringSource.
  *
  * @author Danny Coward (danny.coward at oracle.com)
  */
-interface BufferedStringSource {
-    public char[] getNextChars(int numberOfChars);
-    public void finishedReading();
+class BufferedBinaryDataSourceReader extends InputStream {
+    private final BufferedBinaryDataSource bbds;
+
+    public BufferedBinaryDataSourceReader(BufferedBinaryDataSource bss) {
+        this.bbds = bss;
+    }
+    
+    public int read() throws IOException {
+        byte[] bytes = bbds.getNextBytes(100);
+        if (bytes == null) {
+            return -1;
+        }
+        return bytes[0];
+    }
+
+    @Override
+    public void close() {
+        this.bbds.finishedReading();
+    }
 }

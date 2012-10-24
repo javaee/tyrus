@@ -262,10 +262,11 @@ public class EndpointWrapper extends SPIEndpoint {
     @Override
     public void onPartialMessage(RemoteEndpoint gs, ByteBuffer partialBytes, boolean last) {
         RemoteEndpointWrapper peer = getPeer(gs);
+        //System.out.println("EndpointWrapper----" + ((SessionImpl) peer.getSession()).getInvokableMessageHandlers());
         boolean handled = false;
-        for (MessageHandler handler : (Set<MessageHandler>) ((SessionImpl) peer.getSession()).getMessageHandlers()) {
+        for (MessageHandler handler : (Set<MessageHandler>) ((SessionImpl) peer.getSession()).getInvokableMessageHandlers()) {
             if (handler instanceof MessageHandler.AsyncBinary) {
-                
+                //System.out.println("async binary");
                 ((MessageHandler.AsyncBinary) handler).onMessagePart(partialBytes, last);
                 handled = true;
             }

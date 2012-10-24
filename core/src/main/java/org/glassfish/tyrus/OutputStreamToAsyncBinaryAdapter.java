@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011 - 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -39,12 +39,49 @@
  */
 package org.glassfish.tyrus;
 
+import java.io.IOException;
+import java.io.OutputStream;
+import javax.net.websocket.RemoteEndpoint;
+import java.nio.*;
+
 /**
- * Simple interface for the reading of a simple string buffer.
+ * Simple Writer that writes its data to
+ * an async sink.
  *
  * @author Danny Coward (danny.coward at oracle.com)
  */
-interface BufferedStringSource {
-    public char[] getNextChars(int numberOfChars);
-    public void finishedReading();
+public class OutputStreamToAsyncBinaryAdapter extends OutputStream {
+    private final RemoteEndpoint re;
+    int buffer = -1;
+
+    public OutputStreamToAsyncBinaryAdapter(RemoteEndpoint re) {
+        this.re = re;
+    }
+
+    private void sendBuffer(boolean last) throws IOException {
+        byte[] b = new byte[1];
+        b[0] = (byte) buffer;
+        re.sendPartialBytes(ByteBuffer.wrap(b), last);
+    }
+    
+    @Override
+    public void write(int i) throws IOException {
+        if (buffer != -1) {
+            this.sendBuffer(false);
+        }
+        buffer = i;
+    }
+
+    
+
+    @Override
+    public void flush() throws IOException {
+        this.sendBuffer(true);
+        buffer = -1;
+    }
+
+    @Override
+    public void close() throws IOException {
+        this.sendBuffer(true);
+    }
 }
