@@ -39,41 +39,44 @@
  */
 package org.glassfish.tyrus.client;
 
-import java.nio.ByteBuffer;
+import java.net.URI;
 import java.util.concurrent.CountDownLatch;
-import javax.net.websocket.Endpoint;
-import javax.net.websocket.MessageHandler;
-import javax.net.websocket.Session;
+import java.util.concurrent.TimeUnit;
+import javax.net.websocket.SendResult;
+import org.glassfish.tyrus.server.Server;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
+ * Tests the basic client behavior, sending and receiving message
+ *
  * @author Danny Coward (danny.coward at oracle.com)
  */
-public class HelloBinaryClient extends Endpoint {
-    boolean echoWorked = false;
-    static String MESSAGE = "hello";
-    private final CountDownLatch messageLatch;
+public class BinaryFutureCompletionHandlerTest {
+    //@Test
+    public void testFastClient() {
+        Server server = new Server(BinaryFutureCompletionHandlerServer.class.getName());
+        server.start();
 
-    public HelloBinaryClient(CountDownLatch messageLatch) {
-        this.messageLatch = messageLatch;
-    }
-
-    public void onOpen(Session session) {
-        System.out.println("HELLOBCLIENT opened !!");
         try {
-            session.addMessageHandler(new MessageHandler.Binary() {
-                public void onMessage(ByteBuffer bb) {
-                    System.out.println("HELLOBCLIENT received: " + new String(bb.array()));
-                    echoWorked = (MESSAGE.equals(new String(bb.array())));
-                    System.out.println(echoWorked);
-                    messageLatch.countDown();
-                }
-            });
-            session.getRemote().sendBytes(ByteBuffer.wrap(MESSAGE.getBytes()));
-            
+            CountDownLatch messageLatch = new CountDownLatch(2);
+            BinaryFutureCompletionHandlerServer.messageLatch = messageLatch;
+            DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder(new URI("ws://localhost:8025/websockets/tests/binaryhellocompletionhandlerfuture"));
+            DefaultClientEndpointConfiguration dcec = builder.build();
+
+            HelloBinaryClient htc = new HelloBinaryClient(messageLatch);
+            ClientManager client = ClientManager.createClient();
+            client.connectToServer(htc, dcec);
+            messageLatch.await(5, TimeUnit.SECONDS);
+            Assert.assertTrue("The client got the echo back", htc.echoWorked);
+            Assert.assertNotNull(BinaryFutureCompletionHandlerServer.sr);
         } catch (Exception e) {
             e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            server.stop();
         }
     }
 
-
+    
 }

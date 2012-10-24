@@ -39,41 +39,64 @@
  */
 package org.glassfish.tyrus.client;
 
-import java.nio.ByteBuffer;
 import java.util.concurrent.CountDownLatch;
-import javax.net.websocket.Endpoint;
-import javax.net.websocket.MessageHandler;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import javax.net.websocket.SendHandler;
+import javax.net.websocket.SendResult;
 import javax.net.websocket.Session;
+import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketMessage;
+import javax.net.websocket.annotations.WebSocketOpen;
+import java.nio.*;
+import javax.net.websocket.MessageHandler;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)
  */
-public class HelloBinaryClient extends Endpoint {
-    boolean echoWorked = false;
-    static String MESSAGE = "hello";
-    private final CountDownLatch messageLatch;
+@WebSocketEndpoint("/binaryhellocompletionhandlerfuture")
+public class BinaryFutureCompletionHandlerServer {
+    static Future<SendResult> fsr = null;
+    static SendResult sr = null;
+    static CountDownLatch messageLatch;
 
-    public HelloBinaryClient(CountDownLatch messageLatch) {
-        this.messageLatch = messageLatch;
+    @WebSocketOpen
+    public void init(Session session) {
+        System.out.println("BINARYCFSERVER opened");
+        final Session theSession = session;
+        session.addMessageHandler(new MessageHandler.Binary() {
+
+            @Override
+            public void onMessage(ByteBuffer data) {
+                sayHello(data, theSession);
+            }
+        });
+        
     }
 
-    public void onOpen(Session session) {
-        System.out.println("HELLOBCLIENT opened !!");
-        try {
-            session.addMessageHandler(new MessageHandler.Binary() {
-                public void onMessage(ByteBuffer bb) {
-                    System.out.println("HELLOBCLIENT received: " + new String(bb.array()));
-                    echoWorked = (MESSAGE.equals(new String(bb.array())));
-                    System.out.println(echoWorked);
-                    messageLatch.countDown();
+    public void sayHello(ByteBuffer message, Session session) {
+        System.out.println("BINARYCFSERVER got  message: " + message + " from session " + session);
+        
+        System.out.println("BINARYCFSERVER lets send one back in async mode with a future and completion handler");
+        SendHandler sh = new SendHandler() {
+            public void setResult(SendResult sr) {
+                if (!sr.isOK()) {
+                    throw new RuntimeException(sr.getException());
                 }
-            });
-            session.getRemote().sendBytes(ByteBuffer.wrap(MESSAGE.getBytes()));
-            
-        } catch (Exception e) {
+            }
+        };
+        fsr = session.getRemote().sendBytes(ByteBuffer.wrap(HelloBinaryClient.MESSAGE.getBytes()), sh);
+        System.out.println("BINARYCFSERVER send complete - wait on get()");
+        try {
+            sr = fsr.get();
+            System.out.println("BINARYCFSERVER get returned");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
             e.printStackTrace();
         }
+        messageLatch.countDown();
+        
+        
     }
-
-
 }
