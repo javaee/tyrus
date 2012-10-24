@@ -42,21 +42,33 @@ package org.glassfish.tyrus;
 import java.util.concurrent.Future;
 import javax.net.websocket.SendHandler;
 import javax.net.websocket.SendResult;
+import java.nio.*;
 
 /**
- * Simple Async send adapter. Should probably merge with RemoteEndpointWrapper at some point.
+ * Simple Async send adapter. Should probably merge with RemoteEndpointWrapper at some point
+ * when things settle down.
+ * For now this is mediating the types and method calls. 
  *
  * @author Danny Coward (danny.coward at oracle.com)
  */
 public class SendCompletionAdapter {
     private final RemoteEndpointWrapper rew;
-
-    public SendCompletionAdapter(RemoteEndpointWrapper re) {
-        this.rew = re;
+    enum State {
+        TEXT, // String
+        BINARY,  // ByteBuffer
+        OBJECT // OBJECT
     }
 
-    public Future<SendResult> sendString(String text, SendHandler completion) {
-        final String message = text;
+    private SendCompletionAdapter.State state;
+    
+
+    public SendCompletionAdapter(RemoteEndpointWrapper re, State state) {
+        this.rew = re;
+        this.state = state;
+    }
+
+    public Future<SendResult> send(Object msg, SendHandler completion) {
+        final Object message = msg;
         final SendHandler cmpltn = completion;
         final FutureSendResult fsr = new FutureSendResult();
 
@@ -64,7 +76,15 @@ public class SendCompletionAdapter {
             @Override
             public void run() {
                 try {
-                    rew.sendString(message);
+                    if (state.equals(SendCompletionAdapter.State.TEXT)) {
+                        rew.sendString((String) message);
+                    } else if (state.equals(SendCompletionAdapter.State.BINARY)) {
+                        rew.sendBytes((ByteBuffer) message);
+                    } else if (state.equals(SendCompletionAdapter.State.OBJECT)) {
+                        rew.sendObject(message);
+                    } else {
+                        throw new RuntimeException("Developer error: unknown state");
+                    }
                 } catch (Throwable thw) {
                     SendResult sr = new SendResult(thw);
                     cmpltn.setResult(sr);
