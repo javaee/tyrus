@@ -118,6 +118,24 @@ public abstract class SPIEndpoint {
      * @param bytes the message.
      */
     public abstract void onMessage(RemoteEndpoint gs, ByteBuffer bytes);
+    
+        /**
+     * Called by the provider when the web socket connection
+     * has an incoming pong message from the given remote endpoint.
+     *
+     * @param gs    <code>SPIRemoteEndpoint</code> who sent the message.
+     * @param bytes the message.
+     */
+    public abstract void onPong(RemoteEndpoint gs, ByteBuffer bytes);
+    
+            /**
+     * Called by the provider when the web socket connection
+     * has an incoming ping message from the given remote endpoint.
+     *
+     * @param gs    <code>SPIRemoteEndpoint</code> who sent the message.
+     * @param bytes the message.
+     */
+    public abstract void onPing(RemoteEndpoint gs, ByteBuffer bytes);
 
     /**
      * Called by the provider when the web socket connection
