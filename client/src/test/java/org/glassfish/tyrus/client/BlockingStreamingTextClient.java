@@ -97,9 +97,9 @@ public class BlockingStreamingTextClient extends Endpoint {
         try {
             for (int i = 0; i < 10; i++) {
                 System.out.println("Sending bulk #" + i);
-                session.getRemote().sendPartialString("blk" + i, false);
-                System.out.println("Waiting for the server to process it");
                 synchronized (BlockingStreamingTextServer.class) {
+                    session.getRemote().sendPartialString("blk" + i, false);
+                    System.out.println("Waiting for the server to process it");
                     BlockingStreamingTextServer.class.wait(5000);
                 }
             }

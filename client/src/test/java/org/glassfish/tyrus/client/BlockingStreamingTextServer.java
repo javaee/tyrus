@@ -86,10 +86,10 @@ public class BlockingStreamingTextServer extends Endpoint {
                 Writer w = session.getRemote().getSendWriter();
                 for (int i = 0; i < 10; i++) {
                     System.out.println("Streaming char to the client: " + i);
-                    w.write(Character.forDigit(i, 10));
-                    w.flush();
-                    System.out.println("Waiting for the client to process it");
                     synchronized (BlockingStreamingTextServer.class) {
+                        w.write(Character.forDigit(i, 10));
+                        w.flush();
+                        System.out.println("Waiting for the client to process it");
                         BlockingStreamingTextServer.class.wait(5000);
                     }
                 }
