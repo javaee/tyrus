@@ -45,7 +45,6 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.logging.Logger;
-import org.glassfish.tyrus.spi.TyrusServer;
 
 /**
  * Implementation of the WebSocket Server.
@@ -53,8 +52,7 @@ import org.glassfish.tyrus.spi.TyrusServer;
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 public class Server {
-    private TyrusServer server;
-    private BeanServer beanServer;
+    private ServerContainer server;
     private final Set<Class<?>> beans;
     private final String hostName;
     private final int port;
@@ -125,14 +123,9 @@ public class Server {
     public synchronized void start() {
         try {
             if (server == null) {
-                beanServer = new BeanServer(ENGINE_PROVIDER_CLASSNAME);
-                server = beanServer.createServer(this.rootPath, this.port);
+                server = ServerContainerFactory.create(ENGINE_PROVIDER_CLASSNAME, rootPath, port,
+                        new DefaultServerConfiguration().endpoints(beans));
                 server.start();
-                try {
-                    beanServer.initWebSocketServer(this.rootPath, this.port, beans);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
                 LOGGER.info("WebSocket Registered apps: URLs all start with ws://" + this.hostName + ":" + this.port);
                 LOGGER.info("WebSocket server started.");
             }
@@ -148,7 +141,6 @@ public class Server {
         if (server != null) {
             server.stop();
             server = null;
-            beanServer = null;
             LOGGER.info("Websocket Server stopped.");
         }
     }

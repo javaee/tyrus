@@ -62,5 +62,9 @@
             <groupId>org.glassfish.tyrus</groupId>
             <artifactId>tyrus-container-grizzly</artifactId>
         </dependency>
+        <dependency>
+            <groupId>javax.net.websocket</groupId>
+            <artifactId>javax.net.websocket-api</artifactId>
+        </dependency>
     </dependencies>
 </project>

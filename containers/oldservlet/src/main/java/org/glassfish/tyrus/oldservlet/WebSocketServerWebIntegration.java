@@ -39,11 +39,14 @@
  */
 package org.glassfish.tyrus.oldservlet;
 
+import java.io.IOException;
 import java.util.Set;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
-import org.glassfish.tyrus.server.BeanServer;
+import org.glassfish.tyrus.server.DefaultServerConfiguration;
+import org.glassfish.tyrus.server.ServerContainer;
+import org.glassfish.tyrus.server.ServerContainerFactory;
 
 /**
  * Web application lifecycle listener.
@@ -59,7 +62,7 @@ public class WebSocketServerWebIntegration implements ServletContextListener {
     public static final String PRINCIPAL = "ws_principal";
     private static final int informational_fixed_port = 8080;
 
-    private BeanServer bs = null;
+    private ServerContainer serverContainer = null;
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
@@ -75,17 +78,18 @@ public class WebSocketServerWebIntegration implements ServletContextListener {
             engineProviderClassname = sce.getServletContext().getInitParameter(PROVIDER_CLASSNAME_KEY);
         }
 
-        bs = new BeanServer(engineProviderClassname);
         String contextRoot = sce.getServletContext().getContextPath();
+        serverContainer = ServerContainerFactory.create(engineProviderClassname, contextRoot, informational_fixed_port,
+                new DefaultServerConfiguration().endpoints(endpointClassSet));
         try {
-            bs.initWebSocketServer(contextRoot, informational_fixed_port, endpointClassSet);
-        } catch (Exception e) {
-            e.printStackTrace();
+            serverContainer.start();
+        } catch (IOException e) {
+            throw new RuntimeException("Web socket server initialization failed.", e);
         }
     }
 
     public void contextDestroyed(ServletContextEvent sce) {
-        bs.closeWebSocketServer();
+        serverContainer.stop();
     }
 
 }

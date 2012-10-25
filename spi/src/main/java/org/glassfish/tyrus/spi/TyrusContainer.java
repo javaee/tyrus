@@ -63,21 +63,4 @@ public interface TyrusContainer {
     public TyrusServer createServer(String rootPath, int port);
 
     public TyrusClientSocket openClientSocket(String path, ClientEndpointConfiguration cec, SPIEndpoint endpoint);
-
-    /**
-     * The register method is called by the SDK when it
-     * has created a web socket endpoint it wishes to be managed.
-     *
-     * @param endpoint SPIEndpoint to be registered.
-     * @return SPIRegisteredEndpoint.
-     */
-    public SPIRegisteredEndpoint register(SPIEndpoint endpoint);
-
-    /**
-     * The SDK calls unregister when it no longer wishes the endpoint to be
-     * in service.
-     *
-     * @param ge the endpoint which is going to be unregistered.
-     */
-    public void unregister(SPIRegisteredEndpoint ge);
 }

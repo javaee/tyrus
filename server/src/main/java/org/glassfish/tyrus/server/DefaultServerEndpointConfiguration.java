@@ -54,7 +54,7 @@ import javax.net.websocket.extensions.Extension;
 import org.glassfish.tyrus.DefaultEndpointConfiguration;
 
 /**
- * Provides the default {@link ServerEndpointConfiguration} used by the {@link org.glassfish.tyrus.server.BeanServer}.
+ * Provides the default {@link ServerEndpointConfiguration}.
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */

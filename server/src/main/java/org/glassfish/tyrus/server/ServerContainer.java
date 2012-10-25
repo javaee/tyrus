@@ -37,42 +37,32 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.spi;
+package org.glassfish.tyrus.server;
 
 import java.io.IOException;
 
 /**
- * HTTP server abstraction.
+ * Server container used to publish websocket end-points.
  *
  * @author Martin Matula (martin.matula at oracle.com)
  */
-public interface TyrusServer {
+public interface ServerContainer {
     /**
-     * Starts the server.
+     * Returns server configuration object that can be used to register endpoints and set other configuration parameters.
+     * @return server configuration.
+     */
+    ServerConfiguration getConfiguration();
+
+    /**
+     * Starts the server and deploys all the endpoints configured in the corresponding {@link ServerConfiguration}.
      *
      * @throws IOException if something goes wrong.
      */
     void start() throws IOException;
 
     /**
-     * Stops the server.
+     * Attempts to stops the server (for some containers, such as servlet, which don't support stopping, this may be
+     * a no-op).
      */
     void stop();
-
-    /**
-     * The register method is called by the SDK when it
-     * has created a web socket endpoint it wishes to be managed.
-     *
-     * @param endpoint SPIEndpoint to be registered.
-     * @return SPIRegisteredEndpoint.
-     */
-    public SPIRegisteredEndpoint register(SPIEndpoint endpoint);
-
-    /**
-     * The SDK calls unregister when it no longer wishes the endpoint to be
-     * in service.
-     *
-     * @param ge the endpoint which is going to be unregistered.
-     */
-    public void unregister(SPIRegisteredEndpoint ge);
 }

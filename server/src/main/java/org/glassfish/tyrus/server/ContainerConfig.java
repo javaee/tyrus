@@ -37,42 +37,20 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.spi;
+package org.glassfish.tyrus.server;
 
-import java.io.IOException;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * HTTP server abstraction.
+ * Annotates server configuration to be used for servlet-based deployment.
+ * There can be only one class annotated using ContainerConfig annotation per war file.
  *
  * @author Martin Matula (martin.matula at oracle.com)
  */
-public interface TyrusServer {
-    /**
-     * Starts the server.
-     *
-     * @throws IOException if something goes wrong.
-     */
-    void start() throws IOException;
-
-    /**
-     * Stops the server.
-     */
-    void stop();
-
-    /**
-     * The register method is called by the SDK when it
-     * has created a web socket endpoint it wishes to be managed.
-     *
-     * @param endpoint SPIEndpoint to be registered.
-     * @return SPIRegisteredEndpoint.
-     */
-    public SPIRegisteredEndpoint register(SPIEndpoint endpoint);
-
-    /**
-     * The SDK calls unregister when it no longer wishes the endpoint to be
-     * in service.
-     *
-     * @param ge the endpoint which is going to be unregistered.
-     */
-    public void unregister(SPIRegisteredEndpoint ge);
+@Target(ElementType.TYPE)
+@Retention(RetentionPolicy.RUNTIME)
+public @interface ContainerConfig {
 }

@@ -57,7 +57,7 @@ import org.glassfish.tyrus.spi.TyrusServer;
  * @author Danny Coward (danny.coward at oracle.com)
  */
 public class GrizzlyEngine implements TyrusContainer {
-    private WebSocketEngine engine;
+    private final WebSocketEngine engine;
 
     public GrizzlyEngine() {
         engine = WebSocketEngine.getEngine();
@@ -77,6 +77,18 @@ public class GrizzlyEngine implements TyrusContainer {
             public void stop() {
                 server.stop();
             }
+
+            @Override
+            public SPIRegisteredEndpoint register(SPIEndpoint endpoint) {
+                GrizzlyEndpoint ge = new GrizzlyEndpoint(endpoint);
+                engine.register(ge);
+                return ge;
+            }
+
+            @Override
+            public void unregister(SPIRegisteredEndpoint ge) {
+                engine.unregister((GrizzlyEndpoint) ge);
+            }
         };
     }
 
@@ -94,17 +106,4 @@ public class GrizzlyEngine implements TyrusContainer {
         clientSocket.connect();
         return clientSocket;
     }
-
-    @Override
-    public SPIRegisteredEndpoint register(SPIEndpoint endpoint) {
-        GrizzlyEndpoint ge = new GrizzlyEndpoint(endpoint);
-        this.engine.register(ge);
-        return ge;
-    }
-
-    @Override
-    public void unregister(SPIRegisteredEndpoint ge) {
-        this.engine.unregister((GrizzlyEndpoint) ge);
-    }
-
 }
