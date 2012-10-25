@@ -39,13 +39,16 @@
  */
 package org.glassfish.tyrus.client;
 
-import java.net.URI;
-import java.util.List;
+import org.glassfish.tyrus.DefaultEndpointConfiguration;
+
 import javax.net.websocket.ClientEndpointConfiguration;
 import javax.net.websocket.Decoder;
 import javax.net.websocket.Encoder;
 import javax.net.websocket.extensions.Extension;
-import org.glassfish.tyrus.DefaultEndpointConfiguration;
+
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Configuration used for client endpoints as the default one.
@@ -76,7 +79,8 @@ public class DefaultClientEndpointConfiguration extends DefaultEndpointConfigura
      *
      * @return {@link URI} the client will connect to.
      */
-    public URI getUri() {
+    @Override
+    public URI getURI() {
         return uri;
     }
 
@@ -96,8 +100,14 @@ public class DefaultClientEndpointConfiguration extends DefaultEndpointConfigura
      *
      * @return {@link java.util.Collections.UnmodifiableList} of extensions.
      */
-    public List<Extension> getExtensions() {
-        return extensions;
+    public List<String> getExtensions() {
+        List<String> extNames = new ArrayList<String>();
+
+        for (Extension extension : extensions) {
+            extNames.add(extension.getName());
+        }
+
+        return extNames;
     }
 
     /**

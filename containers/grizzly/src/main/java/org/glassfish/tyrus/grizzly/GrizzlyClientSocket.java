@@ -39,20 +39,6 @@
  */
 package org.glassfish.tyrus.grizzly;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.URI;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
-import javax.net.websocket.ClientEndpointConfiguration;
-import javax.net.websocket.extensions.Extension;
 import org.glassfish.grizzly.Connection;
 import org.glassfish.grizzly.GrizzlyFuture;
 import org.glassfish.grizzly.Processor;
@@ -76,6 +62,20 @@ import org.glassfish.grizzly.websockets.draft06.ClosingFrame;
 import org.glassfish.tyrus.spi.SPIEndpoint;
 import org.glassfish.tyrus.spi.TyrusClientSocket;
 
+import javax.net.websocket.ClientEndpointConfiguration;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.URI;
+import java.nio.ByteBuffer;
+import java.util.Collections;
+import java.util.EnumSet;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
+
 /**
  * Implementation of the WebSocket interface from Grizzly.
  *
@@ -96,13 +96,6 @@ class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
     enum State {
         NEW, CONNECTED, CLOSING, CLOSED
     }
-
-//    public GrizzlyClientSocket(URI uri, long timeoutMs, SPIEndpoint... endpoints) {
-//        this(uri, timeoutMs);
-//        for (SPIEndpoint endpoint : endpoints) {
-//            this.addEndpoint(endpoint);
-//        }
-//    }
 
     GrizzlyClientSocket(URI uri, ClientEndpointConfiguration clc, long timeoutMs) {
         this.uri = uri;
@@ -140,11 +133,7 @@ class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
     }
 
     private void prepareHandshake(HandShake handshake) {
-        ArrayList<String> extensions = new ArrayList<String>();
-        for (Extension extension : clc.getExtensions()) {
-            extensions.add(extension.getName());
-        }
-        handshake.setExtensions(extensions);
+        handshake.setExtensions(clc.getExtensions());
         handshake.setSubProtocol(clc.getPreferredSubprotocols());
     }
 

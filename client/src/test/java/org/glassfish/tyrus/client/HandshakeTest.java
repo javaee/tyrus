@@ -40,18 +40,20 @@
 
 package org.glassfish.tyrus.client;
 
+import org.glassfish.tyrus.server.Server;
+import org.junit.Assert;
+import org.junit.Test;
+
+import javax.net.websocket.Session;
+import javax.net.websocket.extensions.Extension;
+import javax.net.websocket.extensions.FrameHandler;
+
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import javax.net.websocket.Session;
-import javax.net.websocket.extensions.Extension;
-import javax.net.websocket.extensions.FrameHandler;
-import org.glassfish.tyrus.server.Server;
-import org.junit.Assert;
-import org.junit.Test;
 
 /**
  * Tests whether the HandShake parameters (sub-protoxols, extensions) are sent correctly.
@@ -66,6 +68,7 @@ public class HandshakeTest {
 
     private static final String SENT_MESSAGE = "hello";
 
+    //TODO Doesn't really test the functionality yet - waiting for Grizzly change.
     @Test
     public void testClient() {
         Server server = new Server("org.glassfish.tyrus.client.TestBean");

@@ -39,19 +39,20 @@
  */
 package org.glassfish.tyrus.client;
 
-import java.net.ConnectException;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.logging.Logger;
+import org.glassfish.tyrus.EndpointWrapper;
+import org.glassfish.tyrus.Model;
+import org.glassfish.tyrus.spi.TyrusClientSocket;
+import org.glassfish.tyrus.spi.TyrusContainer;
+
 import javax.net.websocket.ClientContainer;
 import javax.net.websocket.ClientEndpointConfiguration;
 import javax.net.websocket.Endpoint;
 import javax.net.websocket.Session;
 import javax.net.websocket.extensions.Extension;
-import org.glassfish.tyrus.EndpointWrapper;
-import org.glassfish.tyrus.Model;
-import org.glassfish.tyrus.spi.TyrusClientSocket;
-import org.glassfish.tyrus.spi.TyrusContainer;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.logging.Logger;
 
 /**
  * ClientManager implementation.
@@ -88,16 +89,8 @@ public class ClientManager implements ClientContainer {
     }
 
     @Override
-    public void connectToServer(Endpoint endpoint, ClientEndpointConfiguration clc) {
-        DefaultClientEndpointConfiguration dcec;
-
-        //TODO change this mechanism once the method signature is modified in API.
+    public void connectToServer(Endpoint endpoint, ClientEndpointConfiguration configuration) {
         try {
-            if (clc instanceof DefaultClientEndpointConfiguration) {
-                dcec = (DefaultClientEndpointConfiguration) clc;
-            } else {
-                throw new ConnectException("Provided configuration is not the supported one.");
-            }
             Model model = null;
             try {
                 model = new Model(endpoint);
@@ -107,9 +100,9 @@ public class ClientManager implements ClientContainer {
                 e.printStackTrace();
             }
 
-            EndpointWrapper clientEndpoint = new EndpointWrapper(null, model, clc, this);
+            EndpointWrapper clientEndpoint = new EndpointWrapper(null, model, configuration, this);
             TyrusClientSocket clientSocket = engine.openClientSocket(
-                    dcec.getUri(), clc, clientEndpoint);
+                    configuration.getURI(), configuration, clientEndpoint);
             sockets.add(clientSocket);
         } catch (Exception e) {
             e.printStackTrace();

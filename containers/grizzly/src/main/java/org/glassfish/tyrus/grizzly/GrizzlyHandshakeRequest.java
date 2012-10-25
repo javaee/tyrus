@@ -62,5 +62,4 @@ class GrizzlyHandshakeRequest implements SPIHandshakeRequest {
     public String getRequestURI() {
         return this.rp.getRequestURI();
     }
-
 }

@@ -39,9 +39,10 @@
  */
 package org.glassfish.tyrus.spi;
 
-import java.nio.ByteBuffer;
-import javax.net.websocket.EndpointConfiguration;
 import javax.net.websocket.RemoteEndpoint;
+
+import java.nio.ByteBuffer;
+import java.util.List;
 
 /**
  * The WebSocket SDK implements SPIEndpoint with its representation of
@@ -84,7 +85,7 @@ public abstract class SPIEndpoint {
     public abstract void onMessage(RemoteEndpoint gs, String messageString);
 
 
-    /**
+        /**
      * Called by the provider when the web socket connection
      * has an incoming partial text message from the given remote endpoint. Partial
      * text messages are passed in sequential order, one piece at a time. If an implementation
@@ -92,7 +93,7 @@ public abstract class SPIEndpoint {
      * thing along.
      *
      * @param gs            <code>SPIRemoteEndpoint</code> who sent the message.
-     * @param messageString the String message.
+     * @param partialString the String message.
      * @param last          to indicate if this is the last partial string in the sequence
      */
     public abstract void onPartialMessage(RemoteEndpoint gs, String partialString, boolean last);
@@ -151,5 +152,19 @@ public abstract class SPIEndpoint {
      */
     public abstract void remove();
 
-    public abstract EndpointConfiguration getConfiguration();
+    /**
+     * Get the negotiated extensions' names based on the extensions supported by client.
+     *
+     * @param clientExtensions names of the extensions' supported by client.
+     * @return names of extensions supported by both client and class that implements this one.
+     */
+    public abstract List<String> getNegotiatedExtensions(List<String> clientExtensions);
+
+    /**
+     * Compute the sub - protocol which will be used.
+     *
+     * @param clientProtocols sub - protocols supported by client.
+     * @return negotiated sub - protocol, {@code null} if none found.
+     */
+    public abstract String getNegotiatedProtocol(List<String> clientProtocols);
 }

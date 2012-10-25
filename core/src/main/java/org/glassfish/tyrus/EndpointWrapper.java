@@ -40,13 +40,9 @@
 
 package org.glassfish.tyrus;
 
-import java.io.IOException;
-import java.lang.reflect.Method;
-import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import org.glassfish.tyrus.spi.SPIEndpoint;
+import org.glassfish.tyrus.spi.SPIHandshakeRequest;
+
 import javax.net.websocket.ClientContainer;
 import javax.net.websocket.CloseReason;
 import javax.net.websocket.DecodeException;
@@ -59,11 +55,17 @@ import javax.net.websocket.MessageHandler;
 import javax.net.websocket.RemoteEndpoint;
 import javax.net.websocket.ServerEndpointConfiguration;
 import javax.net.websocket.Session;
-import org.glassfish.tyrus.spi.SPIEndpoint;
-import org.glassfish.tyrus.spi.SPIHandshakeRequest;
+
+import java.io.IOException;
+import java.lang.reflect.Method;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Wrapps the registered application class.
+ * Wraps the registered application class.
  * There is one {@link EndpointWrapper} for each application class, which handles all the methods.
  *
  * @author Danny Coward (danny.coward at oracle.com)
@@ -113,22 +115,6 @@ public class EndpointWrapper extends SPIEndpoint {
         this.configuration = configuration;
         this.annotated = model.wasAnnotated();
         this.container = container;
-    }
-
-    /**
-     * Checks whether the provided dynamicPath matches with this endpoint, i.e. if there is a method that can process the request.
-     *
-     * @param remoteUri   path to be checked.
-     * @param dynamicPath taken from the {@link javax.net.websocket.annotations.WebSocketMessage} method annotation.
-     * @return {@code true} if the paths match, {@code false} otherwise.
-     */
-    protected boolean doesPathMatch(String remoteUri, String dynamicPath) {
-        if (dynamicPath.equals("*")) {
-            return true;
-        } else if ((path + dynamicPath).equals(remoteUri)) {
-            return true;
-        }
-        return false;
     }
 
     ClientContainer getContainer() {
@@ -192,25 +178,46 @@ public class EndpointWrapper extends SPIEndpoint {
 
     @Override
     public boolean checkHandshake(SPIHandshakeRequest hr) {
+        ServerEndpointConfiguration sec;
 
-        ServerEndpointConfiguration sep;
         if (configuration instanceof ServerEndpointConfiguration) {
-            sep = (ServerEndpointConfiguration) configuration;
+            sec = (ServerEndpointConfiguration) configuration;
         } else {
             return false;
         }
 
-        return hr.getRequestURI().matches(path) && sep.checkOrigin(hr.getHeader("Origin"));
+        return hr.getRequestURI().matches(path) && sec.checkOrigin(hr.getHeader("Origin"));
+    }
+
+    @Override
+    public List<String> getNegotiatedExtensions(List<String> clientExtensions) {
+        ServerEndpointConfiguration sec;
+
+        if (configuration instanceof ServerEndpointConfiguration) {
+            sec = (ServerEndpointConfiguration) configuration;
+        } else {
+            return null;
+        }
+
+        return sec.getNegotiatedExtensions(clientExtensions);
+    }
+
+    @Override
+    public String getNegotiatedProtocol(List<String> clientProtocols) {
+        ServerEndpointConfiguration sec;
+
+        if (configuration instanceof ServerEndpointConfiguration) {
+            sec = (ServerEndpointConfiguration) configuration;
+        } else {
+            return null;
+        }
+
+        return sec.getNegotiatedSubprotocol(clientProtocols);
     }
 
     @Override
     public void remove() {
 
-    }
-
-    @Override
-    public EndpointConfiguration getConfiguration() {
-        return configuration;
     }
 
     @Override
@@ -241,6 +248,7 @@ public class EndpointWrapper extends SPIEndpoint {
      * - if there is a blocking handler, use an adapter to invoke it
      */
     @Override
+    @SuppressWarnings("unchecked")
     public void onPartialMessage(RemoteEndpoint gs, String partialString, boolean last) {
         boolean handled = false;
         RemoteEndpointWrapper peer = getPeer(gs);
@@ -258,7 +266,7 @@ public class EndpointWrapper extends SPIEndpoint {
             System.out.println("Unhandled text message in EndpointWrapper");
         }
     }
-    
+
     @Override
     public void onPartialMessage(RemoteEndpoint gs, ByteBuffer partialBytes, boolean last) {
         RemoteEndpointWrapper peer = getPeer(gs);
@@ -274,7 +282,7 @@ public class EndpointWrapper extends SPIEndpoint {
         if (!handled) {
             System.out.println("Unhandled partial binary message in EndpointWrapper");
         }
-        
+
     }
     
     
@@ -313,6 +321,7 @@ public class EndpointWrapper extends SPIEndpoint {
      * @param o        message.
      * @param isString String / byte[] message.
      */
+    @SuppressWarnings("unchecked")
     private void processCompleteMessage(RemoteEndpoint gs, Object o, boolean isString) {
         RemoteEndpointWrapper peer = getPeer(gs);
         boolean decoded = false;
@@ -430,16 +439,6 @@ public class EndpointWrapper extends SPIEndpoint {
     public void handleGeneratedBeanException(RemoteEndpoint peer, Exception e) {
         e.printStackTrace();
         throw new RuntimeException("Error handling not supported yet.");
-//        for (Method m : model.getOnErrorMethods()) {
-//            try {
-//                System.out.println("Error replying to client " + e.getMessage());
-//                e.printStackTrace();
-//                m.invoke(model.getBean(), e, peer);
-//            } catch (Exception ex) {
-//                ex.printStackTrace();
-//                throw new RuntimeException("Error invoking it.");
-//            }
-//        }
     }
 
     public void onGeneratedBeanConnect(RemoteEndpointWrapper peer) {

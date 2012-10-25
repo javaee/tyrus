@@ -39,15 +39,6 @@
  */
 package org.glassfish.tyrus.grizzly;
 
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import javax.net.websocket.ServerEndpointConfiguration;
-import javax.net.websocket.extensions.Extension;
-import javax.net.websocket.extensions.FrameHandler;
 import org.glassfish.grizzly.http.HttpRequestPacket;
 import org.glassfish.grizzly.websockets.DataFrame;
 import org.glassfish.grizzly.websockets.ProtocolHandler;
@@ -58,11 +49,33 @@ import org.glassfish.grizzly.websockets.WebSocketListener;
 import org.glassfish.tyrus.spi.SPIEndpoint;
 import org.glassfish.tyrus.spi.SPIRegisteredEndpoint;
 
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 /**
- * @author Danny Coward (danny.coward at oracle.com)
+ * Implementation of {@link SPIRegisteredEndpoint} for Grizzly.
+ * Please note that for one connection to WebSocketApplication it is guaranteed that the methods:
+ * isApplicationRequest, createSocket, getSupportedProtocols, getSupportedExtensions are called in this order.
+ * Handshakes
+ *
+ * @author dannycoward
+ * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 class GrizzlyEndpoint extends WebSocketApplication implements SPIRegisteredEndpoint {
     private SPIEndpoint endpoint;
+
+    /**
+     * Used to store negotiated extensions between the call of isApplicationRequest method and getSupportedExtensions.
+     */
+    private List<String> temporaryNegotiatedExtensions;
+
+    /**
+     * Used to store negotiated protocol between the call of isApplicationRequest method and getSupportedProtocols.
+     */
+    private String temporaryNegotiatedProtocol;
 
     GrizzlyEndpoint(SPIEndpoint endpoint) {
         this.endpoint = endpoint;
@@ -70,27 +83,17 @@ class GrizzlyEndpoint extends WebSocketApplication implements SPIRegisteredEndpo
 
     @Override
     public boolean isApplicationRequest(HttpRequestPacket o) {
+        List<String> protocols = createList(o.getHeader(WebSocketEngine.SEC_WS_PROTOCOL_HEADER));
+        temporaryNegotiatedProtocol = endpoint.getNegotiatedProtocol(protocols);
+
+        List<String> extensions = createList(o.getHeader(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER));
+        temporaryNegotiatedExtensions = endpoint.getNegotiatedExtensions(extensions);
+
         return endpoint.checkHandshake(new GrizzlyHandshakeRequest(o));
     }
 
     @Override
     public WebSocket createSocket(final ProtocolHandler handler, final HttpRequestPacket requestPacket, final WebSocketListener... listeners) {
-
-        List<String> desiredProtocols = createList(requestPacket.getHeader(WebSocketEngine.SEC_WS_PROTOCOL_HEADER));
-        List<Extension> desiredExtensions = createExtensionList(requestPacket.getHeader(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER));
-
-        ServerEndpointConfiguration configuration;
-
-        if (endpoint.getConfiguration() instanceof ServerEndpointConfiguration) {
-            configuration = (ServerEndpointConfiguration) endpoint.getConfiguration();
-        } else {
-            return null;
-        }
-
-        String subprotocol = configuration.getNegotiatedSubprotocol(desiredProtocols);
-        List<Extension> extensions = configuration.getNegotiatedExtensions(desiredExtensions);
-
-        GrizzlyProtocolHandler gph = new GrizzlyProtocolHandler(false, subprotocol, extensions);
         return new GrizzlySocket(handler, requestPacket, listeners);
     }
 
@@ -128,8 +131,6 @@ class GrizzlyEndpoint extends WebSocketApplication implements SPIRegisteredEndpo
     public void onMessage(WebSocket socket, String messageString) {
         GrizzlyRemoteEndpoint gs = GrizzlyRemoteEndpoint.get(socket);
         this.endpoint.onMessage(gs, messageString);
-
-
     }
 
 
@@ -158,6 +159,25 @@ class GrizzlyEndpoint extends WebSocketApplication implements SPIRegisteredEndpo
         this.endpoint.remove();
     }
 
+    @Override
+    public List<String> getSupportedExtensions() {
+        return temporaryNegotiatedExtensions;
+    }
+
+    @Override
+    public List<String> getSupportedProtocols(List<String> subProtocol) {
+        List<String> result;
+
+        if(temporaryNegotiatedProtocol == null){
+            result = Collections.emptyList();
+        }else{
+            result = new ArrayList<String>();
+            result.add(temporaryNegotiatedProtocol);
+        }
+
+        return result;
+    }
+
     /**
      * Creates a {@link List} from {@link String} in which the data values are separated by commas.
      *
@@ -175,55 +195,4 @@ class GrizzlyEndpoint extends WebSocketApplication implements SPIRegisteredEndpo
 
         return Arrays.asList(tokens);
     }
-
-    @SuppressWarnings("unchecked")
-    private List<Extension> createExtensionList(String input) {
-        if (input == null) {
-            List<Extension> result = Collections.emptyList();
-            return result;
-        }
-
-        String delimiter = ",";
-        String[] tokens = input.split(delimiter);
-
-        ArrayList<Extension> result = new ArrayList<Extension>();
-        for (String token : tokens) {
-            result.add(new GrizzlyExtension(token));
-        }
-
-        return result;
-    }
-
-    /**
-     * Needed just to convert List<String> => List<Extension>, will be removed once this is changed in API.
-     */
-    private class GrizzlyExtension implements Extension {
-
-        private String name;
-
-        private GrizzlyExtension(String name) {
-            this.name = name;
-        }
-
-        @Override
-        public String getName() {
-            return name;
-        }
-
-        @Override
-        public Map<String, String> getParameters() {
-            return null;
-        }
-
-        @Override
-        public FrameHandler createIncomingFrameHandler(FrameHandler downstream) {
-            return null;
-        }
-
-        @Override
-        public FrameHandler createOutgoingFrameHandler(FrameHandler upstream) {
-            return null;
-        }
-    }
-
 }

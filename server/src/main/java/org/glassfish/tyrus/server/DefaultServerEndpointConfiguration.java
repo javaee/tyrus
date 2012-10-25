@@ -39,22 +39,22 @@
  */
 package org.glassfish.tyrus.server;
 
+import org.glassfish.tyrus.DefaultEndpointConfiguration;
+
+import javax.net.websocket.Decoder;
+import javax.net.websocket.Encoder;
+import javax.net.websocket.HandshakeRequest;
+import javax.net.websocket.HandshakeResponse;
+import javax.net.websocket.ServerEndpointConfiguration;
+import javax.net.websocket.extensions.Extension;
+
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import javax.net.websocket.Decoder;
-import javax.net.websocket.Encoder;
-import javax.net.websocket.Endpoint;
-import javax.net.websocket.HandshakeRequest;
-import javax.net.websocket.HandshakeResponse;
-import javax.net.websocket.ServerConfiguration;
-import javax.net.websocket.ServerEndpointConfiguration;
-import javax.net.websocket.extensions.Extension;
-import org.glassfish.tyrus.DefaultEndpointConfiguration;
 
 /**
- * Provides the default {@link ServerConfiguration} used by the {@link org.glassfish.tyrus.server.BeanServer}.
+ * Provides the default {@link ServerEndpointConfiguration} used by the {@link org.glassfish.tyrus.server.BeanServer}.
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
@@ -66,9 +66,13 @@ public class DefaultServerEndpointConfiguration extends DefaultEndpointConfigura
     private final List<String> origins;
 
     /**
-     * Creates new configuration for {@link Endpoint} which is used on the server side.
+     * Creates new configuration for {@link javax.net.websocket.Endpoint} which is used on the server side.
      *
-     * @param
+     * @param encoders message encoders.
+     * @param decoders message decoders.
+     * @param subprotocols supported sub - protocols.
+     * @param extensions supported extensions.
+     * @param origins accepted origins.
      */
     protected DefaultServerEndpointConfiguration(List<Encoder> encoders, List<Decoder> decoders,
                                                  List<String> subprotocols, List<Extension> extensions,
@@ -89,12 +93,14 @@ public class DefaultServerEndpointConfiguration extends DefaultEndpointConfigura
     }
 
     @Override
-    public List<Extension> getNegotiatedExtensions(List<Extension> requestedExtensions) {
-        List<Extension> result = new ArrayList<Extension>();
+    public List<String> getNegotiatedExtensions(List<String> requestedExtensions) {
+        List<String> result = new ArrayList<String>();
 
-        for (Extension requestedExtension : requestedExtensions) {
-            if (extensions.contains(requestedExtension)) {
-                result.add(requestedExtension);
+        for (String requestedExtension : requestedExtensions) {
+            for (Extension extension : extensions) {
+                if(extension.getName().equals(requestedExtension)){
+                    result.add(requestedExtension);
+                }
             }
         }
 
@@ -126,7 +132,7 @@ public class DefaultServerEndpointConfiguration extends DefaultEndpointConfigura
         /**
          * Create new {@link Builder}.
          *
-         * @param uri at which the {@link Endpoint} will be deployed.
+         * @param uri at which the {@link javax.net.websocket.Endpoint} will be deployed.
          */
         public Builder(URI uri) {
             super(uri);
@@ -136,7 +142,7 @@ public class DefaultServerEndpointConfiguration extends DefaultEndpointConfigura
          * Set the allowed origins.
          *
          * @param origins from which the connection is allowed.
-         * @return
+         * @return Builder.
          */
         public Builder origins(List<String> origins) {
             this.origins = origins;
