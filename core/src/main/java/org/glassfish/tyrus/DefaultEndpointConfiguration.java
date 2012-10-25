@@ -39,9 +39,9 @@
  */
 package org.glassfish.tyrus;
 
-import java.net.URI;
 import java.util.Collections;
 import java.util.List;
+
 import javax.net.websocket.Decoder;
 import javax.net.websocket.Encoder;
 import javax.net.websocket.EndpointConfiguration;
@@ -123,7 +123,7 @@ public abstract class DefaultEndpointConfiguration implements EndpointConfigurat
     }
 
     protected static class Builder<T extends Builder> {
-        protected URI uri;
+        protected String uri;
         protected List<Encoder> encoders;
         protected List<Decoder> decoders;
         protected List<String> protocols;
@@ -134,7 +134,7 @@ public abstract class DefaultEndpointConfiguration implements EndpointConfigurat
          *
          * @param uri URI the corresponding {@link javax.xml.ws.Endpoint} will use to connect to.
          */
-        public Builder(URI uri) {
+        public Builder(String uri) {
             this.uri = uri;
         }
 

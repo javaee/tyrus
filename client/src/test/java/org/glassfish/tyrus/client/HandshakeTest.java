@@ -49,7 +49,6 @@ import javax.net.websocket.extensions.Extension;
 import javax.net.websocket.extensions.FrameHandler;
 
 import java.io.IOException;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -85,7 +84,7 @@ public class HandshakeTest {
             extensions.add(new TestExtension("ext1"));
             extensions.add(new TestExtension("ext2"));
 
-            DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder(new URI("ws://localhost:8025/websockets/tests/echo"));
+            DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder("ws://localhost:8025/websockets/tests/echo");
 //            builder.protocols(subprotocols);
             builder.extensions(extensions);
             DefaultClientEndpointConfiguration dcec = builder.build();

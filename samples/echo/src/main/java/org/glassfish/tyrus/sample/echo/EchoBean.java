@@ -51,6 +51,4 @@ public class EchoBean {
         System.out.println("##################### Message received");
         return message + " (from your server)";
     }
-
-
 }

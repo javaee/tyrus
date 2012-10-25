@@ -43,6 +43,8 @@ package org.glassfish.tyrus;
 import org.glassfish.tyrus.spi.SPIEndpoint;
 import org.glassfish.tyrus.spi.SPIHandshakeRequest;
 
+import java.util.regex.MatchResult;
+
 import javax.net.websocket.ClientContainer;
 import javax.net.websocket.CloseReason;
 import javax.net.websocket.DecodeException;
@@ -55,6 +57,8 @@ import javax.net.websocket.MessageHandler;
 import javax.net.websocket.RemoteEndpoint;
 import javax.net.websocket.ServerEndpointConfiguration;
 import javax.net.websocket.Session;
+
+import org.glassfish.tyrus.internal.PathPattern;
 
 import java.io.IOException;
 import java.lang.reflect.Method;
@@ -186,7 +190,8 @@ public class EndpointWrapper extends SPIEndpoint {
             return false;
         }
 
-        return hr.getRequestURI().matches(path) && sec.checkOrigin(hr.getHeader("Origin"));
+        final MatchResult matchResult = new PathPattern(path).match(hr.getRequestURI());
+        return matchResult != null && sec.checkOrigin(hr.getHeader("Origin"));
     }
 
     @Override
@@ -341,8 +346,8 @@ public class EndpointWrapper extends SPIEndpoint {
         }
 
         try {
-            for (Method m : model.getOnMessageMethods()) {
-                Class<?>[] paramTypes = m.getParameterTypes();
+            for (Method method : model.getOnMessageMethods()) {
+                Class<?>[] paramTypes = method.getParameterTypes();
                 Class<?> type = null;
 
                 for (Class<?> methodParamType : paramTypes) {
@@ -355,7 +360,7 @@ public class EndpointWrapper extends SPIEndpoint {
                 Object decodedMessageObject = this.decodeMessage(o, type, isString);
 
                 if (decodedMessageObject != null) {
-                    Object returned = invokeMethod(decodedMessageObject, m, peer);
+                    Object returned = invokeMethod(decodedMessageObject, method, peer);
                     if (returned != null) {
                         if (o instanceof String) {
                             String messageToSendAsString = this.doEncode(returned);

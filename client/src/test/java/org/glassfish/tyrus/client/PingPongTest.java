@@ -39,12 +39,12 @@
  */
 package org.glassfish.tyrus.client;
 
-import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
 import org.glassfish.tyrus.server.Server;
+
 import org.junit.Assert;
-import org.junit.Test;
 
 /**
  * Tests sending and receiving ping and pongs
@@ -60,7 +60,7 @@ public class PingPongTest {
 
         try {
             CountDownLatch messageLatch = new CountDownLatch(1);
-            DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder(new URI("ws://localhost:8025/websockets/tests/pingpong"));
+            DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder("ws://localhost:8025/websockets/tests/pingpong");
             DefaultClientEndpointConfiguration dcec = builder.build();
 
             PingPongClient htc = new PingPongClient(messageLatch);

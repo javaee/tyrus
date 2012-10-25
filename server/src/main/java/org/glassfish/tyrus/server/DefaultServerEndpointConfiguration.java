@@ -39,7 +39,10 @@
  */
 package org.glassfish.tyrus.server;
 
-import org.glassfish.tyrus.DefaultEndpointConfiguration;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import javax.net.websocket.Decoder;
 import javax.net.websocket.Encoder;
@@ -48,10 +51,7 @@ import javax.net.websocket.HandshakeResponse;
 import javax.net.websocket.ServerEndpointConfiguration;
 import javax.net.websocket.extensions.Extension;
 
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import org.glassfish.tyrus.DefaultEndpointConfiguration;
 
 /**
  * Provides the default {@link ServerEndpointConfiguration} used by the {@link org.glassfish.tyrus.server.BeanServer}.
@@ -134,7 +134,7 @@ public class DefaultServerEndpointConfiguration extends DefaultEndpointConfigura
          *
          * @param uri at which the {@link javax.net.websocket.Endpoint} will be deployed.
          */
-        public Builder(URI uri) {
+        public Builder(String uri) {
             super(uri);
         }
 

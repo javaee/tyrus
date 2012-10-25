@@ -40,7 +40,6 @@
 package org.glassfish.tyrus.spi;
 
 
-import java.net.URI;
 import javax.net.websocket.ClientEndpointConfiguration;
 
 /**
@@ -63,7 +62,7 @@ public interface TyrusContainer {
      */
     public TyrusServer createServer(String rootPath, int port);
 
-    public TyrusClientSocket openClientSocket(URI uri, ClientEndpointConfiguration cec, SPIEndpoint endpoint);
+    public TyrusClientSocket openClientSocket(String path, ClientEndpointConfiguration cec, SPIEndpoint endpoint);
 
     /**
      * The register method is called by the SDK when it

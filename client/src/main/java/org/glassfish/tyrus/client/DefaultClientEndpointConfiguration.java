@@ -39,16 +39,16 @@
  */
 package org.glassfish.tyrus.client;
 
-import org.glassfish.tyrus.DefaultEndpointConfiguration;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.net.websocket.ClientEndpointConfiguration;
 import javax.net.websocket.Decoder;
 import javax.net.websocket.Encoder;
 import javax.net.websocket.extensions.Extension;
 
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
+import org.glassfish.tyrus.DefaultEndpointConfiguration;
 
 /**
  * Configuration used for client endpoints as the default one.
@@ -61,7 +61,7 @@ public class DefaultClientEndpointConfiguration extends DefaultEndpointConfigura
     /**
      * URI the client will attempt to connect to.
      */
-    private final URI uri;
+    private final String uri;
 
     /**
      * Creates a client configuration that will attempt
@@ -69,7 +69,7 @@ public class DefaultClientEndpointConfiguration extends DefaultEndpointConfigura
      */
     private DefaultClientEndpointConfiguration(List<Encoder> encoders, List<Decoder> decoders,
                                                List<String> subprotocols, List<Extension> extensions,
-                                               URI uri) {
+                                               String uri) {
         super(encoders, decoders, subprotocols, extensions);
         this.uri = uri;
     }
@@ -80,7 +80,7 @@ public class DefaultClientEndpointConfiguration extends DefaultEndpointConfigura
      * @return {@link URI} the client will connect to.
      */
     @Override
-    public URI getURI() {
+    public String getURI() {
         return uri;
     }
 
@@ -120,7 +120,7 @@ public class DefaultClientEndpointConfiguration extends DefaultEndpointConfigura
          *
          * @param uri at which the {@link javax.net.websocket.Endpoint} will be deployed.
          */
-        public Builder(URI uri) {
+        public Builder(String uri) {
             super(uri);
         }
 

@@ -41,7 +41,6 @@
 package org.glassfish.tyrus.server;
 
 import java.lang.reflect.Method;
-import java.net.URI;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -49,6 +48,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
+
 import org.glassfish.tyrus.EndpointWrapper;
 import org.glassfish.tyrus.Model;
 import org.glassfish.tyrus.spi.SPIRegisteredEndpoint;
@@ -155,7 +155,7 @@ public class BeanServer {
                 String wrapperBeanPath = (wsPath.endsWith("/") ? wsPath.substring(0, wsPath.length() - 1) : wsPath)
                         + "/" + (nextPath.startsWith("/") ? nextPath.substring(1) : nextPath);
 
-                DefaultServerEndpointConfiguration.Builder builder = new DefaultServerEndpointConfiguration.Builder(new URI(wrapperBeanPath));
+                DefaultServerEndpointConfiguration.Builder builder = new DefaultServerEndpointConfiguration.Builder(wrapperBeanPath);
                 DefaultServerEndpointConfiguration dsec = builder.encoders(model.getEncoders()).decoders(model.getDecoders()).build();
                 EndpointWrapper endpoint = new EndpointWrapper(wrapperBeanPath, model, dsec, this.containerContext);
                 this.deploy(endpoint);

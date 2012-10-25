@@ -40,18 +40,20 @@
 
 package org.glassfish.tyrus.test.basic;
 
-import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
 import javax.net.websocket.RemoteEndpoint;
 import javax.net.websocket.Session;
+
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.client.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.basic.bean.BroadcasterTestBean;
-import static org.junit.Assert.assertTrue;
+
 import org.junit.Ignore;
 import org.junit.Test;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests broadcasting to several clients.
@@ -71,7 +73,7 @@ public class BroadcasterTest {
             final TEndpointAdapter ea1 = new TEndpointAdapter(messageLatch);
             final TEndpointAdapter ea2 = new TEndpointAdapter(messageLatch);
 
-            final DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder(new URI("ws://localhost:8025/websockets/tests/broadcast"));
+            final DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder("ws://localhost:8025/websockets/tests/broadcast");
             final DefaultClientEndpointConfiguration dcec = builder.build();
 
             final ClientManager client1 = ClientManager.createClient();

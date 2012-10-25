@@ -41,13 +41,15 @@
 package org.glassfish.tyrus.test.basic;
 
 import java.io.IOException;
-import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
 import javax.net.websocket.Session;
+
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.client.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.server.Server;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -117,7 +119,7 @@ public class InTest {
 
             String address = "ws://localhost:8025/websockets/tests" + segmentPath;
 
-            final DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder(new URI(address));
+            final DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder(address);
             final DefaultClientEndpointConfiguration dcec = builder.build();
 
             ClientManager client = ClientManager.createClient();

@@ -40,16 +40,18 @@
 package org.glassfish.tyrus.client;
 
 import java.io.IOException;
-import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
 import javax.net.websocket.Session;
+
 import org.glassfish.tyrus.server.Server;
+
 import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Tests the basic client behavior, sending and receiving message
+ * Tests the basic client behavior, sending and receiving message.
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
@@ -68,7 +70,7 @@ public class ClientTest {
 
         try {
             messageLatch = new CountDownLatch(1);
-            DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder(new URI("ws://localhost:8025/websockets/tests/echo"));
+            DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder("ws://localhost:8025/websockets/tests/echo");
             DefaultClientEndpointConfiguration dcec = builder.build();
 
             ClientManager client = ClientManager.createClient();

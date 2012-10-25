@@ -219,6 +219,6 @@
         </dependency>
     </dependencies>
     <properties>
-        <generated.sources.dir>${project.build.directory}/generated-sources</generated.sources.dir>
+        <generated.sources.dir>${project.build.directory}/generated-sources/src</generated.sources.dir>
     </properties>
 </project>

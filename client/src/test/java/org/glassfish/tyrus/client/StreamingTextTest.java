@@ -39,10 +39,11 @@
  */
 package org.glassfish.tyrus.client;
 
-import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
 import org.glassfish.tyrus.server.Server;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -61,7 +62,7 @@ public class StreamingTextTest {
         try {
             CountDownLatch messageLatch = new CountDownLatch(2);
             StreamingTextServer.messageLatch = messageLatch;
-            DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder(new URI("ws://localhost:8025/websockets/tests/streamingtext"));
+            DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder("ws://localhost:8025/websockets/tests/streamingtext");
             DefaultClientEndpointConfiguration dcec = builder.build();
 
             StreamingTextClient stc = new StreamingTextClient(messageLatch);

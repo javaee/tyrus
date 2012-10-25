@@ -39,11 +39,13 @@
  */
 package org.glassfish.tyrus.client;
 
-import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
 import javax.net.websocket.SendResult;
+
 import org.glassfish.tyrus.server.Server;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -61,7 +63,7 @@ public class TextFutureCompletionHandlerTest {
         try {
             CountDownLatch messageLatch = new CountDownLatch(2);
             TextFutureCompletionHandlerServer.messageLatch = messageLatch;
-            DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder(new URI("ws://localhost:8025/websockets/tests/hellocompletionhandlerfuture"));
+            DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder("ws://localhost:8025/websockets/tests/hellocompletionhandlerfuture");
             DefaultClientEndpointConfiguration dcec = builder.build();
 
             HelloTextClient htc = new HelloTextClient(messageLatch);
@@ -86,7 +88,7 @@ public class TextFutureCompletionHandlerTest {
         try {
             CountDownLatch messageLatch = new CountDownLatch(2);
             TextFutureCompletionHandlerServer.messageLatch = messageLatch;
-            DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder(new URI("ws://localhost:8025/websockets/tests/hellocompletionhandlerfuture"));
+            DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder("ws://localhost:8025/websockets/tests/hellocompletionhandlerfuture");
             DefaultClientEndpointConfiguration dcec = builder.build();
 
             HelloTextClient htc = new HelloTextClient(messageLatch);
