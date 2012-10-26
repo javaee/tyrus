@@ -60,87 +60,39 @@ import javax.net.websocket.Session;
  */
 public final class RemoteEndpointWrapper<T> implements RemoteEndpoint<T> {
 
-    /**
-     * Remote endpoint.
-     */
-    private final RemoteEndpoint providedRemoteEndpoint;
+    private final RemoteEndpoint remoteEndpoint;
+    private final SessionImpl session;
+    private final EndpointWrapper endpointWrapper;
 
-    /**
-     * WebSocket Session implementation.
-     */
-    private final SessionImpl webSocketSession;
-
-    /**
-     * Endpoint to which is this class the other side of connection.
-     */
-    private final EndpointWrapper correspondingEndpoint;
-
-    /**
-     * URI to which this remote endpoint connected during the handshake phase.
-     */
-    private String connectedToAddress;
-
-    /**
-     * Get the RemoteEndpoint wrapper.
-     *
-     * @param socket      socket corresponding to the required wrapper
-     * @param application web socket endpoint for which the wrapper represents the other side of the connection
-     * @return wrapper corresponding to socket
-     */
-    public static RemoteEndpointWrapper getRemoteWrapper(RemoteEndpoint socket, EndpointWrapper application) {
-        return new RemoteEndpointWrapper(socket, application);
-    }
-
-    @SuppressWarnings("LeakingThisInConstructor")
-    private RemoteEndpointWrapper(RemoteEndpoint providedRemoteEndpoint, EndpointWrapper correspondingEndpoint) {
-        this.providedRemoteEndpoint = providedRemoteEndpoint;
-        this.correspondingEndpoint = correspondingEndpoint;
-        this.webSocketSession = new SessionImpl(correspondingEndpoint.getContainer());
-        this.webSocketSession.setPeer(this);
-    }
-
-    /**
-     * URI to which the remote originally connected.
-     *
-     * @return URI
-     */
-    public String getAddress() {
-        return this.connectedToAddress;
-    }
-
-    /**
-     * The endpoint is connected.
-     *
-     * @return {@code true} iff the endpoint is connected, {@code false} otherwise.
-     */
-    public boolean isConnected() {
-//        return this.providedRemoteEndpoint.isConnected(); TODO change
-        return true;
+    RemoteEndpointWrapper(SessionImpl session, RemoteEndpoint remoteEndpoint, EndpointWrapper endpointWrapper) {
+        this.remoteEndpoint = remoteEndpoint;
+        this.endpointWrapper = endpointWrapper;
+        this.session = session;
     }
 
     @Override
     public void sendString(String data) throws IOException {
-        this.providedRemoteEndpoint.sendString(data);
-        this.webSocketSession.updateLastConnectionActivity();
+        this.remoteEndpoint.sendString(data);
+        this.session.updateLastConnectionActivity();
     }
 
     @Override
     public void sendBytes(ByteBuffer data) throws IOException {
-        this.providedRemoteEndpoint.sendBytes(data);
-        this.webSocketSession.updateLastConnectionActivity();
+        this.remoteEndpoint.sendBytes(data);
+        this.session.updateLastConnectionActivity();
     }
 
     @Override
     public void sendPartialString(String fragment, boolean isLast) throws IOException {
-        this.providedRemoteEndpoint.sendPartialString(fragment, isLast);
-        this.webSocketSession.updateLastConnectionActivity();
+        this.remoteEndpoint.sendPartialString(fragment, isLast);
+        this.session.updateLastConnectionActivity();
     }
 
 
     @Override
     public void sendPartialBytes(ByteBuffer byteBuffer, boolean isLast) throws IOException {
-        this.providedRemoteEndpoint.sendPartialBytes(byteBuffer, isLast);
-        this.webSocketSession.updateLastConnectionActivity();
+        this.remoteEndpoint.sendPartialBytes(byteBuffer, isLast);
+        this.session.updateLastConnectionActivity();
     }
 
     @Override
@@ -155,7 +107,7 @@ public final class RemoteEndpointWrapper<T> implements RemoteEndpoint<T> {
 
     @Override
     public void sendObject(T o) throws IOException, EncodeException {
-        this.webSocketSession.updateLastConnectionActivity();
+        this.session.updateLastConnectionActivity();
         sendPolymorphic(o);
     }
 
@@ -163,7 +115,7 @@ public final class RemoteEndpointWrapper<T> implements RemoteEndpoint<T> {
     public Future<SendResult> sendString(String text, SendHandler completion) {
         SendCompletionAdapter goesAway = new SendCompletionAdapter(this, SendCompletionAdapter.State.TEXT);
         Future<SendResult> fsr = goesAway.send(text, completion);
-        this.webSocketSession.updateLastConnectionActivity();
+        this.session.updateLastConnectionActivity();
         return fsr;
     }
 
@@ -171,7 +123,7 @@ public final class RemoteEndpointWrapper<T> implements RemoteEndpoint<T> {
     public Future<SendResult> sendBytes(ByteBuffer data, SendHandler completion) {
         SendCompletionAdapter goesAway = new SendCompletionAdapter(this, SendCompletionAdapter.State.BINARY);
         Future<SendResult> fsr = goesAway.send(data, completion);
-        this.webSocketSession.updateLastConnectionActivity();
+        this.session.updateLastConnectionActivity();
         return fsr;
     }
 
@@ -179,29 +131,25 @@ public final class RemoteEndpointWrapper<T> implements RemoteEndpoint<T> {
     public Future<SendResult> sendObject(T o, SendHandler completion) {
         SendCompletionAdapter goesAway = new SendCompletionAdapter(this, SendCompletionAdapter.State.OBJECT);
         Future<SendResult> fsr = goesAway.send(o, completion);
-        this.webSocketSession.updateLastConnectionActivity();
+        this.session.updateLastConnectionActivity();
         return fsr;
     }
 
     @Override
     public void sendPing(ByteBuffer applicationData) {
-        this.providedRemoteEndpoint.sendPing(applicationData);
-        this.webSocketSession.updateLastConnectionActivity();
+        this.remoteEndpoint.sendPing(applicationData);
+        this.session.updateLastConnectionActivity();
     }
 
     @Override
     public void sendPong(ByteBuffer applicationData) {
-        this.providedRemoteEndpoint.sendPong(applicationData);
-        this.webSocketSession.updateLastConnectionActivity();
+        this.remoteEndpoint.sendPong(applicationData);
+        this.session.updateLastConnectionActivity();
     }
 
     @Override
     public String toString() {
         return "Wrapped: " + getClass().getSimpleName();
-    }
-
-    void setAddress(String clientAddress) {
-        this.connectedToAddress = clientAddress;
     }
 
     private void sendPrimitiveMessage(Object data) throws IOException, EncodeException {
@@ -219,7 +167,7 @@ public final class RemoteEndpointWrapper<T> implements RemoteEndpoint<T> {
         } else if (isPrimitiveData(o)) {
             this.sendPrimitiveMessage(o);
         } else {
-            String stringToSend = correspondingEndpoint.doEncode(o);
+            String stringToSend = endpointWrapper.doEncode(o);
             this.sendString(stringToSend);
         }
     }
@@ -239,14 +187,14 @@ public final class RemoteEndpointWrapper<T> implements RemoteEndpoint<T> {
     public void close(CloseReason cr) throws IOException {
         System.out.println("Close  public void close(CloseReason cr): " + cr);
         // TODO: implement
-//        this.providedRemoteEndpoint.close(1000, null);
+//        this.remoteEndpoint.close(1000, null);
     }
 
     public Session getSession() {
-        return webSocketSession;
+        return session;
     }
 
     public void updateLastConnectionActivity() {
-        webSocketSession.updateLastConnectionActivity();
+        session.updateLastConnectionActivity();
     }
 }

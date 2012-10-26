@@ -39,6 +39,7 @@
  */
 package org.glassfish.tyrus.server;
 
+import java.util.List;
 import java.util.Set;
 import javax.net.websocket.Endpoint;
 import javax.net.websocket.ServerEndpointConfiguration;
@@ -90,10 +91,10 @@ public interface ServerConfiguration {
     long getMaxTextMessageBufferSize();
 
     /**
-     * Return a mutable set of extension names supported by the container.
+     * Return a mutable list of extension names supported by the container.
      * @return the mutable set of extension names.
      */
-    Set<String> getExtensions();
+    List<String> getExtensions();
 
     /**
      * Representation of Endpoint-ServerEndpointConfiguration pair.

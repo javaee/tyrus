@@ -41,6 +41,7 @@ package org.glassfish.tyrus.server;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import javax.net.websocket.Endpoint;
 import javax.net.websocket.ServerEndpointConfiguration;
@@ -86,8 +87,8 @@ public class DefaultServerConfiguration implements ServerConfiguration {
     }
 
     @Override
-    public Set<String> getExtensions() {
-        return Collections.emptySet();
+    public List<String> getExtensions() {
+        return Collections.emptyList();
     }
 
     /**

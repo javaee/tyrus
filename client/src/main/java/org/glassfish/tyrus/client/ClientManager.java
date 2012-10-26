@@ -39,20 +39,16 @@
  */
 package org.glassfish.tyrus.client;
 
-import org.glassfish.tyrus.EndpointWrapper;
-import org.glassfish.tyrus.Model;
-import org.glassfish.tyrus.spi.TyrusClientSocket;
-import org.glassfish.tyrus.spi.TyrusContainer;
-
+import java.util.HashSet;
+import java.util.Set;
+import java.util.logging.Logger;
 import javax.net.websocket.ClientContainer;
 import javax.net.websocket.ClientEndpointConfiguration;
 import javax.net.websocket.Endpoint;
 import javax.net.websocket.Session;
-import javax.net.websocket.extensions.Extension;
-
-import java.util.HashSet;
-import java.util.Set;
-import java.util.logging.Logger;
+import org.glassfish.tyrus.EndpointWrapper;
+import org.glassfish.tyrus.spi.TyrusClientSocket;
+import org.glassfish.tyrus.spi.TyrusContainer;
 
 /**
  * ClientManager implementation.
@@ -91,18 +87,9 @@ public class ClientManager implements ClientContainer {
     @Override
     public void connectToServer(Endpoint endpoint, ClientEndpointConfiguration configuration) {
         try {
-            Model model = null;
-            try {
-                model = new Model(endpoint);
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            } catch (InstantiationException e) {
-                e.printStackTrace();
-            }
-
-            EndpointWrapper clientEndpoint = new EndpointWrapper(null, model, configuration, this);
+            EndpointWrapper clientEndpoint = new EndpointWrapper(endpoint, configuration, this);
             TyrusClientSocket clientSocket = engine.openClientSocket(
-                    configuration.getURI(), configuration, clientEndpoint);
+                    configuration.getPath(), configuration, clientEndpoint);
             sockets.add(clientSocket);
         } catch (Exception e) {
             e.printStackTrace();
@@ -145,7 +132,7 @@ public class ClientManager implements ClientContainer {
     }
 
     @Override
-    public Set<Extension> getInstalledExtensions() {
+    public Set<String> getInstalledExtensions() {
         return null;
     }
 }

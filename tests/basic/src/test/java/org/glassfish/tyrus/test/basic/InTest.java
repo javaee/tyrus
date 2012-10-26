@@ -127,7 +127,7 @@ public class InTest {
             client.connectToServer(ta, dcec);
 
             messageLatch.await(5, TimeUnit.SECONDS);
-            Assert.assertTrue("The received message equals the required response", receivedMessage.equals(response));
+            Assert.assertEquals(response, receivedMessage);
 
         } catch (Exception e) {
             e.printStackTrace();

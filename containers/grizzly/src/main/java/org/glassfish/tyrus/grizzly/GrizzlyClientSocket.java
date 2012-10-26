@@ -189,13 +189,13 @@ class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
 
     @Override
     public GrizzlyFuture<DataFrame> stream(boolean b, byte[] bytes, int i, int i1) {
-        
+
         if (isConnected()) {
             return protocolHandler.stream(b, bytes, i, i1);
         } else {
             throw new RuntimeException("Socket is not connected.");
         }
-        
+
     }
 
     @Override
@@ -231,7 +231,7 @@ class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
     public void onConnect() {
         state.set(State.CONNECTED);
         for (SPIEndpoint endpoint : endpoints) {
-            endpoint.onConnect(remoteEndpoint);
+            endpoint.onConnect(remoteEndpoint, null, null);
         }
     }
 

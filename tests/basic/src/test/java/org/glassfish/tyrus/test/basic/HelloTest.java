@@ -98,7 +98,7 @@ public class HelloTest {
                 }
             }, dcec);
             messageLatch.await(5, TimeUnit.SECONDS);
-            Assert.assertTrue("The received message is the same as the sent one", receivedMessage.equals(SENT_MESSAGE));
+            Assert.assertEquals(SENT_MESSAGE, receivedMessage);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);

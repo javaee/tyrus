@@ -43,14 +43,11 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-
 import javax.net.websocket.Decoder;
 import javax.net.websocket.Encoder;
 import javax.net.websocket.HandshakeRequest;
 import javax.net.websocket.HandshakeResponse;
 import javax.net.websocket.ServerEndpointConfiguration;
-import javax.net.websocket.extensions.Extension;
-
 import org.glassfish.tyrus.DefaultEndpointConfiguration;
 
 /**
@@ -74,10 +71,10 @@ public class DefaultServerEndpointConfiguration extends DefaultEndpointConfigura
      * @param extensions supported extensions.
      * @param origins accepted origins.
      */
-    protected DefaultServerEndpointConfiguration(List<Encoder> encoders, List<Decoder> decoders,
-                                                 List<String> subprotocols, List<Extension> extensions,
+    protected DefaultServerEndpointConfiguration(String uri, List<Encoder> encoders, List<Decoder> decoders,
+                                                 List<String> subprotocols, List<String> extensions,
                                                  List<String> origins) {
-        super(encoders, decoders, subprotocols, extensions);
+        super(uri, encoders, decoders, subprotocols, extensions);
         this.origins = origins == null ? Collections.<String>emptyList() : Collections.unmodifiableList(origins);
     }
 
@@ -97,8 +94,8 @@ public class DefaultServerEndpointConfiguration extends DefaultEndpointConfigura
         List<String> result = new ArrayList<String>();
 
         for (String requestedExtension : requestedExtensions) {
-            for (Extension extension : extensions) {
-                if(extension.getName().equals(requestedExtension)){
+            for (String extension : extensions) {
+                if(extension.equals(requestedExtension)){
                     result.add(requestedExtension);
                 }
             }
@@ -114,7 +111,9 @@ public class DefaultServerEndpointConfiguration extends DefaultEndpointConfigura
 
     @Override
     public boolean matchesURI(URI uri) {
-        return false;
+        // TODO: this method has now way of returning path parameters! using getPath() instead and implementing
+        // TODO: the matching algorithm in the runtime
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -155,7 +154,7 @@ public class DefaultServerEndpointConfiguration extends DefaultEndpointConfigura
          * @return new {@link DefaultServerEndpointConfiguration} instance.
          */
         public DefaultServerEndpointConfiguration build() {
-            return new DefaultServerEndpointConfiguration(encoders, decoders, protocols, extensions, origins);
+            return new DefaultServerEndpointConfiguration(uri, encoders, decoders, protocols, extensions, origins);
         }
     }
 }

@@ -45,6 +45,7 @@ import java.io.IOException;
 import javax.net.websocket.Session;
 import javax.net.websocket.annotations.WebSocketEndpoint;
 import javax.net.websocket.annotations.WebSocketMessage;
+import javax.net.websocket.annotations.WebSocketOpen;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
@@ -52,6 +53,11 @@ import javax.net.websocket.annotations.WebSocketMessage;
 
 @WebSocketEndpoint(value = "/echo")
 public class TestBean {
+    @WebSocketOpen
+    public void onOpen(Session s) {
+        System.out.println("Client connected to the server!");
+    }
+
     @WebSocketMessage
     public void helloWorld(String message, Session session) {
         try {

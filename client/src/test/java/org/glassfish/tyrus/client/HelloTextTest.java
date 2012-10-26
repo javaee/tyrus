@@ -69,7 +69,7 @@ public class HelloTextTest {
             client.connectToServer(htc, dcec);
 
             messageLatch.await(5, TimeUnit.SECONDS);
-            Assert.assertTrue("The client got something back", htc.gotSomethingBack);
+            Assert.assertTrue("Client did not receive anything.", htc.gotSomethingBack);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);

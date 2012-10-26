@@ -73,7 +73,7 @@ public abstract class SPIEndpoint {
      *
      * @param gs SPIRemoteEndpoint who has just connected to this web socket endpoint.
      */
-    public abstract void onConnect(RemoteEndpoint gs);
+    public abstract void onConnect(RemoteEndpoint gs, String subprotocol, List<String> extensions);
 
     /**
      * Called by the provider when the web socket connection
@@ -97,7 +97,7 @@ public abstract class SPIEndpoint {
      * @param last          to indicate if this is the last partial string in the sequence
      */
     public abstract void onPartialMessage(RemoteEndpoint gs, String partialString, boolean last);
-    
+
     /**
      * Called by the provider when the web socket connection
      * has an incoming partial binary message from the given remote endpoint. Partial
@@ -119,7 +119,7 @@ public abstract class SPIEndpoint {
      * @param bytes the message.
      */
     public abstract void onMessage(RemoteEndpoint gs, ByteBuffer bytes);
-    
+
         /**
      * Called by the provider when the web socket connection
      * has an incoming pong message from the given remote endpoint.
@@ -128,7 +128,7 @@ public abstract class SPIEndpoint {
      * @param bytes the message.
      */
     public abstract void onPong(RemoteEndpoint gs, ByteBuffer bytes);
-    
+
             /**
      * Called by the provider when the web socket connection
      * has an incoming ping message from the given remote endpoint.

@@ -59,7 +59,17 @@ class GrizzlyHandshakeRequest implements SPIHandshakeRequest {
     }
 
     @Override
-    public String getRequestURI() {
+    public String getRequestUri() {
         return this.rp.getRequestURI();
+    }
+
+    @Override
+    public boolean isSecure() {
+        return this.rp.isSecure();
+    }
+
+    @Override
+    public String getQueryString() {
+        return this.rp.getQueryString();
     }
 }

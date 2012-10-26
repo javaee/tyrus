@@ -40,19 +40,15 @@
 
 package org.glassfish.tyrus.client;
 
-import org.glassfish.tyrus.server.Server;
-import org.junit.Assert;
-import org.junit.Test;
-
-import javax.net.websocket.Session;
-import javax.net.websocket.extensions.Extension;
-import javax.net.websocket.extensions.FrameHandler;
-
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import javax.net.websocket.Session;
+import org.glassfish.tyrus.server.Server;
+import org.junit.Assert;
+import org.junit.Ignore;
+import org.junit.Test;
 
 /**
  * Tests whether the HandShake parameters (sub-protoxols, extensions) are sent correctly.
@@ -69,8 +65,9 @@ public class HandshakeTest {
 
     //TODO Doesn't really test the functionality yet - waiting for Grizzly change.
     @Test
+    @Ignore
     public void testClient() {
-        Server server = new Server("org.glassfish.tyrus.client.TestBean");
+        Server server = new Server(TestBean.class);
         server.start();
 
         try {
@@ -80,9 +77,9 @@ public class HandshakeTest {
             subprotocols.add("asd");
             subprotocols.add("ghi");
 
-            ArrayList<Extension> extensions = new ArrayList<Extension>();
-            extensions.add(new TestExtension("ext1"));
-            extensions.add(new TestExtension("ext2"));
+            ArrayList<String> extensions = new ArrayList<String>();
+            extensions.add("ext1");
+            extensions.add("ext2");
 
             DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder("ws://localhost:8025/websockets/tests/echo");
 //            builder.protocols(subprotocols);
@@ -111,41 +108,12 @@ public class HandshakeTest {
             }, dcec);
 
             messageLatch.await(5, TimeUnit.SECONDS);
-            Assert.assertTrue("The received message is the same as the sent one", receivedMessage.equals(SENT_MESSAGE));
+            Assert.assertEquals(SENT_MESSAGE, receivedMessage);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
         } finally {
             server.stop();
-        }
-    }
-
-    private class TestExtension implements Extension {
-
-        private final String name;
-
-        private TestExtension(String name) {
-            this.name = name;
-        }
-
-        @Override
-        public String getName() {
-            return name;
-        }
-
-        @Override
-        public Map<String, String> getParameters() {
-            return null;
-        }
-
-        @Override
-        public FrameHandler createIncomingFrameHandler(FrameHandler downstream) {
-            return null;
-        }
-
-        @Override
-        public FrameHandler createOutgoingFrameHandler(FrameHandler upstream) {
-            return null;
         }
     }
 }

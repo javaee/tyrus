@@ -39,6 +39,11 @@
  */
 package org.glassfish.tyrus.grizzly;
 
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import org.glassfish.grizzly.http.HttpRequestPacket;
 import org.glassfish.grizzly.websockets.DataFrame;
 import org.glassfish.grizzly.websockets.ProtocolHandler;
@@ -49,23 +54,17 @@ import org.glassfish.grizzly.websockets.WebSocketListener;
 import org.glassfish.tyrus.spi.SPIEndpoint;
 import org.glassfish.tyrus.spi.SPIRegisteredEndpoint;
 
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-
 /**
  * Implementation of {@link SPIRegisteredEndpoint} for Grizzly.
  * Please note that for one connection to WebSocketApplication it is guaranteed that the methods:
  * isApplicationRequest, createSocket, getSupportedProtocols, getSupportedExtensions are called in this order.
  * Handshakes
  *
- * @author dannycoward
+ * @author Danny Coward (danny.coward at oracle.com)
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 class GrizzlyEndpoint extends WebSocketApplication implements SPIRegisteredEndpoint {
-    private SPIEndpoint endpoint;
+    private final SPIEndpoint endpoint;
 
     /**
      * Used to store negotiated extensions between the call of isApplicationRequest method and getSupportedExtensions.
@@ -100,7 +99,7 @@ class GrizzlyEndpoint extends WebSocketApplication implements SPIRegisteredEndpo
     @Override
     public void onConnect(WebSocket socket) {
         GrizzlyRemoteEndpoint gs = GrizzlyRemoteEndpoint.get(socket);
-        this.endpoint.onConnect(gs);
+        this.endpoint.onConnect(gs, temporaryNegotiatedProtocol, temporaryNegotiatedExtensions);
     }
 
 
@@ -145,9 +144,9 @@ class GrizzlyEndpoint extends WebSocketApplication implements SPIRegisteredEndpo
         GrizzlyRemoteEndpoint gs = GrizzlyRemoteEndpoint.get(socket);
         this.endpoint.onClose(gs);
         GrizzlyRemoteEndpoint.remove(socket);
-        
+
     }
-    
+
     @Override
     public void onPong(WebSocket socket, byte[] bytes) {
         GrizzlyRemoteEndpoint gs = GrizzlyRemoteEndpoint.get(socket);

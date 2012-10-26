@@ -41,11 +41,9 @@ package org.glassfish.tyrus;
 
 import java.util.Collections;
 import java.util.List;
-
 import javax.net.websocket.Decoder;
 import javax.net.websocket.Encoder;
 import javax.net.websocket.EndpointConfiguration;
-import javax.net.websocket.extensions.Extension;
 
 /**
  * Default configuration implementation, immutable.
@@ -72,9 +70,12 @@ public abstract class DefaultEndpointConfiguration implements EndpointConfigurat
     /**
      * {@link java.util.Collections.UnmodifiableList} of extensions supported by the corresponding {@link javax.net.websocket.Endpoint}.
      */
-    protected final List<Extension> extensions;
+    protected final List<String> extensions;
 
-    protected DefaultEndpointConfiguration(List<Encoder> encoders, List<Decoder> decoders, List<String> subprotocols, List<Extension> extensions) {
+    protected final String uri;
+
+    protected DefaultEndpointConfiguration(String uri, List<Encoder> encoders, List<Decoder> decoders, List<String> subprotocols, List<String> extensions) {
+        this.uri = uri;
         if (encoders != null) {
             this.encoders = Collections.unmodifiableList(encoders);
         } else {
@@ -122,12 +123,16 @@ public abstract class DefaultEndpointConfiguration implements EndpointConfigurat
         return decoders;
     }
 
+    public String getPath() {
+        return uri;
+    }
+
     protected static class Builder<T extends Builder> {
         protected String uri;
         protected List<Encoder> encoders;
         protected List<Decoder> decoders;
         protected List<String> protocols;
-        protected List<Extension> extensions;
+        protected List<String> extensions;
 
         /**
          * Create new {@link Builder}.
@@ -185,7 +190,7 @@ public abstract class DefaultEndpointConfiguration implements EndpointConfigurat
          * @return {@link Builder}.
          */
         @SuppressWarnings({"unchecked"})
-        public T extensions(List<Extension> extensions) {
+        public T extensions(List<String> extensions) {
             this.extensions = extensions;
             return (T) this;
         }

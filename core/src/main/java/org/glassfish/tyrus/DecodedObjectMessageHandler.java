@@ -37,31 +37,13 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.spi;
+package org.glassfish.tyrus;
+
+import javax.net.websocket.MessageHandler;
 
 /**
- * The provider passes the handshake request to
- * the SDK created endpoint
- *
- * @author Danny Coward (danny.coward at oracle.com)
+ * @author Martin Matula (martin.matula at oracle.com)
  */
-public interface SPIHandshakeRequest {
-
-    /**
-     * Get the Http Header value for the given header name
-     * in the underlying Http handshake request.
-     *
-     * @param name the name of the header.
-     * @return <code>String</code> the header value.
-     */
-    public String getHeader(String name);
-
-    /**
-     * Get the Http request uri  underlying Http handshake request.
-     */
-    public String getRequestUri();
-
-    public boolean isSecure();
-
-    public String getQueryString();
+public interface DecodedObjectMessageHandler extends MessageHandler.DecodedObject {
+    Class<?> getType();
 }

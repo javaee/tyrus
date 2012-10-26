@@ -81,7 +81,7 @@ class AsyncBinaryToOutputStreamAdapter implements BufferedBinaryDataSource, Mess
             }
         }
     }
-    
+
 
 
     @Override
@@ -101,7 +101,7 @@ class AsyncBinaryToOutputStreamAdapter implements BufferedBinaryDataSource, Mess
         if (nextFragment.array().length > 1) {
             byte[] newBytes = new byte[nextFragment.array().length - 1];
             System.arraycopy(nextFragment.array(), 1, newBytes, 0, nextFragment.array().length - 1);
-            
+
             this.bufferedFragments.add(0, ByteBuffer.wrap(newBytes));
         }
         return bytes;

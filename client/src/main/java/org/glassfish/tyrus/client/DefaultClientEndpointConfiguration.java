@@ -39,15 +39,10 @@
  */
 package org.glassfish.tyrus.client;
 
-import java.net.URI;
-import java.util.ArrayList;
 import java.util.List;
-
 import javax.net.websocket.ClientEndpointConfiguration;
 import javax.net.websocket.Decoder;
 import javax.net.websocket.Encoder;
-import javax.net.websocket.extensions.Extension;
-
 import org.glassfish.tyrus.DefaultEndpointConfiguration;
 
 /**
@@ -59,29 +54,13 @@ import org.glassfish.tyrus.DefaultEndpointConfiguration;
 public class DefaultClientEndpointConfiguration extends DefaultEndpointConfiguration implements ClientEndpointConfiguration {
 
     /**
-     * URI the client will attempt to connect to.
-     */
-    private final String uri;
-
-    /**
      * Creates a client configuration that will attempt
      * to connect to the given URI.
      */
     private DefaultClientEndpointConfiguration(List<Encoder> encoders, List<Decoder> decoders,
-                                               List<String> subprotocols, List<Extension> extensions,
+                                               List<String> subprotocols, List<String> extensions,
                                                String uri) {
-        super(encoders, decoders, subprotocols, extensions);
-        this.uri = uri;
-    }
-
-    /**
-     * Return the URI the client will connect to.
-     *
-     * @return {@link URI} the client will connect to.
-     */
-    @Override
-    public String getURI() {
-        return uri;
+        super(uri, encoders, decoders, subprotocols, extensions);
     }
 
     /**
@@ -101,13 +80,7 @@ public class DefaultClientEndpointConfiguration extends DefaultEndpointConfigura
      * @return {@link java.util.Collections.UnmodifiableList} of extensions.
      */
     public List<String> getExtensions() {
-        List<String> extNames = new ArrayList<String>();
-
-        for (Extension extension : extensions) {
-            extNames.add(extension.getName());
-        }
-
-        return extNames;
+        return extensions;
     }
 
     /**

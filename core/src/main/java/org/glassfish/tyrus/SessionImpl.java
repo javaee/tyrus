@@ -41,104 +41,64 @@ package org.glassfish.tyrus;
 
 
 import java.io.IOException;
+import java.io.StringReader;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicLong;
 import javax.net.websocket.ClientContainer;
 import javax.net.websocket.CloseReason;
 import javax.net.websocket.Encoder;
 import javax.net.websocket.MessageHandler;
 import javax.net.websocket.RemoteEndpoint;
 import javax.net.websocket.Session;
-import javax.net.websocket.extensions.Extension;
 
 /**
  * Implementation of the WebSocketConversation.
  *
- * @author Danny Coward
+ * @author Danny Coward (danny.coward at oracle.com)
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
+ * @author Martin Matula (martin.matula at oracle.com)
  */
 public class SessionImpl<T> implements Session<T> {
 
-    /**
-     * The container for this session.
-     */
     private final ClientContainer container;
+    private final EndpointWrapper endpoint;
+    private final RemoteEndpointWrapper remote;
+    private final String negotiatedSubprotocol;
+    private final List<String> negotiatedExtensions;
+    private final boolean isSecure;
+    private final URI uri;
+    private final String queryString;
+    private final Map<String, String> pathParameters;
 
-    /**
-     * Session properties.
-     */
-    private Map<String, Object> properties = new ConcurrentHashMap<String, Object>();
-
-    /**
-     * ID.
-     */
-    private final long id;
-
-    /**
-     * Owner of this session.
-     */
-    private RemoteEndpointWrapper peer;
-
-    /**
-     * Reason for closure.
-     */
-    private CloseReason closeReason = null;
-
-    /**
-     * Session timeout.
-     */
-    private long timeout;
-
-    /**
-     * Max. size of message.
-     */
-    private long maximumMessageSize = 8192;
-
-    /**
-     * Registered message handlers.
-     */
     private Set<MessageHandler> messageHandlers = new HashSet<MessageHandler>();
-
-    /**
-     * Registered encoders.
-     */
-    private Set<Encoder> encoders = new HashSet<Encoder>();
-
-    /**
-     * Used for ID computation.
-     */
-    private static final AtomicLong count = new AtomicLong();
-
-    /**
-     * Sub-protocol negotiated during the handshake phase.
-     */
-    private String negotiatedSubprotocol;
-
-    /**
-     * Extensions used for this Session.
-     */
-    private List<Extension> negotiatedExtensions;
-
-    /**
-     * This Session is secure.
-     */
-    private boolean isSecure;
+    private final Map<String, Object> properties = new HashMap<String, Object>();
+    private long timeout;
+    private long maximumMessageSize = 8192;
 
     /**
      * Timestamp of the last send/receive message activity.
      */
     private long lastConnectionActivity;
 
-    SessionImpl(ClientContainer container) {
+    SessionImpl(ClientContainer container, RemoteEndpoint remoteEndpoint, EndpointWrapper endpointWrapper,
+                String subprotocol, List<String> extensions, boolean isSecure,
+                URI uri, String queryString, Map<String, String> pathParameters) {
         this.container = container;
-        this.id = count.getAndIncrement();
+        this.endpoint = endpointWrapper;
+        this.negotiatedSubprotocol = subprotocol;
+        this.negotiatedExtensions = extensions == null ? Collections.<String>emptyList() :
+                Collections.unmodifiableList(extensions);
+        this.isSecure = isSecure;
+        this.uri = uri;
+        this.queryString = queryString;
+        this.pathParameters = Collections.unmodifiableMap(pathParameters);
+        this.remote = new RemoteEndpointWrapper(this, remoteEndpoint, endpointWrapper);
     }
 
     /**
@@ -146,6 +106,7 @@ public class SessionImpl<T> implements Session<T> {
      *
      * @return protocol version
      */
+    @Override
     public String getProtocolVersion() {
         return "13";
     }
@@ -157,26 +118,19 @@ public class SessionImpl<T> implements Session<T> {
 
     @Override
     public RemoteEndpoint getRemote() {
-        return peer;
+        return remote;
     }
 
+    // TODO: should be removed from the API - does not provide much value
+    // TODO: also the <T> from RemoteEndpoint should be removed
     @Override
     public RemoteEndpoint<T> getRemoteL(Class<T> aClass) {
-        return null;
-    }
-
-    /**
-     * Return a unique ID for this session.
-     *
-     * @return id
-     */
-    public Long getId() {
-        return count.get();
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public boolean isActive() {
-        return peer.isConnected();
+        return endpoint.isActive(this);
     }
 
     @Override
@@ -194,17 +148,12 @@ public class SessionImpl<T> implements Session<T> {
      */
     @Override
     public void close(CloseReason closeReason) throws IOException {
-        this.closeReason = closeReason;
-        peer.close(closeReason);
+        remote.close(closeReason);
     }
 
     @Override
     public String toString() {
-        return "Session(" + id + ", " + this.isActive() + ")";
-    }
-
-    void setPeer(RemoteEndpointWrapper peer) {
-        this.peer = peer;
+        return "Session(" + hashCode() + ", " + this.isActive() + ")";
     }
 
     public void setTimeout(long seconds) {
@@ -223,7 +172,7 @@ public class SessionImpl<T> implements Session<T> {
     }
 
     @Override
-    public List<Extension> getNegotiatedExtensions() {
+    public List<String> getNegotiatedExtensions() {
         return this.negotiatedExtensions;
     }
 
@@ -244,7 +193,8 @@ public class SessionImpl<T> implements Session<T> {
 
     @Override
     public void setEncoders(List<Encoder> encoders) {
-        //To change body of implemented methods use File | Settings | File Templates.
+        // TODO: implement
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -255,6 +205,98 @@ public class SessionImpl<T> implements Session<T> {
     @Override
     public Set<MessageHandler> getMessageHandlers() {
         return Collections.unmodifiableSet(this.messageHandlers);
+    }
+
+    @Override
+    public void removeMessageHandler(MessageHandler listener) {
+        this.messageHandlers.remove(listener);
+    }
+
+    @Override
+    public URI getRequestURI() {
+        return uri;
+    }
+
+    // TODO: this method should be deleted?
+    @Override
+    public Map<String, String[]> getParameterMap() {
+        return Collections.emptyMap();
+    }
+
+    public Map<String, String> getPathParameters() {
+        return pathParameters;
+    }
+
+    @Override
+    public String getQueryString() {
+        return queryString;
+    }
+
+    public Map<String, Object> getProperties() {
+        return properties;
+    }
+
+    void updateLastConnectionActivity() {
+        this.lastConnectionActivity = System.currentTimeMillis();
+    }
+
+    void notifyMessageHandlers(String message) {
+        updateLastConnectionActivity();
+        // TODO: messageHandlers should be ordered!
+        // TODO: should we order based on the most specific type?
+        for (MessageHandler mh : this.messageHandlers) {
+            if (mh instanceof MessageHandler.Text) {
+                ((MessageHandler.Text) mh).onMessage(message);
+                break;
+            } else if (mh instanceof MessageHandler.CharacterStream) {
+                ((MessageHandler.CharacterStream) mh).onMessage(new StringReader(message));
+                break;
+            } else if (mh instanceof DecodedObjectMessageHandler) {
+                DecodedObjectMessageHandler domh = (DecodedObjectMessageHandler) mh;
+                Object object = endpoint.decodeMessage(message, domh.getType(), true);
+                if (object != null) {
+                    domh.onMessage(object);
+                    break;
+                }
+            } else if (mh instanceof MessageHandler.DecodedObject) {
+                Class<?> type = Object.class; // TODO: extract the real type from the type parameter
+                Object object = endpoint.decodeMessage(message, type, true);
+                if (object != null) {
+                    ((MessageHandler.DecodedObject) mh).onMessage(object);
+                    break;
+                }
+            }
+        }
+    }
+
+    void notifyMessageHandlers(ByteBuffer message) {
+        updateLastConnectionActivity();
+        // TODO: messageHandlers should be ordered!
+        // TODO: should we order based on the most specific type?
+        for (MessageHandler mh : this.messageHandlers) {
+            if (mh instanceof MessageHandler.Binary) {
+                ((MessageHandler.Binary) mh).onMessage(message);
+                break;
+            } else if (mh instanceof MessageHandler.BinaryStream) {
+                // TODO: convert ByteBuffer to stream
+//                ((MessageHandler.BinaryStream) mh).onMessage(message.);
+//                break;
+            } else if (mh instanceof DecodedObjectMessageHandler) {
+                DecodedObjectMessageHandler domh = (DecodedObjectMessageHandler) mh;
+                Object object = endpoint.decodeMessage(message, domh.getType(), false);
+                if (object != null) {
+                    domh.onMessage(object);
+                    break;
+                }
+            } else if (mh instanceof MessageHandler.DecodedObject) {
+                Class<?> type = Object.class; // TODO: extract the real type from the type parameter
+                Object object = endpoint.decodeMessage(message, type, false);
+                if (object != null) {
+                    ((MessageHandler.DecodedObject) mh).onMessage(object);
+                    break;
+                }
+            }
+        }
     }
 
     Set<MessageHandler> getInvokableMessageHandlers() {
@@ -269,52 +311,5 @@ public class SessionImpl<T> implements Session<T> {
             }
         }
         return imh;
-
-    }
-
-    @Override
-    public void removeMessageHandler(MessageHandler listener) {
-        this.messageHandlers.remove(listener);
-    }
-
-    @Override
-    public URI getRequestURI() {
-        return URI.create(peer.getAddress());
-    }
-
-    @Override
-    public Map<String, String[]> getParameterMap() {
-        return null;
-    }
-
-    @Override
-    public String getQueryString() {
-        return null;
-    }
-
-    protected void updateLastConnectionActivity() {
-        this.lastConnectionActivity = System.currentTimeMillis();
-    }
-
-    // dannyc these are not used anywhere ?
-    void notifyMessageHandlers(String message) {
-        for (MessageHandler mh : this.messageHandlers) {
-            if (mh instanceof MessageHandler.Text) {
-                ((MessageHandler.Text) mh).onMessage(message);
-            } else {
-                throw new UnsupportedOperationException("don't handle types other than MessageHandler.Text so far.");
-            }
-        }
-    }
-
-    // dannyc these are not used anywhere ?
-    void notifyMessageHandlers(ByteBuffer message) {
-        for (MessageHandler mh : this.messageHandlers) {
-            if (mh instanceof MessageHandler.Binary) {
-                ((MessageHandler.Binary) mh).onMessage(message);
-            } else {
-                throw new UnsupportedOperationException("don't handle types other than MessageHandler.Text so far.");
-            }
-        }
     }
 }
