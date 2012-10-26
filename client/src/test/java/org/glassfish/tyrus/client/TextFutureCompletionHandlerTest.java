@@ -55,6 +55,7 @@ import org.junit.Test;
  * @author Danny Coward (danny.coward at oracle.com)
  */
 public class TextFutureCompletionHandlerTest {
+    
     @Test
     public void testFastClient() {
         Server server = new Server(TextFutureCompletionHandlerServer.class.getName());

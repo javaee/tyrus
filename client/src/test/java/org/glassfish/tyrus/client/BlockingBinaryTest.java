@@ -41,18 +41,18 @@ package org.glassfish.tyrus.client;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-
 import org.glassfish.tyrus.server.Server;
-
 import org.junit.Assert;
+import org.junit.Test;
 
 /**
- * Tests the basic client behavior, sending and receiving message
+ * Tests the basic client behavior, sending and receiving binary messages
  *
  * @author Danny Coward (danny.coward at oracle.com)
  */
 public class BlockingBinaryTest {
-    //@Test
+    
+    @Test
     public void testClient() {
         Server server = new Server(BlockingBinaryServer.class.getName());
         server.start();

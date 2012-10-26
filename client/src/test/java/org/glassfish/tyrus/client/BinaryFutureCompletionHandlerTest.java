@@ -43,7 +43,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.glassfish.tyrus.server.Server;
-
+import org.junit.Test;
 import org.junit.Assert;
 
 /**
@@ -52,7 +52,8 @@ import org.junit.Assert;
  * @author Danny Coward (danny.coward at oracle.com)
  */
 public class BinaryFutureCompletionHandlerTest {
-    //@Test
+    
+    @Test
     public void testFastClient() {
         Server server = new Server(BinaryFutureCompletionHandlerServer.class.getName());
         server.start();

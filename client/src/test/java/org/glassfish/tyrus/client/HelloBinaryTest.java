@@ -41,10 +41,9 @@ package org.glassfish.tyrus.client;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-
 import org.glassfish.tyrus.server.Server;
-
 import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Tests the basic client behavior, sending and receiving message
@@ -53,7 +52,7 @@ import org.junit.Assert;
  */
 public class HelloBinaryTest {
 
-    //@Test
+    @Test
     public void testClient() {
         Server server = new Server(HelloBinaryServer.class.getName());
         server.start();

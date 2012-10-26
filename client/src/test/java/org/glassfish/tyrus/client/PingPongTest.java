@@ -43,8 +43,10 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.glassfish.tyrus.server.Server;
-
+import org.junit.Test;
 import org.junit.Assert;
+import org.junit.Ignore;
+
 
 /**
  * Tests sending and receiving ping and pongs
@@ -52,8 +54,8 @@ import org.junit.Assert;
  * @author Danny Coward (danny.coward at oracle.com)
  */
 public class PingPongTest {
-
-    //@Test
+    @Ignore // TODO works on client test run, not on full build
+    @Test
     public void testClient() {
         Server server = new Server(PingPongServer.class.getName());
         server.start();
@@ -68,6 +70,9 @@ public class PingPongTest {
             client.connectToServer(htc, dcec);
 
             messageLatch.await(5, TimeUnit.SECONDS);
+            Assert.assertTrue("The client got the pong back with the right message, and so did the server", PingPongServer.gotCorrectMessage);
+            Assert.assertTrue("The client got the pong back with the right message, and so did the server", htc.gotCorrectMessageBack);
+
             Assert.assertTrue("The client got the pong back with the right message, and so did the server", PingPongServer.gotCorrectMessage && htc.gotCorrectMessageBack);
         } catch (Exception e) {
             e.printStackTrace();
