@@ -40,10 +40,17 @@
 
 package org.glassfish.tyrus;
 
-import org.glassfish.tyrus.spi.SPIEndpoint;
-import org.glassfish.tyrus.spi.SPIHandshakeRequest;
-
-import java.util.regex.MatchResult;
+import java.io.IOException;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Logger;
 
 import javax.net.websocket.ClientContainer;
 import javax.net.websocket.CloseReason;
@@ -57,16 +64,11 @@ import javax.net.websocket.MessageHandler;
 import javax.net.websocket.RemoteEndpoint;
 import javax.net.websocket.ServerEndpointConfiguration;
 import javax.net.websocket.Session;
+import javax.net.websocket.annotations.WebSocketPathParam;
 
 import org.glassfish.tyrus.internal.PathPattern;
-
-import java.io.IOException;
-import java.lang.reflect.Method;
-import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import org.glassfish.tyrus.spi.SPIEndpoint;
+import org.glassfish.tyrus.spi.SPIHandshakeRequest;
 
 /**
  * Wraps the registered application class.
@@ -92,6 +94,13 @@ public class EndpointWrapper extends SPIEndpoint {
     private final String path;
 
     /**
+     * Map filled with template variables (if present).
+     * <p/>
+     * Keys represent names, values are corresponding values.
+     */
+    private final Map<String, String> templateValues = new HashMap<String, String>();
+
+    /**
      * Model representing the annotated bean class.
      */
     private Model model;
@@ -110,8 +119,10 @@ public class EndpointWrapper extends SPIEndpoint {
     /**
      * Creates new endpoint wrapper.
      *
-     * @param path  address of this endpoint as annotated by {@link javax.net.websocket.annotations.WebSocketEndpoint} annotation.
-     * @param model model of the application class.
+     * @param path          address of this endpoint as annotated by {@link javax.net.websocket.annotations.WebSocketEndpoint} annotation.
+     * @param model         model of the application class.
+     * @param configuration endpoint configuration.
+     * @param container     TODO.
      */
     public EndpointWrapper(String path, Model model, EndpointConfiguration configuration, ClientContainer container) {
         this.path = path;
@@ -190,8 +201,10 @@ public class EndpointWrapper extends SPIEndpoint {
             return false;
         }
 
-        final MatchResult matchResult = new PathPattern(path).match(hr.getRequestURI());
-        return matchResult != null && sec.checkOrigin(hr.getHeader("Origin"));
+        final PathPattern pathPattern = new PathPattern(path);
+
+        final boolean match = pathPattern.match(hr.getRequestURI(), pathPattern.getTemplate().getTemplateVariables(), templateValues);
+        return match && sec.checkOrigin(hr.getHeader("Origin"));
     }
 
     @Override
@@ -258,7 +271,7 @@ public class EndpointWrapper extends SPIEndpoint {
         boolean handled = false;
         RemoteEndpointWrapper peer = getPeer(gs);
         for (MessageHandler handler : (Set<MessageHandler>) ((SessionImpl) peer.getSession()).getInvokableMessageHandlers()) {
-            MessageHandler.AsyncText baseHandler = null;
+            MessageHandler.AsyncText baseHandler;
             if (handler instanceof MessageHandler.AsyncText) {
                 baseHandler = (MessageHandler.AsyncText) handler;
                 baseHandler.onMessagePart(partialString, last);
@@ -289,14 +302,14 @@ public class EndpointWrapper extends SPIEndpoint {
         }
 
     }
-    
-    
+
+
     @Override
     public void onPong(RemoteEndpoint gs, ByteBuffer bytes) {
         RemoteEndpointWrapper peer = getPeer(gs);
         //System.out.println("EndpointWrapper----" + ((SessionImpl) peer.getSession()).getInvokableMessageHandlers());
         boolean handled = false;
-        for (MessageHandler handler : (Set<MessageHandler>) ((SessionImpl) peer.getSession()).getMessageHandlers()) {
+        for (MessageHandler handler : (Set<MessageHandler>) (peer.getSession()).getMessageHandlers()) {
             if (handler instanceof MessageHandler.Pong) {
                 //System.out.println("async binary");
                 ((MessageHandler.Pong) handler).onPong(bytes);
@@ -306,18 +319,15 @@ public class EndpointWrapper extends SPIEndpoint {
         if (!handled) {
             System.out.println("Unhandled pong message in EndpointWrapper");
         }
-        
+
     }
-    
+
     // the endpoint needs to respond as soon as possible (see the websocket RFC)
     // no involvement from application layer, there is no ping listener
     public void onPing(RemoteEndpoint gs, ByteBuffer bytes) {
         RemoteEndpointWrapper peer = getPeer(gs);
         peer.sendPong(bytes);
     }
-    
-
-
 
     /**
      * Processes just messages that come in one part, i.e. not streamed messages.
@@ -389,37 +399,55 @@ public class EndpointWrapper extends SPIEndpoint {
     }
 
     private Object invokeMethod(Object object, Method method, RemoteEndpointWrapper peer) throws Exception {
-        Object result;
         Class<?>[] paramTypes = method.getParameterTypes();
-        int noOfParameters = paramTypes.length;
+
         Object param0 = model.getBean();
-        Object param1, param2;
 
         if (!parameterBelongsToMethod(method, object)) {
             return null;
         }
 
-        if (paramTypes[0].equals(object.getClass()) ||
-                PrimitivesToBoxing.getBoxing(paramTypes[0]).equals(object.getClass())) {
-            param1 = object;
-            param2 = peer.getSession();
-        } else {
-            param1 = peer.getSession();
-            param2 = object;
+        final Annotation[][] parameterAnnotations = method.getParameterAnnotations();
+        final Object[] params = new Object[paramTypes.length];
+
+        for (int i = 0; i < paramTypes.length; i++) {
+            final Class<?> paramType = paramTypes[i];
+
+            final WebSocketPathParam webSocketParam = getWebSocketParam(parameterAnnotations[i]);
+            // WebSocketPathParam not present
+            if (webSocketParam == null) {
+                if (paramType.equals(Session.class)) {
+                    params[i] = peer.getSession();
+                } else if (paramType.equals(object.getClass()) ||
+                        PrimitivesToBoxing.getBoxing(paramType).equals(object.getClass())) {
+                    params[i] = object;
+                } else {
+                    Logger.getLogger(EndpointWrapper.class.getName()).warning("Cannot inject parameter. Method: " + method +
+                            " Parameter index: " + i + " type: " + paramType + ".");
+                }
+            } else {
+                // we are supporting only String with WebSocketPathParam annotation
+                if (paramType.equals(String.class)) {
+                    params[i] = this.templateValues.get(webSocketParam.value());
+                } else {
+                    Logger.getLogger(EndpointWrapper.class.getName()).warning("Cannot inject @WebSocketPathParam " +
+                            paramType + ".");
+                }
+            }
+
         }
 
-        switch (noOfParameters) {
-            case 1:
-                result = method.invoke(param0, param1);
-                break;
-            case 2:
-                result = method.invoke(param0, param1, param2);
-                break;
-            default:
-                throw new RuntimeException("can't deal with " + noOfParameters + " parameters.");
+        return method.invoke(param0, params);
+    }
+
+    private WebSocketPathParam getWebSocketParam(Annotation[] annotations) {
+        for (Annotation annotation : annotations) {
+            if (annotation.annotationType().equals(WebSocketPathParam.class)) {
+                return (WebSocketPathParam) annotation;
+            }
         }
 
-        return result;
+        return null;
     }
 
     private boolean parameterBelongsToMethod(Method method, Object parameter) {

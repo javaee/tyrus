@@ -115,7 +115,7 @@
     </developers>
 
     <properties>
-        <websocket-api.version>1.0-20121025.152706-2</websocket-api.version>
+        <websocket-api.version>1.0-20121026.083347-3</websocket-api.version>
         <websocket.api.build_number>06</websocket.api.build_number>
 
         <servlet.api.version>3.0.1</servlet.api.version>
