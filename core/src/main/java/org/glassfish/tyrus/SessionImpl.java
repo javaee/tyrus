@@ -75,8 +75,8 @@ public class SessionImpl<T> implements Session<T> {
     private final URI uri;
     private final String queryString;
     private final Map<String, String> pathParameters;
-
-    private Set<MessageHandler> messageHandlers = new HashSet<MessageHandler>();
+    private Map<MessageHandler, MessageHandler> messageHandlerToInvokableMessageHandlers = new HashMap<MessageHandler, MessageHandler>();
+    //private Set<MessageHandler> messageHandlers = new HashSet<MessageHandler>();
     private final Map<String, Object> properties = new HashMap<String, Object>();
     private long timeout;
     private long maximumMessageSize = 8192;
@@ -198,18 +198,28 @@ public class SessionImpl<T> implements Session<T> {
     }
 
     @Override
+
     public void addMessageHandler(MessageHandler listener) {
-        this.messageHandlers.add(listener);
+        MessageHandler invokable;
+        if (listener instanceof MessageHandler.CharacterStream) {
+            invokable = new AsyncTextToCharStreamAdapter((MessageHandler.CharacterStream) listener);
+        } else if (listener instanceof MessageHandler.BinaryStream) {
+            invokable = new AsyncBinaryToOutputStreamAdapter((MessageHandler.BinaryStream) listener);
+        } else {
+           invokable = listener; 
+        }
+        this.messageHandlerToInvokableMessageHandlers.put(listener, invokable);
     }
+    
 
     @Override
     public Set<MessageHandler> getMessageHandlers() {
-        return Collections.unmodifiableSet(this.messageHandlers);
+        return Collections.unmodifiableSet(this.messageHandlerToInvokableMessageHandlers.keySet());
     }
 
     @Override
     public void removeMessageHandler(MessageHandler listener) {
-        this.messageHandlers.remove(listener);
+        this.messageHandlerToInvokableMessageHandlers.remove(listener);
     }
 
     @Override
@@ -244,7 +254,7 @@ public class SessionImpl<T> implements Session<T> {
         updateLastConnectionActivity();
         // TODO: messageHandlers should be ordered!
         // TODO: should we order based on the most specific type?
-        for (MessageHandler mh : this.messageHandlers) {
+        for (MessageHandler mh : this.getMessageHandlers()) {
             if (mh instanceof MessageHandler.Text) {
                 ((MessageHandler.Text) mh).onMessage(message);
                 break;
@@ -273,7 +283,7 @@ public class SessionImpl<T> implements Session<T> {
         updateLastConnectionActivity();
         // TODO: messageHandlers should be ordered!
         // TODO: should we order based on the most specific type?
-        for (MessageHandler mh : this.messageHandlers) {
+        for (MessageHandler mh : this.getMessageHandlers()) {
             if (mh instanceof MessageHandler.Binary) {
                 ((MessageHandler.Binary) mh).onMessage(message);
                 break;
@@ -300,16 +310,11 @@ public class SessionImpl<T> implements Session<T> {
     }
 
     Set<MessageHandler> getInvokableMessageHandlers() {
-        Set<MessageHandler> imh = new HashSet<MessageHandler>();
-        for (MessageHandler mh : this.getMessageHandlers()) {
-            if (mh instanceof MessageHandler.CharacterStream) {
-                imh.add(new AsyncTextToCharStreamAdapter((MessageHandler.CharacterStream) mh));
-            } else if (mh instanceof MessageHandler.BinaryStream) {
-                imh.add(new AsyncBinaryToOutputStreamAdapter((MessageHandler.BinaryStream) mh));
-            } else {
-                imh.add(mh);
-            }
+        Set s = new HashSet();
+        for (MessageHandler mh : this.messageHandlerToInvokableMessageHandlers.values()) {
+            s.add(mh);
         }
-        return imh;
+        return s;
+
     }
 }
