@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2010-2011 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -40,66 +40,37 @@
 
 package org.glassfish.tyrus.servlet;
 
+import org.glassfish.tyrus.protocol.core.RequestWrapper;
+import javax.servlet.http.HttpServletRequest;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 
 /**
- * Class represents WebSocket's security key, used during the handshake phase.
- *
- * @author Alexey Stashok
+ * @author Jitendra Kotamraju
  */
-public class SecKey {
-    public static final String SERVER_KEY_HASH = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+public class ServletRequestWrapper extends RequestWrapper<HttpServletRequest> {
 
-    /**
-     * Security key string representation, which includes chars and spaces.
-     */
-    private final String secKey;
-
-    SecKey(String base64) {
-        if (base64 == null) {
-            throw new HandshakeException("Null keys are not allowed.");
-        }
-        secKey = base64;
-    }
-
-    /**
-     * Generate server-side security key, which gets passed to the client during
-     * the handshake phase as part of message payload.
-     *
-     * @param clientKey client's Sec-WebSocket-Key
-     * @return server key.
-     */
-    public static SecKey generateServerKey(SecKey clientKey) throws HandshakeException {
-        String key = clientKey.getSecKey() + SERVER_KEY_HASH;
-        final MessageDigest instance;
-        try {
-            instance = MessageDigest.getInstance("SHA-1");
-            instance.update(key.getBytes());
-            final byte[] digest = instance.digest();
-            if (digest.length != 20) {
-                throw new HandshakeException("Invalid key length.  Should be 20: " + digest.length);
-            }
-
-            return new SecKey(Base64Utils.encodeToString(digest, false));
-        } catch (NoSuchAlgorithmException e) {
-            throw new HandshakeException(e.getMessage());
-        }
-    }
-
-    /**
-     * Gets security key string representation, which includes chars and spaces.
-     *
-     * @return Security key string representation, which includes chars and spaces.
-     */
-    public String getSecKey() {
-        return secKey;
+    public ServletRequestWrapper(HttpServletRequest request) {
+        super(request);
     }
 
     @Override
-    public String toString() {
-        return secKey;
+    public String getRequestURI() {
+        return request.getRequestURI();
+    }
+
+    @Override
+    public String getContextPath() {
+        return request.getContextPath();
+    }
+
+    @Override
+    public Iterable<String> getHeaderNames() {
+        throw new RuntimeException("TODO");
+    }
+
+    @Override
+    public String getHeader(String name) {
+        return request.getHeader(name);
     }
 
 }

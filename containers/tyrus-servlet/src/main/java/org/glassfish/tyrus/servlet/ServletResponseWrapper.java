@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -37,23 +37,35 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+
 package org.glassfish.tyrus.servlet;
+
+import org.glassfish.tyrus.protocol.core.ResponseWrapper;
+
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * @author Jitendra Kotamraju
  */
-public class WebSocketProtocolException extends RuntimeException {
+public class ServletResponseWrapper extends ResponseWrapper<HttpServletResponse> {
 
-    public WebSocketProtocolException(String s) {
-        super(s);
+    public ServletResponseWrapper(HttpServletResponse response) {
+        super(response);
     }
 
-    public WebSocketProtocolException(String s, Throwable throwable) {
-        super(s, throwable);
+    @Override
+    public void setStatus(int code) {
+        response.setStatus(code);
     }
 
-    public WebSocketProtocolException(Throwable throwable) {
-        super(throwable);
+    @Override
+    public void setHeader(String name, String value) {
+        response.setHeader(name, value);
+    }
+
+    @Override
+    public void setContentType(String contentType) {
+        response.setContentType(contentType);
     }
 
 }

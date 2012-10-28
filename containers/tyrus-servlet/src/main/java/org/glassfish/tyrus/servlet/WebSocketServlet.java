@@ -60,8 +60,8 @@ public class WebSocketServlet extends HttpServlet {
         LOGGER.info("Setting up WebSocket protocol handler");
         ProtocolHandler handler = new WebSocketProtocolHandler();
         req.upgrade(handler);
-        HandShake handShake = new HandShake(req);
-        handShake.setHeaders(res);
+        ServletHandShake handShake = new ServletHandShake();
+        handShake.doUpgrade(req, res);
         LOGGER.info("Handshake Complete");
 
         res.flushBuffer();

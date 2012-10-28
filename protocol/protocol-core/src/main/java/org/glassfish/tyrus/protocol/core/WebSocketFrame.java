@@ -73,4 +73,12 @@ public class WebSocketFrame {
         this.payload = data;
     }
 
+    public Type getFrameType() {
+        return type;
+    }
+
+    public boolean isFinalFragment() {
+        return finalFragment;
+    }
+
 }

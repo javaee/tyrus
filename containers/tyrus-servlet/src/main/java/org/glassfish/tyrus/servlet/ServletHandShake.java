@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2010-2011 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -40,41 +40,30 @@
 
 package org.glassfish.tyrus.servlet;
 
+import org.glassfish.tyrus.protocol.core.RequestWrapper;
+import org.glassfish.tyrus.protocol.core.ResponseWrapper;
+import org.glassfish.tyrus.protocol.core.WebSocketHandShake;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.ProtocolHandler;
+import java.io.IOException;
+import java.util.logging.Logger;
+
 /**
- * {@link Exception}, which describes the error, occurred during the
- * handshake phase.
- *
- * @author Alexey Stashok
+ * @author Jitendra Kotamraju
  */
-public class HandshakeException extends WebSocketException {
-    private final int code;
+public class ServletHandShake extends WebSocketHandShake<HttpServletRequest, HttpServletResponse> {
 
-    /**
-     * Construct a <tt>HandshakeException</tt>.
-     *
-     * @param message error description
-     */
-    public HandshakeException(String message) {
-        this(1002, message);
+    @Override
+    protected RequestWrapper<HttpServletRequest> createRequestWrapper(HttpServletRequest request) {
+        return new ServletRequestWrapper(request);
     }
 
-    /**
-     * Construct a <tt>HandshakeException</tt>.
-     *
-     * @param code    error code
-     * @param message error description
-     */
-    public HandshakeException(int code, String message) {
-        super(message);
-        this.code = code;
-    }
-
-    /**
-     * Get the error code.
-     *
-     * @return the error code.
-     */
-    public int getCode() {
-        return code;
+    @Override
+    protected ResponseWrapper<HttpServletResponse> createResponseWrapper(HttpServletResponse response) {
+        return new ServletResponseWrapper(response);
     }
 }
