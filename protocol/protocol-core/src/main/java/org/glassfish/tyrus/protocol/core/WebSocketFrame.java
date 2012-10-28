@@ -52,21 +52,29 @@ public class WebSocketFrame {
     private final ByteBuffer payload;
 
     public enum Type {
-        CONTINUATION(false), TEXT(false), BINARY(false),
-        CLOSE(true), PING(true), PONG(true);
+        CONTINUATION(false, 0x0), TEXT(false, 0x1),
+        BINARY(false, 0x2), CLOSE(true, 0x8),
+        PING(true, 0x9), PONG(true, 0xA);
 
         private boolean controlFrame;
+        private byte opcode;
 
-        Type(boolean controlFrame) {
+        Type(boolean controlFrame, int opcode) {
             this.controlFrame = controlFrame;
+            this.opcode = (byte)opcode;
         }
 
         public boolean isControlFrame() {
             return controlFrame;
         }
+
+        public byte getOpcode() {
+            return opcode;
+        }
     }
 
-    public WebSocketFrame(boolean finalFragment, int rsv, Type type, ByteBuffer data) {
+    public WebSocketFrame(boolean finalFragment, int rsv, Type type,
+            ByteBuffer data) {
         this.finalFragment = finalFragment;
         this.rsv = rsv;
         this.type = type;
@@ -79,6 +87,14 @@ public class WebSocketFrame {
 
     public boolean isFinalFragment() {
         return finalFragment;
+    }
+
+    public int getRsv() {
+        return rsv;
+    }
+
+    public ByteBuffer getPayload() {
+        return payload;
     }
 
 }
