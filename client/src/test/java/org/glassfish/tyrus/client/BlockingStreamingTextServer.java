@@ -64,40 +64,22 @@ public class BlockingStreamingTextServer extends Endpoint {
         @Override
         public void onMessage(Reader r) {
             System.out.println("BLOCKINGSTREAMSERVER: on message reader called");
-
+            StringBuilder sb = new StringBuilder();
             try {
-                for (int i = 0; i < 10; i++) {
-                    System.out.println("Reading bulk #" + i);
-                    assertEquals('b', (char) r.read());
-                    assertEquals('l', (char) r.read());
-                    assertEquals('k', (char) r.read());
-                    assertEquals(Character.forDigit(i, 10), (char) r.read());
-                    System.out.println("Resuming the client");
-                    synchronized (BlockingStreamingTextServer.class) {
-                        BlockingStreamingTextServer.class.notify();
-                    }
+                int i = 0;
+                while ( (i = r.read() ) != -1  ) {
+                    sb.append( (char) i );
                 }
-                System.out.println("Reading END");
-                assertEquals('E', (char) r.read());
-                assertEquals('N', (char) r.read());
-                assertEquals('D', (char) r.read());
-                assertEquals(-1, r.read());
+                r.close();
+                
+                String receivedMessage = sb.toString();
+                System.out.println("BLOCKINGSTREAMSERVER received: " + receivedMessage);
 
                 Writer w = session.getRemote().getSendWriter();
-                for (int i = 0; i < 10; i++) {
-                    System.out.println("Streaming char to the client: " + i);
-                    synchronized (BlockingStreamingTextServer.class) {
-                        w.write(Character.forDigit(i, 10));
-                        w.flush();
-                        System.out.println("Waiting for the client to process it");
-                        BlockingStreamingTextServer.class.wait(5000);
-                    }
-                }
-                System.out.println("Writing #");
-                w.write('#');
+                w.write(receivedMessage.substring(0,4));
+                w.write(receivedMessage.substring(4,receivedMessage.length()));
                 w.close();
-
-
+                System.out.println("BLOCKINGSTREAMSERVER sent back: " + receivedMessage);
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -107,7 +89,7 @@ public class BlockingStreamingTextServer extends Endpoint {
     @WebSocketOpen
     public void onOpen(Session session) {
         System.out.println("BLOCKINGSERVER opened !");
-        session.addMessageHandler(new MyCharacterStreamHandler(session));
+        session.addMessageHandler(new BlockingStreamingTextServer.MyCharacterStreamHandler(session));
     }
 
 }

@@ -53,6 +53,7 @@ import static org.junit.Assert.assertEquals;
 public class BlockingStreamingTextClient extends Endpoint {
     String receivedMessage;
     private final CountDownLatch messageLatch;
+    String sentMessage;
 
     public BlockingStreamingTextClient(CountDownLatch messageLatch) {
         this.messageLatch = messageLatch;
@@ -67,22 +68,15 @@ public class BlockingStreamingTextClient extends Endpoint {
             StringBuilder sb = new StringBuilder();
 
             public void onMessage(Reader r) {
+                System.out.println("BLOCKINGCLIENT onMessage called ");
                 try {
-                    for (int i = 0; i < 10; i++) {
-                        char c = (char) r.read();
-                        sb.append(c);
-                        System.out.println("Reading char on the client: " + c);
-                        assertEquals(Character.forDigit(i, 10), c);
-                        System.out.println("Resuming the server");
-                        synchronized (BlockingStreamingTextServer.class) {
-                            BlockingStreamingTextServer.class.notify();
-                        }
+                    int i = 0;
+                    StringBuilder sb = new StringBuilder();
+                    while ( (i=r.read()) != -1) {
+                        sb.append( (char) i);
                     }
-                    char c = (char) r.read();
-                    System.out.println("Reading #");
-                    sb.append(c);
-                    assertEquals('#', c);
                     receivedMessage = sb.toString();
+                    System.out.println("BLOCKINGCLIENT received: " + receivedMessage);
                     messageLatch.countDown();
                 } catch (IOException ioe) {
                     ioe.printStackTrace();
@@ -95,15 +89,18 @@ public class BlockingStreamingTextClient extends Endpoint {
 
     public void send(Session session) {
         try {
+            StringBuilder sb = new StringBuilder();
+            String part = "";
             for (int i = 0; i < 10; i++) {
-                System.out.println("Sending bulk #" + i);
-                synchronized (BlockingStreamingTextServer.class) {
-                    session.getRemote().sendPartialString("blk" + i, false);
-                    System.out.println("Waiting for the server to process it");
-                    BlockingStreamingTextServer.class.wait(5000);
-                }
+                part = "blk" + i;
+                session.getRemote().sendPartialString(part, false);
+                sb.append(part);
             }
-            session.getRemote().sendPartialString("END", true);
+            part = "END";
+            session.getRemote().sendPartialString(part, true);
+            sb.append(part);
+            sentMessage = sb.toString();
+            System.out.println("BLOCKINGCLIENT: Sent" + sentMessage);
         } catch (Exception e) {
             e.printStackTrace();
         }
