@@ -40,6 +40,28 @@
 
 package org.glassfish.tyrus;
 
+import org.glassfish.tyrus.internal.PathPattern;
+import org.glassfish.tyrus.spi.SPIEndpoint;
+import org.glassfish.tyrus.spi.SPIHandshakeRequest;
+
+import javax.net.websocket.ClientContainer;
+import javax.net.websocket.DecodeException;
+import javax.net.websocket.Decoder;
+import javax.net.websocket.EncodeException;
+import javax.net.websocket.Encoder;
+import javax.net.websocket.Endpoint;
+import javax.net.websocket.EndpointConfiguration;
+import javax.net.websocket.MessageHandler;
+import javax.net.websocket.RemoteEndpoint;
+import javax.net.websocket.ServerEndpointConfiguration;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.io.Reader;
+import java.io.StringReader;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.nio.ByteBuffer;
@@ -49,18 +71,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import javax.net.websocket.ClientContainer;
-import javax.net.websocket.Decoder;
-import javax.net.websocket.EncodeException;
-import javax.net.websocket.Encoder;
-import javax.net.websocket.Endpoint;
-import javax.net.websocket.EndpointConfiguration;
-import javax.net.websocket.MessageHandler;
-import javax.net.websocket.RemoteEndpoint;
-import javax.net.websocket.ServerEndpointConfiguration;
-import org.glassfish.tyrus.internal.PathPattern;
-import org.glassfish.tyrus.spi.SPIEndpoint;
-import org.glassfish.tyrus.spi.SPIHandshakeRequest;
 
 /**
  * Wraps the registered application class.
@@ -126,8 +136,7 @@ public class EndpointWrapper extends SPIEndpoint {
         return match && sec.checkOrigin(hr.getHeader("Origin"));
     }
 
-    Object decodeMessage(Object message, Class<?> type, boolean isString) {
-
+    public Object decodeCompleteMessage(Object message, Class<?> type, boolean isString) {
         for (Decoder dec : decoders) {
             try {
                 if (isString && (dec instanceof Decoder.Text)) {
@@ -139,41 +148,114 @@ public class EndpointWrapper extends SPIEndpoint {
                     }
                 } else if (!isString && (dec instanceof Decoder.Binary)) {
                     Method m = dec.getClass().getDeclaredMethod("decode", ByteBuffer.class);
-                    if (type != null && type.equals(m.getReturnType())) {
+                    if (type != null && type.isAssignableFrom(m.getReturnType())) {
                         if (((Decoder.Binary) dec).willDecode((ByteBuffer) message)) {
                             return ((Decoder.Binary) dec).decode((ByteBuffer) message);
                         }
                     }
+                } else if (isString && (dec instanceof Decoder.TextStream)) {
+                    Method m = dec.getClass().getDeclaredMethod("decode", Reader.class);
+                    if (type != null && type.isAssignableFrom(m.getReturnType())) {
+                        return ((Decoder.TextStream) dec).decode(new StringReader((String) message));
+                    }
+                } else if (!isString && (dec instanceof Decoder.BinaryStream)) {
+                    Method m = dec.getClass().getDeclaredMethod("decode", InputStream.class);
+                    if (type != null && type.isAssignableFrom(m.getReturnType())) {
+                        byte[] array = ((ByteBuffer) message).array();
+                        return ((Decoder.BinaryStream) dec).decode(new ByteArrayInputStream(array));
+                    }
                 }
+            } catch (DecodeException de) {
+                de.printStackTrace();
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                e.printStackTrace();
             }
         }
         return null;
     }
 
-    String doEncode(Object o) throws EncodeException {
-        for (Encoder enc : encoders) {
-            if (enc instanceof Encoder.Text) {
-                try {
-                    // TODO: implement utility to find type param and use that
-                    Method m = enc.getClass().getMethod("encode", o.getClass());
-                    if (m != null) {
-                        //noinspection unchecked
-                        return ((Encoder.Text) enc).encode(o);
-                    }
-                } catch (java.lang.NoSuchMethodException nsme) {
-                    // just continue looping
-                } catch (EncodeException ee) {
-                    ee.printStackTrace();
-                    throw ee;
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
+    private ArrayList<DecoderWrapper> findApplicableDecoders(Object message, boolean isString) {
+        ArrayList<DecoderWrapper> result = new ArrayList<DecoderWrapper>();
+
+        for (Decoder dec : decoders) {
+            if (isString && (dec instanceof Decoder.Text)) {
+                if (((Decoder.Text) dec).willDecode((String) message)) {
+                    Class<?> type = getClassType(dec.getClass(), Decoder.Text.class);
+                    result.add(new DecoderWrapper(dec, type, Decoder.Text.class));
                 }
+            } else if (!isString && (dec instanceof Decoder.Binary)) {
+                if (((Decoder.Binary) dec).willDecode((ByteBuffer) message)) {
+                    Class<?> type = getClassType(dec.getClass(), Decoder.Binary.class);
+                    result.add(new DecoderWrapper(dec, type, Decoder.Binary.class));
+                }
+            } else if (isString && (dec instanceof Decoder.TextStream)) {
+                Class<?> type = getClassType(dec.getClass(), Decoder.TextStream.class);
+                result.add(new DecoderWrapper(dec, type, Decoder.TextStream.class));
+            } else if (!isString && (dec instanceof Decoder.BinaryStream)) {
+                Class<?> type = getClassType(dec.getClass(), Decoder.BinaryStream.class);
+                result.add(new DecoderWrapper(dec, type, Decoder.BinaryStream.class));
             }
         }
 
-        throw new EncodeException("Unable to encode ", o);
+        return result;
+    }
+
+    private Class<?> getClassType(Class<?> inspectedClass, Class<?> rootClass) {
+        ReflectionHelper.DeclaringClassInterfacePair p = ReflectionHelper.getClass(inspectedClass, rootClass);
+        Class[] as = ReflectionHelper.getParameterizedClassArguments(p);
+        if(as==null){
+            return null;
+        }else{
+            return as[0];
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    Object doEncode(Object message) throws EncodeException {
+        for (Encoder enc : encoders) {
+            try {
+                if (enc instanceof Encoder.Binary) {
+                    ReflectionHelper.DeclaringClassInterfacePair p = ReflectionHelper.getClass(enc.getClass(), Encoder.Binary.class);
+                    Class[] as = ReflectionHelper.getParameterizedClassArguments(p);
+                    Class<?> type = as[0];
+                    if (message.getClass().isAssignableFrom(type)) {
+                        return ((Encoder.Binary) enc).encode(message);
+                    }
+                } else if (enc instanceof Encoder.Text) {
+                    ReflectionHelper.DeclaringClassInterfacePair p = ReflectionHelper.getClass(enc.getClass(), Encoder.Text.class);
+                    Class[] as = ReflectionHelper.getParameterizedClassArguments(p);
+                    Class<?> type = as[0];
+                    if (message.getClass().isAssignableFrom(type)) {
+                        return ((Encoder.Text) enc).encode(message);
+                    }
+                } else if (enc instanceof Encoder.BinaryStream) {
+                    ReflectionHelper.DeclaringClassInterfacePair p = ReflectionHelper.getClass(enc.getClass(), Encoder.BinaryStream.class);
+                    Class[] as = ReflectionHelper.getParameterizedClassArguments(p);
+                    Class<?> type = as[0];
+                    if (message.getClass().isAssignableFrom(type)) {
+                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                        ((Encoder.BinaryStream) enc).encode(message, new ByteArrayOutputStream());
+                        return baos;
+                    }
+                } else if (enc instanceof Encoder.TextStream) {
+                    ReflectionHelper.DeclaringClassInterfacePair p = ReflectionHelper.getClass(enc.getClass(), Encoder.TextStream.class);
+                    Class[] as = ReflectionHelper.getParameterizedClassArguments(p);
+                    Class<?> type = as[0];
+                    if (message.getClass().isAssignableFrom(type)) {
+                        Writer writer = new StringWriter();
+                        ((Encoder.TextStream) enc).encode(message, writer);
+                        return writer;
+                    }
+                }
+            } catch (EncodeException ee) {
+                ee.printStackTrace();
+                throw ee;
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+
+        throw new EncodeException("Unable to encode ", message);
     }
 
     @Override
@@ -219,57 +301,25 @@ public class EndpointWrapper extends SPIEndpoint {
     @Override
     public void onMessage(RemoteEndpoint gs, ByteBuffer messageBytes) {
         SessionImpl session = remoteEndpointToSession.get(gs);
-        session.notifyMessageHandlers(messageBytes);
+        session.notifyMessageHandlers(messageBytes, findApplicableDecoders(messageBytes, false));
     }
 
     @Override
     public void onMessage(RemoteEndpoint gs, String messageString) {
         SessionImpl session = remoteEndpointToSession.get(gs);
-        session.notifyMessageHandlers(messageString);
+        session.notifyMessageHandlers(messageString, findApplicableDecoders(messageString, true));
     }
 
-    /*
-     * Initial implementation policy:
-     * - if there is a streaming message handler invoke it
-     * - if there is a blocking handler, use an adapter to invoke it
-     */
     @Override
     public void onPartialMessage(RemoteEndpoint gs, String partialString, boolean last) {
         SessionImpl session = remoteEndpointToSession.get(gs);
-        boolean handled = false;
-        for (MessageHandler handler : (Set<MessageHandler>) session.getInvokableMessageHandlers()) {
-            MessageHandler.AsyncText baseHandler;
-            if (handler instanceof MessageHandler.AsyncText) {
-                baseHandler = (MessageHandler.AsyncText) handler;
-                baseHandler.onMessagePart(partialString, last);
-                if (last) {
-                    handled = true;
-                }
-                break;
-            }
-        }
-        if (last && !handled) {
-            System.out.println("Unhandled text message in EndpointWrapper");
-        }
+        session.notifyMessageHandlers(partialString, last);
     }
 
     @Override
     public void onPartialMessage(RemoteEndpoint gs, ByteBuffer partialBytes, boolean last) {
         SessionImpl session = remoteEndpointToSession.get(gs);
-        //System.out.println("EndpointWrapper----" + ((SessionImpl) peer.getSession()).getInvokableMessageHandlers());
-        boolean handled = false;
-        for (MessageHandler handler : (Set<MessageHandler>) session.getInvokableMessageHandlers()) {
-            if (handler instanceof MessageHandler.AsyncBinary) {
-                //System.out.println("async binary");
-                ((MessageHandler.AsyncBinary) handler).onMessagePart(partialBytes, last);
-                handled = true;
-                break;
-            }
-        }
-        if (!handled) {
-            System.out.println("Unhandled partial binary message in EndpointWrapper");
-        }
-
+        session.notifyMessageHandlers(partialBytes, last);
     }
 
 

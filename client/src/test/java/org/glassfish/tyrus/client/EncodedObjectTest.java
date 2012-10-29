@@ -40,33 +40,66 @@
 
 package org.glassfish.tyrus.client;
 
+import org.glassfish.tyrus.server.Server;
+import org.junit.Assert;
+import org.junit.Test;
 
 import javax.net.websocket.Session;
-import javax.net.websocket.annotations.WebSocketEndpoint;
-import javax.net.websocket.annotations.WebSocketMessage;
-import javax.net.websocket.annotations.WebSocketOpen;
 
 import java.io.IOException;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
+public class EncodedObjectTest {
 
-@WebSocketEndpoint(value = "/echo")
-public class TestBean {
-    @WebSocketOpen
-    public void onOpen(Session s) {
-        System.out.println("Client connected to the server!");
-    }
+    private CountDownLatch messageLatch;
 
-    @WebSocketMessage
-    public void helloWorld(String message, Session session) {
+    private String receivedMessage;
+
+    private static final String SENT_MESSAGE = "hello";
+
+    @Test
+    public void testClient() {
+        Server server = new Server("org.glassfish.tyrus.client.TestEncodeBean");
+        server.start();
+
         try {
-            System.out.println("##### Test Bean: Received message: " + message);
+            messageLatch = new CountDownLatch(1);
+            DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder("ws://localhost:8025/websockets/tests/echo");
+            DefaultClientEndpointConfiguration dcec = builder.build();
 
-            session.getRemote().sendString(message);
-        } catch (IOException e) {
+            ClientManager client = ClientManager.createClient();
+            client.connectToServer(new AbstractTestEndpoint() {
+                @Override
+                public void messageReceived(String message) {
+                    receivedMessage = message;
+                    messageLatch.countDown();
+                    System.out.println("Received message = " + message);
+                }
+
+                @Override
+                public void onOpen(Session session) {
+                    try {
+                        session.addMessageHandler(new TestTextMessageHandler(this));
+                        session.getRemote().sendString(SENT_MESSAGE);
+                        System.out.println("Sent message: " + SENT_MESSAGE);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }, dcec);
+
+            messageLatch.await(5, TimeUnit.SECONDS);
+            Assert.assertTrue("The received message is the same as the sent one", receivedMessage.equals(SENT_MESSAGE));
+        } catch (Exception e) {
             e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            server.stop();
         }
     }
 }
+

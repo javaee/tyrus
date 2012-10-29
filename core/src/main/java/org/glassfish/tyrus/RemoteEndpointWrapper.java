@@ -39,17 +39,20 @@
  */
 package org.glassfish.tyrus;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.Writer;
-import java.nio.ByteBuffer;
-import java.util.concurrent.Future;
 import javax.net.websocket.CloseReason;
 import javax.net.websocket.EncodeException;
 import javax.net.websocket.RemoteEndpoint;
 import javax.net.websocket.SendHandler;
 import javax.net.websocket.SendResult;
 import javax.net.websocket.Session;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.StringWriter;
+import java.io.Writer;
+import java.nio.ByteBuffer;
+import java.util.concurrent.Future;
 
 /**
  * Wrapps the {@link RemoteEndpoint} and represents the other side of the websocket connection.
@@ -167,8 +170,21 @@ public final class RemoteEndpointWrapper<T> implements RemoteEndpoint<T> {
         } else if (isPrimitiveData(o)) {
             this.sendPrimitiveMessage(o);
         } else {
-            String stringToSend = endpointWrapper.doEncode(o);
-            this.sendString(stringToSend);
+            Object toSend = endpointWrapper.doEncode(o);
+            if(toSend instanceof String){
+                this.sendString((String)toSend);
+            } else if(toSend instanceof ByteBuffer){
+                this.sendBytes((ByteBuffer) toSend);
+            } else if(toSend instanceof StringWriter){
+                StringWriter writer = (StringWriter) toSend;
+                StringBuffer sb = writer.getBuffer();
+                this.sendString(sb.toString());
+            } else if(toSend instanceof ByteArrayOutputStream){
+                ByteArrayOutputStream baos = (ByteArrayOutputStream) toSend;
+                ByteBuffer buffer = ByteBuffer.wrap(baos.toByteArray());
+                this.sendBytes(buffer);
+            }
+
         }
     }
 

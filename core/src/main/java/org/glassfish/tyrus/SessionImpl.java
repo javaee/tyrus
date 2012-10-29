@@ -40,22 +40,24 @@
 package org.glassfish.tyrus;
 
 
-import java.io.IOException;
-import java.io.StringReader;
-import java.net.URI;
-import java.nio.ByteBuffer;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import javax.net.websocket.ClientContainer;
 import javax.net.websocket.CloseReason;
 import javax.net.websocket.Encoder;
 import javax.net.websocket.MessageHandler;
 import javax.net.websocket.RemoteEndpoint;
 import javax.net.websocket.Session;
+
+import java.io.IOException;
+import java.net.URI;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Implementation of the WebSocketConversation.
@@ -76,7 +78,6 @@ public class SessionImpl<T> implements Session<T> {
     private final String queryString;
     private final Map<String, String> pathParameters;
     private Map<MessageHandler, MessageHandler> messageHandlerToInvokableMessageHandlers = new HashMap<MessageHandler, MessageHandler>();
-    //private Set<MessageHandler> messageHandlers = new HashSet<MessageHandler>();
     private final Map<String, Object> properties = new HashMap<String, Object>();
     private long timeout;
     private long maximumMessageSize = 8192;
@@ -198,7 +199,6 @@ public class SessionImpl<T> implements Session<T> {
     }
 
     @Override
-
     public void addMessageHandler(MessageHandler listener) {
         MessageHandler invokable;
         if (listener instanceof MessageHandler.CharacterStream) {
@@ -206,11 +206,11 @@ public class SessionImpl<T> implements Session<T> {
         } else if (listener instanceof MessageHandler.BinaryStream) {
             invokable = new AsyncBinaryToOutputStreamAdapter((MessageHandler.BinaryStream) listener);
         } else {
-           invokable = listener; 
+            invokable = listener;
         }
         this.messageHandlerToInvokableMessageHandlers.put(listener, invokable);
     }
-    
+
 
     @Override
     public Set<MessageHandler> getMessageHandlers() {
@@ -250,62 +250,150 @@ public class SessionImpl<T> implements Session<T> {
         this.lastConnectionActivity = System.currentTimeMillis();
     }
 
-    void notifyMessageHandlers(String message) {
+    void notifyMessageHandlers(String message, List<DecoderWrapper> availableDecoders) {
         updateLastConnectionActivity();
-        // TODO: messageHandlers should be ordered!
-        // TODO: should we order based on the most specific type?
-        for (MessageHandler mh : this.getMessageHandlers()) {
-            if (mh instanceof MessageHandler.Text) {
-                ((MessageHandler.Text) mh).onMessage(message);
-                break;
-            } else if (mh instanceof MessageHandler.CharacterStream) {
-                ((MessageHandler.CharacterStream) mh).onMessage(new StringReader(message));
-                break;
-            } else if (mh instanceof DecodedObjectMessageHandler) {
-                DecodedObjectMessageHandler domh = (DecodedObjectMessageHandler) mh;
-                Object object = endpoint.decodeMessage(message, domh.getType(), true);
-                if (object != null) {
-                    domh.onMessage(object);
-                    break;
+
+        boolean decoded = false;
+
+        if (availableDecoders.isEmpty()) {
+            System.out.println("No Decoder found");
+        }
+
+        try {
+            for (DecoderWrapper decoder : availableDecoders) {
+                for (MessageHandler mh : this.getOrderedMessageHandlers()) {
+                    if (mh instanceof MessageHandler.Text) {
+                        ((MessageHandler.Text) mh).onMessage(message);
+                        decoded = true;
+                        break;
+
+                    } else if (mh instanceof DecodedObjectMessageHandler) {
+                        DecodedObjectMessageHandler domh = (DecodedObjectMessageHandler) mh;
+                        Class<?> type = domh.getType();
+                        if (type != null && type.isAssignableFrom(decoder.getType())) {
+                            Object object = endpoint.decodeCompleteMessage(message, domh.getType(), true);
+                            if (object != null) {
+                                domh.onMessage(object);
+                                decoded = true;
+                                break;
+                            }
+                        }
+                    } else if (mh instanceof MessageHandler.DecodedObject) {
+                        Class<?> type = this.getClassType(mh.getClass(), MessageHandler.DecodedObject.class);
+                        if (type != null && type.isAssignableFrom(decoder.getType())) {
+                            Object object = endpoint.decodeCompleteMessage(message, type, true);
+                            if (object != null) {
+                                ((MessageHandler.DecodedObject) mh).onMessage(object);
+                                decoded = true;
+                                break;
+                            }
+                        }
+                    }
                 }
-            } else if (mh instanceof MessageHandler.DecodedObject) {
-                Class<?> type = Object.class; // TODO: extract the real type from the type parameter
-                Object object = endpoint.decodeMessage(message, type, true);
-                if (object != null) {
-                    ((MessageHandler.DecodedObject) mh).onMessage(object);
+                if (decoded) {
                     break;
                 }
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
-    void notifyMessageHandlers(ByteBuffer message) {
+    void notifyMessageHandlers(ByteBuffer message, List<DecoderWrapper> availableDecoders) {
         updateLastConnectionActivity();
-        // TODO: messageHandlers should be ordered!
-        // TODO: should we order based on the most specific type?
-        for (MessageHandler mh : this.getMessageHandlers()) {
-            if (mh instanceof MessageHandler.Binary) {
-                ((MessageHandler.Binary) mh).onMessage(message);
-                break;
-            } else if (mh instanceof MessageHandler.BinaryStream) {
-                // TODO: convert ByteBuffer to stream
-//                ((MessageHandler.BinaryStream) mh).onMessage(message.);
-//                break;
-            } else if (mh instanceof DecodedObjectMessageHandler) {
-                DecodedObjectMessageHandler domh = (DecodedObjectMessageHandler) mh;
-                Object object = endpoint.decodeMessage(message, domh.getType(), false);
-                if (object != null) {
-                    domh.onMessage(object);
-                    break;
+
+        boolean decoded = false;
+
+        if (availableDecoders.isEmpty()) {
+            System.out.println("No Decoder found");
+        }
+
+        try {
+            for (DecoderWrapper decoder : availableDecoders) {
+                for (MessageHandler mh : this.getOrderedMessageHandlers()) {
+                    if (mh instanceof MessageHandler.Binary) {
+                        ((MessageHandler.Binary) mh).onMessage(message);
+                        decoded = true;
+                        break;
+
+                    } else if (mh instanceof DecodedObjectMessageHandler) {
+                        DecodedObjectMessageHandler domh = (DecodedObjectMessageHandler) mh;
+                        Class<?> type = domh.getType();
+                        if (type != null && type.isAssignableFrom(decoder.getType())) {
+                            Object object = endpoint.decodeCompleteMessage(message, domh.getType(), true);
+                            if (object != null) {
+                                domh.onMessage(object);
+                                decoded = true;
+                                break;
+                            }
+                        }
+                    } else if (mh instanceof MessageHandler.DecodedObject) {
+                        Class<?> type = this.getClassType(mh.getClass(), MessageHandler.DecodedObject.class);
+                        if (type != null && type.isAssignableFrom(decoder.getType())) {
+                            Object object = endpoint.decodeCompleteMessage(message, type, true);
+                            if (object != null) {
+                                ((MessageHandler.DecodedObject) mh).onMessage(object);
+                                decoded = true;
+                                break;
+                            }
+                        }
+                    }
                 }
-            } else if (mh instanceof MessageHandler.DecodedObject) {
-                Class<?> type = Object.class; // TODO: extract the real type from the type parameter
-                Object object = endpoint.decodeMessage(message, type, false);
-                if (object != null) {
-                    ((MessageHandler.DecodedObject) mh).onMessage(object);
+                if (decoded) {
                     break;
                 }
             }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    void notifyMessageHandlers(ByteBuffer partialBytes, boolean last) {
+        boolean handled = false;
+
+        for (MessageHandler handler : this.getInvokableMessageHandlers()) {
+            if (handler instanceof MessageHandler.AsyncBinary) {
+                ((MessageHandler.AsyncBinary) handler).onMessagePart(partialBytes, last);
+                handled = true;
+                break;
+            }
+        }
+
+        if (!handled) {
+            System.out.println("Unhandled partial binary message in EndpointWrapper");
+        }
+    }
+
+    /*
+    * Initial implementation policy:
+    * - if there is a streaming message handler invoke it
+    * - if there is a blocking handler, use an adapter to invoke it
+    */
+    void notifyMessageHandlers(String partialString, boolean last) {
+        boolean handled = false;
+
+        for (MessageHandler handler : this.getInvokableMessageHandlers()) {
+            MessageHandler.AsyncText baseHandler;
+            if (handler instanceof MessageHandler.AsyncText) {
+                baseHandler = (MessageHandler.AsyncText) handler;
+                baseHandler.onMessagePart(partialString, last);
+                handled = true;
+                break;
+            }
+        }
+
+        if (!handled) {
+            System.out.println("Unhandled text message in EndpointWrapper");
+        }
+    }
+
+    private Class<?> getClassType(Class<?> inspectedClass, Class<?> rootClass) {
+        ReflectionHelper.DeclaringClassInterfacePair p = ReflectionHelper.getClass(inspectedClass, rootClass);
+        Class[] as = ReflectionHelper.getParameterizedClassArguments(p);
+        if (as == null) {
+            return null;
+        } else {
+            return as[0];
         }
     }
 
@@ -315,6 +403,42 @@ public class SessionImpl<T> implements Session<T> {
             s.add(mh);
         }
         return s;
+    }
 
+    private List<MessageHandler> getOrderedMessageHandlers() {
+        Set<MessageHandler> handlers = this.getMessageHandlers();
+        ArrayList<MessageHandler> result = new ArrayList<MessageHandler>();
+
+        result.addAll(handlers);
+
+        Collections.sort(result, new MessageHandlerComparator());
+
+        return result;
+    }
+
+    private class MessageHandlerComparator implements Comparator<MessageHandler> {
+
+        @Override
+        public int compare(MessageHandler o1, MessageHandler o2) {
+            if (o1 instanceof MessageHandler.DecodedObject) {
+                if (o2 instanceof MessageHandler.DecodedObject) {
+                    Class<?> type1 = getClassType(o1.getClass(), MessageHandler.DecodedObject.class);
+                    Class<?> type2 = getClassType(o2.getClass(), MessageHandler.DecodedObject.class);
+
+                    if (type1.isAssignableFrom(type2)) {
+                        return 1;
+                    } else if (type2.isAssignableFrom(type1)) {
+                        return -1;
+                    } else {
+                        return 0;
+                    }
+                } else {
+                    return 1;
+                }
+            } else if (o2 instanceof MessageHandler.DecodedObject) {
+                return 1;
+            }
+            return 0;
+        }
     }
 }

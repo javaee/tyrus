@@ -38,35 +38,36 @@
  * holder.
  */
 
-package org.glassfish.tyrus.client;
+package org.glassfish.tyrus;
 
-
-import javax.net.websocket.Session;
-import javax.net.websocket.annotations.WebSocketEndpoint;
-import javax.net.websocket.annotations.WebSocketMessage;
-import javax.net.websocket.annotations.WebSocketOpen;
-
-import java.io.IOException;
+import javax.net.websocket.Decoder;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
+public class DecoderWrapper {
 
-@WebSocketEndpoint(value = "/echo")
-public class TestBean {
-    @WebSocketOpen
-    public void onOpen(Session s) {
-        System.out.println("Client connected to the server!");
+    private Decoder decoder;
+
+    private Class<?> type;
+
+    private Class<?> rootType;
+
+    public DecoderWrapper(Decoder decoder, Class<?> type, Class<?> rootType) {
+        this.decoder = decoder;
+        this.type = type;
+        this.rootType = rootType;
     }
 
-    @WebSocketMessage
-    public void helloWorld(String message, Session session) {
-        try {
-            System.out.println("##### Test Bean: Received message: " + message);
+    public Decoder getDecoder() {
+        return decoder;
+    }
 
-            session.getRemote().sendString(message);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public Class<?> getType() {
+        return type;
+    }
+
+    public Class<?> getRootType() {
+        return rootType;
     }
 }

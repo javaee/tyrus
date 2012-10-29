@@ -37,10 +37,9 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-
 package org.glassfish.tyrus.client;
 
-
+import javax.net.websocket.EncodeException;
 import javax.net.websocket.Session;
 import javax.net.websocket.annotations.WebSocketEndpoint;
 import javax.net.websocket.annotations.WebSocketMessage;
@@ -52,8 +51,8 @@ import java.io.IOException;
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 
-@WebSocketEndpoint(value = "/echo")
-public class TestBean {
+@WebSocketEndpoint(value = "/echo", encoders = {StringContainerEncoder.class})
+public class TestEncodeBean {
     @WebSocketOpen
     public void onOpen(Session s) {
         System.out.println("Client connected to the server!");
@@ -62,11 +61,15 @@ public class TestBean {
     @WebSocketMessage
     public void helloWorld(String message, Session session) {
         try {
-            System.out.println("##### Test Bean: Received message: " + message);
 
-            session.getRemote().sendString(message);
+            System.out.println("##### Encode Test Bean: Received message: " + message);
+
+            session.getRemote().sendObject(new StringContainer(message));
         } catch (IOException e) {
+            e.printStackTrace();
+        } catch (EncodeException e) {
             e.printStackTrace();
         }
     }
 }
+

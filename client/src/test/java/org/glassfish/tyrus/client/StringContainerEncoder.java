@@ -40,33 +40,18 @@
 
 package org.glassfish.tyrus.client;
 
+import org.glassfish.tyrus.client.StringContainer;
 
-import javax.net.websocket.Session;
-import javax.net.websocket.annotations.WebSocketEndpoint;
-import javax.net.websocket.annotations.WebSocketMessage;
-import javax.net.websocket.annotations.WebSocketOpen;
-
-import java.io.IOException;
+import javax.net.websocket.EncodeException;
+import javax.net.websocket.Encoder;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
+public class StringContainerEncoder implements Encoder.Text<StringContainer>{
 
-@WebSocketEndpoint(value = "/echo")
-public class TestBean {
-    @WebSocketOpen
-    public void onOpen(Session s) {
-        System.out.println("Client connected to the server!");
-    }
-
-    @WebSocketMessage
-    public void helloWorld(String message, Session session) {
-        try {
-            System.out.println("##### Test Bean: Received message: " + message);
-
-            session.getRemote().sendString(message);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    @Override
+    public String encode(StringContainer object) throws EncodeException {
+        return object.getString();
     }
 }

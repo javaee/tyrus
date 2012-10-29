@@ -40,33 +40,17 @@
 
 package org.glassfish.tyrus.client;
 
-
-import javax.net.websocket.Session;
-import javax.net.websocket.annotations.WebSocketEndpoint;
-import javax.net.websocket.annotations.WebSocketMessage;
-import javax.net.websocket.annotations.WebSocketOpen;
-
-import java.io.IOException;
-
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
+public class StringContainer {
+    private String string;
 
-@WebSocketEndpoint(value = "/echo")
-public class TestBean {
-    @WebSocketOpen
-    public void onOpen(Session s) {
-        System.out.println("Client connected to the server!");
+    public StringContainer(String string) {
+        this.string = string;
     }
 
-    @WebSocketMessage
-    public void helloWorld(String message, Session session) {
-        try {
-            System.out.println("##### Test Bean: Received message: " + message);
-
-            session.getRemote().sendString(message);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    public String getString() {
+        return string;
     }
 }
