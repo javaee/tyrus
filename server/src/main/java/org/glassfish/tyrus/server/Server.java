@@ -53,7 +53,7 @@ import java.util.logging.Logger;
  */
 public class Server {
     private ServerContainer server;
-    private final Set<Class<?>> beans;
+    private final ServerConfiguration configuration;
     private final String hostName;
     private final int port;
     private final String rootPath;
@@ -82,7 +82,7 @@ public class Server {
         this(null, 0, null, new HashSet<Class<?>>());
         for (String beanName : beanNames) {
             try {
-                beans.add(Class.forName(beanName));
+                ((DefaultServerConfiguration) configuration).endpoint(Class.forName(beanName));
             } catch (ClassNotFoundException e) {
                 throw new RuntimeException(e);
             }
@@ -110,12 +110,23 @@ public class Server {
      * @param beans    registered application classes.
      */
     public Server(String hostName, int port, String rootPath, Set<Class<?>> beans) {
+        this(hostName, port, rootPath, new DefaultServerConfiguration().endpoints(beans));
+    }
+
+    /**
+     * Construct new server.
+     *
+     * @param hostName hostName of the server.
+     * @param port     port of the server.
+     * @param rootPath root path to the server App.
+     * @param configuration server configuration.
+     */
+    public Server(String hostName, int port, String rootPath, ServerConfiguration configuration) {
         this.hostName = hostName == null ? DEFAULT_HOST_NAME : hostName;
         this.port = port == 0 ? DEFAULT_PORT : port;
         this.rootPath = rootPath == null ? DEFAULT_ROOT_PATH : rootPath;
-        this.beans = beans;
+        this.configuration = configuration;
     }
-
 
     /**
      * Start the server.
@@ -124,7 +135,7 @@ public class Server {
         try {
             if (server == null) {
                 server = ServerContainerFactory.create(ENGINE_PROVIDER_CLASSNAME, rootPath, port,
-                        new DefaultServerConfiguration().endpoints(beans));
+                        configuration);
                 server.start();
                 LOGGER.info("WebSocket Registered apps: URLs all start with ws://" + this.hostName + ":" + this.port);
                 LOGGER.info("WebSocket server started.");

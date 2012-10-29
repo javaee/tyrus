@@ -107,6 +107,13 @@
                                 </artifactItem>
                                 <artifactItem>
                                     <groupId>${project.groupId}</groupId>
+                                    <artifactId>tyrus-spi</artifactId>
+                                    <classifier>sources</classifier>
+                                    <overWrite>false</overWrite>
+                                    <outputDirectory>${generated.sources.dir}</outputDirectory>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>${project.groupId}</groupId>
                                     <artifactId>tyrus-client</artifactId>
                                     <classifier>sources</classifier>
                                     <overWrite>false</overWrite>
@@ -157,7 +164,8 @@
                 <configuration>
                     <instructions>
                         <Export-Package>
-                            javax.net.websocket.*;version=${apijar.bundle.version}
+                            javax.net.websocket.*;version=${apijar.bundle.version},
+                            org.glassfish.tyrus.*;version=${impljar.bundle.version}
                         </Export-Package>
                         <Embed-Dependency>
                             groupId=org.glassfish.tyrus;inline=true, *;inline=META-INF/*
@@ -199,12 +207,22 @@
         </dependency>
         <dependency>
             <groupId>org.glassfish.tyrus</groupId>
+            <artifactId>tyrus-core</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.tyrus</groupId>
             <artifactId>tyrus-client</artifactId>
             <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>org.glassfish.tyrus</groupId>
             <artifactId>tyrus-server</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.tyrus</groupId>
+            <artifactId>tyrus-spi</artifactId>
             <optional>true</optional>
         </dependency>
         <dependency>

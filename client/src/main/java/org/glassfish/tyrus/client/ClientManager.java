@@ -87,7 +87,7 @@ public class ClientManager implements ClientContainer {
     @Override
     public void connectToServer(Endpoint endpoint, ClientEndpointConfiguration configuration) {
         try {
-            EndpointWrapper clientEndpoint = new EndpointWrapper(endpoint, configuration, this);
+            EndpointWrapper clientEndpoint = new EndpointWrapper(endpoint, configuration, this, null);
             TyrusClientSocket clientSocket = engine.openClientSocket(
                     configuration.getPath(), configuration, clientEndpoint);
             sockets.add(clientSocket);

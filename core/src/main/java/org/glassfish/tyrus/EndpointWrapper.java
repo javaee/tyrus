@@ -85,6 +85,7 @@ public class EndpointWrapper extends SPIEndpoint {
      * The container for this session.
      */
     private final ClientContainer container;
+    private final String contextPath;
 
     private final List<Decoder> decoders = new ArrayList<Decoder>();
     private final List<Encoder> encoders = new ArrayList<Encoder>();
@@ -100,10 +101,12 @@ public class EndpointWrapper extends SPIEndpoint {
     private boolean isSecure;
     private String queryString;
 
-    public EndpointWrapper(Endpoint endpoint, EndpointConfiguration configuration, ClientContainer container) {
+    public EndpointWrapper(Endpoint endpoint, EndpointConfiguration configuration, ClientContainer container,
+                           String contextPath) {
         this.endpoint = endpoint;
         this.configuration = configuration;
         this.container = container;
+        this.contextPath = contextPath;
 
         decoders.addAll(configuration.getDecoders());
         decoders.addAll(PrimitiveDecoders.ALL);
@@ -130,10 +133,15 @@ public class EndpointWrapper extends SPIEndpoint {
         queryString = hr.getQueryString();
         isSecure = hr.isSecure();
 
-        final PathPattern pathPattern = new PathPattern(sec.getPath());
+        final PathPattern pathPattern = new PathPattern(getEndpointPath(sec.getPath()));
 
         final boolean match = pathPattern.match(uri, pathPattern.getTemplate().getTemplateVariables(), templateValues);
         return match && sec.checkOrigin(hr.getHeader("Origin"));
+    }
+
+    private String getEndpointPath(String relativePath) {
+        return (contextPath.endsWith("/") ? contextPath.substring(0, contextPath.length() - 1) : contextPath)
+                + "/" + (relativePath.startsWith("/") ? relativePath.substring(1) : relativePath);
     }
 
     public Object decodeCompleteMessage(Object message, Class<?> type, boolean isString) {

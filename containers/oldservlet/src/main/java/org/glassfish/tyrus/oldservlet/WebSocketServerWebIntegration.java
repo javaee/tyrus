@@ -40,11 +40,19 @@
 package org.glassfish.tyrus.oldservlet;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
+import java.util.logging.Logger;
+import javax.net.websocket.annotations.WebSocketEndpoint;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
+import org.glassfish.tyrus.server.ContainerConfig;
 import org.glassfish.tyrus.server.DefaultServerConfiguration;
+import org.glassfish.tyrus.server.ServerConfiguration;
 import org.glassfish.tyrus.server.ServerContainer;
 import org.glassfish.tyrus.server.ServerContainerFactory;
 
@@ -52,35 +60,116 @@ import org.glassfish.tyrus.server.ServerContainerFactory;
  * Web application lifecycle listener.
  *
  * @author Danny Coward (danny.coward at oracle.com)
+ * @author Martin Matula (martin.matula at oracle.com)
  */
 @WebListener()
 public class WebSocketServerWebIntegration implements ServletContextListener {
     static final String ENDPOINT_CLASS_SET = "org.glassfish.websockets.platform.web.endpoint.class.set";
     // TODO: move somewhere sensible
-    private static final String defaultProviderClassname = "org.glassfish.tyrus.spi.grizzlyprovider.GrizzlyEngine";
+    private static final String DEFAULT_PROVIDER_CLASSNAME = GrizzlyBasedEngine.class.getName();
     private static final String PROVIDER_CLASSNAME_KEY = "org.glassfish.websocket.provider.class";
     public static final String PRINCIPAL = "ws_principal";
-    private static final int informational_fixed_port = 8080;
+    private static final int INFORMATIONAL_FIXED_PORT = 8080;
 
     private ServerContainer serverContainer = null;
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
         @SuppressWarnings("unchecked")
-        Set<Class<?>> endpointClassSet = (Set<Class<?>>) sce.getServletContext().getAttribute(ENDPOINT_CLASS_SET);
+        Set<Class<?>> tmp = (Set<Class<?>>) sce.getServletContext().getAttribute(ENDPOINT_CLASS_SET);
+        final Set<Class<?>> endpointClassSet = tmp == null ? Collections.<Class<?>>emptySet()
+                : new HashSet<Class<?>>(tmp);
 
         if (endpointClassSet == null || endpointClassSet.isEmpty()) {
             return;
         }
 
-        String engineProviderClassname = defaultProviderClassname;
+        Class<ServerConfiguration> configClass = null;
+
+        for (Iterator<Class<?>> it = endpointClassSet.iterator(); it.hasNext();) {
+            Class<?> cls = it.next();
+
+            if (cls.getAnnotation(ContainerConfig.class) != null) {
+                if (cls.getAnnotation(WebSocketEndpoint.class) == null) {
+                    it.remove();
+                }
+                if (ServerConfiguration.class.isAssignableFrom(cls)) {
+                    if (configClass == null) {
+                        //noinspection unchecked
+                        configClass = (Class<ServerConfiguration>) cls;
+                    } else {
+                        Logger.getLogger(getClass().getName()).warning("Several server configuration classes found. " +
+                                cls.getName() + " will be ignored.");
+                    }
+                }
+            }
+        }
+
+        ServerConfiguration config;
+        if (configClass == null) {
+            Logger.getLogger(getClass().getName()).info("No server configuration class found in the application. Using defaults.");
+            config = new DefaultServerConfiguration().endpoints(endpointClassSet);
+        } else {
+            Logger.getLogger(getClass().getName()).info("Using " + configClass.getName() + " as the server configuration.");
+
+            final ServerConfiguration innerConfig;
+            try {
+                // TODO: use lifecycle provider to create instance
+                innerConfig = configClass.newInstance();
+            } catch (Exception e) {
+                throw new RuntimeException("Could not instantiate configuration class: " + configClass.getName(), e);
+            }
+
+            config = new ServerConfiguration() {
+                private Set<Class<?>> cachedEndpointClasses;
+
+                @Override
+                public Set<Class<?>> getEndpointClasses() {
+                    if (cachedEndpointClasses == null) {
+                        cachedEndpointClasses = innerConfig.getEndpointClasses();
+                        if (cachedEndpointClasses.isEmpty() && innerConfig.getEndpointInstances().isEmpty()) {
+                            cachedEndpointClasses = Collections.unmodifiableSet(endpointClassSet);
+                        }
+                    }
+
+                    return cachedEndpointClasses;
+                }
+
+                @Override
+                public Set<EndpointWithConfiguration> getEndpointInstances() {
+                    return innerConfig.getEndpointInstances();
+                }
+
+                @Override
+                public long getMaxSessionIdleTimeout() {
+                    return innerConfig.getMaxSessionIdleTimeout();
+                }
+
+                @Override
+                public long getMaxBinaryMessageBufferSize() {
+                    return innerConfig.getMaxBinaryMessageBufferSize();
+                }
+
+                @Override
+                public long getMaxTextMessageBufferSize() {
+                    return innerConfig.getMaxTextMessageBufferSize();
+                }
+
+                @Override
+                public List<String> getExtensions() {
+                    return innerConfig.getExtensions();
+                }
+            };
+        }
+
+        String engineProviderClassname = DEFAULT_PROVIDER_CLASSNAME;
         if (sce.getServletContext().getInitParameter(PROVIDER_CLASSNAME_KEY) != null) {
             engineProviderClassname = sce.getServletContext().getInitParameter(PROVIDER_CLASSNAME_KEY);
         }
 
         String contextRoot = sce.getServletContext().getContextPath();
-        serverContainer = ServerContainerFactory.create(engineProviderClassname, contextRoot, informational_fixed_port,
-                new DefaultServerConfiguration().endpoints(endpointClassSet));
+        serverContainer = ServerContainerFactory.create(engineProviderClassname, contextRoot, INFORMATIONAL_FIXED_PORT,
+                config);
         try {
             serverContainer.start();
         } catch (IOException e) {

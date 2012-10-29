@@ -143,11 +143,8 @@ public class TyrusServerContainer extends WithProperties implements ServerContai
                 continue;
             }
 
-            String nextPath = wseAnnotation.value();
+            String endpointPath = wseAnnotation.value();
             AnnotatedEndpoint annotatedEndpoint = new AnnotatedEndpoint(endpointClass);
-
-            String endpointPath = (contextPath.endsWith("/") ? contextPath.substring(0, contextPath.length() - 1) : contextPath)
-                    + "/" + (nextPath.startsWith("/") ? nextPath.substring(1) : nextPath);
 
             // TODO: use lifecycle provider to get instances of encoders/decoders
             List<Encoder> encoders = new ArrayList<Encoder>();
@@ -185,7 +182,7 @@ public class TyrusServerContainer extends WithProperties implements ServerContai
         }
 
         for (ServerConfiguration.EndpointWithConfiguration endpoint : allEndpoints) {
-            EndpointWrapper ew = new EndpointWrapper(endpoint.getEndpoint(), endpoint.getConfiguration(), this);
+            EndpointWrapper ew = new EndpointWrapper(endpoint.getEndpoint(), endpoint.getConfiguration(), this, contextPath);
             SPIRegisteredEndpoint ge = server.register(ew);
             endpoints.add(ge);
         }

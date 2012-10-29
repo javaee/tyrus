@@ -62,6 +62,7 @@
         <module>chat</module>
         <module>draw</module>
         <module>echo</module>
+        <module>programmatic-echo</module>
         <module>simplelife</module>
         <!--<module>trading</module>-->
     </modules>
@@ -70,6 +71,7 @@
         <dependency>
             <groupId>org.glassfish.tyrus</groupId>
             <artifactId>tyrus-server</artifactId>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>
