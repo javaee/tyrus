@@ -58,6 +58,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Logger;
 
 /**
  * Implementation of the WebSocketConversation.
@@ -81,6 +82,8 @@ public class SessionImpl<T> implements Session<T> {
     private final Map<String, Object> properties = new HashMap<String, Object>();
     private long timeout;
     private long maximumMessageSize = 8192;
+
+    private static final Logger LOGGER = Logger.getLogger(SessionImpl.class.getName());
 
     /**
      * Timestamp of the last send/receive message activity.
@@ -256,7 +259,7 @@ public class SessionImpl<T> implements Session<T> {
         boolean decoded = false;
 
         if (availableDecoders.isEmpty()) {
-            System.out.println("No Decoder found");
+            LOGGER.severe("No Decoder found");
         }
 
         try {
@@ -305,46 +308,42 @@ public class SessionImpl<T> implements Session<T> {
         boolean decoded = false;
 
         if (availableDecoders.isEmpty()) {
-            System.out.println("No Decoder found");
+            LOGGER.severe("No decoder found");
         }
 
-        try {
-            for (DecoderWrapper decoder : availableDecoders) {
-                for (MessageHandler mh : this.getOrderedMessageHandlers()) {
-                    if (mh instanceof MessageHandler.Binary) {
-                        ((MessageHandler.Binary) mh).onMessage(message);
-                        decoded = true;
-                        break;
+        for (DecoderWrapper decoder : availableDecoders) {
+            for (MessageHandler mh : this.getOrderedMessageHandlers()) {
+                if (mh instanceof MessageHandler.Binary) {
+                    ((MessageHandler.Binary) mh).onMessage(message);
+                    decoded = true;
+                    break;
 
-                    } else if (mh instanceof DecodedObjectMessageHandler) {
-                        DecodedObjectMessageHandler domh = (DecodedObjectMessageHandler) mh;
-                        Class<?> type = domh.getType();
-                        if (type != null && type.isAssignableFrom(decoder.getType())) {
-                            Object object = endpoint.decodeCompleteMessage(message, domh.getType(), true);
-                            if (object != null) {
-                                domh.onMessage(object);
-                                decoded = true;
-                                break;
-                            }
+                } else if (mh instanceof DecodedObjectMessageHandler) {
+                    DecodedObjectMessageHandler domh = (DecodedObjectMessageHandler) mh;
+                    Class<?> type = domh.getType();
+                    if (type != null && type.isAssignableFrom(decoder.getType())) {
+                        Object object = endpoint.decodeCompleteMessage(message, domh.getType(), true);
+                        if (object != null) {
+                            domh.onMessage(object);
+                            decoded = true;
+                            break;
                         }
-                    } else if (mh instanceof MessageHandler.DecodedObject) {
-                        Class<?> type = this.getClassType(mh.getClass(), MessageHandler.DecodedObject.class);
-                        if (type != null && type.isAssignableFrom(decoder.getType())) {
-                            Object object = endpoint.decodeCompleteMessage(message, type, true);
-                            if (object != null) {
-                                ((MessageHandler.DecodedObject) mh).onMessage(object);
-                                decoded = true;
-                                break;
-                            }
+                    }
+                } else if (mh instanceof MessageHandler.DecodedObject) {
+                    Class<?> type = this.getClassType(mh.getClass(), MessageHandler.DecodedObject.class);
+                    if (type != null && type.isAssignableFrom(decoder.getType())) {
+                        Object object = endpoint.decodeCompleteMessage(message, type, true);
+                        if (object != null) {
+                            ((MessageHandler.DecodedObject) mh).onMessage(object);
+                            decoded = true;
+                            break;
                         }
                     }
                 }
-                if (decoded) {
-                    break;
-                }
             }
-        } catch (Exception e) {
-            e.printStackTrace();
+            if (decoded) {
+                break;
+            }
         }
     }
 
@@ -360,7 +359,7 @@ public class SessionImpl<T> implements Session<T> {
         }
 
         if (!handled) {
-            System.out.println("Unhandled partial binary message in EndpointWrapper");
+            LOGGER.severe("Unhandled partial binary message in EndpointWrapper");
         }
     }
 
@@ -383,7 +382,7 @@ public class SessionImpl<T> implements Session<T> {
         }
 
         if (!handled) {
-            System.out.println("Unhandled text message in EndpointWrapper");
+            LOGGER.severe("Unhandled text message in EndpointWrapper");
         }
     }
 

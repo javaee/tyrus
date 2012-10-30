@@ -55,6 +55,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * Tests the decoding and message handling of custom object.
+ *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 public class DecodedObjectTest {
@@ -69,7 +71,7 @@ public class DecodedObjectTest {
 
     @Test
     public void testSimpleDecoded() {
-        Server server = new Server("org.glassfish.tyrus.client.TestBean");
+        Server server = new Server(org.glassfish.tyrus.client.TestBean.class);
         server.start();
 
         try {

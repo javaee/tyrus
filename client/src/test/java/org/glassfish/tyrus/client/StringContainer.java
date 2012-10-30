@@ -41,6 +41,8 @@
 package org.glassfish.tyrus.client;
 
 /**
+ * Used
+ *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 public class StringContainer {

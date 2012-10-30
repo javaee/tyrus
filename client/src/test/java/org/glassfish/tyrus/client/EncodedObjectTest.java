@@ -51,6 +51,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * Tests encoding of custom objects.
+ *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 public class EncodedObjectTest {
@@ -63,7 +65,7 @@ public class EncodedObjectTest {
 
     @Test
     public void testClient() {
-        Server server = new Server("org.glassfish.tyrus.client.TestEncodeBean");
+        Server server = new Server(org.glassfish.tyrus.client.TestEncodeBean.class);
         server.start();
 
         try {

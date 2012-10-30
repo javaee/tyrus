@@ -256,7 +256,6 @@ public class EndpointWrapper extends SPIEndpoint {
                     }
                 }
             } catch (EncodeException ee) {
-                ee.printStackTrace();
                 throw ee;
             } catch (Exception e) {
                 throw new RuntimeException(e);
