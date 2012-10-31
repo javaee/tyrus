@@ -119,7 +119,7 @@
         <websocket.api.build_number>06</websocket.api.build_number>
 
         <servlet.api.version>3.0.1</servlet.api.version>
-        <grizzly.version>2.2.9</grizzly.version>
+        <grizzly.version>2.3-beta6</grizzly.version>
         <api_package>javax.net.websocket</api_package>
         <impl_namespace>org.glassfish</impl_namespace>
         <spec_version>0.0</spec_version>
