@@ -190,9 +190,14 @@
         drawCircleX(x, y, color, shapeName, false);
     }
 
+    function getRootUri() {
+        return "ws://" + (document.location.hostname == "" ? "localhost" : document.location.hostname) + ":" +
+                (document.location.port == "" ? "8080" : document.location.port);
+    }
+
     function init() {
         output = document.getElementById("output");
-        websocket = new WebSocket("ws://" + document.location.host + "/sample-draw/draw");
+        websocket = new WebSocket(getRootUri() + "/sample-draw/draw");
         websocket.onopen = function (evt) {
             onOpen(evt)
         };

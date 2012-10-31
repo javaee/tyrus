@@ -48,7 +48,12 @@
 <meta charset="utf-8">
 <title>Web Socket JavaScript Echo Client</title>
 <script language="javascript" type="text/javascript">
-    var wsUri = "ws://" + (document.location.hostname == "" ? "localhost" : document.location.hostname) + ":" + (document.location.port == "" ? "8080" : document.location.port) + "/sample-programmatic-echo/echo";
+    var wsUri = getRootUri() + "/sample-programmatic-echo/echo";
+
+    function getRootUri() {
+        return "ws://" + (document.location.hostname == "" ? "localhost" : document.location.hostname) + ":" +
+                (document.location.port == "" ? "8080" : document.location.port);
+    }
 
     function init() {
         output = document.getElementById("output");

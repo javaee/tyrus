@@ -1,4 +1,4 @@
-var wsUri = "ws://" + document.location.host + "/sample-auction/auction";
+var wsUri = getRootUri() + "/sample-auction/auction";
 var output;
 var debug = false;
 var websocket;
@@ -6,6 +6,10 @@ var separator = ":";
 var id = 0;
 var name = "";
 
+function getRootUri() {
+    return "ws://" + (document.location.hostname == "" ? "localhost" : document.location.hostname) + ":" +
+        (document.location.port == "" ? "8080" : document.location.port);
+}
 
 function init() {
     output = document.getElementById("output");
@@ -52,7 +56,7 @@ function selected() {
     var myselect = document.getElementById("comboID");
     for (var i = 0; i < myselect.options.length; i++) {
         if (myselect.options[i].selected == true) {
-            var link = "auction.jsp" + "?id=" + myselect.options[i].value + "&name=" + name;
+            var link = "auction.html" + "?id=" + myselect.options[i].value + "&name=" + name;
             break
         }
     }

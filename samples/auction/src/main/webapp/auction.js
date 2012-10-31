@@ -1,4 +1,4 @@
-var wsUri = "ws://" + document.location.host + "/sample-auction/auction";
+var wsUri = getRootUri() + "/sample-auction/auction";
 var output;
 var username = "";
 var debug = false;
@@ -6,6 +6,10 @@ var websocket;
 var separator = ":";
 var id = 0;
 
+function getRootUri() {
+    return "ws://" + (document.location.hostname == "" ? "localhost" : document.location.hostname) + ":" +
+        (document.location.port == "" ? "8080" : document.location.port);
+}
 
 function init() {
     output = document.getElementById("output");
@@ -137,7 +141,7 @@ function writeToScreen(message) {
 }
 
 function goBack() {
-    var link = "select.jsp" + "?id=" + id + "&name=" + username;
+    var link = "select.html" + "?id=" + id + "&name=" + username;
     var myStr = "dreq" + separator + id + separator + username;
     websocket.send(myStr);
     websocket.close();

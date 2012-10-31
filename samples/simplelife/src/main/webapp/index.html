@@ -1,4 +1,4 @@
-<%--
+<!--
 
     DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
 
@@ -38,24 +38,32 @@
     only if the new code is made subject to such option by the copyright
     holder.
 
---%>
-<html>
-<head>
-    <meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
-</head>
+-->
+<!--
+    Document   : simplelife
+    Created on : Sep 29, 2011, 11:01:23 AM
+    Author     : Danny Coward (danny.coward at oracle.com)
+-->
 
+<!DOCTYPE html>
+<html>
 <body>
 <meta charset="utf-8">
-<title>Web Socket JavaScript Echo Client</title>
+<title>Web Socket JavaScript Simple Life</title>
 <script language="javascript" type="text/javascript">
-    var wsUri = "ws://" + document.location.host + "/sample-echo/echo";
+    var wsUri = getRootUri() + "/sample-simplelife/simplelife";
+    var output;
+
+    function getRootUri() {
+        return "ws://" + (document.location.hostname == "" ? "localhost" : document.location.hostname) + ":" +
+                (document.location.port == "" ? "8080" : document.location.port);
+    }
 
     function init() {
         output = document.getElementById("output");
     }
 
-    function send_echo() {
-
+    function open_life() {
         websocket = new WebSocket(wsUri);
         websocket.onopen = function (evt) {
             onOpen(evt)
@@ -66,13 +74,26 @@
         websocket.onerror = function (evt) {
             onError(evt)
         };
+        websocket.onclose = function (evt) {
+            onClose(evt)
+        };
+    }
 
+    function close_life() {
+        websocket.close();
+    }
+
+    function run_life() {
+        if (websocket.readyState == 1) {
+            websocket.send("This is your friendly JavaScript page calling");
+            writeToScreen("SENT MESSAGE to " + wsUri);
+        } else {
+            writeToScreen("try reconnecting...");
+        }
     }
 
     function onOpen(evt) {
-        writeToScreen("CONNECTED");
-        doSend(textID.value);
-
+        writeToScreen("CONNECTED to " + wsUri);
     }
 
     function onMessage(evt) {
@@ -83,16 +104,14 @@
         writeToScreen('<span style="color: red;">ERROR:</span> ' + evt.data);
     }
 
-    function doSend(message) {
-        writeToScreen("SENT: " + message);
-        websocket.send(message);
+    function onClose(evt) {
+        writeToScreen("DISCONNECTED from " + wsUri);
     }
 
     function writeToScreen(message) {
         var pre = document.createElement("p");
         pre.style.wordWrap = "break-word";
         pre.innerHTML = message;
-        //alert(output);
         output.appendChild(pre);
     }
 
@@ -100,17 +119,19 @@
 
 </script>
 
-<h2 style="text-align: center;">Web Socket Echo Client</h2>
+<h2 style="text-align: center;">Web Socket Simple Life Client</h2>
 
 <div style="text-align: center;"><img style=" width: 64px; height: 64px;" alt="" src="HTML5_Logo_512.png"></div>
 <br></br>
 
 <div style="text-align: center;">
     <form action="">
-        <input onclick="send_echo()" value="Press me" type="button">
-        <input id="textID" name="message" value="Hello Web Sockets !" type="text"><br>
+        <input onclick="open_life()" value="Connect" type="button">
+        <input onclick="run_life()" value="Send" type="button">
+        <input onclick="close_life()" value="Disconnect" type="button">
+        <br>
     </form>
 </div>
-<div id="output"></div>
+<div style="text-align: center;" id="output"></div>
 </body>
 </html>

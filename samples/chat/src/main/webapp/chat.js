@@ -1,4 +1,4 @@
-var wsUri = "ws://" + document.location.host + "/sample-chat/chat";
+var wsUri = getRootUri() + "/sample-chat/chat";
 var output;
 var username = "";
 var debug = false;
@@ -6,6 +6,10 @@ var chatTranscriptElt;
 var messageTextElt;
 var websocket;
 
+function getRootUri() {
+    return "ws://" + (document.location.hostname == "" ? "localhost" : document.location.hostname) + ":" +
+        (document.location.port == "" ? "8080" : document.location.port);
+}
 
 function init() {
     output = document.getElementById("output");

@@ -1,10 +1,14 @@
-var wsUri = "ws://" + document.location.host + "/sample-auction/auction";
+var wsUri = getRootUri() + "/sample-auction/auction";
 var output;
 var debug = false;
 var websocket;
 var separator = ":";
 var id = 0;
 
+function getRootUri() {
+    return "ws://" + (document.location.hostname == "" ? "localhost" : document.location.hostname) + ":" +
+        (document.location.port == "" ? "8080" : document.location.port);
+}
 
 function init() {
     output = document.getElementById("output");
@@ -30,7 +34,7 @@ function doLogin() {
 }
 
 function to_select() {
-    var link = "select.jsp?name=" + document.getElementById("loginID").value;
+    var link = "select.html?name=" + document.getElementById("loginID").value;
     window.location = link;
 }
 
