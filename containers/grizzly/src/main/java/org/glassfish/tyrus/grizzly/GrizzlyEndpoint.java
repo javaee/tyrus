@@ -39,13 +39,9 @@
  */
 package org.glassfish.tyrus.grizzly;
 
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 import org.glassfish.grizzly.http.HttpRequestPacket;
 import org.glassfish.grizzly.websockets.DataFrame;
+import org.glassfish.grizzly.websockets.Extension;
 import org.glassfish.grizzly.websockets.ProtocolHandler;
 import org.glassfish.grizzly.websockets.WebSocket;
 import org.glassfish.grizzly.websockets.WebSocketApplication;
@@ -53,6 +49,14 @@ import org.glassfish.grizzly.websockets.WebSocketEngine;
 import org.glassfish.grizzly.websockets.WebSocketListener;
 import org.glassfish.tyrus.spi.SPIEndpoint;
 import org.glassfish.tyrus.spi.SPIRegisteredEndpoint;
+
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * Implementation of {@link SPIRegisteredEndpoint} for Grizzly.
@@ -159,8 +163,20 @@ class GrizzlyEndpoint extends WebSocketApplication implements SPIRegisteredEndpo
     }
 
     @Override
-    public List<String> getSupportedExtensions() {
-        return temporaryNegotiatedExtensions;
+    public List<Extension> getSupportedExtensions() {
+        List<Extension> grizzlyExtensions = new ArrayList<Extension>();
+
+        for (String ext : temporaryNegotiatedExtensions) {
+            grizzlyExtensions.add(new Extension(ext));
+        }
+
+        return grizzlyExtensions;
+    }
+
+    @Override
+    protected boolean onError(WebSocket webSocket, Throwable t) {
+        Logger.getLogger(getClass().getName()).log(Level.WARNING, "onError!", t);
+        return true;
     }
 
     @Override

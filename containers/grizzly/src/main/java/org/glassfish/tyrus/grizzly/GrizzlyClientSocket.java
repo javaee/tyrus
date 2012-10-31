@@ -49,6 +49,7 @@ import org.glassfish.grizzly.nio.transport.TCPNIOConnectorHandler;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransportBuilder;
 import org.glassfish.grizzly.websockets.DataFrame;
+import org.glassfish.grizzly.websockets.Extension;
 import org.glassfish.grizzly.websockets.HandShake;
 import org.glassfish.grizzly.websockets.HandshakeException;
 import org.glassfish.grizzly.websockets.ProtocolHandler;
@@ -56,9 +57,9 @@ import org.glassfish.grizzly.websockets.WebSocket;
 import org.glassfish.grizzly.websockets.WebSocketEngine;
 import org.glassfish.grizzly.websockets.WebSocketFilter;
 import org.glassfish.grizzly.websockets.WebSocketListener;
-import org.glassfish.grizzly.websockets.frametypes.*;
-
 import org.glassfish.grizzly.websockets.draft06.ClosingFrame;
+import org.glassfish.grizzly.websockets.frametypes.PingFrameType;
+import org.glassfish.grizzly.websockets.frametypes.PongFrameType;
 import org.glassfish.tyrus.spi.SPIEndpoint;
 import org.glassfish.tyrus.spi.TyrusClientSocket;
 
@@ -68,9 +69,11 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -133,7 +136,13 @@ class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
     }
 
     private void prepareHandshake(HandShake handshake) {
-        handshake.setExtensions(clc.getExtensions());
+        List<Extension> grizzlyExtensions = new ArrayList<Extension>();
+
+        for (String tyrusExtension : clc.getExtensions()) {
+            grizzlyExtensions.add(new Extension(tyrusExtension));
+        }
+
+        handshake.setExtensions(grizzlyExtensions);
         handshake.setSubProtocol(clc.getPreferredSubprotocols());
     }
 

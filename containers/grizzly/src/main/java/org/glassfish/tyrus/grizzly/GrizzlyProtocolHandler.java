@@ -40,15 +40,17 @@
 
 package org.glassfish.tyrus.grizzly;
 
-import java.util.ArrayList;
-import java.util.List;
-import javax.net.websocket.ClientEndpointConfiguration;
-import javax.net.websocket.extensions.Extension;
 import org.glassfish.grizzly.http.HttpContent;
 import org.glassfish.grizzly.http.HttpRequestPacket;
 import org.glassfish.grizzly.websockets.HandShake;
 import org.glassfish.grizzly.websockets.draft17.Draft17Handler;
 import org.glassfish.grizzly.websockets.draft17.HandShake17;
+
+import javax.net.websocket.ClientEndpointConfiguration;
+import javax.net.websocket.extensions.Extension;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * {@link org.glassfish.grizzly.websockets.ProtocolHandler} that supports sub-protocol and {@link javax.net.websocket.extensions.Extension} insertion.
@@ -84,11 +86,11 @@ public class GrizzlyProtocolHandler extends Draft17Handler {
         subprotocols.add(subprotocol);
         result.setSubProtocol(subprotocols);
 
-        ArrayList<String> extString = new ArrayList<String>();
-        for (Extension extension : extensions) {
-            extString.add(extension.getName());
+        ArrayList<org.glassfish.grizzly.websockets.Extension> grizzlyExtensions = new ArrayList<org.glassfish.grizzly.websockets.Extension>();
+        for (Extension tyrusExtension : extensions) {
+            grizzlyExtensions.add(new org.glassfish.grizzly.websockets.Extension(tyrusExtension.getName()));
         }
-        result.setExtensions(extString);
+        result.setExtensions(grizzlyExtensions);
         return result;
     }
 }
