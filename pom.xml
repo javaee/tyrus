@@ -154,6 +154,7 @@
         <module>spi</module>
         <module>client</module>
     </modules>
+
     <build>
         <plugins>
             <plugin>
@@ -306,7 +307,12 @@
                 </pluginManagement>
             </build>
         </profile>
-
+        <profile>
+            <id>servlet-dev</id>
+            <modules>
+                <module>protocol</module>
+            </modules>
+        </profile>
     </profiles>
     <dependencyManagement>
         <dependencies>

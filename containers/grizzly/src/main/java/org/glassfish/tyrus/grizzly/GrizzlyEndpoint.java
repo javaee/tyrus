@@ -39,6 +39,10 @@
  */
 package org.glassfish.tyrus.grizzly;
 
+
+import org.glassfish.tyrus.spi.SPIEndpoint;
+import org.glassfish.tyrus.spi.SPIRegisteredEndpoint;
+
 import org.glassfish.grizzly.http.HttpRequestPacket;
 import org.glassfish.grizzly.websockets.DataFrame;
 import org.glassfish.grizzly.websockets.Extension;
@@ -47,8 +51,6 @@ import org.glassfish.grizzly.websockets.WebSocket;
 import org.glassfish.grizzly.websockets.WebSocketApplication;
 import org.glassfish.grizzly.websockets.WebSocketEngine;
 import org.glassfish.grizzly.websockets.WebSocketListener;
-import org.glassfish.tyrus.spi.SPIEndpoint;
-import org.glassfish.tyrus.spi.SPIRegisteredEndpoint;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;

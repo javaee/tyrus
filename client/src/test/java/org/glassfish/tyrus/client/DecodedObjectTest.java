@@ -39,9 +39,10 @@
  */
 package org.glassfish.tyrus.client;
 
-import org.glassfish.tyrus.server.Server;
-import org.junit.Assert;
-import org.junit.Test;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import javax.net.websocket.DecodeException;
 import javax.net.websocket.Decoder;
@@ -49,10 +50,10 @@ import javax.net.websocket.Endpoint;
 import javax.net.websocket.MessageHandler;
 import javax.net.websocket.Session;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+import org.glassfish.tyrus.server.Server;
+
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Tests the decoding and message handling of custom object.
@@ -111,7 +112,7 @@ public class DecodedObjectTest {
 
     @Test
     public void testExtendedDecoded() {
-        Server server = new Server("org.glassfish.tyrus.client.TestBean");
+        Server server = new Server(TestBean.class.getName());
         server.start();
 
         try {

@@ -162,7 +162,7 @@
             <groupId>javax.net.websocket</groupId>
             <artifactId>javax.net.websocket-api</artifactId>
             <optional>true</optional>
-            <version>1.0-b06</version>
+            <version>${websocket-api.version}</version>
         </dependency>
         <dependency>
             <groupId>javax.servlet</groupId>

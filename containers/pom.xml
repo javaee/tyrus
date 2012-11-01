@@ -53,8 +53,17 @@
     <name>Tyrus Container Modules</name>
 
     <modules>
-        <!--module>tyrus-servlet</module-->
         <module>grizzly</module>
         <module>oldservlet</module>
     </modules>
+
+    <profiles>
+        <profile>
+            <id>servlet-dev</id>
+            <modules>
+                <module>tyrus-servlet</module>
+            </modules>
+        </profile>
+    </profiles>
+
 </project>
