@@ -40,19 +40,19 @@
 
 package org.glassfish.tyrus.servlet;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
+
 import javax.net.websocket.annotations.WebSocketEndpoint;
+
+import javax.servlet.FilterRegistration;
 import javax.servlet.ServletContainerInitializer;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
-import javax.servlet.ServletRegistration;
 import javax.servlet.annotation.HandlesTypes;
 
 /**
- * Registers a servlet for upgrade handshake.
+ * Registers a filter for upgrade handshake.
  *
  * @author Jitendra Kotamraju
  */
@@ -60,25 +60,13 @@ import javax.servlet.annotation.HandlesTypes;
 public class WebSocketServletContainerInitializer implements ServletContainerInitializer {
     private static final Logger LOGGER = Logger.getLogger(WebSocketServletContainerInitializer.class.getName());
 
-    public void onStartup(Set<Class<?>> set, ServletContext ctx) throws ServletException {
-        if (set == null || set.isEmpty()) {
-            return;
-        }
+    public WebSocketServletContainerInitializer() {
+    }
 
-        List<String> urlPatternList = new ArrayList<String>();
-
-        for (Class<?> clazz : set) {
-            WebSocketEndpoint endpoint = clazz.getAnnotation(WebSocketEndpoint.class);
-            urlPatternList.add(endpoint.value());
-        }
-
-        // Register a servlet for all the url patterns of WebSocketEndpoint
-        if (!urlPatternList.isEmpty()) {
-            ServletRegistration.Dynamic reg = ctx.addServlet("WebSocket servlet",
-                    WebSocketServlet.class);
-reg.setAsyncSupported(true);
-            reg.addMapping(urlPatternList.toArray(new String[urlPatternList.size()]));
-            LOGGER.info("Registering WebSocket servlet for url-pattens ="+urlPatternList);
-        }
+    public void onStartup(Set<Class<?>> classes, ServletContext ctx) throws ServletException {
+        final FilterRegistration.Dynamic reg = ctx.addFilter("WebSocket filter", new WebSocketServletFilter(classes));
+        reg.setAsyncSupported(true);
+        reg.addMappingForUrlPatterns(null, true, "/*");
+        LOGGER.info("Registering WebSocket filter for url pattern /*");
     }
 }
