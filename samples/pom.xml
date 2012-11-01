@@ -66,15 +66,6 @@
         <!--<module>trading</module>-->
     </modules>
 
-    <profiles>
-        <profile>
-            <id>servlet-dev</id>
-            <modules>
-                <module>echo-webapp</module>
-            </modules>
-        </profile>
-    </profiles>
-
     <dependencies>
         <dependency>
             <groupId>org.glassfish.tyrus</groupId>
