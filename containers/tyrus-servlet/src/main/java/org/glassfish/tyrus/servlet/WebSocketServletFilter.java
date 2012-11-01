@@ -51,6 +51,7 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.ProtocolHandler;
 
 import org.glassfish.tyrus.protocol.core.WebSocketHandShake;
 
@@ -85,7 +86,13 @@ public class WebSocketServletFilter implements Filter {
         // check for mandatory websocket header
         final String header = httpServletRequest.getHeader(WebSocketHandShake.SEC_WS_KEY_HEADER);
         if(header != null) {
+            LOGGER.info("Setting up WebSocket protocol handler");
+            ProtocolHandler handler = new WebSocketProtocolHandler();
+            httpServletRequest.upgrade(handler);
             new ServletHandShake().doUpgrade(httpServletRequest, (HttpServletResponse)response);
+
+            // Servlet bug ?? Not sure why we need to flush the headers
+            ((HttpServletResponse)response).flushBuffer();
             LOGGER.info("Handshake Complete");
         } else {
             filterChain.doFilter(request, response);

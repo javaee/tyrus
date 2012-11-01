@@ -89,23 +89,25 @@ public class WebSocketProtocolHandler implements ProtocolHandler, ReadListener {
                 if (is.isReady()) {
                     fillBuf();
                 }
+                LOGGER.info("Remaining Data = " + buf.remaining());
                 WebSocketFrame frame = decoder.decode(buf);
                 if (frame != null) {
                     LOGGER.info("Got a WebSocket frame = " + frame);
-                    LOGGER.info("Remaining Data = " + buf.remaining());
                     if (!frame.getFrameType().isControlFrame()) {
                         inFragmentation = !frame.isFinalFragment();
                     }
                     decoder = new WebSocketProtocolDecoder(inFragmentation);
                 }
             } while (buf.remaining() > 0 || is.isReady());
-        } catch (IOException ioe) {
-            throw new RuntimeException(ioe);
+        } catch (Throwable e) {
+            // TODO servlet container is swallowing, just print it for now
+            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 
     private void fillBuf() throws IOException {
-        byte[] data = new byte[4096];
+        byte[] data = new byte[40];     // TODO testing purpose
         int len = is.read(data);
         if (len == 0) {
             throw new RuntimeException("No data available.");
@@ -118,26 +120,27 @@ public class WebSocketProtocolHandler implements ProtocolHandler, ReadListener {
             int limit = buf.limit();
             int capacity = buf.capacity();
             int remaining = buf.remaining();
-            int position = buf.position();
 
             if (capacity - limit >= len) {
                 // Remaining data need not be changed. New data is just appended
-                LOGGER.info("Remaining data need not be changed. New data is just appended");
+                LOGGER.info("Remaining data need not be moved. New data is just appended");
+                buf.mark();
                 buf.position(limit);
+                buf.limit(capacity);
                 buf.put(data, 0, len);
-                buf.position(position);
+                buf.limit(limit+len);
+                buf.reset();
             } else if (remaining+len < capacity) {
                 // Remaining data is moved to left. Then new data is appended
                 LOGGER.info("Remaining data is moved to left. Then new data is appended");
                 buf.compact();
-                buf.position(limit);
                 buf.put(data, 0, len);
-                buf.position(0);
+                buf.flip();
             } else {
                 // Remaining data + new > capacity. So allocate new one
                 LOGGER.info("Remaining data + new > capacity. So allocate new one");
                 byte[] array = new byte[remaining+len];
-                buf.get(array);
+                buf.get(array, 0, remaining);
                 System.arraycopy(data, 0, array, remaining, len);
                 buf = ByteBuffer.wrap(array);
                 buf.limit(remaining+len);
