@@ -55,7 +55,7 @@ public class WebSocketProtocolDecoder {
     private enum State {
         FRAME_START, LENGTH, MASKING_KEY, PAYLOAD
     }
-    private State state;
+    private State state = State.FRAME_START;
     private WebSocketFrame.Type frameType;
     private int rsv;
     private byte[] payload;
@@ -197,6 +197,8 @@ public class WebSocketProtocolDecoder {
 //                        inFragmentedType = 0;
 //                        processingFragment = false;
 //                    }
+                default:
+                    throw new RuntimeException("Internal error. Unknown state="+state);
 
             }
         } catch (Exception e) {
@@ -207,7 +209,6 @@ public class WebSocketProtocolDecoder {
                 throw new RuntimeException(e);
             }
         }
-        return null;
     }
 
     WebSocketFrame.Type getFrameType(int opcode) {

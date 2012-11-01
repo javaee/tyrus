@@ -70,7 +70,6 @@ public class WebSocketProtocolHandler implements ProtocolHandler, ReadListener {
         try {
             is = wc.getInputStream();
             os = wc.getOutputStream();
-            LOGGER.info("*** Data Availabe=" + is.available());
         } catch (IOException ioe) {
             throw new RuntimeException(ioe);
         }
@@ -78,29 +77,28 @@ public class WebSocketProtocolHandler implements ProtocolHandler, ReadListener {
         is.setReadListener(this);
 
         // TODO: servlet bug ?? why is this need to be called explicitly ?
-        try {
-            if (is.available() > 0) {
-                onDataAvailable();
-            }
-        } catch (IOException ioe) {
-            throw new RuntimeException(ioe);
+        if (is.isReady()) {
+            onDataAvailable();
         }
     }
 
     @Override
     public void onDataAvailable() {
-        LOGGER.info("OnDataAvailable() is called");
         try {
             do {
-                fillBuf();
+                if (is.isReady()) {
+                    fillBuf();
+                }
                 WebSocketFrame frame = decoder.decode(buf);
                 if (frame != null) {
-                    LOGGER.info("Got a DataFrame");
+                    LOGGER.info("Got a WebSocket frame = " + frame);
+                    LOGGER.info("Remaining Data = " + buf.remaining());
                     if (!frame.getFrameType().isControlFrame()) {
                         inFragmentation = !frame.isFinalFragment();
                     }
+                    decoder = new WebSocketProtocolDecoder(inFragmentation);
                 }
-            } while (is.available() > 0);
+            } while (buf.remaining() > 0 || is.isReady());
         } catch (IOException ioe) {
             throw new RuntimeException(ioe);
         }
@@ -113,14 +111,37 @@ public class WebSocketProtocolHandler implements ProtocolHandler, ReadListener {
             throw new RuntimeException("No data available.");
         }
         if (buf == null) {
+            LOGGER.info("No Buffer. Allocating new one");
             buf = ByteBuffer.wrap(data);
+            buf.limit(len);
         } else {
-            int rem = buf.remaining();
-            byte[] orig = buf.array();
-            byte[] b = new byte[rem + data.length];
-            System.arraycopy(orig, orig.length - rem, b, 0, rem);
-            System.arraycopy(data, 0, b, rem, data.length);
-            buf = ByteBuffer.wrap(b);
+            int limit = buf.limit();
+            int capacity = buf.capacity();
+            int remaining = buf.remaining();
+            int position = buf.position();
+
+            if (capacity - limit >= len) {
+                // Remaining data need not be changed. New data is just appended
+                LOGGER.info("Remaining data need not be changed. New data is just appended");
+                buf.position(limit);
+                buf.put(data, 0, len);
+                buf.position(position);
+            } else if (remaining+len < capacity) {
+                // Remaining data is moved to left. Then new data is appended
+                LOGGER.info("Remaining data is moved to left. Then new data is appended");
+                buf.compact();
+                buf.position(limit);
+                buf.put(data, 0, len);
+                buf.position(0);
+            } else {
+                // Remaining data + new > capacity. So allocate new one
+                LOGGER.info("Remaining data + new > capacity. So allocate new one");
+                byte[] array = new byte[remaining+len];
+                buf.get(array);
+                System.arraycopy(data, 0, array, remaining, len);
+                buf = ByteBuffer.wrap(array);
+                buf.limit(remaining+len);
+            }
         }
     }
 

@@ -43,6 +43,7 @@ package org.glassfish.tyrus.servlet;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Logger;
 import javax.net.websocket.annotations.WebSocketEndpoint;
 import javax.servlet.ServletContainerInitializer;
 import javax.servlet.ServletContext;
@@ -57,6 +58,7 @@ import javax.servlet.annotation.HandlesTypes;
  */
 @HandlesTypes(WebSocketEndpoint.class)
 public class WebSocketServletContainerInitializer implements ServletContainerInitializer {
+    private static final Logger LOGGER = Logger.getLogger(WebSocketServletContainerInitializer.class.getName());
 
     public void onStartup(Set<Class<?>> set, ServletContext ctx) throws ServletException {
         if (set == null || set.isEmpty()) {
@@ -74,8 +76,9 @@ public class WebSocketServletContainerInitializer implements ServletContainerIni
         if (!urlPatternList.isEmpty()) {
             ServletRegistration.Dynamic reg = ctx.addServlet("WebSocket servlet",
                     WebSocketServlet.class);
-            reg.setAsyncSupported(true);
+reg.setAsyncSupported(true);
             reg.addMapping(urlPatternList.toArray(new String[urlPatternList.size()]));
+            LOGGER.info("Registering WebSocket servlet for url-pattens ="+urlPatternList);
         }
     }
 }

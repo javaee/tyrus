@@ -97,4 +97,13 @@ public class WebSocketFrame {
         return payload;
     }
 
+    public String toString() {
+        StringBuilder builder = new StringBuilder();
+        builder.append("Final Fragment="+finalFragment);
+        builder.append(" - rsv="+rsv);
+        builder.append(" - type="+type);
+        builder.append(" - payload="+payload.remaining());
+        return builder.toString();
+    }
+
 }
