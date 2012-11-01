@@ -39,20 +39,19 @@
  */
 package org.glassfish.tyrus.test.basic;
 
+import org.glassfish.tyrus.client.ClientManager;
+import org.glassfish.tyrus.client.DefaultClientEndpointConfiguration;
+import org.glassfish.tyrus.server.Server;
+import org.junit.Assert;
+import org.junit.Test;
+
+import javax.net.websocket.MessageHandler;
+import javax.net.websocket.Session;
+
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-
-import javax.net.websocket.Session;
-
-import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.client.DefaultClientEndpointConfiguration;
-import org.glassfish.tyrus.server.Server;
-
-import org.junit.Assert;
-import org.junit.Ignore;
-import org.junit.Test;
 
 /**
  * Tests the correct processing of binary message and replying.
@@ -64,9 +63,8 @@ public class BinaryMessageTest {
 
     private CountDownLatch messageLatch;
 
-    private byte[] receivedMessage;
+    private ByteBuffer receivedMessage;
 
-    @Ignore
     @Test
     public void testHello() {
         Server server = new Server(org.glassfish.tyrus.test.basic.bean.BinaryBean.class);
@@ -84,18 +82,20 @@ public class BinaryMessageTest {
                 public void onOpen(Session session) {
                     try {
                         session.getRemote().sendBytes(ByteBuffer.wrap(BINARY_MESSAGE));
+                        session.addMessageHandler(new MessageHandler.Binary() {
+                            @Override
+                            public void onMessage(ByteBuffer data) {
+                                receivedMessage = data;
+                                messageLatch.countDown();
+                            }
+                        });
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                 }
-
-                public void onMessage(byte[] message) {
-                    receivedMessage = message;
-                    messageLatch.countDown();
-                }
             }, dcec);
-            messageLatch.await(5, TimeUnit.SECONDS);
-            Assert.assertArrayEquals("The received message is the same as the sent one", receivedMessage, BINARY_MESSAGE);
+            messageLatch.await(5000, TimeUnit.SECONDS);
+            Assert.assertArrayEquals("The received message is the same as the sent one", receivedMessage.array(), BINARY_MESSAGE);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);

@@ -223,33 +223,25 @@ public class EndpointWrapper extends SPIEndpoint {
         for (Encoder enc : encoders) {
             try {
                 if (enc instanceof Encoder.Binary) {
-                    ReflectionHelper.DeclaringClassInterfacePair p = ReflectionHelper.getClass(enc.getClass(), Encoder.Binary.class);
-                    Class[] as = ReflectionHelper.getParameterizedClassArguments(p);
-                    Class<?> type = as[0];
-                    if (message.getClass().isAssignableFrom(type)) {
+                    Class<?> type = this.getClassType(enc.getClass(), Encoder.Binary.class);
+                    if (type.isAssignableFrom(message.getClass())) {
                         return ((Encoder.Binary) enc).encode(message);
                     }
                 } else if (enc instanceof Encoder.Text) {
-                    ReflectionHelper.DeclaringClassInterfacePair p = ReflectionHelper.getClass(enc.getClass(), Encoder.Text.class);
-                    Class[] as = ReflectionHelper.getParameterizedClassArguments(p);
-                    Class<?> type = as[0];
-                    if (message.getClass().isAssignableFrom(type)) {
+                    Class<?> type = this.getClassType(enc.getClass(), Encoder.Text.class);
+                    if (type.isAssignableFrom(message.getClass())) {
                         return ((Encoder.Text) enc).encode(message);
                     }
                 } else if (enc instanceof Encoder.BinaryStream) {
-                    ReflectionHelper.DeclaringClassInterfacePair p = ReflectionHelper.getClass(enc.getClass(), Encoder.BinaryStream.class);
-                    Class[] as = ReflectionHelper.getParameterizedClassArguments(p);
-                    Class<?> type = as[0];
-                    if (message.getClass().isAssignableFrom(type)) {
+                    Class<?> type = this.getClassType(enc.getClass(), Encoder.BinaryStream.class);
+                    if (type.isAssignableFrom(message.getClass())) {
                         ByteArrayOutputStream baos = new ByteArrayOutputStream();
                         ((Encoder.BinaryStream) enc).encode(message, new ByteArrayOutputStream());
                         return baos;
                     }
                 } else if (enc instanceof Encoder.TextStream) {
-                    ReflectionHelper.DeclaringClassInterfacePair p = ReflectionHelper.getClass(enc.getClass(), Encoder.TextStream.class);
-                    Class[] as = ReflectionHelper.getParameterizedClassArguments(p);
-                    Class<?> type = as[0];
-                    if (message.getClass().isAssignableFrom(type)) {
+                    Class<?> type = this.getClassType(enc.getClass(), Encoder.TextStream.class);
+                    if (type.isAssignableFrom(message.getClass())) {
                         Writer writer = new StringWriter();
                         ((Encoder.TextStream) enc).encode(message, writer);
                         return writer;

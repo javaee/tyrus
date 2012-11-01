@@ -40,11 +40,11 @@
 
 package org.glassfish.tyrus.test.basic.bean;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import javax.net.websocket.Session;
 import javax.net.websocket.annotations.WebSocketEndpoint;
 import javax.net.websocket.annotations.WebSocketMessage;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
 
 /**
  * Bean to test correct processing of binary message.
@@ -55,7 +55,7 @@ import javax.net.websocket.annotations.WebSocketMessage;
 public class BinaryBean {
 
     @WebSocketMessage
-    public void doThat(byte[] message, Session peer) throws IOException {
-        peer.getRemote().sendBytes(ByteBuffer.wrap(message));
+    public ByteBuffer doThat(ByteBuffer message) throws IOException {
+        return message;
     }
 }
