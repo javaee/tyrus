@@ -42,6 +42,7 @@ package org.glassfish.tyrus.servlet;
 
 import org.glassfish.tyrus.protocol.core.WebSocketFrame;
 import org.glassfish.tyrus.protocol.core.WebSocketProtocolDecoder;
+import org.glassfish.tyrus.protocol.core.WebSocketProtocolEncoder;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -97,7 +98,17 @@ public class WebSocketProtocolHandler implements ProtocolHandler, ReadListener {
                         inFragmentation = !frame.isFinalFragment();
                     }
                     decoder = new WebSocketProtocolDecoder(inFragmentation);
+
+                    // Let us echo it back for testing purposes
+                    // Not taking advantage of NIO for sending
+                    WebSocketProtocolEncoder encoder = new WebSocketProtocolEncoder(false);
+                    byte[] echo = encoder.encode(frame);
+                    os.write(echo);
+                    os.flush();
                 }
+
+                // TODO buf has some data but not enough to decode,
+                // TODO it will spin in this loop
             } while (buf.remaining() > 0 || is.isReady());
         } catch (Throwable e) {
             // TODO servlet container is swallowing, just print it for now
