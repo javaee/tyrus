@@ -58,6 +58,7 @@
 
     <modules>
         <module>basic</module>
+        <module>ejb</module>
     </modules>
 
     <dependencies>

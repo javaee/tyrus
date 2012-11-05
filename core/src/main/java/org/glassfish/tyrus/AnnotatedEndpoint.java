@@ -39,6 +39,16 @@
  */
 package org.glassfish.tyrus;
 
+import javax.net.websocket.CloseReason;
+import javax.net.websocket.Endpoint;
+import javax.net.websocket.MessageHandler;
+import javax.net.websocket.Session;
+import javax.net.websocket.annotations.WebSocketClose;
+import javax.net.websocket.annotations.WebSocketError;
+import javax.net.websocket.annotations.WebSocketMessage;
+import javax.net.websocket.annotations.WebSocketOpen;
+import javax.net.websocket.annotations.WebSocketPathParam;
+
 import java.io.InputStream;
 import java.io.Reader;
 import java.lang.annotation.Annotation;
@@ -50,15 +60,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
-import javax.net.websocket.CloseReason;
-import javax.net.websocket.Endpoint;
-import javax.net.websocket.MessageHandler;
-import javax.net.websocket.Session;
-import javax.net.websocket.annotations.WebSocketClose;
-import javax.net.websocket.annotations.WebSocketError;
-import javax.net.websocket.annotations.WebSocketMessage;
-import javax.net.websocket.annotations.WebSocketOpen;
-import javax.net.websocket.annotations.WebSocketPathParam;
 
 /**
  * AnnotatedEndpoint of a class annotated using the WebSocketEndpoint annotations
@@ -78,13 +79,17 @@ public class AnnotatedEndpoint extends Endpoint {
 
     private Set<MessageHandlerFactory> messageHandlerFactories = new HashSet<MessageHandlerFactory>();
 
-    public AnnotatedEndpoint(Class<?> annotatedClass) {
+    public AnnotatedEndpoint(Class<?> annotatedClass, Object annotatedInstance) {
 
         // TODO: should be removed once the instance creation is delegated to lifecycle provider
-        try {
-            this.annotatedInstance = annotatedClass.newInstance();
-        } catch (Exception e) {
-            throw new RuntimeException("Unable to instantiate endpoint class: " + annotatedClass, e);
+        if (annotatedInstance != null) {
+            this.annotatedInstance = annotatedInstance;
+        } else {
+            try {
+                this.annotatedInstance = annotatedClass.newInstance();
+            } catch (Exception e) {
+                throw new RuntimeException("Unable to instantiate endpoint class: " + annotatedClass, e);
+            }
         }
 
         Method onOpen = null;

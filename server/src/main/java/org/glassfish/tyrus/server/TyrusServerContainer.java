@@ -40,6 +40,21 @@
 
 package org.glassfish.tyrus.server;
 
+import org.glassfish.tyrus.AnnotatedEndpoint;
+import org.glassfish.tyrus.EjbObjectFactory;
+import org.glassfish.tyrus.EndpointWrapper;
+import org.glassfish.tyrus.WithProperties;
+import org.glassfish.tyrus.spi.SPIRegisteredEndpoint;
+import org.glassfish.tyrus.spi.TyrusServer;
+
+import javax.net.websocket.ClientEndpointConfiguration;
+import javax.net.websocket.Decoder;
+import javax.net.websocket.Encoder;
+import javax.net.websocket.Endpoint;
+import javax.net.websocket.ServerEndpointConfiguration;
+import javax.net.websocket.Session;
+import javax.net.websocket.annotations.WebSocketEndpoint;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -48,18 +63,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
-import javax.net.websocket.ClientEndpointConfiguration;
-import javax.net.websocket.Decoder;
-import javax.net.websocket.Encoder;
-import javax.net.websocket.Endpoint;
-import javax.net.websocket.ServerEndpointConfiguration;
-import javax.net.websocket.Session;
-import javax.net.websocket.annotations.WebSocketEndpoint;
-import org.glassfish.tyrus.AnnotatedEndpoint;
-import org.glassfish.tyrus.EndpointWrapper;
-import org.glassfish.tyrus.WithProperties;
-import org.glassfish.tyrus.spi.SPIRegisteredEndpoint;
-import org.glassfish.tyrus.spi.TyrusServer;
 
 /**
  * Server Container Implementation.
@@ -144,15 +147,27 @@ public class TyrusServerContainer extends WithProperties implements ServerContai
             }
 
             String endpointPath = wseAnnotation.value();
-            AnnotatedEndpoint annotatedEndpoint = new AnnotatedEndpoint(endpointClass);
+            EjbObjectFactory factory = new EjbObjectFactory();
+            Object fromEjb = null;
+            try {
+                fromEjb = factory.getEjbObject(endpointClass);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
-            // TODO: use lifecycle provider to get instances of encoders/decoders
+            AnnotatedEndpoint annotatedEndpoint = new AnnotatedEndpoint(endpointClass, fromEjb);
+
             List<Encoder> encoders = new ArrayList<Encoder>();
             if (wseAnnotation.encoders() != null) {
                 //noinspection unchecked
                 for (Class<? extends Encoder> encoderClass : (Class<? extends Encoder>[]) wseAnnotation.encoders()) {
                     try {
-                        encoders.add(encoderClass.newInstance());
+                        Object ejbEncoder = factory.getEjbObject(encoderClass);
+                        if (ejbEncoder != null) {
+                            encoders.add((Encoder) ejbEncoder);
+                        } else {
+                            encoders.add(encoderClass.newInstance());
+                        }
                     } catch (Exception e) {
                         throw new RuntimeException("Unable to instantiate encoder: " + encoderClass.getName(), e);
                     }
@@ -163,7 +178,12 @@ public class TyrusServerContainer extends WithProperties implements ServerContai
                 //noinspection unchecked
                 for (Class<? extends Decoder> decoderClass : (Class<? extends Decoder>[]) wseAnnotation.decoders()) {
                     try {
-                        decoders.add(decoderClass.newInstance());
+                        Object ejbDecoder = factory.getEjbObject(decoderClass);
+                        if (ejbDecoder != null) {
+                            decoders.add((Decoder) ejbDecoder);
+                        } else {
+                            decoders.add(decoderClass.newInstance());
+                        }
                     } catch (Exception e) {
                         throw new RuntimeException("Unable to instantiate decoder: " + decoderClass.getName(), e);
                     }
@@ -174,7 +194,7 @@ public class TyrusServerContainer extends WithProperties implements ServerContai
                     .encoders(encoders).decoders(decoders).protocols(wseAnnotation.subprotocols() == null ?
                             Collections.<String>emptyList() : Arrays.asList(wseAnnotation.subprotocols()))
                     .extensions(configuration.getExtensions())
-                    // TODO: fix once origins is added to the @WebSocketEndpoint annotation
+                            // TODO: fix once origins is added to the @WebSocketEndpoint annotation
                     .origins(Collections.<String>emptyList()).build();
 
             allEndpoints.add(new ServerConfiguration.EndpointWithConfiguration(annotatedEndpoint, config));
