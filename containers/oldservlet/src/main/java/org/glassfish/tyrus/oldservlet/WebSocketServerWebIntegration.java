@@ -173,7 +173,7 @@ public class WebSocketServerWebIntegration implements ServletContextListener {
                     providerClassName,
                     contextRoot, INFORMATIONAL_FIXED_PORT, config);
         } else {
-            serverContainer = ServerContainerFactory.create(DEFAULT_PROVIDER_CLASS.getName(), contextRoot,
+            serverContainer = ServerContainerFactory.create(DEFAULT_PROVIDER_CLASS, contextRoot,
                     INFORMATIONAL_FIXED_PORT, config);
         }
 
