@@ -57,12 +57,35 @@ public class ServerContainerFactory {
      * @param configuration Server configuration.
      * @return New instance of {@link ServerContainer}.
      */
+
+    private static OsgiRegistry osgiRegistry = null;
+
+    private static void initOsgiRegistry() {
+        try {
+            osgiRegistry = OsgiRegistry.getOsgiRegistryInstance();
+            if(osgiRegistry != null) {
+                osgiRegistry.hookUp();
+            }
+        } catch (Throwable e) {
+            osgiRegistry = null;
+        }
+
+    }
+
     public static ServerContainer create(String providerClassName, String contextPath, int port,
                                          ServerConfiguration configuration) {
-        Class<TyrusContainer> providerClass;
+        Class<? extends TyrusContainer> providerClass;
+
+        initOsgiRegistry();
+
         try {
-            //noinspection unchecked
-            providerClass = (Class<TyrusContainer>) Class.forName(providerClassName);
+            if(osgiRegistry != null) {
+                //noinspection unchecked
+                providerClass = (Class<TyrusContainer>) osgiRegistry.classForNameWithException(providerClassName);
+            } else {
+                //noinspection unchecked
+                providerClass = (Class<TyrusContainer>) Class.forName(providerClassName);
+            }
         } catch (Exception e) {
             throw new RuntimeException("Failed to load container provider class: " + providerClassName, e);
         }
@@ -79,7 +102,7 @@ public class ServerContainerFactory {
      * @param configuration Server configuration.
      * @return New instance of {@link ServerContainer}.
      */
-    public static ServerContainer create(Class<TyrusContainer> providerClass, String contextPath, int port,
+    public static ServerContainer create(Class<? extends TyrusContainer> providerClass, String contextPath, int port,
                                          ServerConfiguration configuration) {
         TyrusContainer containerProvider;
         try {

@@ -131,6 +131,19 @@
                     </instructions>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <inherited>true</inherited>
+                <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Export-Package>org.glassfish.tyrus.servlet.*;version=${project.version}</Export-Package>
+                        <Import-Package>javax.net.websocket.annotations;version=${apijar.bundle.version};resolution:=optional,*</Import-Package>
+                    </instructions>
+                    <unpackBundle>true</unpackBundle>
+                </configuration>
+            </plugin>
             <!-- remove the generated src dir-->
             <!--
                        <plugin>

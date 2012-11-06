@@ -63,6 +63,7 @@
         <module>echo</module>
         <module>programmatic-echo</module>
         <module>simplelife</module>
+        <module>servlet-testing</module>
         <!--<module>trading</module>-->
     </modules>
 

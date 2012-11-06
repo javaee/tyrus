@@ -92,7 +92,7 @@ public class WebSocketServletFilter implements Filter {
             new ServletHandShake().doUpgrade(httpServletRequest, (HttpServletResponse)response);
 
             // Servlet bug ?? Not sure why we need to flush the headers
-            ((HttpServletResponse)response).flushBuffer();
+            response.flushBuffer();
             LOGGER.info("Handshake Complete");
         } else {
             filterChain.doFilter(request, response);

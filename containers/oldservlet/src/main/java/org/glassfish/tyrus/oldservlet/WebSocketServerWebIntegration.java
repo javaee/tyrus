@@ -46,15 +46,19 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
+
 import javax.net.websocket.annotations.WebSocketEndpoint;
+
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
+
 import org.glassfish.tyrus.server.ContainerConfig;
 import org.glassfish.tyrus.server.DefaultServerConfiguration;
 import org.glassfish.tyrus.server.ServerConfiguration;
 import org.glassfish.tyrus.server.ServerContainer;
 import org.glassfish.tyrus.server.ServerContainerFactory;
+import org.glassfish.tyrus.spi.TyrusContainer;
 
 /**
  * Web application lifecycle listener.
@@ -66,7 +70,7 @@ import org.glassfish.tyrus.server.ServerContainerFactory;
 public class WebSocketServerWebIntegration implements ServletContextListener {
     static final String ENDPOINT_CLASS_SET = "org.glassfish.websockets.platform.web.endpoint.class.set";
     // TODO: move somewhere sensible
-    private static final String DEFAULT_PROVIDER_CLASSNAME = GrizzlyBasedEngine.class.getName();
+    private static final Class<? extends TyrusContainer> DEFAULT_PROVIDER_CLASS = GrizzlyBasedEngine.class;
     private static final String PROVIDER_CLASSNAME_KEY = "org.glassfish.websocket.provider.class";
     public static final String PRINCIPAL = "ws_principal";
     private static final int INFORMATIONAL_FIXED_PORT = 8080;
@@ -162,14 +166,17 @@ public class WebSocketServerWebIntegration implements ServletContextListener {
             };
         }
 
-        String engineProviderClassname = DEFAULT_PROVIDER_CLASSNAME;
-        if (sce.getServletContext().getInitParameter(PROVIDER_CLASSNAME_KEY) != null) {
-            engineProviderClassname = sce.getServletContext().getInitParameter(PROVIDER_CLASSNAME_KEY);
+        String contextRoot = sce.getServletContext().getContextPath();
+        final String providerClassName = sce.getServletContext().getInitParameter(PROVIDER_CLASSNAME_KEY);
+        if (providerClassName != null) {
+            serverContainer = ServerContainerFactory.create(
+                    providerClassName,
+                    contextRoot, INFORMATIONAL_FIXED_PORT, config);
+        } else {
+            serverContainer = ServerContainerFactory.create(DEFAULT_PROVIDER_CLASS.getName(), contextRoot,
+                    INFORMATIONAL_FIXED_PORT, config);
         }
 
-        String contextRoot = sce.getServletContext().getContextPath();
-        serverContainer = ServerContainerFactory.create(engineProviderClassname, contextRoot, INFORMATIONAL_FIXED_PORT,
-                config);
         try {
             serverContainer.start();
         } catch (IOException e) {

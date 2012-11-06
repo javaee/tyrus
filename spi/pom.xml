@@ -58,4 +58,22 @@
             <version>${websocket-api.version}</version>
         </dependency>
     </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.felix</groupId>
+                <artifactId>maven-bundle-plugin</artifactId>
+                <inherited>true</inherited>
+                <extensions>true</extensions>
+                <configuration>
+                    <instructions>
+                        <Export-Package>org.glassfish.tyrus.spi.*;version=${project.version}</Export-Package>
+                        <Import-Package>javax.net.websocket;version=${apijar.bundle.version},*</Import-Package>
+                    </instructions>
+                    <unpackBundle>true</unpackBundle>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>
