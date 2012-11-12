@@ -57,7 +57,7 @@
     <name>Tyrus Tests</name>
 
     <modules>
-        <module>basic</module>
+        <module>e2e</module>
         <module>ejb</module>
     </modules>
 
