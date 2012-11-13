@@ -53,6 +53,7 @@
     <name>Tyrus Container Modules</name>
 
     <modules>
+        <module>glassfish</module>
         <module>grizzly</module>
         <module>oldservlet</module>
     </modules>

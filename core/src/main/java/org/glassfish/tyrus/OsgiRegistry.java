@@ -37,7 +37,15 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.server;
+package org.glassfish.tyrus;
+
+import org.glassfish.tyrus.internal.LocalizationMessages;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleContext;
+import org.osgi.framework.BundleEvent;
+import org.osgi.framework.BundleReference;
+import org.osgi.framework.FrameworkUtil;
+import org.osgi.framework.SynchronousBundleListener;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -48,6 +56,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -62,31 +71,27 @@ import java.util.jar.JarInputStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleContext;
-import org.osgi.framework.BundleEvent;
-import org.osgi.framework.BundleReference;
-import org.osgi.framework.FrameworkUtil;
-import org.osgi.framework.SynchronousBundleListener;
-
 /**
- * Taken from Jersey 2. ServiceFinder functionality was intentionally
- * stripped down (not needed yet, might be re-added later).
- *
- * Utility class to deal with OSGi runtime specific behavior.
+ * Taken from Jersey 2. Utility class to deal with OSGi runtime specific behavior.
  * This is mainly to handle META-INF/services lookup
  * and generic/application class lookup issue in OSGi.
+ *
+ * When OSGi runtime is detected by the {@link ServiceFinder} class,
+ * an instance of OsgiRegistry is created and associated with given
+ * OSGi BundleContext. META-INF/services entries are then being accessed
+ * via the OSGi Bundle API as direct ClassLoader#getResource() method invocation
+ * does not work in this case within OSGi.
  *
  * @author Jakub Podlesak (jakub.podlesak at oracle.com)
  */
 public final class OsgiRegistry implements SynchronousBundleListener {
 
-    private static final String BundleSymbolicNAME = "org.glassfish.tyrus.server";
+    private static final String CoreBundleSymbolicNAME = "org.glassfish.jersey.core.jersey-common";
     private static final Logger LOGGER = Logger.getLogger(OsgiRegistry.class.getName());
 
     private final BundleContext bundleContext;
     private final Map<Long, Map<String, Callable<List<Class<?>>>>> factories =
-                                                        new HashMap<Long, Map<String, Callable<List<Class<?>>>>>();
+            new HashMap<Long, Map<String, Callable<List<Class<?>>>>>();
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
     private static OsgiRegistry instance;
@@ -94,33 +99,14 @@ public final class OsgiRegistry implements SynchronousBundleListener {
     private Map<String, Bundle> classToBundleMapping = new HashMap<String, Bundle>();
 
     /**
-     * Returns an {@link OsgiRegistry} instance.
-     *
-     * @return an {@link OsgiRegistry} instance or {@code null} if the class cannot be instantiated (not in OSGi environment).
-     */
-    public static OsgiRegistry getOsgiRegistryInstance() {
-        try {
-            final Class<?> bundleReferenceClass = Class.forName("org.osgi.framework.BundleReference");
-
-            if (bundleReferenceClass != null) {
-                return OsgiRegistry.getInstance();
-            }
-        } catch (Exception e) {
-            // Do nothing - instance is null.
-        }
-
-        return null;
-    }
-
-    /**
      * Returns an {@code OsgiRegistry} instance. Call this method only if sure that the application is running in OSGi
      * environment, otherwise a call to this method can lead to an {@link ClassNotFoundException}.
      *
      * @return an {@code OsgiRegistry} instance.
      */
-    private static synchronized OsgiRegistry getInstance() {
+    public static synchronized OsgiRegistry getInstance() {
         if (instance == null) {
-            final ClassLoader classLoader = OsgiRegistry.class.getClassLoader();
+            final ClassLoader classLoader = ReflectionHelper.class.getClassLoader();
             if (classLoader instanceof BundleReference) {
                 BundleContext context = FrameworkUtil.getBundle(OsgiRegistry.class).getBundleContext();
                 if (context != null) { // context could be still null in GlassFish
@@ -129,6 +115,74 @@ public final class OsgiRegistry implements SynchronousBundleListener {
             }
         }
         return instance;
+    }
+
+    private final class OsgiServiceFinder extends ServiceFinder.ServiceIteratorProvider {
+
+        final ServiceFinder.ServiceIteratorProvider defaultIterator = new ServiceFinder.DefaultServiceIteratorProvider();
+
+        @Override
+        public <T> Iterator<T> createIterator(final Class<T> serviceClass, final String serviceName, ClassLoader loader, boolean ignoreOnClassNotFound) {
+            final List<Class<?>> providerClasses = locateAllProviders(serviceName);
+            if (!providerClasses.isEmpty()) {
+                return new Iterator<T>() {
+
+                    Iterator<Class<?>> it = providerClasses.iterator();
+
+                    @Override
+                    public boolean hasNext() {
+                        return it.hasNext();
+                    }
+
+                    @Override
+                    public T next() {
+                        Class<T> nextClass = (Class<T>) it.next();
+                        try {
+                            return nextClass.newInstance();
+                        } catch (Exception ex) {
+                            ServiceConfigurationError sce = new ServiceConfigurationError(serviceName + ": "
+                                    + LocalizationMessages.PROVIDER_COULD_NOT_BE_CREATED(nextClass.getName(), serviceClass, ex.getLocalizedMessage()));
+                            sce.initCause(ex);
+                            throw sce;
+                        }
+                    }
+
+                    @Override
+                    public void remove() {
+                        throw new UnsupportedOperationException();
+                    }
+                };
+            }
+            return defaultIterator.createIterator(serviceClass, serviceName, loader, ignoreOnClassNotFound);
+        }
+
+        @Override
+        public <T> Iterator<Class<T>> createClassIterator(Class<T> service, String serviceName, ClassLoader loader, boolean ignoreOnClassNotFound) {
+            final List<Class<?>> providerClasses = locateAllProviders(serviceName);
+            if (!providerClasses.isEmpty()) {
+                return new Iterator<Class<T>>() {
+
+                    Iterator<Class<?>> it = providerClasses.iterator();
+
+                    @Override
+                    public boolean hasNext() {
+                        return it.hasNext();
+                    }
+
+                    @SuppressWarnings("unchecked")
+                    @Override
+                    public Class<T> next() {
+                        return (Class<T>) it.next();
+                    }
+
+                    @Override
+                    public void remove() {
+                        throw new UnsupportedOperationException();
+                    }
+                };
+            }
+            return defaultIterator.createClassIterator(service, serviceName, loader, ignoreOnClassNotFound);
+        }
     }
 
     private static class BundleSpiProvidersLoader implements Callable<List<Class<?>>> {
@@ -206,7 +260,7 @@ public final class OsgiRegistry implements SynchronousBundleListener {
             try {
                 factories.remove(unregisteredBundle.getBundleId());
 
-                if (unregisteredBundle.getSymbolicName().equals(BundleSymbolicNAME)) {
+                if (unregisteredBundle.getSymbolicName().equals(CoreBundleSymbolicNAME)) {
                     bundleContext.removeBundleListener(this);
                     factories.clear();
                 }
@@ -331,7 +385,8 @@ public final class OsgiRegistry implements SynchronousBundleListener {
      * This is to actually update SPI provider lookup and class loading mechanisms in Jersey
      * to utilize OSGi features.
      */
-    void hookUp() {
+    public void hookUp() {
+        setOSGiServiceFinderIteratorProvider();
         bundleContext.addBundleListener(this);
         registerExistingBundles();
     }
@@ -343,6 +398,10 @@ public final class OsgiRegistry implements SynchronousBundleListener {
                 register(bundle);
             }
         }
+    }
+
+    private void setOSGiServiceFinderIteratorProvider() {
+        ServiceFinder.setIteratorProvider(new OsgiServiceFinder());
     }
 
     private void register(final Bundle bundle) {
@@ -373,6 +432,25 @@ public final class OsgiRegistry implements SynchronousBundleListener {
                 final String factoryId = url.substring(url.lastIndexOf("/") + 1);
                 map.put(factoryId, new BundleSpiProvidersLoader(factoryId, u, bundle));
             }
+        }
+    }
+
+    private List<Class<?>> locateAllProviders(String serviceName) {
+        lock.readLock().lock();
+        try {
+            final List<Class<?>> result = new LinkedList<Class<?>>();
+            for (Map<String, Callable<List<Class<?>>>> value : factories.values()) {
+                if (value.containsKey(serviceName)) {
+                    try {
+                        result.addAll(value.get(serviceName).call());
+                    } catch (Exception ex) {
+                        // ignore
+                    }
+                }
+            }
+            return result;
+        } finally {
+            lock.readLock().unlock();
         }
     }
 }

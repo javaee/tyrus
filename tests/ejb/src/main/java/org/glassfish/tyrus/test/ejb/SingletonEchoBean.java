@@ -1,4 +1,4 @@
-/*
+package org.glassfish.tyrus.test.ejb;/*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
  * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
@@ -38,38 +38,27 @@
  * holder.
  */
 
-package org.glassfish.tyrus;
-
-import javax.net.websocket.Decoder;
+import javax.ejb.EJB;
+import javax.ejb.Stateless;
+import javax.net.websocket.Session;
+import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketMessage;
 
 /**
- * Used to store class and it's type.
- *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class DecoderWrapper implements Decoder {
+@Stateless
+@WebSocketEndpoint(value = "/singleton")
+public class SingletonEchoBean {
 
-    private Decoder instance;
+    private int counter = 0;
 
-    private Class<?> type;
+    @EJB
+    private ReplyMessageProvider rmp;
 
-    private Class<?> originalClass;
-
-    public DecoderWrapper(Decoder instance, Class<?> type, Class<?> originalClass) {
-        this.instance = instance;
-        this.type = type;
-        this.originalClass = originalClass;
-    }
-
-    public Class<?> getType() {
-        return type;
-    }
-
-    public Decoder getDecoder() {
-        return instance;
-    }
-
-    public Class<?> getOriginalClass(){
-        return originalClass;
+    @WebSocketMessage
+    public String doThat(String message, Session peer) {
+        counter++;
+        return rmp.getMessage()+counter;
     }
 }

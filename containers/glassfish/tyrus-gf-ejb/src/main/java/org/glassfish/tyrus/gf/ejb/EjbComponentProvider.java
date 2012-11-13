@@ -38,7 +38,9 @@
  * holder.
  */
 
-package org.glassfish.tyrus;
+package org.glassfish.tyrus.gf.ejb;
+
+import org.glassfish.tyrus.spi.ComponentProvider;
 
 import javax.ejb.Singleton;
 import javax.ejb.Stateless;
@@ -49,15 +51,16 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Loads the EJB instance for the given class.
+ * Provides the EJB instance for the given class.
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class EjbObjectFactory {
+public class EjbComponentProvider implements ComponentProvider {
 
-    private static final Logger LOGGER = Logger.getLogger(EjbObjectFactory.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(EjbComponentProvider.class.getName());
 
-    public Object getEjbObject(Class<?> c) throws Exception {
+    @Override
+    public Object getInstance(Class<?> c) throws Exception {
         String name = getName(c);
         if (name == null) {
             return null;
@@ -68,11 +71,16 @@ public class EjbObjectFactory {
             return lookup(ic, c, name);
         } catch (NamingException ex) {
             String message =  "An instance of EJB class " + c.getName() +
-                    " could not be looked up using simple form name or the fully-qualified form name." +
-                    "Ensure that the EJB/JAX-RS component implements at most one interface.";
+                    " could not be looked up using simple form name or the fully-qualified form name.";
             LOGGER.log(Level.SEVERE, message, ex);
             throw new Exception(message);
         }
+    }
+
+    @Override
+    public boolean isApplicable(Class<?> c){
+        return (c.isAnnotationPresent(Stateless.class) ||
+                c.isAnnotationPresent(Singleton.class));
     }
 
     private String getName(Class<?> c) {

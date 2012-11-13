@@ -729,4 +729,41 @@ public class ReflectionHelper {
         }
         return true;
     }
+
+    /**
+     * Find a type of the class given it's Superclass.
+     *
+     * @param inspectedClass Class whose type is searched for.
+     * @param superClass Class relatively to which the search is performed.
+     * @return
+     */
+    public static Class<?> getClassType(Class<?> inspectedClass, Class<?> superClass) {
+        ReflectionHelper.DeclaringClassInterfacePair p = ReflectionHelper.getClass(inspectedClass, superClass);
+        Class[] as = ReflectionHelper.getParameterizedClassArguments(p);
+        if(as==null){
+            return null;
+        }else{
+            return as[0];
+        }
+    }
+
+    /**
+     * Returns an {@link OsgiRegistry} instance.
+     *
+     * @return an {@link OsgiRegistry} instance or {@code null} if the class cannot be instantiated (not in OSGi environment).
+     */
+    public static OsgiRegistry getOsgiRegistryInstance() {
+        try {
+            final Class<?> bundleReferenceClass = Class.forName("org.osgi.framework.BundleReference");
+
+            if (bundleReferenceClass != null) {
+//                return OsgiRegistry.getInstance();
+                return null;
+            }
+        } catch (Exception e) {
+            // Do nothing - instance is null.
+        }
+
+        return null;
+    }
 }

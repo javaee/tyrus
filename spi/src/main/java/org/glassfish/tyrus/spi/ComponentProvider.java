@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011 - 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -38,23 +38,28 @@
  * holder.
  */
 
-package org.glassfish.tyrus.test.ejb;
+package org.glassfish.tyrus.spi;
 
+/**
+ * Provides an instance.
+ *
+ * @author Stepan Kopriva (stepan.kopriva at oracle.com)
+ */
+public interface ComponentProvider {
 
-import javax.ejb.Singleton;
-import javax.net.websocket.Session;
-import javax.net.websocket.annotations.WebSocketEndpoint;
-import javax.net.websocket.annotations.WebSocketMessage;
+    /**
+     * Checks whether this component provider is able to provide an instance of given {@link Class}.
+     *
+     * @param c {@link Class} to be checked.
+     * @return {@code true} iff this {@link ComponentProvider} is able to create an instance of the given {@link Class}.
+     */
+    public boolean isApplicable(Class<?> c);
 
-@Singleton
-@WebSocketEndpoint(value = "/singleton")
-public class EchoBean {
-
-    private int counter = 0;
-
-    @WebSocketMessage
-    public String doThat(String message, Session peer) {
-        counter++;
-        return ""+counter;
-    }
+    /**
+     * Create new instance.
+     * @param c {@link Class} to be created.
+     * @return instance, iff found, {@code null} otherwise.
+     * @throws Exception
+     */
+    public Object getInstance(Class<?> c) throws Exception;
 }

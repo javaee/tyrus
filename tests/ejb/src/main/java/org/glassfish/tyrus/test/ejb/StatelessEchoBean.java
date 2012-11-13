@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011 - 2012 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -38,38 +38,30 @@
  * holder.
  */
 
-package org.glassfish.tyrus;
+package org.glassfish.tyrus.test.ejb;
 
-import javax.net.websocket.Decoder;
 
-/**
- * Used to store class and it's type.
- *
- * @author Stepan Kopriva (stepan.kopriva at oracle.com)
- */
-public class DecoderWrapper implements Decoder {
+import org.glassfish.grizzly.utils.StringDecoder;
 
-    private Decoder instance;
+import javax.ejb.EJB;
+import javax.ejb.Singleton;
+import javax.ejb.Stateless;
+import javax.net.websocket.Session;
+import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.net.websocket.annotations.WebSocketMessage;
 
-    private Class<?> type;
+@Stateless
+@WebSocketEndpoint(value = "/stateless", decoders={org.glassfish.tyrus.test.ejb.CustomDecoder.class})
+public class StatelessEchoBean {
 
-    private Class<?> originalClass;
+    private int counter = 0;
 
-    public DecoderWrapper(Decoder instance, Class<?> type, Class<?> originalClass) {
-        this.instance = instance;
-        this.type = type;
-        this.originalClass = originalClass;
-    }
+    @EJB
+    private ReplyMessageProvider rmp;
 
-    public Class<?> getType() {
-        return type;
-    }
-
-    public Decoder getDecoder() {
-        return instance;
-    }
-
-    public Class<?> getOriginalClass(){
-        return originalClass;
+    @WebSocketMessage
+    public String doThat(StringContainer sc, Session peer) {
+        counter++;
+        return sc.getString()+rmp.getMessage()+counter;
     }
 }

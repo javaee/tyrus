@@ -39,11 +39,14 @@
  */
 package org.glassfish.tyrus.server;
 
-import java.util.logging.Logger;
+import org.glassfish.tyrus.OsgiRegistry;
 import org.glassfish.tyrus.spi.TyrusContainer;
+
+import java.util.logging.Logger;
 
 /**
  * Factory for creating server containers.
+ * Taken from Jersey 2.
  *
  * @author Martin Matula (martin.matula at oracle.com)
  */
@@ -62,7 +65,7 @@ public class ServerContainerFactory {
 
     private static void initOsgiRegistry() {
         try {
-            osgiRegistry = OsgiRegistry.getOsgiRegistryInstance();
+            osgiRegistry = OsgiRegistry.getInstance();
             if(osgiRegistry != null) {
                 osgiRegistry.hookUp();
             }

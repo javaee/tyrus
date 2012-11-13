@@ -41,9 +41,12 @@
 package org.glassfish.tyrus.server;
 
 import org.glassfish.tyrus.AnnotatedEndpoint;
-import org.glassfish.tyrus.EjbObjectFactory;
+import org.glassfish.tyrus.DecoderWrapper;
 import org.glassfish.tyrus.EndpointWrapper;
+import org.glassfish.tyrus.ReflectionHelper;
+import org.glassfish.tyrus.ServiceFinder;
 import org.glassfish.tyrus.WithProperties;
+import org.glassfish.tyrus.spi.ComponentProvider;
 import org.glassfish.tyrus.spi.SPIRegisteredEndpoint;
 import org.glassfish.tyrus.spi.TyrusServer;
 
@@ -75,6 +78,7 @@ public class TyrusServerContainer extends WithProperties implements ServerContai
     private final String contextPath;
     private final ServerConfiguration configuration;
     private final Set<SPIRegisteredEndpoint> endpoints = new HashSet<SPIRegisteredEndpoint>();
+    private static final Logger LOGGER = Logger.getLogger(TyrusServerContainer.class.getName());
 
     public TyrusServerContainer(final TyrusServer server, final String contextPath,
                                 final ServerConfiguration configuration) {
@@ -147,22 +151,37 @@ public class TyrusServerContainer extends WithProperties implements ServerContai
             }
 
             String endpointPath = wseAnnotation.value();
-            EjbObjectFactory factory = new EjbObjectFactory();
-            Object fromEjb = null;
-            try {
-                fromEjb = factory.getEjbObject(endpointClass);
-            } catch (Exception e) {
-                e.printStackTrace();
+            ServiceFinder<ComponentProvider> finder = ServiceFinder.find(ComponentProvider.class);
+            Object loaded = null;
+
+            for (ComponentProvider componentProvider : finder) {
+                if (componentProvider.isApplicable(endpointClass)) {
+                    try {
+                        loaded = componentProvider.getInstance(endpointClass);
+                        break;
+                    } catch (Exception e) {
+                        LOGGER.severe("Endpoint class " + endpointClass.getName() + " could not be loaded.");
+                    }
+                }
             }
 
-            AnnotatedEndpoint annotatedEndpoint = new AnnotatedEndpoint(endpointClass, fromEjb);
+            AnnotatedEndpoint annotatedEndpoint = new AnnotatedEndpoint(endpointClass, loaded);
 
             List<Encoder> encoders = new ArrayList<Encoder>();
             if (wseAnnotation.encoders() != null) {
                 //noinspection unchecked
                 for (Class<? extends Encoder> encoderClass : (Class<? extends Encoder>[]) wseAnnotation.encoders()) {
                     try {
-                        Object ejbEncoder = factory.getEjbObject(encoderClass);
+
+                        Object ejbEncoder = null;
+
+                        for (ComponentProvider componentProvider : finder) {
+                            if (componentProvider.isApplicable(encoderClass)) {
+                                ejbEncoder = componentProvider.getInstance(encoderClass);
+                                break;
+                            }
+                        }
+
                         if (ejbEncoder != null) {
                             encoders.add((Encoder) ejbEncoder);
                         } else {
@@ -178,13 +197,23 @@ public class TyrusServerContainer extends WithProperties implements ServerContai
                 //noinspection unchecked
                 for (Class<? extends Decoder> decoderClass : (Class<? extends Decoder>[]) wseAnnotation.decoders()) {
                     try {
-                        Object ejbDecoder = factory.getEjbObject(decoderClass);
+                        Class<?> decoderType = getDecoderClassType(decoderClass);
+                        Object ejbDecoder = null;
+
+                        for (ComponentProvider componentProvider : finder) {
+                            if (componentProvider.isApplicable(decoderClass)) {
+                                ejbDecoder = componentProvider.getInstance(decoderClass);
+                                break;
+                            }
+                        }
+
                         if (ejbDecoder != null) {
-                            decoders.add((Decoder) ejbDecoder);
+                            decoders.add(new DecoderWrapper((Decoder) ejbDecoder, decoderType, decoderClass));
                         } else {
-                            decoders.add(decoderClass.newInstance());
+                            decoders.add(new DecoderWrapper(decoderClass.newInstance(), decoderType, decoderClass));
                         }
                     } catch (Exception e) {
+                        e.printStackTrace();
                         throw new RuntimeException("Unable to instantiate decoder: " + decoderClass.getName(), e);
                     }
                 }
@@ -205,6 +234,28 @@ public class TyrusServerContainer extends WithProperties implements ServerContai
             EndpointWrapper ew = new EndpointWrapper(endpoint.getEndpoint(), endpoint.getConfiguration(), this, contextPath);
             SPIRegisteredEndpoint ge = server.register(ew);
             endpoints.add(ge);
+        }
+    }
+
+    private Class<?> getDecoderClassType(Class<?> decoder) {
+        Class<?> rootClass = null;
+
+        if (Decoder.Text.class.isAssignableFrom(decoder)) {
+            rootClass = Decoder.Text.class;
+        } else if (Decoder.Binary.class.isAssignableFrom(decoder)) {
+            rootClass = Decoder.Binary.class;
+        } else if (Decoder.TextStream.class.isAssignableFrom(decoder)) {
+            rootClass = Decoder.TextStream.class;
+        } else if (Decoder.BinaryStream.class.isAssignableFrom(decoder)) {
+            rootClass = Decoder.BinaryStream.class;
+        }
+
+        ReflectionHelper.DeclaringClassInterfacePair p = ReflectionHelper.getClass(decoder, rootClass);
+        Class[] as = ReflectionHelper.getParameterizedClassArguments(p);
+        if (as == null) {
+            return null;
+        } else {
+            return as[0];
         }
     }
 

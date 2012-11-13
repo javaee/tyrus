@@ -38,38 +38,25 @@
  * holder.
  */
 
-package org.glassfish.tyrus;
+package org.glassfish.tyrus.test.ejb;
 
+import javax.ejb.Stateless;
+import javax.net.websocket.DecodeException;
 import javax.net.websocket.Decoder;
 
 /**
- * Used to store class and it's type.
- *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class DecoderWrapper implements Decoder {
+@Stateless
+public class CustomDecoder implements Decoder.Text<StringContainer>{
 
-    private Decoder instance;
-
-    private Class<?> type;
-
-    private Class<?> originalClass;
-
-    public DecoderWrapper(Decoder instance, Class<?> type, Class<?> originalClass) {
-        this.instance = instance;
-        this.type = type;
-        this.originalClass = originalClass;
+    @Override
+    public StringContainer decode(String s) throws DecodeException {
+        return new StringContainer(s);
     }
 
-    public Class<?> getType() {
-        return type;
-    }
-
-    public Decoder getDecoder() {
-        return instance;
-    }
-
-    public Class<?> getOriginalClass(){
-        return originalClass;
+    @Override
+    public boolean willDecode(String s) {
+        return true;
     }
 }

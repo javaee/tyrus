@@ -40,11 +40,13 @@
 
 package org.glassfish.tyrus;
 
+import javax.net.websocket.DecodeException;
+import javax.net.websocket.Decoder;
+
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import javax.net.websocket.DecodeException;
-import javax.net.websocket.Decoder;
 
 /**
  * Collection of decoders for all primitive types.
@@ -54,6 +56,8 @@ import javax.net.websocket.Decoder;
  */
 public abstract class PrimitiveDecoders<T> implements Decoder.Text<T> {
     public static final List<Decoder.Text<?>> ALL;
+
+    public static final List<DecoderWrapper> ALL_WRAPPED;
 
     static {
         Decoder.Text<?>[] decoders = new Decoder.Text[]{
@@ -108,10 +112,23 @@ public abstract class PrimitiveDecoders<T> implements Decoder.Text<T> {
         };
 
         ALL = Collections.unmodifiableList(Arrays.asList(decoders));
+
+        ALL_WRAPPED = getWrappedAll();
     }
 
     @Override
     public boolean willDecode(String s) {
         return true;
+    }
+
+    private static List<DecoderWrapper> getWrappedAll(){
+        List<DecoderWrapper> result = new ArrayList<DecoderWrapper>();
+
+        for (Decoder dec : ALL) {
+            Class<?> type = ReflectionHelper.getClassType(dec.getClass(), Decoder.Text.class);
+            result.add(new DecoderWrapper(dec,type, dec.getClass()));
+        }
+
+        return result;
     }
 }

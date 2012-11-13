@@ -40,36 +40,37 @@
 
 package org.glassfish.tyrus;
 
-import javax.net.websocket.Decoder;
-
 /**
- * Used to store class and it's type.
+ * Taken from Jersey 2. Error thrown when something goes wrong while looking up service providers.
+ * In particular, this error will be thrown in the following situations:
  *
- * @author Stepan Kopriva (stepan.kopriva at oracle.com)
+ *   <ul>
+ *   <li> A concrete provider class cannot be found,
+ *   <li> A concrete provider class cannot be instantiated,
+ *   <li> The format of a provider-configuration file is illegal, or
+ *   <li> An IOException occurs while reading a provider-configuration file.
+ *   </ul>
+ *
+ * @author Mark Reinhold
+ * @author Marek Potociar (marek.potociar at oracle.com)
  */
-public class DecoderWrapper implements Decoder {
+public class ServiceConfigurationError extends Error {
 
-    private Decoder instance;
+    private static final long serialVersionUID = -8532392338326428074L;
 
-    private Class<?> type;
-
-    private Class<?> originalClass;
-
-    public DecoderWrapper(Decoder instance, Class<?> type, Class<?> originalClass) {
-        this.instance = instance;
-        this.type = type;
-        this.originalClass = originalClass;
+    /**
+     * Constructs a new instance with the specified detail string.
+     * @param msg the detail string
+     */
+    public ServiceConfigurationError(String msg) {
+        super(msg);
     }
 
-    public Class<?> getType() {
-        return type;
-    }
-
-    public Decoder getDecoder() {
-        return instance;
-    }
-
-    public Class<?> getOriginalClass(){
-        return originalClass;
+    /**
+     * Constructs a new instance that wraps the specified throwable.
+     * @param x the throwable to be wrapped
+     */
+    public ServiceConfigurationError(Throwable x) {
+        super(x);
     }
 }

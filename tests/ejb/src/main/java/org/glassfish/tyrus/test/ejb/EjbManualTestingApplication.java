@@ -1,4 +1,4 @@
-package org.glassfish.tyrus.test.ejb;/*
+/*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
  * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
@@ -38,6 +38,8 @@ package org.glassfish.tyrus.test.ejb;/*
  * holder.
  */
 
+package org.glassfish.tyrus.test.ejb;
+
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.client.DefaultClientEndpointConfiguration;
 
@@ -50,7 +52,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class StatelessClientApplication {
+public class EjbManualTestingApplication {
 
     private static CountDownLatch messageLatch;
 
@@ -65,8 +67,11 @@ public class StatelessClientApplication {
         try {
             messageLatch = new CountDownLatch(2);
 
-            final DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder("wss://localhost:8080/tyrus-tests-ejb-1.0-SNAPSHOT/singleton");
-            final DefaultClientEndpointConfiguration dcec = builder.build();
+            DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder("ws://localhost:8080/ejb-test/singleton");
+            final DefaultClientEndpointConfiguration configSingleton = builder.build();
+
+            builder = new DefaultClientEndpointConfiguration.Builder("ws://localhost:8080/ejb-test/stateless");
+            final DefaultClientEndpointConfiguration configStateless = builder.build();
 
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new TestEndpointAdapter() {
@@ -84,9 +89,9 @@ public class StatelessClientApplication {
                 public void onMessage(String message) {
                     receivedMessage1 = message;
                     messageLatch.countDown();
-                    System.out.println("Received Message: "+receivedMessage1);
+                    System.out.println("Received Message1: "+receivedMessage1);
                 }
-            }, dcec);
+            }, configSingleton);
 
             client.connectToServer(new TestEndpointAdapter() {
                 @Override
@@ -103,10 +108,53 @@ public class StatelessClientApplication {
                 public void onMessage(String message) {
                     receivedMessage2 = message;
                     messageLatch.countDown();
-                    System.out.println("Received Message: "+receivedMessage2);
+                    System.out.println("Received Message2: "+receivedMessage2);
                 }
-            }, dcec);
+            }, configSingleton);
             messageLatch.await(5, TimeUnit.SECONDS);
+
+            messageLatch = new CountDownLatch(2);
+
+            client.connectToServer(new TestEndpointAdapter() {
+                @Override
+                public void onOpen(Session session) {
+                    try {
+                        session.addMessageHandler(new TestTextMessageHandler(this));
+                        session.getRemote().sendString(SENT_MESSAGE);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                @Override
+                public void onMessage(String message) {
+                    receivedMessage1 = message;
+                    messageLatch.countDown();
+                    System.out.println("Received Message3: "+receivedMessage1);
+                }
+            }, configStateless);
+
+            client.connectToServer(new TestEndpointAdapter() {
+                @Override
+                public void onOpen(Session session) {
+                    try {
+                        session.addMessageHandler(new TestTextMessageHandler(this));
+                        session.getRemote().sendString(SENT_MESSAGE);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                @Override
+                public void onMessage(String message) {
+                    receivedMessage2 = message;
+                    messageLatch.countDown();
+                    System.out.println("Received Message4: "+receivedMessage2);
+                }
+            }, configStateless);
+
+            messageLatch.await(5, TimeUnit.SECONDS);
+
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);

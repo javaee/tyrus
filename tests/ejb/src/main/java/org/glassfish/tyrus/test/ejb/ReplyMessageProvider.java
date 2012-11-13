@@ -38,38 +38,21 @@
  * holder.
  */
 
-package org.glassfish.tyrus;
+package org.glassfish.tyrus.test.ejb;
 
-import javax.net.websocket.Decoder;
+import javax.ejb.Stateless;
 
 /**
- * Used to store class and it's type.
+ * Used for testing of injecting EJB to bean.
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class DecoderWrapper implements Decoder {
+@Stateless
+public class ReplyMessageProvider {
 
-    private Decoder instance;
+    private String replyMessage = "replyMessage";
 
-    private Class<?> type;
-
-    private Class<?> originalClass;
-
-    public DecoderWrapper(Decoder instance, Class<?> type, Class<?> originalClass) {
-        this.instance = instance;
-        this.type = type;
-        this.originalClass = originalClass;
-    }
-
-    public Class<?> getType() {
-        return type;
-    }
-
-    public Decoder getDecoder() {
-        return instance;
-    }
-
-    public Class<?> getOriginalClass(){
-        return originalClass;
+    public String getMessage() {
+        return replyMessage;
     }
 }

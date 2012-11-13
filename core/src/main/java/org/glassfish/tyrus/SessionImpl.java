@@ -409,7 +409,6 @@ public class SessionImpl<T> implements Session<T> {
         ArrayList<MessageHandler> result = new ArrayList<MessageHandler>();
 
         result.addAll(handlers);
-
         Collections.sort(result, new MessageHandlerComparator());
 
         return result;
