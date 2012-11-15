@@ -46,14 +46,13 @@ import org.glassfish.grizzly.websockets.HandShake;
 import org.glassfish.grizzly.websockets.draft17.Draft17Handler;
 import org.glassfish.grizzly.websockets.draft17.HandShake17;
 
-import javax.net.websocket.ClientEndpointConfiguration;
-import javax.net.websocket.extensions.Extension;
+import javax.websocket.ClientEndpointConfiguration;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * {@link org.glassfish.grizzly.websockets.ProtocolHandler} that supports sub-protocol and {@link javax.net.websocket.extensions.Extension} insertion.
+ * {@link org.glassfish.grizzly.websockets.ProtocolHandler} that supports sub-protocol and extension insertion.
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
@@ -63,7 +62,7 @@ public class GrizzlyProtocolHandler extends Draft17Handler {
 
     private String subprotocol;
 
-    private List<Extension> extensions;
+    private List<String> extensions;
 
     /**
      * Construct new {@link GrizzlyProtocolHandler}.
@@ -72,7 +71,7 @@ public class GrizzlyProtocolHandler extends Draft17Handler {
      * @param subprotocol selected by server.
      * @param extensions  supported by server.
      */
-    public GrizzlyProtocolHandler(boolean mask, String subprotocol, List<Extension> extensions) {
+    public GrizzlyProtocolHandler(boolean mask, String subprotocol, List<String> extensions) {
         super(mask);
         this.subprotocol = subprotocol;
         this.extensions = extensions;
@@ -87,8 +86,8 @@ public class GrizzlyProtocolHandler extends Draft17Handler {
         result.setSubProtocol(subprotocols);
 
         ArrayList<org.glassfish.grizzly.websockets.Extension> grizzlyExtensions = new ArrayList<org.glassfish.grizzly.websockets.Extension>();
-        for (Extension tyrusExtension : extensions) {
-            grizzlyExtensions.add(new org.glassfish.grizzly.websockets.Extension(tyrusExtension.getName()));
+        for (String tyrusExtension : extensions) {
+            grizzlyExtensions.add(new org.glassfish.grizzly.websockets.Extension(tyrusExtension));
         }
         result.setExtensions(grizzlyExtensions);
         return result;

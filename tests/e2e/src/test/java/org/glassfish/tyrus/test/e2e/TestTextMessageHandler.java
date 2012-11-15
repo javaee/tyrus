@@ -40,12 +40,12 @@
 
 package org.glassfish.tyrus.test.e2e;
 
-import javax.net.websocket.MessageHandler;
+import javax.websocket.MessageHandler;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)
  */
-public class TestTextMessageHandler implements MessageHandler.Text {
+public class TestTextMessageHandler implements MessageHandler.Basic<String> {
 
     private TestEndpointAdapter endpointAdapter;
 

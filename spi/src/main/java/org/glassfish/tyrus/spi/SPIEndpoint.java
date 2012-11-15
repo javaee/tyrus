@@ -39,7 +39,7 @@
  */
 package org.glassfish.tyrus.spi;
 
-import javax.net.websocket.RemoteEndpoint;
+import javax.websocket.RemoteEndpoint;
 
 import java.nio.ByteBuffer;
 import java.util.List;

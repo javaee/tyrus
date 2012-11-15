@@ -39,8 +39,8 @@
  */
 package org.glassfish.tyrus.sample.auction.encoders;
 
-import javax.net.websocket.EncodeException;
-import javax.net.websocket.Encoder;
+import javax.websocket.EncodeException;
+import javax.websocket.Encoder;
 import org.glassfish.tyrus.sample.auction.message.ResultMessage;
 
 /**

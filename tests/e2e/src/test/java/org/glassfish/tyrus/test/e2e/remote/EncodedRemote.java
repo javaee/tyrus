@@ -40,10 +40,13 @@
 
 package org.glassfish.tyrus.test.e2e.remote;
 
+import org.glassfish.tyrus.test.e2e.message.EncodedMessage;
+
+import javax.websocket.EncodeException;
+import javax.websocket.RemoteEndpoint;
+
 import java.io.IOException;
-import javax.net.websocket.EncodeException;
-import javax.net.websocket.RemoteEndpoint;
-import wstestbeans.EncodedMessage;
+
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)

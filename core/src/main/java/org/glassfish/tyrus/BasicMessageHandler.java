@@ -39,11 +39,11 @@
  */
 package org.glassfish.tyrus;
 
-import javax.net.websocket.MessageHandler;
+import javax.websocket.MessageHandler;
 
 /**
  * @author Martin Matula (martin.matula at oracle.com)
  */
-public interface DecodedObjectMessageHandler extends MessageHandler.DecodedObject {
+public interface BasicMessageHandler extends MessageHandler.Basic {
     Class<?> getType();
 }

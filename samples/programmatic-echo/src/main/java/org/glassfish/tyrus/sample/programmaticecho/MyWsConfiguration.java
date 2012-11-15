@@ -39,13 +39,16 @@
  */
 package org.glassfish.tyrus.sample.programmaticecho;
 
-import java.io.IOException;
-import javax.net.websocket.Endpoint;
-import javax.net.websocket.MessageHandler;
-import javax.net.websocket.Session;
 import org.glassfish.tyrus.server.ContainerConfig;
 import org.glassfish.tyrus.server.DefaultServerConfiguration;
 import org.glassfish.tyrus.server.DefaultServerEndpointConfiguration;
+
+import javax.websocket.Endpoint;
+import javax.websocket.EndpointConfiguration;
+import javax.websocket.MessageHandler;
+import javax.websocket.Session;
+
+import java.io.IOException;
 
 /**
  * @author Martin Matula (martin.matula at oracle.com)
@@ -58,8 +61,13 @@ public class MyWsConfiguration extends DefaultServerConfiguration {
 
     private static class EchoEndpoint extends Endpoint {
         @Override
+        public EndpointConfiguration getEndpointConfiguration() {
+            return null;
+        }
+
+        @Override
         public void onOpen(final Session session) {
-            session.addMessageHandler(new MessageHandler.Text() {
+            session.addMessageHandler(new MessageHandler.Basic<String>() {
                 @Override
                 public void onMessage(String message) {
                     System.out.println("##################### Message received");

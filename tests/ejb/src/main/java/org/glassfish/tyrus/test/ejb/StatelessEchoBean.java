@@ -46,9 +46,9 @@ import org.glassfish.grizzly.utils.StringDecoder;
 import javax.ejb.EJB;
 import javax.ejb.Singleton;
 import javax.ejb.Stateless;
-import javax.net.websocket.Session;
-import javax.net.websocket.annotations.WebSocketEndpoint;
-import javax.net.websocket.annotations.WebSocketMessage;
+import javax.websocket.Session;
+import javax.websocket.WebSocketEndpoint;
+import javax.websocket.WebSocketMessage;
 
 @Stateless
 @WebSocketEndpoint(value = "/stateless", decoders={org.glassfish.tyrus.test.ejb.CustomDecoder.class})

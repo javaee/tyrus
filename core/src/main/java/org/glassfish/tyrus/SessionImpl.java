@@ -40,16 +40,15 @@
 package org.glassfish.tyrus;
 
 
-import javax.net.websocket.ClientContainer;
-import javax.net.websocket.CloseReason;
-import javax.net.websocket.Encoder;
-import javax.net.websocket.MessageHandler;
-import javax.net.websocket.RemoteEndpoint;
-import javax.net.websocket.Session;
+import javax.websocket.ClientContainer;
+import javax.websocket.CloseReason;
+import javax.websocket.Encoder;
+import javax.websocket.MessageHandler;
+import javax.websocket.RemoteEndpoint;
+import javax.websocket.Session;
 
 import java.io.IOException;
 import java.net.URI;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -125,13 +124,6 @@ public class SessionImpl<T> implements Session<T> {
         return remote;
     }
 
-    // TODO: should be removed from the API - does not provide much value
-    // TODO: also the <T> from RemoteEndpoint should be removed
-    @Override
-    public RemoteEndpoint<T> getRemoteL(Class<T> aClass) {
-        throw new UnsupportedOperationException();
-    }
-
     @Override
     public boolean isActive() {
         return endpoint.isActive(this);
@@ -204,14 +196,14 @@ public class SessionImpl<T> implements Session<T> {
     @Override
     public void addMessageHandler(MessageHandler listener) {
         MessageHandler invokable;
-        if (listener instanceof MessageHandler.CharacterStream) {
-            invokable = new AsyncTextToCharStreamAdapter((MessageHandler.CharacterStream) listener);
-        } else if (listener instanceof MessageHandler.BinaryStream) {
-            invokable = new AsyncBinaryToOutputStreamAdapter((MessageHandler.BinaryStream) listener);
-        } else {
-            invokable = listener;
-        }
-        this.messageHandlerToInvokableMessageHandlers.put(listener, invokable);
+//        if (listener instanceof MessageHandler.CharacterStream) {
+//            invokable = new AsyncTextToCharStreamAdapter((MessageHandler.CharacterStream) listener);
+//        } else if (listener instanceof MessageHandler.BinaryStream) {
+//            invokable = new AsyncBinaryToOutputStreamAdapter((MessageHandler.BinaryStream) listener);
+//        } else {
+//            invokable = listener;
+//        }
+        this.messageHandlerToInvokableMessageHandlers.put(listener, listener);
     }
 
 
@@ -253,56 +245,7 @@ public class SessionImpl<T> implements Session<T> {
         this.lastConnectionActivity = System.currentTimeMillis();
     }
 
-    void notifyMessageHandlers(String message, List<DecoderWrapper> availableDecoders) {
-        updateLastConnectionActivity();
-
-        boolean decoded = false;
-
-        if (availableDecoders.isEmpty()) {
-            LOGGER.severe("No Decoder found");
-        }
-
-        try {
-            for (DecoderWrapper decoder : availableDecoders) {
-                for (MessageHandler mh : this.getOrderedMessageHandlers()) {
-                    if (mh instanceof MessageHandler.Text) {
-                        ((MessageHandler.Text) mh).onMessage(message);
-                        decoded = true;
-                        break;
-
-                    } else if (mh instanceof DecodedObjectMessageHandler) {
-                        DecodedObjectMessageHandler domh = (DecodedObjectMessageHandler) mh;
-                        Class<?> type = domh.getType();
-                        if (type != null && type.isAssignableFrom(decoder.getType())) {
-                            Object object = endpoint.decodeCompleteMessage(message, domh.getType(), true);
-                            if (object != null) {
-                                domh.onMessage(object);
-                                decoded = true;
-                                break;
-                            }
-                        }
-                    } else if (mh instanceof MessageHandler.DecodedObject) {
-                        Class<?> type = this.getClassType(mh.getClass(), MessageHandler.DecodedObject.class);
-                        if (type != null && type.isAssignableFrom(decoder.getType())) {
-                            Object object = endpoint.decodeCompleteMessage(message, type, true);
-                            if (object != null) {
-                                ((MessageHandler.DecodedObject) mh).onMessage(object);
-                                decoded = true;
-                                break;
-                            }
-                        }
-                    }
-                }
-                if (decoded) {
-                    break;
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    void notifyMessageHandlers(ByteBuffer message, List<DecoderWrapper> availableDecoders) {
+    void notifyMessageHandlers(Object message, List<DecoderWrapper> availableDecoders) {
         updateLastConnectionActivity();
 
         boolean decoded = false;
@@ -313,28 +256,22 @@ public class SessionImpl<T> implements Session<T> {
 
         for (DecoderWrapper decoder : availableDecoders) {
             for (MessageHandler mh : this.getOrderedMessageHandlers()) {
-                if (mh instanceof MessageHandler.Binary) {
-                    ((MessageHandler.Binary) mh).onMessage(message);
-                    decoded = true;
-                    break;
-
-                } else if (mh instanceof DecodedObjectMessageHandler) {
-                    DecodedObjectMessageHandler domh = (DecodedObjectMessageHandler) mh;
-                    Class<?> type = domh.getType();
-                    if (type != null && type.isAssignableFrom(decoder.getType())) {
-                        Object object = endpoint.decodeCompleteMessage(message, domh.getType(), true);
+                if(mh instanceof BasicMessageHandler){
+                    Class<?> type = ((BasicMessageHandler) mh).getType();
+                    if (type.isAssignableFrom(decoder.getType())) {
+                        Object object = endpoint.decodeCompleteMessage(message, type);
                         if (object != null) {
-                            domh.onMessage(object);
+                            ((MessageHandler.Basic) mh).onMessage(object);
                             decoded = true;
                             break;
                         }
                     }
-                } else if (mh instanceof MessageHandler.DecodedObject) {
-                    Class<?> type = this.getClassType(mh.getClass(), MessageHandler.DecodedObject.class);
+                }else if (mh instanceof MessageHandler.Basic) {
+                    Class<?> type = this.getClassType(mh.getClass(), MessageHandler.Basic.class);
                     if (type != null && type.isAssignableFrom(decoder.getType())) {
-                        Object object = endpoint.decodeCompleteMessage(message, type, true);
+                        Object object = endpoint.decodeCompleteMessage(message, type);
                         if (object != null) {
-                            ((MessageHandler.DecodedObject) mh).onMessage(object);
+                            ((MessageHandler.Basic) mh).onMessage(object);
                             decoded = true;
                             break;
                         }
@@ -347,35 +284,15 @@ public class SessionImpl<T> implements Session<T> {
         }
     }
 
-    void notifyMessageHandlers(ByteBuffer partialBytes, boolean last) {
+    void notifyMessageHandlers(Object message, boolean last) {
         boolean handled = false;
 
         for (MessageHandler handler : this.getInvokableMessageHandlers()) {
-            if (handler instanceof MessageHandler.AsyncBinary) {
-                ((MessageHandler.AsyncBinary) handler).onMessagePart(partialBytes, last);
-                handled = true;
-                break;
-            }
-        }
-
-        if (!handled) {
-            LOGGER.severe("Unhandled partial binary message in EndpointWrapper");
-        }
-    }
-
-    /*
-    * Initial implementation policy:
-    * - if there is a streaming message handler invoke it
-    * - if there is a blocking handler, use an adapter to invoke it
-    */
-    void notifyMessageHandlers(String partialString, boolean last) {
-        boolean handled = false;
-
-        for (MessageHandler handler : this.getInvokableMessageHandlers()) {
-            MessageHandler.AsyncText baseHandler;
-            if (handler instanceof MessageHandler.AsyncText) {
-                baseHandler = (MessageHandler.AsyncText) handler;
-                baseHandler.onMessagePart(partialString, last);
+            MessageHandler.Async baseHandler;
+            Class<?> type = ReflectionHelper.getClassType(handler.getClass(), MessageHandler.Async.class);
+            if (MessageHandler.Async.class.isAssignableFrom(handler.getClass()) && type.isAssignableFrom(message.getClass())) {
+                baseHandler = (MessageHandler.Async) handler;
+                baseHandler.onMessage(message, last);
                 handled = true;
                 break;
             }
@@ -418,10 +335,10 @@ public class SessionImpl<T> implements Session<T> {
 
         @Override
         public int compare(MessageHandler o1, MessageHandler o2) {
-            if (o1 instanceof MessageHandler.DecodedObject) {
-                if (o2 instanceof MessageHandler.DecodedObject) {
-                    Class<?> type1 = getClassType(o1.getClass(), MessageHandler.DecodedObject.class);
-                    Class<?> type2 = getClassType(o2.getClass(), MessageHandler.DecodedObject.class);
+            if (o1 instanceof MessageHandler.Basic) {
+                if (o2 instanceof MessageHandler.Basic) {
+                    Class<?> type1 = getClassType(o1.getClass(), MessageHandler.Basic.class);
+                    Class<?> type2 = getClassType(o2.getClass(), MessageHandler.Basic.class);
 
                     if (type1.isAssignableFrom(type2)) {
                         return 1;
@@ -433,7 +350,7 @@ public class SessionImpl<T> implements Session<T> {
                 } else {
                     return 1;
                 }
-            } else if (o2 instanceof MessageHandler.DecodedObject) {
+            } else if (o2 instanceof MessageHandler.Basic) {
                 return 1;
             }
             return 0;

@@ -43,7 +43,7 @@ import java.io.IOException;
 import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.net.websocket.Session;
+import javax.websocket.Session;
 import org.glassfish.tyrus.sample.auction.message.PreAuctionTimeBroadcastMessage;
 
 /**

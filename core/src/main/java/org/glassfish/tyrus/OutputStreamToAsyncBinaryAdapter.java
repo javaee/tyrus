@@ -41,7 +41,7 @@ package org.glassfish.tyrus;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import javax.net.websocket.RemoteEndpoint;
+import javax.websocket.RemoteEndpoint;
 import java.nio.*;
 
 /**
@@ -63,7 +63,7 @@ public class OutputStreamToAsyncBinaryAdapter extends OutputStream {
         b[0] = (byte) buffer;
         re.sendPartialBytes(ByteBuffer.wrap(b), last);
     }
-    
+
     @Override
     public void write(int i) throws IOException {
         if (buffer != -1) {
@@ -72,7 +72,7 @@ public class OutputStreamToAsyncBinaryAdapter extends OutputStream {
         buffer = i;
     }
 
-    
+
 
     @Override
     public void flush() throws IOException {

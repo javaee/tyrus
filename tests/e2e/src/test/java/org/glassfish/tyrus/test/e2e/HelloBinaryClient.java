@@ -39,11 +39,13 @@
  */
 package org.glassfish.tyrus.test.e2e;
 
+import javax.websocket.Endpoint;
+import javax.websocket.EndpointConfiguration;
+import javax.websocket.MessageHandler;
+import javax.websocket.Session;
+
 import java.nio.ByteBuffer;
 import java.util.concurrent.CountDownLatch;
-import javax.net.websocket.Endpoint;
-import javax.net.websocket.MessageHandler;
-import javax.net.websocket.Session;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)
@@ -57,10 +59,15 @@ public class HelloBinaryClient extends Endpoint {
         this.messageLatch = messageLatch;
     }
 
+    @Override
+    public EndpointConfiguration getEndpointConfiguration() {
+        return null;
+    }
+
     public void onOpen(Session session) {
         System.out.println("HELLOBCLIENT opened !!");
         try {
-            session.addMessageHandler(new MessageHandler.Binary() {
+            session.addMessageHandler(new MessageHandler.Basic<ByteBuffer>() {
                 public void onMessage(ByteBuffer bb) {
                     System.out.println("HELLOBCLIENT received: " + new String(bb.array()));
                     echoWorked = (MESSAGE.equals(new String(bb.array())));

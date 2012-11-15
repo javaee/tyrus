@@ -40,8 +40,8 @@
 
 package org.glassfish.tyrus.sample.echo;
 
-import javax.net.websocket.annotations.WebSocketEndpoint;
-import javax.net.websocket.annotations.WebSocketMessage;
+import javax.websocket.WebSocketEndpoint;
+import javax.websocket.WebSocketMessage;
 
 @WebSocketEndpoint(value = "/echo")
 public class EchoBean {

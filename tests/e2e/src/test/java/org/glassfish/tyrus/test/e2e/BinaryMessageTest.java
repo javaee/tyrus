@@ -39,18 +39,21 @@
  */
 package org.glassfish.tyrus.test.e2e;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import javax.net.websocket.Endpoint;
-import javax.net.websocket.MessageHandler;
-import javax.net.websocket.Session;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.client.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.server.Server;
 import org.junit.Assert;
 import org.junit.Test;
+
+import javax.websocket.Endpoint;
+import javax.websocket.EndpointConfiguration;
+import javax.websocket.MessageHandler;
+import javax.websocket.Session;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Tests the correct processing of binary message and replying.
@@ -77,10 +80,15 @@ public class BinaryMessageTest {
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new Endpoint() {
                 @Override
+                public EndpointConfiguration getEndpointConfiguration() {
+                    return dcec;
+                }
+
+                @Override
                 public void onOpen(Session session) {
                     try {
                         session.getRemote().sendBytes(ByteBuffer.wrap(BINARY_MESSAGE));
-                        session.addMessageHandler(new MessageHandler.Binary() {
+                        session.addMessageHandler(new MessageHandler.Basic<ByteBuffer>() {
                             @Override
                             public void onMessage(ByteBuffer data) {
                                 receivedMessage = data;

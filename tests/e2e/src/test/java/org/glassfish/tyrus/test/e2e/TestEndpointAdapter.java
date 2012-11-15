@@ -40,7 +40,7 @@
 
 package org.glassfish.tyrus.test.e2e;
 
-import javax.net.websocket.Endpoint;
+import javax.websocket.Endpoint;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)

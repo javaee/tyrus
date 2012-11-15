@@ -39,18 +39,18 @@
  */
 package org.glassfish.tyrus.test.e2e;
 
-import java.io.IOException;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
-import javax.net.websocket.Session;
-
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.client.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.server.Server;
-
 import org.junit.Assert;
 import org.junit.Test;
+
+import javax.websocket.EndpointConfiguration;
+import javax.websocket.Session;
+
+import java.io.IOException;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Tests the basic client behavior, sending and receiving message.
@@ -73,7 +73,7 @@ public class ClientTest {
         try {
             messageLatch = new CountDownLatch(1);
             DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder("ws://localhost:8025/websockets/tests/echo");
-            DefaultClientEndpointConfiguration dcec = builder.build();
+            final DefaultClientEndpointConfiguration dcec = builder.build();
 
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new TestEndpointAdapter() {
@@ -82,6 +82,11 @@ public class ClientTest {
                     receivedMessage = message;
                     messageLatch.countDown();
                     System.out.println("Received message = " + message);
+                }
+
+                @Override
+                public EndpointConfiguration getEndpointConfiguration() {
+                    return dcec;
                 }
 
                 @Override
@@ -96,7 +101,7 @@ public class ClientTest {
                 }
             }, dcec);
 
-            messageLatch.await(5, TimeUnit.SECONDS);
+            messageLatch.await(5000, TimeUnit.SECONDS);
             Assert.assertTrue("The received message is the same as the sent one", receivedMessage.equals(SENT_MESSAGE));
         } catch (Exception e) {
             e.printStackTrace();

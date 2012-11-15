@@ -46,7 +46,7 @@ import java.util.List;
 import java.util.Timer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.net.websocket.Session;
+import javax.websocket.Session;
 import org.glassfish.tyrus.sample.auction.message.BidRequestMessage;
 import org.glassfish.tyrus.sample.auction.message.LoginRequestMessage;
 import org.glassfish.tyrus.sample.auction.message.LoginResponseMessage;

@@ -39,12 +39,12 @@
  */
 package org.glassfish.tyrus.test.e2e;
 
-import javax.net.websocket.MessageHandler;
-import javax.net.websocket.Session;
-import javax.net.websocket.annotations.WebSocketEndpoint;
-import javax.net.websocket.annotations.WebSocketOpen;
+import javax.websocket.MessageHandler;
+import javax.websocket.Session;
+import javax.websocket.WebSocketEndpoint;
+import javax.websocket.WebSocketOpen;
 
-import java.nio.*;
+import java.nio.ByteBuffer;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)
@@ -60,7 +60,7 @@ public class HelloBinaryServer {
 
     }
 
-    class MyMessageHandler implements MessageHandler.Binary {
+    class MyMessageHandler implements MessageHandler.Basic<ByteBuffer> {
         private Session session;
 
         MyMessageHandler(Session session) {

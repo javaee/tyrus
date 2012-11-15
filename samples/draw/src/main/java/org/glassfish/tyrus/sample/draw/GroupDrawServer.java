@@ -39,16 +39,17 @@
  */
 package org.glassfish.tyrus.sample.draw;
 
+import javax.websocket.EncodeException;
+import javax.websocket.Session;
+import javax.websocket.WebSocketClose;
+import javax.websocket.WebSocketEndpoint;
+import javax.websocket.WebSocketMessage;
+import javax.websocket.WebSocketOpen;
+
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import javax.net.websocket.EncodeException;
-import javax.net.websocket.Session;
-import javax.net.websocket.annotations.WebSocketClose;
-import javax.net.websocket.annotations.WebSocketEndpoint;
-import javax.net.websocket.annotations.WebSocketMessage;
-import javax.net.websocket.annotations.WebSocketOpen;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)

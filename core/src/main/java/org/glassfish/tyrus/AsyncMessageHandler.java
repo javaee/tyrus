@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011 - 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -38,21 +38,13 @@
  * holder.
  */
 
-package wstestbeans;
+package org.glassfish.tyrus;
 
-import javax.net.websocket.annotations.WebSocketEndpoint;
-import javax.net.websocket.annotations.WebSocketMessage;
+import javax.websocket.MessageHandler;
 
-@WebSocketEndpoint(
-        value = "/hellobyte"
-)
-public class HelloByteBean {
-
-    @WebSocketMessage
-    public String doThis(byte[] bytes) {
-        String s = new String(bytes);
-        s = "Server said (" + s + ")";
-        return s;
-    }
-
+/**
+ * @author Stepan Kopriva (stepan.kopriva at oracle.com)
+ */
+public interface AsyncMessageHandler extends MessageHandler.Async{
+    Class<?> getType();
 }

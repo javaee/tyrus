@@ -39,25 +39,6 @@
  */
 package org.glassfish.tyrus.grizzly;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.URI;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.EnumSet;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicReference;
-
-import javax.net.websocket.ClientEndpointConfiguration;
-
-import org.glassfish.tyrus.spi.SPIEndpoint;
-import org.glassfish.tyrus.spi.TyrusClientSocket;
-
 import org.glassfish.grizzly.Connection;
 import org.glassfish.grizzly.GrizzlyFuture;
 import org.glassfish.grizzly.Processor;
@@ -82,7 +63,7 @@ import org.glassfish.grizzly.websockets.frametypes.PongFrameType;
 import org.glassfish.tyrus.spi.SPIEndpoint;
 import org.glassfish.tyrus.spi.TyrusClientSocket;
 
-import javax.net.websocket.ClientEndpointConfiguration;
+import javax.websocket.ClientEndpointConfiguration;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;

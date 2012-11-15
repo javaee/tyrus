@@ -39,12 +39,12 @@
  */
 package org.glassfish.tyrus;
 
-import javax.net.websocket.CloseReason;
-import javax.net.websocket.EncodeException;
-import javax.net.websocket.RemoteEndpoint;
-import javax.net.websocket.SendHandler;
-import javax.net.websocket.SendResult;
-import javax.net.websocket.Session;
+import javax.websocket.CloseReason;
+import javax.websocket.EncodeException;
+import javax.websocket.RemoteEndpoint;
+import javax.websocket.SendHandler;
+import javax.websocket.SendResult;
+import javax.websocket.Session;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -61,7 +61,7 @@ import java.util.concurrent.Future;
  * @author Martin Matula (martin.matula at oracle.com)
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public final class RemoteEndpointWrapper<T> implements RemoteEndpoint<T> {
+public final class RemoteEndpointWrapper implements RemoteEndpoint{
 
     private final RemoteEndpoint remoteEndpoint;
     private final SessionImpl session;
@@ -109,33 +109,54 @@ public final class RemoteEndpointWrapper<T> implements RemoteEndpoint<T> {
     }
 
     @Override
-    public void sendObject(T o) throws IOException, EncodeException {
+    public void sendObject(Object o) throws IOException, EncodeException {
         this.session.updateLastConnectionActivity();
         sendPolymorphic(o);
     }
 
     @Override
-    public Future<SendResult> sendString(String text, SendHandler completion) {
+    public void sendStringByCompletion(String s, SendHandler sendHandler) {
         SendCompletionAdapter goesAway = new SendCompletionAdapter(this, SendCompletionAdapter.State.TEXT);
-        Future<SendResult> fsr = goesAway.send(text, completion);
+        goesAway.send(s, sendHandler);
+        this.session.updateLastConnectionActivity();
+    }
+
+    @Override
+    public Future<SendResult> sendStringByFuture(String s) {
+        SendCompletionAdapter goesAway = new SendCompletionAdapter(this, SendCompletionAdapter.State.TEXT);
+        Future<SendResult> fsr = goesAway.send(s, null);
         this.session.updateLastConnectionActivity();
         return fsr;
     }
 
     @Override
-    public Future<SendResult> sendBytes(ByteBuffer data, SendHandler completion) {
+    public Future<SendResult> sendBytesByFuture(ByteBuffer byteBuffer) {
         SendCompletionAdapter goesAway = new SendCompletionAdapter(this, SendCompletionAdapter.State.BINARY);
-        Future<SendResult> fsr = goesAway.send(data, completion);
+        Future<SendResult> fsr = goesAway.send(byteBuffer, null);
         this.session.updateLastConnectionActivity();
         return fsr;
     }
 
     @Override
-    public Future<SendResult> sendObject(T o, SendHandler completion) {
+    public void sendBytesByCompletion(ByteBuffer byteBuffer, SendHandler sendHandler) {
+        SendCompletionAdapter goesAway = new SendCompletionAdapter(this, SendCompletionAdapter.State.BINARY);
+        goesAway.send(byteBuffer, sendHandler);
+        this.session.updateLastConnectionActivity();
+    }
+
+    @Override
+    public Future<SendResult> sendObjectByFuture(Object t) {
         SendCompletionAdapter goesAway = new SendCompletionAdapter(this, SendCompletionAdapter.State.OBJECT);
-        Future<SendResult> fsr = goesAway.send(o, completion);
+        Future<SendResult> fsr = goesAway.send(t, null);
         this.session.updateLastConnectionActivity();
         return fsr;
+    }
+
+    @Override
+    public void sendObjectByCompletion(Object t, SendHandler sendHandler) {
+        SendCompletionAdapter goesAway = new SendCompletionAdapter(this, SendCompletionAdapter.State.BINARY);
+        goesAway.send(t, sendHandler);
+        this.session.updateLastConnectionActivity();
     }
 
     @Override
@@ -159,7 +180,7 @@ public final class RemoteEndpointWrapper<T> implements RemoteEndpoint<T> {
         if (isPrimitiveData(data)) {
             this.sendString(data.toString());
         } else {
-            throw new EncodeException("object " + data + " is not a primitive type.", data);
+            throw new EncodeException(data, "Object " + data + " is not a primitive type.");
         }
     }
 

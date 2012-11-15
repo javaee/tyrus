@@ -39,10 +39,11 @@
  */
 package org.glassfish.tyrus.test.e2e.bean;
 
-import javax.net.websocket.annotations.WebSocketEndpoint;
-import javax.net.websocket.annotations.WebSocketMessage;
+import org.glassfish.tyrus.test.e2e.message.EncodedMessage;
 import org.glassfish.tyrus.test.e2e.remote.TwoMethodRemote;
-import wstestbeans.EncodedMessage;
+
+import javax.websocket.WebSocketEndpoint;
+import javax.websocket.WebSocketMessage;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)

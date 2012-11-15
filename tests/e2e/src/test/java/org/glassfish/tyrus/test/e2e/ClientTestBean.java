@@ -39,11 +39,12 @@
  */
 package org.glassfish.tyrus.test.e2e;
 
+import javax.websocket.Session;
+import javax.websocket.WebSocketEndpoint;
+import javax.websocket.WebSocketMessage;
+import javax.websocket.WebSocketOpen;
+
 import java.io.IOException;
-import javax.net.websocket.Session;
-import javax.net.websocket.annotations.WebSocketEndpoint;
-import javax.net.websocket.annotations.WebSocketMessage;
-import javax.net.websocket.annotations.WebSocketOpen;
 
 /**
  * Testing the basic annotations.

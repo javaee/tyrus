@@ -44,16 +44,16 @@ import org.glassfish.tyrus.internal.PathPattern;
 import org.glassfish.tyrus.spi.SPIEndpoint;
 import org.glassfish.tyrus.spi.SPIHandshakeRequest;
 
-import javax.net.websocket.ClientContainer;
-import javax.net.websocket.DecodeException;
-import javax.net.websocket.Decoder;
-import javax.net.websocket.EncodeException;
-import javax.net.websocket.Encoder;
-import javax.net.websocket.Endpoint;
-import javax.net.websocket.EndpointConfiguration;
-import javax.net.websocket.MessageHandler;
-import javax.net.websocket.RemoteEndpoint;
-import javax.net.websocket.ServerEndpointConfiguration;
+import javax.websocket.ClientContainer;
+import javax.websocket.CloseReason;
+import javax.websocket.DecodeException;
+import javax.websocket.Decoder;
+import javax.websocket.EncodeException;
+import javax.websocket.Encoder;
+import javax.websocket.Endpoint;
+import javax.websocket.EndpointConfiguration;
+import javax.websocket.RemoteEndpoint;
+import javax.websocket.ServerEndpointConfiguration;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -66,7 +66,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -149,26 +148,26 @@ public class EndpointWrapper extends SPIEndpoint {
                 + "/" + (relativePath.startsWith("/") ? relativePath.substring(1) : relativePath);
     }
 
-    public Object decodeCompleteMessage(Object message, Class<?> type, boolean isString) {
+    public Object decodeCompleteMessage(Object message, Class<?> type) {
         for (DecoderWrapper dec : decoders) {
             try {
-                if (isString && (dec.getDecoder() instanceof Decoder.Text)) {
+                if (dec.getDecoder() instanceof Decoder.Text) {
                     if (type != null && type.isAssignableFrom(dec.getType())) {
                         if (((Decoder.Text) dec.getDecoder()).willDecode((String) message)) {
                             return ((Decoder.Text) dec.getDecoder()).decode((String) message);
                         }
                     }
-                } else if (!isString && (dec.getDecoder() instanceof Decoder.Binary)) {
+                } else if (dec.getDecoder() instanceof Decoder.Binary) {
                     if (type != null && type.isAssignableFrom(dec.getType())) {
                         if (((Decoder.Binary) dec.getDecoder()).willDecode((ByteBuffer) message)) {
                             return ((Decoder.Binary) dec.getDecoder()).decode((ByteBuffer) message);
                         }
                     }
-                } else if (isString && (dec.getDecoder() instanceof Decoder.TextStream)) {
+                } else if (dec.getDecoder() instanceof Decoder.TextStream) {
                     if (type != null && type.isAssignableFrom(dec.getType())) {
                         return ((Decoder.TextStream) dec.getDecoder()).decode(new StringReader((String) message));
                     }
-                } else if (!isString && (dec.getDecoder() instanceof Decoder.BinaryStream)) {
+                } else if (dec.getDecoder() instanceof Decoder.BinaryStream) {
                     if (type != null && type.isAssignableFrom(dec.getType())) {
                         byte[] array = ((ByteBuffer) message).array();
                         return ((Decoder.BinaryStream) dec.getDecoder()).decode(new ByteArrayInputStream(array));
@@ -241,7 +240,7 @@ public class EndpointWrapper extends SPIEndpoint {
             }
         }
 
-        throw new EncodeException("Unable to encode ", message);
+        throw new EncodeException(message, "Unable to encode ");
     }
 
     @Override
@@ -311,19 +310,19 @@ public class EndpointWrapper extends SPIEndpoint {
 
     @Override
     public void onPong(RemoteEndpoint gs, ByteBuffer bytes) {
-        SessionImpl session = remoteEndpointToSession.get(gs);
-        //System.out.println("EndpointWrapper----" + ((SessionImpl) peer.getSession()).getInvokableMessageHandlers());
-        boolean handled = false;
-        for (MessageHandler handler : (Set<MessageHandler>) session.getMessageHandlers()) {
-            if (handler instanceof MessageHandler.Pong) {
-                //System.out.println("async binary");
-                ((MessageHandler.Pong) handler).onPong(bytes);
-                handled = true;
-            }
-        }
-        if (!handled) {
-            System.out.println("Unhandled pong message in EndpointWrapper");
-        }
+//        SessionImpl session = remoteEndpointToSession.get(gs);
+//        //System.out.println("EndpointWrapper----" + ((SessionImpl) peer.getSession()).getInvokableMessageHandlers());
+//        boolean handled = false;
+//        for (MessageHandler handler : (Set<MessageHandler>) session.getMessageHandlers()) {
+//            if (handler instanceof MessageHandler.Pong) {
+//                //System.out.println("async binary");
+//                ((MessageHandler.Pong) handler).onPong(bytes);
+//                handled = true;
+//            }
+//        }
+//        if (!handled) {
+//            System.out.println("Unhandled pong message in EndpointWrapper");
+//        }
 
     }
 
@@ -339,7 +338,7 @@ public class EndpointWrapper extends SPIEndpoint {
     public void onClose(RemoteEndpoint gs) {
         SessionImpl session = remoteEndpointToSession.get(gs);
         // TODO: where should I get the CloseReason from?
-        endpoint.onClose(session, null);
+        endpoint.onClose(new CloseReason(null, "Normal Closure"));
         remoteEndpointToSession.remove(gs);
     }
 

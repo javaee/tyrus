@@ -40,8 +40,8 @@
 
 package org.glassfish.tyrus;
 
-import javax.net.websocket.DecodeException;
-import javax.net.websocket.Decoder;
+import javax.websocket.DecodeException;
+import javax.websocket.Decoder;
 
 import java.util.ArrayList;
 import java.util.Arrays;

@@ -46,7 +46,8 @@ import org.glassfish.tyrus.server.Server;
 import org.junit.Assert;
 import org.junit.Test;
 
-import javax.net.websocket.Session;
+import javax.websocket.EndpointConfiguration;
+import javax.websocket.Session;
 
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
@@ -138,6 +139,11 @@ public class InTest {
 
         private TestAdapter(String message) {
             this.message = message;
+        }
+
+        @Override
+        public EndpointConfiguration getEndpointConfiguration() {
+            return null;
         }
 
         @Override

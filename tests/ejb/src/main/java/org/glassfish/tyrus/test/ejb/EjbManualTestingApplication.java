@@ -43,7 +43,8 @@ package org.glassfish.tyrus.test.ejb;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.client.DefaultClientEndpointConfiguration;
 
-import javax.net.websocket.Session;
+import javax.websocket.EndpointConfiguration;
+import javax.websocket.Session;
 
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
@@ -76,6 +77,11 @@ public class EjbManualTestingApplication {
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new TestEndpointAdapter() {
                 @Override
+                public EndpointConfiguration getEndpointConfiguration() {
+                    return configSingleton;
+                }
+
+                @Override
                 public void onOpen(Session session) {
                     try {
                         session.addMessageHandler(new TestTextMessageHandler(this));
@@ -94,6 +100,11 @@ public class EjbManualTestingApplication {
             }, configSingleton);
 
             client.connectToServer(new TestEndpointAdapter() {
+                @Override
+                public EndpointConfiguration getEndpointConfiguration() {
+                    return configSingleton;
+                }
+
                 @Override
                 public void onOpen(Session session) {
                     try {
@@ -117,6 +128,11 @@ public class EjbManualTestingApplication {
 
             client.connectToServer(new TestEndpointAdapter() {
                 @Override
+                public EndpointConfiguration getEndpointConfiguration() {
+                    return configStateless;
+                }
+
+                @Override
                 public void onOpen(Session session) {
                     try {
                         session.addMessageHandler(new TestTextMessageHandler(this));
@@ -135,6 +151,11 @@ public class EjbManualTestingApplication {
             }, configStateless);
 
             client.connectToServer(new TestEndpointAdapter() {
+                @Override
+                public EndpointConfiguration getEndpointConfiguration() {
+                    return configStateless;
+                }
+
                 @Override
                 public void onOpen(Session session) {
                     try {

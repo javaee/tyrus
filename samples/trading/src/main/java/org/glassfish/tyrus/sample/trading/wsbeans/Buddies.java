@@ -44,9 +44,9 @@ package org.glassfish.tyrus.sample.trading.wsbeans;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
-import javax.net.websocket.Session;
-import javax.net.websocket.annotations.WebSocketEndpoint;
-import javax.net.websocket.annotations.WebSocketMessage;
+import javax.websocket.Session;
+import javax.websocketWebSocketEndpoint;
+import javax.websocketWebSocketMessage;
 import javax.servlet.http.HttpSession;
 import org.glassfish.tyrus.oldservlet.web.WebSocketServerWebIntegration;
 

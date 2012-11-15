@@ -39,15 +39,16 @@
  */
 package org.glassfish.tyrus;
 
+import javax.websocket.SendHandler;
+import javax.websocket.SendResult;
+
+import java.nio.ByteBuffer;
 import java.util.concurrent.Future;
-import javax.net.websocket.SendHandler;
-import javax.net.websocket.SendResult;
-import java.nio.*;
 
 /**
  * Simple Async send adapter. Should probably merge with RemoteEndpointWrapper at some point
  * when things settle down.
- * For now this is mediating the types and method calls. 
+ * For now this is mediating the types and method calls.
  *
  * @author Danny Coward (danny.coward at oracle.com)
  */
@@ -60,7 +61,7 @@ public class SendCompletionAdapter {
     }
 
     private SendCompletionAdapter.State state;
-    
+
 
     public SendCompletionAdapter(RemoteEndpointWrapper re, State state) {
         this.rew = re;
@@ -87,11 +88,15 @@ public class SendCompletionAdapter {
                     }
                 } catch (Throwable thw) {
                     SendResult sr = new SendResult(thw);
-                    cmpltn.setResult(sr);
+                    if(cmpltn != null){
+                        cmpltn.setResult(sr);
+                    }
                     fsr.setResult(sr);
                 }
                 SendResult sr = new SendResult();
-                cmpltn.setResult(sr);
+                if(cmpltn != null){
+                    cmpltn.setResult(sr);
+                }
                 fsr.setResult(sr);
             }
         };

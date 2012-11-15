@@ -40,9 +40,10 @@
 
 package org.glassfish.tyrus.test.e2e.decoder;
 
-import javax.net.websocket.DecodeException;
-import javax.net.websocket.Decoder;
 import org.glassfish.tyrus.test.e2e.message.MessageA;
+
+import javax.websocket.DecodeException;
+import javax.websocket.Decoder;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)

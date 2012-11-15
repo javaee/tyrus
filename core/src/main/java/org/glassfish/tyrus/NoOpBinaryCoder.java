@@ -39,11 +39,12 @@
  */
 package org.glassfish.tyrus;
 
+import javax.websocket.DecodeException;
+import javax.websocket.Decoder;
+import javax.websocket.EncodeException;
+import javax.websocket.Encoder;
+
 import java.nio.ByteBuffer;
-import javax.net.websocket.DecodeException;
-import javax.net.websocket.Decoder;
-import javax.net.websocket.EncodeException;
-import javax.net.websocket.Encoder;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)

@@ -39,16 +39,18 @@
  */
 package org.glassfish.tyrus.client;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.logging.Logger;
-import javax.net.websocket.ClientContainer;
-import javax.net.websocket.ClientEndpointConfiguration;
-import javax.net.websocket.Endpoint;
-import javax.net.websocket.Session;
 import org.glassfish.tyrus.EndpointWrapper;
 import org.glassfish.tyrus.spi.TyrusClientSocket;
 import org.glassfish.tyrus.spi.TyrusContainer;
+
+import javax.websocket.ClientContainer;
+import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.Endpoint;
+import javax.websocket.Session;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.logging.Logger;
 
 /**
  * ClientManager implementation.

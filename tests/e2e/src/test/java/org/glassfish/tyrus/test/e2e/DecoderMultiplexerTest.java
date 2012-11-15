@@ -40,20 +40,20 @@
 
 package org.glassfish.tyrus.test.e2e;
 
-import java.io.IOException;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
-import javax.net.websocket.RemoteEndpoint;
-import javax.net.websocket.Session;
-
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.client.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.server.Server;
-
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
+
+import javax.websocket.EndpointConfiguration;
+import javax.websocket.RemoteEndpoint;
+import javax.websocket.Session;
+
+import java.io.IOException;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Test of several decoders.
@@ -102,6 +102,11 @@ public class DecoderMultiplexerTest {
 
     private class TestAdapter extends TestEndpointAdapter {
         private RemoteEndpoint peer;
+
+        @Override
+        public EndpointConfiguration getEndpointConfiguration() {
+            return null;
+        }
 
         @Override
         public void onOpen(Session session) {

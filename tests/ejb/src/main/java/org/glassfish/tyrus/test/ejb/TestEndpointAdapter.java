@@ -40,23 +40,25 @@
 
 package org.glassfish.tyrus.test.ejb;
 
-import javax.net.websocket.Endpoint;
-import javax.net.websocket.Session;
+import javax.websocket.Endpoint;
+import javax.websocket.EndpointConfiguration;
+import javax.websocket.Session;
 
 public class TestEndpointAdapter extends Endpoint {
 
     public void onMessage(String message) {
     }
 
-    ;
+
 
     public void onMessage(byte[] message) {
     }
 
-    ;
+    @Override
+    public EndpointConfiguration getEndpointConfiguration() {
+        return null;
+    }
 
     public void onOpen(Session session) {
     }
-
-    ;
 }

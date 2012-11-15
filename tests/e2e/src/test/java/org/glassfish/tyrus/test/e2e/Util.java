@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011 - 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -38,23 +38,12 @@
  * holder.
  */
 
-package wstestbeans.stout;
-
-import javax.net.websocket.annotations.WebSocketEndpoint;
-import javax.net.websocket.annotations.WebSocketMessage;
+package org.glassfish.tyrus.test.e2e;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)
  */
-@WebSocketEndpoint(
-        value = "/standardOutputTypes/float"
-)
-public class STOUTFloat {
-    @WebSocketMessage
-    public float floatTest(String s) {
-        return 1;
-    }
-
-
+public class Util {
+    public static String PASS = "PASS";
+    public static String FAIL = "FAIL";
 }
-

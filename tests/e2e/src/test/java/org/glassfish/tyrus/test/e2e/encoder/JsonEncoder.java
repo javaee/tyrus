@@ -40,9 +40,10 @@
 
 package org.glassfish.tyrus.test.e2e.encoder;
 
-import javax.net.websocket.EncodeException;
-import javax.net.websocket.Encoder;
 import org.json.JSONObject;
+
+import javax.websocket.EncodeException;
+import javax.websocket.Encoder;
 
 
 /**

@@ -54,7 +54,7 @@ import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import javax.net.websocket.Session;
+import javax.websocket.Session;
 
 import java.io.File;
 import java.io.IOException;

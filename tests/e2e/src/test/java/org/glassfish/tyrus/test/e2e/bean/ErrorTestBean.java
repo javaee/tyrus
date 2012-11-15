@@ -40,9 +40,9 @@
 
 package org.glassfish.tyrus.test.e2e.bean;
 
-import javax.net.websocket.RemoteEndpoint;
-import javax.net.websocket.annotations.WebSocketEndpoint;
-import javax.net.websocket.annotations.WebSocketMessage;
+import javax.websocket.RemoteEndpoint;
+import javax.websocket.WebSocketEndpoint;
+import javax.websocket.WebSocketMessage;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)

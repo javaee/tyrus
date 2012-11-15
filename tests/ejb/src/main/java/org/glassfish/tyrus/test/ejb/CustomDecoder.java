@@ -41,8 +41,8 @@
 package org.glassfish.tyrus.test.ejb;
 
 import javax.ejb.Stateless;
-import javax.net.websocket.DecodeException;
-import javax.net.websocket.Decoder;
+import javax.websocket.DecodeException;
+import javax.websocket.Decoder;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)

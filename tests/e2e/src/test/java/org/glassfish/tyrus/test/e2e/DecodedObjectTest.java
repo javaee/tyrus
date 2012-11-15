@@ -39,23 +39,23 @@
  */
 package org.glassfish.tyrus.test.e2e;
 
+import org.glassfish.tyrus.client.ClientManager;
+import org.glassfish.tyrus.client.DefaultClientEndpointConfiguration;
+import org.glassfish.tyrus.server.Server;
+import org.junit.Assert;
+import org.junit.Test;
+
+import javax.websocket.DecodeException;
+import javax.websocket.Decoder;
+import javax.websocket.Endpoint;
+import javax.websocket.EndpointConfiguration;
+import javax.websocket.MessageHandler;
+import javax.websocket.Session;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-
-import javax.net.websocket.DecodeException;
-import javax.net.websocket.Decoder;
-import javax.net.websocket.Endpoint;
-import javax.net.websocket.MessageHandler;
-import javax.net.websocket.Session;
-
-import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.client.DefaultClientEndpointConfiguration;
-import org.glassfish.tyrus.server.Server;
-
-import org.junit.Assert;
-import org.junit.Test;
 
 /**
  * Tests the decoding and message handling of custom object.
@@ -83,11 +83,16 @@ public class DecodedObjectTest {
             decoders.add(new CustomDecoder());
             DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder("ws://localhost:8025/websockets/tests/echo");
             builder.decoders(decoders);
-            DefaultClientEndpointConfiguration dcec = builder.build();
+            final DefaultClientEndpointConfiguration dcec = builder.build();
 
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new Endpoint() {
 
+
+                @Override
+                public EndpointConfiguration getEndpointConfiguration() {
+                    return dcec;
+                }
 
                 @Override
                 public void onOpen(Session session) {
@@ -123,10 +128,15 @@ public class DecodedObjectTest {
             decoders.add(new ExtendedDecoder());
             DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder("ws://localhost:8025/websockets/tests/echo");
             builder.decoders(decoders);
-            DefaultClientEndpointConfiguration dcec = builder.build();
+            final DefaultClientEndpointConfiguration dcec = builder.build();
 
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new Endpoint() {
+
+                @Override
+                public EndpointConfiguration getEndpointConfiguration() {
+                    return dcec;
+                }
 
                 @Override
                 public void onOpen(Session session) {
@@ -178,7 +188,7 @@ public class DecodedObjectTest {
         }
     }
 
-    class DecodedMessageHandler implements MessageHandler.DecodedObject<StringContainer>{
+    class DecodedMessageHandler implements MessageHandler.Basic<StringContainer>{
 
         @Override
         public void onMessage(StringContainer customObject) {
@@ -188,7 +198,7 @@ public class DecodedObjectTest {
         }
     }
 
-    class ObjectMessageHandler implements MessageHandler.DecodedObject<Object>{
+    class ObjectMessageHandler implements MessageHandler.Basic<Object>{
 
         @Override
         public void onMessage(Object customObject) {

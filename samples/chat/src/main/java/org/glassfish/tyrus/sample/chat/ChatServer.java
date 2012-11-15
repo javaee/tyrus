@@ -39,18 +39,6 @@
  */
 package org.glassfish.tyrus.sample.chat;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Logger;
-import javax.net.websocket.CloseReason;
-import javax.net.websocket.RemoteEndpoint;
-import javax.net.websocket.Session;
-import javax.net.websocket.annotations.WebSocketClose;
-import javax.net.websocket.annotations.WebSocketEndpoint;
-import javax.net.websocket.annotations.WebSocketMessage;
-import javax.net.websocket.annotations.WebSocketOpen;
 import org.glassfish.tyrus.sample.chat.chatdata.ChatTranscriptUpdateMessage;
 import org.glassfish.tyrus.sample.chat.chatdata.ChatUpdateMessage;
 import org.glassfish.tyrus.sample.chat.chatdata.DisconnectRequestMessage;
@@ -58,6 +46,20 @@ import org.glassfish.tyrus.sample.chat.chatdata.DisconnectResponseMessage;
 import org.glassfish.tyrus.sample.chat.chatdata.LoginRequestMessage;
 import org.glassfish.tyrus.sample.chat.chatdata.LoginResponseMessage;
 import org.glassfish.tyrus.sample.chat.chatdata.UserListUpdateMessage;
+
+import javax.websocket.CloseReason;
+import javax.websocket.RemoteEndpoint;
+import javax.websocket.Session;
+import javax.websocket.WebSocketClose;
+import javax.websocket.WebSocketEndpoint;
+import javax.websocket.WebSocketMessage;
+import javax.websocket.WebSocketOpen;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Logger;
 
 
 @WebSocketEndpoint(value = "/chat",

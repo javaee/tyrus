@@ -41,10 +41,10 @@
 package org.glassfish.tyrus.sample.trading.wsbeans;
 
 
-import javax.net.websocket.RemoteEndpoint;
-import javax.net.websocket.Session;
-import javax.net.websocket.annotations.WebSocketEndpoint;
-import javax.net.websocket.annotations.WebSocketMessage;
+import javax.websocket.RemoteEndpoint;
+import javax.websocket.Session;
+import javax.websocketWebSocketEndpoint;
+import javax.websocketWebSocketMessage;
 import javax.servlet.http.HttpSession;
 
 @WebSocketEndpoint(

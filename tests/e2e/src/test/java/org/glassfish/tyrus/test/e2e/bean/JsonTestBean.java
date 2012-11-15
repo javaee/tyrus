@@ -41,10 +41,11 @@
 package org.glassfish.tyrus.test.e2e.bean;
 
 
-import javax.net.websocket.annotations.WebSocketEndpoint;
-import javax.net.websocket.annotations.WebSocketMessage;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import javax.websocket.WebSocketEndpoint;
+import javax.websocket.WebSocketMessage;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)

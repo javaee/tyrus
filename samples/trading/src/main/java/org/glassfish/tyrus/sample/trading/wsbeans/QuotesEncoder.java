@@ -41,8 +41,8 @@ package org.glassfish.tyrus.sample.trading.wsbeans;
 
 import java.text.DecimalFormat;
 import java.util.List;
-import javax.net.websocket.EncodeException;
-import javax.net.websocket.Encoder;
+import javax.websocket.EncodeException;
+import javax.websocket.Encoder;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)

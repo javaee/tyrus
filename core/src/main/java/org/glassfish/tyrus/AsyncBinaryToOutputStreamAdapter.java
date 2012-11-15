@@ -39,10 +39,7 @@
  */
 package org.glassfish.tyrus;
 
-import java.util.ArrayList;
-import java.util.List;
-import javax.net.websocket.MessageHandler;
-import java.nio.*;
+import javax.websocket.MessageHandler;
 
 /**
  * A simple adapter that acts as a listens for text message fragments on one thread and offers
@@ -50,98 +47,113 @@ import java.nio.*;
  *
  * @author Danny Coward (danny.coward at oracle.com)
  */
-class AsyncBinaryToOutputStreamAdapter implements BufferedBinaryDataSource, MessageHandler.AsyncBinary {
-    /* Configurable buffer size. */
-    private static final long MAX_BUFFER_SIZE = 8 * 1024;
+class AsyncBinaryToOutputStreamAdapter implements BufferedBinaryDataSource, MessageHandler.Async {
+//    /* Configurable buffer size. */
+//    private static final long MAX_BUFFER_SIZE = 8 * 1024;
+//
+//    /* The text message pieces currently being buffered. */
+//    private List<ByteBuffer> bufferedFragments = new ArrayList<ByteBuffer>();
+//    /* Has this adapter received the last in a sequence of fragments. */
+//    private boolean receivedLast = false;
+//    /* The reader implementation this adapter will offer. */
+//    private BufferedBinaryDataSourceReader reader = null;
+//    /* The MessageHandler that will be invoked when a new message starts. */
+//    private MessageHandler.BinaryStream mh;
+//    /* Statelock to mediate between the notification thread for message fragments and the
+//     * thread reading the Reader data.
+//     */
+//    private final Object stateLock;
+//
+//    public AsyncBinaryToOutputStreamAdapter(MessageHandler.BinaryStream mh) {
+//        this.mh = mh;
+//        this.stateLock = new Object();
+//    }
+//
+//    private void blockOnReaderThread() {
+//        synchronized (stateLock) {
+//            try {
+//                this.stateLock.wait();
+//            } catch (InterruptedException e) {
+//                // thread unblocked
+//            }
+//        }
+//    }
+//
+//
+//
+//    @Override
+//    public byte[] getNextBytes(int numberOfBytes) {
+//        if (this.bufferedFragments.isEmpty()) {
+//            if (receivedLast) {
+//                this.reader = null;
+//                return null;
+//            } else { // there's more to come...so wait here...
+//                blockOnReaderThread();
+//            }
+//        }
+//        byte[] bytes = new byte[1];
+//        ByteBuffer nextFragment = this.bufferedFragments.get(0);
+//        bytes[0] = nextFragment.array()[0];
+//        this.bufferedFragments.remove(0);
+//        if (nextFragment.array().length > 1) {
+//            byte[] newBytes = new byte[nextFragment.array().length - 1];
+//            System.arraycopy(nextFragment.array(), 1, newBytes, 0, nextFragment.array().length - 1);
+//
+//            this.bufferedFragments.add(0, ByteBuffer.wrap(newBytes));
+//        }
+//        return bytes;
+//    }
+//
+//    @Override
+//    public void finishedReading() {
+//        this.bufferedFragments = new ArrayList<ByteBuffer>();
+//        this.reader = null;
+//    }
+//
+//    private void checkForBufferOverflow(ByteBuffer part) {
+//        int numberOfBytes = 0;
+//        for (ByteBuffer fragment : this.bufferedFragments) {
+//            numberOfBytes = numberOfBytes + fragment.limit();
+//        }
+//        if (MAX_BUFFER_SIZE < numberOfBytes + part.limit()) {
+//            throw new IllegalStateException("Buffer overflow");
+//        }
+//    }
+//
+//    @Override
+//    public void onMessagePart(ByteBuffer part, boolean last) {
+//        this.receivedLast = last;
+//        this.checkForBufferOverflow(part);
+//        bufferedFragments.add(part);
+//
+//        synchronized (stateLock) {
+//            this.stateLock.notifyAll();
+//        }
+//
+//        if (this.reader == null) {
+//            this.reader = new BufferedBinaryDataSourceReader(this);
+//            Thread t = new Thread() {
+//                public void run() {
+//                    mh.onMessage(reader);
+//                }
+//            };
+//            t.start();
+//        }
+//    }
 
-    /* The text message pieces currently being buffered. */
-    private List<ByteBuffer> bufferedFragments = new ArrayList<ByteBuffer>();
-    /* Has this adapter received the last in a sequence of fragments. */
-    private boolean receivedLast = false;
-    /* The reader implementation this adapter will offer. */
-    private BufferedBinaryDataSourceReader reader = null;
-    /* The MessageHandler that will be invoked when a new message starts. */
-    private MessageHandler.BinaryStream mh;
-    /* Statelock to mediate between the notification thread for message fragments and the
-     * thread reading the Reader data.
-     */
-    private final Object stateLock;
-
-    public AsyncBinaryToOutputStreamAdapter(MessageHandler.BinaryStream mh) {
-        this.mh = mh;
-        this.stateLock = new Object();
+    @Override
+    public void onMessage(Object o, boolean b) {
+        //To change body of implemented methods use File | Settings | File Templates.
     }
-
-    private void blockOnReaderThread() {
-        synchronized (stateLock) {
-            try {
-                this.stateLock.wait();
-            } catch (InterruptedException e) {
-                // thread unblocked
-            }
-        }
-    }
-
-
 
     @Override
     public byte[] getNextBytes(int numberOfBytes) {
-        if (this.bufferedFragments.isEmpty()) {
-            if (receivedLast) {
-                this.reader = null;
-                return null;
-            } else { // there's more to come...so wait here...
-                blockOnReaderThread();
-            }
-        }
-        byte[] bytes = new byte[1];
-        ByteBuffer nextFragment = this.bufferedFragments.get(0);
-        bytes[0] = nextFragment.array()[0];
-        this.bufferedFragments.remove(0);
-        if (nextFragment.array().length > 1) {
-            byte[] newBytes = new byte[nextFragment.array().length - 1];
-            System.arraycopy(nextFragment.array(), 1, newBytes, 0, nextFragment.array().length - 1);
-
-            this.bufferedFragments.add(0, ByteBuffer.wrap(newBytes));
-        }
-        return bytes;
+        return new byte[0];  //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @Override
     public void finishedReading() {
-        this.bufferedFragments = new ArrayList<ByteBuffer>();
-        this.reader = null;
-    }
-
-    private void checkForBufferOverflow(ByteBuffer part) {
-        int numberOfBytes = 0;
-        for (ByteBuffer fragment : this.bufferedFragments) {
-            numberOfBytes = numberOfBytes + fragment.limit();
-        }
-        if (MAX_BUFFER_SIZE < numberOfBytes + part.limit()) {
-            throw new IllegalStateException("Buffer overflow");
-        }
-    }
-
-    @Override
-    public void onMessagePart(ByteBuffer part, boolean last) {
-        this.receivedLast = last;
-        this.checkForBufferOverflow(part);
-        bufferedFragments.add(part);
-
-        synchronized (stateLock) {
-            this.stateLock.notifyAll();
-        }
-
-        if (this.reader == null) {
-            this.reader = new BufferedBinaryDataSourceReader(this);
-            Thread t = new Thread() {
-                public void run() {
-                    mh.onMessage(reader);
-                }
-            };
-            t.start();
-        }
+        //To change body of implemented methods use File | Settings | File Templates.
     }
 }
 

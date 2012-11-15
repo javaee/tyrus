@@ -39,8 +39,8 @@
  */
 package org.glassfish.tyrus.test.e2e;
 
-import javax.net.websocket.DecodeException;
-import javax.net.websocket.Decoder;
+import javax.websocket.DecodeException;
+import javax.websocket.Decoder;
 
 /**
  * Decoder for the TestMessage

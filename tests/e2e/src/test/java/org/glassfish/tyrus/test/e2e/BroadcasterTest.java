@@ -40,19 +40,20 @@
 
 package org.glassfish.tyrus.test.e2e;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
-import javax.net.websocket.RemoteEndpoint;
-import javax.net.websocket.Session;
-
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.client.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.e2e.bean.BroadcasterTestBean;
-
 import org.junit.Ignore;
 import org.junit.Test;
+
+import javax.websocket.EndpointConfiguration;
+import javax.websocket.RemoteEndpoint;
+import javax.websocket.Session;
+
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -111,6 +112,11 @@ public class BroadcasterTest {
 
         TEndpointAdapter(CountDownLatch messageLatch) {
             this.messageLatch = messageLatch;
+        }
+
+        @Override
+        public EndpointConfiguration getEndpointConfiguration() {
+            return null;
         }
 
         @Override

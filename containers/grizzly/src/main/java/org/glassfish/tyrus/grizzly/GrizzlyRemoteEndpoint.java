@@ -39,18 +39,19 @@
  */
 package org.glassfish.tyrus.grizzly;
 
+import org.glassfish.grizzly.websockets.WebSocket;
+
+import javax.websocket.EncodeException;
+import javax.websocket.RemoteEndpoint;
+import javax.websocket.SendHandler;
+import javax.websocket.SendResult;
+
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Writer;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
-import javax.net.websocket.EncodeException;
-import javax.net.websocket.RemoteEndpoint;
-import javax.net.websocket.SendHandler;
-import javax.net.websocket.SendResult;
-import org.glassfish.grizzly.websockets.*;
-import org.glassfish.grizzly.websockets.frametypes.*;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)
@@ -124,17 +125,32 @@ public class GrizzlyRemoteEndpoint implements RemoteEndpoint {
     }
 
     @Override
-    public Future<SendResult> sendString(String text, SendHandler completion) {
+    public void sendStringByCompletion(String s, SendHandler sendHandler) {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Future<SendResult> sendBytes(ByteBuffer byteBuffer, SendHandler sendHandler) {
-        return null;
+    public Future<SendResult> sendStringByFuture(String s) {
+        throw new UnsupportedOperationException();
     }
 
     @Override
-    public Future<SendResult> sendObject(Object o, SendHandler handler) {
+    public Future<SendResult> sendBytesByFuture(ByteBuffer byteBuffer) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void sendBytesByCompletion(ByteBuffer byteBuffer, SendHandler sendHandler) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Future<SendResult> sendObjectByFuture(Object o) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void sendObjectByCompletion(Object o, SendHandler sendHandler) {
         throw new UnsupportedOperationException();
     }
 

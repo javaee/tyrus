@@ -43,7 +43,7 @@ package org.glassfish.tyrus.servlet;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.websocketWebSocketEndpoint;
 
 import javax.servlet.FilterRegistration;
 import javax.servlet.ServletContainerInitializer;

@@ -40,7 +40,7 @@
 
 package org.glassfish.tyrus.sample.chat.chatdata;
 
-import javax.net.websocket.Decoder;
+import javax.websocket.Decoder;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)

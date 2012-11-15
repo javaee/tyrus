@@ -40,9 +40,9 @@
 package org.glassfish.tyrus.client;
 
 import java.util.List;
-import javax.net.websocket.ClientEndpointConfiguration;
-import javax.net.websocket.Decoder;
-import javax.net.websocket.Encoder;
+import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.Decoder;
+import javax.websocket.Encoder;
 import org.glassfish.tyrus.DefaultEndpointConfiguration;
 
 /**
@@ -91,7 +91,7 @@ public class DefaultClientEndpointConfiguration extends DefaultEndpointConfigura
         /**
          * Create new {@link Builder}.
          *
-         * @param uri at which the {@link javax.net.websocket.Endpoint} will be deployed.
+         * @param uri at which the {@link javax.websocket.Endpoint} will be deployed.
          */
         public Builder(String uri) {
             super(uri);

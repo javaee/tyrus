@@ -39,10 +39,10 @@
  */
 package org.glassfish.tyrus.test.e2e.bean;
 
-import javax.net.websocket.Session;
-import javax.net.websocket.annotations.WebSocketEndpoint;
-import javax.net.websocket.annotations.WebSocketMessage;
-import javax.net.websocket.annotations.WebSocketPathParam;
+import javax.websocket.Session;
+import javax.websocket.WebSocketEndpoint;
+import javax.websocket.WebSocketMessage;
+import javax.websocket.WebSocketPathParam;
 
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;

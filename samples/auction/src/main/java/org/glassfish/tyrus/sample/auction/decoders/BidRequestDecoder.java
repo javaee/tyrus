@@ -39,7 +39,7 @@
  */
 package org.glassfish.tyrus.sample.auction.decoders;
 
-import javax.net.websocket.Decoder;
+import javax.websocket.Decoder;
 import org.glassfish.tyrus.sample.auction.message.BidRequestMessage;
 
 /**

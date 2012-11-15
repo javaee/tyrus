@@ -43,7 +43,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import javax.net.websocket.SendResult;
+import javax.websocket.SendResult;
 
 /**
  * Implementation of Future for SendResults.

@@ -41,9 +41,9 @@ package org.glassfish.tyrus;
 
 import java.util.Collections;
 import java.util.List;
-import javax.net.websocket.Decoder;
-import javax.net.websocket.Encoder;
-import javax.net.websocket.EndpointConfiguration;
+import javax.websocket.Decoder;
+import javax.websocket.Encoder;
+import javax.websocket.EndpointConfiguration;
 
 /**
  * Default configuration implementation, immutable.
@@ -63,12 +63,12 @@ public abstract class DefaultEndpointConfiguration implements EndpointConfigurat
     private final List<Decoder> decoders;
 
     /**
-     * {@link java.util.Collections.UnmodifiableList} of sub-protocols supported by the corresponding {@link javax.net.websocket.Endpoint}.
+     * {@link java.util.Collections.UnmodifiableList} of sub-protocols supported by the corresponding {@link javax.websocket.Endpoint}.
      */
     protected final List<String> subProtocols;
 
     /**
-     * {@link java.util.Collections.UnmodifiableList} of extensions supported by the corresponding {@link javax.net.websocket.Endpoint}.
+     * {@link java.util.Collections.UnmodifiableList} of extensions supported by the corresponding {@link javax.websocket.Endpoint}.
      */
     protected final List<String> extensions;
 
@@ -170,7 +170,7 @@ public abstract class DefaultEndpointConfiguration implements EndpointConfigurat
         }
 
         /**
-         * Set preferred sub-protocols that this {@link javax.net.websocket.Endpoint} would like to use for its sessions.
+         * Set preferred sub-protocols that this {@link javax.websocket.Endpoint} would like to use for its sessions.
          * The {@link List} has to be ordered in order of preference, favorite first.
          *
          * @param protocols {@link List} of sub-protocols ordered as specified above.
@@ -183,7 +183,7 @@ public abstract class DefaultEndpointConfiguration implements EndpointConfigurat
         }
 
         /**
-         * Set of extensions that this {@link javax.net.websocket.Endpoint} would like to use for its sessions.
+         * Set of extensions that this {@link javax.websocket.Endpoint} would like to use for its sessions.
          * The {@link List} has to be ordered in order of preference, favorite first.
          *
          * @param extensions {@link List} of extensions ordered as specified above.

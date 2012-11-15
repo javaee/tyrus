@@ -39,9 +39,9 @@
  */
 package org.glassfish.tyrus.test.e2e.bean;
 
-import javax.net.websocket.Session;
-import javax.net.websocket.annotations.WebSocketEndpoint;
-import javax.net.websocket.annotations.WebSocketMessage;
+import javax.websocket.Session;
+import javax.websocket.WebSocketEndpoint;
+import javax.websocket.WebSocketMessage;
 
 /**
  * Together with HelloTestBean used to test invocation of methods with various order of parameters.

@@ -39,9 +39,7 @@
  */
 package org.glassfish.tyrus;
 
-import java.util.ArrayList;
-import java.util.List;
-import javax.net.websocket.MessageHandler;
+import javax.websocket.MessageHandler;
 
 /**
  * A simple adapter that acts as a listens for text message fragments on one thread and offers
@@ -49,94 +47,109 @@ import javax.net.websocket.MessageHandler;
  *
  * @author Danny Coward (danny.coward at oracle.com)
  */
-class AsyncTextToCharStreamAdapter implements BufferedStringSource, MessageHandler.AsyncText {
-    /* Configurable buffer size. */
-    private static final long MAX_BUFFER_SIZE = 8 * 1024;
+class AsyncTextToCharStreamAdapter implements BufferedStringSource, MessageHandler.Async {
+//    /* Configurable buffer size. */
+//    private static final long MAX_BUFFER_SIZE = 8 * 1024;
+//
+//    /* The text message pieces currently being buffered. */
+//    private List<String> bufferedFragments = new ArrayList<String>();
+//    /* Has this adapter received the last in a sequence of fragments. */
+//    private boolean receivedLast = false;
+//    /* The reader implementation this adapter will offer. */
+//    private BufferedStringSourceReader reader = null;
+//    /* The MessageHandler that will be invoked when a new message starts. */
+//    private MessageHandler.CharacterStream mh;
+//    /* Statelock to mediate between the notification thread for message fragments and the
+//     * thread reading the Reader data.
+//     */
+//    private final Object stateLock;
+//
+//    public AsyncTextToCharStreamAdapter(MessageHandler.CharacterStream mh) {
+//        this.mh = mh;
+//        this.stateLock = new Object();
+//    }
+//
+//    private void blockOnReaderThread() {
+//        synchronized (stateLock) {
+//            try {
+//                this.stateLock.wait();
+//            } catch (InterruptedException e) {
+//                // thread unblocked
+//            }
+//        }
+//    }
+//
+//    public char[] getNextChars(int numberOfChars) {
+//
+//        if (this.bufferedFragments.isEmpty()) {
+//            if (receivedLast) {
+//                this.reader = null;
+//                return null;
+//            } else { // there's more to come...so wait here...
+//                blockOnReaderThread();
+//            }
+//        }
+//        char[] chrs = new char[1];
+//        String nextFragment = this.bufferedFragments.get(0);
+//        chrs[0] = nextFragment.charAt(0);
+//        this.bufferedFragments.remove(0);
+//        if (nextFragment.length() > 1) {
+//            String newFragment = nextFragment.substring(1, nextFragment.length());
+//            this.bufferedFragments.add(0, newFragment);
+//        }
+//        return chrs;
+//    }
+//
+//    @Override
+//    public void finishedReading() {
+//        this.bufferedFragments = new ArrayList<String>();
+//        this.reader = null;
+//    }
+//
+//    private void checkForBufferOverflow(String part) {
+//        int numberOfBytes = 0;
+//        for (String fragment : this.bufferedFragments) {
+//            numberOfBytes = numberOfBytes + fragment.length();
+//        }
+//        if (MAX_BUFFER_SIZE < numberOfBytes + part.length()) {
+//            throw new IllegalStateException("Buffer overflow");
+//        }
+//    }
+//
+//    @Override
+//    public void onMessagePart(String part, boolean last) {
+//        this.receivedLast = last;
+//        this.checkForBufferOverflow(part);
+//        bufferedFragments.add(part);
+//
+//        synchronized (stateLock) {
+//            this.stateLock.notifyAll();
+//        }
+//
+//        if (this.reader == null) {
+//            this.reader = new BufferedStringSourceReader(this);
+//            Thread t = new Thread() {
+//                public void run() {
+//                    mh.onMessage(reader);
+//                }
+//            };
+//            t.start();
+//        }
+//    }
 
-    /* The text message pieces currently being buffered. */
-    private List<String> bufferedFragments = new ArrayList<String>();
-    /* Has this adapter received the last in a sequence of fragments. */
-    private boolean receivedLast = false;
-    /* The reader implementation this adapter will offer. */
-    private BufferedStringSourceReader reader = null;
-    /* The MessageHandler that will be invoked when a new message starts. */
-    private MessageHandler.CharacterStream mh;
-    /* Statelock to mediate between the notification thread for message fragments and the
-     * thread reading the Reader data.
-     */
-    private final Object stateLock;
-
-    public AsyncTextToCharStreamAdapter(MessageHandler.CharacterStream mh) {
-        this.mh = mh;
-        this.stateLock = new Object();
+    @Override
+    public void onMessage(Object o, boolean b) {
+        //To change body of implemented methods use File | Settings | File Templates.
     }
 
-    private void blockOnReaderThread() {
-        synchronized (stateLock) {
-            try {
-                this.stateLock.wait();
-            } catch (InterruptedException e) {
-                // thread unblocked
-            }
-        }
-    }
-
+    @Override
     public char[] getNextChars(int numberOfChars) {
-
-        if (this.bufferedFragments.isEmpty()) {
-            if (receivedLast) {
-                this.reader = null;
-                return null;
-            } else { // there's more to come...so wait here...
-                blockOnReaderThread();
-            }
-        }
-        char[] chrs = new char[1];
-        String nextFragment = this.bufferedFragments.get(0);
-        chrs[0] = nextFragment.charAt(0);
-        this.bufferedFragments.remove(0);
-        if (nextFragment.length() > 1) {
-            String newFragment = nextFragment.substring(1, nextFragment.length());
-            this.bufferedFragments.add(0, newFragment);
-        }
-        return chrs;
+        return new char[0];  //To change body of implemented methods use File | Settings | File Templates.
     }
 
     @Override
     public void finishedReading() {
-        this.bufferedFragments = new ArrayList<String>();
-        this.reader = null;
-    }
-
-    private void checkForBufferOverflow(String part) {
-        int numberOfBytes = 0;
-        for (String fragment : this.bufferedFragments) {
-            numberOfBytes = numberOfBytes + fragment.length();
-        }
-        if (MAX_BUFFER_SIZE < numberOfBytes + part.length()) {
-            throw new IllegalStateException("Buffer overflow");
-        }
-    }
-
-    @Override
-    public void onMessagePart(String part, boolean last) {
-        this.receivedLast = last;
-        this.checkForBufferOverflow(part);
-        bufferedFragments.add(part);
-
-        synchronized (stateLock) {
-            this.stateLock.notifyAll();
-        }
-
-        if (this.reader == null) {
-            this.reader = new BufferedStringSourceReader(this);
-            Thread t = new Thread() {
-                public void run() {
-                    mh.onMessage(reader);
-                }
-            };
-            t.start();
-        }
+        //To change body of implemented methods use File | Settings | File Templates.
     }
 }
 

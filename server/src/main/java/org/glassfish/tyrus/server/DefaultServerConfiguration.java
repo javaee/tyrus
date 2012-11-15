@@ -43,8 +43,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import javax.net.websocket.Endpoint;
-import javax.net.websocket.ServerEndpointConfiguration;
+import javax.websocket.Endpoint;
+import javax.websocket.ServerEndpointConfiguration;
 
 /**
  * Default mutable implementation of {@link ServerConfiguration} interface. Allows setting all the configuration
@@ -127,7 +127,7 @@ public class DefaultServerConfiguration implements ServerConfiguration {
     /**
      * Registers a new endpoint annotated class.
      *
-     * @param endpointClass class annotated with {@link javax.net.websocket.annotations.WebSocketEndpoint} annotation.
+     * @param endpointClass class annotated with {@link javax.websocketWebSocketEndpoint} annotation.
      * @return this configuration object.
      */
     public DefaultServerConfiguration endpoint(Class<?> endpointClass) {
@@ -150,7 +150,7 @@ public class DefaultServerConfiguration implements ServerConfiguration {
     /**
      * Registers new endpoint annotated classes.
      *
-     * @param endpointClasses classes annotated with {@link javax.net.websocket.annotations.WebSocketEndpoint}
+     * @param endpointClasses classes annotated with {@link javax.websocketWebSocketEndpoint}
      *                        annotation.
      * @return this configuration object.
      */
@@ -162,7 +162,7 @@ public class DefaultServerConfiguration implements ServerConfiguration {
     /**
      * Registers new endpoint annotated classes.
      *
-     * @param endpointClasses classes annotated with {@link javax.net.websocket.annotations.WebSocketEndpoint}
+     * @param endpointClasses classes annotated with {@link javax.websocketWebSocketEndpoint}
      *                        annotation.
      * @return this configuration object.
      */

@@ -40,7 +40,7 @@
 
 package org.glassfish.tyrus.sample.chat.chatdata;
 
-import javax.net.websocket.Encoder;
+import javax.websocket.Encoder;
 
 public class DisconnectResponseEncoder implements Encoder.Text<DisconnectResponseMessage> {
 

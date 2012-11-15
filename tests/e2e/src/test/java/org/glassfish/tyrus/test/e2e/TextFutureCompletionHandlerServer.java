@@ -39,15 +39,16 @@
  */
 package org.glassfish.tyrus.test.e2e;
 
+import javax.websocket.SendHandler;
+import javax.websocket.SendResult;
+import javax.websocket.Session;
+import javax.websocket.WebSocketEndpoint;
+import javax.websocket.WebSocketMessage;
+import javax.websocket.WebSocketOpen;
+
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import javax.net.websocket.SendHandler;
-import javax.net.websocket.SendResult;
-import javax.net.websocket.Session;
-import javax.net.websocket.annotations.WebSocketEndpoint;
-import javax.net.websocket.annotations.WebSocketMessage;
-import javax.net.websocket.annotations.WebSocketOpen;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)
@@ -87,7 +88,7 @@ public class TextFutureCompletionHandlerServer {
             }
         };
 
-        fsr = session.getRemote().sendString("server hello", sh);
+        fsr = session.getRemote().sendStringByFuture("server hello");
         try {
             sr = fsr.get();
         } catch (InterruptedException e) {

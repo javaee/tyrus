@@ -41,8 +41,8 @@ package org.glassfish.tyrus.server;
 
 import java.util.List;
 import java.util.Set;
-import javax.net.websocket.Endpoint;
-import javax.net.websocket.ServerEndpointConfiguration;
+import javax.websocket.Endpoint;
+import javax.websocket.ServerEndpointConfiguration;
 
 /**
  * Represents server configuration. Can be used to provide the list of registered endpoints,
@@ -53,7 +53,7 @@ import javax.net.websocket.ServerEndpointConfiguration;
  */
 public interface ServerConfiguration {
     /**
-     * Returns a set of endpoint classes annotated with {@link javax.net.websocket.annotations.WebSocketEndpoint}
+     * Returns a set of endpoint classes annotated with {@link javax.websocketWebSocketEndpoint}
      * annotation that should be published by the container initialized with this configuration object.
      *
      * @return Set of annotated endpoint classes to be exposed by the server.

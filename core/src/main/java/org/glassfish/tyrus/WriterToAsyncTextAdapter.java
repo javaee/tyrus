@@ -41,7 +41,7 @@ package org.glassfish.tyrus;
 
 import java.io.IOException;
 import java.io.Writer;
-import javax.net.websocket.RemoteEndpoint;
+import javax.websocket.RemoteEndpoint;
 
 /**
  * Simple Writer that writes its data to

@@ -40,7 +40,7 @@
 
 package org.glassfish.tyrus;
 
-import javax.net.websocket.Decoder;
+import javax.websocket.Decoder;
 
 /**
  * Used to store class and it's type.

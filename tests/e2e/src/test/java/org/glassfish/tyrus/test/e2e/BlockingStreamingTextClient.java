@@ -39,70 +39,76 @@
  */
 package org.glassfish.tyrus.test.e2e;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.util.concurrent.CountDownLatch;
-import javax.net.websocket.Endpoint;
-import javax.net.websocket.MessageHandler;
-import javax.net.websocket.Session;
-import static org.junit.Assert.assertEquals;
+import javax.websocket.Endpoint;
+import javax.websocket.EndpointConfiguration;
+import javax.websocket.Session;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)
  */
 public class BlockingStreamingTextClient extends Endpoint {
-    String receivedMessage;
-    private final CountDownLatch messageLatch;
-    String sentMessage;
+//    String receivedMessage;
+//    private final CountDownLatch messageLatch;
+//    String sentMessage;
+//
+//    public BlockingStreamingTextClient(CountDownLatch messageLatch) {
+//        this.messageLatch = messageLatch;
+//    }
+//
+//    public void onOpen(Session session) {
+//        System.out.println("BLOCKINGCLIENT opened !");
+//
+//        send(session);
+//
+//        session.addMessageHandler(new MessageHandler.CharacterStream() {
+//            StringBuilder sb = new StringBuilder();
+//
+//            public void onMessage(Reader r) {
+//                System.out.println("BLOCKINGCLIENT onMessage called ");
+//                try {
+//                    int i = 0;
+//                    StringBuilder sb = new StringBuilder();
+//                    while ( (i=r.read()) != -1) {
+//                        sb.append( (char) i);
+//                    }
+//                    receivedMessage = sb.toString();
+//                    System.out.println("BLOCKINGCLIENT received: " + receivedMessage);
+//                    messageLatch.countDown();
+//                } catch (IOException ioe) {
+//                    ioe.printStackTrace();
+//                }
+//
+//
+//            }
+//        });
+//    }
+//
+//    public void send(Session session) {
+//        try {
+//            StringBuilder sb = new StringBuilder();
+//            String part = "";
+//            for (int i = 0; i < 10; i++) {
+//                part = "blk" + i;
+//                session.getRemote().sendPartialString(part, false);
+//                sb.append(part);
+//            }
+//            part = "END";
+//            session.getRemote().sendPartialString(part, true);
+//            sb.append(part);
+//            sentMessage = sb.toString();
+//            System.out.println("BLOCKINGCLIENT: Sent" + sentMessage);
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//    }
 
-    public BlockingStreamingTextClient(CountDownLatch messageLatch) {
-        this.messageLatch = messageLatch;
+    @Override
+    public EndpointConfiguration getEndpointConfiguration() {
+        return null;
     }
 
+    @Override
     public void onOpen(Session session) {
-        System.out.println("BLOCKINGCLIENT opened !");
 
-        send(session);
-
-        session.addMessageHandler(new MessageHandler.CharacterStream() {
-            StringBuilder sb = new StringBuilder();
-
-            public void onMessage(Reader r) {
-                System.out.println("BLOCKINGCLIENT onMessage called ");
-                try {
-                    int i = 0;
-                    StringBuilder sb = new StringBuilder();
-                    while ( (i=r.read()) != -1) {
-                        sb.append( (char) i);
-                    }
-                    receivedMessage = sb.toString();
-                    System.out.println("BLOCKINGCLIENT received: " + receivedMessage);
-                    messageLatch.countDown();
-                } catch (IOException ioe) {
-                    ioe.printStackTrace();
-                }
-
-
-            }
-        });
-    }
-
-    public void send(Session session) {
-        try {
-            StringBuilder sb = new StringBuilder();
-            String part = "";
-            for (int i = 0; i < 10; i++) {
-                part = "blk" + i;
-                session.getRemote().sendPartialString(part, false);
-                sb.append(part);
-            }
-            part = "END";
-            session.getRemote().sendPartialString(part, true);
-            sb.append(part);
-            sentMessage = sb.toString();
-            System.out.println("BLOCKINGCLIENT: Sent" + sentMessage);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 }

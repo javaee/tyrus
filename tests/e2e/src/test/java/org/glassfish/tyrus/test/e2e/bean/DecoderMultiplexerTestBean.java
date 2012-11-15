@@ -46,10 +46,11 @@ package org.glassfish.tyrus.test.e2e.bean;
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 
-import javax.net.websocket.annotations.WebSocketEndpoint;
-import javax.net.websocket.annotations.WebSocketMessage;
 import org.glassfish.tyrus.test.e2e.message.MessageA;
 import org.glassfish.tyrus.test.e2e.message.MessageB;
+
+import javax.websocket.WebSocketEndpoint;
+import javax.websocket.WebSocketMessage;
 
 
 /**

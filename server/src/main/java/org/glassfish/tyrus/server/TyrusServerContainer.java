@@ -50,13 +50,13 @@ import org.glassfish.tyrus.spi.ComponentProvider;
 import org.glassfish.tyrus.spi.SPIRegisteredEndpoint;
 import org.glassfish.tyrus.spi.TyrusServer;
 
-import javax.net.websocket.ClientEndpointConfiguration;
-import javax.net.websocket.Decoder;
-import javax.net.websocket.Encoder;
-import javax.net.websocket.Endpoint;
-import javax.net.websocket.ServerEndpointConfiguration;
-import javax.net.websocket.Session;
-import javax.net.websocket.annotations.WebSocketEndpoint;
+import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.Decoder;
+import javax.websocket.Encoder;
+import javax.websocket.Endpoint;
+import javax.websocket.ServerEndpointConfiguration;
+import javax.websocket.Session;
+import javax.websocket.WebSocketEndpoint;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -73,7 +73,7 @@ import java.util.logging.Logger;
  * @author Martin Matula (martin.matula at oracle.com)
  */
 public class TyrusServerContainer extends WithProperties implements ServerContainer,
-        javax.net.websocket.ServerContainer {
+        javax.websocket.ServerContainer {
     private final TyrusServer server;
     private final String contextPath;
     private final ServerConfiguration configuration;
@@ -270,7 +270,7 @@ public class TyrusServerContainer extends WithProperties implements ServerContai
     }
 
     @Override
-    public void publishServer(Endpoint endpoint, ServerEndpointConfiguration ilc) {
+    public void publishServer(Class<? extends Endpoint> endpoint) {
         throw new UnsupportedOperationException();
     }
 

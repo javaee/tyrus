@@ -39,16 +39,17 @@
  */
 package org.glassfish.tyrus.test.e2e;
 
+import javax.websocket.MessageHandler;
+import javax.websocket.SendHandler;
+import javax.websocket.SendResult;
+import javax.websocket.Session;
+import javax.websocket.WebSocketEndpoint;
+import javax.websocket.WebSocketOpen;
+
+import java.nio.ByteBuffer;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import javax.net.websocket.SendHandler;
-import javax.net.websocket.SendResult;
-import javax.net.websocket.Session;
-import javax.net.websocket.annotations.WebSocketEndpoint;
-import javax.net.websocket.annotations.WebSocketOpen;
-import java.nio.*;
-import javax.net.websocket.MessageHandler;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)
@@ -63,7 +64,7 @@ public class BinaryFutureCompletionHandlerServer {
     public void init(Session session) {
         System.out.println("BINARYCFSERVER opened");
         final Session theSession = session;
-        session.addMessageHandler(new MessageHandler.Binary() {
+        session.addMessageHandler(new MessageHandler.Basic<ByteBuffer>() {
 
             @Override
             public void onMessage(ByteBuffer data) {
@@ -84,7 +85,9 @@ public class BinaryFutureCompletionHandlerServer {
                 }
             }
         };
-        fsr = session.getRemote().sendBytes(ByteBuffer.wrap(HelloBinaryClient.MESSAGE.getBytes()), sh);
+
+        fsr = session.getRemote().sendBytesByFuture(ByteBuffer.wrap(HelloBinaryClient.MESSAGE.getBytes()));
+
         System.out.println("BINARYCFSERVER send complete - wait on get()");
         try {
             sr = fsr.get();

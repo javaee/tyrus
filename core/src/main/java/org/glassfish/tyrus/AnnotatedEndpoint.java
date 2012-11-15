@@ -39,21 +39,20 @@
  */
 package org.glassfish.tyrus;
 
-import javax.net.websocket.CloseReason;
-import javax.net.websocket.Endpoint;
-import javax.net.websocket.MessageHandler;
-import javax.net.websocket.Session;
-import javax.net.websocket.annotations.WebSocketClose;
-import javax.net.websocket.annotations.WebSocketError;
-import javax.net.websocket.annotations.WebSocketMessage;
-import javax.net.websocket.annotations.WebSocketOpen;
-import javax.net.websocket.annotations.WebSocketPathParam;
+import javax.websocket.CloseReason;
+import javax.websocket.Endpoint;
+import javax.websocket.EndpointConfiguration;
+import javax.websocket.MessageHandler;
+import javax.websocket.Session;
+import javax.websocket.WebSocketClose;
+import javax.websocket.WebSocketError;
+import javax.websocket.WebSocketMessage;
+import javax.websocket.WebSocketOpen;
+import javax.websocket.WebSocketPathParam;
 
-import java.io.InputStream;
-import java.io.Reader;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -169,17 +168,7 @@ public class AnnotatedEndpoint extends Endpoint {
                     } else if (unknownParams.size() == 1) {
                         Map.Entry<Integer, Class<?>> entry = unknownParams.entrySet().iterator().next();
                         extractors[entry.getKey()] = new ParamValue(0);
-                        if (entry.getValue() == String.class) {
-                            messageHandlerFactories.add(new Text(m, extractors));
-                        } else if (entry.getValue() == ByteBuffer.class) {
-                            messageHandlerFactories.add(new Binary(m, extractors));
-                        } else if (entry.getValue() == InputStream.class) {
-                            messageHandlerFactories.add(new BinaryStream(m, extractors));
-                        } else if (entry.getValue() == Reader.class) {
-                            messageHandlerFactories.add(new CharacterStream(m, extractors));
-                        } else {
-                            messageHandlerFactories.add(new DecodedObject(m, extractors, entry.getValue()));
-                        }
+                        messageHandlerFactories.add(new BasicHandler(m, extractors, entry.getValue()));
                         continue;
                     } else if (unknownParams.size() == 2) {
                         Iterator<Map.Entry<Integer, Class<?>>> it = unknownParams.entrySet().iterator();
@@ -194,13 +183,8 @@ public class AnnotatedEndpoint extends Endpoint {
                         extractors[message.getKey()] = new ParamValue(0);
                         extractors[last.getKey()] = new ParamValue(1);
                         if (last.getValue() == boolean.class || last.getValue() == Boolean.class) {
-                            if (message.getValue() == String.class) {
-                                messageHandlerFactories.add(new AsyncText(m, extractors));
+                                messageHandlerFactories.add(new AsyncHandler(m, extractors));
                                 continue;
-                            } else if (message.getValue() == ByteBuffer.class) {
-                                messageHandlerFactories.add(new AsyncBinary(m, extractors));
-                                continue;
-                            }
                         }
                     }
                     LOGGER.warning("Method " + annotatedClass.getName() + "." + m.getName() + " annotated with "
@@ -273,13 +257,34 @@ public class AnnotatedEndpoint extends Endpoint {
     }
 
     @Override
-    public void onClose(Session session, CloseReason closeReason) {
-        callMethod(onCloseMethod, onCloseParameters, session, closeReason);
+    public void onClose(CloseReason closeReason) {
+        if (onCloseMethod != null) {
+            try {
+                onCloseMethod.invoke(annotatedInstance, closeReason);
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override
-    public void onError(Throwable thr, Session session) {
-        callMethod(onErrorMethod, onErrorParameters, session, thr);
+    public void onError(Throwable thr) {
+        if (onErrorMethod != null) {
+            try {
+                onErrorMethod.invoke(annotatedInstance, thr);
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            } catch (InvocationTargetException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    @Override
+    public EndpointConfiguration getEndpointConfiguration() {
+        return null;
     }
 
     @Override
@@ -319,145 +324,17 @@ public class AnnotatedEndpoint extends Endpoint {
         abstract MessageHandler create(Session session);
     }
 
-    class AsyncText extends MessageHandlerFactory {
-        AsyncText(Method method, ParameterExtractor[] extractors) {
-            super(method, extractors);
-        }
-
-        @Override
-        public MessageHandler create(final Session session) {
-            return new MessageHandler.AsyncText() {
-                @Override
-                public void onMessagePart(String part, boolean last) {
-                    callMethod(method, extractors, session, part, last);
-                }
-            };
-        }
-    }
-
-    class AsyncBinary extends MessageHandlerFactory {
-        AsyncBinary(Method method, ParameterExtractor[] extractors) {
-            super(method, extractors);
-        }
-
-        @Override
-        public MessageHandler create(final Session session) {
-            return new MessageHandler.AsyncBinary() {
-                @Override
-                public void onMessagePart(ByteBuffer part, boolean last) {
-                    callMethod(method, extractors, session, part, last);
-                }
-            };
-        }
-    }
-
-    class Binary extends MessageHandlerFactory {
-        Binary(Method method, ParameterExtractor[] extractors) {
-            super(method, extractors);
-        }
-
-        @Override
-        public MessageHandler create(final Session session) {
-            return new MessageHandler.Binary() {
-                @Override
-                public void onMessage(ByteBuffer message) {
-                    Object result = callMethod(method, extractors, session, message);
-                    if (result != null) {
-                        try {
-                            session.getRemote().sendObject(result);
-                        } catch (Exception e) {
-                            throw new RuntimeException("Error trying to send the response.", e);
-                        }
-                    }
-                }
-            };
-        }
-    }
-
-    class Text extends MessageHandlerFactory {
-        Text(Method method, ParameterExtractor[] extractors) {
-            super(method, extractors);
-        }
-
-        @Override
-        public MessageHandler create(final Session session) {
-            return new MessageHandler.Text() {
-                @Override
-                public void onMessage(String message) {
-                    Object result = callMethod(method, extractors, session, message);
-                    if (result != null) {
-                        try {
-                            session.getRemote().sendObject(result);
-                        } catch (Exception e) {
-                            throw new RuntimeException("Error trying to send the response.", e);
-                        }
-                    }
-                }
-            };
-        }
-    }
-
-    class BinaryStream extends MessageHandlerFactory {
-        BinaryStream(Method method, ParameterExtractor[] extractors) {
-            super(method, extractors);
-        }
-
-        @Override
-        public MessageHandler create(final Session session) {
-            return new MessageHandler.BinaryStream() {
-                @Override
-                public void onMessage(InputStream message) {
-                    Object result = callMethod(method, extractors, session, message);
-                    if (result != null) {
-                        try {
-                            session.getRemote().sendObject(result);
-                        } catch (Exception e) {
-                            throw new RuntimeException("Error trying to send the response.", e);
-                        }
-                    }
-                }
-            };
-        }
-    }
-
-    class CharacterStream extends MessageHandlerFactory {
-        CharacterStream(Method method, ParameterExtractor[] extractors) {
-            super(method, extractors);
-        }
-
-        @Override
-        public MessageHandler create(final Session session) {
-            return new MessageHandler.CharacterStream() {
-                @Override
-                public void onMessage(Reader message) {
-                    Object result = callMethod(method, extractors, session, message);
-                    if (result != null) {
-                        try {
-                            session.getRemote().sendObject(result);
-                        } catch (Exception e) {
-                            throw new RuntimeException("Error trying to send the response.", e);
-                        }
-                    }
-                }
-            };
-        }
-    }
-
-    class DecodedObject extends MessageHandlerFactory {
+    class BasicHandler extends MessageHandlerFactory {
         private final Class<?> type;
 
-        DecodedObject(Method method, ParameterExtractor[] extractors, Class<?> type) {
+        BasicHandler(Method method, ParameterExtractor[] extractors, Class<?> type) {
             super(method, extractors);
             this.type = (PrimitivesToBoxing.getBoxing(type) == null) ? type : PrimitivesToBoxing.getBoxing(type);
         }
 
         @Override
         public MessageHandler create(final Session session) {
-            return new DecodedObjectMessageHandler() {
-                @Override
-                public Class<?> getType() {
-                    return type;
-                }
+            return new BasicMessageHandler() {
 
                 @Override
                 public void onMessage(Object message) {
@@ -469,6 +346,29 @@ public class AnnotatedEndpoint extends Endpoint {
                             throw new RuntimeException("Error trying to send the response.", e);
                         }
                     }
+                }
+
+                @Override
+                public Class<?> getType() {
+                    return type;
+                }
+            };
+        }
+    }
+
+    class AsyncHandler extends MessageHandlerFactory {
+
+        AsyncHandler(Method method, ParameterExtractor[] extractors) {
+            super(method, extractors);
+        }
+
+        @Override
+        public MessageHandler.Async create(final Session session) {
+            return new MessageHandler.Async() {
+
+                @Override
+                public void onMessage(Object partialMessage, boolean last) {
+                    callMethod(method, extractors, session, partialMessage, last);
                 }
             };
         }

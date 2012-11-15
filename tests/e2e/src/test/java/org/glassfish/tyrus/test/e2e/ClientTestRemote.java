@@ -39,9 +39,10 @@
  */
 package org.glassfish.tyrus.test.e2e;
 
+import javax.websocket.EncodeException;
+import javax.websocket.RemoteEndpoint;
+
 import java.io.IOException;
-import javax.net.websocket.EncodeException;
-import javax.net.websocket.RemoteEndpoint;
 
 /**
  * Remote used for the ClientApplicationBean

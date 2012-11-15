@@ -39,11 +39,12 @@
  */
 package org.glassfish.tyrus.test.e2e;
 
+import javax.websocket.MessageHandler;
+import javax.websocket.Session;
+import javax.websocket.WebSocketEndpoint;
+import javax.websocket.WebSocketOpen;
+
 import java.nio.ByteBuffer;
-import javax.net.websocket.MessageHandler;
-import javax.net.websocket.Session;
-import javax.net.websocket.annotations.WebSocketEndpoint;
-import javax.net.websocket.annotations.WebSocketOpen;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)
@@ -57,8 +58,8 @@ public class PingPongServer {
     @WebSocketOpen
     public void init(Session session) {
         try {
-            session.addMessageHandler(new MessageHandler.Pong() {
-                public void onPong(ByteBuffer bb) {
+            session.addMessageHandler(new MessageHandler.Basic<ByteBuffer>() {
+                public void onMessage(ByteBuffer bb) {
                     System.out.println("PINGPONGSERVER received pong: " + new String(bb.array()));
                     gotCorrectMessage = SERVER_MESSAGE.equals(new String(bb.array()));
 

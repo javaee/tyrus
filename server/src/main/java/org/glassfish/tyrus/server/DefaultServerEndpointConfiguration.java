@@ -43,11 +43,11 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import javax.net.websocket.Decoder;
-import javax.net.websocket.Encoder;
-import javax.net.websocket.HandshakeRequest;
-import javax.net.websocket.HandshakeResponse;
-import javax.net.websocket.ServerEndpointConfiguration;
+import javax.websocket.Decoder;
+import javax.websocket.Encoder;
+import javax.websocket.HandshakeRequest;
+import javax.websocket.HandshakeResponse;
+import javax.websocket.ServerEndpointConfiguration;
 import org.glassfish.tyrus.DefaultEndpointConfiguration;
 
 /**
@@ -63,7 +63,7 @@ public class DefaultServerEndpointConfiguration extends DefaultEndpointConfigura
     private final List<String> origins;
 
     /**
-     * Creates new configuration for {@link javax.net.websocket.Endpoint} which is used on the server side.
+     * Creates new configuration for {@link javax.websocket.Endpoint} which is used on the server side.
      *
      * @param encoders message encoders.
      * @param decoders message decoders.
@@ -131,7 +131,7 @@ public class DefaultServerEndpointConfiguration extends DefaultEndpointConfigura
         /**
          * Create new {@link Builder}.
          *
-         * @param uri at which the {@link javax.net.websocket.Endpoint} will be deployed.
+         * @param uri at which the {@link javax.websocket.Endpoint} will be deployed.
          */
         public Builder(String uri) {
             super(uri);

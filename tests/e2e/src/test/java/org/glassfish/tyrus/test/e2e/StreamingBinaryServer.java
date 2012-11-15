@@ -39,15 +39,18 @@
  */
 package org.glassfish.tyrus.test.e2e;
 
+import javax.websocket.Endpoint;
+import javax.websocket.EndpointConfiguration;
+import javax.websocket.MessageHandler;
+import javax.websocket.Session;
+import javax.websocket.WebSocketEndpoint;
+import javax.websocket.WebSocketOpen;
+
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
-import javax.net.websocket.Endpoint;
-import javax.net.websocket.MessageHandler;
-import javax.net.websocket.Session;
-import javax.net.websocket.annotations.WebSocketEndpoint;
-import javax.net.websocket.annotations.WebSocketOpen;
-import java.nio.*;
-import java.util.*;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)
@@ -59,16 +62,21 @@ public class StreamingBinaryServer extends Endpoint {
     static CountDownLatch messageLatch;
     private List<String> messages = new ArrayList<String>();
 
+    @Override
+    public EndpointConfiguration getEndpointConfiguration() {
+        return null;
+    }
+
     @WebSocketOpen
     public void onOpen(Session session) {
         System.out.println("STREAMINGBSERVER opened !");
         this.session = session;
 
-        session.addMessageHandler(new MessageHandler.AsyncBinary() {
+        session.addMessageHandler(new MessageHandler.Async<ByteBuffer>() {
             StringBuilder sb = new StringBuilder();
 
             @Override
-            public void onMessagePart(ByteBuffer bb, boolean last) {
+            public void onMessage(ByteBuffer bb, boolean last) {
                 System.out.println("STREAMINGBSERVER piece came: " + new String(bb.array()));
                 sb.append( new String(bb.array()) );
                 messages.add(new String(bb.array()));
