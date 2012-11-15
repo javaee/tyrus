@@ -69,7 +69,7 @@
                 <configuration>
                     <instructions>
                         <Export-Package>org.glassfish.tyrus.spi.*;version=${project.version}</Export-Package>
-                        <Import-Package>javax.net.websocket;version=${apijar.bundle.version},*</Import-Package>
+                        <Import-Package>javax.websocket;version=${apijar.bundle.version},*</Import-Package>
                     </instructions>
                     <unpackBundle>true</unpackBundle>
                 </configuration>

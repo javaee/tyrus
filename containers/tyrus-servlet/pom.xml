@@ -123,7 +123,7 @@
                 <configuration>
                     <instructions>
                         <Export-Package>
-                            javax.net.websocket.*;version=${apijar.bundle.version}
+                            javax.websocket.*;version=${apijar.bundle.version}
                         </Export-Package>
                         <Embed-Dependency>
                             groupId=org.glassfish.tyrus;inline=true, *;inline=META-INF/*
@@ -139,7 +139,7 @@
                 <configuration>
                     <instructions>
                         <Export-Package>org.glassfish.tyrus.servlet.*;version=${project.version}</Export-Package>
-                        <Import-Package>javax.net.websocket.annotations;version=${apijar.bundle.version};resolution:=optional,*</Import-Package>
+                        <Import-Package>javax.websocket;version=${apijar.bundle.version};resolution:=optional,*</Import-Package>
                     </instructions>
                     <unpackBundle>true</unpackBundle>
                 </configuration>

@@ -164,7 +164,7 @@
                 <configuration>
                     <instructions>
                         <Export-Package>
-                            javax.net.websocket.*;version=${apijar.bundle.version},
+                            javax.websocket.*;version=${apijar.bundle.version},
                             org.glassfish.tyrus.*;version=${impljar.bundle.version}
                         </Export-Package>
                         <Embed-Dependency>
