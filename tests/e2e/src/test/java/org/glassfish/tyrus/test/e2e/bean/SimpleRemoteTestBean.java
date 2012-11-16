@@ -40,8 +40,7 @@
 
 package org.glassfish.tyrus.test.e2e.bean;
 
-import org.glassfish.tyrus.test.e2e.remote.SimpleRemote;
-
+import javax.websocket.Session;
 import javax.websocket.WebSocketEndpoint;
 import javax.websocket.WebSocketMessage;
 
@@ -52,9 +51,9 @@ import javax.websocket.WebSocketMessage;
 @WebSocketEndpoint(value = "/customremote/hello")
 public class SimpleRemoteTestBean {
     @WebSocketMessage
-    public void handleIncomingMessage(String message, SimpleRemote remote) {
+    public void handleIncomingMessage(String message, Session remote) {
         try {
-            remote.sendSimpleMessage(message);
+            remote.getRemote().sendString(message);
         } catch (Exception e) {
             e.printStackTrace();
         }

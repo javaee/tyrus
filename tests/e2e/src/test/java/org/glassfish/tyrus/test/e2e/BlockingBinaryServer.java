@@ -39,75 +39,67 @@
  */
 package org.glassfish.tyrus.test.e2e;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.concurrent.CountDownLatch;
+
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfiguration;
+import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 import javax.websocket.WebSocketEndpoint;
+import javax.websocket.WebSocketOpen;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)
  */
 @WebSocketEndpoint("/blockingbinary")
 public class BlockingBinaryServer extends Endpoint {
-//    private Session session;
-//    static CountDownLatch messageLatch;
-//    private String message;
-//
-//    @WebSocketOpen
-//    public void onOpen(Session session) {
-//        System.out.println("BLOCKINGBSERVER opened !");
-//        this.session = session;
-//
-//        session.addMessageHandler(new MessageHandler.BinaryStream() {
-//            StringBuilder sb = new StringBuilder();
-//            @Override
-//            public void onMessage(InputStream is) {
-//                try {
-//                    int i = 0;
-//                    while ( (i=is.read()) != -1 ) {
-//                        //System.out.println("BLOCKINGBSERVER read " + (char) i + " from the input stream.");
-//                        sb.append((char) i);
-//                    }
-//                } catch (IOException ioe) {
-//                    ioe.printStackTrace();
-//                }
-//                System.out.println("BLOCKINGBSERVER read " + sb + " from the input stream.");
-//                messageLatch.countDown();
-//                message = sb.toString();
-//                reply();
-//
-//            }
-//
-//
-//
-//        });
-//
-//
-//
-//    }
-//
-//    public void reply() {
-//        System.out.println("BLOCKINGBSERVER replying");
-//        try {
-//            OutputStream os = session.getRemote().getSendStream();
-//            os.write(message.getBytes());
-//            os.close();
-//        } catch (IOException ioe ) {
-//            ioe.printStackTrace();
-//        }
-//
-//
-//    }
-//
+    private Session session;
+    static CountDownLatch messageLatch;
+    private String message;
 
-    @Override
-    public EndpointConfiguration getEndpointConfiguration() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+    @WebSocketOpen
+    public void onOpen(Session session) {
+        System.out.println("BLOCKINGBSERVER opened !");
+        this.session = session;
+
+        session.addMessageHandler(new MessageHandler.Async<InputStream>() {
+            StringBuilder sb = new StringBuilder();
+            @Override
+            public void onMessage(InputStream is, boolean isLast) {
+                try {
+                    int i;
+                    while ( (i=is.read()) != -1 ) {
+                        //System.out.println("BLOCKINGBSERVER read " + (char) i + " from the input stream.");
+                        sb.append((char) i);
+                    }
+                } catch (IOException ioe) {
+                    ioe.printStackTrace();
+                }
+                System.out.println("BLOCKINGBSERVER read " + sb + " from the input stream.");
+                messageLatch.countDown();
+                message = sb.toString();
+                reply();
+            }
+        });
     }
 
     @Override
-    public void onOpen(Session session) {
-        //To change body of implemented methods use File | Settings | File Templates.
+    public EndpointConfiguration getEndpointConfiguration() {
+        return null;
+    }
+
+    public void reply() {
+        System.out.println("BLOCKINGBSERVER replying");
+        try {
+            OutputStream os = session.getRemote().getSendStream();
+            os.write(message.getBytes());
+            os.close();
+        } catch (IOException ioe ) {
+            ioe.printStackTrace();
+        }
     }
 }
 

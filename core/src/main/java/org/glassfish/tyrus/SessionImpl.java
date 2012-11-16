@@ -40,13 +40,6 @@
 package org.glassfish.tyrus;
 
 
-import javax.websocket.ClientContainer;
-import javax.websocket.CloseReason;
-import javax.websocket.Encoder;
-import javax.websocket.MessageHandler;
-import javax.websocket.RemoteEndpoint;
-import javax.websocket.Session;
-
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
@@ -58,6 +51,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
+
+import javax.websocket.ClientContainer;
+import javax.websocket.CloseReason;
+import javax.websocket.Encoder;
+import javax.websocket.MessageHandler;
+import javax.websocket.RemoteEndpoint;
+import javax.websocket.Session;
 
 /**
  * Implementation of the WebSocketConversation.
@@ -111,7 +111,7 @@ public class SessionImpl<T> implements Session<T> {
      */
     @Override
     public String getProtocolVersion() {
-        return "13";
+        return "13"; // TODO
     }
 
     @Override
@@ -314,7 +314,7 @@ public class SessionImpl<T> implements Session<T> {
     }
 
     Set<MessageHandler> getInvokableMessageHandlers() {
-        Set s = new HashSet();
+        Set<MessageHandler> s = new HashSet<MessageHandler>();
         for (MessageHandler mh : this.messageHandlerToInvokableMessageHandlers.values()) {
             s.add(mh);
         }

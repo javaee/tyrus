@@ -40,19 +40,20 @@
 
 package org.glassfish.tyrus.test.e2e;
 
-import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.client.DefaultClientEndpointConfiguration;
-import org.glassfish.tyrus.server.Server;
-import org.junit.Assert;
-import org.junit.Ignore;
-import org.junit.Test;
+import java.io.IOException;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.Session;
 
-import java.io.IOException;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+import org.glassfish.tyrus.client.ClientManager;
+import org.glassfish.tyrus.client.DefaultClientEndpointConfiguration;
+import org.glassfish.tyrus.server.Server;
+
+import org.junit.Assert;
+import org.junit.Ignore;
+import org.junit.Test;
 
 /**
  * Tests the JSON format
@@ -91,6 +92,7 @@ public class JsonTest {
                 @Override
                 public void onOpen(Session session) {
                     try {
+                        session.addMessageHandler(new TestTextMessageHandler(this));
                         session.getRemote().sendString(SENT_MESSAGE);
                     } catch (IOException e) {
                         e.printStackTrace();

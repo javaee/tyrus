@@ -39,10 +39,15 @@
  */
 package org.glassfish.tyrus.test.e2e;
 
+import java.io.Reader;
+import java.io.Writer;
+
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfiguration;
+import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 import javax.websocket.WebSocketEndpoint;
+import javax.websocket.WebSocketOpen;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)
@@ -50,53 +55,48 @@ import javax.websocket.WebSocketEndpoint;
  */
 @WebSocketEndpoint("/blockingstreaming")
 public class BlockingStreamingTextServer extends Endpoint {
-//    class MyCharacterStreamHandler implements MessageHandler.CharacterStream {
-//        Session session;
-//
-//        MyCharacterStreamHandler(Session session) {
-//            this.session = session;
-//        }
-//
-//        @Override
-//        public void onMessage(Reader r) {
-//            System.out.println("BLOCKINGSTREAMSERVER: on message reader called");
-//            StringBuilder sb = new StringBuilder();
-//            try {
-//                int i = 0;
-//                while ( (i = r.read() ) != -1  ) {
-//                    sb.append( (char) i );
-//                }
-//                r.close();
-//
-//                String receivedMessage = sb.toString();
-//                System.out.println("BLOCKINGSTREAMSERVER received: " + receivedMessage);
-//
-//                Writer w = session.getRemote().getSendWriter();
-//                w.write(receivedMessage.substring(0,4));
-//                w.write(receivedMessage.substring(4,receivedMessage.length()));
-//                w.close();
-//                System.out.println("BLOCKINGSTREAMSERVER sent back: " + receivedMessage);
-//            } catch (Exception e) {
-//                e.printStackTrace();
-//            }
-//        }
-//    }
+    class MyCharacterStreamHandler implements MessageHandler.Async<Reader> {
+        Session session;
+
+        MyCharacterStreamHandler(Session session) {
+            this.session = session;
+        }
+
+        @Override
+        public void onMessage(Reader r, boolean isLast) {
+            System.out.println("BLOCKINGSTREAMSERVER: on message reader called");
+            StringBuilder sb = new StringBuilder();
+            try {
+                int i;
+                while ( (i = r.read() ) != -1  ) {
+                    sb.append( (char) i );
+                }
+                r.close();
+
+                String receivedMessage = sb.toString();
+                System.out.println("BLOCKINGSTREAMSERVER received: " + receivedMessage);
+
+                Writer w = session.getRemote().getSendWriter();
+                w.write(receivedMessage.substring(0,4));
+                w.write(receivedMessage.substring(4,receivedMessage.length()));
+                w.close();
+                System.out.println("BLOCKINGSTREAMSERVER sent back: " + receivedMessage);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
 
     @Override
     public EndpointConfiguration getEndpointConfiguration() {
-        return null;  //To change body of implemented methods use File | Settings | File Templates.
+        return null;
     }
 
-    @Override
+    @WebSocketOpen
     public void onOpen(Session session) {
-        //To change body of implemented methods use File | Settings | File Templates.
+        System.out.println("BLOCKINGSERVER opened !");
+        session.addMessageHandler(new BlockingStreamingTextServer.MyCharacterStreamHandler(session));
     }
-
-//    @WebSocketOpen
-//    public void onOpen(Session session) {
-//        System.out.println("BLOCKINGSERVER opened !");
-//        session.addMessageHandler(new BlockingStreamingTextServer.MyCharacterStreamHandler(session));
-//    }
 
 }
 

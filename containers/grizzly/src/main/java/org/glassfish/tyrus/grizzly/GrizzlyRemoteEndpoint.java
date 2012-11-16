@@ -39,19 +39,19 @@
  */
 package org.glassfish.tyrus.grizzly;
 
-import org.glassfish.grizzly.websockets.WebSocket;
-
-import javax.websocket.EncodeException;
-import javax.websocket.RemoteEndpoint;
-import javax.websocket.SendHandler;
-import javax.websocket.SendResult;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Writer;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
+
+import javax.websocket.EncodeException;
+import javax.websocket.RemoteEndpoint;
+import javax.websocket.SendHandler;
+import javax.websocket.SendResult;
+
+import org.glassfish.grizzly.websockets.WebSocket;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)
@@ -75,17 +75,6 @@ public class GrizzlyRemoteEndpoint implements RemoteEndpoint {
 
     public static void remove(WebSocket socket) {
         sockets.remove(socket);
-    }
-
-    public boolean isConnected() {
-        return this.socket.isConnected();
-    }
-
-    public String getUri() {
-        if (socket instanceof GrizzlySocket) {
-            return ((GrizzlySocket) socket).getRequest().getRequestURI();
-        }
-        return null;
     }
 
     @Override

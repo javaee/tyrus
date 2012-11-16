@@ -40,21 +40,22 @@
 
 package org.glassfish.tyrus.test.e2e;
 
-import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.client.DefaultClientEndpointConfiguration;
-import org.glassfish.tyrus.server.Server;
-import org.junit.Assert;
-import org.junit.Test;
-
-import javax.websocket.EndpointConfiguration;
-import javax.websocket.Session;
-
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import javax.websocket.EndpointConfiguration;
+import javax.websocket.Session;
+
+import org.glassfish.tyrus.client.ClientManager;
+import org.glassfish.tyrus.client.DefaultClientEndpointConfiguration;
+import org.glassfish.tyrus.server.Server;
+
+import org.junit.Assert;
+import org.junit.Test;
+
 /**
- * Tests the basic echo
+ * Tests the basic echo.
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */

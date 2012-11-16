@@ -56,6 +56,7 @@ import org.junit.Test;
  * @author Martin Matula (martin.matula at oracle.com)
  */
 public class StreamingTextTest {
+
     @Test
     public void testClient() {
         Server server = new Server(StreamingTextServer.class.getName());

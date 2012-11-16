@@ -40,20 +40,20 @@
 
 package org.glassfish.tyrus.test.e2e;
 
-import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.client.DefaultClientEndpointConfiguration;
-import org.glassfish.tyrus.server.Server;
-import org.glassfish.tyrus.test.e2e.bean.BroadcasterTestBean;
-import org.junit.Ignore;
-import org.junit.Test;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+import org.glassfish.tyrus.client.ClientManager;
+import org.glassfish.tyrus.client.DefaultClientEndpointConfiguration;
+import org.glassfish.tyrus.server.Server;
+import org.glassfish.tyrus.test.e2e.bean.BroadcasterTestBean;
 
+import org.junit.Ignore;
+import org.junit.Test;
 import static org.junit.Assert.assertTrue;
 
 /**
@@ -80,7 +80,7 @@ public class BroadcasterTest {
             final ClientManager client1 = ClientManager.createClient();
             client1.connectToServer(ea1, dcec);
             final ClientManager client2 = ClientManager.createClient();
-            client1.connectToServer(ea2, dcec);
+            client2.connectToServer(ea2, dcec);
 
             synchronized (ea1) {
                 if (ea1.peer == null) {

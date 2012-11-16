@@ -40,19 +40,19 @@
 
 package org.glassfish.tyrus.test.e2e;
 
-import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.client.DefaultClientEndpointConfiguration;
-import org.glassfish.tyrus.server.Server;
-import org.junit.Assert;
-import org.junit.Ignore;
-import org.junit.Test;
+import java.io.IOException;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.Session;
 
-import java.io.IOException;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+import org.glassfish.tyrus.client.ClientManager;
+import org.glassfish.tyrus.client.DefaultClientEndpointConfiguration;
+import org.glassfish.tyrus.server.Server;
+
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Tests the implementation of {@link javax.websocket.ClientContainer}.
@@ -65,13 +65,12 @@ public class ClientManagerTest {
 
     private static final String SENT_MESSAGE = "hello";
 
-    @Ignore
     @Test
     public void testClient() {
         Server server = new Server("org.glassfish.tyrus.test.e2e.TestBean");
         server.start();
 
-        CountDownLatch messageLatch = new CountDownLatch(1);
+        final CountDownLatch messageLatch = new CountDownLatch(1);
 
         try {
             DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder("ws://localhost:8025/websockets/tests/echo");
@@ -99,6 +98,7 @@ public class ClientManagerTest {
                 @Override
                 public void onMessage(String message) {
                     receivedMessage = message;
+                    messageLatch.countDown();
                     System.out.println("Received message = " + message);
                 }
             }, dcec);

@@ -39,17 +39,17 @@
  */
 package org.glassfish.tyrus.test.e2e;
 
-import javax.websocket.MessageHandler;
-import javax.websocket.SendHandler;
-import javax.websocket.SendResult;
-import javax.websocket.Session;
-import javax.websocket.WebSocketEndpoint;
-import javax.websocket.WebSocketOpen;
-
 import java.nio.ByteBuffer;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+
+import javax.websocket.SendHandler;
+import javax.websocket.SendResult;
+import javax.websocket.Session;
+import javax.websocket.WebSocketEndpoint;
+import javax.websocket.WebSocketMessage;
+import javax.websocket.WebSocketOpen;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)
@@ -63,17 +63,9 @@ public class BinaryFutureCompletionHandlerServer {
     @WebSocketOpen
     public void init(Session session) {
         System.out.println("BINARYCFSERVER opened");
-        final Session theSession = session;
-        session.addMessageHandler(new MessageHandler.Basic<ByteBuffer>() {
-
-            @Override
-            public void onMessage(ByteBuffer data) {
-                sayHello(data, theSession);
-            }
-        });
-
     }
 
+    @WebSocketMessage
     public void sayHello(ByteBuffer message, Session session) {
         System.out.println("BINARYCFSERVER got  message: " + message + " from session " + session);
 

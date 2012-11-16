@@ -39,12 +39,12 @@
  */
 package org.glassfish.tyrus.test.e2e;
 
+import java.nio.ByteBuffer;
+
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 import javax.websocket.WebSocketEndpoint;
 import javax.websocket.WebSocketOpen;
-
-import java.nio.ByteBuffer;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)
@@ -69,8 +69,5 @@ public class PingPongServer {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
-
-
 }

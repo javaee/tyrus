@@ -42,6 +42,7 @@ package org.glassfish.tyrus.test.e2e.bean;
 
 import javax.websocket.RemoteEndpoint;
 import javax.websocket.WebSocketEndpoint;
+import javax.websocket.WebSocketError;
 import javax.websocket.WebSocketMessage;
 
 /**
@@ -61,14 +62,14 @@ public class ErrorTestBean {
         return "anything";
     }
 
-//    @XWebSocketError
-//    public void handleError(Exception e, RemoteEndpoint p) {
-//        try {
-//            System.out.println("############################################handleError");
-//            remote.sendString("Error");
-//        } catch (Exception ee) {
-//
-//            System.out.println("I give up");
-//        }
-//    }
+    @WebSocketError
+    public void handleError(Exception e, RemoteEndpoint p) {
+        try {
+            System.out.println("############################################handleError");
+            remote.sendString("Error");
+        } catch (Exception ee) {
+
+            System.out.println("I give up");
+        }
+    }
 }

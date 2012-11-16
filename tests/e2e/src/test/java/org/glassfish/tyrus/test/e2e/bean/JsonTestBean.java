@@ -41,11 +41,11 @@
 package org.glassfish.tyrus.test.e2e.bean;
 
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
 import javax.websocket.WebSocketEndpoint;
 import javax.websocket.WebSocketMessage;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)
@@ -64,7 +64,7 @@ public class JsonTestBean {
         try {
             String name = message.getString("NAME");
             reply.put("REPLY", name);
-            System.out.println("############################################reply: " + reply.toString());
+            System.out.println("############################################ reply: " + reply.toString());
             return reply;
         } catch (JSONException e) {
             return reply;

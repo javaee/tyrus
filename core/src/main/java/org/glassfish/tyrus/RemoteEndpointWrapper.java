@@ -39,13 +39,6 @@
  */
 package org.glassfish.tyrus;
 
-import javax.websocket.CloseReason;
-import javax.websocket.EncodeException;
-import javax.websocket.RemoteEndpoint;
-import javax.websocket.SendHandler;
-import javax.websocket.SendResult;
-import javax.websocket.Session;
-
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -54,6 +47,13 @@ import java.io.Writer;
 import java.nio.ByteBuffer;
 import java.util.concurrent.Future;
 
+import javax.websocket.CloseReason;
+import javax.websocket.EncodeException;
+import javax.websocket.RemoteEndpoint;
+import javax.websocket.SendHandler;
+import javax.websocket.SendResult;
+import javax.websocket.Session;
+
 /**
  * Wrapps the {@link RemoteEndpoint} and represents the other side of the websocket connection.
  *
@@ -61,7 +61,7 @@ import java.util.concurrent.Future;
  * @author Martin Matula (martin.matula at oracle.com)
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public final class RemoteEndpointWrapper implements RemoteEndpoint{
+public final class RemoteEndpointWrapper implements RemoteEndpoint {
 
     private final RemoteEndpoint remoteEndpoint;
     private final SessionImpl session;

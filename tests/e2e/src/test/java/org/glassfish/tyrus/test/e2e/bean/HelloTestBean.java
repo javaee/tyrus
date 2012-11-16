@@ -45,7 +45,7 @@ import javax.websocket.WebSocketEndpoint;
 import javax.websocket.WebSocketMessage;
 
 /**
- * Bean for basic echo test
+ * Bean for basic echo test.
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */

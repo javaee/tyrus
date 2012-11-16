@@ -39,6 +39,14 @@
  */
 package org.glassfish.tyrus.test.e2e;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+import org.glassfish.tyrus.client.ClientManager;
+import org.glassfish.tyrus.client.DefaultClientEndpointConfiguration;
+import org.glassfish.tyrus.server.Server;
+
+import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -53,27 +61,27 @@ public class BlockingStreamingTextTest {
     @Ignore
     @Test
     public void testClient() {
-//        Server server = new Server(BlockingStreamingTextServer.class.getName());
-//        server.start();
-//
-//        try {
-//            CountDownLatch messageLatch = new CountDownLatch(1);
-//            DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder("ws://localhost:8025/websockets/tests/blockingstreaming");
-//            DefaultClientEndpointConfiguration dcec = builder.build();
-//
-//            BlockingStreamingTextClient bstc = new BlockingStreamingTextClient(messageLatch);
-//            ClientManager client = ClientManager.createClient();
-//            client.connectToServer(bstc, dcec);
-//
-//            messageLatch.await(5, TimeUnit.SECONDS);
-//            System.out.println("SENT: " + bstc.sentMessage);
-//            System.out.println("RECIEVED: " + bstc.receivedMessage);
-//            Assert.assertTrue("Client got back what it sent, all pieces in the right order.", bstc.sentMessage.equals(bstc.receivedMessage));
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            throw new RuntimeException(e.getMessage(), e);
-//        } finally {
-//            server.stop();
-//        }
+        Server server = new Server(BlockingStreamingTextServer.class.getName());
+        server.start();
+
+        try {
+            CountDownLatch messageLatch = new CountDownLatch(1);
+            DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder("ws://localhost:8025/websockets/tests/blockingstreaming");
+            DefaultClientEndpointConfiguration dcec = builder.build();
+
+            BlockingStreamingTextClient bstc = new BlockingStreamingTextClient(messageLatch);
+            ClientManager client = ClientManager.createClient();
+            client.connectToServer(bstc, dcec);
+
+            messageLatch.await(5, TimeUnit.SECONDS);
+            System.out.println("SENT: " + bstc.sentMessage);
+            System.out.println("RECIEVED: " + bstc.receivedMessage);
+            Assert.assertTrue("Client got back what it sent, all pieces in the right order.", bstc.sentMessage.equals(bstc.receivedMessage));
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            server.stop();
+        }
     }
 }

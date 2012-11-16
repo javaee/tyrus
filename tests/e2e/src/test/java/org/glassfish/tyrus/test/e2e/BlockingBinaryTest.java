@@ -39,7 +39,14 @@
  */
 package org.glassfish.tyrus.test.e2e;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
+import org.glassfish.tyrus.client.ClientManager;
+import org.glassfish.tyrus.client.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.server.Server;
+
+import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -56,25 +63,25 @@ public class BlockingBinaryTest {
     public void testClient() {
         Server server = new Server(BlockingBinaryServer.class.getName());
         server.start();
-//
-//        try {
-//            CountDownLatch messageLatch = new CountDownLatch(2);
-//            BlockingBinaryServer.messageLatch = messageLatch;
-//            DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder("ws://localhost:8025/websockets/tests/blockingbinary");
-//            DefaultClientEndpointConfiguration dcec = builder.build();
-//
-//            BlockingBinaryClient sbc = new BlockingBinaryClient(messageLatch);
-//            ClientManager client = ClientManager.createClient();
-//            client.connectToServer(sbc, dcec);
-//
-//            messageLatch.await(5, TimeUnit.SECONDS);
-//            Assert.assertTrue("Client did not receive anything.", sbc.gotTheSameThingBack);
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            throw new RuntimeException(e.getMessage(), e);
-//        } finally {
-//            server.stop();
-//        }
+
+        try {
+            CountDownLatch messageLatch = new CountDownLatch(2);
+            BlockingBinaryServer.messageLatch = messageLatch;
+            DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder("ws://localhost:8025/websockets/tests/blockingbinary");
+            DefaultClientEndpointConfiguration dcec = builder.build();
+
+            BlockingBinaryClient sbc = new BlockingBinaryClient(messageLatch);
+            ClientManager client = ClientManager.createClient();
+            client.connectToServer(sbc, dcec);
+
+            messageLatch.await(5, TimeUnit.SECONDS);
+            Assert.assertTrue("Client did not receive anything.", sbc.gotTheSameThingBack);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            server.stop();
+        }
     }
 
 }

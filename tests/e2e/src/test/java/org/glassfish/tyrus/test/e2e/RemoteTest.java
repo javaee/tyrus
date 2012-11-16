@@ -40,19 +40,19 @@
 
 package org.glassfish.tyrus.test.e2e;
 
-import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.client.DefaultClientEndpointConfiguration;
-import org.glassfish.tyrus.server.Server;
-import org.junit.Assert;
-import org.junit.Ignore;
-import org.junit.Test;
+import java.io.IOException;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.Session;
 
-import java.io.IOException;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+import org.glassfish.tyrus.client.ClientManager;
+import org.glassfish.tyrus.client.DefaultClientEndpointConfiguration;
+import org.glassfish.tyrus.server.Server;
+
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Tests the WebSocket remote for basic types
@@ -65,46 +65,51 @@ public class RemoteTest {
 
     private String receivedMessage;
 
-    @Ignore
     @Test
-    public void testBoolean() {
-        testPojo(org.glassfish.tyrus.test.e2e.bean.stin.BooleanBean.class, "/standardInputTypes/boolean/remote", "String", "true");
+    public void testBooleanFAIL() {
+        testPojo(org.glassfish.tyrus.test.e2e.bean.stin.BooleanBean.class, "/standardInputTypes/boolean", "String", "FAIL");
     }
 
-    @Ignore
     @Test
-    public void testChar() {
-        testPojo(org.glassfish.tyrus.test.e2e.bean.stin.CharBean.class, "/standardInputTypes/char/remote", "String", "c");
+    public void testBooleanPASS() {
+        testPojo(org.glassfish.tyrus.test.e2e.bean.stin.BooleanBean.class, "/standardInputTypes/boolean", "true", "PASS");
     }
 
-    @Ignore
+
+    @Test
+    public void testCharFAIL() {
+        testPojo(org.glassfish.tyrus.test.e2e.bean.stin.CharBean.class, "/standardInputTypes/char", "fasd", "FAIL");
+    }
+
+    @Test
+    public void testCharPASS() {
+        testPojo(org.glassfish.tyrus.test.e2e.bean.stin.CharBean.class, "/standardInputTypes/char", "c", "PASS");
+    }
+
     @Test
     public void testDouble() {
-        testPojo(org.glassfish.tyrus.test.e2e.bean.stin.DoubleBean.class, "/standardInputTypes/double/remote", "String", "42.0");
+        testPojo(org.glassfish.tyrus.test.e2e.bean.stin.DoubleBean.class, "/standardInputTypes/double", "42.0", "PASS");
     }
 
-    @Ignore
+
     @Test
     public void testFloat() {
-        testPojo(org.glassfish.tyrus.test.e2e.bean.stin.FloatBean.class, "/standardInputTypes/float/remote", "String", "42.0");
+        testPojo(org.glassfish.tyrus.test.e2e.bean.stin.FloatBean.class, "/standardInputTypes/float", "42.0", "PASS");
     }
 
-    @Ignore
     @Test
     public void testInt() {
-        testPojo(org.glassfish.tyrus.test.e2e.bean.stin.IntBean.class, "/standardInputTypes/int/remote", "String", "42");
+        testPojo(org.glassfish.tyrus.test.e2e.bean.stin.IntBean.class, "/standardInputTypes/int", "42", "PASS");
     }
 
-    @Ignore
     @Test
     public void testLong() {
-        testPojo(org.glassfish.tyrus.test.e2e.bean.stin.LongBean.class, "/standardInputTypes/long/remote", "String", "42");
+        testPojo(org.glassfish.tyrus.test.e2e.bean.stin.LongBean.class, "/standardInputTypes/long", "42", "PASS");
     }
 
-    @Ignore
     @Test
     public void testShort() {
-        testPojo(org.glassfish.tyrus.test.e2e.bean.stin.ShortBean.class, "/standardInputTypes/short/remote", "Short", "42");
+        testPojo(org.glassfish.tyrus.test.e2e.bean.stin.ShortBean.class, "/standardInputTypes/short", "42", "PASS");
     }
 
     public void testPojo(Class<?> bean, String segmentPath, final String message, String response) {
@@ -114,7 +119,7 @@ public class RemoteTest {
         try {
             messageLatch = new CountDownLatch(1);
 
-            final DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder("ws://localhost:8025/websockets/tests");
+            final DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder("ws://localhost:8025/websockets/tests" + segmentPath);
             final DefaultClientEndpointConfiguration dcec = builder.build();
 
             ClientManager client = ClientManager.createClient();
@@ -122,12 +127,13 @@ public class RemoteTest {
 
                 @Override
                 public EndpointConfiguration getEndpointConfiguration() {
-                    return null;  //To change body of implemented methods use File | Settings | File Templates.
+                    return null;
                 }
 
                 @Override
                 public void onOpen(Session session) {
                     try {
+                        session.addMessageHandler(new TestTextMessageHandler(this));
                         session.getRemote().sendString(message);
                     } catch (IOException e) {
                         e.printStackTrace();

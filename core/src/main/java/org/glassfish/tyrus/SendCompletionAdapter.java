@@ -39,11 +39,11 @@
  */
 package org.glassfish.tyrus;
 
-import javax.websocket.SendHandler;
-import javax.websocket.SendResult;
-
 import java.nio.ByteBuffer;
 import java.util.concurrent.Future;
+
+import javax.websocket.SendHandler;
+import javax.websocket.SendResult;
 
 /**
  * Simple Async send adapter. Should probably merge with RemoteEndpointWrapper at some point
@@ -54,6 +54,7 @@ import java.util.concurrent.Future;
  */
 public class SendCompletionAdapter {
     private final RemoteEndpointWrapper rew;
+
     enum State {
         TEXT, // String
         BINARY,  // ByteBuffer
@@ -76,28 +77,30 @@ public class SendCompletionAdapter {
         Thread sendThread = new Thread() {
             @Override
             public void run() {
+                SendResult sr = new SendResult();
                 try {
-                    if (state.equals(SendCompletionAdapter.State.TEXT)) {
-                        rew.sendString((String) message);
-                    } else if (state.equals(SendCompletionAdapter.State.BINARY)) {
-                        rew.sendBytes((ByteBuffer) message);
-                    } else if (state.equals(SendCompletionAdapter.State.OBJECT)) {
-                        rew.sendObject(message);
-                    } else {
-                        throw new RuntimeException("Developer error: unknown state");
+                    switch (state) {
+                        case TEXT:
+                            rew.sendString((String) message);
+                            break;
+
+                        case BINARY:
+                            rew.sendBytes((ByteBuffer) message);
+                            break;
+
+                        case OBJECT:
+                            rew.sendObject(message);
+                            break;
                     }
+
                 } catch (Throwable thw) {
-                    SendResult sr = new SendResult(thw);
-                    if(cmpltn != null){
+                    sr = new SendResult(thw);
+                } finally {
+                    if (cmpltn != null) {
                         cmpltn.setResult(sr);
                     }
                     fsr.setResult(sr);
                 }
-                SendResult sr = new SendResult();
-                if(cmpltn != null){
-                    cmpltn.setResult(sr);
-                }
-                fsr.setResult(sr);
             }
         };
         sendThread.start();

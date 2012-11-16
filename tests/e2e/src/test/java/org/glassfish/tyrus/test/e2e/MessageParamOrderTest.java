@@ -39,19 +39,19 @@
  */
 package org.glassfish.tyrus.test.e2e;
 
-import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.client.DefaultClientEndpointConfiguration;
-import org.glassfish.tyrus.server.Server;
-import org.junit.Assert;
-import org.junit.Ignore;
-import org.junit.Test;
+import java.io.IOException;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.Session;
 
-import java.io.IOException;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+import org.glassfish.tyrus.client.ClientManager;
+import org.glassfish.tyrus.client.DefaultClientEndpointConfiguration;
+import org.glassfish.tyrus.server.Server;
+
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Tests the correct behavior of various orders of parameters of methods annotated with {@link javax.websocket.WebSocketMessage}
@@ -68,7 +68,6 @@ public class MessageParamOrderTest {
 
     private static final String SENT_MESSAGE = "Hello World";
 
-    @Ignore
     @Test
     public void testHello() {
         Server server = new Server(org.glassfish.tyrus.test.e2e.bean.HelloTestBean.class);
@@ -90,6 +89,7 @@ public class MessageParamOrderTest {
                 @Override
                 public void onOpen(Session session) {
                     try {
+                        session.addMessageHandler(new TestTextMessageHandler(this));
                         session.getRemote().sendString(SENT_MESSAGE);
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -112,7 +112,6 @@ public class MessageParamOrderTest {
         }
     }
 
-    @Ignore
     @Test
     public void testOther() {
         Server server = new Server(org.glassfish.tyrus.test.e2e.bean.MessageParamOrderTestBean.class);
@@ -134,6 +133,7 @@ public class MessageParamOrderTest {
                 @Override
                 public void onOpen(Session session) {
                     try {
+                        session.addMessageHandler(new TestTextMessageHandler(this));
                         session.getRemote().sendString(SENT_MESSAGE);
                     } catch (IOException e) {
                         e.printStackTrace();
