@@ -51,7 +51,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
-
 import javax.websocket.ClientContainer;
 import javax.websocket.CloseReason;
 import javax.websocket.Encoder;
@@ -195,7 +194,7 @@ public class SessionImpl<T> implements Session<T> {
 
     @Override
     public void addMessageHandler(MessageHandler listener) {
-        MessageHandler invokable;
+//        MessageHandler invokable;
 //        if (listener instanceof MessageHandler.CharacterStream) {
 //            invokable = new AsyncTextToCharStreamAdapter((MessageHandler.CharacterStream) listener);
 //        } else if (listener instanceof MessageHandler.BinaryStream) {
@@ -256,25 +255,15 @@ public class SessionImpl<T> implements Session<T> {
 
         for (DecoderWrapper decoder : availableDecoders) {
             for (MessageHandler mh : this.getOrderedMessageHandlers()) {
-                if(mh instanceof BasicMessageHandler){
-                    Class<?> type = ((BasicMessageHandler) mh).getType();
-                    if (type.isAssignableFrom(decoder.getType())) {
-                        Object object = endpoint.decodeCompleteMessage(message, type);
-                        if (object != null) {
-                            ((MessageHandler.Basic) mh).onMessage(object);
-                            decoded = true;
-                            break;
-                        }
-                    }
-                }else if (mh instanceof MessageHandler.Basic) {
-                    Class<?> type = this.getClassType(mh.getClass(), MessageHandler.Basic.class);
-                    if (type != null && type.isAssignableFrom(decoder.getType())) {
-                        Object object = endpoint.decodeCompleteMessage(message, type);
-                        if (object != null) {
-                            ((MessageHandler.Basic) mh).onMessage(object);
-                            decoded = true;
-                            break;
-                        }
+                Class<?> type;
+                if ((mh instanceof MessageHandler.Basic)
+                        && (type = getHandlerType(mh)).isAssignableFrom(decoder.getType())) {
+                    Object object = endpoint.decodeCompleteMessage(message, type);
+                    if (object != null) {
+                        //noinspection unchecked
+                        ((MessageHandler.Basic) mh).onMessage(object);
+                        decoded = true;
+                        break;
                     }
                 }
             }
@@ -288,11 +277,10 @@ public class SessionImpl<T> implements Session<T> {
         boolean handled = false;
 
         for (MessageHandler handler : this.getInvokableMessageHandlers()) {
-            MessageHandler.Async baseHandler;
-            Class<?> type = ReflectionHelper.getClassType(handler.getClass(), MessageHandler.Async.class);
-            if (MessageHandler.Async.class.isAssignableFrom(handler.getClass()) && type.isAssignableFrom(message.getClass())) {
-                baseHandler = (MessageHandler.Async) handler;
-                baseHandler.onMessage(message, last);
+            if ((handler instanceof MessageHandler.Async) &&
+                    getHandlerType(handler).isAssignableFrom(message.getClass())) {
+                //noinspection unchecked
+                ((MessageHandler.Async) handler).onMessage(message, last);
                 handled = true;
                 break;
             }
@@ -300,16 +288,6 @@ public class SessionImpl<T> implements Session<T> {
 
         if (!handled) {
             LOGGER.severe("Unhandled text message in EndpointWrapper");
-        }
-    }
-
-    private Class<?> getClassType(Class<?> inspectedClass, Class<?> rootClass) {
-        ReflectionHelper.DeclaringClassInterfacePair p = ReflectionHelper.getClass(inspectedClass, rootClass);
-        Class[] as = ReflectionHelper.getParameterizedClassArguments(p);
-        if (as == null) {
-            return null;
-        } else {
-            return as[0];
         }
     }
 
@@ -331,14 +309,31 @@ public class SessionImpl<T> implements Session<T> {
         return result;
     }
 
+    private Class<?> getHandlerType(MessageHandler handler) {
+        Class<?> root;
+        if (handler instanceof AsyncMessageHandler) {
+            return ((AsyncMessageHandler) handler).getType();
+        } else if (handler instanceof BasicMessageHandler) {
+            return ((BasicMessageHandler) handler).getType();
+        } else if (handler instanceof MessageHandler.Async) {
+            root = MessageHandler.Async.class;
+        } else if (handler instanceof MessageHandler.Basic) {
+            root = MessageHandler.Basic.class;
+        } else {
+            throw new IllegalArgumentException(handler.getClass().getName()); // should never happen
+        }
+        Class<?> result = ReflectionHelper.getClassType(handler.getClass(), root);
+        return result == null ? Object.class : result;
+    }
+
     private class MessageHandlerComparator implements Comparator<MessageHandler> {
 
         @Override
         public int compare(MessageHandler o1, MessageHandler o2) {
             if (o1 instanceof MessageHandler.Basic) {
                 if (o2 instanceof MessageHandler.Basic) {
-                    Class<?> type1 = getClassType(o1.getClass(), MessageHandler.Basic.class);
-                    Class<?> type2 = getClassType(o2.getClass(), MessageHandler.Basic.class);
+                    Class<?> type1 = getHandlerType(o1);
+                    Class<?> type2 = getHandlerType(o2);
 
                     if (type1.isAssignableFrom(type2)) {
                         return 1;

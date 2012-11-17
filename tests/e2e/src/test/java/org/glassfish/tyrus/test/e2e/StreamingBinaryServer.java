@@ -39,33 +39,25 @@
  */
 package org.glassfish.tyrus.test.e2e;
 
-import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfiguration;
-import javax.websocket.MessageHandler;
-import javax.websocket.Session;
-import javax.websocket.WebSocketEndpoint;
-import javax.websocket.WebSocketOpen;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import javax.websocket.MessageHandler;
+import javax.websocket.Session;
+import javax.websocket.WebSocketEndpoint;
+import javax.websocket.WebSocketOpen;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)
  * @author Martin Matula (martin.matula at oracle.com)
  */
 @WebSocketEndpoint("/streamingbinary")
-public class StreamingBinaryServer extends Endpoint {
+public class StreamingBinaryServer {
     private Session session;
     static CountDownLatch messageLatch;
     private List<String> messages = new ArrayList<String>();
-
-    @Override
-    public EndpointConfiguration getEndpointConfiguration() {
-        return null;
-    }
 
     @WebSocketOpen
     public void onOpen(Session session) {

@@ -41,7 +41,6 @@ package org.glassfish.tyrus.sample.programmaticecho;
 
 import org.glassfish.tyrus.server.ContainerConfig;
 import org.glassfish.tyrus.server.DefaultServerConfiguration;
-import org.glassfish.tyrus.server.DefaultServerEndpointConfiguration;
 
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfiguration;
@@ -56,7 +55,7 @@ import java.io.IOException;
 @ContainerConfig
 public class MyWsConfiguration extends DefaultServerConfiguration {
     public MyWsConfiguration() {
-        this.endpoint(new EchoEndpoint(), new DefaultServerEndpointConfiguration.Builder("/echo").build());
+        this.endpoint(new EchoEndpoint());
     }
 
     private static class EchoEndpoint extends Endpoint {

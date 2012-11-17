@@ -40,32 +40,22 @@
 
 package org.glassfish.tyrus.server;
 
-import org.glassfish.tyrus.AnnotatedEndpoint;
-import org.glassfish.tyrus.DecoderWrapper;
-import org.glassfish.tyrus.EndpointWrapper;
-import org.glassfish.tyrus.ReflectionHelper;
-import org.glassfish.tyrus.ServiceFinder;
-import org.glassfish.tyrus.WithProperties;
-import org.glassfish.tyrus.spi.ComponentProvider;
-import org.glassfish.tyrus.spi.SPIRegisteredEndpoint;
-import org.glassfish.tyrus.spi.TyrusServer;
-
-import javax.websocket.ClientEndpointConfiguration;
-import javax.websocket.Decoder;
-import javax.websocket.Encoder;
-import javax.websocket.Endpoint;
-import javax.websocket.ServerEndpointConfiguration;
-import javax.websocket.Session;
-import javax.websocket.WebSocketEndpoint;
-
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
+import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.Endpoint;
+import javax.websocket.Session;
+import org.glassfish.tyrus.AnnotatedEndpoint;
+import org.glassfish.tyrus.EndpointWrapper;
+import org.glassfish.tyrus.WithProperties;
+import org.glassfish.tyrus.spi.ComponentProvider;
+import org.glassfish.tyrus.spi.SPIRegisteredEndpoint;
+import org.glassfish.tyrus.spi.TyrusServer;
 
 /**
  * Server Container Implementation.
@@ -78,7 +68,6 @@ public class TyrusServerContainer extends WithProperties implements ServerContai
     private final String contextPath;
     private final ServerConfiguration configuration;
     private final Set<SPIRegisteredEndpoint> endpoints = new HashSet<SPIRegisteredEndpoint>();
-    private static final Logger LOGGER = Logger.getLogger(TyrusServerContainer.class.getName());
 
     public TyrusServerContainer(final TyrusServer server, final String contextPath,
                                 final ServerConfiguration configuration) {
@@ -88,8 +77,8 @@ public class TyrusServerContainer extends WithProperties implements ServerContai
         this.configuration = new ServerConfiguration() {
             private final Set<Class<?>> endpointClasses =
                     Collections.unmodifiableSet(new HashSet<Class<?>>(configuration.getEndpointClasses()));
-            private final Set<EndpointWithConfiguration> endpointInstances =
-                    Collections.unmodifiableSet(new HashSet<EndpointWithConfiguration>(configuration.getEndpointInstances()));
+            private final Set<Endpoint> endpointInstances =
+                    Collections.unmodifiableSet(new HashSet<Endpoint>(configuration.getEndpointInstances()));
             private final long maxSessionIdleTimeout = configuration.getMaxSessionIdleTimeout();
             private final long maxBinaryMessageBufferSize = configuration.getMaxBinaryMessageBufferSize();
             private final long maxTextMessageBufferSize = configuration.getMaxTextMessageBufferSize();
@@ -102,7 +91,7 @@ public class TyrusServerContainer extends WithProperties implements ServerContai
             }
 
             @Override
-            public Set<EndpointWithConfiguration> getEndpointInstances() {
+            public Set<Endpoint> getEndpointInstances() {
                 return endpointInstances;
             }
 
@@ -137,125 +126,33 @@ public class TyrusServerContainer extends WithProperties implements ServerContai
         // start the underlying server
         server.start();
 
-        Set<ServerConfiguration.EndpointWithConfiguration> allEndpoints =
-                new HashSet<ServerConfiguration.EndpointWithConfiguration>(configuration.getEndpointInstances());
+        Set<Endpoint> allEndpoints =
+                new HashSet<Endpoint>(configuration.getEndpointInstances());
 
         // deploy all the class-based endpoints
         for (Class<?> endpointClass : configuration.getEndpointClasses()) {
             // introspect the bean and find all the paths....
-            final WebSocketEndpoint wseAnnotation = endpointClass.getAnnotation(WebSocketEndpoint.class);
-            if (wseAnnotation == null) {
-                Logger.getLogger(getClass().getName()).warning("Endpoint class " + endpointClass.getName() + " not " +
-                        "annotated with @WebSocketEndpoint annotation, so will be ignored.");
-                continue;
-            }
-
-            String endpointPath = wseAnnotation.value();
-            ServiceFinder<ComponentProvider> finder = ServiceFinder.find(ComponentProvider.class);
-            Object loaded = null;
-
-            for (ComponentProvider componentProvider : finder) {
-                if (componentProvider.isApplicable(endpointClass)) {
-                    try {
-                        loaded = componentProvider.getInstance(endpointClass);
-                        break;
-                    } catch (Exception e) {
-                        LOGGER.severe("Endpoint class " + endpointClass.getName() + " could not be loaded.");
-                    }
+            Endpoint endpoint;
+            if (Endpoint.class.isAssignableFrom(endpointClass)) {
+                endpoint = (Endpoint) ComponentProvider.getInstance(endpointClass);
+            } else {
+                endpoint = AnnotatedEndpoint.fromClass(endpointClass);
+                if (endpoint == null) {
+                    Logger.getLogger(getClass().getName()).warning("Endpoint class " + endpointClass.getName() + " not " +
+                            "annotated with @WebSocketEndpoint annotation, so will be ignored.");
+                    continue;
                 }
             }
 
-            AnnotatedEndpoint annotatedEndpoint = new AnnotatedEndpoint(endpointClass, loaded);
-
-            List<Encoder> encoders = new ArrayList<Encoder>();
-            if (wseAnnotation.encoders() != null) {
-                //noinspection unchecked
-                for (Class<? extends Encoder> encoderClass : (Class<? extends Encoder>[]) wseAnnotation.encoders()) {
-                    try {
-
-                        Object ejbEncoder = null;
-
-                        for (ComponentProvider componentProvider : finder) {
-                            if (componentProvider.isApplicable(encoderClass)) {
-                                ejbEncoder = componentProvider.getInstance(encoderClass);
-                                break;
-                            }
-                        }
-
-                        if (ejbEncoder != null) {
-                            encoders.add((Encoder) ejbEncoder);
-                        } else {
-                            encoders.add(encoderClass.newInstance());
-                        }
-                    } catch (Exception e) {
-                        throw new RuntimeException("Unable to instantiate encoder: " + encoderClass.getName(), e);
-                    }
-                }
-            }
-            List<Decoder> decoders = new ArrayList<Decoder>();
-            if (wseAnnotation.decoders() != null) {
-                //noinspection unchecked
-                for (Class<? extends Decoder> decoderClass : (Class<? extends Decoder>[]) wseAnnotation.decoders()) {
-                    try {
-                        Class<?> decoderType = getDecoderClassType(decoderClass);
-                        Object ejbDecoder = null;
-
-                        for (ComponentProvider componentProvider : finder) {
-                            if (componentProvider.isApplicable(decoderClass)) {
-                                ejbDecoder = componentProvider.getInstance(decoderClass);
-                                break;
-                            }
-                        }
-
-                        if (ejbDecoder != null) {
-                            decoders.add(new DecoderWrapper((Decoder) ejbDecoder, decoderType, decoderClass));
-                        } else {
-                            decoders.add(new DecoderWrapper(decoderClass.newInstance(), decoderType, decoderClass));
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                        throw new RuntimeException("Unable to instantiate decoder: " + decoderClass.getName(), e);
-                    }
-                }
-            }
-
-            ServerEndpointConfiguration config = new DefaultServerEndpointConfiguration.Builder(endpointPath)
-                    .encoders(encoders).decoders(decoders).protocols(wseAnnotation.subprotocols() == null ?
-                            Collections.<String>emptyList() : Arrays.asList(wseAnnotation.subprotocols()))
-                    .extensions(configuration.getExtensions())
-                            // TODO: fix once origins is added to the @WebSocketEndpoint annotation
-                    .origins(Collections.<String>emptyList()).build();
-
-            allEndpoints.add(new ServerConfiguration.EndpointWithConfiguration(annotatedEndpoint, config));
-            Logger.getLogger(getClass().getName()).info("Registered a " + endpointClass + " at " + endpointPath);
+            allEndpoints.add(endpoint);
+            Logger.getLogger(getClass().getName()).info("Registered a " + endpointClass + " at " +
+                endpoint.getEndpointConfiguration().getPath());
         }
 
-        for (ServerConfiguration.EndpointWithConfiguration endpoint : allEndpoints) {
-            EndpointWrapper ew = new EndpointWrapper(endpoint.getEndpoint(), endpoint.getConfiguration(), this, contextPath);
+        for (Endpoint endpoint : allEndpoints) {
+            EndpointWrapper ew = new EndpointWrapper(endpoint, endpoint.getEndpointConfiguration(), this, contextPath);
             SPIRegisteredEndpoint ge = server.register(ew);
             endpoints.add(ge);
-        }
-    }
-
-    private Class<?> getDecoderClassType(Class<?> decoder) {
-        Class<?> rootClass = null;
-
-        if (Decoder.Text.class.isAssignableFrom(decoder)) {
-            rootClass = Decoder.Text.class;
-        } else if (Decoder.Binary.class.isAssignableFrom(decoder)) {
-            rootClass = Decoder.Binary.class;
-        } else if (Decoder.TextStream.class.isAssignableFrom(decoder)) {
-            rootClass = Decoder.TextStream.class;
-        } else if (Decoder.BinaryStream.class.isAssignableFrom(decoder)) {
-            rootClass = Decoder.BinaryStream.class;
-        }
-
-        ReflectionHelper.DeclaringClassInterfacePair p = ReflectionHelper.getClass(decoder, rootClass);
-        Class[] as = ReflectionHelper.getParameterizedClassArguments(p);
-        if (as == null) {
-            return null;
-        } else {
-            return as[0];
         }
     }
 

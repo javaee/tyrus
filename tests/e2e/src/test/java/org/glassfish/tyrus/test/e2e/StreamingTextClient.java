@@ -96,11 +96,11 @@ public class StreamingTextClient extends Endpoint {
 
     private void sendPartial(String partialString, boolean isLast) throws IOException, InterruptedException {
         System.out.println("Client sending: " + partialString);
-        synchronized (StreamingTextServer.class) {
+        synchronized (StreamingTextClient.class) {
             session.getRemote().sendPartialString(partialString, isLast);
             if (!isLast) {
                 System.out.println("Waiting for the server to process the partial string...");
-                StreamingTextServer.class.wait(5000);
+                StreamingTextClient.class.wait(5000);
             }
         }
     }

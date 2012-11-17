@@ -41,11 +41,9 @@ package org.glassfish.tyrus.test.e2e;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.server.Server;
-
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -53,25 +51,27 @@ import org.junit.Test;
  * Tests the basic client behavior, sending and receiving message
  *
  * @author Danny Coward (danny.coward at oracle.com)
+ * @author Martin Matula (martin.matula at oracle.com)
  */
-public class HelloTextTest {
+public class StreamingTextAnnotTest {
 
     @Test
     public void testClient() {
-        Server server = new Server(HelloTextServer.class.getName());
+        Server server = new Server(StreamingTextAnnotServer.class.getName());
         server.start();
 
         try {
-            CountDownLatch messageLatch = new CountDownLatch(1);
-            DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder("ws://localhost:8025/websockets/tests/hellotext");
+            CountDownLatch messageLatch = new CountDownLatch(2);
+            StreamingTextAnnotServer.messageLatch = messageLatch;
+            DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder("ws://localhost:8025/websockets/tests/streamingtext");
             DefaultClientEndpointConfiguration dcec = builder.build();
 
-            HelloTextClient htc = new HelloTextClient(messageLatch);
+            StreamingTextClient stc = new StreamingTextClient(messageLatch);
             ClientManager client = ClientManager.createClient();
-            client.connectToServer(htc, dcec);
+            client.connectToServer(stc, dcec);
 
             messageLatch.await(5, TimeUnit.SECONDS);
-            Assert.assertTrue("Client did not receive anything.", htc.gotSomethingBack);
+            Assert.assertTrue("The client did not get anything back", stc.gotSomethingBack);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);

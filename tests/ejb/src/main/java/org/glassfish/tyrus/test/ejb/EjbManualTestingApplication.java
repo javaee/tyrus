@@ -41,7 +41,7 @@
 package org.glassfish.tyrus.test.ejb;
 
 import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.client.DefaultClientEndpointConfiguration;
+import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
 
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.Session;

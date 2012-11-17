@@ -48,7 +48,7 @@ import org.glassfish.embeddable.web.HttpListener;
 import org.glassfish.embeddable.web.WebContainer;
 import org.glassfish.embeddable.web.WebListener;
 import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.client.DefaultClientEndpointConfiguration;
+import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;

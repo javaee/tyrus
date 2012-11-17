@@ -37,13 +37,12 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.client;
+package org.glassfish.tyrus;
 
 import java.util.List;
 import javax.websocket.ClientEndpointConfiguration;
 import javax.websocket.Decoder;
 import javax.websocket.Encoder;
-import org.glassfish.tyrus.DefaultEndpointConfiguration;
 
 /**
  * Configuration used for client endpoints as the default one.

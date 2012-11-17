@@ -44,7 +44,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import javax.websocket.Endpoint;
-import javax.websocket.ServerEndpointConfiguration;
 
 /**
  * Default mutable implementation of {@link ServerConfiguration} interface. Allows setting all the configuration
@@ -58,8 +57,8 @@ public class DefaultServerConfiguration implements ServerConfiguration {
     private long maxTextMessageBufferSize;
     private final Set<Class<?>> endpointClasses = new HashSet<Class<?>>();
     private final Set<Class<?>> endpointClassesView = Collections.unmodifiableSet(endpointClasses);
-    private final Set<EndpointWithConfiguration> endpointInstances = new HashSet<EndpointWithConfiguration>();
-    private final Set<EndpointWithConfiguration> endpointInstancesView = Collections.unmodifiableSet(endpointInstances);
+    private final Set<Endpoint> endpointInstances = new HashSet<Endpoint>();
+    private final Set<Endpoint> endpointInstancesView = Collections.unmodifiableSet(endpointInstances);
 
     @Override
     public Set<Class<?>> getEndpointClasses() {
@@ -67,7 +66,7 @@ public class DefaultServerConfiguration implements ServerConfiguration {
     }
 
     @Override
-    public Set<EndpointWithConfiguration> getEndpointInstances() {
+    public Set<Endpoint> getEndpointInstances() {
         return endpointInstancesView;
     }
 
@@ -127,7 +126,7 @@ public class DefaultServerConfiguration implements ServerConfiguration {
     /**
      * Registers a new endpoint annotated class.
      *
-     * @param endpointClass class annotated with {@link javax.websocketWebSocketEndpoint} annotation.
+     * @param endpointClass class annotated with {@link javax.websocket.WebSocketEndpoint} annotation.
      * @return this configuration object.
      */
     public DefaultServerConfiguration endpoint(Class<?> endpointClass) {
@@ -138,19 +137,19 @@ public class DefaultServerConfiguration implements ServerConfiguration {
     /**
      * Registers a new programmatic endpoint.
      *
-     * @param endpoint object implementing {@link Endpoint} interface.
-     * @param configuration endpoint configuration.
+     *
+     * @param endpoint object implementing {@link javax.websocket.Endpoint} interface.
      * @return this configuration object.
      */
-    public DefaultServerConfiguration endpoint(Endpoint endpoint, ServerEndpointConfiguration configuration) {
-        endpointInstances.add(new EndpointWithConfiguration(endpoint, configuration));
+    public DefaultServerConfiguration endpoint(Endpoint endpoint) {
+        endpointInstances.add(endpoint);
         return this;
     }
 
     /**
      * Registers new endpoint annotated classes.
      *
-     * @param endpointClasses classes annotated with {@link javax.websocketWebSocketEndpoint}
+     * @param endpointClasses classes annotated with {@link javax.websocket.WebSocketEndpoint}
      *                        annotation.
      * @return this configuration object.
      */
@@ -160,9 +159,20 @@ public class DefaultServerConfiguration implements ServerConfiguration {
     }
 
     /**
+     * Registers new endpoint instances.
+     *
+     * @param endpoints endpoints.
+     * @return this configuration object.
+     */
+    public DefaultServerConfiguration endpoints(Endpoint... endpoints) {
+        Collections.addAll(this.endpointInstances, endpoints);
+        return this;
+    }
+
+    /**
      * Registers new endpoint annotated classes.
      *
-     * @param endpointClasses classes annotated with {@link javax.websocketWebSocketEndpoint}
+     * @param endpointClasses classes annotated with {@link javax.websocket.WebSocketEndpoint}
      *                        annotation.
      * @return this configuration object.
      */

@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.server;
+package org.glassfish.tyrus;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -48,7 +48,6 @@ import javax.websocket.Encoder;
 import javax.websocket.HandshakeRequest;
 import javax.websocket.HandshakeResponse;
 import javax.websocket.ServerEndpointConfiguration;
-import org.glassfish.tyrus.DefaultEndpointConfiguration;
 
 /**
  * Provides the default {@link ServerEndpointConfiguration}.

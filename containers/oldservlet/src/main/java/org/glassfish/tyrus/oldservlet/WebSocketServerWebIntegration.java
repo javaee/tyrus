@@ -39,18 +39,6 @@
  */
 package org.glassfish.tyrus.oldservlet;
 
-import org.glassfish.tyrus.server.ContainerConfig;
-import org.glassfish.tyrus.server.DefaultServerConfiguration;
-import org.glassfish.tyrus.server.ServerConfiguration;
-import org.glassfish.tyrus.server.ServerContainer;
-import org.glassfish.tyrus.server.ServerContainerFactory;
-import org.glassfish.tyrus.spi.TyrusContainer;
-
-import javax.servlet.ServletContextEvent;
-import javax.servlet.ServletContextListener;
-import javax.servlet.annotation.WebListener;
-import javax.websocket.WebSocketEndpoint;
-
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
@@ -58,6 +46,17 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
+import javax.servlet.ServletContextEvent;
+import javax.servlet.ServletContextListener;
+import javax.servlet.annotation.WebListener;
+import javax.websocket.Endpoint;
+import javax.websocket.WebSocketEndpoint;
+import org.glassfish.tyrus.server.ContainerConfig;
+import org.glassfish.tyrus.server.DefaultServerConfiguration;
+import org.glassfish.tyrus.server.ServerConfiguration;
+import org.glassfish.tyrus.server.ServerContainer;
+import org.glassfish.tyrus.server.ServerContainerFactory;
+import org.glassfish.tyrus.spi.TyrusContainer;
 
 /**
  * Web application lifecycle listener.
@@ -139,7 +138,7 @@ public class WebSocketServerWebIntegration implements ServletContextListener {
                 }
 
                 @Override
-                public Set<EndpointWithConfiguration> getEndpointInstances() {
+                public Set<Endpoint> getEndpointInstances() {
                     return innerConfig.getEndpointInstances();
                 }
 

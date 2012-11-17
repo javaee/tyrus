@@ -42,7 +42,6 @@ package org.glassfish.tyrus.server;
 import java.util.List;
 import java.util.Set;
 import javax.websocket.Endpoint;
-import javax.websocket.ServerEndpointConfiguration;
 
 /**
  * Represents server configuration. Can be used to provide the list of registered endpoints,
@@ -53,7 +52,7 @@ import javax.websocket.ServerEndpointConfiguration;
  */
 public interface ServerConfiguration {
     /**
-     * Returns a set of endpoint classes annotated with {@link javax.websocketWebSocketEndpoint}
+     * Returns a set of endpoint classes annotated with {@link javax.websocket.WebSocketEndpoint}
      * annotation that should be published by the container initialized with this configuration object.
      *
      * @return Set of annotated endpoint classes to be exposed by the server.
@@ -62,12 +61,11 @@ public interface ServerConfiguration {
 
     /**
      * Returns a set of {@link Endpoint} instances that should be exposed by the server in addition to the
-     * class-based endpoints returned from {@link #getEndpointClasses()}. The method returns the endpoint instances
-     * together with their associated endpoint configurations wrapped in {@link EndpointWithConfiguration} objects.
+     * class-based endpoints returned from {@link #getEndpointClasses()}.
      *
-     * @return Set of {@link Endpoint endpoint objects} with their {@link ServerEndpointConfiguration configurations}.
+     * @return Set of {@link Endpoint endpoint objects}.
      */
-    Set<EndpointWithConfiguration> getEndpointInstances();
+    Set<Endpoint> getEndpointInstances();
 
     /**
      * Return the maximum time in seconds that a web socket session may be idle before
@@ -96,54 +94,4 @@ public interface ServerConfiguration {
      */
     List<String> getExtensions();
 
-    /**
-     * Representation of Endpoint-ServerEndpointConfiguration pair.
-     */
-    public static final class EndpointWithConfiguration {
-        private final Endpoint endpoint;
-        private final ServerEndpointConfiguration configuration;
-
-        /**
-         * Creates a new endpoint-configuration pair.
-         * @param endpoint Endpoint.
-         * @param configuration Configuration associated with the endpoint.
-         */
-        public EndpointWithConfiguration(Endpoint endpoint, ServerEndpointConfiguration configuration) {
-            this.endpoint = endpoint;
-            this.configuration = configuration;
-        }
-
-        /**
-         * Returns the endpoint associated with the configuration returned from {@link #getConfiguration()}.
-         * @return endpoint.
-         */
-        public Endpoint getEndpoint() {
-            return endpoint;
-        }
-
-        /**
-         * Returns the configuration associated with the endpoint returned from {@link #getEndpoint()}.
-         * @return endpoint configuration.
-         */
-        public ServerEndpointConfiguration getConfiguration() {
-            return configuration;
-        }
-
-        @Override
-        public int hashCode() {
-            return endpoint.hashCode() + 37 * configuration.hashCode();
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (obj == this) {
-                return true;
-            }
-            if (!(obj instanceof EndpointWithConfiguration)) {
-                return false;
-            }
-            EndpointWithConfiguration other = (EndpointWithConfiguration) obj;
-            return endpoint.equals(other.endpoint) && configuration.equals(other.configuration);
-        }
-    }
 }

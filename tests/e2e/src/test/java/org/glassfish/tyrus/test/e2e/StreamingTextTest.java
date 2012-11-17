@@ -43,7 +43,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.client.DefaultClientEndpointConfiguration;
+import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.server.Server;
 
 import org.junit.Assert;
@@ -73,7 +73,7 @@ public class StreamingTextTest {
             client.connectToServer(stc, dcec);
 
             messageLatch.await(5, TimeUnit.SECONDS);
-            Assert.assertTrue("The client got something streaming back", stc.gotSomethingBack);
+            Assert.assertTrue("The client did not get anything back", stc.gotSomethingBack);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);

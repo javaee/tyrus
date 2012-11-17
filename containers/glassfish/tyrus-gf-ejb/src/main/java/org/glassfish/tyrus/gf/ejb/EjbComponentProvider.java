@@ -55,12 +55,12 @@ import java.util.logging.Logger;
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class EjbComponentProvider implements ComponentProvider {
+public class EjbComponentProvider extends ComponentProvider {
 
     private static final Logger LOGGER = Logger.getLogger(EjbComponentProvider.class.getName());
 
     @Override
-    public Object getInstance(Class<?> c) throws Exception {
+    public <T> T provideInstance(Class<T> c) throws Exception {
         String name = getName(c);
         if (name == null) {
             return null;
@@ -68,7 +68,7 @@ public class EjbComponentProvider implements ComponentProvider {
 
         try {
             InitialContext ic = new InitialContext();
-            return lookup(ic, c, name);
+            return (T) lookup(ic, c, name);
         } catch (NamingException ex) {
             String message =  "An instance of EJB class " + c.getName() +
                     " could not be looked up using simple form name or the fully-qualified form name.";

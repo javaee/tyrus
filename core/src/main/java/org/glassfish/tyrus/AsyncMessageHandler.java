@@ -37,14 +37,13 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-
 package org.glassfish.tyrus;
 
 import javax.websocket.MessageHandler;
 
 /**
- * @author Stepan Kopriva (stepan.kopriva at oracle.com)
+ * @author Martin Matula (martin.matula at oracle.com)
  */
-public interface AsyncMessageHandler extends MessageHandler.Async{
+public interface AsyncMessageHandler extends MessageHandler.Async {
     Class<?> getType();
 }

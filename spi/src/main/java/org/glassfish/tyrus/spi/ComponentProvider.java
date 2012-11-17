@@ -40,12 +40,41 @@
 
 package org.glassfish.tyrus.spi;
 
+import com.sun.xml.internal.ws.util.ServiceFinder;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
  * Provides an instance.
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
+ * @author Martin Matula (martin.matula at oracle.com)
  */
-public interface ComponentProvider {
+public abstract class ComponentProvider {
+    public static <T> T getInstance(Class<T> c) {
+        ServiceFinder<ComponentProvider> finder = ServiceFinder.find(ComponentProvider.class);
+        T loaded = null;
+        for (ComponentProvider componentProvider : finder) {
+            if (componentProvider.isApplicable(c)) {
+                try {
+                    loaded = componentProvider.provideInstance(c);
+                    break;
+                } catch (Exception e) {
+                    Logger.getLogger(ComponentProvider.class.getName()).log(Level.WARNING, "Component provider " + componentProvider.getClass().getName() +
+                            " threw exception when providing instance of class " + c.getName() + ".", e);
+                    continue;
+                }
+            }
+        }
+        if (loaded == null) {
+            try {
+                loaded = c.newInstance();
+            } catch (Exception e) {
+                Logger.getLogger(ComponentProvider.class.getName()).log(Level.SEVERE, "Endpoint class " + c.getName() + " could not be instantiated.", e);
+            }
+        }
+        return loaded;
+    }
 
     /**
      * Checks whether this component provider is able to provide an instance of given {@link Class}.
@@ -53,7 +82,7 @@ public interface ComponentProvider {
      * @param c {@link Class} to be checked.
      * @return {@code true} iff this {@link ComponentProvider} is able to create an instance of the given {@link Class}.
      */
-    public boolean isApplicable(Class<?> c);
+    public abstract boolean isApplicable(Class<?> c);
 
     /**
      * Create new instance.
@@ -61,5 +90,5 @@ public interface ComponentProvider {
      * @return instance, iff found, {@code null} otherwise.
      * @throws Exception
      */
-    public Object getInstance(Class<?> c) throws Exception;
+    public abstract <T> T provideInstance(Class<T> c) throws Exception;
 }

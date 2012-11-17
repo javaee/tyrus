@@ -39,44 +39,57 @@
  */
 package org.glassfish.tyrus.test.e2e;
 
+import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-
-import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
-import org.glassfish.tyrus.server.Server;
-
-import org.junit.Assert;
-import org.junit.Test;
+import javax.websocket.Session;
+import javax.websocket.WebSocketEndpoint;
+import javax.websocket.WebSocketMessage;
+import javax.websocket.WebSocketOpen;
 
 /**
- * Tests the basic client behavior, sending and receiving message
- *
- * @author Danny Coward (danny.coward at oracle.com)
+ * @author Martin Matula (martin.matula at oracle.com)
  */
-public class HelloTextTest {
+@WebSocketEndpoint("/streamingtext")
+public class StreamingTextAnnotServer {
+    private Session session;
+    private StringBuilder sb = new StringBuilder();
+    static CountDownLatch messageLatch;
 
-    @Test
-    public void testClient() {
-        Server server = new Server(HelloTextServer.class.getName());
-        server.start();
-
+    @WebSocketOpen
+    public void onOpen(Session session) {
+        System.out.println("STREAMINGSERVER opened !");
+        this.session = session;
         try {
-            CountDownLatch messageLatch = new CountDownLatch(1);
-            DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder("ws://localhost:8025/websockets/tests/hellotext");
-            DefaultClientEndpointConfiguration dcec = builder.build();
-
-            HelloTextClient htc = new HelloTextClient(messageLatch);
-            ClientManager client = ClientManager.createClient();
-            client.connectToServer(htc, dcec);
-
-            messageLatch.await(5, TimeUnit.SECONDS);
-            Assert.assertTrue("Client did not receive anything.", htc.gotSomethingBack);
+            System.out.println(session.getRemote());
+            sendPartial("thank ", false);
+            sendPartial("you ", false);
+            sendPartial("very ", false);
+            sendPartial("much ", false);
+            sendPartial("!", true);
         } catch (Exception e) {
             e.printStackTrace();
-            throw new RuntimeException(e.getMessage(), e);
-        } finally {
-            server.stop();
         }
     }
+
+    @WebSocketMessage
+    public void onMessage(String text, boolean last) {
+        System.out.println("STREAMINGSERVER piece came: " + text);
+        sb.append(text);
+        if (last) {
+            System.out.println("STREAMINGSERVER whole message: " + sb.toString());
+            sb = new StringBuilder();
+            messageLatch.countDown();
+        } else {
+            System.out.println("Resuming the client...");
+            synchronized (StreamingTextClient.class) {
+                StreamingTextClient.class.notify();
+            }
+        }
+    }
+
+    private void sendPartial(String partialString, boolean isLast) throws IOException, InterruptedException {
+        System.out.println("Server sending: " + partialString);
+        session.getRemote().sendPartialString(partialString, isLast);
+    }
 }
+

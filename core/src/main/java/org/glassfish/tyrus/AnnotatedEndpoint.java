@@ -39,26 +39,33 @@
  */
 package org.glassfish.tyrus;
 
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.logging.Logger;
 import javax.websocket.CloseReason;
+import javax.websocket.Decoder;
+import javax.websocket.Encoder;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.MessageHandler;
+import javax.websocket.ServerEndpointConfiguration;
 import javax.websocket.Session;
 import javax.websocket.WebSocketClose;
+import javax.websocket.WebSocketEndpoint;
 import javax.websocket.WebSocketError;
 import javax.websocket.WebSocketMessage;
 import javax.websocket.WebSocketOpen;
 import javax.websocket.WebSocketPathParam;
-
-import java.lang.annotation.Annotation;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Set;
-import java.util.logging.Logger;
+import org.glassfish.tyrus.spi.ComponentProvider;
 
 /**
  * AnnotatedEndpoint of a class annotated using the WebSocketEndpoint annotations
@@ -75,20 +82,80 @@ public class AnnotatedEndpoint extends Endpoint {
     private final ParameterExtractor[] onOpenParameters;
     private final ParameterExtractor[] onCloseParameters;
     private final ParameterExtractor[] onErrorParameters;
+    private final EndpointConfiguration configuration;
 
     private Set<MessageHandlerFactory> messageHandlerFactories = new HashSet<MessageHandlerFactory>();
 
-    public AnnotatedEndpoint(Class<?> annotatedClass, Object annotatedInstance) {
+    public static AnnotatedEndpoint fromClass(Class<?> annotatedClass) {
+        final WebSocketEndpoint wseAnnotation = annotatedClass.getAnnotation(WebSocketEndpoint.class);
+
+        if (wseAnnotation == null) {
+            // TODO: client?
+            return null;
+        }
+
+        String endpointPath = wseAnnotation.value();
+
+        List<Encoder> encoders = new ArrayList<Encoder>();
+        if (wseAnnotation.encoders() != null) {
+            //noinspection unchecked
+            for (Class<? extends Encoder> encoderClass : (Class<? extends Encoder>[]) wseAnnotation.encoders()) {
+                Encoder encoder = ComponentProvider.getInstance(encoderClass);
+                if (encoder != null) {
+                    encoders.add(encoder);
+                }
+            }
+        }
+        List<Decoder> decoders = new ArrayList<Decoder>();
+        if (wseAnnotation.decoders() != null) {
+            //noinspection unchecked
+            for (Class<? extends Decoder> decoderClass : (Class<? extends Decoder>[]) wseAnnotation.decoders()) {
+                Class<?> decoderType = getDecoderClassType(decoderClass);
+                Decoder decoder = ComponentProvider.getInstance(decoderClass);
+                if (decoder != null) {
+                    decoders.add(new DecoderWrapper(decoder, decoderType, decoderClass));
+                }
+            }
+        }
+
+        ServerEndpointConfiguration config = new DefaultServerEndpointConfiguration.Builder(endpointPath)
+                .encoders(encoders).decoders(decoders).protocols(wseAnnotation.subprotocols() == null ?
+                        Collections.<String>emptyList() : Arrays.asList(wseAnnotation.subprotocols()))
+                // TODO: fix once origins is added to the @WebSocketEndpoint annotation
+                .origins(Collections.<String>emptyList()).build();
+
+        return new AnnotatedEndpoint(annotatedClass, config);
+    }
+
+    private static Class<?> getDecoderClassType(Class<?> decoder) {
+        Class<?> rootClass = null;
+
+        if (Decoder.Text.class.isAssignableFrom(decoder)) {
+            rootClass = Decoder.Text.class;
+        } else if (Decoder.Binary.class.isAssignableFrom(decoder)) {
+            rootClass = Decoder.Binary.class;
+        } else if (Decoder.TextStream.class.isAssignableFrom(decoder)) {
+            rootClass = Decoder.TextStream.class;
+        } else if (Decoder.BinaryStream.class.isAssignableFrom(decoder)) {
+            rootClass = Decoder.BinaryStream.class;
+        }
+
+        ReflectionHelper.DeclaringClassInterfacePair p = ReflectionHelper.getClass(decoder, rootClass);
+        Class[] as = ReflectionHelper.getParameterizedClassArguments(p);
+        if (as == null) {
+            return null;
+        } else {
+            return as[0];
+        }
+    }
+
+    private AnnotatedEndpoint(Class<?> annotatedClass, EndpointConfiguration config) {
+        this.configuration = config;
 
         // TODO: should be removed once the instance creation is delegated to lifecycle provider
-        if (annotatedInstance != null) {
-            this.annotatedInstance = annotatedInstance;
-        } else {
-            try {
-                this.annotatedInstance = annotatedClass.newInstance();
-            } catch (Exception e) {
-                throw new RuntimeException("Unable to instantiate endpoint class: " + annotatedClass, e);
-            }
+        annotatedInstance = ComponentProvider.getInstance(annotatedClass);
+        if (annotatedInstance == null) {
+            throw new RuntimeException("Unable to instantiate endpoint class: " + annotatedClass);
         }
 
         Method onOpen = null;
@@ -183,8 +250,8 @@ public class AnnotatedEndpoint extends Endpoint {
                         extractors[message.getKey()] = new ParamValue(0);
                         extractors[last.getKey()] = new ParamValue(1);
                         if (last.getValue() == boolean.class || last.getValue() == Boolean.class) {
-                                messageHandlerFactories.add(new AsyncHandler(m, extractors));
-                                continue;
+                            messageHandlerFactories.add(new AsyncHandler(m, extractors, message.getValue()));
+                            continue;
                         }
                     }
                     LOGGER.warning("Method " + annotatedClass.getName() + "." + m.getName() + " annotated with "
@@ -258,33 +325,17 @@ public class AnnotatedEndpoint extends Endpoint {
 
     @Override
     public void onClose(CloseReason closeReason) {
-        if (onCloseMethod != null) {
-            try {
-                onCloseMethod.invoke(annotatedInstance, closeReason);
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            } catch (InvocationTargetException e) {
-                e.printStackTrace();
-            }
-        }
+        callMethod(onCloseMethod, onCloseParameters, null, closeReason);
     }
 
     @Override
     public void onError(Throwable thr) {
-        if (onErrorMethod != null) {
-            try {
-                onErrorMethod.invoke(annotatedInstance, thr);
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            } catch (InvocationTargetException e) {
-                e.printStackTrace();
-            }
-        }
+        callMethod(onErrorMethod, onErrorParameters, null, thr);
     }
 
     @Override
     public EndpointConfiguration getEndpointConfiguration() {
-        return null;
+        return configuration;
     }
 
     @Override
@@ -315,27 +366,25 @@ public class AnnotatedEndpoint extends Endpoint {
     abstract class MessageHandlerFactory {
         final Method method;
         final ParameterExtractor[] extractors;
+        final Class<?> type;
 
-        MessageHandlerFactory(Method method, ParameterExtractor[] extractors) {
+        MessageHandlerFactory(Method method, ParameterExtractor[] extractors, Class<?> type) {
             this.method = method;
             this.extractors = extractors;
+            this.type = (PrimitivesToBoxing.getBoxing(type) == null) ? type : PrimitivesToBoxing.getBoxing(type);
         }
 
         abstract MessageHandler create(Session session);
     }
 
     class BasicHandler extends MessageHandlerFactory {
-        private final Class<?> type;
-
         BasicHandler(Method method, ParameterExtractor[] extractors, Class<?> type) {
-            super(method, extractors);
-            this.type = (PrimitivesToBoxing.getBoxing(type) == null) ? type : PrimitivesToBoxing.getBoxing(type);
+            super(method, extractors, type);
         }
 
         @Override
         public MessageHandler create(final Session session) {
             return new BasicMessageHandler() {
-
                 @Override
                 public void onMessage(Object message) {
                     Object result = callMethod(method, extractors, session, message);
@@ -357,18 +406,22 @@ public class AnnotatedEndpoint extends Endpoint {
     }
 
     class AsyncHandler extends MessageHandlerFactory {
-
-        AsyncHandler(Method method, ParameterExtractor[] extractors) {
-            super(method, extractors);
+        AsyncHandler(Method method, ParameterExtractor[] extractors, Class<?> type) {
+            super(method, extractors, type);
         }
 
         @Override
-        public MessageHandler.Async create(final Session session) {
-            return new MessageHandler.Async() {
+        public MessageHandler create(final Session session) {
+            return new AsyncMessageHandler() {
 
                 @Override
                 public void onMessage(Object partialMessage, boolean last) {
                     callMethod(method, extractors, session, partialMessage, last);
+                }
+
+                @Override
+                public Class<?> getType() {
+                    return type;
                 }
             };
         }

@@ -39,29 +39,21 @@
  */
 package org.glassfish.tyrus.test.e2e;
 
-import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfiguration;
+import java.io.IOException;
+import java.util.concurrent.CountDownLatch;
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 import javax.websocket.WebSocketEndpoint;
 import javax.websocket.WebSocketOpen;
-
-import java.io.IOException;
-import java.util.concurrent.CountDownLatch;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)
  * @author Martin Matula (martin.matula at oracle.com)
  */
 @WebSocketEndpoint("/streamingtext")
-public class StreamingTextServer extends Endpoint {
+public class StreamingTextServer {
     private Session session;
     static CountDownLatch messageLatch;
-
-    @Override
-    public EndpointConfiguration getEndpointConfiguration() {
-        return null;
-    }
 
     @WebSocketOpen
     public void onOpen(Session session) {
@@ -81,8 +73,8 @@ public class StreamingTextServer extends Endpoint {
                     messageLatch.countDown();
                 } else {
                     System.out.println("Resuming the client...");
-                    synchronized (StreamingTextServer.class) {
-                        StreamingTextServer.class.notify();
+                    synchronized (StreamingTextClient.class) {
+                        StreamingTextClient.class.notify();
                     }
                 }
             }
