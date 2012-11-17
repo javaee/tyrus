@@ -39,13 +39,12 @@
  */
 package org.glassfish.tyrus.test.e2e;
 
+import java.net.URL;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-
-import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
+import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
-
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -67,12 +66,12 @@ public class BlockingBinaryTest {
         try {
             CountDownLatch messageLatch = new CountDownLatch(2);
             BlockingBinaryServer.messageLatch = messageLatch;
-            DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder("ws://localhost:8025/websockets/tests/blockingbinary");
+            DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder();
             DefaultClientEndpointConfiguration dcec = builder.build();
 
             BlockingBinaryClient sbc = new BlockingBinaryClient(messageLatch);
             ClientManager client = ClientManager.createClient();
-            client.connectToServer(sbc, dcec);
+            client.connectToServer(sbc, "ws://localhost:8025/websockets/tests/blockingbinary");
 
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertTrue("Client did not receive anything.", sbc.gotTheSameThingBack);

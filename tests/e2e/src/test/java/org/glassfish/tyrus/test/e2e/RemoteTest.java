@@ -43,14 +43,10 @@ package org.glassfish.tyrus.test.e2e;
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.Session;
-
 import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.server.Server;
-
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -119,9 +115,6 @@ public class RemoteTest {
         try {
             messageLatch = new CountDownLatch(1);
 
-            final DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder("ws://localhost:8025/websockets/tests" + segmentPath);
-            final DefaultClientEndpointConfiguration dcec = builder.build();
-
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new TestEndpointAdapter() {
 
@@ -145,9 +138,9 @@ public class RemoteTest {
                     receivedMessage = message;
                     messageLatch.countDown();
                 }
-            }, dcec);
+            }, "ws://localhost:8025/websockets/tests" + segmentPath);
             messageLatch.await(5, TimeUnit.SECONDS);
-            Assert.assertTrue("The received message equals the required response", receivedMessage.equals(response));
+            Assert.assertEquals(response, receivedMessage);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);

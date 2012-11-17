@@ -42,14 +42,11 @@ package org.glassfish.tyrus.test.e2e;
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.Session;
-
-import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
+import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
-
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -75,7 +72,7 @@ public class MessageParamOrderTest {
         try {
             messageLatch = new CountDownLatch(1);
 
-            DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder("ws://localhost:8025/websockets/tests/hello");
+            DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder();
             DefaultClientEndpointConfiguration dcec = builder.build();
 
             ClientManager client = ClientManager.createClient();
@@ -101,7 +98,7 @@ public class MessageParamOrderTest {
                     receivedMessage = message;
                     messageLatch.countDown();
                 }
-            }, dcec);
+            }, "ws://localhost:8025/websockets/tests/hello");
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertTrue("The received message is the same as the sent one", receivedMessage.equals(SENT_MESSAGE));
         } catch (Exception e) {
@@ -119,7 +116,7 @@ public class MessageParamOrderTest {
         try {
             messageLatch = new CountDownLatch(1);
 
-            final DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder("ws://localhost:8025/websockets/tests/hello");
+            final DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder();
             final DefaultClientEndpointConfiguration dcec = builder.build();
 
             ClientManager client = ClientManager.createClient();
@@ -145,9 +142,9 @@ public class MessageParamOrderTest {
                     receivedMessage = message;
                     messageLatch.countDown();
                 }
-            }, dcec);
+            }, "ws://localhost:8025/websockets/tests/hello");
             messageLatch.await(5, TimeUnit.SECONDS);
-            Assert.assertTrue("The received message is the same as the sent one", receivedMessage.equals(SENT_MESSAGE));
+            Assert.assertEquals(SENT_MESSAGE, receivedMessage);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);

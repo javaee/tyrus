@@ -115,7 +115,7 @@
     </developers>
 
     <properties>
-        <websocket-api.version>1.0-20121114.190059-9</websocket-api.version>
+        <websocket-api.version>1.0-20121117.030053-12</websocket-api.version>
         <websocket.api.build_number>06</websocket.api.build_number>
 
         <servlet.api.version>3.0.1</servlet.api.version>
@@ -407,6 +407,11 @@
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
                 <version>4.10</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.main.extras</groupId>
+                <artifactId>glassfish-embedded-all</artifactId>
+                <version>4.0-SNAPSHOT</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

@@ -61,6 +61,8 @@ public class DefaultServerEndpointConfiguration extends DefaultEndpointConfigura
      */
     private final List<String> origins;
 
+    private final String uri;
+
     /**
      * Creates new configuration for {@link javax.websocket.Endpoint} which is used on the server side.
      *
@@ -73,7 +75,8 @@ public class DefaultServerEndpointConfiguration extends DefaultEndpointConfigura
     protected DefaultServerEndpointConfiguration(String uri, List<Encoder> encoders, List<Decoder> decoders,
                                                  List<String> subprotocols, List<String> extensions,
                                                  List<String> origins) {
-        super(uri, encoders, decoders, subprotocols, extensions);
+        super(encoders, decoders, subprotocols, extensions);
+        this.uri = uri;
         this.origins = origins == null ? Collections.<String>emptyList() : Collections.unmodifiableList(origins);
     }
 
@@ -120,12 +123,18 @@ public class DefaultServerEndpointConfiguration extends DefaultEndpointConfigura
 
     }
 
+    @Override
+    public String getPath() {
+        return uri;
+    }
+
     /**
      * Builder class used to build the {@link DefaultServerEndpointConfiguration}.
      */
     public static class Builder extends DefaultEndpointConfiguration.Builder<Builder> {
 
         private List<String> origins;
+        private final String uri;
 
         /**
          * Create new {@link Builder}.
@@ -133,7 +142,7 @@ public class DefaultServerEndpointConfiguration extends DefaultEndpointConfigura
          * @param uri at which the {@link javax.websocket.Endpoint} will be deployed.
          */
         public Builder(String uri) {
-            super(uri);
+            this.uri = uri;
         }
 
         /**
@@ -152,6 +161,7 @@ public class DefaultServerEndpointConfiguration extends DefaultEndpointConfigura
          *
          * @return new {@link DefaultServerEndpointConfiguration} instance.
          */
+        @Override
         public DefaultServerEndpointConfiguration build() {
             return new DefaultServerEndpointConfiguration(uri, encoders, decoders, protocols, extensions, origins);
         }

@@ -40,10 +40,6 @@
 
 package org.glassfish.tyrus.spi;
 
-import com.sun.xml.internal.ws.util.ServiceFinder;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 /**
  * Provides an instance.
  *
@@ -51,31 +47,6 @@ import java.util.logging.Logger;
  * @author Martin Matula (martin.matula at oracle.com)
  */
 public abstract class ComponentProvider {
-    public static <T> T getInstance(Class<T> c) {
-        ServiceFinder<ComponentProvider> finder = ServiceFinder.find(ComponentProvider.class);
-        T loaded = null;
-        for (ComponentProvider componentProvider : finder) {
-            if (componentProvider.isApplicable(c)) {
-                try {
-                    loaded = componentProvider.provideInstance(c);
-                    break;
-                } catch (Exception e) {
-                    Logger.getLogger(ComponentProvider.class.getName()).log(Level.WARNING, "Component provider " + componentProvider.getClass().getName() +
-                            " threw exception when providing instance of class " + c.getName() + ".", e);
-                    continue;
-                }
-            }
-        }
-        if (loaded == null) {
-            try {
-                loaded = c.newInstance();
-            } catch (Exception e) {
-                Logger.getLogger(ComponentProvider.class.getName()).log(Level.SEVERE, "Endpoint class " + c.getName() + " could not be instantiated.", e);
-            }
-        }
-        return loaded;
-    }
-
     /**
      * Checks whether this component provider is able to provide an instance of given {@link Class}.
      *

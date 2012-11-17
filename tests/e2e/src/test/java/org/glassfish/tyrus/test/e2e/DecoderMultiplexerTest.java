@@ -40,20 +40,18 @@
 
 package org.glassfish.tyrus.test.e2e;
 
+import java.io.IOException;
+import java.net.URL;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import javax.websocket.EndpointConfiguration;
+import javax.websocket.RemoteEndpoint;
+import javax.websocket.Session;
 import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.server.Server;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
-
-import javax.websocket.EndpointConfiguration;
-import javax.websocket.RemoteEndpoint;
-import javax.websocket.Session;
-
-import java.io.IOException;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Test of several decoders.
@@ -79,11 +77,8 @@ public class DecoderMultiplexerTest {
             messageLatch = new CountDownLatch(1);
             ClientManager client = ClientManager.createClient();
 
-            final DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder("ws://localhost:8025/websockets/tests/decodermultiplexer");
-            final DefaultClientEndpointConfiguration dcec = builder.build();
-
             TestAdapter ta = new TestAdapter();
-            client.connectToServer(ta, dcec);
+            client.connectToServer(ta, "ws://localhost:8025/websockets/tests/decodermultiplexer");
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertTrue("The received message is the same as the sent one", receivedMessage.equals("A: " + MESSAGE_A));
 

@@ -39,18 +39,20 @@
  */
 package org.glassfish.tyrus.client;
 
-import org.glassfish.tyrus.EndpointWrapper;
-import org.glassfish.tyrus.spi.TyrusClientSocket;
-import org.glassfish.tyrus.spi.TyrusContainer;
-
-import javax.websocket.ClientContainer;
-import javax.websocket.ClientEndpointConfiguration;
-import javax.websocket.Endpoint;
-import javax.websocket.Session;
-
+import java.net.URL;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Logger;
+import javax.websocket.ClientContainer;
+import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.DeploymentException;
+import javax.websocket.Endpoint;
+import javax.websocket.Session;
+import org.glassfish.tyrus.AnnotatedEndpoint;
+import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
+import org.glassfish.tyrus.EndpointWrapper;
+import org.glassfish.tyrus.spi.TyrusClientSocket;
+import org.glassfish.tyrus.spi.TyrusContainer;
 
 /**
  * ClientManager implementation.
@@ -87,14 +89,36 @@ public class ClientManager implements ClientContainer {
     }
 
     @Override
-    public void connectToServer(Endpoint endpoint, ClientEndpointConfiguration configuration) {
+    public void connectToServer(Endpoint endpoint, URL url) throws DeploymentException {
+        connectToServer(endpoint, url.toString());
+    }
+
+    @Override
+    public void connectToServer(Object o, URL url) throws DeploymentException {
+        connectToServer(o, url.toString());
+    }
+
+    public void connectToServer(Object o, String url) throws DeploymentException {
+        Endpoint endpoint;
+        if (o instanceof Endpoint) {
+            endpoint = (Endpoint) o;
+        } else {
+            endpoint = AnnotatedEndpoint.fromInstance(o);
+            if (endpoint == null) {
+                throw new DeploymentException(o.getClass().getName() + " is not a valid client endpoint.");
+            }
+        }
         try {
-            EndpointWrapper clientEndpoint = new EndpointWrapper(endpoint, configuration, this, null);
+            EndpointWrapper clientEndpoint = new EndpointWrapper(endpoint, this, null);
+            ClientEndpointConfiguration config = (ClientEndpointConfiguration) endpoint.getEndpointConfiguration();
+            if (config == null) {
+                config = new DefaultClientEndpointConfiguration.Builder().build();
+            }
             TyrusClientSocket clientSocket = engine.openClientSocket(
-                    configuration.getPath(), configuration, clientEndpoint);
+                    url, config, clientEndpoint);
             sockets.add(clientSocket);
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new DeploymentException("Connection failed.", e);
         }
     }
 

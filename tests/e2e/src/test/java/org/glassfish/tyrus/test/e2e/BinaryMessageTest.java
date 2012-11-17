@@ -39,21 +39,20 @@
  */
 package org.glassfish.tyrus.test.e2e;
 
-import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
-import org.glassfish.tyrus.server.Server;
-import org.junit.Assert;
-import org.junit.Test;
-
+import java.io.IOException;
+import java.net.URL;
+import java.nio.ByteBuffer;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
-
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
+import org.glassfish.tyrus.client.ClientManager;
+import org.glassfish.tyrus.server.Server;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Tests the correct processing of binary message and replying.
@@ -74,7 +73,7 @@ public class BinaryMessageTest {
         try {
             messageLatch = new CountDownLatch(1);
 
-            final DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder("ws://localhost:8025/websockets/tests/binary");
+            final DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder();
             final DefaultClientEndpointConfiguration dcec = builder.build();
 
             ClientManager client = ClientManager.createClient();
@@ -99,7 +98,7 @@ public class BinaryMessageTest {
                         e.printStackTrace();
                     }
                 }
-            }, dcec);
+            }, "ws://localhost:8025/websockets/tests/binary");
             messageLatch.await(5000, TimeUnit.SECONDS);
             Assert.assertArrayEquals("The received message is the same as the sent one", receivedMessage.array(), BINARY_MESSAGE);
         } catch (Exception e) {

@@ -39,19 +39,17 @@
  */
 package org.glassfish.tyrus.test.e2e;
 
-import org.glassfish.tyrus.client.ClientManager;
+import java.io.IOException;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import javax.websocket.EndpointConfiguration;
+import javax.websocket.Session;
 import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
+import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.e2e.bean.PathParamTestBean;
 import org.junit.Assert;
 import org.junit.Test;
-
-import javax.websocket.EndpointConfiguration;
-import javax.websocket.Session;
-
-import java.io.IOException;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
@@ -71,7 +69,7 @@ public class PathParamTest {
         try {
             messageLatch = new CountDownLatch(1);
 
-            final DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder("wss://localhost:8025/websockets/tests/pathparam/first/second/th/ird");
+            final DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder();
             final DefaultClientEndpointConfiguration dcec = builder.build();
 
             ClientManager client = ClientManager.createClient();
@@ -97,9 +95,9 @@ public class PathParamTest {
                     receivedMessage = message;
                     messageLatch.countDown();
                 }
-            }, dcec);
+            }, "wss://localhost:8025/websockets/tests/pathparam/first/second/th/ird");
             messageLatch.await(5, TimeUnit.SECONDS);
-            Assert.assertTrue("The received message is the same as the sent one", receivedMessage.equals(SENT_MESSAGE + "first" + "second" + "th/ird"));
+            Assert.assertEquals(SENT_MESSAGE + "first" + "second" + "th/ird", receivedMessage);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);

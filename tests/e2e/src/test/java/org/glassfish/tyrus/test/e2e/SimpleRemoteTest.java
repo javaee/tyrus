@@ -41,6 +41,7 @@
 package org.glassfish.tyrus.test.e2e;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -73,7 +74,7 @@ public class SimpleRemoteTest {
         Server server = new Server(org.glassfish.tyrus.test.e2e.bean.SimpleRemoteTestBean.class);
         server.start();
         try {
-            DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder("ws://localhost:8025/websockets/tests/customremote/hello");
+            DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder();
             final DefaultClientEndpointConfiguration dcec = builder.build();
 
             final ClientManager client = ClientManager.createClient();
@@ -98,7 +99,7 @@ public class SimpleRemoteTest {
                     receivedMessage = message;
                     messageLatch.countDown();
                 }
-            }, dcec);
+            }, "ws://localhost:8025/websockets/tests/customremote/hello");
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertTrue("The received message is the same as the sent one", receivedMessage.equals(SENT_MESSAGE));
         } catch (Exception e) {
@@ -121,7 +122,7 @@ public class SimpleRemoteTest {
                 @Override
                 public void run() {
                     try {
-                        final DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder("ws://localhost:8025/websockets/tests/customremote/hello");
+                        final DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder();
                         final DefaultClientEndpointConfiguration dcec = builder.build();
 
                         final CountDownLatch perClientLatch = new CountDownLatch(2);
@@ -156,7 +157,7 @@ public class SimpleRemoteTest {
                                 assertEquals(testString, s);
                                 messageLatch.countDown();
                             }
-                        }, dcec);
+                        }, "ws://localhost:8025/websockets/tests/customremote/hello");
                         perClientLatch.await(5, TimeUnit.SECONDS);
                     } catch (Exception e) {
                         e.printStackTrace();

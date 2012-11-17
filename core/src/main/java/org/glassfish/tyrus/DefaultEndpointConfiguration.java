@@ -72,10 +72,7 @@ public abstract class DefaultEndpointConfiguration implements EndpointConfigurat
      */
     protected final List<String> extensions;
 
-    protected final String uri;
-
-    protected DefaultEndpointConfiguration(String uri, List<Encoder> encoders, List<Decoder> decoders, List<String> subprotocols, List<String> extensions) {
-        this.uri = uri;
+    protected DefaultEndpointConfiguration(List<Encoder> encoders, List<Decoder> decoders, List<String> subprotocols, List<String> extensions) {
         if (encoders != null) {
             this.encoders = Collections.unmodifiableList(encoders);
         } else {
@@ -123,25 +120,11 @@ public abstract class DefaultEndpointConfiguration implements EndpointConfigurat
         return decoders;
     }
 
-    public String getPath() {
-        return uri;
-    }
-
-    protected static class Builder<T extends Builder> {
-        protected String uri;
+    protected static abstract class Builder<T extends Builder> {
         protected List<Encoder> encoders;
         protected List<Decoder> decoders;
         protected List<String> protocols;
         protected List<String> extensions;
-
-        /**
-         * Create new {@link Builder}.
-         *
-         * @param uri URI the corresponding {@link javax.xml.ws.Endpoint} will use to connect to.
-         */
-        public Builder(String uri) {
-            this.uri = uri;
-        }
 
         /**
          * Set encoders.
@@ -194,5 +177,7 @@ public abstract class DefaultEndpointConfiguration implements EndpointConfigurat
             this.extensions = extensions;
             return (T) this;
         }
+
+        public abstract DefaultEndpointConfiguration build();
     }
 }

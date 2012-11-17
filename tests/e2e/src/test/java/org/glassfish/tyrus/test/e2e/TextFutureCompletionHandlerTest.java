@@ -39,16 +39,13 @@
  */
 package org.glassfish.tyrus.test.e2e;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import javax.websocket.SendResult;
 import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.server.Server;
 import org.junit.Assert;
 import org.junit.Test;
-
-import javax.websocket.SendResult;
-
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Tests the basic client behavior, sending and receiving message
@@ -65,12 +62,10 @@ public class TextFutureCompletionHandlerTest {
         try {
             CountDownLatch messageLatch = new CountDownLatch(2);
             TextFutureCompletionHandlerServer.messageLatch = messageLatch;
-            DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder("ws://localhost:8025/websockets/tests/hellocompletionhandlerfuture");
-            DefaultClientEndpointConfiguration dcec = builder.build();
 
             HelloTextClient htc = new HelloTextClient(messageLatch);
             ClientManager client = ClientManager.createClient();
-            client.connectToServer(htc, dcec);
+            client.connectToServer(htc, "ws://localhost:8025/websockets/tests/hellocompletionhandlerfuture");
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertTrue("The client did not get anything back", htc.gotSomethingBack);
             Assert.assertNotNull(TextFutureCompletionHandlerServer.sr);
@@ -90,12 +85,10 @@ public class TextFutureCompletionHandlerTest {
         try {
             CountDownLatch messageLatch = new CountDownLatch(2);
             TextFutureCompletionHandlerServer.messageLatch = messageLatch;
-            DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder("ws://localhost:8025/websockets/tests/hellocompletionhandlerfuture");
-            DefaultClientEndpointConfiguration dcec = builder.build();
 
             HelloTextClient htc = new HelloTextClient(messageLatch);
             ClientManager client = ClientManager.createClient();
-            client.connectToServer(htc, dcec);
+            client.connectToServer(htc, "ws://localhost:8025/websockets/tests/hellocompletionhandlerfuture");
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertTrue("The client did not get anything back", htc.gotSomethingBack);
             SendResult sr = TextFutureCompletionHandlerServer.fsr.get();

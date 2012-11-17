@@ -39,6 +39,7 @@
  */
 package org.glassfish.tyrus.test.e2e;
 
+import java.net.URL;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.server.Server;
@@ -81,7 +82,7 @@ public class DecodedObjectTest {
             messageLatch = new CountDownLatch(1);
             ArrayList<Decoder> decoders = new ArrayList<Decoder>();
             decoders.add(new CustomDecoder());
-            DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder("ws://localhost:8025/websockets/tests/echo");
+            DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder();
             builder.decoders(decoders);
             final DefaultClientEndpointConfiguration dcec = builder.build();
 
@@ -104,7 +105,7 @@ public class DecodedObjectTest {
                         e.printStackTrace();
                     }
                 }
-            }, dcec);
+            }, "ws://localhost:8025/websockets/tests/echo");
 
             messageLatch.await(5000, TimeUnit.SECONDS);
             Assert.assertTrue("The received message is the same as the sent one", receivedMessage.equals(SENT_MESSAGE));
@@ -126,7 +127,7 @@ public class DecodedObjectTest {
             messageLatch = new CountDownLatch(1);
             ArrayList<Decoder> decoders = new ArrayList<Decoder>();
             decoders.add(new ExtendedDecoder());
-            DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder("ws://localhost:8025/websockets/tests/echo");
+            DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder();
             builder.decoders(decoders);
             final DefaultClientEndpointConfiguration dcec = builder.build();
 
@@ -149,7 +150,7 @@ public class DecodedObjectTest {
                         e.printStackTrace();
                     }
                 }
-            }, dcec);
+            }, "ws://localhost:8025/websockets/tests/echo");
 
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertTrue("The received message is the same as the sent one", receivedMessage.equals("Extended "+SENT_MESSAGE));

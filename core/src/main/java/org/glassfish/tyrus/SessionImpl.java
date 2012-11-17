@@ -65,7 +65,7 @@ import javax.websocket.Session;
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  * @author Martin Matula (martin.matula at oracle.com)
  */
-public class SessionImpl<T> implements Session<T> {
+public class SessionImpl implements Session {
 
     private final ClientContainer container;
     private final EndpointWrapper endpoint;
@@ -223,10 +223,11 @@ public class SessionImpl<T> implements Session<T> {
 
     // TODO: this method should be deleted?
     @Override
-    public Map<String, String[]> getParameterMap() {
+    public Map<String, String[]> getRequestParameterMap() {
         return Collections.emptyMap();
     }
 
+    @Override
     public Map<String, String> getPathParameters() {
         return pathParameters;
     }

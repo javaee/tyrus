@@ -68,10 +68,10 @@ public class EjbManualTestingApplication {
         try {
             messageLatch = new CountDownLatch(2);
 
-            DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder("ws://localhost:8080/ejb-test/singleton");
+            DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder();
             final DefaultClientEndpointConfiguration configSingleton = builder.build();
 
-            builder = new DefaultClientEndpointConfiguration.Builder("ws://localhost:8080/ejb-test/stateless");
+            builder = new DefaultClientEndpointConfiguration.Builder();
             final DefaultClientEndpointConfiguration configStateless = builder.build();
 
             ClientManager client = ClientManager.createClient();
@@ -97,7 +97,7 @@ public class EjbManualTestingApplication {
                     messageLatch.countDown();
                     System.out.println("Received Message1: "+receivedMessage1);
                 }
-            }, configSingleton);
+            }, "ws://localhost:8080/ejb-test/singleton");
 
             client.connectToServer(new TestEndpointAdapter() {
                 @Override
@@ -121,7 +121,7 @@ public class EjbManualTestingApplication {
                     messageLatch.countDown();
                     System.out.println("Received Message2: "+receivedMessage2);
                 }
-            }, configSingleton);
+            }, "ws://localhost:8080/ejb-test/singleton");
             messageLatch.await(5, TimeUnit.SECONDS);
 
             messageLatch = new CountDownLatch(2);
@@ -148,7 +148,7 @@ public class EjbManualTestingApplication {
                     messageLatch.countDown();
                     System.out.println("Received Message3: "+receivedMessage1);
                 }
-            }, configStateless);
+            }, "ws://localhost:8080/ejb-test/stateless");
 
             client.connectToServer(new TestEndpointAdapter() {
                 @Override
@@ -172,7 +172,7 @@ public class EjbManualTestingApplication {
                     messageLatch.countDown();
                     System.out.println("Received Message4: "+receivedMessage2);
                 }
-            }, configStateless);
+            }, "ws://localhost:8080/ejb-test/stateless");
 
             messageLatch.await(5, TimeUnit.SECONDS);
 

@@ -40,6 +40,7 @@
 
 package org.glassfish.tyrus.test.e2e;
 
+import java.net.URL;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.server.Server;
@@ -86,7 +87,7 @@ public class HandshakeTest {
             extensions.add("ext1");
             extensions.add("ext2");
 
-            DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder("ws://localhost:8025/websockets/tests/echo");
+            DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder();
 //            builder.protocols(subprotocols);
             builder.extensions(extensions);
             final DefaultClientEndpointConfiguration dcec = builder.build();
@@ -115,7 +116,7 @@ public class HandshakeTest {
                         e.printStackTrace();
                     }
                 }
-            }, dcec);
+            }, "ws://localhost:8025/websockets/tests/echo");
 
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertEquals(SENT_MESSAGE, receivedMessage);

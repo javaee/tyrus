@@ -57,15 +57,14 @@ import javax.websocket.Encoder;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.MessageHandler;
-import javax.websocket.ServerEndpointConfiguration;
 import javax.websocket.Session;
+import javax.websocket.WebSocketClient;
 import javax.websocket.WebSocketClose;
 import javax.websocket.WebSocketEndpoint;
 import javax.websocket.WebSocketError;
 import javax.websocket.WebSocketMessage;
 import javax.websocket.WebSocketOpen;
 import javax.websocket.WebSocketPathParam;
-import org.glassfish.tyrus.spi.ComponentProvider;
 
 /**
  * AnnotatedEndpoint of a class annotated using the WebSocketEndpoint annotations
@@ -87,44 +86,65 @@ public class AnnotatedEndpoint extends Endpoint {
     private Set<MessageHandlerFactory> messageHandlerFactories = new HashSet<MessageHandlerFactory>();
 
     public static AnnotatedEndpoint fromClass(Class<?> annotatedClass) {
+        return new AnnotatedEndpoint(annotatedClass, null, createEndpointConfiguration(annotatedClass));
+    }
+
+    public static AnnotatedEndpoint fromInstance(Object annotatedInstance) {
+        return new AnnotatedEndpoint(annotatedInstance.getClass(), annotatedInstance,
+                createEndpointConfiguration(annotatedInstance.getClass()));
+    }
+
+    private static EndpointConfiguration createEndpointConfiguration(Class<?> annotatedClass) {
         final WebSocketEndpoint wseAnnotation = annotatedClass.getAnnotation(WebSocketEndpoint.class);
 
+        Class<? extends Encoder>[] encoderClasses;
+        Class<? extends Decoder>[] decoderClasses;
+        String[] subProtocols;
+
         if (wseAnnotation == null) {
-            // TODO: client?
-            return null;
+            WebSocketClient wscAnnotation = annotatedClass.getAnnotation(WebSocketClient.class);
+            if (wscAnnotation == null) {
+                return null;
+            }
+            encoderClasses = wscAnnotation.encoders();
+            decoderClasses = wscAnnotation.decoders();
+            subProtocols = wscAnnotation.subprotocols();
+        } else {
+            encoderClasses = wseAnnotation.encoders();
+            decoderClasses = wseAnnotation.decoders();
+            subProtocols = wseAnnotation.subprotocols();
         }
 
-        String endpointPath = wseAnnotation.value();
-
         List<Encoder> encoders = new ArrayList<Encoder>();
-        if (wseAnnotation.encoders() != null) {
+        if (encoderClasses != null) {
             //noinspection unchecked
-            for (Class<? extends Encoder> encoderClass : (Class<? extends Encoder>[]) wseAnnotation.encoders()) {
-                Encoder encoder = ComponentProvider.getInstance(encoderClass);
+            for (Class<? extends Encoder> encoderClass : encoderClasses) {
+                Encoder encoder = ComponentProviderService.getInstance(encoderClass);
                 if (encoder != null) {
                     encoders.add(encoder);
                 }
             }
         }
         List<Decoder> decoders = new ArrayList<Decoder>();
-        if (wseAnnotation.decoders() != null) {
+        if (decoderClasses != null) {
             //noinspection unchecked
-            for (Class<? extends Decoder> decoderClass : (Class<? extends Decoder>[]) wseAnnotation.decoders()) {
+            for (Class<? extends Decoder> decoderClass : decoderClasses) {
                 Class<?> decoderType = getDecoderClassType(decoderClass);
-                Decoder decoder = ComponentProvider.getInstance(decoderClass);
+                Decoder decoder = ComponentProviderService.getInstance(decoderClass);
                 if (decoder != null) {
                     decoders.add(new DecoderWrapper(decoder, decoderType, decoderClass));
                 }
             }
         }
 
-        ServerEndpointConfiguration config = new DefaultServerEndpointConfiguration.Builder(endpointPath)
-                .encoders(encoders).decoders(decoders).protocols(wseAnnotation.subprotocols() == null ?
-                        Collections.<String>emptyList() : Arrays.asList(wseAnnotation.subprotocols()))
+        DefaultEndpointConfiguration.Builder builder = wseAnnotation == null ?
+                new DefaultClientEndpointConfiguration.Builder() :
                 // TODO: fix once origins is added to the @WebSocketEndpoint annotation
-                .origins(Collections.<String>emptyList()).build();
+                new DefaultServerEndpointConfiguration.Builder(wseAnnotation.value())
+                        .origins(Collections.<String>emptyList());
 
-        return new AnnotatedEndpoint(annotatedClass, config);
+        return builder.encoders(encoders).decoders(decoders).protocols(subProtocols == null ?
+                        Collections.<String>emptyList() : Arrays.asList(subProtocols)).build();
     }
 
     private static Class<?> getDecoderClassType(Class<?> decoder) {
@@ -149,11 +169,11 @@ public class AnnotatedEndpoint extends Endpoint {
         }
     }
 
-    private AnnotatedEndpoint(Class<?> annotatedClass, EndpointConfiguration config) {
+    private AnnotatedEndpoint(Class<?> annotatedClass, Object instance, EndpointConfiguration config) {
         this.configuration = config;
 
         // TODO: should be removed once the instance creation is delegated to lifecycle provider
-        annotatedInstance = ComponentProvider.getInstance(annotatedClass);
+        annotatedInstance = instance == null ? ComponentProviderService.getInstance(annotatedClass) : instance;
         if (annotatedInstance == null) {
             throw new RuntimeException("Unable to instantiate endpoint class: " + annotatedClass);
         }
@@ -280,7 +300,7 @@ public class AnnotatedEndpoint extends Endpoint {
                 result[i] = new ParameterExtractor() {
                     @Override
                     public Object value(Session session, Object... values) {
-                        return ((SessionImpl) session).getPathParameters().get(pathParamName);
+                        return session.getPathParameters().get(pathParamName);
                     }
                 };
             } else if (type == Session.class) {

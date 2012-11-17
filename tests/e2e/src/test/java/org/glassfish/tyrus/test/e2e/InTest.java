@@ -40,6 +40,7 @@
 
 package org.glassfish.tyrus.test.e2e;
 
+import java.net.URL;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.server.Server;
@@ -116,12 +117,12 @@ public class InTest {
 
             String address = "ws://localhost:8025/websockets/tests" + segmentPath;
 
-            final DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder(address);
+            final DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder();
             final DefaultClientEndpointConfiguration dcec = builder.build();
 
             ClientManager client = ClientManager.createClient();
             TestAdapter ta = new TestAdapter(message);
-            client.connectToServer(ta, dcec);
+            client.connectToServer(ta, address);
 
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertEquals(response, receivedMessage);

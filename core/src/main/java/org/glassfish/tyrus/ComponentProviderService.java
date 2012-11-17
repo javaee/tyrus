@@ -37,47 +37,37 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.test.e2e;
+package org.glassfish.tyrus;
 
-import java.net.URL;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.server.Server;
-import org.junit.Assert;
-import org.junit.Ignore;
-import org.junit.Test;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.glassfish.tyrus.spi.ComponentProvider;
 
 /**
- * Tests the basic client behavior, sending and receiving message
- *
- * @author Danny Coward (danny.coward at oracle.com)
  * @author Martin Matula (martin.matula at oracle.com)
  */
-public class BlockingStreamingTextTest {
-
-    @Ignore
-    @Test
-    public void testClient() {
-        Server server = new Server(BlockingStreamingTextServer.class.getName());
-        server.start();
-
-        try {
-            CountDownLatch messageLatch = new CountDownLatch(1);
-
-            BlockingStreamingTextClient bstc = new BlockingStreamingTextClient(messageLatch);
-            ClientManager client = ClientManager.createClient();
-            client.connectToServer(bstc, "ws://localhost:8025/websockets/tests/blockingstreaming");
-
-            messageLatch.await(5, TimeUnit.SECONDS);
-            System.out.println("SENT: " + bstc.sentMessage);
-            System.out.println("RECIEVED: " + bstc.receivedMessage);
-            Assert.assertTrue("Client got back what it sent, all pieces in the right order.", bstc.sentMessage.equals(bstc.receivedMessage));
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException(e.getMessage(), e);
-        } finally {
-            server.stop();
+public class ComponentProviderService {
+    public static <T> T getInstance(Class<T> c) {
+        ServiceFinder<ComponentProvider> finder = ServiceFinder.find(ComponentProvider.class);
+        T loaded = null;
+        for (ComponentProvider componentProvider : finder) {
+            if (componentProvider.isApplicable(c)) {
+                try {
+                    loaded = componentProvider.provideInstance(c);
+                    break;
+                } catch (Exception e) {
+                    Logger.getLogger(ComponentProviderService.class.getName()).log(Level.WARNING, "Component provider " + componentProvider.getClass().getName() +
+                            " threw exception when providing instance of class " + c.getName() + ".", e);
+                }
+            }
         }
+        if (loaded == null) {
+            try {
+                loaded = c.newInstance();
+            } catch (Exception e) {
+                Logger.getLogger(ComponentProviderService.class.getName()).log(Level.SEVERE, "Endpoint class " + c.getName() + " could not be instantiated.", e);
+            }
+        }
+        return loaded;
     }
 }

@@ -39,6 +39,7 @@
  */
 package org.glassfish.tyrus.test.e2e;
 
+import java.net.URL;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -63,12 +64,12 @@ public class HelloTextTest {
 
         try {
             CountDownLatch messageLatch = new CountDownLatch(1);
-            DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder("ws://localhost:8025/websockets/tests/hellotext");
+            DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder();
             DefaultClientEndpointConfiguration dcec = builder.build();
 
             HelloTextClient htc = new HelloTextClient(messageLatch);
             ClientManager client = ClientManager.createClient();
-            client.connectToServer(htc, dcec);
+            client.connectToServer(htc, "ws://localhost:8025/websockets/tests/hellotext");
 
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertTrue("Client did not receive anything.", htc.gotSomethingBack);

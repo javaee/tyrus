@@ -39,10 +39,10 @@
  */
 package org.glassfish.tyrus.test.e2e;
 
+import java.net.URL;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.server.Server;
 import org.junit.Assert;
 import org.junit.Test;
@@ -63,12 +63,10 @@ public class StreamingTextAnnotTest {
         try {
             CountDownLatch messageLatch = new CountDownLatch(2);
             StreamingTextAnnotServer.messageLatch = messageLatch;
-            DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder("ws://localhost:8025/websockets/tests/streamingtext");
-            DefaultClientEndpointConfiguration dcec = builder.build();
 
             StreamingTextClient stc = new StreamingTextClient(messageLatch);
             ClientManager client = ClientManager.createClient();
-            client.connectToServer(stc, dcec);
+            client.connectToServer(stc, "ws://localhost:8025/websockets/tests/streamingtext");
 
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertTrue("The client did not get anything back", stc.gotSomethingBack);

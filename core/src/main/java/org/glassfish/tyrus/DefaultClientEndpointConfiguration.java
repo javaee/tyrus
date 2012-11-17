@@ -57,9 +57,8 @@ public class DefaultClientEndpointConfiguration extends DefaultEndpointConfigura
      * to connect to the given URI.
      */
     private DefaultClientEndpointConfiguration(List<Encoder> encoders, List<Decoder> decoders,
-                                               List<String> subprotocols, List<String> extensions,
-                                               String uri) {
-        super(uri, encoders, decoders, subprotocols, extensions);
+                                               List<String> subprotocols, List<String> extensions) {
+        super(encoders, decoders, subprotocols, extensions);
     }
 
     /**
@@ -68,6 +67,7 @@ public class DefaultClientEndpointConfiguration extends DefaultEndpointConfigura
      *
      * @return {@link java.util.Collections.UnmodifiableList} of preferred sub-protocols.
      */
+    @Override
     public List<String> getPreferredSubprotocols() {
         return subProtocols;
     }
@@ -78,6 +78,7 @@ public class DefaultClientEndpointConfiguration extends DefaultEndpointConfigura
      *
      * @return {@link java.util.Collections.UnmodifiableList} of extensions.
      */
+    @Override
     public List<String> getExtensions() {
         return extensions;
     }
@@ -86,19 +87,9 @@ public class DefaultClientEndpointConfiguration extends DefaultEndpointConfigura
      * Builder class used to build the {@link DefaultClientEndpointConfiguration}.
      */
     public static class Builder extends DefaultEndpointConfiguration.Builder {
-
-        /**
-         * Create new {@link Builder}.
-         *
-         * @param uri at which the {@link javax.websocket.Endpoint} will be deployed.
-         */
-        public Builder(String uri) {
-            super(uri);
-        }
-
+        @Override
         public DefaultClientEndpointConfiguration build() {
-            return new DefaultClientEndpointConfiguration(encoders, decoders, protocols, extensions, uri);
+            return new DefaultClientEndpointConfiguration(encoders, decoders, protocols, extensions);
         }
-
     }
 }

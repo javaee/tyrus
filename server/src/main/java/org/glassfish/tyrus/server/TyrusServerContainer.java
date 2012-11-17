@@ -41,19 +41,21 @@
 package org.glassfish.tyrus.server;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
-import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
+import javax.websocket.ServerEndpointConfiguration;
 import javax.websocket.Session;
 import org.glassfish.tyrus.AnnotatedEndpoint;
+import org.glassfish.tyrus.ComponentProviderService;
 import org.glassfish.tyrus.EndpointWrapper;
 import org.glassfish.tyrus.WithProperties;
-import org.glassfish.tyrus.spi.ComponentProvider;
 import org.glassfish.tyrus.spi.SPIRegisteredEndpoint;
 import org.glassfish.tyrus.spi.TyrusServer;
 
@@ -134,7 +136,7 @@ public class TyrusServerContainer extends WithProperties implements ServerContai
             // introspect the bean and find all the paths....
             Endpoint endpoint;
             if (Endpoint.class.isAssignableFrom(endpointClass)) {
-                endpoint = (Endpoint) ComponentProvider.getInstance(endpointClass);
+                endpoint = (Endpoint) ComponentProviderService.getInstance(endpointClass);
             } else {
                 endpoint = AnnotatedEndpoint.fromClass(endpointClass);
                 if (endpoint == null) {
@@ -146,11 +148,11 @@ public class TyrusServerContainer extends WithProperties implements ServerContai
 
             allEndpoints.add(endpoint);
             Logger.getLogger(getClass().getName()).info("Registered a " + endpointClass + " at " +
-                endpoint.getEndpointConfiguration().getPath());
+                ((ServerEndpointConfiguration) endpoint.getEndpointConfiguration()).getPath());
         }
 
         for (Endpoint endpoint : allEndpoints) {
-            EndpointWrapper ew = new EndpointWrapper(endpoint, endpoint.getEndpointConfiguration(), this, contextPath);
+            EndpointWrapper ew = new EndpointWrapper(endpoint, this, contextPath);
             SPIRegisteredEndpoint ge = server.register(ew);
             endpoints.add(ge);
         }
@@ -172,7 +174,12 @@ public class TyrusServerContainer extends WithProperties implements ServerContai
     }
 
     @Override
-    public void connectToServer(Endpoint endpoint, ClientEndpointConfiguration olc) {
+    public void connectToServer(Endpoint endpoint, URL path) throws DeploymentException {
+        connectToServer((Object) endpoint, path);
+    }
+
+    @Override
+    public void connectToServer(Object pojo, URL path) throws DeploymentException {
         throw new UnsupportedOperationException();
     }
 

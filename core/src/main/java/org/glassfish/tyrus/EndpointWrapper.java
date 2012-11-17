@@ -40,6 +40,7 @@
 
 package org.glassfish.tyrus;
 
+import java.util.Collections;
 import org.glassfish.tyrus.internal.PathPattern;
 import org.glassfish.tyrus.spi.SPIEndpoint;
 import org.glassfish.tyrus.spi.SPIHandshakeRequest;
@@ -97,10 +98,20 @@ public class EndpointWrapper extends SPIEndpoint {
     private boolean isSecure;
     private String queryString;
 
-    public EndpointWrapper(Endpoint endpoint, EndpointConfiguration configuration, ClientContainer container,
+    public EndpointWrapper(Endpoint endpoint, ClientContainer container,
                            String contextPath) {
         this.endpoint = endpoint;
-        this.configuration = configuration;
+        this.configuration = endpoint.getEndpointConfiguration() == null ? new EndpointConfiguration() {
+            @Override
+            public List<Encoder> getEncoders() {
+                return Collections.emptyList();
+            }
+
+            @Override
+            public List<Decoder> getDecoders() {
+                return Collections.emptyList();
+            }
+        } : endpoint.getEndpointConfiguration();
         this.container = container;
         this.contextPath = contextPath;
 

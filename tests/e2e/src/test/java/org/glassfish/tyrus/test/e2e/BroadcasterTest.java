@@ -40,6 +40,7 @@
 
 package org.glassfish.tyrus.test.e2e;
 
+import java.net.URL;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -74,13 +75,10 @@ public class BroadcasterTest {
             final TEndpointAdapter ea1 = new TEndpointAdapter(messageLatch);
             final TEndpointAdapter ea2 = new TEndpointAdapter(messageLatch);
 
-            final DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder("ws://localhost:8025/websockets/tests/broadcast");
-            final DefaultClientEndpointConfiguration dcec = builder.build();
-
             final ClientManager client1 = ClientManager.createClient();
-            client1.connectToServer(ea1, dcec);
+            client1.connectToServer(ea1, "ws://localhost:8025/websockets/tests/broadcast");
             final ClientManager client2 = ClientManager.createClient();
-            client2.connectToServer(ea2, dcec);
+            client2.connectToServer(ea2, "ws://localhost:8025/websockets/tests/broadcast");
 
             synchronized (ea1) {
                 if (ea1.peer == null) {

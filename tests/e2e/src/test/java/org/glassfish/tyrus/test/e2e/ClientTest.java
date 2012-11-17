@@ -39,18 +39,17 @@
  */
 package org.glassfish.tyrus.test.e2e;
 
-import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
-import org.glassfish.tyrus.server.Server;
-import org.junit.Assert;
-import org.junit.Test;
-
-import javax.websocket.EndpointConfiguration;
-import javax.websocket.Session;
-
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.EndpointConfiguration;
+import javax.websocket.Session;
+import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
+import org.glassfish.tyrus.client.ClientManager;
+import org.glassfish.tyrus.server.Server;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Tests the basic client behavior, sending and receiving message.
@@ -67,16 +66,16 @@ public class ClientTest {
 
     @Test
     public void testClient() {
-        Server server = new Server("org.glassfish.tyrus.test.e2e.TestBean");
+        Server server = new Server(TestBean.class);
         server.start();
 
         try {
             messageLatch = new CountDownLatch(1);
-            DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder("ws://localhost:8025/websockets/tests/echo");
-            final DefaultClientEndpointConfiguration dcec = builder.build();
 
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new TestEndpointAdapter() {
+                private final ClientEndpointConfiguration configuration = new DefaultClientEndpointConfiguration.Builder().build();
+
                 @Override
                 public void onMessage(String message) {
                     receivedMessage = message;
@@ -86,7 +85,7 @@ public class ClientTest {
 
                 @Override
                 public EndpointConfiguration getEndpointConfiguration() {
-                    return dcec;
+                    return configuration;
                 }
 
                 @Override
@@ -99,10 +98,10 @@ public class ClientTest {
                         e.printStackTrace();
                     }
                 }
-            }, dcec);
+            }, "ws://localhost:8025/websockets/tests/echo");
 
             messageLatch.await(5000, TimeUnit.SECONDS);
-            Assert.assertTrue("The received message is the same as the sent one", receivedMessage.equals(SENT_MESSAGE));
+            Assert.assertEquals(SENT_MESSAGE, receivedMessage);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);

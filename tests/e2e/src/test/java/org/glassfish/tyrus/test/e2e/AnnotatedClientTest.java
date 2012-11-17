@@ -61,20 +61,18 @@ public class AnnotatedClientTest {
 
     private CountDownLatch messageLatch;
 
-    @Ignore
     @Test
     public void testSimpleMessage() {
 
-        Server server = new Server("org.glassfish.tyrus.test.e2e.TestBean");
+        Server server = new Server(TestBean.class);
         server.start();
         messageLatch = new CountDownLatch(1);
 
         try {
             ClientManager client = ClientManager.createClient();
-//            client.openSocket("ws://localhost:8025/websockets/tests/echo", 10000,new ClientTestBean(this, true));
-
+            client.connectToServer(new ClientTestBean(this, true), "ws://localhost:8025/websockets/tests/echo");
             messageLatch.await(5, TimeUnit.SECONDS);
-            Assert.assertTrue("The received message is the same as the sent one", receivedMessage.equals("hello"));
+            Assert.assertEquals("hello", receivedMessage);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
@@ -83,19 +81,18 @@ public class AnnotatedClientTest {
         }
     }
 
-    @Ignore
     @Test
+    @Ignore
     public void testMessageWith() {
-        Server server = new Server("org.glassfish.tyrus.test.e2e.TestBean");
+        Server server = new Server(TestBean.class);
         server.start();
         messageLatch = new CountDownLatch(1);
 
         try {
             ClientManager client = ClientManager.createClient();
-//            client.openSocket("ws://localhost:8025/websockets/tests/echo", 10000,new ClientTestBean(this,false));
+            client.connectToServer(new ClientTestBean(this, false), "ws://localhost:8025/websockets/tests/echo");
             messageLatch.await(5, TimeUnit.SECONDS);
-            System.out.println("### Test receivedTestMessage: " + receivedTestMessage);
-            Assert.assertTrue("The received message is the same as the sent one", receivedTestMessage.equals("testHello"));
+            Assert.assertEquals("testHello", receivedTestMessage);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);

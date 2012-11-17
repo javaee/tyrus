@@ -39,20 +39,18 @@
  */
 package org.glassfish.tyrus.test.e2e;
 
+import java.io.IOException;
 import javax.websocket.Session;
-import javax.websocket.WebSocketEndpoint;
+import javax.websocket.WebSocketClient;
 import javax.websocket.WebSocketMessage;
 import javax.websocket.WebSocketOpen;
-
-import java.io.IOException;
 
 /**
  * Testing the basic annotations.
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-@WebSocketEndpoint(value = "/test",
-        decoders = {TestDecoder.class})
+@WebSocketClient(decoders = {TestDecoder.class})
 public class ClientTestBean {
 
     private static final String SENT_MESSAGE = "hello";

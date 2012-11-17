@@ -40,6 +40,14 @@
 
 package org.glassfish.tyrus.test.ejb;
 
+import java.io.File;
+import java.io.IOException;
+import java.net.URL;
+import java.util.Collection;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import javax.websocket.DeploymentException;
+import javax.websocket.Session;
 import org.glassfish.embeddable.Deployer;
 import org.glassfish.embeddable.GlassFish;
 import org.glassfish.embeddable.GlassFishException;
@@ -47,21 +55,12 @@ import org.glassfish.embeddable.GlassFishRuntime;
 import org.glassfish.embeddable.web.HttpListener;
 import org.glassfish.embeddable.web.WebContainer;
 import org.glassfish.embeddable.web.WebListener;
-import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
+import org.glassfish.tyrus.client.ClientManager;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
-
-import javax.websocket.Session;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.URL;
-import java.util.Collection;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Tests the EJB deployment
@@ -101,7 +100,7 @@ public class EjbTest {
 
     @Ignore
     @Test
-    public void testEjb() throws GlassFishException {
+    public void testEjb() throws GlassFishException, DeploymentException {
         Deployer deployer = glassfish.getDeployer();
 
         URL source = SingletonEchoBean.class.getClassLoader().getResource(
@@ -118,7 +117,7 @@ public class EjbTest {
         try {
             messageLatch = new CountDownLatch(2);
 
-            DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder("ws://localhost:8080/ejb-test/singleton");
+            DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder();
             final DefaultClientEndpointConfiguration configSingleton = builder.build();
 
             ClientManager client = ClientManager.createClient();
@@ -139,7 +138,7 @@ public class EjbTest {
                     messageLatch.countDown();
                     System.out.println("Received Message1: " + receivedMessage1);
                 }
-            }, configSingleton);
+            }, "ws://localhost:8080/ejb-test/singleton");
 
             client.connectToServer(new TestEndpointAdapter() {
                 @Override
@@ -158,7 +157,7 @@ public class EjbTest {
                     messageLatch.countDown();
                     System.out.println("Received Message2: " + receivedMessage2);
                 }
-            }, configSingleton);
+            }, "ws://localhost:8080/ejb-test/singleton");
             messageLatch.await(5, TimeUnit.SECONDS);
 
         } catch (Exception e) {
@@ -167,8 +166,8 @@ public class EjbTest {
         }
     }
 
-    public void testStateless() {
-        DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder("ws://localhost:8080/ejb-test/stateless");
+    public void testStateless() throws DeploymentException {
+        DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder();
         final DefaultClientEndpointConfiguration configStateless = builder.build();
 
         messageLatch = new CountDownLatch(2);
@@ -192,7 +191,7 @@ public class EjbTest {
                 messageLatch.countDown();
                 System.out.println("Received Message3: " + receivedMessage1);
             }
-        }, configStateless);
+        }, "ws://localhost:8080/ejb-test/stateless");
 
         client.connectToServer(new TestEndpointAdapter() {
             @Override
@@ -211,7 +210,7 @@ public class EjbTest {
                 messageLatch.countDown();
                 System.out.println("Received Message4: " + receivedMessage2);
             }
-        }, configStateless);
+        }, "ws://localhost:8080/ejb-test/stateless");
 
         try {
             messageLatch.await(5, TimeUnit.SECONDS);
