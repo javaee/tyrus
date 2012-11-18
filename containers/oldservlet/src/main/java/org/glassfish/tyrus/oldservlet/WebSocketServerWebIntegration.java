@@ -54,8 +54,8 @@ import javax.websocket.WebSocketEndpoint;
 import org.glassfish.tyrus.server.ContainerConfig;
 import org.glassfish.tyrus.server.DefaultServerConfiguration;
 import org.glassfish.tyrus.server.ServerConfiguration;
-import org.glassfish.tyrus.server.ServerContainer;
 import org.glassfish.tyrus.server.ServerContainerFactory;
+import org.glassfish.tyrus.server.TyrusServerContainer;
 import org.glassfish.tyrus.spi.TyrusContainer;
 
 /**
@@ -73,7 +73,7 @@ public class WebSocketServerWebIntegration implements ServletContextListener {
     public static final String PRINCIPAL = "ws_principal";
     private static final int INFORMATIONAL_FIXED_PORT = 8080;
 
-    private ServerContainer serverContainer = null;
+    private TyrusServerContainer serverContainer = null;
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {

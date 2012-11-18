@@ -40,6 +40,7 @@
 package org.glassfish.tyrus.server;
 
 import org.glassfish.tyrus.OsgiRegistry;
+import org.glassfish.tyrus.TyrusContainerProvider;
 import org.glassfish.tyrus.spi.TyrusContainer;
 
 import java.util.logging.Logger;
@@ -51,16 +52,6 @@ import java.util.logging.Logger;
  * @author Martin Matula (martin.matula at oracle.com)
  */
 public class ServerContainerFactory {
-    /**
-     * Creates a new server container based on the supplied container provider.
-     *
-     * @param providerClassName Container provider implementation class name.
-     * @param contextPath URI path at which the websocket server should be exposed at.
-     * @param port Port at which the server should listen.
-     * @param configuration Server configuration.
-     * @return New instance of {@link ServerContainer}.
-     */
-
     private static OsgiRegistry osgiRegistry = null;
 
     private static void initOsgiRegistry() {
@@ -75,7 +66,16 @@ public class ServerContainerFactory {
 
     }
 
-    public static ServerContainer create(String providerClassName, String contextPath, int port,
+    /**
+     * Creates a new server container based on the supplied container provider.
+     *
+     * @param providerClassName Container provider implementation class name.
+     * @param contextPath URI path at which the websocket server should be exposed at.
+     * @param port Port at which the server should listen.
+     * @param configuration Server configuration.
+     * @return New instance of {@link ServerContainer}.
+     */
+    public static TyrusServerContainer create(String providerClassName, String contextPath, int port,
                                          ServerConfiguration configuration) {
         Class<? extends TyrusContainer> providerClass;
 
@@ -93,7 +93,9 @@ public class ServerContainerFactory {
             throw new RuntimeException("Failed to load container provider class: " + providerClassName, e);
         }
         Logger.getLogger(ServerContainerFactory.class.getName()).info("Provider class loaded: " + providerClassName);
-        return create(providerClass, contextPath, port, configuration);
+        TyrusServerContainer container = create(providerClass, contextPath, port, configuration);
+        TyrusContainerProvider.getServerProvider().setContainer(container);
+        return container;
     }
 
     /**
@@ -105,7 +107,7 @@ public class ServerContainerFactory {
      * @param configuration Server configuration.
      * @return New instance of {@link ServerContainer}.
      */
-    public static ServerContainer create(Class<? extends TyrusContainer> providerClass, String contextPath, int port,
+    public static TyrusServerContainer create(Class<? extends TyrusContainer> providerClass, String contextPath, int port,
                                          ServerConfiguration configuration) {
         TyrusContainer containerProvider;
         try {

@@ -37,32 +37,40 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.server;
+package javax.websocket;
 
-import java.io.IOException;
+import java.util.Iterator;
+import java.util.ServiceLoader;
 
 /**
- * Server container used to publish websocket end-points.
- *
  * @author Martin Matula (martin.matula at oracle.com)
  */
-public interface ServerContainer {
-    /**
-     * Returns server configuration object that can be used to register endpoints and set other configuration parameters.
-     * @return server configuration.
-     */
-    ServerConfiguration getConfiguration();
+public abstract class ContainerProvider {
+    private static final ContainerProvider INSTANCE;
 
-    /**
-     * Starts the server and deploys all the endpoints configured in the corresponding {@link ServerConfiguration}.
-     *
-     * @throws IOException if something goes wrong.
-     */
-    void start() throws IOException;
+    static {
+        Iterator<ContainerProvider> it = ServiceLoader.load(ContainerProvider.class).iterator();
+        if (!it.hasNext()) {
+            try {
+                @SuppressWarnings("unchecked")
+                Class<ContainerProvider> cpClass =
+                        (Class<ContainerProvider>) Class.forName("org.glassfish.tyrus.TyrusContainerProvider");
+                INSTANCE = cpClass.newInstance();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            INSTANCE = it.next();
+        }
+    }
 
-    /**
-     * Attempts to stops the server (for some containers, such as servlet, which don't support stopping, this may be
-     * a no-op).
-     */
-    void stop();
+    public static ServerContainer getServerContainer() {
+        return INSTANCE.getContainer(ServerContainer.class);
+    }
+
+    public static ClientContainer getClientContainer() {
+        return INSTANCE.getContainer(ClientContainer.class);
+    }
+
+    protected abstract <T> T getContainer(Class<T> containerClass);
 }

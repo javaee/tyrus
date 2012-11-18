@@ -51,6 +51,7 @@ import javax.websocket.Session;
 import org.glassfish.tyrus.AnnotatedEndpoint;
 import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.EndpointWrapper;
+import org.glassfish.tyrus.TyrusContainerProvider;
 import org.glassfish.tyrus.spi.TyrusClientSocket;
 import org.glassfish.tyrus.spi.TyrusContainer;
 
@@ -78,7 +79,9 @@ public class ClientManager implements ClientContainer {
         try {
             Class engineProviderClazz = Class.forName(engineProviderClassname);
             Logger.getLogger(ClientManager.class.getName()).info("Provider class loaded: " + engineProviderClassname);
-            return new ClientManager((TyrusContainer) engineProviderClazz.newInstance());
+            ClientManager cm =  new ClientManager((TyrusContainer) engineProviderClazz.newInstance());
+            TyrusContainerProvider.getClientProvider().setContainer(cm);
+            return cm;
         } catch (Exception e) {
             throw new RuntimeException("Failed to load provider class: " + engineProviderClassname + ".");
         }

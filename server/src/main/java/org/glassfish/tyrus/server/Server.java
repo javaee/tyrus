@@ -52,7 +52,7 @@ import java.util.logging.Logger;
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 public class Server {
-    private ServerContainer server;
+    private TyrusServerContainer server;
     private final ServerConfiguration configuration;
     private final String hostName;
     private final int port;

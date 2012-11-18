@@ -47,9 +47,11 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
+import javax.websocket.ServerContainer;
 import javax.websocket.ServerEndpointConfiguration;
 import javax.websocket.Session;
 import org.glassfish.tyrus.AnnotatedEndpoint;
@@ -64,8 +66,7 @@ import org.glassfish.tyrus.spi.TyrusServer;
  *
  * @author Martin Matula (martin.matula at oracle.com)
  */
-public class TyrusServerContainer extends WithProperties implements ServerContainer,
-        javax.websocket.ServerContainer {
+public class TyrusServerContainer extends WithProperties implements ServerContainer {
     private final TyrusServer server;
     private final String contextPath;
     private final ServerConfiguration configuration;
@@ -119,46 +120,50 @@ public class TyrusServerContainer extends WithProperties implements ServerContai
         };
     }
 
-    @Override
-    public ServerConfiguration getConfiguration() {
-        return configuration;
-    }
-
     public void start() throws IOException {
         // start the underlying server
         server.start();
 
-        Set<Endpoint> allEndpoints =
-                new HashSet<Endpoint>(configuration.getEndpointInstances());
+        for (Endpoint endpoint : configuration.getEndpointInstances()) {
+            deploy(endpoint);
+        }
 
         // deploy all the class-based endpoints
         for (Class<?> endpointClass : configuration.getEndpointClasses()) {
-            // introspect the bean and find all the paths....
-            Endpoint endpoint;
-            if (Endpoint.class.isAssignableFrom(endpointClass)) {
-                endpoint = (Endpoint) ComponentProviderService.getInstance(endpointClass);
-            } else {
-                endpoint = AnnotatedEndpoint.fromClass(endpointClass);
-                if (endpoint == null) {
-                    Logger.getLogger(getClass().getName()).warning("Endpoint class " + endpointClass.getName() + " not " +
-                            "annotated with @WebSocketEndpoint annotation, so will be ignored.");
-                    continue;
-                }
+            try {
+                deploy(endpointClass);
+            } catch (DeploymentException e) {
+                Logger.getLogger(getClass().getName()).log(Level.WARNING, e.getMessage(), e);
             }
-
-            allEndpoints.add(endpoint);
-            Logger.getLogger(getClass().getName()).info("Registered a " + endpointClass + " at " +
-                ((ServerEndpointConfiguration) endpoint.getEndpointConfiguration()).getPath());
-        }
-
-        for (Endpoint endpoint : allEndpoints) {
-            EndpointWrapper ew = new EndpointWrapper(endpoint, this, contextPath);
-            SPIRegisteredEndpoint ge = server.register(ew);
-            endpoints.add(ge);
         }
     }
 
-    @Override
+    private void deploy(Endpoint endpoint) {
+        EndpointWrapper ew = new EndpointWrapper(endpoint, this, contextPath);
+        SPIRegisteredEndpoint ge = server.register(ew);
+        endpoints.add(ge);
+    }
+
+    private void deploy(Class<?> endpointClass) throws DeploymentException {
+        // introspect the bean and find all the paths....
+        Endpoint endpoint;
+        if (Endpoint.class.isAssignableFrom(endpointClass)) {
+            endpoint = (Endpoint) ComponentProviderService.getInstance(endpointClass);
+        } else {
+            endpoint = AnnotatedEndpoint.fromClass(endpointClass);
+            if (endpoint == null) {
+                throw new DeploymentException("Endpoint class " + endpointClass.getName() + " does " +
+                        "not extend Endpoint and is not " +
+                        "annotated with @WebSocketEndpoint annotation, so will be ignored.");
+            }
+        }
+
+        deploy(endpoint);
+
+        Logger.getLogger(getClass().getName()).info("Registered a " + endpointClass + " at " +
+                ((ServerEndpointConfiguration) endpoint.getEndpointConfiguration()).getPath());
+    }
+
     public void stop() {
         for (SPIRegisteredEndpoint wsa : this.endpoints) {
             wsa.remove();
@@ -169,8 +174,8 @@ public class TyrusServerContainer extends WithProperties implements ServerContai
     }
 
     @Override
-    public void publishServer(Class<? extends Endpoint> endpoint) {
-        throw new UnsupportedOperationException();
+    public void publishServer(Class<? extends Endpoint> endpointClass) throws DeploymentException {
+        deploy(endpointClass);
     }
 
     @Override
