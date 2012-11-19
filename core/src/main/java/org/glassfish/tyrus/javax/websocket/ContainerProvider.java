@@ -37,8 +37,10 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package javax.websocket;
+package org.glassfish.tyrus.javax.websocket;
 
+import javax.websocket.ClientContainer;
+import javax.websocket.ServerContainer;
 import java.util.Iterator;
 import java.util.ServiceLoader;
 

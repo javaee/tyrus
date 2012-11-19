@@ -43,11 +43,10 @@ import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import javax.websocket.ClientContainer;
-import javax.websocket.ContainerProvider;
 import javax.websocket.ServerContainer;
+import org.glassfish.tyrus.javax.websocket.ContainerProvider;
 
 /**
- *
  * @author Martin Matula (martin.matula at oracle.com)
  */
 public class TyrusContainerProvider<T> extends ContainerProvider {

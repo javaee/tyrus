@@ -39,6 +39,7 @@
  */
 package org.glassfish.tyrus.client;
 
+import java.net.URI;
 import java.net.URL;
 import java.util.HashSet;
 import java.util.Set;
@@ -92,13 +93,8 @@ public class ClientManager implements ClientContainer {
     }
 
     @Override
-    public void connectToServer(Endpoint endpoint, URL url) throws DeploymentException {
-        connectToServer(endpoint, url.toString());
-    }
-
-    @Override
-    public void connectToServer(Object o, URL url) throws DeploymentException {
-        connectToServer(o, url.toString());
+    public void connectToServer(Object endpoint, URI uri) throws DeploymentException {
+        connectToServer(endpoint, uri.toString());
     }
 
     public void connectToServer(Object o, String url) throws DeploymentException {

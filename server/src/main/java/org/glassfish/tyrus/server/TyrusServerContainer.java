@@ -41,6 +41,7 @@
 package org.glassfish.tyrus.server;
 
 import java.io.IOException;
+import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -179,12 +180,7 @@ public class TyrusServerContainer extends WithProperties implements ServerContai
     }
 
     @Override
-    public void connectToServer(Endpoint endpoint, URL path) throws DeploymentException {
-        connectToServer((Object) endpoint, path);
-    }
-
-    @Override
-    public void connectToServer(Object pojo, URL path) throws DeploymentException {
+    public void connectToServer(Object endpoint, URI path) throws DeploymentException {
         throw new UnsupportedOperationException();
     }
 

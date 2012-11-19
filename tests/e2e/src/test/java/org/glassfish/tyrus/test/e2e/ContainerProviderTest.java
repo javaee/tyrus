@@ -43,7 +43,7 @@ import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import javax.websocket.ClientEndpointConfiguration;
-import javax.websocket.ContainerProvider;
+import org.glassfish.tyrus.javax.websocket.ContainerProvider;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.Session;
 import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
