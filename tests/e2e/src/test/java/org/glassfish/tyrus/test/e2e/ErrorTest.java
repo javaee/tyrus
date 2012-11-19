@@ -88,6 +88,7 @@ public class ErrorTest {
                 @Override
                 public void onOpen(Session session) {
                     try {
+                        session.addMessageHandler(new TestTextMessageHandler(this));
                         session.getRemote().sendString(SENT_MESSAGE);
                     } catch (IOException e) {
                         e.printStackTrace();

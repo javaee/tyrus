@@ -66,7 +66,7 @@ public class WriterToAsyncTextAdapter extends Writer {
         if (buffer != null) {
             this.sendBuffer(false);
         }
-        buffer = (new String(chars)).substring(index, len);
+        buffer = (new String(chars)).substring(index, index + len);
 
     }
 

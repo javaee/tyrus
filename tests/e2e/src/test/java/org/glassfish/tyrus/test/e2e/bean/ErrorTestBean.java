@@ -40,10 +40,7 @@
 
 package org.glassfish.tyrus.test.e2e.bean;
 
-import javax.websocket.RemoteEndpoint;
-import javax.websocket.WebSocketEndpoint;
-import javax.websocket.WebSocketError;
-import javax.websocket.WebSocketMessage;
+import javax.websocket.*;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)
@@ -53,22 +50,19 @@ import javax.websocket.WebSocketMessage;
         encoders = {org.glassfish.tyrus.test.e2e.encoder.ErrorEncoder.class}
 )
 public class ErrorTestBean {
-    private RemoteEndpoint remote;
+    private Session session;
 
     @WebSocketMessage
-    public String generateError(String message, RemoteEndpoint remote) {
-        System.out.println("############################################generateError");
-        this.remote = remote;
+    public String generateError(String message, Session session) {
+        this.session = session;
         return "anything";
     }
 
     @WebSocketError
     public void handleError(Exception e, RemoteEndpoint p) {
         try {
-            System.out.println("############################################handleError");
-            remote.sendString("Error");
+            session.getRemote().sendString("Error");
         } catch (Exception ee) {
-
             System.out.println("I give up");
         }
     }
