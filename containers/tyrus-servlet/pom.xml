@@ -86,8 +86,8 @@
                         <configuration>
                             <artifactItems>
                                 <artifactItem>
-                                    <groupId>javax.net.websocket</groupId>
-                                    <artifactId>javax.net.websocket-api</artifactId>
+                                    <groupId>javax.websocket</groupId>
+                                    <artifactId>javax.websocket-api</artifactId>
                                     <classifier>sources</classifier>
                                     <overWrite>false</overWrite>
                                     <outputDirectory>${generated.sources.dir}</outputDirectory>
@@ -172,8 +172,8 @@
 
     <dependencies>
         <dependency>
-            <groupId>javax.net.websocket</groupId>
-            <artifactId>javax.net.websocket-api</artifactId>
+            <groupId>javax.websocket</groupId>
+            <artifactId>javax.websocket-api</artifactId>
             <optional>true</optional>
             <version>${websocket-api.version}</version>
         </dependency>

@@ -115,17 +115,17 @@
     </developers>
 
     <properties>
-        <websocket-api.version>1.0-SNAPSHOT</websocket-api.version>
-        <websocket.api.build_number>06</websocket.api.build_number>
+        <websocket-api.version>1.0-b08</websocket-api.version>
+        <websocket.api.build_number>08</websocket.api.build_number>
 
         <servlet.api.version>3.0.1</servlet.api.version>
         <grizzly.version>2.3-beta7</grizzly.version>
-        <api_package>javax.net.websocket</api_package>
+        <api_package>javax.websocket</api_package>
         <impl_namespace>org.glassfish</impl_namespace>
         <spec_version>0.0</spec_version>
         <new_spec_version>1.0</new_spec_version>
         <new_impl_version>1.0</new_impl_version>
-        <build_number>05</build_number>
+        <build_number>08</build_number>
         <spec_impl_version>1.0.0</spec_impl_version>
         <impl_version>0.0.0</impl_version>
 
@@ -338,8 +338,8 @@
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>javax.net.websocket</groupId>
-                <artifactId>javax.net.websocket-api</artifactId>
+                <groupId>javax.websocket</groupId>
+                <artifactId>javax.websocket-api</artifactId>
                 <version>${websocket-api.version}</version>
             </dependency>
             <dependency>
