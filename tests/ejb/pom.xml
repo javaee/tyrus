@@ -88,11 +88,6 @@
             <artifactId>javax.ejb</artifactId>
             <version>3.1.2.2</version>
         </dependency>
-        <dependency>
-            <groupId>org.glassfish.main.extras</groupId>
-            <artifactId>glassfish-embedded-all</artifactId>
-            <version>3.1.2.2</version>
-        </dependency>
     </dependencies>
     <build>
         <plugins>
