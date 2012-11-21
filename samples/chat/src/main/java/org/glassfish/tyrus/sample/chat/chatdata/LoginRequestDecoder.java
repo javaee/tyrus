@@ -45,7 +45,7 @@ import javax.websocket.Decoder;
 /**
  * @author Danny Coward (danny.coward at oracle.com)
  */
-public class LoginRequestDecoder implements Decoder.Text {
+public class LoginRequestDecoder implements Decoder.Text<LoginRequestMessage> {
 
     public LoginRequestDecoder() {
         System.out.println("Created a LoginRequestDecoder");

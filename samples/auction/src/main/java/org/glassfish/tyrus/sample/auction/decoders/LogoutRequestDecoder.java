@@ -45,7 +45,7 @@ import org.glassfish.tyrus.sample.auction.message.LogoutRequestMessage;
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class LogoutRequestDecoder implements Decoder.Text {
+public class LogoutRequestDecoder implements Decoder.Text<LogoutRequestMessage> {
 
     @Override
     public LogoutRequestMessage decode(String s) {

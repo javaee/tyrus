@@ -162,11 +162,7 @@ public class AnnotatedEndpoint extends Endpoint {
 
         ReflectionHelper.DeclaringClassInterfacePair p = ReflectionHelper.getClass(decoder, rootClass);
         Class[] as = ReflectionHelper.getParameterizedClassArguments(p);
-        if (as == null) {
-            return null;
-        } else {
-            return as[0];
-        }
+        return as == null ? Object.class : (as[0] == null ? Object.class : as[0]);
     }
 
     private AnnotatedEndpoint(Class<?> annotatedClass, Object instance, EndpointConfiguration config) {

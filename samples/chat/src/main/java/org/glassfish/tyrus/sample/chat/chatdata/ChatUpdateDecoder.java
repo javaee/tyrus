@@ -45,7 +45,7 @@ import javax.websocket.Decoder;
 /**
  * @author Danny Coward (danny.coward at oracle.com)
  */
-public class ChatUpdateDecoder implements Decoder.Text {
+public class ChatUpdateDecoder implements Decoder.Text<ChatUpdateMessage> {
 
     public ChatUpdateMessage decode(String s) {
         ChatUpdateMessage cum = new ChatUpdateMessage();

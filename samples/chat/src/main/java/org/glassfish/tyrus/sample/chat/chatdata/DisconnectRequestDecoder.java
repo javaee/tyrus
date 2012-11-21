@@ -45,7 +45,7 @@ import javax.websocket.Decoder;
 /**
  * @author Danny Coward (danny.coward at oracle.com)
  */
-public class DisconnectRequestDecoder implements Decoder.Text {
+public class DisconnectRequestDecoder implements Decoder.Text<DisconnectRequestMessage> {
 
     public DisconnectRequestMessage decode(String s) {
         DisconnectRequestMessage drm = new DisconnectRequestMessage();

@@ -45,7 +45,7 @@ import org.glassfish.tyrus.sample.auction.message.LoginRequestMessage;
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class LoginRequestDecoder implements Decoder.Text {
+public class LoginRequestDecoder implements Decoder.Text<LoginRequestMessage> {
 
 
     @Override
