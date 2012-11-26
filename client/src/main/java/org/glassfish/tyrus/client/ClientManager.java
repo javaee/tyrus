@@ -40,15 +40,16 @@
 package org.glassfish.tyrus.client;
 
 import java.net.URI;
-import java.net.URL;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Logger;
+
 import javax.websocket.ClientContainer;
 import javax.websocket.ClientEndpointConfiguration;
 import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
 import javax.websocket.Session;
+
 import org.glassfish.tyrus.AnnotatedEndpoint;
 import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.EndpointWrapper;
@@ -62,7 +63,7 @@ import org.glassfish.tyrus.spi.TyrusContainer;
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 public class ClientManager implements ClientContainer {
-    private static final String ENGINE_PROVIDER_CLASSNAME = "org.glassfish.tyrus.grizzly.GrizzlyEngine";
+    private static final String ENGINE_PROVIDER_CLASSNAME = "org.glassfish.tyrus.container.grizzly.GrizzlyEngine";
 
     private final Set<TyrusClientSocket> sockets = new HashSet<TyrusClientSocket>();
     private final TyrusContainer engine;

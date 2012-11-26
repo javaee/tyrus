@@ -39,12 +39,10 @@
  */
 package org.glassfish.tyrus.test.e2e;
 
-import java.net.URL;
-import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
-import org.glassfish.tyrus.server.Server;
-import org.junit.Assert;
-import org.junit.Test;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import javax.websocket.DecodeException;
 import javax.websocket.Decoder;
@@ -53,10 +51,12 @@ import javax.websocket.EndpointConfiguration;
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
+import org.glassfish.tyrus.client.ClientManager;
+import org.glassfish.tyrus.server.Server;
+
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Tests the decoding and message handling of custom object.
@@ -120,7 +120,7 @@ public class DecodedObjectTest {
 
     @Test
     public void testExtendedDecoded() {
-        Server server = new Server(TestBean.class.getName());
+        Server server = new Server(TestBean.class);
         server.start();
 
         try {
@@ -193,7 +193,7 @@ public class DecodedObjectTest {
 
         @Override
         public void onMessage(StringContainer customObject) {
-            System.out.println("###"+customObject.getString());
+            System.out.println("### DecodedMessageHandler ### " + customObject.getString());
             DecodedObjectTest.receivedMessage = customObject.getString();
             messageLatch.countDown();
         }
@@ -203,7 +203,8 @@ public class DecodedObjectTest {
 
         @Override
         public void onMessage(Object customObject) {
-            if(customObject instanceof StringContainer){
+            if(customObject instanceof StringContainer) {
+                System.out.println("### ObjectMessageHandler ### " + customObject.toString());
                 DecodedObjectTest.receivedMessage = ((StringContainer)customObject).getString();
             }
         }
@@ -211,7 +212,7 @@ public class DecodedObjectTest {
 
     class ExtendedStringContainer extends StringContainer {
         public ExtendedStringContainer(String string) {
-            super("Extended "+string);
+            super("Extended " + string);
         }
     }
 }

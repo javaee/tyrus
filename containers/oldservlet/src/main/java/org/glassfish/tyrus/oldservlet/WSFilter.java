@@ -88,8 +88,6 @@ public class WSFilter implements Filter {
         if (principal != null) {
             session.setAttribute(WebSocketServerWebIntegration.PRINCIPAL, principal);
         }
-        System.out.println("Filter called " + sr.getRequestURI());
-        System.out.println("Principal is " + principal);
         Throwable problem = null;
         try {
             chain.doFilter(request, response);

@@ -59,7 +59,6 @@ public class HttpSessionManager {
     }
 
     public void registerSession(HttpSession session) {
-        System.out.println("Session added: " + session.getId());
         sessions.add(session);
     }
 

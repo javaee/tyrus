@@ -1,69 +1,43 @@
 /*
- * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
- *
- * Copyright (c) 2011 - 2012 Oracle and/or its affiliates. All rights reserved.
- *
- * The contents of this file are subject to the terms of either the GNU
- * General Public License Version 2 only ("GPL") or the Common Development
- * and Distribution License("CDDL") (collectively, the "License").  You
- * may not use this file except in compliance with the License.  You can
- * obtain a copy of the License at
- * http://glassfish.java.net/public/CDDL+GPL_1_1.html
- * or packager/legal/LICENSE.txt.  See the License for the specific
- * language governing permissions and limitations under the License.
- *
- * When distributing the software, include this License Header Notice in each
- * file and include the License file at packager/legal/LICENSE.txt.
- *
- * GPL Classpath Exception:
- * Oracle designates this particular file as subject to the "Classpath"
- * exception as provided by Oracle in the GPL Version 2 section of the License
- * file that accompanied this code.
- *
- * Modifications:
- * If applicable, add the following below the License Header, with the fields
- * enclosed by brackets [] replaced by your own identifying information:
- * "Portions Copyright [year] [name of copyright owner]"
- *
- * Contributor(s):
- * If you wish your version of this file to be governed by only the CDDL or
- * only the GPL Version 2, indicate your decision by adding "[Contributor]
- * elects to include this software in this distribution under the [CDDL or GPL
- * Version 2] license."  If you don't indicate a single choice of license, a
- * recipient has the option to distribute your version of this file under
- * either the CDDL, the GPL Version 2 or to extend the choice of license to
- * its licensees as provided above.  However, if you add GPL Version 2 code
- * and therefore, elected the GPL Version 2 license, then the option applies
- * only if the new code is made subject to such option by the copyright
- * holder.
- */
-package org.glassfish.tyrus.grizzly;
-
-import org.glassfish.grizzly.Connection;
-import org.glassfish.grizzly.GrizzlyFuture;
-import org.glassfish.grizzly.Processor;
-import org.glassfish.grizzly.filterchain.FilterChainBuilder;
-import org.glassfish.grizzly.filterchain.TransportFilter;
-import org.glassfish.grizzly.http.HttpClientFilter;
-import org.glassfish.grizzly.nio.transport.TCPNIOConnectorHandler;
-import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
-import org.glassfish.grizzly.nio.transport.TCPNIOTransportBuilder;
-import org.glassfish.grizzly.websockets.DataFrame;
-import org.glassfish.grizzly.websockets.Extension;
-import org.glassfish.grizzly.websockets.HandShake;
-import org.glassfish.grizzly.websockets.HandshakeException;
-import org.glassfish.grizzly.websockets.ProtocolHandler;
-import org.glassfish.grizzly.websockets.WebSocket;
-import org.glassfish.grizzly.websockets.WebSocketEngine;
-import org.glassfish.grizzly.websockets.WebSocketFilter;
-import org.glassfish.grizzly.websockets.WebSocketListener;
-import org.glassfish.grizzly.websockets.draft06.ClosingFrame;
-import org.glassfish.grizzly.websockets.frametypes.PingFrameType;
-import org.glassfish.grizzly.websockets.frametypes.PongFrameType;
-import org.glassfish.tyrus.spi.SPIEndpoint;
-import org.glassfish.tyrus.spi.TyrusClientSocket;
-
-import javax.websocket.ClientEndpointConfiguration;
+* DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+*
+* Copyright (c) 2011 - 2012 Oracle and/or its affiliates. All rights reserved.
+*
+* The contents of this file are subject to the terms of either the GNU
+* General Public License Version 2 only ("GPL") or the Common Development
+* and Distribution License("CDDL") (collectively, the "License").  You
+* may not use this file except in compliance with the License.  You can
+* obtain a copy of the License at
+* http://glassfish.java.net/public/CDDL+GPL_1_1.html
+* or packager/legal/LICENSE.txt.  See the License for the specific
+* language governing permissions and limitations under the License.
+*
+* When distributing the software, include this License Header Notice in each
+* file and include the License file at packager/legal/LICENSE.txt.
+*
+* GPL Classpath Exception:
+* Oracle designates this particular file as subject to the "Classpath"
+* exception as provided by Oracle in the GPL Version 2 section of the License
+* file that accompanied this code.
+*
+* Modifications:
+* If applicable, add the following below the License Header, with the fields
+* enclosed by brackets [] replaced by your own identifying information:
+* "Portions Copyright [year] [name of copyright owner]"
+*
+* Contributor(s):
+* If you wish your version of this file to be governed by only the CDDL or
+* only the GPL Version 2, indicate your decision by adding "[Contributor]
+* elects to include this software in this distribution under the [CDDL or GPL
+* Version 2] license."  If you don't indicate a single choice of license, a
+* recipient has the option to distribute your version of this file under
+* either the CDDL, the GPL Version 2 or to extend the choice of license to
+* its licensees as provided above.  However, if you add GPL Version 2 code
+* and therefore, elected the GPL Version 2 license, then the option applies
+* only if the new code is made subject to such option by the copyright
+* holder.
+*/
+package org.glassfish.tyrus.container.grizzly;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -76,8 +50,34 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+
+import javax.websocket.ClientEndpointConfiguration;
+
+import org.glassfish.tyrus.spi.SPIEndpoint;
+import org.glassfish.tyrus.spi.TyrusClientSocket;
+import org.glassfish.tyrus.websockets.DataFrame;
+import org.glassfish.tyrus.websockets.Extension;
+import org.glassfish.tyrus.websockets.HandShake;
+import org.glassfish.tyrus.websockets.HandshakeException;
+import org.glassfish.tyrus.websockets.ProtocolHandler;
+import org.glassfish.tyrus.websockets.WebSocket;
+import org.glassfish.tyrus.websockets.WebSocketEngine;
+import org.glassfish.tyrus.websockets.WebSocketListener;
+import org.glassfish.tyrus.websockets.draft06.ClosingFrame;
+import org.glassfish.tyrus.websockets.frametypes.PingFrameType;
+import org.glassfish.tyrus.websockets.frametypes.PongFrameType;
+
+import org.glassfish.grizzly.Connection;
+import org.glassfish.grizzly.Processor;
+import org.glassfish.grizzly.filterchain.FilterChainBuilder;
+import org.glassfish.grizzly.filterchain.TransportFilter;
+import org.glassfish.grizzly.http.HttpClientFilter;
+import org.glassfish.grizzly.nio.transport.TCPNIOConnectorHandler;
+import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
+import org.glassfish.grizzly.nio.transport.TCPNIOTransportBuilder;
 
 /**
  * Implementation of the WebSocket interface from Grizzly.
@@ -115,17 +115,21 @@ class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
         try {
             transport = TCPNIOTransportBuilder.newInstance().build();
             transport.start();
+
             final TCPNIOConnectorHandler connectorHandler = new TCPNIOConnectorHandler(transport) {
                 @Override
                 protected void preConfigure(Connection conn) {
                     super.preConfigure(conn);
-                    protocolHandler.setConnection(conn);
-                    WebSocketEngine.WebSocketHolder holder = WebSocketEngine.getEngine().setWebSocketHolder(conn, protocolHandler,
-                            GrizzlyClientSocket.this);
+
+                    final org.glassfish.tyrus.websockets.Connection connection = getConnection(conn);
+
+                    protocolHandler.setConnection(connection);
+                    WebSocketEngine.WebSocketHolder holder = WebSocketEngine.getEngine().setWebSocketHolder(connection, protocolHandler, GrizzlyClientSocket.this);
                     holder.handshake = protocolHandler.createHandShake(uri);
                     prepareHandshake(holder.handshake);
                 }
             };
+
             connectorHandler.setProcessor(createFilterChain());
             connectorHandler.connect(new InetSocketAddress(uri.getHost(), uri.getPort()));
             connectorHandler.setSyncConnectTimeout(timeoutMs, TimeUnit.MILLISECONDS);
@@ -156,7 +160,7 @@ class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
     }
 
     @Override
-    public GrizzlyFuture<DataFrame> send(String s) {
+    public Future<DataFrame> send(String s) {
         if (isConnected()) {
             return protocolHandler.send(s);
         } else {
@@ -165,7 +169,7 @@ class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
     }
 
     @Override
-    public GrizzlyFuture<DataFrame> send(byte[] bytes) {
+    public Future<DataFrame> send(byte[] bytes) {
         if (isConnected()) {
             return protocolHandler.send(bytes);
         } else {
@@ -174,21 +178,19 @@ class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
     }
 
     @Override
-    public GrizzlyFuture<DataFrame> sendPing(byte[] bytes) {
+    public Future<DataFrame> sendPing(byte[] bytes) {
         DataFrame df = new DataFrame(new PingFrameType(), bytes);
-        GrizzlyFuture<DataFrame> gf = this.protocolHandler.send(df);
-        return gf;
+        return this.protocolHandler.send(df);
     }
 
     @Override
-    public GrizzlyFuture<DataFrame> sendPong(byte[] bytes) {
+    public Future<DataFrame> sendPong(byte[] bytes) {
         DataFrame df = new DataFrame(new PongFrameType(), bytes);
-        GrizzlyFuture<DataFrame> gf = this.protocolHandler.send(df);
-        return gf;
+        return this.protocolHandler.send(df);
     }
 
     @Override
-    public GrizzlyFuture<DataFrame> stream(boolean b, String s) {
+    public Future<DataFrame> stream(boolean b, String s) {
         if (isConnected()) {
             return protocolHandler.stream(b, s);
         } else {
@@ -197,7 +199,7 @@ class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
     }
 
     @Override
-    public GrizzlyFuture<DataFrame> stream(boolean b, byte[] bytes, int i, int i1) {
+    public Future<DataFrame> stream(boolean b, byte[] bytes, int i, int i1) {
 
         if (isConnected()) {
             return protocolHandler.stream(b, bytes, i, i1);
@@ -320,5 +322,10 @@ class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
 
     public Set<SPIEndpoint> getEndpoints() {
         return new HashSet<SPIEndpoint>(endpoints);
+    }
+
+
+    private static org.glassfish.tyrus.websockets.Connection getConnection(final Connection connection) {
+        return new ConnectionImpl(connection);
     }
 }

@@ -40,7 +40,8 @@
 package org.glassfish.tyrus.oldservlet;
 
 import java.io.IOException;
-import org.glassfish.tyrus.grizzly.GrizzlyEngine;
+
+import org.glassfish.tyrus.container.grizzly.GrizzlyEngine;
 import org.glassfish.tyrus.spi.SPIEndpoint;
 import org.glassfish.tyrus.spi.SPIRegisteredEndpoint;
 import org.glassfish.tyrus.spi.TyrusServer;

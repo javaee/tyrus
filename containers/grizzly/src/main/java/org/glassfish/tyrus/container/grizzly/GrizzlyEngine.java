@@ -37,21 +37,22 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.grizzly;
+package org.glassfish.tyrus.container.grizzly;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
 import javax.websocket.ClientEndpointConfiguration;
-import org.glassfish.grizzly.http.server.HttpServer;
-import org.glassfish.grizzly.websockets.WebSocketAddOn;
-import org.glassfish.grizzly.websockets.WebSocketEngine;
+
 import org.glassfish.tyrus.spi.SPIEndpoint;
 import org.glassfish.tyrus.spi.SPIRegisteredEndpoint;
 import org.glassfish.tyrus.spi.TyrusClientSocket;
 import org.glassfish.tyrus.spi.TyrusContainer;
 import org.glassfish.tyrus.spi.TyrusServer;
+import org.glassfish.tyrus.websockets.WebSocketEngine;
+
+import org.glassfish.grizzly.http.server.HttpServer;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)

@@ -37,38 +37,67 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.grizzly;
+package org.glassfish.tyrus.websockets;
 
-import org.glassfish.grizzly.http.HttpRequestPacket;
-import org.glassfish.tyrus.spi.SPIHandshakeRequest;
+import java.io.IOException;
+import java.util.concurrent.Future;
 
 /**
- * @author Danny Coward (danny.coward at oracle.com)
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-class GrizzlyHandshakeRequest implements SPIHandshakeRequest {
-    private HttpRequestPacket rp;
+public abstract class Connection {
 
-    public GrizzlyHandshakeRequest(HttpRequestPacket rp) {
-        this.rp = rp;
+    public interface CloseListener {
+        // add param for remote/local close indication?
+        void onClose(Connection connection) throws IOException;
     }
 
-    @Override
-    public String getHeader(String name) {
-        return this.rp.getHeader(name);
+    /**
+     * Interface, which will be used by Grizzly to notify about asynchronous I/O
+     * operations status updates.
+     *
+     * @author Alexey Stashok
+     */
+    public static class CompletionHandler<E> {
+        /**
+         * The operation was cancelled.
+         */
+        public void cancelled() {
+        }
+
+        /**
+         * The operation was failed.
+         *
+         * @param throwable error, which occurred during operation execution
+         */
+        public void failed(Throwable throwable) {
+        }
+
+        /**
+         * The operation was completed.
+         *
+         * @param result the operation result
+         */
+        public void completed(E result) {
+        }
+
+        /**
+         * The callback method may be called, when there is some progress in
+         * operation execution, but it is still not completed
+         *
+         * @param result the current result
+         */
+        public void updated(E result) {
+        }
     }
 
-    @Override
-    public String getRequestUri() {
-        return this.rp.getRequestURI();
-    }
+    public abstract Future<DataFrame> write(DataFrame frame, CompletionHandler completionHandler);
 
-    @Override
-    public boolean isSecure() {
-        return this.rp.isSecure();
-    }
+    public abstract void write(WebSocketResponse response);
 
-    @Override
-    public String getQueryString() {
-        return this.rp.getQueryString();
-    }
+    public abstract void addCloseListener(CloseListener closeListener);
+
+    public abstract void closeSilently();
+
+    public abstract Object getUnderlyingConnection();
 }

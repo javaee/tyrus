@@ -38,27 +38,22 @@
  * holder.
  */
 
-package org.glassfish.tyrus.grizzly;
-
-import org.glassfish.grizzly.http.HttpContent;
-import org.glassfish.grizzly.http.HttpRequestPacket;
-import org.glassfish.grizzly.websockets.HandShake;
-import org.glassfish.grizzly.websockets.draft17.Draft17Handler;
-import org.glassfish.grizzly.websockets.draft17.HandShake17;
-
-import javax.websocket.ClientEndpointConfiguration;
+package org.glassfish.tyrus.container.grizzly;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import org.glassfish.tyrus.websockets.HandShake;
+import org.glassfish.tyrus.websockets.WebSocketRequest;
+import org.glassfish.tyrus.websockets.draft17.Draft17Handler;
+import org.glassfish.tyrus.websockets.draft17.HandShake17;
+
 /**
- * {@link org.glassfish.grizzly.websockets.ProtocolHandler} that supports sub-protocol and extension insertion.
+ * {@link org.glassfish.tyrus.websockets.ProtocolHandler} that supports sub-protocol and extension insertion.
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class GrizzlyProtocolHandler extends Draft17Handler {
-
-    private ClientEndpointConfiguration clc;
+class GrizzlyProtocolHandler extends Draft17Handler {
 
     private String subprotocol;
 
@@ -67,7 +62,7 @@ public class GrizzlyProtocolHandler extends Draft17Handler {
     /**
      * Construct new {@link GrizzlyProtocolHandler}.
      *
-     * @param mask        data mask, see {@link org.glassfish.grizzly.websockets.ProtocolHandler}.
+     * @param mask        data mask, see {@link org.glassfish.tyrus.websockets.ProtocolHandler}.
      * @param subprotocol selected by server.
      * @param extensions  supported by server.
      */
@@ -78,16 +73,16 @@ public class GrizzlyProtocolHandler extends Draft17Handler {
     }
 
     @Override
-    public HandShake createHandShake(HttpContent requestContent) {
-        HandShake result = new HandShake17((HttpRequestPacket) requestContent.getHttpHeader());
+    public HandShake createHandShake(WebSocketRequest request) {
+        HandShake result = new HandShake17(request);
 
         ArrayList<String> subprotocols = new ArrayList<String>();
         subprotocols.add(subprotocol);
         result.setSubProtocol(subprotocols);
 
-        ArrayList<org.glassfish.grizzly.websockets.Extension> grizzlyExtensions = new ArrayList<org.glassfish.grizzly.websockets.Extension>();
+        ArrayList<org.glassfish.tyrus.websockets.Extension> grizzlyExtensions = new ArrayList<org.glassfish.tyrus.websockets.Extension>();
         for (String tyrusExtension : extensions) {
-            grizzlyExtensions.add(new org.glassfish.grizzly.websockets.Extension(tyrusExtension));
+            grizzlyExtensions.add(new org.glassfish.tyrus.websockets.Extension(tyrusExtension));
         }
         result.setExtensions(grizzlyExtensions);
         return result;

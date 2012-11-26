@@ -42,7 +42,6 @@ package org.glassfish.tyrus.server;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -50,11 +49,13 @@ import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
 import javax.websocket.ServerContainer;
 import javax.websocket.ServerEndpointConfiguration;
 import javax.websocket.Session;
+
 import org.glassfish.tyrus.AnnotatedEndpoint;
 import org.glassfish.tyrus.ComponentProviderService;
 import org.glassfish.tyrus.EndpointWrapper;

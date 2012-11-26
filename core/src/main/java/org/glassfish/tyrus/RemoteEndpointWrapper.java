@@ -46,6 +46,7 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.ByteBuffer;
 import java.util.concurrent.Future;
+import java.util.logging.Logger;
 
 import javax.websocket.CloseReason;
 import javax.websocket.EncodeException;
@@ -222,8 +223,8 @@ public final class RemoteEndpointWrapper implements RemoteEndpoint {
     }
 
     public void close(CloseReason cr) throws IOException {
-        System.out.println("Close  public void close(CloseReason cr): " + cr);
-        // TODO: implement
+        Logger.getLogger(RemoteEndpointWrapper.class.getName()).info("Close  public void close(CloseReason cr): " + cr);
+//        TODO: implement
 //        this.remoteEndpoint.close(1000, null);
     }
 

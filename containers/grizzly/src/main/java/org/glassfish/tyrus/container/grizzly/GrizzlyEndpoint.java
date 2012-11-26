@@ -37,20 +37,8 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.grizzly;
+package org.glassfish.tyrus.container.grizzly;
 
-
-import org.glassfish.tyrus.spi.SPIEndpoint;
-import org.glassfish.tyrus.spi.SPIRegisteredEndpoint;
-
-import org.glassfish.grizzly.http.HttpRequestPacket;
-import org.glassfish.grizzly.websockets.DataFrame;
-import org.glassfish.grizzly.websockets.Extension;
-import org.glassfish.grizzly.websockets.ProtocolHandler;
-import org.glassfish.grizzly.websockets.WebSocket;
-import org.glassfish.grizzly.websockets.WebSocketApplication;
-import org.glassfish.grizzly.websockets.WebSocketEngine;
-import org.glassfish.grizzly.websockets.WebSocketListener;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -59,6 +47,17 @@ import java.util.Collections;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import org.glassfish.tyrus.spi.SPIEndpoint;
+import org.glassfish.tyrus.spi.SPIRegisteredEndpoint;
+import org.glassfish.tyrus.websockets.DataFrame;
+import org.glassfish.tyrus.websockets.Extension;
+import org.glassfish.tyrus.websockets.ProtocolHandler;
+import org.glassfish.tyrus.websockets.WebSocket;
+import org.glassfish.tyrus.websockets.WebSocketApplication;
+import org.glassfish.tyrus.websockets.WebSocketEngine;
+import org.glassfish.tyrus.websockets.WebSocketListener;
+import org.glassfish.tyrus.websockets.WebSocketRequest;
 
 /**
  * Implementation of {@link SPIRegisteredEndpoint} for Grizzly.
@@ -87,18 +86,18 @@ class GrizzlyEndpoint extends WebSocketApplication implements SPIRegisteredEndpo
     }
 
     @Override
-    public boolean isApplicationRequest(HttpRequestPacket o) {
-        List<String> protocols = createList(o.getHeader(WebSocketEngine.SEC_WS_PROTOCOL_HEADER));
+    public boolean isApplicationRequest(WebSocketRequest o) {
+        List<String> protocols = createList(o.getHeaders().get(WebSocketEngine.SEC_WS_PROTOCOL_HEADER));
         temporaryNegotiatedProtocol = endpoint.getNegotiatedProtocol(protocols);
 
-        List<String> extensions = createList(o.getHeader(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER));
+        List<String> extensions = createList(o.getHeaders().get(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER));
         temporaryNegotiatedExtensions = endpoint.getNegotiatedExtensions(extensions);
 
         return endpoint.checkHandshake(new GrizzlyHandshakeRequest(o));
     }
 
     @Override
-    public WebSocket createSocket(final ProtocolHandler handler, final HttpRequestPacket requestPacket, final WebSocketListener... listeners) {
+    public WebSocket createSocket(final ProtocolHandler handler, final WebSocketRequest requestPacket, final WebSocketListener... listeners) {
         return new GrizzlySocket(handler, requestPacket, listeners);
     }
 
@@ -115,7 +114,7 @@ class GrizzlyEndpoint extends WebSocketApplication implements SPIRegisteredEndpo
         try {
             this.endpoint.onPartialMessage(gs, fragment, last);
         } catch (Throwable t) {
-            System.out.println("ERROR !!" + t);
+            Logger.getLogger(GrizzlyEndpoint.class.getName()).severe("Error !!!" + t);
             t.printStackTrace();
         }
     }
@@ -126,7 +125,7 @@ class GrizzlyEndpoint extends WebSocketApplication implements SPIRegisteredEndpo
         try {
             this.endpoint.onPartialMessage(gs, ByteBuffer.wrap(fragment), last);
         } catch (Throwable t) {
-            System.out.println("ERROR !!" + t);
+            Logger.getLogger(GrizzlyEndpoint.class.getName()).severe("Error !!!" + t);
             t.printStackTrace();
         }
     }
@@ -176,7 +175,7 @@ class GrizzlyEndpoint extends WebSocketApplication implements SPIRegisteredEndpo
     }
 
     @Override
-    protected boolean onError(WebSocket webSocket, Throwable t) {
+    public boolean onError(WebSocket webSocket, Throwable t) {
         Logger.getLogger(getClass().getName()).log(Level.WARNING, "onError!", t);
         return true;
     }
@@ -204,8 +203,7 @@ class GrizzlyEndpoint extends WebSocketApplication implements SPIRegisteredEndpo
     @SuppressWarnings("unchecked")
     private List<String> createList(String input) {
         if (input == null) {
-            List<String> result = Collections.emptyList();
-            return result;
+            return Collections.emptyList();
         }
         String delimiter = ",";
         String[] tokens = input.split(delimiter);

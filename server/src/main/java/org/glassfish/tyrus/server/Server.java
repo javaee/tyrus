@@ -58,7 +58,7 @@ public class Server {
     private final int port;
     private final String rootPath;
 
-    private static final String ENGINE_PROVIDER_CLASSNAME = "org.glassfish.tyrus.grizzly.GrizzlyEngine";
+    private static final String ENGINE_PROVIDER_CLASSNAME = "org.glassfish.tyrus.container.grizzly.GrizzlyEngine";
     private static final Logger LOGGER = Logger.getLogger(Server.class.getClass().getName());
     private static final int DEFAULT_PORT = 8025;
     private static final String DEFAULT_HOST_NAME = "localhost";

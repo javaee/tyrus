@@ -146,13 +146,14 @@
 
     <modules>
         <module>bundles</module>
+        <module>client</module>
         <module>containers</module>
         <module>core</module>
-        <module>tests</module>
+        <module>protocol</module>
         <module>samples</module>
         <module>server</module>
         <module>spi</module>
-        <module>client</module>
+        <module>tests</module>
     </modules>
 
     <build>
@@ -328,12 +329,6 @@
                 </pluginManagement>
             </build>
         </profile>
-        <profile>
-            <id>servlet-dev</id>
-            <modules>
-                <module>protocol</module>
-            </modules>
-        </profile>
     </profiles>
     <dependencyManagement>
         <dependencies>
@@ -346,11 +341,6 @@
                 <groupId>javax.servlet</groupId>
                 <artifactId>javax.servlet-api</artifactId>
                 <version>${servlet.api.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>org.glassfish.grizzly</groupId>
-                <artifactId>grizzly-websockets</artifactId>
-                <version>${grizzly.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.glassfish.grizzly</groupId>
@@ -395,6 +385,11 @@
             <dependency>
                 <groupId>org.glassfish.tyrus</groupId>
                 <artifactId>tyrus-server</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.tyrus</groupId>
+                <artifactId>tyrus-websocket-core</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

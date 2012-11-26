@@ -40,11 +40,12 @@
 
 package org.glassfish.tyrus.test.e2e;
 
+import org.glassfish.tyrus.websockets.DataFrame;
+import org.glassfish.tyrus.websockets.WebSocket;
+import org.glassfish.tyrus.websockets.WebSocketAdapter;
+import org.glassfish.tyrus.websockets.WebSocketListener;
+
 import org.glassfish.grizzly.GrizzlyFuture;
-import org.glassfish.grizzly.websockets.DataFrame;
-import org.glassfish.grizzly.websockets.WebSocket;
-import org.glassfish.grizzly.websockets.WebSocketAdapter;
-import org.glassfish.grizzly.websockets.WebSocketListener;
 
 /**
  * Mock client that can be used to confirm that the test is written correctly. When writing a test and not sure if the

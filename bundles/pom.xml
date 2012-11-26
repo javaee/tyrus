@@ -53,6 +53,6 @@
     <name>Tyrus Bundles</name>
 
     <modules>
-        <module>tyrus-servlet</module>
+        <!--<module>tyrus-servlet</module>-->
     </modules>
 </project>

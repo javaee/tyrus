@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.grizzly;
+package org.glassfish.tyrus.container.grizzly;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -51,12 +51,12 @@ import javax.websocket.RemoteEndpoint;
 import javax.websocket.SendHandler;
 import javax.websocket.SendResult;
 
-import org.glassfish.grizzly.websockets.WebSocket;
+import org.glassfish.tyrus.websockets.WebSocket;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)
  */
-public class GrizzlyRemoteEndpoint implements RemoteEndpoint {
+class GrizzlyRemoteEndpoint implements RemoteEndpoint {
     private WebSocket socket;
     private static ConcurrentHashMap<WebSocket, GrizzlyRemoteEndpoint> sockets = new ConcurrentHashMap<WebSocket, GrizzlyRemoteEndpoint>();
 
