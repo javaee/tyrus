@@ -40,9 +40,11 @@
 package org.glassfish.tyrus.spi;
 
 import javax.websocket.RemoteEndpoint;
+import javax.websocket.Session;
 
 import java.nio.ByteBuffer;
 import java.util.List;
+import java.util.Set;
 
 /**
  * The WebSocket SDK implements SPIEndpoint with its representation of
@@ -167,4 +169,21 @@ public abstract class SPIEndpoint {
      * @return negotiated sub - protocol, {@code null} if none found.
      */
     public abstract String getNegotiatedProtocol(List<String> clientProtocols);
+
+    /**
+     * Get the endpoint's open {@link Session}s.
+     *
+     * @return open sessions.
+     */
+    public abstract Set<Session> getOpenSessions();
+
+    /**
+     * Creates a Session based on the {@link RemoteEndpoint}, subprotocols and extensions.
+     *
+     * @param re the other end of the connection.
+     * @param subprotocol used.
+     * @param extensions extensions used.
+     * @return {@link Session} representing the connection.
+     */
+    public abstract Session createSessionForRemoteEndpoint(RemoteEndpoint re, String subprotocol, List<String> extensions);
 }

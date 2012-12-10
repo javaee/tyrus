@@ -54,10 +54,10 @@ public class TestEndpointAdapter extends Endpoint {
     public void onMessage(byte[] message) {
     }
 
-    @Override
-    public EndpointConfiguration getEndpointConfiguration() {
-        return null;
-    }
+//    @Override
+//    public EndpointConfiguration getEndpointConfiguration() {
+//        return null;
+//    }
 
     public void onOpen(Session session) {
     }

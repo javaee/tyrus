@@ -185,5 +185,4 @@ public class WebSocketServerWebIntegration implements ServletContextListener {
     public void contextDestroyed(ServletContextEvent sce) {
         serverContainer.stop();
     }
-
 }

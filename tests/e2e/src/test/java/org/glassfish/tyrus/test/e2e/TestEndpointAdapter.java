@@ -41,10 +41,15 @@
 package org.glassfish.tyrus.test.e2e;
 
 import javax.websocket.Endpoint;
+import javax.websocket.EndpointConfiguration;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 public abstract class TestEndpointAdapter extends Endpoint {
     public abstract void onMessage(String message);
+
+    public EndpointConfiguration getEndpointConfiguration(){
+        return null;
+    }
 }

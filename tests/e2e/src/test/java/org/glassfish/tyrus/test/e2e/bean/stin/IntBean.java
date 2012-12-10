@@ -41,6 +41,7 @@
 package org.glassfish.tyrus.test.e2e.bean.stin;
 
 
+import org.glassfish.tyrus.test.e2e.TestEndpointFactory;
 import org.glassfish.tyrus.test.e2e.Util;
 
 import javax.websocket.WebSocketEndpoint;
@@ -54,7 +55,7 @@ import javax.websocket.WebSocketMessage;
 //            Xremote=org.glassfish.tyrus.test.e2e.remote.IntRemote.class
 //    )
 @WebSocketEndpoint(
-        value = "/standardInputTypes/int")
+        value = "/standardInputTypes/int", factory = TestEndpointFactory.class)
 public class IntBean {
 
     @WebSocketMessage

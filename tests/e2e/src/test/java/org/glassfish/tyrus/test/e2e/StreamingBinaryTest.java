@@ -39,9 +39,14 @@
  */
 package org.glassfish.tyrus.test.e2e;
 
+import java.net.URI;
 import java.net.URL;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
+import javax.websocket.ClientEndpointConfiguration;
+
+import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 import org.junit.Assert;
@@ -56,6 +61,7 @@ public class StreamingBinaryTest {
 
     @Test
     public void testClient() {
+        final ClientEndpointConfiguration cec = new DefaultClientEndpointConfiguration.Builder().build();
         Server server = new Server(StreamingBinaryServer.class.getName());
         server.start();
 
@@ -65,7 +71,7 @@ public class StreamingBinaryTest {
 
             StreamingBinaryClient sbc = new StreamingBinaryClient(messageLatch);
             ClientManager client = ClientManager.createClient();
-            client.connectToServer(sbc, "ws://localhost:8025/websockets/tests/streamingbinary");
+            client.connectToServer(sbc, cec, new URI("ws://localhost:8025/websockets/tests/streamingbinary"));
 
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertTrue("The client got an echo back of what it streamed", sbc.gotTheSameThingBack);

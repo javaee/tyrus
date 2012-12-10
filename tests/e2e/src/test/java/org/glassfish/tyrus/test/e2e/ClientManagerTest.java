@@ -41,10 +41,15 @@
 package org.glassfish.tyrus.test.e2e;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
+import javax.websocket.ClientEndpointConfiguration;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.Session;
+
+import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 import org.junit.Assert;
@@ -60,6 +65,8 @@ public class ClientManagerTest {
     private String receivedMessage;
 
     private static final String SENT_MESSAGE = "hello";
+
+    private final ClientEndpointConfiguration cec = new DefaultClientEndpointConfiguration.Builder().build();
 
     @Test
     public void testClient() {
@@ -94,7 +101,7 @@ public class ClientManagerTest {
                     messageLatch.countDown();
                     System.out.println("Received message = " + message);
                 }
-            }, "ws://localhost:8025/websockets/tests/echo");
+            }, cec,  new URI("ws://localhost:8025/websockets/tests/echo"));
 
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertEquals(SENT_MESSAGE, receivedMessage);

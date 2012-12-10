@@ -53,7 +53,7 @@ import java.util.concurrent.Future;
 /**
  * @author Danny Coward (danny.coward at oracle.com)
  */
-@WebSocketEndpoint("/hellocompletionhandlerfuture")
+@WebSocketEndpoint(value = "/hellocompletionhandlerfuture", factory = TestEndpointFactory.class)
 public class TextFutureCompletionHandlerServer {
     static Future<SendResult> fsr = null;
     static SendResult sr = null;

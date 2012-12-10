@@ -39,9 +39,14 @@
  */
 package org.glassfish.tyrus.test.e2e;
 
+import java.net.URI;
 import java.net.URL;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
+import javax.websocket.ClientEndpointConfiguration;
+
+import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 import org.junit.Assert;
@@ -56,6 +61,8 @@ public class BinaryFutureCompletionHandlerTest {
 
     @Test
     public void testFastClient() {
+        final ClientEndpointConfiguration cec = new DefaultClientEndpointConfiguration.Builder().build();
+
         Server server = new Server(BinaryFutureCompletionHandlerServer.class.getName());
         server.start();
 
@@ -65,7 +72,7 @@ public class BinaryFutureCompletionHandlerTest {
 
             HelloBinaryClient htc = new HelloBinaryClient(messageLatch);
             ClientManager client = ClientManager.createClient();
-            client.connectToServer(htc, "ws://localhost:8025/websockets/tests/binaryhellocompletionhandlerfuture");
+            client.connectToServer(htc, cec, new URI("ws://localhost:8025/websockets/tests/binaryhellocompletionhandlerfuture"));
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertTrue("The client got the echo back", htc.echoWorked);
             Assert.assertNotNull(BinaryFutureCompletionHandlerServer.sr);

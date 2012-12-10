@@ -55,6 +55,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.EndpointConfiguration;
+import javax.websocket.Session;
 
 import org.glassfish.tyrus.spi.SPIEndpoint;
 import org.glassfish.tyrus.spi.TyrusClientSocket;
@@ -84,23 +86,24 @@ import org.glassfish.grizzly.nio.transport.TCPNIOTransportBuilder;
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
+public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
 
-    private URI uri;
-    private ProtocolHandler protocolHandler;
-    private Set<SPIEndpoint> endpoints = Collections.newSetFromMap(new ConcurrentHashMap<SPIEndpoint, Boolean>());
+    private final URI uri;
+    private final ProtocolHandler protocolHandler;
+    private final Set<SPIEndpoint> endpoints = Collections.newSetFromMap(new ConcurrentHashMap<SPIEndpoint, Boolean>());
     private TCPNIOTransport transport;
     EnumSet<State> connected = EnumSet.range(State.CONNECTED, State.CLOSING);
     private final AtomicReference<State> state = new AtomicReference<State>(State.NEW);
-    private GrizzlyRemoteEndpoint remoteEndpoint;
+    private final GrizzlyRemoteEndpoint remoteEndpoint;
     private long timeoutMs;
-    private ClientEndpointConfiguration clc;
+    private final ClientEndpointConfiguration clc;
+    private Session session = null;
 
     enum State {
         NEW, CONNECTED, CLOSING, CLOSED
     }
 
-    GrizzlyClientSocket(URI uri, ClientEndpointConfiguration clc, long timeoutMs) {
+    public GrizzlyClientSocket(URI uri, ClientEndpointConfiguration clc, long timeoutMs) {
         this.uri = uri;
         this.clc = clc;
         protocolHandler = WebSocketEngine.DEFAULT_VERSION.createHandler(true);
@@ -157,6 +160,9 @@ class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
      */
     public void addEndpoint(SPIEndpoint endpoint) {
         endpoints.add(endpoint);
+        if(session==null){
+            session = endpoint.createSessionForRemoteEndpoint(remoteEndpoint, null, null);
+        }
     }
 
     @Override
@@ -212,6 +218,11 @@ class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
     @Override
     public void close() {
         close(100000, "Closing");
+    }
+
+    @Override
+    public Session getSession() {
+        return session;
     }
 
     @Override

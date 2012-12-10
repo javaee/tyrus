@@ -39,6 +39,7 @@
  */
 package org.glassfish.tyrus.spi;
 
+import javax.websocket.Session;
 import java.util.Set;
 
 /**
@@ -56,4 +57,11 @@ public interface TyrusClientSocket {
      * Close the socket.
      */
     public void close();
+
+    /**
+     * {@link Session} representing the connection with server.
+     *
+     * @return session.
+     */
+    public Session getSession();
 }

@@ -54,7 +54,7 @@ import javax.websocket.WebSocketOpen;
 /**
  * @author Danny Coward (danny.coward at oracle.com)
  */
-@WebSocketEndpoint("/binaryhellocompletionhandlerfuture")
+@WebSocketEndpoint(value = "/binaryhellocompletionhandlerfuture", factory = TestEndpointFactory.class)
 public class BinaryFutureCompletionHandlerServer {
     static Future<SendResult> fsr = null;
     static SendResult sr = null;

@@ -39,7 +39,9 @@
  */
 package org.glassfish.tyrus;
 
-import java.io.*;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 /**
  * Simple Reader of a StringSource.

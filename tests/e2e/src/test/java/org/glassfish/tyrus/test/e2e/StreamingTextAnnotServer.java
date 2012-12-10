@@ -49,7 +49,7 @@ import javax.websocket.WebSocketOpen;
 /**
  * @author Martin Matula (martin.matula at oracle.com)
  */
-@WebSocketEndpoint("/streamingtext")
+@WebSocketEndpoint(value = "/streamingtext",factory = TestEndpointFactory.class)
 public class StreamingTextAnnotServer {
     private Session session;
     private StringBuilder sb = new StringBuilder();

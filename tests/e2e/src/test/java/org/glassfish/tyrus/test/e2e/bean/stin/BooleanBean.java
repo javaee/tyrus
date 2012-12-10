@@ -41,6 +41,7 @@
 package org.glassfish.tyrus.test.e2e.bean.stin;
 
 
+import org.glassfish.tyrus.test.e2e.TestEndpointFactory;
 import org.glassfish.tyrus.test.e2e.Util;
 
 import javax.websocket.WebSocketEndpoint;
@@ -50,7 +51,7 @@ import javax.websocket.WebSocketMessage;
  * @author Danny Coward (danny.coward at oracle.com)
  */
 @WebSocketEndpoint(
-        value = "/standardInputTypes/boolean")
+        value = "/standardInputTypes/boolean", factory = TestEndpointFactory.class)
 public class BooleanBean {
 
     @WebSocketMessage

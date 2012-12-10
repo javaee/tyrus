@@ -44,7 +44,6 @@ package org.glassfish.tyrus;
 import org.junit.Assert;
 import org.junit.Test;
 
-import javax.websocket.*;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Writer;
@@ -52,6 +51,11 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.concurrent.Future;
+
+import javax.websocket.EncodeException;
+import javax.websocket.RemoteEndpoint;
+import javax.websocket.SendHandler;
+import javax.websocket.SendResult;
 
 /**
  * Tests the RemoteEndpointWrapper.

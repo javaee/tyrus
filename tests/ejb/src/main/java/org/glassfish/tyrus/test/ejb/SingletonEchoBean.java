@@ -50,7 +50,7 @@ import javax.websocket.WebSocketMessage;
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 @Stateless
-@WebSocketEndpoint(value = "/singleton")
+@WebSocketEndpoint(value = "/singleton", factory = TestEndpointFactory.class)
 public class SingletonEchoBean {
 
     private int counter = 0;

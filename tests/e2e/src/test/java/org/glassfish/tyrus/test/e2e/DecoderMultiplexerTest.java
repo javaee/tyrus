@@ -41,12 +41,17 @@
 package org.glassfish.tyrus.test.e2e;
 
 import java.io.IOException;
+import java.net.URI;
 import java.net.URL;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
+import javax.websocket.ClientEndpointConfiguration;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
+
+import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 import org.junit.Assert;
@@ -68,6 +73,8 @@ public class DecoderMultiplexerTest {
 
     private static final String MESSAGE_B = "bssssssss";
 
+    private final ClientEndpointConfiguration cec = new DefaultClientEndpointConfiguration.Builder().build();
+
     @Ignore
     @Test
     public void testMessages() {
@@ -78,7 +85,7 @@ public class DecoderMultiplexerTest {
             ClientManager client = ClientManager.createClient();
 
             TestAdapter ta = new TestAdapter();
-            client.connectToServer(ta, "ws://localhost:8025/websockets/tests/decodermultiplexer");
+            client.connectToServer(ta, cec,  new URI("ws://localhost:8025/websockets/tests/decodermultiplexer"));
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertTrue("The received message is the same as the sent one", receivedMessage.equals("A: " + MESSAGE_A));
 

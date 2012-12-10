@@ -37,54 +37,19 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.test.e2e;
 
-import java.net.URI;
-import java.net.URL;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+package org.glassfish.tyrus.test.ejb;
 
-import javax.websocket.ClientEndpointConfiguration;
-
-import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
-import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.server.Server;
-import org.junit.Assert;
-import org.junit.Ignore;
-import org.junit.Test;
+import javax.websocket.EndpointFactory;
 
 /**
- * Tests the basic client behavior, sending and receiving message
+ * Blank factory. Used just because we need to have one.
  *
- * @author Danny Coward (danny.coward at oracle.com)
- * @author Martin Matula (martin.matula at oracle.com)
+ * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class BlockingStreamingTextTest {
-
-    @Ignore
-    @Test
-    public void testClient() {
-        final ClientEndpointConfiguration cec = new DefaultClientEndpointConfiguration.Builder().build();
-
-        Server server = new Server(BlockingStreamingTextServer.class.getName());
-        server.start();
-
-        try {
-            CountDownLatch messageLatch = new CountDownLatch(1);
-
-            BlockingStreamingTextClient bstc = new BlockingStreamingTextClient(messageLatch);
-            ClientManager client = ClientManager.createClient();
-            client.connectToServer(bstc, cec , new URI("ws://localhost:8025/websockets/tests/blockingstreaming"));
-
-            messageLatch.await(5, TimeUnit.SECONDS);
-            System.out.println("SENT: " + bstc.sentMessage);
-            System.out.println("RECIEVED: " + bstc.receivedMessage);
-            Assert.assertTrue("Client got back what it sent, all pieces in the right order.", bstc.sentMessage.equals(bstc.receivedMessage));
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException(e.getMessage(), e);
-        } finally {
-            server.stop();
-        }
+public class TestEndpointFactory implements EndpointFactory {
+    @Override
+    public Object createEndpoint() {
+        return null;
     }
 }

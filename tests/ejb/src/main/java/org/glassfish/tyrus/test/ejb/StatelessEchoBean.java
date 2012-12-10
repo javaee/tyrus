@@ -51,7 +51,7 @@ import javax.websocket.WebSocketEndpoint;
 import javax.websocket.WebSocketMessage;
 
 @Stateless
-@WebSocketEndpoint(value = "/stateless", decoders={org.glassfish.tyrus.test.ejb.CustomDecoder.class})
+@WebSocketEndpoint(value = "/stateless", decoders={org.glassfish.tyrus.test.ejb.CustomDecoder.class}, factory = TestEndpointFactory.class)
 public class StatelessEchoBean {
 
     private int counter = 0;

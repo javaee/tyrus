@@ -40,10 +40,12 @@
 
 package org.glassfish.tyrus.test.e2e;
 
+import java.net.URI;
 import java.net.URL;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import javax.websocket.ClientEndpointConfiguration;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
@@ -65,6 +67,8 @@ import static org.junit.Assert.assertTrue;
 public class BroadcasterTest {
     private static final String SENT_MESSAGE = "Hello World";
 
+    private final ClientEndpointConfiguration cec = new DefaultClientEndpointConfiguration.Builder().build();
+
     @Ignore
     @Test
     public void testBroadcaster() {
@@ -76,9 +80,9 @@ public class BroadcasterTest {
             final TEndpointAdapter ea2 = new TEndpointAdapter(messageLatch);
 
             final ClientManager client1 = ClientManager.createClient();
-            client1.connectToServer(ea1, "ws://localhost:8025/websockets/tests/broadcast");
+            client1.connectToServer(ea1, cec, new URI("ws://localhost:8025/websockets/tests/broadcast"));
             final ClientManager client2 = ClientManager.createClient();
-            client2.connectToServer(ea2, "ws://localhost:8025/websockets/tests/broadcast");
+            client2.connectToServer(ea2, cec, new URI("ws://localhost:8025/websockets/tests/broadcast"));
 
             synchronized (ea1) {
                 if (ea1.peer == null) {

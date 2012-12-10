@@ -48,6 +48,7 @@ import javax.websocket.ClientContainer;
 import javax.websocket.ClientEndpointConfiguration;
 import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
+import javax.websocket.EndpointConfiguration;
 import javax.websocket.Session;
 
 import org.glassfish.tyrus.AnnotatedEndpoint;
@@ -81,7 +82,7 @@ public class ClientManager implements ClientContainer {
         try {
             Class engineProviderClazz = Class.forName(engineProviderClassname);
             Logger.getLogger(ClientManager.class.getName()).info("Provider class loaded: " + engineProviderClassname);
-            ClientManager cm =  new ClientManager((TyrusContainer) engineProviderClazz.newInstance());
+            ClientManager cm = new ClientManager((TyrusContainer) engineProviderClazz.newInstance());
             TyrusContainerProvider.getClientProvider().setContainer(cm);
             return cm;
         } catch (Exception e) {
@@ -94,37 +95,43 @@ public class ClientManager implements ClientContainer {
     }
 
     @Override
-    public void connectToServer(Object endpoint, URI uri) throws DeploymentException {
-        connectToServer(endpoint, uri.toString());
-    }
-
-    public void connectToServer(Object o, String url) throws DeploymentException {
-        Endpoint endpoint;
-        if (o instanceof Endpoint) {
-            endpoint = (Endpoint) o;
-        } else {
-            endpoint = AnnotatedEndpoint.fromInstance(o);
-            if (endpoint == null) {
-                throw new DeploymentException(o.getClass().getName() + " is not a valid client endpoint.");
-            }
-        }
-        try {
-            EndpointWrapper clientEndpoint = new EndpointWrapper(endpoint, this, null);
-            ClientEndpointConfiguration config = (ClientEndpointConfiguration) endpoint.getEndpointConfiguration();
-            if (config == null) {
-                config = new DefaultClientEndpointConfiguration.Builder().build();
-            }
-            TyrusClientSocket clientSocket = engine.openClientSocket(
-                    url, config, clientEndpoint);
-            sockets.add(clientSocket);
-        } catch (Exception e) {
-            throw new DeploymentException("Connection failed.", e);
-        }
+    public Session connectToServer(Object endpoint, URI uri) throws DeploymentException {
+        return connectToServer(endpoint, null, uri.toString());
     }
 
     @Override
-    public Set<Session> getActiveSessions() {
+    public Session connectToServer(Endpoint endpoint, ClientEndpointConfiguration clientEndpointConfiguration, URI uri) throws DeploymentException {
+        return connectToServer(endpoint, clientEndpointConfiguration, uri.toString());
+    }
+
+    @Override
+    public Set<Session> getOpenSessions() {
         return null;
+    }
+
+    /**
+     * Connects client endpoint o to the specified url.
+     *
+     * @param o the endpoint.
+     * @param configuration of the endpoint.
+     * @param url to which the client will connect.
+     * @return {@link Session}.
+     * @throws DeploymentException
+     */
+    public Session connectToServer(Object o, ClientEndpointConfiguration configuration, String url) throws DeploymentException {
+        ClientEndpointConfiguration config;
+        Endpoint endpoint;
+        endpoint = (Endpoint) o;
+        config = configuration == null ? new DefaultClientEndpointConfiguration.Builder().build() : configuration;
+
+        try {
+            EndpointWrapper clientEndpoint = new EndpointWrapper(endpoint, config, this, null);
+            TyrusClientSocket clientSocket = engine.openClientSocket(url, config, clientEndpoint);
+            sockets.add(clientSocket);
+            return clientSocket.getSession();
+        } catch (Exception e) {
+            throw new DeploymentException("Connection failed.", e);
+        }
     }
 
     @Override

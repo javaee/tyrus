@@ -40,8 +40,11 @@
 package org.glassfish.tyrus.test.e2e;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
+import javax.websocket.ClientEndpointConfiguration;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.Session;
 import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
@@ -61,9 +64,9 @@ public class MessageParamOrderTest {
 
     private String receivedMessage;
 
-    private byte[] receivedBinaryMessage;
-
     private static final String SENT_MESSAGE = "Hello World";
+
+    private final ClientEndpointConfiguration cec = new DefaultClientEndpointConfiguration.Builder().build();
 
     @Test
     public void testHello() {
@@ -98,7 +101,7 @@ public class MessageParamOrderTest {
                     receivedMessage = message;
                     messageLatch.countDown();
                 }
-            }, "ws://localhost:8025/websockets/tests/hello");
+            }, cec, new URI("ws://localhost:8025/websockets/tests/hello"));
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertTrue("The received message is the same as the sent one", receivedMessage.equals(SENT_MESSAGE));
         } catch (Exception e) {
@@ -142,7 +145,7 @@ public class MessageParamOrderTest {
                     receivedMessage = message;
                     messageLatch.countDown();
                 }
-            }, "ws://localhost:8025/websockets/tests/hello");
+            }, cec, new URI("ws://localhost:8025/websockets/tests/hello"));
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertEquals(SENT_MESSAGE, receivedMessage);
         } catch (Exception e) {

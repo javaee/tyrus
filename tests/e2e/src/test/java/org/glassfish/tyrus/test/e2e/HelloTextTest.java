@@ -39,9 +39,12 @@
  */
 package org.glassfish.tyrus.test.e2e;
 
+import java.net.URI;
 import java.net.URL;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
+import javax.websocket.ClientEndpointConfiguration;
 
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
@@ -59,6 +62,7 @@ public class HelloTextTest {
 
     @Test
     public void testClient() {
+        final ClientEndpointConfiguration cec = new DefaultClientEndpointConfiguration.Builder().build();
         Server server = new Server(HelloTextServer.class.getName());
         server.start();
 
@@ -69,7 +73,7 @@ public class HelloTextTest {
 
             HelloTextClient htc = new HelloTextClient(messageLatch);
             ClientManager client = ClientManager.createClient();
-            client.connectToServer(htc, "ws://localhost:8025/websockets/tests/hellotext");
+            client.connectToServer(htc, cec, new URI("ws://localhost:8025/websockets/tests/hellotext"));
 
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertTrue("Client did not receive anything.", htc.gotSomethingBack);

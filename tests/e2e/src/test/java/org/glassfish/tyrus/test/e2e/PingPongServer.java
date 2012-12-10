@@ -50,7 +50,7 @@ import javax.websocket.WebSocketOpen;
  * @author Danny Coward (danny.coward at oracle.com)
  */
 
-@WebSocketEndpoint("/pingpong")
+@WebSocketEndpoint(value = "/pingpong",factory = TestEndpointFactory.class)
 public class PingPongServer {
     static boolean gotCorrectMessage = false;
     private static String SERVER_MESSAGE = "server ping data!";

@@ -51,7 +51,7 @@ import java.io.IOException;
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 
-@WebSocketEndpoint(value = "/echo", encoders = {StringContainerEncoder.class})
+@WebSocketEndpoint(value = "/echo", encoders = {StringContainerEncoder.class},factory = TestEndpointFactory.class)
 public class TestEncodeBean {
     @WebSocketOpen
     public void onOpen(Session s) {

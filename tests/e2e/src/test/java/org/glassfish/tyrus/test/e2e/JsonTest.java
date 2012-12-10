@@ -41,10 +41,12 @@
 package org.glassfish.tyrus.test.e2e;
 
 import java.io.IOException;
+import java.net.URI;
 import java.net.URL;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import javax.websocket.ClientEndpointConfiguration;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.Session;
 
@@ -68,6 +70,8 @@ public class JsonTest {
     private String receivedMessage;
 
     private static final String SENT_MESSAGE = "{NAME : Danny}";
+
+    private final ClientEndpointConfiguration cec = new DefaultClientEndpointConfiguration.Builder().build();
 
     @Ignore
     @Test
@@ -106,7 +110,7 @@ public class JsonTest {
                     receivedMessage = message;
                     messageLatch.countDown();
                 }
-            }, "ws://localhost:8025/websockets/tests/json");
+            }, cec, new URI("ws://localhost:8025/websockets/tests/json"));
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertTrue("The received message is {REPLY : Danny}", receivedMessage.equals("{\"REPLY\":\"Danny\"}"));
         } catch (Exception e) {

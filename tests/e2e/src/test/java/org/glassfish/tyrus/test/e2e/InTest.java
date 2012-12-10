@@ -40,6 +40,7 @@
 
 package org.glassfish.tyrus.test.e2e;
 
+import java.net.URI;
 import java.net.URL;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
@@ -47,6 +48,7 @@ import org.glassfish.tyrus.server.Server;
 import org.junit.Assert;
 import org.junit.Test;
 
+import javax.websocket.ClientEndpointConfiguration;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.Session;
 
@@ -64,6 +66,8 @@ public class InTest {
     private CountDownLatch messageLatch;
 
     private String receivedMessage;
+
+    private final ClientEndpointConfiguration cec = new DefaultClientEndpointConfiguration.Builder().build();
 
     @Test
     public void testBoolean() {
@@ -122,7 +126,7 @@ public class InTest {
 
             ClientManager client = ClientManager.createClient();
             TestAdapter ta = new TestAdapter(message);
-            client.connectToServer(ta, address);
+            client.connectToServer(ta, cec, new URI(address));
 
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertEquals(response, receivedMessage);

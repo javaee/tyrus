@@ -50,7 +50,7 @@ import javax.websocket.WebSocketOpen;
  * @author Danny Coward (danny.coward at oracle.com)
  * @author Martin Matula (martin.matula at oracle.com)
  */
-@WebSocketEndpoint("/streamingtext")
+@WebSocketEndpoint(value = "/streamingtext",factory = TestEndpointFactory.class)
 public class StreamingTextServer {
     private Session session;
     static CountDownLatch messageLatch;

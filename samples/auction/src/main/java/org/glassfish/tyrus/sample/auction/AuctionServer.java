@@ -44,6 +44,7 @@ import org.glassfish.tyrus.sample.auction.message.AuctionListResponseMessage;
 import org.glassfish.tyrus.sample.auction.message.BidRequestMessage;
 import org.glassfish.tyrus.sample.auction.message.LoginRequestMessage;
 import org.glassfish.tyrus.sample.auction.message.LogoutRequestMessage;
+import org.glassfish.tyrus.server.DefaultEndpointFactory;
 
 import javax.websocket.Session;
 import javax.websocket.WebSocketClose;
@@ -71,7 +72,8 @@ import java.util.logging.Logger;
                 org.glassfish.tyrus.sample.auction.decoders.LogoutRequestDecoder.class,
                 org.glassfish.tyrus.sample.auction.decoders.AuctionListRequestDecoder.class,
                 org.glassfish.tyrus.sample.auction.decoders.LogoutRequestDecoder.class},
-        encoders = {org.glassfish.tyrus.sample.auction.encoders.LogoutResponseEncoder.class})
+        encoders = {org.glassfish.tyrus.sample.auction.encoders.LogoutResponseEncoder.class},
+factory = DefaultEndpointFactory.class)
 public class AuctionServer {
 
     /*

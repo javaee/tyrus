@@ -53,7 +53,7 @@ import javax.websocket.WebSocketOpen;
  * @author Danny Coward (danny.coward at oracle.com)
  * @author Martin Matula (martin.matula at oracle.com)
  */
-@WebSocketEndpoint("/blockingstreaming")
+@WebSocketEndpoint(value = "/blockingstreaming",factory = TestEndpointFactory.class)
 public class BlockingStreamingTextServer extends Endpoint {
     class MyCharacterStreamHandler implements MessageHandler.Async<Reader> {
         Session session;
@@ -87,10 +87,10 @@ public class BlockingStreamingTextServer extends Endpoint {
         }
     }
 
-    @Override
-    public EndpointConfiguration getEndpointConfiguration() {
-        return null;
-    }
+//    @Override
+//    public EndpointConfiguration getEndpointConfiguration() {
+//        return null;
+//    }
 
     @WebSocketOpen
     public void onOpen(Session session) {

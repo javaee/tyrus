@@ -39,6 +39,7 @@
  */
 package org.glassfish.tyrus.test.e2e;
 
+import java.net.URI;
 import java.net.URL;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
@@ -47,6 +48,7 @@ import org.glassfish.tyrus.test.e2e.bean.ParameterizedHelloTestBean;
 import org.junit.Assert;
 import org.junit.Test;
 
+import javax.websocket.ClientEndpointConfiguration;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.Session;
 
@@ -67,6 +69,7 @@ public class ParameterizedHelloTest {
 
     @Test
     public void testHello() {
+        final ClientEndpointConfiguration cec = new DefaultClientEndpointConfiguration.Builder().build();
         Server server = new Server(ParameterizedHelloTestBean.class);
         server.start();
         try {
@@ -98,7 +101,7 @@ public class ParameterizedHelloTest {
                     receivedMessage = message;
                     messageLatch.countDown();
                 }
-            }, "wss://localhost:8025/websockets/tests/hello/whatever/one/test1234/test4567");
+            }, cec, new URI("wss://localhost:8025/websockets/tests/hello/whatever/one/test1234/test4567"));
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertTrue("The received message is the same as the sent one", receivedMessage.equals(SENT_MESSAGE));
         } catch (Exception e) {

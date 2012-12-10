@@ -39,6 +39,8 @@
  */
 package org.glassfish.tyrus.sample.draw;
 
+import org.glassfish.tyrus.server.DefaultEndpointFactory;
+
 import javax.websocket.EncodeException;
 import javax.websocket.Session;
 import javax.websocket.WebSocketClose;
@@ -55,7 +57,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Danny Coward (danny.coward at oracle.com)
  */
 
-@WebSocketEndpoint(value = "/draw")
+@WebSocketEndpoint(value = "/draw", factory = DefaultEndpointFactory.class)
 public class GroupDrawServer {
 
     private Set<Session> peers = Collections.newSetFromMap(new ConcurrentHashMap<Session, Boolean>());

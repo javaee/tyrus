@@ -52,7 +52,7 @@ import java.io.IOException;
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 
-@WebSocketEndpoint(value = "/echo")
+@WebSocketEndpoint(value = "/echo",factory = TestEndpointFactory.class)
 public class TestBean {
     @WebSocketOpen
     public void onOpen(Session s) {

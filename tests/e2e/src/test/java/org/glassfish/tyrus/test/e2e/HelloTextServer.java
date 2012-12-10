@@ -48,7 +48,7 @@ import javax.websocket.WebSocketOpen;
  * @author Danny Coward (danny.coward at oracle.com)
  */
 
-@WebSocketEndpoint("/hellotext")
+@WebSocketEndpoint(value = "/hellotext",factory = TestEndpointFactory.class)
 public class HelloTextServer {
 
     @WebSocketOpen

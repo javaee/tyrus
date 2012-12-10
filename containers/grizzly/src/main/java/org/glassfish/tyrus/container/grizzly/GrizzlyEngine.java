@@ -96,12 +96,14 @@ public class GrizzlyEngine implements TyrusContainer {
     @Override
     public TyrusClientSocket openClientSocket(String path, ClientEndpointConfiguration cec, SPIEndpoint endpoint) {
         URI uri;
+
         try {
             uri = new URI(path);
         } catch (URISyntaxException e) {
             // TODO - report error
             return null;
         }
+
         GrizzlyClientSocket clientSocket = new GrizzlyClientSocket(uri, cec, 1000);
         clientSocket.addEndpoint(endpoint);
         clientSocket.connect();

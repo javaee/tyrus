@@ -39,6 +39,8 @@
  */
 package org.glassfish.tyrus.test.e2e.bean;
 
+import org.glassfish.tyrus.test.e2e.TestEndpointFactory;
+
 import javax.websocket.EncodeException;
 import javax.websocket.Session;
 import javax.websocket.WebSocketEndpoint;
@@ -53,7 +55,7 @@ import java.util.Set;
  * @author Martin Matula (martin.matula at oracle.com)
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-@WebSocketEndpoint(value = "/broadcast")
+@WebSocketEndpoint(value = "/broadcast",factory = TestEndpointFactory.class)
 public class BroadcasterTestBean {
 
     private Set<Session> connections = new HashSet<Session>();

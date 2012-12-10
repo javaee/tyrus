@@ -50,8 +50,10 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.websocket.ClientEndpointConfiguration;
 import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
+import javax.websocket.EndpointConfiguration;
 import javax.websocket.ServerContainer;
 import javax.websocket.ServerEndpointConfiguration;
 import javax.websocket.Session;
@@ -127,7 +129,7 @@ public class TyrusServerContainer extends WithProperties implements ServerContai
         server.start();
 
         for (Endpoint endpoint : configuration.getEndpointInstances()) {
-            deploy(endpoint);
+            deploy(endpoint, null);
         }
 
         // deploy all the class-based endpoints
@@ -140,8 +142,8 @@ public class TyrusServerContainer extends WithProperties implements ServerContai
         }
     }
 
-    private void deploy(Endpoint endpoint) {
-        EndpointWrapper ew = new EndpointWrapper(endpoint, this, contextPath);
+    private void deploy(Endpoint endpoint, EndpointConfiguration endpointConfiguration) {
+        EndpointWrapper ew = new EndpointWrapper(endpoint, endpointConfiguration, this, contextPath);
         SPIRegisteredEndpoint ge = server.register(ew);
         endpoints.add(ge);
     }
@@ -149,10 +151,13 @@ public class TyrusServerContainer extends WithProperties implements ServerContai
     private void deploy(Class<?> endpointClass) throws DeploymentException {
         // introspect the bean and find all the paths....
         Endpoint endpoint;
+        EndpointConfiguration config;
         if (Endpoint.class.isAssignableFrom(endpointClass)) {
             endpoint = (Endpoint) ComponentProviderService.getInstance(endpointClass);
+            config = null;
         } else {
             endpoint = AnnotatedEndpoint.fromClass(endpointClass);
+            config = ((AnnotatedEndpoint)endpoint).getEndpointConfiguration();
             if (endpoint == null) {
                 throw new DeploymentException("Endpoint class " + endpointClass.getName() + " does " +
                         "not extend Endpoint and is not " +
@@ -160,10 +165,9 @@ public class TyrusServerContainer extends WithProperties implements ServerContai
             }
         }
 
-        deploy(endpoint);
+        deploy(endpoint, config);
 
-        Logger.getLogger(getClass().getName()).info("Registered a " + endpointClass + " at " +
-                ((ServerEndpointConfiguration) endpoint.getEndpointConfiguration()).getPath());
+        Logger.getLogger(getClass().getName()).info("Registered a " + endpointClass);
     }
 
     public void stop() {
@@ -176,18 +180,29 @@ public class TyrusServerContainer extends WithProperties implements ServerContai
     }
 
     @Override
-    public void publishServer(Class<? extends Endpoint> endpointClass) throws DeploymentException {
-        deploy(endpointClass);
+    public void publishServer(Class<? extends ServerEndpointConfiguration> configuration) throws DeploymentException {
+        deploy(configuration);
     }
 
     @Override
-    public void connectToServer(Object endpoint, URI path) throws DeploymentException {
+    public Session connectToServer(Object endpoint, URI path) throws DeploymentException {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Set<Session> getActiveSessions() {
+    public Session connectToServer(Endpoint endpoint, ClientEndpointConfiguration clientEndpointConfiguration, URI uri) throws DeploymentException {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Set<Session> getOpenSessions() {
+        Set<Session> result = new HashSet<Session>();
+
+        for (SPIRegisteredEndpoint endpoint : endpoints) {
+            result.addAll(endpoint.getOpenSessions());
+        }
+
+        return Collections.unmodifiableSet(result);
     }
 
     @Override

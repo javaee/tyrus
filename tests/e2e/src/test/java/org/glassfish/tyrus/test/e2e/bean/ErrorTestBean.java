@@ -40,14 +40,23 @@
 
 package org.glassfish.tyrus.test.e2e.bean;
 
-import javax.websocket.*;
+import javax.websocket.RemoteEndpoint;
+import javax.websocket.Session;
+import javax.websocket.WebSocketEndpoint;
+import javax.websocket.WebSocketError;
+import javax.websocket.WebSocketMessage;
+
+import org.glassfish.tyrus.test.e2e.TestEndpointFactory;
+
+
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)
  */
 @WebSocketEndpoint(
         value = "/error",
-        encoders = {org.glassfish.tyrus.test.e2e.encoder.ErrorEncoder.class}
+        encoders = {org.glassfish.tyrus.test.e2e.encoder.ErrorEncoder.class},
+        factory = TestEndpointFactory.class
 )
 public class ErrorTestBean {
     private Session session;

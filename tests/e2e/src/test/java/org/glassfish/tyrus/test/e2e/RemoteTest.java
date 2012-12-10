@@ -41,10 +41,15 @@
 package org.glassfish.tyrus.test.e2e;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
+import javax.websocket.ClientEndpointConfiguration;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.Session;
+
+import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 import org.junit.Assert;
@@ -109,6 +114,7 @@ public class RemoteTest {
     }
 
     public void testPojo(Class<?> bean, String segmentPath, final String message, String response) {
+        final ClientEndpointConfiguration cec = new DefaultClientEndpointConfiguration.Builder().build();
         Server server = new Server(bean);
         server.start();
 
@@ -138,7 +144,7 @@ public class RemoteTest {
                     receivedMessage = message;
                     messageLatch.countDown();
                 }
-            }, "ws://localhost:8025/websockets/tests" + segmentPath);
+            }, cec, new URI("ws://localhost:8025/websockets/tests" + segmentPath));
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertEquals(response, receivedMessage);
         } catch (Exception e) {

@@ -40,8 +40,11 @@
 package org.glassfish.tyrus.test.e2e;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
+import javax.websocket.ClientEndpointConfiguration;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.Session;
 import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
@@ -64,6 +67,7 @@ public class PathParamTest {
 
     @Test
     public void testPathParam() {
+        final ClientEndpointConfiguration cec = new DefaultClientEndpointConfiguration.Builder().build();
         Server server = new Server(PathParamTestBean.class);
         server.start();
         try {
@@ -95,7 +99,7 @@ public class PathParamTest {
                     receivedMessage = message;
                     messageLatch.countDown();
                 }
-            }, "wss://localhost:8025/websockets/tests/pathparam/first/second/th/ird");
+            }, cec, new URI("wss://localhost:8025/websockets/tests/pathparam/first/second/th/ird"));
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertEquals(SENT_MESSAGE + "first" + "second" + "th/ird", receivedMessage);
         } catch (Exception e) {

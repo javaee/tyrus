@@ -40,6 +40,8 @@
 
 package org.glassfish.tyrus.test.e2e.bean;
 
+import org.glassfish.tyrus.test.e2e.TestEndpointFactory;
+
 import javax.websocket.Session;
 import javax.websocket.WebSocketEndpoint;
 import javax.websocket.WebSocketMessage;
@@ -50,7 +52,7 @@ import javax.websocket.WebSocketMessage;
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 
-@WebSocketEndpoint(value = "/hello")
+@WebSocketEndpoint(value = "/hello",factory = TestEndpointFactory.class)
 public class HelloTestBean {
 
     @WebSocketMessage

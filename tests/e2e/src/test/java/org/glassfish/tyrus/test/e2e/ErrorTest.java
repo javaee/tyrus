@@ -40,6 +40,7 @@
 
 package org.glassfish.tyrus.test.e2e;
 
+import java.net.URI;
 import java.net.URL;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
@@ -48,6 +49,7 @@ import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import javax.websocket.ClientEndpointConfiguration;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.Session;
 
@@ -71,6 +73,7 @@ public class ErrorTest {
     @Ignore
     @Test
     public void testError() {
+        final ClientEndpointConfiguration cec = new DefaultClientEndpointConfiguration.Builder().build();
         Server server = new Server(org.glassfish.tyrus.test.e2e.bean.ErrorTestBean.class);
         server.start();
         try {
@@ -100,7 +103,7 @@ public class ErrorTest {
                     receivedMessage = message;
                     messageLatch.countDown();
                 }
-            }, "ws://localhost:8025/websockets/tests/error");
+            }, cec, new URI("ws://localhost:8025/websockets/tests/error"));
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertTrue("The received message is 'Error'", receivedMessage.equals("Error"));
         } catch (Exception e) {

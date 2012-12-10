@@ -40,10 +40,13 @@
 package org.glassfish.tyrus.test.e2e;
 
 import java.io.IOException;
+import java.net.URI;
 import java.net.URL;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
+import javax.websocket.ClientEndpointConfiguration;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.MessageHandler;
@@ -66,6 +69,8 @@ public class BinaryMessageTest {
 
     private ByteBuffer receivedMessage;
 
+    private final ClientEndpointConfiguration cec = new DefaultClientEndpointConfiguration.Builder().build();
+
     @Test
     public void testHello() {
         Server server = new Server(org.glassfish.tyrus.test.e2e.bean.BinaryBean.class);
@@ -78,10 +83,10 @@ public class BinaryMessageTest {
 
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new Endpoint() {
-                @Override
-                public EndpointConfiguration getEndpointConfiguration() {
-                    return dcec;
-                }
+//                @Override
+//                public EndpointConfiguration getEndpointConfiguration() {
+//                    return dcec;
+//                }
 
                 @Override
                 public void onOpen(Session session) {
@@ -98,8 +103,8 @@ public class BinaryMessageTest {
                         e.printStackTrace();
                     }
                 }
-            }, "ws://localhost:8025/websockets/tests/binary");
-            messageLatch.await(5000, TimeUnit.SECONDS);
+            }, cec, new URI("ws://localhost:8025/websockets/tests/binary"));
+            messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertArrayEquals("The received message is the same as the sent one", receivedMessage.array(), BINARY_MESSAGE);
         } catch (Exception e) {
             e.printStackTrace();

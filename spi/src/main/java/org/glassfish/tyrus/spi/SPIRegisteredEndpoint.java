@@ -39,16 +39,27 @@
  */
 package org.glassfish.tyrus.spi;
 
+import javax.websocket.Session;
+import java.util.Set;
+
 /**
  * The provider implements this interface in order to
  * provide the web socket SDK a handle to the deployed
- * endpoint that it may use later to unregister.
+ * endpoint that it may use later to un-register.
  *
  * @author Danny Coward (danny.coward at oracle.com)
  */
 public interface SPIRegisteredEndpoint {
 
-    /* Called by the SDK when it is cleaning up or needs to shut down.*/
+    /**
+     * Called by the SDK when it is cleaning up or needs to shut down.
+     */
     public void remove();
 
+    /**
+     * Get the endpoint's open {@link Session}s.
+     *
+     * @return open sessions.
+     */
+    public Set<Session> getOpenSessions();
 }

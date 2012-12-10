@@ -44,6 +44,7 @@ package org.glassfish.tyrus.test.e2e.bean;
 import javax.websocket.WebSocketEndpoint;
 import javax.websocket.WebSocketMessage;
 
+import org.glassfish.tyrus.test.e2e.TestEndpointFactory;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -53,7 +54,8 @@ import org.json.JSONObject;
 @WebSocketEndpoint(
         value = "/json",
         encoders = {org.glassfish.tyrus.test.e2e.encoder.JsonEncoder.class},
-        decoders = {org.glassfish.tyrus.test.e2e.decoder.JsonDecoder.class}
+        decoders = {org.glassfish.tyrus.test.e2e.decoder.JsonDecoder.class},
+        factory = TestEndpointFactory.class
 )
 
 public class JsonTestBean {

@@ -47,6 +47,7 @@ import javax.websocket.EndpointConfiguration;
 import javax.websocket.Session;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -76,10 +77,11 @@ public class EjbManualTestingApplication {
 
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new TestEndpointAdapter() {
-                @Override
-                public EndpointConfiguration getEndpointConfiguration() {
-                    return configSingleton;
-                }
+
+//                @Override
+//                public EndpointConfiguration getEndpointConfiguration() {
+//                    return configSingleton;
+//                }
 
                 @Override
                 public void onOpen(Session session) {
@@ -97,13 +99,13 @@ public class EjbManualTestingApplication {
                     messageLatch.countDown();
                     System.out.println("Received Message1: "+receivedMessage1);
                 }
-            }, "ws://localhost:8080/ejb-test/singleton");
+            }, configSingleton, new URI("ws://localhost:8080/ejb-test/singleton"));
 
             client.connectToServer(new TestEndpointAdapter() {
-                @Override
-                public EndpointConfiguration getEndpointConfiguration() {
-                    return configSingleton;
-                }
+//                @Override
+//                public EndpointConfiguration getEndpointConfiguration() {
+//                    return configSingleton;
+//                }
 
                 @Override
                 public void onOpen(Session session) {
@@ -121,16 +123,16 @@ public class EjbManualTestingApplication {
                     messageLatch.countDown();
                     System.out.println("Received Message2: "+receivedMessage2);
                 }
-            }, "ws://localhost:8080/ejb-test/singleton");
+            }, configSingleton, new URI("ws://localhost:8080/ejb-test/singleton"));
             messageLatch.await(5, TimeUnit.SECONDS);
 
             messageLatch = new CountDownLatch(2);
 
             client.connectToServer(new TestEndpointAdapter() {
-                @Override
-                public EndpointConfiguration getEndpointConfiguration() {
-                    return configStateless;
-                }
+//                @Override
+//                public EndpointConfiguration getEndpointConfiguration() {
+//                    return configStateless;
+//                }
 
                 @Override
                 public void onOpen(Session session) {
@@ -148,13 +150,13 @@ public class EjbManualTestingApplication {
                     messageLatch.countDown();
                     System.out.println("Received Message3: "+receivedMessage1);
                 }
-            }, "ws://localhost:8080/ejb-test/stateless");
+            }, configStateless,  new URI("ws://localhost:8080/ejb-test/stateless"));
 
             client.connectToServer(new TestEndpointAdapter() {
-                @Override
-                public EndpointConfiguration getEndpointConfiguration() {
-                    return configStateless;
-                }
+//                @Override
+//                public EndpointConfiguration getEndpointConfiguration() {
+//                    return configStateless;
+//                }
 
                 @Override
                 public void onOpen(Session session) {
@@ -172,7 +174,7 @@ public class EjbManualTestingApplication {
                     messageLatch.countDown();
                     System.out.println("Received Message4: "+receivedMessage2);
                 }
-            }, "ws://localhost:8080/ejb-test/stateless");
+            }, configStateless, new URI("ws://localhost:8080/ejb-test/stateless"));
 
             messageLatch.await(5, TimeUnit.SECONDS);
 

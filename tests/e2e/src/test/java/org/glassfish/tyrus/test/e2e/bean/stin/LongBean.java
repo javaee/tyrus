@@ -40,6 +40,7 @@
 package org.glassfish.tyrus.test.e2e.bean.stin;
 
 
+import org.glassfish.tyrus.test.e2e.TestEndpointFactory;
 import org.glassfish.tyrus.test.e2e.Util;
 
 import javax.websocket.WebSocketEndpoint;
@@ -49,7 +50,7 @@ import javax.websocket.WebSocketMessage;
  * @author Danny Coward (danny.coward at oracle.com)
  */
 @WebSocketEndpoint(
-        value = "/standardInputTypes/long")
+        value = "/standardInputTypes/long", factory = TestEndpointFactory.class)
 //            Xremote=org.glassfish.tyrus.test.e2e.remote.LongRemote.class
 //    )
 public class LongBean {

@@ -39,6 +39,8 @@
  */
 package org.glassfish.tyrus.test.e2e.bean;
 
+import org.glassfish.tyrus.test.e2e.TestEndpointFactory;
+
 import javax.websocket.Session;
 import javax.websocket.WebSocketEndpoint;
 import javax.websocket.WebSocketMessage;
@@ -50,7 +52,7 @@ import static org.junit.Assert.assertNull;
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-@WebSocketEndpoint("/pathparam/{first}/{second}/{third: .*}")
+@WebSocketEndpoint(value = "/pathparam/{first}/{second}/{third: .*}", factory = TestEndpointFactory.class)
 public class PathParamTestBean {
 
     @WebSocketMessage

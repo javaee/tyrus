@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011 - 2012 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -37,49 +37,71 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+
 package org.glassfish.tyrus.test.e2e;
 
 import java.net.URI;
-import java.net.URL;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.Session;
 
 import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
-import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 /**
- * Tests the basic client behavior, sending and receiving message
+ * Tests the ServerContainer.getOpenSessions method.
  *
- * @author Danny Coward (danny.coward at oracle.com)
- * @author Martin Matula (martin.matula at oracle.com)
+ * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class BlockingStreamingTextTest {
+public class ServerContainerGetOpenSessions {
 
-    @Ignore
+    private String receivedMessage;
+    private static final String SENT_MESSAGE = "Hello World";
+
     @Test
-    public void testClient() {
-        final ClientEndpointConfiguration cec = new DefaultClientEndpointConfiguration.Builder().build();
+    public void testGetOpenSessions() {
+        final CountDownLatch messageLatch = new CountDownLatch(1);
+        DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder();
+        final DefaultClientEndpointConfiguration dcec = builder.build();
 
-        Server server = new Server(BlockingStreamingTextServer.class.getName());
+        Server server = new Server(org.glassfish.tyrus.test.e2e.bean.SimpleRemoteTestBean.class, org.glassfish.tyrus.test.e2e.bean.HelloTestBean.class);
         server.start();
-
         try {
-            CountDownLatch messageLatch = new CountDownLatch(1);
+            final ClientManager client = ClientManager.createClient();
+            for (int i = 0; i < 2; i++) {
+                client.connectToServer(new TestEndpointAdapter() {
+                    @Override
+                    public void onOpen(Session session) {
+                    }
 
-            BlockingStreamingTextClient bstc = new BlockingStreamingTextClient(messageLatch);
-            ClientManager client = ClientManager.createClient();
-            client.connectToServer(bstc, cec , new URI("ws://localhost:8025/websockets/tests/blockingstreaming"));
+                    @Override
+                    public void onMessage(String s) {
+                    }
+                }, dcec, new URI("ws://localhost:8025/websockets/tests/customremote/hello"));
+            }
 
-            messageLatch.await(5, TimeUnit.SECONDS);
-            System.out.println("SENT: " + bstc.sentMessage);
-            System.out.println("RECIEVED: " + bstc.receivedMessage);
-            Assert.assertTrue("Client got back what it sent, all pieces in the right order.", bstc.sentMessage.equals(bstc.receivedMessage));
+            for (int i = 0; i < 2; i++) {
+                client.connectToServer(new TestEndpointAdapter() {
+                    @Override
+                    public void onOpen(Session session) {
+                    }
+
+                    @Override
+                    public void onMessage(String s) {
+                    }
+                }, dcec, new URI("wss://localhost:8025/websockets/tests/hello"));
+            }
+
+            messageLatch.await(1, TimeUnit.SECONDS);
+            Set<Session> serverSessions = server.getServerContainer().getOpenSessions();
+            assertEquals(4, serverSessions.size());
+
+
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);

@@ -50,7 +50,7 @@ import java.nio.ByteBuffer;
  * @author Danny Coward (danny.coward at oracle.com)
  */
 
-@WebSocketEndpoint("/hellobinary")
+@WebSocketEndpoint(value = "/hellobinary",factory = TestEndpointFactory.class)
 public class HelloBinaryServer {
 
     @WebSocketOpen

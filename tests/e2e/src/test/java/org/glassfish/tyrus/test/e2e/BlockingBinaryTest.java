@@ -39,9 +39,13 @@
  */
 package org.glassfish.tyrus.test.e2e;
 
+import java.net.URI;
 import java.net.URL;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
+import javax.websocket.ClientEndpointConfiguration;
+
 import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
@@ -60,6 +64,8 @@ public class BlockingBinaryTest {
     @Ignore // TODO: receiving messages out of order (as every message received on a separate thread due to the async
             // TODO: adapter spawning new thread for every onMessage) - TYRUS-50
     public void testClient() {
+        final ClientEndpointConfiguration cec = new DefaultClientEndpointConfiguration.Builder().build();
+
         Server server = new Server(BlockingBinaryServer.class.getName());
         server.start();
 
@@ -71,7 +77,7 @@ public class BlockingBinaryTest {
 
             BlockingBinaryClient sbc = new BlockingBinaryClient(messageLatch);
             ClientManager client = ClientManager.createClient();
-            client.connectToServer(sbc, "ws://localhost:8025/websockets/tests/blockingbinary");
+            client.connectToServer(sbc, cec, new URI("ws://localhost:8025/websockets/tests/blockingbinary"));
 
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertTrue("Client did not receive anything.", sbc.gotTheSameThingBack);

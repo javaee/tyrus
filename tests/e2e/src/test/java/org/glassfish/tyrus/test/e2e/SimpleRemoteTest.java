@@ -41,11 +41,13 @@
 package org.glassfish.tyrus.test.e2e;
 
 import java.io.IOException;
+import java.net.URI;
 import java.net.URL;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.websocket.ClientEndpointConfiguration;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.Session;
 
@@ -54,6 +56,7 @@ import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.server.Server;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -99,7 +102,7 @@ public class SimpleRemoteTest {
                     receivedMessage = message;
                     messageLatch.countDown();
                 }
-            }, "ws://localhost:8025/websockets/tests/customremote/hello");
+            }, dcec, new URI("ws://localhost:8025/websockets/tests/customremote/hello"));
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertTrue("The received message is the same as the sent one", receivedMessage.equals(SENT_MESSAGE));
         } catch (Exception e) {
@@ -109,6 +112,7 @@ public class SimpleRemoteTest {
             server.stop();
         }
     }
+
 
     @Test
     public void testSimpleRemoteMT() {
@@ -157,7 +161,7 @@ public class SimpleRemoteTest {
                                 assertEquals(testString, s);
                                 messageLatch.countDown();
                             }
-                        }, "ws://localhost:8025/websockets/tests/customremote/hello");
+                        }, dcec, new URI("ws://localhost:8025/websockets/tests/customremote/hello"));
                         perClientLatch.await(5, TimeUnit.SECONDS);
                     } catch (Exception e) {
                         e.printStackTrace();

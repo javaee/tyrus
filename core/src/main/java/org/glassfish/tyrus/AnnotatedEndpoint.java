@@ -349,7 +349,7 @@ public class AnnotatedEndpoint extends Endpoint {
         callMethod(onErrorMethod, onErrorParameters, null, thr);
     }
 
-    @Override
+    //    @Override
     public EndpointConfiguration getEndpointConfiguration() {
         return configuration;
     }

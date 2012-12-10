@@ -40,6 +40,8 @@
 
 package org.glassfish.tyrus.test.e2e.bean;
 
+import org.glassfish.tyrus.test.e2e.TestEndpointFactory;
+
 import javax.websocket.WebSocketEndpoint;
 import javax.websocket.WebSocketMessage;
 
@@ -51,7 +53,7 @@ import java.nio.ByteBuffer;
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-@WebSocketEndpoint(value = "/binary")
+@WebSocketEndpoint(value = "/binary",factory = TestEndpointFactory.class)
 public class BinaryBean {
 
     @WebSocketMessage

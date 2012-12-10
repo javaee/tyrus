@@ -83,6 +83,8 @@ public class SessionImpl implements Session {
 
     private static final Logger LOGGER = Logger.getLogger(SessionImpl.class.getName());
 
+    private static final Map<String,Object> userProperties = new HashMap<String, Object>();
+
     /**
      * Timestamp of the last send/receive message activity.
      */
@@ -124,8 +126,8 @@ public class SessionImpl implements Session {
     }
 
     @Override
-    public boolean isActive() {
-        return endpoint.isActive(this);
+    public boolean isOpen() {
+        return endpoint.isOpen(this);
     }
 
     @Override
@@ -148,7 +150,7 @@ public class SessionImpl implements Session {
 
     @Override
     public String toString() {
-        return "Session(" + hashCode() + ", " + this.isActive() + ")";
+        return "Session(" + hashCode() + ", " + this.isOpen() + ")";
     }
 
     public void setTimeout(long seconds) {
@@ -187,21 +189,7 @@ public class SessionImpl implements Session {
     }
 
     @Override
-    public void setEncoders(List<Encoder> encoders) {
-        // TODO: implement
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public void addMessageHandler(MessageHandler listener) {
-//        MessageHandler invokable;
-//        if (listener instanceof MessageHandler.CharacterStream) {
-//            invokable = new AsyncTextToCharStreamAdapter((MessageHandler.CharacterStream) listener);
-//        } else if (listener instanceof MessageHandler.BinaryStream) {
-//            invokable = new AsyncBinaryToOutputStreamAdapter((MessageHandler.BinaryStream) listener);
-//        } else {
-//            invokable = listener;
-//        }
         this.messageHandlerToInvokableMessageHandlers.put(listener, listener);
     }
 
@@ -230,6 +218,11 @@ public class SessionImpl implements Session {
     @Override
     public Map<String, String> getPathParameters() {
         return pathParameters;
+    }
+
+    @Override
+    public Map<String, Object> getUserProperties() {
+        return userProperties;
     }
 
     @Override

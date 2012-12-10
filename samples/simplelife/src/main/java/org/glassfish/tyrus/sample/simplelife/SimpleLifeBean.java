@@ -39,6 +39,8 @@
  */
 package org.glassfish.tyrus.sample.simplelife;
 
+import org.glassfish.tyrus.server.DefaultEndpointFactory;
+
 import javax.websocket.Session;
 import javax.websocket.WebSocketClose;
 import javax.websocket.WebSocketEndpoint;
@@ -46,9 +48,7 @@ import javax.websocket.WebSocketMessage;
 import javax.websocket.WebSocketOpen;
 
 
-@WebSocketEndpoint(
-        value = "/simplelife"
-)
+@WebSocketEndpoint(value = "/simplelife", factory = DefaultEndpointFactory.class)
 public class SimpleLifeBean {
 
     @WebSocketOpen

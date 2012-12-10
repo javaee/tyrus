@@ -46,6 +46,7 @@ import org.glassfish.tyrus.sample.chat.chatdata.DisconnectResponseMessage;
 import org.glassfish.tyrus.sample.chat.chatdata.LoginRequestMessage;
 import org.glassfish.tyrus.sample.chat.chatdata.LoginResponseMessage;
 import org.glassfish.tyrus.sample.chat.chatdata.UserListUpdateMessage;
+import org.glassfish.tyrus.server.DefaultEndpointFactory;
 
 import javax.websocket.CloseReason;
 import javax.websocket.RemoteEndpoint;
@@ -66,7 +67,8 @@ import java.util.logging.Logger;
         decoders = {org.glassfish.tyrus.sample.chat.chatdata.LoginRequestDecoder.class,
                 org.glassfish.tyrus.sample.chat.chatdata.ChatUpdateDecoder.class,
                 org.glassfish.tyrus.sample.chat.chatdata.DisconnectRequestDecoder.class},
-        encoders = {org.glassfish.tyrus.sample.chat.chatdata.DisconnectResponseEncoder.class})
+        encoders = {org.glassfish.tyrus.sample.chat.chatdata.DisconnectResponseEncoder.class},
+        factory = DefaultEndpointFactory.class)
 public class ChatServer {
 
     final static Logger logger = Logger.getLogger("application");

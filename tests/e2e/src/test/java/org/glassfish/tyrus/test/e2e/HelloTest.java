@@ -41,9 +41,11 @@
 package org.glassfish.tyrus.test.e2e;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import javax.websocket.ClientEndpointConfiguration;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.Session;
 
@@ -69,6 +71,7 @@ public class HelloTest {
 
     @Test
     public void testHello() {
+        final ClientEndpointConfiguration cec = new DefaultClientEndpointConfiguration.Builder().build();
         Server server = new Server(org.glassfish.tyrus.test.e2e.bean.HelloTestBean.class);
         server.start();
 
@@ -101,7 +104,7 @@ public class HelloTest {
                     receivedMessage = message;
                     messageLatch.countDown();
                 }
-            }, "wss://localhost:8025/websockets/tests/hello");
+            }, cec, new URI("wss://localhost:8025/websockets/tests/hello"));
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertEquals(SENT_MESSAGE, receivedMessage);
         } catch (Exception e) {

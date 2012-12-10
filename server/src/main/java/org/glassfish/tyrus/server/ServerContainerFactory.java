@@ -73,7 +73,7 @@ public class ServerContainerFactory {
      * @param contextPath URI path at which the websocket server should be exposed at.
      * @param port Port at which the server should listen.
      * @param configuration Server configuration.
-     * @return New instance of {@link ServerContainer}.
+     * @return New instance of {@link ServerConfiguration}.
      */
     public static TyrusServerContainer create(String providerClassName, String contextPath, int port,
                                          ServerConfiguration configuration) {
@@ -105,7 +105,7 @@ public class ServerContainerFactory {
      * @param contextPath URI path at which the websocket server should be exposed at.
      * @param port Port at which the server should listen.
      * @param configuration Server configuration.
-     * @return New instance of {@link ServerContainer}.
+     * @return New instance of {@link TyrusServerContainer}.
      */
     public static TyrusServerContainer create(Class<? extends TyrusContainer> providerClass, String contextPath, int port,
                                          ServerConfiguration configuration) {

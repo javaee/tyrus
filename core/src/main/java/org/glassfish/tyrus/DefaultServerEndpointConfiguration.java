@@ -39,22 +39,23 @@
  */
 package org.glassfish.tyrus;
 
+import javax.websocket.Decoder;
+import javax.websocket.Encoder;
+import javax.websocket.EndpointFactory;
+import javax.websocket.HandshakeRequest;
+import javax.websocket.HandshakeResponse;
+import javax.websocket.ServerEndpointConfiguration;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import javax.websocket.Decoder;
-import javax.websocket.Encoder;
-import javax.websocket.HandshakeRequest;
-import javax.websocket.HandshakeResponse;
-import javax.websocket.ServerEndpointConfiguration;
 
 /**
  * Provides the default {@link ServerEndpointConfiguration}.
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class DefaultServerEndpointConfiguration extends DefaultEndpointConfiguration implements ServerEndpointConfiguration {
+public class DefaultServerEndpointConfiguration<T> extends DefaultEndpointConfiguration implements ServerEndpointConfiguration<T> {
 
     /**
      * List of allowed origins. If not set, the test origin test will be always successful.
@@ -66,11 +67,11 @@ public class DefaultServerEndpointConfiguration extends DefaultEndpointConfigura
     /**
      * Creates new configuration for {@link javax.websocket.Endpoint} which is used on the server side.
      *
-     * @param encoders message encoders.
-     * @param decoders message decoders.
+     * @param encoders     message encoders.
+     * @param decoders     message decoders.
      * @param subprotocols supported sub - protocols.
-     * @param extensions supported extensions.
-     * @param origins accepted origins.
+     * @param extensions   supported extensions.
+     * @param origins      accepted origins.
      */
     protected DefaultServerEndpointConfiguration(String uri, List<Encoder> encoders, List<Decoder> decoders,
                                                  List<String> subprotocols, List<String> extensions,
@@ -78,6 +79,11 @@ public class DefaultServerEndpointConfiguration extends DefaultEndpointConfigura
         super(encoders, decoders, subprotocols, extensions);
         this.uri = uri;
         this.origins = origins == null ? Collections.<String>emptyList() : Collections.unmodifiableList(origins);
+    }
+
+    @Override
+    public EndpointFactory<T> getEndpointFactory() {
+        return null;
     }
 
     @Override
@@ -97,7 +103,7 @@ public class DefaultServerEndpointConfiguration extends DefaultEndpointConfigura
 
         for (String requestedExtension : requestedExtensions) {
             for (String extension : extensions) {
-                if(extension.equals(requestedExtension)){
+                if (extension.equals(requestedExtension)) {
                     result.add(requestedExtension);
                 }
             }

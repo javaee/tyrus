@@ -59,10 +59,10 @@ public class PingPongClient extends Endpoint {
         this.messageLatch = messageLatch;
     }
 
-    @Override
-    public EndpointConfiguration getEndpointConfiguration() {
-        return null;
-    }
+//    @Override
+//    public EndpointConfiguration getEndpointConfiguration() {
+//        return null;
+//    }
 
     public void onOpen(Session session) {
         try {

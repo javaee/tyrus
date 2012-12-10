@@ -40,6 +40,7 @@
 package org.glassfish.tyrus.test.e2e;
 
 import java.io.IOException;
+import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import javax.websocket.ClientEndpointConfiguration;
@@ -61,6 +62,7 @@ public class ContainerProviderTest {
     private CountDownLatch messageLatch;
     private String receivedMessage;
     private static final String SENT_MESSAGE = "hello";
+    private final ClientEndpointConfiguration cec = new DefaultClientEndpointConfiguration.Builder().build();
 
     @Test
     public void test() {
@@ -103,9 +105,9 @@ public class ContainerProviderTest {
                         e.printStackTrace();
                     }
                 }
-            }, "ws://localhost:8025/websockets/tests/echo");
+            }, cec,  new URI("ws://localhost:8025/websockets/tests/echo"));
 
-            messageLatch.await(5000, TimeUnit.SECONDS);
+            messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertEquals(SENT_MESSAGE, receivedMessage);
         } catch (Exception e) {
             e.printStackTrace();

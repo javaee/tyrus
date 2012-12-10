@@ -54,7 +54,7 @@ import javax.websocket.WebSocketOpen;
 /**
  * @author Danny Coward (danny.coward at oracle.com)
  */
-@WebSocketEndpoint("/blockingbinary")
+@WebSocketEndpoint(value = "/blockingbinary",factory = TestEndpointFactory.class)
 public class BlockingBinaryServer extends Endpoint {
     private Session session;
     static CountDownLatch messageLatch;
@@ -86,10 +86,10 @@ public class BlockingBinaryServer extends Endpoint {
         });
     }
 
-    @Override
-    public EndpointConfiguration getEndpointConfiguration() {
-        return null;
-    }
+//    @Override
+//    public EndpointConfiguration getEndpointConfiguration() {
+//        return null;
+//    }
 
     public void reply() {
         System.out.println("BLOCKINGBSERVER replying");

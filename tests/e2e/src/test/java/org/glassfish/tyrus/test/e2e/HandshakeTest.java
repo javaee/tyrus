@@ -40,6 +40,7 @@
 
 package org.glassfish.tyrus.test.e2e;
 
+import java.net.URI;
 import java.net.URL;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
@@ -48,6 +49,7 @@ import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import javax.websocket.ClientEndpointConfiguration;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.Session;
 
@@ -68,6 +70,8 @@ public class HandshakeTest {
     private String receivedMessage;
 
     private static final String SENT_MESSAGE = "hello";
+
+    private final ClientEndpointConfiguration cec = new DefaultClientEndpointConfiguration.Builder().build();
 
     //TODO Doesn't really test the functionality yet - waiting for Grizzly change.
     @Test
@@ -116,7 +120,7 @@ public class HandshakeTest {
                         e.printStackTrace();
                     }
                 }
-            }, "ws://localhost:8025/websockets/tests/echo");
+            }, cec, new URI("ws://localhost:8025/websockets/tests/echo"));
 
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertEquals(SENT_MESSAGE, receivedMessage);

@@ -39,10 +39,12 @@
  */
 package org.glassfish.tyrus;
 
-import java.util.List;
 import javax.websocket.ClientEndpointConfiguration;
 import javax.websocket.Decoder;
 import javax.websocket.Encoder;
+import javax.websocket.HandshakeRequest;
+import javax.websocket.HandshakeResponse;
+import java.util.List;
 
 /**
  * Configuration used for client endpoints as the default one.
@@ -81,6 +83,16 @@ public class DefaultClientEndpointConfiguration extends DefaultEndpointConfigura
     @Override
     public List<String> getExtensions() {
         return extensions;
+    }
+
+    @Override
+    public void beforeRequest(HandshakeRequest handshakeRequest) {
+
+    }
+
+    @Override
+    public void afterResponse(HandshakeResponse handshakeResponse) {
+
     }
 
     /**

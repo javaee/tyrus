@@ -40,6 +40,7 @@
 package org.glassfish.tyrus.test.e2e.bean.stin;
 
 
+import org.glassfish.tyrus.test.e2e.TestEndpointFactory;
 import org.glassfish.tyrus.test.e2e.Util;
 
 import javax.websocket.WebSocketEndpoint;
@@ -53,7 +54,7 @@ import javax.websocket.WebSocketMessage;
 //            Xremote=org.glassfish.tyrus.test.e2e.remote.FloatRemote.class
 //    )
 @WebSocketEndpoint(
-        value = "/standardInputTypes/float")
+        value = "/standardInputTypes/float", factory = TestEndpointFactory.class)
 public class FloatBean {
 
     @WebSocketMessage

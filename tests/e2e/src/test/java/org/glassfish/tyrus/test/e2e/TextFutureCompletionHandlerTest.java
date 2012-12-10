@@ -39,9 +39,14 @@
  */
 package org.glassfish.tyrus.test.e2e;
 
+import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
+import javax.websocket.ClientEndpointConfiguration;
 import javax.websocket.SendResult;
+
+import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 import org.junit.Assert;
@@ -54,6 +59,8 @@ import org.junit.Test;
  */
 public class TextFutureCompletionHandlerTest {
 
+    private final ClientEndpointConfiguration cec = new DefaultClientEndpointConfiguration.Builder().build();
+
     @Test
     public void testFastClient() {
         Server server = new Server(TextFutureCompletionHandlerServer.class.getName());
@@ -65,7 +72,7 @@ public class TextFutureCompletionHandlerTest {
 
             HelloTextClient htc = new HelloTextClient(messageLatch);
             ClientManager client = ClientManager.createClient();
-            client.connectToServer(htc, "ws://localhost:8025/websockets/tests/hellocompletionhandlerfuture");
+            client.connectToServer(htc, cec, new URI("ws://localhost:8025/websockets/tests/hellocompletionhandlerfuture"));
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertTrue("The client did not get anything back", htc.gotSomethingBack);
             Assert.assertNotNull(TextFutureCompletionHandlerServer.sr);
@@ -88,7 +95,7 @@ public class TextFutureCompletionHandlerTest {
 
             HelloTextClient htc = new HelloTextClient(messageLatch);
             ClientManager client = ClientManager.createClient();
-            client.connectToServer(htc, "ws://localhost:8025/websockets/tests/hellocompletionhandlerfuture");
+            client.connectToServer(htc, cec, new URI("ws://localhost:8025/websockets/tests/hellocompletionhandlerfuture"));
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertTrue("The client did not get anything back", htc.gotSomethingBack);
             SendResult sr = TextFutureCompletionHandlerServer.fsr.get();

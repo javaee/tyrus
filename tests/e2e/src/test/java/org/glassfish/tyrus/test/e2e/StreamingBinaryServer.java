@@ -53,7 +53,7 @@ import javax.websocket.WebSocketOpen;
  * @author Danny Coward (danny.coward at oracle.com)
  * @author Martin Matula (martin.matula at oracle.com)
  */
-@WebSocketEndpoint("/streamingbinary")
+@WebSocketEndpoint(value = "/streamingbinary",factory = TestEndpointFactory.class)
 public class StreamingBinaryServer {
     private Session session;
     static CountDownLatch messageLatch;

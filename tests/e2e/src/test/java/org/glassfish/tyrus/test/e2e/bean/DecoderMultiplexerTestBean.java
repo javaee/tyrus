@@ -46,6 +46,7 @@ package org.glassfish.tyrus.test.e2e.bean;
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 
+import org.glassfish.tyrus.test.e2e.TestEndpointFactory;
 import org.glassfish.tyrus.test.e2e.message.MessageA;
 import org.glassfish.tyrus.test.e2e.message.MessageB;
 
@@ -58,7 +59,8 @@ import javax.websocket.WebSocketMessage;
  */
 @WebSocketEndpoint(
         value = "/decodermultiplexer",
-        decoders = {org.glassfish.tyrus.test.e2e.decoder.DecoderA.class, org.glassfish.tyrus.test.e2e.decoder.DecoderB.class}
+        decoders = {org.glassfish.tyrus.test.e2e.decoder.DecoderA.class, org.glassfish.tyrus.test.e2e.decoder.DecoderB.class},
+        factory = TestEndpointFactory.class
 )
 public class DecoderMultiplexerTestBean {
 

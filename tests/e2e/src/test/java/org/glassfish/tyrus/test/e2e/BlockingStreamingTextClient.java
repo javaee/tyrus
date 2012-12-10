@@ -107,8 +107,8 @@ public class BlockingStreamingTextClient extends Endpoint {
         }
     }
 
-    @Override
-    public EndpointConfiguration getEndpointConfiguration() {
-        return null;
-    }
+//    @Override
+//    public EndpointConfiguration getEndpointConfiguration() {
+//        return null;
+//    }
 }

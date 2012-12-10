@@ -59,10 +59,10 @@ public class MyWsConfiguration extends DefaultServerConfiguration {
     }
 
     private static class EchoEndpoint extends Endpoint {
-        @Override
-        public EndpointConfiguration getEndpointConfiguration() {
-            return null;
-        }
+//        @Override
+//        public EndpointConfiguration getEndpointConfiguration() {
+//            return null;
+//        }
 
         @Override
         public void onOpen(final Session session) {

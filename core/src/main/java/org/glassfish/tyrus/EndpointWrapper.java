@@ -50,8 +50,10 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.websocket.ClientContainer;
@@ -64,6 +66,7 @@ import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.RemoteEndpoint;
 import javax.websocket.ServerEndpointConfiguration;
+import javax.websocket.Session;
 
 import org.glassfish.tyrus.internal.PathPattern;
 import org.glassfish.tyrus.spi.SPIEndpoint;
@@ -98,10 +101,10 @@ public class EndpointWrapper extends SPIEndpoint {
     private boolean isSecure;
     private String queryString;
 
-    public EndpointWrapper(Endpoint endpoint, ClientContainer container,
+    public EndpointWrapper(Endpoint endpoint, EndpointConfiguration configuration, ClientContainer container,
                            String contextPath) {
         this.endpoint = endpoint;
-        this.configuration = endpoint.getEndpointConfiguration() == null ? new EndpointConfiguration() {
+        this.configuration = configuration == null ? new EndpointConfiguration() {
             @Override
             public List<Encoder> getEncoders() {
                 return Collections.emptyList();
@@ -111,16 +114,16 @@ public class EndpointWrapper extends SPIEndpoint {
             public List<Decoder> getDecoders() {
                 return Collections.emptyList();
             }
-        } : endpoint.getEndpointConfiguration();
+        } : configuration;
         this.container = container;
         this.contextPath = contextPath;
 
         for (Decoder dec : configuration.getDecoders()) {
-            if(dec instanceof DecoderWrapper){
-                decoders.add((DecoderWrapper)dec);
-            } else{
+            if (dec instanceof DecoderWrapper) {
+                decoders.add((DecoderWrapper) dec);
+            } else {
                 Class<?> type = getDecoderClassType(dec.getClass());
-                decoders.add(new DecoderWrapper(dec,type,dec.getClass()));
+                decoders.add(new DecoderWrapper(dec, type, dec.getClass()));
             }
         }
 
@@ -281,6 +284,27 @@ public class EndpointWrapper extends SPIEndpoint {
     }
 
     @Override
+    public Set<Session> getOpenSessions() {
+        Set<Session> result = new HashSet<Session>();
+
+        for (Session session : remoteEndpointToSession.values()) {
+            if (session.isOpen()) {
+                result.add(session);
+            }
+        }
+
+        return Collections.unmodifiableSet(result);
+    }
+
+    @Override
+    public Session createSessionForRemoteEndpoint(RemoteEndpoint re, String subprotocol, List<String> extensions) {
+        SessionImpl session = new SessionImpl(container, re, this, subprotocol, extensions, isSecure,
+                uri == null ? null : URI.create(uri), queryString, templateValues);
+
+        return session;
+    }
+
+    @Override
     public void remove() {
         // TODO: disconnect the endpoint?
     }
@@ -321,20 +345,7 @@ public class EndpointWrapper extends SPIEndpoint {
 
     @Override
     public void onPong(RemoteEndpoint gs, ByteBuffer bytes) {
-//        SessionImpl session = remoteEndpointToSession.get(gs);
-//        //System.out.println("EndpointWrapper----" + ((SessionImpl) peer.getSession()).getInvokableMessageHandlers());
-//        boolean handled = false;
-//        for (MessageHandler handler : (Set<MessageHandler>) session.getMessageHandlers()) {
-//            if (handler instanceof MessageHandler.Pong) {
-//                //System.out.println("async binary");
-//                ((MessageHandler.Pong) handler).onPong(bytes);
-//                handled = true;
-//            }
-//        }
-//        if (!handled) {
-//            System.out.println("Unhandled pong message in EndpointWrapper");
-//        }
-
+        //TODO What should I call?
     }
 
     // the endpoint needs to respond as soon as possible (see the websocket RFC)
@@ -347,26 +358,25 @@ public class EndpointWrapper extends SPIEndpoint {
 
     @Override
     public void onClose(RemoteEndpoint gs) {
-        SessionImpl session = remoteEndpointToSession.get(gs);
         // TODO: where should I get the CloseReason from?
         endpoint.onClose(new CloseReason(null, "Normal Closure"));
         remoteEndpointToSession.remove(gs);
     }
 
-    boolean isActive(SessionImpl session) {
+    boolean isOpen(SessionImpl session) {
         return remoteEndpointToSession.values().contains(session);
     }
 
-    private Class<?> getDecoderClassType(Class<?> decoderClass){
-        if(Decoder.Binary.class.isAssignableFrom(decoderClass)){
+    private Class<?> getDecoderClassType(Class<?> decoderClass) {
+        if (Decoder.Binary.class.isAssignableFrom(decoderClass)) {
             return ReflectionHelper.getClassType(decoderClass, Decoder.Binary.class);
-        } else if (Decoder.Text.class.isAssignableFrom(decoderClass)){
+        } else if (Decoder.Text.class.isAssignableFrom(decoderClass)) {
             return ReflectionHelper.getClassType(decoderClass, Decoder.Text.class);
-        } else if (Decoder.BinaryStream.class.isAssignableFrom(decoderClass)){
+        } else if (Decoder.BinaryStream.class.isAssignableFrom(decoderClass)) {
             return ReflectionHelper.getClassType(decoderClass, Decoder.BinaryStream.class);
-        } else if (Decoder.TextStream.class.isAssignableFrom(decoderClass)){
+        } else if (Decoder.TextStream.class.isAssignableFrom(decoderClass)) {
             return ReflectionHelper.getClassType(decoderClass, Decoder.TextStream.class);
-        }else{
+        } else {
             return null;
         }
     }
