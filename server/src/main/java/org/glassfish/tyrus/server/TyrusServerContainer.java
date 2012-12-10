@@ -149,24 +149,23 @@ public class TyrusServerContainer extends WithProperties implements ServerContai
     }
 
     private void deploy(Class<?> endpointClass) throws DeploymentException {
-        // introspect the bean and find all the paths....
         Endpoint endpoint;
         EndpointConfiguration config;
         if (Endpoint.class.isAssignableFrom(endpointClass)) {
             endpoint = (Endpoint) ComponentProviderService.getInstance(endpointClass);
             config = null;
         } else {
-            endpoint = AnnotatedEndpoint.fromClass(endpointClass);
+            endpoint = AnnotatedEndpoint.fromClass(endpointClass, true);
             config = ((AnnotatedEndpoint)endpoint).getEndpointConfiguration();
-            if (endpoint == null) {
-                throw new DeploymentException("Endpoint class " + endpointClass.getName() + " does " +
-                        "not extend Endpoint and is not " +
-                        "annotated with @WebSocketEndpoint annotation, so will be ignored.");
-            }
+        }
+
+        if (endpoint == null) {
+            throw new DeploymentException("Endpoint class " + endpointClass.getName() + " does " +
+                    "not extend Endpoint and is not " +
+                    "annotated with @WebSocketEndpoint annotation, so will be ignored.");
         }
 
         deploy(endpoint, config);
-
         Logger.getLogger(getClass().getName()).info("Registered a " + endpointClass);
     }
 

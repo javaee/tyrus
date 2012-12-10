@@ -48,8 +48,8 @@ import javax.websocket.ClientContainer;
 import javax.websocket.ClientEndpointConfiguration;
 import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfiguration;
 import javax.websocket.Session;
+import javax.websocket.WebSocketClient;
 
 import org.glassfish.tyrus.AnnotatedEndpoint;
 import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
@@ -112,17 +112,26 @@ public class ClientManager implements ClientContainer {
     /**
      * Connects client endpoint o to the specified url.
      *
-     * @param o the endpoint.
+     * @param o             the endpoint.
      * @param configuration of the endpoint.
-     * @param url to which the client will connect.
+     * @param url           to which the client will connect.
      * @return {@link Session}.
      * @throws DeploymentException
      */
     public Session connectToServer(Object o, ClientEndpointConfiguration configuration, String url) throws DeploymentException {
         ClientEndpointConfiguration config;
         Endpoint endpoint;
-        endpoint = (Endpoint) o;
-        config = configuration == null ? new DefaultClientEndpointConfiguration.Builder().build() : configuration;
+
+        if (o instanceof Endpoint) {
+            endpoint = (Endpoint) o;
+            config = configuration == null ? new DefaultClientEndpointConfiguration.Builder().build() : configuration;
+        } else if (o instanceof Class && (((Class<?>) o).getAnnotation(WebSocketClient.class) != null)) {
+            endpoint = AnnotatedEndpoint.fromClass((Class) o, false);
+            config = (ClientEndpointConfiguration) ((AnnotatedEndpoint) endpoint).getEndpointConfiguration();
+        } else {
+            endpoint = AnnotatedEndpoint.fromInstance(o, false);
+            config = (ClientEndpointConfiguration) ((AnnotatedEndpoint) endpoint).getEndpointConfiguration();
+        }
 
         try {
             EndpointWrapper clientEndpoint = new EndpointWrapper(endpoint, config, this, null);

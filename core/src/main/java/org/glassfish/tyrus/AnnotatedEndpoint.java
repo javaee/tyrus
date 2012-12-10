@@ -85,16 +85,16 @@ public class AnnotatedEndpoint extends Endpoint {
 
     private Set<MessageHandlerFactory> messageHandlerFactories = new HashSet<MessageHandlerFactory>();
 
-    public static AnnotatedEndpoint fromClass(Class<?> annotatedClass) {
-        return new AnnotatedEndpoint(annotatedClass, null, createEndpointConfiguration(annotatedClass));
+    public static AnnotatedEndpoint fromClass(Class<?> annotatedClass, boolean isServerEndpoint) {
+        return new AnnotatedEndpoint(annotatedClass, null, createEndpointConfiguration(annotatedClass, isServerEndpoint));
     }
 
-    public static AnnotatedEndpoint fromInstance(Object annotatedInstance) {
+    public static AnnotatedEndpoint fromInstance(Object annotatedInstance, boolean isServerEndpoint) {
         return new AnnotatedEndpoint(annotatedInstance.getClass(), annotatedInstance,
-                createEndpointConfiguration(annotatedInstance.getClass()));
+                createEndpointConfiguration(annotatedInstance.getClass(), isServerEndpoint));
     }
 
-    private static EndpointConfiguration createEndpointConfiguration(Class<?> annotatedClass) {
+    private static EndpointConfiguration createEndpointConfiguration(Class<?> annotatedClass, boolean isServerEndpoint) {
         final WebSocketEndpoint wseAnnotation = annotatedClass.getAnnotation(WebSocketEndpoint.class);
 
         Class<? extends Encoder>[] encoderClasses;
@@ -137,11 +137,12 @@ public class AnnotatedEndpoint extends Endpoint {
             }
         }
 
-        DefaultEndpointConfiguration.Builder builder = wseAnnotation == null ?
-                new DefaultClientEndpointConfiguration.Builder() :
+        DefaultEndpointConfiguration.Builder builder = isServerEndpoint ?
                 // TODO: fix once origins is added to the @WebSocketEndpoint annotation
                 new DefaultServerEndpointConfiguration.Builder(wseAnnotation.value())
-                        .origins(Collections.<String>emptyList());
+                        .origins(Collections.<String>emptyList()):
+                new DefaultClientEndpointConfiguration.Builder();
+
 
         return builder.encoders(encoders).decoders(decoders).protocols(subProtocols == null ?
                         Collections.<String>emptyList() : Arrays.asList(subProtocols)).build();
