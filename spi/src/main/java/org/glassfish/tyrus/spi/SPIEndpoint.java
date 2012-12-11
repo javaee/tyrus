@@ -39,12 +39,11 @@
  */
 package org.glassfish.tyrus.spi;
 
-import javax.websocket.RemoteEndpoint;
-import javax.websocket.Session;
-
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Set;
+
+import javax.websocket.Session;
 
 /**
  * The WebSocket SDK implements SPIEndpoint with its representation of
@@ -75,7 +74,7 @@ public abstract class SPIEndpoint {
      *
      * @param gs SPIRemoteEndpoint who has just connected to this web socket endpoint.
      */
-    public abstract void onConnect(RemoteEndpoint gs, String subprotocol, List<String> extensions);
+    public abstract void onConnect(SPIRemoteEndpoint gs, String subprotocol, List<String> extensions);
 
     /**
      * Called by the provider when the web socket connection
@@ -84,10 +83,10 @@ public abstract class SPIEndpoint {
      * @param gs            <code>SPIRemoteEndpoint</code> who sent the message.
      * @param messageString the String message.
      */
-    public abstract void onMessage(RemoteEndpoint gs, String messageString);
+    public abstract void onMessage(SPIRemoteEndpoint gs, String messageString);
 
 
-        /**
+    /**
      * Called by the provider when the web socket connection
      * has an incoming partial text message from the given remote endpoint. Partial
      * text messages are passed in sequential order, one piece at a time. If an implementation
@@ -98,7 +97,7 @@ public abstract class SPIEndpoint {
      * @param partialString the String message.
      * @param last          to indicate if this is the last partial string in the sequence
      */
-    public abstract void onPartialMessage(RemoteEndpoint gs, String partialString, boolean last);
+    public abstract void onPartialMessage(SPIRemoteEndpoint gs, String partialString, boolean last);
 
     /**
      * Called by the provider when the web socket connection
@@ -111,7 +110,7 @@ public abstract class SPIEndpoint {
      * @param partialBytes  the piece of the binary message.
      * @param last          to indicate if this is the last partial byte buffer in the sequence
      */
-    public abstract void onPartialMessage(RemoteEndpoint gs, ByteBuffer partialBytes, boolean last);
+    public abstract void onPartialMessage(SPIRemoteEndpoint gs, ByteBuffer partialBytes, boolean last);
 
     /**
      * Called by the provider when the web socket connection
@@ -120,25 +119,25 @@ public abstract class SPIEndpoint {
      * @param gs    <code>SPIRemoteEndpoint</code> who sent the message.
      * @param bytes the message.
      */
-    public abstract void onMessage(RemoteEndpoint gs, ByteBuffer bytes);
+    public abstract void onMessage(SPIRemoteEndpoint gs, ByteBuffer bytes);
 
-        /**
+    /**
      * Called by the provider when the web socket connection
      * has an incoming pong message from the given remote endpoint.
      *
      * @param gs    <code>SPIRemoteEndpoint</code> who sent the message.
      * @param bytes the message.
      */
-    public abstract void onPong(RemoteEndpoint gs, ByteBuffer bytes);
+    public abstract void onPong(SPIRemoteEndpoint gs, ByteBuffer bytes);
 
-            /**
+    /**
      * Called by the provider when the web socket connection
      * has an incoming ping message from the given remote endpoint.
      *
      * @param gs    <code>SPIRemoteEndpoint</code> who sent the message.
      * @param bytes the message.
      */
-    public abstract void onPing(RemoteEndpoint gs, ByteBuffer bytes);
+    public abstract void onPing(SPIRemoteEndpoint gs, ByteBuffer bytes);
 
     /**
      * Called by the provider when the web socket connection
@@ -146,7 +145,7 @@ public abstract class SPIEndpoint {
      *
      * @param gs SPIRemoteEndpoint who has just closed the connection.
      */
-    public abstract void onClose(RemoteEndpoint gs);
+    public abstract void onClose(SPIRemoteEndpoint gs);
 
     /**
      * Called by the provider after all connections have been closed to
@@ -178,12 +177,12 @@ public abstract class SPIEndpoint {
     public abstract Set<Session> getOpenSessions();
 
     /**
-     * Creates a Session based on the {@link RemoteEndpoint}, subprotocols and extensions.
+     * Creates a Session based on the {@link SPIRemoteEndpoint}, subprotocols and extensions.
      *
      * @param re the other end of the connection.
      * @param subprotocol used.
      * @param extensions extensions used.
      * @return {@link Session} representing the connection.
      */
-    public abstract Session createSessionForRemoteEndpoint(RemoteEndpoint re, String subprotocol, List<String> extensions);
+    public abstract Session createSessionForRemoteEndpoint(SPIRemoteEndpoint re, String subprotocol, List<String> extensions);
 }

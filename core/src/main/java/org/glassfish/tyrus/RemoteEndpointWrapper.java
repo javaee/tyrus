@@ -55,6 +55,8 @@ import javax.websocket.SendHandler;
 import javax.websocket.SendResult;
 import javax.websocket.Session;
 
+import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
+
 /**
  * Wrapps the {@link RemoteEndpoint} and represents the other side of the websocket connection.
  *
@@ -64,11 +66,11 @@ import javax.websocket.Session;
  */
 public final class RemoteEndpointWrapper implements RemoteEndpoint {
 
-    private final RemoteEndpoint remoteEndpoint;
+    private final SPIRemoteEndpoint remoteEndpoint;
     private final SessionImpl session;
     private final EndpointWrapper endpointWrapper;
 
-    RemoteEndpointWrapper(SessionImpl session, RemoteEndpoint remoteEndpoint, EndpointWrapper endpointWrapper) {
+    RemoteEndpointWrapper(SessionImpl session, SPIRemoteEndpoint remoteEndpoint, EndpointWrapper endpointWrapper) {
         this.remoteEndpoint = remoteEndpoint;
         this.endpointWrapper = endpointWrapper;
         this.session = session;

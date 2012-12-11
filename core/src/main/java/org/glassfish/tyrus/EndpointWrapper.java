@@ -64,13 +64,13 @@ import javax.websocket.EncodeException;
 import javax.websocket.Encoder;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfiguration;
-import javax.websocket.RemoteEndpoint;
 import javax.websocket.ServerEndpointConfiguration;
 import javax.websocket.Session;
 
 import org.glassfish.tyrus.internal.PathPattern;
 import org.glassfish.tyrus.spi.SPIEndpoint;
 import org.glassfish.tyrus.spi.SPIHandshakeRequest;
+import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
 
 /**
  * Wraps the registered application class.
@@ -92,8 +92,8 @@ public class EndpointWrapper extends SPIEndpoint {
 
     private final EndpointConfiguration configuration;
     private final Endpoint endpoint;
-    private final Map<RemoteEndpoint, SessionImpl> remoteEndpointToSession =
-            new ConcurrentHashMap<RemoteEndpoint, SessionImpl>();
+    private final Map<SPIRemoteEndpoint, SessionImpl> remoteEndpointToSession =
+            new ConcurrentHashMap<SPIRemoteEndpoint, SessionImpl>();
 
     // the following is set during the handshake
     private String uri;
@@ -118,7 +118,7 @@ public class EndpointWrapper extends SPIEndpoint {
         this.container = container;
         this.contextPath = contextPath;
 
-        for (Decoder dec : configuration.getDecoders()) {
+        for (Decoder dec : this.configuration.getDecoders()) {
             if (dec instanceof DecoderWrapper) {
                 decoders.add((DecoderWrapper) dec);
             } else {
@@ -131,7 +131,7 @@ public class EndpointWrapper extends SPIEndpoint {
         decoders.add(new DecoderWrapper(NoOpTextCoder.INSTANCE, String.class, NoOpTextCoder.class));
         decoders.add(new DecoderWrapper(NoOpBinaryCoder.INSTANCE, ByteBuffer.class, NoOpBinaryCoder.class));
 
-        encoders.addAll(configuration.getEncoders());
+        encoders.addAll(this.configuration.getEncoders());
         encoders.add(NoOpTextCoder.INSTANCE);
         encoders.add(NoOpBinaryCoder.INSTANCE);
         encoders.add(ToStringEncoder.INSTANCE);
@@ -297,7 +297,7 @@ public class EndpointWrapper extends SPIEndpoint {
     }
 
     @Override
-    public Session createSessionForRemoteEndpoint(RemoteEndpoint re, String subprotocol, List<String> extensions) {
+    public Session createSessionForRemoteEndpoint(SPIRemoteEndpoint re, String subprotocol, List<String> extensions) {
         SessionImpl session = new SessionImpl(container, re, this, subprotocol, extensions, isSecure,
                 uri == null ? null : URI.create(uri), queryString, templateValues);
 
@@ -310,7 +310,7 @@ public class EndpointWrapper extends SPIEndpoint {
     }
 
     @Override
-    public void onConnect(RemoteEndpoint gs, String subprotocol, List<String> extensions) {
+    public void onConnect(SPIRemoteEndpoint gs, String subprotocol, List<String> extensions) {
         // create a new session
         SessionImpl session = new SessionImpl(container, gs, this, subprotocol, extensions, isSecure,
                 uri == null ? null : URI.create(uri), queryString, templateValues);
@@ -319,45 +319,45 @@ public class EndpointWrapper extends SPIEndpoint {
     }
 
     @Override
-    public void onMessage(RemoteEndpoint gs, ByteBuffer messageBytes) {
+    public void onMessage(SPIRemoteEndpoint gs, ByteBuffer messageBytes) {
         SessionImpl session = remoteEndpointToSession.get(gs);
         session.notifyMessageHandlers(messageBytes, findApplicableDecoders(messageBytes, false));
     }
 
     @Override
-    public void onMessage(RemoteEndpoint gs, String messageString) {
+    public void onMessage(SPIRemoteEndpoint gs, String messageString) {
         SessionImpl session = remoteEndpointToSession.get(gs);
         session.notifyMessageHandlers(messageString, findApplicableDecoders(messageString, true));
     }
 
     @Override
-    public void onPartialMessage(RemoteEndpoint gs, String partialString, boolean last) {
+    public void onPartialMessage(SPIRemoteEndpoint gs, String partialString, boolean last) {
         SessionImpl session = remoteEndpointToSession.get(gs);
         session.notifyMessageHandlers(partialString, last);
     }
 
     @Override
-    public void onPartialMessage(RemoteEndpoint gs, ByteBuffer partialBytes, boolean last) {
+    public void onPartialMessage(SPIRemoteEndpoint gs, ByteBuffer partialBytes, boolean last) {
         SessionImpl session = remoteEndpointToSession.get(gs);
         session.notifyMessageHandlers(partialBytes, last);
     }
 
 
     @Override
-    public void onPong(RemoteEndpoint gs, ByteBuffer bytes) {
+    public void onPong(SPIRemoteEndpoint gs, ByteBuffer bytes) {
         //TODO What should I call?
     }
 
     // the endpoint needs to respond as soon as possible (see the websocket RFC)
     // no involvement from application layer, there is no ping listener
     @Override
-    public void onPing(RemoteEndpoint gs, ByteBuffer bytes) {
+    public void onPing(SPIRemoteEndpoint gs, ByteBuffer bytes) {
         SessionImpl session = remoteEndpointToSession.get(gs);
         session.getRemote().sendPong(bytes);
     }
 
     @Override
-    public void onClose(RemoteEndpoint gs) {
+    public void onClose(SPIRemoteEndpoint gs) {
         // TODO: where should I get the CloseReason from?
         endpoint.onClose(new CloseReason(null, "Normal Closure"));
         remoteEndpointToSession.remove(gs);

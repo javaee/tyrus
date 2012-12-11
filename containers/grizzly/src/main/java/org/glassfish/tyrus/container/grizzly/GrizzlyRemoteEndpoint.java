@@ -40,23 +40,16 @@
 package org.glassfish.tyrus.container.grizzly;
 
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.Writer;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Future;
 
-import javax.websocket.EncodeException;
-import javax.websocket.RemoteEndpoint;
-import javax.websocket.SendHandler;
-import javax.websocket.SendResult;
-
+import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
 import org.glassfish.tyrus.websockets.WebSocket;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)
  */
-class GrizzlyRemoteEndpoint implements RemoteEndpoint {
+class GrizzlyRemoteEndpoint extends SPIRemoteEndpoint {
     private WebSocket socket;
     private static ConcurrentHashMap<WebSocket, GrizzlyRemoteEndpoint> sockets = new ConcurrentHashMap<WebSocket, GrizzlyRemoteEndpoint>();
 
@@ -96,51 +89,6 @@ class GrizzlyRemoteEndpoint implements RemoteEndpoint {
     public void sendPartialBytes(ByteBuffer byteBuffer, boolean b) throws IOException {
         byte[] bytes = byteBuffer.array();
         this.socket.stream(b, bytes, 0, bytes.length);
-    }
-
-    @Override
-    public OutputStream getSendStream() throws IOException {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Writer getSendWriter() throws IOException {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void sendObject(Object o) throws IOException, EncodeException {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void sendStringByCompletion(String s, SendHandler sendHandler) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Future<SendResult> sendStringByFuture(String s) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Future<SendResult> sendBytesByFuture(ByteBuffer byteBuffer) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void sendBytesByCompletion(ByteBuffer byteBuffer, SendHandler sendHandler) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public Future<SendResult> sendObjectByFuture(Object o) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void sendObjectByCompletion(Object o, SendHandler sendHandler) {
-        throw new UnsupportedOperationException();
     }
 
     @Override

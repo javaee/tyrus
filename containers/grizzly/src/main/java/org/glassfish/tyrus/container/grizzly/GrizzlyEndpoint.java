@@ -40,6 +40,17 @@
 package org.glassfish.tyrus.container.grizzly;
 
 
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.websocket.Session;
+
 import org.glassfish.tyrus.spi.SPIEndpoint;
 import org.glassfish.tyrus.spi.SPIRegisteredEndpoint;
 import org.glassfish.tyrus.websockets.DataFrame;
@@ -51,16 +62,6 @@ import org.glassfish.tyrus.websockets.WebSocketEngine;
 import org.glassfish.tyrus.websockets.WebSocketListener;
 import org.glassfish.tyrus.websockets.WebSocketRequest;
 
-import javax.websocket.Session;
-import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 /**
  * Implementation of {@link SPIRegisteredEndpoint} for Grizzly.
  * Please note that for one connection to WebSocketApplication it is guaranteed that the methods:
@@ -70,7 +71,7 @@ import java.util.logging.Logger;
  * @author Danny Coward (danny.coward at oracle.com)
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-class GrizzlyEndpoint extends WebSocketApplication implements SPIRegisteredEndpoint {
+public class GrizzlyEndpoint extends WebSocketApplication implements SPIRegisteredEndpoint {
     private final SPIEndpoint endpoint;
 
     /**
@@ -83,7 +84,7 @@ class GrizzlyEndpoint extends WebSocketApplication implements SPIRegisteredEndpo
      */
     private String temporaryNegotiatedProtocol;
 
-    GrizzlyEndpoint(SPIEndpoint endpoint) {
+    public GrizzlyEndpoint(SPIEndpoint endpoint) {
         this.endpoint = endpoint;
     }
 

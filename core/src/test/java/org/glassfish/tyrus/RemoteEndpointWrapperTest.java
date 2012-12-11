@@ -41,21 +41,17 @@
 package org.glassfish.tyrus;
 
 
-import org.junit.Assert;
-import org.junit.Test;
-
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Writer;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.concurrent.Future;
 
-import javax.websocket.EncodeException;
-import javax.websocket.RemoteEndpoint;
-import javax.websocket.SendHandler;
-import javax.websocket.SendResult;
+import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
+
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Tests the RemoteEndpointWrapper.
@@ -65,7 +61,6 @@ import javax.websocket.SendResult;
 public class RemoteEndpointWrapperTest {
 
     private final byte[] sentBytes = {'a', 'b', 'c'};
-    private final String sentString = "abc";
 
     @Test
     public void testGetSendStream() throws IOException {
@@ -91,6 +86,8 @@ public class RemoteEndpointWrapperTest {
 
     @Test
     public void testGetSendWriter() throws IOException {
+        final String sentString = "abc";
+
         char[] toSend = sentString.toCharArray();
         TestRemoteEndpoint tre = new TestRemoteEndpoint();
         SessionImpl testSession = new SessionImpl(null, null, null, null, null, true, null, null, Collections.<String, String>emptyMap());
@@ -111,7 +108,7 @@ public class RemoteEndpointWrapperTest {
     }
 
 
-    private class TestRemoteEndpoint implements RemoteEndpoint {
+    private class TestRemoteEndpoint extends SPIRemoteEndpoint {
 
         private ArrayList<Byte> bytesToSend = new ArrayList<Byte>();
         StringBuilder builder = new StringBuilder();
@@ -137,51 +134,6 @@ public class RemoteEndpointWrapperTest {
             for (byte b : bytes) {
                 bytesToSend.add(b);
             }
-        }
-
-        @Override
-        public OutputStream getSendStream() throws IOException {
-            return null;
-        }
-
-        @Override
-        public Writer getSendWriter() throws IOException {
-            return null;
-        }
-
-        @Override
-        public void sendObject(Object o) throws IOException, EncodeException {
-
-        }
-
-        @Override
-        public void sendStringByCompletion(String text, SendHandler completion) {
-
-        }
-
-        @Override
-        public Future<SendResult> sendStringByFuture(String text) {
-            return null;
-        }
-
-        @Override
-        public Future<SendResult> sendBytesByFuture(ByteBuffer data) {
-            return null;
-        }
-
-        @Override
-        public void sendBytesByCompletion(ByteBuffer data, SendHandler completion) {
-
-        }
-
-        @Override
-        public Future<SendResult> sendObjectByFuture(Object o) {
-            return null;
-        }
-
-        @Override
-        public void sendObjectByCompletion(Object o, SendHandler handler) {
-
         }
 
         @Override

@@ -51,12 +51,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
+
 import javax.websocket.ClientContainer;
 import javax.websocket.CloseReason;
-import javax.websocket.Encoder;
 import javax.websocket.MessageHandler;
 import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
+
+import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
 
 /**
  * Implementation of the WebSocketConversation.
@@ -90,7 +92,7 @@ public class SessionImpl implements Session {
      */
     private long lastConnectionActivity;
 
-    SessionImpl(ClientContainer container, RemoteEndpoint remoteEndpoint, EndpointWrapper endpointWrapper,
+    SessionImpl(ClientContainer container, SPIRemoteEndpoint remoteEndpoint, EndpointWrapper endpointWrapper,
                 String subprotocol, List<String> extensions, boolean isSecure,
                 URI uri, String queryString, Map<String, String> pathParameters) {
         this.container = container;
