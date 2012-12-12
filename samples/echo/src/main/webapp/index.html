@@ -48,11 +48,11 @@
 <meta charset="utf-8">
 <title>Web Socket JavaScript Echo Client</title>
 <script language="javascript" type="text/javascript">
-    var wsUri = getRootUri() + "/websockets/tests/hello";
+    var wsUri = getRootUri() + "/sample-echo/echo";
 
     function getRootUri() {
         return "ws://" + (document.location.hostname == "" ? "localhost" : document.location.hostname) + ":" +
-                (document.location.port == "" ? "8025" : document.location.port);
+                (document.location.port == "" ? "8080" : document.location.port);
     }
 
     function init() {

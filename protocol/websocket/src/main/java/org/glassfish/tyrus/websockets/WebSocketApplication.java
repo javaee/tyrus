@@ -235,5 +235,4 @@ public abstract class WebSocketApplication extends WebSocketAdapter {
                            final Throwable t) {
         return true;
     }
-
 }

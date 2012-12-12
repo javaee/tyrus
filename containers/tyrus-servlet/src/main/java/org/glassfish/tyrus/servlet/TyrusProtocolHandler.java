@@ -40,30 +40,31 @@
 
 package org.glassfish.tyrus.servlet;
 
-import org.glassfish.tyrus.protocol.core.WebSocketFrame;
-import org.glassfish.tyrus.protocol.core.WebSocketProtocolDecoder;
-import org.glassfish.tyrus.protocol.core.WebSocketProtocolEncoder;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.logging.Logger;
+
 import javax.servlet.ReadListener;
 import javax.servlet.ServletInputStream;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.ProtocolHandler;
 import javax.servlet.http.WebConnection;
 
+import org.glassfish.tyrus.websockets.DataFrame;
+import org.glassfish.tyrus.websockets.FramingException;
+import org.glassfish.tyrus.websockets.WebSocketEngine;
+import org.glassfish.tyrus.websockets.draft06.ClosingFrame;
+
 /**
  * @author Jitendra Kotamraju
  */
-public class WebSocketProtocolHandler implements ProtocolHandler, ReadListener {
+public class TyrusProtocolHandler implements ProtocolHandler, ReadListener {
     private ServletInputStream is;
     private ServletOutputStream os;
     private ByteBuffer buf;
-    private static final Logger LOGGER = Logger.getLogger(WebSocketProtocolHandler.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(TyrusProtocolHandler.class.getName());
 
-    private boolean inFragmentation;
-    private WebSocketProtocolDecoder decoder;
+    private WebSocketEngine.WebSocketHolder webSocketHolder;
 
     @Override
     public void init(WebConnection wc) {
@@ -74,7 +75,7 @@ public class WebSocketProtocolHandler implements ProtocolHandler, ReadListener {
         } catch (IOException ioe) {
             throw new RuntimeException(ioe);
         }
-        decoder = new WebSocketProtocolDecoder(inFragmentation);
+
         is.setReadListener(this);
 
         // TODO: servlet bug ?? why is this need to be called explicitly ?
@@ -87,29 +88,38 @@ public class WebSocketProtocolHandler implements ProtocolHandler, ReadListener {
     public void onDataAvailable() {
         try {
             do {
-                if (is.isReady()) {
+                if(is.isReady()) {
                     fillBuf();
                 }
-                LOGGER.info("Remaining Data = " + buf.remaining());
-                WebSocketFrame frame = decoder.decode(buf);
-                if (frame != null) {
-                    LOGGER.info("Got a WebSocket frame = " + frame);
-                    if (!frame.getFrameType().isControlFrame()) {
-                        inFragmentation = !frame.isFinalFragment();
-                    }
-                    decoder = new WebSocketProtocolDecoder(inFragmentation);
 
-                    // Let us echo it back for testing purposes
-                    // Not taking advantage of NIO for sending
-                    WebSocketProtocolEncoder encoder = new WebSocketProtocolEncoder(false);
-                    byte[] echo = encoder.encode(frame);
-                    os.write(echo);
-                    os.flush();
+                LOGGER.info("Remaining Data = " + buf.remaining());
+
+                if(buf != null && buf.hasRemaining()) {
+                    if(webSocketHolder.buffer != null) {
+                        // TODO
+                        // webSocketHolder.buffer.append(buf);
+                    }
+
+                    final DataFrame result = webSocketHolder.handler.unframe(buf);
+                    if (result == null) {
+                        webSocketHolder.buffer = buf;
+//                        break;
+                    } else {
+                        result.respond(webSocketHolder.webSocket);
+                    }
                 }
 
                 // TODO buf has some data but not enough to decode,
                 // TODO it will spin in this loop
             } while (buf.remaining() > 0 || is.isReady());
+
+            buf = null;
+        } catch (FramingException e) {
+            webSocketHolder.webSocket.onClose(new ClosingFrame(e.getClosingCode(), e.getMessage()));
+        } catch (Exception wse) {
+            if (webSocketHolder.application.onError(webSocketHolder.webSocket, wse)) {
+                webSocketHolder.webSocket.onClose(new ClosingFrame(1011, wse.getMessage()));
+            }
         } catch (Throwable e) {
             // TODO servlet container is swallowing, just print it for now
             e.printStackTrace();
@@ -118,7 +128,21 @@ public class WebSocketProtocolHandler implements ProtocolHandler, ReadListener {
     }
 
     private void fillBuf() throws IOException {
-        byte[] data = new byte[40];     // TODO testing purpose
+
+//        int len;
+//        int index = 0;
+//        byte b[] = new byte[1024];
+//        ByteBuffer bb = ByteBuffer.allocate(1024);
+//        while (is.isReady() && (len = is.read(b)) != -1) {
+//            bb.put(b, index, len);
+//            String data = new String(b, 0, len);
+//            System.out.println("--> " + data);
+//            index += len;
+//        }
+//
+//        buf = bb;
+
+        byte[] data = new byte[200];     // TODO testing purpose
         int len = is.read(data);
         if (len == 0) {
             throw new RuntimeException("No data available.");
@@ -167,4 +191,11 @@ public class WebSocketProtocolHandler implements ProtocolHandler, ReadListener {
     public void onError(Throwable t) {
     }
 
+    public void setWebSocketHolder(WebSocketEngine.WebSocketHolder webSocketHolder) {
+        this.webSocketHolder = webSocketHolder;
+    }
+
+    ServletOutputStream getOutputStream() {
+        return this.os;
+    }
 }

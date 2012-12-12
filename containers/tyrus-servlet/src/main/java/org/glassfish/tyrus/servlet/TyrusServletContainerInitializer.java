@@ -51,20 +51,22 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.HandlesTypes;
 
+import org.glassfish.tyrus.server.ContainerConfig;
+
 /**
  * Registers a filter for upgrade handshake.
  *
  * @author Jitendra Kotamraju
  */
-@HandlesTypes(WebSocketEndpoint.class)
-public class WebSocketServletContainerInitializer implements ServletContainerInitializer {
-    private static final Logger LOGGER = Logger.getLogger(WebSocketServletContainerInitializer.class.getName());
+@HandlesTypes({WebSocketEndpoint.class, ContainerConfig.class})
+public class TyrusServletContainerInitializer implements ServletContainerInitializer {
+    private static final Logger LOGGER = Logger.getLogger(TyrusServletContainerInitializer.class.getName());
 
-    public WebSocketServletContainerInitializer() {
+    public TyrusServletContainerInitializer() {
     }
 
     public void onStartup(Set<Class<?>> classes, ServletContext ctx) throws ServletException {
-        final FilterRegistration.Dynamic reg = ctx.addFilter("WebSocket filter", new WebSocketServletFilter(classes));
+        final FilterRegistration.Dynamic reg = ctx.addFilter("WebSocket filter", new TyrusServletFilter(classes));
         reg.setAsyncSupported(true);
         reg.addMappingForUrlPatterns(null, true, "/*");
         LOGGER.info("Registering WebSocket filter for url pattern /*");

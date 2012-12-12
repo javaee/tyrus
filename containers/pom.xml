@@ -56,15 +56,6 @@
         <module>glassfish</module>
         <module>grizzly</module>
         <module>oldservlet</module>
+        <module>tyrus-servlet</module>
     </modules>
-
-    <profiles>
-        <profile>
-            <id>servlet-dev</id>
-            <modules>
-                <module>tyrus-servlet</module>
-            </modules>
-        </profile>
-    </profiles>
-
 </project>

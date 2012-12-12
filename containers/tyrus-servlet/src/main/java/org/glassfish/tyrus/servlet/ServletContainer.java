@@ -37,33 +37,49 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-
 package org.glassfish.tyrus.servlet;
 
-import org.glassfish.tyrus.protocol.core.RequestWrapper;
-import org.glassfish.tyrus.protocol.core.ResponseWrapper;
-import org.glassfish.tyrus.protocol.core.WebSocketHandShake;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.ProtocolHandler;
 import java.io.IOException;
-import java.util.logging.Logger;
 
-/**
- * @author Jitendra Kotamraju
- */
-public class ServletHandShake extends WebSocketHandShake<HttpServletRequest, HttpServletResponse> {
+import javax.websocket.ClientEndpointConfiguration;
 
+import org.glassfish.tyrus.container.grizzly.GrizzlyEndpoint;
+import org.glassfish.tyrus.spi.SPIEndpoint;
+import org.glassfish.tyrus.spi.SPIRegisteredEndpoint;
+import org.glassfish.tyrus.spi.TyrusClientSocket;
+import org.glassfish.tyrus.spi.TyrusContainer;
+import org.glassfish.tyrus.spi.TyrusServer;
+import org.glassfish.tyrus.websockets.WebSocketEngine;
+
+public class ServletContainer implements TyrusContainer {
     @Override
-    protected RequestWrapper<HttpServletRequest> createRequestWrapper(HttpServletRequest request) {
-        return new ServletRequestWrapper(request);
+    public TyrusServer createServer(String rootPath, int port) {
+        final WebSocketEngine engine = WebSocketEngine.getEngine();
+        return new TyrusServer() {
+            @Override
+            public void start() throws IOException {
+            }
+
+            @Override
+            public void stop() {
+            }
+
+            @Override
+            public SPIRegisteredEndpoint register(SPIEndpoint endpoint) {
+                GrizzlyEndpoint ge = new GrizzlyEndpoint(endpoint);
+                engine.register(ge);
+                return ge;
+            }
+
+            @Override
+            public void unregister(SPIRegisteredEndpoint ge) {
+                engine.unregister((GrizzlyEndpoint) ge);
+            }
+        };
     }
 
     @Override
-    protected ResponseWrapper<HttpServletResponse> createResponseWrapper(HttpServletResponse response) {
-        return new ServletResponseWrapper(response);
+    public TyrusClientSocket openClientSocket(String path, ClientEndpointConfiguration cec, SPIEndpoint endpoint) {
+        return null;  // TODO: Implement.
     }
 }

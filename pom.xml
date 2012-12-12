@@ -145,7 +145,7 @@
     </properties>
 
     <modules>
-        <module>bundles</module>
+        <!--<module>bundles</module>-->
         <module>client</module>
         <module>containers</module>
         <module>core</module>
@@ -380,6 +380,11 @@
             <dependency>
                 <groupId>org.glassfish.tyrus</groupId>
                 <artifactId>tyrus-container-oldservlet</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.tyrus</groupId>
+                <artifactId>tyrus-container-servlet</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
