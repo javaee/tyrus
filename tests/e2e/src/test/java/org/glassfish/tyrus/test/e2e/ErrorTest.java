@@ -41,21 +41,25 @@
 package org.glassfish.tyrus.test.e2e;
 
 import java.net.URI;
-import java.net.URL;
-import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
-import org.glassfish.tyrus.server.Server;
-import org.junit.Assert;
-import org.junit.Ignore;
-import org.junit.Test;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfiguration;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.Session;
+import javax.websocket.WebSocketClose;
+import javax.websocket.WebSocketEndpoint;
+import javax.websocket.WebSocketError;
+import javax.websocket.WebSocketMessage;
+import javax.websocket.WebSocketOpen;
 
-import java.io.IOException;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
+import org.glassfish.tyrus.client.ClientManager;
+import org.glassfish.tyrus.server.Server;
+
+import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests the onError method of the WebSocket API
@@ -65,16 +69,44 @@ import java.util.concurrent.TimeUnit;
 public class ErrorTest {
 
     private CountDownLatch messageLatch;
-
     private String receivedMessage;
-
     private static final String SENT_MESSAGE = "Hello World";
 
-    @Ignore
+    /**
+     * Exception thrown during execution @WebSocketOpen annotated method.
+     *
+     * @author Danny Coward (danny.coward at oracle.com)
+     */
+    @WebSocketEndpoint(
+            value = "/open",
+            factory = TestEndpointFactory.class
+    )
+    public static class OnOpenErrorTestBean {
+        public static Throwable throwable;
+        public static Session session;
+
+        @WebSocketOpen
+        public void open() {
+            throw new RuntimeException("testException");
+        }
+
+        @WebSocketMessage
+        public String message(String message, Session session) {
+            // won't be called.
+            return "message";
+        }
+
+        @WebSocketError
+        public void handleError(Throwable throwable, Session session) {
+            OnOpenErrorTestBean.throwable = throwable;
+            OnOpenErrorTestBean.session = session;
+        }
+    }
+
     @Test
-    public void testError() {
+    public void testErrorOnOpen() {
         final ClientEndpointConfiguration cec = new DefaultClientEndpointConfiguration.Builder().build();
-        Server server = new Server(org.glassfish.tyrus.test.e2e.bean.ErrorTestBean.class);
+        Server server = new Server(OnOpenErrorTestBean.class);
         server.start();
         try {
             final DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder();
@@ -90,22 +122,22 @@ public class ErrorTest {
 
                 @Override
                 public void onOpen(Session session) {
-                    try {
-                        session.addMessageHandler(new TestTextMessageHandler(this));
-                        session.getRemote().sendString(SENT_MESSAGE);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+                    session.addMessageHandler(new TestTextMessageHandler(this));
                 }
 
                 @Override
                 public void onMessage(String message) {
-                    receivedMessage = message;
-                    messageLatch.countDown();
+                    // do nothing
                 }
-            }, cec, new URI("ws://localhost:8025/websockets/tests/error"));
-            messageLatch.await(5, TimeUnit.SECONDS);
-            Assert.assertTrue("The received message is 'Error'", receivedMessage.equals("Error"));
+            }, cec, new URI("ws://localhost:8025/websockets/tests/open"));
+
+            // TODO: is this really needed? Cannot we somehow force underlying protocol impl to connect immediately
+            // TODO: after connectToServer call?
+            messageLatch.await(1, TimeUnit.SECONDS);
+
+            assertTrue(OnOpenErrorTestBean.session != null);
+            assertTrue(OnOpenErrorTestBean.throwable != null);
+            assertEquals("testException", OnOpenErrorTestBean.throwable.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
@@ -114,4 +146,82 @@ public class ErrorTest {
         }
     }
 
+    /**
+     * Exception thrown during execution @WebSocketError annotated method.
+     *
+     * @author Danny Coward (danny.coward at oracle.com)
+     */
+    @WebSocketEndpoint(
+            value = "/close",
+            factory = TestEndpointFactory.class
+    )
+    public static class OnCloseErrorTestBean {
+        public static Throwable throwable;
+        public static Session session;
+
+        @WebSocketClose
+        public void close() {
+            throw new RuntimeException("testException");
+        }
+
+        @WebSocketMessage
+        public String message(String message, Session session) {
+            // won't be called.
+            return "message";
+        }
+
+        @WebSocketError
+        public void handleError(Throwable throwable, Session session) {
+            OnCloseErrorTestBean.throwable = throwable;
+            OnCloseErrorTestBean.session = session;
+        }
+    }
+
+    @Test
+    public void testErrorOnClose() {
+        final ClientEndpointConfiguration cec = new DefaultClientEndpointConfiguration.Builder().build();
+        Server server = new Server(OnCloseErrorTestBean.class);
+        server.start();
+        try {
+            final DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder();
+            final DefaultClientEndpointConfiguration dcec = builder.build();
+
+            messageLatch = new CountDownLatch(1);
+            ClientManager client = ClientManager.createClient();
+            client.connectToServer(new TestEndpointAdapter() {
+                @Override
+                public EndpointConfiguration getEndpointConfiguration() {
+                    return dcec;
+                }
+
+                @Override
+                public void onOpen(Session session) {
+                    session.addMessageHandler(new TestTextMessageHandler(this));
+                }
+
+                @Override
+                public void onMessage(String message) {
+                    // do nothing
+                }
+            }, cec, new URI("ws://localhost:8025/websockets/tests/close"));
+
+            // TODO: is this really needed? Cannot we somehow force underlying protocol impl to connect immediately
+            // TODO: after connectToServer call?
+            messageLatch.await(1, TimeUnit.SECONDS);
+            client.close();
+
+            // TODO: is this really needed? Cannot we somehow force underlying protocol impl to connect immediately
+            // TODO: after close call?
+            messageLatch.await(1, TimeUnit.SECONDS);
+
+            assertTrue(OnCloseErrorTestBean.session != null);
+            assertTrue(OnCloseErrorTestBean.throwable != null);
+            assertEquals("testException", OnCloseErrorTestBean.throwable.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            server.stop();
+        }
+    }
 }

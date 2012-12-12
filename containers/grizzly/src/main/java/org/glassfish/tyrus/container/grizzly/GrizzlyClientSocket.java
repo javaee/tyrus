@@ -55,7 +55,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.websocket.ClientEndpointConfiguration;
-import javax.websocket.EndpointConfiguration;
 import javax.websocket.Session;
 
 import org.glassfish.tyrus.spi.SPIEndpoint;

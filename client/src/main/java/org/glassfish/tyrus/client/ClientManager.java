@@ -143,6 +143,15 @@ public class ClientManager implements ClientContainer {
         }
     }
 
+    /**
+     * TBD - should be present in {@link ClientContainer}.
+     */
+    public void close() {
+        for(TyrusClientSocket s : sockets) {
+            s.close();
+        }
+    }
+
     @Override
     public long getMaxSessionIdleTimeout() {
         return 0;

@@ -359,7 +359,13 @@ public class EndpointWrapper extends SPIEndpoint {
     @Override
     public void onClose(SPIRemoteEndpoint gs) {
         // TODO: where should I get the CloseReason from?
-        endpoint.onClose(new CloseReason(null, "Normal Closure"));
+
+        // TODO XXX FIXME: Endpoint.onClose should have Session parameter.
+        if(endpoint instanceof AnnotatedEndpoint) {
+            ((AnnotatedEndpoint)endpoint).onClose(new CloseReason(null, "Normal Closure"), remoteEndpointToSession.get(gs));
+        } else {
+            endpoint.onClose(new CloseReason(null, "Normal Closure"));
+        }
         remoteEndpointToSession.remove(gs);
     }
 

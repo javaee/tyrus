@@ -334,20 +334,30 @@ public class AnnotatedEndpoint extends Endpoint {
             try {
                 return method.invoke(endpoint, paramValues);
             } catch (Exception e) {
-                throw new RuntimeException(e);
+                onError(e.getCause(), session);
             }
         }
         return null;
     }
 
+    // TODO XXX FIXME: Add this method to javax.websocket.Endpoint (replace existing onError)
+    public void onClose(CloseReason closeReason, Session session) {
+        callMethod(onCloseMethod, onCloseParameters, session, closeReason);
+    }
+
     @Override
     public void onClose(CloseReason closeReason) {
-        callMethod(onCloseMethod, onCloseParameters, null, closeReason);
+        onClose(closeReason, null);
+    }
+
+    // TODO XXX FIXME: Add this method to javax.websocket.Endpoint (replace existing onError)
+    public void onError(Throwable thr, Session session) {
+        callMethod(onErrorMethod, onErrorParameters, session, thr);
     }
 
     @Override
     public void onError(Throwable thr) {
-        callMethod(onErrorMethod, onErrorParameters, null, thr);
+        onError(thr, null);
     }
 
     //    @Override
