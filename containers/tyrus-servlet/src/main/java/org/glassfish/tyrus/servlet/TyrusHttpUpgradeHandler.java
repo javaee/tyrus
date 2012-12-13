@@ -47,7 +47,7 @@ import java.util.logging.Logger;
 import javax.servlet.ReadListener;
 import javax.servlet.ServletInputStream;
 import javax.servlet.ServletOutputStream;
-import javax.servlet.http.ProtocolHandler;
+import javax.servlet.http.HttpUpgradeHandler;
 import javax.servlet.http.WebConnection;
 
 import org.glassfish.tyrus.websockets.DataFrame;
@@ -58,13 +58,14 @@ import org.glassfish.tyrus.websockets.draft06.ClosingFrame;
 /**
  * @author Jitendra Kotamraju
  */
-public class TyrusProtocolHandler implements ProtocolHandler, ReadListener {
+public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener {
     private ServletInputStream is;
     private ServletOutputStream os;
     private ByteBuffer buf;
-    private static final Logger LOGGER = Logger.getLogger(TyrusProtocolHandler.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(TyrusHttpUpgradeHandler.class.getName());
 
     private WebSocketEngine.WebSocketHolder webSocketHolder;
+
 
     @Override
     public void init(WebConnection wc) {
@@ -189,6 +190,10 @@ public class TyrusProtocolHandler implements ProtocolHandler, ReadListener {
 
     @Override
     public void onError(Throwable t) {
+    }
+
+    @Override
+    public void destroy() {
     }
 
     public void setWebSocketHolder(WebSocketEngine.WebSocketHolder webSocketHolder) {

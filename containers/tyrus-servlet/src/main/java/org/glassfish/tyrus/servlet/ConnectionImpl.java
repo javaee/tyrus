@@ -60,17 +60,17 @@ import org.glassfish.tyrus.websockets.WebSocketResponse;
  */
 public class ConnectionImpl extends Connection {
 
-    private final TyrusProtocolHandler tyrusProtocolHandler;
+    private final TyrusHttpUpgradeHandler tyrusHttpUpgradeHandler;
     private final HttpServletResponse httpServletResponse;
 
-    public ConnectionImpl(TyrusProtocolHandler tyrusProtocolHandler, HttpServletResponse httpServletResponse) {
-        this.tyrusProtocolHandler = tyrusProtocolHandler;
+    public ConnectionImpl(TyrusHttpUpgradeHandler tyrusHttpUpgradeHandler, HttpServletResponse httpServletResponse) {
+        this.tyrusHttpUpgradeHandler = tyrusHttpUpgradeHandler;
         this.httpServletResponse = httpServletResponse;
     }
 
     @Override
-    public Future<DataFrame> write(final DataFrame frame, CompletionHandler completionHandler) {
-        final ServletOutputStream outputStream = tyrusProtocolHandler.getOutputStream();
+    public Future<DataFrame> write(final DataFrame frame, CompletionHandler<DataFrame> completionHandler) {
+        final ServletOutputStream outputStream = tyrusHttpUpgradeHandler.getOutputStream();
 
         if(outputStream.canWrite()) {
             try {
@@ -92,16 +92,12 @@ public class ConnectionImpl extends Connection {
                 // TODO: Future<DataFrame> write(byte[] frame, CompletionHandler completionHandler)?
                 final byte[] bytes = WebSocketEngine.getEngine().getWebSocketHolder(this).handler.frame(frame);
 
-
-                StringBuffer sb = new StringBuffer();
+                StringBuilder sb = new StringBuilder();
                 for(Byte b : bytes) {
                     sb.append((char)b.intValue());
                 }
-                System.out.print("#### message written: " + sb.toString());
 
                 outputStream.write(bytes);
-                outputStream.flush();
-                outputStream.println("TESTESTESTESTESTEST");
                 outputStream.flush();
 
                 if(completionHandler != null) {

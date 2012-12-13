@@ -57,6 +57,8 @@
             <groupId>org.glassfish.tyrus</groupId>
             <artifactId>tyrus-core</artifactId>
         </dependency>
+
+        <!--TODO: remove-->
         <dependency>
             <groupId>org.glassfish.tyrus</groupId>
             <artifactId>tyrus-container-grizzly</artifactId>

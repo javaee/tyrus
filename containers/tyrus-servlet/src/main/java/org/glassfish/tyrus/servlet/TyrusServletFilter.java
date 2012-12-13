@@ -54,10 +54,12 @@ import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
 import javax.servlet.ServletException;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.WebConnection;
 
 import org.glassfish.tyrus.server.ContainerConfig;
 import org.glassfish.tyrus.server.DefaultServerConfiguration;
@@ -91,10 +93,6 @@ public class TyrusServletFilter implements Filter {
     public TyrusServletFilter(Set<Class<?>> classes) {
         this.classes = classes;
         engine = WebSocketEngine.getEngine();
-    }
-
-    public WebSocketEngine getEngine() {
-        return engine;
     }
 
     @Override
@@ -188,6 +186,50 @@ public class TyrusServletFilter implements Filter {
         }
     }
 
+    private class TyrusHttpUpgradeHandlerProxy extends TyrusHttpUpgradeHandler {
+
+        private TyrusHttpUpgradeHandler handler;
+
+        @Override
+        public void init(WebConnection wc) {
+            handler.init(wc);
+        }
+
+        @Override
+        public void onDataAvailable() {
+            handler.onDataAvailable();
+        }
+
+        @Override
+        public void onAllDataRead() {
+            handler.onAllDataRead();
+        }
+
+        @Override
+        public void onError(Throwable t) {
+            handler.onError(t);
+        }
+
+        @Override
+        public void destroy() {
+            handler.destroy();
+        }
+
+        @Override
+        public void setWebSocketHolder(WebSocketEngine.WebSocketHolder webSocketHolder) {
+            handler.setWebSocketHolder(webSocketHolder);
+        }
+
+        @Override
+        ServletOutputStream getOutputStream() {
+            return handler.getOutputStream();
+        }
+
+        void setHandler(TyrusHttpUpgradeHandler handler) {
+            this.handler = handler;
+        }
+    }
+
     @Override
     public void doFilter(final ServletRequest request, final ServletResponse response, FilterChain filterChain) throws IOException, ServletException {
         final HttpServletRequest httpServletRequest = (HttpServletRequest) request;
@@ -197,7 +239,8 @@ public class TyrusServletFilter implements Filter {
         final String header = httpServletRequest.getHeader(WebSocketEngine.SEC_WS_KEY_HEADER);
         if (header != null) {
             LOGGER.info("Setting up WebSocket protocol handler");
-            TyrusProtocolHandler handler = new TyrusProtocolHandler();
+
+            TyrusHttpUpgradeHandlerProxy handler = new TyrusHttpUpgradeHandlerProxy();
 
             final ConnectionImpl webSocketConnection = new ConnectionImpl(handler, httpServletResponse);
             WebSocketRequest webSocketRequest = new WebSocketRequest() {
@@ -231,9 +274,9 @@ public class TyrusServletFilter implements Filter {
                 }
 
                 // TODO
-                handler.setWebSocketHolder(engine.getWebSocketHolder(webSocketConnection));
                 LOGGER.info("Upgrading Servlet request");
-                httpServletRequest.upgrade(handler);
+                handler.setHandler(httpServletRequest.upgrade(TyrusHttpUpgradeHandler.class));
+                handler.setWebSocketHolder(engine.getWebSocketHolder(webSocketConnection));
 
             } catch (HandshakeException e) {
                 // TODO
@@ -241,7 +284,7 @@ public class TyrusServletFilter implements Filter {
             }
 
             // Servlet bug ?? Not sure why we need to flush the headers
-//            response.flushBuffer();
+            response.flushBuffer();
             LOGGER.info("Handshake Complete");
         } else {
             filterChain.doFilter(request, response);

@@ -92,7 +92,7 @@ public abstract class Connection {
         }
     }
 
-    public abstract Future<DataFrame> write(DataFrame frame, CompletionHandler completionHandler);
+    public abstract Future<DataFrame> write(DataFrame frame, CompletionHandler<DataFrame> completionHandler);
 
     public abstract void write(WebSocketResponse response);
 
