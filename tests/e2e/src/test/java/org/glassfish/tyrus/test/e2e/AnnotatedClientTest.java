@@ -88,7 +88,7 @@ public class AnnotatedClientTest {
     }
 
     @Test
-    public void testAmmptatedInstanceWithDecoding() {
+    public void testAnnotatedInstanceWithDecoding() {
         Server server = new Server(TestBean.class);
         server.start();
         messageLatch = new CountDownLatch(1);

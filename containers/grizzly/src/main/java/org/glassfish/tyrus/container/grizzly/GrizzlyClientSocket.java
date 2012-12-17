@@ -45,31 +45,21 @@ import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.HandshakeResponse;
 import javax.websocket.Session;
-
-import org.glassfish.tyrus.spi.SPIEndpoint;
-import org.glassfish.tyrus.spi.TyrusClientSocket;
-import org.glassfish.tyrus.websockets.DataFrame;
-import org.glassfish.tyrus.websockets.Extension;
-import org.glassfish.tyrus.websockets.HandShake;
-import org.glassfish.tyrus.websockets.HandshakeException;
-import org.glassfish.tyrus.websockets.ProtocolHandler;
-import org.glassfish.tyrus.websockets.WebSocket;
-import org.glassfish.tyrus.websockets.WebSocketEngine;
-import org.glassfish.tyrus.websockets.WebSocketListener;
-import org.glassfish.tyrus.websockets.draft06.ClosingFrame;
-import org.glassfish.tyrus.websockets.frametypes.PingFrameType;
-import org.glassfish.tyrus.websockets.frametypes.PongFrameType;
 
 import org.glassfish.grizzly.Connection;
 import org.glassfish.grizzly.Processor;
@@ -79,6 +69,20 @@ import org.glassfish.grizzly.http.HttpClientFilter;
 import org.glassfish.grizzly.nio.transport.TCPNIOConnectorHandler;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransportBuilder;
+import org.glassfish.tyrus.spi.SPIEndpoint;
+import org.glassfish.tyrus.spi.TyrusClientSocket;
+import org.glassfish.tyrus.websockets.DataFrame;
+import org.glassfish.tyrus.websockets.Extension;
+import org.glassfish.tyrus.websockets.HandShake;
+import org.glassfish.tyrus.websockets.HandShakeResponseListener;
+import org.glassfish.tyrus.websockets.HandshakeException;
+import org.glassfish.tyrus.websockets.ProtocolHandler;
+import org.glassfish.tyrus.websockets.WebSocket;
+import org.glassfish.tyrus.websockets.WebSocketEngine;
+import org.glassfish.tyrus.websockets.WebSocketListener;
+import org.glassfish.tyrus.websockets.draft06.ClosingFrame;
+import org.glassfish.tyrus.websockets.frametypes.PingFrameType;
+import org.glassfish.tyrus.websockets.frametypes.PongFrameType;
 
 /**
  * Implementation of the WebSocket interface from Grizzly.
@@ -149,7 +153,31 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
         }
 
         handshake.setExtensions(grizzlyExtensions);
-        handshake.setSubProtocol(clc.getPreferredSubprotocols());
+        handshake.setSubProtocols(clc.getPreferredSubprotocols());
+
+        handshake.setResponseListener(new HandShakeResponseListener() {
+            @Override
+            public void passResponseHeaders(final Map<String, List<String>> originalHeaders) {
+                clc.afterResponse(new HandshakeResponse() {
+
+                    private final Map<String, List<String>> headers =
+                            new TreeMap<String, List<String>>(new Comparator<String>() {
+
+                        @Override
+                        public int compare(String o1, String o2) {
+                            return o1.toLowerCase().compareTo(o2.toLowerCase());
+                        }
+                    });
+
+                    @Override
+                    public Map<String, List<String>> getHeaders() {
+                        headers.putAll(originalHeaders);
+                        return headers;
+                    }
+                });
+            }
+        });
+        clc.beforeRequest(handshake.composeRequest().getHeaders());
     }
 
     /**
@@ -159,7 +187,7 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
      */
     public void addEndpoint(SPIEndpoint endpoint) {
         endpoints.add(endpoint);
-        if(session==null){
+        if (session == null) {
             session = endpoint.createSessionForRemoteEndpoint(remoteEndpoint, null, null);
         }
     }

@@ -40,6 +40,7 @@
 
 package org.glassfish.tyrus.websockets;
 
+import java.util.List;
 import java.util.Map;
 
 import org.glassfish.tyrus.websockets.draft06.Draft06Handler;
@@ -49,7 +50,6 @@ import org.glassfish.tyrus.websockets.draft17.Draft17Handler;
 
 /**
  * TODO
- *
  */
 public enum Version {
 
@@ -60,8 +60,8 @@ public enum Version {
         }
 
         @Override
-        public boolean validate(Map<String, String> headers) {
-            return this.wireProtocolVersion.equals(headers.get(WebSocketEngine.SEC_WS_VERSION));
+        public boolean validate(Map<String, List<String>> headers) {
+            return this.wireProtocolVersion.equals(headers.get(WebSocketEngine.SEC_WS_VERSION).get(0));
         }
     },
 
@@ -72,7 +72,7 @@ public enum Version {
         }
 
         @Override
-        public boolean validate(Map<String, String> headers) {
+        public boolean validate(Map<String, List<String>> headers) {
             return wireProtocolVersion.equals(headers.get(WebSocketEngine.SEC_WS_VERSION));
         }
     },
@@ -84,7 +84,7 @@ public enum Version {
         }
 
         @Override
-        public boolean validate(Map<String, String> headers) {
+        public boolean validate(Map<String, List<String>> headers) {
             return wireProtocolVersion.equals(headers.get(WebSocketEngine.SEC_WS_VERSION));
         }
     },
@@ -96,14 +96,14 @@ public enum Version {
         }
 
         @Override
-        public boolean validate(Map<String, String> headers) {
+        public boolean validate(Map<String, List<String>> headers) {
             return wireProtocolVersion.equals(headers.get(WebSocketEngine.SEC_WS_VERSION));
         }
     };
 
     public abstract ProtocolHandler createHandler(boolean mask);
 
-    public abstract boolean validate(Map<String, String> headers);
+    public abstract boolean validate(Map<String, List<String>> headers);
 
     String wireProtocolVersion;
 

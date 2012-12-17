@@ -40,6 +40,7 @@
 package org.glassfish.tyrus.container.grizzly;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Future;
 
@@ -117,8 +118,11 @@ class ConnectionImpl extends Connection {
         final HttpResponsePacket responsePacket = ((HttpRequestPacket) httpContent.getHttpHeader()).getResponse();
         responsePacket.setProtocol(Protocol.HTTP_1_1);
         responsePacket.setStatus(response.getStatus());
-        for (Map.Entry<String, String> entry : response.getHeaders().entrySet()) {
-            responsePacket.setHeader(entry.getKey(), entry.getValue());
+
+        for (Map.Entry<String, List<String>> entry : response.getHeaders().entrySet()) {
+            for (String  value : entry.getValue()) {
+                responsePacket.setHeader(entry.getKey(), value);
+            }
         }
 
         ctx.write(HttpContent.builder(responsePacket).build());
@@ -149,11 +153,7 @@ class ConnectionImpl extends Connection {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof org.glassfish.tyrus.websockets.Connection) {
-            return connection.equals(((org.glassfish.tyrus.websockets.Connection) obj).getUnderlyingConnection());
-        } else {
-            return false;
-        }
+        return obj instanceof Connection && connection.equals(((Connection) obj).getUnderlyingConnection());
     }
 
     @Override
@@ -164,5 +164,4 @@ class ConnectionImpl extends Connection {
     public String toString() {
         return this.getClass().getName() + " " + connection.toString() + " " + connection.hashCode();
     }
-
 }

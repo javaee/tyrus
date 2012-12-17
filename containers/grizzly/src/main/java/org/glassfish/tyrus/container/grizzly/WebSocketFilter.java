@@ -42,6 +42,8 @@ package org.glassfish.tyrus.container.grizzly;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -49,16 +51,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import org.glassfish.tyrus.websockets.DataFrame;
-import org.glassfish.tyrus.websockets.FramingException;
-import org.glassfish.tyrus.websockets.HandshakeException;
-import org.glassfish.tyrus.websockets.WebSocket;
-import org.glassfish.tyrus.websockets.WebSocketEngine;
-import org.glassfish.tyrus.websockets.WebSocketEngine.WebSocketHolder;
-import org.glassfish.tyrus.websockets.WebSocketRequest;
-import org.glassfish.tyrus.websockets.WebSocketResponse;
-import org.glassfish.tyrus.websockets.draft06.ClosingFrame;
 
 import org.glassfish.grizzly.Buffer;
 import org.glassfish.grizzly.Connection;
@@ -78,6 +70,15 @@ import org.glassfish.grizzly.http.Method;
 import org.glassfish.grizzly.http.Protocol;
 import org.glassfish.grizzly.memory.Buffers;
 import org.glassfish.grizzly.utils.IdleTimeoutFilter;
+import org.glassfish.tyrus.websockets.DataFrame;
+import org.glassfish.tyrus.websockets.FramingException;
+import org.glassfish.tyrus.websockets.HandshakeException;
+import org.glassfish.tyrus.websockets.WebSocket;
+import org.glassfish.tyrus.websockets.WebSocketEngine;
+import org.glassfish.tyrus.websockets.WebSocketEngine.WebSocketHolder;
+import org.glassfish.tyrus.websockets.WebSocketRequest;
+import org.glassfish.tyrus.websockets.WebSocketResponse;
+import org.glassfish.tyrus.websockets.draft06.ClosingFrame;
 
 /**
  * WebSocket {@link Filter} implementation, which supposed to be placed into a {@link FilterChain} right after HTTP
@@ -100,7 +101,7 @@ class WebSocketFilter extends BaseFilter {
      * Constructs a new <code>WebSocketFilter</code> with a default idle connection
      * timeout of 15 minutes;
      */
-    public WebSocketFilter()  {
+    public WebSocketFilter() {
         this(DEFAULT_WS_IDLE_TIMEOUT_IN_SECONDS);
     }
 
@@ -119,6 +120,7 @@ class WebSocketFilter extends BaseFilter {
     }
 
     // ----------------------------------------------------- Methods from Filter
+
     /**
      * Method handles Grizzly {@link Connection} connect phase. Check if the {@link Connection} is a client-side {@link
      * org.glassfish.tyrus.websockets.WebSocket}, if yes - creates websocket handshake packet and send it to a server. Otherwise, if it's not websocket
@@ -151,8 +153,10 @@ class WebSocketFilter extends BaseFilter {
         builder = builder.method(Method.GET);
         builder = builder.uri(webSocketRequest.getRequestPath());
 
-        for(Map.Entry<String, String> entry : webSocketRequest.getHeaders().entrySet()) {
-            builder = builder.header(entry.getKey(), entry.getValue());
+        for (Map.Entry<String, List<String>> entry : webSocketRequest.getHeaders().entrySet()) {
+            for (String value : entry.getValue()) {
+                builder.header(entry.getKey(), value);
+            }
         }
 
         HttpContent httpContent1 = HttpContent.builder(builder.build()).build();
@@ -198,9 +202,7 @@ class WebSocketFilter extends BaseFilter {
      * connections.
      *
      * @param ctx {@link FilterChainContext}
-     *
      * @return {@link NextAction} instruction for {@link FilterChain}, how it should continue the execution
-     *
      * @throws IOException TODO
      */
     @Override
@@ -272,9 +274,7 @@ class WebSocketFilter extends BaseFilter {
      * Buffer}.
      *
      * @param ctx {@link FilterChainContext}
-     *
      * @return {@link NextAction} instruction for {@link FilterChain}, how it should continue the execution
-     *
      * @throws IOException TODO
      */
     @Override
@@ -300,11 +300,9 @@ class WebSocketFilter extends BaseFilter {
     /**
      * Handle websocket handshake
      *
-     * @param ctx {@link FilterChainContext}
+     * @param ctx     {@link FilterChainContext}
      * @param content HTTP message
-     *
      * @return {@link NextAction} instruction for {@link FilterChain}, how it should continue the execution
-     *
      * @throws IOException TODO
      */
     private NextAction handleHandshake(FilterChainContext ctx, HttpContent content) throws IOException {
@@ -331,8 +329,14 @@ class WebSocketFilter extends BaseFilter {
     private static WebSocketResponse getWebSocketResponse(HttpResponsePacket httpResponsePacket) {
         WebSocketResponse webSocketResponse = new WebSocketResponse();
 
-        for(String name : httpResponsePacket.getHeaders().names()) {
-            webSocketResponse.getHeaders().put(name, httpResponsePacket.getHeader(name));
+        for (String name : httpResponsePacket.getHeaders().names()) {
+            List<String> values = new ArrayList<String>();
+
+            for (String s : httpResponsePacket.getHeaders().values(name)) {
+                values.add(s);
+            }
+
+            webSocketResponse.getHeaders().put(name, values);
         }
 
         webSocketResponse.setStatus(httpResponsePacket.getStatus());
@@ -343,11 +347,10 @@ class WebSocketFilter extends BaseFilter {
     /**
      * Handle server-side websocket handshake
      *
-     * @param ctx {@link FilterChainContext}
+     * @param ctx            {@link FilterChainContext}
      * @param requestContent HTTP message
-     *
-     * @throws IOException TODO
      * @return TODO
+     * @throws IOException TODO
      */
     private NextAction handleServerHandshake(final FilterChainContext ctx,
                                              final HttpContent requestContent)
@@ -467,8 +470,14 @@ class WebSocketFilter extends BaseFilter {
             }
         };
 
-        for(String name : requestPacket.getHeaders().names()) {
-            request.getHeaders().put(name, requestPacket.getHeader(name));
+        for (String name : requestPacket.getHeaders().names()) {
+            List<String> values = new ArrayList<String>();
+
+            for (String s : requestPacket.getHeaders().values(name)) {
+                values.add(s);
+            }
+
+            request.getHeaders().put(name, values);
         }
 
         return request;

@@ -39,16 +39,16 @@
  */
 package org.glassfish.tyrus;
 
+import java.util.List;
+import java.util.Map;
+
 import javax.websocket.ClientEndpointConfiguration;
 import javax.websocket.Decoder;
 import javax.websocket.Encoder;
-import javax.websocket.HandshakeRequest;
 import javax.websocket.HandshakeResponse;
-import java.util.List;
 
 /**
  * Configuration used for client endpoints as the default one.
- * The object is immutable.
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
@@ -58,7 +58,7 @@ public class DefaultClientEndpointConfiguration extends DefaultEndpointConfigura
      * Creates a client configuration that will attempt
      * to connect to the given URI.
      */
-    private DefaultClientEndpointConfiguration(List<Encoder> encoders, List<Decoder> decoders,
+    protected DefaultClientEndpointConfiguration(List<Encoder> encoders, List<Decoder> decoders,
                                                List<String> subprotocols, List<String> extensions) {
         super(encoders, decoders, subprotocols, extensions);
     }
@@ -86,7 +86,7 @@ public class DefaultClientEndpointConfiguration extends DefaultEndpointConfigura
     }
 
     @Override
-    public void beforeRequest(HandshakeRequest handshakeRequest) {
+    public void beforeRequest(Map<String, List<String>> stringListMap) {
 
     }
 

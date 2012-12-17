@@ -41,6 +41,7 @@
 package org.glassfish.tyrus.websockets.draft06;
 
 import java.net.URI;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -63,30 +64,30 @@ public class HandShake06 extends HandShake {
 
     public HandShake06(WebSocketRequest request) {
         super(request);
-        final Map<String, String> headers = request.getHeaders();
-        String header = headers.get(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER);
-        if (header != null) {
-            setExtensions(parseExtensionsHeader(header));
+        final Map<String, List<String>> headers = request.getHeaders();
+        List<String> values = headers.get(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER);
+        if (values != null) {
+            setExtensions(parseExtensionsHeader(values));
         }
-        secKey = SecKey.generateServerKey(new SecKey(headers.get(WebSocketEngine.SEC_WS_KEY_HEADER)));
+        secKey = SecKey.generateServerKey(new SecKey(headers.get(WebSocketEngine.SEC_WS_KEY_HEADER).get(0)));
     }
 
     public void setHeaders(WebSocketResponse response) {
         response.setReasonPhrase(WebSocketEngine.RESPONSE_CODE_MESSAGE);
-        response.getHeaders().put(WebSocketEngine.SEC_WS_ACCEPT, secKey.getSecKey());
+        response.getHeaders().put(WebSocketEngine.SEC_WS_ACCEPT, Arrays.asList(secKey.getSecKey()));
         if (!getEnabledExtensions().isEmpty()) {
-            response.getHeaders().put(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER, join(getSubProtocol()));
+            response.getHeaders().put(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER, getSubProtocols());
         }
     }
 
     @Override
-    public WebSocketRequest composeHeaders() {
-        final WebSocketRequest webSocketRequest = super.composeHeaders();
-        webSocketRequest.getHeaders().put(WebSocketEngine.SEC_WS_KEY_HEADER, secKey.toString());
-        webSocketRequest.getHeaders().put(WebSocketEngine.SEC_WS_ORIGIN_HEADER, getOrigin());
-        webSocketRequest.getHeaders().put(WebSocketEngine.SEC_WS_VERSION, getVersion() + "");
+    public WebSocketRequest getRequest() {
+        final WebSocketRequest webSocketRequest = super.getRequest();
+        webSocketRequest.getHeaders().put(WebSocketEngine.SEC_WS_KEY_HEADER, Arrays.asList(secKey.toString()));
+        webSocketRequest.getHeaders().put(WebSocketEngine.SEC_WS_ORIGIN_HEADER, Arrays.asList(getOrigin()));
+        webSocketRequest.getHeaders().put(WebSocketEngine.SEC_WS_VERSION, Arrays.asList(getVersion() + ""));
         if (!getExtensions().isEmpty()) {
-            webSocketRequest.getHeaders().put(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER, joinExtensions(getExtensions()));
+            webSocketRequest.getHeaders().put(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER, getExtensionNames(getExtensions()));
         }
         return webSocketRequest;
     }
@@ -98,7 +99,7 @@ public class HandShake06 extends HandShake {
     @Override
     public void validateServerResponse(final WebSocketResponse response) throws HandshakeException {
         super.validateServerResponse(response);
-        secKey.validateServerKey(response.getHeaders().get(WebSocketEngine.SEC_WS_ACCEPT));
+        secKey.validateServerKey(response.getHeaders().get(WebSocketEngine.SEC_WS_ACCEPT).get(0));
     }
 
     public List<String> getEnabledExtensions() {

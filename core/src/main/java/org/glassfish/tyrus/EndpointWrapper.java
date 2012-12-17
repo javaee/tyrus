@@ -154,7 +154,11 @@ public class EndpointWrapper extends SPIEndpoint {
         final PathPattern pathPattern = new PathPattern(getEndpointPath(sec.getPath()));
 
         final boolean match = pathPattern.match(uri, pathPattern.getTemplate().getTemplateVariables(), templateValues);
-        return match && sec.checkOrigin(hr.getHeader("Origin"));
+
+        if(hr.getHeader("Origin").size() != 1){
+            return false;
+        }
+        return match && sec.checkOrigin(hr.getHeader("Origin").get(0));
     }
 
     private String getEndpointPath(String relativePath) {
@@ -259,12 +263,13 @@ public class EndpointWrapper extends SPIEndpoint {
 
     @Override
     public List<String> getNegotiatedExtensions(List<String> clientExtensions) {
+
         ServerEndpointConfiguration sec;
 
         if (configuration instanceof ServerEndpointConfiguration) {
             sec = (ServerEndpointConfiguration) configuration;
         } else {
-            return null;
+            return Collections.emptyList();
         }
 
         return sec.getNegotiatedExtensions(clientExtensions);

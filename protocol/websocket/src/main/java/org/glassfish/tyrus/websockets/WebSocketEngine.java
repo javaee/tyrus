@@ -43,6 +43,7 @@ package org.glassfish.tyrus.websockets;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
@@ -74,6 +75,7 @@ public class WebSocketEngine {
     public static final int RESPONSE_CODE_VALUE = 101;
     public static final String UPGRADE = "Upgrade";
     public static final String CONNECTION = "Connection";
+    public static final String HOST = "Host";
     public static final Version DEFAULT_VERSION = Version.DRAFT17;
     private static final WebSocketEngine engine = new WebSocketEngine();
     static final Logger logger = Logger.getLogger(WebSocketEngine.WEBSOCKET);
@@ -192,7 +194,7 @@ public class WebSocketEngine {
         return false;
     }
 
-    public static ProtocolHandler loadHandler(Map<String, String> headers) {
+    public static ProtocolHandler loadHandler(Map<String, List<String>> headers) {
         for (Version version : Version.values()) {
             if (version.validate(headers)) {
                 return version.createHandler(false);
@@ -269,7 +271,7 @@ public class WebSocketEngine {
             throws IOException {
         WebSocketResponse response = new WebSocketResponse();
         response.setStatus(400);
-        response.getHeaders().put(WebSocketEngine.SEC_WS_VERSION, Version.getSupportedWireProtocolVersions());
+        response.getHeaders().put(WebSocketEngine.SEC_WS_VERSION, Arrays.asList(Version.getSupportedWireProtocolVersions()));
         connection.write(response);
     }
 

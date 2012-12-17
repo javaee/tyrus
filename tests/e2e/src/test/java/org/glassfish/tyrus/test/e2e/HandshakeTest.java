@@ -40,23 +40,23 @@
 
 package org.glassfish.tyrus.test.e2e;
 
+import java.io.IOException;
 import java.net.URI;
-import java.net.URL;
-import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
-import org.glassfish.tyrus.server.Server;
-import org.junit.Assert;
-import org.junit.Ignore;
-import org.junit.Test;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
-import javax.websocket.ClientEndpointConfiguration;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.Session;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
+import org.glassfish.tyrus.client.ClientManager;
+import org.glassfish.tyrus.server.Server;
+import org.glassfish.tyrus.websockets.WebSocketEngine;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Tests whether the HandShake parameters (sub-protoxols, extensions) are sent correctly.
@@ -71,11 +71,7 @@ public class HandshakeTest {
 
     private static final String SENT_MESSAGE = "hello";
 
-    private final ClientEndpointConfiguration cec = new DefaultClientEndpointConfiguration.Builder().build();
-
-    //TODO Doesn't really test the functionality yet - waiting for Grizzly change.
     @Test
-    @Ignore
     public void testClient() {
         Server server = new Server(TestBean.class);
         server.start();
@@ -91,10 +87,10 @@ public class HandshakeTest {
             extensions.add("ext1");
             extensions.add("ext2");
 
-            DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder();
-//            builder.protocols(subprotocols);
+            TestClientEndpointConfiguration.Builder builder = new TestClientEndpointConfiguration.Builder();
+            builder.protocols(subprotocols);
             builder.extensions(extensions);
-            final DefaultClientEndpointConfiguration dcec = builder.build();
+            final TestClientEndpointConfiguration dcec = builder.build();
 
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new TestEndpointAdapter() {
@@ -120,10 +116,17 @@ public class HandshakeTest {
                         e.printStackTrace();
                     }
                 }
-            }, cec, new URI("ws://localhost:8025/websockets/tests/echo"));
+            }, dcec, new URI("ws://localhost:8025/websockets/tests/echo"));
 
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertEquals(SENT_MESSAGE, receivedMessage);
+
+            Map<String, List<String>> headers = dcec.getHandshakeResponse().getHeaders();
+//            String supportedExtension = headers.get(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER).get(0);
+
+            String supportedSubprotocol = headers.get(WebSocketEngine.SEC_WS_PROTOCOL_HEADER).get(0);
+            Assert.assertEquals("asd", supportedSubprotocol);
+//            Assert.assertEquals("ext1", supportedExtension);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);

@@ -137,11 +137,16 @@ public abstract class WebSocketApplication extends WebSocketAdapter {
      *
      * @param request TODO
      * @return <code>true</code> if the request should be upgraded to a
-     *         WebSocket connection
+     *         WebSocket connection                                                    ™
      */
     public final boolean upgrade(WebSocketRequest request) {
-        return "WebSocket".equalsIgnoreCase(request.getHeaders().get(WebSocketEngine.UPGRADE)) && isApplicationRequest(request);
+        if (request.getHeaders().get(WebSocketEngine.UPGRADE).size() == 1) {
+            return WebSocketEngine.WEBSOCKET.equals(request.getFirstHeaderValue(WebSocketEngine.UPGRADE)) && isApplicationRequest(request);
+        } else {
+            return false;
+        }
     }
+
 
     /**
      * Checks application specific criteria to determine if this application can
@@ -150,6 +155,7 @@ public abstract class WebSocketApplication extends WebSocketAdapter {
      * @param request the incoming HTTP request.
      * @return <code>true</code> if this application can service this request
      */
+
     public abstract boolean isApplicationRequest(WebSocketRequest request);
 
     /**

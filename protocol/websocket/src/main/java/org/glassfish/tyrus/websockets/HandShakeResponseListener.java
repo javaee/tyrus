@@ -40,52 +40,20 @@
 
 package org.glassfish.tyrus.websockets;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 
 /**
- * TODO
+ * Used to register with {@link HandShake}. If the handshake response is received, this listener is called.
  *
- * @author Pavel Bucek (pavel.bucek at oracle.com)
+ * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class WebSocketResponse {
-
-    private final Map<String, List<String>> headers = new TreeMap<String, List<String>>(new Comparator<String>() {
-        @Override
-        public int compare(String o1, String o2) {
-            return o1.toLowerCase().compareTo(o2.toLowerCase());
-        }
-    });
-
-    private int status;
+public abstract class HandShakeResponseListener {
 
     /**
-     * @return TODO
+     * Gets called when the handshake response is received in {@link HandShake}.
+     *
+     * @param headers of the handshake response.
      */
-    public int getStatus() {
-        return status;
-    }
-
-    /**
-     * @return TODO
-     */
-    public Map<String, List<String>> getHeaders() {
-        return headers;
-    }
-
-    /**
-     * @param statusCode TODO
-     */
-    public void setStatus(int statusCode) {
-        status = statusCode;
-    }
-
-    /**
-     * @param statusCodeMessage TODO
-     */
-    public void setReasonPhrase(String statusCodeMessage) {
-        // TODO: Implement.
-    }
+    public abstract void passResponseHeaders(Map<String, List<String>> headers);
 }

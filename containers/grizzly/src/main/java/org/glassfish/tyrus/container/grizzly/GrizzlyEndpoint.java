@@ -42,7 +42,6 @@ package org.glassfish.tyrus.container.grizzly;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -90,10 +89,10 @@ public class GrizzlyEndpoint extends WebSocketApplication implements SPIRegister
 
     @Override
     public boolean isApplicationRequest(WebSocketRequest o) {
-        List<String> protocols = createList(o.getHeaders().get(WebSocketEngine.SEC_WS_PROTOCOL_HEADER));
+        List<String> protocols = o.getHeaders().get(WebSocketEngine.SEC_WS_PROTOCOL_HEADER);
         temporaryNegotiatedProtocol = endpoint.getNegotiatedProtocol(protocols);
 
-        List<String> extensions = createList(o.getHeaders().get(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER));
+        List<String> extensions = o.getHeaders().get(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER);
         temporaryNegotiatedExtensions = endpoint.getNegotiatedExtensions(extensions);
 
         return endpoint.checkHandshake(new GrizzlyHandshakeRequest(o));
@@ -184,7 +183,7 @@ public class GrizzlyEndpoint extends WebSocketApplication implements SPIRegister
 
     @Override
     public boolean onError(WebSocket webSocket, Throwable t) {
-        Logger.getLogger(getClass().getName()).log(Level.WARNING, "onError!", t);
+        Logger.getLogger(GrizzlyEndpoint.class.getName()).log(Level.WARNING, "onError!", t);
         return true;
     }
 
@@ -200,22 +199,5 @@ public class GrizzlyEndpoint extends WebSocketApplication implements SPIRegister
         }
 
         return result;
-    }
-
-    /**
-     * Creates a {@link List} from {@link String} in which the data values are separated by commas.
-     *
-     * @param input data values separated by commas.
-     * @return data in {@link List}.
-     */
-    @SuppressWarnings("unchecked")
-    private List<String> createList(String input) {
-        if (input == null) {
-            return Collections.emptyList();
-        }
-        String delimiter = ",";
-        String[] tokens = input.split(delimiter);
-
-        return Arrays.asList(tokens);
     }
 }

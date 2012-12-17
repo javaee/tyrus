@@ -39,6 +39,8 @@
  */
 package org.glassfish.tyrus.container.grizzly;
 
+import java.util.List;
+
 import org.glassfish.tyrus.spi.SPIHandshakeRequest;
 import org.glassfish.tyrus.websockets.WebSocketRequest;
 
@@ -53,8 +55,8 @@ class GrizzlyHandshakeRequest implements SPIHandshakeRequest {
     }
 
     @Override
-    public String getHeader(String name) {
-        return this.rp.getHeaders().get(name);
+    public List<String> getHeader(String name) {
+        return rp.getHeaders().get(name);
     }
 
     @Override

@@ -38,54 +38,55 @@
  * holder.
  */
 
-package org.glassfish.tyrus.websockets;
+package org.glassfish.tyrus.test.e2e;
 
-import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+
+import javax.websocket.Decoder;
+import javax.websocket.Encoder;
+import javax.websocket.HandshakeResponse;
+
+import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
 
 /**
- * TODO
+ * Configuration that enables to get the {@link javax.websocket.HandshakeResponse}.
+ * Used for test purposes.
  *
- * @author Pavel Bucek (pavel.bucek at oracle.com)
+ * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class WebSocketResponse {
+public class TestClientEndpointConfiguration extends DefaultClientEndpointConfiguration {
 
-    private final Map<String, List<String>> headers = new TreeMap<String, List<String>>(new Comparator<String>() {
+    private HandshakeResponse handshakeResponse;
+
+    /**
+     * Creates a test configuration that will attempt
+     * to connect to the given URI.
+     */
+    private TestClientEndpointConfiguration(List<Encoder> encoders, List<Decoder> decoders, List<String> subprotocols, List<String> extensions) {
+        super(encoders, decoders, subprotocols, extensions);
+    }
+
+    @Override
+    public void afterResponse(HandshakeResponse handshakeResponse) {
+        this.handshakeResponse = handshakeResponse;
+    }
+
+    /**
+     * Gets the {@link HandshakeResponse} which was received in the afterResponse method.
+     *
+     * @return handshakeResponse.
+     */
+    public HandshakeResponse getHandshakeResponse() {
+        return handshakeResponse;
+    }
+
+    /**
+     * Builder class used to build the {@link TestClientEndpointConfiguration}.
+     */
+    public static class Builder extends DefaultClientEndpointConfiguration.Builder {
         @Override
-        public int compare(String o1, String o2) {
-            return o1.toLowerCase().compareTo(o2.toLowerCase());
+        public TestClientEndpointConfiguration build() {
+            return new TestClientEndpointConfiguration(encoders, decoders, protocols, extensions);
         }
-    });
-
-    private int status;
-
-    /**
-     * @return TODO
-     */
-    public int getStatus() {
-        return status;
-    }
-
-    /**
-     * @return TODO
-     */
-    public Map<String, List<String>> getHeaders() {
-        return headers;
-    }
-
-    /**
-     * @param statusCode TODO
-     */
-    public void setStatus(int statusCode) {
-        status = statusCode;
-    }
-
-    /**
-     * @param statusCodeMessage TODO
-     */
-    public void setReasonPhrase(String statusCodeMessage) {
-        // TODO: Implement.
     }
 }

@@ -41,19 +41,20 @@ package org.glassfish.tyrus.servlet;
 
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletResponse;
-
 import org.glassfish.tyrus.websockets.Connection;
 import org.glassfish.tyrus.websockets.DataFrame;
 import org.glassfish.tyrus.websockets.WebSocketEngine;
 import org.glassfish.tyrus.websockets.WebSocketResponse;
+
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
@@ -72,7 +73,7 @@ public class ConnectionImpl extends Connection {
     public Future<DataFrame> write(final DataFrame frame, CompletionHandler<DataFrame> completionHandler) {
         final ServletOutputStream outputStream = tyrusHttpUpgradeHandler.getOutputStream();
 
-        if(outputStream.canWrite()) {
+        if (outputStream.canWrite()) {
             try {
 
                 // TODO
@@ -93,19 +94,19 @@ public class ConnectionImpl extends Connection {
                 final byte[] bytes = WebSocketEngine.getEngine().getWebSocketHolder(this).handler.frame(frame);
 
                 StringBuilder sb = new StringBuilder();
-                for(Byte b : bytes) {
-                    sb.append((char)b.intValue());
+                for (Byte b : bytes) {
+                    sb.append((char) b.intValue());
                 }
 
                 outputStream.write(bytes);
                 outputStream.flush();
 
-                if(completionHandler != null) {
+                if (completionHandler != null) {
                     completionHandler.completed(frame);
                 }
 
             } catch (IOException e) {
-                if(completionHandler != null) {
+                if (completionHandler != null) {
                     completionHandler.failed(e);
                 }
             }
@@ -142,8 +143,10 @@ public class ConnectionImpl extends Connection {
     @Override
     public void write(WebSocketResponse response) {
         httpServletResponse.setStatus(response.getStatus());
-        for(Map.Entry<String, String> entry : response.getHeaders().entrySet()) {
-            httpServletResponse.addHeader(entry.getKey(), entry.getValue());
+        for (Map.Entry<String, List<String>> entry : response.getHeaders().entrySet()) {
+            for (String s : entry.getValue()) {
+                httpServletResponse.addHeader(entry.getKey(), s);
+            }
         }
     }
 

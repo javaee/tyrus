@@ -40,6 +40,7 @@
 package org.glassfish.tyrus.servlet;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.Iterator;
@@ -261,9 +262,17 @@ public class TyrusServletFilter implements Filter {
             };
 
             Enumeration<String> headerNames = httpServletRequest.getHeaderNames();
+
             while (headerNames.hasMoreElements()) {
                 String key = headerNames.nextElement();
-                webSocketRequest.getHeaders().put(key, httpServletRequest.getHeader(key));
+                List<String> valueList = new ArrayList<String>();
+                Enumeration<String> values = httpServletRequest.getHeaders(key);
+
+                while(values.hasMoreElements()){
+                    valueList.add(values.nextElement());
+                }
+
+                webSocketRequest.getHeaders().put(key, valueList);
             }
 
             webSocketRequest.setRequestPath(httpServletRequest.getServletPath());

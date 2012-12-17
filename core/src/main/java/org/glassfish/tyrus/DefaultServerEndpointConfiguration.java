@@ -39,16 +39,17 @@
  */
 package org.glassfish.tyrus;
 
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import javax.websocket.Decoder;
 import javax.websocket.Encoder;
 import javax.websocket.EndpointFactory;
 import javax.websocket.HandshakeRequest;
 import javax.websocket.HandshakeResponse;
 import javax.websocket.ServerEndpointConfiguration;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Provides the default {@link ServerEndpointConfiguration}.
@@ -88,9 +89,11 @@ public class DefaultServerEndpointConfiguration<T> extends DefaultEndpointConfig
 
     @Override
     public String getNegotiatedSubprotocol(List<String> requestedSubprotocols) {
-        for (String serverProtocol : subProtocols) {
-            if (requestedSubprotocols.contains(serverProtocol)) {
-                return serverProtocol;
+        if (requestedSubprotocols != null) {
+            for (String serverProtocol : subProtocols) {
+                if (requestedSubprotocols.contains(serverProtocol)) {
+                    return serverProtocol;
+                }
             }
         }
 
@@ -101,10 +104,12 @@ public class DefaultServerEndpointConfiguration<T> extends DefaultEndpointConfig
     public List<String> getNegotiatedExtensions(List<String> requestedExtensions) {
         List<String> result = new ArrayList<String>();
 
-        for (String requestedExtension : requestedExtensions) {
-            for (String extension : extensions) {
-                if (extension.equals(requestedExtension)) {
-                    result.add(requestedExtension);
+        if (requestedExtensions != null) {
+            for (String requestedExtension : requestedExtensions) {
+                for (String extension : extensions) {
+                    if (extension.equals(requestedExtension)) {
+                        result.add(requestedExtension);
+                    }
                 }
             }
         }
