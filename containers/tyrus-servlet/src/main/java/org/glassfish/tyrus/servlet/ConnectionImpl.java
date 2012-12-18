@@ -48,13 +48,13 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+
 import org.glassfish.tyrus.websockets.Connection;
 import org.glassfish.tyrus.websockets.DataFrame;
 import org.glassfish.tyrus.websockets.WebSocketEngine;
 import org.glassfish.tyrus.websockets.WebSocketResponse;
-
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletResponse;
 
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)

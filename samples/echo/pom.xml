@@ -64,5 +64,44 @@
             <groupId>org.glassfish.tyrus</groupId>
             <artifactId>tyrus-container-grizzly</artifactId>
         </dependency>
+
+        <dependency>
+            <groupId>org.glassfish.tyrus</groupId>
+            <artifactId>tyrus-client</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
+
+    <profiles>
+        <profile>
+            <id>include-deps</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <dependencies>
+                <dependency>
+                    <groupId>org.glassfish.tyrus</groupId>
+                    <artifactId>tyrus-container-servlet</artifactId>
+                </dependency>
+            </dependencies>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-war-plugin</artifactId>
+                        <version>2.1.1</version>
+                        <configuration>
+                            <packagingExcludes>WEB-INF/lib/grizzly-*</packagingExcludes>
+                            <failOnMissingWebXml>false</failOnMissingWebXml>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
