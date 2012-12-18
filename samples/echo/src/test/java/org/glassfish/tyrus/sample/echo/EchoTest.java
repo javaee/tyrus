@@ -82,7 +82,9 @@ public class EchoTest {
     private Server startServer() {
         final String host = System.getProperty("tyrus.test.host");
         if(host == null) {
-            return new Server(DEFAULT_HOST, DEFAULT_PORT, CONTEXT_PATH, endpointClasses);
+            final Server server = new Server(DEFAULT_HOST, DEFAULT_PORT, CONTEXT_PATH, endpointClasses);
+            server.start();
+            return server;
         } else {
             return null;
         }
