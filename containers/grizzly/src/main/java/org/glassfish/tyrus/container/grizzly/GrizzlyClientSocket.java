@@ -47,7 +47,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -61,14 +60,7 @@ import javax.websocket.ClientEndpointConfiguration;
 import javax.websocket.HandshakeResponse;
 import javax.websocket.Session;
 
-import org.glassfish.grizzly.Connection;
-import org.glassfish.grizzly.Processor;
-import org.glassfish.grizzly.filterchain.FilterChainBuilder;
-import org.glassfish.grizzly.filterchain.TransportFilter;
-import org.glassfish.grizzly.http.HttpClientFilter;
-import org.glassfish.grizzly.nio.transport.TCPNIOConnectorHandler;
-import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
-import org.glassfish.grizzly.nio.transport.TCPNIOTransportBuilder;
+import org.glassfish.tyrus.server.TyrusRemoteEndpoint;
 import org.glassfish.tyrus.spi.SPIEndpoint;
 import org.glassfish.tyrus.spi.TyrusClientSocket;
 import org.glassfish.tyrus.websockets.DataFrame;
@@ -84,8 +76,17 @@ import org.glassfish.tyrus.websockets.draft06.ClosingFrame;
 import org.glassfish.tyrus.websockets.frametypes.PingFrameType;
 import org.glassfish.tyrus.websockets.frametypes.PongFrameType;
 
+import org.glassfish.grizzly.Connection;
+import org.glassfish.grizzly.Processor;
+import org.glassfish.grizzly.filterchain.FilterChainBuilder;
+import org.glassfish.grizzly.filterchain.TransportFilter;
+import org.glassfish.grizzly.http.HttpClientFilter;
+import org.glassfish.grizzly.nio.transport.TCPNIOConnectorHandler;
+import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
+import org.glassfish.grizzly.nio.transport.TCPNIOTransportBuilder;
+
 /**
- * Implementation of the WebSocket interface from Grizzly.
+ * Implementation of the WebSocket interface.
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
@@ -97,7 +98,7 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
     private TCPNIOTransport transport;
     EnumSet<State> connected = EnumSet.range(State.CONNECTED, State.CLOSING);
     private final AtomicReference<State> state = new AtomicReference<State>(State.NEW);
-    private final GrizzlyRemoteEndpoint remoteEndpoint;
+    private final TyrusRemoteEndpoint remoteEndpoint;
     private long timeoutMs;
     private final ClientEndpointConfiguration clc;
     private Session session = null;
@@ -106,11 +107,18 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
         NEW, CONNECTED, CLOSING, CLOSED
     }
 
+    /**
+     * Create new instance.
+     *
+     * @param uri endpoint address.
+     * @param clc client endpoint configuration.
+     * @param timeoutMs TODO
+     */
     public GrizzlyClientSocket(URI uri, ClientEndpointConfiguration clc, long timeoutMs) {
         this.uri = uri;
         this.clc = clc;
         protocolHandler = WebSocketEngine.DEFAULT_VERSION.createHandler(true);
-        remoteEndpoint = new GrizzlyRemoteEndpoint(this);
+        remoteEndpoint = new TyrusRemoteEndpoint(this);
         this.timeoutMs = timeoutMs;
     }
 
@@ -163,11 +171,11 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
                     private final Map<String, List<String>> headers =
                             new TreeMap<String, List<String>>(new Comparator<String>() {
 
-                        @Override
-                        public int compare(String o1, String o2) {
-                            return o1.toLowerCase().compareTo(o2.toLowerCase());
-                        }
-                    });
+                                @Override
+                                public int compare(String o1, String o2) {
+                                    return o1.toLowerCase().compareTo(o2.toLowerCase());
+                                }
+                            });
 
                     @Override
                     public Map<String, List<String>> getHeaders() {
@@ -357,11 +365,6 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
         clientFilterChainBuilder.add(new WebSocketFilter());
         return clientFilterChainBuilder.build();
     }
-
-    public Set<SPIEndpoint> getEndpoints() {
-        return new HashSet<SPIEndpoint>(endpoints);
-    }
-
 
     private static org.glassfish.tyrus.websockets.Connection getConnection(final Connection connection) {
         return new ConnectionImpl(connection);

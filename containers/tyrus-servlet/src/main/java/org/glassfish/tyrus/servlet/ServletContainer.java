@@ -43,7 +43,7 @@ import java.io.IOException;
 
 import javax.websocket.ClientEndpointConfiguration;
 
-import org.glassfish.tyrus.container.grizzly.GrizzlyEndpoint;
+import org.glassfish.tyrus.server.TyrusEndpoint;
 import org.glassfish.tyrus.spi.SPIEndpoint;
 import org.glassfish.tyrus.spi.SPIRegisteredEndpoint;
 import org.glassfish.tyrus.spi.TyrusClientSocket;
@@ -66,14 +66,14 @@ public class ServletContainer implements TyrusContainer {
 
             @Override
             public SPIRegisteredEndpoint register(SPIEndpoint endpoint) {
-                GrizzlyEndpoint ge = new GrizzlyEndpoint(endpoint);
+                TyrusEndpoint ge = new TyrusEndpoint(endpoint);
                 engine.register(ge);
                 return ge;
             }
 
             @Override
             public void unregister(SPIRegisteredEndpoint ge) {
-                engine.unregister((GrizzlyEndpoint) ge);
+                engine.unregister((TyrusEndpoint) ge);
             }
         };
     }

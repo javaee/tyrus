@@ -73,7 +73,7 @@
         </dependency>
         <dependency>
             <groupId>org.glassfish.tyrus</groupId>
-            <artifactId>tyrus-websocket-core</artifactId>
+            <artifactId>tyrus-server</artifactId>
         </dependency>
     </dependencies>
     <build>

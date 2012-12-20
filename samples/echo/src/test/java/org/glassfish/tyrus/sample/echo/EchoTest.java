@@ -68,7 +68,7 @@ public class EchoTest {
 
     private final String CONTEXT_PATH = "/sample-echo";
     private final String DEFAULT_HOST = "localhost";
-    private final int DEFAULT_PORT = 8080;
+    private final int DEFAULT_PORT = 8025;
 
     private final Set<Class<?>> endpointClasses = new HashSet<Class<?>>() {{
        add(EchoBean.class);

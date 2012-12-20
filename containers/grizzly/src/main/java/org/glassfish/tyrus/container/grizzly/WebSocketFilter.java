@@ -52,6 +52,16 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.glassfish.tyrus.websockets.DataFrame;
+import org.glassfish.tyrus.websockets.FramingException;
+import org.glassfish.tyrus.websockets.HandshakeException;
+import org.glassfish.tyrus.websockets.WebSocket;
+import org.glassfish.tyrus.websockets.WebSocketEngine;
+import org.glassfish.tyrus.websockets.WebSocketEngine.WebSocketHolder;
+import org.glassfish.tyrus.websockets.WebSocketRequest;
+import org.glassfish.tyrus.websockets.WebSocketResponse;
+import org.glassfish.tyrus.websockets.draft06.ClosingFrame;
+
 import org.glassfish.grizzly.Buffer;
 import org.glassfish.grizzly.Connection;
 import org.glassfish.grizzly.Grizzly;
@@ -70,15 +80,6 @@ import org.glassfish.grizzly.http.Method;
 import org.glassfish.grizzly.http.Protocol;
 import org.glassfish.grizzly.memory.Buffers;
 import org.glassfish.grizzly.utils.IdleTimeoutFilter;
-import org.glassfish.tyrus.websockets.DataFrame;
-import org.glassfish.tyrus.websockets.FramingException;
-import org.glassfish.tyrus.websockets.HandshakeException;
-import org.glassfish.tyrus.websockets.WebSocket;
-import org.glassfish.tyrus.websockets.WebSocketEngine;
-import org.glassfish.tyrus.websockets.WebSocketEngine.WebSocketHolder;
-import org.glassfish.tyrus.websockets.WebSocketRequest;
-import org.glassfish.tyrus.websockets.WebSocketResponse;
-import org.glassfish.tyrus.websockets.draft06.ClosingFrame;
 
 /**
  * WebSocket {@link Filter} implementation, which supposed to be placed into a {@link FilterChain} right after HTTP
@@ -437,7 +438,6 @@ class WebSocketFilter extends BaseFilter {
         public void failure(Throwable t) {
             // TODO XXX FIXME
         }
-
     }
 
     private static org.glassfish.tyrus.websockets.Connection getWebSocketConnection(final FilterChainContext ctx, final HttpContent httpContent) {

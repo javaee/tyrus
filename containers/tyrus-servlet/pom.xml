@@ -192,16 +192,6 @@
             <artifactId>tyrus-server</artifactId>
             <version>${project.version}</version>
         </dependency>
-
-        <!-- TODO REMOVE -->
-        <!--ServletContainer imports GrizzlyEndpoint-->
-        <!--GrizzlyEndpoint is no longer Grizzly spefic, it needs to be renamed and moved to another module-->
-        <dependency>
-            <groupId>org.glassfish.tyrus</groupId>
-            <artifactId>tyrus-container-grizzly</artifactId>
-            <version>${project.version}</version>
-        </dependency>
-
     </dependencies>
     <properties>
         <generated.sources.dir>${project.build.directory}/generated-sources</generated.sources.dir>

@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.container.grizzly;
+package org.glassfish.tyrus.server;
 
 import java.util.List;
 
@@ -45,12 +45,21 @@ import org.glassfish.tyrus.spi.SPIHandshakeRequest;
 import org.glassfish.tyrus.websockets.WebSocketRequest;
 
 /**
+ * {@link WebSocketRequest} wrapper.
+ *
+ * TODO: is this really needed?
+ *
  * @author Danny Coward (danny.coward at oracle.com)
  */
-class GrizzlyHandshakeRequest implements SPIHandshakeRequest {
+public class TyrusHandshakeRequest implements SPIHandshakeRequest {
     private WebSocketRequest rp;
 
-    public GrizzlyHandshakeRequest(WebSocketRequest rp) {
+    /**
+     * Wrap {@link WebSocketRequest} into {@link SPIHandshakeRequest}.
+     *
+     * @param rp {@link WebSocketRequest} instance to be wrapped.
+     */
+    public TyrusHandshakeRequest(WebSocketRequest rp) {
         this.rp = rp;
     }
 

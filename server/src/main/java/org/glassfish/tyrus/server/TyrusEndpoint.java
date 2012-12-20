@@ -37,8 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.container.grizzly;
-
+package org.glassfish.tyrus.server;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -53,6 +52,7 @@ import javax.websocket.Session;
 import org.glassfish.tyrus.spi.SPIEndpoint;
 import org.glassfish.tyrus.spi.SPIRegisteredEndpoint;
 import org.glassfish.tyrus.websockets.DataFrame;
+import org.glassfish.tyrus.websockets.DefaultWebSocket;
 import org.glassfish.tyrus.websockets.Extension;
 import org.glassfish.tyrus.websockets.ProtocolHandler;
 import org.glassfish.tyrus.websockets.WebSocket;
@@ -62,7 +62,8 @@ import org.glassfish.tyrus.websockets.WebSocketListener;
 import org.glassfish.tyrus.websockets.WebSocketRequest;
 
 /**
- * Implementation of {@link SPIRegisteredEndpoint} for Grizzly.
+ * Implementation of {@link SPIRegisteredEndpoint}.
+ *
  * Please note that for one connection to WebSocketApplication it is guaranteed that the methods:
  * isApplicationRequest, createSocket, getSupportedProtocols, getSupportedExtensions are called in this order.
  * Handshakes
@@ -70,7 +71,8 @@ import org.glassfish.tyrus.websockets.WebSocketRequest;
  * @author Danny Coward (danny.coward at oracle.com)
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class GrizzlyEndpoint extends WebSocketApplication implements SPIRegisteredEndpoint {
+public class TyrusEndpoint extends WebSocketApplication implements SPIRegisteredEndpoint {
+
     private final SPIEndpoint endpoint;
 
     /**
@@ -83,7 +85,12 @@ public class GrizzlyEndpoint extends WebSocketApplication implements SPIRegister
      */
     private String temporaryNegotiatedProtocol;
 
-    public GrizzlyEndpoint(SPIEndpoint endpoint) {
+    /**
+     * Create {@link TyrusEndpoint} which represents given {@link SPIEndpoint}.
+     *
+     * @param endpoint endpoint to be wrapped.
+     */
+    public TyrusEndpoint(SPIEndpoint endpoint) {
         this.endpoint = endpoint;
     }
 
@@ -95,68 +102,66 @@ public class GrizzlyEndpoint extends WebSocketApplication implements SPIRegister
         List<String> extensions = o.getHeaders().get(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER);
         temporaryNegotiatedExtensions = endpoint.getNegotiatedExtensions(extensions);
 
-        return endpoint.checkHandshake(new GrizzlyHandshakeRequest(o));
+        return endpoint.checkHandshake(new TyrusHandshakeRequest(o));
     }
 
     @Override
     public WebSocket createSocket(final ProtocolHandler handler, final WebSocketRequest requestPacket, final WebSocketListener... listeners) {
-        return new GrizzlySocket(handler, requestPacket, listeners);
+        return new DefaultWebSocket(handler, requestPacket, listeners);
     }
 
     @Override
     public void onConnect(WebSocket socket) {
-        GrizzlyRemoteEndpoint gs = GrizzlyRemoteEndpoint.get(socket);
+        TyrusRemoteEndpoint gs = TyrusRemoteEndpoint.get(socket);
         this.endpoint.onConnect(gs, temporaryNegotiatedProtocol, temporaryNegotiatedExtensions);
     }
 
-
     @Override
     public void onFragment(WebSocket socket, String fragment, boolean last) {
-        GrizzlyRemoteEndpoint gs = GrizzlyRemoteEndpoint.get(socket);
+        TyrusRemoteEndpoint gs = TyrusRemoteEndpoint.get(socket);
         try {
             this.endpoint.onPartialMessage(gs, fragment, last);
         } catch (Throwable t) {
-            Logger.getLogger(GrizzlyEndpoint.class.getName()).severe("Error !!!" + t);
+            Logger.getLogger(TyrusEndpoint.class.getName()).severe("Error !!!" + t);
             t.printStackTrace();
         }
     }
 
     @Override
     public void onFragment(WebSocket socket, byte[] fragment, boolean last) {
-        GrizzlyRemoteEndpoint gs = GrizzlyRemoteEndpoint.get(socket);
+        TyrusRemoteEndpoint gs = TyrusRemoteEndpoint.get(socket);
         try {
             this.endpoint.onPartialMessage(gs, ByteBuffer.wrap(fragment), last);
         } catch (Throwable t) {
-            Logger.getLogger(GrizzlyEndpoint.class.getName()).severe("Error !!!" + t);
+            Logger.getLogger(TyrusEndpoint.class.getName()).severe("Error !!!" + t);
             t.printStackTrace();
         }
     }
 
-
     @Override
     public void onMessage(WebSocket socket, String messageString) {
-        GrizzlyRemoteEndpoint gs = GrizzlyRemoteEndpoint.get(socket);
+        TyrusRemoteEndpoint gs = TyrusRemoteEndpoint.get(socket);
         this.endpoint.onMessage(gs, messageString);
     }
 
 
     @Override
     public void onMessage(WebSocket socket, byte[] bytes) {
-        GrizzlyRemoteEndpoint gs = GrizzlyRemoteEndpoint.get(socket);
+        TyrusRemoteEndpoint gs = TyrusRemoteEndpoint.get(socket);
         this.endpoint.onMessage(gs, ByteBuffer.wrap(bytes));
     }
 
     @Override
     public void onClose(WebSocket socket, DataFrame frame) {
-        GrizzlyRemoteEndpoint gs = GrizzlyRemoteEndpoint.get(socket);
+        TyrusRemoteEndpoint gs = TyrusRemoteEndpoint.get(socket);
         this.endpoint.onClose(gs);
-        GrizzlyRemoteEndpoint.remove(socket);
+        TyrusRemoteEndpoint.remove(socket);
 
     }
 
     @Override
     public void onPong(WebSocket socket, byte[] bytes) {
-        GrizzlyRemoteEndpoint gs = GrizzlyRemoteEndpoint.get(socket);
+        TyrusRemoteEndpoint gs = TyrusRemoteEndpoint.get(socket);
         this.endpoint.onPong(gs, ByteBuffer.wrap(bytes));
     }
 
@@ -183,7 +188,7 @@ public class GrizzlyEndpoint extends WebSocketApplication implements SPIRegister
 
     @Override
     public boolean onError(WebSocket webSocket, Throwable t) {
-        Logger.getLogger(GrizzlyEndpoint.class.getName()).log(Level.WARNING, "onError!", t);
+        Logger.getLogger(TyrusEndpoint.class.getName()).log(Level.WARNING, "onError!", t);
         return true;
     }
 

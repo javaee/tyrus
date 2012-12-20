@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.container.grizzly;
+package org.glassfish.tyrus.server;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -47,25 +47,43 @@ import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
 import org.glassfish.tyrus.websockets.WebSocket;
 
 /**
+ * {@link SPIRemoteEndpoint} implementation.
+ *
  * @author Danny Coward (danny.coward at oracle.com)
  */
-class GrizzlyRemoteEndpoint extends SPIRemoteEndpoint {
+public class TyrusRemoteEndpoint extends SPIRemoteEndpoint {
     private WebSocket socket;
-    private static ConcurrentHashMap<WebSocket, GrizzlyRemoteEndpoint> sockets = new ConcurrentHashMap<WebSocket, GrizzlyRemoteEndpoint>();
+    private static ConcurrentHashMap<WebSocket, TyrusRemoteEndpoint> sockets = new ConcurrentHashMap<WebSocket, TyrusRemoteEndpoint>();
 
-    public GrizzlyRemoteEndpoint(WebSocket socket) {
+    /**
+     * Create remote endpoint. Used directly on client side to represent server endpoint.
+     *
+     * @param socket to be used for sending messages.
+     */
+    public TyrusRemoteEndpoint(WebSocket socket) {
         this.socket = socket;
     }
 
-    public static GrizzlyRemoteEndpoint get(WebSocket socket) {
-        GrizzlyRemoteEndpoint s = sockets.get(socket);
+    /**
+     * Get {@link TyrusRemoteEndpoint} instance. Used on server side for managing multiple connected clients.
+     *
+     * @param socket {@link WebSocket} instance used for lookup.
+     * @return Corresponding {@link TyrusRemoteEndpoint}.
+     */
+    public static TyrusRemoteEndpoint get(WebSocket socket) {
+        TyrusRemoteEndpoint s = sockets.get(socket);
         if (s == null) {
-            s = new GrizzlyRemoteEndpoint(socket);
+            s = new TyrusRemoteEndpoint(socket);
             sockets.put(socket, s);
         }
         return s;
     }
 
+    /**
+     * Remove socket.
+     *
+     * @param socket socket instance to be removed.
+     */
     public static void remove(WebSocket socket) {
         sockets.remove(socket);
     }

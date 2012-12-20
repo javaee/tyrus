@@ -40,18 +40,11 @@
 package org.glassfish.tyrus.spi;
 
 import javax.websocket.Session;
-import java.util.Set;
 
 /**
  * @author Martin Matula (martin.matula at oracle.com)
  */
 public interface TyrusClientSocket {
-    /**
-     * Returns the mutable Set of endpoints registered
-     *
-     * @return mutable {@link java.util.Set} of endpoints registered on socket.
-     */
-    public Set<SPIEndpoint> getEndpoints();
 
     /**
      * Close the socket.

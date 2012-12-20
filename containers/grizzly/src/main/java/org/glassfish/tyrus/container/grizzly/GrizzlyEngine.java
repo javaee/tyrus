@@ -45,6 +45,7 @@ import java.net.URISyntaxException;
 
 import javax.websocket.ClientEndpointConfiguration;
 
+import org.glassfish.tyrus.server.TyrusEndpoint;
 import org.glassfish.tyrus.spi.SPIEndpoint;
 import org.glassfish.tyrus.spi.SPIRegisteredEndpoint;
 import org.glassfish.tyrus.spi.TyrusClientSocket;
@@ -60,6 +61,9 @@ import org.glassfish.grizzly.http.server.HttpServer;
 public class GrizzlyEngine implements TyrusContainer {
     private final WebSocketEngine engine;
 
+    /**
+     * Creates Grizzly engine.
+     */
     public GrizzlyEngine() {
         engine = WebSocketEngine.getEngine();
     }
@@ -81,14 +85,14 @@ public class GrizzlyEngine implements TyrusContainer {
 
             @Override
             public SPIRegisteredEndpoint register(SPIEndpoint endpoint) {
-                GrizzlyEndpoint ge = new GrizzlyEndpoint(endpoint);
+                TyrusEndpoint ge = new TyrusEndpoint(endpoint);
                 engine.register(ge);
                 return ge;
             }
 
             @Override
             public void unregister(SPIRegisteredEndpoint ge) {
-                engine.unregister((GrizzlyEndpoint) ge);
+                engine.unregister((TyrusEndpoint) ge);
             }
         };
     }

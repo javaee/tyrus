@@ -61,13 +61,8 @@ public class DefaultWebSocket implements WebSocket {
         NEW, CONNECTED, CLOSING, CLOSED
     }
 
-    EnumSet<State> connected = EnumSet.<State>range(State.CONNECTED, State.CLOSING);
+    EnumSet<State> connected = EnumSet.range(State.CONNECTED, State.CLOSING);
     private final AtomicReference<State> state = new AtomicReference<State>(State.NEW);
-
-    public DefaultWebSocket(final ProtocolHandler protocolHandler,
-                            final WebSocketListener... listeners) {
-        this(protocolHandler, null, listeners);
-    }
 
     public DefaultWebSocket(final ProtocolHandler protocolHandler,
                             final WebSocketRequest request,
