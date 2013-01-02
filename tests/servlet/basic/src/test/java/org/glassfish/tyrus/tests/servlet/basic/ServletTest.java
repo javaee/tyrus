@@ -324,7 +324,7 @@ public class ServletTest {
                 }
             }, new DefaultClientEndpointConfiguration.Builder().build(), getURI(PlainEcho.class.getAnnotation(WebSocketEndpoint.class).value()));
 
-            messageLatch.await(10, TimeUnit.SECONDS);
+            messageLatch.await(60, TimeUnit.SECONDS);
             if (messageLatch.getCount() != 0) {
                 fail();
             }
