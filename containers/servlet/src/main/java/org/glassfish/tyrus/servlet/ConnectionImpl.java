@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -57,6 +57,8 @@ import org.glassfish.tyrus.websockets.WebSocketEngine;
 import org.glassfish.tyrus.websockets.WebSocketResponse;
 
 /**
+ * {@link Connection} implementation used in Servlet integration.
+ *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 public class ConnectionImpl extends Connection {
@@ -64,33 +66,26 @@ public class ConnectionImpl extends Connection {
     private final TyrusHttpUpgradeHandler tyrusHttpUpgradeHandler;
     private final HttpServletResponse httpServletResponse;
 
+    /**
+     * Constructor.
+     *
+     * @param tyrusHttpUpgradeHandler encapsulated {@link TyrusHttpUpgradeHandler} instance.
+     * @param httpServletResponse response instance - upgrade process should set proper headers and status (101 or 5xx).
+     */
     public ConnectionImpl(TyrusHttpUpgradeHandler tyrusHttpUpgradeHandler, HttpServletResponse httpServletResponse) {
         this.tyrusHttpUpgradeHandler = tyrusHttpUpgradeHandler;
         this.httpServletResponse = httpServletResponse;
     }
 
+    // TODO: change signature to
+    // TODO: Future<DataFrame> write(byte[] frame, CompletionHandler completionHandler)?
     @Override
     public Future<DataFrame> write(final DataFrame frame, CompletionHandler<DataFrame> completionHandler) {
         final ServletOutputStream outputStream = tyrusHttpUpgradeHandler.getOutputStream();
 
-        if (outputStream.canWrite()) {
+        if (outputStream.isReady()) {
             try {
 
-                // TODO
-//                outputStream.setWriteListener(new WriteListener() {
-//                    @Override
-//                    public void onWritePossible() {
-//                        // TODO: Implement.
-//                    }
-//
-//                    @Override
-//                    public void onError(Throwable throwable) {
-//                        // TODO: Implement.
-//                    }
-//                });
-
-                // TODO: change signature to
-                // TODO: Future<DataFrame> write(byte[] frame, CompletionHandler completionHandler)?
                 final byte[] bytes = WebSocketEngine.getEngine().getWebSocketHolder(this).handler.frame(frame);
 
                 StringBuilder sb = new StringBuilder();
@@ -152,16 +147,14 @@ public class ConnectionImpl extends Connection {
 
     @Override
     public void addCloseListener(CloseListener closeListener) {
-        // TODO: Implement.
     }
 
     @Override
     public void closeSilently() {
-        // TODO: Implement.
     }
 
     @Override
     public Object getUnderlyingConnection() {
-        return null;  // TODO: Implement.
+        return null;
     }
 }

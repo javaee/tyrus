@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -91,6 +91,11 @@ public class TyrusServletFilter implements Filter {
     // @WebSocketEndpoint or @ContainerConfig annotated classes
     private final Set<Class<?>> classes;
 
+    /**
+     * Constructor.
+     *
+     * @param classes set of classes to be used as configuration or endpoints.
+     */
     public TyrusServletFilter(Set<Class<?>> classes) {
         this.classes = classes;
         engine = WebSocketEngine.getEngine();
@@ -268,7 +273,7 @@ public class TyrusServletFilter implements Filter {
                 List<String> valueList = new ArrayList<String>();
                 Enumeration<String> values = httpServletRequest.getHeaders(key);
 
-                while(values.hasMoreElements()){
+                while (values.hasMoreElements()) {
                     valueList.add(values.nextElement());
                 }
 

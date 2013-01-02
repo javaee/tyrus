@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -89,14 +89,14 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
     public void onDataAvailable() {
         try {
             do {
-                if(is.isReady()) {
+                if (is.isReady()) {
                     fillBuf();
                 }
 
                 LOGGER.info("Remaining Data = " + buf.remaining());
 
-                if(buf != null && buf.hasRemaining()) {
-                    if(webSocketHolder.buffer != null) {
+                if (buf != null && buf.hasRemaining()) {
+                    if (webSocketHolder.buffer != null) {
                         // TODO
                         // webSocketHolder.buffer.append(buf);
                     }
@@ -164,9 +164,9 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
                 buf.position(limit);
                 buf.limit(capacity);
                 buf.put(data, 0, len);
-                buf.limit(limit+len);
+                buf.limit(limit + len);
                 buf.reset();
-            } else if (remaining+len < capacity) {
+            } else if (remaining + len < capacity) {
                 // Remaining data is moved to left. Then new data is appended
                 LOGGER.info("Remaining data is moved to left. Then new data is appended");
                 buf.compact();
@@ -175,11 +175,11 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
             } else {
                 // Remaining data + new > capacity. So allocate new one
                 LOGGER.info("Remaining data + new > capacity. So allocate new one");
-                byte[] array = new byte[remaining+len];
+                byte[] array = new byte[remaining + len];
                 buf.get(array, 0, remaining);
                 System.arraycopy(data, 0, array, remaining, len);
                 buf = ByteBuffer.wrap(array);
-                buf.limit(remaining+len);
+                buf.limit(remaining + len);
             }
         }
     }

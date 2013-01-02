@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -71,7 +71,7 @@ public class EchoTest {
     private final int DEFAULT_PORT = 8025;
 
     private final Set<Class<?>> endpointClasses = new HashSet<Class<?>>() {{
-       add(EchoBean.class);
+        add(EchoBean.class);
     }};
 
     /**
@@ -81,7 +81,7 @@ public class EchoTest {
      */
     private Server startServer() {
         final String host = System.getProperty("tyrus.test.host");
-        if(host == null) {
+        if (host == null) {
             final Server server = new Server(DEFAULT_HOST, DEFAULT_PORT, CONTEXT_PATH, endpointClasses);
             server.start();
             return server;
@@ -92,7 +92,7 @@ public class EchoTest {
 
     private String getHost() {
         final String host = System.getProperty("tyrus.test.host");
-        if(host != null) {
+        if (host != null) {
             return host;
         }
         return DEFAULT_HOST;
@@ -100,7 +100,7 @@ public class EchoTest {
 
     private int getPort() {
         final String port = System.getProperty("tyrus.test.port");
-        if(port != null) {
+        if (port != null) {
             try {
                 return Integer.parseInt(port);
             } catch (NumberFormatException nfe) {
@@ -120,7 +120,7 @@ public class EchoTest {
     }
 
     private void stopServer(Server server) {
-        if(server != null) {
+        if (server != null) {
             server.stop();
         }
     }
@@ -152,7 +152,7 @@ public class EchoTest {
         }, new DefaultClientEndpointConfiguration.Builder().build(), getURI());
 
         messageLatch.await(1, TimeUnit.SECONDS);
-        if(messageLatch.getCount() != 0) {
+        if (messageLatch.getCount() != 0) {
             fail();
         }
 

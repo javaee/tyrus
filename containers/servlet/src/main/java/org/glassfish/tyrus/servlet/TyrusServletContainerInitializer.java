@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -55,15 +55,14 @@ import org.glassfish.tyrus.server.ContainerConfig;
 
 /**
  * Registers a filter for upgrade handshake.
+ * <p />
+ * All requests will be handled by registered filter if not specified otherwise.
  *
  * @author Jitendra Kotamraju
  */
 @HandlesTypes({WebSocketEndpoint.class, ContainerConfig.class})
 public class TyrusServletContainerInitializer implements ServletContainerInitializer {
     private static final Logger LOGGER = Logger.getLogger(TyrusServletContainerInitializer.class.getName());
-
-    public TyrusServletContainerInitializer() {
-    }
 
     public void onStartup(Set<Class<?>> classes, ServletContext ctx) throws ServletException {
         final FilterRegistration.Dynamic reg = ctx.addFilter("WebSocket filter", new TyrusServletFilter(classes));
