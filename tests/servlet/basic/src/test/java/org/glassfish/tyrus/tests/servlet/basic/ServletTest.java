@@ -134,77 +134,7 @@ public class ServletTest {
 
         final CountDownLatch messageLatch = new CountDownLatch(1);
 
-        final ClientManager client = ClientManager.createClient();
-        client.connectToServer(new Endpoint() {
-            @Override
-            public void onOpen(Session session) {
-                try {
-                    session.addMessageHandler(new MessageHandler.Basic<String>() {
-                        @Override
-                        public void onMessage(String message) {
-                            assertEquals(message, "Do or do not, there is no try.");
-                            messageLatch.countDown();
-                        }
-                    });
-
-                    session.getRemote().sendString("Do or do not, there is no try.");
-                } catch (IOException e) {
-                    // do nothing
-                }
-            }
-        }, new DefaultClientEndpointConfiguration.Builder().build(), getURI(PlainEcho.class.getAnnotation(WebSocketEndpoint.class).value()));
-
-        messageLatch.await(1, TimeUnit.SECONDS);
-        if (messageLatch.getCount() != 0) {
-            fail();
-        }
-
-        stopServer(server);
-    }
-
-    @Test
-    public void testPlainEchoShort100() throws DeploymentException, InterruptedException {
-        final Server server = startServer();
-
-        final CountDownLatch messageLatch = new CountDownLatch(100);
-
-        final ClientManager client = ClientManager.createClient();
-        client.connectToServer(new Endpoint() {
-            @Override
-            public void onOpen(Session session) {
-                try {
-                    session.addMessageHandler(new MessageHandler.Basic<String>() {
-                        @Override
-                        public void onMessage(String message) {
-                            assertEquals(message, "Do or do not, there is no try.");
-                            messageLatch.countDown();
-                        }
-                    });
-
-                    for (int i = 0; i < 100; i++) {
-                        session.getRemote().sendString("Do or do not, there is no try.");
-                    }
-                } catch (IOException e) {
-                    // do nothing
-                }
-            }
-        }, new DefaultClientEndpointConfiguration.Builder().build(), getURI(PlainEcho.class.getAnnotation(WebSocketEndpoint.class).value()));
-
-        messageLatch.await(10, TimeUnit.SECONDS);
-        if (messageLatch.getCount() != 0) {
-            fail();
-        }
-
-        stopServer(server);
-    }
-
-    @Test
-    public void testPlainEchoShort10Sequence() throws DeploymentException, InterruptedException {
-        final Server server = startServer();
-
-        final CountDownLatch messageLatch = new CountDownLatch(10);
-
-        for (int i = 0; i < 10; i++) {
+        try {
             final ClientManager client = ClientManager.createClient();
             client.connectToServer(new Endpoint() {
                 @Override
@@ -215,7 +145,6 @@ public class ServletTest {
                             public void onMessage(String message) {
                                 assertEquals(message, "Do or do not, there is no try.");
                                 messageLatch.countDown();
-                                client.close();
                             }
                         });
 
@@ -226,16 +155,93 @@ public class ServletTest {
                 }
             }, new DefaultClientEndpointConfiguration.Builder().build(), getURI(PlainEcho.class.getAnnotation(WebSocketEndpoint.class).value()));
 
-            // TODO - remove when possible.
-            Thread.sleep(100);
+            messageLatch.await(1, TimeUnit.SECONDS);
+            if (messageLatch.getCount() != 0) {
+                fail();
+            }
+        } finally {
+            stopServer(server);
         }
+    }
 
-        messageLatch.await(5, TimeUnit.SECONDS);
-        if (messageLatch.getCount() != 0) {
-            fail();
+    @Test
+    public void testPlainEchoShort100() throws DeploymentException, InterruptedException {
+        final Server server = startServer();
+
+        final CountDownLatch messageLatch = new CountDownLatch(100);
+
+        try {
+            final ClientManager client = ClientManager.createClient();
+            client.connectToServer(new Endpoint() {
+                @Override
+                public void onOpen(Session session) {
+                    try {
+                        session.addMessageHandler(new MessageHandler.Basic<String>() {
+                            @Override
+                            public void onMessage(String message) {
+                                assertEquals(message, "Do or do not, there is no try.");
+                                messageLatch.countDown();
+                            }
+                        });
+
+                        for (int i = 0; i < 100; i++) {
+                            session.getRemote().sendString("Do or do not, there is no try.");
+                        }
+                    } catch (IOException e) {
+                        // do nothing
+                    }
+                }
+            }, new DefaultClientEndpointConfiguration.Builder().build(), getURI(PlainEcho.class.getAnnotation(WebSocketEndpoint.class).value()));
+
+            messageLatch.await(10, TimeUnit.SECONDS);
+            if (messageLatch.getCount() != 0) {
+                fail();
+            }
+        } finally {
+            stopServer(server);
         }
+    }
 
-        stopServer(server);
+    @Test
+    public void testPlainEchoShort10Sequence() throws DeploymentException, InterruptedException {
+        final Server server = startServer();
+
+        final CountDownLatch messageLatch = new CountDownLatch(10);
+
+        try {
+            for (int i = 0; i < 10; i++) {
+                final ClientManager client = ClientManager.createClient();
+                client.connectToServer(new Endpoint() {
+                    @Override
+                    public void onOpen(Session session) {
+                        try {
+                            session.addMessageHandler(new MessageHandler.Basic<String>() {
+                                @Override
+                                public void onMessage(String message) {
+                                    assertEquals(message, "Do or do not, there is no try.");
+                                    messageLatch.countDown();
+                                    client.close();
+                                }
+                            });
+
+                            session.getRemote().sendString("Do or do not, there is no try.");
+                        } catch (IOException e) {
+                            // do nothing
+                        }
+                    }
+                }, new DefaultClientEndpointConfiguration.Builder().build(), getURI(PlainEcho.class.getAnnotation(WebSocketEndpoint.class).value()));
+
+                // TODO - remove when possible.
+                Thread.sleep(100);
+            }
+
+            messageLatch.await(5, TimeUnit.SECONDS);
+            if (messageLatch.getCount() != 0) {
+                fail();
+            }
+        } finally {
+            stopServer(server);
+        }
     }
 
     /**
@@ -259,77 +265,7 @@ public class ServletTest {
 
         final CountDownLatch messageLatch = new CountDownLatch(1);
 
-        final ClientManager client = ClientManager.createClient();
-        client.connectToServer(new Endpoint() {
-            @Override
-            public void onOpen(Session session) {
-                try {
-                    session.addMessageHandler(new MessageHandler.Basic<String>() {
-                        @Override
-                        public void onMessage(String message) {
-                            assertEquals(message, LONG_MESSAGE);
-                            messageLatch.countDown();
-                        }
-                    });
-
-                    session.getRemote().sendString(LONG_MESSAGE);
-                } catch (IOException e) {
-                    // do nothing
-                }
-            }
-        }, new DefaultClientEndpointConfiguration.Builder().build(), getURI(PlainEcho.class.getAnnotation(WebSocketEndpoint.class).value()));
-
-        messageLatch.await(1, TimeUnit.SECONDS);
-        if (messageLatch.getCount() != 0) {
-            fail();
-        }
-
-        stopServer(server);
-    }
-
-    @Test
-    public void testPlainEchoLong100() throws DeploymentException, InterruptedException {
-        final Server server = startServer();
-
-        final CountDownLatch messageLatch = new CountDownLatch(100);
-
-        final ClientManager client = ClientManager.createClient();
-        client.connectToServer(new Endpoint() {
-            @Override
-            public void onOpen(Session session) {
-                try {
-                    session.addMessageHandler(new MessageHandler.Basic<String>() {
-                        @Override
-                        public void onMessage(String message) {
-                            assertEquals(message, LONG_MESSAGE);
-                            messageLatch.countDown();
-                        }
-                    });
-
-                    for (int i = 0; i < 100; i++) {
-                        session.getRemote().sendString(LONG_MESSAGE);
-                    }
-                } catch (IOException e) {
-                    // do nothing
-                }
-            }
-        }, new DefaultClientEndpointConfiguration.Builder().build(), getURI(PlainEcho.class.getAnnotation(WebSocketEndpoint.class).value()));
-
-        messageLatch.await(10, TimeUnit.SECONDS);
-        if (messageLatch.getCount() != 0) {
-            fail();
-        }
-
-        stopServer(server);
-    }
-
-    @Test
-    public void testPlainEchoLong10Sequence() throws DeploymentException, InterruptedException {
-        final Server server = startServer();
-
-        final CountDownLatch messageLatch = new CountDownLatch(10);
-
-        for (int i = 0; i < 10; i++) {
+        try {
             final ClientManager client = ClientManager.createClient();
             client.connectToServer(new Endpoint() {
                 @Override
@@ -340,7 +276,6 @@ public class ServletTest {
                             public void onMessage(String message) {
                                 assertEquals(message, LONG_MESSAGE);
                                 messageLatch.countDown();
-                                client.close();
                             }
                         });
 
@@ -351,15 +286,92 @@ public class ServletTest {
                 }
             }, new DefaultClientEndpointConfiguration.Builder().build(), getURI(PlainEcho.class.getAnnotation(WebSocketEndpoint.class).value()));
 
-            // TODO - remove when possible.
-            Thread.sleep(300);
+            messageLatch.await(1, TimeUnit.SECONDS);
+            if (messageLatch.getCount() != 0) {
+                fail();
+            }
+        } finally {
+            stopServer(server);
         }
+    }
 
-        messageLatch.await(10, TimeUnit.SECONDS);
-        if (messageLatch.getCount() != 0) {
-            fail();
+    @Test
+    public void testPlainEchoLong100() throws DeploymentException, InterruptedException {
+        final Server server = startServer();
+
+        final CountDownLatch messageLatch = new CountDownLatch(100);
+
+        try {
+            final ClientManager client = ClientManager.createClient();
+            client.connectToServer(new Endpoint() {
+                @Override
+                public void onOpen(Session session) {
+                    try {
+                        session.addMessageHandler(new MessageHandler.Basic<String>() {
+                            @Override
+                            public void onMessage(String message) {
+                                assertEquals(message, LONG_MESSAGE);
+                                messageLatch.countDown();
+                            }
+                        });
+
+                        for (int i = 0; i < 100; i++) {
+                            session.getRemote().sendString(LONG_MESSAGE);
+                        }
+                    } catch (IOException e) {
+                        // do nothing
+                    }
+                }
+            }, new DefaultClientEndpointConfiguration.Builder().build(), getURI(PlainEcho.class.getAnnotation(WebSocketEndpoint.class).value()));
+
+            messageLatch.await(10, TimeUnit.SECONDS);
+            if (messageLatch.getCount() != 0) {
+                fail();
+            }
+        } finally {
+            stopServer(server);
         }
+    }
 
-        stopServer(server);
+    @Test
+    public void testPlainEchoLong10Sequence() throws DeploymentException, InterruptedException {
+        final Server server = startServer();
+
+        final CountDownLatch messageLatch = new CountDownLatch(10);
+
+        try {
+            for (int i = 0; i < 10; i++) {
+                final ClientManager client = ClientManager.createClient();
+                client.connectToServer(new Endpoint() {
+                    @Override
+                    public void onOpen(Session session) {
+                        try {
+                            session.addMessageHandler(new MessageHandler.Basic<String>() {
+                                @Override
+                                public void onMessage(String message) {
+                                    assertEquals(message, LONG_MESSAGE);
+                                    messageLatch.countDown();
+                                    client.close();
+                                }
+                            });
+
+                            session.getRemote().sendString(LONG_MESSAGE);
+                        } catch (IOException e) {
+                            // do nothing
+                        }
+                    }
+                }, new DefaultClientEndpointConfiguration.Builder().build(), getURI(PlainEcho.class.getAnnotation(WebSocketEndpoint.class).value()));
+
+                // TODO - remove when possible.
+                Thread.sleep(300);
+            }
+
+            messageLatch.await(10, TimeUnit.SECONDS);
+            if (messageLatch.getCount() != 0) {
+                fail();
+            }
+        } finally {
+            stopServer(server);
+        }
     }
 }
