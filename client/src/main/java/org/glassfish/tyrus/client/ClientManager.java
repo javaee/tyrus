@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011 - 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -69,6 +69,10 @@ public class ClientManager implements ClientContainer {
     private final Set<TyrusClientSocket> sockets = new HashSet<TyrusClientSocket>();
     private final TyrusContainer engine;
 
+    private long maxSessionIdleTimeout;
+    private long maxBinaryMessageBufferSize;
+    private long maxTextMessageBufferSize;
+
     public static ClientManager createClient() {
         return createClient(ENGINE_PROVIDER_CLASSNAME);
     }
@@ -119,6 +123,8 @@ public class ClientManager implements ClientContainer {
      * @throws DeploymentException
      */
     public Session connectToServer(Object o, ClientEndpointConfiguration configuration, String url) throws DeploymentException {
+        // TODO use maxSessionIdleTimeout, maxBinaryMessageBufferSize and maxTextMessageBufferSize
+
         ClientEndpointConfiguration config;
         Endpoint endpoint;
 
@@ -147,39 +153,39 @@ public class ClientManager implements ClientContainer {
      * TBD - should be present in {@link ClientContainer}.
      */
     public void close() {
-        for(TyrusClientSocket s : sockets) {
+        for (TyrusClientSocket s : sockets) {
             s.close();
         }
     }
 
     @Override
     public long getMaxSessionIdleTimeout() {
-        return 0;
+        return maxSessionIdleTimeout;
     }
 
     @Override
-    public void setMaxSessionIdleTimeout(long timeout) {
-
+    public void setMaxSessionIdleTimeout(long maxSessionIdleTimeout) {
+        this.maxSessionIdleTimeout = maxSessionIdleTimeout;
     }
 
     @Override
     public long getMaxBinaryMessageBufferSize() {
-        return 0;
+        return maxBinaryMessageBufferSize;
     }
 
     @Override
-    public void setMaxBinaryMessageBufferSize(long max) {
-
+    public void setMaxBinaryMessageBufferSize(long maxBinaryMessageBufferSize) {
+        this.maxBinaryMessageBufferSize = maxBinaryMessageBufferSize;
     }
 
     @Override
     public long getMaxTextMessageBufferSize() {
-        return 0;
+        return maxTextMessageBufferSize;
     }
 
     @Override
-    public void setMaxTextMessageBufferSize(long max) {
-
+    public void setMaxTextMessageBufferSize(long maxTextMessageBufferSize) {
+        this.maxTextMessageBufferSize = maxTextMessageBufferSize;
     }
 
     @Override
