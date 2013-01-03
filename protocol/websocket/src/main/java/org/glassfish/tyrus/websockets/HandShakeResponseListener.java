@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -40,7 +40,6 @@
 
 package org.glassfish.tyrus.websockets;
 
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -55,5 +54,5 @@ public abstract class HandShakeResponseListener {
      *
      * @param headers of the handshake response.
      */
-    public abstract void passResponseHeaders(Map<String, List<String>> headers);
+    public abstract void passResponseHeaders(Map<String, String> headers);
 }

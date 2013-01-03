@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -41,7 +41,6 @@
 package org.glassfish.tyrus.websockets.draft17;
 
 import java.net.URI;
-import java.util.List;
 
 import org.glassfish.tyrus.websockets.WebSocketEngine;
 import org.glassfish.tyrus.websockets.WebSocketRequest;
@@ -72,7 +71,7 @@ public class HandShake17 extends HandShake08 {
     @Override
     public WebSocketRequest getRequest() {
         WebSocketRequest request = super.getRequest();
-        final List<String> headerValue = request.getHeaders().get(WebSocketEngine.SEC_WS_ORIGIN_HEADER);
+        final String headerValue = request.getHeaders().get(WebSocketEngine.SEC_WS_ORIGIN_HEADER);
         request.getHeaders().remove(WebSocketEngine.SEC_WS_ORIGIN_HEADER);
         request.getHeaders().put(WebSocketEngine.ORIGIN_HEADER, headerValue);
         return request;

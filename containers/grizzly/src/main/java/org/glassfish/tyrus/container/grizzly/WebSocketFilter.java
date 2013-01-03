@@ -42,8 +42,6 @@ package org.glassfish.tyrus.container.grizzly;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -112,7 +110,7 @@ class WebSocketFilter extends BaseFilter {
      *
      * @param wsTimeoutInSeconds TODO
      */
-    public WebSocketFilter(final long wsTimeoutInSeconds) {
+    private WebSocketFilter(final long wsTimeoutInSeconds) {
         if (wsTimeoutInSeconds <= 0) {
             this.wsTimeoutMS = IdleTimeoutFilter.FOREVER;
         } else {
@@ -154,10 +152,8 @@ class WebSocketFilter extends BaseFilter {
         builder = builder.method(Method.GET);
         builder = builder.uri(webSocketRequest.getRequestPath());
 
-        for (Map.Entry<String, List<String>> entry : webSocketRequest.getHeaders().entrySet()) {
-            for (String value : entry.getValue()) {
-                builder.header(entry.getKey(), value);
-            }
+        for (Map.Entry<String, String> entry : webSocketRequest.getHeaders().entrySet()) {
+            builder.header(entry.getKey(), entry.getValue());
         }
 
         HttpContent httpContent1 = HttpContent.builder(builder.build()).build();
@@ -331,13 +327,7 @@ class WebSocketFilter extends BaseFilter {
         WebSocketResponse webSocketResponse = new WebSocketResponse();
 
         for (String name : httpResponsePacket.getHeaders().names()) {
-            List<String> values = new ArrayList<String>();
-
-            for (String s : httpResponsePacket.getHeaders().values(name)) {
-                values.add(s);
-            }
-
-            webSocketResponse.getHeaders().put(name, values);
+            webSocketResponse.getHeaders().put(name, httpResponsePacket.getHeader(name));
         }
 
         webSocketResponse.setStatus(httpResponsePacket.getStatus());
@@ -471,13 +461,7 @@ class WebSocketFilter extends BaseFilter {
         };
 
         for (String name : requestPacket.getHeaders().names()) {
-            List<String> values = new ArrayList<String>();
-
-            for (String s : requestPacket.getHeaders().values(name)) {
-                values.add(s);
-            }
-
-            request.getHeaders().put(name, values);
+            request.getHeaders().put(name, requestPacket.getHeader(name));
         }
 
         return request;

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -54,7 +54,7 @@ public class WebSocketRequest {
 
     private String requestPath;
 
-    private final Map<String, List<String>> headers = new TreeMap<String, List<String>>(new Comparator<String>() {
+    private final Map<String, String> headers = new TreeMap<String, String>(new Comparator<String>() {
         @Override
         public int compare(String o1, String o2) {
             return o1.toLowerCase().compareTo(o2.toLowerCase());
@@ -64,7 +64,7 @@ public class WebSocketRequest {
     /**
      * @return TODO
      */
-    public Map<String, List<String>> getHeaders() {
+    public Map<String, String> getHeaders() {
         return headers;
     }
 
@@ -74,19 +74,21 @@ public class WebSocketRequest {
      * @param name header name.
      * @return {@link List} of header values iff found, {@code null} otherwise.
      */
-    public List<String> getHeader(String name) {
+    public String getHeader(String name) {
         return headers.get(name);
     }
 
     /**
      * Gets the first header value from the {@link List} of header values corresponding to the name.
      *
+     * TODO - remove?
+     *
      * @param name header name.
      * @return {@link String} value iff it exists, {@code null} otherwise.
      */
     public String getFirstHeaderValue(String name) {
-        if (getHeader(name) != null && getHeader(name).size() > 0) {
-            return getHeader(name).get(0);
+        if (getHeader(name) != null) {
+            return getHeader(name);
         }
 
         return null;

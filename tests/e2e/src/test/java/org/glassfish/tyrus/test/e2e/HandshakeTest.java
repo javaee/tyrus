@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -51,15 +51,15 @@ import java.util.concurrent.TimeUnit;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.Session;
 
-import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.websockets.WebSocketEngine;
+
 import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Tests whether the HandShake parameters (sub-protoxols, extensions) are sent correctly.
+ * Tests whether the HandShake parameters (sub-protocols, extensions) are sent correctly.
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */

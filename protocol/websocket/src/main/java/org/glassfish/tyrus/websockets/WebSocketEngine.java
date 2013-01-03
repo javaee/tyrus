@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -43,7 +43,6 @@ package org.glassfish.tyrus.websockets;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
@@ -78,7 +77,7 @@ public class WebSocketEngine {
     public static final String HOST = "Host";
     public static final Version DEFAULT_VERSION = Version.DRAFT17;
     private static final WebSocketEngine engine = new WebSocketEngine();
-    static final Logger logger = Logger.getLogger(WebSocketEngine.WEBSOCKET);
+    private static final Logger LOGGER = Logger.getLogger(WebSocketEngine.WEBSOCKET);
     public static final String SERVER_KEY_HASH = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
     public static final int MASK_SIZE = 4;
     private final List<WebSocketApplication> applications = new ArrayList<WebSocketApplication>();
@@ -137,7 +136,7 @@ public class WebSocketEngine {
         return toString(bytes, 0, bytes.length);
     }
 
-    public static List<String> toString(byte[] bytes, int start, int end) {
+    private static List<String> toString(byte[] bytes, int start, int end) {
         List<String> list = new ArrayList<String>();
         for (int i = start; i < end; i++) {
             list.add(Integer.toHexString(bytes[i] & 0xFF).toUpperCase(Locale.US));
@@ -145,7 +144,7 @@ public class WebSocketEngine {
         return list;
     }
 
-    public WebSocketApplication getApplication(WebSocketRequest request) {
+    WebSocketApplication getApplication(WebSocketRequest request) {
         for (WebSocketApplication application : applications) {
             if (application.upgrade(request)) {
                 return application;
@@ -186,7 +185,7 @@ public class WebSocketEngine {
                 return true;
             }
         } catch (HandshakeException e) {
-            logger.log(Level.SEVERE, e.getMessage(), e);
+            LOGGER.log(Level.SEVERE, e.getMessage(), e);
             if (socket != null) {
                 socket.close();
             }
@@ -194,7 +193,7 @@ public class WebSocketEngine {
         return false;
     }
 
-    public static ProtocolHandler loadHandler(Map<String, List<String>> headers) {
+    private static ProtocolHandler loadHandler(Map<String, String> headers) {
         for (Version version : Version.values()) {
             if (version.validate(headers)) {
                 return version.createHandler(false);
@@ -267,11 +266,10 @@ public class WebSocketEngine {
     }
 
     private static void handleUnsupportedVersion(final Connection connection,
-                                                 final WebSocketRequest request)
-            throws IOException {
+                                                 final WebSocketRequest request) {
         WebSocketResponse response = new WebSocketResponse();
         response.setStatus(400);
-        response.getHeaders().put(WebSocketEngine.SEC_WS_VERSION, Arrays.asList(Version.getSupportedWireProtocolVersions()));
+        response.getHeaders().put(WebSocketEngine.SEC_WS_VERSION, Version.getSupportedWireProtocolVersions());
         connection.write(response);
     }
 
@@ -287,7 +285,7 @@ public class WebSocketEngine {
 
         WebSocketHolder(final ProtocolHandler handler, final WebSocket socket) {
             this.handler = handler;
-            webSocket = socket;
+            this.webSocket = socket;
         }
     }
 }

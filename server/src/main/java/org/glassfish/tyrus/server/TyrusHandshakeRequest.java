@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -39,8 +39,6 @@
  */
 package org.glassfish.tyrus.server;
 
-import java.util.List;
-
 import org.glassfish.tyrus.spi.SPIHandshakeRequest;
 import org.glassfish.tyrus.websockets.WebSocketRequest;
 
@@ -52,7 +50,7 @@ import org.glassfish.tyrus.websockets.WebSocketRequest;
  * @author Danny Coward (danny.coward at oracle.com)
  */
 public class TyrusHandshakeRequest implements SPIHandshakeRequest {
-    private WebSocketRequest rp;
+    private final WebSocketRequest rp;
 
     /**
      * Wrap {@link WebSocketRequest} into {@link SPIHandshakeRequest}.
@@ -64,7 +62,7 @@ public class TyrusHandshakeRequest implements SPIHandshakeRequest {
     }
 
     @Override
-    public List<String> getHeader(String name) {
+    public String getHeader(String name) {
         return rp.getHeaders().get(name);
     }
 

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -41,7 +41,6 @@
 package org.glassfish.tyrus.websockets.draft06;
 
 import java.net.URI;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -54,8 +53,8 @@ import org.glassfish.tyrus.websockets.WebSocketResponse;
 
 public class HandShake06 extends HandShake {
     private final SecKey secKey;
-    private List<String> enabledExtensions = Collections.emptyList();
-    private List<String> enabledProtocols = Collections.emptyList();
+    private final List<String> enabledExtensions = Collections.emptyList();
+    private final List<String> enabledProtocols = Collections.emptyList();
 
     public HandShake06(URI url) {
         super(url);
@@ -64,30 +63,30 @@ public class HandShake06 extends HandShake {
 
     public HandShake06(WebSocketRequest request) {
         super(request);
-        final Map<String, List<String>> headers = request.getHeaders();
-        List<String> values = headers.get(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER);
-        if (values != null) {
-            setExtensions(parseExtensionsHeader(values));
+        final Map<String, String> headers = request.getHeaders();
+        String value = headers.get(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER);
+        if (value != null) {
+            setExtensions(parseExtensionsHeader(value));
         }
-        secKey = SecKey.generateServerKey(new SecKey(headers.get(WebSocketEngine.SEC_WS_KEY_HEADER).get(0)));
+        secKey = SecKey.generateServerKey(new SecKey(headers.get(WebSocketEngine.SEC_WS_KEY_HEADER)));
     }
 
     public void setHeaders(WebSocketResponse response) {
         response.setReasonPhrase(WebSocketEngine.RESPONSE_CODE_MESSAGE);
-        response.getHeaders().put(WebSocketEngine.SEC_WS_ACCEPT, Arrays.asList(secKey.getSecKey()));
+        response.getHeaders().put(WebSocketEngine.SEC_WS_ACCEPT, secKey.getSecKey());
         if (!getEnabledExtensions().isEmpty()) {
-            response.getHeaders().put(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER, getSubProtocols());
+            response.getHeaders().put(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER, getHeaderFromList(getSubProtocols()));
         }
     }
 
     @Override
     public WebSocketRequest getRequest() {
         final WebSocketRequest webSocketRequest = super.getRequest();
-        webSocketRequest.getHeaders().put(WebSocketEngine.SEC_WS_KEY_HEADER, Arrays.asList(secKey.toString()));
-        webSocketRequest.getHeaders().put(WebSocketEngine.SEC_WS_ORIGIN_HEADER, Arrays.asList(getOrigin()));
-        webSocketRequest.getHeaders().put(WebSocketEngine.SEC_WS_VERSION, Arrays.asList(getVersion() + ""));
+        webSocketRequest.getHeaders().put(WebSocketEngine.SEC_WS_KEY_HEADER, secKey.toString());
+        webSocketRequest.getHeaders().put(WebSocketEngine.SEC_WS_ORIGIN_HEADER, getOrigin());
+        webSocketRequest.getHeaders().put(WebSocketEngine.SEC_WS_VERSION,getVersion() + "");
         if (!getExtensions().isEmpty()) {
-            webSocketRequest.getHeaders().put(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER, getExtensionNames(getExtensions()));
+            webSocketRequest.getHeaders().put(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER, getHeaderFromList(getExtensions()));
         }
         return webSocketRequest;
     }
@@ -99,10 +98,10 @@ public class HandShake06 extends HandShake {
     @Override
     public void validateServerResponse(final WebSocketResponse response) throws HandshakeException {
         super.validateServerResponse(response);
-        secKey.validateServerKey(response.getHeaders().get(WebSocketEngine.SEC_WS_ACCEPT).get(0));
+        secKey.validateServerKey(response.getHeaders().get(WebSocketEngine.SEC_WS_ACCEPT));
     }
 
-    public List<String> getEnabledExtensions() {
+    List<String> getEnabledExtensions() {
         return enabledExtensions;
     }
 

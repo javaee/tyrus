@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -41,6 +41,7 @@ package org.glassfish.tyrus.server;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -96,11 +97,13 @@ public class TyrusEndpoint extends WebSocketApplication implements SPIRegistered
 
     @Override
     public boolean isApplicationRequest(WebSocketRequest o) {
-        List<String> protocols = o.getHeaders().get(WebSocketEngine.SEC_WS_PROTOCOL_HEADER);
-        temporaryNegotiatedProtocol = endpoint.getNegotiatedProtocol(protocols);
+        // TODO - proper header parsing
 
-        List<String> extensions = o.getHeaders().get(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER);
-        temporaryNegotiatedExtensions = endpoint.getNegotiatedExtensions(extensions);
+        String protocols = o.getHeaders().get(WebSocketEngine.SEC_WS_PROTOCOL_HEADER);
+        temporaryNegotiatedProtocol = endpoint.getNegotiatedProtocol(protocols == null ? Collections.<String>emptyList() : Arrays.asList(protocols.split(",")));
+
+        String extensions = o.getHeaders().get(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER);
+        temporaryNegotiatedExtensions = endpoint.getNegotiatedExtensions(extensions == null ? Collections.<String>emptyList() : Arrays.asList(extensions.split(",")));
 
         return endpoint.checkHandshake(new TyrusHandshakeRequest(o));
     }

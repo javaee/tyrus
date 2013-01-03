@@ -41,7 +41,6 @@ package org.glassfish.tyrus.servlet;
 
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -61,7 +60,7 @@ import org.glassfish.tyrus.websockets.WebSocketResponse;
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class ConnectionImpl extends Connection {
+class ConnectionImpl extends Connection {
 
     private final TyrusHttpUpgradeHandler tyrusHttpUpgradeHandler;
     private final HttpServletResponse httpServletResponse;
@@ -70,7 +69,7 @@ public class ConnectionImpl extends Connection {
      * Constructor.
      *
      * @param tyrusHttpUpgradeHandler encapsulated {@link TyrusHttpUpgradeHandler} instance.
-     * @param httpServletResponse response instance - upgrade process should set proper headers and status (101 or 5xx).
+     * @param httpServletResponse     response instance - upgrade process should set proper headers and status (101 or 5xx).
      */
     public ConnectionImpl(TyrusHttpUpgradeHandler tyrusHttpUpgradeHandler, HttpServletResponse httpServletResponse) {
         this.tyrusHttpUpgradeHandler = tyrusHttpUpgradeHandler;
@@ -87,11 +86,6 @@ public class ConnectionImpl extends Connection {
             try {
 
                 final byte[] bytes = WebSocketEngine.getEngine().getWebSocketHolder(this).handler.frame(frame);
-
-                StringBuilder sb = new StringBuilder();
-                for (Byte b : bytes) {
-                    sb.append((char) b.intValue());
-                }
 
                 outputStream.write(bytes);
                 outputStream.flush();
@@ -138,10 +132,8 @@ public class ConnectionImpl extends Connection {
     @Override
     public void write(WebSocketResponse response) {
         httpServletResponse.setStatus(response.getStatus());
-        for (Map.Entry<String, List<String>> entry : response.getHeaders().entrySet()) {
-            for (String s : entry.getValue()) {
-                httpServletResponse.addHeader(entry.getKey(), s);
-            }
+        for (Map.Entry<String, String> entry : response.getHeaders().entrySet()) {
+            httpServletResponse.addHeader(entry.getKey(), entry.getValue());
         }
     }
 

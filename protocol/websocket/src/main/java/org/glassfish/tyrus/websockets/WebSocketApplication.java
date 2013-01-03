@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -59,8 +59,8 @@ public abstract class WebSocketApplication extends WebSocketAdapter {
     private final ConcurrentHashMap<WebSocket, Boolean> sockets =
             new ConcurrentHashMap<WebSocket, Boolean>();
 
-    private List<Extension> supportedExtensions = new ArrayList<Extension>();
-    private List<String> supportedProtocols = new ArrayList<String>();
+    private final List<Extension> supportedExtensions = new ArrayList<Extension>();
+    private final List<String> supportedProtocols = new ArrayList<String>();
 
     // ---------------------------------------------------------- Public Methods
 
@@ -137,14 +137,12 @@ public abstract class WebSocketApplication extends WebSocketAdapter {
      *
      * @param request TODO
      * @return <code>true</code> if the request should be upgraded to a
-     *         WebSocket connection                                                    ™
+     *         WebSocket connection
      */
     public final boolean upgrade(WebSocketRequest request) {
-        if (request.getHeaders().get(WebSocketEngine.UPGRADE).size() == 1) {
-            return WebSocketEngine.WEBSOCKET.equals(request.getFirstHeaderValue(WebSocketEngine.UPGRADE)) && isApplicationRequest(request);
-        } else {
-            return false;
-        }
+        return request.getHeaders().get(WebSocketEngine.UPGRADE) != null &&
+                WebSocketEngine.WEBSOCKET.equals(request.getHeader(WebSocketEngine.UPGRADE)) && isApplicationRequest(request);
+
     }
 
 
@@ -156,7 +154,7 @@ public abstract class WebSocketApplication extends WebSocketAdapter {
      * @return <code>true</code> if this application can service this request
      */
 
-    public abstract boolean isApplicationRequest(WebSocketRequest request);
+    protected abstract boolean isApplicationRequest(WebSocketRequest request);
 
     /**
      * Return the websocket extensions supported by this <code>WebSocketApplication</code>.
@@ -200,7 +198,7 @@ public abstract class WebSocketApplication extends WebSocketAdapter {
      * @return <code>true</code> if the socket was successfully associated,
      *         otherwise returns <code>false</code>.
      */
-    protected boolean add(WebSocket socket) {
+    boolean add(WebSocket socket) {
         return sockets.put(socket, Boolean.TRUE) == null;
     }
 
@@ -211,7 +209,7 @@ public abstract class WebSocketApplication extends WebSocketAdapter {
      * @return <code>true</code> if the socket was successfully unassociated,
      *         otherwise returns <code>false</code>.
      */
-    public boolean remove(WebSocket socket) {
+    boolean remove(WebSocket socket) {
         return sockets.remove(socket) != null;
     }
 

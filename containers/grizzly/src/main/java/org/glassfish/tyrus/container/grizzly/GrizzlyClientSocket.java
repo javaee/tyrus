@@ -1,7 +1,7 @@
 /*
 * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
 *
-* Copyright (c) 2011 - 2012 Oracle and/or its affiliates. All rights reserved.
+* Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
 *
 * The contents of this file are subject to the terms of either the GNU
 * General Public License Version 2 only ("GPL") or the Common Development
@@ -44,9 +44,11 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -96,10 +98,10 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
     private final ProtocolHandler protocolHandler;
     private final Set<SPIEndpoint> endpoints = Collections.newSetFromMap(new ConcurrentHashMap<SPIEndpoint, Boolean>());
     private TCPNIOTransport transport;
-    EnumSet<State> connected = EnumSet.range(State.CONNECTED, State.CLOSING);
+    private final EnumSet<State> connected = EnumSet.range(State.CONNECTED, State.CLOSING);
     private final AtomicReference<State> state = new AtomicReference<State>(State.NEW);
     private final TyrusRemoteEndpoint remoteEndpoint;
-    private long timeoutMs;
+    private final long timeoutMs;
     private final ClientEndpointConfiguration clc;
     private Session session = null;
 
@@ -165,7 +167,7 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
 
         handshake.setResponseListener(new HandShakeResponseListener() {
             @Override
-            public void passResponseHeaders(final Map<String, List<String>> originalHeaders) {
+            public void passResponseHeaders(final Map<String, String> originalHeaders) {
                 clc.afterResponse(new HandshakeResponse() {
 
                     private final Map<String, List<String>> headers =
@@ -179,13 +181,32 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
 
                     @Override
                     public Map<String, List<String>> getHeaders() {
-                        headers.putAll(originalHeaders);
+                        for(Map.Entry<String, String> entry : originalHeaders.entrySet()) {
+                            headers.put(entry.getKey(), Arrays.asList(entry.getValue()));
+                        }
                         return headers;
                     }
                 });
             }
         });
-        clc.beforeRequest(handshake.composeRequest().getHeaders());
+
+        // TODO - remove/refactor after API change.
+        Map<String, String> headers = handshake.composeRequest().getHeaders();
+        Map<String, List<String>> adaptedHeaders = new HashMap<String, List<String>>();
+
+        for(Map.Entry<String, String> entry : headers.entrySet()) {
+            String value = entry.getValue();
+            adaptedHeaders.put(entry.getKey(), value == null ? null : Arrays.asList(value));
+        }
+
+        clc.beforeRequest(adaptedHeaders);
+        headers.clear();
+
+        for(Map.Entry<String, List<String>> entry : adaptedHeaders.entrySet()) {
+            final List<String> value = entry.getValue();
+            headers.put(entry.getKey(), value == null ? null : value.get(0));
+        }
+
     }
 
     /**

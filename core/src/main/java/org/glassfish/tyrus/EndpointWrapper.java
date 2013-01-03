@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -154,11 +154,7 @@ public class EndpointWrapper extends SPIEndpoint {
         final PathPattern pathPattern = new PathPattern(getEndpointPath(sec.getPath()));
 
         final boolean match = pathPattern.match(uri, pathPattern.getTemplate().getTemplateVariables(), templateValues);
-
-        if(hr.getHeader("Origin").size() != 1){
-            return false;
-        }
-        return match && sec.checkOrigin(hr.getHeader("Origin").get(0));
+        return match && sec.checkOrigin(hr.getHeader("Origin"));
     }
 
     private String getEndpointPath(String relativePath) {
@@ -303,10 +299,9 @@ public class EndpointWrapper extends SPIEndpoint {
 
     @Override
     public Session createSessionForRemoteEndpoint(SPIRemoteEndpoint re, String subprotocol, List<String> extensions) {
-        SessionImpl session = new SessionImpl(container, re, this, subprotocol, extensions, isSecure,
-                uri == null ? null : URI.create(uri), queryString, templateValues);
 
-        return session;
+        return new SessionImpl(container, re, this, subprotocol, extensions, isSecure,
+                uri == null ? null : URI.create(uri), queryString, templateValues);
     }
 
     @Override
@@ -366,8 +361,8 @@ public class EndpointWrapper extends SPIEndpoint {
         // TODO: where should I get the CloseReason from?
 
         // TODO XXX FIXME: Endpoint.onClose should have Session parameter.
-        if(endpoint instanceof AnnotatedEndpoint) {
-            ((AnnotatedEndpoint)endpoint).onClose(new CloseReason(null, "Normal Closure"), remoteEndpointToSession.get(gs));
+        if (endpoint instanceof AnnotatedEndpoint) {
+            ((AnnotatedEndpoint) endpoint).onClose(new CloseReason(null, "Normal Closure"), remoteEndpointToSession.get(gs));
         } else {
             endpoint.onClose(new CloseReason(null, "Normal Closure"));
         }

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -40,7 +40,6 @@
 
 package org.glassfish.tyrus.websockets;
 
-import java.util.List;
 import java.util.Map;
 
 import org.glassfish.tyrus.websockets.draft06.Draft06Handler;
@@ -60,8 +59,8 @@ public enum Version {
         }
 
         @Override
-        public boolean validate(Map<String, List<String>> headers) {
-            return this.wireProtocolVersion.equals(headers.get(WebSocketEngine.SEC_WS_VERSION).get(0));
+        public boolean validate(Map<String, String> headers) {
+            return this.wireProtocolVersion.equals(headers.get(WebSocketEngine.SEC_WS_VERSION));
         }
     },
 
@@ -72,7 +71,7 @@ public enum Version {
         }
 
         @Override
-        public boolean validate(Map<String, List<String>> headers) {
+        public boolean validate(Map<String, String> headers) {
             return wireProtocolVersion.equals(headers.get(WebSocketEngine.SEC_WS_VERSION));
         }
     },
@@ -84,7 +83,7 @@ public enum Version {
         }
 
         @Override
-        public boolean validate(Map<String, List<String>> headers) {
+        public boolean validate(Map<String, String> headers) {
             return wireProtocolVersion.equals(headers.get(WebSocketEngine.SEC_WS_VERSION));
         }
     },
@@ -96,16 +95,16 @@ public enum Version {
         }
 
         @Override
-        public boolean validate(Map<String, List<String>> headers) {
+        public boolean validate(Map<String, String> headers) {
             return wireProtocolVersion.equals(headers.get(WebSocketEngine.SEC_WS_VERSION));
         }
     };
 
     public abstract ProtocolHandler createHandler(boolean mask);
 
-    public abstract boolean validate(Map<String, List<String>> headers);
+    public abstract boolean validate(Map<String, String> headers);
 
-    String wireProtocolVersion;
+    protected final String wireProtocolVersion;
 
     private Version(final String wireProtocolVersion) {
         this.wireProtocolVersion = wireProtocolVersion;
@@ -114,10 +113,6 @@ public enum Version {
     @Override
     public String toString() {
         return name();
-    }
-
-    public boolean isFragmentationSupported() {
-        return true;
     }
 
     public static String getSupportedWireProtocolVersions() {

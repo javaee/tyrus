@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -40,7 +40,6 @@
 package org.glassfish.tyrus.container.grizzly;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Future;
 
@@ -111,7 +110,7 @@ class ConnectionImpl extends Connection {
 
     @Override
     public void write(WebSocketResponse response) {
-        if(ctx == null) {
+        if (ctx == null) {
             throw new UnsupportedOperationException("not supported on client side");
         }
 
@@ -119,10 +118,8 @@ class ConnectionImpl extends Connection {
         responsePacket.setProtocol(Protocol.HTTP_1_1);
         responsePacket.setStatus(response.getStatus());
 
-        for (Map.Entry<String, List<String>> entry : response.getHeaders().entrySet()) {
-            for (String  value : entry.getValue()) {
-                responsePacket.setHeader(entry.getKey(), value);
-            }
+        for (Map.Entry<String, String> entry : response.getHeaders().entrySet()) {
+            responsePacket.setHeader(entry.getKey(), entry.getValue());
         }
 
         ctx.write(HttpContent.builder(responsePacket).build());

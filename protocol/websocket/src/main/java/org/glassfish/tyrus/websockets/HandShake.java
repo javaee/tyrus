@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -40,7 +40,6 @@
 
 package org.glassfish.tyrus.websockets;
 
-import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -65,7 +64,7 @@ public abstract class HandShake {
     public static final String HEADER_SEPARATOR = ", ";
     private HandShakeResponseListener responseListener;
 
-    public HandShake(URI url) {
+    protected HandShake(URI url) {
         resourcePath = url.getPath();
         if ("".equals(resourcePath)) {
             resourcePath = "/";
@@ -80,8 +79,8 @@ public abstract class HandShake {
         buildLocation();
     }
 
-    public HandShake(WebSocketRequest request) {
-        Map<String, List<String>> headers = request.getHeaders();
+    protected HandShake(WebSocketRequest request) {
+        Map<String, String> headers = request.getHeaders();
         checkForHeader(headers, "Upgrade", "WebSocket");
         checkForHeader(headers, "Connection", "Upgrade");
 
@@ -91,7 +90,11 @@ public abstract class HandShake {
             origin = request.getFirstHeaderValue(WebSocketEngine.ORIGIN_HEADER);
         }
         determineHostAndPort(headers);
-        subProtocols = headers.get(WebSocketEngine.SEC_WS_PROTOCOL_HEADER);
+
+        // TODO - trim?
+        final String protocolHeader = headers.get(WebSocketEngine.SEC_WS_PROTOCOL_HEADER);
+        subProtocols = (protocolHeader == null ? Collections.<String>emptyList() : Arrays.asList(protocolHeader.split(",")));
+
         if (serverHostName == null) {
             throw new HandshakeException("Missing required headers for WebSocket negotiation");
         }
@@ -111,7 +114,7 @@ public abstract class HandShake {
         buildLocation();
     }
 
-    protected final void buildLocation() {
+    final void buildLocation() {
         StringBuilder builder = new StringBuilder((isSecure() ? "wss" : "ws") + "://" + serverHostName);
         appendPort(builder);
         if (resourcePath == null || !resourcePath.startsWith("/") && !"".equals(resourcePath)) {
@@ -130,7 +133,7 @@ public abstract class HandShake {
         this.location = location;
     }
 
-    public String getOrigin() {
+    protected String getOrigin() {
         return origin;
     }
 
@@ -138,11 +141,11 @@ public abstract class HandShake {
         this.origin = origin;
     }
 
-    public int getPort() {
+    int getPort() {
         return port;
     }
 
-    public void setPort(int port) {
+    void setPort(int port) {
         this.port = port;
     }
 
@@ -150,11 +153,11 @@ public abstract class HandShake {
         this.resourcePath = resourcePath;
     }
 
-    public String getResourcePath() {
+    String getResourcePath() {
         return resourcePath;
     }
 
-    public boolean isSecure() {
+    boolean isSecure() {
         return secure;
     }
 
@@ -162,16 +165,32 @@ public abstract class HandShake {
         this.secure = secure;
     }
 
-    public String getServerHostName() {
+    String getServerHostName() {
         return serverHostName;
     }
 
-    public void setServerHostName(String serverHostName) {
+    void setServerHostName(String serverHostName) {
         this.serverHostName = serverHostName;
     }
 
-    public List<String> getSubProtocols() {
+    protected List<String> getSubProtocols() {
         return subProtocols;
+    }
+
+    protected  <T> String getHeaderFromList(List<T> list) {
+        StringBuilder sb = new StringBuilder();
+
+        int i = 0;
+        do {
+            if (i != 0) {
+                sb.append(", ");
+            }
+            sb.append(list.get(i));
+
+            i++;
+        } while (i < list.size());
+
+        return sb.toString();
     }
 
     public void setSubProtocols(List<String> subProtocols) {
@@ -186,18 +205,8 @@ public abstract class HandShake {
         }
     }
 
-    public List<Extension> getExtensions() {
+    protected List<Extension> getExtensions() {
         return extensions;
-    }
-
-    protected List<String> getExtensionNames(List<Extension> exts) {
-        List<String> extensionNames = new ArrayList<String>();
-
-        for (Extension extension : exts) {
-            extensionNames.add(extension.getName());
-        }
-
-        return extensionNames;
     }
 
     public void setExtensions(List<Extension> extensions) {
@@ -227,27 +236,21 @@ public abstract class HandShake {
     }
 
 
-    private void checkForHeader(Map<String, List<String>> headers, String header, String validValue) {
+    private void checkForHeader(Map<String, String> headers, String header, String validValue) {
         validate(header, validValue, headers.get(header));
     }
 
-    private void validate(String header, String validValue, List<String> values) {
-        boolean found = false;
-
-        for (String value : values) {
-            found |= value.equalsIgnoreCase(validValue);
-        }
-
-        if (!found) {
-            throw new HandshakeException(String.format("Invalid %s header returned: '%s'", header, values));
+    private void validate(String header, String validValue, String value) {
+        if (!value.equalsIgnoreCase(validValue)) {
+            throw new HandshakeException(String.format("Invalid %s header returned: '%s'", header, value));
         }
     }
 
 
-    private void determineHostAndPort(Map<String, List<String>> headers) {
+    private void determineHostAndPort(Map<String, String> headers) {
         String header = null;
-        if((headers.get(WebSocketEngine.HOST)!=null) && (headers.get(WebSocketEngine.HOST).size()>0)){
-            header = headers.get("host").get(0);
+        if ((headers.get(WebSocketEngine.HOST) != null)) {
+            header = headers.get("host");
         }
         final int i = header == null ? -1 : header.indexOf(":");
         if (i == -1) {
@@ -265,7 +268,7 @@ public abstract class HandShake {
      *
      * @return {@link WebSocketRequest} created on this HandShake.
      */
-    public WebSocketRequest getRequest() {
+    protected WebSocketRequest getRequest() {
         if (request == null) {
             composeRequest();
         }
@@ -286,16 +289,16 @@ public abstract class HandShake {
         request = new WebSocketRequest();
 
         request.setRequestPath(getResourcePath());
-        request.getHeaders().put("Host", Arrays.asList(host));
-        request.getHeaders().put(WebSocketEngine.CONNECTION, Arrays.asList(WebSocketEngine.UPGRADE));
-        request.getHeaders().put(WebSocketEngine.UPGRADE, Arrays.asList(WebSocketEngine.WEBSOCKET));
+        request.getHeaders().put("Host", host);
+        request.getHeaders().put(WebSocketEngine.CONNECTION, WebSocketEngine.UPGRADE);
+        request.getHeaders().put(WebSocketEngine.UPGRADE, WebSocketEngine.WEBSOCKET);
 
         if (!getSubProtocols().isEmpty()) {
-            request.getHeaders().put(WebSocketEngine.SEC_WS_PROTOCOL_HEADER, getSubProtocols());
+            request.getHeaders().put(WebSocketEngine.SEC_WS_PROTOCOL_HEADER, getHeaderFromList(subProtocols));
         }
 
         if (!getExtensions().isEmpty()) {
-            request.getHeaders().put(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER, getExtensionNames(extensions));
+            request.getHeaders().put(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER, getHeaderFromList(extensions));
         }
 
         return request;
@@ -320,11 +323,11 @@ public abstract class HandShake {
         WebSocketResponse response = new WebSocketResponse();
         response.setStatus(101);
 
-        response.getHeaders().put(WebSocketEngine.UPGRADE, Arrays.asList(WebSocketEngine.WEBSOCKET));
-        response.getHeaders().put(WebSocketEngine.CONNECTION, Arrays.asList(WebSocketEngine.UPGRADE));
+        response.getHeaders().put(WebSocketEngine.UPGRADE, WebSocketEngine.WEBSOCKET);
+        response.getHeaders().put(WebSocketEngine.CONNECTION, WebSocketEngine.UPGRADE);
         setHeaders(response);
         if (getSubProtocols() != null && !getSubProtocols().isEmpty()) {
-            response.getHeaders().put(WebSocketEngine.SEC_WS_PROTOCOL_HEADER, application.getSupportedProtocols(getSubProtocols()));
+            response.getHeaders().put(WebSocketEngine.SEC_WS_PROTOCOL_HEADER, getHeaderFromList(application.getSupportedProtocols(getSubProtocols())));
         }
         if (!application.getSupportedExtensions().isEmpty() && !getExtensions().isEmpty()) {
             List<Extension> intersection =
@@ -332,7 +335,7 @@ public abstract class HandShake {
                             application.getSupportedExtensions());
             if (!intersection.isEmpty()) {
                 application.onExtensionNegotiation(intersection);
-                response.getHeaders().put(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER, getExtensionNames(intersection));
+                response.getHeaders().put(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER, getHeaderFromList(intersection));
             }
         }
 
@@ -352,7 +355,7 @@ public abstract class HandShake {
         }
     }
 
-    protected List<Extension> intersection(List<Extension> requested, List<Extension> supported) {
+    List<Extension> intersection(List<Extension> requested, List<Extension> supported) {
         List<Extension> intersection = new ArrayList<Extension>(supported.size());
         for (Extension e : requested) {
             for (Extension s : supported) {
@@ -365,8 +368,10 @@ public abstract class HandShake {
         return intersection;
     }
 
-    protected final List<Extension> parseExtensionsHeader(final List<String> headerValues) {
+    // TODO - add proper Extension parsing.
+    protected final List<Extension> parseExtensionsHeader(final String headerValue) {
         List<Extension> result = new ArrayList<Extension>();
+        List<String> headerValues = Arrays.asList(headerValue.split(","));
 
         for (String value : headerValues) {
             result.add(new Extension(value));
@@ -390,7 +395,7 @@ public abstract class HandShake {
         }
     }
 
-    public WebSocketRequest initiate(/*FilterChainContext ctx*/) throws IOException {
+    public WebSocketRequest initiate(/*FilterChainContext ctx*/) {
         return getRequest();
     }
 
