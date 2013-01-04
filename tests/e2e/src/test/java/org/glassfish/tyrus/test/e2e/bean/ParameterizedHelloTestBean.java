@@ -40,13 +40,14 @@
 package org.glassfish.tyrus.test.e2e.bean;
 
 import javax.websocket.Session;
-import javax.websocket.WebSocketEndpoint;
 import javax.websocket.WebSocketMessage;
+import javax.websocket.server.DefaultServerConfiguration;
+import javax.websocket.server.WebSocketEndpoint;
 
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-@WebSocketEndpoint(value = "/hello/{test}/one/{rest: .*}",factory = TestEndpointFactory.class)
+@WebSocketEndpoint(value = "/hello/{test}/one/{rest: .*}",configuration = DefaultServerConfiguration.class)
 public class ParameterizedHelloTestBean {
 
     @WebSocketMessage

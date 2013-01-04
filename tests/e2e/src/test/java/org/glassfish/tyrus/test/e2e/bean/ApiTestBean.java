@@ -41,12 +41,13 @@
 package org.glassfish.tyrus.test.e2e.bean;
 
 import javax.websocket.RemoteEndpoint;
-import javax.websocket.WebSocketEndpoint;
 import javax.websocket.WebSocketMessage;
+import javax.websocket.server.DefaultServerConfiguration;
+import javax.websocket.server.WebSocketEndpoint;
 
 /* @author Danny Coward (danny.coward at oracle.com) */
 
-@WebSocketEndpoint(value = "/api",factory = TestEndpointFactory.class)
+@WebSocketEndpoint(value = "/api",configuration = DefaultServerConfiguration.class)
 public class ApiTestBean {
 
     @WebSocketMessage

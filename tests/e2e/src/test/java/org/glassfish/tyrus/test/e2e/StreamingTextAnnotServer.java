@@ -41,15 +41,17 @@ package org.glassfish.tyrus.test.e2e;
 
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
+
 import javax.websocket.Session;
-import javax.websocket.WebSocketEndpoint;
 import javax.websocket.WebSocketMessage;
 import javax.websocket.WebSocketOpen;
+import javax.websocket.server.DefaultServerConfiguration;
+import javax.websocket.server.WebSocketEndpoint;
 
 /**
  * @author Martin Matula (martin.matula at oracle.com)
  */
-@WebSocketEndpoint(value = "/streamingtext",factory = TestEndpointFactory.class)
+@WebSocketEndpoint(value = "/streamingtext",configuration = DefaultServerConfiguration.class)
 public class StreamingTextAnnotServer {
     private Session session;
     private StringBuilder sb = new StringBuilder();

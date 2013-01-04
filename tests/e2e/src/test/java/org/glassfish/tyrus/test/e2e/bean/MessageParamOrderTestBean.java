@@ -40,15 +40,16 @@
 package org.glassfish.tyrus.test.e2e.bean;
 
 import javax.websocket.Session;
-import javax.websocket.WebSocketEndpoint;
 import javax.websocket.WebSocketMessage;
+import javax.websocket.server.DefaultServerConfiguration;
+import javax.websocket.server.WebSocketEndpoint;
 
 /**
  * Together with HelloTestBean used to test invocation of methods with various order of parameters.
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-@WebSocketEndpoint(value = "/hello",factory = TestEndpointFactory.class)
+@WebSocketEndpoint(value = "/hello",configuration = DefaultServerConfiguration.class)
 public class MessageParamOrderTestBean {
 
     @WebSocketMessage

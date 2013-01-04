@@ -50,9 +50,10 @@ import java.util.concurrent.TimeUnit;
 
 import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
+import javax.websocket.EndpointConfiguration;
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
-import javax.websocket.WebSocketEndpoint;
+import javax.websocket.server.WebSocketEndpoint;
 
 import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
@@ -138,7 +139,7 @@ public class ServletTest {
             final ClientManager client = ClientManager.createClient();
             client.connectToServer(new Endpoint() {
                 @Override
-                public void onOpen(Session session) {
+                public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
                     try {
                         session.addMessageHandler(new MessageHandler.Basic<String>() {
                             @Override
@@ -174,7 +175,7 @@ public class ServletTest {
             final ClientManager client = ClientManager.createClient();
             client.connectToServer(new Endpoint() {
                 @Override
-                public void onOpen(Session session) {
+                public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
                     try {
                         session.addMessageHandler(new MessageHandler.Basic<String>() {
                             @Override
@@ -213,7 +214,7 @@ public class ServletTest {
                 final ClientManager client = ClientManager.createClient();
                 client.connectToServer(new Endpoint() {
                     @Override
-                    public void onOpen(Session session) {
+                    public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
                         try {
                             session.addMessageHandler(new MessageHandler.Basic<String>() {
                                 @Override
@@ -269,7 +270,7 @@ public class ServletTest {
             final ClientManager client = ClientManager.createClient();
             client.connectToServer(new Endpoint() {
                 @Override
-                public void onOpen(Session session) {
+                public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
                     try {
                         session.addMessageHandler(new MessageHandler.Basic<String>() {
                             @Override
@@ -305,7 +306,7 @@ public class ServletTest {
             final ClientManager client = ClientManager.createClient();
             client.connectToServer(new Endpoint() {
                 @Override
-                public void onOpen(Session session) {
+                public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
                     try {
                         session.addMessageHandler(new MessageHandler.Basic<String>() {
                             @Override
@@ -344,7 +345,7 @@ public class ServletTest {
                 final ClientManager client = ClientManager.createClient();
                 client.connectToServer(new Endpoint() {
                     @Override
-                    public void onOpen(Session session) {
+                    public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
                         try {
                             session.addMessageHandler(new MessageHandler.Basic<String>() {
                                 @Override

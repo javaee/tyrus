@@ -40,16 +40,17 @@
 package org.glassfish.tyrus.test.e2e.bean.stin;
 
 
-import org.glassfish.tyrus.test.e2e.Util;
-
-import javax.websocket.WebSocketEndpoint;
 import javax.websocket.WebSocketMessage;
+import javax.websocket.server.DefaultServerConfiguration;
+import javax.websocket.server.WebSocketEndpoint;
+
+import org.glassfish.tyrus.test.e2e.Util;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)
  */
 @WebSocketEndpoint(
-        value = "/standardInputTypes/double", factory = TestEndpointFactory.class)
+        value = "/standardInputTypes/double", configuration = DefaultServerConfiguration.class)
 public class DoubleBean {
 
     @WebSocketMessage

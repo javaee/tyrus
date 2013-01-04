@@ -39,21 +39,22 @@
  */
 package org.glassfish.tyrus.test.e2e;
 
-import javax.websocket.SendHandler;
-import javax.websocket.SendResult;
-import javax.websocket.Session;
-import javax.websocket.WebSocketEndpoint;
-import javax.websocket.WebSocketMessage;
-import javax.websocket.WebSocketOpen;
-
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
+import javax.websocket.SendHandler;
+import javax.websocket.SendResult;
+import javax.websocket.Session;
+import javax.websocket.WebSocketMessage;
+import javax.websocket.WebSocketOpen;
+import javax.websocket.server.DefaultServerConfiguration;
+import javax.websocket.server.WebSocketEndpoint;
+
 /**
  * @author Danny Coward (danny.coward at oracle.com)
  */
-@WebSocketEndpoint(value = "/hellocompletionhandlerfuture", factory = TestEndpointFactory.class)
+@WebSocketEndpoint(value = "/hellocompletionhandlerfuture", configuration = DefaultServerConfiguration.class)
 public class TextFutureCompletionHandlerServer {
     static Future<SendResult> fsr = null;
     static SendResult sr = null;

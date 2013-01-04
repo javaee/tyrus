@@ -123,7 +123,7 @@ public class BroadcasterTest {
         }
 
         @Override
-        public synchronized void onOpen(Session session, EndpointConfiguration config) {
+        public synchronized void onOpen(Session session) {
             this.peer = session.getRemote();
             notifyAll();
         }

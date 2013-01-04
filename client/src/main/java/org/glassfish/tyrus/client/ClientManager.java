@@ -101,7 +101,6 @@ public class ClientManager implements WebSocketContainer {
 
     @Override
     public Session connectToServer(Class annotatedEndpointClass, URI path) throws DeploymentException {
-        // TODO
         return connectToServer(annotatedEndpointClass, null, path.toString());
     }
 
@@ -109,6 +108,15 @@ public class ClientManager implements WebSocketContainer {
     public Session connectToServer(Class<? extends Endpoint> endpointClass, ClientEndpointConfiguration cec, URI path) throws DeploymentException {
         return connectToServer(endpointClass, cec, path.toString());
     }
+
+    public Session connectToServer(Object obj, URI path) throws DeploymentException {
+        return connectToServer(obj, null, path.toString());
+    }
+
+    public Session connectToServer(Object obj, ClientEndpointConfiguration cec, URI path) throws DeploymentException {
+        return connectToServer(obj, cec, path.toString());
+    }
+
 
     @Override
     public Set<Session> getOpenSessions() {

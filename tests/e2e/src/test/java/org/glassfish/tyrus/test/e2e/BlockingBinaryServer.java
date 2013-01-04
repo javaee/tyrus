@@ -48,20 +48,21 @@ import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
-import javax.websocket.WebSocketEndpoint;
 import javax.websocket.WebSocketOpen;
+import javax.websocket.server.DefaultServerConfiguration;
+import javax.websocket.server.WebSocketEndpoint;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)
  */
-@WebSocketEndpoint(value = "/blockingbinary",factory = TestEndpointFactory.class)
+@WebSocketEndpoint(value = "/blockingbinary",configuration = DefaultServerConfiguration.class)
 public class BlockingBinaryServer extends Endpoint {
     private Session session;
     static CountDownLatch messageLatch;
     private String message;
 
     @WebSocketOpen
-    public void onOpen(Session session) {
+    public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
         System.out.println("BLOCKINGBSERVER opened !");
         this.session = session;
 

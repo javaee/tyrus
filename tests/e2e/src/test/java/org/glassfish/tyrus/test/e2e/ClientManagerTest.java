@@ -56,7 +56,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Tests the implementation of {@link javax.websocket.ClientContainer}.
+ * Tests the implementation of {@link javax.websocket.WebSocketContainer}.
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */

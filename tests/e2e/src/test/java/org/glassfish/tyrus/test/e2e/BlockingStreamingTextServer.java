@@ -46,14 +46,15 @@ import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
-import javax.websocket.WebSocketEndpoint;
 import javax.websocket.WebSocketOpen;
+import javax.websocket.server.DefaultServerConfiguration;
+import javax.websocket.server.WebSocketEndpoint;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)
  * @author Martin Matula (martin.matula at oracle.com)
  */
-@WebSocketEndpoint(value = "/blockingstreaming",factory = TestEndpointFactory.class)
+@WebSocketEndpoint(value = "/blockingstreaming",configuration = DefaultServerConfiguration.class)
 public class BlockingStreamingTextServer extends Endpoint {
     class MyCharacterStreamHandler implements MessageHandler.Async<Reader> {
         Session session;
@@ -93,7 +94,7 @@ public class BlockingStreamingTextServer extends Endpoint {
 //    }
 
     @WebSocketOpen
-    public void onOpen(Session session) {
+    public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
         System.out.println("BLOCKINGSERVER opened !");
         session.addMessageHandler(new BlockingStreamingTextServer.MyCharacterStreamHandler(session));
     }

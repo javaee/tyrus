@@ -43,13 +43,16 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
 import javax.websocket.ClientEndpointConfiguration;
-import org.glassfish.tyrus.javax.websocket.ContainerProvider;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.Session;
+
 import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
+import org.glassfish.tyrus.javax.websocket.ContainerProvider;
 import org.glassfish.tyrus.server.Server;
+
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -66,19 +69,19 @@ public class ContainerProviderTest {
 
     @Test
     public void test() {
-        Assert.assertNull(ContainerProvider.getServerContainer());
-        Assert.assertNull(ContainerProvider.getClientContainer());
+        Assert.assertNull(ContainerProvider.getWebSocketContainer());
+//        Assert.assertNull(ContainerProvider.getClientContainer());
 
         Server server = new Server(TestBean.class);
         server.start();
 
-        Assert.assertNotNull(ContainerProvider.getServerContainer());
+        Assert.assertNotNull(ContainerProvider.getWebSocketContainer());
 
         try {
             messageLatch = new CountDownLatch(1);
             ClientManager client = ClientManager.createClient();
 
-            Assert.assertSame(client, ContainerProvider.getClientContainer());
+            Assert.assertSame(client, ContainerProvider.getWebSocketContainer());
 
             client.connectToServer(new TestEndpointAdapter() {
                 private final ClientEndpointConfiguration configuration = new DefaultClientEndpointConfiguration.Builder().build();

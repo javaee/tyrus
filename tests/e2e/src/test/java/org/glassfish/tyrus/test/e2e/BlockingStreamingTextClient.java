@@ -60,7 +60,7 @@ public class BlockingStreamingTextClient extends Endpoint {
         this.messageLatch = messageLatch;
     }
 
-    public void onOpen(Session session) {
+    public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
         System.out.println("BLOCKINGCLIENT opened !");
 
         send(session);

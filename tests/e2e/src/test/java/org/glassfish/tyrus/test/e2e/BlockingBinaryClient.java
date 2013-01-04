@@ -71,7 +71,7 @@ public class BlockingBinaryClient extends Endpoint {
 //        return null;
 //    }
 
-    public void onOpen(Session session) {
+    public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
 
         System.out.println("BLOCKINGBCLIENT opened !");
 

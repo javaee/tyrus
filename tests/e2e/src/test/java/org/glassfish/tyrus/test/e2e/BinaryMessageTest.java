@@ -41,7 +41,6 @@ package org.glassfish.tyrus.test.e2e;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.URL;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -51,9 +50,11 @@ import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
+
 import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -89,7 +90,7 @@ public class BinaryMessageTest {
 //                }
 
                 @Override
-                public void onOpen(Session session) {
+                public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
                     try {
                         session.getRemote().sendBytes(ByteBuffer.wrap(BINARY_MESSAGE));
                         session.addMessageHandler(new MessageHandler.Basic<ByteBuffer>() {

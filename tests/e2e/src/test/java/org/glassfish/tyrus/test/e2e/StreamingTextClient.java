@@ -39,13 +39,13 @@
  */
 package org.glassfish.tyrus.test.e2e;
 
+import java.io.IOException;
+import java.util.concurrent.CountDownLatch;
+
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
-
-import java.io.IOException;
-import java.util.concurrent.CountDownLatch;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)
@@ -65,7 +65,7 @@ public class StreamingTextClient extends Endpoint {
 //        return null;
 //    }
 
-    public void onOpen(Session session) {
+    public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
         System.out.println("STREAMINGCLIENT opened !");
 
         this.session = session;

@@ -102,7 +102,7 @@ public class DecodedObjectTest {
 //                }
 
                 @Override
-                public void onOpen(Session session) {
+                public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
                     try {
                         session.addMessageHandler(new DecodedMessageHandler());
                         session.getRemote().sendString(SENT_MESSAGE);
@@ -147,7 +147,7 @@ public class DecodedObjectTest {
 //                }
 
                 @Override
-                public void onOpen(Session session) {
+                public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
                     try {
                         session.addMessageHandler(new ObjectMessageHandler());
                         session.addMessageHandler(new DecodedMessageHandler());

@@ -40,18 +40,19 @@
 
 package org.glassfish.tyrus.test.e2e.bean;
 
-import javax.websocket.WebSocketEndpoint;
-import javax.websocket.WebSocketMessage;
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
+
+import javax.websocket.WebSocketMessage;
+import javax.websocket.server.DefaultServerConfiguration;
+import javax.websocket.server.WebSocketEndpoint;
 
 /**
  * Bean to test correct processing of binary message.
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-@WebSocketEndpoint(value = "/binary",factory = TestEndpointFactory.class)
+@WebSocketEndpoint(value = "/binary",configuration = DefaultServerConfiguration.class)
 public class BinaryBean {
 
     @WebSocketMessage

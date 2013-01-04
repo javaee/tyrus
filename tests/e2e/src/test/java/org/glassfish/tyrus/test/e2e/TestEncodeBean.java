@@ -39,19 +39,20 @@
  */
 package org.glassfish.tyrus.test.e2e;
 
+import java.io.IOException;
+
 import javax.websocket.EncodeException;
 import javax.websocket.Session;
-import javax.websocket.WebSocketEndpoint;
 import javax.websocket.WebSocketMessage;
 import javax.websocket.WebSocketOpen;
-
-import java.io.IOException;
+import javax.websocket.server.DefaultServerConfiguration;
+import javax.websocket.server.WebSocketEndpoint;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 
-@WebSocketEndpoint(value = "/echo", encoders = {StringContainerEncoder.class},factory = TestEndpointFactory.class)
+@WebSocketEndpoint(value = "/echo", encoders = {StringContainerEncoder.class}, configuration = DefaultServerConfiguration.class)
 public class TestEncodeBean {
     @WebSocketOpen
     public void onOpen(Session s) {

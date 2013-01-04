@@ -39,18 +39,19 @@
  */
 package org.glassfish.tyrus.test.e2e;
 
+import java.nio.ByteBuffer;
+
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
-import javax.websocket.WebSocketEndpoint;
 import javax.websocket.WebSocketOpen;
-
-import java.nio.ByteBuffer;
+import javax.websocket.server.DefaultServerConfiguration;
+import javax.websocket.server.WebSocketEndpoint;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)
  */
 
-@WebSocketEndpoint(value = "/hellobinary",factory = TestEndpointFactory.class)
+@WebSocketEndpoint(value = "/hellobinary",configuration = DefaultServerConfiguration.class)
 public class HelloBinaryServer {
 
     @WebSocketOpen

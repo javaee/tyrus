@@ -44,16 +44,18 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
-import javax.websocket.WebSocketEndpoint;
 import javax.websocket.WebSocketOpen;
+import javax.websocket.server.DefaultServerConfiguration;
+import javax.websocket.server.WebSocketEndpoint;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)
  * @author Martin Matula (martin.matula at oracle.com)
  */
-@WebSocketEndpoint(value = "/streamingbinary",factory = TestEndpointFactory.class)
+@WebSocketEndpoint(value = "/streamingbinary",configuration = DefaultServerConfiguration.class)
 public class StreamingBinaryServer {
     private Session session;
     static CountDownLatch messageLatch;

@@ -40,15 +40,16 @@
 package org.glassfish.tyrus.test.e2e;
 
 import javax.websocket.Session;
-import javax.websocket.WebSocketEndpoint;
 import javax.websocket.WebSocketMessage;
 import javax.websocket.WebSocketOpen;
+import javax.websocket.server.DefaultServerConfiguration;
+import javax.websocket.server.WebSocketEndpoint;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)
  */
 
-@WebSocketEndpoint(value = "/hellotext",factory = TestEndpointFactory.class)
+@WebSocketEndpoint(value = "/hellotext",configuration = DefaultServerConfiguration.class)
 public class HelloTextServer {
 
     @WebSocketOpen

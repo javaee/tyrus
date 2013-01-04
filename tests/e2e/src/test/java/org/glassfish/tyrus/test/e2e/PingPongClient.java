@@ -39,13 +39,13 @@
  */
 package org.glassfish.tyrus.test.e2e;
 
+import java.nio.ByteBuffer;
+import java.util.concurrent.CountDownLatch;
+
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
-
-import java.nio.ByteBuffer;
-import java.util.concurrent.CountDownLatch;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)
@@ -64,7 +64,7 @@ public class PingPongClient extends Endpoint {
 //        return null;
 //    }
 
-    public void onOpen(Session session) {
+    public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
         try {
             session.addMessageHandler(new MessageHandler.Basic<ByteBuffer>() {
                 public void onMessage(ByteBuffer bb) {

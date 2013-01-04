@@ -75,8 +75,6 @@ public class EchoTest {
         add(EchoBean.class);
     }};
 
-    private static final CountDownLatch messageLatch = new CountDownLatch(1);
-
     /**
      * Start embedded server unless "tyrus.test.host" system property is specified.
      *
@@ -132,8 +130,26 @@ public class EchoTest {
     public void testEcho() throws DeploymentException, InterruptedException {
         final Server server = startServer();
 
+        final CountDownLatch messageLatch = new CountDownLatch(1);
+
         final ClientManager client = ClientManager.createClient();
-        client.connectToServer(MyEndpoint.class, new DefaultClientEndpointConfiguration.Builder().build(), getURI());
+        client.connectToServer(new Endpoint() {
+            @Override
+            public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
+                try {
+                    session.addMessageHandler(new MessageHandler.Basic<String>() {
+                        @Override
+                        public void onMessage(String message) {
+                            assertEquals(message, "Do or do not, there is no try. (from your server)");
+                            messageLatch.countDown();
+                        }
+                    });
+
+                    session.getRemote().sendString("Do or do not, there is no try.");
+                } catch (IOException e) {
+                    // do nothing
+                }
+            }        }, new DefaultClientEndpointConfiguration.Builder().build(), getURI());
 
         messageLatch.await(1, TimeUnit.SECONDS);
         if (messageLatch.getCount() != 0) {
@@ -141,24 +157,5 @@ public class EchoTest {
         }
 
         stopServer(server);
-    }
-
-    public static class MyEndpoint extends Endpoint {
-        @Override
-        public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
-            try {
-                session.addMessageHandler(new MessageHandler.Basic<String>() {
-                    @Override
-                    public void onMessage(String message) {
-                        assertEquals(message, "Do or do not, there is no try. (from your server)");
-                        EchoTest.messageLatch.countDown();
-                    }
-                });
-
-                session.getRemote().sendString("Do or do not, there is no try.");
-            } catch (IOException e) {
-                // do nothing
-            }
-        }
     }
 }

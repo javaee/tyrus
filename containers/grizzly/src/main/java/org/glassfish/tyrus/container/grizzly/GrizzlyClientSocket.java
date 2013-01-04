@@ -142,8 +142,7 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
                     protocolHandler.setConnection(connection);
                     WebSocketEngine.WebSocketHolder holder = WebSocketEngine.getEngine().setWebSocketHolder(connection, protocolHandler, GrizzlyClientSocket.this);
                     holder.handshake = protocolHandler.createHandShake(uri);
-                    //TODO uncomment once API switch is made
-                    //prepareHandshake(holder.handshake);
+                    prepareHandshake(holder.handshake);
                 }
             };
 
@@ -182,7 +181,7 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
 
                     @Override
                     public Map<String, List<String>> getHeaders() {
-                        for(Map.Entry<String, String> entry : originalHeaders.entrySet()) {
+                        for (Map.Entry<String, String> entry : originalHeaders.entrySet()) {
                             headers.put(entry.getKey(), Arrays.asList(entry.getValue()));
                         }
                         return headers;
@@ -191,7 +190,7 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
             }
         });
 
-        // TODO - remove/refactor after API change.
+        // TODO - remove/refactor after API change (Map<String, List<String>> -> Map<String, String>).
         Map<String, String> headers = handshake.composeRequest().getHeaders();
         Map<String, List<String>> adaptedHeaders = new HashMap<String, List<String>>();
 
@@ -199,8 +198,8 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
             String value = entry.getValue();
             adaptedHeaders.put(entry.getKey(), value == null ? null : Arrays.asList(value));
         }
-        //TODO uncomment once API switch is made.
-        //clc.beforeRequest(adaptedHeaders);
+
+        clc.beforeRequest(adaptedHeaders);
         headers.clear();
 
         for(Map.Entry<String, List<String>> entry : adaptedHeaders.entrySet()) {

@@ -41,18 +41,19 @@
 package org.glassfish.tyrus.test.e2e;
 
 
+import java.io.IOException;
+
 import javax.websocket.Session;
-import javax.websocket.WebSocketEndpoint;
 import javax.websocket.WebSocketMessage;
 import javax.websocket.WebSocketOpen;
-
-import java.io.IOException;
+import javax.websocket.server.DefaultServerConfiguration;
+import javax.websocket.server.WebSocketEndpoint;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 
-@WebSocketEndpoint(value = "/echo", subprotocols = {"asd"}, factory = TestEndpointFactory.class)
+@WebSocketEndpoint(value = "/echo", subprotocols = {"asd"}, configuration = DefaultServerConfiguration.class)
 public class TestBean {
     @WebSocketOpen
     public void onOpen(Session s) {
