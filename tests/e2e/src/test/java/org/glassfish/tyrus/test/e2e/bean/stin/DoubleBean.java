@@ -40,7 +40,6 @@
 package org.glassfish.tyrus.test.e2e.bean.stin;
 
 
-import org.glassfish.tyrus.test.e2e.TestEndpointFactory;
 import org.glassfish.tyrus.test.e2e.Util;
 
 import javax.websocket.WebSocketEndpoint;

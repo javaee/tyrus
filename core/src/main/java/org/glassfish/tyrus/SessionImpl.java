@@ -42,6 +42,7 @@ package org.glassfish.tyrus;
 
 import java.io.IOException;
 import java.net.URI;
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -52,11 +53,12 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import javax.websocket.ClientContainer;
 import javax.websocket.CloseReason;
+import javax.websocket.Extension;
 import javax.websocket.MessageHandler;
 import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
+import javax.websocket.WebSocketContainer;
 
 import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
 
@@ -69,11 +71,11 @@ import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
  */
 public class SessionImpl implements Session {
 
-    private final ClientContainer container;
+    private final WebSocketContainer container;
     private final EndpointWrapper endpoint;
     private final RemoteEndpointWrapper remote;
     private final String negotiatedSubprotocol;
-    private final List<String> negotiatedExtensions;
+    private final List<Extension> negotiatedExtensions;
     private final boolean isSecure;
     private final URI uri;
     private final String queryString;
@@ -92,13 +94,13 @@ public class SessionImpl implements Session {
      */
     private long lastConnectionActivity;
 
-    SessionImpl(ClientContainer container, SPIRemoteEndpoint remoteEndpoint, EndpointWrapper endpointWrapper,
-                String subprotocol, List<String> extensions, boolean isSecure,
+    SessionImpl(WebSocketContainer container, SPIRemoteEndpoint remoteEndpoint, EndpointWrapper endpointWrapper,
+                String subprotocol, List<Extension> extensions, boolean isSecure,
                 URI uri, String queryString, Map<String, String> pathParameters) {
         this.container = container;
         this.endpoint = endpointWrapper;
         this.negotiatedSubprotocol = subprotocol;
-        this.negotiatedExtensions = extensions == null ? Collections.<String>emptyList() :
+        this.negotiatedExtensions = extensions == null ? Collections.<Extension>emptyList() :
                 Collections.unmodifiableList(extensions);
         this.isSecure = isSecure;
         this.uri = uri;
@@ -172,7 +174,11 @@ public class SessionImpl implements Session {
 
     @Override
     public List<String> getNegotiatedExtensions() {
-        return this.negotiatedExtensions;
+
+        // TODO
+        // return this.negotiatedExtensions;
+
+        return Collections.emptyList();
     }
 
     @Override
@@ -181,12 +187,7 @@ public class SessionImpl implements Session {
     }
 
     @Override
-    public long getInactiveTime() {
-        return (System.currentTimeMillis() - this.lastConnectionActivity) / 1000;
-    }
-
-    @Override
-    public ClientContainer getContainer() {
+    public WebSocketContainer getContainer() {
         return this.container;
     }
 
@@ -213,7 +214,7 @@ public class SessionImpl implements Session {
 
     // TODO: this method should be deleted?
     @Override
-    public Map<String, String[]> getRequestParameterMap() {
+    public Map<String, List<String>> getRequestParameterMap() {
         return Collections.emptyMap();
     }
 
@@ -230,6 +231,16 @@ public class SessionImpl implements Session {
     @Override
     public String getQueryString() {
         return queryString;
+    }
+
+    @Override
+    public String getId() {
+        return null;  // TODO: Implement.
+    }
+
+    @Override
+    public Principal getUserPrincipal() {
+        return null;  // TODO: Implement.
     }
 
     public Map<String, Object> getProperties() {

@@ -79,15 +79,16 @@
 
 package org.glassfish.tyrus.oldservlet;
 
-import org.glassfish.tyrus.server.ContainerConfig;
+import java.util.Set;
+
+import javax.websocket.server.WebSocketEndpoint;
 
 import javax.servlet.ServletContainerInitializer;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.HandlesTypes;
-import javax.websocket.WebSocketEndpoint;
 
-import java.util.Set;
+import org.glassfish.tyrus.server.ContainerConfig;
 
 /**
  * Registers a context listener to handle WebSocketEndpoint endpoints.

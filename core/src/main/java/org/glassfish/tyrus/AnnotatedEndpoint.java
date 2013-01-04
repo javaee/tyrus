@@ -51,6 +51,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
+
 import javax.websocket.CloseReason;
 import javax.websocket.Decoder;
 import javax.websocket.Encoder;
@@ -60,11 +61,11 @@ import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 import javax.websocket.WebSocketClient;
 import javax.websocket.WebSocketClose;
-import javax.websocket.WebSocketEndpoint;
+import javax.websocket.server.WebSocketEndpoint;
 import javax.websocket.WebSocketError;
 import javax.websocket.WebSocketMessage;
 import javax.websocket.WebSocketOpen;
-import javax.websocket.WebSocketPathParam;
+import javax.websocket.server.WebSocketPathParam;
 
 /**
  * AnnotatedEndpoint of a class annotated using the WebSocketEndpoint annotations
@@ -140,12 +141,12 @@ public class AnnotatedEndpoint extends Endpoint {
         DefaultEndpointConfiguration.Builder builder = isServerEndpoint ?
                 // TODO: fix once origins is added to the @WebSocketEndpoint annotation
                 new DefaultServerEndpointConfiguration.Builder(wseAnnotation.value())
-                        .origins(Collections.<String>emptyList()):
+                        .origins(Collections.<String>emptyList()) :
                 new DefaultClientEndpointConfiguration.Builder();
 
 
         return builder.encoders(encoders).decoders(decoders).protocols(subProtocols == null ?
-                        Collections.<String>emptyList() : Arrays.asList(subProtocols)).build();
+                Collections.<String>emptyList() : Arrays.asList(subProtocols)).build();
     }
 
     private static Class<?> getDecoderClassType(Class<?> decoder) {
@@ -346,8 +347,8 @@ public class AnnotatedEndpoint extends Endpoint {
     }
 
     @Override
-    public void onClose(CloseReason closeReason) {
-        onClose(closeReason, null);
+    public void onClose(Session session, CloseReason closeReason) {
+        onClose(closeReason, session);
     }
 
     // TODO XXX FIXME: Add this method to javax.websocket.Endpoint (replace existing onError)
@@ -356,8 +357,8 @@ public class AnnotatedEndpoint extends Endpoint {
     }
 
     @Override
-    public void onError(Throwable thr) {
-        onError(thr, null);
+    public void onError(Session session, Throwable thr) {
+        onError(thr, session);
     }
 
     //    @Override
@@ -366,7 +367,7 @@ public class AnnotatedEndpoint extends Endpoint {
     }
 
     @Override
-    public void onOpen(Session session) {
+    public void onOpen(Session session, EndpointConfiguration configuration) {
         for (MessageHandlerFactory f : messageHandlerFactories) {
             session.addMessageHandler(f.create(session));
         }

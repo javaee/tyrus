@@ -39,8 +39,6 @@
  */
 package org.glassfish.tyrus.test.e2e.bean;
 
-import org.glassfish.tyrus.test.e2e.TestEndpointFactory;
-
 import javax.websocket.EncodeException;
 import javax.websocket.Session;
 import javax.websocket.WebSocketEndpoint;

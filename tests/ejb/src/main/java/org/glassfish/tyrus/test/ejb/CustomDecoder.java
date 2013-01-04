@@ -40,9 +40,10 @@
 
 package org.glassfish.tyrus.test.ejb;
 
-import javax.ejb.Stateless;
 import javax.websocket.DecodeException;
 import javax.websocket.Decoder;
+
+import javax.ejb.Stateless;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)

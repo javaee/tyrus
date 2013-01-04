@@ -44,14 +44,15 @@ package org.glassfish.tyrus.test.ejb;
 import org.glassfish.grizzly.utils.StringDecoder;
 
 import javax.ejb.EJB;
-import javax.ejb.Singleton;
 import javax.ejb.Stateless;
+
 import javax.websocket.Session;
-import javax.websocket.WebSocketEndpoint;
+import javax.websocket.server.DefaultServerConfiguration;
+import javax.websocket.server.WebSocketEndpoint;
 import javax.websocket.WebSocketMessage;
 
 @Stateless
-@WebSocketEndpoint(value = "/stateless", decoders={org.glassfish.tyrus.test.ejb.CustomDecoder.class}, factory = TestEndpointFactory.class)
+@WebSocketEndpoint(value = "/stateless", decoders = {org.glassfish.tyrus.test.ejb.CustomDecoder.class}, configuration = DefaultServerConfiguration.class)
 public class StatelessEchoBean {
 
     private int counter = 0;
@@ -62,6 +63,6 @@ public class StatelessEchoBean {
     @WebSocketMessage
     public String doThat(StringContainer sc, Session peer) {
         counter++;
-        return sc.getString()+rmp.getMessage()+counter;
+        return sc.getString() + rmp.getMessage() + counter;
     }
 }

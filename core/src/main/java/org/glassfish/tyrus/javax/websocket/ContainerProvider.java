@@ -39,10 +39,10 @@
  */
 package org.glassfish.tyrus.javax.websocket;
 
-import javax.websocket.ClientContainer;
-import javax.websocket.ServerContainer;
 import java.util.Iterator;
 import java.util.ServiceLoader;
+
+import javax.websocket.WebSocketContainer;
 
 /**
  * @author Martin Matula (martin.matula at oracle.com)
@@ -66,12 +66,8 @@ public abstract class ContainerProvider {
         }
     }
 
-    public static ServerContainer getServerContainer() {
-        return INSTANCE.getContainer(ServerContainer.class);
-    }
-
-    public static ClientContainer getClientContainer() {
-        return INSTANCE.getContainer(ClientContainer.class);
+    public static WebSocketContainer getWebSocketContainer() {
+        return INSTANCE.getContainer(WebSocketContainer.class);
     }
 
     protected abstract <T> T getContainer(Class<T> containerClass);

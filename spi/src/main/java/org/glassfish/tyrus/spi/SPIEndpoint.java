@@ -43,6 +43,7 @@ import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Set;
 
+import javax.websocket.Extension;
 import javax.websocket.Session;
 
 /**
@@ -74,7 +75,7 @@ public abstract class SPIEndpoint {
      *
      * @param gs SPIRemoteEndpoint who has just connected to this web socket endpoint.
      */
-    public abstract void onConnect(SPIRemoteEndpoint gs, String subprotocol, List<String> extensions);
+    public abstract void onConnect(SPIRemoteEndpoint gs, String subprotocol, List<Extension> extensions);
 
     /**
      * Called by the provider when the web socket connection
@@ -159,7 +160,7 @@ public abstract class SPIEndpoint {
      * @param clientExtensions names of the extensions' supported by client.
      * @return names of extensions supported by both client and class that implements this one.
      */
-    public abstract List<String> getNegotiatedExtensions(List<String> clientExtensions);
+    public abstract List<Extension> getNegotiatedExtensions(List<Extension> clientExtensions);
 
     /**
      * Compute the sub - protocol which will be used.
@@ -184,5 +185,5 @@ public abstract class SPIEndpoint {
      * @param extensions extensions used.
      * @return {@link Session} representing the connection.
      */
-    public abstract Session createSessionForRemoteEndpoint(SPIRemoteEndpoint re, String subprotocol, List<String> extensions);
+    public abstract Session createSessionForRemoteEndpoint(SPIRemoteEndpoint re, String subprotocol, List<Extension> extensions);
 }

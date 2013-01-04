@@ -39,12 +39,14 @@
  */
 package org.glassfish.tyrus;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import javax.websocket.ClientEndpointConfiguration;
 import javax.websocket.Decoder;
 import javax.websocket.Encoder;
-import javax.websocket.HandshakeRequest;
+import javax.websocket.Extension;
 import javax.websocket.HandshakeResponse;
 
 /**
@@ -59,7 +61,7 @@ public class DefaultClientEndpointConfiguration extends DefaultEndpointConfigura
      * to connect to the given URI.
      */
     protected DefaultClientEndpointConfiguration(List<Encoder> encoders, List<Decoder> decoders,
-                                               List<String> subprotocols, List<String> extensions) {
+                                               List<String> subprotocols, List<Extension> extensions) {
         super(encoders, decoders, subprotocols, extensions);
     }
 
@@ -82,14 +84,16 @@ public class DefaultClientEndpointConfiguration extends DefaultEndpointConfigura
      */
     @Override
     public List<String> getExtensions() {
-        return extensions;
+
+        // TODO
+        // return extensions;
+        return Collections.emptyList();
     }
 
     @Override
-    public void beforeRequest(HandshakeRequest handshakeRequest) {
-
+    public void beforeRequest(Map<String, List<String>> headers) {
+        // TODO: Implement.
     }
-
 
     @Override
     public void afterResponse(HandshakeResponse handshakeResponse) {

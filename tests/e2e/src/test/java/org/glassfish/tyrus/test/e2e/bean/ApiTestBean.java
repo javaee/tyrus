@@ -40,8 +40,6 @@
 
 package org.glassfish.tyrus.test.e2e.bean;
 
-import org.glassfish.tyrus.test.e2e.TestEndpointFactory;
-
 import javax.websocket.RemoteEndpoint;
 import javax.websocket.WebSocketEndpoint;
 import javax.websocket.WebSocketMessage;

@@ -179,6 +179,31 @@ public final class RemoteEndpointWrapper implements RemoteEndpoint {
         return "Wrapped: " + getClass().getSimpleName();
     }
 
+    @Override
+    public void setBatchingAllowed(boolean allowed) {
+        // TODO: Implement.
+    }
+
+    @Override
+    public boolean getBatchingAllowed() {
+        return false;  // TODO: Implement.
+    }
+
+    @Override
+    public void flushBatch() {
+        // TODO: Implement.
+    }
+
+    @Override
+    public long getAsyncSendTimeout() {
+        return 0;  // TODO: Implement.
+    }
+
+    @Override
+    public void setAsyncSendTimeout(long timeoutmillis) {
+        // TODO: Implement.
+    }
+
     private void sendPrimitiveMessage(Object data) throws IOException, EncodeException {
         if (isPrimitiveData(data)) {
             this.sendString(data.toString());

@@ -39,19 +39,6 @@
  */
 package org.glassfish.tyrus.sample.auction;
 
-import org.glassfish.tyrus.sample.auction.message.AuctionListRequestMessage;
-import org.glassfish.tyrus.sample.auction.message.AuctionListResponseMessage;
-import org.glassfish.tyrus.sample.auction.message.BidRequestMessage;
-import org.glassfish.tyrus.sample.auction.message.LoginRequestMessage;
-import org.glassfish.tyrus.sample.auction.message.LogoutRequestMessage;
-import org.glassfish.tyrus.server.DefaultEndpointFactory;
-
-import javax.websocket.Session;
-import javax.websocket.WebSocketClose;
-import javax.websocket.WebSocketEndpoint;
-import javax.websocket.WebSocketMessage;
-import javax.websocket.WebSocketOpen;
-
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -60,6 +47,19 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.websocket.Session;
+import javax.websocket.WebSocketClose;
+import javax.websocket.WebSocketMessage;
+import javax.websocket.WebSocketOpen;
+import javax.websocket.server.DefaultServerConfiguration;
+import javax.websocket.server.WebSocketEndpoint;
+
+import org.glassfish.tyrus.sample.auction.message.AuctionListRequestMessage;
+import org.glassfish.tyrus.sample.auction.message.AuctionListResponseMessage;
+import org.glassfish.tyrus.sample.auction.message.BidRequestMessage;
+import org.glassfish.tyrus.sample.auction.message.LoginRequestMessage;
+import org.glassfish.tyrus.sample.auction.message.LogoutRequestMessage;
 
 /**
  * Runs multiple auctions.
@@ -73,7 +73,7 @@ import java.util.logging.Logger;
                 org.glassfish.tyrus.sample.auction.decoders.AuctionListRequestDecoder.class,
                 org.glassfish.tyrus.sample.auction.decoders.LogoutRequestDecoder.class},
         encoders = {org.glassfish.tyrus.sample.auction.encoders.LogoutResponseEncoder.class},
-factory = DefaultEndpointFactory.class)
+        configuration = DefaultServerConfiguration.class)
 public class AuctionServer {
 
     /*

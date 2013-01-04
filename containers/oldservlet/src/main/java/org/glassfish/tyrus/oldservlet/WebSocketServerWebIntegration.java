@@ -46,11 +46,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
+
+import javax.websocket.Endpoint;
+import javax.websocket.server.WebSocketEndpoint;
+
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
-import javax.websocket.Endpoint;
-import javax.websocket.WebSocketEndpoint;
+
 import org.glassfish.tyrus.server.ContainerConfig;
 import org.glassfish.tyrus.server.DefaultServerConfiguration;
 import org.glassfish.tyrus.server.ServerConfiguration;

@@ -49,7 +49,10 @@ public class TestEndpointAdapter extends Endpoint {
     public void onMessage(String message) {
     }
 
-
+    @Override
+    public void onOpen(Session session, EndpointConfiguration config) {
+        // TODO: Implement.
+    }
 
     public void onMessage(byte[] message) {
     }

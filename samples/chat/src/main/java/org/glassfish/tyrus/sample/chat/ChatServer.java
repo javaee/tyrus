@@ -39,6 +39,21 @@
  */
 package org.glassfish.tyrus.sample.chat;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Logger;
+
+import javax.websocket.CloseReason;
+import javax.websocket.RemoteEndpoint;
+import javax.websocket.Session;
+import javax.websocket.WebSocketClose;
+import javax.websocket.server.WebSocketEndpoint;
+import javax.websocket.WebSocketMessage;
+import javax.websocket.WebSocketOpen;
+import javax.websocket.server.DefaultServerConfiguration;
+
 import org.glassfish.tyrus.sample.chat.chatdata.ChatTranscriptUpdateMessage;
 import org.glassfish.tyrus.sample.chat.chatdata.ChatUpdateMessage;
 import org.glassfish.tyrus.sample.chat.chatdata.DisconnectRequestMessage;
@@ -46,21 +61,6 @@ import org.glassfish.tyrus.sample.chat.chatdata.DisconnectResponseMessage;
 import org.glassfish.tyrus.sample.chat.chatdata.LoginRequestMessage;
 import org.glassfish.tyrus.sample.chat.chatdata.LoginResponseMessage;
 import org.glassfish.tyrus.sample.chat.chatdata.UserListUpdateMessage;
-import org.glassfish.tyrus.server.DefaultEndpointFactory;
-
-import javax.websocket.CloseReason;
-import javax.websocket.RemoteEndpoint;
-import javax.websocket.Session;
-import javax.websocket.WebSocketClose;
-import javax.websocket.WebSocketEndpoint;
-import javax.websocket.WebSocketMessage;
-import javax.websocket.WebSocketOpen;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Logger;
 
 
 @WebSocketEndpoint(value = "/chat",
@@ -68,7 +68,7 @@ import java.util.logging.Logger;
                 org.glassfish.tyrus.sample.chat.chatdata.ChatUpdateDecoder.class,
                 org.glassfish.tyrus.sample.chat.chatdata.DisconnectRequestDecoder.class},
         encoders = {org.glassfish.tyrus.sample.chat.chatdata.DisconnectResponseEncoder.class},
-        factory = DefaultEndpointFactory.class)
+        configuration = DefaultServerConfiguration.class)
 public class ChatServer {
 
     final static Logger logger = Logger.getLogger("application");

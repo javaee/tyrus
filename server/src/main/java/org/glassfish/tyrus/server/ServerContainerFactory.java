@@ -39,11 +39,11 @@
  */
 package org.glassfish.tyrus.server;
 
+import java.util.logging.Logger;
+
 import org.glassfish.tyrus.OsgiRegistry;
 import org.glassfish.tyrus.TyrusContainerProvider;
 import org.glassfish.tyrus.spi.TyrusContainer;
-
-import java.util.logging.Logger;
 
 /**
  * Factory for creating server containers.
@@ -63,7 +63,6 @@ public class ServerContainerFactory {
         } catch (Throwable e) {
             osgiRegistry = null;
         }
-
     }
 
     /**
@@ -94,7 +93,7 @@ public class ServerContainerFactory {
         }
         Logger.getLogger(ServerContainerFactory.class.getName()).info("Provider class loaded: " + providerClassName);
         TyrusServerContainer container = create(providerClass, contextPath, port, configuration);
-        TyrusContainerProvider.getServerProvider().setContainer(container);
+        TyrusContainerProvider.getContainerProvider().setContainer(container);
         return container;
     }
 

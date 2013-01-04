@@ -44,7 +44,6 @@ package org.glassfish.tyrus.test.e2e.bean;
 import javax.websocket.WebSocketEndpoint;
 import javax.websocket.WebSocketMessage;
 
-import org.glassfish.tyrus.test.e2e.TestEndpointFactory;
 import org.json.JSONException;
 import org.json.JSONObject;
 

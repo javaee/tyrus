@@ -40,12 +40,11 @@
 
 package org.glassfish.tyrus.sample.echo;
 
-import org.glassfish.tyrus.server.DefaultEndpointFactory;
-
-import javax.websocket.WebSocketEndpoint;
 import javax.websocket.WebSocketMessage;
+import javax.websocket.server.DefaultServerConfiguration;
+import javax.websocket.server.WebSocketEndpoint;
 
-@WebSocketEndpoint(value = "/echo", factory = DefaultEndpointFactory.class)
+@WebSocketEndpoint(value = "/echo", configuration = DefaultServerConfiguration.class)
 public class EchoBean {
 
     @WebSocketMessage

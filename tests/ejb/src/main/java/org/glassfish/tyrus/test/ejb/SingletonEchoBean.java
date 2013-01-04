@@ -42,15 +42,17 @@ package org.glassfish.tyrus.test.ejb;
 
 import javax.ejb.EJB;
 import javax.ejb.Stateless;
+
 import javax.websocket.Session;
-import javax.websocket.WebSocketEndpoint;
+import javax.websocket.server.DefaultServerConfiguration;
+import javax.websocket.server.WebSocketEndpoint;
 import javax.websocket.WebSocketMessage;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 @Stateless
-@WebSocketEndpoint(value = "/singleton", factory = TestEndpointFactory.class)
+@WebSocketEndpoint(value = "/singleton", configuration = DefaultServerConfiguration.class)
 public class SingletonEchoBean {
 
     private int counter = 0;
@@ -61,6 +63,6 @@ public class SingletonEchoBean {
     @WebSocketMessage
     public String doThat(String message, Session peer) {
         counter++;
-        return rmp.getMessage()+counter;
+        return rmp.getMessage() + counter;
     }
 }

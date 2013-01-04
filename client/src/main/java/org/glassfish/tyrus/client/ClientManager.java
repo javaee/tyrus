@@ -44,12 +44,13 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import javax.websocket.ClientContainer;
 import javax.websocket.ClientEndpointConfiguration;
 import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
+import javax.websocket.Extension;
 import javax.websocket.Session;
 import javax.websocket.WebSocketClient;
+import javax.websocket.WebSocketContainer;
 
 import org.glassfish.tyrus.AnnotatedEndpoint;
 import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
@@ -63,7 +64,7 @@ import org.glassfish.tyrus.spi.TyrusContainer;
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class ClientManager implements ClientContainer {
+public class ClientManager implements WebSocketContainer {
     private static final String ENGINE_PROVIDER_CLASSNAME = "org.glassfish.tyrus.container.grizzly.GrizzlyEngine";
 
     private final Set<TyrusClientSocket> sockets = new HashSet<TyrusClientSocket>();
@@ -87,7 +88,7 @@ public class ClientManager implements ClientContainer {
             Class engineProviderClazz = Class.forName(engineProviderClassname);
             Logger.getLogger(ClientManager.class.getName()).info("Provider class loaded: " + engineProviderClassname);
             ClientManager cm = new ClientManager((TyrusContainer) engineProviderClazz.newInstance());
-            TyrusContainerProvider.getClientProvider().setContainer(cm);
+            TyrusContainerProvider.getContainerProvider().setContainer(cm);
             return cm;
         } catch (Exception e) {
             throw new RuntimeException("Failed to load provider class: " + engineProviderClassname + ".");
@@ -99,13 +100,14 @@ public class ClientManager implements ClientContainer {
     }
 
     @Override
-    public Session connectToServer(Object endpoint, URI uri) throws DeploymentException {
-        return connectToServer(endpoint, null, uri.toString());
+    public Session connectToServer(Class annotatedEndpointClass, URI path) throws DeploymentException {
+        // TODO
+        return connectToServer(annotatedEndpointClass, null, path.toString());
     }
 
     @Override
-    public Session connectToServer(Endpoint endpoint, ClientEndpointConfiguration clientEndpointConfiguration, URI uri) throws DeploymentException {
-        return connectToServer(endpoint, clientEndpointConfiguration, uri.toString());
+    public Session connectToServer(Class<? extends Endpoint> endpointClass, ClientEndpointConfiguration cec, URI path) throws DeploymentException {
+        return connectToServer(endpointClass, cec, path.toString());
     }
 
     @Override
@@ -150,7 +152,7 @@ public class ClientManager implements ClientContainer {
     }
 
     /**
-     * TBD - should be present in {@link ClientContainer}.
+     * TBD - should be present in {@link WebSocketContainer}.
      */
     public void close() {
         for (TyrusClientSocket s : sockets) {
@@ -189,7 +191,17 @@ public class ClientManager implements ClientContainer {
     }
 
     @Override
-    public Set<String> getInstalledExtensions() {
+    public Set<Extension> getInstalledExtensions() {
         return null;
+    }
+
+    @Override
+    public long getDefaultAsyncSendTimeout() {
+        return 0;  // TODO: Implement.
+    }
+
+    @Override
+    public void setAsyncSendTimeout(long timeoutmillis) {
+        // TODO: Implement.
     }
 }

@@ -56,7 +56,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.websocket.ClientContainer;
 import javax.websocket.CloseReason;
 import javax.websocket.DecodeException;
 import javax.websocket.Decoder;
@@ -64,8 +63,10 @@ import javax.websocket.EncodeException;
 import javax.websocket.Encoder;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfiguration;
-import javax.websocket.ServerEndpointConfiguration;
+import javax.websocket.Extension;
 import javax.websocket.Session;
+import javax.websocket.WebSocketContainer;
+import javax.websocket.server.ServerEndpointConfiguration;
 
 import org.glassfish.tyrus.internal.PathPattern;
 import org.glassfish.tyrus.spi.SPIEndpoint;
@@ -84,7 +85,7 @@ public class EndpointWrapper extends SPIEndpoint {
     /**
      * The container for this session.
      */
-    private final ClientContainer container;
+    private final WebSocketContainer container;
     private final String contextPath;
 
     private final List<DecoderWrapper> decoders = new ArrayList<DecoderWrapper>();
@@ -101,7 +102,7 @@ public class EndpointWrapper extends SPIEndpoint {
     private boolean isSecure;
     private String queryString;
 
-    public EndpointWrapper(Endpoint endpoint, EndpointConfiguration configuration, ClientContainer container,
+    public EndpointWrapper(Endpoint endpoint, EndpointConfiguration configuration, WebSocketContainer container,
                            String contextPath) {
         this.endpoint = endpoint;
         this.configuration = configuration == null ? new EndpointConfiguration() {
@@ -258,7 +259,7 @@ public class EndpointWrapper extends SPIEndpoint {
     }
 
     @Override
-    public List<String> getNegotiatedExtensions(List<String> clientExtensions) {
+    public List<Extension> getNegotiatedExtensions(List<Extension> clientExtensions) {
 
         ServerEndpointConfiguration sec;
 
@@ -298,7 +299,7 @@ public class EndpointWrapper extends SPIEndpoint {
     }
 
     @Override
-    public Session createSessionForRemoteEndpoint(SPIRemoteEndpoint re, String subprotocol, List<String> extensions) {
+    public Session createSessionForRemoteEndpoint(SPIRemoteEndpoint re, String subprotocol, List<Extension> extensions) {
 
         return new SessionImpl(container, re, this, subprotocol, extensions, isSecure,
                 uri == null ? null : URI.create(uri), queryString, templateValues);
@@ -310,12 +311,12 @@ public class EndpointWrapper extends SPIEndpoint {
     }
 
     @Override
-    public void onConnect(SPIRemoteEndpoint gs, String subprotocol, List<String> extensions) {
+    public void onConnect(SPIRemoteEndpoint gs, String subprotocol, List<Extension> extensions) {
         // create a new session
         SessionImpl session = new SessionImpl(container, gs, this, subprotocol, extensions, isSecure,
                 uri == null ? null : URI.create(uri), queryString, templateValues);
         remoteEndpointToSession.put(gs, session);
-        endpoint.onOpen(session);
+        endpoint.onOpen(session, configuration);
     }
 
     @Override
@@ -360,12 +361,7 @@ public class EndpointWrapper extends SPIEndpoint {
     public void onClose(SPIRemoteEndpoint gs) {
         // TODO: where should I get the CloseReason from?
 
-        // TODO XXX FIXME: Endpoint.onClose should have Session parameter.
-        if (endpoint instanceof AnnotatedEndpoint) {
-            ((AnnotatedEndpoint) endpoint).onClose(new CloseReason(null, "Normal Closure"), remoteEndpointToSession.get(gs));
-        } else {
-            endpoint.onClose(new CloseReason(null, "Normal Closure"));
-        }
+        endpoint.onClose(remoteEndpointToSession.get(gs), new CloseReason(null, "Normal Closure"));
         remoteEndpointToSession.remove(gs);
     }
 
