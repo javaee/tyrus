@@ -56,6 +56,7 @@ import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.websockets.WebSocketEngine;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -71,6 +72,7 @@ public class HandshakeTest {
 
     private static final String SENT_MESSAGE = "hello";
 
+    @Ignore
     @Test
     public void testClient() {
         Server server = new Server(TestBean.class);

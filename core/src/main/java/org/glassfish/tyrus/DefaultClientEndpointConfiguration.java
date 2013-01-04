@@ -40,11 +40,11 @@
 package org.glassfish.tyrus;
 
 import java.util.List;
-import java.util.Map;
 
 import javax.websocket.ClientEndpointConfiguration;
 import javax.websocket.Decoder;
 import javax.websocket.Encoder;
+import javax.websocket.HandshakeRequest;
 import javax.websocket.HandshakeResponse;
 
 /**
@@ -86,9 +86,10 @@ public class DefaultClientEndpointConfiguration extends DefaultEndpointConfigura
     }
 
     @Override
-    public void beforeRequest(Map<String, List<String>> stringListMap) {
+    public void beforeRequest(HandshakeRequest handshakeRequest) {
 
     }
+
 
     @Override
     public void afterResponse(HandshakeResponse handshakeResponse) {

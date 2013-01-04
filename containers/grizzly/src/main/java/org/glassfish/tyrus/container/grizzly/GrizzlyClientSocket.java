@@ -142,7 +142,8 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
                     protocolHandler.setConnection(connection);
                     WebSocketEngine.WebSocketHolder holder = WebSocketEngine.getEngine().setWebSocketHolder(connection, protocolHandler, GrizzlyClientSocket.this);
                     holder.handshake = protocolHandler.createHandShake(uri);
-                    prepareHandshake(holder.handshake);
+                    //TODO uncomment once API switch is made
+                    //prepareHandshake(holder.handshake);
                 }
             };
 
@@ -198,8 +199,8 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
             String value = entry.getValue();
             adaptedHeaders.put(entry.getKey(), value == null ? null : Arrays.asList(value));
         }
-
-        clc.beforeRequest(adaptedHeaders);
+        //TODO uncomment once API switch is made.
+        //clc.beforeRequest(adaptedHeaders);
         headers.clear();
 
         for(Map.Entry<String, List<String>> entry : adaptedHeaders.entrySet()) {
