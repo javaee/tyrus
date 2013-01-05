@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -40,16 +40,15 @@
 
 package org.glassfish.tyrus.test.ejb;
 
-import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
-
-import javax.websocket.EndpointConfiguration;
-import javax.websocket.Session;
-
 import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+
+import javax.websocket.Session;
+
+import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
+import org.glassfish.tyrus.client.ClientManager;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
