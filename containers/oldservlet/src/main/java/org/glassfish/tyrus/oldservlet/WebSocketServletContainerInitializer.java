@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011 - 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -79,15 +79,16 @@
 
 package org.glassfish.tyrus.oldservlet;
 
-import org.glassfish.tyrus.server.ContainerConfig;
+import java.util.Set;
+
+import javax.websocket.server.WebSocketEndpoint;
 
 import javax.servlet.ServletContainerInitializer;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.HandlesTypes;
-import javax.websocket.WebSocketEndpoint;
 
-import java.util.Set;
+import org.glassfish.tyrus.server.ContainerConfig;
 
 /**
  * Registers a context listener to handle WebSocketEndpoint endpoints.

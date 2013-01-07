@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -42,25 +42,21 @@ package org.glassfish.tyrus;
 import java.lang.reflect.Method;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import javax.websocket.ClientContainer;
-import javax.websocket.ServerContainer;
+
+import javax.websocket.WebSocketContainer;
+
 import org.glassfish.tyrus.javax.websocket.ContainerProvider;
 
 /**
  * @author Martin Matula (martin.matula at oracle.com)
  */
 public class TyrusContainerProvider<T> extends ContainerProvider {
-    private static final TyrusContainerProvider<ClientContainer> CLIENT = new TyrusContainerProvider<ClientContainer>();
-    private static final TyrusContainerProvider<ServerContainer> SERVER = new TyrusContainerProvider<ServerContainer>();
+    private static final TyrusContainerProvider<WebSocketContainer> CONTAINER = new TyrusContainerProvider<WebSocketContainer>();
 
     private final Map<ClassLoader, T> clToContainerMap = new ConcurrentHashMap<ClassLoader, T>();
 
-    public static TyrusContainerProvider<ServerContainer> getServerProvider() {
-        return SERVER;
-    }
-
-    public static TyrusContainerProvider<ClientContainer> getClientProvider() {
-        return CLIENT;
+    public static TyrusContainerProvider<WebSocketContainer> getContainerProvider() {
+        return CONTAINER;
     }
 
     public T getContainer() {
@@ -83,8 +79,7 @@ public class TyrusContainerProvider<T> extends ContainerProvider {
         try {
             Class<?> realProviderClass = Class.forName(TyrusContainerProvider.class.getName(), true,
                     Thread.currentThread().getContextClassLoader());
-            Method getContainerType = realProviderClass.getMethod("get" +
-                    (containerClass == ServerContainer.class ? "Server" : "Client") + "Provider");
+            Method getContainerType = realProviderClass.getMethod("getContainerProvider");
             Object provider = getContainerType.invoke(null);
             Method getContainer = realProviderClass.getMethod("getContainer");
             //noinspection unchecked

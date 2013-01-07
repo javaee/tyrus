@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -42,12 +42,20 @@ package org.glassfish.tyrus.test.e2e;
 
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfiguration;
+import javax.websocket.Session;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 public abstract class TestEndpointAdapter extends Endpoint {
     public abstract void onMessage(String message);
+
+    public abstract void onOpen(Session session);
+
+    @Override
+    public void onOpen(Session session, EndpointConfiguration config) {
+        onOpen(session);
+    }
 
     public EndpointConfiguration getEndpointConfiguration(){
         return null;

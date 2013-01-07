@@ -116,8 +116,8 @@
     </developers>
 
     <properties>
-        <websocket-api.version>1.0-b09</websocket-api.version>
-        <websocket.api.build_number>08</websocket.api.build_number>
+        <websocket-api.version>1.0-b11</websocket-api.version>
+        <websocket.api.build_number>11</websocket.api.build_number>
 
         <servlet.api.version>3.0.1</servlet.api.version>
         <grizzly.version>2.3-rc1</grizzly.version>

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011 - 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -44,6 +44,7 @@ import java.util.List;
 import javax.websocket.Decoder;
 import javax.websocket.Encoder;
 import javax.websocket.EndpointConfiguration;
+import javax.websocket.Extension;
 
 /**
  * Default configuration implementation, immutable.
@@ -70,9 +71,9 @@ public abstract class DefaultEndpointConfiguration implements EndpointConfigurat
     /**
      * {@link java.util.Collections.UnmodifiableList} of extensions supported by the corresponding {@link javax.websocket.Endpoint}.
      */
-    protected final List<String> extensions;
+    protected final List<Extension> extensions;
 
-    protected DefaultEndpointConfiguration(List<Encoder> encoders, List<Decoder> decoders, List<String> subprotocols, List<String> extensions) {
+    protected DefaultEndpointConfiguration(List<Encoder> encoders, List<Decoder> decoders, List<String> subprotocols, List<Extension> extensions) {
         if (encoders != null) {
             this.encoders = Collections.unmodifiableList(encoders);
         } else {
@@ -124,7 +125,7 @@ public abstract class DefaultEndpointConfiguration implements EndpointConfigurat
         protected List<Encoder> encoders;
         protected List<Decoder> decoders;
         protected List<String> protocols;
-        protected List<String> extensions;
+        protected List<Extension> extensions;
 
         /**
          * Set encoders.
@@ -173,7 +174,7 @@ public abstract class DefaultEndpointConfiguration implements EndpointConfigurat
          * @return {@link Builder}.
          */
         @SuppressWarnings({"unchecked"})
-        public T extensions(List<String> extensions) {
+        public T extensions(List<Extension> extensions) {
             this.extensions = extensions;
             return (T) this;
         }

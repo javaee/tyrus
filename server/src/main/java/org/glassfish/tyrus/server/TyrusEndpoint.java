@@ -48,13 +48,13 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.websocket.Extension;
 import javax.websocket.Session;
 
 import org.glassfish.tyrus.spi.SPIEndpoint;
 import org.glassfish.tyrus.spi.SPIRegisteredEndpoint;
 import org.glassfish.tyrus.websockets.DataFrame;
 import org.glassfish.tyrus.websockets.DefaultWebSocket;
-import org.glassfish.tyrus.websockets.Extension;
 import org.glassfish.tyrus.websockets.ProtocolHandler;
 import org.glassfish.tyrus.websockets.WebSocket;
 import org.glassfish.tyrus.websockets.WebSocketApplication;
@@ -79,7 +79,7 @@ public class TyrusEndpoint extends WebSocketApplication implements SPIRegistered
     /**
      * Used to store negotiated extensions between the call of isApplicationRequest method and getSupportedExtensions.
      */
-    private List<String> temporaryNegotiatedExtensions;
+    private List<Extension> temporaryNegotiatedExtensions;
 
     /**
      * Used to store negotiated protocol between the call of isApplicationRequest method and getSupportedProtocols.
@@ -103,7 +103,9 @@ public class TyrusEndpoint extends WebSocketApplication implements SPIRegistered
         temporaryNegotiatedProtocol = endpoint.getNegotiatedProtocol(protocols == null ? Collections.<String>emptyList() : Arrays.asList(protocols.split(",")));
 
         String extensions = o.getHeaders().get(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER);
-        temporaryNegotiatedExtensions = endpoint.getNegotiatedExtensions(extensions == null ? Collections.<String>emptyList() : Arrays.asList(extensions.split(",")));
+        // TODO
+        // temporaryNegotiatedExtensions = endpoint.getNegotiatedExtensions(extensions == null ? Collections.<Extension>emptyList() : Arrays.asList(extensions.split(",")));
+        temporaryNegotiatedExtensions = endpoint.getNegotiatedExtensions(Collections.<Extension>emptyList());
 
         return endpoint.checkHandshake(new TyrusHandshakeRequest(o));
     }
@@ -179,11 +181,11 @@ public class TyrusEndpoint extends WebSocketApplication implements SPIRegistered
     }
 
     @Override
-    public List<Extension> getSupportedExtensions() {
-        List<Extension> grizzlyExtensions = new ArrayList<Extension>();
+    public List<org.glassfish.tyrus.websockets.Extension> getSupportedExtensions() {
+        List<org.glassfish.tyrus.websockets.Extension> grizzlyExtensions = new ArrayList<org.glassfish.tyrus.websockets.Extension>();
 
-        for (String ext : temporaryNegotiatedExtensions) {
-            grizzlyExtensions.add(new Extension(ext));
+        for (Extension ext : temporaryNegotiatedExtensions) {
+            grizzlyExtensions.add(new org.glassfish.tyrus.websockets.Extension(ext.getName()));
         }
 
         return grizzlyExtensions;

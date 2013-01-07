@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -39,23 +39,22 @@
  */
 package org.glassfish.tyrus.test.e2e.bean;
 
-import org.glassfish.tyrus.test.e2e.TestEndpointFactory;
-
-import javax.websocket.EncodeException;
-import javax.websocket.Session;
-import javax.websocket.WebSocketEndpoint;
-import javax.websocket.WebSocketMessage;
-import javax.websocket.WebSocketOpen;
-
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
+
+import javax.websocket.EncodeException;
+import javax.websocket.Session;
+import javax.websocket.WebSocketMessage;
+import javax.websocket.WebSocketOpen;
+import javax.websocket.server.DefaultServerConfiguration;
+import javax.websocket.server.WebSocketEndpoint;
 
 /**
  * @author Martin Matula (martin.matula at oracle.com)
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-@WebSocketEndpoint(value = "/broadcast",factory = TestEndpointFactory.class)
+@WebSocketEndpoint(value = "/broadcast",configuration = DefaultServerConfiguration.class)
 public class BroadcasterTestBean {
 
     private Set<Session> connections = new HashSet<Session>();

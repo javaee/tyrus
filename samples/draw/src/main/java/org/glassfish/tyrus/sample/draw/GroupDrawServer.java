@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011 - 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -39,25 +39,24 @@
  */
 package org.glassfish.tyrus.sample.draw;
 
-import org.glassfish.tyrus.server.DefaultEndpointFactory;
-
-import javax.websocket.EncodeException;
-import javax.websocket.Session;
-import javax.websocket.WebSocketClose;
-import javax.websocket.WebSocketEndpoint;
-import javax.websocket.WebSocketMessage;
-import javax.websocket.WebSocketOpen;
-
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.websocket.EncodeException;
+import javax.websocket.Session;
+import javax.websocket.WebSocketClose;
+import javax.websocket.WebSocketMessage;
+import javax.websocket.WebSocketOpen;
+import javax.websocket.server.DefaultServerConfiguration;
+import javax.websocket.server.WebSocketEndpoint;
+
 /**
  * @author Danny Coward (danny.coward at oracle.com)
  */
 
-@WebSocketEndpoint(value = "/draw", factory = DefaultEndpointFactory.class)
+@WebSocketEndpoint(value = "/draw", configuration = DefaultServerConfiguration.class)
 public class GroupDrawServer {
 
     private Set<Session> peers = Collections.newSetFromMap(new ConcurrentHashMap<Session, Boolean>());

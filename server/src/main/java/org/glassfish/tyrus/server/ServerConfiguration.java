@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -52,7 +52,7 @@ import javax.websocket.Endpoint;
  */
 public interface ServerConfiguration {
     /**
-     * Returns a set of endpoint classes annotated with {@link javax.websocket.WebSocketEndpoint}
+     * Returns a set of endpoint classes annotated with {@link javax.websocket.server.WebSocketEndpoint}
      * annotation that should be published by the container initialized with this configuration object.
      *
      * @return Set of annotated endpoint classes to be exposed by the server.

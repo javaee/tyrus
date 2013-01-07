@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011 - 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -40,17 +40,16 @@
 
 package org.glassfish.tyrus.test.e2e.bean;
 
-import org.glassfish.tyrus.test.e2e.TestEndpointFactory;
-
 import javax.websocket.Session;
-import javax.websocket.WebSocketEndpoint;
 import javax.websocket.WebSocketMessage;
+import javax.websocket.server.DefaultServerConfiguration;
+import javax.websocket.server.WebSocketEndpoint;
 
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)
  */
-@WebSocketEndpoint(value = "/customremote/hello",factory = TestEndpointFactory.class)
+@WebSocketEndpoint(value = "/customremote/hello",configuration = DefaultServerConfiguration.class)
 public class SimpleRemoteTestBean {
     @WebSocketMessage
     public void handleIncomingMessage(String message, Session remote) {

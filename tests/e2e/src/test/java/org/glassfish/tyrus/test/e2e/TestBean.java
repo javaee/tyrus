@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -41,18 +41,19 @@
 package org.glassfish.tyrus.test.e2e;
 
 
+import java.io.IOException;
+
 import javax.websocket.Session;
-import javax.websocket.WebSocketEndpoint;
 import javax.websocket.WebSocketMessage;
 import javax.websocket.WebSocketOpen;
-
-import java.io.IOException;
+import javax.websocket.server.DefaultServerConfiguration;
+import javax.websocket.server.WebSocketEndpoint;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 
-@WebSocketEndpoint(value = "/echo", subprotocols = {"asd"}, factory = TestEndpointFactory.class)
+@WebSocketEndpoint(value = "/echo", subprotocols = {"asd"}, configuration = DefaultServerConfiguration.class)
 public class TestBean {
     @WebSocketOpen
     public void onOpen(Session s) {

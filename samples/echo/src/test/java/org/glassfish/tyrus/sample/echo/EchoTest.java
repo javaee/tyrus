@@ -50,6 +50,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
+import javax.websocket.EndpointConfiguration;
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 
@@ -134,7 +135,7 @@ public class EchoTest {
         final ClientManager client = ClientManager.createClient();
         client.connectToServer(new Endpoint() {
             @Override
-            public void onOpen(Session session) {
+            public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
                 try {
                     session.addMessageHandler(new MessageHandler.Basic<String>() {
                         @Override
@@ -148,8 +149,7 @@ public class EchoTest {
                 } catch (IOException e) {
                     // do nothing
                 }
-            }
-        }, new DefaultClientEndpointConfiguration.Builder().build(), getURI());
+            }        }, new DefaultClientEndpointConfiguration.Builder().build(), getURI());
 
         messageLatch.await(1, TimeUnit.SECONDS);
         if (messageLatch.getCount() != 0) {

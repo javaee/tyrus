@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011 - 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -48,10 +48,11 @@ import javax.websocket.ClientEndpointConfiguration;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.Session;
 import javax.websocket.WebSocketClose;
-import javax.websocket.WebSocketEndpoint;
 import javax.websocket.WebSocketError;
 import javax.websocket.WebSocketMessage;
 import javax.websocket.WebSocketOpen;
+import javax.websocket.server.DefaultServerConfiguration;
+import javax.websocket.server.WebSocketEndpoint;
 
 import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
@@ -79,7 +80,7 @@ public class ErrorTest {
      */
     @WebSocketEndpoint(
             value = "/open",
-            factory = TestEndpointFactory.class
+            configuration = DefaultServerConfiguration.class
     )
     public static class OnOpenErrorTestBean {
         public static Throwable throwable;
@@ -153,7 +154,7 @@ public class ErrorTest {
      */
     @WebSocketEndpoint(
             value = "/close",
-            factory = TestEndpointFactory.class
+            configuration = DefaultServerConfiguration.class
     )
     public static class OnCloseErrorTestBean {
         public static Throwable throwable;

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -39,15 +39,15 @@
  */
 package org.glassfish.tyrus.sample.programmaticecho;
 
-import org.glassfish.tyrus.server.ContainerConfig;
-import org.glassfish.tyrus.server.DefaultServerConfiguration;
+import java.io.IOException;
 
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 
-import java.io.IOException;
+import org.glassfish.tyrus.server.ContainerConfig;
+import org.glassfish.tyrus.server.DefaultServerConfiguration;
 
 /**
  * @author Martin Matula (martin.matula at oracle.com)
@@ -65,7 +65,7 @@ public class MyWsConfiguration extends DefaultServerConfiguration {
 //        }
 
         @Override
-        public void onOpen(final Session session) {
+        public void onOpen(final Session session, final EndpointConfiguration endpointConfiguration) {
             session.addMessageHandler(new MessageHandler.Basic<String>() {
                 @Override
                 public void onMessage(String message) {

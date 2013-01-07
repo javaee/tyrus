@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -43,14 +43,15 @@ import java.nio.ByteBuffer;
 
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
-import javax.websocket.WebSocketEndpoint;
 import javax.websocket.WebSocketOpen;
+import javax.websocket.server.DefaultServerConfiguration;
+import javax.websocket.server.WebSocketEndpoint;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)
  */
 
-@WebSocketEndpoint(value = "/pingpong",factory = TestEndpointFactory.class)
+@WebSocketEndpoint(value = "/pingpong",configuration = DefaultServerConfiguration.class)
 public class PingPongServer {
     static boolean gotCorrectMessage = false;
     private static String SERVER_MESSAGE = "server ping data!";

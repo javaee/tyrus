@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -41,16 +41,18 @@ package org.glassfish.tyrus.test.e2e;
 
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
+
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
-import javax.websocket.WebSocketEndpoint;
 import javax.websocket.WebSocketOpen;
+import javax.websocket.server.DefaultServerConfiguration;
+import javax.websocket.server.WebSocketEndpoint;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)
  * @author Martin Matula (martin.matula at oracle.com)
  */
-@WebSocketEndpoint(value = "/streamingtext",factory = TestEndpointFactory.class)
+@WebSocketEndpoint(value = "/streamingtext",configuration = DefaultServerConfiguration.class)
 public class StreamingTextServer {
     private Session session;
     static CountDownLatch messageLatch;

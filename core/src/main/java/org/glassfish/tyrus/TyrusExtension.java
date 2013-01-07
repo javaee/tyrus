@@ -37,18 +37,54 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.tests.servlet.basic;
+package org.glassfish.tyrus;
 
-import javax.websocket.EndpointFactory;
+import java.util.Collections;
+import java.util.Map;
+
+import javax.websocket.Extension;
 
 /**
- * TODO: To be removed.
+ * WebSocket {@link Extension} implementation.
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class NoopEndpointFactory implements EndpointFactory {
+public class TyrusExtension implements Extension {
+
+    private final String name;
+    private final Map<String, String> parameters;
+
+    /**
+     * Create {@link Extension} with specific name.
+     *
+     * @param name extension name.
+     */
+    public TyrusExtension(String name) {
+        this(name, null);
+    }
+
+    /**
+     * Create {@link Extension} with name and parameters.
+     *
+     * @param name extension name.
+     * @param parameters extension parameters.
+     */
+    public TyrusExtension(String name, Map<String, String> parameters) {
+        this.name = name;
+        if(parameters != null) {
+            this.parameters = Collections.unmodifiableMap(parameters);
+        } else {
+            this.parameters = Collections.unmodifiableMap(Collections.<String, String>emptyMap());
+        }
+    }
+
     @Override
-    public Object createEndpoint() {
-        return null;
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public Map<String, String> getParameters() {
+        return parameters;
     }
 }

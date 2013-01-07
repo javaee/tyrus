@@ -49,14 +49,15 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.EndpointConfiguration;
+import javax.websocket.Extension;
 import javax.websocket.Session;
 
+import org.glassfish.tyrus.TyrusExtension;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.websockets.WebSocketEngine;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -72,7 +73,6 @@ public class HandshakeTest {
 
     private static final String SENT_MESSAGE = "hello";
 
-    @Ignore
     @Test
     public void testClient() {
         Server server = new Server(TestBean.class);
@@ -85,9 +85,9 @@ public class HandshakeTest {
             subprotocols.add("asd");
             subprotocols.add("ghi");
 
-            ArrayList<String> extensions = new ArrayList<String>();
-            extensions.add("ext1");
-            extensions.add("ext2");
+            ArrayList<Extension> extensions = new ArrayList<Extension>();
+            extensions.add(new TyrusExtension("ext1"));
+            extensions.add(new TyrusExtension("ext2"));
 
             TestClientEndpointConfiguration.Builder builder = new TestClientEndpointConfiguration.Builder();
             builder.protocols(subprotocols);

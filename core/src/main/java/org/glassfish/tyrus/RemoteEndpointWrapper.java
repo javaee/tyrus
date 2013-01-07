@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011 - 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -177,6 +177,31 @@ public final class RemoteEndpointWrapper implements RemoteEndpoint {
     @Override
     public String toString() {
         return "Wrapped: " + getClass().getSimpleName();
+    }
+
+    @Override
+    public void setBatchingAllowed(boolean allowed) {
+        // TODO: Implement.
+    }
+
+    @Override
+    public boolean getBatchingAllowed() {
+        return false;  // TODO: Implement.
+    }
+
+    @Override
+    public void flushBatch() {
+        // TODO: Implement.
+    }
+
+    @Override
+    public long getAsyncSendTimeout() {
+        return 0;  // TODO: Implement.
+    }
+
+    @Override
+    public void setAsyncSendTimeout(long timeoutmillis) {
+        // TODO: Implement.
     }
 
     private void sendPrimitiveMessage(Object data) throws IOException, EncodeException {

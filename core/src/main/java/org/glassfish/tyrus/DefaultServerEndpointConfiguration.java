@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -46,17 +46,18 @@ import java.util.List;
 
 import javax.websocket.Decoder;
 import javax.websocket.Encoder;
-import javax.websocket.EndpointFactory;
-import javax.websocket.HandshakeRequest;
+import javax.websocket.Endpoint;
+import javax.websocket.Extension;
 import javax.websocket.HandshakeResponse;
-import javax.websocket.ServerEndpointConfiguration;
+import javax.websocket.server.HandshakeRequest;
+import javax.websocket.server.ServerEndpointConfiguration;
 
 /**
  * Provides the default {@link ServerEndpointConfiguration}.
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class DefaultServerEndpointConfiguration<T> extends DefaultEndpointConfiguration implements ServerEndpointConfiguration<T> {
+public class DefaultServerEndpointConfiguration extends DefaultEndpointConfiguration implements ServerEndpointConfiguration {
 
     /**
      * List of allowed origins. If not set, the test origin test will be always successful.
@@ -75,16 +76,11 @@ public class DefaultServerEndpointConfiguration<T> extends DefaultEndpointConfig
      * @param origins      accepted origins.
      */
     protected DefaultServerEndpointConfiguration(String uri, List<Encoder> encoders, List<Decoder> decoders,
-                                                 List<String> subprotocols, List<String> extensions,
+                                                 List<String> subprotocols, List<Extension> extensions,
                                                  List<String> origins) {
         super(encoders, decoders, subprotocols, extensions);
         this.uri = uri;
         this.origins = origins == null ? Collections.<String>emptyList() : Collections.unmodifiableList(origins);
-    }
-
-    @Override
-    public EndpointFactory<T> getEndpointFactory() {
-        return null;
     }
 
     @Override
@@ -101,12 +97,17 @@ public class DefaultServerEndpointConfiguration<T> extends DefaultEndpointConfig
     }
 
     @Override
-    public List<String> getNegotiatedExtensions(List<String> requestedExtensions) {
-        List<String> result = new ArrayList<String>();
+    public Class<? extends Endpoint> getEndpointClass() {
+        return null;
+    }
+
+    @Override
+    public List<Extension> getNegotiatedExtensions(List<Extension> requestedExtensions) {
+        List<Extension> result = new ArrayList<Extension>();
 
         if (requestedExtensions != null) {
-            for (String requestedExtension : requestedExtensions) {
-                for (String extension : extensions) {
+            for (Extension requestedExtension : requestedExtensions) {
+                for (Extension extension : extensions) {
                     if (extension.equals(requestedExtension)) {
                         result.add(requestedExtension);
                     }

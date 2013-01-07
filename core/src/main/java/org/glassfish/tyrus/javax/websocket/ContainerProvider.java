@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -39,10 +39,10 @@
  */
 package org.glassfish.tyrus.javax.websocket;
 
-import javax.websocket.ClientContainer;
-import javax.websocket.ServerContainer;
 import java.util.Iterator;
 import java.util.ServiceLoader;
+
+import javax.websocket.WebSocketContainer;
 
 /**
  * @author Martin Matula (martin.matula at oracle.com)
@@ -66,12 +66,8 @@ public abstract class ContainerProvider {
         }
     }
 
-    public static ServerContainer getServerContainer() {
-        return INSTANCE.getContainer(ServerContainer.class);
-    }
-
-    public static ClientContainer getClientContainer() {
-        return INSTANCE.getContainer(ClientContainer.class);
+    public static WebSocketContainer getWebSocketContainer() {
+        return INSTANCE.getContainer(WebSocketContainer.class);
     }
 
     protected abstract <T> T getContainer(Class<T> containerClass);

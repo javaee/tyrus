@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -39,11 +39,11 @@
  */
 package org.glassfish.tyrus.server;
 
+import java.util.logging.Logger;
+
 import org.glassfish.tyrus.OsgiRegistry;
 import org.glassfish.tyrus.TyrusContainerProvider;
 import org.glassfish.tyrus.spi.TyrusContainer;
-
-import java.util.logging.Logger;
 
 /**
  * Factory for creating server containers.
@@ -63,7 +63,6 @@ public class ServerContainerFactory {
         } catch (Throwable e) {
             osgiRegistry = null;
         }
-
     }
 
     /**
@@ -94,7 +93,7 @@ public class ServerContainerFactory {
         }
         Logger.getLogger(ServerContainerFactory.class.getName()).info("Provider class loaded: " + providerClassName);
         TyrusServerContainer container = create(providerClass, contextPath, port, configuration);
-        TyrusContainerProvider.getServerProvider().setContainer(container);
+        TyrusContainerProvider.getContainerProvider().setContainer(container);
         return container;
     }
 

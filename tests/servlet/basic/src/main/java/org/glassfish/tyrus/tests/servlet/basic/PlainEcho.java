@@ -39,7 +39,8 @@
  */
 package org.glassfish.tyrus.tests.servlet.basic;
 
-import javax.websocket.WebSocketEndpoint;
+import javax.websocket.server.DefaultServerConfiguration;
+import javax.websocket.server.WebSocketEndpoint;
 import javax.websocket.WebSocketMessage;
 
 /**
@@ -47,7 +48,7 @@ import javax.websocket.WebSocketMessage;
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-@WebSocketEndpoint(value = "/plainEcho", factory = NoopEndpointFactory.class)
+@WebSocketEndpoint(value = "/plainEcho", configuration = DefaultServerConfiguration.class)
 public class PlainEcho {
 
     @WebSocketMessage

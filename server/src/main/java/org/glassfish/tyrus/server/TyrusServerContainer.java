@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -54,9 +54,10 @@ import javax.websocket.ClientEndpointConfiguration;
 import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfiguration;
-import javax.websocket.ServerContainer;
-import javax.websocket.ServerEndpointConfiguration;
+import javax.websocket.Extension;
 import javax.websocket.Session;
+import javax.websocket.WebSocketContainer;
+import javax.websocket.server.ServerEndpointConfiguration;
 
 import org.glassfish.tyrus.AnnotatedEndpoint;
 import org.glassfish.tyrus.ComponentProviderService;
@@ -70,7 +71,7 @@ import org.glassfish.tyrus.spi.TyrusServer;
  *
  * @author Martin Matula (martin.matula at oracle.com)
  */
-public class TyrusServerContainer extends WithProperties implements ServerContainer {
+public class TyrusServerContainer extends WithProperties implements WebSocketContainer {
     private final TyrusServer server;
     private final String contextPath;
     private final ServerConfiguration configuration;
@@ -178,18 +179,17 @@ public class TyrusServerContainer extends WithProperties implements ServerContai
         server.stop();
     }
 
-    @Override
     public void publishServer(Class<? extends ServerEndpointConfiguration> configuration) throws DeploymentException {
         deploy(configuration);
     }
 
     @Override
-    public Session connectToServer(Object endpoint, URI path) throws DeploymentException {
+    public Session connectToServer(Class annotatedEndpointClass, URI path) throws DeploymentException {
         throw new UnsupportedOperationException();
     }
 
     @Override
-    public Session connectToServer(Endpoint endpoint, ClientEndpointConfiguration clientEndpointConfiguration, URI uri) throws DeploymentException {
+    public Session connectToServer(Class<? extends Endpoint> endpointClass, ClientEndpointConfiguration cec, URI path) throws DeploymentException {
         throw new UnsupportedOperationException();
     }
 
@@ -235,7 +235,20 @@ public class TyrusServerContainer extends WithProperties implements ServerContai
     }
 
     @Override
-    public Set<String> getInstalledExtensions() {
-        return Collections.unmodifiableSet(new HashSet<String>(configuration.getExtensions()));
+    public Set<Extension> getInstalledExtensions() {
+        // TODO
+        // return Collections.unmodifiableSet(new HashSet<String>(configuration.getExtensions()));
+
+        return Collections.emptySet();
+    }
+
+    @Override
+    public long getDefaultAsyncSendTimeout() {
+        return 0;  // TODO: Implement.
+    }
+
+    @Override
+    public void setAsyncSendTimeout(long timeoutmillis) {
+        // TODO: Implement.
     }
 }

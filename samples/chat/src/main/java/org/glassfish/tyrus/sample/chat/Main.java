@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011 - 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -41,7 +41,7 @@
 package org.glassfish.tyrus.sample.chat;
 
 import java.io.IOException;
-import java.util.HashSet;
+
 import org.glassfish.tyrus.server.Server;
 
 /**
@@ -50,14 +50,7 @@ import org.glassfish.tyrus.server.Server;
 public class Main {
 
     public static void main(String[] args) {
-        HashSet<Class<?>> beans = new HashSet<Class<?>>();
-        try {
-            beans.add(Class.forName("org.glassfish.tyrus.sample.chat.ChatServer"));
-        } catch (ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-
-        Server server = new Server("localhost", 8080, "/sample-chat", beans);
+        Server server = new Server("localhost", 8080, "/sample-chat", ChatServer.class);
 
         try {
             server.start();

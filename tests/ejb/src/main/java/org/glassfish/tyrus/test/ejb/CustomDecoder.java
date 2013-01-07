@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -40,9 +40,10 @@
 
 package org.glassfish.tyrus.test.ejb;
 
-import javax.ejb.Stateless;
 import javax.websocket.DecodeException;
 import javax.websocket.Decoder;
+
+import javax.ejb.Stateless;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)

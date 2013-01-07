@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011 - 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -46,11 +46,14 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
+
+import javax.websocket.Endpoint;
+import javax.websocket.server.WebSocketEndpoint;
+
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
-import javax.websocket.Endpoint;
-import javax.websocket.WebSocketEndpoint;
+
 import org.glassfish.tyrus.server.ContainerConfig;
 import org.glassfish.tyrus.server.DefaultServerConfiguration;
 import org.glassfish.tyrus.server.ServerConfiguration;

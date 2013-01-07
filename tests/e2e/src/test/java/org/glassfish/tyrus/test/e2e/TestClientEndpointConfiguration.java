@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -44,6 +44,7 @@ import java.util.List;
 
 import javax.websocket.Decoder;
 import javax.websocket.Encoder;
+import javax.websocket.Extension;
 import javax.websocket.HandshakeResponse;
 
 import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
@@ -62,7 +63,7 @@ public class TestClientEndpointConfiguration extends DefaultClientEndpointConfig
      * Creates a test configuration that will attempt
      * to connect to the given URI.
      */
-    private TestClientEndpointConfiguration(List<Encoder> encoders, List<Decoder> decoders, List<String> subprotocols, List<String> extensions) {
+    private TestClientEndpointConfiguration(List<Encoder> encoders, List<Decoder> decoders, List<String> subprotocols, List<Extension> extensions) {
         super(encoders, decoders, subprotocols, extensions);
     }
 
