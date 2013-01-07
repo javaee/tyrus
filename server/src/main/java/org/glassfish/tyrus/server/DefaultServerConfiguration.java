@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -126,7 +126,7 @@ public class DefaultServerConfiguration implements ServerConfiguration {
     /**
      * Registers a new endpoint annotated class.
      *
-     * @param endpointClass class annotated with {@link javax.websocket.WebSocketEndpoint} annotation.
+     * @param endpointClass class annotated with {@link javax.websocket.server.WebSocketEndpoint} annotation.
      * @return this configuration object.
      */
     public DefaultServerConfiguration endpoint(Class<?> endpointClass) {
@@ -149,7 +149,7 @@ public class DefaultServerConfiguration implements ServerConfiguration {
     /**
      * Registers new endpoint annotated classes.
      *
-     * @param endpointClasses classes annotated with {@link javax.websocket.WebSocketEndpoint}
+     * @param endpointClasses classes annotated with {@link javax.websocket.server.WebSocketEndpoint}
      *                        annotation.
      * @return this configuration object.
      */
@@ -172,7 +172,7 @@ public class DefaultServerConfiguration implements ServerConfiguration {
     /**
      * Registers new endpoint annotated classes.
      *
-     * @param endpointClasses classes annotated with {@link javax.websocket.WebSocketEndpoint}
+     * @param endpointClasses classes annotated with {@link javax.websocket.server.WebSocketEndpoint}
      *                        annotation.
      * @return this configuration object.
      */

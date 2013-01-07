@@ -308,6 +308,13 @@ public class AnnotatedEndpoint extends Endpoint {
                         return session;
                     }
                 };
+            } else if (type == EndpointConfiguration.class) {
+                result[i] = new ParameterExtractor() {
+                    @Override
+                    public Object value(Session session, Object... values) {
+                        return getEndpointConfiguration();
+                    }
+                };
             } else {
                 unknownParams.put(i, type);
             }
@@ -341,7 +348,6 @@ public class AnnotatedEndpoint extends Endpoint {
         return null;
     }
 
-    // TODO XXX FIXME: Add this method to javax.websocket.Endpoint (replace existing onError)
     public void onClose(CloseReason closeReason, Session session) {
         callMethod(onCloseMethod, onCloseParameters, session, closeReason);
     }
@@ -351,7 +357,6 @@ public class AnnotatedEndpoint extends Endpoint {
         onClose(closeReason, session);
     }
 
-    // TODO XXX FIXME: Add this method to javax.websocket.Endpoint (replace existing onError)
     public void onError(Throwable thr, Session session) {
         callMethod(onErrorMethod, onErrorParameters, session, thr);
     }
