@@ -297,10 +297,10 @@ public class ServletTest {
     }
 
     @Test
-    public void testPlainEchoLong50() throws DeploymentException, InterruptedException {
+    public void testPlainEchoLong10() throws DeploymentException, InterruptedException {
         final Server server = startServer();
 
-        final CountDownLatch messageLatch = new CountDownLatch(50);
+        final CountDownLatch messageLatch = new CountDownLatch(10);
 
         try {
             final ClientManager client = ClientManager.createClient();
@@ -316,7 +316,7 @@ public class ServletTest {
                             }
                         });
 
-                        for (int i = 0; i < 50; i++) {
+                        for (int i = 0; i < 10; i++) {
                             session.getRemote().sendString(LONG_MESSAGE);
                         }
                     } catch (IOException e) {

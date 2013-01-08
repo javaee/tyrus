@@ -93,7 +93,7 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
                     fillBuf();
                 }
 
-                LOGGER.info("Remaining Data = " + buf.remaining());
+                LOGGER.finest("Remaining Data = " + buf.remaining());
 
                 if (buf != null && buf.hasRemaining()) {
                     if (webSocketHolder.buffer != null) {
@@ -149,7 +149,7 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
             throw new RuntimeException("No data available.");
         }
         if (buf == null) {
-            LOGGER.info("No Buffer. Allocating new one");
+            LOGGER.finest("No Buffer. Allocating new one");
             buf = ByteBuffer.wrap(data);
             buf.limit(len);
         } else {
@@ -159,7 +159,7 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
 
             if (capacity - limit >= len) {
                 // Remaining data need not be changed. New data is just appended
-                LOGGER.info("Remaining data need not be moved. New data is just appended");
+                LOGGER.finest("Remaining data need not be moved. New data is just appended");
                 buf.mark();
                 buf.position(limit);
                 buf.limit(capacity);
@@ -168,13 +168,13 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
                 buf.reset();
             } else if (remaining + len < capacity) {
                 // Remaining data is moved to left. Then new data is appended
-                LOGGER.info("Remaining data is moved to left. Then new data is appended");
+                LOGGER.finest("Remaining data is moved to left. Then new data is appended");
                 buf.compact();
                 buf.put(data, 0, len);
                 buf.flip();
             } else {
                 // Remaining data + new > capacity. So allocate new one
-                LOGGER.info("Remaining data + new > capacity. So allocate new one");
+                LOGGER.finest("Remaining data + new > capacity. So allocate new one");
                 byte[] array = new byte[remaining + len];
                 buf.get(array, 0, remaining);
                 System.arraycopy(data, 0, array, remaining, len);
