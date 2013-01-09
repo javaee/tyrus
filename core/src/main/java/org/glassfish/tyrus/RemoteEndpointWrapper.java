@@ -58,7 +58,7 @@ import javax.websocket.Session;
 import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
 
 /**
- * Wrapps the {@link RemoteEndpoint} and represents the other side of the websocket connection.
+ * Wraps the {@link RemoteEndpoint} and represents the other side of the websocket connection.
  *
  * @author Danny Coward (danny.coward at oracle.com)
  * @author Martin Matula (martin.matula at oracle.com)
@@ -79,26 +79,22 @@ public final class RemoteEndpointWrapper implements RemoteEndpoint {
     @Override
     public void sendString(String data) throws IOException {
         this.remoteEndpoint.sendString(data);
-        this.session.updateLastConnectionActivity();
     }
 
     @Override
     public void sendBytes(ByteBuffer data) throws IOException {
         this.remoteEndpoint.sendBytes(data);
-        this.session.updateLastConnectionActivity();
     }
 
     @Override
     public void sendPartialString(String fragment, boolean isLast) throws IOException {
         this.remoteEndpoint.sendPartialString(fragment, isLast);
-        this.session.updateLastConnectionActivity();
     }
 
 
     @Override
     public void sendPartialBytes(ByteBuffer byteBuffer, boolean isLast) throws IOException {
         this.remoteEndpoint.sendPartialBytes(byteBuffer, isLast);
-        this.session.updateLastConnectionActivity();
     }
 
     @Override
@@ -113,7 +109,6 @@ public final class RemoteEndpointWrapper implements RemoteEndpoint {
 
     @Override
     public void sendObject(Object o) throws IOException, EncodeException {
-        this.session.updateLastConnectionActivity();
         sendPolymorphic(o);
     }
 
@@ -121,57 +116,46 @@ public final class RemoteEndpointWrapper implements RemoteEndpoint {
     public void sendStringByCompletion(String s, SendHandler sendHandler) {
         SendCompletionAdapter goesAway = new SendCompletionAdapter(this, SendCompletionAdapter.State.TEXT);
         goesAway.send(s, sendHandler);
-        this.session.updateLastConnectionActivity();
     }
 
     @Override
     public Future<SendResult> sendStringByFuture(String s) {
         SendCompletionAdapter goesAway = new SendCompletionAdapter(this, SendCompletionAdapter.State.TEXT);
-        Future<SendResult> fsr = goesAway.send(s, null);
-        this.session.updateLastConnectionActivity();
-        return fsr;
+        return goesAway.send(s, null);
     }
 
     @Override
     public Future<SendResult> sendBytesByFuture(ByteBuffer byteBuffer) {
         SendCompletionAdapter goesAway = new SendCompletionAdapter(this, SendCompletionAdapter.State.BINARY);
-        Future<SendResult> fsr = goesAway.send(byteBuffer, null);
-        this.session.updateLastConnectionActivity();
-        return fsr;
+        return goesAway.send(byteBuffer, null);
     }
 
     @Override
     public void sendBytesByCompletion(ByteBuffer byteBuffer, SendHandler sendHandler) {
         SendCompletionAdapter goesAway = new SendCompletionAdapter(this, SendCompletionAdapter.State.BINARY);
         goesAway.send(byteBuffer, sendHandler);
-        this.session.updateLastConnectionActivity();
     }
 
     @Override
     public Future<SendResult> sendObjectByFuture(Object t) {
         SendCompletionAdapter goesAway = new SendCompletionAdapter(this, SendCompletionAdapter.State.OBJECT);
-        Future<SendResult> fsr = goesAway.send(t, null);
-        this.session.updateLastConnectionActivity();
-        return fsr;
+        return goesAway.send(t, null);
     }
 
     @Override
     public void sendObjectByCompletion(Object t, SendHandler sendHandler) {
         SendCompletionAdapter goesAway = new SendCompletionAdapter(this, SendCompletionAdapter.State.BINARY);
         goesAway.send(t, sendHandler);
-        this.session.updateLastConnectionActivity();
     }
 
     @Override
     public void sendPing(ByteBuffer applicationData) {
         this.remoteEndpoint.sendPing(applicationData);
-        this.session.updateLastConnectionActivity();
     }
 
     @Override
     public void sendPong(ByteBuffer applicationData) {
         this.remoteEndpoint.sendPong(applicationData);
-        this.session.updateLastConnectionActivity();
     }
 
     @Override
@@ -257,9 +241,5 @@ public final class RemoteEndpointWrapper implements RemoteEndpoint {
 
     public Session getSession() {
         return session;
-    }
-
-    public void updateLastConnectionActivity() {
-        session.updateLastConnectionActivity();
     }
 }
