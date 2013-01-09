@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011 - 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011 - 2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -42,7 +42,6 @@ package org.glassfish.tyrus.test.e2e;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.URL;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -50,8 +49,8 @@ import javax.websocket.ClientEndpointConfiguration;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.Session;
 
-import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
+import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
 import org.junit.Assert;
@@ -77,12 +76,11 @@ public class JsonTest {
     @Test
     public void testJson() {
         Server server = new Server(org.glassfish.tyrus.test.e2e.bean.JsonTestBean.class);
-        server.start();
 
         messageLatch = new CountDownLatch(1);
 
         try {
-
+            server.start();
             final DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder();
             final DefaultClientEndpointConfiguration dcec = builder.build();
 

@@ -54,6 +54,7 @@ import java.util.logging.Logger;
 
 import javax.websocket.CloseReason;
 import javax.websocket.Decoder;
+import javax.websocket.DeploymentException;
 import javax.websocket.Encoder;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfiguration;
@@ -68,9 +69,10 @@ import javax.websocket.WebSocketOpen;
 import javax.websocket.server.WebSocketPathParam;
 
 /**
- * AnnotatedEndpoint of a class annotated using the WebSocketEndpoint annotations
+ * AnnotatedEndpoint of a class annotated using the WebSocketEndpoint annotations.
  *
  * @author Martin Matula (martin.matula at oracle.com)
+ * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 public class AnnotatedEndpoint extends Endpoint {
     private static final Logger LOGGER = Logger.getLogger(AnnotatedEndpoint.class.getName());
@@ -83,16 +85,17 @@ public class AnnotatedEndpoint extends Endpoint {
     private final ParameterExtractor[] onCloseParameters;
     private final ParameterExtractor[] onErrorParameters;
     private final EndpointConfiguration configuration;
+    private final ErrorCollector collector;
 
     private Set<MessageHandlerFactory> messageHandlerFactories = new HashSet<MessageHandlerFactory>();
 
-    public static AnnotatedEndpoint fromClass(Class<?> annotatedClass, boolean isServerEndpoint) {
-        return new AnnotatedEndpoint(annotatedClass, null, createEndpointConfiguration(annotatedClass, isServerEndpoint));
+    public static AnnotatedEndpoint fromClass(Class<?> annotatedClass, boolean isServerEndpoint, ErrorCollector collector) throws DeploymentException {
+        return new AnnotatedEndpoint(annotatedClass, null, createEndpointConfiguration(annotatedClass, isServerEndpoint), collector);
     }
 
-    public static AnnotatedEndpoint fromInstance(Object annotatedInstance, boolean isServerEndpoint) {
+    public static AnnotatedEndpoint fromInstance(Object annotatedInstance, boolean isServerEndpoint, ErrorCollector collector) throws DeploymentException {
         return new AnnotatedEndpoint(annotatedInstance.getClass(), annotatedInstance,
-                createEndpointConfiguration(annotatedInstance.getClass(), isServerEndpoint));
+                createEndpointConfiguration(annotatedInstance.getClass(), isServerEndpoint),collector);
     }
 
     private static EndpointConfiguration createEndpointConfiguration(Class<?> annotatedClass, boolean isServerEndpoint) {
@@ -167,8 +170,9 @@ public class AnnotatedEndpoint extends Endpoint {
         return as == null ? Object.class : (as[0] == null ? Object.class : as[0]);
     }
 
-    private AnnotatedEndpoint(Class<?> annotatedClass, Object instance, EndpointConfiguration config) {
+    private AnnotatedEndpoint(Class<?> annotatedClass, Object instance, EndpointConfiguration config, ErrorCollector collector) throws DeploymentException {
         this.configuration = config;
+        this.collector = collector;
 
         // TODO: should be removed once the instance creation is delegated to lifecycle provider
         annotatedInstance = instance == null ? ComponentProviderService.getInstance(annotatedClass) : instance;
@@ -184,6 +188,7 @@ public class AnnotatedEndpoint extends Endpoint {
         ParameterExtractor[] onErrorParameters = null;
 
         Map<Integer, Class<?>> unknownParams = new HashMap<Integer, Class<?>>();
+        AnnotatedClassValidityChecker validityChecker = new AnnotatedClassValidityChecker(annotatedClass, config.getDecoders(), collector);
 
         // TODO: how about methods from the superclass?
         for (Method m : annotatedClass.getDeclaredMethods()) {
@@ -193,40 +198,30 @@ public class AnnotatedEndpoint extends Endpoint {
                     if (onOpen == null) {
                         onOpen = m;
                         onOpenParameters = getParameterExtractors(m, unknownParams);
-                        if (!unknownParams.isEmpty()) {
-                            LOGGER.warning("Unknown parameter(s) for " + annotatedClass.getName() + "." + m.getName() +
-                                    " method annotated with @WebSocketOpen annotation: " + unknownParams + ". This" +
-                                    " method will be ignored.");
-                            onOpen = null;
-                            onOpenParameters = null;
-                        }
+                        validityChecker.checkOnOpenParams(m,unknownParams);
                     } else {
-                        LOGGER.warning("Multiple methods using @WebSocketOpen annotation" +
+                        collector.addException(new DeploymentException("Multiple methods using @WebSocketOpen annotation" +
                                 " in class " + annotatedClass.getName() + ": " + onOpen.getName() + " and " +
-                                m.getName() + ". The latter will be ignored.");
+                                m.getName() + ". The latter will be ignored."));
                     }
                 } else if (a instanceof WebSocketClose) {
                     if (onClose == null) {
                         onClose = m;
                         onCloseParameters = getParameterExtractors(m, unknownParams);
+                        validityChecker.checkOnCloseParams(m, unknownParams);
                         if (unknownParams.size() == 1 && unknownParams.values().iterator().next() != CloseReason.class) {
                             onCloseParameters[unknownParams.keySet().iterator().next()] = new ParamValue(0);
-                        } else if (!unknownParams.isEmpty()) {
-                            LOGGER.warning("Unknown parameter(s) for " + annotatedClass.getName() + "." + m.getName() +
-                                    " method annotated with @WebSocketClose annotation: " + unknownParams + ". This" +
-                                    " method will be ignored.");
-                            onClose = null;
-                            onCloseParameters = null;
                         }
                     } else {
-                        LOGGER.warning("Multiple methods using @WebSocketClose annotation" +
+                        collector.addException(new DeploymentException("Multiple methods using @WebSocketClose annotation" +
                                 " in class " + annotatedClass.getName() + ": " + onClose.getName() + " and " +
-                                m.getName() + ". The latter will be ignored.");
+                                m.getName() + ". The latter will be ignored."));
                     }
                 } else if (a instanceof WebSocketError) {
                     if (onError == null) {
                         onError = m;
                         onErrorParameters = getParameterExtractors(m, unknownParams);
+                        validityChecker.checkOnErrorParams(m,unknownParams);
                         if (unknownParams.size() == 1 &&
                                 Throwable.class == unknownParams.values().iterator().next()) {
                             onErrorParameters[unknownParams.keySet().iterator().next()] = new ParamValue(0);
@@ -238,23 +233,19 @@ public class AnnotatedEndpoint extends Endpoint {
                             onErrorParameters = null;
                         }
                     } else {
-                        LOGGER.warning("Multiple methods using @WebSocketError annotation" +
+                        collector.addException( new DeploymentException("Multiple methods using @WebSocketError annotation" +
                                 " in class " + annotatedClass.getName() + ": " + onError.getName() + " and " +
-                                m.getName() + ". The latter will be ignored.");
+                                m.getName()));
                     }
                 } else if (a instanceof WebSocketMessage) {
                     final ParameterExtractor[] extractors = getParameterExtractors(m, unknownParams);
 
-                    if (unknownParams.isEmpty()) {
-                        LOGGER.warning("Method " + annotatedClass.getName() + "." + m.getName() + " is annotated with "
-                                + "@WebSocketMessage annotation but does not have any parameter representing the" +
-                                " message. This method will be ignored.");
-                        continue;
-                    } else if (unknownParams.size() == 1) {
+                    validityChecker.checkOnMessageParams(m,unknownParams);
+
+                    if (unknownParams.size() == 1) {
                         Map.Entry<Integer, Class<?>> entry = unknownParams.entrySet().iterator().next();
                         extractors[entry.getKey()] = new ParamValue(0);
                         messageHandlerFactories.add(new BasicHandler(m, extractors, entry.getValue()));
-                        continue;
                     } else if (unknownParams.size() == 2) {
                         Iterator<Map.Entry<Integer, Class<?>>> it = unknownParams.entrySet().iterator();
                         Map.Entry<Integer, Class<?>> message = it.next();
@@ -269,12 +260,8 @@ public class AnnotatedEndpoint extends Endpoint {
                         extractors[last.getKey()] = new ParamValue(1);
                         if (last.getValue() == boolean.class || last.getValue() == Boolean.class) {
                             messageHandlerFactories.add(new AsyncHandler(m, extractors, message.getValue()));
-                            continue;
                         }
                     }
-                    LOGGER.warning("Method " + annotatedClass.getName() + "." + m.getName() + " annotated with "
-                            + "@WebSocketMessage annotation has unknown parameters: " + unknownParams + ". This " +
-                            "method will be ignored.");
                 }
             }
         }
@@ -287,8 +274,9 @@ public class AnnotatedEndpoint extends Endpoint {
         this.onCloseParameters = onCloseParameters;
     }
 
-    private ParameterExtractor[] getParameterExtractors(Method method, Map<Integer, Class<?>> unknownParams) {
+    private ParameterExtractor[] getParameterExtractors(Method method, Map<Integer, Class<?>> unknownParams) throws DeploymentException{
         ParameterExtractor[] result = new ParameterExtractor[method.getParameterTypes().length];
+        boolean sessionPresent = false;
         unknownParams.clear();
 
         for (int i = 0; i < method.getParameterTypes().length; i++) {
@@ -302,6 +290,12 @@ public class AnnotatedEndpoint extends Endpoint {
                     }
                 };
             } else if (type == Session.class) {
+                if(sessionPresent){
+                    collector.addException( new DeploymentException("Method " + method.getName() + " annotated with "
+                            + "@WebSocketMessage annotation has got two or more Session parameters."));
+                }else{
+                    sessionPresent = true;
+                }
                 result[i] = new ParameterExtractor() {
                     @Override
                     public Object value(Session session, Object... values) {

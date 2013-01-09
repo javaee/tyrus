@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011 - 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011 - 2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -42,21 +42,18 @@ package org.glassfish.tyrus.test.e2e;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.URL;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.websocket.ClientEndpointConfiguration;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.Session;
 
-import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
+import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -75,8 +72,9 @@ public class SimpleRemoteTest {
     public void testSimpleRemote() {
         final CountDownLatch messageLatch = new CountDownLatch(1);
         Server server = new Server(org.glassfish.tyrus.test.e2e.bean.SimpleRemoteTestBean.class);
-        server.start();
+
         try {
+            server.start();
             DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder();
             final DefaultClientEndpointConfiguration dcec = builder.build();
 
@@ -120,8 +118,9 @@ public class SimpleRemoteTest {
         final CountDownLatch messageLatch = new CountDownLatch(2 * iterations);
         final AtomicInteger msgNumber = new AtomicInteger(0);
         Server server = new Server(org.glassfish.tyrus.test.e2e.bean.SimpleRemoteTestBean.class);
-        server.start();
+
         try {
+            server.start();
             Runnable runnable = new Runnable() {
                 @Override
                 public void run() {

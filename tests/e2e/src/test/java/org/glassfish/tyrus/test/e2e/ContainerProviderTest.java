@@ -73,11 +73,11 @@ public class ContainerProviderTest {
 //        Assert.assertNull(ContainerProvider.getClientContainer());
 
         Server server = new Server(TestBean.class);
-        server.start();
-
-        Assert.assertNotNull(ContainerProvider.getWebSocketContainer());
 
         try {
+            server.start();
+            Assert.assertNotNull(ContainerProvider.getWebSocketContainer());
+
             messageLatch = new CountDownLatch(1);
             ClientManager client = ClientManager.createClient();
 

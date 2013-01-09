@@ -108,8 +108,9 @@ public class ErrorTest {
     public void testErrorOnOpen() {
         final ClientEndpointConfiguration cec = new DefaultClientEndpointConfiguration.Builder().build();
         Server server = new Server(OnOpenErrorTestBean.class);
-        server.start();
+
         try {
+            server.start();
             final DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder();
             final DefaultClientEndpointConfiguration dcec = builder.build();
 
@@ -182,8 +183,9 @@ public class ErrorTest {
     public void testErrorOnClose() {
         final ClientEndpointConfiguration cec = new DefaultClientEndpointConfiguration.Builder().build();
         Server server = new Server(OnCloseErrorTestBean.class);
-        server.start();
+
         try {
+            server.start();
             final DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder();
             final DefaultClientEndpointConfiguration dcec = builder.build();
 

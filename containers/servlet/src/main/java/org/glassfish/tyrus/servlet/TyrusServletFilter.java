@@ -186,7 +186,7 @@ public class TyrusServletFilter implements Filter {
                 INFORMATIONAL_FIXED_PORT, config);
         try {
             serverContainer.start();
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new RuntimeException("Web socket server initialization failed.", e);
         }
     }

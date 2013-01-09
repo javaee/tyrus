@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -37,50 +37,44 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.test.e2e;
 
-import java.net.URI;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+package org.glassfish.tyrus;
 
-import javax.websocket.ClientEndpointConfiguration;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
-import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.server.Server;
-
-import org.junit.Assert;
-import org.junit.Test;
+import javax.websocket.DeploymentException;
 
 /**
- * Tests the basic client behavior, sending and receiving message
+ * Used to collect deployment errors to present these to the user together.
  *
- * @author Danny Coward (danny.coward at oracle.com)
+ * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class HelloTextTest {
+public class ErrorCollector {
 
-    @Test
-    public void testClient() {
-        final ClientEndpointConfiguration cec = new DefaultClientEndpointConfiguration.Builder().build();
-        Server server = new Server(HelloTextServer.class.getName());
+    private List<Exception> exceptionsToPublish = new ArrayList<Exception>();
 
-        try {
-            server.start();
-            CountDownLatch messageLatch = new CountDownLatch(1);
-            DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder();
-            DefaultClientEndpointConfiguration dcec = builder.build();
+    /**
+     * Add {@link Exception} to the collector.
+     *
+     * @param exception to be collected.
+     */
+    public void addException(Exception exception){
+        exceptionsToPublish.add(exception);
+    }
 
-            HelloTextClient htc = new HelloTextClient(messageLatch);
-            ClientManager client = ClientManager.createClient();
-            client.connectToServer(htc, cec, new URI("ws://localhost:8025/websockets/tests/hellotext"));
+    public DeploymentException composeComprehensiveException(){
+        StringBuilder sb = new StringBuilder();
 
-            messageLatch.await(5, TimeUnit.SECONDS);
-            Assert.assertTrue("Client did not receive anything.", htc.gotSomethingBack);
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException(e.getMessage(), e);
-        } finally {
-            server.stop();
+        for (Exception exception : exceptionsToPublish) {
+            sb.append(exception.getMessage());
+            sb.append("\n");
         }
+
+        return new DeploymentException(sb.toString());
+    }
+
+    public boolean isEmpty(){
+        return exceptionsToPublish.isEmpty();
     }
 }

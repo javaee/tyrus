@@ -76,9 +76,9 @@ public class HandshakeTest {
     @Test
     public void testClient() {
         Server server = new Server(TestBean.class);
-        server.start();
 
         try {
+            server.start();
             messageLatch = new CountDownLatch(1);
 
             ArrayList<String> subprotocols = new ArrayList<String>();

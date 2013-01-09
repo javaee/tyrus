@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -40,7 +40,6 @@
 package org.glassfish.tyrus.test.e2e;
 
 import java.net.URI;
-import java.net.URL;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -49,6 +48,7 @@ import javax.websocket.ClientEndpointConfiguration;
 import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -63,9 +63,9 @@ public class StreamingBinaryTest {
     public void testClient() {
         final ClientEndpointConfiguration cec = new DefaultClientEndpointConfiguration.Builder().build();
         Server server = new Server(StreamingBinaryServer.class.getName());
-        server.start();
 
         try {
+            server.start();
             CountDownLatch messageLatch = new CountDownLatch(2);
             StreamingBinaryServer.messageLatch = messageLatch;
 

@@ -47,7 +47,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.websocket.ClientEndpointConfiguration;
@@ -62,6 +61,7 @@ import javax.websocket.server.ServerEndpointConfiguration;
 import org.glassfish.tyrus.AnnotatedEndpoint;
 import org.glassfish.tyrus.ComponentProviderService;
 import org.glassfish.tyrus.EndpointWrapper;
+import org.glassfish.tyrus.ErrorCollector;
 import org.glassfish.tyrus.WithProperties;
 import org.glassfish.tyrus.spi.SPIRegisteredEndpoint;
 import org.glassfish.tyrus.spi.TyrusServer;
@@ -76,9 +76,11 @@ public class TyrusServerContainer extends WithProperties implements WebSocketCon
     private final String contextPath;
     private final ServerConfiguration configuration;
     private final Set<SPIRegisteredEndpoint> endpoints = new HashSet<SPIRegisteredEndpoint>();
+    private final ErrorCollector collector;
 
     public TyrusServerContainer(final TyrusServer server, final String contextPath,
                                 final ServerConfiguration configuration) {
+        this.collector = new ErrorCollector();
         this.server = server;
         this.contextPath = contextPath;
         // make a read-only copy of the configuration
@@ -125,7 +127,7 @@ public class TyrusServerContainer extends WithProperties implements WebSocketCon
         };
     }
 
-    public void start() throws IOException {
+    public void start() throws IOException, DeploymentException {
         // start the underlying server
         server.start();
 
@@ -133,13 +135,18 @@ public class TyrusServerContainer extends WithProperties implements WebSocketCon
             deploy(endpoint, null);
         }
 
-        // deploy all the class-based endpoints
-        for (Class<?> endpointClass : configuration.getEndpointClasses()) {
-            try {
+        try {
+            // deploy all the class-based endpoints
+            for (Class<?> endpointClass : configuration.getEndpointClasses()) {
                 deploy(endpointClass);
-            } catch (DeploymentException e) {
-                Logger.getLogger(getClass().getName()).log(Level.WARNING, e.getMessage(), e);
             }
+        } catch (DeploymentException de) {
+            collector.addException(de);
+        }
+
+        if (!collector.isEmpty()) {
+            this.stop();
+            throw collector.composeComprehensiveException();
         }
     }
 
@@ -156,14 +163,14 @@ public class TyrusServerContainer extends WithProperties implements WebSocketCon
             endpoint = (Endpoint) ComponentProviderService.getInstance(endpointClass);
             config = null;
         } else {
-            endpoint = AnnotatedEndpoint.fromClass(endpointClass, true);
-            config = ((AnnotatedEndpoint)endpoint).getEndpointConfiguration();
+            endpoint = AnnotatedEndpoint.fromClass(endpointClass, true, collector);
+            config = ((AnnotatedEndpoint) endpoint).getEndpointConfiguration();
         }
 
         if (endpoint == null) {
-            throw new DeploymentException("Endpoint class " + endpointClass.getName() + " does " +
+            collector.addException(new DeploymentException("Endpoint class " + endpointClass.getName() + " does " +
                     "not extend Endpoint and is not " +
-                    "annotated with @WebSocketEndpoint annotation, so will be ignored.");
+                    "annotated with @WebSocketEndpoint annotation."));
         }
 
         deploy(endpoint, config);

@@ -39,7 +39,6 @@
  */
 package org.glassfish.tyrus.oldservlet;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -91,7 +90,7 @@ public class WebSocketServerWebIntegration implements ServletContextListener {
 
         Class<ServerConfiguration> configClass = null;
 
-        for (Iterator<Class<?>> it = endpointClassSet.iterator(); it.hasNext();) {
+        for (Iterator<Class<?>> it = endpointClassSet.iterator(); it.hasNext(); ) {
             Class<?> cls = it.next();
 
             if (cls.getAnnotation(ContainerConfig.class) != null) {
@@ -180,7 +179,7 @@ public class WebSocketServerWebIntegration implements ServletContextListener {
 
         try {
             serverContainer.start();
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new RuntimeException("Web socket server initialization failed.", e);
         }
     }

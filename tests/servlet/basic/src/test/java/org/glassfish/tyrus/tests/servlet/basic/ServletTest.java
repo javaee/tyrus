@@ -83,7 +83,7 @@ public class ServletTest {
      *
      * @return new {@link Server} instance or {@code null} if "tyrus.test.host" system property is set.
      */
-    private Server startServer() {
+    private Server startServer() throws DeploymentException {
         final String host = System.getProperty("tyrus.test.host");
         if (host == null) {
             final Server server = new Server(DEFAULT_HOST, DEFAULT_PORT, CONTEXT_PATH, endpointClasses);

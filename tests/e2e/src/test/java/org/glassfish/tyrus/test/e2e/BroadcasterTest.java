@@ -73,8 +73,9 @@ public class BroadcasterTest {
     public void testBroadcaster() {
         final CountDownLatch messageLatch = new CountDownLatch(2);
         Server server = new Server(BroadcasterTestBean.class);
-        server.start();
+
         try {
+            server.start();
             final TEndpointAdapter ea1 = new TEndpointAdapter(messageLatch);
             final TEndpointAdapter ea2 = new TEndpointAdapter(messageLatch);
 

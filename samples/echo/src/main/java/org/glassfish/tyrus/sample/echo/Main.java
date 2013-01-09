@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011 - 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011 - 2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -40,7 +40,6 @@
 
 package org.glassfish.tyrus.sample.echo;
 
-import java.io.IOException;
 import org.glassfish.tyrus.server.Server;
 
 /**
@@ -56,7 +55,7 @@ public class Main {
             server.start();
             System.out.println("Press any key to stop the server...");
             System.in.read();
-        } catch (IOException ioe) {
+        } catch (Exception ioe) {
             ioe.printStackTrace();
         } finally {
             server.stop();

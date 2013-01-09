@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011 - 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -45,6 +45,8 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.logging.Logger;
+
+import javax.websocket.DeploymentException;
 
 /**
  * Implementation of the WebSocket Server.
@@ -116,9 +118,9 @@ public class Server {
     /**
      * Construct new server.
      *
-     * @param hostName hostName of the server.
-     * @param port     port of the server.
-     * @param rootPath root path to the server App.
+     * @param hostName      hostName of the server.
+     * @param port          port of the server.
+     * @param rootPath      root path to the server App.
      * @param configuration server configuration.
      */
     public Server(String hostName, int port, String rootPath, ServerConfiguration configuration) {
@@ -131,7 +133,7 @@ public class Server {
     /**
      * Start the server.
      */
-    public synchronized void start() {
+    public synchronized void start() throws DeploymentException {
         try {
             if (server == null) {
                 server = ServerContainerFactory.create(ENGINE_PROVIDER_CLASSNAME, rootPath, port,
@@ -177,6 +179,8 @@ public class Server {
         } catch (IOException ioe) {
             System.err.println("IOException during server run");
             ioe.printStackTrace();
+        } catch (DeploymentException de) {
+            de.printStackTrace();
         } finally {
             server.stop();
         }

@@ -55,6 +55,7 @@ import javax.websocket.WebSocketContainer;
 import org.glassfish.tyrus.AnnotatedEndpoint;
 import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.EndpointWrapper;
+import org.glassfish.tyrus.ErrorCollector;
 import org.glassfish.tyrus.TyrusContainerProvider;
 import org.glassfish.tyrus.spi.TyrusClientSocket;
 import org.glassfish.tyrus.spi.TyrusContainer;
@@ -135,29 +136,40 @@ public class ClientManager implements WebSocketContainer {
      */
     public Session connectToServer(Object o, ClientEndpointConfiguration configuration, String url) throws DeploymentException {
         // TODO use maxSessionIdleTimeout, maxBinaryMessageBufferSize and maxTextMessageBufferSize
+        final ErrorCollector collector = new ErrorCollector();
 
         ClientEndpointConfiguration config;
         Endpoint endpoint;
-
-        if (o instanceof Endpoint) {
-            endpoint = (Endpoint) o;
-            config = configuration == null ? new DefaultClientEndpointConfiguration.Builder().build() : configuration;
-        } else if (o instanceof Class && (((Class<?>) o).getAnnotation(WebSocketClient.class) != null)) {
-            endpoint = AnnotatedEndpoint.fromClass((Class) o, false);
-            config = (ClientEndpointConfiguration) ((AnnotatedEndpoint) endpoint).getEndpointConfiguration();
-        } else {
-            endpoint = AnnotatedEndpoint.fromInstance(o, false);
-            config = (ClientEndpointConfiguration) ((AnnotatedEndpoint) endpoint).getEndpointConfiguration();
-        }
+        TyrusClientSocket clientSocket = null;
 
         try {
+            if (o instanceof Endpoint) {
+                endpoint = (Endpoint) o;
+                config = configuration == null ? new DefaultClientEndpointConfiguration.Builder().build() : configuration;
+            } else if (o instanceof Class && (((Class<?>) o).getAnnotation(WebSocketClient.class) != null)) {
+                endpoint = AnnotatedEndpoint.fromClass((Class) o, false, collector);
+                config = (ClientEndpointConfiguration) ((AnnotatedEndpoint) endpoint).getEndpointConfiguration();
+            } else {
+                endpoint = AnnotatedEndpoint.fromInstance(o, false, collector);
+                config = (ClientEndpointConfiguration) ((AnnotatedEndpoint) endpoint).getEndpointConfiguration();
+            }
+
             EndpointWrapper clientEndpoint = new EndpointWrapper(endpoint, config, this, null);
-            TyrusClientSocket clientSocket = engine.openClientSocket(url, config, clientEndpoint);
+            clientSocket = engine.openClientSocket(url, config, clientEndpoint);
             sockets.add(clientSocket);
-            return clientSocket.getSession();
+
         } catch (Exception e) {
-            throw new DeploymentException("Connection failed.", e);
+            collector.addException(new DeploymentException("Connection failed.", e));
         }
+
+        if(!collector.isEmpty()){
+            if(clientSocket != null){
+                sockets.remove(clientSocket);
+            }
+            throw collector.composeComprehensiveException();
+        }
+
+        return clientSocket == null ? null : clientSocket.getSession();
     }
 
     /**
@@ -203,7 +215,6 @@ public class ClientManager implements WebSocketContainer {
     public Set<Extension> getInstalledExtensions() {
         return null;
     }
-
 
 
     @Override

@@ -71,11 +71,11 @@ public class ClientManagerTest {
     @Test
     public void testClient() {
         Server server = new Server(TestBean.class);
-        server.start();
 
         final CountDownLatch messageLatch = new CountDownLatch(1);
 
         try {
+            server.start();
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new TestEndpointAdapter() {
 

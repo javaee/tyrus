@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -71,10 +71,11 @@ public class AnnotatedClientTest {
     @Test
     public void testAnnotatedInstance() {
         Server server = new Server(TestBean.class);
-        server.start();
+
         messageLatch = new CountDownLatch(1);
 
         try {
+            server.start();
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new ClientTestBean(true), new URI("ws://localhost:8025/websockets/tests/echo"));
             messageLatch.await(5, TimeUnit.SECONDS);
@@ -90,10 +91,10 @@ public class AnnotatedClientTest {
     @Test
     public void testAnnotatedInstanceWithDecoding() {
         Server server = new Server(TestBean.class);
-        server.start();
         messageLatch = new CountDownLatch(1);
 
         try {
+            server.start();
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new ClientTestBean(false), new URI("ws://localhost:8025/websockets/tests/echo"));
             messageLatch.await(5, TimeUnit.SECONDS);
@@ -109,11 +110,11 @@ public class AnnotatedClientTest {
     @Test
     public void testAnnotatedClass() {
         Server server = new Server(TestBean.class);
-        server.start();
         messageLatch = new CountDownLatch(1);
         receivedMessage = null;
 
         try {
+            server.start();
             ClientManager client = ClientManager.createClient();
             client.connectToServer(SimpleClientTestBean.class, new URI("ws://localhost:8025/websockets/tests/echo"));
             messageLatch.await(5, TimeUnit.SECONDS);

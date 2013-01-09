@@ -75,8 +75,9 @@ public class BinaryMessageTest {
     @Test
     public void testHello() {
         Server server = new Server(org.glassfish.tyrus.test.e2e.bean.BinaryBean.class);
-        server.start();
+
         try {
+            server.start();
             messageLatch = new CountDownLatch(1);
 
             final DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder();

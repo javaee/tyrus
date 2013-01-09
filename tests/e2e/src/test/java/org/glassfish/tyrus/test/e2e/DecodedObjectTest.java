@@ -83,9 +83,9 @@ public class DecodedObjectTest {
     public void testSimpleDecoded() {
 
         Server server = new Server(TestBean.class);
-        server.start();
 
         try {
+            server.start();
             messageLatch = new CountDownLatch(1);
             ArrayList<Decoder> decoders = new ArrayList<Decoder>();
             decoders.add(new CustomDecoder());
@@ -128,9 +128,9 @@ public class DecodedObjectTest {
     @Test
     public void testExtendedDecoded() {
         Server server = new Server(TestBean.class);
-        server.start();
 
         try {
+            server.start();
             messageLatch = new CountDownLatch(1);
             ArrayList<Decoder> decoders = new ArrayList<Decoder>();
             decoders.add(new ExtendedDecoder());

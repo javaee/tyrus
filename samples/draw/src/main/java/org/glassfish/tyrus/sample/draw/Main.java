@@ -57,7 +57,7 @@ public class Main {
             server.start();
             System.out.println("Press any key to stop the server...");
             System.in.read();
-        } catch (IOException ioe) {
+        } catch (Exception ioe) {
             System.out.println("weird...");
         } finally {
             server.stop();
