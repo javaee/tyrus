@@ -52,7 +52,7 @@
     <modelVersion>4.0.0</modelVersion>
     <artifactId>tyrus-container-servlet</artifactId>
     <packaging>bundle</packaging>
-    <name>Tyrus Servlet OSGi Bundle</name>
+    <name>Tyrus Servlet Bundle</name>
 
     <build>
         <plugins>
@@ -73,47 +73,6 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin> <!-- want to unpack sources from individual modules -->
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-dependency-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>unpack-sources</id>
-                        <phase>prepare-package</phase>
-                        <goals>
-                            <goal>unpack</goal>
-                        </goals>
-                        <configuration>
-                            <artifactItems>
-                                <artifactItem>
-                                    <groupId>javax.websocket</groupId>
-                                    <artifactId>javax.websocket-api</artifactId>
-                                    <classifier>sources</classifier>
-                                    <overWrite>false</overWrite>
-                                    <outputDirectory>${generated.sources.dir}</outputDirectory>
-                                </artifactItem>
-                            </artifactItems>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>build-helper-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <phase>prepare-package</phase>
-                        <goals>
-                            <goal>add-source</goal>
-                        </goals>
-                        <configuration>
-                            <sources>
-                                <source>${generated.sources.dir}</source>
-                            </sources>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
@@ -127,29 +86,6 @@
                     <unpackBundle>true</unpackBundle>
                 </configuration>
             </plugin>
-            <!-- remove the generated src dir-->
-            <!--
-                       <plugin>
-                            <artifactId>maven-clean-plugin</artifactId>
-                            <executions>
-                                <execution>
-                                    <id>clean-unpacked-src-dir</id>
-                                    <phase>install</phase>
-                                    <goals>
-                                        <goal>clean</goal>
-                                    </goals>
-                                    <configuration>
-                                        <excludeDefaultDirectories>true</excludeDefaultDirectories>
-                                        <filesets>
-                                            <fileset>
-                                                <directory>${generated.sources.dir}</directory>
-                                            </fileset>
-                                        </filesets>
-                                    </configuration>
-                                </execution>
-                            </executions>
-                        </plugin>
-            -->
         </plugins>
     </build>
 
@@ -177,7 +113,4 @@
             <version>${project.version}</version>
         </dependency>
     </dependencies>
-    <properties>
-        <generated.sources.dir>${project.build.directory}/generated-sources</generated.sources.dir>
-    </properties>
 </project>

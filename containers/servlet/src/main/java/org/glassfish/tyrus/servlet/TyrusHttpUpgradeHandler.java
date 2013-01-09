@@ -96,16 +96,8 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
                 LOGGER.finest("Remaining Data = " + buf.remaining());
 
                 if (buf != null && buf.hasRemaining()) {
-                    if (webSocketHolder.buffer != null) {
-                        // TODO
-                        // webSocketHolder.buffer.append(buf);
-                    }
-
                     final DataFrame result = webSocketHolder.handler.unframe(buf);
-                    if (result == null) {
-                        webSocketHolder.buffer = buf;
-//                        break;
-                    } else {
+                    if (result != null) {
                         result.respond(webSocketHolder.webSocket);
                     }
                 }
