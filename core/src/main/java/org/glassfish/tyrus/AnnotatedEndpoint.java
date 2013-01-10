@@ -87,7 +87,7 @@ public class AnnotatedEndpoint extends Endpoint {
     private final EndpointConfiguration configuration;
     private final ErrorCollector collector;
 
-    private Set<MessageHandlerFactory> messageHandlerFactories = new HashSet<MessageHandlerFactory>();
+    private final Set<MessageHandlerFactory> messageHandlerFactories = new HashSet<MessageHandlerFactory>();
 
     public static AnnotatedEndpoint fromClass(Class<?> annotatedClass, boolean isServerEndpoint, ErrorCollector collector) throws DeploymentException {
         return new AnnotatedEndpoint(annotatedClass, null, createEndpointConfiguration(annotatedClass, isServerEndpoint), collector);
@@ -95,7 +95,7 @@ public class AnnotatedEndpoint extends Endpoint {
 
     public static AnnotatedEndpoint fromInstance(Object annotatedInstance, boolean isServerEndpoint, ErrorCollector collector) throws DeploymentException {
         return new AnnotatedEndpoint(annotatedInstance.getClass(), annotatedInstance,
-                createEndpointConfiguration(annotatedInstance.getClass(), isServerEndpoint),collector);
+                createEndpointConfiguration(annotatedInstance.getClass(), isServerEndpoint), collector);
     }
 
     private static EndpointConfiguration createEndpointConfiguration(Class<?> annotatedClass, boolean isServerEndpoint) {
@@ -198,7 +198,7 @@ public class AnnotatedEndpoint extends Endpoint {
                     if (onOpen == null) {
                         onOpen = m;
                         onOpenParameters = getParameterExtractors(m, unknownParams);
-                        validityChecker.checkOnOpenParams(m,unknownParams);
+                        validityChecker.checkOnOpenParams(m, unknownParams);
                     } else {
                         collector.addException(new DeploymentException("Multiple methods using @WebSocketOpen annotation" +
                                 " in class " + annotatedClass.getName() + ": " + onOpen.getName() + " and " +
@@ -221,7 +221,7 @@ public class AnnotatedEndpoint extends Endpoint {
                     if (onError == null) {
                         onError = m;
                         onErrorParameters = getParameterExtractors(m, unknownParams);
-                        validityChecker.checkOnErrorParams(m,unknownParams);
+                        validityChecker.checkOnErrorParams(m, unknownParams);
                         if (unknownParams.size() == 1 &&
                                 Throwable.class == unknownParams.values().iterator().next()) {
                             onErrorParameters[unknownParams.keySet().iterator().next()] = new ParamValue(0);
@@ -233,14 +233,14 @@ public class AnnotatedEndpoint extends Endpoint {
                             onErrorParameters = null;
                         }
                     } else {
-                        collector.addException( new DeploymentException("Multiple methods using @WebSocketError annotation" +
+                        collector.addException(new DeploymentException("Multiple methods using @WebSocketError annotation" +
                                 " in class " + annotatedClass.getName() + ": " + onError.getName() + " and " +
                                 m.getName()));
                     }
                 } else if (a instanceof WebSocketMessage) {
                     final ParameterExtractor[] extractors = getParameterExtractors(m, unknownParams);
 
-                    validityChecker.checkOnMessageParams(m,unknownParams);
+                    validityChecker.checkOnMessageParams(m, unknownParams);
 
                     if (unknownParams.size() == 1) {
                         Map.Entry<Integer, Class<?>> entry = unknownParams.entrySet().iterator().next();
@@ -274,7 +274,7 @@ public class AnnotatedEndpoint extends Endpoint {
         this.onCloseParameters = onCloseParameters;
     }
 
-    private ParameterExtractor[] getParameterExtractors(Method method, Map<Integer, Class<?>> unknownParams) throws DeploymentException{
+    private ParameterExtractor[] getParameterExtractors(Method method, Map<Integer, Class<?>> unknownParams) throws DeploymentException {
         ParameterExtractor[] result = new ParameterExtractor[method.getParameterTypes().length];
         boolean sessionPresent = false;
         unknownParams.clear();
@@ -290,10 +290,10 @@ public class AnnotatedEndpoint extends Endpoint {
                     }
                 };
             } else if (type == Session.class) {
-                if(sessionPresent){
-                    collector.addException( new DeploymentException("Method " + method.getName() + " annotated with "
+                if (sessionPresent) {
+                    collector.addException(new DeploymentException("Method " + method.getName() + " annotated with "
                             + "@WebSocketMessage annotation has got two or more Session parameters."));
-                }else{
+                } else {
                     sessionPresent = true;
                 }
                 result[i] = new ParameterExtractor() {
@@ -342,7 +342,7 @@ public class AnnotatedEndpoint extends Endpoint {
         return null;
     }
 
-    public void onClose(CloseReason closeReason, Session session) {
+    void onClose(CloseReason closeReason, Session session) {
         callMethod(onCloseMethod, onCloseParameters, session, closeReason);
     }
 
@@ -351,7 +351,7 @@ public class AnnotatedEndpoint extends Endpoint {
         onClose(closeReason, session);
     }
 
-    public void onError(Throwable thr, Session session) {
+    void onError(Throwable thr, Session session) {
         callMethod(onErrorMethod, onErrorParameters, session, thr);
     }
 
@@ -419,7 +419,7 @@ public class AnnotatedEndpoint extends Endpoint {
                         try {
                             session.getRemote().sendObject(result);
                         } catch (Exception e) {
-                            throw new RuntimeException("Error trying to send the response.", e);
+                            onError(e, session);
                         }
                     }
                 }

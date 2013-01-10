@@ -358,10 +358,8 @@ public class EndpointWrapper extends SPIEndpoint {
     }
 
     @Override
-    public void onClose(SPIRemoteEndpoint gs) {
-        // TODO: where should I get the CloseReason from?
-
-        endpoint.onClose(remoteEndpointToSession.get(gs), new CloseReason(null, "Normal Closure"));
+    public void onClose(SPIRemoteEndpoint gs, CloseReason closeReason) {
+        endpoint.onClose(remoteEndpointToSession.get(gs), closeReason);
         remoteEndpointToSession.remove(gs);
     }
 

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -47,6 +47,8 @@ import java.io.Writer;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
+
+import javax.websocket.CloseReason;
 
 import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
 
@@ -110,7 +112,7 @@ public class RemoteEndpointWrapperTest {
 
     private class TestRemoteEndpoint extends SPIRemoteEndpoint {
 
-        private ArrayList<Byte> bytesToSend = new ArrayList<Byte>();
+        private final ArrayList<Byte> bytesToSend = new ArrayList<Byte>();
         StringBuilder builder = new StringBuilder();
 
         @Override
@@ -161,6 +163,11 @@ public class RemoteEndpointWrapperTest {
             String result = builder.toString();
             builder = new StringBuilder();
             return result;
+        }
+
+        @Override
+        public void close(CloseReason closeReason) {
+
         }
     }
 

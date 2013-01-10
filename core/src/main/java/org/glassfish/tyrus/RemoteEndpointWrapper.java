@@ -204,15 +204,15 @@ public final class RemoteEndpointWrapper implements RemoteEndpoint {
             this.sendPrimitiveMessage(o);
         } else {
             Object toSend = endpointWrapper.doEncode(o);
-            if(toSend instanceof String){
-                this.sendString((String)toSend);
-            } else if(toSend instanceof ByteBuffer){
+            if (toSend instanceof String) {
+                this.sendString((String) toSend);
+            } else if (toSend instanceof ByteBuffer) {
                 this.sendBytes((ByteBuffer) toSend);
-            } else if(toSend instanceof StringWriter){
+            } else if (toSend instanceof StringWriter) {
                 StringWriter writer = (StringWriter) toSend;
                 StringBuffer sb = writer.getBuffer();
                 this.sendString(sb.toString());
-            } else if(toSend instanceof ByteArrayOutputStream){
+            } else if (toSend instanceof ByteArrayOutputStream) {
                 ByteArrayOutputStream baos = (ByteArrayOutputStream) toSend;
                 ByteBuffer buffer = ByteBuffer.wrap(baos.toByteArray());
                 this.sendBytes(buffer);
@@ -234,9 +234,8 @@ public final class RemoteEndpointWrapper implements RemoteEndpoint {
     }
 
     public void close(CloseReason cr) throws IOException {
-        Logger.getLogger(RemoteEndpointWrapper.class.getName()).info("Close  public void close(CloseReason cr): " + cr);
-//        TODO: implement
-//        this.remoteEndpoint.close(1000, null);
+        Logger.getLogger(RemoteEndpointWrapper.class.getName()).fine("Close public void close(CloseReason cr): " + cr);
+        remoteEndpoint.close(cr);
     }
 
     public Session getSession() {

@@ -43,6 +43,7 @@ import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Set;
 
+import javax.websocket.CloseReason;
 import javax.websocket.Extension;
 import javax.websocket.Session;
 
@@ -146,7 +147,7 @@ public abstract class SPIEndpoint {
      *
      * @param gs SPIRemoteEndpoint who has just closed the connection.
      */
-    public abstract void onClose(SPIRemoteEndpoint gs);
+    public abstract void onClose(SPIRemoteEndpoint gs, CloseReason closeReason);
 
     /**
      * Called by the provider after all connections have been closed to

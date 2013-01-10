@@ -59,9 +59,11 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.CloseReason;
 import javax.websocket.HandshakeResponse;
 import javax.websocket.Session;
 
+import org.glassfish.tyrus.server.TyrusEndpoint;
 import org.glassfish.tyrus.server.TyrusRemoteEndpoint;
 import org.glassfish.tyrus.spi.SPIEndpoint;
 import org.glassfish.tyrus.spi.TyrusClientSocket;
@@ -112,8 +114,8 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
     /**
      * Create new instance.
      *
-     * @param uri endpoint address.
-     * @param clc client endpoint configuration.
+     * @param uri       endpoint address.
+     * @param clc       client endpoint configuration.
      * @param timeoutMs TODO
      */
     public GrizzlyClientSocket(URI uri, ClientEndpointConfiguration clc, long timeoutMs) {
@@ -194,7 +196,7 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
         Map<String, String> headers = handshake.composeRequest().getHeaders();
         Map<String, List<String>> adaptedHeaders = new HashMap<String, List<String>>();
 
-        for(Map.Entry<String, String> entry : headers.entrySet()) {
+        for (Map.Entry<String, String> entry : headers.entrySet()) {
             String value = entry.getValue();
             adaptedHeaders.put(entry.getKey(), value == null ? null : Arrays.asList(value));
         }
@@ -202,7 +204,7 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
         clc.beforeRequest(adaptedHeaders);
         headers.clear();
 
-        for(Map.Entry<String, List<String>> entry : adaptedHeaders.entrySet()) {
+        for (Map.Entry<String, List<String>> entry : adaptedHeaders.entrySet()) {
             final List<String> value = entry.getValue();
             headers.put(entry.getKey(), value == null ? null : value.get(0));
         }
@@ -342,16 +344,20 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
     }
 
     @Override
-    public void onClose(DataFrame dataFrame) {
+    public void onClose(ClosingFrame dataFrame) {
         if (state.compareAndSet(State.CONNECTED, State.CLOSING)) {
-            final ClosingFrame closing = (ClosingFrame) dataFrame;
-            protocolHandler.close(closing.getCode(), closing.getTextPayload());
+            protocolHandler.close(dataFrame.getCode(), dataFrame.getTextPayload());
         } else {
             state.set(State.CLOSED);
             protocolHandler.doClose();
         }
         for (SPIEndpoint endpoint : endpoints) {
-            endpoint.onClose(remoteEndpoint);
+            CloseReason closeReason = null;
+
+            if(dataFrame != null) {
+                closeReason = new CloseReason(TyrusEndpoint.getCloseCode(dataFrame.getCode()), dataFrame.getReason());
+            }
+            endpoint.onClose(remoteEndpoint, closeReason);
         }
     }
 

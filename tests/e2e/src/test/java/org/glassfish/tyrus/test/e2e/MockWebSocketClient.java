@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -42,8 +42,8 @@ package org.glassfish.tyrus.test.e2e;
 
 import org.glassfish.tyrus.websockets.DataFrame;
 import org.glassfish.tyrus.websockets.WebSocket;
-import org.glassfish.tyrus.websockets.WebSocketAdapter;
 import org.glassfish.tyrus.websockets.WebSocketListener;
+import org.glassfish.tyrus.websockets.draft06.ClosingFrame;
 
 import org.glassfish.grizzly.GrizzlyFuture;
 
@@ -55,14 +55,14 @@ import org.glassfish.grizzly.GrizzlyFuture;
  * @author Martin Matula (martin.matula at oracle.com)
  */
 class MockWebSocketClient implements WebSocket {
-    private final WebSocketAdapter adapter;
+    private final WebSocketListener listener;
 
-    public MockWebSocketClient(String url, WebSocketAdapter adapter) {
-        this.adapter = adapter;
+    public MockWebSocketClient(String url, WebSocketListener listener) {
+        this.listener = listener;
     }
 
     public GrizzlyFuture<DataFrame> send(String message) {
-        adapter.onMessage(this, message);
+        listener.onMessage(this, message);
         return null;
     }
 
@@ -129,7 +129,7 @@ class MockWebSocketClient implements WebSocket {
     }
 
     @Override
-    public void onClose(DataFrame dataFrame) {
+    public void onClose(ClosingFrame dataFrame) {
     }
 
     @Override
@@ -151,6 +151,6 @@ class MockWebSocketClient implements WebSocket {
     }
 
     public void connect() {
-        adapter.onConnect(this);
+        listener.onConnect(this);
     }
 }

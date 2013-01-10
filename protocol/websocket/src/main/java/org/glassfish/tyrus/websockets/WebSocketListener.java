@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -40,6 +40,8 @@
 
 package org.glassfish.tyrus.websockets;
 
+import org.glassfish.tyrus.websockets.draft06.ClosingFrame;
+
 /**
  * Interface to allow notification of events occurring on specific
  * {@link WebSocket} instances.
@@ -48,14 +50,14 @@ public interface WebSocketListener {
 
     /**
      * <p/>
-     * Invoked when {@link WebSocket#onClose(DataFrame)} has been called on a
+     * Invoked when {@link WebSocket#onClose(org.glassfish.tyrus.websockets.draft06.ClosingFrame)} has been called on a
      * particular {@link WebSocket} instance.
      * <p/>
      *
      * @param socket the {@link WebSocket} being closed.
      * @param frame  the closing {@link DataFrame} sent by the remote end-point.
      */
-    void onClose(WebSocket socket, DataFrame frame);
+    void onClose(WebSocket socket, ClosingFrame frame);
 
     /**
      * <p>

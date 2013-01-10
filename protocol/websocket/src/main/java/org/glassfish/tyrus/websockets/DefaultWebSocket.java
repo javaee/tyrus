@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -54,14 +54,14 @@ import org.glassfish.tyrus.websockets.frametypes.PongFrameType;
 @SuppressWarnings({"StringContatenationInLoop"})
 public class DefaultWebSocket implements WebSocket {
     private final Queue<WebSocketListener> listeners = new ConcurrentLinkedQueue<WebSocketListener>();
-    protected final ProtocolHandler protocolHandler;
-    protected final WebSocketRequest request;
+    private final ProtocolHandler protocolHandler;
+    private final WebSocketRequest request;
 
     enum State {
         NEW, CONNECTED, CLOSING, CLOSED
     }
 
-    EnumSet<State> connected = EnumSet.range(State.CONNECTED, State.CLOSING);
+    private final EnumSet<State> connected = EnumSet.range(State.CONNECTED, State.CLOSING);
     private final AtomicReference<State> state = new AtomicReference<State>(State.NEW);
 
     public DefaultWebSocket(final ProtocolHandler protocolHandler,
@@ -106,10 +106,9 @@ public class DefaultWebSocket implements WebSocket {
         state.set(State.CLOSED);
     }
 
-    public void onClose(final DataFrame frame) {
+    public void onClose(final ClosingFrame frame) {
         if (state.compareAndSet(State.CONNECTED, State.CLOSING)) {
-            final ClosingFrame closing = (ClosingFrame) frame;
-            protocolHandler.close(closing.getCode(), closing.getTextPayload());
+            protocolHandler.close(frame.getCode(), frame.getTextPayload());
         } else {
             state.set(State.CLOSED);
             protocolHandler.doClose();
@@ -201,17 +200,11 @@ public class DefaultWebSocket implements WebSocket {
         }
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public Future<DataFrame> sendPing(byte[] data) {
         return send(new DataFrame(new PingFrameType(), data));
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override
     public Future<DataFrame> sendPong(byte[] data) {
         return send(new DataFrame(new PongFrameType(), data));

@@ -45,13 +45,15 @@ import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.glassfish.tyrus.websockets.draft06.ClosingFrame;
+
 /**
  * Abstract server-side {@link WebSocket} application, which will handle
  * application {@link WebSocket}s events.
  *
  * @author Alexey Stashok
  */
-public abstract class WebSocketApplication extends WebSocketAdapter {
+public abstract class WebSocketApplication implements WebSocketListener {
 
     /*
      * WebSockets registered with this application.
@@ -84,14 +86,14 @@ public abstract class WebSocketApplication extends WebSocketAdapter {
     }
 
     /**
-     * When a {@link WebSocket#onClose(DataFrame)} is invoked, the {@link WebSocket}
+     * When a {@link WebSocket#onClose(org.glassfish.tyrus.websockets.draft06.ClosingFrame)} is invoked, the {@link WebSocket}
      * will be unassociated with this application and closed.
      *
      * @param socket the {@link WebSocket} being closed.
      * @param frame  the closing frame.
      */
     @Override
-    public void onClose(WebSocket socket, DataFrame frame) {
+    public void onClose(WebSocket socket, ClosingFrame frame) {
         remove(socket);
         socket.close();
     }

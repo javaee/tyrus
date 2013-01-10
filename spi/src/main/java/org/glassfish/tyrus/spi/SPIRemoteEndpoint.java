@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -41,6 +41,8 @@ package org.glassfish.tyrus.spi;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+
+import javax.websocket.CloseReason;
 
 /**
  * Subset of {@link javax.websocket.RemoteEndpoint} interface which should be implemented
@@ -100,5 +102,12 @@ public abstract class SPIRemoteEndpoint {
      * @param applicationData the application data to be carried in the pong response.
      */
     public abstract void sendPong(ByteBuffer applicationData);
+
+    /**
+     * Send a Close message.
+     *
+     * @param closeReason close reason.
+     */
+    public abstract void close(CloseReason closeReason);
 
 }
