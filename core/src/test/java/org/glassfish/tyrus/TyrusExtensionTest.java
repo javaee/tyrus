@@ -37,62 +37,46 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.client;
+package org.glassfish.tyrus;
 
-import javax.websocket.ClientEndpointConfiguration;
-
-import org.glassfish.tyrus.spi.SPIEndpoint;
-import org.glassfish.tyrus.spi.TyrusClientSocket;
-import org.glassfish.tyrus.spi.TyrusContainer;
-import org.glassfish.tyrus.spi.TyrusServer;
+import java.util.HashMap;
 
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class ClientManagerTest {
+public class TyrusExtensionTest {
 
     @Test
-    public void setMaxSessionIdleTimeout() {
-        final ClientManager clientManager = createClientManager();
+    public void test1() {
+        final TyrusExtension test = new TyrusExtension("test");
+        assertEquals("test", test.getName());
+    }
 
-        clientManager.setMaxSessionIdleTimeout(100);
-        assertEquals(100, clientManager.getMaxSessionIdleTimeout());
+    @Test(expected = IllegalArgumentException.class)
+    public void test2() {
+        new TyrusExtension("");
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void test3() {
+        new TyrusExtension(null);
     }
 
     @Test
-    public void maxBinaryMessageBufferSize() {
-        final ClientManager clientManager = createClientManager();
+    public void test4() {
+        final HashMap<String, String> hashMap = new HashMap<String, String>() {{
+            put("Quote", "Mmm. Lost a planet, Master Obi-Wan has. How embarrassing. How embarrassing.");
+        }};
+        final TyrusExtension test = new TyrusExtension("test", hashMap);
 
-        clientManager.setMaxBinaryMessageBufferSize(100);
-        assertEquals(100, clientManager.getMaxBinaryMessageBufferSize());
+        assertNotNull(test.getParameters());
+        assertTrue(test.getParameters().containsKey("Quote"));
+        assertEquals("Mmm. Lost a planet, Master Obi-Wan has. How embarrassing. How embarrassing.",
+                test.getParameters().get("Quote"));
     }
-
-    @Test
-    public void maxTextMessageBufferSize() {
-        final ClientManager clientManager = createClientManager();
-
-        clientManager.setMaxTextMessageBufferSize(100);
-        assertEquals(100, clientManager.getMaxTextMessageBufferSize());
-
-    }
-
-    private ClientManager createClientManager() {
-        return ClientManager.createClient(NoopTyrusContainer.class.getName());
-    }
-
-    public static class NoopTyrusContainer implements TyrusContainer {
-        @Override
-        public TyrusServer createServer(String rootPath, int port) {
-            return null;
-        }
-
-        @Override
-        public TyrusClientSocket openClientSocket(String url, ClientEndpointConfiguration cec, SPIEndpoint endpoint) {
-            return null;
-        }
-    }
-
 }

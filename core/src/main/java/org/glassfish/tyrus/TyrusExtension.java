@@ -58,6 +58,7 @@ public class TyrusExtension implements Extension {
      * Create {@link Extension} with specific name.
      *
      * @param name extension name.
+     * @throws IllegalArgumentException when name is null or empty string.
      */
     public TyrusExtension(String name) {
         this(name, null);
@@ -66,12 +67,16 @@ public class TyrusExtension implements Extension {
     /**
      * Create {@link Extension} with name and parameters.
      *
-     * @param name extension name.
+     * @param name       extension name.
      * @param parameters extension parameters.
      */
     public TyrusExtension(String name, Map<String, String> parameters) {
+        if(name == null || name.length() == 0) {
+            throw new IllegalArgumentException();
+        }
+
         this.name = name;
-        if(parameters != null) {
+        if (parameters != null) {
             this.parameters = Collections.unmodifiableMap(parameters);
         } else {
             this.parameters = Collections.unmodifiableMap(Collections.<String, String>emptyMap());

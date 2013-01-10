@@ -53,6 +53,7 @@ import org.glassfish.tyrus.javax.websocket.ContainerProvider;
 public class TyrusContainerProvider<T> extends ContainerProvider {
     private static final TyrusContainerProvider<WebSocketContainer> CONTAINER = new TyrusContainerProvider<WebSocketContainer>();
 
+    // TODO - do we really want to store containers per classloader? Seems like container might be replaced in some usecases..
     private final Map<ClassLoader, T> clToContainerMap = new ConcurrentHashMap<ClassLoader, T>();
 
     public static TyrusContainerProvider<WebSocketContainer> getContainerProvider() {

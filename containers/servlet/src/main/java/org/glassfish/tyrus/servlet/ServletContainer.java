@@ -83,7 +83,7 @@ public class ServletContainer implements TyrusContainer {
     }
 
     @Override
-    public TyrusClientSocket openClientSocket(String path, ClientEndpointConfiguration cec, SPIEndpoint endpoint) {
+    public TyrusClientSocket openClientSocket(String url, ClientEndpointConfiguration cec, SPIEndpoint endpoint) {
         return null;  // TODO: Implement.
     }
 }

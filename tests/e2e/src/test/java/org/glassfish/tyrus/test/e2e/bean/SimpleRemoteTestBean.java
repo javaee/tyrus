@@ -45,16 +45,16 @@ import javax.websocket.WebSocketMessage;
 import javax.websocket.server.DefaultServerConfiguration;
 import javax.websocket.server.WebSocketEndpoint;
 
-
 /**
  * @author Danny Coward (danny.coward at oracle.com)
  */
-@WebSocketEndpoint(value = "/customremote/hello",configuration = DefaultServerConfiguration.class)
+@WebSocketEndpoint(value = "/customremote/hello", configuration = DefaultServerConfiguration.class)
 public class SimpleRemoteTestBean {
+
     @WebSocketMessage
-    public void handleIncomingMessage(String message, Session remote) {
+    public void handleIncomingMessage(String message, Session session) {
         try {
-            remote.getRemote().sendString(message);
+            session.getRemote().sendString(message);
         } catch (Exception e) {
             e.printStackTrace();
         }

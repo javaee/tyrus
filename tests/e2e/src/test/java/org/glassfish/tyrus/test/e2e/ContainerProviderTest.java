@@ -56,11 +56,11 @@ import org.glassfish.tyrus.server.Server;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Martin Matula (martin.matula at oracle.com)
  */
-@Ignore // Unignore once ContainerProvider implementation is changed
 public class ContainerProviderTest {
     private CountDownLatch messageLatch;
     private String receivedMessage;
@@ -68,6 +68,14 @@ public class ContainerProviderTest {
     private final ClientEndpointConfiguration cec = new DefaultClientEndpointConfiguration.Builder().build();
 
     @Test
+    public void simple() {
+        System.setProperty("websocket.clientcontainer.classname", ClientManager.class.getName());
+
+        assertNotNull(javax.websocket.ContainerProvider.getClientContainer());
+    }
+
+    @Test
+    @Ignore("remove&refactor when org.glassfish.tyrus.javax.websocket.ContainerProvider is removed.")
     public void test() {
         Assert.assertNull(ContainerProvider.getWebSocketContainer());
 //        Assert.assertNull(ContainerProvider.getClientContainer());
@@ -76,7 +84,7 @@ public class ContainerProviderTest {
 
         try {
             server.start();
-            Assert.assertNotNull(ContainerProvider.getWebSocketContainer());
+            assertNotNull(ContainerProvider.getWebSocketContainer());
 
             messageLatch = new CountDownLatch(1);
             ClientManager client = ClientManager.createClient();

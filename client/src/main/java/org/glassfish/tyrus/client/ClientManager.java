@@ -56,6 +56,7 @@ import org.glassfish.tyrus.AnnotatedEndpoint;
 import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.EndpointWrapper;
 import org.glassfish.tyrus.ErrorCollector;
+import org.glassfish.tyrus.ReflectionHelper;
 import org.glassfish.tyrus.TyrusContainerProvider;
 import org.glassfish.tyrus.spi.TyrusClientSocket;
 import org.glassfish.tyrus.spi.TyrusContainer;
@@ -66,7 +67,15 @@ import org.glassfish.tyrus.spi.TyrusContainer;
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 public class ClientManager implements WebSocketContainer {
+
+    /**
+     * Default {@link TyrusContainer} class name.
+     * <p/>
+     * Uses Grizzly as transport implementation.
+     */
     private static final String ENGINE_PROVIDER_CLASSNAME = "org.glassfish.tyrus.container.grizzly.GrizzlyEngine";
+
+    private static final Logger LOGGER = Logger.getLogger(ClientManager.class.getName());
 
     private final Set<TyrusClientSocket> sockets = new HashSet<TyrusClientSocket>();
     private final TyrusContainer engine;
@@ -76,6 +85,14 @@ public class ClientManager implements WebSocketContainer {
     private long maxTextMessageBufferSize;
     private long defaultAsyncSendTimeout;
 
+    /**
+     * Create new {@link ClientManager} instance.
+     * <p/>
+     * Uses {@link ClientManager#ENGINE_PROVIDER_CLASSNAME} as container implementation, thus relevant module needs to
+     * be on classpath. Setting different container is possible via {@link ClientManager#createClient(String)}.
+     *
+     * @see ClientManager#createClient(String)
+     */
     public static ClientManager createClient() {
         return createClient(ENGINE_PROVIDER_CLASSNAME);
     }
@@ -86,19 +103,30 @@ public class ClientManager implements WebSocketContainer {
      * @return new ClientManager instance.
      */
     public static ClientManager createClient(String engineProviderClassname) {
-        try {
-            Class engineProviderClazz = Class.forName(engineProviderClassname);
-            Logger.getLogger(ClientManager.class.getName()).info("Provider class loaded: " + engineProviderClassname);
-            ClientManager cm = new ClientManager((TyrusContainer) engineProviderClazz.newInstance());
-            TyrusContainerProvider.getContainerProvider().setContainer(cm);
-            return cm;
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to load provider class: " + engineProviderClassname + ".");
-        }
+        return new ClientManager(engineProviderClassname);
     }
 
-    private ClientManager(TyrusContainer engine) {
-        this.engine = engine;
+    /**
+     * Create new {@link ClientManager} instance.
+     * <p/>
+     * Uses {@link ClientManager#ENGINE_PROVIDER_CLASSNAME} as container implementation, thus relevant module needs to
+     * be on classpath. Setting different container is possible via {@link ClientManager#createClient(String)}}.
+     *
+     * @see ClientManager#createClient(String)
+     */
+    public ClientManager() {
+        this(ENGINE_PROVIDER_CLASSNAME);
+    }
+
+    private ClientManager(String engineProviderClassname) {
+        try {
+            Class engineProviderClazz = ReflectionHelper.classForNameWithException(engineProviderClassname);
+            LOGGER.config(String.format("Provider class loaded: %s", engineProviderClassname));
+            this.engine = (TyrusContainer) (engineProviderClazz.newInstance());
+            TyrusContainerProvider.getContainerProvider().setContainer(this);
+        } catch (Exception e) {
+            throw new RuntimeException(String.format("Failed to load provider class: %s.", engineProviderClassname));
+        }
     }
 
     @Override
@@ -162,8 +190,8 @@ public class ClientManager implements WebSocketContainer {
             collector.addException(new DeploymentException("Connection failed.", e));
         }
 
-        if(!collector.isEmpty()){
-            if(clientSocket != null){
+        if (!collector.isEmpty()) {
+            if (clientSocket != null) {
                 sockets.remove(clientSocket);
             }
             throw collector.composeComprehensiveException();
