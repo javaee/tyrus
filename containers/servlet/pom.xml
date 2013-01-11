@@ -100,7 +100,7 @@
             <groupId>javax.servlet</groupId>
             <artifactId>javax.servlet-api</artifactId>
             <scope>provided</scope>
-            <version>3.1-b04</version>
+            <version>3.1-b05</version>
         </dependency>
         <dependency>
             <groupId>org.glassfish.tyrus</groupId>
