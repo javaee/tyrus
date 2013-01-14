@@ -67,7 +67,7 @@ function handleResponse(evt) {
         writeToScreen("Userlistupdate: " + mString);
         var updateString = mString.substring(6, mString.length);
         writeToScreen("var " + updateString);
-        refresh_userlist(updateString)
+        refresh_userlist(updateString);
         writeToScreen("dfinished ");
     }
     writeToScreen('<span style="color: blue;">RESPONSE: ' + evt.data + '</span>');
@@ -117,7 +117,7 @@ function writeToScreen(message) {
 
 function refreshForUsernameChange() {
     writeToScreen("Refresh for " + username);
-    var newTitle = "WSBean Chat Client"
+    var newTitle = "WSBean Chat Client";
     if (isLoggedIn()) {
         newTitle = newTitle + ":" + username;
         SendChatButtonID.disabled = false;

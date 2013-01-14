@@ -49,7 +49,7 @@ import javax.websocket.ClientEndpointConfiguration;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.Session;
 
-import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
+import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 import org.junit.Assert;
@@ -70,7 +70,7 @@ public class EncodedObjectTest {
 
     @Test
     public void testClient() {
-        final ClientEndpointConfiguration cec = new DefaultClientEndpointConfiguration.Builder().build();
+        final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
         Server server = new Server(TestEncodeBean.class);
 
         try {

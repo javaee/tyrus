@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -39,51 +39,94 @@
  */
 package org.glassfish.tyrus.test.e2e;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.Endpoint;
+import javax.websocket.EndpointConfiguration;
+import javax.websocket.Session;
+import javax.websocket.WebSocketMessage;
+import javax.websocket.WebSocketOpen;
+import javax.websocket.server.WebSocketEndpoint;
 
 import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
+import org.glassfish.tyrus.TyrusServerEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
-
 /**
- * Tests sending and receiving ping and pongs
- *
- * @author Danny Coward (danny.coward at oracle.com)
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class PingPongTest {
-    @Ignore // TODO works on client test run, not on full build
+public class CustomConfigurationTest {
+
+    private static final CountDownLatch messageLatch = new CountDownLatch(2);
+
+    private static final String SENT_MESSAGE = "hello";
+
+    @WebSocketEndpoint(value = "/echo", configuration = MyServerConfiguration.class)
+    public static class TestBean {
+        @WebSocketOpen
+        public void onOpen(EndpointConfiguration endpointConfiguration) {
+            if (endpointConfiguration instanceof MyServerConfiguration) {
+                CustomConfigurationTest.messageLatch.countDown();
+            }
+        }
+
+        @WebSocketMessage
+        public String onMessage(String message) {
+            return message;
+        }
+    }
+
+    public static class MyServerConfiguration extends TyrusServerEndpointConfiguration {
+        public MyServerConfiguration(Class<? extends Endpoint> endpointClass, String path) {
+            super(endpointClass, path);
+        }
+    }
+
+    public static class MyClientConfiguration extends TyrusClientEndpointConfiguration {
+
+    }
+
     @Test
-    public void testClient() {
-        final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
-        Server server = new Server(PingPongServer.class.getName());
+    public void testExtensions() {
+        Server server = new Server(TestBean.class);
 
         try {
             server.start();
-            CountDownLatch messageLatch = new CountDownLatch(1);
 
-            PingPongClient htc = new PingPongClient(messageLatch);
+            final MyClientConfiguration clientConfiguration = new MyClientConfiguration();
             ClientManager client = ClientManager.createClient();
-            client.connectToServer(htc, cec, new URI("ws://localhost:8025/websockets/tests/pingpong"));
 
-            messageLatch.await(5, TimeUnit.SECONDS);
-            Assert.assertTrue("The client got the pong back with the right message, and so did the server", PingPongServer.gotCorrectMessage);
-            Assert.assertTrue("The client got the pong back with the right message, and so did the server", htc.gotCorrectMessageBack);
+            client.connectToServer(new Endpoint() {
 
-            Assert.assertTrue("The client got the pong back with the right message, and so did the server", PingPongServer.gotCorrectMessage && htc.gotCorrectMessageBack);
+                @Override
+                public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
+                    try {
+                        if (endpointConfiguration instanceof MyClientConfiguration) {
+                            CustomConfigurationTest.messageLatch.countDown();
+                        }
+
+                        session.getRemote().sendString(SENT_MESSAGE);
+                    } catch (IOException e) {
+                        // do nothing.
+                    }
+                }
+            }, clientConfiguration, new URI("ws://localhost:8025/websockets/tests/echo"));
+
+            messageLatch.await(1, TimeUnit.SECONDS);
+            Assert.assertEquals(0, messageLatch.getCount());
+
         } catch (Exception e) {
-            e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
         } finally {
             server.stop();
         }
     }
+
 }

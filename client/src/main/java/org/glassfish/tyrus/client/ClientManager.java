@@ -53,10 +53,10 @@ import javax.websocket.WebSocketClient;
 import javax.websocket.WebSocketContainer;
 
 import org.glassfish.tyrus.AnnotatedEndpoint;
-import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
 import org.glassfish.tyrus.EndpointWrapper;
 import org.glassfish.tyrus.ErrorCollector;
 import org.glassfish.tyrus.ReflectionHelper;
+import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.TyrusContainerProvider;
 import org.glassfish.tyrus.spi.TyrusClientSocket;
 import org.glassfish.tyrus.spi.TyrusContainer;
@@ -65,6 +65,7 @@ import org.glassfish.tyrus.spi.TyrusContainer;
  * ClientManager implementation.
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 public class ClientManager implements WebSocketContainer {
 
@@ -162,7 +163,7 @@ public class ClientManager implements WebSocketContainer {
      * @return {@link Session}.
      * @throws DeploymentException
      */
-    public Session connectToServer(Object o, ClientEndpointConfiguration configuration, String url) throws DeploymentException {
+    Session connectToServer(Object o, ClientEndpointConfiguration configuration, String url) throws DeploymentException {
         // TODO use maxSessionIdleTimeout, maxBinaryMessageBufferSize and maxTextMessageBufferSize
         final ErrorCollector collector = new ErrorCollector();
 
@@ -173,7 +174,7 @@ public class ClientManager implements WebSocketContainer {
         try {
             if (o instanceof Endpoint) {
                 endpoint = (Endpoint) o;
-                config = configuration == null ? new DefaultClientEndpointConfiguration.Builder().build() : configuration;
+                config = configuration == null ? new TyrusClientEndpointConfiguration.Builder().build() : configuration;
             } else if (o instanceof Class && (((Class<?>) o).getAnnotation(WebSocketClient.class) != null)) {
                 endpoint = AnnotatedEndpoint.fromClass((Class) o, false, collector);
                 config = (ClientEndpointConfiguration) ((AnnotatedEndpoint) endpoint).getEndpointConfiguration();
@@ -201,7 +202,7 @@ public class ClientManager implements WebSocketContainer {
     }
 
     /**
-     * TBD - should be present in {@link WebSocketContainer}.
+     * TODO - should be present in {@link WebSocketContainer}.
      */
     public void close() {
         for (TyrusClientSocket s : sockets) {

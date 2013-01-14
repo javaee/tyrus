@@ -49,6 +49,7 @@ import javax.websocket.Encoder;
 import javax.websocket.Endpoint;
 import javax.websocket.Extension;
 import javax.websocket.HandshakeResponse;
+import javax.websocket.server.DefaultServerConfiguration;
 import javax.websocket.server.HandshakeRequest;
 import javax.websocket.server.ServerEndpointConfiguration;
 
@@ -56,33 +57,61 @@ import javax.websocket.server.ServerEndpointConfiguration;
  * Provides the default {@link ServerEndpointConfiguration}.
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class DefaultServerEndpointConfiguration extends DefaultEndpointConfiguration implements ServerEndpointConfiguration {
+public class TyrusServerEndpointConfiguration extends DefaultServerConfiguration implements ServerEndpointConfiguration {
 
     /**
      * List of allowed origins. If not set, the test origin test will be always successful.
      */
     private final List<String> origins;
 
+    // TODO: remove when DefaultServerConfiguration implements getNegotiatedSubprotocol & getNegotiatedExtensions
+    private List<String> subProtocols = Collections.emptyList();
+    private List<Extension> extensions = Collections.emptyList();
+
     private final String uri;
 
     /**
      * Creates new configuration for {@link javax.websocket.Endpoint} which is used on the server side.
      *
-     * @param encoders     message encoders.
-     * @param decoders     message decoders.
-     * @param subprotocols supported sub - protocols.
-     * @param extensions   supported extensions.
-     * @param origins      accepted origins.
+     * @param uri           uri.
+     * @param endpointClass endpoint class.
      */
-    protected DefaultServerEndpointConfiguration(String uri, List<Encoder> encoders, List<Decoder> decoders,
-                                                 List<String> subprotocols, List<Extension> extensions,
-                                                 List<String> origins) {
-        super(encoders, decoders, subprotocols, extensions);
+    protected TyrusServerEndpointConfiguration(Class<? extends Endpoint> endpointClass, String uri) {
+        this(endpointClass, uri, Collections.<String>emptyList());
+    }
+
+    /**
+     * Creates new configuration for {@link javax.websocket.Endpoint} which is used on the server side.
+     *
+     * @param uri           uri.
+     * @param endpointClass endpoint class.
+     * @param origins       accepted origins.
+     */
+    TyrusServerEndpointConfiguration(Class<? extends Endpoint> endpointClass, String uri, List<String> origins) {
+        super(endpointClass, uri);
         this.uri = uri;
         this.origins = origins == null ? Collections.<String>emptyList() : Collections.unmodifiableList(origins);
     }
 
+    // TODO: remove when DefaultServerConfiguration implements getNegotiatedSubprotocol & getNegotiatedExtensions
+    @Override
+    public DefaultServerConfiguration setSubprotocols(List<String> subprotocols) {
+        super.setSubprotocols(subprotocols);
+        this.subProtocols = (subprotocols == null ? Collections.<String>emptyList() : subprotocols);
+        return this;
+    }
+
+    // TODO: remove when DefaultServerConfiguration implements getNegotiatedSubprotocol & getNegotiatedExtensions
+    @Override
+    public DefaultServerConfiguration setExtensions(List<Extension> extensions) {
+        super.setExtensions(extensions);
+        this.extensions = (extensions == null ? Collections.<Extension>emptyList() : extensions);
+        return this;
+    }
+
+    // TODO: remove when DefaultServerConfiguration implements getNegotiatedSubprotocol & getNegotiatedExtensions
     @Override
     public String getNegotiatedSubprotocol(List<String> requestedSubprotocols) {
         if (requestedSubprotocols != null) {
@@ -96,11 +125,7 @@ public class DefaultServerEndpointConfiguration extends DefaultEndpointConfigura
         return null;
     }
 
-    @Override
-    public Class<? extends Endpoint> getEndpointClass() {
-        return null;
-    }
-
+    // TODO: remove when DefaultServerConfiguration implements getNegotiatedSubprotocol & getNegotiatedExtensions
     @Override
     public List<Extension> getNegotiatedExtensions(List<Extension> requestedExtensions) {
         List<Extension> result = new ArrayList<Extension>();
@@ -116,6 +141,11 @@ public class DefaultServerEndpointConfiguration extends DefaultEndpointConfigura
         }
 
         return result;
+    }
+
+    @Override
+    public Class<? extends Endpoint> getEndpointClass() {
+        return null;
     }
 
     @Override
@@ -141,12 +171,70 @@ public class DefaultServerEndpointConfiguration extends DefaultEndpointConfigura
     }
 
     /**
-     * Builder class used to build the {@link DefaultServerEndpointConfiguration}.
+     * Builder class used to build the {@link TyrusServerEndpointConfiguration}.
      */
-    public static class Builder extends DefaultEndpointConfiguration.Builder<Builder> {
+    public static class Builder {
+
+        private List<Encoder> encoders;
+        private List<Decoder> decoders;
+        private List<String> protocols;
+        private List<Extension> extensions;
 
         private List<String> origins;
         private final String uri;
+
+
+        /**
+         * Set encoders.
+         * The {@link List} has to be ordered in order of preference, favorite first.
+         *
+         * @param encoders {@link List} of encoders ordered as specified above.
+         * @return {@link Builder}.
+         */
+        @SuppressWarnings({"unchecked"})
+        public final Builder encoders(List<Encoder> encoders) {
+            this.encoders = encoders;
+            return this;
+        }
+
+        /**
+         * Set decoders.
+         * The {@link List} has to be ordered in order of preference, favorite first.
+         *
+         * @param decoders {@link List} of decoders ordered as specified above.
+         * @return {@link Builder}.
+         */
+        @SuppressWarnings({"unchecked"})
+        public final Builder decoders(List<Decoder> decoders) {
+            this.decoders = decoders;
+            return this;
+        }
+
+        /**
+         * Set preferred sub-protocols that this {@link javax.websocket.Endpoint} would like to use for its sessions.
+         * The {@link List} has to be ordered in order of preference, favorite first.
+         *
+         * @param protocols {@link List} of sub-protocols ordered as specified above.
+         * @return {@link Builder}.
+         */
+        @SuppressWarnings({"unchecked"})
+        public Builder protocols(List<String> protocols) {
+            this.protocols = protocols;
+            return this;
+        }
+
+        /**
+         * Set of extensions that this {@link javax.websocket.Endpoint} would like to use for its sessions.
+         * The {@link List} has to be ordered in order of preference, favorite first.
+         *
+         * @param extensions {@link List} of extensions ordered as specified above.
+         * @return {@link Builder}.
+         */
+        @SuppressWarnings({"unchecked"})
+        public Builder extensions(List<Extension> extensions) {
+            this.extensions = extensions;
+            return this;
+        }
 
         /**
          * Create new {@link Builder}.
@@ -169,13 +257,17 @@ public class DefaultServerEndpointConfiguration extends DefaultEndpointConfigura
         }
 
         /**
-         * Build {@link DefaultServerEndpointConfiguration}.
+         * Build {@link TyrusServerEndpointConfiguration}.
          *
-         * @return new {@link DefaultServerEndpointConfiguration} instance.
+         * @return new {@link TyrusServerEndpointConfiguration} instance.
          */
-        @Override
-        public DefaultServerEndpointConfiguration build() {
-            return new DefaultServerEndpointConfiguration(uri, encoders, decoders, protocols, extensions, origins);
+        public TyrusServerEndpointConfiguration build() {
+            final TyrusServerEndpointConfiguration configuration = new TyrusServerEndpointConfiguration(null, uri, origins);
+            configuration.setEncoders(encoders == null ? Collections.<Encoder>emptyList() : encoders);
+            configuration.setDecoders(decoders == null ? Collections.<Decoder>emptyList() : decoders);
+            configuration.setExtensions(extensions == null ? Collections.<Extension>emptyList() : extensions);
+            configuration.setSubprotocols(protocols == null ? Collections.<String>emptyList() : protocols);
+            return configuration;
         }
     }
 }

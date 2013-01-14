@@ -50,7 +50,7 @@ import javax.websocket.EndpointConfiguration;
 import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
 
-import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
+import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
@@ -73,7 +73,7 @@ public class DecoderMultiplexerTest {
 
     private static final String MESSAGE_B = "bssssssss";
 
-    private final ClientEndpointConfiguration cec = new DefaultClientEndpointConfiguration.Builder().build();
+    private final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
 
     @Ignore
     @Test

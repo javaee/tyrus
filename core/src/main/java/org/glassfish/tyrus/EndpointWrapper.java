@@ -80,6 +80,7 @@ import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
  * @author Danny Coward (danny.coward at oracle.com)
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  * @author Martin Matula (martin.matula at oracle.com)
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 public class EndpointWrapper extends SPIEndpoint {
     /**
@@ -361,6 +362,11 @@ public class EndpointWrapper extends SPIEndpoint {
     public void onClose(SPIRemoteEndpoint gs, CloseReason closeReason) {
         endpoint.onClose(remoteEndpointToSession.get(gs), closeReason);
         remoteEndpointToSession.remove(gs);
+    }
+
+    @Override
+    public EndpointConfiguration getEndpointConfiguration() {
+        return configuration;
     }
 
     boolean isOpen(SessionImpl session) {

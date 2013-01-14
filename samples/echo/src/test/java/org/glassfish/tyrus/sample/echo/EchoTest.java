@@ -54,7 +54,7 @@ import javax.websocket.EndpointConfiguration;
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 
-import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
+import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
@@ -80,7 +80,7 @@ public class EchoTest {
      *
      * @return new {@link Server} instance or {@code null} if "tyrus.test.host" system property is set.
      */
-    private Server startServer() throws DeploymentException{
+    private Server startServer() throws DeploymentException {
         final String host = System.getProperty("tyrus.test.host");
         if (host == null) {
             final Server server = new Server(DEFAULT_HOST, DEFAULT_PORT, CONTEXT_PATH, endpointClasses);
@@ -149,7 +149,8 @@ public class EchoTest {
                 } catch (IOException e) {
                     // do nothing
                 }
-            }        }, new DefaultClientEndpointConfiguration.Builder().build(), getURI());
+            }
+        }, new TyrusClientEndpointConfiguration.Builder().build(), getURI());
 
         messageLatch.await(1, TimeUnit.SECONDS);
         if (messageLatch.getCount() != 0) {

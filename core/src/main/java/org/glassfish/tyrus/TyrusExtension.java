@@ -40,7 +40,10 @@
 package org.glassfish.tyrus;
 
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.TreeMap;
 
 import javax.websocket.Extension;
 
@@ -71,13 +74,20 @@ public class TyrusExtension implements Extension {
      * @param parameters extension parameters.
      */
     public TyrusExtension(String name, Map<String, String> parameters) {
-        if(name == null || name.length() == 0) {
+        if (name == null || name.length() == 0) {
             throw new IllegalArgumentException();
         }
 
         this.name = name;
         if (parameters != null) {
-            this.parameters = Collections.unmodifiableMap(parameters);
+            final TreeMap<String, String> m = new TreeMap<String, String>(new Comparator<String>() {
+                @Override
+                public int compare(String o1, String o2) {
+                    return o1.compareTo(o2);
+                }
+            });
+            m.putAll(parameters);
+            this.parameters = Collections.unmodifiableMap(m);
         } else {
             this.parameters = Collections.unmodifiableMap(Collections.<String, String>emptyMap());
         }
@@ -91,5 +101,70 @@ public class TyrusExtension implements Extension {
     @Override
     public Map<String, String> getParameters() {
         return parameters;
+    }
+
+    @Override
+    public String toString() {
+        return "TyrusExtension{" +
+                "name='" + name + '\'' +
+                ", parameters=" + parameters +
+                '}';
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        TyrusExtension that = (TyrusExtension) o;
+
+        final Comparator<String> stringComparator = new Comparator<String>() {
+            @Override
+            public int compare(String o1, String o2) {
+                return o1.compareTo(o2);
+            }
+        };
+
+        TreeMap<String, String> params1 = new TreeMap<String, String>(stringComparator);
+        TreeMap<String, String> params2 = new TreeMap<String, String>(stringComparator);
+        params1.putAll(parameters);
+        params2.putAll(that.parameters);
+
+        return name.equals(that.name) && params1.equals(params2);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = name.hashCode();
+        result = 31 * result + parameters.hashCode();
+        return result;
+    }
+
+    /**
+     * Naive parsing of one {@link Extension}.
+     *
+     * @param s {@link String} containing {@link Extension}.
+     * @return extension represented as {@link TyrusExtension}.
+     */
+    public static TyrusExtension fromString(String s) {
+        if (s == null || s.length() == 0) {
+            return null;
+        }
+
+        final String[] split1 = s.split(";");
+        if (split1.length == 1) {
+            // just a name
+            return new TyrusExtension(s);
+        } else {
+            String name = split1[0];
+            Map<String, String> params = new HashMap<String, String>();
+            for (int i = 1; i < split1.length; i++) {
+                final String[] property = split1[i].split("=");
+                if (property.length == 2) {
+                    params.put(property[0], property[1]);
+                }
+            }
+            return new TyrusExtension(name, params);
+        }
     }
 }

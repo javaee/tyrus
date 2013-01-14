@@ -45,6 +45,9 @@ import org.glassfish.tyrus.websockets.draft06.ClosingFrame;
 /**
  * Interface to allow notification of events occurring on specific
  * {@link WebSocket} instances.
+ *
+ * @author Alexey Stashok
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 public interface WebSocketListener {
 
@@ -136,5 +139,4 @@ public interface WebSocketListener {
      * @param last     flag indicating if this was the last fragment.
      */
     void onFragment(WebSocket socket, byte[] fragment, boolean last);
-
 }

@@ -45,7 +45,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfiguration;
 
-import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
+import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
@@ -62,7 +62,7 @@ public class StreamingTextTest {
 
     @Test
     public void testClient() {
-        final ClientEndpointConfiguration cec = new DefaultClientEndpointConfiguration.Builder().build();
+        final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
         Server server = new Server(StreamingTextServer.class.getName());
 
         try {

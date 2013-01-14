@@ -48,7 +48,7 @@ import javax.websocket.ClientEndpointConfiguration;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.Session;
 
-import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
+import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
@@ -70,7 +70,7 @@ public class ClientTest {
 
     @Test
     public void testClient() {
-        final ClientEndpointConfiguration cec = new DefaultClientEndpointConfiguration.Builder().build();
+        final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
         Server server = new Server(TestBean.class);
 
         try {
@@ -79,7 +79,7 @@ public class ClientTest {
 
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new TestEndpointAdapter() {
-                private final ClientEndpointConfiguration configuration = new DefaultClientEndpointConfiguration.Builder().build();
+                private final ClientEndpointConfiguration configuration = new TyrusClientEndpointConfiguration.Builder().build();
 
                 @Override
                 public void onMessage(String message) {

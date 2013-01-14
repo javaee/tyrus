@@ -47,7 +47,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.websocket.Session;
 
-import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
+import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 import org.junit.Test;
@@ -66,8 +66,8 @@ public class ServerContainerGetOpenSessions {
     @Test
     public void testGetOpenSessions() {
         final CountDownLatch messageLatch = new CountDownLatch(1);
-        DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder();
-        final DefaultClientEndpointConfiguration dcec = builder.build();
+        TyrusClientEndpointConfiguration.Builder builder = new TyrusClientEndpointConfiguration.Builder();
+        final TyrusClientEndpointConfiguration dcec = builder.build();
 
         Server server = new Server(org.glassfish.tyrus.test.e2e.bean.SimpleRemoteTestBean.class, org.glassfish.tyrus.test.e2e.bean.HelloTestBean.class);
 

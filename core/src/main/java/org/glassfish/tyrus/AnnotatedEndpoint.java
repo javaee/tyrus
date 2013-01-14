@@ -40,6 +40,8 @@
 package org.glassfish.tyrus;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -54,6 +56,7 @@ import java.util.logging.Logger;
 
 import javax.websocket.CloseReason;
 import javax.websocket.Decoder;
+import javax.websocket.DefaultClientConfiguration;
 import javax.websocket.DeploymentException;
 import javax.websocket.Encoder;
 import javax.websocket.Endpoint;
@@ -62,10 +65,11 @@ import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 import javax.websocket.WebSocketClient;
 import javax.websocket.WebSocketClose;
-import javax.websocket.server.WebSocketEndpoint;
 import javax.websocket.WebSocketError;
 import javax.websocket.WebSocketMessage;
 import javax.websocket.WebSocketOpen;
+import javax.websocket.server.DefaultServerConfiguration;
+import javax.websocket.server.WebSocketEndpoint;
 import javax.websocket.server.WebSocketPathParam;
 
 /**
@@ -73,6 +77,7 @@ import javax.websocket.server.WebSocketPathParam;
  *
  * @author Martin Matula (martin.matula at oracle.com)
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 public class AnnotatedEndpoint extends Endpoint {
     private static final Logger LOGGER = Logger.getLogger(AnnotatedEndpoint.class.getName());
@@ -90,89 +95,16 @@ public class AnnotatedEndpoint extends Endpoint {
     private final Set<MessageHandlerFactory> messageHandlerFactories = new HashSet<MessageHandlerFactory>();
 
     public static AnnotatedEndpoint fromClass(Class<?> annotatedClass, boolean isServerEndpoint, ErrorCollector collector) throws DeploymentException {
-        return new AnnotatedEndpoint(annotatedClass, null, createEndpointConfiguration(annotatedClass, isServerEndpoint), collector);
+        return new AnnotatedEndpoint(annotatedClass, null, isServerEndpoint, collector);
     }
 
     public static AnnotatedEndpoint fromInstance(Object annotatedInstance, boolean isServerEndpoint, ErrorCollector collector) throws DeploymentException {
-        return new AnnotatedEndpoint(annotatedInstance.getClass(), annotatedInstance,
-                createEndpointConfiguration(annotatedInstance.getClass(), isServerEndpoint), collector);
+        return new AnnotatedEndpoint(annotatedInstance.getClass(), annotatedInstance, isServerEndpoint, collector);
     }
 
-    private static EndpointConfiguration createEndpointConfiguration(Class<?> annotatedClass, boolean isServerEndpoint) {
-        final WebSocketEndpoint wseAnnotation = annotatedClass.getAnnotation(WebSocketEndpoint.class);
-
-        Class<? extends Encoder>[] encoderClasses;
-        Class<? extends Decoder>[] decoderClasses;
-        String[] subProtocols;
-
-        if (wseAnnotation == null) {
-            WebSocketClient wscAnnotation = annotatedClass.getAnnotation(WebSocketClient.class);
-            if (wscAnnotation == null) {
-                return null;
-            }
-            encoderClasses = wscAnnotation.encoders();
-            decoderClasses = wscAnnotation.decoders();
-            subProtocols = wscAnnotation.subprotocols();
-        } else {
-            encoderClasses = wseAnnotation.encoders();
-            decoderClasses = wseAnnotation.decoders();
-            subProtocols = wseAnnotation.subprotocols();
-        }
-
-        List<Encoder> encoders = new ArrayList<Encoder>();
-        if (encoderClasses != null) {
-            //noinspection unchecked
-            for (Class<? extends Encoder> encoderClass : encoderClasses) {
-                Encoder encoder = ComponentProviderService.getInstance(encoderClass);
-                if (encoder != null) {
-                    encoders.add(encoder);
-                }
-            }
-        }
-        List<Decoder> decoders = new ArrayList<Decoder>();
-        if (decoderClasses != null) {
-            //noinspection unchecked
-            for (Class<? extends Decoder> decoderClass : decoderClasses) {
-                Class<?> decoderType = getDecoderClassType(decoderClass);
-                Decoder decoder = ComponentProviderService.getInstance(decoderClass);
-                if (decoder != null) {
-                    decoders.add(new DecoderWrapper(decoder, decoderType, decoderClass));
-                }
-            }
-        }
-
-        DefaultEndpointConfiguration.Builder builder = isServerEndpoint ?
-                // TODO: fix once origins is added to the @WebSocketEndpoint annotation
-                new DefaultServerEndpointConfiguration.Builder(wseAnnotation.value())
-                        .origins(Collections.<String>emptyList()) :
-                new DefaultClientEndpointConfiguration.Builder();
-
-
-        return builder.encoders(encoders).decoders(decoders).protocols(subProtocols == null ?
-                Collections.<String>emptyList() : Arrays.asList(subProtocols)).build();
-    }
-
-    private static Class<?> getDecoderClassType(Class<?> decoder) {
-        Class<?> rootClass = null;
-
-        if (Decoder.Text.class.isAssignableFrom(decoder)) {
-            rootClass = Decoder.Text.class;
-        } else if (Decoder.Binary.class.isAssignableFrom(decoder)) {
-            rootClass = Decoder.Binary.class;
-        } else if (Decoder.TextStream.class.isAssignableFrom(decoder)) {
-            rootClass = Decoder.TextStream.class;
-        } else if (Decoder.BinaryStream.class.isAssignableFrom(decoder)) {
-            rootClass = Decoder.BinaryStream.class;
-        }
-
-        ReflectionHelper.DeclaringClassInterfacePair p = ReflectionHelper.getClass(decoder, rootClass);
-        Class[] as = ReflectionHelper.getParameterizedClassArguments(p);
-        return as == null ? Object.class : (as[0] == null ? Object.class : as[0]);
-    }
-
-    private AnnotatedEndpoint(Class<?> annotatedClass, Object instance, EndpointConfiguration config, ErrorCollector collector) throws DeploymentException {
-        this.configuration = config;
+    private AnnotatedEndpoint(Class<?> annotatedClass, Object instance, Boolean isServerEndpoint, ErrorCollector collector) throws DeploymentException {
         this.collector = collector;
+        this.configuration = createEndpointConfiguration(annotatedClass, isServerEndpoint);
 
         // TODO: should be removed once the instance creation is delegated to lifecycle provider
         annotatedInstance = instance == null ? ComponentProviderService.getInstance(annotatedClass) : instance;
@@ -188,7 +120,7 @@ public class AnnotatedEndpoint extends Endpoint {
         ParameterExtractor[] onErrorParameters = null;
 
         Map<Integer, Class<?>> unknownParams = new HashMap<Integer, Class<?>>();
-        AnnotatedClassValidityChecker validityChecker = new AnnotatedClassValidityChecker(annotatedClass, config.getDecoders(), collector);
+        AnnotatedClassValidityChecker validityChecker = new AnnotatedClassValidityChecker(annotatedClass, configuration.getDecoders(), collector);
 
         // TODO: how about methods from the superclass?
         for (Method m : annotatedClass.getDeclaredMethods()) {
@@ -274,7 +206,155 @@ public class AnnotatedEndpoint extends Endpoint {
         this.onCloseParameters = onCloseParameters;
     }
 
-    private ParameterExtractor[] getParameterExtractors(Method method, Map<Integer, Class<?>> unknownParams) throws DeploymentException {
+    private EndpointConfiguration createEndpointConfiguration(Class<?> annotatedClass, boolean isServerEndpoint) {
+        if (isServerEndpoint) {
+            final WebSocketEndpoint wseAnnotation = annotatedClass.getAnnotation(WebSocketEndpoint.class);
+
+            if (wseAnnotation == null) {
+                collector.addException(new DeploymentException(String.format("@WebSocketEndpoint annotation not found on class %s", annotatedClass.getName())));
+                return null;
+            }
+
+            // default value
+            if (wseAnnotation.configuration().equals(DefaultServerConfiguration.class)) {
+                Class<? extends Encoder>[] encoderClasses;
+                Class<? extends Decoder>[] decoderClasses;
+                String[] subProtocols;
+
+                encoderClasses = wseAnnotation.encoders();
+                decoderClasses = wseAnnotation.decoders();
+                subProtocols = wseAnnotation.subprotocols();
+
+                List<Encoder> encoders = new ArrayList<Encoder>();
+                if (encoderClasses != null) {
+                    //noinspection unchecked
+                    for (Class<? extends Encoder> encoderClass : encoderClasses) {
+                        Encoder encoder = ComponentProviderService.getInstance(encoderClass);
+                        if (encoder != null) {
+                            encoders.add(encoder);
+                        }
+                    }
+                }
+                List<Decoder> decoders = new ArrayList<Decoder>();
+                if (decoderClasses != null) {
+                    //noinspection unchecked
+                    for (Class<? extends Decoder> decoderClass : decoderClasses) {
+                        Class<?> decoderType = getDecoderClassType(decoderClass);
+                        Decoder decoder = ComponentProviderService.getInstance(decoderClass);
+                        if (decoder != null) {
+                            decoders.add(new DecoderWrapper(decoder, decoderType, decoderClass));
+                        }
+                    }
+                }
+
+                DefaultServerConfiguration dsc =
+                        // TODO: fix once origins is added to the @WebSocketEndpoint annotation
+                        // TODO: fix once DefaultServerConfiguration has usable constructor
+                        new TyrusServerEndpointConfiguration(null, wseAnnotation.value(),   /* annotatedClass, */ Collections.<String>emptyList());
+
+                dsc.setEncoders(encoders);
+                dsc.setDecoders(decoders);
+                dsc.setSubprotocols(Arrays.asList(subProtocols));
+
+                return dsc;
+            } else {
+                try {
+                    final Class<? extends DefaultServerConfiguration> configClass = wseAnnotation.configuration();
+                    Constructor<? extends DefaultServerConfiguration> constructor;
+                    try {
+                        constructor = configClass.getConstructor(Class.class, String.class);
+                    } catch (NoSuchMethodException e) {
+                        constructor = configClass.getConstructor();
+                    }
+
+                    // component provider?
+                    return constructor.newInstance(annotatedClass, wseAnnotation.value());
+
+                } catch (NoSuchMethodException e) {
+                    return null;
+                } catch (InvocationTargetException e) {
+                    return null;
+                } catch (InstantiationException e) {
+                    return null;
+                } catch (IllegalAccessException e) {
+                    return null;
+                }
+            }
+
+            // client endpoint
+        } else {
+            final WebSocketClient wscAnnotation = annotatedClass.getAnnotation(WebSocketClient.class);
+
+            if (wscAnnotation == null) {
+                collector.addException(new DeploymentException(String.format("@WebSocketClient annotation not found on class %s", annotatedClass.getName())));
+                return null;
+            }
+
+            // TODO - wscAnnotation.configuration()?
+
+            Class<? extends Encoder>[] encoderClasses;
+            Class<? extends Decoder>[] decoderClasses;
+            String[] subProtocols;
+
+            encoderClasses = wscAnnotation.encoders();
+            decoderClasses = wscAnnotation.decoders();
+            subProtocols = wscAnnotation.subprotocols();
+
+            List<Encoder> encoders = new ArrayList<Encoder>();
+            if (encoderClasses != null) {
+                //noinspection unchecked
+                for (Class<? extends Encoder> encoderClass : encoderClasses) {
+                    Encoder encoder = ComponentProviderService.getInstance(encoderClass);
+                    if (encoder != null) {
+                        encoders.add(encoder);
+                    }
+                }
+            }
+            List<Decoder> decoders = new ArrayList<Decoder>();
+            if (decoderClasses != null) {
+                //noinspection unchecked
+                for (Class<? extends Decoder> decoderClass : decoderClasses) {
+                    Class<?> decoderType = getDecoderClassType(decoderClass);
+                    Decoder decoder = ComponentProviderService.getInstance(decoderClass);
+                    if (decoder != null) {
+                        decoders.add(new DecoderWrapper(decoder, decoderType, decoderClass));
+                    }
+                }
+            }
+
+            DefaultClientConfiguration dcc =
+                    // TODO: fix once origins is added to the @WebSocketEndpoint annotation
+                    new DefaultClientConfiguration();
+            dcc.setEncoders(encoders);
+            dcc.setDecoders(decoders);
+            dcc.setPreferredSubprotocols(Arrays.asList(subProtocols));
+
+            return dcc;
+        }
+
+
+    }
+
+    private static Class<?> getDecoderClassType(Class<?> decoder) {
+        Class<?> rootClass = null;
+
+        if (Decoder.Text.class.isAssignableFrom(decoder)) {
+            rootClass = Decoder.Text.class;
+        } else if (Decoder.Binary.class.isAssignableFrom(decoder)) {
+            rootClass = Decoder.Binary.class;
+        } else if (Decoder.TextStream.class.isAssignableFrom(decoder)) {
+            rootClass = Decoder.TextStream.class;
+        } else if (Decoder.BinaryStream.class.isAssignableFrom(decoder)) {
+            rootClass = Decoder.BinaryStream.class;
+        }
+
+        ReflectionHelper.DeclaringClassInterfacePair p = ReflectionHelper.getClass(decoder, rootClass);
+        Class[] as = ReflectionHelper.getParameterizedClassArguments(p);
+        return as == null ? Object.class : (as[0] == null ? Object.class : as[0]);
+    }
+
+
+    private ParameterExtractor[] getParameterExtractors(Method method, Map<Integer, Class<?>> unknownParams) {
         ParameterExtractor[] result = new ParameterExtractor[method.getParameterTypes().length];
         boolean sessionPresent = false;
         unknownParams.clear();

@@ -53,7 +53,7 @@ import javax.websocket.EndpointConfiguration;
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 
-import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
+import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
@@ -72,11 +72,11 @@ public class DecodedObjectTest {
 
     private static String receivedMessage;
 
-    private static String receivedTextMessage = null;
+    private final static String receivedTextMessage = null;
 
     private static final String SENT_MESSAGE = "hello";
 
-    private final ClientEndpointConfiguration cec = new DefaultClientEndpointConfiguration.Builder().build();
+    private final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
 
     @Ignore
     @Test
@@ -89,9 +89,9 @@ public class DecodedObjectTest {
             messageLatch = new CountDownLatch(1);
             ArrayList<Decoder> decoders = new ArrayList<Decoder>();
             decoders.add(new CustomDecoder());
-            DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder();
+            TyrusClientEndpointConfiguration.Builder builder = new TyrusClientEndpointConfiguration.Builder();
             builder.decoders(decoders);
-            final DefaultClientEndpointConfiguration dcec = builder.build();
+            final TyrusClientEndpointConfiguration dcec = builder.build();
 
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new Endpoint() {
@@ -134,9 +134,9 @@ public class DecodedObjectTest {
             messageLatch = new CountDownLatch(1);
             ArrayList<Decoder> decoders = new ArrayList<Decoder>();
             decoders.add(new ExtendedDecoder());
-            DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder();
+            TyrusClientEndpointConfiguration.Builder builder = new TyrusClientEndpointConfiguration.Builder();
             builder.decoders(decoders);
-            final DefaultClientEndpointConfiguration dcec = builder.build();
+            final TyrusClientEndpointConfiguration dcec = builder.build();
 
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new Endpoint() {

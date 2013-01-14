@@ -52,7 +52,7 @@ import javax.websocket.WebSocketMessage;
 import javax.websocket.server.DefaultServerConfiguration;
 import javax.websocket.server.WebSocketEndpoint;
 
-import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
+import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
@@ -83,14 +83,14 @@ public class OnCloseTest {
 
     @Test
     public void testOnClose() {
-        final ClientEndpointConfiguration cec = new DefaultClientEndpointConfiguration.Builder().build();
+        final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
         Server server = new Server(OnCloseEndpoint.class);
 
         final CountDownLatch messageLatch = new CountDownLatch(1);
 
         try {
             server.start();
-            final DefaultClientEndpointConfiguration dcec = new DefaultClientEndpointConfiguration.Builder().build();
+            final TyrusClientEndpointConfiguration dcec = new TyrusClientEndpointConfiguration.Builder().build();
 
             ClientManager.createClient().connectToServer(new TestEndpointAdapter() {
                 @Override
@@ -159,14 +159,14 @@ public class OnCloseTest {
 
     @Test
     public void testOnCloseCustomCloseReason() {
-        final ClientEndpointConfiguration cec = new DefaultClientEndpointConfiguration.Builder().build();
+        final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
         Server server = new Server(OnCloseWithCustomReasonEndpoint.class);
 
         final CountDownLatch messageLatch = new CountDownLatch(1);
 
         try {
             server.start();
-            final DefaultClientEndpointConfiguration dcec = new DefaultClientEndpointConfiguration.Builder().build();
+            final TyrusClientEndpointConfiguration dcec = new TyrusClientEndpointConfiguration.Builder().build();
 
             ClientManager.createClient().connectToServer(new TestEndpointAdapter() {
                 @Override

@@ -48,7 +48,7 @@ import javax.websocket.ClientEndpointConfiguration;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.Session;
 
-import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
+import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.javax.websocket.ContainerProvider;
 import org.glassfish.tyrus.server.Server;
@@ -65,7 +65,7 @@ public class ContainerProviderTest {
     private CountDownLatch messageLatch;
     private String receivedMessage;
     private static final String SENT_MESSAGE = "hello";
-    private final ClientEndpointConfiguration cec = new DefaultClientEndpointConfiguration.Builder().build();
+    private final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
 
     @Test
     public void simple() {
@@ -92,7 +92,7 @@ public class ContainerProviderTest {
             Assert.assertSame(client, ContainerProvider.getWebSocketContainer());
 
             client.connectToServer(new TestEndpointAdapter() {
-                private final ClientEndpointConfiguration configuration = new DefaultClientEndpointConfiguration.Builder().build();
+                private final ClientEndpointConfiguration configuration = new TyrusClientEndpointConfiguration.Builder().build();
 
                 @Override
                 public void onMessage(String message) {

@@ -47,7 +47,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.websocket.Session;
 
-import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
+import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 
 /**
@@ -68,11 +68,11 @@ public class EjbManualTestingApplication {
         try {
             messageLatch = new CountDownLatch(2);
 
-            DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder();
-            final DefaultClientEndpointConfiguration configSingleton = builder.build();
+            TyrusClientEndpointConfiguration.Builder builder = new TyrusClientEndpointConfiguration.Builder();
+            final TyrusClientEndpointConfiguration configSingleton = builder.build();
 
-            builder = new DefaultClientEndpointConfiguration.Builder();
-            final DefaultClientEndpointConfiguration configStateless = builder.build();
+            builder = new TyrusClientEndpointConfiguration.Builder();
+            final TyrusClientEndpointConfiguration configStateless = builder.build();
 
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new TestEndpointAdapter() {

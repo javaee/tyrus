@@ -54,7 +54,7 @@ import javax.websocket.WebSocketOpen;
 import javax.websocket.server.DefaultServerConfiguration;
 import javax.websocket.server.WebSocketEndpoint;
 
-import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
+import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
@@ -106,13 +106,13 @@ public class ErrorTest {
 
     @Test
     public void testErrorOnOpen() {
-        final ClientEndpointConfiguration cec = new DefaultClientEndpointConfiguration.Builder().build();
+        final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
         Server server = new Server(OnOpenErrorTestBean.class);
 
         try {
             server.start();
-            final DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder();
-            final DefaultClientEndpointConfiguration dcec = builder.build();
+            final TyrusClientEndpointConfiguration.Builder builder = new TyrusClientEndpointConfiguration.Builder();
+            final TyrusClientEndpointConfiguration dcec = builder.build();
 
             messageLatch = new CountDownLatch(1);
             ClientManager client = ClientManager.createClient();
@@ -181,13 +181,13 @@ public class ErrorTest {
 
     @Test
     public void testErrorOnClose() {
-        final ClientEndpointConfiguration cec = new DefaultClientEndpointConfiguration.Builder().build();
+        final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
         Server server = new Server(OnCloseErrorTestBean.class);
 
         try {
             server.start();
-            final DefaultClientEndpointConfiguration.Builder builder = new DefaultClientEndpointConfiguration.Builder();
-            final DefaultClientEndpointConfiguration dcec = builder.build();
+            final TyrusClientEndpointConfiguration.Builder builder = new TyrusClientEndpointConfiguration.Builder();
+            final TyrusClientEndpointConfiguration dcec = builder.build();
 
             messageLatch = new CountDownLatch(1);
             ClientManager client = ClientManager.createClient();

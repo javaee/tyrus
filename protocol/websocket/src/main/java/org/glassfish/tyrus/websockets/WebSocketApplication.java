@@ -52,6 +52,7 @@ import org.glassfish.tyrus.websockets.draft06.ClosingFrame;
  * application {@link WebSocket}s events.
  *
  * @author Alexey Stashok
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 public abstract class WebSocketApplication implements WebSocketListener {
 
@@ -63,8 +64,6 @@ public abstract class WebSocketApplication implements WebSocketListener {
 
     private final List<Extension> supportedExtensions = new ArrayList<Extension>();
     private final List<String> supportedProtocols = new ArrayList<String>();
-
-    // ---------------------------------------------------------- Public Methods
 
     /**
      * Factory method to create new {@link WebSocket} instances.  Developers may
@@ -147,6 +146,30 @@ public abstract class WebSocketApplication implements WebSocketListener {
 
     }
 
+    /**
+     * This method will be invoked if an unexpected exception is caught by
+     * the WebSocket runtime.
+     *
+     * @param webSocket the websocket being processed at the time the
+     *                  exception occurred.
+     * @param t         the unexpected exception.
+     * @return {@code true} if the WebSocket should be closed otherwise
+     *         {@code false}.
+     */
+    public boolean onError(final WebSocket webSocket,
+                           final Throwable t) {
+        return true;
+    }
+
+    /**
+     * Invoked when server side handshake is ready to send response.
+     * <p/>
+     * Changes in response parameter will be reflected in data sent back to client.
+     *
+     * @param request  original request which caused this handshake.
+     * @param response response to be send.
+     */
+    public abstract void onHandShakeResponse(WebSocketRequest request, WebSocketResponse response);
 
     /**
      * Checks application specific criteria to determine if this application can
@@ -178,10 +201,6 @@ public abstract class WebSocketApplication implements WebSocketListener {
     public List<String> getSupportedProtocols(List<String> subProtocol) {
         return supportedProtocols;
     }
-
-
-    // ------------------------------------------------------- Protected Methods
-
 
     /**
      * Returns a set of {@link WebSocket}s, registered with the application.
@@ -215,7 +234,6 @@ public abstract class WebSocketApplication implements WebSocketListener {
         return sockets.remove(socket) != null;
     }
 
-
     /**
      * This method will be called, when initial {@link WebSocket} handshake
      * process has been completed, but allows the application to perform further
@@ -225,20 +243,5 @@ public abstract class WebSocketApplication implements WebSocketListener {
      * @throws HandshakeException error occurred during the handshake.
      */
     protected void handshake(HandShake handshake) throws HandshakeException {
-    }
-
-    /**
-     * This method will be invoked if an unexpected exception is caught by
-     * the WebSocket runtime.
-     *
-     * @param webSocket the websocket being processed at the time the
-     *                  exception occurred.
-     * @param t         the unexpected exception.
-     * @return <code>true</code> if the WebSocket should be closed otherwise
-     *         <code>false</code>.
-     */
-    public boolean onError(final WebSocket webSocket,
-                           final Throwable t) {
-        return true;
     }
 }

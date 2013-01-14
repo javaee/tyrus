@@ -86,6 +86,7 @@ import org.glassfish.grizzly.utils.IdleTimeoutFilter;
  * redirects it to appropriate connection ({@link org.glassfish.tyrus.websockets.WebSocketApplication}, {@link org.glassfish.tyrus.websockets.WebSocket}) for processing.
  *
  * @author Alexey Stashok
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 class WebSocketFilter extends BaseFilter {
 
@@ -166,7 +167,7 @@ class WebSocketFilter extends BaseFilter {
     /**
      * Method handles Grizzly {@link Connection} close phase. Check if the {@link Connection} is a {@link org.glassfish.tyrus.websockets.WebSocket}, if
      * yes - tries to close the websocket gracefully (sending close frame) and calls {@link
-     * org.glassfish.tyrus.websockets.WebSocket#onClose(org.glassfish.tyrus.websockets.DataFrame)}. If the Grizzly {@link Connection} is not websocket - passes processing to the next
+     * org.glassfish.tyrus.websockets.WebSocket#onClose(org.glassfish.tyrus.websockets.draft06.ClosingFrame)}. If the Grizzly {@link Connection} is not websocket - passes processing to the next
      * filter in the chain.
      *
      * @param ctx {@link FilterChainContext}

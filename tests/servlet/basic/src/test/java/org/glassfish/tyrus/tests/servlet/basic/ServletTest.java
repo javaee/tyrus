@@ -55,7 +55,7 @@ import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 import javax.websocket.server.WebSocketEndpoint;
 
-import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
+import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
@@ -154,7 +154,7 @@ public class ServletTest {
                         // do nothing
                     }
                 }
-            }, new DefaultClientEndpointConfiguration.Builder().build(), getURI(PlainEcho.class.getAnnotation(WebSocketEndpoint.class).value()));
+            }, new TyrusClientEndpointConfiguration.Builder().build(), getURI(PlainEcho.class.getAnnotation(WebSocketEndpoint.class).value()));
 
             messageLatch.await(1, TimeUnit.SECONDS);
             if (messageLatch.getCount() != 0) {
@@ -192,7 +192,7 @@ public class ServletTest {
                         // do nothing
                     }
                 }
-            }, new DefaultClientEndpointConfiguration.Builder().build(), getURI(PlainEcho.class.getAnnotation(WebSocketEndpoint.class).value()));
+            }, new TyrusClientEndpointConfiguration.Builder().build(), getURI(PlainEcho.class.getAnnotation(WebSocketEndpoint.class).value()));
 
             messageLatch.await(10, TimeUnit.SECONDS);
             if (messageLatch.getCount() != 0) {
@@ -230,7 +230,7 @@ public class ServletTest {
                             // do nothing
                         }
                     }
-                }, new DefaultClientEndpointConfiguration.Builder().build(), getURI(PlainEcho.class.getAnnotation(WebSocketEndpoint.class).value()));
+                }, new TyrusClientEndpointConfiguration.Builder().build(), getURI(PlainEcho.class.getAnnotation(WebSocketEndpoint.class).value()));
 
                 // TODO - remove when possible.
                 Thread.sleep(100);
@@ -285,7 +285,7 @@ public class ServletTest {
                         // do nothing
                     }
                 }
-            }, new DefaultClientEndpointConfiguration.Builder().build(), getURI(PlainEcho.class.getAnnotation(WebSocketEndpoint.class).value()));
+            }, new TyrusClientEndpointConfiguration.Builder().build(), getURI(PlainEcho.class.getAnnotation(WebSocketEndpoint.class).value()));
 
             messageLatch.await(1, TimeUnit.SECONDS);
             if (messageLatch.getCount() != 0) {
@@ -323,7 +323,7 @@ public class ServletTest {
                         // do nothing
                     }
                 }
-            }, new DefaultClientEndpointConfiguration.Builder().build(), getURI(PlainEcho.class.getAnnotation(WebSocketEndpoint.class).value()));
+            }, new TyrusClientEndpointConfiguration.Builder().build(), getURI(PlainEcho.class.getAnnotation(WebSocketEndpoint.class).value()));
 
             messageLatch.await(10, TimeUnit.SECONDS);
             if (messageLatch.getCount() != 0) {
@@ -361,7 +361,7 @@ public class ServletTest {
                             // do nothing
                         }
                     }
-                }, new DefaultClientEndpointConfiguration.Builder().build(), getURI(PlainEcho.class.getAnnotation(WebSocketEndpoint.class).value()));
+                }, new TyrusClientEndpointConfiguration.Builder().build(), getURI(PlainEcho.class.getAnnotation(WebSocketEndpoint.class).value()));
 
                 // TODO - remove when possible.
                 Thread.sleep(300);

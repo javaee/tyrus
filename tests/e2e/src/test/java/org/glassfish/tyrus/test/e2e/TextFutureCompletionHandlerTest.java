@@ -46,7 +46,7 @@ import java.util.concurrent.TimeUnit;
 import javax.websocket.ClientEndpointConfiguration;
 import javax.websocket.SendResult;
 
-import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
+import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 import org.junit.Assert;
@@ -59,7 +59,7 @@ import org.junit.Test;
  */
 public class TextFutureCompletionHandlerTest {
 
-    private final ClientEndpointConfiguration cec = new DefaultClientEndpointConfiguration.Builder().build();
+    private final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
 
     @Test
     public void testFastClient() {

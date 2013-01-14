@@ -49,8 +49,11 @@ import java.util.Map;
 
 /**
  * @author Justin Lee
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 public abstract class HandShake {
+    private static final String HEADER_SEPARATOR = ", ";
+
     private boolean secure;
     private String origin;
     private String serverHostName;
@@ -60,9 +63,10 @@ public abstract class HandShake {
     //private final Map<String, String[]> queryParams = new TreeMap<String, String[]>();
     private List<String> subProtocols = new ArrayList<String>();
     private List<Extension> extensions = new ArrayList<Extension>(); // client extensions
+    // client side request!
     private WebSocketRequest request;
-    public static final String HEADER_SEPARATOR = ", ";
     private HandShakeResponseListener responseListener;
+    private WebSocketRequest incomingRequest;
 
     protected HandShake(URI url) {
         resourcePath = url.getPath();
@@ -80,6 +84,7 @@ public abstract class HandShake {
     }
 
     protected HandShake(WebSocketRequest request) {
+        this.incomingRequest = request;
         Map<String, String> headers = request.getHeaders();
         checkForHeader(headers, "Upgrade", "WebSocket");
         checkForHeader(headers, "Connection", "Upgrade");
@@ -177,7 +182,7 @@ public abstract class HandShake {
         return subProtocols;
     }
 
-    protected  <T> String getHeaderFromList(List<T> list) {
+    protected <T> String getHeaderFromList(List<T> list) {
         StringBuilder sb = new StringBuilder();
 
         int i = 0;
@@ -241,8 +246,16 @@ public abstract class HandShake {
     }
 
     private void validate(String header, String validValue, String value) {
-        if (!value.equalsIgnoreCase(validValue)) {
-            throw new HandshakeException(String.format("Invalid %s header returned: '%s'", header, value));
+        // http://java.net/jira/browse/TYRUS-55
+        // Firefox workaround (it sends "Connections: keep-alive, upgrade").
+        if (header.equalsIgnoreCase("Connection")) {
+            if (!value.toLowerCase().contains(validValue.toLowerCase())) {
+                throw new HandshakeException(String.format("Invalid %s header returned: '%s'", header, value));
+            }
+        } else {
+            if (!value.equalsIgnoreCase(validValue)) {
+                throw new HandshakeException(String.format("Invalid %s header returned: '%s'", header, value));
+            }
         }
     }
 
@@ -315,7 +328,7 @@ public abstract class HandShake {
 //            checkForHeader(response.getHeaders(), WebSocketEngine.SEC_WS_PROTOCOL_HEADER, WebSocketEngine.SEC_WS_PROTOCOL_HEADER);
 //        }
         if (responseListener != null) {
-            responseListener.passResponseHeaders(response.getHeaders());
+            responseListener.onResponseHeaders(response.getHeaders());
         }
     }
 
@@ -326,8 +339,9 @@ public abstract class HandShake {
         response.getHeaders().put(WebSocketEngine.UPGRADE, WebSocketEngine.WEBSOCKET);
         response.getHeaders().put(WebSocketEngine.CONNECTION, WebSocketEngine.UPGRADE);
         setHeaders(response);
-        if (getSubProtocols() != null && !getSubProtocols().isEmpty()) {
-            response.getHeaders().put(WebSocketEngine.SEC_WS_PROTOCOL_HEADER, getHeaderFromList(application.getSupportedProtocols(getSubProtocols())));
+
+        if (subProtocols != null && !subProtocols.isEmpty()) {
+            response.getHeaders().put(WebSocketEngine.SEC_WS_PROTOCOL_HEADER, getHeaderFromList(application.getSupportedProtocols(subProtocols)));
         }
         if (!application.getSupportedExtensions().isEmpty() && !getExtensions().isEmpty()) {
             List<Extension> intersection =
@@ -338,6 +352,8 @@ public abstract class HandShake {
                 response.getHeaders().put(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER, getHeaderFromList(intersection));
             }
         }
+
+        application.onHandShakeResponse(incomingRequest, response);
 
         connection.write(response);
     }
@@ -369,30 +385,32 @@ public abstract class HandShake {
     }
 
     // TODO - add proper Extension parsing.
-    protected final List<Extension> parseExtensionsHeader(final String headerValue) {
-        List<Extension> result = new ArrayList<Extension>();
-        List<String> headerValues = Arrays.asList(headerValue.split(","));
+    // http://java.net/jira/browse/TYRUS-59
+    public static List<Extension> parseExtensionsHeader(final String headerValue) {
+        if (headerValue == null || headerValue.isEmpty()) {
+            return null;
+        }
 
-        for (String value : headerValues) {
-            result.add(new Extension(value));
+        List<Extension> result = new ArrayList<Extension>();
+
+        for (String value : Arrays.asList(headerValue.split(","))) {
+            final String[] split1 = value.trim().split(";");
+            if (split1.length == 1) {
+                // just a name
+                result.add(new Extension(headerValue));
+            } else {
+                final Extension extension = new Extension(split1[0]);
+                for (int i = 1; i < split1.length; i++) {
+                    final String[] property = split1[i].split("=");
+                    if (property.length == 2) {
+                        extension.getParameters().add(new Extension.Parameter(property[0], property[1]));
+                    }
+                }
+                result.add(extension);
+            }
         }
 
         return result;
-    }
-
-    protected final void parseParameters(String parameterString,
-                                         List<Extension.Parameter> parameters) {
-        String[] parts = parameterString.split(";");
-        for (String part : parts) {
-            int idx = part.indexOf('=');
-            if (idx < 0) {
-                parameters.add(new Extension.Parameter(part.trim(), null));
-            } else {
-                parameters.add(
-                        new Extension.Parameter(part.substring(0, idx).trim(),
-                                part.substring(idx + 1).trim()));
-            }
-        }
     }
 
     public WebSocketRequest initiate(/*FilterChainContext ctx*/) {
@@ -412,8 +430,28 @@ public abstract class HandShake {
         return builder;
     }
 
+    /**
+     * Set response listener.
+     *
+     * @param responseListener {@link HandShakeResponseListener#onResponseHeaders(java.util.Map)} will be called when
+     *                         response is ready and validated.
+     */
     public void setResponseListener(HandShakeResponseListener responseListener) {
         this.responseListener = responseListener;
     }
 
+    /**
+     * Used to register with {@link HandShake}. If the handshake response is received, this listener is called.
+     *
+     * @author Stepan Kopriva (stepan.kopriva at oracle.com)
+     */
+    public interface HandShakeResponseListener {
+
+        /**
+         * Gets called when the handshake response is received in {@link HandShake}.
+         *
+         * @param headers of the handshake response.
+         */
+        public void onResponseHeaders(Map<String, String> headers);
+    }
 }

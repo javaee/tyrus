@@ -44,6 +44,7 @@ import java.util.List;
 import java.util.Set;
 
 import javax.websocket.CloseReason;
+import javax.websocket.EndpointConfiguration;
 import javax.websocket.Extension;
 import javax.websocket.Session;
 
@@ -54,6 +55,7 @@ import javax.websocket.Session;
  *
  * @author Danny Coward (danny.coward at oracle.com)
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 public abstract class SPIEndpoint {
 
@@ -187,4 +189,11 @@ public abstract class SPIEndpoint {
      * @return {@link Session} representing the connection.
      */
     public abstract Session createSessionForRemoteEndpoint(SPIRemoteEndpoint re, String subprotocol, List<Extension> extensions);
+
+    /**
+     * Get Endpoint configuration.
+     *
+     * @return configuration.
+     */
+    public abstract EndpointConfiguration getEndpointConfiguration();
 }

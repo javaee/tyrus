@@ -74,6 +74,7 @@ import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
  * @author Danny Coward (danny.coward at oracle.com)
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  * @author Martin Matula (martin.matula at oracle.com)
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 public class SessionImpl implements Session {
 
@@ -191,6 +192,15 @@ public class SessionImpl implements Session {
         // return this.negotiatedExtensions;
 
         return Collections.emptyList();
+    }
+
+    /**
+     * Remove/refactor once getNegotiatedExtensions returns List<Extension>
+     *
+     *     http://java.net/jira/browse/TYRUS-61
+     */
+    public List<Extension> getNegotiatedExtensions___TODO() {
+        return negotiatedExtensions;
     }
 
     @Override

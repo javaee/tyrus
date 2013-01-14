@@ -63,6 +63,7 @@ import javax.websocket.CloseReason;
 import javax.websocket.HandshakeResponse;
 import javax.websocket.Session;
 
+import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.server.TyrusEndpoint;
 import org.glassfish.tyrus.server.TyrusRemoteEndpoint;
 import org.glassfish.tyrus.spi.SPIEndpoint;
@@ -70,7 +71,6 @@ import org.glassfish.tyrus.spi.TyrusClientSocket;
 import org.glassfish.tyrus.websockets.DataFrame;
 import org.glassfish.tyrus.websockets.Extension;
 import org.glassfish.tyrus.websockets.HandShake;
-import org.glassfish.tyrus.websockets.HandShakeResponseListener;
 import org.glassfish.tyrus.websockets.HandshakeException;
 import org.glassfish.tyrus.websockets.ProtocolHandler;
 import org.glassfish.tyrus.websockets.WebSocket;
@@ -93,6 +93,7 @@ import org.glassfish.grizzly.nio.transport.TCPNIOTransportBuilder;
  * Implementation of the WebSocket interface.
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
 
@@ -104,8 +105,10 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
     private final AtomicReference<State> state = new AtomicReference<State>(State.NEW);
     private final TyrusRemoteEndpoint remoteEndpoint;
     private final long timeoutMs;
-    private final ClientEndpointConfiguration clc;
+    private final ClientEndpointConfiguration configuration;
     private Session session = null;
+
+    private final List<javax.websocket.Extension> responseExtensions = new ArrayList<javax.websocket.Extension>();
 
     enum State {
         NEW, CONNECTED, CLOSING, CLOSED
@@ -114,13 +117,13 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
     /**
      * Create new instance.
      *
-     * @param uri       endpoint address.
-     * @param clc       client endpoint configuration.
-     * @param timeoutMs TODO
+     * @param uri           endpoint address.
+     * @param configuration client endpoint configuration.
+     * @param timeoutMs     TODO
      */
-    public GrizzlyClientSocket(URI uri, ClientEndpointConfiguration clc, long timeoutMs) {
+    public GrizzlyClientSocket(URI uri, ClientEndpointConfiguration configuration, long timeoutMs) {
         this.uri = uri;
-        this.clc = clc;
+        this.configuration = configuration;
         protocolHandler = WebSocketEngine.DEFAULT_VERSION.createHandler(true);
         remoteEndpoint = new TyrusRemoteEndpoint(this);
         this.timeoutMs = timeoutMs;
@@ -160,17 +163,35 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
     private void prepareHandshake(HandShake handshake) {
         List<Extension> grizzlyExtensions = new ArrayList<Extension>();
 
-        for (String tyrusExtension : clc.getExtensions()) {
-            grizzlyExtensions.add(new Extension(tyrusExtension));
+        // remove instanceof once ClientEndpointConfiguration#parseExtensionsHeader() returns List<Extension>
+        if (configuration instanceof TyrusClientEndpointConfiguration) {
+            for (javax.websocket.Extension e : ((TyrusClientEndpointConfiguration) configuration).getExtensions___TODO()) {
+                final Extension grizzlyExtension = new Extension(e.getName());
+                for (Map.Entry<String, String> entry : e.getParameters().entrySet()) {
+                    grizzlyExtension.getParameters().add(new Extension.Parameter(entry.getKey(), entry.getValue()));
+                }
+
+                grizzlyExtensions.add(grizzlyExtension);
+            }
+        } else {
+            for (String s : configuration.getExtensions()) {
+                grizzlyExtensions.add(new Extension(s));
+            }
         }
 
         handshake.setExtensions(grizzlyExtensions);
-        handshake.setSubProtocols(clc.getPreferredSubprotocols());
+        handshake.setSubProtocols(configuration.getPreferredSubprotocols());
 
-        handshake.setResponseListener(new HandShakeResponseListener() {
+        handshake.setResponseListener(new HandShake.HandShakeResponseListener() {
             @Override
-            public void passResponseHeaders(final Map<String, String> originalHeaders) {
-                clc.afterResponse(new HandshakeResponse() {
+            public void onResponseHeaders(final Map<String, String> originalHeaders) {
+
+                String value = originalHeaders.get(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER);
+                if (value != null) {
+                    responseExtensions.addAll(TyrusEndpoint.parseExtensionsHeader(value));
+                }
+
+                configuration.afterResponse(new HandshakeResponse() {
 
                     private final Map<String, List<String>> headers =
                             new TreeMap<String, List<String>>(new Comparator<String>() {
@@ -201,7 +222,7 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
             adaptedHeaders.put(entry.getKey(), value == null ? null : Arrays.asList(value));
         }
 
-        clc.beforeRequest(adaptedHeaders);
+        configuration.beforeRequest(adaptedHeaders);
         headers.clear();
 
         for (Map.Entry<String, List<String>> entry : adaptedHeaders.entrySet()) {
@@ -311,7 +332,7 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
     public void onConnect() {
         state.set(State.CONNECTED);
         for (SPIEndpoint endpoint : endpoints) {
-            endpoint.onConnect(remoteEndpoint, null, null);
+            endpoint.onConnect(remoteEndpoint, null, responseExtensions);
         }
     }
 
@@ -354,7 +375,7 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
         for (SPIEndpoint endpoint : endpoints) {
             CloseReason closeReason = null;
 
-            if(dataFrame != null) {
+            if (dataFrame != null) {
                 closeReason = new CloseReason(TyrusEndpoint.getCloseCode(dataFrame.getCode()), dataFrame.getReason());
             }
             endpoint.onClose(remoteEndpoint, closeReason);

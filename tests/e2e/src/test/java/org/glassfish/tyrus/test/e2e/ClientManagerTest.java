@@ -49,7 +49,7 @@ import javax.websocket.ClientEndpointConfiguration;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.Session;
 
-import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
+import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 import org.junit.Assert;
@@ -66,7 +66,7 @@ public class ClientManagerTest {
 
     private static final String SENT_MESSAGE = "hello";
 
-    private final ClientEndpointConfiguration cec = new DefaultClientEndpointConfiguration.Builder().build();
+    private final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
 
     @Test
     public void testClient() {

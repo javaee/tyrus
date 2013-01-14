@@ -70,6 +70,7 @@ import org.glassfish.tyrus.spi.TyrusServer;
  * Server Container Implementation.
  *
  * @author Martin Matula (martin.matula at oracle.com)
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 public class TyrusServerContainer extends WithProperties implements WebSocketContainer {
     private final TyrusServer server;
@@ -244,7 +245,7 @@ public class TyrusServerContainer extends WithProperties implements WebSocketCon
     @Override
     public Set<Extension> getInstalledExtensions() {
         // TODO
-        // return Collections.unmodifiableSet(new HashSet<String>(configuration.getExtensions()));
+        // return Collections.unmodifiableSet(new HashSet<String>(configuration.parseExtensionsHeader()));
 
         return Collections.emptySet();
     }

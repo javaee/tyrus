@@ -49,10 +49,10 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.EndpointConfiguration;
-import javax.websocket.Extension;
+import javax.websocket.HandshakeResponse;
 import javax.websocket.Session;
 
-import org.glassfish.tyrus.TyrusExtension;
+import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.websockets.WebSocketEngine;
@@ -85,14 +85,8 @@ public class HandshakeTest {
             subprotocols.add("asd");
             subprotocols.add("ghi");
 
-            ArrayList<Extension> extensions = new ArrayList<Extension>();
-            extensions.add(new TyrusExtension("ext1"));
-            extensions.add(new TyrusExtension("ext2"));
-
-            TestClientEndpointConfiguration.Builder builder = new TestClientEndpointConfiguration.Builder();
-            builder.protocols(subprotocols);
-            builder.extensions(extensions);
-            final TestClientEndpointConfiguration dcec = builder.build();
+            final TestClientEndpointConfiguration tcec = new TestClientEndpointConfiguration();
+            tcec.setPreferredSubprotocols(subprotocols);
 
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new TestEndpointAdapter() {
@@ -105,7 +99,7 @@ public class HandshakeTest {
 
                 @Override
                 public EndpointConfiguration getEndpointConfiguration() {
-                    return dcec;
+                    return tcec;
                 }
 
                 @Override
@@ -118,22 +112,47 @@ public class HandshakeTest {
                         e.printStackTrace();
                     }
                 }
-            }, dcec, new URI("ws://localhost:8025/websockets/tests/echo"));
+            }, tcec, new URI("ws://localhost:8025/websockets/tests/echo"));
 
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertEquals(SENT_MESSAGE, receivedMessage);
 
-            Map<String, List<String>> headers = dcec.getHandshakeResponse().getHeaders();
-//            String supportedExtension = headers.get(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER).get(0);
+            Map<String, List<String>> headers = tcec.getHandshakeResponse().getHeaders();
 
             String supportedSubprotocol = headers.get(WebSocketEngine.SEC_WS_PROTOCOL_HEADER).get(0);
             Assert.assertEquals("asd", supportedSubprotocol);
-//            Assert.assertEquals("ext1", supportedExtension);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
         } finally {
             server.stop();
+        }
+    }
+
+    static class TestClientEndpointConfiguration extends TyrusClientEndpointConfiguration {
+
+        private HandshakeResponse handshakeResponse;
+
+        /**
+         * Creates a test configuration that will attempt
+         * to connect to the given URI.
+         */
+        private TestClientEndpointConfiguration() {
+            super();
+        }
+
+        @Override
+        public void afterResponse(HandshakeResponse handshakeResponse) {
+            this.handshakeResponse = handshakeResponse;
+        }
+
+        /**
+         * Gets the {@link HandshakeResponse} which was received in the afterResponse method.
+         *
+         * @return handshakeResponse.
+         */
+        public HandshakeResponse getHandshakeResponse() {
+            return handshakeResponse;
         }
     }
 }

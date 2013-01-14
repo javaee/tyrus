@@ -49,7 +49,7 @@ import javax.websocket.EndpointConfiguration;
 import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
 
-import org.glassfish.tyrus.DefaultClientEndpointConfiguration;
+import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.e2e.bean.BroadcasterTestBean;
@@ -66,7 +66,7 @@ import static org.junit.Assert.assertTrue;
 public class BroadcasterTest {
     private static final String SENT_MESSAGE = "Hello World";
 
-    private final ClientEndpointConfiguration cec = new DefaultClientEndpointConfiguration.Builder().build();
+    private final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
 
     @Ignore
     @Test
@@ -80,11 +80,9 @@ public class BroadcasterTest {
             final TEndpointAdapter ea2 = new TEndpointAdapter(messageLatch);
 
             final ClientManager client1 = ClientManager.createClient();
-            // TODO XXX FIXME - connectToServer issue
-            client1.connectToServer(ea1.getClass(), cec, new URI("ws://localhost:8025/websockets/tests/broadcast"));
-            // TODO XXX FIXME - connectToServer issue
+            client1.connectToServer(ea1, cec, new URI("ws://localhost:8025/websockets/tests/broadcast"));
             final ClientManager client2 = ClientManager.createClient();
-            client2.connectToServer(ea2.getClass(), cec, new URI("ws://localhost:8025/websockets/tests/broadcast"));
+            client2.connectToServer(ea2, cec, new URI("ws://localhost:8025/websockets/tests/broadcast"));
 
             synchronized (ea1) {
                 if (ea1.peer == null) {
