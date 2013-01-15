@@ -39,8 +39,10 @@
  */
 package org.glassfish.tyrus.tests.servlet.autobahn;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 
+import javax.websocket.Session;
 import javax.websocket.WebSocketMessage;
 import javax.websocket.server.DefaultServerConfiguration;
 import javax.websocket.server.WebSocketEndpoint;
@@ -56,9 +58,60 @@ public class EchoServer {
         return text;
     }
 
+    private String message = "";
+
+    @WebSocketMessage
+    public void onPartialText(Session session, String text, boolean last) {
+        if(last) {
+            try {
+                session.getRemote().sendString(message + text);
+            } catch (IOException e) {
+                //
+            }
+            message = "";
+        } else {
+            message = message + text;
+        }
+    }
+
     @WebSocketMessage
     public ByteBuffer onBinary(ByteBuffer binary) {
         return binary;
     }
 
+    private ByteBuffer buffer = null;
+
+    @WebSocketMessage
+    public void onPartialBinary(Session session, ByteBuffer binary, boolean last) {
+        if(last) {
+            try {
+                session.getRemote().sendBytes(joinBuffers(buffer, binary));
+            } catch (IOException e) {
+                //
+            }
+            buffer = null;
+        } else {
+            if(buffer == null) {
+                buffer = binary;
+            } else {
+                buffer = joinBuffers(buffer, binary);
+            }
+
+        }
+    }
+
+    private ByteBuffer joinBuffers(ByteBuffer bb1, ByteBuffer bb2) {
+
+        final int remaining1 = bb1.remaining();
+        final int remaining2 = bb2.remaining();
+        byte[] array = new byte[remaining1 + remaining2];
+        bb1.get(array, 0, remaining1);
+        System.arraycopy(bb2.array(), 0, array, remaining1, remaining2);
+
+
+        ByteBuffer buf = ByteBuffer.wrap(array);
+        buf.limit(remaining1 + remaining2);
+
+        return buf;
+    }
 }
