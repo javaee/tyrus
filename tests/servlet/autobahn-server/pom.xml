@@ -53,14 +53,15 @@
 
     <packaging>war</packaging>
     <groupId>org.glassfish.tyrus.tests</groupId>
-    <artifactId>tyrus-tests-servlet-basic</artifactId>
+    <artifactId>tyrus-tests-servlet-autobahn-server</artifactId>
 
-    <name>Tyrus Servlet Basic Tests</name>
+    <name>Tyrus Autobahn Echo Server</name>
 
     <dependencies>
         <dependency>
             <groupId>org.glassfish.tyrus</groupId>
             <artifactId>tyrus-container-servlet</artifactId>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>javax.websocket</groupId>
@@ -69,16 +70,6 @@
             <scope>provided</scope>
         </dependency>
 
-        <dependency>
-            <groupId>org.glassfish.tyrus</groupId>
-            <artifactId>tyrus-container-grizzly</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.glassfish.tyrus</groupId>
-            <artifactId>tyrus-client</artifactId>
-            <scope>test</scope>
-        </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>

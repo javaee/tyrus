@@ -52,15 +52,18 @@ import javax.servlet.http.WebConnection;
 
 import org.glassfish.tyrus.websockets.DataFrame;
 import org.glassfish.tyrus.websockets.FramingException;
+import org.glassfish.tyrus.websockets.WebSocket;
 import org.glassfish.tyrus.websockets.WebSocketEngine;
 import org.glassfish.tyrus.websockets.draft06.ClosingFrame;
 
 /**
  * @author Jitendra Kotamraju
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener {
     private ServletInputStream is;
     private ServletOutputStream os;
+    private WebConnection wc;
     private ByteBuffer buf;
     private static final Logger LOGGER = Logger.getLogger(TyrusHttpUpgradeHandler.class.getName());
 
@@ -73,6 +76,7 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
         try {
             is = wc.getInputStream();
             os = wc.getOutputStream();
+            this.wc = wc;
         } catch (IOException ioe) {
             throw new RuntimeException(ioe);
         }
@@ -95,6 +99,8 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
 
                 LOGGER.finest("Remaining Data = " + buf.remaining());
 
+                final int remaining = buf.remaining();
+
                 if (buf != null && buf.hasRemaining()) {
                     final DataFrame result = webSocketHolder.handler.unframe(buf);
                     if (result != null) {
@@ -102,13 +108,20 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
                     }
                 }
 
+                if(remaining == buf.remaining() && !is.isReady()) {
+                    break;
+                }
+
                 // TODO buf has some data but not enough to decode,
                 // TODO it will spin in this loop
             } while (buf.remaining() > 0 || is.isReady());
-
-            buf = null;
         } catch (FramingException e) {
-            webSocketHolder.webSocket.onClose(new ClosingFrame(e.getClosingCode(), e.getMessage()));
+            webSocketHolder.webSocket.onClose(new ClosingFrame(e.getClosingCode(), e.getCause().getMessage()));
+            try {
+                wc.close();
+            } catch (Exception f) {
+                //
+            }
         } catch (Exception wse) {
             if (webSocketHolder.application.onError(webSocketHolder.webSocket, wse)) {
                 webSocketHolder.webSocket.onClose(new ClosingFrame(1011, wse.getMessage()));
@@ -122,66 +135,62 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
 
     private void fillBuf() throws IOException {
 
-//        int len;
-//        int index = 0;
-//        byte b[] = new byte[1024];
-//        ByteBuffer bb = ByteBuffer.allocate(1024);
-//        while (is.isReady() && (len = is.read(b)) != -1) {
-//            bb.put(b, index, len);
-//            String data = new String(b, 0, len);
-//            System.out.println("--> " + data);
-//            index += len;
-//        }
-//
-//        buf = bb;
-
-        byte[] data = new byte[200];     // TODO testing purpose
-        int len = is.read(data);
-        if (len == 0) {
-            throw new RuntimeException("No data available.");
-        }
-        if (buf == null) {
-            LOGGER.finest("No Buffer. Allocating new one");
-            buf = ByteBuffer.wrap(data);
-            buf.limit(len);
-        } else {
-            int limit = buf.limit();
-            int capacity = buf.capacity();
-            int remaining = buf.remaining();
-
-            if (capacity - limit >= len) {
-                // Remaining data need not be changed. New data is just appended
-                LOGGER.finest("Remaining data need not be moved. New data is just appended");
-                buf.mark();
-                buf.position(limit);
-                buf.limit(capacity);
-                buf.put(data, 0, len);
-                buf.limit(limit + len);
-                buf.reset();
-            } else if (remaining + len < capacity) {
-                // Remaining data is moved to left. Then new data is appended
-                LOGGER.finest("Remaining data is moved to left. Then new data is appended");
-                buf.compact();
-                buf.put(data, 0, len);
-                buf.flip();
-            } else {
-                // Remaining data + new > capacity. So allocate new one
-                LOGGER.finest("Remaining data + new > capacity. So allocate new one");
-                byte[] array = new byte[remaining + len];
-                buf.get(array, 0, remaining);
-                System.arraycopy(data, 0, array, remaining, len);
-                buf = ByteBuffer.wrap(array);
-                buf.limit(remaining + len);
+        do {
+            byte[] data = new byte[200];     // TODO testing purpose
+            int len = is.read(data);
+            if (len == 0) {
+                throw new RuntimeException("No data available.");
             }
-        }
+            if (buf == null) {
+                LOGGER.finest("No Buffer. Allocating new one");
+                buf = ByteBuffer.wrap(data);
+                buf.limit(len);
+            } else {
+                int limit = buf.limit();
+                int capacity = buf.capacity();
+                int remaining = buf.remaining();
+
+                if (capacity - limit >= len) {
+                    // Remaining data need not be changed. New data is just appended
+                    LOGGER.finest("Remaining data need not be moved. New data is just appended");
+                    buf.mark();
+                    buf.position(limit);
+                    buf.limit(capacity);
+                    buf.put(data, 0, len);
+                    buf.limit(limit + len);
+                    buf.reset();
+                } else if (remaining + len < capacity) {
+                    // Remaining data is moved to left. Then new data is appended
+                    LOGGER.finest("Remaining data is moved to left. Then new data is appended");
+                    buf.compact();
+                    buf.put(data, 0, len);
+                    buf.flip();
+                } else {
+                    // Remaining data + new > capacity. So allocate new one
+                    LOGGER.finest("Remaining data + new > capacity. So allocate new one");
+                    byte[] array = new byte[remaining + len];
+                    buf.get(array, 0, remaining);
+                    System.arraycopy(data, 0, array, remaining, len);
+                    buf = ByteBuffer.wrap(array);
+                    buf.limit(remaining + len);
+                }
+            }
+        } while (is.isReady());
     }
 
     @Override
     public void onAllDataRead() {
+        webSocketHolder.webSocket.onClose(new ClosingFrame(WebSocket.NORMAL_CLOSURE, null));
     }
 
     @Override
     public void onError(Throwable t) {
+        webSocketHolder.webSocket.onClose(new ClosingFrame(WebSocket.NORMAL_CLOSURE, null));
+        try {
+            wc.close();
+        } catch (Exception e) {
+            //
+        }
     }
 
     @Override
@@ -193,6 +202,6 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
     }
 
     ServletOutputStream getOutputStream() {
-        return this.os;
+        return os;
     }
 }
