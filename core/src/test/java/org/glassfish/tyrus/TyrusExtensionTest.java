@@ -39,7 +39,11 @@
  */
 package org.glassfish.tyrus;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
+
+import javax.websocket.Extension;
 
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
@@ -52,23 +56,23 @@ import static org.junit.Assert.assertTrue;
 public class TyrusExtensionTest {
 
     @Test
-    public void test1() {
+    public void simple() {
         final TyrusExtension test = new TyrusExtension("test");
         assertEquals("test", test.getName());
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void test2() {
+    public void invalidName1() {
         new TyrusExtension("");
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void test3() {
+    public void invalidName2() {
         new TyrusExtension(null);
     }
 
     @Test
-    public void test4() {
+    public void params() {
         final HashMap<String, String> hashMap = new HashMap<String, String>() {{
             put("Quote", "Mmm. Lost a planet, Master Obi-Wan has. How embarrassing. How embarrassing.");
         }};
@@ -78,5 +82,122 @@ public class TyrusExtensionTest {
         assertTrue(test.getParameters().containsKey("Quote"));
         assertEquals("Mmm. Lost a planet, Master Obi-Wan has. How embarrassing. How embarrassing.",
                 test.getParameters().get("Quote"));
+    }
+
+    @Test
+    public void error1() {
+        final List<Extension> extensions = TyrusExtension.fromHeaders(Arrays.asList("ext1;param=val\"ue"));
+
+        assertEquals(0, extensions.size());
+    }
+
+    @Test
+    public void error2() {
+        final List<Extension> extensions = TyrusExtension.fromHeaders(Arrays.asList("ext1;param=value=value"));
+
+        assertEquals(0, extensions.size());
+    }
+
+    @Test
+    public void error3() {
+        final List<Extension> extensions = TyrusExtension.fromHeaders(Arrays.asList("ext1,param=value"));
+
+        assertEquals(1, extensions.size());
+    }
+
+    @Test
+    public void error4() {
+        final List<Extension> extensions = TyrusExtension.fromHeaders(Arrays.asList("ext1,param=value,ext2;param=value"));
+
+        assertEquals(2, extensions.size());
+        assertEquals("ext1", extensions.get(0).getName());
+        assertEquals("ext2", extensions.get(1).getName());
+        assertTrue(extensions.get(1).getParameters().size() == 1);
+        assertNotNull(extensions.get(1).getParameters().get("param"));
+        assertEquals("value", extensions.get(1).getParameters().get("param"));
+    }
+
+    @Test
+    public void testParseHeaders1() {
+        final List<Extension> extensions = TyrusExtension.fromHeaders(Arrays.asList("ext1;param=value"));
+
+        assertEquals(1, extensions.size());
+        assertEquals("ext1", extensions.get(0).getName());
+        assertTrue(extensions.get(0).getParameters().size() == 1);
+        assertNotNull(extensions.get(0).getParameters().get("param"));
+        assertEquals("value", extensions.get(0).getParameters().get("param"));
+    }
+
+    @Test
+    public void testParseHeaders2() {
+        final List<Extension> extensions = TyrusExtension.fromHeaders(Arrays.asList("ext1;param=value,ext2;param=value"));
+
+        assertEquals(2, extensions.size());
+        assertEquals("ext1", extensions.get(0).getName());
+        assertTrue(extensions.get(0).getParameters().size() == 1);
+        assertNotNull(extensions.get(0).getParameters().get("param"));
+        assertEquals("value", extensions.get(0).getParameters().get("param"));
+        assertEquals("ext2", extensions.get(1).getName());
+        assertTrue(extensions.get(1).getParameters().size() == 1);
+        assertNotNull(extensions.get(1).getParameters().get("param"));
+        assertEquals("value", extensions.get(1).getParameters().get("param"));
+
+    }
+
+    @Test
+    public void testParseHeaders3() {
+        final List<Extension> extensions = TyrusExtension.fromHeaders(Arrays.asList("ext1;param=value", "ext2;param=value"));
+
+        assertEquals(2, extensions.size());
+        assertEquals("ext1", extensions.get(0).getName());
+        assertTrue(extensions.get(0).getParameters().size() == 1);
+        assertNotNull(extensions.get(0).getParameters().get("param"));
+        assertEquals("value", extensions.get(0).getParameters().get("param"));
+        assertEquals("ext2", extensions.get(1).getName());
+        assertTrue(extensions.get(1).getParameters().size() == 1);
+        assertNotNull(extensions.get(1).getParameters().get("param"));
+        assertEquals("value", extensions.get(1).getParameters().get("param"));
+    }
+
+    @Test
+    public void testParseHeadersQuoted1() {
+        final List<Extension> extensions = TyrusExtension.fromHeaders(Arrays.asList("ext1;param=\"  value  \""));
+
+        assertEquals(1, extensions.size());
+        assertEquals("ext1", extensions.get(0).getName());
+        assertTrue(extensions.get(0).getParameters().size() == 1);
+        assertNotNull(extensions.get(0).getParameters().get("param"));
+        assertEquals("  value  ", extensions.get(0).getParameters().get("param"));
+    }
+
+    @Test
+    public void testParseHeadersQuoted2() {
+        final List<Extension> extensions = TyrusExtension.fromHeaders(Arrays.asList("ext1;param=\"  value  \",ext2;param=\"  value \\\" \""));
+
+        assertEquals(2, extensions.size());
+        assertEquals("ext1", extensions.get(0).getName());
+        assertTrue(extensions.get(0).getParameters().size() == 1);
+        assertNotNull(extensions.get(0).getParameters().get("param"));
+        assertEquals("  value  ", extensions.get(0).getParameters().get("param"));
+        assertEquals("ext2", extensions.get(1).getName());
+        assertTrue(extensions.get(1).getParameters().size() == 1);
+        assertNotNull(extensions.get(1).getParameters().get("param"));
+        assertEquals("  value \" ", extensions.get(1).getParameters().get("param"));
+
+    }
+
+    @Test
+    public void testParseHeadersQuoted3() {
+        final List<Extension> extensions = TyrusExtension.fromHeaders(Arrays.asList("ext1;param=\"  value  \"", "ext2;param=\"  value \\\\ \""));
+
+        assertEquals(2, extensions.size());
+        assertEquals("ext1", extensions.get(0).getName());
+        assertTrue(extensions.get(0).getParameters().size() == 1);
+        assertNotNull(extensions.get(0).getParameters().get("param"));
+        assertEquals("  value  ", extensions.get(0).getParameters().get("param"));
+        assertEquals("ext2", extensions.get(1).getName());
+        assertTrue(extensions.get(1).getParameters().size() == 1);
+        assertNotNull(extensions.get(1).getParameters().get("param"));
+        assertEquals("  value \\ ", extensions.get(1).getParameters().get("param"));
     }
 }

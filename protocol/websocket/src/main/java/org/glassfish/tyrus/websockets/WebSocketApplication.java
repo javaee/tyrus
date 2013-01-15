@@ -141,8 +141,10 @@ public abstract class WebSocketApplication implements WebSocketListener {
      *         WebSocket connection
      */
     public final boolean upgrade(WebSocketRequest request) {
+        final String upgradeHeader = request.getHeader(WebSocketEngine.UPGRADE);
         return request.getHeaders().get(WebSocketEngine.UPGRADE) != null &&
-                WebSocketEngine.WEBSOCKET.equals(request.getHeader(WebSocketEngine.UPGRADE)) && isApplicationRequest(request);
+                // RFC 6455, paragraph 4.2.1.3
+                WebSocketEngine.WEBSOCKET.equalsIgnoreCase(upgradeHeader) && isApplicationRequest(request);
 
     }
 

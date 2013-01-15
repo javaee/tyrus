@@ -41,6 +41,7 @@
 package org.glassfish.tyrus.websockets.draft06;
 
 import java.net.URI;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -66,7 +67,7 @@ public class HandShake06 extends HandShake {
         final Map<String, String> headers = request.getHeaders();
         String value = headers.get(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER);
         if (value != null) {
-            setExtensions(parseExtensionsHeader(value));
+            setExtensions(HandShake.fromHeaders(Arrays.asList(value)));
         }
         secKey = SecKey.generateServerKey(new SecKey(headers.get(WebSocketEngine.SEC_WS_KEY_HEADER)));
     }
@@ -84,7 +85,7 @@ public class HandShake06 extends HandShake {
         final WebSocketRequest webSocketRequest = super.getRequest();
         webSocketRequest.getHeaders().put(WebSocketEngine.SEC_WS_KEY_HEADER, secKey.toString());
         webSocketRequest.getHeaders().put(WebSocketEngine.SEC_WS_ORIGIN_HEADER, getOrigin());
-        webSocketRequest.getHeaders().put(WebSocketEngine.SEC_WS_VERSION,getVersion() + "");
+        webSocketRequest.getHeaders().put(WebSocketEngine.SEC_WS_VERSION, getVersion() + "");
         if (!getExtensions().isEmpty()) {
             webSocketRequest.getHeaders().put(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER, getHeaderFromList(getExtensions()));
         }

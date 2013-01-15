@@ -64,6 +64,7 @@ import javax.websocket.HandshakeResponse;
 import javax.websocket.Session;
 
 import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
+import org.glassfish.tyrus.TyrusExtension;
 import org.glassfish.tyrus.server.TyrusEndpoint;
 import org.glassfish.tyrus.server.TyrusRemoteEndpoint;
 import org.glassfish.tyrus.spi.SPIEndpoint;
@@ -188,7 +189,7 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
 
                 String value = originalHeaders.get(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER);
                 if (value != null) {
-                    responseExtensions.addAll(TyrusEndpoint.parseExtensionsHeader(value));
+                    responseExtensions.addAll(TyrusExtension.fromString(value));
                 }
 
                 configuration.afterResponse(new HandshakeResponse() {

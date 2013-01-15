@@ -118,7 +118,7 @@ public class TyrusEndpoint extends WebSocketApplication implements SPIRegistered
                 protocols == null ? Collections.<String>emptyList() : Arrays.asList(protocols.split(","))
         );
 
-        final List<Extension> extensions = parseExtensionsHeader(o.getHeaders().get(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER));
+        final List<Extension> extensions = TyrusExtension.fromString(o.getHeaders().get(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER));
         temporaryNegotiatedExtensions = endpoint.getNegotiatedExtensions(extensions);
 
         return endpoint.checkHandshake(new TyrusHandshakeRequest(o));
@@ -163,7 +163,6 @@ public class TyrusEndpoint extends WebSocketApplication implements SPIRegistered
         this.endpoint.onMessage(gs, messageString);
     }
 
-
     @Override
     public void onMessage(WebSocket socket, byte[] bytes) {
         TyrusRemoteEndpoint gs = TyrusRemoteEndpoint.get(socket);
@@ -181,7 +180,6 @@ public class TyrusEndpoint extends WebSocketApplication implements SPIRegistered
 
         this.endpoint.onClose(gs, closeReason);
         TyrusRemoteEndpoint.remove(socket);
-
     }
 
     @Override
@@ -395,32 +393,5 @@ public class TyrusEndpoint extends WebSocketApplication implements SPIRegistered
                 return code;
             }
         };
-    }
-
-    /**
-     * Naive header value parsing. To be improved - TODO.
-     * <p/>
-     * http://java.net/jira/browse/TYRUS-59
-     *
-     * @param headerValue single string containing all extensions separated by "," (comma).
-     * @return List of {@link Extension extensions}.
-     */
-    public static List<Extension> parseExtensionsHeader(String headerValue) {
-        if (headerValue == null || headerValue.isEmpty()) {
-            return Collections.emptyList();
-        }
-
-        final ArrayList<Extension> extensions = new ArrayList<Extension>();
-
-        final String[] extensionsString = headerValue.split(",");
-
-        for (String extensionString : extensionsString) {
-            final TyrusExtension tyrusExtension = TyrusExtension.fromString(extensionString.trim());
-            if (tyrusExtension != null) {
-                extensions.add(tyrusExtension);
-            }
-        }
-
-        return extensions;
     }
 }
