@@ -175,9 +175,19 @@ public class ClientManager implements WebSocketContainer {
             if (o instanceof Endpoint) {
                 endpoint = (Endpoint) o;
                 config = configuration == null ? new TyrusClientEndpointConfiguration.Builder().build() : configuration;
-            } else if (o instanceof Class && (((Class<?>) o).getAnnotation(WebSocketClient.class) != null)) {
-                endpoint = AnnotatedEndpoint.fromClass((Class) o, false, collector);
-                config = (ClientEndpointConfiguration) ((AnnotatedEndpoint) endpoint).getEndpointConfiguration();
+            } else if (o instanceof Class) {
+                if(Endpoint.class.isAssignableFrom((Class<?>)o)) {
+                    //noinspection unchecked
+                    endpoint = ((Class<Endpoint>) o).newInstance();
+                    config = configuration == null ? new TyrusClientEndpointConfiguration.Builder().build() : configuration;
+                } else if ((((Class<?>) o).getAnnotation(WebSocketClient.class) != null)) {
+                    endpoint = AnnotatedEndpoint.fromClass((Class) o, false, collector);
+                    config = (ClientEndpointConfiguration) ((AnnotatedEndpoint) endpoint).getEndpointConfiguration();
+                } else {
+                    collector.addException(new DeploymentException(String.format("Class %s in not Endpoint descendant and does not have @WebSocketAnnotation", ((Class<?>) o).getName())));
+                    endpoint = null;
+                    config = null;
+                }
             } else {
                 endpoint = AnnotatedEndpoint.fromInstance(o, false, collector);
                 config = (ClientEndpointConfiguration) ((AnnotatedEndpoint) endpoint).getEndpointConfiguration();

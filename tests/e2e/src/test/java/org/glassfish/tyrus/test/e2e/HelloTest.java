@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011 - 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -46,7 +46,9 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfiguration;
+import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 
 import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
@@ -112,6 +114,51 @@ public class HelloTest {
             throw new RuntimeException(e.getMessage(), e);
         } finally {
             server.stop();
+        }
+    }
+
+    public static CountDownLatch messageLatchEndpoint;
+    public static String receivedMessageEndpoint;
+
+    // TYRUS-63: connectToServer with Endpoint class
+    // http://java.net/jira/browse/TYRUS-63
+    @Test
+    public void testHelloEndpointClass() {
+        final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
+        Server server = new Server(org.glassfish.tyrus.test.e2e.bean.HelloTestBean.class);
+
+        try {
+            server.start();
+            messageLatchEndpoint = new CountDownLatch(1);
+
+            ClientManager client = ClientManager.createClient();
+            client.connectToServer(MyEndpoint.class, cec, new URI("wss://localhost:8025/websockets/tests/hello"));
+            messageLatchEndpoint.await(5, TimeUnit.SECONDS);
+            Assert.assertEquals(SENT_MESSAGE, receivedMessageEndpoint);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            server.stop();
+        }
+    }
+
+    public final static class MyEndpoint extends Endpoint implements MessageHandler.Basic<String> {
+        @Override
+        public void onOpen(Session session, EndpointConfiguration config) {
+            try {
+                session.addMessageHandler(this);
+                session.getRemote().sendString(SENT_MESSAGE);
+                System.out.println("Hello message sent.");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        @Override
+        public void onMessage(String message) {
+            messageLatchEndpoint.countDown();
+            receivedMessageEndpoint = message;
         }
     }
 }
