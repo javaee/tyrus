@@ -62,7 +62,7 @@ public class HelloTextTest {
     @Test
     public void testClient() {
         final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
-        Server server = new Server(HelloTextServer.class.getName());
+        Server server = new Server(HelloTextServer.class);
 
         try {
             server.start();

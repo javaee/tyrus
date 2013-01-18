@@ -46,16 +46,14 @@ import javax.websocket.EndpointConfiguration;
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 
-import org.glassfish.tyrus.server.ContainerConfig;
 import org.glassfish.tyrus.server.DefaultServerConfiguration;
 
 /**
  * @author Martin Matula (martin.matula at oracle.com)
  */
-@ContainerConfig
 public class MyWsConfiguration extends DefaultServerConfiguration {
     public MyWsConfiguration() {
-        this.endpoint(new EchoEndpoint());
+        this.endpoint(EchoEndpoint.class);
     }
 
     private static class EchoEndpoint extends Endpoint {

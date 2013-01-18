@@ -42,21 +42,17 @@ package org.glassfish.tyrus.oldservlet;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import javax.websocket.Endpoint;
+import javax.websocket.server.ServerApplicationConfiguration;
 import javax.websocket.server.WebSocketEndpoint;
 
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;
 
-import org.glassfish.tyrus.server.ContainerConfig;
-import org.glassfish.tyrus.server.DefaultServerConfiguration;
-import org.glassfish.tyrus.server.ServerConfiguration;
-import org.glassfish.tyrus.server.ServerContainerFactory;
+import org.glassfish.tyrus.server.ApplicationConfig;
 import org.glassfish.tyrus.server.TyrusServerContainer;
 import org.glassfish.tyrus.spi.TyrusContainer;
 
@@ -88,19 +84,19 @@ public class WebSocketServerWebIntegration implements ServletContextListener {
             return;
         }
 
-        Class<ServerConfiguration> configClass = null;
+        Class<ServerApplicationConfiguration> configClass = null;
 
         for (Iterator<Class<?>> it = endpointClassSet.iterator(); it.hasNext(); ) {
             Class<?> cls = it.next();
 
-            if (cls.getAnnotation(ContainerConfig.class) != null) {
+            if (cls.getAnnotation(ApplicationConfig.class) != null) {
                 if (cls.getAnnotation(WebSocketEndpoint.class) == null) {
                     it.remove();
                 }
-                if (ServerConfiguration.class.isAssignableFrom(cls)) {
+                if (ServerApplicationConfiguration.class.isAssignableFrom(cls)) {
                     if (configClass == null) {
                         //noinspection unchecked
-                        configClass = (Class<ServerConfiguration>) cls;
+                        configClass = (Class<ServerApplicationConfiguration>) cls;
                     } else {
                         Logger.getLogger(getClass().getName()).warning("Several server configuration classes found. " +
                                 cls.getName() + " will be ignored.");
@@ -109,73 +105,14 @@ public class WebSocketServerWebIntegration implements ServletContextListener {
             }
         }
 
-        ServerConfiguration config;
+        ServerApplicationConfiguration config = null;
         if (configClass == null) {
             Logger.getLogger(getClass().getName()).info("No server configuration class found in the application. Using defaults.");
-            config = new DefaultServerConfiguration().endpoints(endpointClassSet);
-        } else {
-            Logger.getLogger(getClass().getName()).info("Using " + configClass.getName() + " as the server configuration.");
-
-            final ServerConfiguration innerConfig;
-            try {
-                // TODO: use lifecycle provider to create instance
-                innerConfig = configClass.newInstance();
-            } catch (Exception e) {
-                throw new RuntimeException("Could not instantiate configuration class: " + configClass.getName(), e);
-            }
-
-            config = new ServerConfiguration() {
-                private Set<Class<?>> cachedEndpointClasses;
-
-                @Override
-                public Set<Class<?>> getEndpointClasses() {
-                    if (cachedEndpointClasses == null) {
-                        cachedEndpointClasses = innerConfig.getEndpointClasses();
-                        if (cachedEndpointClasses.isEmpty() && innerConfig.getEndpointInstances().isEmpty()) {
-                            cachedEndpointClasses = Collections.unmodifiableSet(endpointClassSet);
-                        }
-                    }
-
-                    return cachedEndpointClasses;
-                }
-
-                @Override
-                public Set<Endpoint> getEndpointInstances() {
-                    return innerConfig.getEndpointInstances();
-                }
-
-                @Override
-                public long getMaxSessionIdleTimeout() {
-                    return innerConfig.getMaxSessionIdleTimeout();
-                }
-
-                @Override
-                public long getMaxBinaryMessageBufferSize() {
-                    return innerConfig.getMaxBinaryMessageBufferSize();
-                }
-
-                @Override
-                public long getMaxTextMessageBufferSize() {
-                    return innerConfig.getMaxTextMessageBufferSize();
-                }
-
-                @Override
-                public List<String> getExtensions() {
-                    return innerConfig.getExtensions();
-                }
-            };
+            config = new org.glassfish.tyrus.server.DefaultServerConfiguration().endpoints(endpointClassSet);
         }
 
         String contextRoot = sce.getServletContext().getContextPath();
         final String providerClassName = sce.getServletContext().getInitParameter(PROVIDER_CLASSNAME_KEY);
-        if (providerClassName != null) {
-            serverContainer = ServerContainerFactory.create(
-                    providerClassName,
-                    contextRoot, INFORMATIONAL_FIXED_PORT, config);
-        } else {
-            serverContainer = ServerContainerFactory.create(DEFAULT_PROVIDER_CLASS, contextRoot,
-                    INFORMATIONAL_FIXED_PORT, config);
-        }
 
         try {
             serverContainer.start();

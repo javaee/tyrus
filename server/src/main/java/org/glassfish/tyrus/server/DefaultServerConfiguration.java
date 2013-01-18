@@ -41,131 +41,67 @@ package org.glassfish.tyrus.server;
 
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
-import javax.websocket.Endpoint;
+
+import javax.websocket.server.ServerApplicationConfiguration;
+import javax.websocket.server.ServerEndpointConfiguration;
+import javax.websocket.server.WebSocketEndpoint;
 
 /**
- * Default mutable implementation of {@link ServerConfiguration} interface. Allows setting all the configuration
+ * Default mutable implementation of {@link javax.websocket.server.ServerApplicationConfiguration} interface. Allows setting all the configuration
  * properties.
  *
  * @author Martin Matula (martin.matula at oracle.com)
+ * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class DefaultServerConfiguration implements ServerConfiguration {
-    private long maxSessionIdleTimeout;
-    private long maxBinaryMessageBufferSize;
-    private long maxTextMessageBufferSize;
-    private final Set<Class<?>> endpointClasses = new HashSet<Class<?>>();
-    private final Set<Class<?>> endpointClassesView = Collections.unmodifiableSet(endpointClasses);
-    private final Set<Endpoint> endpointInstances = new HashSet<Endpoint>();
-    private final Set<Endpoint> endpointInstancesView = Collections.unmodifiableSet(endpointInstances);
+public class DefaultServerConfiguration implements ServerApplicationConfiguration {
+
+    private final Set<Class> annotatedClasses = new HashSet<Class>();
+    private final Set<Class> annotatedClassesView = Collections.unmodifiableSet(annotatedClasses);
+    private final Set<Class<? extends ServerEndpointConfiguration>> programmaticClasses = new HashSet<Class<? extends ServerEndpointConfiguration>>();
+    private final Set<Class<? extends ServerEndpointConfiguration>> programmaticCLassesView = Collections.unmodifiableSet(programmaticClasses);
+
 
     @Override
-    public Set<Class<?>> getEndpointClasses() {
-        return endpointClassesView;
+    public Set<Class<? extends ServerEndpointConfiguration>> getEndpointConfigurationClasses(Set<Class<? extends ServerEndpointConfiguration>> scanned) {
+        return programmaticCLassesView;
     }
 
     @Override
-    public Set<Endpoint> getEndpointInstances() {
-        return endpointInstancesView;
-    }
-
-    @Override
-    public long getMaxSessionIdleTimeout() {
-        return maxSessionIdleTimeout;
-    }
-
-    @Override
-    public long getMaxBinaryMessageBufferSize() {
-        return maxBinaryMessageBufferSize;
-    }
-
-    @Override
-    public long getMaxTextMessageBufferSize() {
-        return maxTextMessageBufferSize;
-    }
-
-    @Override
-    public List<String> getExtensions() {
-        return Collections.emptyList();
+    public Set<Class> getAnnotatedEndpointClasses(Set<Class> scanned) {
+        return annotatedClassesView;
     }
 
     /**
-     * Sets the max session idle timeout.
+     * Registers a new annotated or programmatic endpoint.
      *
-     * @param max timeout in seconds.
+     * @param endpointClass class annotated with {@link javax.websocket.server.WebSocketEndpoint} annotation or extending {@link ServerEndpointConfiguration}.
      * @return this configuration object.
      */
-    public DefaultServerConfiguration maxSessionIdleTimeout(long max) {
-        this.maxSessionIdleTimeout = max;
+    public DefaultServerConfiguration endpoint(Class<?> endpointClass) throws IllegalArgumentException {
+        if (endpointClass.isAnnotationPresent(WebSocketEndpoint.class)) {
+            annotatedClasses.add(endpointClass);
+        } else if (ServerEndpointConfiguration.class.isAssignableFrom(endpointClass)) {
+            programmaticClasses.add((Class<? extends ServerEndpointConfiguration>) endpointClass);
+        } else {
+            throw new IllegalArgumentException("Class: " + endpointClass.getName() + " is not annotated with " + WebSocketEndpoint.class.getName());
+        }
+
         return this;
     }
 
     /**
-     * Sets the max binary message buffer size.
-     *
-     * @param max buffer size in bytes.
-     * @return this configuration object.
-     */
-    public DefaultServerConfiguration maxBinaryMessageBufferSize(long max) {
-        this.maxBinaryMessageBufferSize = max;
-        return this;
-    }
-
-    /**
-     * Sets the max text message buffer size.
-     *
-     * @param max buffer size in bytes.
-     * @return this configuration object.
-     */
-    public DefaultServerConfiguration maxTextMessageBufferSize(long max) {
-        this.maxTextMessageBufferSize = max;
-        return this;
-    }
-
-    /**
-     * Registers a new endpoint annotated class.
-     *
-     * @param endpointClass class annotated with {@link javax.websocket.server.WebSocketEndpoint} annotation.
-     * @return this configuration object.
-     */
-    public DefaultServerConfiguration endpoint(Class<?> endpointClass) {
-        endpointClasses.add(endpointClass);
-        return this;
-    }
-
-    /**
-     * Registers a new programmatic endpoint.
-     *
-     *
-     * @param endpoint object implementing {@link javax.websocket.Endpoint} interface.
-     * @return this configuration object.
-     */
-    public DefaultServerConfiguration endpoint(Endpoint endpoint) {
-        endpointInstances.add(endpoint);
-        return this;
-    }
-
-    /**
-     * Registers new endpoint annotated classes.
+     * Registers new endpoint annotated or programmatic classes.
      *
      * @param endpointClasses classes annotated with {@link javax.websocket.server.WebSocketEndpoint}
-     *                        annotation.
+     *                        annotation or extending {@link ServerEndpointConfiguration}.
      * @return this configuration object.
      */
     public DefaultServerConfiguration endpoints(Class<?>... endpointClasses) {
-        Collections.addAll(this.endpointClasses, endpointClasses);
-        return this;
-    }
+        for (Class<?> endpointClass : endpointClasses) {
+            this.endpoint(endpointClass);
+        }
 
-    /**
-     * Registers new endpoint instances.
-     *
-     * @param endpoints endpoints.
-     * @return this configuration object.
-     */
-    public DefaultServerConfiguration endpoints(Endpoint... endpoints) {
-        Collections.addAll(this.endpointInstances, endpoints);
         return this;
     }
 
@@ -173,11 +109,14 @@ public class DefaultServerConfiguration implements ServerConfiguration {
      * Registers new endpoint annotated classes.
      *
      * @param endpointClasses classes annotated with {@link javax.websocket.server.WebSocketEndpoint}
-     *                        annotation.
+     *                        annotation or extending {@link ServerEndpointConfiguration}.
      * @return this configuration object.
      */
     public DefaultServerConfiguration endpoints(Set<Class<?>> endpointClasses) {
-        this.endpointClasses.addAll(endpointClasses);
+        for (Class<?> endpointClass : endpointClasses) {
+            this.endpoint(endpointClass);
+        }
+
         return this;
     }
 }

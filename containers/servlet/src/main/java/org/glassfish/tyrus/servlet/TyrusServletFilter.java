@@ -40,15 +40,9 @@
 package org.glassfish.tyrus.servlet;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.Enumeration;
-import java.util.Iterator;
-import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
-
-import javax.websocket.Endpoint;
-import javax.websocket.server.WebSocketEndpoint;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -61,9 +55,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.WebConnection;
 
-import org.glassfish.tyrus.server.ContainerConfig;
-import org.glassfish.tyrus.server.DefaultServerConfiguration;
-import org.glassfish.tyrus.server.ServerConfiguration;
+import org.glassfish.tyrus.ErrorCollector;
 import org.glassfish.tyrus.server.ServerContainerFactory;
 import org.glassfish.tyrus.server.TyrusServerContainer;
 import org.glassfish.tyrus.websockets.Connection;
@@ -78,6 +70,7 @@ import org.glassfish.tyrus.websockets.WebSocketRequest;
  * passed back to {@link FilterChain}.
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
+ * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 public class TyrusServletFilter implements Filter {
 
@@ -85,9 +78,9 @@ public class TyrusServletFilter implements Filter {
     private final static Logger LOGGER = Logger.getLogger(TyrusServletFilter.class.getName());
     private final WebSocketEngine engine;
     private TyrusServerContainer serverContainer = null;
+    private ErrorCollector errorCollector = new ErrorCollector();
 
-
-    // @WebSocketEndpoint or @ContainerConfig annotated classes
+    // @WebSocketEndpoint annotated classes and classes extending ServerApplicationConfiguration
     private final Set<Class<?>> classes;
 
     /**
@@ -102,88 +95,8 @@ public class TyrusServletFilter implements Filter {
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
-
-        Class<ServerConfiguration> configClass = null;
-
-        for (Iterator<Class<?>> it = this.classes.iterator(); it.hasNext(); ) {
-            Class<?> cls = it.next();
-
-            if (cls.getAnnotation(ContainerConfig.class) != null) {
-                if (cls.getAnnotation(WebSocketEndpoint.class) == null) {
-                    it.remove();
-                }
-                if (ServerConfiguration.class.isAssignableFrom(cls)) {
-                    if (configClass == null) {
-                        //noinspection unchecked
-                        configClass = (Class<ServerConfiguration>) cls;
-                    } else {
-                        Logger.getLogger(getClass().getName()).warning("Several server configuration classes found. " +
-                                cls.getName() + " will be ignored.");
-                    }
-                }
-            }
-        }
-
-        ServerConfiguration config;
-        if (configClass == null) {
-            Logger.getLogger(getClass().getName()).info("No server configuration class found in the application. Using defaults.");
-            config = new DefaultServerConfiguration().endpoints(this.classes);
-        } else {
-            Logger.getLogger(getClass().getName()).info("Using " + configClass.getName() + " as the server configuration.");
-
-            final ServerConfiguration innerConfig;
-            try {
-                // TODO: use lifecycle provider to create instance
-                innerConfig = configClass.newInstance();
-            } catch (Exception e) {
-                throw new RuntimeException("Could not instantiate configuration class: " + configClass.getName(), e);
-            }
-
-            config = new ServerConfiguration() {
-                private Set<Class<?>> cachedEndpointClasses;
-
-                @Override
-                public Set<Class<?>> getEndpointClasses() {
-                    if (cachedEndpointClasses == null) {
-                        cachedEndpointClasses = innerConfig.getEndpointClasses();
-                        if (cachedEndpointClasses.isEmpty() && innerConfig.getEndpointInstances().isEmpty()) {
-                            cachedEndpointClasses = Collections.unmodifiableSet(TyrusServletFilter.this.classes);
-                        }
-                    }
-
-                    return cachedEndpointClasses;
-                }
-
-                @Override
-                public Set<Endpoint> getEndpointInstances() {
-                    return innerConfig.getEndpointInstances();
-                }
-
-                @Override
-                public long getMaxSessionIdleTimeout() {
-                    return innerConfig.getMaxSessionIdleTimeout();
-                }
-
-                @Override
-                public long getMaxBinaryMessageBufferSize() {
-                    return innerConfig.getMaxBinaryMessageBufferSize();
-                }
-
-                @Override
-                public long getMaxTextMessageBufferSize() {
-                    return innerConfig.getMaxTextMessageBufferSize();
-                }
-
-                @Override
-                public List<String> getExtensions() {
-                    return innerConfig.getExtensions();
-                }
-            };
-        }
-
         String contextRoot = filterConfig.getServletContext().getContextPath();
-        this.serverContainer = ServerContainerFactory.create(ServletContainer.class, contextRoot,
-                INFORMATIONAL_FIXED_PORT, config);
+        this.serverContainer = ServerContainerFactory.create(ServletContainer.class, contextRoot,INFORMATIONAL_FIXED_PORT, classes);
         try {
             serverContainer.start();
         } catch (Exception e) {

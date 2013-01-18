@@ -58,8 +58,7 @@
     <modules>
         <module>e2e</module>
         <module>ejb</module>
-        <module>servlet/basic</module>
-        <module>servlet/autobahn-server</module>
+        <module>servlet</module>
     </modules>
 
     <dependencies>

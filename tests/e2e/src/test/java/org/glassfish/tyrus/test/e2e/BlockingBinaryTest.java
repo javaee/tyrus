@@ -66,7 +66,7 @@ public class BlockingBinaryTest {
     public void testClient() {
         final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
 
-        Server server = new Server(BlockingBinaryServer.class.getName());
+        Server server = new Server(BlockingBinaryServer.class);
 
         try {
             server.start();

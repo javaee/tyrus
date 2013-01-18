@@ -45,10 +45,9 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.glassfish.tyrus.tests</groupId>
-        <artifactId>tyrus-tests-project</artifactId>
+        <groupId>org.glassfish.tyrus.tests.servlet</groupId>
+        <artifactId>tyrus-tests-servlet-project</artifactId>
         <version>1.0-SNAPSHOT</version>
-        <relativePath>../../pom.xml</relativePath>
     </parent>
 
     <packaging>war</packaging>

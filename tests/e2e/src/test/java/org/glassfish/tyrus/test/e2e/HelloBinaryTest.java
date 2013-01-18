@@ -62,7 +62,7 @@ public class HelloBinaryTest {
     @Test
     public void testClient() {
         final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
-        Server server = new Server(HelloBinaryServer.class.getName());
+        Server server = new Server(HelloBinaryServer.class);
 
         try {
             server.start();

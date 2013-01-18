@@ -43,6 +43,8 @@ package org.glassfish.tyrus.servlet;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import javax.websocket.Endpoint;
+import javax.websocket.server.ServerApplicationConfiguration;
 import javax.websocket.server.WebSocketEndpoint;
 
 import javax.servlet.FilterRegistration;
@@ -51,7 +53,7 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.HandlesTypes;
 
-import org.glassfish.tyrus.server.ContainerConfig;
+import org.glassfish.tyrus.server.ApplicationConfig;
 
 /**
  * Registers a filter for upgrade handshake.
@@ -60,7 +62,7 @@ import org.glassfish.tyrus.server.ContainerConfig;
  *
  * @author Jitendra Kotamraju
  */
-@HandlesTypes({WebSocketEndpoint.class, ContainerConfig.class})
+@HandlesTypes({WebSocketEndpoint.class, ApplicationConfig.class, ServerApplicationConfiguration.class, Endpoint.class})
 public class TyrusServletContainerInitializer implements ServletContainerInitializer {
     private static final Logger LOGGER = Logger.getLogger(TyrusServletContainerInitializer.class.getName());
 

@@ -66,7 +66,7 @@ public class BlockingStreamingTextTest {
     public void testClient() {
         final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
 
-        Server server = new Server(BlockingStreamingTextServer.class.getName());
+        Server server = new Server(BlockingStreamingTextServer.class);
 
         try {
             server.start();

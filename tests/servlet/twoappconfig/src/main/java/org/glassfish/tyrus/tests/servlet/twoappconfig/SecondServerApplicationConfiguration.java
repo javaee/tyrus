@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -37,20 +37,40 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.server;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+package org.glassfish.tyrus.tests.servlet.twoappconfig;
+
+import java.util.HashSet;
+import java.util.Set;
+
+import javax.websocket.server.ServerApplicationConfiguration;
+import javax.websocket.server.ServerEndpointConfiguration;
+
+import org.glassfish.tyrus.server.ApplicationConfig;
 
 /**
- * Annotates server configuration to be used for servlet-based deployment.
- * There can be only one class annotated using ContainerConfig annotation per war file.
- *
- * @author Martin Matula (martin.matula at oracle.com)
+ * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface ContainerConfig {
+@ApplicationConfig
+public class SecondServerApplicationConfiguration implements ServerApplicationConfiguration {
+
+    private static boolean annotatedGetterCalled = false;
+
+    @Override
+    public Set<Class<? extends ServerEndpointConfiguration>> getEndpointConfigurationClasses(Set<Class<? extends ServerEndpointConfiguration>> scanned) {
+        return null;
+    }
+
+    @Override
+    public Set<Class> getAnnotatedEndpointClasses(Set<Class> scanned) {
+        annotatedGetterCalled = true;
+        HashSet<Class> toReturn = new HashSet<Class>();
+            toReturn.add(ConfigurationChecker.class);
+
+        return toReturn;
+    }
+
+    public static boolean isAnnotatedGetterCalled() {
+        return annotatedGetterCalled;
+    }
 }

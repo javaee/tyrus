@@ -55,7 +55,7 @@ import javax.websocket.DeploymentException;
  */
 public class Server {
     private TyrusServerContainer server;
-    private final ServerConfiguration configuration;
+    private final Set<Class<?>> configuration;
     private final String hostName;
     private final int port;
     private final String rootPath;
@@ -69,26 +69,13 @@ public class Server {
     /**
      * Create new server instance.
      *
-     * @param beans to be registered with the server
+     * @param configuration to be registered with the server. Classes annotated with
+     * {@link javax.websocket.server.WebSocketEndpoint},
+     *                      implementing {@link javax.websocket.server.ServerApplicationConfiguration}
+     *                      or extending {@link javax.websocket.Endpoint} are supported.
      */
-    public Server(Class<?>... beans) {
-        this(null, 0, null, beans);
-    }
-
-    /**
-     * Create new server instance.
-     *
-     * @param beanNames beans to be registered with the server
-     */
-    public Server(String... beanNames) {
-        this(null, 0, null, new HashSet<Class<?>>());
-        for (String beanName : beanNames) {
-            try {
-                ((DefaultServerConfiguration) configuration).endpoint(Class.forName(beanName));
-            } catch (ClassNotFoundException e) {
-                throw new RuntimeException(e);
-            }
-        }
+    public Server(Class<?>... configuration) {
+        this(null, 0, null, configuration);
     }
 
     /**
@@ -97,22 +84,13 @@ public class Server {
      * @param hostName hostName of the server.
      * @param port     port of the server.
      * @param rootPath root path to the server App.
-     * @param beans    registered application classes.
+     * @param configuration to be registered with the server. Classes annotated with
+     * {@link javax.websocket.server.WebSocketEndpoint},
+     *                      implementing {@link javax.websocket.server.ServerApplicationConfiguration}
+     *                      or extending {@link javax.websocket.Endpoint} are supported.
      */
-    public Server(String hostName, int port, String rootPath, Class<?>... beans) {
-        this(hostName, port, rootPath, new HashSet<Class<?>>(Arrays.asList(beans)));
-    }
-
-    /**
-     * Construct new server.
-     *
-     * @param hostName hostName of the server.
-     * @param port     port of the server.
-     * @param rootPath root path to the server App.
-     * @param beans    registered application classes.
-     */
-    public Server(String hostName, int port, String rootPath, Set<Class<?>> beans) {
-        this(hostName, port, rootPath, new DefaultServerConfiguration().endpoints(beans));
+    public Server(String hostName, int port, String rootPath, Class<?>... configuration) {
+        this(hostName, port, rootPath, new HashSet<Class<?>>(Arrays.asList(configuration)));
     }
 
     /**
@@ -121,9 +99,12 @@ public class Server {
      * @param hostName      hostName of the server.
      * @param port          port of the server.
      * @param rootPath      root path to the server App.
-     * @param configuration server configuration.
+     * @param configuration to be registered with the server. Classes annotated with
+     * {@link javax.websocket.server.WebSocketEndpoint},
+     *                      implementing {@link javax.websocket.server.ServerApplicationConfiguration}
+     *                      or extending {@link javax.websocket.Endpoint} are supported.
      */
-    public Server(String hostName, int port, String rootPath, ServerConfiguration configuration) {
+    public Server(String hostName, int port, String rootPath, Set<Class<?>> configuration) {
         this.hostName = hostName == null ? DEFAULT_HOST_NAME : hostName;
         this.port = port == 0 ? DEFAULT_PORT : port;
         this.rootPath = rootPath == null ? DEFAULT_ROOT_PATH : rootPath;

@@ -39,8 +39,6 @@
  */
 package org.glassfish.tyrus.sample.auction;
 
-import java.io.IOException;
-
 import org.glassfish.tyrus.server.Server;
 
 /**

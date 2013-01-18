@@ -63,7 +63,7 @@ public class StreamingTextTest {
     @Test
     public void testClient() {
         final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
-        Server server = new Server(StreamingTextServer.class.getName());
+        Server server = new Server(StreamingTextServer.class);
 
         try {
             server.start();

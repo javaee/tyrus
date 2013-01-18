@@ -88,14 +88,14 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.HandlesTypes;
 
-import org.glassfish.tyrus.server.ContainerConfig;
+import org.glassfish.tyrus.server.ApplicationConfig;
 
 /**
  * Registers a context listener to handle WebSocketEndpoint endpoints.
  *
  * @author Jitendra Kotamraju
  */
-@HandlesTypes({WebSocketEndpoint.class, ContainerConfig.class})
+@HandlesTypes({WebSocketEndpoint.class, ApplicationConfig.class})
 public class WebSocketServletContainerInitializer implements ServletContainerInitializer {
 
     public void onStartup(Set<Class<?>> set, ServletContext ctx) throws ServletException {

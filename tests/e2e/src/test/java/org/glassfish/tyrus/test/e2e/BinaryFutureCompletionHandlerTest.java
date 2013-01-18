@@ -63,7 +63,7 @@ public class BinaryFutureCompletionHandlerTest {
     public void testFastClient() {
         final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
 
-        Server server = new Server(BinaryFutureCompletionHandlerServer.class.getName());
+        Server server = new Server(BinaryFutureCompletionHandlerServer.class);
 
         try {
             server.start();

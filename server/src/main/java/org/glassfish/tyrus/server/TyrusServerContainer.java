@@ -42,10 +42,8 @@ package org.glassfish.tyrus.server;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -56,6 +54,7 @@ import javax.websocket.EndpointConfiguration;
 import javax.websocket.Extension;
 import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
+import javax.websocket.server.ServerApplicationConfiguration;
 import javax.websocket.server.ServerEndpointConfiguration;
 
 import org.glassfish.tyrus.AnnotatedEndpoint;
@@ -71,75 +70,48 @@ import org.glassfish.tyrus.spi.TyrusServer;
  *
  * @author Martin Matula (martin.matula at oracle.com)
  * @author Pavel Bucek (pavel.bucek at oracle.com)
+ * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 public class TyrusServerContainer extends WithProperties implements WebSocketContainer {
     private final TyrusServer server;
     private final String contextPath;
-    private final ServerConfiguration configuration;
+    private final ServerApplicationConfiguration configuration;
     private final Set<SPIRegisteredEndpoint> endpoints = new HashSet<SPIRegisteredEndpoint>();
     private final ErrorCollector collector;
 
+    private long maxSessionIdleTimeout = 0;
+    private long maxTextMessageBufferSize = 0;
+    private long maxBinaryMessageBufferSize = 0;
+    private long defaultAsyncSendTimeout = 0;
+
     public TyrusServerContainer(final TyrusServer server, final String contextPath,
-                                final ServerConfiguration configuration) {
+                                final Set<Class<?>> classes) {
         this.collector = new ErrorCollector();
         this.server = server;
         this.contextPath = contextPath;
-        // make a read-only copy of the configuration
-        this.configuration = new ServerConfiguration() {
-            private final Set<Class<?>> endpointClasses =
-                    Collections.unmodifiableSet(new HashSet<Class<?>>(configuration.getEndpointClasses()));
-            private final Set<Endpoint> endpointInstances =
-                    Collections.unmodifiableSet(new HashSet<Endpoint>(configuration.getEndpointInstances()));
-            private final long maxSessionIdleTimeout = configuration.getMaxSessionIdleTimeout();
-            private final long maxBinaryMessageBufferSize = configuration.getMaxBinaryMessageBufferSize();
-            private final long maxTextMessageBufferSize = configuration.getMaxTextMessageBufferSize();
-            private final List<String> extensions =
-                    Collections.unmodifiableList(new ArrayList<String>(configuration.getExtensions()));
-
-            @Override
-            public Set<Class<?>> getEndpointClasses() {
-                return endpointClasses;
-            }
-
-            @Override
-            public Set<Endpoint> getEndpointInstances() {
-                return endpointInstances;
-            }
-
-            @Override
-            public long getMaxSessionIdleTimeout() {
-                return maxSessionIdleTimeout;
-            }
-
-            @Override
-            public long getMaxBinaryMessageBufferSize() {
-                return maxBinaryMessageBufferSize;
-            }
-
-            @Override
-            public long getMaxTextMessageBufferSize() {
-                return maxTextMessageBufferSize;
-            }
-
-            @Override
-            public List<String> getExtensions() {
-                return extensions;
-            }
-        };
+        this.configuration = new TyrusServerConfiguration(classes);
     }
 
     public void start() throws IOException, DeploymentException {
         // start the underlying server
         server.start();
 
-        for (Endpoint endpoint : configuration.getEndpointInstances()) {
-            deploy(endpoint, null);
-        }
-
         try {
-            // deploy all the class-based endpoints
-            for (Class<?> endpointClass : configuration.getEndpointClasses()) {
-                deploy(endpointClass);
+            Endpoint endpoint;
+            EndpointConfiguration config;
+
+            // deploy all the annotated endpoints
+            for (Class<?> endpointClass : configuration.getAnnotatedEndpointClasses(null)) {
+                endpoint = AnnotatedEndpoint.fromClass(endpointClass, true, collector);
+                config = ((AnnotatedEndpoint) endpoint).getEndpointConfiguration();
+                deploy(endpoint, config);
+            }
+
+            // deploy all the programmatic endpoints
+            for (Class<? extends ServerEndpointConfiguration> endpointClass : configuration.getEndpointConfigurationClasses(null)) {
+                ServerEndpointConfiguration seConfig = ComponentProviderService.getInstance(endpointClass);
+                endpoint = ComponentProviderService.getInstance(seConfig.getEndpointClass());
+                deploy(endpoint, seConfig);
             }
         } catch (DeploymentException de) {
             collector.addException(de);
@@ -157,27 +129,6 @@ public class TyrusServerContainer extends WithProperties implements WebSocketCon
         endpoints.add(ge);
     }
 
-    private void deploy(Class<?> endpointClass) throws DeploymentException {
-        Endpoint endpoint;
-        EndpointConfiguration config;
-        if (Endpoint.class.isAssignableFrom(endpointClass)) {
-            endpoint = (Endpoint) ComponentProviderService.getInstance(endpointClass);
-            config = null;
-        } else {
-            endpoint = AnnotatedEndpoint.fromClass(endpointClass, true, collector);
-            config = ((AnnotatedEndpoint) endpoint).getEndpointConfiguration();
-        }
-
-        if (endpoint == null) {
-            collector.addException(new DeploymentException("Endpoint class " + endpointClass.getName() + " does " +
-                    "not extend Endpoint and is not " +
-                    "annotated with @WebSocketEndpoint annotation."));
-        }
-
-        deploy(endpoint, config);
-        Logger.getLogger(getClass().getName()).info("Registered a " + endpointClass);
-    }
-
     public void stop() {
         for (SPIRegisteredEndpoint wsa : this.endpoints) {
             wsa.remove();
@@ -185,10 +136,6 @@ public class TyrusServerContainer extends WithProperties implements WebSocketCon
             Logger.getLogger(getClass().getName()).info("Closing down : " + wsa);
         }
         server.stop();
-    }
-
-    public void publishServer(Class<? extends ServerEndpointConfiguration> configuration) throws DeploymentException {
-        deploy(configuration);
     }
 
     @Override
@@ -214,32 +161,32 @@ public class TyrusServerContainer extends WithProperties implements WebSocketCon
 
     @Override
     public long getMaxSessionIdleTimeout() {
-        return configuration.getMaxSessionIdleTimeout();
+        return maxSessionIdleTimeout;
     }
 
     @Override
     public void setMaxSessionIdleTimeout(long timeout) {
-        throw new UnsupportedOperationException();
+        this.maxSessionIdleTimeout = timeout;
     }
 
     @Override
     public long getMaxBinaryMessageBufferSize() {
-        return configuration.getMaxBinaryMessageBufferSize();
+        return maxBinaryMessageBufferSize;
     }
 
     @Override
     public void setMaxBinaryMessageBufferSize(long max) {
-        throw new UnsupportedOperationException();
+        this.maxBinaryMessageBufferSize = max;
     }
 
     @Override
     public long getMaxTextMessageBufferSize() {
-        return configuration.getMaxTextMessageBufferSize();
+        return maxTextMessageBufferSize;
     }
 
     @Override
     public void setMaxTextMessageBufferSize(long max) {
-        throw new UnsupportedOperationException();
+        this.maxTextMessageBufferSize = max;
     }
 
     @Override
@@ -252,11 +199,11 @@ public class TyrusServerContainer extends WithProperties implements WebSocketCon
 
     @Override
     public long getDefaultAsyncSendTimeout() {
-        return 0;  // TODO: Implement.
+        return defaultAsyncSendTimeout;
     }
 
     @Override
     public void setAsyncSendTimeout(long timeoutmillis) {
-        // TODO: Implement.
+        defaultAsyncSendTimeout = timeoutmillis;
     }
 }

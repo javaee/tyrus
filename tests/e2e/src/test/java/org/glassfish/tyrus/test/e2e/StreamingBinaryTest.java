@@ -62,7 +62,7 @@ public class StreamingBinaryTest {
     @Test
     public void testClient() {
         final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
-        Server server = new Server(StreamingBinaryServer.class.getName());
+        Server server = new Server(StreamingBinaryServer.class);
 
         try {
             server.start();

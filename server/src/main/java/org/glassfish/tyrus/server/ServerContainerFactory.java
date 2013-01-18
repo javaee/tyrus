@@ -39,6 +39,7 @@
  */
 package org.glassfish.tyrus.server;
 
+import java.util.Set;
 import java.util.logging.Logger;
 
 import org.glassfish.tyrus.OsgiRegistry;
@@ -71,11 +72,11 @@ public class ServerContainerFactory {
      * @param providerClassName Container provider implementation class name.
      * @param contextPath URI path at which the websocket server should be exposed at.
      * @param port Port at which the server should listen.
-     * @param configuration Server configuration.
-     * @return New instance of {@link ServerConfiguration}.
+     * @param classes Server configuration.
+     * @return New instance of {@link TyrusServerContainer}.
      */
     public static TyrusServerContainer create(String providerClassName, String contextPath, int port,
-                                         ServerConfiguration configuration) {
+                                         Set<Class<?>> classes) {
         Class<? extends TyrusContainer> providerClass;
 
         initOsgiRegistry();
@@ -92,7 +93,7 @@ public class ServerContainerFactory {
             throw new RuntimeException("Failed to load container provider class: " + providerClassName, e);
         }
         Logger.getLogger(ServerContainerFactory.class.getName()).info("Provider class loaded: " + providerClassName);
-        TyrusServerContainer container = create(providerClass, contextPath, port, configuration);
+        TyrusServerContainer container = create(providerClass, contextPath, port, classes);
         TyrusContainerProvider.getContainerProvider().setContainer(container);
         return container;
     }
@@ -107,7 +108,7 @@ public class ServerContainerFactory {
      * @return New instance of {@link TyrusServerContainer}.
      */
     public static TyrusServerContainer create(Class<? extends TyrusContainer> providerClass, String contextPath, int port,
-                                         ServerConfiguration configuration) {
+                                         Set<Class<?>> configuration) {
         TyrusContainer containerProvider;
         try {
             containerProvider = providerClass.newInstance();

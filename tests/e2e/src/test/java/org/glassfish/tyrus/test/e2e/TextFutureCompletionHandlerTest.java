@@ -63,7 +63,7 @@ public class TextFutureCompletionHandlerTest {
 
     @Test
     public void testFastClient() {
-        Server server = new Server(TextFutureCompletionHandlerServer.class.getName());
+        Server server = new Server(TextFutureCompletionHandlerServer.class);
 
         try {
             server.start();
@@ -86,7 +86,7 @@ public class TextFutureCompletionHandlerTest {
 
     @Test
     public void testSlowClient() {
-        Server server = new Server(TextFutureCompletionHandlerServer.class.getName());
+        Server server = new Server(TextFutureCompletionHandlerServer.class);
 
         try {
             server.start();

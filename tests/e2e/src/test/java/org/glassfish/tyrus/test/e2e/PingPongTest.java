@@ -64,7 +64,7 @@ public class PingPongTest {
     @Test
     public void testClient() {
         final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
-        Server server = new Server(PingPongServer.class.getName());
+        Server server = new Server(PingPongServer.class);
 
         try {
             server.start();
