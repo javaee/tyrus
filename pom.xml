@@ -110,8 +110,16 @@
         <developer>
             <id>mmatula</id>
             <name>Martin Matula</name>
-            <organization>Oracle</organization>
             <url>http://blog.alutam.com</url>
+        </developer>
+        <developer>
+            <id>pavel_bucek</id>
+            <name>Pavel Bucek</name>
+            <organization>Oracle</organization>
+            <url>https://blogs.oracle.com/PavelBucek/</url>
+            <roles>
+                <role>developer</role>
+            </roles>
         </developer>
     </developers>
 
@@ -126,7 +134,7 @@
         <spec_version>0.0</spec_version>
         <new_spec_version>1.0</new_spec_version>
         <new_impl_version>1.0</new_impl_version>
-        <build_number>08</build_number>
+        <build_number>09</build_number>
         <spec_impl_version>1.0.0</spec_impl_version>
         <impl_version>0.0.0</impl_version>
 
