@@ -55,7 +55,6 @@
     <modules>
         <module>glassfish</module>
         <module>grizzly</module>
-        <module>oldservlet</module>
         <module>servlet</module>
     </modules>
 </project>

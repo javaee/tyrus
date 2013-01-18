@@ -51,6 +51,7 @@
 
     <groupId>org.glassfish.tyrus</groupId>
     <artifactId>tyrus-protocol</artifactId>
+    <name>Tyrus Protocol</name>
     <packaging>pom</packaging>
 
     <modules>
