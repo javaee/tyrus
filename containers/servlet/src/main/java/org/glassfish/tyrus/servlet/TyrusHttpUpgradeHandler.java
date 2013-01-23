@@ -42,6 +42,7 @@ package org.glassfish.tyrus.servlet;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.ReadListener;
@@ -65,6 +66,9 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
     private ServletOutputStream os;
     private WebConnection wc;
     private ByteBuffer buf;
+
+    private boolean closed = false;
+
     private static final Logger LOGGER = Logger.getLogger(TyrusHttpUpgradeHandler.class.getName());
 
     private WebSocketEngine.WebSocketHolder webSocketHolder;
@@ -72,7 +76,7 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
 
     @Override
     public void init(WebConnection wc) {
-        LOGGER.info("Servlet 3.1 Upgrade");
+        LOGGER.config("Servlet 3.1 Upgrade");
         try {
             is = wc.getInputStream();
             os = wc.getOutputStream();
@@ -108,7 +112,7 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
                     }
                 }
 
-                if(remaining == buf.remaining() && !is.isReady()) {
+                if (remaining == buf.remaining() && !is.isReady()) {
                     break;
                 }
 
@@ -116,15 +120,20 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
                 // TODO it will spin in this loop
             } while (buf.remaining() > 0 || is.isReady());
         } catch (FramingException e) {
-            webSocketHolder.webSocket.onClose(new ClosingFrame(e.getClosingCode(), e.getCause().getMessage()));
+            final String message = e.getMessage();
+            webSocketHolder.webSocket.onClose(new ClosingFrame(e.getClosingCode(), message == null ? "No reason given." : message));
             try {
-                wc.close();
+                if (!closed) {
+                    wc.close();
+                    closed = true;
+                }
             } catch (Exception f) {
-                //
+                LOGGER.log(Level.CONFIG, f.getMessage(), f);
             }
         } catch (Exception wse) {
             if (webSocketHolder.application.onError(webSocketHolder.webSocket, wse)) {
-                webSocketHolder.webSocket.onClose(new ClosingFrame(1011, wse.getMessage()));
+                final String message = wse.getMessage();
+                webSocketHolder.webSocket.onClose(new ClosingFrame(1011, message == null ? "No reason given." : message));
             }
         } catch (Throwable e) {
             // TODO servlet container is swallowing, just print it for now
@@ -185,11 +194,15 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
 
     @Override
     public void onError(Throwable t) {
-        webSocketHolder.webSocket.onClose(new ClosingFrame(WebSocket.NORMAL_CLOSURE, null));
+        final String message = (t == null ? null : t.getMessage());
+        webSocketHolder.webSocket.onClose(new ClosingFrame(WebSocket.NORMAL_CLOSURE, message == null ? "No reason given." : message));
         try {
-            wc.close();
+            if (!closed) {
+                wc.close();
+                closed = true;
+            }
         } catch (Exception e) {
-            //
+            LOGGER.log(Level.CONFIG, e.getMessage(), e);
         }
     }
 

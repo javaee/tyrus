@@ -156,7 +156,7 @@ public class TyrusServletFilter implements Filter {
         // check for mandatory websocket header
         final String header = httpServletRequest.getHeader(WebSocketEngine.SEC_WS_KEY_HEADER);
         if (header != null) {
-            LOGGER.info("Setting up WebSocket protocol handler");
+            LOGGER.config("Setting up WebSocket protocol handler");
 
             TyrusHttpUpgradeHandlerProxy handler = new TyrusHttpUpgradeHandlerProxy();
 
@@ -194,7 +194,7 @@ public class TyrusServletFilter implements Filter {
                 }
 
                 // TODO
-                LOGGER.info("Upgrading Servlet request");
+                LOGGER.config("Upgrading Servlet request");
                 handler.setHandler(httpServletRequest.upgrade(TyrusHttpUpgradeHandler.class));
                 handler.setWebSocketHolder(engine.getWebSocketHolder(webSocketConnection));
 
@@ -205,7 +205,7 @@ public class TyrusServletFilter implements Filter {
 
             // Servlet bug ?? Not sure why we need to flush the headers
             response.flushBuffer();
-            LOGGER.info("Handshake Complete");
+            LOGGER.config("Handshake Complete");
         } else {
             filterChain.doFilter(request, response);
         }
