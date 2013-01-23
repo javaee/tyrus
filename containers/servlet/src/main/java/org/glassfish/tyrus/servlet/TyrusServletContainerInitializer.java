@@ -57,16 +57,22 @@ import org.glassfish.tyrus.server.ApplicationConfig;
 
 /**
  * Registers a filter for upgrade handshake.
- * <p />
+ * <p/>
  * All requests will be handled by registered filter if not specified otherwise.
  *
  * @author Jitendra Kotamraju
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 @HandlesTypes({WebSocketEndpoint.class, ApplicationConfig.class, ServerApplicationConfiguration.class, Endpoint.class})
 public class TyrusServletContainerInitializer implements ServletContainerInitializer {
     private static final Logger LOGGER = Logger.getLogger(TyrusServletContainerInitializer.class.getName());
 
     public void onStartup(Set<Class<?>> classes, ServletContext ctx) throws ServletException {
+        if (classes == null || classes.isEmpty()) {
+            // do nothing. We rely on servlet scanning mechanism and if there are no classes provided
+            // by it, we cannot deploy anything.
+            return;
+        }
         final FilterRegistration.Dynamic reg = ctx.addFilter("WebSocket filter", new TyrusServletFilter(classes));
         reg.setAsyncSupported(true);
         reg.addMappingForUrlPatterns(null, true, "/*");
