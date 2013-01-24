@@ -40,6 +40,7 @@
 
 package org.glassfish.tyrus.servlet;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.logging.Level;
@@ -194,6 +195,11 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
 
     @Override
     public void onError(Throwable t) {
+        if (t instanceof EOFException) {
+            // nothing to do, connection already closed
+            return;
+        }
+
         final String message = (t == null ? null : t.getMessage());
         webSocketHolder.webSocket.onClose(new ClosingFrame(WebSocket.NORMAL_CLOSURE, message == null ? "No reason given." : message));
         try {
