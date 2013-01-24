@@ -82,22 +82,19 @@ class ConnectionImpl extends Connection {
     public Future<DataFrame> write(final DataFrame frame, CompletionHandler<DataFrame> completionHandler) {
         final ServletOutputStream outputStream = tyrusHttpUpgradeHandler.getOutputStream();
 
-        if (outputStream.isReady()) {
-            try {
+        try {
+            final byte[] bytes = WebSocketEngine.getEngine().getWebSocketHolder(this).handler.frame(frame);
 
-                final byte[] bytes = WebSocketEngine.getEngine().getWebSocketHolder(this).handler.frame(frame);
+            outputStream.write(bytes);
+            outputStream.flush();
 
-                outputStream.write(bytes);
-                outputStream.flush();
+            if (completionHandler != null) {
+                completionHandler.completed(frame);
+            }
 
-                if (completionHandler != null) {
-                    completionHandler.completed(frame);
-                }
-
-            } catch (IOException e) {
-                if (completionHandler != null) {
-                    completionHandler.failed(e);
-                }
+        } catch (IOException e) {
+            if (completionHandler != null) {
+                completionHandler.failed(e);
             }
         }
 

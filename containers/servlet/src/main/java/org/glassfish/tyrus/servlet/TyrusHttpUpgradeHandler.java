@@ -74,7 +74,6 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
 
     private WebSocketEngine.WebSocketHolder webSocketHolder;
 
-
     @Override
     public void init(WebConnection wc) {
         LOGGER.config("Servlet 3.1 Upgrade");
@@ -86,7 +85,11 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
             throw new RuntimeException(ioe);
         }
 
-        is.setReadListener(this);
+        try {
+            is.setReadListener(this);
+        } catch (IllegalStateException e) {
+            LOGGER.log(Level.WARNING, e.getMessage(), e);
+        }
 
         // TODO: servlet bug ?? why is this need to be called explicitly ?
         if (is.isReady()) {
@@ -97,29 +100,16 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
     @Override
     public void onDataAvailable() {
         try {
-            do {
-                if (is.isReady()) {
-                    fillBuf();
+            fillBuf(is.available());
+
+            LOGGER.finest("Remaining Data = " + buf.remaining());
+
+            if (buf != null && buf.hasRemaining()) {
+                final DataFrame result = webSocketHolder.handler.unframe(buf);
+                if (result != null) {
+                    result.respond(webSocketHolder.webSocket);
                 }
-
-                LOGGER.finest("Remaining Data = " + buf.remaining());
-
-                final int remaining = buf.remaining();
-
-                if (buf != null && buf.hasRemaining()) {
-                    final DataFrame result = webSocketHolder.handler.unframe(buf);
-                    if (result != null) {
-                        result.respond(webSocketHolder.webSocket);
-                    }
-                }
-
-                if (remaining == buf.remaining() && !is.isReady()) {
-                    break;
-                }
-
-                // TODO buf has some data but not enough to decode,
-                // TODO it will spin in this loop
-            } while (buf.remaining() > 0 || is.isReady());
+            }
         } catch (FramingException e) {
             final String message = e.getMessage();
             webSocketHolder.webSocket.onClose(new ClosingFrame(e.getClosingCode(), message == null ? "No reason given." : message));
@@ -140,52 +130,55 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
             // TODO servlet container is swallowing, just print it for now
             e.printStackTrace();
             throw new RuntimeException(e);
+        } finally {
+            if (is.isReady()) {
+                LOGGER.log(Level.SEVERE, "This shouldn't happen. ServletInputStream.isReady() returned true after reading all available() data.");
+            } else {
+                // everything is ok, all data consumed, waiting for next onDataAvailable call from web-core
+            }
         }
     }
 
-    private void fillBuf() throws IOException {
+    private void fillBuf(int length) throws IOException {
+        byte[] data = new byte[length];
+        int len = is.read(data);
+        if (len == 0) {
+            throw new RuntimeException("No data available.");
+        }
+        if (buf == null) {
+            LOGGER.finest("No Buffer. Allocating new one");
+            buf = ByteBuffer.wrap(data);
+            buf.limit(len);
+        } else {
+            int limit = buf.limit();
+            int capacity = buf.capacity();
+            int remaining = buf.remaining();
 
-        do {
-            byte[] data = new byte[200];     // TODO testing purpose
-            int len = is.read(data);
-            if (len == 0) {
-                throw new RuntimeException("No data available.");
-            }
-            if (buf == null) {
-                LOGGER.finest("No Buffer. Allocating new one");
-                buf = ByteBuffer.wrap(data);
-                buf.limit(len);
+            if (capacity - limit >= len) {
+                // Remaining data need not be changed. New data is just appended
+                LOGGER.finest("Remaining data need not be moved. New data is just appended");
+                buf.mark();
+                buf.position(limit);
+                buf.limit(capacity);
+                buf.put(data, 0, len);
+                buf.limit(limit + len);
+                buf.reset();
+            } else if (remaining + len < capacity) {
+                // Remaining data is moved to left. Then new data is appended
+                LOGGER.finest("Remaining data is moved to left. Then new data is appended");
+                buf.compact();
+                buf.put(data, 0, len);
+                buf.flip();
             } else {
-                int limit = buf.limit();
-                int capacity = buf.capacity();
-                int remaining = buf.remaining();
-
-                if (capacity - limit >= len) {
-                    // Remaining data need not be changed. New data is just appended
-                    LOGGER.finest("Remaining data need not be moved. New data is just appended");
-                    buf.mark();
-                    buf.position(limit);
-                    buf.limit(capacity);
-                    buf.put(data, 0, len);
-                    buf.limit(limit + len);
-                    buf.reset();
-                } else if (remaining + len < capacity) {
-                    // Remaining data is moved to left. Then new data is appended
-                    LOGGER.finest("Remaining data is moved to left. Then new data is appended");
-                    buf.compact();
-                    buf.put(data, 0, len);
-                    buf.flip();
-                } else {
-                    // Remaining data + new > capacity. So allocate new one
-                    LOGGER.finest("Remaining data + new > capacity. So allocate new one");
-                    byte[] array = new byte[remaining + len];
-                    buf.get(array, 0, remaining);
-                    System.arraycopy(data, 0, array, remaining, len);
-                    buf = ByteBuffer.wrap(array);
-                    buf.limit(remaining + len);
-                }
+                // Remaining data + new > capacity. So allocate new one
+                LOGGER.finest("Remaining data + new > capacity. So allocate new one");
+                byte[] array = new byte[remaining + len];
+                buf.get(array, 0, remaining);
+                System.arraycopy(data, 0, array, remaining, len);
+                buf = ByteBuffer.wrap(array);
+                buf.limit(remaining + len);
             }
-        } while (is.isReady());
+        }
     }
 
     @Override
