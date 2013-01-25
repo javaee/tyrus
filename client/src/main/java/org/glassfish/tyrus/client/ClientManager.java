@@ -53,6 +53,7 @@ import javax.websocket.WebSocketClient;
 import javax.websocket.WebSocketContainer;
 
 import org.glassfish.tyrus.AnnotatedEndpoint;
+import org.glassfish.tyrus.ComponentProviderService;
 import org.glassfish.tyrus.EndpointWrapper;
 import org.glassfish.tyrus.ErrorCollector;
 import org.glassfish.tyrus.ReflectionHelper;
@@ -75,11 +76,11 @@ public class ClientManager implements WebSocketContainer {
      * Uses Grizzly as transport implementation.
      */
     private static final String ENGINE_PROVIDER_CLASSNAME = "org.glassfish.tyrus.container.grizzly.GrizzlyEngine";
-
     private static final Logger LOGGER = Logger.getLogger(ClientManager.class.getName());
-
     private final Set<TyrusClientSocket> sockets = new HashSet<TyrusClientSocket>();
     private final TyrusContainer engine;
+    private final ComponentProviderService componentProvider;
+    private final ErrorCollector collector;
 
     private long maxSessionIdleTimeout;
     private long maxBinaryMessageBufferSize;
@@ -120,13 +121,19 @@ public class ClientManager implements WebSocketContainer {
     }
 
     private ClientManager(String engineProviderClassname) {
+        collector = new ErrorCollector();
+        componentProvider = ComponentProviderService.create(collector);
+        Class engineProviderClazz = null;
         try {
-            Class engineProviderClazz = ReflectionHelper.classForNameWithException(engineProviderClassname);
-            LOGGER.config(String.format("Provider class loaded: %s", engineProviderClassname));
-            this.engine = (TyrusContainer) (engineProviderClazz.newInstance());
-            TyrusContainerProvider.getContainerProvider().setContainer(this);
-        } catch (Exception e) {
-            throw new RuntimeException(String.format("Failed to load provider class: %s.", engineProviderClassname));
+            engineProviderClazz = ReflectionHelper.classForNameWithException(engineProviderClassname);
+        } catch (ClassNotFoundException e) {
+            collector.addException(e);
+        }
+        LOGGER.config(String.format("Provider class loaded: %s", engineProviderClassname));
+        this.engine = (TyrusContainer) ReflectionHelper.getInstance(engineProviderClazz, collector);
+        TyrusContainerProvider.getContainerProvider().setContainer(this);
+        if (!collector.isEmpty()) {
+            throw new RuntimeException(collector.composeComprehensiveException());
         }
     }
 
@@ -165,8 +172,6 @@ public class ClientManager implements WebSocketContainer {
      */
     Session connectToServer(Object o, ClientEndpointConfiguration configuration, String url) throws DeploymentException {
         // TODO use maxSessionIdleTimeout, maxBinaryMessageBufferSize and maxTextMessageBufferSize
-        final ErrorCollector collector = new ErrorCollector();
-
         ClientEndpointConfiguration config;
         Endpoint endpoint;
         TyrusClientSocket clientSocket = null;
@@ -176,26 +181,28 @@ public class ClientManager implements WebSocketContainer {
                 endpoint = (Endpoint) o;
                 config = configuration == null ? new TyrusClientEndpointConfiguration.Builder().build() : configuration;
             } else if (o instanceof Class) {
-                if(Endpoint.class.isAssignableFrom((Class<?>)o)) {
+                if (Endpoint.class.isAssignableFrom((Class<?>) o)) {
                     //noinspection unchecked
-                    endpoint = ((Class<Endpoint>) o).newInstance();
+                    endpoint = ReflectionHelper.getInstance(((Class<Endpoint>) o), collector);
                     config = configuration == null ? new TyrusClientEndpointConfiguration.Builder().build() : configuration;
                 } else if ((((Class<?>) o).getAnnotation(WebSocketClient.class) != null)) {
-                    endpoint = AnnotatedEndpoint.fromClass((Class) o, false, collector);
+                    endpoint = AnnotatedEndpoint.fromClass((Class) o, componentProvider, false, collector);
                     config = (ClientEndpointConfiguration) ((AnnotatedEndpoint) endpoint).getEndpointConfiguration();
                 } else {
-                    collector.addException(new DeploymentException(String.format("Class %s in not Endpoint descendant and does not have @WebSocketAnnotation", ((Class<?>) o).getName())));
+                    collector.addException(new DeploymentException(String.format("Class %s in not Endpoint descendant and does not have @WebSocketClient", ((Class<?>) o).getName())));
                     endpoint = null;
                     config = null;
                 }
             } else {
-                endpoint = AnnotatedEndpoint.fromInstance(o, false, collector);
+                endpoint = AnnotatedEndpoint.fromInstance(o, componentProvider, false, collector);
                 config = (ClientEndpointConfiguration) ((AnnotatedEndpoint) endpoint).getEndpointConfiguration();
             }
 
-            EndpointWrapper clientEndpoint = new EndpointWrapper(endpoint, config, this, null);
-            clientSocket = engine.openClientSocket(url, config, clientEndpoint);
-            sockets.add(clientSocket);
+            if (endpoint != null) {
+                EndpointWrapper clientEndpoint = new EndpointWrapper(endpoint, config, componentProvider, this, null, collector);
+                clientSocket = engine.openClientSocket(url, config, clientEndpoint);
+                sockets.add(clientSocket);
+            }
 
         } catch (Exception e) {
             collector.addException(new DeploymentException("Connection failed.", e));

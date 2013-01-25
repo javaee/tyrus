@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -54,6 +54,8 @@ import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.HashMap;
 import java.util.Map;
+
+import javax.websocket.DeploymentException;
 
 /**
  * Utility methods for Java reflection.
@@ -765,5 +767,40 @@ public class ReflectionHelper {
         }
 
         return null;
+    }
+
+    /**
+     * Creates an instance of {@link Class} c using {@link Class#newInstance()}.
+     * </p>
+     * Exceptions are logged to {@link ErrorCollector}.
+     *
+     * @param c {@link Class} whose instance is going to be created
+     * @param collector {@link ErrorCollector} which collects the {@link Exception}s.
+     * @param <T> type.
+     * @return new instance of {@link Class}.
+     */
+    public static <T> T getInstance(Class<T> c, ErrorCollector collector){
+        T instance = null;
+
+        try {
+            instance = getInstance(c);
+        } catch (InstantiationException e) {
+            collector.addException(new DeploymentException(String.format("Class %s couldn't be instantiated",c.getName()),e));
+        } catch (IllegalAccessException e) {
+            collector.addException(new DeploymentException(String.format("Class %s couldn't be instantiated",c.getName()),e));
+        }
+
+        return instance;
+    }
+
+    /**
+     * Creates an instance of {@link Class} c using {@link Class#newInstance()}.
+     *
+     * @param c {@link Class} whose instance is going to be created
+     * @param <T> type.
+     * @return new instance of {@link Class}.
+     */
+    public static <T> T getInstance(Class<T> c) throws IllegalAccessException, InstantiationException {
+        return c.newInstance();
     }
 }

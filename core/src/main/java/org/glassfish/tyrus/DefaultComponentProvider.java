@@ -40,51 +40,26 @@
 
 package org.glassfish.tyrus;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.logging.Logger;
 
-import javax.websocket.DeploymentException;
+import org.glassfish.tyrus.spi.ComponentProvider;
 
 /**
- * Used to collect deployment errors to present these to the user together.
+ * Provides instances using reflection.
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class ErrorCollector {
+public class DefaultComponentProvider extends ComponentProvider {
 
-    private final List<Exception> exceptionsToPublish = new ArrayList<Exception>();
+    private static Logger LOGGER = Logger.getLogger(DefaultComponentProvider.class.getName());
 
-    /**
-     * Add {@link Exception} to the collector.
-     *
-     * @param exception to be collected.
-     */
-    public void addException(Exception exception) {
-        exceptionsToPublish.add(exception);
+    @Override
+    public boolean isApplicable(Class<?> c) {
+        return true;
     }
 
-    /**
-     * Create {@link DeploymentException} with message concatenated from collected exceptions.
-     *
-     * @return comprehensive exception.
-     */
-    public DeploymentException composeComprehensiveException() {
-        StringBuilder sb = new StringBuilder();
-
-        for (Exception exception : exceptionsToPublish) {
-            sb.append(exception.getMessage());
-            sb.append("\n");
-        }
-
-        return new DeploymentException(sb.toString());
-    }
-
-    /**
-     * Checks whether any exception has been logged.
-     *
-     * @return {@code true} iff no exception was logged, {@code false} otherwise.
-     */
-    public boolean isEmpty() {
-        return exceptionsToPublish.isEmpty();
+    @Override
+    public <T> T provideInstance(Class<T> toLoad) throws IllegalAccessException, InstantiationException {
+        return ReflectionHelper.getInstance(toLoad);
     }
 }

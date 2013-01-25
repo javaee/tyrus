@@ -47,6 +47,7 @@ import javax.websocket.WebSocketContainer;
 /**
  * @author Martin Matula (martin.matula at oracle.com)
  */
+//TODO remove once the issue http://java.net/jira/browse/WEBSOCKET_SPEC-83 is solved.
 public abstract class ContainerProvider {
     private static final ContainerProvider INSTANCE;
 

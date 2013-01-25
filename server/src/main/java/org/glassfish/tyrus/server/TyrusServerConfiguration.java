@@ -53,6 +53,7 @@ import javax.websocket.server.WebSocketEndpoint;
 
 import org.glassfish.tyrus.AnnotatedEndpoint;
 import org.glassfish.tyrus.ErrorCollector;
+import org.glassfish.tyrus.ReflectionHelper;
 
 /**
  * Container for either deployed {@link ServerApplicationConfiguration}s, if any, or deployed classes.
@@ -77,14 +78,8 @@ public class TyrusServerConfiguration implements ServerApplicationConfiguration 
                 it.remove();
             }
             if (ServerApplicationConfiguration.class.isAssignableFrom(cls)) {
-                try {
-                    ServerApplicationConfiguration config = (ServerApplicationConfiguration) cls.newInstance();
-                    configurations.add(config);
-                } catch (InstantiationException e) {
-                    errorCollector.addException(new DeploymentException(cls.getName() + ": can't be instantiated"));
-                } catch (IllegalAccessException e) {
-                    errorCollector.addException(new DeploymentException(cls.getName() + ": can't be instantiated"));
-                }
+                ServerApplicationConfiguration config = (ServerApplicationConfiguration) ReflectionHelper.getInstance(cls, errorCollector);
+                configurations.add(config);
             }
         }
 

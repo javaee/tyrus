@@ -43,6 +43,7 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import org.glassfish.tyrus.OsgiRegistry;
+import org.glassfish.tyrus.ReflectionHelper;
 import org.glassfish.tyrus.TyrusContainerProvider;
 import org.glassfish.tyrus.spi.TyrusContainer;
 
@@ -111,7 +112,7 @@ public class ServerContainerFactory {
                                          Set<Class<?>> configuration) {
         TyrusContainer containerProvider;
         try {
-            containerProvider = providerClass.newInstance();
+            containerProvider = ReflectionHelper.getInstance(providerClass);
         } catch (Exception e) {
             throw new RuntimeException("Failed to instantiate provider class: " + providerClass.getName(), e);
         }

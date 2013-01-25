@@ -93,9 +93,12 @@ public class EndpointWrapper extends SPIEndpoint {
     private final List<Encoder> encoders = new ArrayList<Encoder>();
 
     private final EndpointConfiguration configuration;
+    private final Class<?> endpointClass;
     private final Endpoint endpoint;
     private final Map<SPIRemoteEndpoint, SessionImpl> remoteEndpointToSession =
             new ConcurrentHashMap<SPIRemoteEndpoint, SessionImpl>();
+    private final ErrorCollector collector;
+    private  final ComponentProviderService componentProvider;
 
     // the following is set during the handshake
     private String uri;
@@ -103,9 +106,47 @@ public class EndpointWrapper extends SPIEndpoint {
     private boolean isSecure;
     private String queryString;
 
-    public EndpointWrapper(Endpoint endpoint, EndpointConfiguration configuration, WebSocketContainer container,
-                           String contextPath) {
+    /**
+     * Create {@link EndpointWrapper} for class that extends {@link Endpoint}.
+     *
+     * @param endpointClass endpoint class for which the wrapper is created.
+     * @param configuration endpoint configuration.
+     * @param componentProvider component provider.
+     * @param container     container where the wrapper is running.
+     * @param contextPath   context path.
+     * @param collector     error collector.
+     */
+    public EndpointWrapper(Class<? extends Endpoint> endpointClass, EndpointConfiguration configuration,
+                           ComponentProviderService componentProvider, WebSocketContainer container,
+                           String contextPath, ErrorCollector collector) {
+        this(null,endpointClass, configuration, componentProvider, container, contextPath, collector);
+    }
+
+    /**
+     * Create {@link EndpointWrapper} for {@link Endpoint} instance or {@link AnnotatedEndpoint} instance.
+     *
+     * @param endpoint      endpoint instance for which the wrapper is created.
+     * @param configuration endpoint configuration.
+     * @param componentProvider component provider.
+     * @param container     container where the wrapper is running.
+     * @param contextPath   context path.
+     * @param collector     error collector.
+     */
+    public EndpointWrapper(Endpoint endpoint, EndpointConfiguration configuration, ComponentProviderService componentProvider, WebSocketContainer container,
+                            String contextPath, ErrorCollector collector) {
+        this(endpoint, null, configuration, componentProvider, container, contextPath, collector);
+    }
+
+    private EndpointWrapper(Endpoint endpoint, Class<? extends Endpoint> endpointClass, EndpointConfiguration configuration,
+                            ComponentProviderService componentProvider, WebSocketContainer container,
+                           String contextPath, ErrorCollector collector) {
+        this.endpointClass = endpointClass;
         this.endpoint = endpoint;
+        this.container = container;
+        this.contextPath = contextPath;
+        this.collector = collector;
+        this.componentProvider = componentProvider;
+
         this.configuration = configuration == null ? new EndpointConfiguration() {
             @Override
             public List<Encoder> getEncoders() {
@@ -117,8 +158,6 @@ public class EndpointWrapper extends SPIEndpoint {
                 return Collections.emptyList();
             }
         } : configuration;
-        this.container = container;
-        this.contextPath = contextPath;
 
         for (Decoder dec : this.configuration.getDecoders()) {
             if (dec instanceof DecoderWrapper) {
@@ -317,7 +356,10 @@ public class EndpointWrapper extends SPIEndpoint {
         SessionImpl session = new SessionImpl(container, gs, this, subprotocol, extensions, isSecure,
                 uri == null ? null : URI.create(uri), queryString, templateValues);
         remoteEndpointToSession.put(gs, session);
-        endpoint.onOpen(session, configuration);
+
+        final Endpoint toCall = endpoint != null ? endpoint :
+                (Endpoint) componentProvider.getInstance(endpointClass, session, collector);
+        toCall.onOpen(session, configuration);
     }
 
     @Override
@@ -360,8 +402,14 @@ public class EndpointWrapper extends SPIEndpoint {
 
     @Override
     public void onClose(SPIRemoteEndpoint gs, CloseReason closeReason) {
-        endpoint.onClose(remoteEndpointToSession.get(gs), closeReason);
+        Session session = remoteEndpointToSession.get(gs);
+
+        final Endpoint toCall = endpoint != null ? endpoint :
+                (Endpoint) componentProvider.getInstance(endpointClass, session, collector);
+        toCall.onClose(session, closeReason);
+
         remoteEndpointToSession.remove(gs);
+        componentProvider.removeSession(session);
     }
 
     @Override

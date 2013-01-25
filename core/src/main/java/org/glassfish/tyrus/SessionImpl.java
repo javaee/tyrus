@@ -56,6 +56,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.logging.Logger;
 
 import javax.websocket.CloseReason;
@@ -96,6 +97,7 @@ public class SessionImpl implements Session {
     private static final List<Class> binaryHandlerTypes = Arrays.<Class>asList(ByteBuffer.class, InputStream.class, byte[].class);
     private static final List<Class> pongHandlerTypes = Arrays.<Class>asList(PongMessage.class);
 
+    private final String id = UUID.randomUUID().toString();
     private MessageHandler textHandler;
     private MessageHandler binaryHandler;
     private MessageHandler pongHandler;
@@ -364,7 +366,7 @@ public class SessionImpl implements Session {
 
     @Override
     public String getId() {
-        return null;  // TODO: Implement.
+        return id;
     }
 
     @Override

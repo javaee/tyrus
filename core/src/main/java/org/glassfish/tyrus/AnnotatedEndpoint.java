@@ -83,6 +83,7 @@ public class AnnotatedEndpoint extends Endpoint {
     private static final Logger LOGGER = Logger.getLogger(AnnotatedEndpoint.class.getName());
 
     private final Object annotatedInstance;
+    private final Class<?> annotatedClass;
     private final Method onOpenMethod;
     private final Method onCloseMethod;
     private final Method onErrorMethod;
@@ -91,26 +92,44 @@ public class AnnotatedEndpoint extends Endpoint {
     private final ParameterExtractor[] onErrorParameters;
     private final EndpointConfiguration configuration;
     private final ErrorCollector collector;
+    private final ComponentProviderService componentProvider;
 
     private final Set<MessageHandlerFactory> messageHandlerFactories = new HashSet<MessageHandlerFactory>();
 
-    public static AnnotatedEndpoint fromClass(Class<?> annotatedClass, boolean isServerEndpoint, ErrorCollector collector) throws DeploymentException {
-        return new AnnotatedEndpoint(annotatedClass, null, isServerEndpoint, collector);
+    /**
+     * Create {@link AnnotatedEndpoint} from class.
+     *
+     * @param annotatedClass annotated class.
+     * @param componentProvider used for instantiating.
+     * @param isServerEndpoint {@code true} iff annotated endpoint is deployed on server side.
+     * @param collector error collector.
+     * @return new instance.
+     * @throws DeploymentException TODO remove
+     */
+    public static AnnotatedEndpoint fromClass(Class<?> annotatedClass, ComponentProviderService componentProvider, boolean isServerEndpoint, ErrorCollector collector) throws DeploymentException {
+        return new AnnotatedEndpoint(annotatedClass, null, componentProvider,isServerEndpoint, collector);
     }
 
-    public static AnnotatedEndpoint fromInstance(Object annotatedInstance, boolean isServerEndpoint, ErrorCollector collector) throws DeploymentException {
-        return new AnnotatedEndpoint(annotatedInstance.getClass(), annotatedInstance, isServerEndpoint, collector);
+    /**
+     * Create {@link AnnotatedEndpoint} from instance.
+     *
+     * @param annotatedInstance annotated instance.
+     * @param componentProvider used for instantiating.
+     * @param isServerEndpoint {@code true} iff annotated endpoint is deployed on server side.
+     * @param collector error collector.
+     * @return new instance.
+     * @throws DeploymentException TODO remove
+     */
+    public static AnnotatedEndpoint fromInstance(Object annotatedInstance, ComponentProviderService componentProvider,boolean isServerEndpoint, ErrorCollector collector) throws DeploymentException {
+        return new AnnotatedEndpoint(annotatedInstance.getClass(), annotatedInstance, componentProvider, isServerEndpoint, collector);
     }
 
-    private AnnotatedEndpoint(Class<?> annotatedClass, Object instance, Boolean isServerEndpoint, ErrorCollector collector) throws DeploymentException {
+    private AnnotatedEndpoint(Class<?> annotatedClass, Object instance, ComponentProviderService componentProvider, Boolean isServerEndpoint, ErrorCollector collector) throws DeploymentException {
         this.collector = collector;
         this.configuration = createEndpointConfiguration(annotatedClass, isServerEndpoint);
-
-        // TODO: should be removed once the instance creation is delegated to lifecycle provider
-        annotatedInstance = instance == null ? ComponentProviderService.getInstance(annotatedClass) : instance;
-        if (annotatedInstance == null) {
-            throw new RuntimeException("Unable to instantiate endpoint class: " + annotatedClass);
-        }
+        this.annotatedInstance = instance;
+        this.annotatedClass = annotatedClass;
+        this.componentProvider = componentProvider;
 
         Method onOpen = null;
         Method onClose = null;
@@ -229,7 +248,7 @@ public class AnnotatedEndpoint extends Endpoint {
                 if (encoderClasses != null) {
                     //noinspection unchecked
                     for (Class<? extends Encoder> encoderClass : encoderClasses) {
-                        Encoder encoder = ComponentProviderService.getInstance(encoderClass);
+                        Encoder encoder = ReflectionHelper.getInstance(encoderClass, collector);
                         if (encoder != null) {
                             encoders.add(encoder);
                         }
@@ -240,7 +259,7 @@ public class AnnotatedEndpoint extends Endpoint {
                     //noinspection unchecked
                     for (Class<? extends Decoder> decoderClass : decoderClasses) {
                         Class<?> decoderType = getDecoderClassType(decoderClass);
-                        Decoder decoder = ComponentProviderService.getInstance(decoderClass);
+                        Decoder decoder = ReflectionHelper.getInstance(decoderClass, collector);
                         if (decoder != null) {
                             decoders.add(new DecoderWrapper(decoder, decoderType, decoderClass));
                         }
@@ -304,7 +323,7 @@ public class AnnotatedEndpoint extends Endpoint {
             if (encoderClasses != null) {
                 //noinspection unchecked
                 for (Class<? extends Encoder> encoderClass : encoderClasses) {
-                    Encoder encoder = ComponentProviderService.getInstance(encoderClass);
+                    Encoder encoder = ReflectionHelper.getInstance(encoderClass, collector);
                     if (encoder != null) {
                         encoders.add(encoder);
                     }
@@ -315,7 +334,7 @@ public class AnnotatedEndpoint extends Endpoint {
                 //noinspection unchecked
                 for (Class<? extends Decoder> decoderClass : decoderClasses) {
                     Class<?> decoderType = getDecoderClassType(decoderClass);
-                    Decoder decoder = ComponentProviderService.getInstance(decoderClass);
+                    Decoder decoder = ReflectionHelper.getInstance(decoderClass, collector);
                     if (decoder != null) {
                         decoders.add(new DecoderWrapper(decoder, decoderType, decoderClass));
                     }
@@ -408,8 +427,11 @@ public class AnnotatedEndpoint extends Endpoint {
 
     private Object callMethod(Method method, ParameterExtractor[] extractors, Session session, Object... params) {
         if (method != null) {
-            Object endpoint = annotatedInstance;
             Object[] paramValues = new Object[extractors.length];
+
+            final Object endpoint = annotatedInstance != null ? annotatedInstance :
+                    componentProvider.getInstance(annotatedClass, session, collector);
+
             for (int i = 0; i < paramValues.length; i++) {
                 paramValues[i] = extractors[i].value(session, params);
             }
@@ -424,6 +446,7 @@ public class AnnotatedEndpoint extends Endpoint {
 
     void onClose(CloseReason closeReason, Session session) {
         callMethod(onCloseMethod, onCloseParameters, session, closeReason);
+        componentProvider.removeSession(session);
     }
 
     @Override

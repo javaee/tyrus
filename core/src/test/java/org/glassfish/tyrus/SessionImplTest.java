@@ -237,4 +237,15 @@ public class SessionImplTest {
         assertFalse(session.getMessageHandlers().contains(handler3));
         assertTrue(session.getMessageHandlers().contains(handler4));
     }
+
+    @Test
+    public void idTest() {
+        Session session1 = new SessionImpl(null, null, null, null, null, false, null, null, null);
+        Session session2 = new SessionImpl(null, null, null, null, null, false, null, null, null);
+        Session session3 = new SessionImpl(null, null, null, null, null, false, null, null, null);
+
+        assertFalse(session1.getId().equals(session2.getId()));
+        assertFalse(session1.getId().equals(session3.getId()));
+        assertFalse(session2.getId().equals(session3.getId()));
+    }
 }
