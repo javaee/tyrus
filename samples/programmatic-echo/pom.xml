@@ -57,11 +57,17 @@
     <dependencies>
         <dependency>
             <groupId>org.glassfish.tyrus</groupId>
-            <artifactId>tyrus-core</artifactId>
+            <artifactId>tyrus-container-grizzly</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.glassfish.tyrus</groupId>
-            <artifactId>tyrus-container-grizzly</artifactId>
+            <artifactId>tyrus-client</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
     <properties>

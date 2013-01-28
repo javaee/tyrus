@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -40,73 +40,74 @@
 package org.glassfish.tyrus.sample.programmaticecho;
 
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
+import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfiguration;
-import javax.websocket.Extension;
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 
-import org.glassfish.tyrus.server.TyrusServerConfiguration;
+import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
+import org.glassfish.tyrus.client.ClientManager;
+import org.glassfish.tyrus.server.Server;
+
+import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 /**
- * Custom server configuration.
- *
- * @author Martin Matula (martin.matula at oracle.com)
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class MyWsConfiguration extends TyrusServerConfiguration {
+public class ProgrammaticEchoTest {
 
-    /**
-     * Default constructor, reg
-     */
-    public MyWsConfiguration() {
-        super(new HashSet<Class<?>>(Arrays.asList(EchoEndpointConfiguration.class)));
-    }
-
-    public static class EchoEndpointConfiguration extends javax.websocket.server.DefaultServerConfiguration {
-        public EchoEndpointConfiguration() {
-            super(EchoEndpoint.class, "test");
-        }
-
-        @Override
-        public String getNegotiatedSubprotocol(List<String> requestedSubprotocols) {
+    private URI getURI() {
+        try {
+            return new URI("http://localhost:8025/sample-programmatic-echo/test");
+        } catch (URISyntaxException e) {
             return null;
         }
-
-        @Override
-        public List<Extension> getNegotiatedExtensions(List<Extension> requestedExtensions) {
-            return requestedExtensions;
-        }
-
-        @Override
-        public boolean checkOrigin(String originHeaderValue) {
-            return true;
-        }
-
-        // TODO http://java.net/jira/browse/WEBSOCKET_SPEC-126
-//        @Override
-//        public boolean matchesURI(URI uri) {
-//            return uri.toString().equals("/sample-programmatic-echo/test");
-//        }
     }
 
-    public static class EchoEndpoint extends Endpoint {
-        @Override
-        public void onOpen(final Session session, final EndpointConfiguration endpointConfiguration) {
-            session.addMessageHandler(new MessageHandler.Basic<String>() {
+    @Test
+    public void testEcho() throws DeploymentException {
+        final Server server = Main.getServer("localhost", 8025, "/sample-programmatic-echo");
+        server.start();
+
+        try {
+            final CountDownLatch messageLatch = new CountDownLatch(1);
+
+            final ClientManager client = ClientManager.createClient();
+            client.connectToServer(new Endpoint() {
                 @Override
-                public void onMessage(String message) {
-                    System.out.println("##################### Message received");
+                public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
                     try {
-                        session.getRemote().sendString(message + " (from your server)");
+                        session.addMessageHandler(new MessageHandler.Basic<String>() {
+                            @Override
+                            public void onMessage(String message) {
+                                assertEquals(message, "Do or do not, there is no try. (from your server)");
+                                messageLatch.countDown();
+                            }
+                        });
+
+                        session.getRemote().sendString("Do or do not, there is no try.");
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        // do nothing
                     }
                 }
-            });
+            }, new TyrusClientEndpointConfiguration.Builder().build(), getURI());
+
+            messageLatch.await(1, TimeUnit.SECONDS);
+            if (messageLatch.getCount() != 0) {
+                fail();
+            }
+        } catch (Exception e) {
+            fail(e.getMessage());
+        } finally {
+            server.stop();
         }
     }
 }

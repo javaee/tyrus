@@ -65,7 +65,12 @@ public class TyrusServerConfiguration implements ServerApplicationConfiguration 
     private final Set<Class<? extends ServerEndpointConfiguration>> programmaticClasses = new HashSet<Class<? extends ServerEndpointConfiguration>>();
     private final Set<Class> annotatedClasses = new HashSet<Class>();
 
-
+    /**
+     * Create new {@link TyrusServerConfiguration}.
+     *
+     * @param classes classes to be included in this application instance. Can contain any combination of annotated
+     *                endpoints (see {@link WebSocketEndpoint}) or {@link javax.websocket.Endpoint} descendants.
+     */
     public TyrusServerConfiguration(Set<Class<?>> classes) {
         ErrorCollector errorCollector = new ErrorCollector();
         Set<ServerApplicationConfiguration> configurations = new HashSet<ServerApplicationConfiguration>();

@@ -59,6 +59,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import javax.websocket.CloseReason;
 import javax.websocket.DecodeException;
 import javax.websocket.Decoder;
+import javax.websocket.DeploymentException;
 import javax.websocket.EncodeException;
 import javax.websocket.Encoder;
 import javax.websocket.Endpoint;
@@ -98,7 +99,7 @@ public class EndpointWrapper extends SPIEndpoint {
     private final Map<SPIRemoteEndpoint, SessionImpl> remoteEndpointToSession =
             new ConcurrentHashMap<SPIRemoteEndpoint, SessionImpl>();
     private final ErrorCollector collector;
-    private  final ComponentProviderService componentProvider;
+    private final ComponentProviderService componentProvider;
 
     // the following is set during the handshake
     private String uri;
@@ -109,37 +110,37 @@ public class EndpointWrapper extends SPIEndpoint {
     /**
      * Create {@link EndpointWrapper} for class that extends {@link Endpoint}.
      *
-     * @param endpointClass endpoint class for which the wrapper is created.
-     * @param configuration endpoint configuration.
+     * @param endpointClass     endpoint class for which the wrapper is created.
+     * @param configuration     endpoint configuration.
      * @param componentProvider component provider.
-     * @param container     container where the wrapper is running.
-     * @param contextPath   context path.
-     * @param collector     error collector.
+     * @param container         container where the wrapper is running.
+     * @param contextPath       context path.
+     * @param collector         error collector.
      */
     public EndpointWrapper(Class<? extends Endpoint> endpointClass, EndpointConfiguration configuration,
                            ComponentProviderService componentProvider, WebSocketContainer container,
                            String contextPath, ErrorCollector collector) {
-        this(null,endpointClass, configuration, componentProvider, container, contextPath, collector);
+        this(null, endpointClass, configuration, componentProvider, container, contextPath, collector);
     }
 
     /**
      * Create {@link EndpointWrapper} for {@link Endpoint} instance or {@link AnnotatedEndpoint} instance.
      *
-     * @param endpoint      endpoint instance for which the wrapper is created.
-     * @param configuration endpoint configuration.
+     * @param endpoint          endpoint instance for which the wrapper is created.
+     * @param configuration     endpoint configuration.
      * @param componentProvider component provider.
-     * @param container     container where the wrapper is running.
-     * @param contextPath   context path.
-     * @param collector     error collector.
+     * @param container         container where the wrapper is running.
+     * @param contextPath       context path.
+     * @param collector         error collector.
      */
     public EndpointWrapper(Endpoint endpoint, EndpointConfiguration configuration, ComponentProviderService componentProvider, WebSocketContainer container,
-                            String contextPath, ErrorCollector collector) {
+                           String contextPath, ErrorCollector collector) {
         this(endpoint, null, configuration, componentProvider, container, contextPath, collector);
     }
 
     private EndpointWrapper(Endpoint endpoint, Class<? extends Endpoint> endpointClass, EndpointConfiguration configuration,
                             ComponentProviderService componentProvider, WebSocketContainer container,
-                           String contextPath, ErrorCollector collector) {
+                            String contextPath, ErrorCollector collector) {
         this.endpointClass = endpointClass;
         this.endpoint = endpoint;
         this.container = container;
@@ -195,6 +196,15 @@ public class EndpointWrapper extends SPIEndpoint {
         final PathPattern pathPattern = new PathPattern(getEndpointPath(sec.getPath()));
 
         final boolean match = pathPattern.match(uri, pathPattern.getTemplate().getTemplateVariables(), templateValues);
+
+
+        // TODO: http://java.net/jira/browse/WEBSOCKET_SPEC-126
+//        final boolean match;
+//        try {
+//            match = sec.matchesURI(new URI(hr.getRequestUri()));
+//        } catch (URISyntaxException e) {
+//            return false;
+//        }
         return match && sec.checkOrigin(hr.getHeader("Origin"));
     }
 
@@ -359,31 +369,63 @@ public class EndpointWrapper extends SPIEndpoint {
 
         final Endpoint toCall = endpoint != null ? endpoint :
                 (Endpoint) componentProvider.getInstance(endpointClass, session, collector);
-        toCall.onOpen(session, configuration);
+        try {
+            toCall.onOpen(session, configuration);
+        } catch (Throwable t) {
+            if (toCall != null) {
+                toCall.onError(session, t);
+            } else {
+                collector.addException(new DeploymentException(t.getMessage(), t));
+            }
+        }
     }
 
     @Override
     public void onMessage(SPIRemoteEndpoint gs, ByteBuffer messageBytes) {
         SessionImpl session = remoteEndpointToSession.get(gs);
-        session.notifyMessageHandlers(messageBytes, findApplicableDecoders(messageBytes, false));
+        try {
+            session.notifyMessageHandlers(messageBytes, findApplicableDecoders(messageBytes, false));
+        } catch (Throwable t) {
+            final Endpoint toCall = endpoint != null ? endpoint :
+                    (Endpoint) componentProvider.getInstance(endpointClass, session, collector);
+            toCall.onError(session, t);
+        }
     }
 
     @Override
     public void onMessage(SPIRemoteEndpoint gs, String messageString) {
         SessionImpl session = remoteEndpointToSession.get(gs);
-        session.notifyMessageHandlers(messageString, findApplicableDecoders(messageString, true));
+        try {
+            session.notifyMessageHandlers(messageString, findApplicableDecoders(messageString, true));
+        } catch (Throwable t) {
+            final Endpoint toCall = endpoint != null ? endpoint :
+                    (Endpoint) componentProvider.getInstance(endpointClass, session, collector);
+            toCall.onError(session, t);
+        }
     }
 
     @Override
     public void onPartialMessage(SPIRemoteEndpoint gs, String partialString, boolean last) {
         SessionImpl session = remoteEndpointToSession.get(gs);
-        session.notifyMessageHandlers(partialString, last);
+        try {
+            session.notifyMessageHandlers(partialString, last);
+        } catch (Throwable t) {
+            final Endpoint toCall = endpoint != null ? endpoint :
+                    (Endpoint) componentProvider.getInstance(endpointClass, session, collector);
+            toCall.onError(session, t);
+        }
     }
 
     @Override
     public void onPartialMessage(SPIRemoteEndpoint gs, ByteBuffer partialBytes, boolean last) {
         SessionImpl session = remoteEndpointToSession.get(gs);
-        session.notifyMessageHandlers(partialBytes, last);
+        try {
+            session.notifyMessageHandlers(partialBytes, last);
+        } catch (Throwable t) {
+            final Endpoint toCall = endpoint != null ? endpoint :
+                    (Endpoint) componentProvider.getInstance(endpointClass, session, collector);
+            toCall.onError(session, t);
+        }
     }
 
 
@@ -406,7 +448,16 @@ public class EndpointWrapper extends SPIEndpoint {
 
         final Endpoint toCall = endpoint != null ? endpoint :
                 (Endpoint) componentProvider.getInstance(endpointClass, session, collector);
-        toCall.onClose(session, closeReason);
+
+        try {
+            toCall.onClose(session, closeReason);
+        } catch (Throwable t) {
+            if (toCall != null) {
+                toCall.onError(session, t);
+            } else {
+                collector.addException(new DeploymentException(t.getMessage(), t));
+            }
+        }
 
         remoteEndpointToSession.remove(gs);
         componentProvider.removeSession(session);

@@ -45,9 +45,14 @@ import org.glassfish.tyrus.server.Server;
  * @author Martin Matula (martin.matula at oracle.com)
  */
 public class Main {
-    public static void main(String[] args) {
 
-        Server server = new Server("localhost", 8080, "/sample-programmatic-echo", MyWsConfiguration.class);
+    /**
+     * Start Tyrus service.
+     *
+     * @param args command line arguments.
+     */
+    public static void main(String[] args) {
+        Server server = getServer("localhost", 8080, "/sample-programmatic-echo");
 
         try {
             server.start();
@@ -59,5 +64,17 @@ public class Main {
             server.stop();
             System.out.println("Server stopped.");
         }
+    }
+
+    /**
+     * Create server from given params.
+     *
+     * @param host hostname.
+     * @param port port.
+     * @param contextPath context path.
+     * @return new {@link Server} instance.
+     */
+    static Server getServer(String host, int port, String contextPath) {
+        return new Server(host, port, contextPath, MyWsConfiguration.class);
     }
 }

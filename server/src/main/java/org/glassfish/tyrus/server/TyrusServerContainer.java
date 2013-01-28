@@ -86,6 +86,14 @@ public class TyrusServerContainer extends WithProperties implements WebSocketCon
     private long maxBinaryMessageBufferSize = 0;
     private long defaultAsyncSendTimeout = 0;
 
+    /**
+     * Create new {@link TyrusServerContainer}.
+     *
+     * @param server      underlying server.
+     * @param contextPath context path of current application.
+     * @param classes     classes to be included in this application instance. Can contain any combination of annotated
+     *                    endpoints (see {@link javax.websocket.server.WebSocketEndpoint}) or {@link javax.websocket.Endpoint} descendants.
+     */
     public TyrusServerContainer(final TyrusServer server, final String contextPath,
                                 final Set<Class<?>> classes) {
         this.collector = new ErrorCollector();
@@ -95,6 +103,12 @@ public class TyrusServerContainer extends WithProperties implements WebSocketCon
         componentProvider = ComponentProviderService.create(collector);
     }
 
+    /**
+     * Start container.
+     *
+     * @throws IOException when any IO related issues emerge during {@link org.glassfish.tyrus.spi.TyrusServer#start()}.
+     * @throws DeploymentException when any deployment related error is found; should contain list of all found issues.
+     */
     public void start() throws IOException, DeploymentException {
         // start the underlying server
         server.start();
@@ -110,8 +124,10 @@ public class TyrusServerContainer extends WithProperties implements WebSocketCon
             // deploy all the programmatic endpoints
             for (Class<? extends ServerEndpointConfiguration> endpointClass : configuration.getEndpointConfigurationClasses(null)) {
                 ServerEndpointConfiguration seConfig = ReflectionHelper.getInstance(endpointClass, collector);
-                EndpointWrapper ew = new EndpointWrapper(seConfig.getEndpointClass(), seConfig, componentProvider, this, contextPath, collector);
-                deploy(ew);
+                if (seConfig != null) {
+                    EndpointWrapper ew = new EndpointWrapper(seConfig.getEndpointClass(), seConfig, componentProvider, this, contextPath, collector);
+                    deploy(ew);
+                }
             }
         } catch (DeploymentException de) {
             collector.addException(de);
@@ -128,6 +144,9 @@ public class TyrusServerContainer extends WithProperties implements WebSocketCon
         endpoints.add(ge);
     }
 
+    /**
+     * Undeploy all endpoints and stop underlying {@link TyrusServer}.
+     */
     public void stop() {
         for (SPIRegisteredEndpoint wsa : this.endpoints) {
             wsa.remove();

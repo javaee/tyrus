@@ -42,6 +42,8 @@ package org.glassfish.tyrus;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.websocket.DeploymentException;
 
@@ -53,6 +55,7 @@ import javax.websocket.DeploymentException;
 public class ErrorCollector {
 
     private final List<Exception> exceptionsToPublish = new ArrayList<Exception>();
+    private final static Logger LOGGER = Logger.getLogger(ErrorCollector.class.getName());
 
     /**
      * Add {@link Exception} to the collector.
@@ -60,6 +63,7 @@ public class ErrorCollector {
      * @param exception to be collected.
      */
     public void addException(Exception exception) {
+        LOGGER.log(Level.FINE, "Adding exception", exception);
         exceptionsToPublish.add(exception);
     }
 
