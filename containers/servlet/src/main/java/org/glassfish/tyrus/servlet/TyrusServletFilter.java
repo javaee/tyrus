@@ -191,6 +191,7 @@ public class TyrusServletFilter implements Filter {
             try {
                 if (!engine.upgrade(webSocketConnection, webSocketRequest)) {
                     filterChain.doFilter(request, response);
+                    return;
                 }
 
                 // TODO

@@ -90,11 +90,6 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
         } catch (IllegalStateException e) {
             LOGGER.log(Level.WARNING, e.getMessage(), e);
         }
-
-        // TODO: servlet bug ?? why is this need to be called explicitly ?
-        if (is.isReady()) {
-            onDataAvailable();
-        }
     }
 
     @Override
