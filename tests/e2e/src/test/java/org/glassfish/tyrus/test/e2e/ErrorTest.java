@@ -41,11 +41,15 @@
 package org.glassfish.tyrus.test.e2e;
 
 import java.net.URI;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.CloseReason;
+import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfiguration;
+import javax.websocket.Extension;
 import javax.websocket.Session;
 import javax.websocket.WebSocketClose;
 import javax.websocket.WebSocketError;
@@ -70,8 +74,6 @@ import static org.junit.Assert.assertTrue;
 public class ErrorTest {
 
     private CountDownLatch messageLatch;
-    private String receivedMessage;
-    private static final String SENT_MESSAGE = "Hello World";
 
     /**
      * Exception thrown during execution @WebSocketOpen annotated method.
@@ -220,6 +222,88 @@ public class ErrorTest {
             assertTrue(OnCloseErrorTestBean.session != null);
             assertTrue(OnCloseErrorTestBean.throwable != null);
             assertEquals("testException", OnCloseErrorTestBean.throwable.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            server.stop();
+        }
+    }
+
+    public static class OnOpenExceptionEndpointServerApplicationConfiguration extends DefaultServerConfiguration {
+        public OnOpenExceptionEndpointServerApplicationConfiguration() {
+            super(OnOpenExceptionEndpoint.class, "test");
+        }
+
+        @Override
+        public String getNegotiatedSubprotocol(List<String> requestedSubprotocols) {
+            return null;
+        }
+
+        @Override
+        public List<Extension> getNegotiatedExtensions(List<Extension> requestedExtensions) {
+            return requestedExtensions;
+        }
+    }
+
+    public static class OnOpenExceptionEndpoint extends Endpoint {
+
+        public static Throwable throwable;
+        public static Session session;
+
+        @Override
+        public void onOpen(Session session, EndpointConfiguration config) {
+            throw new RuntimeException("testException");
+        }
+
+        @Override
+        public void onClose(Session session, CloseReason closeReason) {
+            super.onClose(session, closeReason);
+        }
+
+        @Override
+        public void onError(Session session, Throwable thr) {
+            OnOpenExceptionEndpoint.throwable = thr;
+            OnOpenExceptionEndpoint.session = session;
+        }
+    }
+
+    @Test
+    public void testErrorOnOpenProgrammatic() {
+        final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
+        Server server = new Server(OnOpenExceptionEndpointServerApplicationConfiguration.class);
+
+        try {
+            server.start();
+            final TyrusClientEndpointConfiguration.Builder builder = new TyrusClientEndpointConfiguration.Builder();
+            final TyrusClientEndpointConfiguration dcec = builder.build();
+
+            messageLatch = new CountDownLatch(1);
+            ClientManager client = ClientManager.createClient();
+            client.connectToServer(new TestEndpointAdapter() {
+                @Override
+                public EndpointConfiguration getEndpointConfiguration() {
+                    return dcec;
+                }
+
+                @Override
+                public void onOpen(Session session) {
+                    session.addMessageHandler(new TestTextMessageHandler(this));
+                }
+
+                @Override
+                public void onMessage(String message) {
+                    // do nothing
+                }
+            }, cec, new URI("ws://localhost:8025/websockets/tests/open"));
+
+            // TODO: is this really needed? Cannot we somehow force underlying protocol impl to connect immediately
+            // TODO: after connectToServer call?
+            messageLatch.await(1, TimeUnit.SECONDS);
+
+            assertTrue(OnOpenExceptionEndpoint.session != null);
+            assertTrue(OnOpenExceptionEndpoint.throwable != null);
+            assertEquals("testException", OnOpenExceptionEndpoint.throwable.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
