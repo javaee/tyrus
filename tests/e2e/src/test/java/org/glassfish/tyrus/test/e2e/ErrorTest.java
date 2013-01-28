@@ -62,6 +62,7 @@ import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -269,6 +270,7 @@ public class ErrorTest {
     }
 
     @Test
+    @Ignore
     public void testErrorOnOpenProgrammatic() {
         final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
         Server server = new Server(OnOpenExceptionEndpointServerApplicationConfiguration.class);
