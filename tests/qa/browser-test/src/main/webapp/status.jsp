@@ -2,7 +2,7 @@
 
     DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
 
-    Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+    Copyright (c) 2011 - 2012 Oracle and/or its affiliates. All rights reserved.
 
     The contents of this file are subject to the terms of either the GNU
     General Public License Version 2 only ("GPL") or the Common Development
@@ -40,54 +40,10 @@
 
 -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-
-    <parent>
-        <groupId>org.glassfish.tyrus.tests</groupId>
-        <artifactId>tyrus-tests-project</artifactId>
-        <version>1.0-SNAPSHOT</version>
-    </parent>
-
-    <groupId>org.glassfish.tyrus.tests.qa</groupId>
-    <artifactId>tyrus-tests-qa-project</artifactId>
-    <packaging>pom</packaging>
-    <name>Tyrus QA Tests</name>
-
-    <modules>
-      <!-- TODO: add modules -->
-      <module>browser-test</module>
-    </modules>
-
-   <dependencies>
-        <dependency>
-            <groupId>org.glassfish.tyrus</groupId>
-            <artifactId>tyrus-server</artifactId>
-        </dependency>
-   </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-war-plugin</artifactId>
-                <configuration>
-                    <packagingExcludes>WEB-INF/lib/tyrus-*.jar, WEB-INF/lib/javax.*.jar, WEB-INF/lib/grizzly-*,
-                        WEB-INF/lib
-                    </packagingExcludes>
-                    <failOnMissingWebXml>false</failOnMissingWebXml>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
-
-
-</project>
+<html>
+<head><title>Hello world from JSP</title></head>
+<body>
+	Status: 
+<%= org.glassfish.tyrus.tests.qa.HandshakeBean.getState() %>
+</body>
+</html>
