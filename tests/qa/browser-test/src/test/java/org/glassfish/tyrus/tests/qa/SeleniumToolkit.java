@@ -130,6 +130,7 @@ public class SeleniumToolkit {
     
     public void setUpSafari() {
         try {
+            System.setProperty("webdriver.safari.driver", getEnv("SAFARI_EXTENSION"));
             driver = new SafariDriver();
             commonBrowserSetup();
             logger.log(Level.INFO, "Safari Setup PASSED");
