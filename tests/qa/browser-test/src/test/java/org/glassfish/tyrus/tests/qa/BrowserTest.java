@@ -72,9 +72,26 @@ public class BrowserTest {
         logger.log(Level.INFO, "========================================================");
     }
 
-    @Ignore
+    
     @Test
-    public void testChromeClient() {
+    public void testChromeClient() throws InterruptedException {
+        logger.log(Level.INFO, "===============testChromeClientHandshake===============");
+        TestScenarios ts = new TestScenarios(new SeleniumToolkit(SeleniumToolkit.Browser.CHROME));
+        ts.testSimpleHandshake();
+        logger.log(Level.INFO, "=======================================================");
+    }
+    
+    /**
+     * Visit http://code.google.com/p/selenium/wiki/SafariDriver to know more about Safari Driver
+     * installation.
+     */
+    @Test
+    public void testSafariClient() throws InterruptedException {
+        Assume.assumeTrue(SeleniumToolkit.safariPlatform());
+        logger.log(Level.INFO, "===============testChromeClientHandshake===============");
+        TestScenarios ts = new TestScenarios(new SeleniumToolkit(SeleniumToolkit.Browser.SAFARI));
+        ts.testSimpleHandshake();
+        logger.log(Level.INFO, "=======================================================");
     }
 
     @Test

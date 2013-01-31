@@ -53,11 +53,16 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.chrome.ChromeDriver;
+import org.openqa.selenium.chrome.ChromeDriverService;
 import org.openqa.selenium.firefox.FirefoxBinary;
 import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxProfile;
 import org.openqa.selenium.ie.InternetExplorerDriver;
 import org.openqa.selenium.ie.InternetExplorerDriverService;
+import org.openqa.selenium.Platform;
+import org.openqa.selenium.safari.SafariDriver;
+
 
 /**
  *
@@ -67,7 +72,7 @@ public class SeleniumToolkit {
 
     enum Browser {
 
-        FIREFOX, IE
+        FIREFOX, IE, CHROME, SAFARI
     };
     private final String WIN_FIREFOX_BIN = "C:/Program Files (x86)/Mozilla Firefox/firefox.exe";
     private static final Logger logger = Logger.getLogger(SeleniumToolkit.class.getCanonicalName());
@@ -82,13 +87,39 @@ public class SeleniumToolkit {
             case IE:
                 setUpExplorer();
                 break;
+            case CHROME:
+                setUpChrome();
+                break;
+            case SAFARI:
+                setUpSafari();
+                break;
             default:
 
         }
     }
+    
+    String getEnv(String key) {
+        String value;
+        
+        value = System.getProperty(key);
+        if(value==null) {
+            value = System.getenv(key);
+        }
+        
+        logger.log(Level.INFO, "Retrived {0}={1}", new Object[] {key, value});
+        return value;
+    }
 
     public static boolean onWindows() {
-        return System.getProperty("os.name").toLowerCase().indexOf("win") >= 0;
+        return Platform.WINDOWS.is(Platform.getCurrent());
+    }
+    
+    public static boolean onMac() {
+        return Platform.MAC.is(Platform.getCurrent());
+    }
+    
+    public static boolean safariPlatform() {
+        return onMac() || onWindows();
     }
 
     private void commonBrowserSetup() {
@@ -96,10 +127,48 @@ public class SeleniumToolkit {
         driver.manage().window().maximize();
         webDriverInstances.add(driver);
     }
+    
+    public void setUpSafari() {
+        try {
+            driver = new SafariDriver();
+            commonBrowserSetup();
+            logger.log(Level.INFO, "Safari Setup PASSED");
+        } catch (Exception ex) {
+            logger.log(Level.SEVERE, "Safari Setup FAILED: {0}", ex.getLocalizedMessage());
+            ex.printStackTrace();
+        }
+        finally {
+           assert driver!=null : "Driver is null";
+        }
+    }
+    
+    public void setUpChrome() {
+        ChromeDriverService service;
+
+        try {
+            System.setProperty("webdriver.chrome.driver", getEnv("CHROME_DRIVER"));
+            service = new ChromeDriverService.Builder()
+                    .usingAnyFreePort()
+                    .usingDriverExecutable(new File(getEnv("CHROME_DRIVER")))
+                    .build();
+            service.start();
+            logger.log(Level.INFO, "ChromeDriverService.URL: {0}", service.getUrl());
+            driver = new ChromeDriver(service);
+            commonBrowserSetup();
+            logger.log(Level.INFO, "Chrome Setup PASSED");
+        }
+        catch (Exception ex) {
+            logger.log(Level.SEVERE, "Chrome Setup FAILED: {0}", ex.getLocalizedMessage());
+            ex.printStackTrace();
+        }
+        finally {
+           assert driver!=null : "Driver is null";
+        }
+    }
 
     public void setUpExplorer() {
         try {
-            System.setProperty(InternetExplorerDriverService.IE_DRIVER_EXE_PROPERTY, System.getenv("IE_DRIVER"));
+            System.setProperty(InternetExplorerDriverService.IE_DRIVER_EXE_PROPERTY, getEnv("IE_DRIVER"));
             assert new File(System.getProperty(InternetExplorerDriverService.IE_DRIVER_EXE_PROPERTY)).exists() : "IE_DRIVER exists";
             driver = new InternetExplorerDriver();
             commonBrowserSetup();
@@ -107,6 +176,9 @@ public class SeleniumToolkit {
         } catch (Exception ex) {
             logger.log(Level.SEVERE, "IE Setup FAILED: {0}", ex.getLocalizedMessage());
             ex.printStackTrace();
+        }
+        finally {
+           assert driver!=null : "Driver is null";
         }
     }
 
@@ -125,6 +197,9 @@ public class SeleniumToolkit {
         } catch (Exception ex) {
             logger.log(Level.SEVERE, "FF Setup FAILED: {0}", ex.getLocalizedMessage());
             ex.printStackTrace();
+        }
+        finally {
+            assert driver!=null : "Driver is null";
         }
     }
 
