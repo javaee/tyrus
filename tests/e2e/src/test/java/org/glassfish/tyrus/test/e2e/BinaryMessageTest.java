@@ -50,6 +50,9 @@ import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
+import javax.websocket.WebSocketMessage;
+import javax.websocket.server.DefaultServerConfiguration;
+import javax.websocket.server.WebSocketEndpoint;
 
 import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
@@ -68,28 +71,35 @@ public class BinaryMessageTest {
 
     private CountDownLatch messageLatch;
 
-    private ByteBuffer receivedMessage;
+    private ByteBuffer receivedMessageBuffer;
+    private byte[] receivedMessageArray;
 
     private final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
 
+    /**
+     * Bean to test correct processing of binary message.
+     *
+     * @author Stepan Kopriva (stepan.kopriva at oracle.com)
+     */
+    @WebSocketEndpoint(value = "/binary", configuration = DefaultServerConfiguration.class)
+    public static class BinaryByteBufferBean {
+
+        @WebSocketMessage
+        public ByteBuffer echo(ByteBuffer message) {
+            return message;
+        }
+    }
+
     @Test
-    public void testHello() {
-        Server server = new Server(org.glassfish.tyrus.test.e2e.bean.BinaryBean.class);
+    public void testBinaryByteBufferBean() {
+        Server server = new Server(BinaryByteBufferBean.class);
 
         try {
             server.start();
             messageLatch = new CountDownLatch(1);
 
-            final TyrusClientEndpointConfiguration.Builder builder = new TyrusClientEndpointConfiguration.Builder();
-            final TyrusClientEndpointConfiguration dcec = builder.build();
-
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new Endpoint() {
-//                @Override
-//                public EndpointConfiguration getEndpointConfiguration() {
-//                    return dcec;
-//                }
-
                 @Override
                 public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
                     try {
@@ -97,7 +107,7 @@ public class BinaryMessageTest {
                         session.addMessageHandler(new MessageHandler.Basic<ByteBuffer>() {
                             @Override
                             public void onMessage(ByteBuffer data) {
-                                receivedMessage = data;
+                                receivedMessageBuffer = data;
                                 messageLatch.countDown();
                             }
                         });
@@ -107,7 +117,52 @@ public class BinaryMessageTest {
                 }
             }, cec, new URI("ws://localhost:8025/websockets/tests/binary"));
             messageLatch.await(5, TimeUnit.SECONDS);
-            Assert.assertArrayEquals("The received message is the same as the sent one", receivedMessage.array(), BINARY_MESSAGE);
+            Assert.assertArrayEquals("The received message is the same as the sent one", receivedMessageBuffer.array(), BINARY_MESSAGE);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            server.stop();
+        }
+    }
+
+    @WebSocketEndpoint(value = "/binary", configuration = DefaultServerConfiguration.class)
+    public static class BinaryByteArrayBean {
+
+        @WebSocketMessage
+        public byte[] echo(byte[] message) {
+            return message;
+        }
+    }
+
+    @Test
+    public void testBinaryByteArrayBean() {
+        Server server = new Server(BinaryByteArrayBean.class);
+
+        try {
+            server.start();
+            messageLatch = new CountDownLatch(1);
+
+            ClientManager client = ClientManager.createClient();
+            client.connectToServer(new Endpoint() {
+                @Override
+                public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
+                    try {
+                        session.getRemote().sendBytes(ByteBuffer.wrap(BINARY_MESSAGE));
+                        session.addMessageHandler(new MessageHandler.Basic<byte[]>() {
+                            @Override
+                            public void onMessage(byte[] data) {
+                                receivedMessageArray = data;
+                                messageLatch.countDown();
+                            }
+                        });
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }, cec, new URI("ws://localhost:8025/websockets/tests/binary"));
+            messageLatch.await(5, TimeUnit.SECONDS);
+            Assert.assertArrayEquals("The received message is the same as the sent one", receivedMessageArray, BINARY_MESSAGE);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);

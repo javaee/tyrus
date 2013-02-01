@@ -171,11 +171,13 @@ public class EndpointWrapper extends SPIEndpoint {
 
         decoders.addAll(PrimitiveDecoders.ALL_WRAPPED);
         decoders.add(new DecoderWrapper(NoOpTextCoder.INSTANCE, String.class, NoOpTextCoder.class));
-        decoders.add(new DecoderWrapper(NoOpBinaryCoder.INSTANCE, ByteBuffer.class, NoOpBinaryCoder.class));
+        decoders.add(new DecoderWrapper(NoOpByteBufferCoder.INSTANCE, ByteBuffer.class, NoOpByteBufferCoder.class));
+        decoders.add(new DecoderWrapper(NoOpByteArrayCoder.INSTANCE, byte[].class, NoOpByteArrayCoder.class));
 
         encoders.addAll(this.configuration.getEncoders());
         encoders.add(NoOpTextCoder.INSTANCE);
-        encoders.add(NoOpBinaryCoder.INSTANCE);
+        encoders.add(NoOpByteBufferCoder.INSTANCE);
+        encoders.add(NoOpByteArrayCoder.INSTANCE);
         encoders.add(ToStringEncoder.INSTANCE);
     }
 

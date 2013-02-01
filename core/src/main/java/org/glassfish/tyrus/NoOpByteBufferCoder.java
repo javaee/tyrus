@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011 - 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -39,18 +39,20 @@
  */
 package org.glassfish.tyrus;
 
+import java.nio.ByteBuffer;
+
 import javax.websocket.DecodeException;
 import javax.websocket.Decoder;
 import javax.websocket.EncodeException;
 import javax.websocket.Encoder;
 
-import java.nio.ByteBuffer;
-
 /**
+ * {@link Encoder} and {@link Decoder} implementation for {@link ByteBuffer}.
+ *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class NoOpBinaryCoder implements Decoder.Binary<ByteBuffer>, Encoder.Binary<ByteBuffer> {
-    public static final NoOpBinaryCoder INSTANCE = new NoOpBinaryCoder();
+public class NoOpByteBufferCoder implements Decoder.Binary<ByteBuffer>, Encoder.Binary<ByteBuffer> {
+    public static final NoOpByteBufferCoder INSTANCE = new NoOpByteBufferCoder();
 
     @Override
     public boolean willDecode(ByteBuffer bytes) {
