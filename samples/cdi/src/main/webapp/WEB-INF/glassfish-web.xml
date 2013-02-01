@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
 
     DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
@@ -15,7 +16,6 @@
 
     When distributing the software, include this License Header Notice in each
     file and include the License file at packager/legal/LICENSE.txt.
-
     GPL Classpath Exception:
     Oracle designates this particular file as subject to the "Classpath"
     exception as provided by Oracle in the GPL Version 2 section of the License
@@ -40,19 +40,14 @@
 
 -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-    <parent>
-        <groupId>org.glassfish.tyrus</groupId>
-        <artifactId>tyrus-containers-project</artifactId>
-        <version>1.0-SNAPSHOT</version>
-    </parent>
-
-    <modelVersion>4.0.0</modelVersion>
-    <artifactId>tyrus-containers-glassfish-project</artifactId>
-    <packaging>pom</packaging>
-    <name>Tyrus Containers For Glassfish</name>
-
-    <modules>
-        <module>cdi</module>
-    </modules>
-</project>
+<!DOCTYPE glassfish-web-app PUBLIC "-//GlassFish.org//DTD GlassFish Application Server 3.1 Servlet 3.0//EN"
+        "http://glassfish.org/dtds/glassfish-web-app_3_0-1.dtd">
+<glassfish-web-app error-url="">
+    <context-root>/sample-cdi</context-root>
+    <class-loader delegate="true"/>
+    <jsp-config>
+        <property name="keepgenerated" value="true">
+            <description>Keep a copy of the generated servlet class' java code.</description>
+        </property>
+    </jsp-config>
+</glassfish-web-app>

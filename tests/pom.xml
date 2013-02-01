@@ -56,7 +56,6 @@
 
     <modules>
         <module>e2e</module>
-        <module>ejb</module>
         <module>servlet</module>
     </modules>
 
