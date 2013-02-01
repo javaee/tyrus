@@ -205,7 +205,9 @@ public class EndpointWrapper extends SPIEndpoint {
 //        } catch (URISyntaxException e) {
 //            return false;
 //        }
-        return match && sec.checkOrigin(hr.getHeader("Origin"));
+
+        // TODO: check origin should be called after http://java.net/jira/browse/WEBSOCKET_SPEC-128 is resolved
+        return match; // && sec.checkOrigin(hr.getHeader("Origin"));
     }
 
     private String getEndpointPath(String relativePath) {

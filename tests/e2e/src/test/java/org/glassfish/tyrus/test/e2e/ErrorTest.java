@@ -40,16 +40,17 @@
 
 package org.glassfish.tyrus.test.e2e;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfiguration;
-import javax.websocket.CloseReason;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.Extension;
+import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 import javax.websocket.WebSocketClose;
 import javax.websocket.WebSocketError;
@@ -62,15 +63,16 @@ import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * Tests the onError method of the WebSocket API
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 public class ErrorTest {
 
@@ -233,7 +235,7 @@ public class ErrorTest {
 
     public static class OnOpenExceptionEndpointServerApplicationConfiguration extends DefaultServerConfiguration {
         public OnOpenExceptionEndpointServerApplicationConfiguration() {
-            super(OnOpenExceptionEndpoint.class, "test");
+            super(OnOpenExceptionEndpoint.class, "open");
         }
 
         @Override
@@ -258,11 +260,6 @@ public class ErrorTest {
         }
 
         @Override
-        public void onClose(Session session, CloseReason closeReason) {
-            super.onClose(session, closeReason);
-        }
-
-        @Override
         public void onError(Session session, Throwable thr) {
             OnOpenExceptionEndpoint.throwable = thr;
             OnOpenExceptionEndpoint.session = session;
@@ -270,7 +267,6 @@ public class ErrorTest {
     }
 
     @Test
-    @Ignore
     public void testErrorOnOpenProgrammatic() {
         final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
         Server server = new Server(OnOpenExceptionEndpointServerApplicationConfiguration.class);
@@ -306,6 +302,92 @@ public class ErrorTest {
             assertTrue(OnOpenExceptionEndpoint.session != null);
             assertTrue(OnOpenExceptionEndpoint.throwable != null);
             assertEquals("testException", OnOpenExceptionEndpoint.throwable.getMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            server.stop();
+        }
+    }
+
+    public static class OnMessageExceptionEndpointServerApplicationConfiguration extends DefaultServerConfiguration {
+        public OnMessageExceptionEndpointServerApplicationConfiguration() {
+            super(OnMessageExceptionEndpoint.class, "open");
+        }
+
+        @Override
+        public String getNegotiatedSubprotocol(List<String> requestedSubprotocols) {
+            return null;
+        }
+
+        @Override
+        public List<Extension> getNegotiatedExtensions(List<Extension> requestedExtensions) {
+            return requestedExtensions;
+        }
+    }
+
+    public static class OnMessageExceptionEndpoint extends Endpoint implements MessageHandler.Basic<String> {
+
+        public static Throwable throwable;
+        public static Session session;
+
+        @Override
+        public void onOpen(Session session, EndpointConfiguration config) {
+            session.addMessageHandler(this);
+        }
+
+        @Override
+        public void onMessage(String message) {
+            throw new RuntimeException("testException");
+        }
+
+        @Override
+        public void onError(Session session, Throwable thr) {
+            OnMessageExceptionEndpoint.throwable = thr;
+            OnMessageExceptionEndpoint.session = session;
+        }
+    }
+
+    @Test
+    public void testErrorOnMessageProgrammatic() {
+        final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
+        Server server = new Server(OnMessageExceptionEndpointServerApplicationConfiguration.class);
+
+        try {
+            server.start();
+            final TyrusClientEndpointConfiguration.Builder builder = new TyrusClientEndpointConfiguration.Builder();
+            final TyrusClientEndpointConfiguration dcec = builder.build();
+
+            messageLatch = new CountDownLatch(1);
+            ClientManager client = ClientManager.createClient();
+            client.connectToServer(new TestEndpointAdapter() {
+                @Override
+                public EndpointConfiguration getEndpointConfiguration() {
+                    return dcec;
+                }
+
+                @Override
+                public void onOpen(Session session) {
+                    try {
+                        session.getRemote().sendString("Do or do not, there is no try.");
+                    } catch (IOException e) {
+                        fail();
+                    }
+                }
+
+                @Override
+                public void onMessage(String message) {
+                    // nothing
+                }
+            }, cec, new URI("ws://localhost:8025/websockets/tests/open"));
+
+            // TODO: is this really needed? Cannot we somehow force underlying protocol impl to connect immediately
+            // TODO: after connectToServer call?
+            messageLatch.await(1, TimeUnit.SECONDS);
+
+            assertTrue(OnMessageExceptionEndpoint.session != null);
+            assertTrue(OnMessageExceptionEndpoint.throwable != null);
+            assertEquals("testException", OnMessageExceptionEndpoint.throwable.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
