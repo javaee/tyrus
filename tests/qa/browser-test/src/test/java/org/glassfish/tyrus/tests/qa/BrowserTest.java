@@ -64,12 +64,22 @@ public class BrowserTest {
         SeleniumToolkit.quit();
     }
 
+    
     @Test
     public void testFirefoxClientSimpleHandshake() throws InterruptedException {
         logger.log(Level.INFO, "===============testFirefoxClientHandshake===============");
         TestScenarios ts = new TestScenarios(new SeleniumToolkit(SeleniumToolkit.Browser.FIREFOX));
         ts.testSimpleHandshake();
         logger.log(Level.INFO, "========================================================");
+    }
+    
+    @Ignore
+    @Test
+    public void testFirefoxClientChat() throws InterruptedException, Exception {
+        logger.log(Level.INFO, "============testFirefoxClientChat=================");
+        TestScenarios ts = new TestScenarios(new SeleniumToolkit(SeleniumToolkit.Browser.FIREFOX));
+        ts.testChatSample();
+        logger.log(Level.INFO, "==================================================");
     }
 
     
@@ -81,10 +91,10 @@ public class BrowserTest {
         logger.log(Level.INFO, "=======================================================");
     }
     
-    /**
-     * Visit http://code.google.com/p/selenium/wiki/SafariDriver to know more about Safari Driver
-     * installation.
-     */
+    //
+    // Visit http://code.google.com/p/selenium/wiki/SafariDriver to know more about Safari Driver
+    // installation.
+    //
     @Test
     public void testSafariClient() throws InterruptedException {
         Assume.assumeTrue(SeleniumToolkit.safariPlatform());
@@ -102,4 +112,5 @@ public class BrowserTest {
         ts.testSimpleHandshake();
         logger.log(Level.INFO, "=======================================================");
     }
+    
 }

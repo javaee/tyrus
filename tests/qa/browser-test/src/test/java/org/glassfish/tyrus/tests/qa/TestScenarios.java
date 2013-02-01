@@ -54,7 +54,8 @@ public class TestScenarios {
 
     private final String DEFAULT_HOST = "localhost";
     private final int DEFAULT_INSTANCE_PORT = 8080;
-    private final String CONTEXT_PATH = "/browser-test";
+    private final String HANDSHAKE_CONTEXT_PATH = "/browser-test";
+    private final String CHAT_CONTEXT_PATH = "/sample-chat";
     private static final Logger logger = Logger.getLogger(TestScenarios.class.getCanonicalName());
     SeleniumToolkit toolkit = null;
 
@@ -82,9 +83,9 @@ public class TestScenarios {
         return DEFAULT_INSTANCE_PORT;
     }
 
-    private URI getURI() {
+    private URI getURI(String ctx) {
         try {
-            return new URI("http", null, getHost(), getPort(), CONTEXT_PATH, null, null);
+            return new URI("http", null, getHost(), getPort(), ctx, null, null);
         } catch (URISyntaxException e) {
             e.printStackTrace();
             return null;
@@ -92,11 +93,22 @@ public class TestScenarios {
     }
 
     public void testSimpleHandshake() throws InterruptedException {
-        toolkit.get(getURI().toString() + "/reset.jsp");
-        toolkit.get(getURI().toString() + "/status.jsp");
+        toolkit.get(getURI(HANDSHAKE_CONTEXT_PATH).toString() + "/reset.jsp");
+        toolkit.get(getURI(HANDSHAKE_CONTEXT_PATH).toString() + "/status.jsp");
         Assert.assertEquals("Status NONE after deployment/reset", "Status: NONE", toolkit.bodyText());
-        toolkit.get(getURI().toString());
-        toolkit.get(getURI().toString() + "/status.jsp");
+        toolkit.get(getURI(HANDSHAKE_CONTEXT_PATH).toString());
+        toolkit.get(getURI(HANDSHAKE_CONTEXT_PATH).toString() + "/status.jsp");
         Assert.assertEquals("Status BROWSER_OKAY after test", "Status: BROWSER_OKAY", toolkit.bodyText());
+    }
+    
+    public void testChatSample() throws InterruptedException, Exception {
+        toolkit.get(getURI(CHAT_CONTEXT_PATH).toString());
+        toolkit.click(By.id("LoginButtonID"));
+        toolkit.getDriver().switchTo().alert().sendKeys("mikc");
+        Thread.sleep(2000);
+        toolkit.getDriver().switchTo().alert().accept();
+        //toolkit.getDriver().findElement(By.id("chatMessageTextID")).clear();
+        toolkit.click(By.id("SendChatButtonID"));
+        Thread.sleep(2000);
     }
 }

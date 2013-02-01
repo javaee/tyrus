@@ -49,10 +49,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
-import org.openqa.selenium.By;
-import org.openqa.selenium.OutputType;
-import org.openqa.selenium.TakesScreenshot;
-import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.*;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeDriverService;
 import org.openqa.selenium.firefox.FirefoxBinary;
@@ -60,7 +57,6 @@ import org.openqa.selenium.firefox.FirefoxDriver;
 import org.openqa.selenium.firefox.FirefoxProfile;
 import org.openqa.selenium.ie.InternetExplorerDriver;
 import org.openqa.selenium.ie.InternetExplorerDriverService;
-import org.openqa.selenium.Platform;
 import org.openqa.selenium.safari.SafariDriver;
 
 
@@ -78,6 +74,7 @@ public class SeleniumToolkit {
     private static final Logger logger = Logger.getLogger(SeleniumToolkit.class.getCanonicalName());
     private static List<WebDriver> webDriverInstances = new CopyOnWriteArrayList<WebDriver>();
     private WebDriver driver;
+    private long sleepTime = 500;
 
     public SeleniumToolkit(Browser browser) {
         switch (browser) {
@@ -96,6 +93,10 @@ public class SeleniumToolkit {
             default:
 
         }
+    }
+    
+    public WebDriver getDriver() {
+        return driver;
     }
     
     String getEnv(String key) {
@@ -232,9 +233,19 @@ public class SeleniumToolkit {
     public void get(String url) throws InterruptedException {
         logger.log(Level.INFO, "GET {0}", url);
         driver.get(url);
-        Thread.sleep(500);
+        Thread.sleep(sleepTime);
         takeScreenshot(driver);
         logger.log(Level.INFO, "========BODY=======\n{0}\n=======================", driver.findElement(By.tagName("body")).getText());
+    }
+    
+    public void click(By by) throws Exception {
+        WebElement el = driver.findElement(by);
+        if(el==null) {
+            throw new Exception("Can't find element: "+by.toString());
+        }
+        Thread.sleep(sleepTime);
+        takeScreenshot(driver);
+        el.click();
     }
 
     public String bodyText() {
