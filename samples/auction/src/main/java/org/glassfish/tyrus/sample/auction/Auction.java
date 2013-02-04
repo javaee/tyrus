@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011 - 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -46,12 +46,11 @@ import java.util.List;
 import java.util.Timer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.websocket.EncodeException;
 import javax.websocket.Session;
-import org.glassfish.tyrus.sample.auction.message.BidRequestMessage;
-import org.glassfish.tyrus.sample.auction.message.LoginRequestMessage;
-import org.glassfish.tyrus.sample.auction.message.LoginResponseMessage;
-import org.glassfish.tyrus.sample.auction.message.PriceUpdateResponseMessage;
-import org.glassfish.tyrus.sample.auction.message.ResultMessage;
+
+import org.glassfish.tyrus.sample.auction.message.AuctionMessage;
 
 /**
  * Implements the auction protocol
@@ -59,11 +58,6 @@ import org.glassfish.tyrus.sample.auction.message.ResultMessage;
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 public class Auction {
-
-    /*
-     * Owner of the auction
-     */
-    private AuctionServer owner;
 
     /*
      * Current state of the auction
@@ -83,12 +77,12 @@ public class Auction {
     /*
      * Auction Item
      */
-    private AuctionItem item;
+    private final AuctionItem item;
 
     /*
      * List of remote clients (Peers)
      */
-    private List<Session> arcList = new ArrayList<Session>();
+    private final List<Session> arcList = new ArrayList<>();
 
     /*
      * Timer that sends pre-auction time broadcasts
@@ -103,12 +97,12 @@ public class Auction {
     /*
      * Bidder of the heighest bid
      */
-    public Session bestBidder;
+    private Session bestBidder;
 
     /*
      * Value of the heighest bid
      */
-    public double bestBid;
+    private double bestBid;
 
     /*
      * Separator used to separate different fields in the communication
@@ -116,17 +110,21 @@ public class Auction {
      */
     public static final String SEPARATOR = ":";
 
-    public Auction(AuctionServer owner, AuctionItem item) {
-        this.owner = owner;
+    public enum AuctionState {
+        PRE_AUCTION, AUCTION_RUNNING, AUCTION_FINISHED
+    }
+
+
+    public Auction(AuctionItem item) {
         this.item = item;
 
         this.state = AuctionState.PRE_AUCTION;
-        this.id = new Integer(Auction.idCounter).toString();
+        this.id = Integer.toString(Auction.idCounter);
         bestBid = item.getStartingPrice();
         idCounter++;
     }
 
-    public synchronized void addArc(Session arc) {
+    synchronized void addArc(Session arc) {
         arcList.add(arc);
     }
 
@@ -137,13 +135,13 @@ public class Auction {
     /*
      * New user logs into the auction
      */
-    public void handleLoginRequest(LoginRequestMessage lrm, Session arc) {
+    public void handleLoginRequest(AuctionMessage.LoginRequestMessage lrm, Session arc) {
         this.addArc(arc);
-        LoginResponseMessage response = new LoginResponseMessage(id, item);
+        AuctionMessage.LoginResponseMessage response = new AuctionMessage.LoginResponseMessage(id, item);
         try {
-            arc.getRemote().sendString(response.asString());
-        } catch (IOException ex) {
-            Logger.getLogger(Auction.class.getName()).log(Level.SEVERE, null, ex);
+            arc.getRemote().sendObject(response);
+        } catch (IOException | EncodeException e) {
+            Logger.getLogger(Auction.class.getName()).log(Level.SEVERE, null, e);
         }
 
         //first client connected
@@ -152,9 +150,9 @@ public class Auction {
         }
     }
 
-    public void handleBidRequest(BidRequestMessage brm, Session arc) {
+    public void handleBidRequest(AuctionMessage.BidRequestMessage brm, Session arc) {
         if (state == AuctionState.AUCTION_RUNNING) {
-            Double bid = Double.parseDouble((String) brm.getData());
+            Double bid = Double.parseDouble(brm.getData());
             if (bid > bestBid) {
                 bestBid = bid;
                 bestBidder = arc;
@@ -166,12 +164,12 @@ public class Auction {
     }
 
     private void sendPriceUpdateMessage() {
-        PriceUpdateResponseMessage purm = new PriceUpdateResponseMessage(id, "" + bestBid);
+        AuctionMessage.PriceUpdateResponseMessage purm = new AuctionMessage.PriceUpdateResponseMessage(id, "" + bestBid);
         for (Session arc : getRemoteClients()) {
             try {
-                arc.getRemote().sendString(purm.asString());
-            } catch (IOException ex) {
-                Logger.getLogger(Auction.class.getName()).log(Level.SEVERE, null, ex);
+                arc.getRemote().sendObject(purm);
+            } catch (IOException | EncodeException e) {
+                Logger.getLogger(Auction.class.getName()).log(Level.SEVERE, null, e);
             }
         }
     }
@@ -199,21 +197,21 @@ public class Auction {
 
     private void sendAuctionResults() {
         if (bestBidder != null) {
-            ResultMessage winnerMessage = new ResultMessage(id, "Congratulations, You have won the auction.");
+            AuctionMessage.ResultMessage winnerMessage = new AuctionMessage.ResultMessage(id, "Congratulations, You have won the auction.");
             try {
-                bestBidder.getRemote().sendString(winnerMessage.asString());
-            } catch (IOException ex) {
-                Logger.getLogger(Auction.class.getName()).log(Level.SEVERE, null, ex);
+                bestBidder.getRemote().sendObject(winnerMessage);
+            } catch (IOException | EncodeException e) {
+                Logger.getLogger(Auction.class.getName()).log(Level.SEVERE, null, e);
             }
         }
 
-        ResultMessage loserMessage = new ResultMessage(id, "User " + "");
+        AuctionMessage.ResultMessage loserMessage = new AuctionMessage.ResultMessage(id, "User " + "");
         for (Session arc : arcList) {
             if (arc != bestBidder) {
                 try {
-                    arc.getRemote().sendString(loserMessage.asString());
-                } catch (IOException ex) {
-                    Logger.getLogger(Auction.class.getName()).log(Level.SEVERE, null, ex);
+                    arc.getRemote().sendObject(loserMessage);
+                } catch (IOException | EncodeException e) {
+                    Logger.getLogger(Auction.class.getName()).log(Level.SEVERE, null, e);
                 }
             }
         }

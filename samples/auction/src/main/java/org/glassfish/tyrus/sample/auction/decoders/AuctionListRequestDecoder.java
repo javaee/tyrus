@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011 - 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -40,26 +40,26 @@
 package org.glassfish.tyrus.sample.auction.decoders;
 
 import javax.websocket.Decoder;
-import org.glassfish.tyrus.sample.auction.message.AuctionListRequestMessage;
-import org.glassfish.tyrus.sample.auction.message.BidRequestMessage;
+
+import org.glassfish.tyrus.sample.auction.message.AuctionMessage;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class AuctionListRequestDecoder implements Decoder.Text<AuctionListRequestMessage> {
+public class AuctionListRequestDecoder implements Decoder.Text<AuctionMessage.AuctionListRequestMessage> {
 
     @Override
-    public AuctionListRequestMessage decode(String s) {
+    public AuctionMessage.AuctionListRequestMessage decode(String s) {
         System.out.println("public AuctionListRequestMessage decode(String s) ");
         String[] tokens = s.split(":");
 
-        AuctionListRequestMessage arm = new AuctionListRequestMessage(tokens[1], tokens[2]);
+        AuctionMessage.AuctionListRequestMessage arm = new AuctionMessage.AuctionListRequestMessage(tokens[1], tokens[2]);
         return arm;
     }
 
     @Override
     public boolean willDecode(String s) {
-        return s.startsWith(BidRequestMessage.AUCTION_LIST_REQUEST);
+        return s.startsWith(AuctionMessage.BidRequestMessage.AUCTION_LIST_REQUEST);
     }
 }
 

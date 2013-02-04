@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011 - 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -40,23 +40,24 @@
 package org.glassfish.tyrus.sample.auction.decoders;
 
 import javax.websocket.Decoder;
-import org.glassfish.tyrus.sample.auction.message.BidRequestMessage;
+
+import org.glassfish.tyrus.sample.auction.message.AuctionMessage;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class BidRequestDecoder implements Decoder.Text<BidRequestMessage> {
+public class BidRequestDecoder implements Decoder.Text<AuctionMessage.BidRequestMessage> {
 
     @Override
-    public BidRequestMessage decode(String s) {
+    public AuctionMessage.BidRequestMessage decode(String s) {
         String[] tokens = s.split(":");
 
-        BidRequestMessage brm = new BidRequestMessage(tokens[1], tokens[2]);
+        AuctionMessage.BidRequestMessage brm = new AuctionMessage.BidRequestMessage(tokens[1], tokens[2]);
         return brm;
     }
 
     @Override
     public boolean willDecode(String s) {
-        return s.startsWith(BidRequestMessage.BID_REQUEST);
+        return s.startsWith(AuctionMessage.BidRequestMessage.BID_REQUEST);
     }
 }

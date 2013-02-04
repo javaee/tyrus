@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011 - 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -40,25 +40,26 @@
 package org.glassfish.tyrus.sample.auction.decoders;
 
 import javax.websocket.Decoder;
-import org.glassfish.tyrus.sample.auction.message.LoginRequestMessage;
+
+import org.glassfish.tyrus.sample.auction.message.AuctionMessage;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class LoginRequestDecoder implements Decoder.Text<LoginRequestMessage> {
+public class LoginRequestDecoder implements Decoder.Text<AuctionMessage.LoginRequestMessage> {
 
 
     @Override
-    public LoginRequestMessage decode(String s) {
+    public AuctionMessage.LoginRequestMessage decode(String s) {
         String[] tokens = s.split(":");
 
-        LoginRequestMessage lrm = new LoginRequestMessage(tokens[1], tokens[2]);
+        AuctionMessage.LoginRequestMessage lrm = new AuctionMessage.LoginRequestMessage(tokens[1], tokens[2]);
         return lrm;
     }
 
     @Override
     public boolean willDecode(String s) {
-        return s.startsWith(LoginRequestMessage.LOGIN_REQUEST);
+        return s.startsWith(AuctionMessage.LoginRequestMessage.LOGIN_REQUEST);
     }
 
 }

@@ -40,26 +40,25 @@
 package org.glassfish.tyrus.sample.auction;
 
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.websocket.EncodeException;
 import javax.websocket.Session;
 import javax.websocket.WebSocketClose;
 import javax.websocket.WebSocketMessage;
-import javax.websocket.WebSocketOpen;
 import javax.websocket.server.DefaultServerConfiguration;
 import javax.websocket.server.WebSocketEndpoint;
 
-import org.glassfish.tyrus.sample.auction.message.AuctionListRequestMessage;
-import org.glassfish.tyrus.sample.auction.message.AuctionListResponseMessage;
-import org.glassfish.tyrus.sample.auction.message.BidRequestMessage;
-import org.glassfish.tyrus.sample.auction.message.LoginRequestMessage;
-import org.glassfish.tyrus.sample.auction.message.LogoutRequestMessage;
+import org.glassfish.tyrus.sample.auction.decoders.AuctionListRequestDecoder;
+import org.glassfish.tyrus.sample.auction.decoders.BidRequestDecoder;
+import org.glassfish.tyrus.sample.auction.decoders.LoginRequestDecoder;
+import org.glassfish.tyrus.sample.auction.decoders.LogoutRequestDecoder;
+import org.glassfish.tyrus.sample.auction.encoders.AuctionMessageEncoder;
+import org.glassfish.tyrus.sample.auction.message.AuctionMessage;
 
 /**
  * Runs multiple auctions.
@@ -67,86 +66,72 @@ import org.glassfish.tyrus.sample.auction.message.LogoutRequestMessage;
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 @WebSocketEndpoint(value = "/auction",
-        decoders = {org.glassfish.tyrus.sample.auction.decoders.LoginRequestDecoder.class,
-                org.glassfish.tyrus.sample.auction.decoders.BidRequestDecoder.class,
-                org.glassfish.tyrus.sample.auction.decoders.LogoutRequestDecoder.class,
-                org.glassfish.tyrus.sample.auction.decoders.AuctionListRequestDecoder.class,
-                org.glassfish.tyrus.sample.auction.decoders.LogoutRequestDecoder.class},
-        encoders = {org.glassfish.tyrus.sample.auction.encoders.LogoutResponseEncoder.class},
-        configuration = DefaultServerConfiguration.class)
+        decoders = {
+                LoginRequestDecoder.class,
+                BidRequestDecoder.class,
+                LogoutRequestDecoder.class,
+                AuctionListRequestDecoder.class,
+                LogoutRequestDecoder.class
+        },
+        encoders = {
+                AuctionMessageEncoder.class
+        },
+        configuration = DefaultServerConfiguration.class
+)
 public class AuctionServer {
 
     /*
      * Set of auctions (finished, running, to be started auctions).
      */
-    private Set<Auction> auctions = new HashSet<Auction>();
-    private final static Logger logger = Logger.getLogger("application");
-
-    /*
-     * Used just to generate test data
-     */
-    public AuctionServer() {
-        Auction auction = new Auction(this, new AuctionItem("Swatch", "Nice Swatch watches, hand made", 100, System.currentTimeMillis() + 60000, 30));
-        auctions.add(auction);
-
-        Auction auction1 = new Auction(this, new AuctionItem("Rolex", "Nice Rolex watches, hand made", 200, System.currentTimeMillis() + 120000, 30));
-        auctions.add(auction1);
-
-        Auction auction2 = new Auction(this, new AuctionItem("Omega", "Nice Omega watches, hand made", 300, System.currentTimeMillis() + 180000, 30));
-        auctions.add(auction2);
-    }
-
-    @WebSocketOpen
-    public void init(Session remote) {
-
-    }
+    private static final Set<Auction> auctions = Collections.unmodifiableSet(new HashSet<Auction>() {{
+        add(new Auction(new AuctionItem("Swatch", "Nice Swatch watches, hand made", 100, System.currentTimeMillis() + 60000, 30)));
+        add(new Auction(new AuctionItem("Rolex", "Nice Rolex watches, hand made", 200, System.currentTimeMillis() + 120000, 30)));
+        add(new Auction(new AuctionItem("Omega", "Nice Omega watches, hand made", 300, System.currentTimeMillis() + 180000, 30)));
+    }});
 
     @WebSocketClose
-    public void handleClosedConnection(Session arc) {
+    public void handleClosedConnection(Session session) {
         for (Auction auction : auctions) {
-            auction.removeArc(arc);
+            auction.removeArc(session);
         }
     }
 
     @WebSocketMessage
-    public void handleLogoutRequest(LogoutRequestMessage alrm, Session arc) {
-        handleClosedConnection(arc);
+    public void handleLogoutRequest(AuctionMessage.LogoutRequestMessage alrm, Session session) {
+        handleClosedConnection(session);
     }
 
     @WebSocketMessage
-    public void handleAuctionListRequest(AuctionListRequestMessage alrm, Session arc) {
+    public void handleAuctionListRequest(AuctionMessage.AuctionListRequestMessage alrm, Session session) {
         StringBuilder sb = new StringBuilder("-");
-        DateFormat formatter = new SimpleDateFormat("hh:mm:ss");
 
         for (Auction auction : auctions) {
-            Date d = new Date(auction.getItem().getAuctionStartTime());
-//            sb.append(auction.getId()).append("-").append(auction.getItem().getName())//.append(" starts at ").append(formatter.format(d)).append("-");
             sb.append(auction.getId()).append("-").append(auction.getItem().getName()).append("-");
         }
 
         try {
-            arc.getRemote().sendString((new AuctionListResponseMessage("0", sb.toString())).asString());
-        } catch (IOException ex) {
-            Logger.getLogger(AuctionServer.class.getName()).log(Level.SEVERE, null, ex);
+            session.getRemote().sendObject((new AuctionMessage.AuctionListResponseMessage("0", sb.toString())));
+        } catch (IOException | EncodeException e) {
+            Logger.getLogger(AuctionServer.class.getName()).log(Level.SEVERE, null, e);
         }
     }
 
     @WebSocketMessage
-    public void handleLoginRequest(LoginRequestMessage lrm, Session arc) {
+    public void handleLoginRequest(AuctionMessage.LoginRequestMessage lrm, Session session) {
         String communicationId = lrm.getCommunicationId();
         for (Auction auction : auctions) {
             if (communicationId.equals(auction.getId())) {
-                auction.handleLoginRequest(lrm, arc);
+                auction.handleLoginRequest(lrm, session);
             }
         }
     }
 
     @WebSocketMessage
-    public void handleBidRequest(BidRequestMessage brm, Session arc) {
+    public void handleBidRequest(AuctionMessage.BidRequestMessage brm, Session session) {
         String communicationId = brm.getCommunicationId();
         for (Auction auction : auctions) {
             if (communicationId.equals(auction.getId())) {
-                auction.handleBidRequest(brm, arc);
+                auction.handleBidRequest(brm, session);
                 break;
             }
         }

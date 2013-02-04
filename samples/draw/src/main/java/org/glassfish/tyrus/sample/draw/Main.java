@@ -40,8 +40,6 @@
 
 package org.glassfish.tyrus.sample.draw;
 
-import java.io.IOException;
-
 import org.glassfish.tyrus.server.Server;
 
 /**
@@ -51,7 +49,7 @@ import org.glassfish.tyrus.server.Server;
 public class Main {
 
     public static void main(String[] args) {
-        Server server = new Server("localhost", 8080, "/sample-draw", GroupDrawServer.class);
+        Server server = new Server("localhost", 8080, "/sample-draw", DrawEndpoint.class);
 
         try {
             server.start();

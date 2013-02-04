@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011 - 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -37,19 +37,49 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.sample.auction.encoders;
+package org.glassfish.tyrus.sample.draw;
+
+import java.io.IOException;
+import java.util.Collections;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import javax.websocket.EncodeException;
-import javax.websocket.Encoder;
-import org.glassfish.tyrus.sample.auction.message.PreAuctionTimeBroadcastMessage;
+import javax.websocket.Session;
+import javax.websocket.WebSocketClose;
+import javax.websocket.WebSocketMessage;
+import javax.websocket.WebSocketOpen;
+import javax.websocket.server.DefaultServerConfiguration;
+import javax.websocket.server.WebSocketEndpoint;
 
 /**
- * @author Stepan Kopriva (stepan.kopriva at oracle.com)
+ * Endpoint which broadcasts incoming events to all connected peers.
+ *
+ * @author Danny Coward (danny.coward at oracle.com)
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class PreAuctionTimeBroadcastEncoder implements Encoder.Text<PreAuctionTimeBroadcastMessage> {
+@WebSocketEndpoint(value = "/draw", configuration = DefaultServerConfiguration.class)
+public class DrawEndpoint {
 
-    @Override
-    public String encode(PreAuctionTimeBroadcastMessage tbm) throws EncodeException {
-        return tbm.asString();
+    private static Set<Session> peers = Collections.newSetFromMap(new ConcurrentHashMap<Session, Boolean>());
+
+    @WebSocketOpen
+    public void onOpen(Session session) {
+        peers.add(session);
     }
+
+    @WebSocketClose
+    public void onClose(Session session) {
+        peers.remove(session);
+    }
+
+    @WebSocketMessage
+    public void shapeCreated(String message, Session client) throws IOException, EncodeException {
+        for (Session otherSession : peers) {
+            if (!otherSession.equals(client)) {
+                otherSession.getRemote().sendString(message);
+            }
+        }
+    }
+
 }
