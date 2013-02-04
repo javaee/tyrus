@@ -438,7 +438,7 @@ public class AnnotatedEndpoint extends Endpoint {
             try {
                 return method.invoke(endpoint, paramValues);
             } catch (Exception e) {
-                onError(e.getCause(), session);
+                onError(e, session);
             }
         }
         return null;

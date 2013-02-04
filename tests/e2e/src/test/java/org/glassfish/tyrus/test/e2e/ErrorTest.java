@@ -144,7 +144,7 @@ public class ErrorTest {
 
             assertTrue(OnOpenErrorTestBean.session != null);
             assertTrue(OnOpenErrorTestBean.throwable != null);
-            assertEquals("testException", OnOpenErrorTestBean.throwable.getMessage());
+            assertEquals("testException", OnOpenErrorTestBean.throwable.getCause().getMessage());
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
@@ -224,7 +224,7 @@ public class ErrorTest {
 
             assertTrue(OnCloseErrorTestBean.session != null);
             assertTrue(OnCloseErrorTestBean.throwable != null);
-            assertEquals("testException", OnCloseErrorTestBean.throwable.getMessage());
+            assertEquals("testException", OnCloseErrorTestBean.throwable.getCause().getMessage());
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);

@@ -47,12 +47,21 @@ import java.util.concurrent.TimeUnit;
 import javax.websocket.ClientEndpointConfiguration;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.Session;
+import javax.websocket.WebSocketError;
+import javax.websocket.WebSocketMessage;
+import javax.websocket.server.DefaultServerConfiguration;
+import javax.websocket.server.WebSocketEndpoint;
+import javax.websocket.server.WebSocketPathParam;
+
 import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
-import org.glassfish.tyrus.test.e2e.bean.PathParamTestBean;
+
 import org.junit.Assert;
 import org.junit.Test;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
@@ -64,6 +73,27 @@ public class PathParamTest {
     private String receivedMessage;
 
     private static final String SENT_MESSAGE = "Hello World";
+
+    @WebSocketEndpoint(value = "/pathparam/{first}/{second}/{third: .*}", configuration = DefaultServerConfiguration.class)
+    public static class PathParamTestBean {
+
+        @WebSocketMessage
+        public String doThat(@WebSocketPathParam("first") String first,
+                             @WebSocketPathParam("second") String second,
+                             @WebSocketPathParam("third") String third,
+                             @WebSocketPathParam("fourth") String fourth,
+                             String message, Session peer) {
+
+            assertNotNull(first);
+            assertNotNull(second);
+            assertNotNull(third);
+            assertNull(fourth);
+            assertNotNull(message);
+            assertNotNull(peer);
+
+            return message + first + second + third;
+        }
+    }
 
     @Test
     public void testPathParam() {
@@ -103,6 +133,79 @@ public class PathParamTest {
             }, cec, new URI("wss://localhost:8025/websockets/tests/pathparam/first/second/th/ird"));
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertEquals(SENT_MESSAGE + "first" + "second" + "th/ird", receivedMessage);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            server.stop();
+        }
+    }
+
+    @WebSocketEndpoint(value = "/pathparam/{first}/{second}/", configuration = DefaultServerConfiguration.class)
+    public static class PathParamTestBeanError {
+
+        public static boolean onErrorCalled = false;
+        public static Throwable onErrorThrowable = null;
+
+        @WebSocketMessage
+        public String doThat(@WebSocketPathParam("first") String first,
+                             @WebSocketPathParam("second") Integer second,
+                             String message, Session peer) {
+
+            assertNotNull(first);
+            assertNotNull(second);
+            assertNotNull(message);
+            assertNotNull(peer);
+
+            return message + first + second;
+        }
+
+        @WebSocketError
+        public void onError(Throwable t) {
+            onErrorCalled = true;
+            onErrorThrowable = t;
+        }
+    }
+
+    @Test
+    public void testPathParamError() {
+        final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
+        Server server = new Server(PathParamTestBeanError.class);
+
+        try {
+            server.start();
+            messageLatch = new CountDownLatch(1);
+
+            final TyrusClientEndpointConfiguration.Builder builder = new TyrusClientEndpointConfiguration.Builder();
+            final TyrusClientEndpointConfiguration dcec = builder.build();
+
+            ClientManager client = ClientManager.createClient();
+            client.connectToServer(new TestEndpointAdapter() {
+                @Override
+                public EndpointConfiguration getEndpointConfiguration() {
+                    return null;
+                }
+
+                @Override
+                public void onOpen(Session session) {
+                    try {
+                        session.addMessageHandler(new TestTextMessageHandler(this));
+                        session.getRemote().sendString(SENT_MESSAGE);
+                        System.out.println("Hello message sent.");
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                @Override
+                public void onMessage(String message) {
+                    receivedMessage = message;
+                    messageLatch.countDown();
+                }
+            }, cec, new URI("wss://localhost:8025/websockets/tests/pathparam/first/second/"));
+            messageLatch.await(1, TimeUnit.SECONDS);
+            assertTrue(PathParamTestBeanError.onErrorCalled);
+            assertNotNull(PathParamTestBeanError.onErrorThrowable);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
