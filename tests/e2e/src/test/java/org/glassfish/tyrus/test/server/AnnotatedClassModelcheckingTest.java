@@ -42,6 +42,7 @@ package org.glassfish.tyrus.test.server;
 
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 
 import javax.websocket.DeploymentException;
 import javax.websocket.PongMessage;
@@ -251,6 +252,30 @@ public class AnnotatedClassModelcheckingTest {
         @WebSocketMessage
         public void twoStrings(String message1, String message2, Session peer2) {
 
+        }
+    }
+
+    @Test
+    public void testMessageWithWrongMessageReturnParameter() {
+        Server server = new Server(WrongMessageReturnParameter.class);
+        boolean exceptionThrown = false;
+
+        try {
+            server.start();
+        } catch (DeploymentException e) {
+            exceptionThrown = true;
+        } finally {
+            server.stop();
+            Assert.assertEquals(true, exceptionThrown);
+        }
+    }
+
+    @WebSocketEndpoint(value = "/hello", configuration = DefaultServerConfiguration.class)
+    public static class WrongMessageReturnParameter {
+
+        @WebSocketMessage
+        public ArrayList<String> wrongReturn(String message1, Session peer2) {
+            return new ArrayList<String>();
         }
     }
 

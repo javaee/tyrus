@@ -60,6 +60,7 @@ import java.util.UUID;
 import java.util.logging.Logger;
 
 import javax.websocket.CloseReason;
+import javax.websocket.Decoder;
 import javax.websocket.Extension;
 import javax.websocket.MessageHandler;
 import javax.websocket.PongMessage;
@@ -378,7 +379,7 @@ public class SessionImpl implements Session {
         return properties;
     }
 
-    void notifyMessageHandlers(Object message, List<DecoderWrapper> availableDecoders) {
+    void notifyMessageHandlers(Object message, List<CoderWrapper<Decoder>> availableDecoders) {
 
         boolean decoded = false;
 
@@ -386,7 +387,7 @@ public class SessionImpl implements Session {
             LOGGER.severe("No decoder found");
         }
 
-        for (DecoderWrapper decoder : availableDecoders) {
+        for (CoderWrapper<Decoder> decoder : availableDecoders) {
             for (MessageHandler mh : this.getOrderedMessageHandlers()) {
                 Class<?> type;
                 if ((mh instanceof MessageHandler.Basic)

@@ -47,6 +47,7 @@ import java.util.Map;
 
 import javax.websocket.Decoder;
 import javax.websocket.DeploymentException;
+import javax.websocket.Encoder;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.PongMessage;
 
@@ -84,6 +85,7 @@ public class AnnotatedClassValidityChecker {
      */
     private boolean[] onMessageCombinations = {false, false, false, false, false};
     private final List<Decoder> decoders;
+    private final List<Encoder> encoders;
     private final ErrorCollector collector;
 
     /**
@@ -92,9 +94,10 @@ public class AnnotatedClassValidityChecker {
      * @param annotatedClass class for which this checker is constructed.
      * @param decoders specified in the {@link javax.websocket.EndpointConfiguration}.
      */
-    public AnnotatedClassValidityChecker(Class<?> annotatedClass, List<Decoder> decoders, ErrorCollector collector) {
+    public AnnotatedClassValidityChecker(Class<?> annotatedClass, List<Decoder> decoders, List<Encoder> encoders, ErrorCollector collector) {
         this.annotatedClass = annotatedClass;
         this.decoders = decoders;
+        this.encoders = encoders;
         this.collector = collector;
     }
 
@@ -191,7 +194,7 @@ public class AnnotatedClassValidityChecker {
         Class<?> returnType = method.getReturnType();
 
         if (returnType != void.class && returnType != String.class && returnType != ByteBuffer.class &&
-                returnType != byte[].class && !returnType.isPrimitive() && !checkDecoders(returnType)) {
+                returnType != byte[].class && !returnType.isPrimitive() && !checkEncoders(returnType)) {
             logDeploymentException(new DeploymentException("Method: " + annotatedClass.getName() + "." + method.getName() + FORBIDDEN_RETURN_TYPE));
         }
     }
@@ -252,14 +255,25 @@ public class AnnotatedClassValidityChecker {
         }
     }
 
-    private boolean checkDecoders(Class<?> requiredType) {
-        for (Decoder decoder : decoders) {
-            if (decoder instanceof DecoderWrapper) {
-                if (((DecoderWrapper) decoder).getType().isAssignableFrom(requiredType)) {
+    private boolean checkEncoders(Class<?> requiredType) {
+        for (Encoder encoder : encoders) {
+            if (encoder instanceof CoderWrapper) {
+                if (((CoderWrapper<Encoder>) encoder).getType().isAssignableFrom(requiredType)) {
                     return true;
                 }
             }
+        }
 
+        return false;
+    }
+
+    private boolean checkDecoders(Class<?> requiredType) {
+        for (Decoder decoder : decoders) {
+            if (decoder instanceof CoderWrapper) {
+                if (((CoderWrapper<Decoder>) decoder).getType().isAssignableFrom(requiredType)) {
+                    return true;
+                }
+            }
         }
 
         return false;

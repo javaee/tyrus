@@ -46,12 +46,18 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.EncodeException;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.Session;
+import javax.websocket.WebSocketMessage;
+import javax.websocket.WebSocketOpen;
+import javax.websocket.server.DefaultServerConfiguration;
+import javax.websocket.server.WebSocketEndpoint;
 
 import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -69,7 +75,7 @@ public class EncodedObjectTest {
     private static final String SENT_MESSAGE = "hello";
 
     @Test
-    public void testClient() {
+    public void testEncodingReturnViaSession() {
         final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
         Server server = new Server(TestEncodeBean.class);
 
@@ -110,6 +116,82 @@ public class EncodedObjectTest {
             throw new RuntimeException(e.getMessage(), e);
         } finally {
             server.stop();
+        }
+    }
+
+    @WebSocketEndpoint(value = "/echo", encoders = {StringContainerEncoder.class}, configuration = DefaultServerConfiguration.class)
+    public static class TestEncodeBean {
+        @WebSocketOpen
+        public void onOpen(Session s) {
+            System.out.println("Client connected to the server!");
+        }
+
+        @WebSocketMessage
+        public void helloWorld(String message, Session session) {
+            try {
+
+                System.out.println("##### Encode Test Bean: Received message: " + message);
+
+                session.getRemote().sendObject(new StringContainer(message));
+            } catch (IOException e) {
+                e.printStackTrace();
+            } catch (EncodeException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    @Test
+    public void testEncodingReturnFromMethod() {
+        final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
+        Server server = new Server(TestEncodeBeanMethodReturn.class);
+
+        try {
+            server.start();
+            messageLatch = new CountDownLatch(1);
+
+            ClientManager client = ClientManager.createClient();
+            client.connectToServer(new TestEndpointAdapter() {
+                @Override
+                public void onMessage(String message) {
+                    receivedMessage = message;
+                    messageLatch.countDown();
+                    System.out.println("Received message = " + message);
+                }
+
+                @Override
+                public EndpointConfiguration getEndpointConfiguration() {
+                    return null;
+                }
+
+                @Override
+                public void onOpen(Session session) {
+                    try {
+                        session.addMessageHandler(new TestTextMessageHandler(this));
+                        session.getRemote().sendString(SENT_MESSAGE);
+                        System.out.println("Sent message: " + SENT_MESSAGE);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }, cec, new URI("ws://localhost:8025/websockets/tests/echo"));
+
+            messageLatch.await(5, TimeUnit.SECONDS);
+            Assert.assertEquals(SENT_MESSAGE, receivedMessage);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            server.stop();
+        }
+    }
+
+    @WebSocketEndpoint(value = "/echo", encoders = {StringContainerEncoder.class}, configuration = DefaultServerConfiguration.class)
+    public static class TestEncodeBeanMethodReturn {
+
+        @WebSocketMessage
+        public StringContainer helloWorld(String message, Session session) {
+            return new StringContainer(message);
         }
     }
 }

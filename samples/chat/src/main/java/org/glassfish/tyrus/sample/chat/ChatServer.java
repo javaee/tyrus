@@ -73,7 +73,7 @@ public class ChatServer {
 
     final static Logger logger = Logger.getLogger("application");
 
-    private ConcurrentHashMap<String, Session> connections = new ConcurrentHashMap<String, Session>();
+    private static ConcurrentHashMap<String, Session> connections = new ConcurrentHashMap<String, Session>();
 
     private List<String> chatTranscript = new ArrayList<String>();
     static int transcriptMaxLines = 20;

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011 - 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -40,13 +40,13 @@
 
 package org.glassfish.tyrus;
 
-import javax.websocket.DecodeException;
-import javax.websocket.Decoder;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
+import javax.websocket.DecodeException;
+import javax.websocket.Decoder;
 
 /**
  * Collection of decoders for all primitive types.
@@ -57,7 +57,7 @@ import java.util.List;
 public abstract class PrimitiveDecoders<T> implements Decoder.Text<T> {
     public static final List<Decoder.Text<?>> ALL;
 
-    public static final List<DecoderWrapper> ALL_WRAPPED;
+    public static final List<CoderWrapper<Decoder>> ALL_WRAPPED;
 
     static {
         Decoder.Text<?>[] decoders = new Decoder.Text[]{
@@ -121,12 +121,12 @@ public abstract class PrimitiveDecoders<T> implements Decoder.Text<T> {
         return true;
     }
 
-    private static List<DecoderWrapper> getWrappedAll(){
-        List<DecoderWrapper> result = new ArrayList<DecoderWrapper>();
+    private static List<CoderWrapper<Decoder>> getWrappedAll(){
+        List<CoderWrapper<Decoder>> result = new ArrayList<CoderWrapper<Decoder>>();
 
         for (Decoder dec : ALL) {
             Class<?> type = ReflectionHelper.getClassType(dec.getClass(), Decoder.Text.class);
-            result.add(new DecoderWrapper(dec,type, dec.getClass()));
+            result.add(new CoderWrapper<Decoder>(dec,type, dec.getClass()));
         }
 
         return result;

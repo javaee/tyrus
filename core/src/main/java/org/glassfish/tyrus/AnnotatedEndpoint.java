@@ -139,7 +139,7 @@ public class AnnotatedEndpoint extends Endpoint {
         ParameterExtractor[] onErrorParameters = null;
 
         Map<Integer, Class<?>> unknownParams = new HashMap<Integer, Class<?>>();
-        AnnotatedClassValidityChecker validityChecker = new AnnotatedClassValidityChecker(annotatedClass, configuration.getDecoders(), collector);
+        AnnotatedClassValidityChecker validityChecker = new AnnotatedClassValidityChecker(annotatedClass, configuration.getDecoders(),configuration.getEncoders(), collector);
 
         // TODO: how about methods from the superclass?
         for (Method m : annotatedClass.getDeclaredMethods()) {
@@ -248,9 +248,10 @@ public class AnnotatedEndpoint extends Endpoint {
                 if (encoderClasses != null) {
                     //noinspection unchecked
                     for (Class<? extends Encoder> encoderClass : encoderClasses) {
+                        Class<?> encoderType = getEncoderClassType(encoderClass);
                         Encoder encoder = ReflectionHelper.getInstance(encoderClass, collector);
                         if (encoder != null) {
-                            encoders.add(encoder);
+                            encoders.add(new CoderWrapper<Encoder>(encoder, encoderType, encoderClass));
                         }
                     }
                 }
@@ -261,7 +262,7 @@ public class AnnotatedEndpoint extends Endpoint {
                         Class<?> decoderType = getDecoderClassType(decoderClass);
                         Decoder decoder = ReflectionHelper.getInstance(decoderClass, collector);
                         if (decoder != null) {
-                            decoders.add(new DecoderWrapper(decoder, decoderType, decoderClass));
+                            decoders.add(new CoderWrapper<Decoder>(decoder, decoderType, decoderClass));
                         }
                     }
                 }
@@ -336,7 +337,7 @@ public class AnnotatedEndpoint extends Endpoint {
                     Class<?> decoderType = getDecoderClassType(decoderClass);
                     Decoder decoder = ReflectionHelper.getInstance(decoderClass, collector);
                     if (decoder != null) {
-                        decoders.add(new DecoderWrapper(decoder, decoderType, decoderClass));
+                        decoders.add(new CoderWrapper<Decoder>(decoder, decoderType, decoderClass));
                     }
                 }
             }
@@ -350,8 +351,6 @@ public class AnnotatedEndpoint extends Endpoint {
 
             return dcc;
         }
-
-
     }
 
     private static Class<?> getDecoderClassType(Class<?> decoder) {
@@ -372,6 +371,23 @@ public class AnnotatedEndpoint extends Endpoint {
         return as == null ? Object.class : (as[0] == null ? Object.class : as[0]);
     }
 
+    private static Class<?> getEncoderClassType(Class<?> encoder) {
+        Class<?> rootClass = null;
+
+        if (Encoder.Text.class.isAssignableFrom(encoder)) {
+            rootClass = Encoder.Text.class;
+        } else if (Encoder.Binary.class.isAssignableFrom(encoder)) {
+            rootClass = Encoder.Binary.class;
+        } else if (Encoder.TextStream.class.isAssignableFrom(encoder)) {
+            rootClass = Encoder.TextStream.class;
+        } else if (Encoder.BinaryStream.class.isAssignableFrom(encoder)) {
+            rootClass = Encoder.BinaryStream.class;
+        }
+
+        ReflectionHelper.DeclaringClassInterfacePair p = ReflectionHelper.getClass(encoder, rootClass);
+        Class[] as = ReflectionHelper.getParameterizedClassArguments(p);
+        return as == null ? Object.class : (as[0] == null ? Object.class : as[0]);
+    }
 
     private ParameterExtractor[] getParameterExtractors(Method method, Map<Integer, Class<?>> unknownParams) {
         ParameterExtractor[] result = new ParameterExtractor[method.getParameterTypes().length];
