@@ -40,6 +40,8 @@
 
 package org.glassfish.tyrus;
 
+import java.io.InputStream;
+import java.io.Reader;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -58,19 +60,19 @@ import javax.websocket.PongMessage;
  */
 public class AnnotatedClassValidityChecker {
 
-    public static final String MULTIPLE_IDENTICAL_PARAMETERS = " has got multiple parameters of identical type.";
-    public static final String MULTIPLE_METHODS_TEXT_PARTIAL = " has got multiple methods consuming partial text messages.";
-    public static final String MULTIPLE_METHODS_BINARY_PARTIAL = " has got multiple methods consuming partial binary messages.";
-    public static final String MULTIPLE_METHODS_TEXT = " has got multiple methods consuming text messages.";
-    public static final String MULTIPLE_METHODS_BINARY = " has got multiple methods consuming binary messages.";
-    public static final String MULTIPLE_METHODS_PONG = " has got multiple methods consuming pong messages.";
-    public static final String FORBIDDEN_WEB_SOCKET_MESSAGE_PARAM = " is not allowed as parameter type for method annotated with @WebSocketMessage.";
-    public static final String FORBIDDEN_WEB_SOCKET_OPEN_PARAM = " is not allowed as parameter type for method annotated with @WebSocketOpen.";
-    public static final String FORBIDDEN_WEB_SOCKET_CLOSE_PARAMS = " @WebSocketClose has got different params than Session.";
-    public static final String FORBIDDEN_WEB_SOCKET_ERROR_PARAM = " is not allowed as parameter type for method annotated with @WebSocketError.";
-    public static final String MANDATORY_ERROR_PARAM_MISSING = " does not have mandatory Throwable param.";
-    public static final String FORBIDDEN_PARAMETER_COMBINATION = " has got unsupported parameter combination.";
-    public static final String FORBIDDEN_RETURN_TYPE = " has got unsupported return type.";
+    private static final String MULTIPLE_IDENTICAL_PARAMETERS = " has got multiple parameters of identical type.";
+    private static final String MULTIPLE_METHODS_TEXT_PARTIAL = " has got multiple methods consuming partial text messages.";
+    private static final String MULTIPLE_METHODS_BINARY_PARTIAL = " has got multiple methods consuming partial binary messages.";
+    private static final String MULTIPLE_METHODS_TEXT = " has got multiple methods consuming text messages.";
+    private static final String MULTIPLE_METHODS_BINARY = " has got multiple methods consuming binary messages.";
+    private static final String MULTIPLE_METHODS_PONG = " has got multiple methods consuming pong messages.";
+    private static final String FORBIDDEN_WEB_SOCKET_MESSAGE_PARAM = " is not allowed as parameter type for method annotated with @WebSocketMessage.";
+    private static final String FORBIDDEN_WEB_SOCKET_OPEN_PARAM = " is not allowed as parameter type for method annotated with @WebSocketOpen.";
+    private static final String FORBIDDEN_WEB_SOCKET_CLOSE_PARAMS = " @WebSocketClose has got different params than Session.";
+    private static final String FORBIDDEN_WEB_SOCKET_ERROR_PARAM = " is not allowed as parameter type for method annotated with @WebSocketError.";
+    private static final String MANDATORY_ERROR_PARAM_MISSING = " does not have mandatory Throwable param.";
+    private static final String FORBIDDEN_PARAMETER_COMBINATION = " has got unsupported parameter combination.";
+    private static final String FORBIDDEN_RETURN_TYPE = " has got unsupported return type.";
 
     private final Class<?> annotatedClass;
 
@@ -83,7 +85,7 @@ public class AnnotatedClassValidityChecker {
      * 3 - (byte[] or ByteBuffer) and boolean.
      * 4 - PongMessage.
      */
-    private boolean[] onMessageCombinations = {false, false, false, false, false};
+    private final boolean[] onMessageCombinations = {false, false, false, false, false};
     private final List<Decoder> decoders;
     private final List<Encoder> encoders;
     private final ErrorCollector collector;
@@ -92,7 +94,7 @@ public class AnnotatedClassValidityChecker {
      * Construct the class validity checker.
      *
      * @param annotatedClass class for which this checker is constructed.
-     * @param decoders specified in the {@link javax.websocket.EndpointConfiguration}.
+     * @param decoders       specified in the {@link javax.websocket.EndpointConfiguration}.
      */
     public AnnotatedClassValidityChecker(Class<?> annotatedClass, List<Decoder> decoders, List<Encoder> encoders, ErrorCollector collector) {
         this.annotatedClass = annotatedClass;
@@ -123,13 +125,13 @@ public class AnnotatedClassValidityChecker {
         params.values().toArray(values);
 
         for (Class<?> value : values) {
-            if (value == String.class) {
+            if (value == String.class || value == Reader.class) {
                 if (text) {
                     logDeploymentException(new DeploymentException(errorPrefix + MULTIPLE_IDENTICAL_PARAMETERS));
                 }
                 text = true;
                 continue;
-            } else if (value == ByteBuffer.class || value == byte[].class) {
+            } else if (value == ByteBuffer.class || value == byte[].class || value == InputStream.class) {
                 if (binary) {
                     logDeploymentException(new DeploymentException(errorPrefix + MULTIPLE_IDENTICAL_PARAMETERS));
                 }
@@ -159,12 +161,12 @@ public class AnnotatedClassValidityChecker {
         }
 
         if ((text && binary) || (text && pong) || (binary && pong) || (pong && partial) || (decoded && binary) || (decoded && text) || (decoded && pong)) {
-            logDeploymentException( new DeploymentException(errorPrefix + FORBIDDEN_PARAMETER_COMBINATION));
+            logDeploymentException(new DeploymentException(errorPrefix + FORBIDDEN_PARAMETER_COMBINATION));
         }
 
         if (text && partial) {
             if (onMessageCombinations[1]) {
-                logDeploymentException( new DeploymentException(annotatedClass.getName() + MULTIPLE_METHODS_TEXT_PARTIAL));
+                logDeploymentException(new DeploymentException(annotatedClass.getName() + MULTIPLE_METHODS_TEXT_PARTIAL));
             }
             onMessageCombinations[1] = true;
         } else if (binary && partial) {
@@ -174,23 +176,23 @@ public class AnnotatedClassValidityChecker {
             onMessageCombinations[3] = true;
         } else if (text) {
             if (onMessageCombinations[0]) {
-                logDeploymentException( new DeploymentException(annotatedClass.getName() + MULTIPLE_METHODS_TEXT));
+                logDeploymentException(new DeploymentException(annotatedClass.getName() + MULTIPLE_METHODS_TEXT));
             }
             onMessageCombinations[0] = true;
         } else if (binary) {
             if (onMessageCombinations[2]) {
-                logDeploymentException( new DeploymentException(annotatedClass.getName() + MULTIPLE_METHODS_BINARY));
+                logDeploymentException(new DeploymentException(annotatedClass.getName() + MULTIPLE_METHODS_BINARY));
             }
             onMessageCombinations[2] = true;
         } else if (pong) {
             if (onMessageCombinations[4]) {
-                logDeploymentException( new DeploymentException(annotatedClass.getName() + MULTIPLE_METHODS_PONG));
+                logDeploymentException(new DeploymentException(annotatedClass.getName() + MULTIPLE_METHODS_PONG));
             }
             onMessageCombinations[4] = true;
         }
     }
 
-    private void checkOnMessageReturnType(Method method) throws DeploymentException {
+    private void checkOnMessageReturnType(Method method) {
         Class<?> returnType = method.getReturnType();
 
         if (returnType != void.class && returnType != String.class && returnType != ByteBuffer.class &&
@@ -207,7 +209,7 @@ public class AnnotatedClassValidityChecker {
      *
      * @param params to be checked.
      */
-    public void checkOnOpenParams(Method method, Map<Integer, Class<?>> params) throws DeploymentException {
+    public void checkOnOpenParams(Method method, Map<Integer, Class<?>> params) {
         final String errorPrefix = "Method: " + annotatedClass.getName() + "." + method.getName();
 
         for (Class<?> value : params.values()) {
@@ -222,11 +224,11 @@ public class AnnotatedClassValidityChecker {
      *
      * @param params unknown params of the method.
      */
-    public void checkOnCloseParams(Method method, Map<Integer, Class<?>> params) throws DeploymentException {
+    public void checkOnCloseParams(Method method, Map<Integer, Class<?>> params) {
         final String errorPrefix = "Method: " + annotatedClass.getName() + "." + method.getName();
 
         if (params.size() > 0) {
-            logDeploymentException( new DeploymentException(errorPrefix + FORBIDDEN_WEB_SOCKET_CLOSE_PARAMS));
+            logDeploymentException(new DeploymentException(errorPrefix + FORBIDDEN_WEB_SOCKET_CLOSE_PARAMS));
         }
     }
 
@@ -235,7 +237,7 @@ public class AnnotatedClassValidityChecker {
      *
      * @param params unknown params of the method.
      */
-    public void checkOnErrorParams(Method method, Map<Integer, Class<?>> params) throws DeploymentException {
+    public void checkOnErrorParams(Method method, Map<Integer, Class<?>> params) {
         final String errorPrefix = "Method: " + annotatedClass.getName() + "." + method.getName();
         boolean throwablePresent = false;
 
@@ -279,7 +281,7 @@ public class AnnotatedClassValidityChecker {
         return false;
     }
 
-    private void logDeploymentException(DeploymentException de){
+    private void logDeploymentException(DeploymentException de) {
         collector.addException(de);
     }
 }

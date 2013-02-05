@@ -42,6 +42,8 @@ package org.glassfish.tyrus;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -173,6 +175,8 @@ public class EndpointWrapper extends SPIEndpoint {
         decoders.add(new CoderWrapper<Decoder>(NoOpTextCoder.INSTANCE, String.class, NoOpTextCoder.class));
         decoders.add(new CoderWrapper<Decoder>(NoOpByteBufferCoder.INSTANCE, ByteBuffer.class, NoOpByteBufferCoder.class));
         decoders.add(new CoderWrapper<Decoder>(NoOpByteArrayCoder.INSTANCE, byte[].class, NoOpByteArrayCoder.class));
+        decoders.add(new CoderWrapper<Decoder>(ReaderDecoder.INSTANCE, Reader.class, ReaderDecoder.class));
+        decoders.add(new CoderWrapper<Decoder>(InputStreamDecoder.INSTANCE, InputStream.class, InputStreamDecoder.class));
 
         for (Encoder encoder : this.configuration.getEncoders()) {
             if (encoder instanceof CoderWrapper) {
@@ -186,7 +190,7 @@ public class EndpointWrapper extends SPIEndpoint {
         encoders.add(new CoderWrapper<Encoder>(NoOpTextCoder.INSTANCE, String.class, NoOpTextCoder.class));
         encoders.add(new CoderWrapper<Encoder>(NoOpByteBufferCoder.INSTANCE, ByteBuffer.class, NoOpByteBufferCoder.class));
         encoders.add(new CoderWrapper<Encoder>(NoOpByteArrayCoder.INSTANCE, byte[].class, NoOpByteArrayCoder.class));
-        encoders.add(new CoderWrapper<Encoder>(ToStringEncoder.INSTANCE, byte[].class, NoOpByteArrayCoder.class));
+        encoders.add(new CoderWrapper<Encoder>(ToStringEncoder.INSTANCE, Object.class, ToStringEncoder.class));
     }
 
     @Override
@@ -206,7 +210,6 @@ public class EndpointWrapper extends SPIEndpoint {
         final PathPattern pathPattern = new PathPattern(getEndpointPath(sec.getPath()));
 
         final boolean match = pathPattern.match(uri, pathPattern.getTemplate().getTemplateVariables(), templateValues);
-
 
         // TODO: http://java.net/jira/browse/WEBSOCKET_SPEC-126
 //        final boolean match;
