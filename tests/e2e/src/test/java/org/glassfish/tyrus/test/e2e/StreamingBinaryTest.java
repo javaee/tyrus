@@ -39,11 +39,22 @@
  */
 package org.glassfish.tyrus.test.e2e;
 
+import java.io.IOException;
 import java.net.URI;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.Endpoint;
+import javax.websocket.EndpointConfiguration;
+import javax.websocket.MessageHandler;
+import javax.websocket.Session;
+import javax.websocket.WebSocketOpen;
+import javax.websocket.server.DefaultServerConfiguration;
+import javax.websocket.server.WebSocketEndpoint;
 
 import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
@@ -62,12 +73,12 @@ public class StreamingBinaryTest {
     @Test
     public void testClient() {
         final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
-        Server server = new Server(StreamingBinaryServer.class);
+        Server server = new Server(StreamingBinaryEndpoint.class);
 
         try {
             server.start();
             CountDownLatch messageLatch = new CountDownLatch(2);
-            StreamingBinaryServer.messageLatch = messageLatch;
+            StreamingBinaryEndpoint.messageLatch = messageLatch;
 
             StreamingBinaryClient sbc = new StreamingBinaryClient(messageLatch);
             ClientManager client = ClientManager.createClient();
@@ -80,6 +91,119 @@ public class StreamingBinaryTest {
             throw new RuntimeException(e.getMessage(), e);
         } finally {
             server.stop();
+        }
+    }
+
+    /**
+     * @author Danny Coward (danny.coward at oracle.com)
+     * @author Martin Matula (martin.matula at oracle.com)
+     */
+    @WebSocketEndpoint(value = "/streamingbinary", configuration = DefaultServerConfiguration.class)
+    public static class StreamingBinaryEndpoint {
+        private Session session;
+        static CountDownLatch messageLatch;
+        private List<String> messages = new ArrayList<String>();
+
+        @WebSocketOpen
+        public void onOpen(Session session) {
+            System.out.println("STREAMINGBSERVER opened !");
+            this.session = session;
+
+            session.addMessageHandler(new MessageHandler.Async<ByteBuffer>() {
+                StringBuilder sb = new StringBuilder();
+
+                @Override
+                public void onMessage(ByteBuffer bb, boolean last) {
+                    System.out.println("STREAMINGBSERVER piece came: " + new String(bb.array()));
+                    sb.append(new String(bb.array()));
+                    messages.add(new String(bb.array()));
+                    if (last) {
+                        System.out.println("STREAMINGBSERVER whole message: " + sb.toString());
+                        sb = new StringBuilder();
+                        messageLatch.countDown();
+                        reply();
+                    }
+                }
+            });
+
+
+        }
+
+        public void reply() {
+            try {
+                sendPartial(ByteBuffer.wrap(messages.get(0).getBytes()), false);
+                sendPartial(ByteBuffer.wrap(messages.get(1).getBytes()), false);
+                sendPartial(ByteBuffer.wrap(messages.get(2).getBytes()), false);
+                sendPartial(ByteBuffer.wrap(messages.get(3).getBytes()), true);
+
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        private void sendPartial(ByteBuffer bb, boolean isLast) throws IOException, InterruptedException {
+            System.out.println("STREAMINGBSERVER Server sending: " + new String(bb.array()));
+            session.getRemote().sendPartialBytes(bb, isLast);
+        }
+    }
+
+    /**
+     * @author Danny Coward (danny.coward at oracle.com)
+     */
+    public static class StreamingBinaryClient extends Endpoint {
+        boolean gotTheSameThingBack = false;
+        private final CountDownLatch messageLatch;
+        private Session session;
+        static String MESSAGE_0 = "here ";
+        static String MESSAGE_1 = "is ";
+        static String MESSAGE_2 = "a ";
+        static String MESSAGE_3 = "string ! ";
+
+        public StreamingBinaryClient(CountDownLatch messageLatch) {
+            this.messageLatch = messageLatch;
+        }
+
+        //    @Override
+        //    public EndpointConfiguration getEndpointConfiguration() {
+        //        return null;
+        //    }
+
+        public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
+
+            System.out.println("STREAMINGBCLIENT opened !");
+
+            this.session = session;
+
+            session.addMessageHandler(new MessageHandler.Async<ByteBuffer>() {
+                StringBuilder sb = new StringBuilder();
+
+                public void onMessage(ByteBuffer bb, boolean last) {
+                    System.out.println("STREAMINGBCLIENT piece came: " + new String(bb.array()));
+                    sb.append(new String(bb.array()));
+                    if (last) {
+                        gotTheSameThingBack = sb.toString().equals(MESSAGE_0 + MESSAGE_1 + MESSAGE_2 + MESSAGE_3);
+                        System.out.println("STREAMINGBCLIENT received whole message: " + sb);
+                        sb = new StringBuilder();
+                        messageLatch.countDown();
+                    }
+                }
+            });
+
+            try {
+                sendPartial(MESSAGE_0, false);
+                sendPartial(MESSAGE_1, false);
+                sendPartial(MESSAGE_2, false);
+                sendPartial(MESSAGE_3, true);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        }
+
+        private void sendPartial(String partialString, boolean isLast) throws IOException, InterruptedException {
+            System.out.println("STREAMINGBCLIENT Client sending: " + partialString + " " + isLast);
+            session.getRemote().sendPartialBytes(ByteBuffer.wrap(partialString.getBytes()), isLast);
         }
     }
 }

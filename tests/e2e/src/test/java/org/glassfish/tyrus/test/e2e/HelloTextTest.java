@@ -44,6 +44,11 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.Session;
+import javax.websocket.WebSocketMessage;
+import javax.websocket.WebSocketOpen;
+import javax.websocket.server.DefaultServerConfiguration;
+import javax.websocket.server.WebSocketEndpoint;
 
 import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
@@ -62,7 +67,7 @@ public class HelloTextTest {
     @Test
     public void testClient() {
         final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
-        Server server = new Server(HelloTextServer.class);
+        Server server = new Server(HelloTextEndpoint.class);
 
         try {
             server.start();
@@ -81,6 +86,29 @@ public class HelloTextTest {
             throw new RuntimeException(e.getMessage(), e);
         } finally {
             server.stop();
+        }
+    }
+
+    /**
+     * @author Danny Coward (danny.coward at oracle.com)
+     */
+    @WebSocketEndpoint(value = "/hellotext", configuration = DefaultServerConfiguration.class)
+    public static class HelloTextEndpoint {
+
+        @WebSocketOpen
+        public void init(Session session) {
+            System.out.println("HELLOSERVER opened");
+        }
+
+        @WebSocketMessage
+        public void sayHello(String message, Session session) {
+            System.out.println("HELLOSERVER got  message: " + message + " from session " + session);
+            try {
+                session.getRemote().sendString("server hello");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            //return "got the message";
         }
     }
 }

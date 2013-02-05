@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011 - 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -58,11 +58,11 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 /**
- * Tests the basic data types
+ * Tests the primitive data types
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class InTest {
+public class PrimitiveDataTypesTest {
 
     private CountDownLatch messageLatch;
 

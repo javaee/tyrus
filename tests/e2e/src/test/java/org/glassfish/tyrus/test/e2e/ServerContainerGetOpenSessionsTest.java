@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011 - 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -50,6 +50,9 @@ import javax.websocket.Session;
 import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
+import org.glassfish.tyrus.test.e2e.bean.EchoEndpoint;
+import org.glassfish.tyrus.test.e2e.bean.SimpleRemoteTestEndpoint;
+
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
@@ -58,7 +61,7 @@ import static org.junit.Assert.assertEquals;
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class ServerContainerGetOpenSessions {
+public class ServerContainerGetOpenSessionsTest {
 
     private String receivedMessage;
     private static final String SENT_MESSAGE = "Hello World";
@@ -69,7 +72,7 @@ public class ServerContainerGetOpenSessions {
         TyrusClientEndpointConfiguration.Builder builder = new TyrusClientEndpointConfiguration.Builder();
         final TyrusClientEndpointConfiguration dcec = builder.build();
 
-        Server server = new Server(org.glassfish.tyrus.test.e2e.bean.SimpleRemoteTestBean.class, org.glassfish.tyrus.test.e2e.bean.HelloTestBean.class);
+        Server server = new Server(SimpleRemoteTestEndpoint.class, EchoEndpoint.class);
 
         try {
             server.start();
@@ -95,7 +98,7 @@ public class ServerContainerGetOpenSessions {
                     @Override
                     public void onMessage(String s) {
                     }
-                }, dcec, new URI("wss://localhost:8025/websockets/tests/hello"));
+                }, dcec, new URI("wss://localhost:8025/websockets/tests/echo"));
             }
 
             messageLatch.await(1, TimeUnit.SECONDS);

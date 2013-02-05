@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011 - 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -47,9 +47,15 @@ import java.util.concurrent.TimeUnit;
 import javax.websocket.ClientEndpointConfiguration;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.Session;
+import javax.websocket.WebSocketMessage;
+import javax.websocket.server.DefaultServerConfiguration;
+import javax.websocket.server.WebSocketEndpoint;
+
 import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
+import org.glassfish.tyrus.test.e2e.bean.EchoEndpoint;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -70,7 +76,7 @@ public class MessageParamOrderTest {
 
     @Test
     public void testHello() {
-        Server server = new Server(org.glassfish.tyrus.test.e2e.bean.HelloTestBean.class);
+        Server server = new Server(EchoEndpoint.class);
         try {
             server.start();
 
@@ -102,7 +108,7 @@ public class MessageParamOrderTest {
                     receivedMessage = message;
                     messageLatch.countDown();
                 }
-            }, cec, new URI("ws://localhost:8025/websockets/tests/hello"));
+            }, cec, new URI("ws://localhost:8025/websockets/tests/echo"));
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertTrue("The received message is the same as the sent one", receivedMessage.equals(SENT_MESSAGE));
         } catch (Exception e) {
@@ -115,7 +121,7 @@ public class MessageParamOrderTest {
 
     @Test
     public void testOther() {
-        Server server = new Server(org.glassfish.tyrus.test.e2e.bean.MessageParamOrderTestBean.class);
+        Server server = new Server(MessageParamOrderTestBeanEndpoint.class);
 
         try {
             server.start();
@@ -155,6 +161,20 @@ public class MessageParamOrderTest {
             throw new RuntimeException(e.getMessage(), e);
         } finally {
             server.stop();
+        }
+    }
+
+    /**
+     * Together with HelloTestBean used to test invocation of methods with various order of parameters.
+     *
+     * @author Stepan Kopriva (stepan.kopriva at oracle.com)
+     */
+    @WebSocketEndpoint(value = "/hello", configuration = DefaultServerConfiguration.class)
+    public static class MessageParamOrderTestBeanEndpoint {
+
+        @WebSocketMessage
+        public String doThat(Session peer, String message) {
+            return message;
         }
     }
 }

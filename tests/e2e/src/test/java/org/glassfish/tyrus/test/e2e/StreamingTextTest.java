@@ -39,11 +39,19 @@
  */
 package org.glassfish.tyrus.test.e2e;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.Endpoint;
+import javax.websocket.EndpointConfiguration;
+import javax.websocket.MessageHandler;
+import javax.websocket.Session;
+import javax.websocket.WebSocketOpen;
+import javax.websocket.server.DefaultServerConfiguration;
+import javax.websocket.server.WebSocketEndpoint;
 
 import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
@@ -63,12 +71,12 @@ public class StreamingTextTest {
     @Test
     public void testClient() {
         final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
-        Server server = new Server(StreamingTextServer.class);
+        Server server = new Server(StreamingTextEndpoint.class);
 
         try {
             server.start();
             CountDownLatch messageLatch = new CountDownLatch(2);
-            StreamingTextServer.messageLatch = messageLatch;
+            StreamingTextEndpoint.messageLatch = messageLatch;
 
             StreamingTextClient stc = new StreamingTextClient(messageLatch);
             ClientManager client = ClientManager.createClient();
@@ -81,6 +89,119 @@ public class StreamingTextTest {
             throw new RuntimeException(e.getMessage(), e);
         } finally {
             server.stop();
+        }
+    }
+
+    /**
+     * @author Danny Coward (danny.coward at oracle.com)
+     * @author Martin Matula (martin.matula at oracle.com)
+     */
+    @WebSocketEndpoint(value = "/streamingtext", configuration = DefaultServerConfiguration.class)
+    public static class StreamingTextEndpoint {
+        private Session session;
+        static CountDownLatch messageLatch;
+
+        @WebSocketOpen
+        public void onOpen(Session session) {
+            System.out.println("STREAMINGSERVER opened !");
+            this.session = session;
+
+            session.addMessageHandler(new MessageHandler.Async<String>() {
+                StringBuilder sb = new StringBuilder();
+
+                @Override
+                public void onMessage(String text, boolean last) {
+                    System.out.println("STREAMINGSERVER piece came: " + text);
+                    sb.append(text);
+                    if (last) {
+                        System.out.println("STREAMINGSERVER whole message: " + sb.toString());
+                        sb = new StringBuilder();
+                        messageLatch.countDown();
+                    } else {
+                        System.out.println("Resuming the client...");
+                        synchronized (StreamingTextClient.class) {
+                            StreamingTextClient.class.notify();
+                        }
+                    }
+                }
+
+            });
+
+            try {
+                System.out.println(session.getRemote());
+                sendPartial("thank ", false);
+                sendPartial("you ", false);
+                sendPartial("very ", false);
+                sendPartial("much ", false);
+                sendPartial("!", true);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+
+        private void sendPartial(String partialString, boolean isLast) throws IOException, InterruptedException {
+            System.out.println("Server sending: " + partialString);
+            session.getRemote().sendPartialString(partialString, isLast);
+        }
+    }
+
+    /**
+     * @author Danny Coward (danny.coward at oracle.com)
+     * @author Martin Matula (martin.matula at oracle.com)
+     */
+    public static class StreamingTextClient extends Endpoint {
+        boolean gotSomethingBack = false;
+        private final CountDownLatch messageLatch;
+        private Session session;
+
+        public StreamingTextClient(CountDownLatch messageLatch) {
+            this.messageLatch = messageLatch;
+        }
+
+        //    @Override
+        //    public EndpointConfiguration getEndpointConfiguration() {
+        //        return null;
+        //    }
+
+        public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
+            System.out.println("STREAMINGCLIENT opened !");
+
+            this.session = session;
+
+            try {
+                sendPartial("here", false);
+                sendPartial("is ", false);
+                sendPartial("a ", false);
+                sendPartial("stream.", true);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            session.addMessageHandler(new MessageHandler.Async<String>() {
+                StringBuilder sb = new StringBuilder();
+
+                public void onMessage(String text, boolean last) {
+                    System.out.println("STREAMINGCLIENT piece came: " + text);
+                    sb.append(text);
+                    if (last) {
+                        System.out.println("STREAMINGCLIENT received whole message: " + sb.toString());
+                        sb = new StringBuilder();
+                        gotSomethingBack = true;
+                        messageLatch.countDown();
+                    }
+                }
+            });
+        }
+
+        private void sendPartial(String partialString, boolean isLast) throws IOException, InterruptedException {
+            System.out.println("Client sending: " + partialString);
+            synchronized (StreamingTextClient.class) {
+                session.getRemote().sendPartialString(partialString, isLast);
+                if (!isLast) {
+                    System.out.println("Waiting for the server to process the partial string...");
+                    StreamingTextClient.class.wait(5000);
+                }
+            }
         }
     }
 }

@@ -51,6 +51,10 @@ import javax.websocket.WebSocketOpen;
 
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
+import org.glassfish.tyrus.test.e2e.bean.TestEndpoint;
+import org.glassfish.tyrus.test.e2e.decoder.TestDecoder;
+import org.glassfish.tyrus.test.e2e.message.TestMessage;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -70,14 +74,14 @@ public class AnnotatedClientTest {
 
     @Test
     public void testAnnotatedInstance() {
-        Server server = new Server(TestBean.class);
+        Server server = new Server(TestEndpoint.class);
 
         messageLatch = new CountDownLatch(1);
 
         try {
             server.start();
             ClientManager client = ClientManager.createClient();
-            client.connectToServer(new ClientTestBean(true), new URI("ws://localhost:8025/websockets/tests/echo"));
+            client.connectToServer(new ClientTestEndpoint(true), new URI("ws://localhost:8025/websockets/tests/echo"));
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertEquals("hello", receivedMessage);
         } catch (Exception e) {
@@ -90,13 +94,13 @@ public class AnnotatedClientTest {
 
     @Test
     public void testAnnotatedInstanceWithDecoding() {
-        Server server = new Server(TestBean.class);
+        Server server = new Server(TestEndpoint.class);
         messageLatch = new CountDownLatch(1);
 
         try {
             server.start();
             ClientManager client = ClientManager.createClient();
-            client.connectToServer(new ClientTestBean(false), new URI("ws://localhost:8025/websockets/tests/echo"));
+            client.connectToServer(new ClientTestEndpoint(false), new URI("ws://localhost:8025/websockets/tests/echo"));
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertEquals("testHello", receivedTestMessage);
         } catch (Exception e) {
@@ -109,14 +113,14 @@ public class AnnotatedClientTest {
 
     @Test
     public void testAnnotatedClass() {
-        Server server = new Server(TestBean.class);
+        Server server = new Server(TestEndpoint.class);
         messageLatch = new CountDownLatch(1);
         receivedMessage = null;
 
         try {
             server.start();
             ClientManager client = ClientManager.createClient();
-            client.connectToServer(SimpleClientTestBean.class, new URI("ws://localhost:8025/websockets/tests/echo"));
+            client.connectToServer(SimpleClientTestEndpoint.class, new URI("ws://localhost:8025/websockets/tests/echo"));
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertEquals("hello", receivedMessage);
         } catch (Exception e) {
@@ -133,13 +137,13 @@ public class AnnotatedClientTest {
      * @author Stepan Kopriva (stepan.kopriva at oracle.com)
      */
     @WebSocketClient(decoders = {TestDecoder.class})
-    public class ClientTestBean {
+    public class ClientTestEndpoint {
 
         private static final String SENT_MESSAGE = "hello";
         private static final String SENT_TEST_MESSAGE = "testHello";
         private boolean messageType;
 
-        public ClientTestBean(boolean messageType) {
+        public ClientTestEndpoint(boolean messageType) {
             this.messageType = messageType;
         }
 
@@ -171,10 +175,10 @@ public class AnnotatedClientTest {
     }
 
     @WebSocketClient
-    public static class SimpleClientTestBean {
+    public static class SimpleClientTestEndpoint {
         private static final String SENT_MESSAGE = "hello";
 
-        public SimpleClientTestBean() {
+        public SimpleClientTestEndpoint() {
         }
 
         @WebSocketOpen

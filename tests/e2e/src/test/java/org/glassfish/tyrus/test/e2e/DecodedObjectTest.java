@@ -56,6 +56,8 @@ import javax.websocket.Session;
 import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
+import org.glassfish.tyrus.test.e2e.bean.TestEndpoint;
+import org.glassfish.tyrus.test.e2e.message.StringContainer;
 
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -82,7 +84,7 @@ public class DecodedObjectTest {
     @Test
     public void testSimpleDecoded() {
 
-        Server server = new Server(TestBean.class);
+        Server server = new Server(TestEndpoint.class);
 
         try {
             server.start();
@@ -111,11 +113,11 @@ public class DecodedObjectTest {
                         e.printStackTrace();
                     }
                 }
-            }, cec,  new URI("ws://localhost:8025/websockets/tests/echo"));
+            }, cec, new URI("ws://localhost:8025/websockets/tests/echo"));
 
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertTrue("The received message is the same as the sent one", receivedMessage.equals(SENT_MESSAGE));
-            Assert.assertNull("The message was not received via the TextMessageHandler",receivedTextMessage);
+            Assert.assertNull("The message was not received via the TextMessageHandler", receivedTextMessage);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
@@ -127,7 +129,7 @@ public class DecodedObjectTest {
     @Ignore
     @Test
     public void testExtendedDecoded() {
-        Server server = new Server(TestBean.class);
+        Server server = new Server(TestEndpoint.class);
 
         try {
             server.start();
@@ -160,8 +162,8 @@ public class DecodedObjectTest {
             }, cec, new URI("ws://localhost:8025/websockets/tests/echo"));
 
             messageLatch.await(5, TimeUnit.SECONDS);
-            Assert.assertTrue("The received message is the same as the sent one", receivedMessage.equals("Extended "+SENT_MESSAGE));
-            Assert.assertNull("The message was not received via the TextMessageHandler",receivedTextMessage);
+            Assert.assertTrue("The received message is the same as the sent one", receivedMessage.equals("Extended " + SENT_MESSAGE));
+            Assert.assertNull("The message was not received via the TextMessageHandler", receivedTextMessage);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
@@ -170,7 +172,7 @@ public class DecodedObjectTest {
         }
     }
 
-    class CustomDecoder implements Decoder.Text<StringContainer>{
+    class CustomDecoder implements Decoder.Text<StringContainer> {
 
         @Override
         public StringContainer decode(String s) throws DecodeException {
@@ -183,7 +185,7 @@ public class DecodedObjectTest {
         }
     }
 
-    class ExtendedDecoder implements Decoder.Text<ExtendedStringContainer>{
+    class ExtendedDecoder implements Decoder.Text<ExtendedStringContainer> {
 
         @Override
         public ExtendedStringContainer decode(String s) throws DecodeException {
@@ -196,7 +198,7 @@ public class DecodedObjectTest {
         }
     }
 
-    class DecodedMessageHandler implements MessageHandler.Basic<StringContainer>{
+    class DecodedMessageHandler implements MessageHandler.Basic<StringContainer> {
 
         @Override
         public void onMessage(StringContainer customObject) {
@@ -206,13 +208,13 @@ public class DecodedObjectTest {
         }
     }
 
-    class ObjectMessageHandler implements MessageHandler.Basic<Object>{
+    class ObjectMessageHandler implements MessageHandler.Basic<Object> {
 
         @Override
         public void onMessage(Object customObject) {
-            if(customObject instanceof StringContainer) {
+            if (customObject instanceof StringContainer) {
                 System.out.println("### ObjectMessageHandler ### " + customObject.toString());
-                DecodedObjectTest.receivedMessage = ((StringContainer)customObject).getString();
+                DecodedObjectTest.receivedMessage = ((StringContainer) customObject).getString();
             }
         }
     }

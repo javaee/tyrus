@@ -45,8 +45,6 @@ import javax.websocket.WebSocketMessage;
 import javax.websocket.server.DefaultServerConfiguration;
 import javax.websocket.server.WebSocketEndpoint;
 
-import org.glassfish.tyrus.test.e2e.Util;
-
 /**
  * @author Danny Coward (danny.coward at oracle.com)
  */

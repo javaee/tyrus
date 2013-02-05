@@ -40,19 +40,26 @@
 
 package org.glassfish.tyrus.test.e2e;
 
+import java.io.IOException;
 import java.net.URI;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.EncodeException;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
+import javax.websocket.WebSocketMessage;
+import javax.websocket.WebSocketOpen;
+import javax.websocket.server.DefaultServerConfiguration;
+import javax.websocket.server.WebSocketEndpoint;
 
 import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
-import org.glassfish.tyrus.test.e2e.bean.BroadcasterTestBean;
 
 import org.junit.Ignore;
 import org.junit.Test;
@@ -72,7 +79,7 @@ public class BroadcasterTest {
     @Test
     public void testBroadcaster() {
         final CountDownLatch messageLatch = new CountDownLatch(2);
-        Server server = new Server(BroadcasterTestBean.class);
+        Server server = new Server(BroadcasterTestEndpoint.class);
 
         try {
             server.start();
@@ -130,6 +137,28 @@ public class BroadcasterTest {
         @Override
         public void onMessage(String message) {
             messageLatch.countDown();
+        }
+    }
+
+    /**
+     * @author Martin Matula (martin.matula at oracle.com)
+     * @author Stepan Kopriva (stepan.kopriva at oracle.com)
+     */
+    @WebSocketEndpoint(value = "/broadcast", configuration = DefaultServerConfiguration.class)
+    public static class BroadcasterTestEndpoint {
+
+        private Set<Session> connections = new HashSet<Session>();
+
+        @WebSocketOpen
+        public void onOpen(Session session) {
+            connections.add(session);
+        }
+
+        @WebSocketMessage
+        public void message(String message, Session session) throws IOException, EncodeException {
+            for (Session s : connections) {
+                s.getRemote().sendString(message);
+            }
         }
     }
 }

@@ -76,7 +76,7 @@ public class ModifyRequestResponseHeadersTest {
     private static final String HEADER_VALUE = "Always two there are, a master and an apprentice.";
 
     @WebSocketEndpoint(value = "/echo", configuration = MyServerConfiguration.class)
-    public static class TestBean {
+    public static class TestEndpoint {
 
         @WebSocketMessage
         public String onMessage(String message) {
@@ -114,7 +114,7 @@ public class ModifyRequestResponseHeadersTest {
 
     @Test
     public void testHeaders() {
-        Server server = new Server(TestBean.class);
+        Server server = new Server(TestEndpoint.class);
 
         final CountDownLatch messageLatch = new CountDownLatch(1);
 

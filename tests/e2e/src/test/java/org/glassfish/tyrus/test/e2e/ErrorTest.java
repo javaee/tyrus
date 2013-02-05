@@ -87,7 +87,7 @@ public class ErrorTest {
             value = "/open",
             configuration = DefaultServerConfiguration.class
     )
-    public static class OnOpenErrorTestBean {
+    public static class OnOpenErrorTestEndpoint {
         public static Throwable throwable;
         public static Session session;
 
@@ -104,15 +104,15 @@ public class ErrorTest {
 
         @WebSocketError
         public void handleError(Throwable throwable, Session session) {
-            OnOpenErrorTestBean.throwable = throwable;
-            OnOpenErrorTestBean.session = session;
+            OnOpenErrorTestEndpoint.throwable = throwable;
+            OnOpenErrorTestEndpoint.session = session;
         }
     }
 
     @Test
     public void testErrorOnOpen() {
         final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
-        Server server = new Server(OnOpenErrorTestBean.class);
+        Server server = new Server(OnOpenErrorTestEndpoint.class);
 
         try {
             server.start();
@@ -142,9 +142,9 @@ public class ErrorTest {
             // TODO: after connectToServer call?
             messageLatch.await(1, TimeUnit.SECONDS);
 
-            assertTrue(OnOpenErrorTestBean.session != null);
-            assertTrue(OnOpenErrorTestBean.throwable != null);
-            assertEquals("testException", OnOpenErrorTestBean.throwable.getCause().getMessage());
+            assertTrue(OnOpenErrorTestEndpoint.session != null);
+            assertTrue(OnOpenErrorTestEndpoint.throwable != null);
+            assertEquals("testException", OnOpenErrorTestEndpoint.throwable.getCause().getMessage());
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
@@ -162,7 +162,7 @@ public class ErrorTest {
             value = "/close",
             configuration = DefaultServerConfiguration.class
     )
-    public static class OnCloseErrorTestBean {
+    public static class OnCloseErrorTestEndpoint {
         public static Throwable throwable;
         public static Session session;
 
@@ -179,15 +179,15 @@ public class ErrorTest {
 
         @WebSocketError
         public void handleError(Throwable throwable, Session session) {
-            OnCloseErrorTestBean.throwable = throwable;
-            OnCloseErrorTestBean.session = session;
+            OnCloseErrorTestEndpoint.throwable = throwable;
+            OnCloseErrorTestEndpoint.session = session;
         }
     }
 
     @Test
     public void testErrorOnClose() {
         final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
-        Server server = new Server(OnCloseErrorTestBean.class);
+        Server server = new Server(OnCloseErrorTestEndpoint.class);
 
         try {
             server.start();
@@ -222,9 +222,9 @@ public class ErrorTest {
             // TODO: after close call?
             messageLatch.await(1, TimeUnit.SECONDS);
 
-            assertTrue(OnCloseErrorTestBean.session != null);
-            assertTrue(OnCloseErrorTestBean.throwable != null);
-            assertEquals("testException", OnCloseErrorTestBean.throwable.getCause().getMessage());
+            assertTrue(OnCloseErrorTestEndpoint.session != null);
+            assertTrue(OnCloseErrorTestEndpoint.throwable != null);
+            assertEquals("testException", OnCloseErrorTestEndpoint.throwable.getCause().getMessage());
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);

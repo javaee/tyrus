@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011 - 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -52,6 +52,7 @@ import javax.websocket.Session;
 import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
+import org.glassfish.tyrus.test.e2e.bean.SimpleRemoteTestEndpoint;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -71,7 +72,7 @@ public class SimpleRemoteTest {
     @Test
     public void testSimpleRemote() {
         final CountDownLatch messageLatch = new CountDownLatch(1);
-        Server server = new Server(org.glassfish.tyrus.test.e2e.bean.SimpleRemoteTestBean.class);
+        Server server = new Server(SimpleRemoteTestEndpoint.class);
 
         try {
             server.start();
@@ -117,7 +118,7 @@ public class SimpleRemoteTest {
         final int iterations = 5;
         final CountDownLatch messageLatch = new CountDownLatch(2 * iterations);
         final AtomicInteger msgNumber = new AtomicInteger(0);
-        Server server = new Server(org.glassfish.tyrus.test.e2e.bean.SimpleRemoteTestBean.class);
+        Server server = new Server(SimpleRemoteTestEndpoint.class);
 
         try {
             server.start();

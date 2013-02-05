@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011 - 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -53,6 +53,7 @@ import javax.websocket.Session;
 import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
+import org.glassfish.tyrus.test.e2e.bean.DecoderMultiplexerTestEndpoint;
 
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -78,7 +79,7 @@ public class DecoderMultiplexerTest {
     @Ignore
     @Test
     public void testMessages() {
-        Server server = new Server(org.glassfish.tyrus.test.e2e.bean.DecoderMultiplexerTestBean.class);
+        Server server = new Server(DecoderMultiplexerTestEndpoint.class);
 
         try {
             server.start();
@@ -86,7 +87,7 @@ public class DecoderMultiplexerTest {
             ClientManager client = ClientManager.createClient();
 
             TestAdapter ta = new TestAdapter();
-            client.connectToServer(ta, cec,  new URI("ws://localhost:8025/websockets/tests/decodermultiplexer"));
+            client.connectToServer(ta, cec, new URI("ws://localhost:8025/websockets/tests/decodermultiplexer"));
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertTrue("The received message is the same as the sent one", receivedMessage.equals("A: " + MESSAGE_A));
 

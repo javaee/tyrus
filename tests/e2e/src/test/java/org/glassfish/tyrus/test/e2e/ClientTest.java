@@ -51,6 +51,7 @@ import javax.websocket.Session;
 import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
+import org.glassfish.tyrus.test.e2e.bean.TestEndpoint;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -71,7 +72,7 @@ public class ClientTest {
     @Test
     public void testClient() {
         final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
-        Server server = new Server(TestBean.class);
+        Server server = new Server(TestEndpoint.class);
 
         try {
             server.start();

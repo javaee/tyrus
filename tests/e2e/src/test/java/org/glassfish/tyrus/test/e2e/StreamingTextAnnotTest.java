@@ -39,11 +39,17 @@
  */
 package org.glassfish.tyrus.test.e2e;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.Session;
+import javax.websocket.WebSocketMessage;
+import javax.websocket.WebSocketOpen;
+import javax.websocket.server.DefaultServerConfiguration;
+import javax.websocket.server.WebSocketEndpoint;
 
 import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
@@ -63,14 +69,14 @@ public class StreamingTextAnnotTest {
     @Test
     public void testClient() {
         final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
-        Server server = new Server(StreamingTextAnnotServer.class);
+        Server server = new Server(StreamingTextAnnotEndpoint.class);
 
         try {
             server.start();
             CountDownLatch messageLatch = new CountDownLatch(2);
-            StreamingTextAnnotServer.messageLatch = messageLatch;
+            StreamingTextAnnotEndpoint.messageLatch = messageLatch;
 
-            StreamingTextClient stc = new StreamingTextClient(messageLatch);
+            StreamingTextTest.StreamingTextClient stc = new StreamingTextTest.StreamingTextClient(messageLatch);
             ClientManager client = ClientManager.createClient();
             client.connectToServer(stc, cec, new URI("ws://localhost:8025/websockets/tests/streamingtext"));
 
@@ -81,6 +87,53 @@ public class StreamingTextAnnotTest {
             throw new RuntimeException(e.getMessage(), e);
         } finally {
             server.stop();
+        }
+    }
+
+    /**
+     * @author Martin Matula (martin.matula at oracle.com)
+     */
+    @WebSocketEndpoint(value = "/streamingtext", configuration = DefaultServerConfiguration.class)
+    public static class StreamingTextAnnotEndpoint {
+        private Session session;
+        private StringBuilder sb = new StringBuilder();
+        static CountDownLatch messageLatch;
+
+        @WebSocketOpen
+        public void onOpen(Session session) {
+            System.out.println("STREAMINGSERVER opened !");
+            this.session = session;
+            try {
+                System.out.println(session.getRemote());
+                sendPartial("thank ", false);
+                sendPartial("you ", false);
+                sendPartial("very ", false);
+                sendPartial("much ", false);
+                sendPartial("!", true);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        @WebSocketMessage
+        public void onMessage(String text, boolean last) {
+            System.out.println("STREAMINGSERVER piece came: " + text);
+            sb.append(text);
+            if (last) {
+                System.out.println("STREAMINGSERVER whole message: " + sb.toString());
+                sb = new StringBuilder();
+                messageLatch.countDown();
+            } else {
+                System.out.println("Resuming the client...");
+                synchronized (StreamingTextTest.StreamingTextClient.class) {
+                    StreamingTextTest.StreamingTextClient.class.notify();
+                }
+            }
+        }
+
+        private void sendPartial(String partialString, boolean isLast) throws IOException, InterruptedException {
+            System.out.println("Server sending: " + partialString);
+            session.getRemote().sendPartialString(partialString, isLast);
         }
     }
 }

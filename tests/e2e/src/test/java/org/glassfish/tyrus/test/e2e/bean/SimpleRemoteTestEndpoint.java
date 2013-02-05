@@ -37,6 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+
 package org.glassfish.tyrus.test.e2e.bean;
 
 import javax.websocket.Session;
@@ -45,15 +46,17 @@ import javax.websocket.server.DefaultServerConfiguration;
 import javax.websocket.server.WebSocketEndpoint;
 
 /**
- * Together with HelloTestBean used to test invocation of methods with various order of parameters.
- *
- * @author Stepan Kopriva (stepan.kopriva at oracle.com)
+ * @author Danny Coward (danny.coward at oracle.com)
  */
-@WebSocketEndpoint(value = "/hello",configuration = DefaultServerConfiguration.class)
-public class MessageParamOrderTestBean {
+@WebSocketEndpoint(value = "/customremote/hello", configuration = DefaultServerConfiguration.class)
+public class SimpleRemoteTestEndpoint {
 
     @WebSocketMessage
-    public String doThat(Session peer, String message) {
-        return message;
+    public void handleIncomingMessage(String message, Session session) {
+        try {
+            session.getRemote().sendString(message);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

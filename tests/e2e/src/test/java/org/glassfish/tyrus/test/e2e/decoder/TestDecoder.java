@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -37,40 +37,26 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+package org.glassfish.tyrus.test.e2e.decoder;
 
-package org.glassfish.tyrus.test.e2e.bean;
+import javax.websocket.DecodeException;
+import javax.websocket.Decoder;
 
-
-import javax.websocket.WebSocketMessage;
-import javax.websocket.server.DefaultServerConfiguration;
-import javax.websocket.server.WebSocketEndpoint;
-
-import org.json.JSONException;
-import org.json.JSONObject;
+import org.glassfish.tyrus.test.e2e.message.TestMessage;
 
 /**
- * @author Danny Coward (danny.coward at oracle.com)
+ * Decoder for the TestMessage
+ *
+ * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-@WebSocketEndpoint(
-        value = "/json",
-        encoders = {org.glassfish.tyrus.test.e2e.encoder.JsonEncoder.class},
-        decoders = {org.glassfish.tyrus.test.e2e.decoder.JsonDecoder.class},
-        configuration = DefaultServerConfiguration.class
-)
-
-public class JsonTestBean {
-
-    @WebSocketMessage
-    public JSONObject helloWorld(JSONObject message) {
-        JSONObject reply = new JSONObject();
-        try {
-            String name = message.getString("NAME");
-            reply.put("REPLY", name);
-            System.out.println("############################################ reply: " + reply.toString());
-            return reply;
-        } catch (JSONException e) {
-            return reply;
-        }
+public class TestDecoder implements Decoder.Text<TestMessage> {
+    @Override
+    public TestMessage decode(String s) throws DecodeException {
+        return new TestMessage(s.substring(TestMessage.PREFIX.length(), s.length()));
     }
 
+    @Override
+    public boolean willDecode(String s) {
+        return s.startsWith(TestMessage.PREFIX);
+    }
 }

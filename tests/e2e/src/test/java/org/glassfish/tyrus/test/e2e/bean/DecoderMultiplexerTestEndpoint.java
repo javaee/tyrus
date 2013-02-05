@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -37,24 +37,36 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.test.e2e;
 
-import javax.websocket.DecodeException;
-import javax.websocket.Decoder;
+package org.glassfish.tyrus.test.e2e.bean;
+
+import javax.websocket.WebSocketMessage;
+import javax.websocket.server.DefaultServerConfiguration;
+import javax.websocket.server.WebSocketEndpoint;
+
+import org.glassfish.tyrus.test.e2e.message.MessageA;
+import org.glassfish.tyrus.test.e2e.message.MessageB;
+
 
 /**
- * Decoder for the TestMessage
+ * Bean for testing two different methods
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class TestDecoder implements Decoder.Text<TestMessage> {
-    @Override
-    public TestMessage decode(String s) throws DecodeException {
-        return new TestMessage(s.substring(TestMessage.PREFIX.length(), s.length()));
+@WebSocketEndpoint(
+        value = "/decodermultiplexer",
+        decoders = {org.glassfish.tyrus.test.e2e.decoder.DecoderA.class, org.glassfish.tyrus.test.e2e.decoder.DecoderB.class},
+        configuration = DefaultServerConfiguration.class
+)
+public class DecoderMultiplexerTestEndpoint {
+
+    @WebSocketMessage
+    public String onMessageA(MessageA message) {
+        return "A: " + message.getData();
     }
 
-    @Override
-    public boolean willDecode(String s) {
-        return s.startsWith(TestMessage.PREFIX);
+    @WebSocketMessage
+    public String onMessageB(MessageB message) {
+        return "B: " + message.getData();
     }
 }

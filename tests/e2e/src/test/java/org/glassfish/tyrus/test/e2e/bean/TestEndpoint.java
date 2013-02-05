@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -40,22 +40,33 @@
 
 package org.glassfish.tyrus.test.e2e.bean;
 
+
+import java.io.IOException;
+
 import javax.websocket.Session;
 import javax.websocket.WebSocketMessage;
+import javax.websocket.WebSocketOpen;
 import javax.websocket.server.DefaultServerConfiguration;
 import javax.websocket.server.WebSocketEndpoint;
 
 /**
- * @author Danny Coward (danny.coward at oracle.com)
+ * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-@WebSocketEndpoint(value = "/customremote/hello", configuration = DefaultServerConfiguration.class)
-public class SimpleRemoteTestBean {
+
+@WebSocketEndpoint(value = "/echo", subprotocols = {"asd"}, configuration = DefaultServerConfiguration.class)
+public class TestEndpoint {
+    @WebSocketOpen
+    public void onOpen(Session s) {
+        System.out.println("Client connected to the server!");
+    }
 
     @WebSocketMessage
-    public void handleIncomingMessage(String message, Session session) {
+    public void helloWorld(String message, Session session) {
         try {
+            System.out.println("##### Test Bean: Received message: " + message);
+
             session.getRemote().sendString(message);
-        } catch (Exception e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }

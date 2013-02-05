@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011 - 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -48,11 +48,16 @@ import java.util.concurrent.TimeUnit;
 import javax.websocket.ClientEndpointConfiguration;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.Session;
+import javax.websocket.WebSocketMessage;
+import javax.websocket.server.DefaultServerConfiguration;
+import javax.websocket.server.WebSocketEndpoint;
 
 import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -75,7 +80,7 @@ public class JsonTest {
     @Ignore
     @Test
     public void testJson() {
-        Server server = new Server(org.glassfish.tyrus.test.e2e.bean.JsonTestBean.class);
+        Server server = new Server(JsonTestEndpoint.class);
 
         messageLatch = new CountDownLatch(1);
 
@@ -117,5 +122,31 @@ public class JsonTest {
         } finally {
             server.stop();
         }
+    }
+
+    /**
+     * @author Danny Coward (danny.coward at oracle.com)
+     */
+    @WebSocketEndpoint(
+            value = "/json",
+            encoders = {org.glassfish.tyrus.test.e2e.encoder.JsonEncoder.class},
+            decoders = {org.glassfish.tyrus.test.e2e.decoder.JsonDecoder.class},
+            configuration = DefaultServerConfiguration.class
+    )
+    public static class JsonTestEndpoint {
+
+        @WebSocketMessage
+        public JSONObject helloWorld(JSONObject message) {
+            JSONObject reply = new JSONObject();
+            try {
+                String name = message.getString("NAME");
+                reply.put("REPLY", name);
+                System.out.println("############################################ reply: " + reply.toString());
+                return reply;
+            } catch (JSONException e) {
+                return reply;
+            }
+        }
+
     }
 }

@@ -40,10 +40,16 @@
 package org.glassfish.tyrus.test.e2e;
 
 import java.net.URI;
+import java.nio.ByteBuffer;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.MessageHandler;
+import javax.websocket.Session;
+import javax.websocket.WebSocketOpen;
+import javax.websocket.server.DefaultServerConfiguration;
+import javax.websocket.server.WebSocketEndpoint;
 
 import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
@@ -62,7 +68,7 @@ public class HelloBinaryTest {
     @Test
     public void testClient() {
         final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
-        Server server = new Server(HelloBinaryServer.class);
+        Server server = new Server(HelloBinaryEndpoint.class);
 
         try {
             server.start();
@@ -80,5 +86,39 @@ public class HelloBinaryTest {
         } finally {
             server.stop();
         }
+    }
+
+    /**
+     * @author Danny Coward (danny.coward at oracle.com)
+     */
+
+    @WebSocketEndpoint(value = "/hellobinary", configuration = DefaultServerConfiguration.class)
+    public static class HelloBinaryEndpoint {
+
+        @WebSocketOpen
+        public void init(Session session) {
+            System.out.println("HELLOBSERVER opened");
+            session.addMessageHandler(new MyMessageHandler(session));
+
+        }
+
+        class MyMessageHandler implements MessageHandler.Basic<ByteBuffer> {
+            private Session session;
+
+            MyMessageHandler(Session session) {
+                this.session = session;
+            }
+
+            public void onMessage(ByteBuffer message) {
+                System.out.println("HELLOBSERVER got  message: " + message);
+                try {
+                    session.getRemote().sendBytes(message);
+                } catch (Exception e) {
+
+                }
+            }
+
+        }
+
     }
 }

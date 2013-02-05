@@ -54,6 +54,7 @@ import javax.websocket.Session;
 import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
+import org.glassfish.tyrus.test.e2e.bean.EchoEndpoint;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -74,7 +75,7 @@ public class HelloTest {
     @Test
     public void testHello() {
         final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
-        Server server = new Server(org.glassfish.tyrus.test.e2e.bean.HelloTestBean.class);
+        Server server = new Server(EchoEndpoint.class);
 
         try {
             server.start();
@@ -106,7 +107,7 @@ public class HelloTest {
                     receivedMessage = message;
                     messageLatch.countDown();
                 }
-            }, cec, new URI("wss://localhost:8025/websockets/tests/hello"));
+            }, cec, new URI("wss://localhost:8025/websockets/tests/echo"));
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertEquals(SENT_MESSAGE, receivedMessage);
         } catch (Exception e) {
@@ -125,14 +126,14 @@ public class HelloTest {
     @Test
     public void testHelloEndpointClass() {
         final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
-        Server server = new Server(org.glassfish.tyrus.test.e2e.bean.HelloTestBean.class);
+        Server server = new Server(EchoEndpoint.class);
 
         try {
             server.start();
             messageLatchEndpoint = new CountDownLatch(1);
 
             ClientManager client = ClientManager.createClient();
-            client.connectToServer(MyEndpoint.class, cec, new URI("wss://localhost:8025/websockets/tests/hello"));
+            client.connectToServer(MyEndpoint.class, cec, new URI("wss://localhost:8025/websockets/tests/echo"));
             messageLatchEndpoint.await(5, TimeUnit.SECONDS);
             Assert.assertEquals(SENT_MESSAGE, receivedMessageEndpoint);
         } catch (Exception e) {

@@ -75,7 +75,7 @@ public class PathParamTest {
     private static final String SENT_MESSAGE = "Hello World";
 
     @WebSocketEndpoint(value = "/pathparam/{first}/{second}/{third: .*}", configuration = DefaultServerConfiguration.class)
-    public static class PathParamTestBean {
+    public static class PathParamTestEndpoint {
 
         @WebSocketMessage
         public String doThat(@WebSocketPathParam("first") String first,
@@ -98,7 +98,7 @@ public class PathParamTest {
     @Test
     public void testPathParam() {
         final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
-        Server server = new Server(PathParamTestBean.class);
+        Server server = new Server(PathParamTestEndpoint.class);
 
         try {
             server.start();

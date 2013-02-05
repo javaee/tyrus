@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -38,21 +38,24 @@
  * holder.
  */
 
-package org.glassfish.tyrus.test.e2e;
+package org.glassfish.tyrus.test.e2e.bean;
+
+import javax.websocket.Session;
+import javax.websocket.WebSocketMessage;
+import javax.websocket.server.DefaultServerConfiguration;
+import javax.websocket.server.WebSocketEndpoint;
 
 /**
- * Used
+ * Bean for basic echo test.
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class StringContainer {
-    private String string;
 
-    public StringContainer(String string) {
-        this.string = string;
-    }
+@WebSocketEndpoint(value = "/echo", configuration = DefaultServerConfiguration.class)
+public class EchoEndpoint {
 
-    public String getString() {
-        return string;
+    @WebSocketMessage
+    public String doThat(String message, Session peer) {
+        return message;
     }
 }

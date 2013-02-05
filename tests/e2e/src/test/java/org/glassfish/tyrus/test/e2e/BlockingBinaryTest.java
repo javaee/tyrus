@@ -39,11 +39,22 @@
  */
 package org.glassfish.tyrus.test.e2e;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URI;
+import java.nio.ByteBuffer;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.Endpoint;
+import javax.websocket.EndpointConfiguration;
+import javax.websocket.MessageHandler;
+import javax.websocket.Session;
+import javax.websocket.WebSocketOpen;
+import javax.websocket.server.DefaultServerConfiguration;
+import javax.websocket.server.WebSocketEndpoint;
 
 import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
@@ -62,16 +73,16 @@ public class BlockingBinaryTest {
 
     @Test
     @Ignore // TODO: receiving messages out of order (as every message received on a separate thread due to the async
-            // TODO: adapter spawning new thread for every onMessage) - TYRUS-50
+    // TODO: adapter spawning new thread for every onMessage) - TYRUS-50
     public void testClient() {
         final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
 
-        Server server = new Server(BlockingBinaryServer.class);
+        Server server = new Server(BlockingBinaryEndpoint.class);
 
         try {
             server.start();
             CountDownLatch messageLatch = new CountDownLatch(2);
-            BlockingBinaryServer.messageLatch = messageLatch;
+            BlockingBinaryEndpoint.messageLatch = messageLatch;
             TyrusClientEndpointConfiguration.Builder builder = new TyrusClientEndpointConfiguration.Builder();
             TyrusClientEndpointConfiguration dcec = builder.build();
 
@@ -89,4 +100,127 @@ public class BlockingBinaryTest {
         }
     }
 
+    /**
+     * @author Danny Coward (danny.coward at oracle.com)
+     */
+    @WebSocketEndpoint(value = "/blockingbinary", configuration = DefaultServerConfiguration.class)
+    public static class BlockingBinaryEndpoint extends Endpoint {
+        private Session session;
+        static CountDownLatch messageLatch;
+        private String message;
+
+        @WebSocketOpen
+        public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
+            System.out.println("BLOCKINGBSERVER opened !");
+            this.session = session;
+
+            session.addMessageHandler(new MessageHandler.Async<InputStream>() {
+                StringBuilder sb = new StringBuilder();
+
+                @Override
+                public void onMessage(InputStream is, boolean isLast) {
+                    try {
+                        int i;
+                        while ((i = is.read()) != -1) {
+                            //System.out.println("BLOCKINGBSERVER read " + (char) i + " from the input stream.");
+                            sb.append((char) i);
+                        }
+                    } catch (IOException ioe) {
+                        ioe.printStackTrace();
+                    }
+                    System.out.println("BLOCKINGBSERVER read " + sb + " from the input stream.");
+                    messageLatch.countDown();
+                    message = sb.toString();
+                    reply();
+                }
+            });
+        }
+
+        //    @Override
+        //    public EndpointConfiguration getEndpointConfiguration() {
+        //        return null;
+        //    }
+
+        public void reply() {
+            System.out.println("BLOCKINGBSERVER replying");
+            try {
+                OutputStream os = session.getRemote().getSendStream();
+                os.write(message.getBytes());
+                os.close();
+            } catch (IOException ioe) {
+                ioe.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * @author Danny Coward (danny.coward at oracle.com)
+     */
+    public static class BlockingBinaryClient extends Endpoint {
+        boolean gotTheSameThingBack = false;
+        private final CountDownLatch messageLatch;
+        private Session session;
+        static String MESSAGE_0 = "here ";
+        static String MESSAGE_1 = "is ";
+        static String MESSAGE_2 = "a ";
+        static String MESSAGE_3 = "string ! ";
+
+        public BlockingBinaryClient(CountDownLatch messageLatch) {
+            this.messageLatch = messageLatch;
+        }
+
+        //    @Override
+        //    public EndpointConfiguration getEndpointConfiguration() {
+        //        return null;
+        //    }
+
+        public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
+
+            System.out.println("BLOCKINGBCLIENT opened !");
+
+            this.session = session;
+
+            session.addMessageHandler(new MessageHandler.Async<InputStream>() {
+                StringBuilder sb = new StringBuilder();
+
+                public void onMessage(InputStream is, boolean isLast) {
+                    int i;
+
+                    try {
+                        while ((i = is.read()) != -1) {
+                            sb.append((char) i);
+                        }
+
+                    } catch (IOException ioe) {
+                        ioe.printStackTrace();
+                    }
+
+
+                    gotTheSameThingBack = sb.toString().equals(MESSAGE_0 + MESSAGE_1 + MESSAGE_2 + MESSAGE_3);
+                    System.out.println("BLOCKINGBCLIENT received whole message:" + sb.toString());
+                    sb = new StringBuilder();
+                    messageLatch.countDown();
+
+                }
+            });
+
+            try {
+                System.out.println("BLOCKINGBCLIENT Client sending data to the blocking output stream. ");
+                OutputStream os = session.getRemote().getSendStream();
+
+                os.write(MESSAGE_0.getBytes());
+                os.write(MESSAGE_1.getBytes());
+                os.write(MESSAGE_2.getBytes());
+                os.write(MESSAGE_3.getBytes());
+                os.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+        }
+
+        private void sendPartial(String partialString, boolean isLast) throws IOException, InterruptedException {
+            session.getRemote().sendPartialBytes(ByteBuffer.wrap(partialString.getBytes()), isLast);
+        }
+    }
 }

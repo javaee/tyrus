@@ -40,10 +40,20 @@
 package org.glassfish.tyrus.test.e2e;
 
 import java.net.URI;
+import java.nio.ByteBuffer;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.SendHandler;
+import javax.websocket.SendResult;
+import javax.websocket.Session;
+import javax.websocket.WebSocketMessage;
+import javax.websocket.WebSocketOpen;
+import javax.websocket.server.DefaultServerConfiguration;
+import javax.websocket.server.WebSocketEndpoint;
 
 import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
@@ -63,19 +73,19 @@ public class BinaryFutureCompletionHandlerTest {
     public void testFastClient() {
         final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
 
-        Server server = new Server(BinaryFutureCompletionHandlerServer.class);
+        Server server = new Server(BinaryFutureCompletionHandlerEndpoint.class);
 
         try {
             server.start();
             CountDownLatch messageLatch = new CountDownLatch(2);
-            BinaryFutureCompletionHandlerServer.messageLatch = messageLatch;
+            BinaryFutureCompletionHandlerEndpoint.messageLatch = messageLatch;
 
             HelloBinaryClient htc = new HelloBinaryClient(messageLatch);
             ClientManager client = ClientManager.createClient();
             client.connectToServer(htc, cec, new URI("ws://localhost:8025/websockets/tests/binaryhellocompletionhandlerfuture"));
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertTrue("The client got the echo back", htc.echoWorked);
-            Assert.assertNotNull(BinaryFutureCompletionHandlerServer.sr);
+            Assert.assertNotNull(BinaryFutureCompletionHandlerEndpoint.sr);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
@@ -85,4 +95,47 @@ public class BinaryFutureCompletionHandlerTest {
     }
 
 
+    /**
+     * @author Danny Coward (danny.coward at oracle.com)
+     */
+    @WebSocketEndpoint(value = "/binaryhellocompletionhandlerfuture", configuration = DefaultServerConfiguration.class)
+    public static class BinaryFutureCompletionHandlerEndpoint {
+        static Future<SendResult> fsr = null;
+        static SendResult sr = null;
+        static CountDownLatch messageLatch;
+
+        @WebSocketOpen
+        public void init(Session session) {
+            System.out.println("BINARYCFSERVER opened");
+        }
+
+        @WebSocketMessage
+        public void sayHello(ByteBuffer message, Session session) {
+            System.out.println("BINARYCFSERVER got  message: " + message + " from session " + session);
+
+            System.out.println("BINARYCFSERVER lets send one back in async mode with a future and completion handler");
+            SendHandler sh = new SendHandler() {
+                public void setResult(SendResult sr) {
+                    if (!sr.isOK()) {
+                        throw new RuntimeException(sr.getException());
+                    }
+                }
+            };
+
+            fsr = session.getRemote().sendBytesByFuture(ByteBuffer.wrap(HelloBinaryClient.MESSAGE.getBytes()));
+
+            System.out.println("BINARYCFSERVER send complete - wait on get()");
+            try {
+                sr = fsr.get();
+                System.out.println("BINARYCFSERVER get returned");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
+            messageLatch.countDown();
+
+
+        }
+    }
 }

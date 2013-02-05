@@ -52,6 +52,7 @@ import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.javax.websocket.ContainerProvider;
 import org.glassfish.tyrus.server.Server;
+import org.glassfish.tyrus.test.e2e.bean.TestEndpoint;
 
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -80,7 +81,7 @@ public class ContainerProviderTest {
         Assert.assertNull(ContainerProvider.getWebSocketContainer());
 //        Assert.assertNull(ContainerProvider.getClientContainer());
 
-        Server server = new Server(TestBean.class);
+        Server server = new Server(TestEndpoint.class);
 
         try {
             server.start();
@@ -116,7 +117,7 @@ public class ContainerProviderTest {
                         e.printStackTrace();
                     }
                 }
-            }, cec,  new URI("ws://localhost:8025/websockets/tests/echo"));
+            }, cec, new URI("ws://localhost:8025/websockets/tests/echo"));
 
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertEquals(SENT_MESSAGE, receivedMessage);

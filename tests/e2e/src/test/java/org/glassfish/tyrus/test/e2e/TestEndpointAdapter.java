@@ -57,7 +57,7 @@ public abstract class TestEndpointAdapter extends Endpoint {
         onOpen(session);
     }
 
-    public EndpointConfiguration getEndpointConfiguration(){
+    public EndpointConfiguration getEndpointConfiguration() {
         return null;
     }
 }

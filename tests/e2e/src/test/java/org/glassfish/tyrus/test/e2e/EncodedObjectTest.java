@@ -47,6 +47,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfiguration;
 import javax.websocket.EncodeException;
+import javax.websocket.Encoder;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.Session;
 import javax.websocket.WebSocketMessage;
@@ -57,6 +58,7 @@ import javax.websocket.server.WebSocketEndpoint;
 import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
+import org.glassfish.tyrus.test.e2e.message.StringContainer;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -77,7 +79,7 @@ public class EncodedObjectTest {
     @Test
     public void testEncodingReturnViaSession() {
         final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
-        Server server = new Server(TestEncodeBean.class);
+        Server server = new Server(TestEncodeEndpoint.class);
 
         try {
             server.start();
@@ -120,7 +122,7 @@ public class EncodedObjectTest {
     }
 
     @WebSocketEndpoint(value = "/echo", encoders = {StringContainerEncoder.class}, configuration = DefaultServerConfiguration.class)
-    public static class TestEncodeBean {
+    public static class TestEncodeEndpoint {
         @WebSocketOpen
         public void onOpen(Session s) {
             System.out.println("Client connected to the server!");
@@ -192,6 +194,17 @@ public class EncodedObjectTest {
         @WebSocketMessage
         public StringContainer helloWorld(String message, Session session) {
             return new StringContainer(message);
+        }
+    }
+
+    /**
+     * @author Stepan Kopriva (stepan.kopriva at oracle.com)
+     */
+    public static class StringContainerEncoder implements Encoder.Text<StringContainer> {
+
+        @Override
+        public String encode(StringContainer object) throws EncodeException {
+            return object.getString();
         }
     }
 }

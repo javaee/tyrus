@@ -55,6 +55,7 @@ import javax.websocket.Session;
 import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
+import org.glassfish.tyrus.test.e2e.bean.TestEndpoint;
 import org.glassfish.tyrus.websockets.WebSocketEngine;
 
 import org.junit.Assert;
@@ -75,7 +76,7 @@ public class HandshakeTest {
 
     @Test
     public void testClient() {
-        Server server = new Server(TestBean.class);
+        Server server = new Server(TestEndpoint.class);
 
         try {
             server.start();

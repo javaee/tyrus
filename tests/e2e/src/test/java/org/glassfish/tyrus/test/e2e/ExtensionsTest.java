@@ -78,7 +78,7 @@ public class ExtensionsTest {
     private static final String SENT_MESSAGE = "Always pass on what you have learned.";
 
     @WebSocketEndpoint(value = "/echo", configuration = MyServerConfiguration.class)
-    public static class TestBean {
+    public static class TestEndpoint {
         @WebSocketOpen
         public void onOpen(Session s) {
             for (Extension extension : ((SessionImpl) s).getNegotiatedExtensions___TODO()) {
@@ -112,7 +112,7 @@ public class ExtensionsTest {
 
     @Test
     public void testExtensions() {
-        Server server = new Server(TestBean.class);
+        Server server = new Server(TestEndpoint.class);
 
         try {
             server.start();

@@ -37,37 +37,28 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-
-package org.glassfish.tyrus.test.e2e;
-
-
-import java.io.IOException;
-
-import javax.websocket.Session;
-import javax.websocket.WebSocketMessage;
-import javax.websocket.WebSocketOpen;
-import javax.websocket.server.DefaultServerConfiguration;
-import javax.websocket.server.WebSocketEndpoint;
+package org.glassfish.tyrus.test.e2e.message;
 
 /**
+ * Message for testing TestDecoder.
+ *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
+public class TestMessage {
+    public static final String PREFIX = "prefix";
 
-@WebSocketEndpoint(value = "/echo", subprotocols = {"asd"}, configuration = DefaultServerConfiguration.class)
-public class TestBean {
-    @WebSocketOpen
-    public void onOpen(Session s) {
-        System.out.println("Client connected to the server!");
+    private String data;
+
+    public TestMessage(String data) {
+        this.data = data;
     }
 
-    @WebSocketMessage
-    public void helloWorld(String message, Session session) {
-        try {
-            System.out.println("##### Test Bean: Received message: " + message);
+    public String getData() {
+        return data;
+    }
 
-            session.getRemote().sendString(message);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+    @Override
+    public String toString() {
+        return PREFIX + data;
     }
 }

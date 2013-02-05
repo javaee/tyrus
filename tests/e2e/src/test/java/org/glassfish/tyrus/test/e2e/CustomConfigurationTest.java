@@ -69,7 +69,7 @@ public class CustomConfigurationTest {
     private static final String SENT_MESSAGE = "hello";
 
     @WebSocketEndpoint(value = "/echo", configuration = MyServerConfiguration.class)
-    public static class TestBean {
+    public static class TestEndpoint {
         @WebSocketOpen
         public void onOpen(EndpointConfiguration endpointConfiguration) {
             if (endpointConfiguration instanceof MyServerConfiguration) {
@@ -95,7 +95,7 @@ public class CustomConfigurationTest {
 
     @Test
     public void testExtensions() {
-        Server server = new Server(TestBean.class);
+        Server server = new Server(TestEndpoint.class);
 
         try {
             server.start();

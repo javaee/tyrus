@@ -39,11 +39,21 @@
  */
 package org.glassfish.tyrus.test.e2e;
 
+import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
 import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.Endpoint;
+import javax.websocket.EndpointConfiguration;
+import javax.websocket.MessageHandler;
+import javax.websocket.Session;
+import javax.websocket.WebSocketOpen;
+import javax.websocket.server.DefaultServerConfiguration;
+import javax.websocket.server.WebSocketEndpoint;
 
 import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
@@ -63,10 +73,10 @@ public class BlockingStreamingTextTest {
 
     @Ignore
     @Test
-    public void testClient() {
+    public void testBlockingStreamingTextServer() {
         final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
 
-        Server server = new Server(BlockingStreamingTextServer.class);
+        Server server = new Server(BlockingStreamingTextEndpoint.class);
 
         try {
             server.start();
@@ -74,17 +84,122 @@ public class BlockingStreamingTextTest {
 
             BlockingStreamingTextClient bstc = new BlockingStreamingTextClient(messageLatch);
             ClientManager client = ClientManager.createClient();
-            client.connectToServer(bstc, cec , new URI("ws://localhost:8025/websockets/tests/blockingstreaming"));
+            client.connectToServer(bstc, cec, new URI("ws://localhost:8025/websockets/tests/blockingstreaming"));
 
             messageLatch.await(5, TimeUnit.SECONDS);
             System.out.println("SENT: " + bstc.sentMessage);
-            System.out.println("RECIEVED: " + bstc.receivedMessage);
+            System.out.println("RECEIVED: " + bstc.receivedMessage);
             Assert.assertTrue("Client got back what it sent, all pieces in the right order.", bstc.sentMessage.equals(bstc.receivedMessage));
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
         } finally {
             server.stop();
+        }
+    }
+
+    /**
+     * @author Danny Coward (danny.coward at oracle.com)
+     * @author Martin Matula (martin.matula at oracle.com)
+     */
+    @WebSocketEndpoint(value = "/blockingstreaming", configuration = DefaultServerConfiguration.class)
+    public static class BlockingStreamingTextEndpoint extends Endpoint {
+        class MyCharacterStreamHandler implements MessageHandler.Async<Reader> {
+            Session session;
+
+            MyCharacterStreamHandler(Session session) {
+                this.session = session;
+            }
+
+            @Override
+            public void onMessage(Reader r, boolean isLast) {
+                System.out.println("BLOCKINGSTREAMSERVER: on message reader called");
+                StringBuilder sb = new StringBuilder();
+                try {
+                    int i;
+                    while ((i = r.read()) != -1) {
+                        sb.append((char) i);
+                    }
+                    r.close();
+
+                    String receivedMessage = sb.toString();
+                    System.out.println("BLOCKINGSTREAMSERVER received: " + receivedMessage);
+
+                    Writer w = session.getRemote().getSendWriter();
+                    w.write(receivedMessage.substring(0, 4));
+                    w.write(receivedMessage.substring(4, receivedMessage.length()));
+                    w.close();
+                    System.out.println("BLOCKINGSTREAMSERVER sent back: " + receivedMessage);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        @WebSocketOpen
+        public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
+            System.out.println("BLOCKINGSERVER opened !");
+            session.addMessageHandler(new MyCharacterStreamHandler(session));
+        }
+
+    }
+
+    /**
+     * @author Danny Coward (danny.coward at oracle.com)
+     */
+    public static class BlockingStreamingTextClient extends Endpoint {
+        String receivedMessage;
+        private final CountDownLatch messageLatch;
+        String sentMessage;
+
+        public BlockingStreamingTextClient(CountDownLatch messageLatch) {
+            this.messageLatch = messageLatch;
+        }
+
+        public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
+            System.out.println("BLOCKINGCLIENT opened !");
+
+            send(session);
+
+            session.addMessageHandler(new MessageHandler.Async<Reader>() {
+                final StringBuilder sb = new StringBuilder();
+
+                public void onMessage(Reader r, boolean isLast) {
+                    System.out.println("BLOCKINGCLIENT onMessage called ");
+                    try {
+                        int i;
+                        while ((i = r.read()) != -1) {
+                            sb.append((char) i);
+                        }
+                        receivedMessage = sb.toString();
+                        System.out.println("BLOCKINGCLIENT received: " + receivedMessage);
+                        messageLatch.countDown();
+                    } catch (IOException ioe) {
+                        ioe.printStackTrace();
+                    }
+
+
+                }
+            });
+        }
+
+        public void send(Session session) {
+            try {
+                StringBuilder sb = new StringBuilder();
+                String part;
+                for (int i = 0; i < 10; i++) {
+                    part = "blk" + i;
+                    session.getRemote().sendPartialString(part, false);
+                    sb.append(part);
+                }
+                part = "END";
+                session.getRemote().sendPartialString(part, true);
+                sb.append(part);
+                sentMessage = sb.toString();
+                System.out.println("BLOCKINGCLIENT: Sent" + sentMessage);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 }

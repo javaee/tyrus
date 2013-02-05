@@ -47,11 +47,13 @@ import java.util.concurrent.TimeUnit;
 import javax.websocket.ClientEndpointConfiguration;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.Session;
+import javax.websocket.WebSocketMessage;
+import javax.websocket.server.DefaultServerConfiguration;
+import javax.websocket.server.WebSocketEndpoint;
 
 import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
-import org.glassfish.tyrus.test.e2e.bean.ParameterizedHelloTestBean;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -70,7 +72,7 @@ public class ParameterizedHelloTest {
     @Test
     public void testHello() {
         final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
-        Server server = new Server(ParameterizedHelloTestBean.class);
+        Server server = new Server(ParameterizedHelloTestEndpoint.class);
 
         try {
             server.start();
@@ -110,6 +112,18 @@ public class ParameterizedHelloTest {
             throw new RuntimeException(e.getMessage(), e);
         } finally {
             server.stop();
+        }
+    }
+
+    /**
+     * @author Pavel Bucek (pavel.bucek at oracle.com)
+     */
+    @WebSocketEndpoint(value = "/hello/{test}/one/{rest: .*}", configuration = DefaultServerConfiguration.class)
+    public static class ParameterizedHelloTestEndpoint {
+
+        @WebSocketMessage
+        public String doThat(String message, Session peer) {
+            return message;
         }
     }
 }
