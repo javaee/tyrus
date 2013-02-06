@@ -73,7 +73,7 @@ public class BrowserTest {
         logger.log(Level.INFO, "========================================================");
     }
     
-    @Ignore
+    
     @Test
     public void testFirefoxClientChat() throws InterruptedException, Exception {
         logger.log(Level.INFO, "============testFirefoxClientChat=================");
@@ -81,8 +81,25 @@ public class BrowserTest {
         ts.testChatSample();
         logger.log(Level.INFO, "==================================================");
     }
-
+        
+    @Test
+    public void testFirefoxClientChatWithTwoUsers() throws InterruptedException, Exception {
+        logger.log(Level.INFO, "============testFirefoxClientChatWithTwoUsers=================");
+        SeleniumToolkit aliceBrowser = new SeleniumToolkit(SeleniumToolkit.Browser.FIREFOX);
+        SeleniumToolkit bobBrowser = new SeleniumToolkit(SeleniumToolkit.Browser.FIREFOX);
+        TestScenarios ts = new TestScenarios(aliceBrowser, bobBrowser);
+        ts.testChatSampleWithTwoUsers();
+        logger.log(Level.INFO, "==============================================================");
+    }
     
+    @Test
+    public void testFirefoxClientAuction() throws InterruptedException, Exception {
+        logger.log(Level.INFO, "============testFirefoxClientAuction=================");
+        TestScenarios ts = new TestScenarios(new SeleniumToolkit(SeleniumToolkit.Browser.FIREFOX));
+        ts.testAuctionSample();
+        logger.log(Level.INFO, "=====================================================");
+    }
+
     @Test
     public void testChromeClient() throws InterruptedException {
         logger.log(Level.INFO, "===============testChromeClientHandshake===============");

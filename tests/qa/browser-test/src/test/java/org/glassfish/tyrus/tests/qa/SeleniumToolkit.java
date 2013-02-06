@@ -247,14 +247,37 @@ public class SeleniumToolkit {
         takeScreenshot(driver);
         el.click();
     }
+    
+    public void sendKeys(By by, String text) throws InterruptedException, Exception {
+        WebElement el = driver.findElement(by);
+        if(el==null) {
+            throw new Exception("Can't find element: "+by.toString());
+        }
+        Thread.sleep(sleepTime);
+        takeScreenshot(driver);
+        el.clear();
+        el.sendKeys(text);
+    }
 
     public String bodyText() {
-        return driver.findElement(By.tagName("body")).getText();
+        return getTextByTagName("body");
     }
 
     public static void quit() {
         for (WebDriver driver : webDriverInstances) {
             driver.quit();
         }
+    }
+    
+    public String getTextById(String id) {
+        return driver.findElement(By.id(id)).getText();
+    }
+    
+    public String getValue(By by) {
+        return driver.findElement(by).getAttribute("value");
+    }
+    
+    public String getTextByTagName(String name) {
+        return driver.findElement(By.tagName(name)).getText();
     }
 }
