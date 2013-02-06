@@ -69,6 +69,7 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
     private ByteBuffer buf;
 
     private boolean closed = false;
+    private boolean initiated = false;
 
     private static final Logger LOGGER = Logger.getLogger(TyrusHttpUpgradeHandler.class.getName());
 
@@ -90,6 +91,11 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
         } catch (IllegalStateException e) {
             LOGGER.log(Level.WARNING, e.getMessage(), e);
         }
+
+        if(webSocketHolder != null && webSocketHolder.webSocket != null) {
+            webSocketHolder.webSocket.onConnect();
+        }
+        initiated = true;
     }
 
     @Override
@@ -206,9 +212,15 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
 
     public void setWebSocketHolder(WebSocketEngine.WebSocketHolder webSocketHolder) {
         this.webSocketHolder = webSocketHolder;
+        if(initiated) {
+            webSocketHolder.webSocket.onConnect();
+        }
     }
 
     ServletOutputStream getOutputStream() {
+        if(!initiated) {
+            throw new IllegalStateException();
+        }
         return os;
     }
 }

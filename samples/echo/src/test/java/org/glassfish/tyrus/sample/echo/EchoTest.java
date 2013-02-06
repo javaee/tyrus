@@ -59,7 +59,6 @@ import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
 import org.junit.Test;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
 
 /**
@@ -131,6 +130,7 @@ public class EchoTest {
         final Server server = startServer();
 
         final CountDownLatch messageLatch = new CountDownLatch(1);
+        final CountDownLatch onOpenLatch = new CountDownLatch(1);
 
         final ClientManager client = ClientManager.createClient();
         client.connectToServer(new Endpoint() {
@@ -140,8 +140,13 @@ public class EchoTest {
                     session.addMessageHandler(new MessageHandler.Basic<String>() {
                         @Override
                         public void onMessage(String message) {
-                            assertEquals(message, "Do or do not, there is no try. (from your server)");
-                            messageLatch.countDown();
+                            System.out.println("### Received: " + message);
+
+                            if(message.equals("Do or do not, there is no try. (from your server)")) {
+                                messageLatch.countDown();
+                            } else if (message.equals("onOpen")) {
+                                onOpenLatch.countDown();
+                            }
                         }
                     });
 
@@ -153,7 +158,7 @@ public class EchoTest {
         }, new TyrusClientEndpointConfiguration.Builder().build(), getURI());
 
         messageLatch.await(1, TimeUnit.SECONDS);
-        if (messageLatch.getCount() != 0) {
+        if (messageLatch.getCount() != 0 || onOpenLatch.getCount() != 0) {
             fail();
         }
 

@@ -153,7 +153,46 @@ public class WebSocketEngine {
         return null;
     }
 
+    /**
+     * {@link WebSocketHolder} listener.
+     */
+    public static abstract class WebSocketHolderListener {
+        /**
+         * Called when request is ready to upgrade. The responsibility for making {@link org.glassfish.tyrus.websockets.WebSocket#onConnect()}
+         * call is on listener when it is used.
+         *
+         * @param webSocketHolder holder instance.
+         * @throws IOException IOException if an I/O error occurred during the upgrade.
+         *
+         * @see WebSocketHolder#webSocket
+         */
+        public abstract void onWebSocketHolder(WebSocketHolder webSocketHolder) throws IOException;
+    }
+
+    /**
+     * Evaluate whether connection/request is suitable for upgrade and perform it.
+     *
+     * @param connection connection.
+     * @param request request.
+     * @return {@code true} if upgrade is performed, {@code false} otherwise.
+     * @throws IOException if an I/O error occurred during the upgrade.
+     */
     public boolean upgrade(Connection connection, WebSocketRequest request) throws IOException {
+        return upgrade(connection, request, null);
+    }
+
+    /**
+     * Evaluate whether connection/request is suitable for upgrade and perform it.
+     *
+     * @param connection connection.
+     * @param request request.
+     * @param webSocketHolderListener called when upgrade is going to be performed. Additinally, leaves
+     *                                {@link org.glassfish.tyrus.websockets.WebSocket#onConnect()} call
+     *                                responsibility to {@link WebSocketHolderListener} instance.
+     * @return {@code true} if upgrade is performed, {@code false} otherwise.
+     * @throws IOException if an I/O error occurred during the upgrade.
+     */
+    public boolean upgrade(Connection connection, WebSocketRequest request, WebSocketHolderListener webSocketHolderListener) throws IOException {
         final WebSocketApplication app = WebSocketEngine.getEngine().getApplication(request);
         WebSocket socket = null;
         try {
@@ -181,7 +220,12 @@ public class WebSocketEngine {
                         }
                     }
                 });
-                socket.onConnect();
+
+                if(webSocketHolderListener != null) {
+                    webSocketHolderListener.onWebSocketHolder(holder);
+                } else {
+                    socket.onConnect();
+                }
                 return true;
             }
         } catch (HandshakeException e) {

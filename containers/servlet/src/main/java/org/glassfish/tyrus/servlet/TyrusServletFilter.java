@@ -55,7 +55,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.WebConnection;
 
-import org.glassfish.tyrus.ErrorCollector;
 import org.glassfish.tyrus.server.ServerContainerFactory;
 import org.glassfish.tyrus.server.TyrusServerContainer;
 import org.glassfish.tyrus.websockets.Connection;
@@ -78,7 +77,6 @@ public class TyrusServletFilter implements Filter {
     private final static Logger LOGGER = Logger.getLogger(TyrusServletFilter.class.getName());
     private final WebSocketEngine engine;
     private TyrusServerContainer serverContainer = null;
-    private ErrorCollector errorCollector = new ErrorCollector();
 
     // @WebSocketEndpoint annotated classes and classes extending ServerApplicationConfiguration
     private final Set<Class<?>> classes;
@@ -158,7 +156,7 @@ public class TyrusServletFilter implements Filter {
         if (header != null) {
             LOGGER.config("Setting up WebSocket protocol handler");
 
-            TyrusHttpUpgradeHandlerProxy handler = new TyrusHttpUpgradeHandlerProxy();
+            final TyrusHttpUpgradeHandlerProxy handler = new TyrusHttpUpgradeHandlerProxy();
 
             final ConnectionImpl webSocketConnection = new ConnectionImpl(handler, httpServletResponse);
             WebSocketRequest webSocketRequest = new WebSocketRequest() {
@@ -189,15 +187,17 @@ public class TyrusServletFilter implements Filter {
             webSocketRequest.setRequestPath(httpServletRequest.getServletPath());
 
             try {
-                if (!engine.upgrade(webSocketConnection, webSocketRequest)) {
+                if (!engine.upgrade(webSocketConnection, webSocketRequest, new WebSocketEngine.WebSocketHolderListener() {
+                    @Override
+                    public void onWebSocketHolder(WebSocketEngine.WebSocketHolder webSocketHolder) throws IOException {
+                        LOGGER.config("Upgrading Servlet request");
+                        handler.setHandler(httpServletRequest.upgrade(TyrusHttpUpgradeHandler.class));
+                        handler.setWebSocketHolder(engine.getWebSocketHolder(webSocketConnection));
+                    }
+                })) {
                     filterChain.doFilter(request, response);
                     return;
                 }
-
-                // TODO
-                LOGGER.config("Upgrading Servlet request");
-                handler.setHandler(httpServletRequest.upgrade(TyrusHttpUpgradeHandler.class));
-                handler.setWebSocketHolder(engine.getWebSocketHolder(webSocketConnection));
 
             } catch (HandshakeException e) {
                 // TODO
