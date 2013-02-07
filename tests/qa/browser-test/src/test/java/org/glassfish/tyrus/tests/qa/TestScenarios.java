@@ -41,6 +41,7 @@ package org.glassfish.tyrus.tests.qa;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Logger;
@@ -148,6 +149,7 @@ public class TestScenarios {
     private final String DEFAULT_HOST = "localhost";
     private final int DEFAULT_INSTANCE_PORT = 8080;
     private final String HANDSHAKE_CONTEXT_PATH = "/browser-test";
+    static final int MAX_CHAT_CLIENTS=100;
     
     private static final Logger logger = Logger.getLogger(TestScenarios.class.getCanonicalName());
     SeleniumToolkit toolkit = null;
@@ -167,17 +169,21 @@ public class TestScenarios {
         }
         this.toolkit = toolkits.get(0);
     }
+    
+    public boolean numOfClientsGreaterThan(int n) {
+        return toolkits.size()>=n;
+    }
 
     public boolean hasOneClient() {
         return toolkits.size() == 1;
     }
 
     public boolean hasAtLeastTwoClients() {
-        return toolkits.size() >= 2;
+        return numOfClientsGreaterThan(2);
     }
 
     public boolean hasAtLeastOneClient() {
-        return toolkits.size() >= 1;
+        return numOfClientsGreaterThan(1);
     }
 
     private String getHost() {
@@ -252,6 +258,29 @@ public class TestScenarios {
         aliceSession.logout();
     }
     
+    public void testChatSampleWith100Users() throws InterruptedException, Exception {
+        Assert.assertTrue("Need 100 clients", numOfClientsGreaterThan(MAX_CHAT_CLIENTS));
+        List<ChatSample> sessions = new ArrayList<ChatSample>(MAX_CHAT_CLIENTS);
+        // Login and send some text
+        for(int idx=0; idx<MAX_CHAT_CLIENTS; idx++) {
+            sessions.add(new ChatSample(toolkits.get(idx)));
+            sessions.get(idx).login("User"+idx);
+            sessions.get(idx).sendMessage("Hi from User"+idx);
+        }
+        // Verify All users in user window by some user
+        for(int idx=0; idx<MAX_CHAT_CLIENTS; idx++) {
+            Assert.assertTrue("User"+idx+" seen by User50", sessions.get(MAX_CHAT_CLIENTS/2).getChatUsersWindowText().contains("User"+idx));
+            
+        }
+        for(int idx=MAX_CHAT_CLIENTS/4; idx<MAX_CHAT_CLIENTS; idx++) {
+            Assert.assertTrue("Hi from User"+idx+" seen by User25", sessions.get(MAX_CHAT_CLIENTS/4).getChatWindowText().contains("Hi from User"+idx));
+        }
+        //Logout
+        for(int idx=0; idx<MAX_CHAT_CLIENTS; idx++) {
+            sessions.get(idx).logout();
+        }
+    }
+    
     public void testAuctionSample() throws InterruptedException, Exception {
         Assert.assertTrue("we need at least one client connecting", hasAtLeastOneClient());
         AuctionSample session = new AuctionSample(toolkit);
@@ -265,4 +294,5 @@ public class TestScenarios {
         Assert.assertEquals("New bid accepted", bid, newPrice);
         session.exit();
     }
+
 }

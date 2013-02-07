@@ -40,6 +40,8 @@
 package org.glassfish.tyrus.tests.qa;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.junit.After;
@@ -90,6 +92,17 @@ public class BrowserTest {
         TestScenarios ts = new TestScenarios(aliceBrowser, bobBrowser);
         ts.testChatSampleWithTwoUsers();
         logger.log(Level.INFO, "==============================================================");
+    }
+    
+    @Test
+    public void testFirefoxClientChatWith100Users() throws InterruptedException, Exception {
+        List<SeleniumToolkit> toolkits = new ArrayList<SeleniumToolkit>();
+        // Launch 100 browsers
+        for(int idx=0; idx<TestScenarios.MAX_CHAT_CLIENTS; idx++) {
+            toolkits.add(new SeleniumToolkit(SeleniumToolkit.Browser.FIREFOX));
+        }
+        TestScenarios ts = new TestScenarios(toolkits.toArray(new SeleniumToolkit[toolkits.size()]));
+        ts.testChatSampleWith100Users();
     }
     
     @Test
