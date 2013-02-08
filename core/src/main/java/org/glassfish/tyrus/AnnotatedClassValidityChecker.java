@@ -111,7 +111,7 @@ public class AnnotatedClassValidityChecker {
      *
      * @param params to be checked.
      */
-    public void checkOnMessageParams(Method method, Map<Integer, Class<?>> params) throws DeploymentException {
+    public void checkOnMessageParams(Method method, Map<Integer, Class<?>> params) {
         final String errorPrefix = "Method: " + annotatedClass.getName() + "." + method.getName();
         boolean text = false;
         boolean binary = false;

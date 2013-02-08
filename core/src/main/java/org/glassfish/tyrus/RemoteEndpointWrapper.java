@@ -233,7 +233,7 @@ public final class RemoteEndpointWrapper implements RemoteEndpoint {
                 dataClass.equals(Character.class));
     }
 
-    public void close(CloseReason cr) throws IOException {
+    public void close(CloseReason cr) {
         Logger.getLogger(RemoteEndpointWrapper.class.getName()).fine("Close public void close(CloseReason cr): " + cr);
         remoteEndpoint.close(cr);
     }

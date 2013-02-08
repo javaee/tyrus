@@ -95,7 +95,7 @@ public class CoderWrapper<T> implements Decoder, Encoder {
     /**
      * Get the previously stored coder instance.
      *
-     * @return
+     * @return previously stored coder instance.
      */
     public T getCoder(){
         return instance;
