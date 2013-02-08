@@ -40,18 +40,30 @@
 
 package org.glassfish.tyrus.tests.servlet.noappconfig;
 
-import javax.websocket.WebSocketMessage;
-import javax.websocket.server.DefaultServerConfiguration;
-import javax.websocket.server.WebSocketEndpoint;
+import java.io.IOException;
+
+import javax.websocket.Endpoint;
+import javax.websocket.EndpointConfiguration;
+import javax.websocket.MessageHandler;
+import javax.websocket.Session;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-@WebSocketEndpoint(value = "/plainOne", configuration = DefaultServerConfiguration.class)
-public class PlainOne {
 
-    @WebSocketMessage
-    public String onMessage(String s) {
-        return "1";
+public class PlainOne extends Endpoint {
+
+    @Override
+    public void onOpen(final Session session, EndpointConfiguration endpointConfiguration) {
+        session.addMessageHandler(new MessageHandler.Basic<String>() {
+            @Override
+            public void onMessage(String s) {
+                try {
+                    session.getRemote().sendString("1");
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 }

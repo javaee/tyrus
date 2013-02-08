@@ -40,11 +40,13 @@
 
 package org.glassfish.tyrus.servlet;
 
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import javax.websocket.Endpoint;
 import javax.websocket.server.ServerApplicationConfiguration;
+import javax.websocket.server.ServerEndpointConfiguration;
 import javax.websocket.server.WebSocketEndpoint;
 
 import javax.servlet.FilterRegistration;
@@ -52,8 +54,6 @@ import javax.servlet.ServletContainerInitializer;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.HandlesTypes;
-
-import org.glassfish.tyrus.server.ApplicationConfig;
 
 /**
  * Registers a filter for upgrade handshake.
@@ -63,9 +63,17 @@ import org.glassfish.tyrus.server.ApplicationConfig;
  * @author Jitendra Kotamraju
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-@HandlesTypes({WebSocketEndpoint.class, ApplicationConfig.class, ServerApplicationConfiguration.class, Endpoint.class})
+@HandlesTypes({WebSocketEndpoint.class, ServerApplicationConfiguration.class, ServerEndpointConfiguration.class})
 public class TyrusServletContainerInitializer implements ServletContainerInitializer {
     private static final Logger LOGGER = Logger.getLogger(TyrusServletContainerInitializer.class.getName());
+
+    /**
+     * Tyrus classes scanned by container will be filtered.
+     */
+    private static final Set<Class<?>> FILTERED_CLASSES = new HashSet<Class<?>>(){{
+        add(org.glassfish.tyrus.AnnotatedEndpoint.class);
+        add(org.glassfish.tyrus.server.TyrusServerConfiguration.class);
+    }};
 
     public void onStartup(Set<Class<?>> classes, ServletContext ctx) throws ServletException {
         if (classes == null || classes.isEmpty()) {
@@ -73,6 +81,15 @@ public class TyrusServletContainerInitializer implements ServletContainerInitial
             // by it, we cannot deploy anything.
             return;
         }
+
+        for (Iterator<Class<?>> it = classes.iterator(); it.hasNext(); ) {
+            Class<?> cls = it.next();
+
+            if(FILTERED_CLASSES.contains(cls)){
+                it.remove();
+            }
+        }
+
         final FilterRegistration.Dynamic reg = ctx.addFilter("WebSocket filter", new TyrusServletFilter(classes));
         reg.setAsyncSupported(true);
         reg.addMappingForUrlPatterns(null, true, "/*");

@@ -58,6 +58,7 @@ import javax.websocket.server.WebSocketEndpoint;
 import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
+import org.glassfish.tyrus.tests.servlet.noappconfig.OneConfiguration;
 import org.glassfish.tyrus.tests.servlet.noappconfig.PlainEcho;
 import org.glassfish.tyrus.tests.servlet.noappconfig.PlainOne;
 
@@ -81,6 +82,7 @@ public class NoServerApplicationConfigurationDeployTest {
     private final Set<Class<?>> endpointClasses = new HashSet<Class<?>>() {{
         add(PlainEcho.class);
         add(PlainOne.class);
+        add(OneConfiguration.class);
     }};
 
     /**
@@ -193,7 +195,7 @@ public class NoServerApplicationConfigurationDeployTest {
                         // do nothing
                     }
                 }
-            }, new TyrusClientEndpointConfiguration.Builder().build(), getURI(PlainOne.class.getAnnotation(WebSocketEndpoint.class).value()));
+            }, new TyrusClientEndpointConfiguration.Builder().build(), getURI("/one"));
 
             messageLatch.await(1, TimeUnit.SECONDS);
             Assert.assertEquals(0, messageLatch.getCount());

@@ -46,12 +46,9 @@ import java.util.Set;
 import javax.websocket.server.ServerApplicationConfiguration;
 import javax.websocket.server.ServerEndpointConfiguration;
 
-import org.glassfish.tyrus.server.ApplicationConfig;
-
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-@ApplicationConfig
 public class TestServerApplicationConfiguration implements ServerApplicationConfiguration {
     @Override
     public Set<Class<? extends ServerEndpointConfiguration>> getEndpointConfigurationClasses(Set<Class<? extends ServerEndpointConfiguration>> scanned) {

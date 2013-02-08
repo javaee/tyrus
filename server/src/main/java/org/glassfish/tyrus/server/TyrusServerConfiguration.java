@@ -51,7 +51,6 @@ import javax.websocket.server.ServerApplicationConfiguration;
 import javax.websocket.server.ServerEndpointConfiguration;
 import javax.websocket.server.WebSocketEndpoint;
 
-import org.glassfish.tyrus.AnnotatedEndpoint;
 import org.glassfish.tyrus.ErrorCollector;
 import org.glassfish.tyrus.ReflectionHelper;
 
@@ -78,7 +77,7 @@ public class TyrusServerConfiguration implements ServerApplicationConfiguration 
         for (Iterator<Class<?>> it = classes.iterator(); it.hasNext(); ) {
             Class<?> cls = it.next();
 
-            if (cls.isInterface() || Modifier.isAbstract(cls.getModifiers()) || AnnotatedEndpoint.class.isAssignableFrom(cls)) {
+            if (cls.isInterface() || Modifier.isAbstract(cls.getModifiers())) {
                 errorCollector.addException(new DeploymentException(cls.getName() + ": Deployed Classes can't be abstract nor interface. The class will not be deployed."));
                 it.remove();
             }

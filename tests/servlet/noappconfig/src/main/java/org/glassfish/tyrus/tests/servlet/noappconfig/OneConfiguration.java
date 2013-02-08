@@ -38,22 +38,66 @@
  * holder.
  */
 
-package org.glassfish.tyrus.server;
+package org.glassfish.tyrus.tests.servlet.noappconfig;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.net.URI;
+import java.util.Collections;
+import java.util.List;
+
+import javax.websocket.Decoder;
+import javax.websocket.Encoder;
+import javax.websocket.Endpoint;
+import javax.websocket.Extension;
+import javax.websocket.HandshakeResponse;
+import javax.websocket.server.HandshakeRequest;
+import javax.websocket.server.ServerEndpointConfiguration;
 
 /**
- * Annotates application configuration class.
- * </p>
- * Each {@link javax.websocket.server.ServerApplicationConfiguration} needs to be decorated with this annotation to get scanned by the container.
- * Used as a workaround till issue http://java.net/jira/browse/GLASSFISH-19551 gets solved.
- *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-public @interface ApplicationConfig {
+public class OneConfiguration implements ServerEndpointConfiguration {
+    @Override
+    public Class<? extends Endpoint> getEndpointClass() {
+        return PlainOne.class;
+    }
+
+    @Override
+    public String getNegotiatedSubprotocol(List<String> strings) {
+        return "";
+    }
+
+    @Override
+    public List<Extension> getNegotiatedExtensions(List<Extension> extensions) {
+        return Collections.EMPTY_LIST;
+    }
+
+    @Override
+    public boolean checkOrigin(String s) {
+        return true;
+    }
+
+    @Override
+    public boolean matchesURI(URI uri) {
+        return true;
+    }
+
+    @Override
+    public void modifyHandshake(HandshakeRequest handshakeRequest, HandshakeResponse handshakeResponse) {
+
+    }
+
+    @Override
+    public String getPath() {
+        return "/one";
+    }
+
+    @Override
+    public List<Encoder> getEncoders() {
+        return Collections.EMPTY_LIST;
+    }
+
+    @Override
+    public List<Decoder> getDecoders() {
+        return Collections.EMPTY_LIST;
+    }
 }

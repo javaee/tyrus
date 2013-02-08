@@ -46,12 +46,9 @@ import java.util.Set;
 import javax.websocket.server.ServerApplicationConfiguration;
 import javax.websocket.server.ServerEndpointConfiguration;
 
-import org.glassfish.tyrus.server.ApplicationConfig;
-
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-@ApplicationConfig
 public class SecondServerApplicationConfiguration implements ServerApplicationConfiguration {
 
     private static boolean annotatedGetterCalled = false;
