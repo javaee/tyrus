@@ -40,19 +40,22 @@
 
 package org.glassfish.tyrus.test.e2e;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.Session;
+import javax.websocket.WebSocketOpen;
+import javax.websocket.server.DefaultServerConfiguration;
+import javax.websocket.server.WebSocketEndpoint;
 
 import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
-import org.glassfish.tyrus.test.e2e.bean.EchoEndpoint;
-import org.glassfish.tyrus.test.e2e.bean.SimpleRemoteTestEndpoint;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
@@ -63,16 +66,26 @@ import static org.junit.Assert.assertEquals;
  */
 public class ServerContainerGetOpenSessionsTest {
 
-    private String receivedMessage;
-    private static final String SENT_MESSAGE = "Hello World";
+    private static Session session;
+
+    @WebSocketEndpoint(value = "/customremote/hello", configuration = DefaultServerConfiguration.class)
+    public class SimpleRemoteTestEndpoint {
+
+        @WebSocketOpen
+        public void onOpen(Session s) {
+            System.out.println("### opened! " + s);
+            ServerContainerGetOpenSessionsTest.session = s;
+        }
+    }
 
     @Test
+    @Ignore
     public void testGetOpenSessions() {
         final CountDownLatch messageLatch = new CountDownLatch(1);
         TyrusClientEndpointConfiguration.Builder builder = new TyrusClientEndpointConfiguration.Builder();
         final TyrusClientEndpointConfiguration dcec = builder.build();
 
-        Server server = new Server(SimpleRemoteTestEndpoint.class, EchoEndpoint.class);
+        Server server = new Server(SimpleRemoteTestEndpoint.class);
 
         try {
             server.start();
@@ -81,6 +94,11 @@ public class ServerContainerGetOpenSessionsTest {
                 client.connectToServer(new TestEndpointAdapter() {
                     @Override
                     public void onOpen(Session session) {
+                        try {
+                            session.getRemote().sendString("a");
+                        } catch (IOException e) {
+                            // nothing
+                        }
                     }
 
                     @Override
@@ -93,19 +111,22 @@ public class ServerContainerGetOpenSessionsTest {
                 client.connectToServer(new TestEndpointAdapter() {
                     @Override
                     public void onOpen(Session session) {
+                        try {
+                            session.getRemote().sendString("a");
+                        } catch (IOException e) {
+                            // nothing
+                        }
                     }
 
                     @Override
                     public void onMessage(String s) {
                     }
-                }, dcec, new URI("wss://localhost:8025/websockets/tests/echo"));
+                }, dcec, new URI("wss://localhost:8025/websockets/tests/customremote/hello"));
             }
 
-            messageLatch.await(1, TimeUnit.SECONDS);
-            Set<Session> serverSessions = server.getServerContainer().getOpenSessions();
+            messageLatch.await(10, TimeUnit.SECONDS);
+            Set<Session> serverSessions = ServerContainerGetOpenSessionsTest.session.getOpenSessions();
             assertEquals(4, serverSessions.size());
-
-
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);

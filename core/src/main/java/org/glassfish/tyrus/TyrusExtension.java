@@ -42,11 +42,7 @@ package org.glassfish.tyrus;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 import java.util.logging.Logger;
 
 import javax.websocket.Extension;
@@ -60,7 +56,7 @@ public class TyrusExtension implements Extension {
 
     private static final Logger LOGGER = Logger.getLogger(TyrusExtension.class.getName());
     private final String name;
-    private final Map<String, String> parameters;
+    private final List<Parameter> parameters;
 
     /**
      * Create {@link Extension} with specific name.
@@ -78,23 +74,16 @@ public class TyrusExtension implements Extension {
      * @param name       extension name.
      * @param parameters extension parameters.
      */
-    public TyrusExtension(String name, Map<String, String> parameters) {
+    public TyrusExtension(String name, List<Parameter> parameters) {
         if (name == null || name.length() == 0) {
             throw new IllegalArgumentException();
         }
 
         this.name = name;
         if (parameters != null) {
-            final TreeMap<String, String> m = new TreeMap<String, String>(new Comparator<String>() {
-                @Override
-                public int compare(String o1, String o2) {
-                    return o1.compareTo(o2);
-                }
-            });
-            m.putAll(parameters);
-            this.parameters = Collections.unmodifiableMap(m);
+            this.parameters = Collections.unmodifiableList(new ArrayList<Parameter>(parameters));
         } else {
-            this.parameters = Collections.unmodifiableMap(Collections.<String, String>emptyMap());
+            this.parameters = Collections.unmodifiableList(Collections.<Parameter>emptyList());
         }
     }
 
@@ -104,7 +93,7 @@ public class TyrusExtension implements Extension {
     }
 
     @Override
-    public Map<String, String> getParameters() {
+    public List<Parameter> getParameters() {
         return parameters;
     }
 
@@ -123,19 +112,7 @@ public class TyrusExtension implements Extension {
 
         TyrusExtension that = (TyrusExtension) o;
 
-        final Comparator<String> stringComparator = new Comparator<String>() {
-            @Override
-            public int compare(String o1, String o2) {
-                return o1.compareTo(o2);
-            }
-        };
-
-        TreeMap<String, String> params1 = new TreeMap<String, String>(stringComparator);
-        TreeMap<String, String> params2 = new TreeMap<String, String>(stringComparator);
-        params1.putAll(parameters);
-        params2.putAll(that.parameters);
-
-        return name.equals(that.name) && params1.equals(params2);
+        return name.equals(that.name) && parameters.equals(that.parameters);
     }
 
     @Override
@@ -186,7 +163,7 @@ public class TyrusExtension implements Extension {
             StringBuilder name = new StringBuilder();
             StringBuilder paramName = new StringBuilder();
             StringBuilder paramValue = new StringBuilder();
-            Map<String, String> params = new HashMap<String, String>();
+            List<Parameter> params = new ArrayList<Parameter>();
 
             do {
                 switch (next) {
@@ -245,13 +222,13 @@ public class TyrusExtension implements Extension {
                                 break;
                             case ';':
                                 next = ParserState.PARAM_NAME;
-                                params.put(paramName.toString().trim(), paramValue.toString().trim());
+                                params.add(new TyrusParameter(paramName.toString().trim(), paramValue.toString().trim()));
                                 paramName = new StringBuilder();
                                 paramValue = new StringBuilder();
                                 break;
                             case ',':
                                 next = ParserState.NAME_START;
-                                params.put(paramName.toString().trim(), paramValue.toString().trim());
+                                params.add(new TyrusParameter(paramName.toString().trim(), paramValue.toString().trim()));
                                 paramName = new StringBuilder();
                                 paramValue = new StringBuilder();
                                 break;
@@ -269,7 +246,7 @@ public class TyrusExtension implements Extension {
                         switch (chars[i]) {
                             case '"':
                                 next = ParserState.PARAM_VALUE_QUOTED_POST;
-                                params.put(paramName.toString().trim(), paramValue.toString());
+                                params.add(new TyrusParameter(paramName.toString().trim(), paramValue.toString()));
                                 paramName = new StringBuilder();
                                 paramValue = new StringBuilder();
                                 break;
@@ -335,7 +312,7 @@ public class TyrusExtension implements Extension {
 
             if ((name.length() > 0) && (next != ParserState.ERROR)) {
                 if (paramName.length() > 0) {
-                    params.put(paramName.toString().trim(), paramValue.toString());
+                    params.add(new TyrusParameter(paramName.toString().trim(), paramValue.toString()));
                 }
                 extensions.add(new TyrusExtension(name.toString().trim(), params));
                 params.clear();
@@ -345,5 +322,35 @@ public class TyrusExtension implements Extension {
         }
 
         return extensions;
+    }
+
+    /**
+     * WebSocket {@link Parameter} implementation.
+     */
+    public static class TyrusParameter implements Parameter {
+
+        private final String name;
+        private final String value;
+
+        /**
+         * Create {@link Parameter} with name and value.
+         *
+         * @param name  parameter name.
+         * @param value parameter value.
+         */
+        public TyrusParameter(String name, String value) {
+            this.name = name;
+            this.value = value;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public String getValue() {
+            return value;
+        }
     }
 }

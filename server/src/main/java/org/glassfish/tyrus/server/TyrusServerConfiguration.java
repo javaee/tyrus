@@ -62,7 +62,7 @@ import org.glassfish.tyrus.ReflectionHelper;
 public class TyrusServerConfiguration implements ServerApplicationConfiguration {
 
     private final Set<Class<? extends ServerEndpointConfiguration>> programmaticClasses = new HashSet<Class<? extends ServerEndpointConfiguration>>();
-    private final Set<Class> annotatedClasses = new HashSet<Class>();
+    private final Set<Class<?>> annotatedClasses = new HashSet<Class<?>>();
 
     /**
      * Create new {@link TyrusServerConfiguration}.
@@ -88,7 +88,7 @@ public class TyrusServerConfiguration implements ServerApplicationConfiguration 
         }
 
         final Set<Class<? extends ServerEndpointConfiguration>> scannedProgramatics = new HashSet<Class<? extends ServerEndpointConfiguration>>();
-        final Set<Class> scannedAnnotateds = new HashSet<Class>();
+        final Set<Class<?>> scannedAnnotateds = new HashSet<Class<?>>();
 
         for (Class<?> cls : classes) {
             if (ServerEndpointConfiguration.class.isAssignableFrom(cls)) {
@@ -104,8 +104,8 @@ public class TyrusServerConfiguration implements ServerApplicationConfiguration 
                 programmatic = programmatic == null ? new HashSet<Class<? extends ServerEndpointConfiguration>>() : programmatic;
                 programmaticClasses.addAll(programmatic);
 
-                Set<Class> annotated = configuration.getAnnotatedEndpointClasses(scannedAnnotateds);
-                annotated = annotated == null ? new HashSet<Class>() : annotated;
+                Set<Class<?>> annotated = configuration.getAnnotatedEndpointClasses(scannedAnnotateds);
+                annotated = annotated == null ? new HashSet<Class<?>>() : annotated;
                 annotatedClasses.addAll(annotated);
             }
         } else {
@@ -132,7 +132,7 @@ public class TyrusServerConfiguration implements ServerApplicationConfiguration 
      * @return all the classes annotated with {@link WebSocketEndpoint} annotation which should be deployed.
      */
     @Override
-    public Set<Class> getAnnotatedEndpointClasses(Set<Class> scanned) {
+    public Set<Class<?>> getAnnotatedEndpointClasses(Set<Class<?>> scanned) {
         return Collections.unmodifiableSet(annotatedClasses);
     }
 }

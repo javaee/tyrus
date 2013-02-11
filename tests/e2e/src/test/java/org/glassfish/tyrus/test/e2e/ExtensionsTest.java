@@ -42,7 +42,6 @@ package org.glassfish.tyrus.test.e2e;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -81,7 +80,7 @@ public class ExtensionsTest {
     public static class TestEndpoint {
         @WebSocketOpen
         public void onOpen(Session s) {
-            for (Extension extension : ((SessionImpl) s).getNegotiatedExtensions___TODO()) {
+            for (Extension extension : s.getNegotiatedExtensions()) {
                 if (extension.getName().equals("ext1") || extension.getName().equals("ext2")) {
                     messageLatch.countDown();
                 }
@@ -117,24 +116,24 @@ public class ExtensionsTest {
         try {
             server.start();
 
-            final HashMap<String, String> map1 = new HashMap<String, String>() {{
-                put("prop1", "val1");
-                put("prop2", "val2");
-                put("prop3", "val3");
+            final List<Extension.Parameter> list1 = new ArrayList<Extension.Parameter>() {{
+                add(new TyrusExtension.TyrusParameter("prop1", "val1"));
+                add(new TyrusExtension.TyrusParameter("prop2", "val2"));
+                add(new TyrusExtension.TyrusParameter("prop3", "val3"));
             }};
 
-            final HashMap<String, String> map2 = new HashMap<String, String>() {{
-                put("prop1", "val1");
-                put("prop2", "val2");
-                put("prop3", "val3");
+            final List<Extension.Parameter> list2 = new ArrayList<Extension.Parameter>() {{
+                add(new TyrusExtension.TyrusParameter("prop1", "val1"));
+                add(new TyrusExtension.TyrusParameter("prop2", "val2"));
+                add(new TyrusExtension.TyrusParameter("prop3", "val3"));
             }};
 
             ArrayList<Extension> extensions = new ArrayList<Extension>();
-            extensions.add(new TyrusExtension("ext1", map1));
-            extensions.add(new TyrusExtension("ext2", map2));
+            extensions.add(new TyrusExtension("ext1", list1));
+            extensions.add(new TyrusExtension("ext2", list2));
 
             final MyClientConfiguration clientConfiguration = new MyClientConfiguration();
-            clientConfiguration.setExtensions___TODO(extensions);
+            clientConfiguration.setExtensions(extensions);
 
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new Endpoint() {
@@ -147,7 +146,7 @@ public class ExtensionsTest {
                         session.addMessageHandler(new MessageHandler.Basic<String>() {
                             @Override
                             public void onMessage(String message) {
-                                final List<Extension> extensionList = ((SessionImpl) session).getNegotiatedExtensions___TODO();
+                                final List<Extension> extensionList = ((SessionImpl) session).getNegotiatedExtensions();
                                 for (Extension extension : extensionList) {
                                     if (extension.getName().equals("ext1") || extension.getName().equals("ext2")) {
                                         messageLatch.countDown();

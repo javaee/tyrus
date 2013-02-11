@@ -66,16 +66,16 @@ public class ClientManagerTest {
     public void maxBinaryMessageBufferSize() {
         final ClientManager clientManager = createClientManager();
 
-        clientManager.setMaxBinaryMessageBufferSize(100);
-        assertEquals(100, clientManager.getMaxBinaryMessageBufferSize());
+        clientManager.setDefaultMaxBinaryMessageBufferSize(100);
+        assertEquals(100, clientManager.getDefaultMaxBinaryMessageBufferSize());
     }
 
     @Test
     public void maxTextMessageBufferSize() {
         final ClientManager clientManager = createClientManager();
 
-        clientManager.setMaxTextMessageBufferSize(100);
-        assertEquals(100, clientManager.getMaxTextMessageBufferSize());
+        clientManager.setDefaultMaxTextMessageBufferSize(100);
+        assertEquals(100, clientManager.getDefaultMaxTextMessageBufferSize());
 
     }
 

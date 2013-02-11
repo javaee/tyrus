@@ -69,10 +69,9 @@ public class ContainerProviderTest {
     private final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
 
     @Test
+    @Ignore
     public void simple() {
-        System.setProperty("websocket.clientcontainer.classname", ClientManager.class.getName());
-
-        assertNotNull(javax.websocket.ContainerProvider.getClientContainer());
+        assertNotNull(javax.websocket.ContainerProvider.getWebSocketContainer());
     }
 
     @Test

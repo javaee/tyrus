@@ -180,8 +180,8 @@ public class TyrusServerConfigurationTest {
         }
 
         @Override
-        public Set<Class> getAnnotatedEndpointClasses(Set<Class> scanned) {
-            return new HashSet<Class>(){{
+        public Set<Class<?>> getAnnotatedEndpointClasses(Set<Class<?>> scanned) {
+            return new HashSet<Class<?>>(){{
                 add(AnnotatedA.class);
             }};
         }
@@ -197,8 +197,8 @@ public class TyrusServerConfigurationTest {
         }
 
         @Override
-        public Set<Class> getAnnotatedEndpointClasses(Set<Class> scanned) {
-            return new HashSet<Class>(){{
+        public Set<Class<?>> getAnnotatedEndpointClasses(Set<Class<?>> scanned) {
+            return new HashSet<Class<?>>(){{
                 add(AnnotatedA.class);
             }};
         }

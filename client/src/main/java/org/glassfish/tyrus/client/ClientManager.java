@@ -83,9 +83,9 @@ public class ClientManager implements WebSocketContainer {
     private final ErrorCollector collector;
 
     private long maxSessionIdleTimeout;
-    private long maxBinaryMessageBufferSize;
-    private long maxTextMessageBufferSize;
     private long defaultAsyncSendTimeout;
+    private int maxBinaryMessageBufferSize;
+    private int maxTextMessageBufferSize;
 
     /**
      * Create new {@link ClientManager} instance.
@@ -153,12 +153,6 @@ public class ClientManager implements WebSocketContainer {
 
     public Session connectToServer(Object obj, ClientEndpointConfiguration cec, URI path) throws DeploymentException {
         return connectToServer(obj, cec, path.toString());
-    }
-
-
-    @Override
-    public Set<Session> getOpenSessions() {
-        return null;
     }
 
     /**
@@ -238,23 +232,23 @@ public class ClientManager implements WebSocketContainer {
     }
 
     @Override
-    public long getMaxBinaryMessageBufferSize() {
+    public int getDefaultMaxBinaryMessageBufferSize() {
         return maxBinaryMessageBufferSize;
     }
 
     @Override
-    public void setMaxBinaryMessageBufferSize(long maxBinaryMessageBufferSize) {
-        this.maxBinaryMessageBufferSize = maxBinaryMessageBufferSize;
+    public void setDefaultMaxBinaryMessageBufferSize(int i) {
+        maxBinaryMessageBufferSize = i;
     }
 
     @Override
-    public long getMaxTextMessageBufferSize() {
+    public int getDefaultMaxTextMessageBufferSize() {
         return maxTextMessageBufferSize;
     }
 
     @Override
-    public void setMaxTextMessageBufferSize(long maxTextMessageBufferSize) {
-        this.maxTextMessageBufferSize = maxTextMessageBufferSize;
+    public void setDefaultMaxTextMessageBufferSize(int i) {
+        maxTextMessageBufferSize = i;
     }
 
     @Override
