@@ -54,7 +54,6 @@ import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -70,49 +69,46 @@ public class PrimitiveDataTypesTest {
 
     private final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
 
-    @Ignore
+
     @Test
     public void testBoolean() {
         testPojo(org.glassfish.tyrus.test.e2e.bean.stin.BooleanBean.class, "/standardInputTypes/boolean", "true", "PASS");
     }
 
-    @Ignore
+
     @Test
     public void testChar() {
         testPojo(org.glassfish.tyrus.test.e2e.bean.stin.CharBean.class, "/standardInputTypes/char", "c", "PASS");
     }
 
-    @Ignore
+
     @Test
     public void testDouble() {
         testPojo(org.glassfish.tyrus.test.e2e.bean.stin.DoubleBean.class, "/standardInputTypes/double", "42.0", "PASS");
     }
 
-    @Ignore
+
     @Test
     public void testFloat() {
         testPojo(org.glassfish.tyrus.test.e2e.bean.stin.FloatBean.class, "/standardInputTypes/float", "42.0", "PASS");
     }
 
-    @Ignore
+
     @Test
     public void testInt() {
         testPojo(org.glassfish.tyrus.test.e2e.bean.stin.IntBean.class, "/standardInputTypes/int", "42", "PASS");
     }
 
-    @Ignore
     @Test
     public void testLong() {
         testPojo(org.glassfish.tyrus.test.e2e.bean.stin.LongBean.class, "/standardInputTypes/long", "42", "PASS");
     }
 
-    @Ignore
     @Test
     public void testShort() {
         testPojo(org.glassfish.tyrus.test.e2e.bean.stin.ShortBean.class, "/standardInputTypes/short", "42", "PASS");
     }
 
-    @Ignore
     @Test
     public void testString() {
         testPojo(org.glassfish.tyrus.test.e2e.bean.stin.StringBean.class, "/standardInputTypes/String", "String", "PASS");

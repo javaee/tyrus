@@ -167,30 +167,30 @@ public class EndpointWrapper extends SPIEndpoint {
                 decoders.add((CoderWrapper) dec);
             } else {
                 Class<?> type = getDecoderClassType(dec.getClass());
-                decoders.add(new CoderWrapper<Decoder>(dec, type, dec.getClass()));
+                decoders.add(new CoderWrapper<Decoder>(dec, type));
             }
         }
 
         decoders.addAll(PrimitiveDecoders.ALL_WRAPPED);
-        decoders.add(new CoderWrapper<Decoder>(NoOpTextCoder.INSTANCE, String.class, NoOpTextCoder.class));
-        decoders.add(new CoderWrapper<Decoder>(NoOpByteBufferCoder.INSTANCE, ByteBuffer.class, NoOpByteBufferCoder.class));
-        decoders.add(new CoderWrapper<Decoder>(NoOpByteArrayCoder.INSTANCE, byte[].class, NoOpByteArrayCoder.class));
-        decoders.add(new CoderWrapper<Decoder>(ReaderDecoder.INSTANCE, Reader.class, ReaderDecoder.class));
-        decoders.add(new CoderWrapper<Decoder>(InputStreamDecoder.INSTANCE, InputStream.class, InputStreamDecoder.class));
+        decoders.add(new CoderWrapper<Decoder>(NoOpTextCoder.INSTANCE, String.class));
+        decoders.add(new CoderWrapper<Decoder>(NoOpByteBufferCoder.INSTANCE, ByteBuffer.class));
+        decoders.add(new CoderWrapper<Decoder>(NoOpByteArrayCoder.INSTANCE, byte[].class));
+        decoders.add(new CoderWrapper<Decoder>(ReaderDecoder.INSTANCE, Reader.class));
+        decoders.add(new CoderWrapper<Decoder>(InputStreamDecoder.INSTANCE, InputStream.class));
 
         for (Encoder encoder : this.configuration.getEncoders()) {
             if (encoder instanceof CoderWrapper) {
                 encoders.add((CoderWrapper) encoder);
             } else {
                 Class<?> type = getEncoderClassType(encoder.getClass());
-                encoders.add(new CoderWrapper<Encoder>(encoder, type, encoder.getClass()));
+                encoders.add(new CoderWrapper<Encoder>(encoder, type));
             }
         }
 
-        encoders.add(new CoderWrapper<Encoder>(NoOpTextCoder.INSTANCE, String.class, NoOpTextCoder.class));
-        encoders.add(new CoderWrapper<Encoder>(NoOpByteBufferCoder.INSTANCE, ByteBuffer.class, NoOpByteBufferCoder.class));
-        encoders.add(new CoderWrapper<Encoder>(NoOpByteArrayCoder.INSTANCE, byte[].class, NoOpByteArrayCoder.class));
-        encoders.add(new CoderWrapper<Encoder>(ToStringEncoder.INSTANCE, Object.class, ToStringEncoder.class));
+        encoders.add(new CoderWrapper<Encoder>(NoOpTextCoder.INSTANCE, String.class));
+        encoders.add(new CoderWrapper<Encoder>(NoOpByteBufferCoder.INSTANCE, ByteBuffer.class));
+        encoders.add(new CoderWrapper<Encoder>(NoOpByteArrayCoder.INSTANCE, byte[].class));
+        encoders.add(new CoderWrapper<Encoder>(ToStringEncoder.INSTANCE, Object.class));
     }
 
     @Override
@@ -266,17 +266,17 @@ public class EndpointWrapper extends SPIEndpoint {
         ArrayList<CoderWrapper<Decoder>> result = new ArrayList<CoderWrapper<Decoder>>();
 
         for (CoderWrapper<Decoder> dec : decoders) {
-            if (isString && (Decoder.Text.class.isAssignableFrom(dec.getOriginalClass()))) {
+            if (isString && (Decoder.Text.class.isAssignableFrom(dec.getCoder().getClass()))) {
                 if (((Decoder.Text) dec.getCoder()).willDecode((String) message)) {
                     result.add(dec);
                 }
-            } else if (!isString && (Decoder.Binary.class.isAssignableFrom(dec.getOriginalClass()))) {
+            } else if (!isString && (Decoder.Binary.class.isAssignableFrom(dec.getCoder().getClass()))) {
                 if (((Decoder.Binary) dec.getCoder()).willDecode((ByteBuffer) message)) {
                     result.add(dec);
                 }
-            } else if (isString && (Decoder.TextStream.class.isAssignableFrom(dec.getOriginalClass()))) {
+            } else if (isString && (Decoder.TextStream.class.isAssignableFrom(dec.getCoder().getClass()))) {
                 result.add(dec);
-            } else if (!isString && (Decoder.BinaryStream.class.isAssignableFrom(dec.getOriginalClass()))) {
+            } else if (!isString && (Decoder.BinaryStream.class.isAssignableFrom(dec.getCoder().getClass()))) {
                 result.add(dec);
             }
         }

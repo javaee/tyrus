@@ -40,18 +40,15 @@
 
 package org.glassfish.tyrus;
 
-import java.io.InputStream;
-import java.io.Reader;
 import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
 
-import javax.websocket.Decoder;
 import javax.websocket.DeploymentException;
 import javax.websocket.Encoder;
 import javax.websocket.EndpointConfiguration;
-import javax.websocket.PongMessage;
+import javax.websocket.MessageHandler;
 
 /**
  * Used when processing a class annotated with {@link @WebSocketEndpoint} to check that it complies with specification.
@@ -61,135 +58,45 @@ import javax.websocket.PongMessage;
 public class AnnotatedClassValidityChecker {
 
     private static final String MULTIPLE_IDENTICAL_PARAMETERS = " has got multiple parameters of identical type.";
-    private static final String MULTIPLE_METHODS_TEXT_PARTIAL = " has got multiple methods consuming partial text messages.";
-    private static final String MULTIPLE_METHODS_BINARY_PARTIAL = " has got multiple methods consuming partial binary messages.";
-    private static final String MULTIPLE_METHODS_TEXT = " has got multiple methods consuming text messages.";
-    private static final String MULTIPLE_METHODS_BINARY = " has got multiple methods consuming binary messages.";
-    private static final String MULTIPLE_METHODS_PONG = " has got multiple methods consuming pong messages.";
-    private static final String FORBIDDEN_WEB_SOCKET_MESSAGE_PARAM = " is not allowed as parameter type for method annotated with @WebSocketMessage.";
     private static final String FORBIDDEN_WEB_SOCKET_OPEN_PARAM = " is not allowed as parameter type for method annotated with @WebSocketOpen.";
     private static final String FORBIDDEN_WEB_SOCKET_CLOSE_PARAMS = " @WebSocketClose has got different params than Session.";
     private static final String FORBIDDEN_WEB_SOCKET_ERROR_PARAM = " is not allowed as parameter type for method annotated with @WebSocketError.";
     private static final String MANDATORY_ERROR_PARAM_MISSING = " does not have mandatory Throwable param.";
-    private static final String FORBIDDEN_PARAMETER_COMBINATION = " has got unsupported parameter combination.";
     private static final String FORBIDDEN_RETURN_TYPE = " has got unsupported return type.";
 
     private final Class<?> annotatedClass;
-
-    /**
-     * Keeps information on present onMessage methods with different valid parameters.
-     * <p/>
-     * 0 - String.
-     * 1 - String and boolean.
-     * 2 - byte[] or ByteBuffer.
-     * 3 - (byte[] or ByteBuffer) and boolean.
-     * 4 - PongMessage.
-     */
-    private final boolean[] onMessageCombinations = {false, false, false, false, false};
-    private final List<Decoder> decoders;
     private final List<Encoder> encoders;
     private final ErrorCollector collector;
+    private final MessageHandlerManager handlerManager;
 
     /**
      * Construct the class validity checker.
      *
      * @param annotatedClass class for which this checker is constructed.
-     * @param decoders       specified in the {@link javax.websocket.EndpointConfiguration}.
      */
-    public AnnotatedClassValidityChecker(Class<?> annotatedClass, List<Decoder> decoders, List<Encoder> encoders, ErrorCollector collector) {
+    public AnnotatedClassValidityChecker(Class<?> annotatedClass, List<Encoder> encoders, ErrorCollector collector) {
         this.annotatedClass = annotatedClass;
-        this.decoders = decoders;
         this.encoders = encoders;
         this.collector = collector;
+        this.handlerManager = new MessageHandlerManager();
     }
 
     /**
-     * Checks whether the params of the method annotated with {@link javax.websocket.WebSocketMessage}comply with the specification.
+     * Checks whether the params of the method annotated with {@link javax.websocket.WebSocketMessage} comply with the specification.
      * <p/>
      * Voluntary parameters of type {@link javax.websocket.Session} and parameters annotated with {@link javax.websocket.server.WebSocketPathParam}
      * are checked in advance in {@link AnnotatedEndpoint}.
-     *
-     * @param params to be checked.
      */
-    public void checkOnMessageParams(Method method, Map<Integer, Class<?>> params) {
-        final String errorPrefix = "Method: " + annotatedClass.getName() + "." + method.getName();
-        boolean text = false;
-        boolean binary = false;
-        boolean partial = false;
-        boolean pong = false;
-        boolean decoded = false;
+
+    public void checkOnMessageParams(Method method, MessageHandler handler) throws DeploymentException {
+        try {
+            handlerManager.addMessageHandler(handler);
+        } catch (IllegalStateException ise) {
+            collector.addException(new DeploymentException(ise.getMessage(), ise.getCause()));
+
+        }
 
         checkOnMessageReturnType(method);
-
-        Class<?>[] values = new Class<?>[params.size()];
-        params.values().toArray(values);
-
-        for (Class<?> value : values) {
-            if (value == String.class || value == Reader.class) {
-                if (text) {
-                    logDeploymentException(new DeploymentException(errorPrefix + MULTIPLE_IDENTICAL_PARAMETERS));
-                }
-                text = true;
-                continue;
-            } else if (value == ByteBuffer.class || value == byte[].class || value == InputStream.class) {
-                if (binary) {
-                    logDeploymentException(new DeploymentException(errorPrefix + MULTIPLE_IDENTICAL_PARAMETERS));
-                }
-                binary = true;
-                continue;
-            } else if (value == boolean.class) {
-                if (partial) {
-                    logDeploymentException(new DeploymentException(errorPrefix + MULTIPLE_IDENTICAL_PARAMETERS));
-                }
-                partial = true;
-                continue;
-            } else if (value == PongMessage.class) {
-                if (pong) {
-                    logDeploymentException(new DeploymentException(errorPrefix + MULTIPLE_IDENTICAL_PARAMETERS));
-                }
-                pong = true;
-                continue;
-            } else if (checkDecoders(value)) {
-                if (decoded) {
-                    logDeploymentException(new DeploymentException(errorPrefix + MULTIPLE_IDENTICAL_PARAMETERS));
-                }
-                decoded = true;
-                continue;
-            }
-
-            logDeploymentException(new DeploymentException(errorPrefix + ": " + value + FORBIDDEN_WEB_SOCKET_MESSAGE_PARAM));
-        }
-
-        if ((text && binary) || (text && pong) || (binary && pong) || (pong && partial) || (decoded && binary) || (decoded && text) || (decoded && pong)) {
-            logDeploymentException(new DeploymentException(errorPrefix + FORBIDDEN_PARAMETER_COMBINATION));
-        }
-
-        if (text && partial) {
-            if (onMessageCombinations[1]) {
-                logDeploymentException(new DeploymentException(annotatedClass.getName() + MULTIPLE_METHODS_TEXT_PARTIAL));
-            }
-            onMessageCombinations[1] = true;
-        } else if (binary && partial) {
-            if (onMessageCombinations[3]) {
-                logDeploymentException(new DeploymentException(annotatedClass.getName() + MULTIPLE_METHODS_BINARY_PARTIAL));
-            }
-            onMessageCombinations[3] = true;
-        } else if (text) {
-            if (onMessageCombinations[0]) {
-                logDeploymentException(new DeploymentException(annotatedClass.getName() + MULTIPLE_METHODS_TEXT));
-            }
-            onMessageCombinations[0] = true;
-        } else if (binary) {
-            if (onMessageCombinations[2]) {
-                logDeploymentException(new DeploymentException(annotatedClass.getName() + MULTIPLE_METHODS_BINARY));
-            }
-            onMessageCombinations[2] = true;
-        } else if (pong) {
-            if (onMessageCombinations[4]) {
-                logDeploymentException(new DeploymentException(annotatedClass.getName() + MULTIPLE_METHODS_PONG));
-            }
-            onMessageCombinations[4] = true;
-        }
     }
 
     private void checkOnMessageReturnType(Method method) {
@@ -197,7 +104,7 @@ public class AnnotatedClassValidityChecker {
 
         if (returnType != void.class && returnType != String.class && returnType != ByteBuffer.class &&
                 returnType != byte[].class && !returnType.isPrimitive() && !checkEncoders(returnType)) {
-            logDeploymentException(new DeploymentException("Method: " + annotatedClass.getName() + "." + method.getName() + FORBIDDEN_RETURN_TYPE));
+            logDeploymentException(new DeploymentException(String.format("Method: %s.%s %s", annotatedClass.getName(), method.getName(), FORBIDDEN_RETURN_TYPE)));
         }
     }
 
@@ -210,11 +117,9 @@ public class AnnotatedClassValidityChecker {
      * @param params to be checked.
      */
     public void checkOnOpenParams(Method method, Map<Integer, Class<?>> params) {
-        final String errorPrefix = "Method: " + annotatedClass.getName() + "." + method.getName();
-
         for (Class<?> value : params.values()) {
             if (value != EndpointConfiguration.class) {
-                logDeploymentException(new DeploymentException(errorPrefix + ": " + value + FORBIDDEN_WEB_SOCKET_OPEN_PARAM));
+                logDeploymentException(new DeploymentException(String.format("%s:%s %s", getPrefix(method.getName()), value, FORBIDDEN_WEB_SOCKET_OPEN_PARAM)));
             }
         }
     }
@@ -225,10 +130,8 @@ public class AnnotatedClassValidityChecker {
      * @param params unknown params of the method.
      */
     public void checkOnCloseParams(Method method, Map<Integer, Class<?>> params) {
-        final String errorPrefix = "Method: " + annotatedClass.getName() + "." + method.getName();
-
         if (params.size() > 0) {
-            logDeploymentException(new DeploymentException(errorPrefix + FORBIDDEN_WEB_SOCKET_CLOSE_PARAMS));
+            logDeploymentException(new DeploymentException(String.format("%s %s", getPrefix(method.getName()), FORBIDDEN_WEB_SOCKET_CLOSE_PARAMS)));
         }
     }
 
@@ -238,41 +141,32 @@ public class AnnotatedClassValidityChecker {
      * @param params unknown params of the method.
      */
     public void checkOnErrorParams(Method method, Map<Integer, Class<?>> params) {
-        final String errorPrefix = "Method: " + annotatedClass.getName() + "." + method.getName();
         boolean throwablePresent = false;
 
         for (Class<?> value : params.values()) {
             if (value != Throwable.class) {
-                logDeploymentException(new DeploymentException(errorPrefix + ": " + value + FORBIDDEN_WEB_SOCKET_ERROR_PARAM));
+                logDeploymentException(new DeploymentException(String.format("%s%s%s", getPrefix(method.getName()), value, FORBIDDEN_WEB_SOCKET_ERROR_PARAM)));
             } else {
                 if (throwablePresent) {
-                    logDeploymentException(new DeploymentException(errorPrefix + ": " + MULTIPLE_IDENTICAL_PARAMETERS));
+                    logDeploymentException(new DeploymentException(String.format("%s%s", getPrefix(method.getName()), MULTIPLE_IDENTICAL_PARAMETERS)));
                 }
                 throwablePresent = true;
             }
         }
 
         if (!throwablePresent) {
-            logDeploymentException(new DeploymentException(errorPrefix + ": " + MANDATORY_ERROR_PARAM_MISSING));
+            logDeploymentException(new DeploymentException(String.format("%s%s", getPrefix(method.getName()), MANDATORY_ERROR_PARAM_MISSING)));
         }
+    }
+
+    private String getPrefix(String methodName) {
+        return String.format("Method:  %s.%s:", annotatedClass.getName(), methodName);
     }
 
     private boolean checkEncoders(Class<?> requiredType) {
         for (Encoder encoder : encoders) {
             if (encoder instanceof CoderWrapper) {
                 if (((CoderWrapper<Encoder>) encoder).getType().isAssignableFrom(requiredType)) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
-    private boolean checkDecoders(Class<?> requiredType) {
-        for (Decoder decoder : decoders) {
-            if (decoder instanceof CoderWrapper) {
-                if (((CoderWrapper<Decoder>) decoder).getType().isAssignableFrom(requiredType)) {
                     return true;
                 }
             }

@@ -44,11 +44,14 @@ import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.EndpointConfiguration;
 import javax.websocket.Session;
 import javax.websocket.WebSocketClient;
 import javax.websocket.WebSocketMessage;
 import javax.websocket.WebSocketOpen;
 
+import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.e2e.bean.TestEndpoint;
@@ -64,7 +67,7 @@ import org.junit.Test;
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class AnnotatedClientTest {
+public class  AnnotatedClientTest {
 
     private static String receivedMessage;
 
@@ -75,13 +78,37 @@ public class AnnotatedClientTest {
     @Test
     public void testAnnotatedInstance() {
         Server server = new Server(TestEndpoint.class);
+        final ClientEndpointConfiguration configuration = new TyrusClientEndpointConfiguration.Builder().build();
 
         messageLatch = new CountDownLatch(1);
 
         try {
             server.start();
             ClientManager client = ClientManager.createClient();
-            client.connectToServer(new ClientTestEndpoint(true), new URI("ws://localhost:8025/websockets/tests/echo"));
+
+
+            client.connectToServer(new TestEndpointAdapter() {
+                @Override
+                public EndpointConfiguration getEndpointConfiguration() {
+                    return configuration;
+                }
+
+                @Override
+                public void onOpen(Session session) {
+                    try {
+                        session.addMessageHandler(new TestTextMessageHandler(this));
+                        session.getRemote().sendString("hello");
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                @Override
+                public void onMessage(String message) {
+                    receivedMessage = message;
+                    messageLatch.countDown();
+                }
+            },configuration, new URI("ws://localhost:8025/websockets/tests/echo"));
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertEquals("hello", receivedMessage);
         } catch (Exception e) {
@@ -100,7 +127,7 @@ public class AnnotatedClientTest {
         try {
             server.start();
             ClientManager client = ClientManager.createClient();
-            client.connectToServer(new ClientTestEndpoint(false), new URI("ws://localhost:8025/websockets/tests/echo"));
+            client.connectToServer(new ClientTestEndpoint(), new URI("ws://localhost:8025/websockets/tests/echo"));
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertEquals("testHello", receivedTestMessage);
         } catch (Exception e) {
@@ -139,37 +166,21 @@ public class AnnotatedClientTest {
     @WebSocketClient(decoders = {TestDecoder.class})
     public class ClientTestEndpoint {
 
-        private static final String SENT_MESSAGE = "hello";
         private static final String SENT_TEST_MESSAGE = "testHello";
-        private boolean messageType;
-
-        public ClientTestEndpoint(boolean messageType) {
-            this.messageType = messageType;
-        }
 
         @WebSocketOpen
         public void onOpen(Session p) {
             try {
-                if (messageType) {
-                    p.getRemote().sendString(SENT_MESSAGE);
-                } else {
-                    p.getRemote().sendString(TestMessage.PREFIX + SENT_TEST_MESSAGE);
-                }
+                p.getRemote().sendString(TestMessage.PREFIX + SENT_TEST_MESSAGE);
+
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
 
         @WebSocketMessage
-        public void onMessage(String message) {
-            receivedMessage = message;
-            messageLatch.countDown();
-        }
-
-        @WebSocketMessage
         public void onTestMesage(TestMessage tm) {
             receivedTestMessage = tm.getData();
-            System.out.println("Received: " + receivedTestMessage);
             messageLatch.countDown();
         }
     }

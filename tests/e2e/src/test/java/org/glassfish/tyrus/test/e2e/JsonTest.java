@@ -63,7 +63,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 /**
- * Tests the JSON format
+ * Tests the JSON format.
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
@@ -86,8 +86,6 @@ public class JsonTest {
 
         try {
             server.start();
-            final TyrusClientEndpointConfiguration.Builder builder = new TyrusClientEndpointConfiguration.Builder();
-            final TyrusClientEndpointConfiguration dcec = builder.build();
 
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new TestEndpointAdapter() {
@@ -141,7 +139,6 @@ public class JsonTest {
             try {
                 String name = message.getString("NAME");
                 reply.put("REPLY", name);
-                System.out.println("############################################ reply: " + reply.toString());
                 return reply;
             } catch (JSONException e) {
                 return reply;

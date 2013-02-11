@@ -54,7 +54,6 @@ import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -68,55 +67,47 @@ public class RemoteTest {
 
     private String receivedMessage;
 
-    @Ignore
+
     @Test
     public void testBooleanFAIL() {
         testPojo(org.glassfish.tyrus.test.e2e.bean.stin.BooleanBean.class, "/standardInputTypes/boolean", "String", "FAIL");
     }
 
-    @Ignore
     @Test
     public void testBooleanPASS() {
         testPojo(org.glassfish.tyrus.test.e2e.bean.stin.BooleanBean.class, "/standardInputTypes/boolean", "true", "PASS");
     }
 
-    @Ignore
     @Test
     public void testCharFAIL() {
         testPojo(org.glassfish.tyrus.test.e2e.bean.stin.CharBean.class, "/standardInputTypes/char", "fasd", "FAIL");
     }
 
-    @Ignore
     @Test
     public void testCharPASS() {
         testPojo(org.glassfish.tyrus.test.e2e.bean.stin.CharBean.class, "/standardInputTypes/char", "c", "PASS");
     }
 
-    @Ignore
     @Test
     public void testDouble() {
         testPojo(org.glassfish.tyrus.test.e2e.bean.stin.DoubleBean.class, "/standardInputTypes/double", "42.0", "PASS");
     }
 
-    @Ignore
     @Test
     public void testFloat() {
         testPojo(org.glassfish.tyrus.test.e2e.bean.stin.FloatBean.class, "/standardInputTypes/float", "42.0", "PASS");
     }
 
-    @Ignore
     @Test
     public void testInt() {
         testPojo(org.glassfish.tyrus.test.e2e.bean.stin.IntBean.class, "/standardInputTypes/int", "42", "PASS");
     }
 
-    @Ignore
     @Test
     public void testLong() {
         testPojo(org.glassfish.tyrus.test.e2e.bean.stin.LongBean.class, "/standardInputTypes/long", "42", "PASS");
     }
 
-    @Ignore
     @Test
     public void testShort() {
         testPojo(org.glassfish.tyrus.test.e2e.bean.stin.ShortBean.class, "/standardInputTypes/short", "42", "PASS");

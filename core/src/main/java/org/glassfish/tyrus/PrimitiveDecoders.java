@@ -126,7 +126,7 @@ public abstract class PrimitiveDecoders<T> implements Decoder.Text<T> {
 
         for (Decoder dec : ALL) {
             Class<?> type = ReflectionHelper.getClassType(dec.getClass(), Decoder.Text.class);
-            result.add(new CoderWrapper<Decoder>(dec,type, dec.getClass()));
+            result.add(new CoderWrapper<Decoder>(dec,type));
         }
 
         return result;

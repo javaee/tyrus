@@ -51,6 +51,8 @@ import javax.websocket.server.ServerApplicationConfiguration;
 import javax.websocket.server.ServerEndpointConfiguration;
 import javax.websocket.server.WebSocketEndpoint;
 
+import org.glassfish.tyrus.ErrorCollector;
+
 import org.junit.Assert;
 import org.junit.Test;
 
@@ -60,6 +62,8 @@ import org.junit.Test;
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 public class TyrusServerConfigurationTest {
+
+    private static ErrorCollector errorCollector = new ErrorCollector();
 
     @Test
     public void testNoServerApplicationConfiguration(){
@@ -73,7 +77,7 @@ public class TyrusServerConfigurationTest {
             add(Other.class);
         }};
 
-        TyrusServerConfiguration configuration = new TyrusServerConfiguration(scanned);
+        TyrusServerConfiguration configuration = new TyrusServerConfiguration(scanned, errorCollector);
 
         Assert.assertEquals(2, configuration.getAnnotatedEndpointClasses(null).size());
         Assert.assertTrue(configuration.getAnnotatedEndpointClasses(null).contains(AnnotatedA.class));
@@ -94,7 +98,7 @@ public class TyrusServerConfigurationTest {
             add(Other.class);
         }};
 
-        TyrusServerConfiguration configuration = new TyrusServerConfiguration(scanned);
+        TyrusServerConfiguration configuration = new TyrusServerConfiguration(scanned, errorCollector);
 
         Assert.assertEquals(1, configuration.getAnnotatedEndpointClasses(null).size());
         Assert.assertTrue(configuration.getAnnotatedEndpointClasses(null).contains(AnnotatedA.class));
@@ -114,7 +118,7 @@ public class TyrusServerConfigurationTest {
             add(Other.class);
         }};
 
-        TyrusServerConfiguration configuration = new TyrusServerConfiguration(scanned);
+        TyrusServerConfiguration configuration = new TyrusServerConfiguration(scanned, errorCollector);
 
         Assert.assertEquals(1, configuration.getAnnotatedEndpointClasses(null).size());
         Assert.assertTrue(configuration.getAnnotatedEndpointClasses(null).contains(AnnotatedA.class));

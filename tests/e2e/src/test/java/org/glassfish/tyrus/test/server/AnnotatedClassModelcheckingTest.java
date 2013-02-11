@@ -41,7 +41,6 @@
 package org.glassfish.tyrus.test.server;
 
 import java.net.URI;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
 
 import javax.websocket.DeploymentException;
@@ -67,9 +66,8 @@ import junit.framework.Assert;
  */
 public class AnnotatedClassModelcheckingTest {
 
-    @Test
-    public void testMessageWithTwoTextMethods() {
-        Server server = new Server(AnnotatedClassModelcheckingTest.MessageTestBean.class);
+    public void testServer(Class<?> testedBean) {
+        Server server = new Server(testedBean);
         boolean exceptionThrown = false;
 
         try {
@@ -82,144 +80,9 @@ public class AnnotatedClassModelcheckingTest {
         }
     }
 
-    @WebSocketEndpoint(value = "/hello", configuration = DefaultServerConfiguration.class)
-    public static class MessageTestBean {
-
-        @WebSocketMessage
-        public String firstString(String message, Session peer) {
-            return message;
-        }
-
-        @WebSocketMessage
-        public String secondString(String message, Session peer) {
-            return message;
-        }
-    }
-
     @Test
-    public void testMessageWithTwoByteBufferMethods() {
-        Server server = new Server(TwoByteBufferErrorBean.class);
-        boolean exceptionThrown = false;
-
-        try {
-            server.start();
-        } catch (DeploymentException e) {
-            exceptionThrown = true;
-        } finally {
-            server.stop();
-            Assert.assertEquals(true, exceptionThrown);
-        }
-    }
-
-    @WebSocketEndpoint(value = "/hello", configuration = DefaultServerConfiguration.class)
-    public static class TwoByteBufferErrorBean {
-
-        @WebSocketMessage
-        public ByteBuffer firstByteBuffer(ByteBuffer message, Session peer) {
-            return message;
-        }
-
-        @WebSocketMessage
-        public ByteBuffer secondByteBuffer(ByteBuffer message, Session peer) {
-            return message;
-        }
-    }
-
-    @Test
-    public void testMessageWithByteBufferAndByteArrayMethods() {
-        Server server = new Server(TwoByteBufferByteArrayMethods.class);
-        boolean exceptionThrown = false;
-
-        try {
-            server.start();
-        } catch (DeploymentException e) {
-            exceptionThrown = true;
-        } finally {
-            server.stop();
-            Assert.assertEquals(true, exceptionThrown);
-        }
-    }
-
-    @WebSocketEndpoint(value = "/hello", configuration = DefaultServerConfiguration.class)
-    public static class TwoByteBufferByteArrayMethods {
-
-        @WebSocketMessage
-        public ByteBuffer firstByteBuffer(ByteBuffer message, Session peer) {
-            return message;
-        }
-
-        @WebSocketMessage
-        public byte[] secondMethod(byte[] message, Session peer) {
-            return message;
-        }
-    }
-
-    @Test
-    public void testMessageWithTwoPongMethods() {
-        Server server = new Server(TwoPongMessagesErrorBean.class);
-        boolean exceptionThrown = false;
-
-        try {
-            server.start();
-        } catch (DeploymentException e) {
-            exceptionThrown = true;
-        } finally {
-            server.stop();
-            Assert.assertEquals(true, exceptionThrown);
-        }
-    }
-
-    @WebSocketEndpoint(value = "/hello", configuration = DefaultServerConfiguration.class)
-    public static class TwoPongMessagesErrorBean {
-
-        @WebSocketMessage
-        public void firstPong(PongMessage message, Session peer) {
-
-        }
-
-        @WebSocketMessage
-        public void secondByteBuffer(PongMessage message, Session peer) {
-
-        }
-    }
-
-    @Test
-    public void testMessageWithTwoPongMessageParameters() {
-        Server server = new Server(TwoSameParametersErrorBean.class);
-        boolean exceptionThrown = false;
-
-        try {
-            server.start();
-        } catch (DeploymentException e) {
-            exceptionThrown = true;
-        } finally {
-            server.stop();
-            Assert.assertEquals(true, exceptionThrown);
-        }
-    }
-
-    @WebSocketEndpoint(value = "/hello", configuration = DefaultServerConfiguration.class)
-    public static class TwoSameParametersErrorBean {
-
-        @WebSocketMessage
-        public void firstPong(PongMessage message1, PongMessage message2) {
-
-        }
-    }
-
-    @Test
-    public void testMessageWithTwoSessionMessageParameters() {
-        Server server = new Server(TwoSessionParametersErrorBean.class);
-        boolean exceptionThrown = false;
-
-        try {
-            server.start();
-        } catch (DeploymentException e) {
-            exceptionThrown = true;
-        } finally {
-            server.stop();
-            Assert.assertEquals(true, exceptionThrown);
-        }
+    public void testEndpointWithTwoSessionMessageParameters() {
+        testServer(TwoSessionParametersErrorBean.class);
     }
 
     @WebSocketEndpoint(value = "/hello", configuration = DefaultServerConfiguration.class)
@@ -232,18 +95,8 @@ public class AnnotatedClassModelcheckingTest {
     }
 
     @Test
-    public void testMessageWithTwoStringMessageParameters() {
-        Server server = new Server(TwoStringParametersErrorBean.class);
-        boolean exceptionThrown = false;
-
-        try {
-            server.start();
-        } catch (DeploymentException e) {
-            exceptionThrown = true;
-        } finally {
-            server.stop();
-            Assert.assertEquals(true, exceptionThrown);
-        }
+    public void testEndpointWithTwoStringMessageParameters() {
+        testServer(TwoStringParametersErrorBean.class);
     }
 
     @WebSocketEndpoint(value = "/hello", configuration = DefaultServerConfiguration.class)
@@ -256,18 +109,8 @@ public class AnnotatedClassModelcheckingTest {
     }
 
     @Test
-    public void testMessageWithWrongMessageReturnParameter() {
-        Server server = new Server(WrongMessageReturnParameter.class);
-        boolean exceptionThrown = false;
-
-        try {
-            server.start();
-        } catch (DeploymentException e) {
-            exceptionThrown = true;
-        } finally {
-            server.stop();
-            Assert.assertEquals(true, exceptionThrown);
-        }
+    public void testEndpointWithWrongMessageReturnParameter() {
+        testServer(WrongMessageReturnParameter.class);
     }
 
     @WebSocketEndpoint(value = "/hello", configuration = DefaultServerConfiguration.class)
@@ -281,17 +124,7 @@ public class AnnotatedClassModelcheckingTest {
 
     @Test
     public void testErrorMethodWithoutThrowable() {
-        Server server = new Server(ErrorMethodWithoutThrowableErrorBean.class);
-        boolean exceptionThrown = false;
-
-        try {
-            server.start();
-        } catch (DeploymentException e) {
-            exceptionThrown = true;
-        } finally {
-            server.stop();
-            Assert.assertEquals(true, exceptionThrown);
-        }
+        testServer(ErrorMethodWithoutThrowableErrorBean.class);
     }
 
     @WebSocketEndpoint(value = "/hello", configuration = DefaultServerConfiguration.class)
@@ -305,17 +138,7 @@ public class AnnotatedClassModelcheckingTest {
 
     @Test
     public void testErrorMethodWithWrongParameter() {
-        Server server = new Server(ErrorMethodWithWrongParam.class);
-        boolean exceptionThrown = false;
-
-        try {
-            server.start();
-        } catch (DeploymentException e) {
-            exceptionThrown = true;
-        } finally {
-            server.stop();
-            Assert.assertEquals(true, exceptionThrown);
-        }
+        testServer(ErrorMethodWithWrongParam.class);
     }
 
     @WebSocketEndpoint(value = "/hello", configuration = DefaultServerConfiguration.class)
@@ -329,17 +152,7 @@ public class AnnotatedClassModelcheckingTest {
 
     @Test
     public void testOpenMethodWithWrongParameter() {
-        Server server = new Server(OpenMethodWithWrongParam.class);
-        boolean exceptionThrown = false;
-
-        try {
-            server.start();
-        } catch (DeploymentException e) {
-            exceptionThrown = true;
-        } finally {
-            server.stop();
-            Assert.assertEquals(true, exceptionThrown);
-        }
+        testServer(OpenMethodWithWrongParam.class);
     }
 
     @WebSocketEndpoint(value = "/hello", configuration = DefaultServerConfiguration.class)
@@ -353,17 +166,7 @@ public class AnnotatedClassModelcheckingTest {
 
     @Test
     public void testCloseMethodWithWrongParameter() {
-        Server server = new Server(CloseMethodWithWrongParam.class);
-        boolean exceptionThrown = false;
-
-        try {
-            server.start();
-        } catch (DeploymentException e) {
-            exceptionThrown = true;
-        } finally {
-            server.stop();
-            Assert.assertEquals(true, exceptionThrown);
-        }
+        testServer(CloseMethodWithWrongParam.class);
     }
 
     @WebSocketEndpoint(value = "/hello", configuration = DefaultServerConfiguration.class)
@@ -377,18 +180,7 @@ public class AnnotatedClassModelcheckingTest {
 
     @Test
     public void testMultipleWrongMethods() {
-        Server server = new Server(MultipleWrongMethodsBean.class);
-        boolean exceptionThrown = false;
-
-        try {
-            server.start();
-        } catch (DeploymentException e) {
-            //e.printStackTrace();
-            exceptionThrown = true;
-        } finally {
-            server.stop();
-            Assert.assertEquals(true, exceptionThrown);
-        }
+        testServer(MultipleWrongMethodsBean.class);
     }
 
     @Test
@@ -408,7 +200,7 @@ public class AnnotatedClassModelcheckingTest {
         }
     }
 
-    @WebSocketClient()
+    @WebSocketClient
     @WebSocketEndpoint(value = "/hello", configuration = DefaultServerConfiguration.class)
     public static class MultipleWrongMethodsBean {
 

@@ -40,48 +40,40 @@
 
 package org.glassfish.tyrus;
 
-import javax.websocket.Decoder;
-import javax.websocket.Encoder;
+import java.util.HashMap;
 
 /**
- * Wrapper of coders storing the coder instance, return type of the encode / decode method and coder class.
- *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class CoderWrapper<T> implements Decoder, Encoder {
+public class PrimitivesToWrappers {
 
-    private T instance;
-
-    /**
-     * Return type of the encode / decode method.
-     */
-    private Class<?> type;
+    private static HashMap<Class<?>, Class<?>> conversionMap = null;
 
     /**
-     * Construct new coder wrapper.
-     * @param instance      coder instance.
-     * @param type          return type provided by the encode / decode method.
+     * Gets the Boxing class for the primitive type.
+     *
+     * @param input primitive type
+     * @return boxing class if input is primitive type, input otherwise
      */
-    public CoderWrapper(T instance, Class<?> type) {
-        this.instance = instance;
-        this.type = type;
+    public static Class<?> getBoxing(Class<?> input) {
+        if (!input.isPrimitive()) {
+            return input;
+        }
+        if (conversionMap == null) {
+            initConversionMap();
+        }
+        return conversionMap.containsKey(input) ? conversionMap.get(input) : input;
     }
 
-    /**
-     * Gets the return type of the encode / decode method.
-     *
-     * @return return type of the encode / decode method.
-     */
-    public Class<?> getType() {
-        return type;
-    }
-
-    /**
-     * Get the previously stored coder instance.
-     *
-     * @return previously stored coder instance.
-     */
-    public T getCoder(){
-        return instance;
+    private static void initConversionMap() {
+        conversionMap = new HashMap<Class<?>, Class<?>>();
+        conversionMap.put(int.class, Integer.class);
+        conversionMap.put(short.class, Short.class);
+        conversionMap.put(long.class, Long.class);
+        conversionMap.put(double.class, Double.class);
+        conversionMap.put(float.class, Float.class);
+        conversionMap.put(boolean.class, Boolean.class);
+        conversionMap.put(byte.class, Byte.class);
+        conversionMap.put(char.class, Character.class);
     }
 }

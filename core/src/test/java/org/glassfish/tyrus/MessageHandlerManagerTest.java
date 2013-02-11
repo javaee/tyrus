@@ -37,6 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+
 package org.glassfish.tyrus;
 
 import java.io.InputStream;
@@ -45,7 +46,6 @@ import java.nio.ByteBuffer;
 
 import javax.websocket.MessageHandler;
 import javax.websocket.PongMessage;
-import javax.websocket.Session;
 
 import org.junit.Test;
 import static org.junit.Assert.assertFalse;
@@ -53,39 +53,38 @@ import static org.junit.Assert.assertTrue;
 
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
- * @author Stepan Kopriva )stepan.kopriva at oracle.com)
+ * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class SessionImplTest {
-
+public class MessageHandlerManagerTest {
     @Test
     public void simpleTest() {
-        Session session = new SessionImpl(null,null,null,null,null,false,null,null,null);
+        MessageHandlerManager messageHandlerManager = new MessageHandlerManager();
 
-        session.addMessageHandler(new MessageHandler.Basic<String>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Basic<String>() {
             @Override
             public void onMessage(String message) {
             }
         });
 
-        session.addMessageHandler(new MessageHandler.Basic<ByteBuffer>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Basic<ByteBuffer>() {
             @Override
             public void onMessage(ByteBuffer message) {
             }
         });
 
-        session.addMessageHandler(new MessageHandler.Basic<PongMessage>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Basic<PongMessage>() {
             @Override
             public void onMessage(PongMessage message) {
             }
         });
 
-        session.addMessageHandler(new MessageHandler.Basic<SessionImplTest>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Basic<MessageHandlerManagerTest>() {
             @Override
-            public void onMessage(SessionImplTest message) {
+            public void onMessage(MessageHandlerManagerTest message) {
             }
         });
 
-        session.addMessageHandler(new MessageHandler.Async<String>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Async<String>() {
             @Override
             public void onMessage(String message, boolean isLast) {
             }
@@ -94,15 +93,15 @@ public class SessionImplTest {
 
     @Test(expected = IllegalStateException.class)
     public void multipleTextHandlers() {
-        Session session = new SessionImpl(null,null,null,null,null,false,null,null,null);
+        MessageHandlerManager messageHandlerManager = new MessageHandlerManager();
 
-        session.addMessageHandler(new MessageHandler.Basic<String>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Basic<String>() {
             @Override
             public void onMessage(String message) {
             }
         });
 
-        session.addMessageHandler(new MessageHandler.Basic<Reader>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Basic<Reader>() {
             @Override
             public void onMessage(Reader message) {
             }
@@ -111,15 +110,15 @@ public class SessionImplTest {
 
     @Test(expected = IllegalStateException.class)
     public void multipleStringHandlers() {
-        Session session = new SessionImpl(null,null,null,null,null,false,null,null,null);
+        MessageHandlerManager messageHandlerManager = new MessageHandlerManager();
 
-        session.addMessageHandler(new MessageHandler.Basic<String>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Basic<String>() {
             @Override
             public void onMessage(String message) {
             }
         });
 
-        session.addMessageHandler(new MessageHandler.Basic<String>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Basic<String>() {
             @Override
             public void onMessage(String message) {
             }
@@ -128,15 +127,15 @@ public class SessionImplTest {
 
     @Test(expected = IllegalStateException.class)
     public void multipleBinaryHandlers() {
-        Session session = new SessionImpl(null,null,null,null,null,false,null,null,null);
+        MessageHandlerManager messageHandlerManager = new MessageHandlerManager();
 
-        session.addMessageHandler(new MessageHandler.Basic<InputStream>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Basic<InputStream>() {
             @Override
             public void onMessage(InputStream message) {
             }
         });
 
-        session.addMessageHandler(new MessageHandler.Basic<ByteBuffer>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Basic<ByteBuffer>() {
             @Override
             public void onMessage(ByteBuffer message) {
             }
@@ -145,15 +144,15 @@ public class SessionImplTest {
 
     @Test(expected = IllegalStateException.class)
     public void multipleBinaryHandlersWithByteArray() {
-        Session session = new SessionImpl(null,null,null,null,null,false,null,null,null);
+        MessageHandlerManager messageHandlerManager = new MessageHandlerManager();
 
-        session.addMessageHandler(new MessageHandler.Basic<byte[]>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Basic<byte[]>() {
             @Override
             public void onMessage(byte[] message) {
             }
         });
 
-        session.addMessageHandler(new MessageHandler.Basic<ByteBuffer>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Basic<ByteBuffer>() {
             @Override
             public void onMessage(ByteBuffer message) {
             }
@@ -162,15 +161,15 @@ public class SessionImplTest {
 
     @Test(expected = IllegalStateException.class)
     public void multipleInputStreamHandlers() {
-        Session session = new SessionImpl(null,null,null,null,null,false,null,null,null);
+        MessageHandlerManager messageHandlerManager = new MessageHandlerManager();
 
-        session.addMessageHandler(new MessageHandler.Basic<InputStream>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Basic<InputStream>() {
             @Override
             public void onMessage(InputStream message) {
             }
         });
 
-        session.addMessageHandler(new MessageHandler.Basic<InputStream>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Basic<InputStream>() {
             @Override
             public void onMessage(InputStream message) {
             }
@@ -179,15 +178,15 @@ public class SessionImplTest {
 
     @Test(expected = IllegalStateException.class)
     public void multiplePongHandlers() {
-        Session session = new SessionImpl(null,null,null,null,null,false,null,null,null);
+        MessageHandlerManager messageHandlerManager = new MessageHandlerManager();
 
-        session.addMessageHandler(new MessageHandler.Basic<PongMessage>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Basic<PongMessage>() {
             @Override
             public void onMessage(PongMessage message) {
             }
         });
 
-        session.addMessageHandler(new MessageHandler.Basic<PongMessage>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Basic<PongMessage>() {
             @Override
             public void onMessage(PongMessage message) {
             }
@@ -196,32 +195,32 @@ public class SessionImplTest {
 
     @Test(expected = IllegalStateException.class)
     public void multipleBasicDecodable() {
-        Session session = new SessionImpl(null,null,null,null,null,false,null,null,null);
+        MessageHandlerManager messageHandlerManager = new MessageHandlerManager();
 
-        session.addMessageHandler(new MessageHandler.Basic<SessionImplTest>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Basic<MessageHandlerManagerTest>() {
             @Override
-            public void onMessage(SessionImplTest message) {
+            public void onMessage(MessageHandlerManagerTest message) {
             }
         });
 
-        session.addMessageHandler(new MessageHandler.Basic<SessionImplTest>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Basic<MessageHandlerManagerTest>() {
             @Override
-            public void onMessage(SessionImplTest message) {
+            public void onMessage(MessageHandlerManagerTest message) {
             }
         });
     }
 
     @Test(expected = IllegalStateException.class)
     public void multipleTextHandlersAsync() {
-        Session session = new SessionImpl(null,null,null,null,null,false,null,null,null);
+        MessageHandlerManager messageHandlerManager = new MessageHandlerManager();
 
-        session.addMessageHandler(new MessageHandler.Async<String>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Async<String>() {
             @Override
             public void onMessage(String message, boolean last) {
             }
         });
 
-        session.addMessageHandler(new MessageHandler.Async<Reader>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Async<Reader>() {
             @Override
             public void onMessage(Reader message, boolean last) {
             }
@@ -230,15 +229,15 @@ public class SessionImplTest {
 
     @Test(expected = IllegalStateException.class)
     public void multipleStringHandlersAsync() {
-        Session session = new SessionImpl(null,null,null,null,null,false,null,null,null);
+        MessageHandlerManager messageHandlerManager = new MessageHandlerManager();
 
-        session.addMessageHandler(new MessageHandler.Async<String>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Async<String>() {
             @Override
             public void onMessage(String message, boolean last) {
             }
         });
 
-        session.addMessageHandler(new MessageHandler.Async<String>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Async<String>() {
             @Override
             public void onMessage(String message, boolean last) {
             }
@@ -247,15 +246,15 @@ public class SessionImplTest {
 
     @Test(expected = IllegalStateException.class)
     public void multipleBinaryHandlersAsync() {
-        Session session = new SessionImpl(null,null,null,null,null,false,null,null,null);
+        MessageHandlerManager messageHandlerManager = new MessageHandlerManager();
 
-        session.addMessageHandler(new MessageHandler.Async<InputStream>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Async<InputStream>() {
             @Override
             public void onMessage(InputStream message, boolean last) {
             }
         });
 
-        session.addMessageHandler(new MessageHandler.Async<ByteBuffer>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Async<ByteBuffer>() {
             @Override
             public void onMessage(ByteBuffer message, boolean last) {
             }
@@ -264,15 +263,15 @@ public class SessionImplTest {
 
     @Test(expected = IllegalStateException.class)
     public void multipleBinaryHandlersWithByteArrayAsync() {
-        Session session = new SessionImpl(null,null,null,null,null,false,null,null,null);
+        MessageHandlerManager messageHandlerManager = new MessageHandlerManager();
 
-        session.addMessageHandler(new MessageHandler.Async<byte[]>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Async<byte[]>() {
             @Override
             public void onMessage(byte[] message, boolean last) {
             }
         });
 
-        session.addMessageHandler(new MessageHandler.Async<ByteBuffer>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Async<ByteBuffer>() {
             @Override
             public void onMessage(ByteBuffer message, boolean last) {
             }
@@ -281,16 +280,16 @@ public class SessionImplTest {
 
     @Test(expected = IllegalStateException.class)
     public void multipleInputStreamHandlersAsync() {
-        Session session = new SessionImpl(null,null,null,null,null,false,null,null,null);
+        MessageHandlerManager messageHandlerManager = new MessageHandlerManager();
 
 
-        session.addMessageHandler(new MessageHandler.Async<InputStream>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Async<InputStream>() {
             @Override
             public void onMessage(InputStream message, boolean last) {
             }
         });
 
-        session.addMessageHandler(new MessageHandler.Async<InputStream>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Async<InputStream>() {
             @Override
             public void onMessage(InputStream message, boolean last) {
             }
@@ -299,16 +298,16 @@ public class SessionImplTest {
 
     @Test(expected = IllegalStateException.class)
     public void multiplePongHandlersAsync() {
-        Session session = new SessionImpl(null,null,null,null,null,false,null,null,null);
+        MessageHandlerManager messageHandlerManager = new MessageHandlerManager();
 
 
-        session.addMessageHandler(new MessageHandler.Async<PongMessage>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Async<PongMessage>() {
             @Override
             public void onMessage(PongMessage message, boolean last) {
             }
         });
 
-        session.addMessageHandler(new MessageHandler.Async<PongMessage>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Async<PongMessage>() {
             @Override
             public void onMessage(PongMessage message, boolean last) {
             }
@@ -317,25 +316,26 @@ public class SessionImplTest {
 
     @Test(expected = IllegalStateException.class)
     public void multipleBasicDecodableAsync() {
-        Session session = new SessionImpl(null,null,null,null,null,false,null,null,null);
+        MessageHandlerManager messageHandlerManager = new MessageHandlerManager();
 
 
-        session.addMessageHandler(new MessageHandler.Async<SessionImplTest>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Async<MessageHandlerManagerTest>() {
             @Override
-            public void onMessage(SessionImplTest message, boolean last) {
+            public void onMessage(MessageHandlerManagerTest message, boolean last) {
             }
         });
 
-        session.addMessageHandler(new MessageHandler.Async<SessionImplTest>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Async<MessageHandlerManagerTest>() {
             @Override
-            public void onMessage(SessionImplTest message, boolean last) {
+            public void onMessage(MessageHandlerManagerTest message, boolean last) {
             }
         });
     }
 
     @Test
     public void getHandlers() {
-        Session session = new SessionImpl(null,null,null,null,null,false,null,null,null);
+        MessageHandlerManager messageHandlerManager = new MessageHandlerManager();
+
 
         final MessageHandler.Basic<String> handler1 = new MessageHandler.Basic<String>() {
             @Override
@@ -353,18 +353,18 @@ public class SessionImplTest {
             }
         };
 
-        session.addMessageHandler(handler1);
-        session.addMessageHandler(handler2);
-        session.addMessageHandler(handler3);
+        messageHandlerManager.addMessageHandler(handler1);
+        messageHandlerManager.addMessageHandler(handler2);
+        messageHandlerManager.addMessageHandler(handler3);
 
-        assertTrue(session.getMessageHandlers().contains(handler1));
-        assertTrue(session.getMessageHandlers().contains(handler2));
-        assertTrue(session.getMessageHandlers().contains(handler3));
+        assertTrue(messageHandlerManager.getMessageHandlers().contains(handler1));
+        assertTrue(messageHandlerManager.getMessageHandlers().contains(handler2));
+        assertTrue(messageHandlerManager.getMessageHandlers().contains(handler3));
     }
 
     @Test
     public void removeHandlers() {
-        Session session = new SessionImpl(null,null,null,null,null,false,null,null,null);
+        MessageHandlerManager messageHandlerManager = new MessageHandlerManager();
 
 
         final MessageHandler.Basic<String> handler1 = new MessageHandler.Basic<String>() {
@@ -388,39 +388,28 @@ public class SessionImplTest {
             }
         };
 
-        session.addMessageHandler(handler1);
-        session.addMessageHandler(handler2);
-        session.addMessageHandler(handler3);
-        session.addMessageHandler(handler4);
+        messageHandlerManager.addMessageHandler(handler1);
+        messageHandlerManager.addMessageHandler(handler2);
+        messageHandlerManager.addMessageHandler(handler3);
+        messageHandlerManager.addMessageHandler(handler4);
 
-        assertTrue(session.getMessageHandlers().contains(handler1));
-        assertTrue(session.getMessageHandlers().contains(handler2));
-        assertTrue(session.getMessageHandlers().contains(handler3));
-        assertTrue(session.getMessageHandlers().contains(handler4));
+        assertTrue(messageHandlerManager.getMessageHandlers().contains(handler1));
+        assertTrue(messageHandlerManager.getMessageHandlers().contains(handler2));
+        assertTrue(messageHandlerManager.getMessageHandlers().contains(handler3));
+        assertTrue(messageHandlerManager.getMessageHandlers().contains(handler4));
 
-        session.removeMessageHandler(handler3);
+        messageHandlerManager.removeMessageHandler(handler3);
 
-        assertTrue(session.getMessageHandlers().contains(handler1));
-        assertTrue(session.getMessageHandlers().contains(handler2));
-        assertFalse(session.getMessageHandlers().contains(handler3));
-        assertTrue(session.getMessageHandlers().contains(handler4));
+        assertTrue(messageHandlerManager.getMessageHandlers().contains(handler1));
+        assertTrue(messageHandlerManager.getMessageHandlers().contains(handler2));
+        assertFalse(messageHandlerManager.getMessageHandlers().contains(handler3));
+        assertTrue(messageHandlerManager.getMessageHandlers().contains(handler4));
 
-        session.removeMessageHandler(handler2);
+        messageHandlerManager.removeMessageHandler(handler2);
 
-        assertTrue(session.getMessageHandlers().contains(handler1));
-        assertFalse(session.getMessageHandlers().contains(handler2));
-        assertFalse(session.getMessageHandlers().contains(handler3));
-        assertTrue(session.getMessageHandlers().contains(handler4));
-    }
-    
-    @Test
-    public void idTest() {
-        Session session1 = new SessionImpl(null, null, null, null, null, false, null, null, null);
-        Session session2 = new SessionImpl(null, null, null, null, null, false, null, null, null);
-        Session session3 = new SessionImpl(null, null, null, null, null, false, null, null, null);
-
-        assertFalse(session1.getId().equals(session2.getId()));
-        assertFalse(session1.getId().equals(session3.getId()));
-        assertFalse(session2.getId().equals(session3.getId()));
+        assertTrue(messageHandlerManager.getMessageHandlers().contains(handler1));
+        assertFalse(messageHandlerManager.getMessageHandlers().contains(handler2));
+        assertFalse(messageHandlerManager.getMessageHandlers().contains(handler3));
+        assertTrue(messageHandlerManager.getMessageHandlers().contains(handler4));
     }
 }

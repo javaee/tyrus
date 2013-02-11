@@ -99,15 +99,15 @@ public class AnnotatedEndpoint extends Endpoint {
     /**
      * Create {@link AnnotatedEndpoint} from class.
      *
-     * @param annotatedClass annotated class.
+     * @param annotatedClass    annotated class.
      * @param componentProvider used for instantiating.
-     * @param isServerEndpoint {@code true} iff annotated endpoint is deployed on server side.
-     * @param collector error collector.
+     * @param isServerEndpoint  {@code true} iff annotated endpoint is deployed on server side.
+     * @param collector         error collector.
      * @return new instance.
      * @throws DeploymentException TODO remove
      */
     public static AnnotatedEndpoint fromClass(Class<?> annotatedClass, ComponentProviderService componentProvider, boolean isServerEndpoint, ErrorCollector collector) throws DeploymentException {
-        return new AnnotatedEndpoint(annotatedClass, null, componentProvider,isServerEndpoint, collector);
+        return new AnnotatedEndpoint(annotatedClass, null, componentProvider, isServerEndpoint, collector);
     }
 
     /**
@@ -115,12 +115,12 @@ public class AnnotatedEndpoint extends Endpoint {
      *
      * @param annotatedInstance annotated instance.
      * @param componentProvider used for instantiating.
-     * @param isServerEndpoint {@code true} iff annotated endpoint is deployed on server side.
-     * @param collector error collector.
+     * @param isServerEndpoint  {@code true} iff annotated endpoint is deployed on server side.
+     * @param collector         error collector.
      * @return new instance.
      * @throws DeploymentException TODO remove
      */
-    public static AnnotatedEndpoint fromInstance(Object annotatedInstance, ComponentProviderService componentProvider,boolean isServerEndpoint, ErrorCollector collector) throws DeploymentException {
+    public static AnnotatedEndpoint fromInstance(Object annotatedInstance, ComponentProviderService componentProvider, boolean isServerEndpoint, ErrorCollector collector) throws DeploymentException {
         return new AnnotatedEndpoint(annotatedInstance.getClass(), annotatedInstance, componentProvider, isServerEndpoint, collector);
     }
 
@@ -139,7 +139,7 @@ public class AnnotatedEndpoint extends Endpoint {
         ParameterExtractor[] onErrorParameters = null;
 
         Map<Integer, Class<?>> unknownParams = new HashMap<Integer, Class<?>>();
-        AnnotatedClassValidityChecker validityChecker = new AnnotatedClassValidityChecker(annotatedClass, configuration.getDecoders(),configuration.getEncoders(), collector);
+        AnnotatedClassValidityChecker validityChecker = new AnnotatedClassValidityChecker(annotatedClass, configuration.getEncoders(), collector);
 
         // TODO: how about methods from the superclass?
         for (Method m : annotatedClass.getDeclaredMethods()) {
@@ -190,13 +190,14 @@ public class AnnotatedEndpoint extends Endpoint {
                     }
                 } else if (a instanceof WebSocketMessage) {
                     final ParameterExtractor[] extractors = getParameterExtractors(m, unknownParams);
-
-                    validityChecker.checkOnMessageParams(m, unknownParams);
+                    MessageHandlerFactory handlerFactory;
 
                     if (unknownParams.size() == 1) {
                         Map.Entry<Integer, Class<?>> entry = unknownParams.entrySet().iterator().next();
                         extractors[entry.getKey()] = new ParamValue(0);
-                        messageHandlerFactories.add(new BasicHandler(m, extractors, entry.getValue()));
+                        handlerFactory = new BasicHandler(m, extractors, entry.getValue());
+                        messageHandlerFactories.add(handlerFactory);
+                        validityChecker.checkOnMessageParams(m, handlerFactory.create(null));
                     } else if (unknownParams.size() == 2) {
                         Iterator<Map.Entry<Integer, Class<?>>> it = unknownParams.entrySet().iterator();
                         Map.Entry<Integer, Class<?>> message = it.next();
@@ -210,8 +211,14 @@ public class AnnotatedEndpoint extends Endpoint {
                         extractors[message.getKey()] = new ParamValue(0);
                         extractors[last.getKey()] = new ParamValue(1);
                         if (last.getValue() == boolean.class || last.getValue() == Boolean.class) {
-                            messageHandlerFactories.add(new AsyncHandler(m, extractors, message.getValue()));
+                            handlerFactory = new AsyncHandler(m, extractors, message.getValue());
+                            messageHandlerFactories.add(handlerFactory);
+                            validityChecker.checkOnMessageParams(m, handlerFactory.create(null));
+                        } else {
+                            collector.addException(new DeploymentException(String.format("Method: %s.%s: has got wrong number of params.", annotatedClass.getName(),m.getName())));
                         }
+                    } else {
+                        collector.addException(new DeploymentException(String.format("Method: %s.%s: has got wrong number of params.", annotatedClass.getName(),m.getName())));
                     }
                 }
             }
@@ -251,7 +258,7 @@ public class AnnotatedEndpoint extends Endpoint {
                         Class<?> encoderType = getEncoderClassType(encoderClass);
                         Encoder encoder = ReflectionHelper.getInstance(encoderClass, collector);
                         if (encoder != null) {
-                            encoders.add(new CoderWrapper<Encoder>(encoder, encoderType, encoderClass));
+                            encoders.add(new CoderWrapper<Encoder>(encoder, encoderType));
                         }
                     }
                 }
@@ -262,7 +269,7 @@ public class AnnotatedEndpoint extends Endpoint {
                         Class<?> decoderType = getDecoderClassType(decoderClass);
                         Decoder decoder = ReflectionHelper.getInstance(decoderClass, collector);
                         if (decoder != null) {
-                            decoders.add(new CoderWrapper<Decoder>(decoder, decoderType, decoderClass));
+                            decoders.add(new CoderWrapper<Decoder>(decoder, decoderType));
                         }
                     }
                 }
@@ -337,7 +344,7 @@ public class AnnotatedEndpoint extends Endpoint {
                     Class<?> decoderType = getDecoderClassType(decoderClass);
                     Decoder decoder = ReflectionHelper.getInstance(decoderClass, collector);
                     if (decoder != null) {
-                        decoders.add(new CoderWrapper<Decoder>(decoder, decoderType, decoderClass));
+                        decoders.add(new CoderWrapper<Decoder>(decoder, decoderType));
                     }
                 }
             }
@@ -517,7 +524,7 @@ public class AnnotatedEndpoint extends Endpoint {
         MessageHandlerFactory(Method method, ParameterExtractor[] extractors, Class<?> type) {
             this.method = method;
             this.extractors = extractors;
-            this.type = (PrimitivesToBoxing.getBoxing(type) == null) ? type : PrimitivesToBoxing.getBoxing(type);
+            this.type = (PrimitivesToWrappers.getBoxing(type) == null) ? type : PrimitivesToWrappers.getBoxing(type);
         }
 
         abstract MessageHandler create(Session session);

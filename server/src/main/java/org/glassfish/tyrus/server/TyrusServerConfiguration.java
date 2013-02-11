@@ -70,8 +70,7 @@ public class TyrusServerConfiguration implements ServerApplicationConfiguration 
      * @param classes classes to be included in this application instance. Can contain any combination of annotated
      *                endpoints (see {@link WebSocketEndpoint}) or {@link javax.websocket.Endpoint} descendants.
      */
-    public TyrusServerConfiguration(Set<Class<?>> classes) {
-        ErrorCollector errorCollector = new ErrorCollector();
+    public TyrusServerConfiguration(Set<Class<?>> classes, ErrorCollector errorCollector) {
         Set<ServerApplicationConfiguration> configurations = new HashSet<ServerApplicationConfiguration>();
 
         for (Iterator<Class<?>> it = classes.iterator(); it.hasNext(); ) {

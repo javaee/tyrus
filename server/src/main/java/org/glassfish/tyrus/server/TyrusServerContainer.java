@@ -99,7 +99,7 @@ public class TyrusServerContainer extends WithProperties implements WebSocketCon
         this.collector = new ErrorCollector();
         this.server = server;
         this.contextPath = contextPath;
-        this.configuration = new TyrusServerConfiguration(classes);
+        this.configuration = new TyrusServerConfiguration(classes, this.collector);
         componentProvider = ComponentProviderService.create(collector);
     }
 

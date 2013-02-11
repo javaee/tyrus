@@ -41,18 +41,12 @@ package org.glassfish.tyrus;
 
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.Reader;
 import java.net.URI;
-import java.nio.ByteBuffer;
 import java.security.Principal;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -63,7 +57,6 @@ import javax.websocket.CloseReason;
 import javax.websocket.Decoder;
 import javax.websocket.Extension;
 import javax.websocket.MessageHandler;
-import javax.websocket.PongMessage;
 import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
@@ -71,7 +64,7 @@ import javax.websocket.WebSocketContainer;
 import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
 
 /**
- * Implementation of the WebSocketConversation.
+ * Implementation of the {@link Session}.
  *
  * @author Danny Coward (danny.coward at oracle.com)
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
@@ -89,27 +82,13 @@ public class SessionImpl implements Session {
     private final URI uri;
     private final String queryString;
     private final Map<String, String> pathParameters;
-    private final Map<String, Object> properties = new HashMap<String, Object>();
     private long timeout;
     private long maximumMessageSize = 8192;
 
-    // MessageHandler.Basic<T> javadoc
-    private static final List<Class> textHandlerTypes = Arrays.<Class>asList(String.class, Reader.class);
-    private static final List<Class> binaryHandlerTypes = Arrays.<Class>asList(ByteBuffer.class, InputStream.class, byte[].class);
-    private static final List<Class> pongHandlerTypes = Arrays.<Class>asList(PongMessage.class);
-
     private final String id = UUID.randomUUID().toString();
-    private MessageHandler textHandler;
-    private MessageHandler binaryHandler;
-    private MessageHandler pongHandler;
-    private final Map<Class, MessageHandler> decodableHandlers = new HashMap<Class, MessageHandler>();
-    private final Map<Class, MessageHandler> asyncHandlers = new HashMap<Class, MessageHandler>();
-
-    private Set<MessageHandler> messageHandlerCache;
-
     private static final Logger LOGGER = Logger.getLogger(SessionImpl.class.getName());
-
     private static final Map<String, Object> userProperties = new HashMap<String, Object>();
+    private final MessageHandlerManager handlerManager;
 
     SessionImpl(WebSocketContainer container, SPIRemoteEndpoint remoteEndpoint, EndpointWrapper endpointWrapper,
                 String subprotocol, List<Extension> extensions, boolean isSecure,
@@ -123,6 +102,7 @@ public class SessionImpl implements Session {
         this.queryString = queryString;
         this.pathParameters = pathParameters == null ? Collections.<String, String>emptyMap() : Collections.unmodifiableMap(pathParameters);
         this.remote = new RemoteEndpointWrapper(this, remoteEndpoint, endpointWrapper);
+        this.handlerManager = new MessageHandlerManager();
     }
 
     /**
@@ -199,8 +179,8 @@ public class SessionImpl implements Session {
 
     /**
      * Remove/refactor once getNegotiatedExtensions returns List<Extension>
-     *
-     *     http://java.net/jira/browse/TYRUS-61
+     * <p/>
+     * http://java.net/jira/browse/TYRUS-61
      */
     public List<Extension> getNegotiatedExtensions___TODO() {
         return negotiatedExtensions;
@@ -219,124 +199,18 @@ public class SessionImpl implements Session {
 
     @Override
     public void addMessageHandler(MessageHandler handler) {
-
-        if (!(handler instanceof MessageHandler.Basic) && !(handler instanceof MessageHandler.Async)) {
-            throw new IllegalStateException(String.format("MessageHandler must implement MessageHandler.Basic or MessageHandler.Async."));
-        }
-
-        final Class<?> handlerClass = getHandlerType(handler);
-
-        // basic types
-        if (handler instanceof MessageHandler.Basic) {
-            // text
-            if (textHandlerTypes.contains(handlerClass)) {
-                if (textHandler == null) {
-                    textHandler = handler;
-                } else {
-                    throw new IllegalStateException(String.format("Text MessageHandler already registered: %s", textHandler));
-                }
-            }
-
-            // binary
-            if (binaryHandlerTypes.contains(handlerClass)) {
-                if (binaryHandler == null) {
-                    binaryHandler = handler;
-                } else {
-                    throw new IllegalStateException(String.format("Binary MessageHandler already registered: %s", binaryHandler));
-                }
-
-            }
-
-            // pong
-            if (pongHandlerTypes.contains(handlerClass)) {
-                if (pongHandler == null) {
-                    pongHandler = handler;
-                } else {
-                    throw new IllegalStateException(String.format("Pong MessageHander already registered: %s", pongHandler));
-                }
-
-            }
-
-            // decodable?
-            if (decodableHandlers.containsKey(handlerClass)) {
-                throw new IllegalStateException(String.format("MessageHander for type: %s already registered: %s", handlerClass, pongHandler));
-            } else {
-                decodableHandlers.put(handlerClass, handler);
-            }
-        }
-
-        // async - not clear from spec what we should do - lets just check type and store them.
-        if (handler instanceof MessageHandler.Async) {
-            if (asyncHandlers.containsKey(handlerClass)) {
-                throw new IllegalStateException(String.format("MessageHander for type: %s already registered: %s", handlerClass, pongHandler));
-            } else {
-                asyncHandlers.put(handlerClass, handler);
-            }
-        }
-
-        // clear local cache
-        messageHandlerCache = null;
+        handlerManager.addMessageHandler(handler);
     }
 
 
     @Override
     public Set<MessageHandler> getMessageHandlers() {
-        if (messageHandlerCache == null) {
-            final HashSet<MessageHandler> messageHandlers = new HashSet<MessageHandler>();
-
-            if (textHandler != null) {
-                messageHandlers.add(textHandler);
-            }
-
-            if (binaryHandler != null) {
-                messageHandlers.add(textHandler);
-            }
-
-            if (pongHandler != null) {
-                messageHandlers.add(textHandler);
-            }
-
-            messageHandlers.addAll(decodableHandlers.values());
-            messageHandlers.addAll(asyncHandlers.values());
-
-            messageHandlerCache = Collections.unmodifiableSet(messageHandlers);
-        }
-
-        return messageHandlerCache;
+        return handlerManager.getMessageHandlers();
     }
 
     @Override
     public void removeMessageHandler(MessageHandler handler) {
-        if (messageHandlerCache.contains(handler)) {
-            if (textHandler != null && textHandler.equals(handler)) {
-                textHandler = null;
-                messageHandlerCache = null;
-            }
-            if (binaryHandler != null && binaryHandler.equals(handler)) {
-                binaryHandler = null;
-                messageHandlerCache = null;
-            }
-            if (pongHandler != null && pongHandler.equals(handler)) {
-                pongHandler = null;
-                messageHandlerCache = null;
-            }
-            Iterator<Map.Entry<Class,MessageHandler>> iterator = decodableHandlers.entrySet().iterator();
-            while(iterator.hasNext()) {
-                final Map.Entry<Class, MessageHandler> next = iterator.next();
-                if(next.getValue().equals(handler)) {
-                    iterator.remove();
-                    messageHandlerCache = null;
-                }
-            }
-            iterator = asyncHandlers.entrySet().iterator();
-            while(iterator.hasNext()) {
-                final Map.Entry<Class, MessageHandler> next = iterator.next();
-                if(next.getValue().equals(handler)) {
-                    iterator.remove();
-                    messageHandlerCache = null;
-                }
-            }
-        }
+        handlerManager.removeMessageHandler(handler);
     }
 
     @Override
@@ -373,10 +247,6 @@ public class SessionImpl implements Session {
     @Override
     public Principal getUserPrincipal() {
         return null;  // TODO: Implement.
-    }
-
-    public Map<String, Object> getProperties() {
-        return properties;
     }
 
     void notifyMessageHandlers(Object message, List<CoderWrapper<Decoder>> availableDecoders) {
