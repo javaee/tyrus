@@ -45,6 +45,7 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.ContainerProvider;
 import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
 import javax.websocket.Extension;
@@ -68,7 +69,7 @@ import org.glassfish.tyrus.spi.TyrusContainer;
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class ClientManager implements WebSocketContainer {
+public class ClientManager extends ContainerProvider implements WebSocketContainer {
 
     /**
      * Default {@link TyrusContainer} class name.
@@ -106,6 +107,15 @@ public class ClientManager implements WebSocketContainer {
      */
     public static ClientManager createClient(String engineProviderClassname) {
         return new ClientManager(engineProviderClassname);
+    }
+
+    @Override
+    protected <T> T getContainer(Class<T> tClass) {
+        if(tClass.equals(WebSocketContainer.class)) {
+            return (T) new ClientManager();
+        } else {
+            return null;
+        }
     }
 
     /**
