@@ -62,7 +62,6 @@ import org.glassfish.tyrus.server.Server;
 import org.junit.Ignore;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
 /**
  * Primarily meant to test servlet integration, might be someday used for simple stress testing.
@@ -158,9 +157,7 @@ public class ServletTest {
             }, new TyrusClientEndpointConfiguration.Builder().build(), getURI(PlainEcho.class.getAnnotation(WebSocketEndpoint.class).value()));
 
             messageLatch.await(1, TimeUnit.SECONDS);
-            if (messageLatch.getCount() != 0) {
-                fail();
-            }
+            assertEquals(0, messageLatch.getCount());
         } finally {
             stopServer(server);
         }
@@ -196,10 +193,9 @@ public class ServletTest {
                 }
             }, new TyrusClientEndpointConfiguration.Builder().build(), getURI(PlainEcho.class.getAnnotation(WebSocketEndpoint.class).value()));
 
-            messageLatch.await(10, TimeUnit.SECONDS);
-            if (messageLatch.getCount() != 0) {
-                fail();
-            }
+
+            messageLatch.await(20, TimeUnit.SECONDS);
+            assertEquals(0, messageLatch.getCount());
         } finally {
             stopServer(server);
         }
@@ -239,9 +235,7 @@ public class ServletTest {
             }
 
             messageLatch.await(5, TimeUnit.SECONDS);
-            if (messageLatch.getCount() != 0) {
-                fail();
-            }
+            assertEquals(0, messageLatch.getCount());
         } finally {
             stopServer(server);
         }
@@ -290,16 +284,13 @@ public class ServletTest {
             }, new TyrusClientEndpointConfiguration.Builder().build(), getURI(PlainEcho.class.getAnnotation(WebSocketEndpoint.class).value()));
 
             messageLatch.await(1, TimeUnit.SECONDS);
-            if (messageLatch.getCount() != 0) {
-                fail();
-            }
+            assertEquals(0, messageLatch.getCount());
         } finally {
             stopServer(server);
         }
     }
 
     @Test
-    @Ignore("TODO")
     public void testPlainEchoLong10() throws DeploymentException, InterruptedException {
         final Server server = startServer();
 
@@ -329,9 +320,7 @@ public class ServletTest {
             }, new TyrusClientEndpointConfiguration.Builder().build(), getURI(PlainEcho.class.getAnnotation(WebSocketEndpoint.class).value()));
 
             messageLatch.await(10, TimeUnit.SECONDS);
-            if (messageLatch.getCount() != 0) {
-                fail();
-            }
+            assertEquals(0, messageLatch.getCount());
         } finally {
             stopServer(server);
         }
@@ -371,9 +360,7 @@ public class ServletTest {
             }
 
             messageLatch.await(10, TimeUnit.SECONDS);
-            if (messageLatch.getCount() != 0) {
-                fail();
-            }
+            assertEquals(0, messageLatch.getCount());
         } finally {
             stopServer(server);
         }
