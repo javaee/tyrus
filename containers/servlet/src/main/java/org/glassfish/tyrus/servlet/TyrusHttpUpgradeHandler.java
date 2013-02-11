@@ -92,10 +92,11 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
             LOGGER.log(Level.WARNING, e.getMessage(), e);
         }
 
+        initiated = true;
+
         if(webSocketHolder != null && webSocketHolder.webSocket != null) {
             webSocketHolder.webSocket.onConnect();
         }
-        initiated = true;
     }
 
     @Override

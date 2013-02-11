@@ -59,6 +59,7 @@ import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -166,6 +167,7 @@ public class ServletTest {
     }
 
     @Test
+    @Ignore("TODO")
     public void testPlainEchoShort100() throws DeploymentException, InterruptedException {
         final Server server = startServer();
 
@@ -297,6 +299,7 @@ public class ServletTest {
     }
 
     @Test
+    @Ignore("TODO")
     public void testPlainEchoLong10() throws DeploymentException, InterruptedException {
         final Server server = startServer();
 

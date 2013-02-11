@@ -43,6 +43,7 @@ package org.glassfish.tyrus.sample.echo;
 import java.io.IOException;
 
 import javax.websocket.Session;
+import javax.websocket.WebSocketError;
 import javax.websocket.WebSocketMessage;
 import javax.websocket.WebSocketOpen;
 import javax.websocket.server.DefaultServerConfiguration;
