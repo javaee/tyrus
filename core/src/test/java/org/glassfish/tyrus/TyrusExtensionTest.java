@@ -39,8 +39,8 @@
  */
 package org.glassfish.tyrus;
 
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 
 import javax.websocket.Extension;
@@ -73,15 +73,26 @@ public class TyrusExtensionTest {
 
     @Test
     public void params() {
-        final HashMap<String, String> hashMap = new HashMap<String, String>() {{
-            put("Quote", "Mmm. Lost a planet, Master Obi-Wan has. How embarrassing. How embarrassing.");
+        final List<Extension.Parameter> parameters = new ArrayList<Extension.Parameter>() {{
+            add(new Extension.Parameter() {
+                @Override
+                public String getName() {
+                    return "Quote";
+                }
+
+                @Override
+                public String getValue() {
+                    return "Mmm. Lost a planet, Master Obi-Wan has. How embarrassing. How embarrassing.";
+                }
+            }
+);
         }};
-        final TyrusExtension test = new TyrusExtension("test", hashMap);
+        final TyrusExtension test = new TyrusExtension("test", parameters);
 
         assertNotNull(test.getParameters());
-        assertTrue(test.getParameters().containsKey("Quote"));
-        assertEquals("Mmm. Lost a planet, Master Obi-Wan has. How embarrassing. How embarrassing.",
-                test.getParameters().get("Quote"));
+
+        assertEquals("Quote", test.getParameters().get(0).getName());
+        assertEquals("Mmm. Lost a planet, Master Obi-Wan has. How embarrassing. How embarrassing.", test.getParameters().get(0).getValue());
     }
 
     @Test
@@ -113,8 +124,8 @@ public class TyrusExtensionTest {
         assertEquals("ext1", extensions.get(0).getName());
         assertEquals("ext2", extensions.get(1).getName());
         assertTrue(extensions.get(1).getParameters().size() == 1);
-        assertNotNull(extensions.get(1).getParameters().get("param"));
-        assertEquals("value", extensions.get(1).getParameters().get("param"));
+        assertEquals("param", extensions.get(1).getParameters().get(0).getName());
+        assertEquals("value", extensions.get(1).getParameters().get(0).getValue());
     }
 
     @Test
@@ -124,8 +135,8 @@ public class TyrusExtensionTest {
         assertEquals(1, extensions.size());
         assertEquals("ext1", extensions.get(0).getName());
         assertTrue(extensions.get(0).getParameters().size() == 1);
-        assertNotNull(extensions.get(0).getParameters().get("param"));
-        assertEquals("value", extensions.get(0).getParameters().get("param"));
+        assertEquals("param", extensions.get(0).getParameters().get(0).getName());
+        assertEquals("value", extensions.get(0).getParameters().get(0).getValue());
     }
 
     @Test
@@ -135,12 +146,12 @@ public class TyrusExtensionTest {
         assertEquals(2, extensions.size());
         assertEquals("ext1", extensions.get(0).getName());
         assertTrue(extensions.get(0).getParameters().size() == 1);
-        assertNotNull(extensions.get(0).getParameters().get("param"));
-        assertEquals("value", extensions.get(0).getParameters().get("param"));
+        assertEquals("param", extensions.get(0).getParameters().get(0).getName());
+        assertEquals("value", extensions.get(0).getParameters().get(0).getValue());
         assertEquals("ext2", extensions.get(1).getName());
         assertTrue(extensions.get(1).getParameters().size() == 1);
-        assertNotNull(extensions.get(1).getParameters().get("param"));
-        assertEquals("value", extensions.get(1).getParameters().get("param"));
+        assertEquals("param", extensions.get(1).getParameters().get(0).getName());
+        assertEquals("value", extensions.get(1).getParameters().get(0).getValue());
 
     }
 
@@ -151,12 +162,12 @@ public class TyrusExtensionTest {
         assertEquals(2, extensions.size());
         assertEquals("ext1", extensions.get(0).getName());
         assertTrue(extensions.get(0).getParameters().size() == 1);
-        assertNotNull(extensions.get(0).getParameters().get("param"));
-        assertEquals("value", extensions.get(0).getParameters().get("param"));
+        assertEquals("param", extensions.get(0).getParameters().get(0).getName());
+        assertEquals("value", extensions.get(0).getParameters().get(0).getValue());
         assertEquals("ext2", extensions.get(1).getName());
         assertTrue(extensions.get(1).getParameters().size() == 1);
-        assertNotNull(extensions.get(1).getParameters().get("param"));
-        assertEquals("value", extensions.get(1).getParameters().get("param"));
+        assertEquals("param", extensions.get(1).getParameters().get(0).getName());
+        assertEquals("value", extensions.get(1).getParameters().get(0).getValue());
     }
 
     @Test
@@ -166,8 +177,8 @@ public class TyrusExtensionTest {
         assertEquals(1, extensions.size());
         assertEquals("ext1", extensions.get(0).getName());
         assertTrue(extensions.get(0).getParameters().size() == 1);
-        assertNotNull(extensions.get(0).getParameters().get("param"));
-        assertEquals("  value  ", extensions.get(0).getParameters().get("param"));
+        assertEquals("param", extensions.get(0).getParameters().get(0).getName());
+        assertEquals("  value  ", extensions.get(0).getParameters().get(0).getValue());
     }
 
     @Test
@@ -177,13 +188,12 @@ public class TyrusExtensionTest {
         assertEquals(2, extensions.size());
         assertEquals("ext1", extensions.get(0).getName());
         assertTrue(extensions.get(0).getParameters().size() == 1);
-        assertNotNull(extensions.get(0).getParameters().get("param"));
-        assertEquals("  value  ", extensions.get(0).getParameters().get("param"));
+        assertEquals("param", extensions.get(0).getParameters().get(0).getName());
+        assertEquals("  value  ", extensions.get(0).getParameters().get(0).getValue());
         assertEquals("ext2", extensions.get(1).getName());
         assertTrue(extensions.get(1).getParameters().size() == 1);
-        assertNotNull(extensions.get(1).getParameters().get("param"));
-        assertEquals("  value \" ", extensions.get(1).getParameters().get("param"));
-
+        assertEquals("param", extensions.get(1).getParameters().get(0).getName());
+        assertEquals("  value \" ", extensions.get(1).getParameters().get(0).getValue());
     }
 
     @Test
@@ -193,11 +203,11 @@ public class TyrusExtensionTest {
         assertEquals(2, extensions.size());
         assertEquals("ext1", extensions.get(0).getName());
         assertTrue(extensions.get(0).getParameters().size() == 1);
-        assertNotNull(extensions.get(0).getParameters().get("param"));
-        assertEquals("  value  ", extensions.get(0).getParameters().get("param"));
+        assertEquals("param", extensions.get(0).getParameters().get(0).getName());
+        assertEquals("  value  ", extensions.get(0).getParameters().get(0).getValue());
         assertEquals("ext2", extensions.get(1).getName());
         assertTrue(extensions.get(1).getParameters().size() == 1);
-        assertNotNull(extensions.get(1).getParameters().get("param"));
-        assertEquals("  value \\ ", extensions.get(1).getParameters().get("param"));
+        assertEquals("param", extensions.get(1).getParameters().get(0).getName());
+        assertEquals("  value \\ ", extensions.get(1).getParameters().get(0).getValue());
     }
 }

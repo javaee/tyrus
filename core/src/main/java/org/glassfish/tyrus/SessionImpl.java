@@ -83,7 +83,9 @@ public class SessionImpl implements Session {
     private final String queryString;
     private final Map<String, String> pathParameters;
     private long timeout;
-    private long maximumMessageSize = 8192;
+
+    private int maxBinaryMessageBufferSize = 0;
+    private int maxTextMessageBufferSize = 0;
 
     private final String id = UUID.randomUUID().toString();
     private static final Logger LOGGER = Logger.getLogger(SessionImpl.class.getName());
@@ -159,30 +161,31 @@ public class SessionImpl implements Session {
     }
 
     @Override
-    public void setMaximumMessageSize(long maximumMessageSize) {
-        this.maximumMessageSize = maximumMessageSize;
+    public int getMaxBinaryMessageBufferSize() {
+        return maxBinaryMessageBufferSize;
     }
 
     @Override
-    public long getMaximumMessageSize() {
-        return this.maximumMessageSize;
+    public void setMaxBinaryMessageBufferSize(int maxBinaryMessageBufferSize) {
+        this.maxBinaryMessageBufferSize = maxBinaryMessageBufferSize;
     }
 
     @Override
-    public List<String> getNegotiatedExtensions() {
-
-        // TODO
-        // return this.negotiatedExtensions;
-
-        return Collections.emptyList();
+    public int getMaxTextMessageBufferSize() {
+        return maxTextMessageBufferSize;
     }
 
-    /**
-     * Remove/refactor once getNegotiatedExtensions returns List<Extension>
-     * <p/>
-     * http://java.net/jira/browse/TYRUS-61
-     */
-    public List<Extension> getNegotiatedExtensions___TODO() {
+    @Override
+    public void setMaxTextMessageBufferSize(int maxTextMessageBufferSize) {
+        this.maxTextMessageBufferSize = maxTextMessageBufferSize;
+    }
+
+    @Override
+    public Set<Session> getOpenSessions() {
+        return Collections.unmodifiableSet(endpoint.getOpenSessions());
+    }
+
+    public List<Extension> getNegotiatedExtensions() {
         return negotiatedExtensions;
     }
 

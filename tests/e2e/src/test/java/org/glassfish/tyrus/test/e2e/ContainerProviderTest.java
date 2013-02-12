@@ -70,9 +70,7 @@ public class ContainerProviderTest {
 
     @Test
     public void simple() {
-        System.setProperty("websocket.clientcontainer.classname", ClientManager.class.getName());
-
-        assertNotNull(javax.websocket.ContainerProvider.getClientContainer());
+        assertNotNull(javax.websocket.ContainerProvider.getWebSocketContainer());
     }
 
     @Test

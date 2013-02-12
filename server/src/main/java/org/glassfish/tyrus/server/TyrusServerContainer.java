@@ -82,9 +82,9 @@ public class TyrusServerContainer extends WithProperties implements WebSocketCon
     private final ComponentProviderService componentProvider;
 
     private long maxSessionIdleTimeout = 0;
-    private long maxTextMessageBufferSize = 0;
-    private long maxBinaryMessageBufferSize = 0;
     private long defaultAsyncSendTimeout = 0;
+    private int maxTextMessageBufferSize = 0;
+    private int maxBinaryMessageBufferSize = 0;
 
     /**
      * Create new {@link TyrusServerContainer}.
@@ -167,17 +167,6 @@ public class TyrusServerContainer extends WithProperties implements WebSocketCon
     }
 
     @Override
-    public Set<Session> getOpenSessions() {
-        Set<Session> result = new HashSet<Session>();
-
-        for (SPIRegisteredEndpoint endpoint : endpoints) {
-            result.addAll(endpoint.getOpenSessions());
-        }
-
-        return Collections.unmodifiableSet(result);
-    }
-
-    @Override
     public long getMaxSessionIdleTimeout() {
         return maxSessionIdleTimeout;
     }
@@ -188,22 +177,22 @@ public class TyrusServerContainer extends WithProperties implements WebSocketCon
     }
 
     @Override
-    public long getMaxBinaryMessageBufferSize() {
+    public int getDefaultMaxBinaryMessageBufferSize() {
         return maxBinaryMessageBufferSize;
     }
 
     @Override
-    public void setMaxBinaryMessageBufferSize(long max) {
+    public void setDefaultMaxBinaryMessageBufferSize(int max) {
         this.maxBinaryMessageBufferSize = max;
     }
 
     @Override
-    public long getMaxTextMessageBufferSize() {
+    public int getDefaultMaxTextMessageBufferSize() {
         return maxTextMessageBufferSize;
     }
 
     @Override
-    public void setMaxTextMessageBufferSize(long max) {
+    public void setDefaultMaxTextMessageBufferSize(int max) {
         this.maxTextMessageBufferSize = max;
     }
 

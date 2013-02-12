@@ -62,15 +62,33 @@ import org.glassfish.tyrus.ReflectionHelper;
 public class TyrusServerConfiguration implements ServerApplicationConfiguration {
 
     private final Set<Class<? extends ServerEndpointConfiguration>> programmaticClasses = new HashSet<Class<? extends ServerEndpointConfiguration>>();
-    private final Set<Class> annotatedClasses = new HashSet<Class>();
+    private final Set<Class<?>> annotatedClasses = new HashSet<Class<?>>();
 
     /**
      * Create new {@link TyrusServerConfiguration}.
      *
      * @param classes classes to be included in this application instance. Can contain any combination of annotated
-     *                endpoints (see {@link WebSocketEndpoint}) or {@link javax.websocket.Endpoint} descendants.
+     *                endpoints (see {@link WebSocketEndpoint}) or {@link javax.websocket.Endpoint} descendants. Cannot
+     *                be {@code null}.
+     * @throws IllegalArgumentException when any of the arguments is {@code null}.
+     */
+    public TyrusServerConfiguration(Set<Class<?>> classes) {
+        this(classes, new ErrorCollector());
+    }
+
+    /**
+     * Create new {@link TyrusServerConfiguration}.
+     *
+     * @param classes        classes to be included in this application instance. Can contain any combination of annotated
+     *                       endpoints (see {@link WebSocketEndpoint}) or {@link javax.websocket.Endpoint} descendants.
+     * @param errorCollector model errors are reported to this instance. Cannot be {@code null}.
+     * @throws IllegalArgumentException when any of the arguments is {@code null}.
      */
     public TyrusServerConfiguration(Set<Class<?>> classes, ErrorCollector errorCollector) {
+        if(classes == null || errorCollector == null) {
+            throw new IllegalArgumentException();
+        }
+
         Set<ServerApplicationConfiguration> configurations = new HashSet<ServerApplicationConfiguration>();
 
         for (Iterator<Class<?>> it = classes.iterator(); it.hasNext(); ) {
@@ -87,7 +105,7 @@ public class TyrusServerConfiguration implements ServerApplicationConfiguration 
         }
 
         final Set<Class<? extends ServerEndpointConfiguration>> scannedProgramatics = new HashSet<Class<? extends ServerEndpointConfiguration>>();
-        final Set<Class> scannedAnnotateds = new HashSet<Class>();
+        final Set<Class<?>> scannedAnnotateds = new HashSet<Class<?>>();
 
         for (Class<?> cls : classes) {
             if (ServerEndpointConfiguration.class.isAssignableFrom(cls)) {
@@ -103,8 +121,8 @@ public class TyrusServerConfiguration implements ServerApplicationConfiguration 
                 programmatic = programmatic == null ? new HashSet<Class<? extends ServerEndpointConfiguration>>() : programmatic;
                 programmaticClasses.addAll(programmatic);
 
-                Set<Class> annotated = configuration.getAnnotatedEndpointClasses(scannedAnnotateds);
-                annotated = annotated == null ? new HashSet<Class>() : annotated;
+                Set<Class<?>> annotated = configuration.getAnnotatedEndpointClasses(scannedAnnotateds);
+                annotated = annotated == null ? new HashSet<Class<?>>() : annotated;
                 annotatedClasses.addAll(annotated);
             }
         } else {
@@ -131,7 +149,7 @@ public class TyrusServerConfiguration implements ServerApplicationConfiguration 
      * @return all the classes annotated with {@link WebSocketEndpoint} annotation which should be deployed.
      */
     @Override
-    public Set<Class> getAnnotatedEndpointClasses(Set<Class> scanned) {
+    public Set<Class<?>> getAnnotatedEndpointClasses(Set<Class<?>> scanned) {
         return Collections.unmodifiableSet(annotatedClasses);
     }
 }

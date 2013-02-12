@@ -42,6 +42,7 @@ package org.glassfish.tyrus;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
@@ -119,7 +120,7 @@ public class EndpointWrapper extends SPIEndpoint {
      * @param contextPath       context path.
      * @param collector         error collector.
      */
-    public EndpointWrapper(Class<? extends Endpoint> endpointClass, EndpointConfiguration configuration,
+    public EndpointWrapper(Class<?> endpointClass, EndpointConfiguration configuration,
                            ComponentProviderService componentProvider, WebSocketContainer container,
                            String contextPath, ErrorCollector collector) {
         this(null, endpointClass, configuration, componentProvider, container, contextPath, collector);
@@ -140,7 +141,7 @@ public class EndpointWrapper extends SPIEndpoint {
         this(endpoint, null, configuration, componentProvider, container, contextPath, collector);
     }
 
-    private EndpointWrapper(Endpoint endpoint, Class<? extends Endpoint> endpointClass, EndpointConfiguration configuration,
+    private EndpointWrapper(Endpoint endpoint, Class<?> endpointClass, EndpointConfiguration configuration,
                             ComponentProviderService componentProvider, WebSocketContainer container,
                             String contextPath, ErrorCollector collector) {
         this.endpointClass = endpointClass;
@@ -450,7 +451,11 @@ public class EndpointWrapper extends SPIEndpoint {
     @Override
     public void onPing(SPIRemoteEndpoint gs, ByteBuffer bytes) {
         SessionImpl session = remoteEndpointToSession.get(gs);
-        session.getRemote().sendPong(bytes);
+        try {
+            session.getRemote().sendPong(bytes);
+        } catch (IOException e) {
+            // TODO XXX FIXME
+        }
     }
 
     @Override

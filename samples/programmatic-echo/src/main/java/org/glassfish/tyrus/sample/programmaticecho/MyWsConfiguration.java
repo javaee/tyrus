@@ -50,7 +50,6 @@ import javax.websocket.Extension;
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 
-import org.glassfish.tyrus.ErrorCollector;
 import org.glassfish.tyrus.server.TyrusServerConfiguration;
 
 /**
@@ -64,7 +63,7 @@ public class MyWsConfiguration extends TyrusServerConfiguration {
      * Default constructor, reg
      */
     public MyWsConfiguration() {
-        super(new HashSet<Class<?>>(Arrays.asList(EchoEndpointConfiguration.class)), new ErrorCollector());
+        super(new HashSet<Class<?>>(Arrays.<Class<?>>asList(EchoEndpointConfiguration.class)));
     }
 
     public static class EchoEndpointConfiguration extends javax.websocket.server.DefaultServerConfiguration {

@@ -208,8 +208,8 @@ public class TyrusEndpoint extends WebSocketApplication implements SPIRegistered
 
         for (Extension ext : temporaryNegotiatedExtensions) {
             final org.glassfish.tyrus.websockets.Extension extension = new org.glassfish.tyrus.websockets.Extension(ext.getName());
-            for (Map.Entry<String, String> entry : ext.getParameters().entrySet()) {
-                extension.getParameters().add(new org.glassfish.tyrus.websockets.Extension.Parameter(entry.getKey(), entry.getValue()));
+            for (Extension.Parameter p : ext.getParameters()) {
+                extension.getParameters().add(new org.glassfish.tyrus.websockets.Extension.Parameter(p.getName(), p.getValue()));
             }
             grizzlyExtensions.add(extension);
         }

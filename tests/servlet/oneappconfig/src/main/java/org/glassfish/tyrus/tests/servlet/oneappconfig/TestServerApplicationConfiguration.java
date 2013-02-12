@@ -56,8 +56,8 @@ public class TestServerApplicationConfiguration implements ServerApplicationConf
     }
 
     @Override
-    public Set<Class> getAnnotatedEndpointClasses(Set<Class> scanned) {
-        return new HashSet<Class>() {{
+    public Set<Class<?>> getAnnotatedEndpointClasses(Set<Class<?>> scanned) {
+        return new HashSet<Class<?>>() {{
             add(PlainEcho.class);
             add(PlainOne.class);
         }};

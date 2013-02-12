@@ -59,9 +59,9 @@ public class TestServerApplicationConfiguration implements ServerApplicationConf
     }
 
     @Override
-    public Set<Class> getAnnotatedEndpointClasses(Set<Class> scanned) {
+    public Set<Class<?>> getAnnotatedEndpointClasses(Set<Class<?>> scanned) {
         annotatedGetterCalled = true;
-        HashSet<Class> toReturn = new HashSet<Class>();
+        HashSet<Class<?>> toReturn = new HashSet<Class<?>>();
             toReturn.add(PlainEcho.class);
             toReturn.add(PlainOne.class);
 

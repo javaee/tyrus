@@ -59,9 +59,9 @@ public class SecondServerApplicationConfiguration implements ServerApplicationCo
     }
 
     @Override
-    public Set<Class> getAnnotatedEndpointClasses(Set<Class> scanned) {
+    public Set<Class<?>> getAnnotatedEndpointClasses(Set<Class<?>> scanned) {
         annotatedGetterCalled = true;
-        HashSet<Class> toReturn = new HashSet<Class>();
+        HashSet<Class<?>> toReturn = new HashSet<Class<?>>();
             toReturn.add(ConfigurationChecker.class);
 
         return toReturn;

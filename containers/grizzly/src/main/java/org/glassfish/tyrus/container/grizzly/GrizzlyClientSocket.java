@@ -63,7 +63,6 @@ import javax.websocket.CloseReason;
 import javax.websocket.HandshakeResponse;
 import javax.websocket.Session;
 
-import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.TyrusExtension;
 import org.glassfish.tyrus.server.TyrusEndpoint;
 import org.glassfish.tyrus.server.TyrusRemoteEndpoint;
@@ -164,20 +163,13 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
     private void prepareHandshake(HandShake handshake) {
         List<Extension> grizzlyExtensions = new ArrayList<Extension>();
 
-        // remove instanceof once ClientEndpointConfiguration#parseExtensionsHeader() returns List<Extension>
-        if (configuration instanceof TyrusClientEndpointConfiguration) {
-            for (javax.websocket.Extension e : ((TyrusClientEndpointConfiguration) configuration).getExtensions___TODO()) {
-                final Extension grizzlyExtension = new Extension(e.getName());
-                for (Map.Entry<String, String> entry : e.getParameters().entrySet()) {
-                    grizzlyExtension.getParameters().add(new Extension.Parameter(entry.getKey(), entry.getValue()));
-                }
+        for (javax.websocket.Extension e : configuration.getExtensions()) {
+            final Extension grizzlyExtension = new Extension(e.getName());
+            for (javax.websocket.Extension.Parameter p : e.getParameters()) {
+                grizzlyExtension.getParameters().add(new Extension.Parameter(p.getName(), p.getValue()));
+            }
 
-                grizzlyExtensions.add(grizzlyExtension);
-            }
-        } else {
-            for (String s : configuration.getExtensions()) {
-                grizzlyExtensions.add(new Extension(s));
-            }
+            grizzlyExtensions.add(grizzlyExtension);
         }
 
         handshake.setExtensions(grizzlyExtensions);

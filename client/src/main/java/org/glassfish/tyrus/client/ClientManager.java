@@ -45,6 +45,7 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.ContainerProvider;
 import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
 import javax.websocket.Extension;
@@ -68,7 +69,7 @@ import org.glassfish.tyrus.spi.TyrusContainer;
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class ClientManager implements WebSocketContainer {
+public class ClientManager extends ContainerProvider implements WebSocketContainer {
 
     /**
      * Default {@link TyrusContainer} class name.
@@ -83,9 +84,9 @@ public class ClientManager implements WebSocketContainer {
     private final ErrorCollector collector;
 
     private long maxSessionIdleTimeout;
-    private long maxBinaryMessageBufferSize;
-    private long maxTextMessageBufferSize;
     private long defaultAsyncSendTimeout;
+    private int maxBinaryMessageBufferSize;
+    private int maxTextMessageBufferSize;
 
     /**
      * Create new {@link ClientManager} instance.
@@ -106,6 +107,15 @@ public class ClientManager implements WebSocketContainer {
      */
     public static ClientManager createClient(String engineProviderClassname) {
         return new ClientManager(engineProviderClassname);
+    }
+
+    @Override
+    protected <T> T getContainer(Class<T> tClass) {
+        if(tClass.equals(WebSocketContainer.class)) {
+            return (T) new ClientManager();
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -153,12 +163,6 @@ public class ClientManager implements WebSocketContainer {
 
     public Session connectToServer(Object obj, ClientEndpointConfiguration cec, URI path) throws DeploymentException {
         return connectToServer(obj, cec, path.toString());
-    }
-
-
-    @Override
-    public Set<Session> getOpenSessions() {
-        return null;
     }
 
     /**
@@ -238,23 +242,23 @@ public class ClientManager implements WebSocketContainer {
     }
 
     @Override
-    public long getMaxBinaryMessageBufferSize() {
+    public int getDefaultMaxBinaryMessageBufferSize() {
         return maxBinaryMessageBufferSize;
     }
 
     @Override
-    public void setMaxBinaryMessageBufferSize(long maxBinaryMessageBufferSize) {
-        this.maxBinaryMessageBufferSize = maxBinaryMessageBufferSize;
+    public void setDefaultMaxBinaryMessageBufferSize(int i) {
+        maxBinaryMessageBufferSize = i;
     }
 
     @Override
-    public long getMaxTextMessageBufferSize() {
+    public int getDefaultMaxTextMessageBufferSize() {
         return maxTextMessageBufferSize;
     }
 
     @Override
-    public void setMaxTextMessageBufferSize(long maxTextMessageBufferSize) {
-        this.maxTextMessageBufferSize = maxTextMessageBufferSize;
+    public void setDefaultMaxTextMessageBufferSize(int i) {
+        maxTextMessageBufferSize = i;
     }
 
     @Override

@@ -76,18 +76,11 @@ public class TyrusClientEndpointConfiguration extends DefaultClientConfiguration
 
     private List<Extension> extensions = Collections.emptyList();
 
-    @Override
-    public List<String> getExtensions() {
-        return super.getExtensions();    // TODO
-    }
-
-    // remove once ClientEndpointConfiguration#getExtensions() returns List<Extension>
-    public List<Extension> getExtensions___TODO() {
+    public List<Extension> getExtensions() {
         return this.extensions;
     }
 
-    // fix once DefaultClientEndpointConfiguration#setExtensions() takes List<Extension> as parameter
-    public TyrusClientEndpointConfiguration setExtensions___TODO(List<Extension> extensions) {
+    public TyrusClientEndpointConfiguration setExtensions(List<Extension> extensions) {
         this.extensions = extensions;
         return this;
     }
@@ -169,7 +162,7 @@ public class TyrusClientEndpointConfiguration extends DefaultClientConfiguration
             final TyrusClientEndpointConfiguration configuration = new TyrusClientEndpointConfiguration();
             configuration.setEncoders(encoders == null ? Collections.<Encoder>emptyList() : encoders);
             configuration.setDecoders(decoders == null ? Collections.<Decoder>emptyList() : decoders);
-            configuration.setExtensions___TODO(extensions == null ? Collections.<Extension>emptyList() : extensions);
+            configuration.setExtensions(extensions == null ? Collections.<Extension>emptyList() : extensions);
             configuration.setPreferredSubprotocols(protocols == null ? Collections.<String>emptyList() : protocols);
             return configuration;
         }
