@@ -759,8 +759,7 @@ public class ReflectionHelper {
             final Class<?> bundleReferenceClass = Class.forName("org.osgi.framework.BundleReference");
 
             if (bundleReferenceClass != null) {
-//                return OsgiRegistry.getInstance();
-                return null;
+                return OsgiRegistry.getInstance();
             }
         } catch (Exception e) {
             // Do nothing - instance is null.
