@@ -56,7 +56,7 @@ public class SimpleLifeBean {
     }
 
     @WebSocketMessage
-    public void handleMessage(Session message) {
+    public void handleMessage(String message, Session session) {
         System.out.println("Someone sent me this message: " + message);
     }
 
