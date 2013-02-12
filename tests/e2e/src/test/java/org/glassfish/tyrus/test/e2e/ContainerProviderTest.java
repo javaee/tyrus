@@ -55,7 +55,6 @@ import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.e2e.bean.TestEndpoint;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import static org.junit.Assert.assertNotNull;
 
@@ -74,11 +73,7 @@ public class ContainerProviderTest {
     }
 
     @Test
-    @Ignore("remove&refactor when org.glassfish.tyrus.javax.websocket.ContainerProvider is removed.")
-    public void test() {
-        Assert.assertNull(ContainerProvider.getWebSocketContainer());
-//        Assert.assertNull(ContainerProvider.getClientContainer());
-
+    public void complex() {
         Server server = new Server(TestEndpoint.class);
 
         try {
