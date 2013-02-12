@@ -66,7 +66,7 @@ public class ProgrammaticEchoTest {
 
     private URI getURI() {
         try {
-            return new URI("http://localhost:8025/sample-programmatic-echo/test");
+            return new URI("http://localhost:8025/sample-programmatic-echo/echo");
         } catch (URISyntaxException e) {
             return null;
         }

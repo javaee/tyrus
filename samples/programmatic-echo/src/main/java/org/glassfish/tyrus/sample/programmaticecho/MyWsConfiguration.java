@@ -49,6 +49,7 @@ import javax.websocket.EndpointConfiguration;
 import javax.websocket.Extension;
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
+import javax.websocket.server.ServerApplicationConfiguration;
 
 import org.glassfish.tyrus.server.TyrusServerConfiguration;
 
@@ -57,7 +58,7 @@ import org.glassfish.tyrus.server.TyrusServerConfiguration;
  *
  * @author Martin Matula (martin.matula at oracle.com)
  */
-public class MyWsConfiguration extends TyrusServerConfiguration {
+public class MyWsConfiguration extends TyrusServerConfiguration implements ServerApplicationConfiguration {
 
     /**
      * Default constructor, reg
@@ -68,7 +69,7 @@ public class MyWsConfiguration extends TyrusServerConfiguration {
 
     public static class EchoEndpointConfiguration extends javax.websocket.server.DefaultServerConfiguration {
         public EchoEndpointConfiguration() {
-            super(EchoEndpoint.class, "test");
+            super(EchoEndpoint.class, "echo");
         }
 
         @Override
