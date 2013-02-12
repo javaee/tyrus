@@ -98,7 +98,7 @@ public class TyrusServletFilter implements Filter {
         try {
             serverContainer.start();
         } catch (Exception e) {
-            throw new RuntimeException("Web socket server initialization failed.", e);
+            throw new ServletException("Web socket server initialization failed.", e);
         }
     }
 
