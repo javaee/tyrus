@@ -40,6 +40,8 @@
 
 package org.glassfish.tyrus.gf.cdi;
 
+import java.util.logging.Logger;
+
 import javax.enterprise.context.spi.CreationalContext;
 import javax.enterprise.inject.spi.AnnotatedType;
 import javax.enterprise.inject.spi.BeanManager;
@@ -58,6 +60,10 @@ public class CdiComponentProvider extends ComponentProvider {
 
     private final BeanManager beanManager;
 
+    private static final Logger LOGGER = Logger.getLogger(CdiComponentProvider.class.getName());
+
+    private final boolean managerRetrieved;
+
     /**
      * Constructor.
      * </p>
@@ -67,30 +73,43 @@ public class CdiComponentProvider extends ComponentProvider {
      */
     public CdiComponentProvider() throws NamingException {
         InitialContext ic = new InitialContext();
-        beanManager = (BeanManager) ic.lookup("java:comp/BeanManager");
+        BeanManager manager = null;
+
+        try {
+            manager = (BeanManager) ic.lookup("java:comp/BeanManager");
+        } catch (Exception e) {
+            LOGGER.fine(e.getMessage());
+        } finally {
+            beanManager = manager;
+            managerRetrieved = (beanManager != null);
+        }
     }
 
     @Override
     public boolean isApplicable(Class<?> c) {
-        return true;
+        return managerRetrieved;
     }
 
     @Override
     public <T> T provideInstance(Class<T> c) {
-        T managedObject;
-        AnnotatedType annotatedType;
-        InjectionTarget it;
-        CreationalContext cc;
+        if (managerRetrieved) {
+            T managedObject;
+            AnnotatedType annotatedType;
+            InjectionTarget it;
+            CreationalContext cc;
 
-        synchronized (beanManager) {
-            annotatedType = beanManager.createAnnotatedType(c);
-            it = beanManager.createInjectionTarget(annotatedType);
-            cc = beanManager.createCreationalContext(null);
+            synchronized (beanManager) {
+                annotatedType = beanManager.createAnnotatedType(c);
+                it = beanManager.createInjectionTarget(annotatedType);
+                cc = beanManager.createCreationalContext(null);
+            }
+            managedObject = (T) it.produce(cc);
+            it.inject(managedObject, cc);
+            it.postConstruct(managedObject);
+
+            return managedObject;
+        } else {
+            return null;
         }
-        managedObject = (T) it.produce(cc);
-        it.inject(managedObject, cc);
-        it.postConstruct(managedObject);
-
-        return managedObject;
     }
 }

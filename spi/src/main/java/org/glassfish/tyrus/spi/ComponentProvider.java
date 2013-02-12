@@ -42,6 +42,11 @@ package org.glassfish.tyrus.spi;
 
 /**
  * Provides an instance.
+ * </p>
+ *
+ * Method {@link #isApplicable(Class)} is called first to check whether the provider is able to provide the given {@link Class}.
+ * </p>
+ * Method {@link #provideInstance(Class)} is called to get the instance.
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  * @author Martin Matula (martin.matula at oracle.com)
@@ -59,7 +64,6 @@ public abstract class ComponentProvider {
      * Create new instance.
      * @param c {@link Class} to be created.
      * @return instance, iff found, {@code null} otherwise.
-     * @throws Exception
      */
-    public abstract <T> T provideInstance(Class<T> c) throws Exception;
+    public abstract <T> T provideInstance(Class<T> c);
 }

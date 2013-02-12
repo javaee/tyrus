@@ -40,8 +40,6 @@
 
 package org.glassfish.tyrus;
 
-import java.util.logging.Logger;
-
 import org.glassfish.tyrus.spi.ComponentProvider;
 
 /**
@@ -51,15 +49,17 @@ import org.glassfish.tyrus.spi.ComponentProvider;
  */
 public class DefaultComponentProvider extends ComponentProvider {
 
-    private static Logger LOGGER = Logger.getLogger(DefaultComponentProvider.class.getName());
-
     @Override
     public boolean isApplicable(Class<?> c) {
         return true;
     }
 
     @Override
-    public <T> T provideInstance(Class<T> toLoad) throws IllegalAccessException, InstantiationException {
-        return ReflectionHelper.getInstance(toLoad);
+    public <T> T provideInstance(Class<T> toLoad) {
+        try{
+            return ReflectionHelper.getInstance(toLoad);
+        } catch (Exception e){
+            return null;
+        }
     }
 }
