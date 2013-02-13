@@ -53,10 +53,10 @@ import org.glassfish.tyrus.websockets.HandShake;
 
 /**
  *
- * @author mikc
+ * @author michal.conos at oracle.com
  */
 public class ProgrammaticClient extends Endpoint {
-    private static final Logger logger = Logger.getLogger(HandShake.class.getCanonicalName());
+    private static final Logger logger = Logger.getLogger(ProgrammaticClient.class.getCanonicalName());
 
     @Override
     public void onOpen(Session s, EndpointConfiguration ec) {
