@@ -363,8 +363,10 @@ public class EndpointWrapper extends SPIEndpoint {
     @Override
     public Session createSessionForRemoteEndpoint(SPIRemoteEndpoint re, String subprotocol, List<Extension> extensions) {
 
-        return new SessionImpl(container, re, this, subprotocol, extensions, isSecure,
+        final SessionImpl session = new SessionImpl(container, re, this, subprotocol, extensions, isSecure,
                 uri == null ? null : URI.create(uri), queryString, templateValues);
+        remoteEndpointToSession.put(re, session);
+        return session;
     }
 
     @Override
@@ -374,9 +376,18 @@ public class EndpointWrapper extends SPIEndpoint {
 
     @Override
     public void onConnect(SPIRemoteEndpoint gs, String subprotocol, List<Extension> extensions) {
-        // create a new session
-        SessionImpl session = new SessionImpl(container, gs, this, subprotocol, extensions, isSecure,
-                uri == null ? null : URI.create(uri), queryString, templateValues);
+        SessionImpl session = remoteEndpointToSession.get(gs);
+        if(session == null) {
+            // create a new session
+            session = new SessionImpl(container, gs, this, subprotocol, extensions, isSecure,
+                    uri == null ? null : URI.create(uri), queryString, templateValues);
+        } else {
+            // Session was already created in WebSocketContainer#connectToServer call
+            // we need to update extensions and subprotocols
+            session.setNegotiatedExtensions(extensions);
+            session.setNegotiatedSubprotocol(subprotocol);
+        }
+
         remoteEndpointToSession.put(gs, session);
 
         final Endpoint toCall = endpoint != null ? endpoint :

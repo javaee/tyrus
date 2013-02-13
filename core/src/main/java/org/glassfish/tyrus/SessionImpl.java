@@ -76,8 +76,8 @@ public class SessionImpl implements Session {
     private final WebSocketContainer container;
     private final EndpointWrapper endpoint;
     private final RemoteEndpointWrapper remote;
-    private final String negotiatedSubprotocol;
-    private final List<Extension> negotiatedExtensions;
+    private String negotiatedSubprotocol;
+    private List<Extension> negotiatedExtensions;
     private final boolean isSecure;
     private final URI uri;
     private final String queryString;
@@ -202,18 +202,23 @@ public class SessionImpl implements Session {
 
     @Override
     public void addMessageHandler(MessageHandler handler) {
-        handlerManager.addMessageHandler(handler);
+        synchronized (handlerManager) {
+            handlerManager.addMessageHandler(handler);
+        }
     }
-
 
     @Override
     public Set<MessageHandler> getMessageHandlers() {
-        return handlerManager.getMessageHandlers();
+        synchronized (handlerManager) {
+            return handlerManager.getMessageHandlers();
+        }
     }
 
     @Override
     public void removeMessageHandler(MessageHandler handler) {
-        handlerManager.removeMessageHandler(handler);
+        synchronized (handlerManager) {
+            handlerManager.removeMessageHandler(handler);
+        }
     }
 
     @Override
@@ -250,6 +255,14 @@ public class SessionImpl implements Session {
     @Override
     public Principal getUserPrincipal() {
         return null;  // TODO: Implement.
+    }
+
+    void setNegotiatedSubprotocol(String negotiatedSubprotocol) {
+        this.negotiatedSubprotocol = negotiatedSubprotocol;
+    }
+
+    void setNegotiatedExtensions(List<Extension> negotiatedExtensions) {
+        this.negotiatedExtensions = Collections.unmodifiableList(new ArrayList<Extension>(negotiatedExtensions));
     }
 
     void notifyMessageHandlers(Object message, List<CoderWrapper<Decoder>> availableDecoders) {

@@ -53,8 +53,8 @@ import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.e2e.bean.TestEndpoint;
 
-import org.junit.Assert;
 import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 /**
  * Tests the basic client behavior, sending and receiving message.
@@ -67,6 +67,7 @@ public class ClientTest {
 
     private String receivedMessage;
 
+    private static Session session;
     private static final String SENT_MESSAGE = "hello";
 
     @Test
@@ -79,7 +80,7 @@ public class ClientTest {
             messageLatch = new CountDownLatch(1);
 
             ClientManager client = ClientManager.createClient();
-            client.connectToServer(new TestEndpointAdapter() {
+            final Session clientSession = client.connectToServer(new TestEndpointAdapter() {
                 private final ClientEndpointConfiguration configuration = new TyrusClientEndpointConfiguration.Builder().build();
 
                 @Override
@@ -96,6 +97,7 @@ public class ClientTest {
 
                 @Override
                 public void onOpen(Session session) {
+                    ClientTest.session = session;
                     try {
                         session.addMessageHandler(new TestTextMessageHandler(this));
                         session.getRemote().sendString(SENT_MESSAGE);
@@ -107,7 +109,8 @@ public class ClientTest {
             }, cec, new URI("ws://localhost:8025/websockets/tests/echo"));
 
             messageLatch.await(5, TimeUnit.SECONDS);
-            Assert.assertEquals(SENT_MESSAGE, receivedMessage);
+            assertEquals(clientSession, ClientTest.session);
+            assertEquals(SENT_MESSAGE, receivedMessage);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);

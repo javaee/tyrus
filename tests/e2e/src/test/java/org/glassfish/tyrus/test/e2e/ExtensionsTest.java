@@ -55,7 +55,6 @@ import javax.websocket.WebSocketMessage;
 import javax.websocket.WebSocketOpen;
 import javax.websocket.server.WebSocketEndpoint;
 
-import org.glassfish.tyrus.SessionImpl;
 import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.TyrusExtension;
 import org.glassfish.tyrus.TyrusServerEndpointConfiguration;
@@ -146,8 +145,7 @@ public class ExtensionsTest {
                         session.addMessageHandler(new MessageHandler.Basic<String>() {
                             @Override
                             public void onMessage(String message) {
-                                final List<Extension> extensionList = ((SessionImpl) session).getNegotiatedExtensions();
-                                for (Extension extension : extensionList) {
+                                for (Extension extension : session.getNegotiatedExtensions()) {
                                     if (extension.getName().equals("ext1") || extension.getName().equals("ext2")) {
                                         messageLatch.countDown();
                                     }
