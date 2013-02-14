@@ -44,29 +44,72 @@ package org.glassfish.tyrus.tests.qa.regression;
  * @author michal.conos at oracle.com
  */
 public enum Issue {
-    
-        TYRUS_93("ClientEndpoint session.getRequestURI()==null");
-        private String description;
-        private boolean enabled;
 
-        public void setEnabled(boolean enabled) {
-            this.enabled = enabled;
-        }
+    TYRUS_93("ClientEndpoint session.getRequestURI()==null"),
+    TYRUS_94("ServerEndPoint: onError(): throwable.getCause()==null");
+    private String description;
+    private boolean enabled;
 
-        public boolean isEnabled() {
-            return enabled;
+    private void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+    }
+
+    /**
+     * is the issue enabled?
+     * @return true if enabled, false if the issue is disabled
+     */
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    /**
+     * Disable issue
+     */
+    public void disable() {
+        setEnabled(false);
+    }
+
+    /**
+     * Enable issue
+     */
+    public void enable() {
+        setEnabled(true);
+    }
+
+    /**
+     * Disable all issue but the on requested. Handy for regression testing
+     *
+     * @param issue the issue which stays enabled. All other issues are disabled
+     */
+    public void disableAllBut(Issue issue) {
+        disableAll();
+        issue.enable();
+    }
+
+    /**
+     * Enable All issues in the database
+     */
+    public void enableAll() {
+        for (Issue crno : Issue.values()) {
+            crno.enable();
         }
-        
-        public void disable() {
-            setEnabled(false);
+    }
+
+    /**
+     * Disable all issue in the database
+     */
+    public void disableAll() {
+        for (Issue crno : Issue.values()) {
+            crno.disable();
         }
-        
-        public void enable() {
-            setEnabled(true);
-        }
-        
-        Issue(String description) {
-            this.description=description;
-            this.enabled = true;
-        }
+    }
+
+    /**
+     * Issue is created with a description
+     * @param description issue description
+     */
+    Issue(String description) {
+        this.description = description;
+        this.enabled = true;
+    }
 }

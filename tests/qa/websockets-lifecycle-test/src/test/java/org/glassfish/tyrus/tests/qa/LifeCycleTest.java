@@ -71,6 +71,7 @@ public class LifeCycleTest {
     @Test
     public void testLifeCycleProgrammatic() throws DeploymentException, InterruptedException, URISyntaxException {
         Issue.TYRUS_93.disable();
+        Issue.TYRUS_94.disable();
 
         ProgrammaticServerConfiguration.registerMessageHandler("messageHandler", new BasicTextMessageHandlerServer());
         tyrus.registerEndpoint(ProgrammaticServerConfiguration.class);

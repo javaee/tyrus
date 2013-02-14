@@ -54,7 +54,7 @@ public class BasicTextMessageHandlerClient extends BasicTextMessageHandler {
     @Override
     public void messageHandler(String msg) throws IOException {
         logger.log(Level.INFO, "client:message={0}", msg);
-        if(msg.equals("client:open")) {
+        if(msg.equals("client.open")) {
             session.close(new CloseReason(CloseReason.CloseCodes.GOING_AWAY, "Going away"));
         }
         else {

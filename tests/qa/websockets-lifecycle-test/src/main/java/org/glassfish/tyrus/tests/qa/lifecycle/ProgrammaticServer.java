@@ -48,6 +48,7 @@ import javax.websocket.EndpointConfiguration;
 import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
 import org.glassfish.tyrus.tests.qa.handlers.BasicTextMessageHandler;
+import org.glassfish.tyrus.tests.qa.regression.Issue;
 
 public class ProgrammaticServer extends Endpoint {
 
@@ -69,11 +70,12 @@ public class ProgrammaticServer extends Endpoint {
         logger.log(Level.INFO, "Clossing the session: {0}", s.toString());
         final RemoteEndpoint remote = s.getRemote();
         try {
-            //should raise on error
+            
             
             if(!reason.getCloseCode().equals(CloseReason.CloseCodes.GOING_AWAY)) {
                 throw new RuntimeException("CloseReason.CloseCode should be GOING_AWAY");
             }
+            //should raise on error
             remote.sendString("Raise onError now - socket is closed");
             s.close();
         } catch (IOException ex) {
@@ -84,12 +86,17 @@ public class ProgrammaticServer extends Endpoint {
     @Override
     public void onError(Session s, Throwable thr) {
         logger.log(Level.SEVERE, "onError: {0}", thr.getLocalizedMessage());
-        logger.log(Level.SEVERE, "onError: cause: {0}", thr.getCause());
+        logger.log(Level.SEVERE, "onError: {0}", thr.getMessage());
+        if(Issue.TYRUS_94.isEnabled()) {
+           logger.log(Level.SEVERE, "onError: cause: {0}", thr.getCause().getMessage());
+        }
         final RemoteEndpoint remote = s.getRemote();
+        /*
         try {
-            remote.sendString("onError");
+            //remote.sendString("onError");
         } catch (IOException ex) {
             logger.log(Level.SEVERE, null, ex);
         }
+        */
     }
 }

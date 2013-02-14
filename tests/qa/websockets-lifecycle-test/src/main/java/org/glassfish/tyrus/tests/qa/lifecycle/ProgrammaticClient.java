@@ -65,8 +65,7 @@ public class ProgrammaticClient extends Endpoint {
 
     @Override
     public void onOpen(Session s, EndpointConfiguration config) {
-        //http://java.net/jira/browse/TYRUS-93
-        //ClientEndpoint session.getRequestURI()==null
+        
         if(Issue.TYRUS_93.isEnabled()) {
             logger.log(Level.INFO, "Client connecting:{0}", s.getRequestURI().toString());
         }
