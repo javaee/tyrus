@@ -45,8 +45,6 @@ import org.glassfish.tyrus.websockets.WebSocketRequest;
 /**
  * {@link WebSocketRequest} wrapper.
  *
- * TODO: is this really needed?
- *
  * @author Danny Coward (danny.coward at oracle.com)
  */
 public class TyrusHandshakeRequest implements SPIHandshakeRequest {
@@ -68,16 +66,16 @@ public class TyrusHandshakeRequest implements SPIHandshakeRequest {
 
     @Override
     public String getRequestUri() {
-        return this.rp.getRequestURI();
+        return rp.getRequestURI();
     }
 
     @Override
     public boolean isSecure() {
-        return this.rp.isSecure();
+        return rp.isSecure();
     }
 
     @Override
     public String getQueryString() {
-        return this.rp.getQueryString();
+        return rp.getQueryString();
     }
 }

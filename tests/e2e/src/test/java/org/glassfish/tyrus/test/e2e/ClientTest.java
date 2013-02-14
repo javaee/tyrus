@@ -108,7 +108,10 @@ public class ClientTest {
                 }
             }, cec, new URI("ws://localhost:8025/websockets/tests/echo"));
 
+            assertEquals("ws://localhost:8025/websockets/tests/echo", clientSession.getRequestURI().toString());
+
             messageLatch.await(5, TimeUnit.SECONDS);
+
             assertEquals(clientSession, ClientTest.session);
             assertEquals(SENT_MESSAGE, receivedMessage);
         } catch (Exception e) {

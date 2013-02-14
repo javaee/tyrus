@@ -46,10 +46,12 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.ContainerProvider;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
+import javax.websocket.WebSocketContainer;
 
 import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
@@ -132,7 +134,7 @@ public class HelloTest {
             server.start();
             messageLatchEndpoint = new CountDownLatch(1);
 
-            ClientManager client = ClientManager.createClient();
+            WebSocketContainer client = ContainerProvider.getWebSocketContainer();
             client.connectToServer(MyEndpoint.class, cec, new URI("wss://localhost:8025/websockets/tests/echo"));
             messageLatchEndpoint.await(5, TimeUnit.SECONDS);
             Assert.assertEquals(SENT_MESSAGE, receivedMessageEndpoint);

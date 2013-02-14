@@ -148,6 +148,10 @@ public class EndpointWrapper extends SPIEndpoint {
         this.endpoint = endpoint;
         this.container = container;
         this.contextPath = contextPath;
+        // Uri is re-set in checkHandshake method; this value will be used only in scenarios
+        // when checkHandshake is not called, like using EndpointWrapper on the client side.
+        // this.uri is then used for creating SessionImpl and used as a return value in Session.getRequestURI() method.
+        this.uri = contextPath;
         this.collector = collector;
         this.componentProvider = componentProvider;
 
@@ -362,7 +366,6 @@ public class EndpointWrapper extends SPIEndpoint {
 
     @Override
     public Session createSessionForRemoteEndpoint(SPIRemoteEndpoint re, String subprotocol, List<Extension> extensions) {
-
         final SessionImpl session = new SessionImpl(container, re, this, subprotocol, extensions, isSecure,
                 uri == null ? null : URI.create(uri), queryString, templateValues);
         remoteEndpointToSession.put(re, session);

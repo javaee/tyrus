@@ -203,7 +203,7 @@ public class ClientManager extends ContainerProvider implements WebSocketContain
             }
 
             if (endpoint != null) {
-                EndpointWrapper clientEndpoint = new EndpointWrapper(endpoint, config, componentProvider, this, null, collector);
+                EndpointWrapper clientEndpoint = new EndpointWrapper(endpoint, config, componentProvider, this, url, collector);
                 clientSocket = engine.openClientSocket(url, config, clientEndpoint);
                 sockets.add(clientSocket);
             }
