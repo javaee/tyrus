@@ -39,41 +39,23 @@
  */
 package org.glassfish.tyrus.tests.qa;
 
-import org.glassfish.tyrus.tests.qa.lifecycle.client.ProgrammaticClientConfiguration;
-import org.glassfish.tyrus.tests.qa.lifecycle.client.ProgrammaticClient;
-import org.glassfish.tyrus.tests.qa.lifecycle.server.ProgrammaticServer;
-import java.io.IOException;
-import java.net.URI;
+import org.glassfish.tyrus.tests.qa.lifecycle.ProgrammaticClientConfiguration;
+import org.glassfish.tyrus.tests.qa.lifecycle.ProgrammaticClient;
 import java.net.URISyntaxException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.websocket.ClientEndpointConfiguration;
 import javax.websocket.ContainerProvider;
-import javax.websocket.Decoder;
 import javax.websocket.DeploymentException;
-import javax.websocket.Encoder;
-import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfiguration;
-import javax.websocket.Extension;
-import javax.websocket.HandshakeResponse;
-import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
-import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
-import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
-import org.glassfish.tyrus.tests.qa.lifecycle.config.AppConfig;
-import org.glassfish.tyrus.tests.qa.lifecycle.config.LifeCycleDeployment;
-import org.glassfish.tyrus.tests.qa.lifecycle.regression.Issue;
-import org.glassfish.tyrus.tests.qa.lifecycle.server.ProgrammaticServerConfiguration;
-import org.glassfish.tyrus.tests.qa.lifecycle.tools.TyrusToolkit;
-import static org.junit.Assert.assertEquals;
+import org.glassfish.tyrus.tests.qa.config.AppConfig;
+import org.glassfish.tyrus.tests.qa.handlers.client.BasicTextMessageHandlerClient;
+import org.glassfish.tyrus.tests.qa.handlers.server.BasicTextMessageHandlerServer;
+import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleDeployment;
+import org.glassfish.tyrus.tests.qa.regression.Issue;
+import org.glassfish.tyrus.tests.qa.lifecycle.ProgrammaticServerConfiguration;
+import org.glassfish.tyrus.tests.qa.tools.TyrusToolkit;
 import static org.junit.Assert.fail;
 import org.junit.Test;
 
@@ -82,22 +64,25 @@ import org.junit.Test;
  * @author Michal Conos (michal.conos at oracle.com)
  */
 public class LifeCycleTest {
-    
 
-     AppConfig testConf = new AppConfig(LifeCycleDeployment.CONTEXT_PATH, LifeCycleDeployment.PROGRAMMATIC_ENDPOINT);
-     TyrusToolkit tyrus = new TyrusToolkit(testConf);
-  
+    AppConfig testConf = new AppConfig(LifeCycleDeployment.CONTEXT_PATH, LifeCycleDeployment.PROGRAMMATIC_ENDPOINT);
+    TyrusToolkit tyrus = new TyrusToolkit(testConf);
 
     @Test
     public void testLifeCycleProgrammatic() throws DeploymentException, InterruptedException, URISyntaxException {
         Issue.TYRUS_93.disable();
-        
+
+        ProgrammaticServerConfiguration.registerMessageHandler("messageHandler", new BasicTextMessageHandlerServer());
         tyrus.registerEndpoint(ProgrammaticServerConfiguration.class);
         final Server server = tyrus.startServer();
 
         final CountDownLatch stopConversation = new CountDownLatch(1);
         WebSocketContainer wsc = ContainerProvider.getWebSocketContainer();
-        Session clientSession = wsc.connectToServer(ProgrammaticClient.class, new ProgrammaticClientConfiguration(), testConf.getURI());
+        Session clientSession = wsc.connectToServer(
+                ProgrammaticClient.class,
+                new ProgrammaticClientConfiguration(
+                new BasicTextMessageHandlerClient()),
+                testConf.getURI());
         // FIXME TC: clientSession.equals(lcSession)
         // FIXME TC: clientSession.addMessageHandler .. .throw excetpion
         stopConversation.await(10, TimeUnit.SECONDS);

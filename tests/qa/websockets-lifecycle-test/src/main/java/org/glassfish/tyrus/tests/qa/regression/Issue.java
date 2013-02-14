@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.tests.qa.lifecycle.regression;
+package org.glassfish.tyrus.tests.qa.regression;
 
 /**
  *

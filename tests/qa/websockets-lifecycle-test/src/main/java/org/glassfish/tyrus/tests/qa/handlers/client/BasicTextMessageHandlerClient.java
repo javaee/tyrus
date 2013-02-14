@@ -37,66 +37,34 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.tests.qa.lifecycle.server;
+package org.glassfish.tyrus.tests.qa.handlers.client;
 
-import java.net.URI;
-import java.util.Collections;
-import java.util.List;
-import javax.websocket.Decoder;
-import javax.websocket.Encoder;
-import javax.websocket.Extension;
-import javax.websocket.HandshakeResponse;
-import javax.websocket.server.HandshakeRequest;
-import javax.websocket.server.ServerEndpointConfiguration;
-import org.glassfish.tyrus.tests.qa.lifecycle.config.LifeCycleDeployment;
+import java.io.IOException;
+import java.util.logging.Level;
+import javax.websocket.CloseReason;
+import javax.websocket.Session;
+import org.glassfish.tyrus.tests.qa.handlers.BasicTextMessageHandler;
 
 /**
  *
  * @author michal.conos at oracle.com
  */
-public class ProgrammaticServerConfiguration implements ServerEndpointConfiguration {
-
+public class BasicTextMessageHandlerClient extends BasicTextMessageHandler {
+    
     @Override
-    public Class<?> getEndpointClass() {
-        return ProgrammaticServer.class;
+    public void messageHandler(String msg) throws IOException {
+        logger.log(Level.INFO, "client:message={0}", msg);
+        if(msg.equals("client:open")) {
+            session.close(new CloseReason(CloseReason.CloseCodes.GOING_AWAY, "Going away"));
+        }
+        else {
+            remote.sendString(msg);
+        }
     }
-
-    @Override
-    public String getNegotiatedSubprotocol(List<String> list) {
-        return null;
+    
+    public void startTalk() throws IOException {
+        remote.sendString("client.open");
     }
-
-    @Override
-    public List<Extension> getNegotiatedExtensions(List<Extension> list) {
-        return Collections.EMPTY_LIST;
-    }
-
-    @Override
-    public boolean checkOrigin(String string) {
-        return true;
-    }
-
-    @Override
-    public boolean matchesURI(URI uri) {
-        return true;
-    }
-
-    @Override
-    public void modifyHandshake(HandshakeRequest hr, HandshakeResponse hr1) {
-    }
-
-    @Override
-    public String getPath() {
-        return LifeCycleDeployment.PROGRAMMATIC_ENDPOINT;
-    }
-
-    @Override
-    public List<Encoder> getEncoders() {
-        return Collections.EMPTY_LIST;
-    }
-
-    @Override
-    public List<Decoder> getDecoders() {
-        return Collections.EMPTY_LIST;
-    }
+    
+    
 }

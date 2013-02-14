@@ -37,52 +37,72 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.tests.qa.lifecycle.tools;
+package org.glassfish.tyrus.tests.qa.config;
 
-import java.util.HashSet;
-import java.util.Set;
-import javax.websocket.DeploymentException;
-import org.glassfish.tyrus.server.Server;
-import org.glassfish.tyrus.tests.qa.lifecycle.config.AppConfig;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 /**
  *
  * @author michal.conos at oracle.com
  */
-public class TyrusToolkit {
-
-    AppConfig config;
-    private Set<Class<?>> endpointClasses = new HashSet<Class<?>>();
-
-    public TyrusToolkit(AppConfig config) {
-        this.config = config;
+public class AppConfig {
+    public static final String DEFAULT_HOST = "localhost";
+    public static final int DEFAULT_PORT = 8025;
+    
+    private String contextPath;
+    private String endpointPath;
+    private int port;
+    private String host;
+    
+    public AppConfig(String contextPath, String endpointPath) {
+        setContextPath(contextPath);
+        setEndpointPath(endpointPath);
     }
 
-    public void registerEndpoint(Class<?> endpoint) {
-        endpointClasses.add(endpoint);
+    public String getContextPath() {
+        return contextPath;
     }
 
-    /**
-     * Start embedded server unless "tyrus.test.host" system property is
-     * specified.
-     *
-     * @return new {@link Server} instance or {@code null} if "tyrus.test.host"
-     * system property is set.
-     */
-    public Server startServer() throws DeploymentException {
-        final String host = System.getProperty("tyrus.test.host");
-        if (host == null) {
-            final Server server = new Server(config.getHost(), config.getPort(), config.getContextPath(), endpointClasses);
-            server.start();
-            return server;
-        } else {
+    public final void setContextPath(String contextPath) {
+        this.contextPath = contextPath;
+    }
+
+    public String getEndpointPath() {
+        return endpointPath;
+    }
+
+    public final void setEndpointPath(String endpointPath) {
+        this.endpointPath = endpointPath;
+    }
+    
+    public URI getURI() {
+        try {
+            return new URI("ws", null, getHost(), getPort(), getContextPath()+ getEndpointPath(), null, null);
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
             return null;
         }
     }
-
-    public void stopServer(Server server) {
-        if (server != null) {
-            server.stop();
+    
+    
+    public String getHost() {
+        final String host = System.getProperty("tyrus.test.host");
+        if (host != null) {
+            return host;
         }
+        return DEFAULT_HOST;
+    }
+
+    public int getPort() {
+        final String port = System.getProperty("tyrus.test.port");
+        if (port != null) {
+            try {
+                return Integer.parseInt(port);
+            } catch (NumberFormatException nfe) {
+                // do nothing
+            }
+        }
+        return DEFAULT_PORT;
     }
 }

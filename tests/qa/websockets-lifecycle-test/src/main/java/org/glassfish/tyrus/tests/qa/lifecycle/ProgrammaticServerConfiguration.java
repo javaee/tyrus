@@ -37,41 +37,72 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.tests.qa.lifecycle.client;
+package org.glassfish.tyrus.tests.qa.lifecycle;
 
+import org.glassfish.tyrus.tests.qa.lifecycle.ProgrammaticServer;
+import java.net.URI;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
-import javax.websocket.ClientEndpointConfiguration;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.websocket.Decoder;
 import javax.websocket.Encoder;
 import javax.websocket.Extension;
 import javax.websocket.HandshakeResponse;
+import javax.websocket.server.HandshakeRequest;
+import javax.websocket.server.ServerEndpointConfiguration;
+import org.glassfish.tyrus.tests.qa.handlers.BasicTextMessageHandler;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  *
  * @author michal.conos at oracle.com
  */
-public class ProgrammaticClientConfiguration implements ClientEndpointConfiguration {
+public class ProgrammaticServerConfiguration implements ServerEndpointConfiguration {
+
+    private static ConcurrentMap<String, BasicTextMessageHandler> _messageHandlers = new ConcurrentHashMap<String, BasicTextMessageHandler>();
+    
+    public static void registerMessageHandler(String name, BasicTextMessageHandler handler) {
+        _messageHandlers.put(name, handler);
+    }
+    
+    public static BasicTextMessageHandler getMessageHandler(String name) {
+        return _messageHandlers.get(name);
+    }
+
+
 
     @Override
-    public List<String> getPreferredSubprotocols() {
+    public Class<?> getEndpointClass() {
+        return ProgrammaticServer.class;
+    }
+
+    @Override
+    public String getNegotiatedSubprotocol(List<String> list) {
+        return null;
+    }
+
+    @Override
+    public List<Extension> getNegotiatedExtensions(List<Extension> list) {
         return Collections.EMPTY_LIST;
     }
 
     @Override
-    public List<Extension> getExtensions() {
-        return Collections.EMPTY_LIST;
+    public boolean checkOrigin(String string) {
+        return true;
     }
 
     @Override
-    public void beforeRequest(Map<String, List<String>> map) {
-        
+    public boolean matchesURI(URI uri) {
+        return true;
     }
 
     @Override
-    public void afterResponse(HandshakeResponse hr) {
-        
+    public void modifyHandshake(HandshakeRequest hr, HandshakeResponse hr1) {
+    }
+
+    @Override
+    public String getPath() {
+        return LifeCycleDeployment.PROGRAMMATIC_ENDPOINT;
     }
 
     @Override
@@ -83,5 +114,4 @@ public class ProgrammaticClientConfiguration implements ClientEndpointConfigurat
     public List<Decoder> getDecoders() {
         return Collections.EMPTY_LIST;
     }
-    
 }

@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.tests.qa.lifecycle.client;
+package org.glassfish.tyrus.tests.qa.lifecycle;
 
 import java.io.IOException;
 import java.util.logging.Level;
@@ -48,7 +48,9 @@ import javax.websocket.EndpointConfiguration;
 import javax.websocket.MessageHandler;
 import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
-import org.glassfish.tyrus.tests.qa.lifecycle.regression.Issue;
+import org.glassfish.tyrus.tests.qa.handlers.BasicTextMessageHandler;
+import org.glassfish.tyrus.tests.qa.handlers.client.BasicTextMessageHandlerClient;
+import org.glassfish.tyrus.tests.qa.regression.Issue;
 import org.glassfish.tyrus.websockets.HandShake;
 
 /**
@@ -57,9 +59,12 @@ import org.glassfish.tyrus.websockets.HandShake;
  */
 public class ProgrammaticClient extends Endpoint {
     private static final Logger logger = Logger.getLogger(ProgrammaticClient.class.getCanonicalName());
+    
+    BasicTextMessageHandler mh;
+   
 
     @Override
-    public void onOpen(Session s, EndpointConfiguration ec) {
+    public void onOpen(Session s, EndpointConfiguration config) {
         //http://java.net/jira/browse/TYRUS-93
         //ClientEndpoint session.getRequestURI()==null
         if(Issue.TYRUS_93.isEnabled()) {
@@ -68,33 +73,19 @@ public class ProgrammaticClient extends Endpoint {
         else {
             logger.log(Level.INFO, "Client connecting:{0}", s.getRequestURI());
         }
+        mh = ((ProgrammaticClientConfiguration)config).getMessageHandler();
         final RemoteEndpoint remote = s.getRemote();
-        s.addMessageHandler(
-                new MessageHandler.Basic<String>() {
-                    @Override
-                    public void onMessage(String recv) {
-                        try {
-                            //FIXME TC: s.close(new CloseReason(CloseReason.CloseCodes.TRY_AGAIN_LATER, recv));
-                            remote.sendString(messageHandler(recv));
-                        } catch (IOException ex) {
-                            logger.log(Level.SEVERE, null, ex);
-                        }
-                    }
-                });
+        mh.setSession(s);
+        s.addMessageHandler(mh);
+                
         try {
-            remote.sendString("client:open");
+            mh.startTalk();
         } catch (IOException ex) {
             logger.log(Level.SEVERE, null, ex);
         }
     }
 
-    public String messageHandler(String message) {
-        logger.log(Level.INFO, "client message={0}", message);
-        if(message.equals("client:open")) {
-            
-        }
-        return message;
-    }
+
 
     @Override
     public void onClose(Session s, CloseReason reason) {

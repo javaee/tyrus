@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.tests.qa.lifecycle.server;
+package org.glassfish.tyrus.tests.qa.lifecycle;
 
 import java.io.IOException;
 import java.util.logging.Level;
@@ -45,47 +45,37 @@ import java.util.logging.Logger;
 import javax.websocket.CloseReason;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfiguration;
-import javax.websocket.MessageHandler;
 import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
-import javax.websocket.WebSocketMessage;
-import javax.websocket.WebSocketOpen;
-import javax.websocket.server.DefaultServerConfiguration;
-import javax.websocket.server.WebSocketEndpoint;
-import org.glassfish.tyrus.websockets.HandShake;
+import org.glassfish.tyrus.tests.qa.handlers.BasicTextMessageHandler;
 
 public class ProgrammaticServer extends Endpoint {
 
     private static final Logger logger = Logger.getLogger(ProgrammaticServer.class.getCanonicalName());
+    BasicTextMessageHandler mh;
+    
 
     @Override
     public void onOpen(Session s, EndpointConfiguration ec) {
         logger.log(Level.INFO, "Someone connected:{0}", s.getRequestURI().toString());
-        final RemoteEndpoint remote = s.getRemote();
-        s.addMessageHandler(
-                new MessageHandler.Basic<String>() {
-                    @Override
-                    public void onMessage(String recv) {
-                        try {
-                            remote.sendString(messageHandler(recv));
-                        } catch (IOException ex) {
-                            logger.log(Level.SEVERE, null, ex);
-                        }
-                    }
-                });
+        mh = ((ProgrammaticServerConfiguration)ec).getMessageHandler("messageHandler");
+        mh.setSession(s);
+        s.addMessageHandler(mh);
     }
 
-    public String messageHandler(String message) {
-        logger.log(Level.INFO, "message={0}", message);
-        return message;
-    }
 
     @Override
     public void onClose(Session s, CloseReason reason) {
         logger.log(Level.INFO, "Clossing the session: {0}", s.toString());
         final RemoteEndpoint remote = s.getRemote();
         try {
-            remote.sendString("onClose");
+            //should raise on error
+            
+            if(!reason.getCloseCode().equals(CloseReason.CloseCodes.GOING_AWAY)) {
+                throw new RuntimeException("CloseReason.CloseCode should be GOING_AWAY");
+            }
+            remote.sendString("Raise onError now - socket is closed");
+            s.close();
         } catch (IOException ex) {
             logger.log(Level.SEVERE, null, ex);
         }
@@ -94,6 +84,7 @@ public class ProgrammaticServer extends Endpoint {
     @Override
     public void onError(Session s, Throwable thr) {
         logger.log(Level.SEVERE, "onError: {0}", thr.getLocalizedMessage());
+        logger.log(Level.SEVERE, "onError: cause: {0}", thr.getCause());
         final RemoteEndpoint remote = s.getRemote();
         try {
             remote.sendString("onError");

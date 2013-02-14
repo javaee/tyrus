@@ -37,72 +37,45 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.tests.qa.lifecycle.config;
+package org.glassfish.tyrus.tests.qa.handlers;
 
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.websocket.MessageHandler;
+import javax.websocket.RemoteEndpoint;
+import javax.websocket.Session;
+import org.glassfish.tyrus.tests.qa.lifecycle.ProgrammaticClient;
 
 /**
  *
  * @author michal.conos at oracle.com
  */
-public class AppConfig {
-    public static final String DEFAULT_HOST = "localhost";
-    public static final int DEFAULT_PORT = 8025;
+public abstract class BasicTextMessageHandler implements MessageHandler.Basic<String> {
     
-    private String contextPath;
-    private String endpointPath;
-    private int port;
-    private String host;
+    protected static final Logger logger = Logger.getLogger(BasicTextMessageHandler.class.getCanonicalName());
+    protected RemoteEndpoint remote;
+    protected Session session;
     
-    public AppConfig(String contextPath, String endpointPath) {
-        setContextPath(contextPath);
-        setEndpointPath(endpointPath);
-    }
-
-    public String getContextPath() {
-        return contextPath;
-    }
-
-    public final void setContextPath(String contextPath) {
-        this.contextPath = contextPath;
-    }
-
-    public String getEndpointPath() {
-        return endpointPath;
-    }
-
-    public final void setEndpointPath(String endpointPath) {
-        this.endpointPath = endpointPath;
-    }
     
-    public URI getURI() {
+    public void setSession(Session session) {
+        this.session = session;
+        this.remote = session.getRemote();
+    }
+
+    public abstract void messageHandler(String msg) throws IOException;
+    
+    @Override
+    public void onMessage(String msg) {
         try {
-            return new URI("ws", null, getHost(), getPort(), getContextPath()+ getEndpointPath(), null, null);
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-            return null;
+            messageHandler(msg);
+        } catch (IOException ex) {
+            logger.log(Level.SEVERE, null, ex);
         }
     }
     
+    public void startTalk() throws IOException {
+        
+    }
     
-    public String getHost() {
-        final String host = System.getProperty("tyrus.test.host");
-        if (host != null) {
-            return host;
-        }
-        return DEFAULT_HOST;
-    }
-
-    public int getPort() {
-        final String port = System.getProperty("tyrus.test.port");
-        if (port != null) {
-            try {
-                return Integer.parseInt(port);
-            } catch (NumberFormatException nfe) {
-                // do nothing
-            }
-        }
-        return DEFAULT_PORT;
-    }
 }

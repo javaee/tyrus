@@ -37,13 +37,24 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.tests.qa.lifecycle.config;
+package org.glassfish.tyrus.tests.qa.handlers.server;
+
+import java.io.IOException;
+import java.util.logging.Level;
+import javax.websocket.Session;
+import org.glassfish.tyrus.tests.qa.handlers.BasicTextMessageHandler;
 
 /**
  *
  * @author michal.conos at oracle.com
  */
-public interface LifeCycleDeployment {
-     public static final String CONTEXT_PATH = "/websockets-lifecycle-test";
-     public static final String PROGRAMMATIC_ENDPOINT = "/life";
+public class BasicTextMessageHandlerServer extends BasicTextMessageHandler {
+
+
+    @Override
+    public void messageHandler(String msg) throws IOException {
+        logger.log(Level.INFO, "server:message={0}", msg);
+        remote.sendString(msg);
+    }
+    
 }
