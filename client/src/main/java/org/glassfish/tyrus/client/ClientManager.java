@@ -40,6 +40,7 @@
 package org.glassfish.tyrus.client;
 
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Logger;
@@ -179,6 +180,16 @@ public class ClientManager extends ContainerProvider implements WebSocketContain
         ClientEndpointConfiguration config;
         Endpoint endpoint;
         TyrusClientSocket clientSocket = null;
+
+        try {
+            URI uri = new URI(url);
+            String scheme = uri.getScheme();
+            if (scheme == null || !(scheme.equals("ws") || scheme.equals("wss"))) {
+                throw new DeploymentException("Incorrect scheme in WebSocket endpoint URI="+url);
+            }
+        } catch (URISyntaxException e) {
+            throw new DeploymentException("Incorrect WebSocket endpoint URI="+url, e);
+        }
 
         try {
             if (o instanceof Endpoint) {

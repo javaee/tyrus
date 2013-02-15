@@ -58,10 +58,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import javax.websocket.ClientEndpointConfiguration;
-import javax.websocket.CloseReason;
-import javax.websocket.HandshakeResponse;
-import javax.websocket.Session;
+import javax.websocket.*;
 
 import org.glassfish.tyrus.TyrusExtension;
 import org.glassfish.tyrus.server.TyrusEndpoint;
@@ -152,7 +149,17 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
             };
 
             connectorHandler.setProcessor(createFilterChain());
-            connectorHandler.connect(new InetSocketAddress(uri.getHost(), uri.getPort()));
+            int port = uri.getPort();
+            if (port == -1) {
+                String scheme = uri.getScheme();
+                assert scheme != null && (scheme.equals("ws") || scheme.equals("wss"));
+                if (scheme.equals("ws")) {
+                    port = 80;
+                } else if (scheme.equals("wss")) {
+                    port = 443;
+                }
+            }
+            connectorHandler.connect(new InetSocketAddress(uri.getHost(), port));
             connectorHandler.setSyncConnectTimeout(timeoutMs, TimeUnit.MILLISECONDS);
         } catch (Exception e) {
             e.printStackTrace();
