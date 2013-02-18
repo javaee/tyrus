@@ -58,19 +58,19 @@ public class EchoServer {
         return text;
     }
 
-    private String message = "";
+    private StringBuilder message = new StringBuilder();
 
     @WebSocketMessage
     public void onPartialText(Session session, String text, boolean last) {
         if(last) {
             try {
-                session.getRemote().sendString(message + text);
+                session.getRemote().sendString(message.append(text).toString());
             } catch (IOException e) {
                 //
             }
-            message = "";
+            message = new StringBuilder();
         } else {
-            message = message + text;
+            message.append(text);
         }
     }
 
