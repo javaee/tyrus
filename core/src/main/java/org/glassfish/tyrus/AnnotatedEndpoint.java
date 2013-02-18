@@ -524,7 +524,7 @@ public class AnnotatedEndpoint extends Endpoint {
         MessageHandlerFactory(Method method, ParameterExtractor[] extractors, Class<?> type) {
             this.method = method;
             this.extractors = extractors;
-            this.type = (PrimitivesToWrappers.getBoxing(type) == null) ? type : PrimitivesToWrappers.getBoxing(type);
+            this.type = (PrimitivesToWrappers.getPrimitiveWrapper(type) == null) ? type : PrimitivesToWrappers.getPrimitiveWrapper(type);
         }
 
         abstract MessageHandler create(Session session);

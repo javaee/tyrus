@@ -103,7 +103,7 @@ public class AnnotatedClassValidityChecker {
         Class<?> returnType = method.getReturnType();
 
         if (returnType != void.class && returnType != String.class && returnType != ByteBuffer.class &&
-                returnType != byte[].class && !returnType.isPrimitive() && !checkEncoders(returnType)) {
+                returnType != byte[].class && !returnType.isPrimitive() && !checkEncoders(returnType) && !PrimitivesToWrappers.isPrimitiveWrapper(returnType)) {
             logDeploymentException(new DeploymentException(String.format("Method: %s.%s %s", annotatedClass.getName(), method.getName(), FORBIDDEN_RETURN_TYPE)));
         }
     }

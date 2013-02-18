@@ -66,7 +66,15 @@ import junit.framework.Assert;
  */
 public class AnnotatedClassModelcheckingTest {
 
-    public void testServer(Class<?> testedBean) {
+    private void testServerPositive(Class<?> testedBean) {
+        testServer(testedBean, false);
+    }
+
+    private void testServerNegative(Class<?> testedBean) {
+        testServer(testedBean, true);
+    }
+
+    private void testServer(Class<?> testedBean, boolean shouldThrowException) {
         Server server = new Server(testedBean);
         boolean exceptionThrown = false;
 
@@ -76,13 +84,13 @@ public class AnnotatedClassModelcheckingTest {
             exceptionThrown = true;
         } finally {
             server.stop();
-            Assert.assertEquals(true, exceptionThrown);
+            Assert.assertEquals(shouldThrowException, exceptionThrown);
         }
     }
 
     @Test
     public void testEndpointWithTwoSessionMessageParameters() {
-        testServer(TwoSessionParametersErrorBean.class);
+        testServerNegative(TwoSessionParametersErrorBean.class);
     }
 
     @WebSocketEndpoint(value = "/hello", configuration = DefaultServerConfiguration.class)
@@ -96,7 +104,7 @@ public class AnnotatedClassModelcheckingTest {
 
     @Test
     public void testEndpointWithTwoStringMessageParameters() {
-        testServer(TwoStringParametersErrorBean.class);
+        testServerNegative(TwoStringParametersErrorBean.class);
     }
 
     @WebSocketEndpoint(value = "/hello", configuration = DefaultServerConfiguration.class)
@@ -110,7 +118,7 @@ public class AnnotatedClassModelcheckingTest {
 
     @Test
     public void testEndpointWithWrongMessageReturnParameter() {
-        testServer(WrongMessageReturnParameter.class);
+        testServerNegative(WrongMessageReturnParameter.class);
     }
 
     @WebSocketEndpoint(value = "/hello", configuration = DefaultServerConfiguration.class)
@@ -123,8 +131,36 @@ public class AnnotatedClassModelcheckingTest {
     }
 
     @Test
+    public void testEndpointWithCorrectMessageReturnParameter1() {
+        testServerPositive(CorrectMessageReturnParameter1.class);
+    }
+
+    @WebSocketEndpoint(value = "/hello", configuration = DefaultServerConfiguration.class)
+    public static class CorrectMessageReturnParameter1 {
+
+        @WebSocketMessage
+        public Float wrongReturn(String message1, Session peer2) {
+            return new Float(5);
+        }
+    }
+
+    @Test
+    public void testEndpointWithCorrectMessageReturnParameter2() {
+        testServerPositive(CorrectMessageReturnParameter2.class);
+    }
+
+    @WebSocketEndpoint(value = "/hello", configuration = DefaultServerConfiguration.class)
+    public static class CorrectMessageReturnParameter2 {
+
+        @WebSocketMessage
+        public float wrongReturn(String message1, Session peer2) {
+            return (float) 5.23;
+        }
+    }
+
+    @Test
     public void testErrorMethodWithoutThrowable() {
-        testServer(ErrorMethodWithoutThrowableErrorBean.class);
+        testServerNegative(ErrorMethodWithoutThrowableErrorBean.class);
     }
 
     @WebSocketEndpoint(value = "/hello", configuration = DefaultServerConfiguration.class)
@@ -138,7 +174,7 @@ public class AnnotatedClassModelcheckingTest {
 
     @Test
     public void testErrorMethodWithWrongParameter() {
-        testServer(ErrorMethodWithWrongParam.class);
+        testServerNegative(ErrorMethodWithWrongParam.class);
     }
 
     @WebSocketEndpoint(value = "/hello", configuration = DefaultServerConfiguration.class)
@@ -152,7 +188,7 @@ public class AnnotatedClassModelcheckingTest {
 
     @Test
     public void testOpenMethodWithWrongParameter() {
-        testServer(OpenMethodWithWrongParam.class);
+        testServerNegative(OpenMethodWithWrongParam.class);
     }
 
     @WebSocketEndpoint(value = "/hello", configuration = DefaultServerConfiguration.class)
@@ -166,7 +202,7 @@ public class AnnotatedClassModelcheckingTest {
 
     @Test
     public void testCloseMethodWithWrongParameter() {
-        testServer(CloseMethodWithWrongParam.class);
+        testServerNegative(CloseMethodWithWrongParam.class);
     }
 
     @WebSocketEndpoint(value = "/hello", configuration = DefaultServerConfiguration.class)
@@ -180,7 +216,7 @@ public class AnnotatedClassModelcheckingTest {
 
     @Test
     public void testMultipleWrongMethods() {
-        testServer(MultipleWrongMethodsBean.class);
+        testServerNegative(MultipleWrongMethodsBean.class);
     }
 
     @Test
