@@ -283,7 +283,9 @@ public class WebSocketEngine {
      *         <tt>false</tt> otherwise.
      */
     public boolean webSocketInProgress(Connection connection) {
-        return webSocketHolderMap.get(connection) != null;
+        synchronized(webSocketHolderMap){
+            return webSocketHolderMap.get(connection) != null;
+        }
     }
 
     /**
@@ -300,12 +302,17 @@ public class WebSocketEngine {
     }
 
     public WebSocketHolder getWebSocketHolder(final Connection connection) {
-        return webSocketHolderMap.get(connection);
+        synchronized(webSocketHolderMap){
+            return webSocketHolderMap.get(connection);
+        }
     }
 
     public WebSocketHolder setWebSocketHolder(final Connection connection, ProtocolHandler handler, WebSocket socket) {
         final WebSocketHolder holder = new WebSocketHolder(handler, socket);
-        webSocketHolderMap.put(connection, holder);
+        synchronized(webSocketHolderMap){
+            webSocketHolderMap.put(connection, holder);
+        }
+
         return holder;
     }
 

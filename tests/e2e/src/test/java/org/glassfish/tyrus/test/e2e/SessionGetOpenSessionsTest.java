@@ -56,7 +56,6 @@ import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
@@ -85,7 +84,6 @@ public class SessionGetOpenSessionsTest {
     }
 
     @Test
-    @Ignore
     public void testGetOpenSessions() {
         final CountDownLatch messageLatch = new CountDownLatch(1);
         TyrusClientEndpointConfiguration.Builder builder = new TyrusClientEndpointConfiguration.Builder();
