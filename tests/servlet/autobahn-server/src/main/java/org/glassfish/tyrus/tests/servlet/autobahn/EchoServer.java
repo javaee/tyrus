@@ -41,6 +41,8 @@ package org.glassfish.tyrus.tests.servlet.autobahn;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.List;
 
 import javax.websocket.Session;
 import javax.websocket.WebSocketMessage;
@@ -79,24 +81,29 @@ public class EchoServer {
         return binary;
     }
 
-    private ByteBuffer buffer = null;
+    private List<byte[]> buffer = new ArrayList<byte[]>();
 
     @WebSocketMessage
     public void onPartialBinary(Session session, ByteBuffer binary, boolean last) {
         if(last) {
             try {
-                session.getRemote().sendBytes(joinBuffers(buffer, binary));
+                ByteBuffer b = null;
+
+                for(byte[] bytes : buffer) {
+                    if(b == null) {
+                        b = ByteBuffer.wrap(bytes);
+                    } else {
+                        b = joinBuffers(b, ByteBuffer.wrap(bytes));
+                    }
+                }
+
+                session.getRemote().sendBytes(b);
             } catch (IOException e) {
                 //
             }
-            buffer = null;
+            buffer.clear();
         } else {
-            if(buffer == null) {
-                buffer = binary;
-            } else {
-                buffer = joinBuffers(buffer, binary);
-            }
-
+            buffer.add(binary.array());
         }
     }
 
