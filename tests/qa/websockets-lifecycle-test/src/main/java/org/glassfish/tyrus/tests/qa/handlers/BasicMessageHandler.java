@@ -53,16 +53,16 @@ import org.glassfish.tyrus.tests.qa.tools.SessionController;
  *
  * @author michal.conos at oracle.com
  */
-public abstract class BasicTextMessageHandler<T> implements MessageHandler.Basic<T> {
+public abstract class BasicMessageHandler<T> implements MessageHandler.Basic<T> {
 
-    protected static final Logger logger = Logger.getLogger(BasicTextMessageHandler.class.getCanonicalName());
+    protected static final Logger logger = Logger.getLogger(BasicMessageHandler.class.getCanonicalName());
     protected RemoteEndpoint remote;
     protected Session session;
     protected final SessionController sc;
     protected final CommChannel.Client commChannel;
     protected final String sessionName;
 
-    public BasicTextMessageHandler(SessionController sc) {
+    public BasicMessageHandler(SessionController sc) {
         this.sc = sc;
         this.commChannel = sc.getChannel();
         this.sessionName = sc.getSessionName();

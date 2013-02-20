@@ -49,7 +49,7 @@ import javax.websocket.EndpointConfiguration;
 import javax.websocket.MessageHandler;
 import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
-import org.glassfish.tyrus.tests.qa.handlers.BasicTextMessageHandler;
+import org.glassfish.tyrus.tests.qa.handlers.BasicMessageHandler;
 import org.glassfish.tyrus.tests.qa.handlers.client.BasicTextMessageHandlerClient;
 import org.glassfish.tyrus.tests.qa.regression.Issue;
 import org.glassfish.tyrus.tests.qa.tools.CommChannel;
@@ -63,7 +63,7 @@ import org.glassfish.tyrus.websockets.HandShake;
 public class ProgrammaticClient extends Endpoint {
 
     private static final Logger logger = Logger.getLogger(ProgrammaticClient.class.getCanonicalName());
-    BasicTextMessageHandler messageHandler;
+    BasicMessageHandler messageHandler;
     SessionController sc;
 
     @Override

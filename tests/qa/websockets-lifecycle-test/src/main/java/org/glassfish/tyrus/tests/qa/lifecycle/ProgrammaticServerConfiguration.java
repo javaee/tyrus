@@ -50,7 +50,7 @@ import javax.websocket.Extension;
 import javax.websocket.HandshakeResponse;
 import javax.websocket.server.HandshakeRequest;
 import javax.websocket.server.ServerEndpointConfiguration;
-import org.glassfish.tyrus.tests.qa.handlers.BasicTextMessageHandler;
+import org.glassfish.tyrus.tests.qa.handlers.BasicMessageHandler;
 import java.util.concurrent.ConcurrentMap;
 import org.glassfish.tyrus.tests.qa.tools.SessionController;
 
@@ -60,13 +60,13 @@ import org.glassfish.tyrus.tests.qa.tools.SessionController;
  */
 public class ProgrammaticServerConfiguration implements ServerEndpointConfiguration {
 
-    private static ConcurrentMap<String, BasicTextMessageHandler> _messageHandlers = new ConcurrentHashMap<String, BasicTextMessageHandler>();
+    private static ConcurrentMap<String, BasicMessageHandler> _messageHandlers = new ConcurrentHashMap<String, BasicMessageHandler>();
     
-    public static void registerMessageHandler(String name, BasicTextMessageHandler handler) {
+    public static void registerMessageHandler(String name, BasicMessageHandler handler) {
         _messageHandlers.put(name, handler);
     }
     
-    public static BasicTextMessageHandler getMessageHandler(String name) {
+    public static BasicMessageHandler getMessageHandler(String name) {
         return _messageHandlers.get(name);
     }
     

@@ -41,14 +41,14 @@ package org.glassfish.tyrus.tests.qa.handlers.server;
 
 import java.io.IOException;
 import java.util.logging.Level;
-import org.glassfish.tyrus.tests.qa.handlers.BasicTextMessageHandler;
+import org.glassfish.tyrus.tests.qa.handlers.BasicMessageHandler;
 import org.glassfish.tyrus.tests.qa.tools.SessionController;
 
 /**
  *
  * @author michal.conos at oracle.com
  */
-public class BasicTextMessageHandlerServer extends BasicTextMessageHandler<String> {
+public class BasicTextMessageHandlerServer extends BasicMessageHandler<String> {
 
     public BasicTextMessageHandlerServer(SessionController sc) {
         super(sc);

@@ -43,14 +43,14 @@ import java.io.IOException;
 import java.util.logging.Level;
 import javax.websocket.CloseReason;
 import javax.websocket.Session;
-import org.glassfish.tyrus.tests.qa.handlers.BasicTextMessageHandler;
+import org.glassfish.tyrus.tests.qa.handlers.BasicMessageHandler;
 import org.glassfish.tyrus.tests.qa.tools.SessionController;
 
 /**
  *
  * @author michal.conos at oracle.com
  */
-public class BasicTextMessageHandlerClient extends BasicTextMessageHandler<String> {
+public class BasicTextMessageHandlerClient extends BasicMessageHandler<String> {
     
     public BasicTextMessageHandlerClient(SessionController sc) {
         super(sc);
