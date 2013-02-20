@@ -42,6 +42,7 @@ package org.glassfish.tyrus;
 
 import java.io.IOException;
 import java.net.URI;
+import java.nio.ByteBuffer;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -265,6 +266,17 @@ public class SessionImpl implements Session {
         this.negotiatedExtensions = Collections.unmodifiableList(new ArrayList<Extension>(negotiatedExtensions));
     }
 
+    private final void checkMessageSize(Object message, long maxMessageSize) {
+        if (maxMessageSize != -1) {
+            final long messageSize = (message instanceof String ? ((String) message).getBytes().length :
+                    ((ByteBuffer) message).remaining());
+
+            if (messageSize > maxMessageSize) {
+                throw new IllegalStateException(String.format("Message too long; allowed message size is %d bytes. (Current message is %d bytes).", maxMessageSize, messageSize));
+            }
+        }
+    }
+
     void notifyMessageHandlers(Object message, List<CoderWrapper<Decoder>> availableDecoders) {
 
         boolean decoded = false;
@@ -278,6 +290,11 @@ public class SessionImpl implements Session {
                 Class<?> type;
                 if ((mh instanceof MessageHandler.Basic)
                         && (type = getHandlerType(mh)).isAssignableFrom(decoder.getType())) {
+
+                    if (mh instanceof BasicMessageHandler) {
+                        checkMessageSize(message, ((BasicMessageHandler) mh).getMaxMessageSize());
+                    }
+
                     Object object = endpoint.decodeCompleteMessage(message, type);
                     if (object != null) {
                         //noinspection unchecked
@@ -299,6 +316,11 @@ public class SessionImpl implements Session {
         for (MessageHandler handler : this.getMessageHandlers()) {
             if ((handler instanceof MessageHandler.Async) &&
                     getHandlerType(handler).isAssignableFrom(message.getClass())) {
+
+                if (handler instanceof AsyncMessageHandler) {
+                    checkMessageSize(message, ((AsyncMessageHandler) handler).getMaxMessageSize());
+                }
+
                 //noinspection unchecked
                 ((MessageHandler.Async) handler).onMessage(message, last);
                 handled = true;

@@ -48,4 +48,5 @@ import javax.websocket.MessageHandler;
  */
 interface BasicMessageHandler extends MessageHandler.Basic {
     Class<?> getType();
+    long getMaxMessageSize();
 }

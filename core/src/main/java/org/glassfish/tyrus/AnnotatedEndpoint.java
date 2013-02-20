@@ -189,13 +189,14 @@ public class AnnotatedEndpoint extends Endpoint {
                                 m.getName()));
                     }
                 } else if (a instanceof WebSocketMessage) {
+                    final long maxMessageSize = ((WebSocketMessage) a).maxMessageSize();
                     final ParameterExtractor[] extractors = getParameterExtractors(m, unknownParams);
                     MessageHandlerFactory handlerFactory;
 
                     if (unknownParams.size() == 1) {
                         Map.Entry<Integer, Class<?>> entry = unknownParams.entrySet().iterator().next();
                         extractors[entry.getKey()] = new ParamValue(0);
-                        handlerFactory = new BasicHandler(m, extractors, entry.getValue());
+                        handlerFactory = new BasicHandler(m, extractors, entry.getValue(), maxMessageSize);
                         messageHandlerFactories.add(handlerFactory);
                         validityChecker.checkOnMessageParams(m, handlerFactory.create(null));
                     } else if (unknownParams.size() == 2) {
@@ -211,7 +212,7 @@ public class AnnotatedEndpoint extends Endpoint {
                         extractors[message.getKey()] = new ParamValue(0);
                         extractors[last.getKey()] = new ParamValue(1);
                         if (last.getValue() == boolean.class || last.getValue() == Boolean.class) {
-                            handlerFactory = new AsyncHandler(m, extractors, message.getValue());
+                            handlerFactory = new AsyncHandler(m, extractors, message.getValue(), maxMessageSize);
                             messageHandlerFactories.add(handlerFactory);
                             validityChecker.checkOnMessageParams(m, handlerFactory.create(null));
                         } else {
@@ -520,19 +521,25 @@ public class AnnotatedEndpoint extends Endpoint {
         final Method method;
         final ParameterExtractor[] extractors;
         final Class<?> type;
+        final long maxMessageSize;
 
-        MessageHandlerFactory(Method method, ParameterExtractor[] extractors, Class<?> type) {
+        MessageHandlerFactory(Method method, ParameterExtractor[] extractors, Class<?> type, long maxMessageSize) {
             this.method = method;
             this.extractors = extractors;
             this.type = (PrimitivesToWrappers.getPrimitiveWrapper(type) == null) ? type : PrimitivesToWrappers.getPrimitiveWrapper(type);
+            this.maxMessageSize = maxMessageSize;
+        }
+
+        public final long getMaxMessageSize() {
+            return maxMessageSize;
         }
 
         abstract MessageHandler create(Session session);
     }
 
     class BasicHandler extends MessageHandlerFactory {
-        BasicHandler(Method method, ParameterExtractor[] extractors, Class<?> type) {
-            super(method, extractors, type);
+        BasicHandler(Method method, ParameterExtractor[] extractors, Class<?> type, long maxMessageSize) {
+            super(method, extractors, type, maxMessageSize);
         }
 
         @Override
@@ -554,13 +561,18 @@ public class AnnotatedEndpoint extends Endpoint {
                 public Class<?> getType() {
                     return type;
                 }
+
+                @Override
+                public long getMaxMessageSize() {
+                    return maxMessageSize;
+                }
             };
         }
     }
 
     class AsyncHandler extends MessageHandlerFactory {
-        AsyncHandler(Method method, ParameterExtractor[] extractors, Class<?> type) {
-            super(method, extractors, type);
+        AsyncHandler(Method method, ParameterExtractor[] extractors, Class<?> type, long maxMessageSize) {
+            super(method, extractors, type, maxMessageSize);
         }
 
         @Override
@@ -575,6 +587,11 @@ public class AnnotatedEndpoint extends Endpoint {
                 @Override
                 public Class<?> getType() {
                     return type;
+                }
+
+                @Override
+                public long getMaxMessageSize() {
+                    return maxMessageSize;
                 }
             };
         }
