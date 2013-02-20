@@ -40,6 +40,7 @@
 package org.glassfish.tyrus.tests.qa.lifecycle;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.websocket.CloseReason;
@@ -51,6 +52,8 @@ import javax.websocket.Session;
 import org.glassfish.tyrus.tests.qa.handlers.BasicTextMessageHandler;
 import org.glassfish.tyrus.tests.qa.handlers.client.BasicTextMessageHandlerClient;
 import org.glassfish.tyrus.tests.qa.regression.Issue;
+import org.glassfish.tyrus.tests.qa.tools.CommChannel;
+import org.glassfish.tyrus.tests.qa.tools.SessionController;
 import org.glassfish.tyrus.websockets.HandShake;
 
 /**
@@ -58,37 +61,36 @@ import org.glassfish.tyrus.websockets.HandShake;
  * @author michal.conos at oracle.com
  */
 public class ProgrammaticClient extends Endpoint {
+
     private static final Logger logger = Logger.getLogger(ProgrammaticClient.class.getCanonicalName());
-    
-    BasicTextMessageHandler mh;
-   
+    BasicTextMessageHandler messageHandler;
+    SessionController sc;
 
     @Override
     public void onOpen(Session s, EndpointConfiguration config) {
-        
-        if(Issue.TYRUS_93.isEnabled()) {
-            logger.log(Level.INFO, "Client connecting:{0}", s.getRequestURI().toString());
+
+        messageHandler = ((ProgrammaticClientConfiguration) config).getMessageHandler();
+        sc = ((ProgrammaticClientConfiguration) config).getSessionController();
+      
+        if (!Issue.checkTyrus93(s)) {
+           sc.setState("TYRUS_93_FAIL");
         }
-        else {
-            logger.log(Level.INFO, "Client connecting:{0}", s.getRequestURI());
-        }
-        mh = ((ProgrammaticClientConfiguration)config).getMessageHandler();
-        final RemoteEndpoint remote = s.getRemote();
-        mh.setSession(s);
-        s.addMessageHandler(mh);
-                
+
+        messageHandler.init(s);
+        s.addMessageHandler(messageHandler);
+        sc.clientOnOpen();
+
         try {
-            mh.startTalk();
+            messageHandler.startTalk();
         } catch (IOException ex) {
             logger.log(Level.SEVERE, null, ex);
         }
     }
-
-
-
+    
     @Override
     public void onClose(Session s, CloseReason reason) {
         logger.log(Level.INFO, "client: Closing the session: {0}", s.toString());
+        //sc.clientOnClose();
         final RemoteEndpoint remote = s.getRemote();
         try {
             remote.sendString("client:onClose");
@@ -100,12 +102,6 @@ public class ProgrammaticClient extends Endpoint {
     @Override
     public void onError(Session s, Throwable thr) {
         logger.log(Level.SEVERE, "client: onError: {0}", thr.getMessage());
-        thr.printStackTrace();
-        final RemoteEndpoint remote = s.getRemote();
-        try {
-            remote.sendString("client:onError");
-        } catch (IOException ex) {
-            logger.log(Level.SEVERE, null, ex);
-        }
+        //sc.clientOnError(thr);
     }
 }

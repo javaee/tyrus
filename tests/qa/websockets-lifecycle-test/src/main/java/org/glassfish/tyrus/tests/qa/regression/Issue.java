@@ -39,6 +39,11 @@
  */
 package org.glassfish.tyrus.tests.qa.regression;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javax.websocket.CloseReason;
+import javax.websocket.Session;
+
 /**
  *
  * @author michal.conos at oracle.com
@@ -46,7 +51,9 @@ package org.glassfish.tyrus.tests.qa.regression;
 public enum Issue {
 
     TYRUS_93("ClientEndpoint session.getRequestURI()==null"),
-    TYRUS_94("ServerEndPoint: onError(): throwable.getCause()==null");
+    TYRUS_94("ServerEndPoint: onError(): throwable.getCause()==null"),
+    TYRUS_101("CloseReason not propagated to server side (when close() initiated from client)");
+    private static final Logger logger = Logger.getLogger(Issue.class.getCanonicalName());
     private String description;
     private boolean enabled;
 
@@ -56,6 +63,7 @@ public enum Issue {
 
     /**
      * is the issue enabled?
+     *
      * @return true if enabled, false if the issue is disabled
      */
     public boolean isEnabled() {
@@ -81,15 +89,15 @@ public enum Issue {
      *
      * @param issue the issue which stays enabled. All other issues are disabled
      */
-    public void disableAllBut(Issue issue) {
+    public void disableAllButThisOne() {
         disableAll();
-        issue.enable();
+        this.enable();
     }
 
     /**
      * Enable All issues in the database
      */
-    public void enableAll() {
+    public static void enableAll() {
         for (Issue crno : Issue.values()) {
             crno.enable();
         }
@@ -98,7 +106,7 @@ public enum Issue {
     /**
      * Disable all issue in the database
      */
-    public void disableAll() {
+    public static void disableAll() {
         for (Issue crno : Issue.values()) {
             crno.disable();
         }
@@ -106,10 +114,46 @@ public enum Issue {
 
     /**
      * Issue is created with a description
+     *
      * @param description issue description
      */
     Issue(String description) {
         this.description = description;
         this.enabled = true;
+    }
+
+    public static boolean checkTyrus93(Session s) {
+        if (Issue.TYRUS_93.isEnabled()) {
+            try {
+                logger.log(Level.INFO, "Tyrus-93: Client connecting:{0}", s.getRequestURI().toString());
+            } catch (NullPointerException npe) {
+                logger.log(Level.SEVERE, "Tyrus-93: NPE!");
+                return false;
+            }
+        } else {
+            logger.log(Level.INFO, "Client connecting:{0}", s.getRequestURI());
+        }
+        return true;
+    }
+    
+    public static boolean checkTyrus94(Throwable thr) {
+        if (Issue.TYRUS_94.isEnabled()) {
+            try {
+                logger.log(Level.SEVERE, "TYRUS-94: nError: {0}", thr.getLocalizedMessage());
+                logger.log(Level.SEVERE, "TYRUS-94: onError: {0}", thr.getMessage());
+                logger.log(Level.SEVERE, "TYRUS-94: onError: cause: {0}", thr.getCause().getMessage());
+            } catch (RuntimeException ex) {
+                return false;
+                //sc.setState("server.TYRUS_94");
+            }
+        }
+        return true;    
+    }
+
+    public static boolean checkTyrus101(CloseReason reason) {
+        if(Issue.TYRUS_101.isEnabled()) {
+            return  reason != null && reason.getCloseCode().equals(CloseReason.CloseCodes.GOING_AWAY);  
+        }
+        return true;
     }
 }

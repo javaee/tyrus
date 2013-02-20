@@ -48,6 +48,8 @@ import javax.websocket.Encoder;
 import javax.websocket.Extension;
 import javax.websocket.HandshakeResponse;
 import org.glassfish.tyrus.tests.qa.handlers.BasicTextMessageHandler;
+import org.glassfish.tyrus.tests.qa.tools.CommChannel;
+import org.glassfish.tyrus.tests.qa.tools.SessionController;
 
 /**
  *
@@ -56,13 +58,24 @@ import org.glassfish.tyrus.tests.qa.handlers.BasicTextMessageHandler;
 public class ProgrammaticClientConfiguration implements ClientEndpointConfiguration {
     
     private BasicTextMessageHandler messageHandler;
+    private SessionController sc;
+    private String sessionName;
     
-    public ProgrammaticClientConfiguration(BasicTextMessageHandler mh) {
+    public ProgrammaticClientConfiguration(BasicTextMessageHandler mh, SessionController sc) {
         this.messageHandler = mh;
+        this.sc = sc;
+    }
+    
+    public SessionController getSessionController() {
+        return sc;
     }
 
     public BasicTextMessageHandler getMessageHandler() {
         return messageHandler;
+    }
+    
+    public String getSessionName() {
+        return sessionName;
     }
 
     @Override

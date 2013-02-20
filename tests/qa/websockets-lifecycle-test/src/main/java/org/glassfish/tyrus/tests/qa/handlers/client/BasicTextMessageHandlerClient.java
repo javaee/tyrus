@@ -44,12 +44,17 @@ import java.util.logging.Level;
 import javax.websocket.CloseReason;
 import javax.websocket.Session;
 import org.glassfish.tyrus.tests.qa.handlers.BasicTextMessageHandler;
+import org.glassfish.tyrus.tests.qa.tools.SessionController;
 
 /**
  *
  * @author michal.conos at oracle.com
  */
-public class BasicTextMessageHandlerClient extends BasicTextMessageHandler {
+public class BasicTextMessageHandlerClient extends BasicTextMessageHandler<String> {
+    
+    public BasicTextMessageHandlerClient(SessionController sc) {
+        super(sc);
+    }
     
     @Override
     public void messageHandler(String msg) throws IOException {
@@ -62,6 +67,7 @@ public class BasicTextMessageHandlerClient extends BasicTextMessageHandler {
         }
     }
     
+    @Override
     public void startTalk() throws IOException {
         remote.sendString("client.open");
     }

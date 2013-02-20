@@ -52,6 +52,7 @@ import javax.websocket.server.HandshakeRequest;
 import javax.websocket.server.ServerEndpointConfiguration;
 import org.glassfish.tyrus.tests.qa.handlers.BasicTextMessageHandler;
 import java.util.concurrent.ConcurrentMap;
+import org.glassfish.tyrus.tests.qa.tools.SessionController;
 
 /**
  *
@@ -68,9 +69,7 @@ public class ProgrammaticServerConfiguration implements ServerEndpointConfigurat
     public static BasicTextMessageHandler getMessageHandler(String name) {
         return _messageHandlers.get(name);
     }
-
-
-
+    
     @Override
     public Class<?> getEndpointClass() {
         return ProgrammaticServer.class;

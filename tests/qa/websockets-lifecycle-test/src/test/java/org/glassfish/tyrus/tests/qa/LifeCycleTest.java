@@ -39,24 +39,31 @@
  */
 package org.glassfish.tyrus.tests.qa;
 
-import org.glassfish.tyrus.tests.qa.lifecycle.ProgrammaticClientConfiguration;
-import org.glassfish.tyrus.tests.qa.lifecycle.ProgrammaticClient;
 import java.net.URISyntaxException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.websocket.ContainerProvider;
 import javax.websocket.DeploymentException;
 import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
+import junit.framework.Assert;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.tests.qa.config.AppConfig;
 import org.glassfish.tyrus.tests.qa.handlers.client.BasicTextMessageHandlerClient;
 import org.glassfish.tyrus.tests.qa.handlers.server.BasicTextMessageHandlerServer;
 import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleDeployment;
-import org.glassfish.tyrus.tests.qa.regression.Issue;
+import org.glassfish.tyrus.tests.qa.lifecycle.ProgrammaticClient;
+import org.glassfish.tyrus.tests.qa.lifecycle.ProgrammaticClientConfiguration;
 import org.glassfish.tyrus.tests.qa.lifecycle.ProgrammaticServerConfiguration;
+import org.glassfish.tyrus.tests.qa.regression.Issue;
+import org.glassfish.tyrus.tests.qa.tools.CommChannel;
+import org.glassfish.tyrus.tests.qa.tools.SessionController;
 import org.glassfish.tyrus.tests.qa.tools.TyrusToolkit;
-import static org.junit.Assert.fail;
+import org.json.JSONException;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -64,33 +71,87 @@ import org.junit.Test;
  * @author Michal Conos (michal.conos at oracle.com)
  */
 public class LifeCycleTest {
+    private static final Logger logger = Logger.getLogger(LifeCycleTest.class.getCanonicalName());
 
-    AppConfig testConf = new AppConfig(LifeCycleDeployment.CONTEXT_PATH, LifeCycleDeployment.PROGRAMMATIC_ENDPOINT);
+    AppConfig testConf = new AppConfig(
+            LifeCycleDeployment.CONTEXT_PATH,
+            LifeCycleDeployment.PROGRAMMATIC_ENDPOINT,
+            LifeCycleDeployment.COMMCHANNEL_SCHEME,
+            LifeCycleDeployment.COMMCHANNEL_HOST,
+            LifeCycleDeployment.COMMCHANNEL_PORT);
     TyrusToolkit tyrus = new TyrusToolkit(testConf);
+    CommChannel channel;
+    CommChannel.Client client;
+    CommChannel.Server server;
 
-    @Test
-    public void testLifeCycleProgrammatic() throws DeploymentException, InterruptedException, URISyntaxException {
-        Issue.TYRUS_93.disable();
-        Issue.TYRUS_94.disable();
+    @Before
+    public void setupServer() throws Exception {
+        channel = new CommChannel(testConf);    
+        client = channel.new Client();
+        server = channel.new Server();
+        server.start();
+        
+    }
 
-        ProgrammaticServerConfiguration.registerMessageHandler("messageHandler", new BasicTextMessageHandlerServer());
+    @After
+    public void stopServer() throws Exception {
+        server.destroy();
+    }
+
+    private void lifeCycle(String sessionName) throws DeploymentException {
+        final SessionController sc = new SessionController(sessionName, client);
+        ProgrammaticServerConfiguration.registerMessageHandler("lifeCycle", new BasicTextMessageHandlerServer(sc));
         tyrus.registerEndpoint(ProgrammaticServerConfiguration.class);
-        final Server server = tyrus.startServer();
+        final Server tyrusServer = tyrus.startServer();
+
 
         final CountDownLatch stopConversation = new CountDownLatch(1);
         WebSocketContainer wsc = ContainerProvider.getWebSocketContainer();
         Session clientSession = wsc.connectToServer(
                 ProgrammaticClient.class,
                 new ProgrammaticClientConfiguration(
-                new BasicTextMessageHandlerClient()),
+                new BasicTextMessageHandlerClient(sc),
+                sc),
                 testConf.getURI());
         // FIXME TC: clientSession.equals(lcSession)
         // FIXME TC: clientSession.addMessageHandler .. .throw excetpion
-        stopConversation.await(10, TimeUnit.SECONDS);
-        if (stopConversation.getCount() != 0) {
-            fail();
+        try {
+            stopConversation.await(10, TimeUnit.SECONDS);
+        } catch (InterruptedException ex) {
+            // this is fine
         }
+        /*
+         if (stopConversation.getCount() != 0) {
+         fail();
+         }
+         */
 
-        tyrus.stopServer(server);
+        tyrus.stopServer(tyrusServer);
+        Assert.assertEquals(sessionName + ": session lifecycle finished", SessionController.SessionState.FINISHED_SERVER.getMessage(), sc.getState());
+    }
+
+    @Test
+    public void testLifeCycleProgrammatic() throws DeploymentException {
+        Issue.disableAll();
+        lifeCycle("testLifeCycleProgrammatic");
+    }
+
+    @Test
+    public void testRegressionTyrus93() throws DeploymentException {
+        Issue.TYRUS_93.disableAllButThisOne();
+        lifeCycle("testRegressionTyrus93");
+    }
+
+    @Test
+    public void testRegressionTyrus94() throws DeploymentException {
+        Issue.TYRUS_94.disableAllButThisOne();
+        lifeCycle("testRegressionTyrus94");
+
+   }
+    
+    @Test
+    public void testRegressionTyrus101() throws DeploymentException  {
+        Issue.TYRUS_101.disableAllButThisOne();
+        lifeCycle("testRegressionTyrus101");
     }
 }

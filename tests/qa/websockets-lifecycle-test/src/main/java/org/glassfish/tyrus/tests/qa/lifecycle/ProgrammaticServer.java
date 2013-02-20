@@ -40,6 +40,8 @@
 package org.glassfish.tyrus.tests.qa.lifecycle;
 
 import java.io.IOException;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.websocket.CloseReason;
@@ -49,31 +51,33 @@ import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
 import org.glassfish.tyrus.tests.qa.handlers.BasicTextMessageHandler;
 import org.glassfish.tyrus.tests.qa.regression.Issue;
+import org.glassfish.tyrus.tests.qa.tools.CommChannel;
+import org.glassfish.tyrus.tests.qa.tools.SessionController;
 
 public class ProgrammaticServer extends Endpoint {
 
     private static final Logger logger = Logger.getLogger(ProgrammaticServer.class.getCanonicalName());
     BasicTextMessageHandler mh;
+    SessionController sc;
     
-
     @Override
     public void onOpen(Session s, EndpointConfiguration ec) {
         logger.log(Level.INFO, "Someone connected:{0}", s.getRequestURI().toString());
-        mh = ((ProgrammaticServerConfiguration)ec).getMessageHandler("messageHandler");
-        mh.setSession(s);
+        mh = ((ProgrammaticServerConfiguration) ec).getMessageHandler("lifeCycle");
+        sc = mh.getSessionController();
+        sc.serverOnOpen();
+        mh.init(s);
         s.addMessageHandler(mh);
     }
-
 
     @Override
     public void onClose(Session s, CloseReason reason) {
         logger.log(Level.INFO, "Clossing the session: {0}", s.toString());
+        sc.serverOnClose();
         final RemoteEndpoint remote = s.getRemote();
         try {
-            
-            
-            if(!reason.getCloseCode().equals(CloseReason.CloseCodes.GOING_AWAY)) {
-                throw new RuntimeException("CloseReason.CloseCode should be GOING_AWAY");
+            if(!Issue.checkTyrus101(reason)) {
+                sc.setState("server.closereason.invalid");
             }
             //should raise on error
             remote.sendString("Raise onError now - socket is closed");
@@ -85,18 +89,10 @@ public class ProgrammaticServer extends Endpoint {
 
     @Override
     public void onError(Session s, Throwable thr) {
-        logger.log(Level.SEVERE, "onError: {0}", thr.getLocalizedMessage());
-        logger.log(Level.SEVERE, "onError: {0}", thr.getMessage());
-        if(Issue.TYRUS_94.isEnabled()) {
-           logger.log(Level.SEVERE, "onError: cause: {0}", thr.getCause().getMessage());
+        sc.serverOnError(thr);
+        if(!Issue.checkTyrus94(thr)) {
+            sc.setState("server.TYRUS_94");
         }
-        final RemoteEndpoint remote = s.getRemote();
-        /*
-        try {
-            //remote.sendString("onError");
-        } catch (IOException ex) {
-            logger.log(Level.SEVERE, null, ex);
-        }
-        */
+        sc.serverOnFinish();
     }
 }

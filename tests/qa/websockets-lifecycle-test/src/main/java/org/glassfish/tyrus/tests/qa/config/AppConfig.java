@@ -55,10 +55,43 @@ public class AppConfig {
     private int port;
     private String host;
     
-    public AppConfig(String contextPath, String endpointPath) {
+    private int commPort;
+    private String commHost;
+    private String commScheme;
+    
+    public AppConfig(String contextPath, String endpointPath, String commScheme, String commHost, int commPort) {
         setContextPath(contextPath);
         setEndpointPath(endpointPath);
+        setCommHost(commHost);
+        setCommPort(commPort);
+        setCommScheme(commScheme);
     }
+
+    public int getCommPort() {
+        return commPort;
+    }
+
+    public String getCommHost() {
+        return commHost;
+    }
+
+    public String getCommScheme() {
+        return commScheme;
+    }
+
+    public final void setCommPort(int commPort) {
+        this.commPort = commPort;
+    }
+
+    public final void setCommHost(String commHost) {
+        this.commHost = commHost;
+    }
+
+    public final void setCommScheme(String commScheme) {
+        this.commScheme = commScheme;
+    }
+    
+    
 
     public String getContextPath() {
         return contextPath;

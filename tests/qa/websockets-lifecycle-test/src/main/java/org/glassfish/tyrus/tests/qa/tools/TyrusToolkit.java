@@ -41,6 +41,8 @@ package org.glassfish.tyrus.tests.qa.tools;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javax.websocket.DeploymentException;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.tests.qa.config.AppConfig;
@@ -50,6 +52,7 @@ import org.glassfish.tyrus.tests.qa.config.AppConfig;
  * @author michal.conos at oracle.com
  */
 public class TyrusToolkit {
+    private static final Logger logger = Logger.getLogger(TyrusToolkit.class.getCanonicalName());
 
     AppConfig config;
     private Set<Class<?>> endpointClasses = new HashSet<Class<?>>();
@@ -74,6 +77,7 @@ public class TyrusToolkit {
         if (host == null) {
             final Server server = new Server(config.getHost(), config.getPort(), config.getContextPath(), endpointClasses);
             server.start();
+            logger.log(Level.INFO, "Tyrus Server started at {0}:{1}", new Object[] {config.getHost(), config.getPort()});
             return server;
         } else {
             return null;
@@ -83,6 +87,7 @@ public class TyrusToolkit {
     public void stopServer(Server server) {
         if (server != null) {
             server.stop();
+            logger.log(Level.INFO, "Tyrus Server stopped");
         }
     }
 }

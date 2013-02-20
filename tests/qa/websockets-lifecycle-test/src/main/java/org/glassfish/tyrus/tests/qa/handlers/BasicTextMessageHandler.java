@@ -46,36 +46,51 @@ import javax.websocket.MessageHandler;
 import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
 import org.glassfish.tyrus.tests.qa.lifecycle.ProgrammaticClient;
+import org.glassfish.tyrus.tests.qa.tools.CommChannel;
+import org.glassfish.tyrus.tests.qa.tools.SessionController;
 
 /**
  *
  * @author michal.conos at oracle.com
  */
-public abstract class BasicTextMessageHandler implements MessageHandler.Basic<String> {
-    
+public abstract class BasicTextMessageHandler<T> implements MessageHandler.Basic<T> {
+
     protected static final Logger logger = Logger.getLogger(BasicTextMessageHandler.class.getCanonicalName());
     protected RemoteEndpoint remote;
     protected Session session;
-    
-    
-    public void setSession(Session session) {
+    protected final SessionController sc;
+    protected final CommChannel.Client commChannel;
+    protected final String sessionName;
+
+    public BasicTextMessageHandler(SessionController sc) {
+        this.sc = sc;
+        this.commChannel = sc.getChannel();
+        this.sessionName = sc.getSessionName();
+    }
+
+    public void init(Session session) {
         this.session = session;
         this.remote = session.getRemote();
     }
 
-    public abstract void messageHandler(String msg) throws IOException;
+    public SessionController getSessionController() {
+        return sc;
+    }
     
+    
+
+    public abstract void messageHandler(T msg) throws IOException;
+
     @Override
-    public void onMessage(String msg) {
+    public void onMessage(T msg) {
+        sc.onMessage();
         try {
             messageHandler(msg);
         } catch (IOException ex) {
             logger.log(Level.SEVERE, null, ex);
         }
     }
-    
+
     public void startTalk() throws IOException {
-        
     }
-    
 }
