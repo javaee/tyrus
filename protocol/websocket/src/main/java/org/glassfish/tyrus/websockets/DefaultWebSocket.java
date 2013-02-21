@@ -40,7 +40,6 @@
 
 package org.glassfish.tyrus.websockets;
 
-import java.util.Collection;
 import java.util.EnumSet;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -51,7 +50,6 @@ import org.glassfish.tyrus.websockets.draft06.ClosingFrame;
 import org.glassfish.tyrus.websockets.frametypes.PingFrameType;
 import org.glassfish.tyrus.websockets.frametypes.PongFrameType;
 
-@SuppressWarnings({"StringContatenationInLoop"})
 public class DefaultWebSocket implements WebSocket {
     private final Queue<WebSocketListener> listeners = new ConcurrentLinkedQueue<WebSocketListener>();
     private final ProtocolHandler protocolHandler;
@@ -75,21 +73,6 @@ public class DefaultWebSocket implements WebSocket {
         protocolHandler.setWebSocket(this);
     }
 
-    /**
-     * Returns the upgrade request for this WebSocket.
-     *
-     * @return the upgrade request for this {@link WebSocket}.  This method
-     *         may return <code>null</code> depending on the context under which this
-     *         {@link WebSocket} was created.
-     */
-    public WebSocketRequest getUpgradeRequest() {
-        return request;
-    }
-
-    public Collection<WebSocketListener> getListeners() {
-        return listeners;
-    }
-
     public final boolean add(WebSocketListener listener) {
         return listeners.add(listener);
     }
@@ -107,16 +90,16 @@ public class DefaultWebSocket implements WebSocket {
     }
 
     public void onClose(final ClosingFrame frame) {
-        if (state.compareAndSet(State.CONNECTED, State.CLOSING)) {
-            protocolHandler.close(frame.getCode(), frame.getTextPayload());
-        } else {
-            state.set(State.CLOSED);
-            protocolHandler.doClose();
-        }
-
         WebSocketListener listener;
         while ((listener = listeners.poll()) != null) {
             listener.onClose(this, frame);
+        }
+
+        if (state.compareAndSet(State.CONNECTED, State.CLOSING)) {
+            protocolHandler.close(frame.getCode(), frame.getReason());
+        } else {
+            state.set(State.CLOSED);
+            protocolHandler.doClose();
         }
     }
 

@@ -45,6 +45,7 @@ import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
 
+import javax.websocket.CloseReason;
 import javax.websocket.DeploymentException;
 import javax.websocket.Encoder;
 import javax.websocket.EndpointConfiguration;
@@ -59,7 +60,7 @@ public class AnnotatedClassValidityChecker {
 
     private static final String MULTIPLE_IDENTICAL_PARAMETERS = " has got multiple parameters of identical type.";
     private static final String FORBIDDEN_WEB_SOCKET_OPEN_PARAM = " is not allowed as parameter type for method annotated with @WebSocketOpen.";
-    private static final String FORBIDDEN_WEB_SOCKET_CLOSE_PARAMS = " @WebSocketClose has got different params than Session.";
+    private static final String FORBIDDEN_WEB_SOCKET_CLOSE_PARAMS = " @WebSocketClose has got different params than Session or CloseReason.";
     private static final String FORBIDDEN_WEB_SOCKET_ERROR_PARAM = " is not allowed as parameter type for method annotated with @WebSocketError.";
     private static final String MANDATORY_ERROR_PARAM_MISSING = " does not have mandatory Throwable param.";
     private static final String FORBIDDEN_RETURN_TYPE = " has got unsupported return type.";
@@ -130,8 +131,10 @@ public class AnnotatedClassValidityChecker {
      * @param params unknown params of the method.
      */
     public void checkOnCloseParams(Method method, Map<Integer, Class<?>> params) {
-        if (params.size() > 0) {
-            logDeploymentException(new DeploymentException(String.format("%s %s", getPrefix(method.getName()), FORBIDDEN_WEB_SOCKET_CLOSE_PARAMS)));
+        for (Class<?> value : params.values()) {
+            if (value != CloseReason.class) {
+                logDeploymentException(new DeploymentException(String.format("%s %s", getPrefix(method.getName()), FORBIDDEN_WEB_SOCKET_CLOSE_PARAMS)));
+            }
         }
     }
 

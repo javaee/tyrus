@@ -175,7 +175,7 @@ public class TyrusEndpoint extends WebSocketApplication implements SPIRegistered
         CloseReason closeReason = null;
 
         if (frame != null) {
-            closeReason = new CloseReason(TyrusEndpoint.getCloseCode(frame.getCode()), frame.getReason());
+            closeReason = new CloseReason(TyrusEndpoint.getCloseCode(frame.getCode()), frame.getReason() == null ? "" : frame.getReason());
         }
 
         this.endpoint.onClose(gs, closeReason);

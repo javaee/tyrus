@@ -48,6 +48,8 @@ import javax.websocket.ClientEndpointConfiguration;
 import javax.websocket.CloseReason;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.Session;
+import javax.websocket.WebSocketClose;
+import javax.websocket.WebSocketError;
 import javax.websocket.WebSocketMessage;
 import javax.websocket.server.DefaultServerConfiguration;
 import javax.websocket.server.WebSocketEndpoint;
@@ -58,15 +60,15 @@ import org.glassfish.tyrus.server.Server;
 
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 public class OnCloseTest {
 
-    @WebSocketEndpoint(value = "/close", configuration = DefaultServerConfiguration.class)
+    @WebSocketEndpoint(value = "/close")
     public static class OnCloseEndpoint {
-        public static Throwable throwable;
         public static Session session;
 
         @WebSocketMessage
@@ -136,8 +138,8 @@ public class OnCloseTest {
 
     @WebSocketEndpoint(value = "/close", configuration = DefaultServerConfiguration.class)
     public static class OnCloseWithCustomReasonEndpoint {
-        public static Throwable throwable;
         public static Session session;
+        public static volatile CloseReason closeReason;
 
         @WebSocketMessage
         public String message(String message, Session session) {
@@ -155,10 +157,20 @@ public class OnCloseTest {
             }
             return "message";
         }
+
+        @WebSocketClose
+        public void onClose(Session s, CloseReason c) {
+            closeReason = c;
+        }
+
+        @WebSocketError
+        public void onError(Throwable t) {
+            t.printStackTrace();
+        }
     }
 
     @Test
-    public void testOnCloseCustomCloseReason() {
+    public void testOnCloseCustomCloseReasonServerInitiated() {
         final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
         Server server = new Server(OnCloseWithCustomReasonEndpoint.class);
 
@@ -210,6 +222,58 @@ public class OnCloseTest {
         }
     }
 
-    // TODO XXX FIXME: tests including custom close code
-    // blocked by http://java.net/jira/browse/WEBSOCKET_SPEC-102
+    @Test
+    public void testOnCloseCustomCloseReasonClientInitiated() {
+        final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
+        Server server = new Server(OnCloseWithCustomReasonEndpoint.class);
+
+        final CountDownLatch messageLatch = new CountDownLatch(1);
+
+        try {
+            server.start();
+            final TyrusClientEndpointConfiguration dcec = new TyrusClientEndpointConfiguration.Builder().build();
+
+            ClientManager.createClient().connectToServer(new TestEndpointAdapter() {
+                @Override
+                public EndpointConfiguration getEndpointConfiguration() {
+                    return dcec;
+                }
+
+                @Override
+                public void onOpen(Session session) {
+                    session.addMessageHandler(new TestTextMessageHandler(this));
+                    try {
+                        session.close(new CloseReason(new CloseReason.CloseCode() {
+                            @Override
+                            public int getCode() {
+                                // custom close codes (4000-4999)
+                                return 4000;
+                            }
+                        }, CUSTOM_REASON));
+                    } catch (IOException e) {
+                        // do nothing.
+                    } finally {
+                        messageLatch.countDown();
+                    }
+                }
+
+                @Override
+                public void onMessage(String message) {
+                    // do nothing
+                }
+            }, cec, new URI("ws://localhost:8025/websockets/tests/close"));
+
+            messageLatch.await(100, TimeUnit.SECONDS);
+            Thread.sleep(1000);
+
+            assertNotNull(OnCloseWithCustomReasonEndpoint.closeReason);
+            assertEquals(4000, OnCloseWithCustomReasonEndpoint.closeReason.getCloseCode().getCode());
+            assertEquals(CUSTOM_REASON, OnCloseWithCustomReasonEndpoint.closeReason.getReasonPhrase());
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            server.stop();
+        }
+    }
 }

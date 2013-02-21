@@ -158,7 +158,7 @@ public class AnnotatedEndpoint extends Endpoint {
                 } else if (a instanceof WebSocketClose) {
                     if (onClose == null) {
                         onClose = m;
-                        onCloseParameters = getParameterExtractors(m, unknownParams);
+                        onCloseParameters = getOnCloseParameterExtractors(m, unknownParams);
                         validityChecker.checkOnCloseParams(m, unknownParams);
                         if (unknownParams.size() == 1 && unknownParams.values().iterator().next() != CloseReason.class) {
                             onCloseParameters[unknownParams.keySet().iterator().next()] = new ParamValue(0);
@@ -216,10 +216,10 @@ public class AnnotatedEndpoint extends Endpoint {
                             messageHandlerFactories.add(handlerFactory);
                             validityChecker.checkOnMessageParams(m, handlerFactory.create(null));
                         } else {
-                            collector.addException(new DeploymentException(String.format("Method: %s.%s: has got wrong number of params.", annotatedClass.getName(),m.getName())));
+                            collector.addException(new DeploymentException(String.format("Method: %s.%s: has got wrong number of params.", annotatedClass.getName(), m.getName())));
                         }
                     } else {
-                        collector.addException(new DeploymentException(String.format("Method: %s.%s: has got wrong number of params.", annotatedClass.getName(),m.getName())));
+                        collector.addException(new DeploymentException(String.format("Method: %s.%s: has got wrong number of params.", annotatedClass.getName(), m.getName())));
                     }
                 }
             }
@@ -397,13 +397,21 @@ public class AnnotatedEndpoint extends Endpoint {
         return as == null ? Object.class : (as[0] == null ? Object.class : as[0]);
     }
 
+    private ParameterExtractor[] getOnCloseParameterExtractors(Method method, Map<Integer, Class<?>> unknownParams) {
+        return getParameterExtractors(method, unknownParams, new HashSet<Class<?>>(Arrays.asList(CloseReason.class)));
+    }
+
     private ParameterExtractor[] getParameterExtractors(Method method, Map<Integer, Class<?>> unknownParams) {
+        return getParameterExtractors(method, unknownParams, Collections.<Class<?>>emptySet());
+    }
+
+    private ParameterExtractor[] getParameterExtractors(Method method, Map<Integer, Class<?>> unknownParams, Set<Class<?>> params) {
         ParameterExtractor[] result = new ParameterExtractor[method.getParameterTypes().length];
         boolean sessionPresent = false;
         unknownParams.clear();
 
         for (int i = 0; i < method.getParameterTypes().length; i++) {
-            Class<?> type = method.getParameterTypes()[i];
+            final Class<?> type = method.getParameterTypes()[i];
             final String pathParamName = getPathParamName(method.getParameterAnnotations()[i]);
             if (pathParamName != null) {
                 result[i] = new ParameterExtractor() {
@@ -414,8 +422,7 @@ public class AnnotatedEndpoint extends Endpoint {
                 };
             } else if (type == Session.class) {
                 if (sessionPresent) {
-                    collector.addException(new DeploymentException("Method " + method.getName() + " annotated with "
-                            + "@WebSocketMessage annotation has got two or more Session parameters."));
+                    collector.addException(new DeploymentException(String.format("Method  %s  has got two or more Session parameters.", method.getName())));
                 } else {
                     sessionPresent = true;
                 }
@@ -430,6 +437,19 @@ public class AnnotatedEndpoint extends Endpoint {
                     @Override
                     public Object value(Session session, Object... values) {
                         return getEndpointConfiguration();
+                    }
+                };
+            } else if (params.contains(type)) {
+                result[i] = new ParameterExtractor() {
+                    @Override
+                    public Object value(Session session, Object... values) {
+                        for (Object value : values) {
+                            if (value != null && type.isAssignableFrom(value.getClass())) {
+                                return value;
+                            }
+                        }
+
+                        return null;
                     }
                 };
             } else {

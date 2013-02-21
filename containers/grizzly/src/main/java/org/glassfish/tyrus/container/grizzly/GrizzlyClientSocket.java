@@ -312,7 +312,7 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
     @Override
     public void close(int i, String s) {
         if (state.compareAndSet(State.CONNECTED, State.CLOSING)) {
-            protocolHandler.doClose();
+            protocolHandler.close(i, s);
             if (transport != null) {
                 try {
                     transport.stop();

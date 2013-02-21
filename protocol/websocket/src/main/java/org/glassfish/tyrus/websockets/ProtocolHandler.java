@@ -150,20 +150,22 @@ public abstract class ProtocolHandler {
     }
 
     public Future<DataFrame> close(int code, String reason) {
-        return send(new ClosingFrame(code, reason),
+        final ClosingFrame closingFrame = new ClosingFrame(code, reason);
+
+        return send(closingFrame,
                 new Connection.CompletionHandler<DataFrame>() {
 
                     @Override
                     public void failed(final Throwable throwable) {
                         if (webSocket != null) {
-                            webSocket.onClose(null);
+                            webSocket.onClose(closingFrame);
                         }
                     }
 
                     @Override
                     public void completed(DataFrame result) {
                         if (!maskData && (webSocket != null)) {
-                            webSocket.onClose(null);
+                            webSocket.onClose(closingFrame);
                         }
                     }
                 });
