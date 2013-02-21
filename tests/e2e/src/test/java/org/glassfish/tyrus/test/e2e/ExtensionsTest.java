@@ -70,9 +70,6 @@ import static org.junit.Assert.assertEquals;
 public class ExtensionsTest {
 
     private static final CountDownLatch messageLatch = new CountDownLatch(4);
-
-    private String receivedMessage;
-
     private static final String SENT_MESSAGE = "Always pass on what you have learned.";
 
     @WebSocketEndpoint(value = "/echo", configuration = MyServerConfiguration.class)
@@ -127,7 +124,7 @@ public class ExtensionsTest {
                 add(new TyrusExtension.TyrusParameter("prop3", "val3"));
             }};
 
-            ArrayList<Extension> extensions = new ArrayList<Extension>();
+            ArrayList<Extension> extensions = new ArrayList<>();
             extensions.add(new TyrusExtension("ext1", list1));
             extensions.add(new TyrusExtension("ext2", list2));
 
@@ -135,36 +132,13 @@ public class ExtensionsTest {
             clientConfiguration.setExtensions(extensions);
 
             ClientManager client = ClientManager.createClient();
-            client.connectToServer(new Endpoint() {
-
-                @Override
-                public void onOpen(final Session session, EndpointConfiguration endpointConfiguration) {
-                    try {
-                        System.out.println("client conf: " + endpointConfiguration);
-
-                        session.addMessageHandler(new MessageHandler.Basic<String>() {
-                            @Override
-                            public void onMessage(String message) {
-                                for (Extension extension : session.getNegotiatedExtensions()) {
-                                    if (extension.getName().equals("ext1") || extension.getName().equals("ext2")) {
-                                        messageLatch.countDown();
-                                    }
-                                }
-
-                                receivedMessage = message;
-                            }
-                        });
-
-                        session.getRemote().sendString(SENT_MESSAGE);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }, clientConfiguration, new URI("ws://localhost:8025/websockets/tests/echo"));
+            ExtensionsClientEndpoint clientEndpoint = new ExtensionsClientEndpoint();
+            client.connectToServer(clientEndpoint, clientConfiguration,
+                    new URI("ws://localhost:8025/websockets/tests/echo"));
 
             messageLatch.await(1, TimeUnit.SECONDS);
             assertEquals(0, messageLatch.getCount());
-            assertEquals(SENT_MESSAGE, receivedMessage);
+            assertEquals(SENT_MESSAGE, clientEndpoint.getReceivedMessage());
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
@@ -172,4 +146,36 @@ public class ExtensionsTest {
             server.stop();
         }
     }
+
+    private static class ExtensionsClientEndpoint extends Endpoint {
+        private volatile String receivedMessage;
+
+        @Override
+        public void onOpen(final Session session, EndpointConfiguration endpointConfiguration) {
+            try {
+                System.out.println("client conf: " + endpointConfiguration);
+
+                session.addMessageHandler(new MessageHandler.Basic<String>() {
+                    @Override
+                    public void onMessage(String message) {
+                        for (Extension extension : session.getNegotiatedExtensions()) {
+                            if (extension.getName().equals("ext1") || extension.getName().equals("ext2")) {
+                                messageLatch.countDown();
+                            }
+                        }
+                        receivedMessage = message;
+                    }
+                });
+
+                session.getRemote().sendString(SENT_MESSAGE);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        String getReceivedMessage() {
+            return receivedMessage;
+        }
+    }
+
 }
