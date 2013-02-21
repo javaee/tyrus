@@ -64,9 +64,8 @@ abstract public class LifeCycleClient {
     }
 
     
-    public void startTalk(Session s) throws IOException {
-        s.getRemote().sendString("client.open");
-    }
+    
+
 
     public void onOpen(Session s, EndpointConfiguration config) {
         sc=((ClientConfiguration)config).getSessionController();
@@ -98,7 +97,7 @@ abstract public class LifeCycleClient {
     }
     
     abstract public void handleMessage(String message, Session session) throws IOException;
-
+    abstract public void startTalk(Session s) throws IOException;
     
 
     public void onMessage(String message, Session session) {

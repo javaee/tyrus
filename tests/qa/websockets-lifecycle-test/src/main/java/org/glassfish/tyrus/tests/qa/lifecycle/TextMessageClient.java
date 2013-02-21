@@ -61,4 +61,9 @@ public class TextMessageClient extends LifeCycleClient {
         }
     }
     
+    @Override
+    public void startTalk(Session s) throws IOException {
+        s.getRemote().sendString("client.open");
+    }
+    
 }
