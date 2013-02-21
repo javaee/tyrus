@@ -41,13 +41,12 @@ package org.glassfish.tyrus.tests.qa.lifecycle;
 
 import java.io.IOException;
 import javax.websocket.Session;
-import org.glassfish.tyrus.tests.qa.tools.SessionController;
 
 /**
  *
  * @author michal.conos at oracle.com
  */
-public class TextMessageServer extends LifeCycleServer {
+public class TextMessageServer extends LifeCycleServer<String> {
     
     @Override
     public void handleMessage(String message, Session session) throws IOException {

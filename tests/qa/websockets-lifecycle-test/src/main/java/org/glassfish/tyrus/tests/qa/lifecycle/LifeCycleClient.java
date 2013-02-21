@@ -54,7 +54,7 @@ import org.glassfish.tyrus.tests.qa.tools.SessionController;
  *
  * @author michal.conos at oracle.com
  */
-abstract public class LifeCycleClient {
+abstract public class LifeCycleClient<T> {
 
     private  SessionController sc;
     protected static final Logger logger = Logger.getLogger(ProgrammaticClient.class.getCanonicalName());
@@ -62,10 +62,6 @@ abstract public class LifeCycleClient {
     public void setSessionController(SessionController sc) {
         this.sc = sc;
     }
-
-    
-    
-
 
     public void onOpen(Session s, EndpointConfiguration config) {
         sc=((ClientConfiguration)config).getSessionController();
@@ -96,11 +92,11 @@ abstract public class LifeCycleClient {
         logger.log(Level.SEVERE, "client: onError: {0}", thr.getMessage());
     }
     
-    abstract public void handleMessage(String message, Session session) throws IOException;
+    abstract public void handleMessage(T message, Session session) throws IOException;
     abstract public void startTalk(Session s) throws IOException;
     
 
-    public void onMessage(String message, Session session) {
+    public void onMessage(T message, Session session) {
         sc.onMessage();
         logger.log(Level.INFO, "client:message={0}", message);
         try {

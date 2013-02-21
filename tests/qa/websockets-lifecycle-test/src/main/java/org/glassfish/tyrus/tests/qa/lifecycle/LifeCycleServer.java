@@ -53,7 +53,7 @@ import org.glassfish.tyrus.tests.qa.tools.SessionController;
  *
  * @author michal.conos at oracle.com
  */
-abstract public class LifeCycleServer {
+abstract public class LifeCycleServer<T> {
 
     private SessionController sc;
     private static final Logger logger = Logger.getLogger(ProgrammaticClient.class.getCanonicalName());
@@ -93,9 +93,9 @@ abstract public class LifeCycleServer {
         sc.serverOnFinish();
     }
     
-    abstract public void handleMessage(String message, Session session) throws IOException;
+    abstract public void handleMessage(T message, Session session) throws IOException;
 
-    public void onMessage(String message, Session session) {
+    public void onMessage(T message, Session session) {
         logger.log(Level.INFO, "server:message={0}", message);
         sc.onMessage();
         try {

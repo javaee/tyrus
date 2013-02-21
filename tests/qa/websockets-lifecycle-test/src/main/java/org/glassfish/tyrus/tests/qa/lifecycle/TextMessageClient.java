@@ -49,7 +49,7 @@ import org.glassfish.tyrus.tests.qa.tools.SessionController;
  *
  * @author michal.conos at oracle.com
  */
-public class TextMessageClient extends LifeCycleClient {
+public class TextMessageClient extends LifeCycleClient<String> {
     
     @Override
     public void handleMessage(String message, Session session) throws IOException {
