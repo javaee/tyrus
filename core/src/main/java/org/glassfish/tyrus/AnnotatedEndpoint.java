@@ -257,10 +257,7 @@ public class AnnotatedEndpoint extends Endpoint {
                     //noinspection unchecked
                     for (Class<? extends Encoder> encoderClass : encoderClasses) {
                         Class<?> encoderType = getEncoderClassType(encoderClass);
-                        Encoder encoder = ReflectionHelper.getInstance(encoderClass, collector);
-                        if (encoder != null) {
-                            encoders.add(new CoderWrapper<Encoder>(encoder, encoderType));
-                        }
+                        encoders.add(new CoderWrapper(encoderClass, encoderType));
                     }
                 }
                 List<Decoder> decoders = new ArrayList<Decoder>();
@@ -268,10 +265,7 @@ public class AnnotatedEndpoint extends Endpoint {
                     //noinspection unchecked
                     for (Class<? extends Decoder> decoderClass : decoderClasses) {
                         Class<?> decoderType = getDecoderClassType(decoderClass);
-                        Decoder decoder = ReflectionHelper.getInstance(decoderClass, collector);
-                        if (decoder != null) {
-                            decoders.add(new CoderWrapper<Decoder>(decoder, decoderType));
-                        }
+                        decoders.add(new CoderWrapper(decoderClass, decoderType));
                     }
                 }
 
@@ -330,23 +324,16 @@ public class AnnotatedEndpoint extends Endpoint {
 
             List<Encoder> encoders = new ArrayList<Encoder>();
             if (encoderClasses != null) {
-                //noinspection unchecked
                 for (Class<? extends Encoder> encoderClass : encoderClasses) {
-                    Encoder encoder = ReflectionHelper.getInstance(encoderClass, collector);
-                    if (encoder != null) {
-                        encoders.add(encoder);
-                    }
+                    final Class<?> type = getEncoderClassType(encoderClass);
+                    encoders.add(new CoderWrapper(encoderClass, type));
                 }
             }
             List<Decoder> decoders = new ArrayList<Decoder>();
             if (decoderClasses != null) {
-                //noinspection unchecked
                 for (Class<? extends Decoder> decoderClass : decoderClasses) {
                     Class<?> decoderType = getDecoderClassType(decoderClass);
-                    Decoder decoder = ReflectionHelper.getInstance(decoderClass, collector);
-                    if (decoder != null) {
-                        decoders.add(new CoderWrapper<Decoder>(decoder, decoderType));
-                    }
+                    decoders.add(new CoderWrapper(decoderClass, decoderType));
                 }
             }
 

@@ -124,7 +124,7 @@ public class EncodedObjectTest {
     @WebSocketEndpoint(value = "/echo", encoders = {StringContainerEncoder.class}, configuration = DefaultServerConfiguration.class)
     public static class TestEncodeEndpoint {
         @WebSocketOpen
-        public void onOpen(Session s) {
+        public void onOpen() {
             System.out.println("Client connected to the server!");
         }
 
@@ -135,9 +135,7 @@ public class EncodedObjectTest {
                 System.out.println("##### Encode Test Bean: Received message: " + message);
 
                 session.getRemote().sendObject(new StringContainer(message));
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (EncodeException e) {
+            } catch (IOException | EncodeException e) {
                 e.printStackTrace();
             }
         }
@@ -192,7 +190,7 @@ public class EncodedObjectTest {
     public static class TestEncodeBeanMethodReturn {
 
         @WebSocketMessage
-        public StringContainer helloWorld(String message, Session session) {
+        public StringContainer helloWorld(String message) {
             return new StringContainer(message);
         }
     }

@@ -51,9 +51,7 @@ import javax.websocket.Encoder;
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class NoOpByteArrayCoder implements Decoder.Binary<byte[]>, Encoder.Binary<byte[]> {
-    public static final NoOpByteArrayCoder INSTANCE = new NoOpByteArrayCoder();
-
+class NoOpByteArrayCoder implements Decoder.Binary<byte[]>, Encoder.Binary<byte[]> {
     @Override
     public ByteBuffer encode(byte[] object) throws EncodeException {
         return ByteBuffer.wrap(object);

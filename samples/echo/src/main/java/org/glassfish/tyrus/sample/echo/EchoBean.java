@@ -43,6 +43,7 @@ package org.glassfish.tyrus.sample.echo;
 import java.io.IOException;
 
 import javax.websocket.Session;
+import javax.websocket.WebSocketError;
 import javax.websocket.WebSocketMessage;
 import javax.websocket.WebSocketOpen;
 import javax.websocket.server.DefaultServerConfiguration;
@@ -59,5 +60,10 @@ public class EchoBean {
     @WebSocketMessage
     public String echo(String message) {
         return message + " (from your server)";
+    }
+
+    @WebSocketError
+    public void onError(Throwable t) {
+        t.printStackTrace();
     }
 }

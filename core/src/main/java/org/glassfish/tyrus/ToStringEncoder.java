@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -48,9 +48,7 @@ import javax.websocket.Encoder;
  *
  * @author Martin Matula (martin.matula at oracle.com)
  */
-public class ToStringEncoder implements Encoder.Text<Object> {
-    public static ToStringEncoder INSTANCE = new ToStringEncoder();
-
+class ToStringEncoder implements Encoder.Text<Object> {
     @Override
     public String encode(Object object) throws EncodeException {
         return object.toString();

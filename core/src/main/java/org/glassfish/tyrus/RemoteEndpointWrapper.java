@@ -203,7 +203,7 @@ public final class RemoteEndpointWrapper implements RemoteEndpoint {
         } else if (isPrimitiveData(o)) {
             this.sendPrimitiveMessage(o);
         } else {
-            Object toSend = endpointWrapper.doEncode(o);
+            Object toSend = endpointWrapper.doEncode(session, o);
             if (toSend instanceof String) {
                 this.sendString((String) toSend);
             } else if (toSend instanceof ByteBuffer) {

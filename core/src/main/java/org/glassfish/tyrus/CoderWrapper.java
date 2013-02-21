@@ -44,31 +44,48 @@ import javax.websocket.Decoder;
 import javax.websocket.Encoder;
 
 /**
- * Wrapper of coders storing the coder instance, return type of the encode / decode method and coder class.
+ * Wrapper of coders storing the coder coder class (and optionally coder instance), return type of the encode / decode
+ * method and coder class.
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 public class CoderWrapper<T> implements Decoder, Encoder {
 
-    private T instance;
+    private final Class<? extends T> coderClass;
+    private final T coder;
 
     /**
      * Return type of the encode / decode method.
      */
-    private Class<?> type;
+    private final Class<?> type;
 
     /**
      * Construct new coder wrapper.
-     * @param instance      coder instance.
-     * @param type          return type provided by the encode / decode method.
+     *
+     * @param coderClass coder class.
+     * @param type       return type provided by the encode / decode method. Cannot be {@code null}.
      */
-    public CoderWrapper(T instance, Class<?> type) {
-        this.instance = instance;
+    public CoderWrapper(Class<? extends T> coderClass, Class<?> type) {
+        this.coderClass = coderClass;
+        this.coder = null;
         this.type = type;
     }
 
     /**
-     * Gets the return type of the encode / decode method.
+     * Construct new coder wrapper.
+     *
+     * @param coder cannot be {@code null}.
+     * @param type  return type provided by the encode / decode method. Cannot be {@code null}.
+     */
+    public CoderWrapper(T coder, Class<?> type) {
+        this.coder = coder;
+        this.coderClass = (Class<T>) coder.getClass();
+        this.type = type;
+    }
+
+    /**
+     * Get the return type of the encode / decode method.
      *
      * @return return type of the encode / decode method.
      */
@@ -77,11 +94,20 @@ public class CoderWrapper<T> implements Decoder, Encoder {
     }
 
     /**
-     * Get the previously stored coder instance.
+     * Get coder class.
      *
-     * @return previously stored coder instance.
+     * @return coder class.
      */
-    public T getCoder(){
-        return instance;
+    public Class<? extends T> getCoderClass() {
+        return coderClass;
+    }
+
+    /**
+     * Get coder instance.
+     *
+     * @return coder instance. {@code null} if registered using coder class.
+     */
+    public T getCoder() {
+        return coder;
     }
 }

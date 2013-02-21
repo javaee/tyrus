@@ -41,6 +41,7 @@ package org.glassfish.tyrus;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -55,12 +56,12 @@ import org.glassfish.tyrus.spi.ComponentProvider;
  *
  * @author Martin Matula (martin.matula at oracle.com)
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 public class ComponentProviderService {
 
-    private final Map<Session, Object> sessionToObject;
+    private final Map<Session, Map<Class<?>, Object>> sessionToObject;
     private final List<ComponentProvider> providers;
-
 
     /**
      * Creates new instance of {@link ComponentProviderService}.
@@ -85,7 +86,7 @@ public class ComponentProviderService {
 
     private ComponentProviderService(List<ComponentProvider> providers) {
         this.providers = providers;
-        this.sessionToObject = new ConcurrentHashMap<Session, Object>();
+        this.sessionToObject = new ConcurrentHashMap<Session, Map<Class<?>, Object>>();
     }
 
     /**
@@ -102,15 +103,20 @@ public class ComponentProviderService {
     public <T> T getInstance(Class<T> c, Session session, ErrorCollector collector) {
         T loaded = null;
 
-        if (sessionToObject.containsKey(session)) {
-            Object fromMap = sessionToObject.get(session);
+        final Map<Class<?>, Object> classObjectMap = sessionToObject.get(session);
+
+        if (classObjectMap != null && classObjectMap.containsKey(c)) {
+            Object fromMap = classObjectMap.get(c);
             loaded = c.isAssignableFrom(fromMap.getClass()) ? (T) fromMap : null;
         } else {
             for (ComponentProvider componentProvider : providers) {
                 if (componentProvider.isApplicable(c)) {
                     try {
                         loaded = componentProvider.provideInstance(c);
-                        sessionToObject.put(session, loaded);
+                        if(classObjectMap == null) {
+                            sessionToObject.put(session, new HashMap<Class<?>, Object>());
+                        }
+                        sessionToObject.get(session).put(c, loaded);
                         break;
                     } catch (Exception e) {
                         collector.addException(new DeploymentException(String.format("Component provider %s threw exception when providing instance of class %s",

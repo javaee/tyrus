@@ -51,12 +51,7 @@ import javax.websocket.Decoder;
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class InputStreamDecoder implements Decoder.Binary<InputStream> {
-    /**
-     * Singleton instance.
-     */
-    public static final InputStreamDecoder INSTANCE = new InputStreamDecoder();
-
+class InputStreamDecoder implements Decoder.Binary<InputStream> {
     @Override
     public boolean willDecode(ByteBuffer bytes) {
         return true;

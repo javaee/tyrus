@@ -60,7 +60,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.websocket.CloseReason;
-import javax.websocket.DecodeException;
 import javax.websocket.Decoder;
 import javax.websocket.DeploymentException;
 import javax.websocket.EncodeException;
@@ -172,30 +171,30 @@ public class EndpointWrapper extends SPIEndpoint {
                 decoders.add((CoderWrapper) dec);
             } else {
                 Class<?> type = getDecoderClassType(dec.getClass());
-                decoders.add(new CoderWrapper<Decoder>(dec, type));
+                decoders.add(new CoderWrapper(dec, type));
             }
         }
 
         decoders.addAll(PrimitiveDecoders.ALL_WRAPPED);
-        decoders.add(new CoderWrapper<Decoder>(NoOpTextCoder.INSTANCE, String.class));
-        decoders.add(new CoderWrapper<Decoder>(NoOpByteBufferCoder.INSTANCE, ByteBuffer.class));
-        decoders.add(new CoderWrapper<Decoder>(NoOpByteArrayCoder.INSTANCE, byte[].class));
-        decoders.add(new CoderWrapper<Decoder>(ReaderDecoder.INSTANCE, Reader.class));
-        decoders.add(new CoderWrapper<Decoder>(InputStreamDecoder.INSTANCE, InputStream.class));
+        decoders.add(new CoderWrapper<Decoder>(NoOpTextCoder.class, String.class));
+        decoders.add(new CoderWrapper<Decoder>(NoOpByteBufferCoder.class, ByteBuffer.class));
+        decoders.add(new CoderWrapper<Decoder>(NoOpByteArrayCoder.class, byte[].class));
+        decoders.add(new CoderWrapper<Decoder>(ReaderDecoder.class, Reader.class));
+        decoders.add(new CoderWrapper<Decoder>(InputStreamDecoder.class, InputStream.class));
 
         for (Encoder encoder : this.configuration.getEncoders()) {
             if (encoder instanceof CoderWrapper) {
                 encoders.add((CoderWrapper) encoder);
             } else {
                 Class<?> type = getEncoderClassType(encoder.getClass());
-                encoders.add(new CoderWrapper<Encoder>(encoder, type));
+                encoders.add(new CoderWrapper(encoder, type));
             }
         }
 
-        encoders.add(new CoderWrapper<Encoder>(NoOpTextCoder.INSTANCE, String.class));
-        encoders.add(new CoderWrapper<Encoder>(NoOpByteBufferCoder.INSTANCE, ByteBuffer.class));
-        encoders.add(new CoderWrapper<Encoder>(NoOpByteArrayCoder.INSTANCE, byte[].class));
-        encoders.add(new CoderWrapper<Encoder>(ToStringEncoder.INSTANCE, Object.class));
+        encoders.add(new CoderWrapper<Encoder>(NoOpTextCoder.class, String.class));
+        encoders.add(new CoderWrapper<Encoder>(NoOpByteBufferCoder.class, ByteBuffer.class));
+        encoders.add(new CoderWrapper<Encoder>(NoOpByteArrayCoder.class, byte[].class));
+        encoders.add(new CoderWrapper<Encoder>(ToStringEncoder.class, Object.class));
     }
 
     @Override
@@ -233,55 +232,72 @@ public class EndpointWrapper extends SPIEndpoint {
                 + "/" + (relativePath.startsWith("/") ? relativePath.substring(1) : relativePath);
     }
 
-    public Object decodeCompleteMessage(Object message, Class<?> type) {
+    private <T> T getCoderInstance(Session session, CoderWrapper<T> wrapper) {
+        final T coder = wrapper.getCoder();
+        if(coder == null) {
+            return this.componentProvider.getInstance(wrapper.getCoderClass(), session, collector);
+        }
+
+        return coder;
+    }
+
+    public Object decodeCompleteMessage(Session session, Object message, Class<?> type) {
         for (CoderWrapper<Decoder> dec : decoders) {
             try {
-                if (dec.getCoder() instanceof Decoder.Text) {
+                final Class<? extends Decoder> decoderClass = dec.getCoderClass();
+
+                if (Decoder.Text.class.isAssignableFrom(decoderClass)) {
                     if (type != null && type.isAssignableFrom(dec.getType())) {
-                        if (((Decoder.Text) dec.getCoder()).willDecode((String) message)) {
-                            return ((Decoder.Text) dec.getCoder()).decode((String) message);
+                        final Decoder.Text decoder = (Decoder.Text)getCoderInstance(session, dec);
+
+                        if (decoder.willDecode((String) message)) {
+                            return decoder.decode((String) message);
                         }
                     }
-                } else if (dec.getCoder() instanceof Decoder.Binary) {
+                } else if (Decoder.Binary.class.isAssignableFrom(decoderClass)) {
                     if (type != null && type.isAssignableFrom(dec.getType())) {
-                        if (((Decoder.Binary) dec.getCoder()).willDecode((ByteBuffer) message)) {
-                            return ((Decoder.Binary) dec.getCoder()).decode((ByteBuffer) message);
+                        final Decoder.Binary decoder = (Decoder.Binary)getCoderInstance(session, dec);
+
+                        if (decoder.willDecode((ByteBuffer) message)) {
+                            return decoder.decode((ByteBuffer) message);
                         }
                     }
-                } else if (dec.getCoder() instanceof Decoder.TextStream) {
+                } else if (Decoder.TextStream.class.isAssignableFrom(decoderClass)) {
                     if (type != null && type.isAssignableFrom(dec.getType())) {
-                        return ((Decoder.TextStream) dec.getCoder()).decode(new StringReader((String) message));
+                        return ((Decoder.TextStream) getCoderInstance(session, dec)).decode(new StringReader((String) message));
                     }
-                } else if (dec.getCoder() instanceof Decoder.BinaryStream) {
+                } else if (Decoder.BinaryStream.class.isAssignableFrom(decoderClass)) {
                     if (type != null && type.isAssignableFrom(dec.getType())) {
                         byte[] array = ((ByteBuffer) message).array();
-                        return ((Decoder.BinaryStream) dec.getCoder()).decode(new ByteArrayInputStream(array));
+                        return ((Decoder.BinaryStream) getCoderInstance(session, dec)).decode(new ByteArrayInputStream(array));
                     }
                 }
-            } catch (DecodeException de) {
-                de.printStackTrace();
             } catch (Exception e) {
-                e.printStackTrace();
+                collector.addException(e);
             }
         }
         return null;
     }
 
-    private ArrayList<CoderWrapper<Decoder>> findApplicableDecoders(Object message, boolean isString) {
+    private ArrayList<CoderWrapper<Decoder>> findApplicableDecoders(Session session, Object message, boolean isString) {
         ArrayList<CoderWrapper<Decoder>> result = new ArrayList<CoderWrapper<Decoder>>();
 
         for (CoderWrapper<Decoder> dec : decoders) {
-            if (isString && (Decoder.Text.class.isAssignableFrom(dec.getCoder().getClass()))) {
-                if (((Decoder.Text) dec.getCoder()).willDecode((String) message)) {
+            if (isString && (Decoder.Text.class.isAssignableFrom(dec.getCoderClass()))) {
+                final Decoder.Text decoder = (Decoder.Text) getCoderInstance(session, dec);
+
+                if (decoder.willDecode((String) message)) {
                     result.add(dec);
                 }
-            } else if (!isString && (Decoder.Binary.class.isAssignableFrom(dec.getCoder().getClass()))) {
-                if (((Decoder.Binary) dec.getCoder()).willDecode((ByteBuffer) message)) {
+            } else if (!isString && (Decoder.Binary.class.isAssignableFrom(dec.getCoderClass()))) {
+                final Decoder.Binary decoder = (Decoder.Binary) getCoderInstance(session, dec);
+
+                if (decoder.willDecode((ByteBuffer) message)) {
                     result.add(dec);
                 }
-            } else if (isString && (Decoder.TextStream.class.isAssignableFrom(dec.getCoder().getClass()))) {
+            } else if (isString && (Decoder.TextStream.class.isAssignableFrom(dec.getCoderClass()))) {
                 result.add(dec);
-            } else if (!isString && (Decoder.BinaryStream.class.isAssignableFrom(dec.getCoder().getClass()))) {
+            } else if (!isString && (Decoder.BinaryStream.class.isAssignableFrom(dec.getCoderClass()))) {
                 result.add(dec);
             }
         }
@@ -289,28 +305,37 @@ public class EndpointWrapper extends SPIEndpoint {
         return result;
     }
 
-    @SuppressWarnings("unchecked")
-    Object doEncode(Object message) throws EncodeException {
+    Object doEncode(Session session, Object message) throws EncodeException {
         for (CoderWrapper<Encoder> enc : encoders) {
             try {
-                if (enc.getCoder() instanceof Encoder.Binary) {
+                final Class<? extends Encoder> encoderClass = enc.getCoderClass();
+
+                if (Encoder.Binary.class.isAssignableFrom(encoderClass)) {
                     if (enc.getType().isAssignableFrom(message.getClass())) {
-                        return ((Encoder.Binary) enc.getCoder()).encode(message);
+                        final Encoder.Binary encoder = (Encoder.Binary)getCoderInstance(session, enc);
+
+                        return encoder.encode(message);
                     }
-                } else if (enc.getCoder() instanceof Encoder.Text) {
+                } else if (Encoder.Text.class.isAssignableFrom(encoderClass)) {
                     if (enc.getType().isAssignableFrom(message.getClass())) {
-                        return ((Encoder.Text) enc.getCoder()).encode(message);
+                        final Encoder.Text encoder = (Encoder.Text)getCoderInstance(session, enc);
+
+                        return encoder.encode(message);
                     }
-                } else if (enc.getCoder() instanceof Encoder.BinaryStream) {
+                } else if (Encoder.BinaryStream.class.isAssignableFrom(encoderClass)) {
                     if (enc.getType().isAssignableFrom(message.getClass())) {
-                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                        ((Encoder.BinaryStream) enc.getCoder()).encode(message, new ByteArrayOutputStream());
-                        return baos;
+                        final ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                        final Encoder.BinaryStream encoder = (Encoder.BinaryStream)getCoderInstance(session, enc);
+
+                        encoder.encode(message, new ByteArrayOutputStream());
+                        return stream;
                     }
-                } else if (enc.getCoder() instanceof Encoder.TextStream) {
+                } else if (Encoder.TextStream.class.isAssignableFrom(encoderClass)) {
                     if (enc.getType().isAssignableFrom(message.getClass())) {
-                        Writer writer = new StringWriter();
-                        ((Encoder.TextStream) enc.getCoder()).encode(message, writer);
+                        final Writer writer = new StringWriter();
+                        final Encoder.TextStream encoder = (Encoder.TextStream)getCoderInstance(session, enc);
+
+                        encoder.encode(message, writer);
                         return writer;
                     }
                 }
@@ -410,7 +435,7 @@ public class EndpointWrapper extends SPIEndpoint {
     public void onMessage(SPIRemoteEndpoint gs, ByteBuffer messageBytes) {
         SessionImpl session = remoteEndpointToSession.get(gs);
         try {
-            session.notifyMessageHandlers(messageBytes, findApplicableDecoders(messageBytes, false));
+            session.notifyMessageHandlers(messageBytes, findApplicableDecoders(session, messageBytes, false));
         } catch (Throwable t) {
             final Endpoint toCall = endpoint != null ? endpoint :
                     (Endpoint) componentProvider.getInstance(endpointClass, session, collector);
@@ -422,7 +447,7 @@ public class EndpointWrapper extends SPIEndpoint {
     public void onMessage(SPIRemoteEndpoint gs, String messageString) {
         SessionImpl session = remoteEndpointToSession.get(gs);
         try {
-            session.notifyMessageHandlers(messageString, findApplicableDecoders(messageString, true));
+            session.notifyMessageHandlers(messageString, findApplicableDecoders(session, messageString, true));
         } catch (Throwable t) {
             final Endpoint toCall = endpoint != null ? endpoint :
                     (Endpoint) componentProvider.getInstance(endpointClass, session, collector);

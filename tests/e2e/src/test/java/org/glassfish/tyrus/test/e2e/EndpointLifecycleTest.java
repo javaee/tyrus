@@ -48,7 +48,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.logging.Logger;
 
 import javax.websocket.CloseReason;
 import javax.websocket.Decoder;
@@ -69,7 +68,6 @@ import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -81,12 +79,9 @@ public class EndpointLifecycleTest {
 
     private static final String PATH = "/EndpointLifecycleTest";
 
-    Logger logger = Logger.getLogger(EndpointLifecycleTest.class.getName());
-
     final static int iterations = 3;
     static CountDownLatch messageLatch;
 
-    @Ignore
     @Test
     public void testProgrammaticEndpoint() {
 
@@ -102,7 +97,7 @@ public class EndpointLifecycleTest {
                     final TyrusClientEndpointConfiguration.Builder builder = new TyrusClientEndpointConfiguration.Builder();
                     final TyrusClientEndpointConfiguration dcec = builder.build();
 
-                    final String message = new String(SENT_MESSAGE + msgNumber.incrementAndGet());
+                    final String message = SENT_MESSAGE + msgNumber.incrementAndGet();
                     // replace ClientManager with MockWebSocketClient to confirm the test passes if the backend
                     // does not have issues
                     final ClientManager client = ClientManager.createClient();
@@ -143,7 +138,6 @@ public class EndpointLifecycleTest {
         }
     }
 
-    @Ignore
     @Test
     public void testAnnotatedEndpoint() {
 
@@ -159,7 +153,7 @@ public class EndpointLifecycleTest {
                     final TyrusClientEndpointConfiguration.Builder builder = new TyrusClientEndpointConfiguration.Builder();
                     final TyrusClientEndpointConfiguration dcec = builder.build();
 
-                    final String message = new String(SENT_MESSAGE + msgNumber.incrementAndGet());
+                    final String message = SENT_MESSAGE + msgNumber.incrementAndGet();
                     // replace ClientManager with MockWebSocketClient to confirm the test passes if the backend
                     // does not have issues
                     final ClientManager client = ClientManager.createClient();
@@ -221,7 +215,7 @@ public class EndpointLifecycleTest {
     @WebSocketEndpoint(value = "/EndpointLifecycleTest", configuration = DefaultServerConfiguration.class)
     public static class Annotated {
 
-        private static Set<String> instancesIds = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
+        private static final Set<String> instancesIds = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
 
         @WebSocketOpen
         public void onOpen(Session s) {
@@ -236,7 +230,7 @@ public class EndpointLifecycleTest {
 
     public static class EchoEndpoint extends Endpoint {
 
-        private static Set<String> instancesIds = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
+        private static final Set<String> instancesIds = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
 
         @Override
         public void onOpen(Session session, EndpointConfiguration config) {

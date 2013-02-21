@@ -266,7 +266,7 @@ public class SessionImpl implements Session {
         this.negotiatedExtensions = Collections.unmodifiableList(new ArrayList<Extension>(negotiatedExtensions));
     }
 
-    private final void checkMessageSize(Object message, long maxMessageSize) {
+    private void checkMessageSize(Object message, long maxMessageSize) {
         if (maxMessageSize != -1) {
             final long messageSize = (message instanceof String ? ((String) message).getBytes().length :
                     ((ByteBuffer) message).remaining());
@@ -295,7 +295,7 @@ public class SessionImpl implements Session {
                         checkMessageSize(message, ((BasicMessageHandler) mh).getMaxMessageSize());
                     }
 
-                    Object object = endpoint.decodeCompleteMessage(message, type);
+                    Object object = endpoint.decodeCompleteMessage(this, message, type);
                     if (object != null) {
                         //noinspection unchecked
                         ((MessageHandler.Basic) mh).onMessage(object);

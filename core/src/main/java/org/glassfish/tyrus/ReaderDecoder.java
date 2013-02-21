@@ -50,11 +50,7 @@ import javax.websocket.Decoder;
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class ReaderDecoder implements Decoder.Text<Reader> {
-    /**
-     * Singleton instance.
-     */
-    public static final ReaderDecoder INSTANCE = new ReaderDecoder();
+class ReaderDecoder implements Decoder.Text<Reader> {
 
     @Override
     public boolean willDecode(String s) {
