@@ -39,52 +39,19 @@
  */
 package org.glassfish.tyrus.tests.qa.lifecycle;
 
-import org.glassfish.tyrus.tests.qa.lifecycle.config.ClientConfiguration;
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.websocket.CloseReason;
-import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfiguration;
-import javax.websocket.MessageHandler;
 import javax.websocket.Session;
-import org.glassfish.tyrus.tests.qa.handlers.BasicMessageHandler;
 import org.glassfish.tyrus.tests.qa.tools.SessionController;
 
 /**
  *
  * @author michal.conos at oracle.com
  */
-public class ProgrammaticClient extends Endpoint {
-
-    private static final Logger logger = Logger.getLogger(ProgrammaticClient.class.getCanonicalName());
-    LifeCycleClient lifeCycle;
-    SessionController sc;
-
+public class TextMessageServer extends LifeCycleServer {
+    
     @Override
-    public void onOpen(Session s, EndpointConfiguration config) {
-
-        lifeCycle = ((ClientConfiguration) config).getLifeCycleClient();
-        sc = ((ClientConfiguration) config).getSessionController();
-        lifeCycle.setSessionController(sc);
-        MessageHandler messageHandler = new BasicMessageHandler<String>(s) {
-            @Override
-            public void onMessage(String message) {
-                lifeCycle.onMessage(message, session);
-            }
-        };
-        s.addMessageHandler(messageHandler);
-        lifeCycle.onOpen(s, config);
-
+    public void handleMessage(String message, Session session) throws IOException {
+        session.getRemote().sendString(message);
     }
-
-    @Override
-    public void onClose(Session s, CloseReason reason) {
-        lifeCycle.onClose(s, reason);
-    }
-
-    @Override
-    public void onError(Session s, Throwable thr) {
-        lifeCycle.onError(s, thr);
-    }
+    
 }

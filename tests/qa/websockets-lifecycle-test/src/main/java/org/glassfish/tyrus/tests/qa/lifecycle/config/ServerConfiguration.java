@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.tests.qa.lifecycle;
+package org.glassfish.tyrus.tests.qa.lifecycle.config;
 
 import org.glassfish.tyrus.tests.qa.lifecycle.ProgrammaticServer;
 import java.net.URI;
@@ -52,27 +52,44 @@ import javax.websocket.server.HandshakeRequest;
 import javax.websocket.server.ServerEndpointConfiguration;
 import org.glassfish.tyrus.tests.qa.handlers.BasicMessageHandler;
 import java.util.concurrent.ConcurrentMap;
+import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleDeployment;
+import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleServer;
 import org.glassfish.tyrus.tests.qa.tools.SessionController;
 
 /**
  *
  * @author michal.conos at oracle.com
  */
-public class ProgrammaticServerConfiguration implements ServerEndpointConfiguration {
+public abstract class ServerConfiguration implements ServerEndpointConfiguration {
 
-    private static ConcurrentMap<String, BasicMessageHandler> _messageHandlers = new ConcurrentHashMap<String, BasicMessageHandler>();
-    
-    public static void registerMessageHandler(String name, BasicMessageHandler handler) {
-        _messageHandlers.put(name, handler);
+    private static ConcurrentHashMap<String, LifeCycleServer> _handlers = new ConcurrentHashMap<>();
+    private static ConcurrentHashMap<String, SessionController> _ctrls = new ConcurrentHashMap<>();
+
+    public static void registerServer(String name, LifeCycleServer handler) {
+        _handlers.put(name, handler);
     }
-    
-    public static BasicMessageHandler getMessageHandler(String name) {
-        return _messageHandlers.get(name);
+
+    protected static LifeCycleServer getServer(String name) {
+        return _handlers.get(name);
     }
-    
+
+    public static void registerSessionController(String name, SessionController handler) {
+        _ctrls.put(name, handler);
+    }
+
+    protected static SessionController getSessionController(String name) {
+        return _ctrls.get(name);
+    }
+
+    abstract public LifeCycleServer getServerHandler();
+
+    abstract public SessionController getSessionController();
+
+    abstract Class<?> getMyServerClass();
+
     @Override
     public Class<?> getEndpointClass() {
-        return ProgrammaticServer.class;
+        return getMyServerClass();
     }
 
     @Override

@@ -152,6 +152,10 @@ public enum Issue {
 
     public static boolean checkTyrus101(CloseReason reason) {
         if(Issue.TYRUS_101.isEnabled()) {
+            logger.log(Level.INFO, "TYRUS-101: reason={0}", reason);
+            if(reason!=null) {
+                logger.log(Level.INFO, "TYRUS-101: reason.getCloseCode={0}", reason.getCloseCode());
+            }
             return  reason != null && reason.getCloseCode().equals(CloseReason.CloseCodes.GOING_AWAY);  
         }
         return true;

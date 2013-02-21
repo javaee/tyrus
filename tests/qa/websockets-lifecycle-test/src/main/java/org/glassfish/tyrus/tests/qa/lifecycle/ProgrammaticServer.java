@@ -39,6 +39,7 @@
  */
 package org.glassfish.tyrus.tests.qa.lifecycle;
 
+import org.glassfish.tyrus.tests.qa.lifecycle.config.ServerConfiguration;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -47,6 +48,7 @@ import java.util.logging.Logger;
 import javax.websocket.CloseReason;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfiguration;
+import javax.websocket.MessageHandler;
 import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
 import org.glassfish.tyrus.tests.qa.handlers.BasicMessageHandler;
@@ -57,42 +59,33 @@ import org.glassfish.tyrus.tests.qa.tools.SessionController;
 public class ProgrammaticServer extends Endpoint {
 
     private static final Logger logger = Logger.getLogger(ProgrammaticServer.class.getCanonicalName());
-    BasicMessageHandler mh;
+    LifeCycleServer lifeCycle;
     SessionController sc;
+    
     
     @Override
     public void onOpen(Session s, EndpointConfiguration ec) {
-        logger.log(Level.INFO, "Someone connected:{0}", s.getRequestURI().toString());
-        mh = ((ProgrammaticServerConfiguration) ec).getMessageHandler("lifeCycle");
-        sc = mh.getSessionController();
-        sc.serverOnOpen();
-        mh.init(s);
-        s.addMessageHandler(mh);
+        lifeCycle  = ((ServerConfiguration)ec).getServerHandler();
+        sc = ((ServerConfiguration)ec).getSessionController();
+        lifeCycle.setSessionController(sc);
+        MessageHandler messageHandler = new BasicMessageHandler<String>(s) {
+
+            @Override
+            public void onMessage(String msg) {
+               lifeCycle.onMessage(msg, session);
+            }
+        };
+        s.addMessageHandler(messageHandler);
+        lifeCycle.onOpen(s, ec);
     }
 
     @Override
     public void onClose(Session s, CloseReason reason) {
-        logger.log(Level.INFO, "Clossing the session: {0}", s.toString());
-        sc.serverOnClose();
-        final RemoteEndpoint remote = s.getRemote();
-        try {
-            if(!Issue.checkTyrus101(reason)) {
-                sc.setState("server.closereason.invalid");
-            }
-            //should raise on error
-            remote.sendString("Raise onError now - socket is closed");
-            s.close();
-        } catch (IOException ex) {
-            logger.log(Level.SEVERE, null, ex);
-        }
+        lifeCycle.onClose(s, reason);
     }
 
     @Override
     public void onError(Session s, Throwable thr) {
-        sc.serverOnError(thr);
-        if(!Issue.checkTyrus94(thr)) {
-            sc.setState("server.TYRUS_94");
-        }
-        sc.serverOnFinish();
+        lifeCycle.onError(s, thr);
     }
 }

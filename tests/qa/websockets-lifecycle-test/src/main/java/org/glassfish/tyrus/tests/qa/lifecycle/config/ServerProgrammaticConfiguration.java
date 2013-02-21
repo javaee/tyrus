@@ -37,54 +37,32 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.tests.qa.lifecycle;
+package org.glassfish.tyrus.tests.qa.lifecycle.config;
 
-import org.glassfish.tyrus.tests.qa.lifecycle.config.ClientConfiguration;
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.websocket.CloseReason;
-import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfiguration;
-import javax.websocket.MessageHandler;
-import javax.websocket.Session;
-import org.glassfish.tyrus.tests.qa.handlers.BasicMessageHandler;
+import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleServer;
+import org.glassfish.tyrus.tests.qa.lifecycle.ProgrammaticServer;
+import org.glassfish.tyrus.tests.qa.lifecycle.config.ServerConfiguration;
 import org.glassfish.tyrus.tests.qa.tools.SessionController;
 
 /**
  *
  * @author michal.conos at oracle.com
  */
-public class ProgrammaticClient extends Endpoint {
-
-    private static final Logger logger = Logger.getLogger(ProgrammaticClient.class.getCanonicalName());
-    LifeCycleClient lifeCycle;
-    SessionController sc;
+public class ServerProgrammaticConfiguration extends ServerConfiguration {
 
     @Override
-    public void onOpen(Session s, EndpointConfiguration config) {
-
-        lifeCycle = ((ClientConfiguration) config).getLifeCycleClient();
-        sc = ((ClientConfiguration) config).getSessionController();
-        lifeCycle.setSessionController(sc);
-        MessageHandler messageHandler = new BasicMessageHandler<String>(s) {
-            @Override
-            public void onMessage(String message) {
-                lifeCycle.onMessage(message, session);
-            }
-        };
-        s.addMessageHandler(messageHandler);
-        lifeCycle.onOpen(s, config);
-
+    public LifeCycleServer getServerHandler() {
+        return getServer("programmaticLifeCycle");
+    }
+    
+    @Override
+    public SessionController getSessionController() {
+        return getSessionController("programmaticSessionController");
     }
 
     @Override
-    public void onClose(Session s, CloseReason reason) {
-        lifeCycle.onClose(s, reason);
+    Class<?> getMyServerClass() {
+        return ProgrammaticServer.class;
     }
-
-    @Override
-    public void onError(Session s, Throwable thr) {
-        lifeCycle.onError(s, thr);
-    }
+    
 }

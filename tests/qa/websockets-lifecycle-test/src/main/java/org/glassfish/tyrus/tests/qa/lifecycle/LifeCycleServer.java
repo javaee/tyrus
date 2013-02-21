@@ -39,52 +39,71 @@
  */
 package org.glassfish.tyrus.tests.qa.lifecycle;
 
-import org.glassfish.tyrus.tests.qa.lifecycle.config.ClientConfiguration;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.websocket.CloseReason;
-import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfiguration;
-import javax.websocket.MessageHandler;
+import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
-import org.glassfish.tyrus.tests.qa.handlers.BasicMessageHandler;
+import org.glassfish.tyrus.tests.qa.regression.Issue;
 import org.glassfish.tyrus.tests.qa.tools.SessionController;
 
 /**
  *
  * @author michal.conos at oracle.com
  */
-public class ProgrammaticClient extends Endpoint {
+abstract public class LifeCycleServer {
 
+    private SessionController sc;
     private static final Logger logger = Logger.getLogger(ProgrammaticClient.class.getCanonicalName());
-    LifeCycleClient lifeCycle;
-    SessionController sc;
+    
+    public void setSessionController(SessionController sc) {
+        this.sc = sc;
+    }
 
-    @Override
     public void onOpen(Session s, EndpointConfiguration config) {
-
-        lifeCycle = ((ClientConfiguration) config).getLifeCycleClient();
-        sc = ((ClientConfiguration) config).getSessionController();
-        lifeCycle.setSessionController(sc);
-        MessageHandler messageHandler = new BasicMessageHandler<String>(s) {
-            @Override
-            public void onMessage(String message) {
-                lifeCycle.onMessage(message, session);
-            }
-        };
-        s.addMessageHandler(messageHandler);
-        lifeCycle.onOpen(s, config);
-
+        logger.log(Level.INFO, "Someone connected:{0}", s.getRequestURI().toString());
+        sc.serverOnOpen();
     }
 
-    @Override
     public void onClose(Session s, CloseReason reason) {
-        lifeCycle.onClose(s, reason);
+        logger.log(Level.INFO, "Clossing the session: {0}", s.toString());
+        sc.serverOnClose();
+        final RemoteEndpoint remote = s.getRemote();
+        try {
+            if (!Issue.checkTyrus101(reason)) {
+                sc.setState("server.closereason.invalid");
+            }
+            //should raise on error
+            logger.log(Level.INFO, "send string, closed connection");
+            s.getRemote().sendString("Raise onError now - socket is closed");
+            logger.log(Level.SEVERE, "should never get here");
+            s.close();
+        } catch (IOException ex) {
+            logger.log(Level.SEVERE, null, ex);
+        }
     }
 
-    @Override
     public void onError(Session s, Throwable thr) {
-        lifeCycle.onError(s, thr);
+        sc.serverOnError(thr);
+        if (!Issue.checkTyrus94(thr)) {
+            sc.setState("server.TYRUS_94");
+        }
+        sc.serverOnFinish();
+    }
+    
+    abstract public void handleMessage(String message, Session session) throws IOException;
+
+    public void onMessage(String message, Session session) {
+        logger.log(Level.INFO, "server:message={0}", message);
+        sc.onMessage();
+        try {
+            //session.getRemote().sendString(message);
+            handleMessage(message, session);
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            logger.log(Level.SEVERE, null, ex);
+        }
     }
 }

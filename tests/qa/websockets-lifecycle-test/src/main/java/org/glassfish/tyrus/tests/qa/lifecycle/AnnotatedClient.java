@@ -46,8 +46,13 @@ import java.util.logging.Logger;
 import javax.websocket.CloseReason;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfiguration;
-import javax.websocket.MessageHandler;
+import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
+import javax.websocket.WebSocketClient;
+import javax.websocket.WebSocketClose;
+import javax.websocket.WebSocketError;
+import javax.websocket.WebSocketMessage;
+import javax.websocket.WebSocketOpen;
 import org.glassfish.tyrus.tests.qa.handlers.BasicMessageHandler;
 import org.glassfish.tyrus.tests.qa.tools.SessionController;
 
@@ -55,36 +60,39 @@ import org.glassfish.tyrus.tests.qa.tools.SessionController;
  *
  * @author michal.conos at oracle.com
  */
-public class ProgrammaticClient extends Endpoint {
+//FIXME
+//@WebSocketClient
+public class AnnotatedClient extends Endpoint {
 
-    private static final Logger logger = Logger.getLogger(ProgrammaticClient.class.getCanonicalName());
-    LifeCycleClient lifeCycle;
+    private static final Logger logger = Logger.getLogger(AnnotatedClient.class.getCanonicalName());
+    LifeCycleClient client;
+    protected RemoteEndpoint remote;
     SessionController sc;
 
-    @Override
+    public AnnotatedClient() {
+    }
+
+    @WebSocketOpen
     public void onOpen(Session s, EndpointConfiguration config) {
-
-        lifeCycle = ((ClientConfiguration) config).getLifeCycleClient();
-        sc = ((ClientConfiguration) config).getSessionController();
-        lifeCycle.setSessionController(sc);
-        MessageHandler messageHandler = new BasicMessageHandler<String>(s) {
-            @Override
-            public void onMessage(String message) {
-                lifeCycle.onMessage(message, session);
-            }
-        };
-        s.addMessageHandler(messageHandler);
-        lifeCycle.onOpen(s, config);
-
+        remote = s.getRemote();
+        client = ((ClientConfiguration)config).getLifeCycleClient();
+        sc     = ((ClientConfiguration)config).getSessionController();
+        client.setSessionController(sc);
+        client.onOpen(s, config);
     }
 
-    @Override
+    @WebSocketClose
     public void onClose(Session s, CloseReason reason) {
-        lifeCycle.onClose(s, reason);
+        client.onClose(s, reason);
     }
 
-    @Override
+    @WebSocketError
     public void onError(Session s, Throwable thr) {
-        lifeCycle.onError(s, thr);
+        client.onError(s, thr);
+    }
+
+    @WebSocketMessage
+    public void onMessage(String message, Session session) {
+       client.onMessage(message, session);
     }
 }

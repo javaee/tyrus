@@ -39,15 +39,9 @@
  */
 package org.glassfish.tyrus.tests.qa.handlers;
 
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.websocket.MessageHandler;
 import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
-import org.glassfish.tyrus.tests.qa.lifecycle.ProgrammaticClient;
-import org.glassfish.tyrus.tests.qa.tools.CommChannel;
-import org.glassfish.tyrus.tests.qa.tools.SessionController;
 
 /**
  *
@@ -55,42 +49,20 @@ import org.glassfish.tyrus.tests.qa.tools.SessionController;
  */
 public abstract class BasicMessageHandler<T> implements MessageHandler.Basic<T> {
 
-    protected static final Logger logger = Logger.getLogger(BasicMessageHandler.class.getCanonicalName());
-    protected RemoteEndpoint remote;
-    protected Session session;
-    protected final SessionController sc;
-    protected final CommChannel.Client commChannel;
-    protected final String sessionName;
+    
+    protected final Session session;
 
-    public BasicMessageHandler(SessionController sc) {
-        this.sc = sc;
-        this.commChannel = sc.getChannel();
-        this.sessionName = sc.getSessionName();
-    }
-
-    public void init(Session session) {
+    public BasicMessageHandler(Session session) {
         this.session = session;
-        this.remote = session.getRemote();
-    }
-
-    public SessionController getSessionController() {
-        return sc;
+        
     }
     
+    public Session getSession() {
+        return session;
+    }
     
-
-    public abstract void messageHandler(T msg) throws IOException;
-
-    @Override
-    public void onMessage(T msg) {
-        sc.onMessage();
-        try {
-            messageHandler(msg);
-        } catch (IOException ex) {
-            logger.log(Level.SEVERE, null, ex);
-        }
+    public RemoteEndpoint getRemoteEndpoint() {
+        return session.getRemote();
     }
-
-    public void startTalk() throws IOException {
-    }
+    
 }

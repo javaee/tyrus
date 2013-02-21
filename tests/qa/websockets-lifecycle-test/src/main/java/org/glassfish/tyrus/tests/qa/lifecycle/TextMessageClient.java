@@ -39,73 +39,26 @@
  */
 package org.glassfish.tyrus.tests.qa.lifecycle;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import javax.websocket.ClientEndpointConfiguration;
-import javax.websocket.Decoder;
-import javax.websocket.Encoder;
-import javax.websocket.Extension;
-import javax.websocket.HandshakeResponse;
-import org.glassfish.tyrus.tests.qa.handlers.BasicMessageHandler;
-import org.glassfish.tyrus.tests.qa.tools.CommChannel;
+import java.io.IOException;
+import java.util.logging.Level;
+import javax.websocket.CloseReason;
+import javax.websocket.Session;
 import org.glassfish.tyrus.tests.qa.tools.SessionController;
 
 /**
  *
  * @author michal.conos at oracle.com
  */
-public class ProgrammaticClientConfiguration implements ClientEndpointConfiguration {
+public class TextMessageClient extends LifeCycleClient {
     
-    private BasicMessageHandler messageHandler;
-    private SessionController sc;
-    private String sessionName;
-    
-    public ProgrammaticClientConfiguration(BasicMessageHandler mh, SessionController sc) {
-        this.messageHandler = mh;
-        this.sc = sc;
-    }
-    
-    public SessionController getSessionController() {
-        return sc;
-    }
-
-    public BasicMessageHandler getMessageHandler() {
-        return messageHandler;
-    }
-    
-    public String getSessionName() {
-        return sessionName;
-    }
-
     @Override
-    public List<String> getPreferredSubprotocols() {
-        return Collections.EMPTY_LIST;
-    }
-
-    @Override
-    public List<Extension> getExtensions() {
-        return Collections.EMPTY_LIST;
-    }
-
-    @Override
-    public void beforeRequest(Map<String, List<String>> map) {
-        
-    }
-
-    @Override
-    public void afterResponse(HandshakeResponse hr) {
-        
-    }
-
-    @Override
-    public List<Encoder> getEncoders() {
-        return Collections.EMPTY_LIST;
-    }
-
-    @Override
-    public List<Decoder> getDecoders() {
-        return Collections.EMPTY_LIST;
+    public void handleMessage(String message, Session session) throws IOException {
+        if (message.equals("client.open")) {
+            logger.log(Level.INFO, "closing the session from the client");
+            session.close(new CloseReason(CloseReason.CloseCodes.GOING_AWAY, "Going away"));
+        } else {
+            session.getRemote().sendString(message);
+        }
     }
     
 }

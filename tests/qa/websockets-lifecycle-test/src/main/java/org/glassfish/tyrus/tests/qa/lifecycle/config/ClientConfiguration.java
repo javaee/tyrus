@@ -37,54 +37,78 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.tests.qa.lifecycle;
+package org.glassfish.tyrus.tests.qa.lifecycle.config;
 
-import org.glassfish.tyrus.tests.qa.lifecycle.config.ClientConfiguration;
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.websocket.CloseReason;
-import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfiguration;
-import javax.websocket.MessageHandler;
-import javax.websocket.Session;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.Decoder;
+import javax.websocket.Encoder;
+import javax.websocket.Extension;
+import javax.websocket.HandshakeResponse;
+import org.eclipse.jetty.util.component.LifeCycle;
 import org.glassfish.tyrus.tests.qa.handlers.BasicMessageHandler;
+import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleClient;
+import org.glassfish.tyrus.tests.qa.tools.CommChannel;
 import org.glassfish.tyrus.tests.qa.tools.SessionController;
 
 /**
  *
  * @author michal.conos at oracle.com
  */
-public class ProgrammaticClient extends Endpoint {
-
-    private static final Logger logger = Logger.getLogger(ProgrammaticClient.class.getCanonicalName());
-    LifeCycleClient lifeCycle;
+public class ClientConfiguration implements ClientEndpointConfiguration {
+    
+    private LifeCycleClient client;
     SessionController sc;
+    
+    public ClientConfiguration(LifeCycleClient client, SessionController sc) {
+        this.client = client;
+        this.sc = sc;
+    }
+    
+    public SessionController getSessionController() {
+        return sc;
+    }
+    
+    public LifeCycleClient getLifeCycleClient() {
+        return client;
+    }
 
-    @Override
-    public void onOpen(Session s, EndpointConfiguration config) {
-
-        lifeCycle = ((ClientConfiguration) config).getLifeCycleClient();
-        sc = ((ClientConfiguration) config).getSessionController();
-        lifeCycle.setSessionController(sc);
-        MessageHandler messageHandler = new BasicMessageHandler<String>(s) {
-            @Override
-            public void onMessage(String message) {
-                lifeCycle.onMessage(message, session);
-            }
-        };
-        s.addMessageHandler(messageHandler);
-        lifeCycle.onOpen(s, config);
-
+    
+    
+    public String getSessionName() {
+        return sc.getSessionName();
     }
 
     @Override
-    public void onClose(Session s, CloseReason reason) {
-        lifeCycle.onClose(s, reason);
+    public List<String> getPreferredSubprotocols() {
+        return Collections.EMPTY_LIST;
     }
 
     @Override
-    public void onError(Session s, Throwable thr) {
-        lifeCycle.onError(s, thr);
+    public List<Extension> getExtensions() {
+        return Collections.EMPTY_LIST;
     }
+
+    @Override
+    public void beforeRequest(Map<String, List<String>> map) {
+        
+    }
+
+    @Override
+    public void afterResponse(HandshakeResponse hr) {
+        
+    }
+
+    @Override
+    public List<Encoder> getEncoders() {
+        return Collections.EMPTY_LIST;
+    }
+
+    @Override
+    public List<Decoder> getDecoders() {
+        return Collections.EMPTY_LIST;
+    }
+    
 }

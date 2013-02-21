@@ -37,27 +37,31 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.tests.qa.handlers.server;
+package org.glassfish.tyrus.tests.qa.lifecycle.config;
 
-import java.io.IOException;
-import java.util.logging.Level;
-import org.glassfish.tyrus.tests.qa.handlers.BasicMessageHandler;
+import org.glassfish.tyrus.tests.qa.lifecycle.AnnotatedServer;
+import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleServer;
 import org.glassfish.tyrus.tests.qa.tools.SessionController;
 
 /**
  *
  * @author michal.conos at oracle.com
  */
-public class BasicTextMessageHandlerServer extends BasicMessageHandler<String> {
+public class ServerAnnotatedConfiguration extends ServerConfiguration {
 
-    public BasicTextMessageHandlerServer(SessionController sc) {
-        super(sc);
+    @Override
+    public LifeCycleServer getServerHandler() {
+        return getServer("annotatedLifeCycle");
+    }
+    
+    @Override
+    public SessionController getSessionController() {
+        return getSessionController("annotatedSessionController");
     }
 
     @Override
-    public void messageHandler(String msg) throws IOException {
-        logger.log(Level.INFO, "server:message={0}", msg);
-        remote.sendString(msg);
+    Class<?> getMyServerClass() {
+        return AnnotatedServer.class;
     }
     
 }
