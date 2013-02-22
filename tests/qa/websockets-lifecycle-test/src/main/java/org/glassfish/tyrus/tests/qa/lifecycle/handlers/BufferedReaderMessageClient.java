@@ -37,67 +37,48 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.tests.qa.lifecycle;
+package org.glassfish.tyrus.tests.qa.lifecycle.handlers;
 
+import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.websocket.CloseReason;
-import javax.websocket.EndpointConfiguration;
-import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
-import org.glassfish.tyrus.tests.qa.regression.Issue;
-import org.glassfish.tyrus.tests.qa.tools.SessionController;
+import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleClient;
 
 /**
  *
  * @author michal.conos at oracle.com
  */
-abstract public class LifeCycleServer<T> {
-
-    private SessionController sc;
-    protected static final Logger logger = Logger.getLogger(ProgrammaticClient.class.getCanonicalName());
-
-    public void setSessionController(SessionController sc) {
-        this.sc = sc;
+public class BufferedReaderMessageClient extends LifeCycleClient<BufferedReader> {
+    
+    private int messageSize;
+    private String messageToSend="";
+    private String gotMessage="";
+    private static final String oneLine="abcdefghijklm\n";
+    
+    public BufferedReaderMessageClient(int messageSize) {
+        this.messageSize = messageSize;
+        
     }
-
-    public void onOpen(Session s, EndpointConfiguration config) {
-        logger.log(Level.INFO, "Someone connected:{0}", s.getRequestURI().toString());
-        sc.serverOnOpen();
-    }
-
-    public void onClose(Session s, CloseReason reason) {
-        logger.log(Level.INFO, "Clossing the session: {0}", s.toString());
-        sc.serverOnClose();
-        if (!Issue.checkTyrus101(reason)) {
-            sc.setState("server.TYRUS101");
-        }
-        if (!Issue.checkTyrus104(s)) {
-            sc.setState("server.TYRUS104");
-        }
-        throw new RuntimeException("going onError");
-    }
-
-    public void onError(Session s, Throwable thr) {
-        sc.serverOnError(thr);
-        if (!Issue.checkTyrus94(thr)) {
-            sc.setState("server.TYRUS_94");
-        }
-        sc.serverOnFinish();
-    }
-
-    abstract public void handleMessage(T message, Session session) throws IOException;
-
-    public void onMessage(T message, Session session) {
-        logger.log(Level.INFO, "server:message={0}", message);
-        sc.onMessage();
-        try {
-            //session.getRemote().sendString(message);
-            handleMessage(message, session);
-        } catch (IOException ex) {
-            ex.printStackTrace();
-            logger.log(Level.SEVERE, null, ex);
+    
+    private void initSendMessage() {
+        for (int idx=0; idx<messageSize/oneLine.length(); idx++) {
+            messageToSend+=oneLine;
         }
     }
+
+    @Override
+    public void handleMessage(BufferedReader message, Session session) throws IOException {
+       for (;;) {
+           gotMessage += message.readLine();
+           if(gotMessage.equals(messageToSend)) {
+               closeTheSession(session);
+           }
+       }
+    }
+
+    @Override
+    public void startTalk(Session s) throws IOException {
+        s.getRemote().getSendWriter().write(messageToSend);
+    }
+    
 }

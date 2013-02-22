@@ -37,33 +37,31 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.tests.qa.lifecycle;
+package org.glassfish.tyrus.tests.qa.lifecycle.handlers;
 
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.logging.Level;
-import javax.websocket.CloseReason;
+import java.util.logging.Logger;
 import javax.websocket.Session;
-import org.glassfish.tyrus.tests.qa.tools.SessionController;
+import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleServer;
 
 /**
  *
  * @author michal.conos at oracle.com
  */
-public class TextMessageClient extends LifeCycleClient<String> {
-    
+public class ObjectInputStreamMessageServer extends LifeCycleServer<ObjectInputStream> {
+
     @Override
-    public void handleMessage(String message, Session session) throws IOException {
-        if (message.equals("client.open")) {
-            logger.log(Level.INFO, "closing the session from the client");
-            session.close(new CloseReason(CloseReason.CloseCodes.GOING_AWAY, "Going away"));
-        } else {
-            session.getRemote().sendString(message);
+    public void handleMessage(ObjectInputStream message, Session session) throws IOException {
+        try {
+            new ObjectOutputStream(session.getRemote().getSendStream()).writeObject(message.readObject());
+        } catch (ClassNotFoundException ex) {
+            logger.log(Level.SEVERE, null, ex);
+            ex.printStackTrace();
+            throw new RuntimeException(ex);
         }
-    }
-    
-    @Override
-    public void startTalk(Session s) throws IOException {
-        s.getRemote().sendString("client.open");
     }
     
 }

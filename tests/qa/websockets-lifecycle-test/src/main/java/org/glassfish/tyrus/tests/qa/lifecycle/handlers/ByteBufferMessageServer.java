@@ -37,20 +37,22 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.tests.qa.lifecycle;
+package org.glassfish.tyrus.tests.qa.lifecycle.handlers;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import javax.websocket.Session;
+import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleServer;
 
 /**
  *
  * @author michal.conos at oracle.com
  */
-public class TextMessageServer extends LifeCycleServer<String> {
-    
+public class ByteBufferMessageServer extends LifeCycleServer<ByteBuffer> {
+
     @Override
-    public void handleMessage(String message, Session session) throws IOException {
-        session.getRemote().sendString(message);
+    public void handleMessage(ByteBuffer message, Session session) throws IOException {
+        session.getRemote().sendBytes(message);
     }
     
 }

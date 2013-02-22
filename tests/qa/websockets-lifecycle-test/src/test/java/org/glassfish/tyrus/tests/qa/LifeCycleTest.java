@@ -54,12 +54,16 @@ import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleServer;
 import org.glassfish.tyrus.tests.qa.lifecycle.AnnotatedClient;
 import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleDeployment;
 import org.glassfish.tyrus.tests.qa.lifecycle.ProgrammaticClient;
-import org.glassfish.tyrus.tests.qa.lifecycle.TextMessageClient;
-import org.glassfish.tyrus.tests.qa.lifecycle.TextMessageServer;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.TextMessageClient;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.TextMessageServer;
 import org.glassfish.tyrus.tests.qa.lifecycle.config.ClientConfiguration;
 import org.glassfish.tyrus.tests.qa.lifecycle.config.ServerAnnotatedConfiguration;
 import org.glassfish.tyrus.tests.qa.lifecycle.config.ServerConfiguration;
 import org.glassfish.tyrus.tests.qa.lifecycle.config.ServerProgrammaticConfiguration;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.ByteBufferMessageClient;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.ByteMessageServer;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.ObjectInputStreamMessageClient;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.ObjectInputStreamMessageServer;
 import org.glassfish.tyrus.tests.qa.regression.Issue;
 import org.glassfish.tyrus.tests.qa.tools.CommChannel;
 import org.glassfish.tyrus.tests.qa.tools.SessionController;
@@ -154,6 +158,18 @@ public class LifeCycleTest {
     public void testLifeCycleProgrammatic() throws DeploymentException {
         Issue.disableAll();
         lifeCycle("LifeCycle", new TextMessageServer(), new TextMessageClient());
+    }
+    
+    @Test
+    public void testLifeCycleProgrammaticObjects() throws DeploymentException {
+        Issue.disableAll();
+        lifeCycle("LifeCycle_Objects", new ObjectInputStreamMessageServer(), new ObjectInputStreamMessageClient());
+    }
+    
+    @Test
+    public void testLifeCycleProgrammaticByteArray() throws DeploymentException {
+        Issue.disableAll();
+        lifeCycle("LifeCycle_ByteArray", new ByteMessageServer(), new ByteBufferMessageClient(1024, true));
     }
 
     @Test

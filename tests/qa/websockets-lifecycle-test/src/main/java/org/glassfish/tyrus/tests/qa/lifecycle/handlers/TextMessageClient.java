@@ -37,79 +37,33 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.tests.qa.lifecycle;
+package org.glassfish.tyrus.tests.qa.lifecycle.handlers;
 
 import java.io.IOException;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.websocket.CloseReason;
-import javax.websocket.EndpointConfiguration;
-import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
-import org.glassfish.tyrus.tests.qa.lifecycle.config.ClientConfiguration;
-import org.glassfish.tyrus.tests.qa.regression.Issue;
+import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleClient;
 import org.glassfish.tyrus.tests.qa.tools.SessionController;
 
 /**
  *
  * @author michal.conos at oracle.com
  */
-abstract public class LifeCycleClient<T> {
-
-    private  SessionController sc;
-    protected static final Logger logger = Logger.getLogger(ProgrammaticClient.class.getCanonicalName());
-
-    public void setSessionController(SessionController sc) {
-        this.sc = sc;
-    }
-
-    public void onOpen(Session s, EndpointConfiguration config) {
-        sc=((ClientConfiguration)config).getSessionController();
-        if (!Issue.checkTyrus93(s)) {
-            sc.setState("TYRUS_93_FAIL");
-        }
-        sc.clientOnOpen();
-
-        try {
-            startTalk(s);
-        } catch (IOException ex) {
-            logger.log(Level.SEVERE, null, ex);
-        }
-    }
-
-    public void onClose(Session s, CloseReason reason) {
-        logger.log(Level.INFO, "client: Closing the session: {0}", s.toString());
-        //sc.clientOnClose();
-        final RemoteEndpoint remote = s.getRemote();
-        try {
-            s.getRemote().sendString("client:onClose");
-        } catch (IOException ex) {
-            logger.log(Level.SEVERE, null, ex);
-        }
-    }
-
-    public void onError(Session s, Throwable thr) {
-        logger.log(Level.SEVERE, "client: onError: {0}", thr.getMessage());
-    }
+public class TextMessageClient extends LifeCycleClient<String> {
     
-    abstract public void handleMessage(T message, Session session) throws IOException;
-    abstract public void startTalk(Session s) throws IOException;
-    
-
-    public void onMessage(T message, Session session) {
-        sc.onMessage();
-        logger.log(Level.INFO, "client:message={0}", message);
-        try {
-
-            handleMessage(message, session);
-        } catch (IOException ex) {
-            ex.printStackTrace();
-            logger.log(Level.SEVERE, null, ex);
+    @Override
+    public void handleMessage(String message, Session session) throws IOException {
+        if (message.equals("client.open")) {
+            closeTheSession(session);
+        } else {
+            session.getRemote().sendString(message);
         }
     }
     
-    protected void closeTheSession(Session session) throws IOException {
-        logger.log(Level.INFO, "closing the session from the client");
-        session.close(new CloseReason(CloseReason.CloseCodes.GOING_AWAY, "Going away"));
+    @Override
+    public void startTalk(Session s) throws IOException {
+        s.getRemote().sendString("client.open");
     }
+    
 }
