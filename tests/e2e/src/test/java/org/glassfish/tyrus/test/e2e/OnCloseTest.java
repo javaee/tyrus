@@ -112,7 +112,7 @@ public class OnCloseTest {
 
                 @Override
                 public void onClose(Session session, CloseReason closeReason) {
-                    if (closeReason != null && closeReason.getCloseCode().getCode() == 1000) {
+                    if (session != null && closeReason != null && closeReason.getCloseCode().getCode() == 1000) {
                         messageLatch.countDown();
                     }
                 }
@@ -160,7 +160,9 @@ public class OnCloseTest {
 
         @WebSocketClose
         public void onClose(Session s, CloseReason c) {
-            closeReason = c;
+            if(s != null) {
+                closeReason = c;
+            }
         }
 
         @WebSocketError
@@ -198,7 +200,7 @@ public class OnCloseTest {
 
                 @Override
                 public void onClose(Session session, CloseReason closeReason) {
-                    if (closeReason != null &&
+                    if (session != null && closeReason != null &&
                             closeReason.getCloseCode().getCode() == 4000 &&
                             closeReason.getReasonPhrase().equals(CUSTOM_REASON)) {
                         messageLatch.countDown();
