@@ -57,7 +57,7 @@ abstract public class LifeCycleServer<T> {
 
     private SessionController sc;
     private static final Logger logger = Logger.getLogger(ProgrammaticClient.class.getCanonicalName());
-    
+
     public void setSessionController(SessionController sc) {
         this.sc = sc;
     }
@@ -70,19 +70,13 @@ abstract public class LifeCycleServer<T> {
     public void onClose(Session s, CloseReason reason) {
         logger.log(Level.INFO, "Clossing the session: {0}", s.toString());
         sc.serverOnClose();
-        final RemoteEndpoint remote = s.getRemote();
-        try {
-            if (!Issue.checkTyrus101(reason)) {
-                sc.setState("server.closereason.invalid");
-            }
-            //should raise on error
-            logger.log(Level.INFO, "send string, closed connection");
-            s.getRemote().sendString("Raise onError now - socket is closed");
-            logger.log(Level.SEVERE, "should never get here");
-            s.close();
-        } catch (IOException ex) {
-            logger.log(Level.SEVERE, null, ex);
+        if (!Issue.checkTyrus101(reason)) {
+            sc.setState("server.TYRUS101");
         }
+        if (!Issue.checkTyrus104(s)) {
+            sc.setState("server.TYRUS104");
+        }
+        throw new RuntimeException("going onError");
     }
 
     public void onError(Session s, Throwable thr) {
@@ -92,7 +86,7 @@ abstract public class LifeCycleServer<T> {
         }
         sc.serverOnFinish();
     }
-    
+
     abstract public void handleMessage(T message, Session session) throws IOException;
 
     public void onMessage(T message, Session session) {

@@ -60,7 +60,7 @@ import org.glassfish.tyrus.tests.qa.tools.SessionController;
  *
  * @author michal.conos at oracle.com
  */
-//FIXME
+//FIXME: Webspec Issue, configuration refactoring
 //@WebSocketClient
 public class AnnotatedClient extends Endpoint {
 

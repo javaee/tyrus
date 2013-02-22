@@ -45,7 +45,7 @@ package org.glassfish.tyrus.tests.qa.lifecycle;
  */
 public interface LifeCycleDeployment {
      public static final String CONTEXT_PATH = "/websockets-lifecycle-test";
-     public static final String PROGRAMMATIC_ENDPOINT = "/life";
+     public static final String LIFECYCLE_ENDPOINT_PATH = "/life";
      public static final int COMMCHANNEL_PORT = 9339;
      public static final String COMMCHANNEL_SCHEME = "http";
      public static final String COMMCHANNEL_HOST = "localhost";

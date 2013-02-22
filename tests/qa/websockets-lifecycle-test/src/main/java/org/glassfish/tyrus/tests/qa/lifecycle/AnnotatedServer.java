@@ -51,12 +51,15 @@ import javax.websocket.WebSocketClose;
 import javax.websocket.WebSocketError;
 import javax.websocket.WebSocketMessage;
 import javax.websocket.WebSocketOpen;
+import javax.websocket.server.WebSocketEndpoint;
+import org.glassfish.tyrus.tests.qa.lifecycle.config.ServerAnnotatedConfiguration;
 import org.glassfish.tyrus.tests.qa.tools.SessionController;
 
 /**
  *
  * @author michal.conos at oracle.com
  */
+@WebSocketEndpoint(value=LifeCycleDeployment.LIFECYCLE_ENDPOINT_PATH, configuration=ServerAnnotatedConfiguration.class)
 public class AnnotatedServer {
 
     private static final Logger logger = Logger.getLogger(AnnotatedClient.class.getCanonicalName());
@@ -65,7 +68,7 @@ public class AnnotatedServer {
 
     @WebSocketOpen
     public void onOpen(Session s, EndpointConfiguration config) {
-        server = ((ServerConfiguration) config).getServerHandler();
+        server = ((ServerAnnotatedConfiguration) config).getServerHandler();
         sc = ((ServerConfiguration) config).getSessionController();
         server.setSessionController(sc);
         server.onOpen(s, config);

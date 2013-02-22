@@ -118,7 +118,7 @@ public abstract class ServerConfiguration implements ServerEndpointConfiguration
 
     @Override
     public String getPath() {
-        return LifeCycleDeployment.PROGRAMMATIC_ENDPOINT;
+        return LifeCycleDeployment.LIFECYCLE_ENDPOINT_PATH;
     }
 
     @Override

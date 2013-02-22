@@ -77,7 +77,7 @@ public class LifeCycleTest {
     private static final Logger logger = Logger.getLogger(LifeCycleTest.class.getCanonicalName());
     AppConfig testConf = new AppConfig(
             LifeCycleDeployment.CONTEXT_PATH,
-            LifeCycleDeployment.PROGRAMMATIC_ENDPOINT,
+            LifeCycleDeployment.LIFECYCLE_ENDPOINT_PATH,
             LifeCycleDeployment.COMMCHANNEL_SCHEME,
             LifeCycleDeployment.COMMCHANNEL_HOST,
             LifeCycleDeployment.COMMCHANNEL_PORT);
@@ -136,7 +136,8 @@ public class LifeCycleTest {
         sessionName += "_Annotated";
         final SessionController sc = new SessionController(sessionName, client);
         
-        ServerConfiguration.registerServer("annotatedLifeCycle", serverHandler);
+        ServerAnnotatedConfiguration.registerServer("annotatedLifeCycle", serverHandler);
+        ServerAnnotatedConfiguration.registerSessionController("annotatedSessionController", sc);
         tyrus.registerEndpoint(ServerAnnotatedConfiguration.class);
         final Server tyrusServer = tyrus.startServer();
         WebSocketContainer wsc = ContainerProvider.getWebSocketContainer();
@@ -174,6 +175,12 @@ public class LifeCycleTest {
     }
     
     @Test
+    public void tyrus104_Programmatic() throws DeploymentException {
+        Issue.TYRUS_104.disableAllButThisOne();
+        lifeCycle("tyrus_104", new TextMessageServer(), new TextMessageClient());
+    }
+    
+    @Test
     public void testLifeCycleAnnotated() throws DeploymentException, InterruptedException {
         Issue.disableAll();
         lifeCycleAnnotated("LifeCycle", new TextMessageServer(), new TextMessageClient());
@@ -196,5 +203,11 @@ public class LifeCycleTest {
     public void tyrus101_Annotated() throws DeploymentException, InterruptedException {
         Issue.TYRUS_101.disableAllButThisOne();
         lifeCycleAnnotated("Tyrus101", new TextMessageServer(), new TextMessageClient());
+    }
+    
+    @Test
+    public void tyrus104_Annotated() throws DeploymentException, InterruptedException {
+        Issue.TYRUS_104.disableAllButThisOne();
+        lifeCycleAnnotated("Tyrus104", new TextMessageServer(), new TextMessageClient());
     }
 }

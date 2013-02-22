@@ -39,6 +39,7 @@
  */
 package org.glassfish.tyrus.tests.qa.regression;
 
+import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.websocket.CloseReason;
@@ -52,7 +53,8 @@ public enum Issue {
 
     TYRUS_93("ClientEndpoint session.getRequestURI()==null"),
     TYRUS_94("ServerEndPoint: onError(): throwable.getCause()==null"),
-    TYRUS_101("CloseReason not propagated to server side (when close() initiated from client)");
+    TYRUS_101("CloseReason not propagated to server side (when close() initiated from client)"),
+    TYRUS_104("session should raise IllegalStateException when Session.getRemote() called on a closed session");
     private static final Logger logger = Logger.getLogger(Issue.class.getCanonicalName());
     private String description;
     private boolean enabled;
@@ -135,7 +137,7 @@ public enum Issue {
         }
         return true;
     }
-    
+
     public static boolean checkTyrus94(Throwable thr) {
         if (Issue.TYRUS_94.isEnabled()) {
             try {
@@ -147,16 +149,36 @@ public enum Issue {
                 //sc.setState("server.TYRUS_94");
             }
         }
-        return true;    
+        return true;
     }
 
     public static boolean checkTyrus101(CloseReason reason) {
-        if(Issue.TYRUS_101.isEnabled()) {
+        if (Issue.TYRUS_101.isEnabled()) {
             logger.log(Level.INFO, "TYRUS-101: reason={0}", reason);
-            if(reason!=null) {
+            if (reason != null) {
                 logger.log(Level.INFO, "TYRUS-101: reason.getCloseCode={0}", reason.getCloseCode());
             }
-            return  reason != null && reason.getCloseCode().equals(CloseReason.CloseCodes.GOING_AWAY);  
+            return reason != null && reason.getCloseCode().equals(CloseReason.CloseCodes.GOING_AWAY);
+        }
+        return true;
+    }
+
+    public static boolean checkTyrus104(Session s) {
+        if (Issue.TYRUS_104.isEnabled()) {
+            if (s.isOpen()) {
+                logger.log(Level.SEVERE, "TYRUS-104: isOpen on a closed session must return false");
+                return false; // isClosed
+            }
+            try {
+                logger.log(Level.INFO, "TYRUS-104: send string on closed connection");
+                s.getRemote().sendString("Raise onError now - socket is closed");
+                logger.log(Level.SEVERE, "TYRUS-104: IllegalStateException expected, should never get here");
+                s.close();
+            } catch (IOException ex) {
+                return true;
+            } catch (IllegalStateException ex) {
+                return true;
+            }
         }
         return true;
     }

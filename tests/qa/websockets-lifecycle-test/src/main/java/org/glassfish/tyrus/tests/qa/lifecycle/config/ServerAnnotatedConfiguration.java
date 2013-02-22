@@ -39,7 +39,16 @@
  */
 package org.glassfish.tyrus.tests.qa.lifecycle.config;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import javax.websocket.Endpoint;
+import javax.websocket.Extension;
+import javax.websocket.server.DefaultServerConfiguration;
+import org.eclipse.jetty.io.EndPoint;
+import org.glassfish.tyrus.TyrusServerEndpointConfiguration;
 import org.glassfish.tyrus.tests.qa.lifecycle.AnnotatedServer;
+import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleDeployment;
 import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleServer;
 import org.glassfish.tyrus.tests.qa.tools.SessionController;
 
@@ -47,19 +56,41 @@ import org.glassfish.tyrus.tests.qa.tools.SessionController;
  *
  * @author michal.conos at oracle.com
  */
-public class ServerAnnotatedConfiguration extends ServerConfiguration {
+public class ServerAnnotatedConfiguration extends TyrusServerEndpointConfiguration {
+    
+    public ServerAnnotatedConfiguration() {
+        super(null, LifeCycleDeployment.LIFECYCLE_ENDPOINT_PATH);
+    }
 
-    @Override
+    private static ConcurrentHashMap<String, LifeCycleServer> _handlers = new ConcurrentHashMap<>();
+    private static ConcurrentHashMap<String, SessionController> _ctrls = new ConcurrentHashMap<>();
+
+    public static void registerServer(String name, LifeCycleServer handler) {
+        _handlers.put(name, handler);
+    }
+
+    protected static LifeCycleServer getServer(String name) {
+        return _handlers.get(name);
+    }
+
+    public static void registerSessionController(String name, SessionController handler) {
+        _ctrls.put(name, handler);
+    }
+
+    protected static SessionController getSessionController(String name) {
+        return _ctrls.get(name);
+    }
+
+    
     public LifeCycleServer getServerHandler() {
         return getServer("annotatedLifeCycle");
     }
     
-    @Override
     public SessionController getSessionController() {
         return getSessionController("annotatedSessionController");
     }
+    
 
-    @Override
     Class<?> getMyServerClass() {
         return AnnotatedServer.class;
     }
