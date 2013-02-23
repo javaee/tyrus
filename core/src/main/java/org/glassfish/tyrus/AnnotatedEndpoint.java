@@ -588,7 +588,14 @@ public class AnnotatedEndpoint extends Endpoint {
 
                 @Override
                 public void onMessage(Object partialMessage, boolean last) {
-                    callMethod(method, extractors, session, partialMessage, last);
+                    Object result = callMethod(method, extractors, session, partialMessage, last);
+                    if (result != null) {
+                        try {
+                            session.getRemote().sendObject(result);
+                        } catch (Exception e) {
+                            onError(e, session);
+                        }
+                    }
                 }
 
                 @Override

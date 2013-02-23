@@ -77,9 +77,8 @@ public class MaxMessageSizeTest {
         }
 
         @WebSocketMessage(maxMessageSize = 5)
-        public void doThat(Session s, String message, boolean last) throws IOException {
-            System.out.println("Called");
-            s.getRemote().sendString(message);
+        public String doThat(Session s, String message, boolean last) throws IOException {
+            return message;
         }
 
 
