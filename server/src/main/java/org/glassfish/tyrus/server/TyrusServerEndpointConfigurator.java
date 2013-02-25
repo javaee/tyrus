@@ -53,6 +53,8 @@ import javax.websocket.server.ServerEndpointConfigurator;
 import org.glassfish.tyrus.core.internal.PathPattern;
 
 /**
+ * Tyrus implementation of {@link ServerEndpointConfigurator}.
+ *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 public class TyrusServerEndpointConfigurator extends ServerEndpointConfigurator {
