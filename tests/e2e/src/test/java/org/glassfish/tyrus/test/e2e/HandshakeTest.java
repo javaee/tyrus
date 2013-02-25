@@ -48,11 +48,13 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.ClientEndpointConfigurationBuilder;
+import javax.websocket.ClientEndpointConfigurator;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.HandshakeResponse;
 import javax.websocket.Session;
 
-import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.e2e.bean.TestEndpoint;
@@ -74,6 +76,16 @@ public class HandshakeTest {
 
     private static final String SENT_MESSAGE = "hello";
 
+    public static class MyClientEndpointConfigurator extends ClientEndpointConfigurator {
+
+        public HandshakeResponse hr;
+
+        @Override
+        public void afterResponse(HandshakeResponse hr) {
+            this.hr = hr;
+        }
+    }
+
     @Test
     public void testClient() {
         Server server = new Server(TestEndpoint.class);
@@ -86,8 +98,10 @@ public class HandshakeTest {
             subprotocols.add("asd");
             subprotocols.add("ghi");
 
-            final TestClientEndpointConfiguration tcec = new TestClientEndpointConfiguration();
-            tcec.setPreferredSubprotocols(subprotocols);
+            final MyClientEndpointConfigurator myClientEndpointConfigurator = new MyClientEndpointConfigurator();
+
+            final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().
+                    preferredSubprotocols(subprotocols).clientHandshakeConfigurator(myClientEndpointConfigurator).build();
 
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new TestEndpointAdapter() {
@@ -100,25 +114,25 @@ public class HandshakeTest {
 
                 @Override
                 public EndpointConfiguration getEndpointConfiguration() {
-                    return tcec;
+                    return cec;
                 }
 
                 @Override
                 public void onOpen(Session session) {
                     try {
                         session.addMessageHandler(new TestTextMessageHandler(this));
-                        session.getRemote().sendString(SENT_MESSAGE);
+                        session.getBasicRemote().sendText(SENT_MESSAGE);
                         System.out.println("Sent message: " + SENT_MESSAGE);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                 }
-            }, tcec, new URI("ws://localhost:8025/websockets/tests/echo"));
+            }, cec, new URI("ws://localhost:8025/websockets/tests/echo"));
 
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertEquals(SENT_MESSAGE, receivedMessage);
 
-            Map<String, List<String>> headers = tcec.getHandshakeResponse().getHeaders();
+            Map<String, List<String>> headers = myClientEndpointConfigurator.hr.getHeaders();
 
             String supportedSubprotocol = headers.get(WebSocketEngine.SEC_WS_PROTOCOL_HEADER).get(0);
             Assert.assertEquals("asd", supportedSubprotocol);
@@ -127,33 +141,6 @@ public class HandshakeTest {
             throw new RuntimeException(e.getMessage(), e);
         } finally {
             server.stop();
-        }
-    }
-
-    static class TestClientEndpointConfiguration extends TyrusClientEndpointConfiguration {
-
-        private HandshakeResponse handshakeResponse;
-
-        /**
-         * Creates a test configuration that will attempt
-         * to connect to the given URI.
-         */
-        private TestClientEndpointConfiguration() {
-            super();
-        }
-
-        @Override
-        public void afterResponse(HandshakeResponse handshakeResponse) {
-            this.handshakeResponse = handshakeResponse;
-        }
-
-        /**
-         * Gets the {@link HandshakeResponse} which was received in the afterResponse method.
-         *
-         * @return handshakeResponse.
-         */
-        public HandshakeResponse getHandshakeResponse() {
-            return handshakeResponse;
         }
     }
 }

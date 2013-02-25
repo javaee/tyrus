@@ -48,15 +48,14 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.ClientEndpointConfigurationBuilder;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.MessageHandler;
+import javax.websocket.OnOpen;
 import javax.websocket.Session;
-import javax.websocket.WebSocketOpen;
-import javax.websocket.server.DefaultServerConfiguration;
-import javax.websocket.server.WebSocketEndpoint;
+import javax.websocket.server.ServerEndpoint;
 
-import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
@@ -72,7 +71,7 @@ public class StreamingBinaryTest {
 
     @Test
     public void testClient() {
-        final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
+        final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
         Server server = new Server(StreamingBinaryEndpoint.class);
 
         try {
@@ -98,13 +97,13 @@ public class StreamingBinaryTest {
      * @author Danny Coward (danny.coward at oracle.com)
      * @author Martin Matula (martin.matula at oracle.com)
      */
-    @WebSocketEndpoint(value = "/streamingbinary", configuration = DefaultServerConfiguration.class)
+    @ServerEndpoint(value = "/streamingbinary")
     public static class StreamingBinaryEndpoint {
         private Session session;
         static CountDownLatch messageLatch;
         private List<String> messages = new ArrayList<String>();
 
-        @WebSocketOpen
+        @OnOpen
         public void onOpen(Session session) {
             System.out.println("STREAMINGBSERVER opened !");
             this.session = session;
@@ -144,7 +143,7 @@ public class StreamingBinaryTest {
 
         private void sendPartial(ByteBuffer bb, boolean isLast) throws IOException, InterruptedException {
             System.out.println("STREAMINGBSERVER Server sending: " + new String(bb.array()));
-            session.getRemote().sendPartialBytes(bb, isLast);
+            session.getBasicRemote().sendBinary(bb, isLast);
         }
     }
 
@@ -203,7 +202,7 @@ public class StreamingBinaryTest {
 
         private void sendPartial(String partialString, boolean isLast) throws IOException, InterruptedException {
             System.out.println("STREAMINGBCLIENT Client sending: " + partialString + " " + isLast);
-            session.getRemote().sendPartialBytes(ByteBuffer.wrap(partialString.getBytes()), isLast);
+            session.getBasicRemote().sendBinary(ByteBuffer.wrap(partialString.getBytes()), isLast);
         }
     }
 }

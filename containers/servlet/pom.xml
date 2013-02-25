@@ -80,7 +80,6 @@
                 <configuration>
                     <instructions>
                         <Export-Package>org.glassfish.tyrus.servlet.*;version=${project.version}</Export-Package>
-                        <Import-Package>javax.websocket;version=${apijar.bundle.version};resolution:=optional,*</Import-Package>
                     </instructions>
                     <unpackBundle>true</unpackBundle>
                 </configuration>

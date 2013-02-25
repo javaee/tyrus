@@ -41,18 +41,16 @@
 package org.glassfish.tyrus.test.e2e.bean.stin;
 
 
-import javax.websocket.WebSocketMessage;
-import javax.websocket.server.DefaultServerConfiguration;
-import javax.websocket.server.WebSocketEndpoint;
+import javax.websocket.OnMessage;
+import javax.websocket.server.ServerEndpoint;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)
  */
-@WebSocketEndpoint(
-        value = "/standardInputTypes/boolean", configuration = DefaultServerConfiguration.class)
+@ServerEndpoint("/standardInputTypes/boolean")
 public class BooleanBean {
 
-    @WebSocketMessage
+    @OnMessage
     public String booleanTest(boolean b) {
         if (b) {
             return Util.PASS;

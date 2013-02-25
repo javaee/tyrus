@@ -40,20 +40,16 @@
 package org.glassfish.tyrus.test.e2e.bean.stin;
 
 
-import javax.websocket.WebSocketMessage;
-import javax.websocket.server.DefaultServerConfiguration;
-import javax.websocket.server.WebSocketEndpoint;
+import javax.websocket.OnMessage;
+import javax.websocket.server.ServerEndpoint;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)
  */
-@WebSocketEndpoint(
-        value = "/standardInputTypes/long", configuration = DefaultServerConfiguration.class)
-//            Xremote=org.glassfish.tyrus.test.e2e.remote.LongRemote.class
-//    )
+@ServerEndpoint("/standardInputTypes/long")
 public class LongBean {
 
-    @WebSocketMessage
+    @OnMessage
     public String longTest(long l) {
         if (l == 42) {
             return Util.PASS;
@@ -62,7 +58,7 @@ public class LongBean {
         }
     }
 
-//    @WebSocketMessage(XdynamicPath = "/remote")
+//    @OnMessage(XdynamicPath = "/remote")
 //    public void remoteLongTest(String s, LongRemote r) {
 //        try {
 //            r.sendLongMessage((long) 42);

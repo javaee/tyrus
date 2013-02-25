@@ -46,13 +46,13 @@ import java.net.URISyntaxException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import javax.websocket.ClientEndpointConfigurationBuilder;
 import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 
-import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 
 import org.junit.Test;
@@ -110,12 +110,12 @@ public class CdiTest {
                         }
                     });
 
-                    session.getRemote().sendString(SENT_MESSAGE);
+                    session.getBasicRemote().sendText(SENT_MESSAGE);
                 } catch (IOException e) {
                     //do nothing
                 }
             }
-        }, new TyrusClientEndpointConfiguration.Builder().build(), getURI("/simple"));
+        }, ClientEndpointConfigurationBuilder.create().build(), getURI("/simple"));
 
         messageLatch.await(1, TimeUnit.SECONDS);
         if (messageLatch.getCount() != 0) {
@@ -147,7 +147,7 @@ public class CdiTest {
                                 assertEquals("First message was wrong", String.format("%s%s1", SENT_MESSAGE, InjectToBeanStateful.TEXT), message);
                                 messageLatch.countDown();
                                 try {
-                                    session.getRemote().sendString(SENT_MESSAGE);
+                                    session.getBasicRemote().sendText(SENT_MESSAGE);
                                 } catch (IOException e) {
                                     e.printStackTrace();
                                 }
@@ -159,12 +159,12 @@ public class CdiTest {
                         }
                     });
 
-                    session.getRemote().sendString("Do or do not, there is no try.");
+                    session.getBasicRemote().sendText("Do or do not, there is no try.");
                 } catch (IOException e) {
                     //do nothing
                 }
             }
-        }, new TyrusClientEndpointConfiguration.Builder().build(), getURI("/stateful"));
+        }, ClientEndpointConfigurationBuilder.create().build(), getURI("/stateful"));
 
         messageLatch.await(1, TimeUnit.SECONDS);
         if (messageLatch.getCount() != 0) {
@@ -209,12 +209,12 @@ public class CdiTest {
                         }
                     });
 
-                    session.getRemote().sendString("Do or do not, there is no try.");
+                    session.getBasicRemote().sendText("Do or do not, there is no try.");
                 } catch (IOException e) {
                     //do nothing
                 }
             }
-        }, new TyrusClientEndpointConfiguration.Builder().build(), getURI(path));
+        }, ClientEndpointConfigurationBuilder.create().build(), getURI(path));
 
         messageLatch.await(2, TimeUnit.SECONDS);
         if (messageLatch.getCount() != 0) {

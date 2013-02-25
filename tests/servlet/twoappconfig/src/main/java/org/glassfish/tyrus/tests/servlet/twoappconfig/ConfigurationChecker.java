@@ -40,17 +40,16 @@
 
 package org.glassfish.tyrus.tests.servlet.twoappconfig;
 
-import javax.websocket.WebSocketMessage;
-import javax.websocket.server.DefaultServerConfiguration;
-import javax.websocket.server.WebSocketEndpoint;
+import javax.websocket.OnMessage;
+import javax.websocket.server.ServerEndpoint;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-@WebSocketEndpoint(value = "/confChecker", configuration = DefaultServerConfiguration.class)
+@ServerEndpoint(value = "/confChecker")
 public class ConfigurationChecker {
 
-    @WebSocketMessage
+    @OnMessage
     public String onMessage(String s) {
         if(SecondServerApplicationConfiguration.isAnnotatedGetterCalled()){
             return "1";

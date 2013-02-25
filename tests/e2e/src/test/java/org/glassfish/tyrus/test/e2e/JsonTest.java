@@ -46,13 +46,12 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.ClientEndpointConfigurationBuilder;
 import javax.websocket.EndpointConfiguration;
+import javax.websocket.OnMessage;
 import javax.websocket.Session;
-import javax.websocket.WebSocketMessage;
-import javax.websocket.server.DefaultServerConfiguration;
-import javax.websocket.server.WebSocketEndpoint;
+import javax.websocket.server.ServerEndpoint;
 
-import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
@@ -75,7 +74,7 @@ public class JsonTest {
 
     private static final String SENT_MESSAGE = "{NAME : Danny}";
 
-    private final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
+    private final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
 
     @Ignore
     @Test
@@ -99,7 +98,7 @@ public class JsonTest {
                 public void onOpen(Session session) {
                     try {
                         session.addMessageHandler(new TestTextMessageHandler(this));
-                        session.getRemote().sendString(SENT_MESSAGE);
+                        session.getBasicRemote().sendText(SENT_MESSAGE);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -125,15 +124,14 @@ public class JsonTest {
     /**
      * @author Danny Coward (danny.coward at oracle.com)
      */
-    @WebSocketEndpoint(
+    @ServerEndpoint(
             value = "/json",
             encoders = {org.glassfish.tyrus.test.e2e.encoder.JsonEncoder.class},
-            decoders = {org.glassfish.tyrus.test.e2e.decoder.JsonDecoder.class},
-            configuration = DefaultServerConfiguration.class
+            decoders = {org.glassfish.tyrus.test.e2e.decoder.JsonDecoder.class}
     )
     public static class JsonTestEndpoint {
 
-        @WebSocketMessage
+        @OnMessage
         public JSONObject helloWorld(JSONObject message) {
             JSONObject reply = new JSONObject();
             try {

@@ -43,29 +43,28 @@ package org.glassfish.tyrus.test.e2e.bean;
 
 import java.io.IOException;
 
+import javax.websocket.OnMessage;
+import javax.websocket.OnOpen;
 import javax.websocket.Session;
-import javax.websocket.WebSocketMessage;
-import javax.websocket.WebSocketOpen;
-import javax.websocket.server.DefaultServerConfiguration;
-import javax.websocket.server.WebSocketEndpoint;
+import javax.websocket.server.ServerEndpoint;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 
-@WebSocketEndpoint(value = "/echo", subprotocols = {"asd"}, configuration = DefaultServerConfiguration.class)
+@ServerEndpoint(value = "/echo", subprotocols = {"asd"})
 public class TestEndpoint {
-    @WebSocketOpen
+    @OnOpen
     public void onOpen(Session s) {
         System.out.println("Client connected to the server!");
     }
 
-    @WebSocketMessage
+    @OnMessage
     public void helloWorld(String message, Session session) {
         try {
             System.out.println("##### Test Bean: Received message: " + message);
 
-            session.getRemote().sendString(message);
+            session.getBasicRemote().sendText(message);
         } catch (IOException e) {
             e.printStackTrace();
         }

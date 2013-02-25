@@ -40,20 +40,16 @@
 package org.glassfish.tyrus.test.e2e.bean.stin;
 
 
-import javax.websocket.WebSocketMessage;
-import javax.websocket.server.DefaultServerConfiguration;
-import javax.websocket.server.WebSocketEndpoint;
+import javax.websocket.OnMessage;
+import javax.websocket.server.ServerEndpoint;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)
  */
-@WebSocketEndpoint(
-        value = "/standardInputTypes/short", configuration = DefaultServerConfiguration.class)
-//            Xremote=org.glassfish.tyrus.test.e2e.remote.ShortRemote.class
-//    )
+@ServerEndpoint("/standardInputTypes/short")
 public class ShortBean {
 
-    @WebSocketMessage
+    @OnMessage
     public String shortTest(short s) {
         if (s == 42) {
             return Util.PASS;
@@ -62,7 +58,7 @@ public class ShortBean {
         }
     }
 
-//    @WebSocketMessage(XdynamicPath = "/remote")
+//    @OnMessage(XdynamicPath = "/remote")
 //    public void remoteShortTest(String s, ShortRemote r) {
 //        try {
 //            r.sendShortMessage((short)42);

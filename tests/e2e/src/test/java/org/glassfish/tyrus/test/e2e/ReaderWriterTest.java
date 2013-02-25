@@ -43,23 +43,25 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.net.URI;
-import java.util.List;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.ClientEndpointConfigurationBuilder;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfiguration;
-import javax.websocket.Extension;
 import javax.websocket.MessageHandler;
+import javax.websocket.OnMessage;
 import javax.websocket.Session;
-import javax.websocket.WebSocketMessage;
-import javax.websocket.server.DefaultServerConfiguration;
-import javax.websocket.server.WebSocketEndpoint;
+import javax.websocket.server.ServerEndpoint;
+import javax.websocket.server.ServerEndpointConfiguration;
+import javax.websocket.server.ServerEndpointConfigurationBuilder;
 
-import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
+import org.glassfish.tyrus.server.TyrusServerConfiguration;
 
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
@@ -70,10 +72,10 @@ import static org.junit.Assert.fail;
  */
 public class ReaderWriterTest {
 
-    @WebSocketEndpoint(value = "/reader", configuration = DefaultServerConfiguration.class)
+    @ServerEndpoint(value = "/reader")
     public static class ReaderEndpoint {
 
-        @WebSocketMessage
+        @OnMessage
         public String readReader(Reader r) {
             char[] buffer = new char[64];
             try {
@@ -85,43 +87,12 @@ public class ReaderWriterTest {
         }
     }
 
-    public static class ReaderEndpointConfiguration extends DefaultServerConfiguration {
+    public static class ReaderEndpointApplicationConfiguration extends TyrusServerConfiguration {
 
-        public ReaderEndpointConfiguration() {
-            super(ReaderEndpoint.class, "/reader");
-        }
-
-        @Override
-        public String getNegotiatedSubprotocol(List<String> requestedSubprotocols) {
-            return null;
-        }
-
-        @Override
-        public List<Extension> getNegotiatedExtensions(List<Extension> requestedExtensions) {
-            return requestedExtensions;
-        }
-
-        @Override
-        public boolean checkOrigin(String originHeaderValue) {
-            return true;
-        }
-
-        public static class ReaderEndpoint extends Endpoint {
-            @Override
-            public void onOpen(final Session session, EndpointConfiguration config) {
-                session.addMessageHandler(new MessageHandler.Basic<Reader>() {
-                    @Override
-                    public void onMessage(Reader r) {
-                        char[] buffer = new char[64];
-                        try {
-                            int i = r.read(buffer);
-                            session.getRemote().sendString(new String(buffer, 0, i));
-                        } catch (IOException e) {
-                            //
-                        }
-                    }
-                });
-            }
+        public ReaderEndpointApplicationConfiguration() {
+            super(Collections.<Class<?>>emptySet(), new HashSet<ServerEndpointConfiguration>() {{
+                add(ServerEndpointConfigurationBuilder.create(ReaderProgrammaticEndpoint.class, "/reader").build());
+            }});
         }
     }
 
@@ -132,7 +103,7 @@ public class ReaderWriterTest {
 
     @Test
     public void testReaderProgrammatic() {
-        _testReader(ReaderEndpointConfiguration.class);
+        _testReader(ReaderEndpointApplicationConfiguration.class);
     }
 
     @Test
@@ -142,11 +113,11 @@ public class ReaderWriterTest {
 
     @Test
     public void testWriterProgrammatic() {
-        _testWriter(ReaderEndpointConfiguration.class);
+        _testWriter(ReaderEndpointApplicationConfiguration.class);
     }
 
     public void _testReader(Class<?> endpoint) {
-        final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
+        final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
         Server server = new Server(endpoint);
         final CountDownLatch messageLatch;
 
@@ -162,12 +133,12 @@ public class ReaderWriterTest {
                         session.addMessageHandler(new MessageHandler.Basic<String>() {
                             @Override
                             public void onMessage(String message) {
-                                if(message.equals("Do or do not, there is no try.")) {
+                                if (message.equals("Do or do not, there is no try.")) {
                                     messageLatch.countDown();
                                 }
                             }
                         });
-                        session.getRemote().sendString("Do or do not, there is no try.");
+                        session.getBasicRemote().sendText("Do or do not, there is no try.");
                     } catch (IOException e) {
                         fail();
                     }
@@ -185,7 +156,7 @@ public class ReaderWriterTest {
     }
 
     public void _testWriter(Class<?> endpoint) {
-        final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
+        final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
         Server server = new Server(endpoint);
         final CountDownLatch messageLatch;
 
@@ -201,12 +172,12 @@ public class ReaderWriterTest {
                         session.addMessageHandler(new MessageHandler.Basic<String>() {
                             @Override
                             public void onMessage(String message) {
-                                if(message.equals("Do or do not, there is no try.")) {
+                                if (message.equals("Do or do not, there is no try.")) {
                                     messageLatch.countDown();
                                 }
                             }
                         });
-                        final Writer sendWriter = session.getRemote().getSendWriter();
+                        final Writer sendWriter = session.getBasicRemote().getSendWriter();
                         sendWriter.append("Do or do not, there is no try.");
                         sendWriter.close();
                     } catch (IOException e) {
@@ -222,6 +193,24 @@ public class ReaderWriterTest {
             throw new RuntimeException(e.getMessage(), e);
         } finally {
             server.stop();
+        }
+    }
+
+    public static class ReaderProgrammaticEndpoint extends Endpoint {
+        @Override
+        public void onOpen(final Session session, EndpointConfiguration config) {
+            session.addMessageHandler(new MessageHandler.Basic<Reader>() {
+                @Override
+                public void onMessage(Reader r) {
+                    char[] buffer = new char[64];
+                    try {
+                        int i = r.read(buffer);
+                        session.getBasicRemote().sendText(new String(buffer, 0, i));
+                    } catch (IOException e) {
+                        //
+                    }
+                }
+            });
         }
     }
 }

@@ -57,14 +57,14 @@ public abstract class SPIRemoteEndpoint {
      *
      * @param text the message to be sent.
      */
-    public abstract void sendString(String text) throws IOException;
+    public abstract void sendText(String text) throws IOException;
 
     /**
      * Send a binary message, returning when all of the message has been transmitted.
      *
      * @param data the message to be sent.
      */
-    public abstract void sendBytes(ByteBuffer data) throws IOException;
+    public abstract void sendBinary(ByteBuffer data) throws IOException;
 
     /**
      * Send a text message in pieces, blocking until all of the message has been transmitted. The runtime
@@ -74,7 +74,7 @@ public abstract class SPIRemoteEndpoint {
      * @param fragment the piece of the message being sent.
      * @param isLast   Whether the fragment being sent is the last piece of the message.
      */
-    public abstract void sendPartialString(String fragment, boolean isLast) throws IOException;
+    public abstract void sendText(String fragment, boolean isLast) throws IOException;
 
     /**
      * Send a binary message in pieces, blocking until all of the message has been transmitted. The runtime
@@ -84,7 +84,7 @@ public abstract class SPIRemoteEndpoint {
      * @param partialByte the piece of the message being sent.
      * @param isLast      Whether the fragment being sent is the last piece of the message.
      */
-    public abstract void sendPartialBytes(ByteBuffer partialByte, boolean isLast) throws IOException; // or Iterable<byte[]>
+    public abstract void sendBinary(ByteBuffer partialByte, boolean isLast) throws IOException; // or Iterable<byte[]>
 
     /**
      * Send a Ping message containing the given application data to the remote endpoint. The corresponding Pong message may be picked

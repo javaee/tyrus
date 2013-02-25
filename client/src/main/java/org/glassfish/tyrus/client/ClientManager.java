@@ -45,22 +45,24 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import javax.websocket.ClientEndpoint;
 import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.ClientEndpointConfigurationBuilder;
 import javax.websocket.ContainerProvider;
 import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
 import javax.websocket.Extension;
 import javax.websocket.Session;
-import javax.websocket.WebSocketClient;
 import javax.websocket.WebSocketContainer;
 
-import org.glassfish.tyrus.AnnotatedEndpoint;
-import org.glassfish.tyrus.ComponentProviderService;
-import org.glassfish.tyrus.EndpointWrapper;
-import org.glassfish.tyrus.ErrorCollector;
-import org.glassfish.tyrus.ReflectionHelper;
-import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
-import org.glassfish.tyrus.TyrusContainerProvider;
+import org.glassfish.tyrus.core.AnnotatedEndpoint;
+import org.glassfish.tyrus.core.AnnotatedEndpoint;
+import org.glassfish.tyrus.core.ComponentProviderService;
+import org.glassfish.tyrus.core.EndpointWrapper;
+import org.glassfish.tyrus.core.ErrorCollector;
+import org.glassfish.tyrus.core.ErrorCollector;
+import org.glassfish.tyrus.core.ReflectionHelper;
+import org.glassfish.tyrus.core.TyrusContainerProvider;
 import org.glassfish.tyrus.spi.TyrusClientSocket;
 import org.glassfish.tyrus.spi.TyrusContainer;
 
@@ -84,8 +86,8 @@ public class ClientManager extends ContainerProvider implements WebSocketContain
     private final ComponentProviderService componentProvider;
     private final ErrorCollector collector;
 
-    private long maxSessionIdleTimeout;
     private long defaultAsyncSendTimeout;
+    private long defaultMaxSessionIdleTimeout;
     private int maxBinaryMessageBufferSize;
     private int maxTextMessageBufferSize;
 
@@ -194,17 +196,17 @@ public class ClientManager extends ContainerProvider implements WebSocketContain
         try {
             if (o instanceof Endpoint) {
                 endpoint = (Endpoint) o;
-                config = configuration == null ? new TyrusClientEndpointConfiguration.Builder().build() : configuration;
+                config = configuration == null ? ClientEndpointConfigurationBuilder.create().build() : configuration;
             } else if (o instanceof Class) {
                 if (Endpoint.class.isAssignableFrom((Class<?>) o)) {
                     //noinspection unchecked
                     endpoint = ReflectionHelper.getInstance(((Class<Endpoint>) o), collector);
-                    config = configuration == null ? new TyrusClientEndpointConfiguration.Builder().build() : configuration;
-                } else if ((((Class<?>) o).getAnnotation(WebSocketClient.class) != null)) {
+                    config = configuration == null ? ClientEndpointConfigurationBuilder.create().build() : configuration;
+                } else if ((((Class<?>) o).getAnnotation(ClientEndpoint.class) != null)) {
                     endpoint = AnnotatedEndpoint.fromClass((Class) o, componentProvider, false, collector);
                     config = (ClientEndpointConfiguration) ((AnnotatedEndpoint) endpoint).getEndpointConfiguration();
                 } else {
-                    collector.addException(new DeploymentException(String.format("Class %s in not Endpoint descendant and does not have @WebSocketClient", ((Class<?>) o).getName())));
+                    collector.addException(new DeploymentException(String.format("Class %s in not Endpoint descendant and does not have @ClientEndpoint", ((Class<?>) o).getName())));
                     endpoint = null;
                     config = null;
                 }
@@ -214,7 +216,7 @@ public class ClientManager extends ContainerProvider implements WebSocketContain
             }
 
             if (endpoint != null) {
-                EndpointWrapper clientEndpoint = new EndpointWrapper(endpoint, config, componentProvider, this, url, collector);
+                EndpointWrapper clientEndpoint = new EndpointWrapper(endpoint, config, componentProvider, this, url, collector, null);
                 clientSocket = engine.openClientSocket(url, config, clientEndpoint);
                 sockets.add(clientSocket);
             }
@@ -240,16 +242,6 @@ public class ClientManager extends ContainerProvider implements WebSocketContain
         for (TyrusClientSocket s : sockets) {
             s.close();
         }
-    }
-
-    @Override
-    public long getMaxSessionIdleTimeout() {
-        return maxSessionIdleTimeout;
-    }
-
-    @Override
-    public void setMaxSessionIdleTimeout(long maxSessionIdleTimeout) {
-        this.maxSessionIdleTimeout = maxSessionIdleTimeout;
     }
 
     @Override
@@ -286,5 +278,15 @@ public class ClientManager extends ContainerProvider implements WebSocketContain
     @Override
     public void setAsyncSendTimeout(long timeoutmillis) {
         this.defaultAsyncSendTimeout = timeoutmillis;
+    }
+
+    @Override
+    public long getDefaultMaxSessionIdleTimeout() {
+        return defaultMaxSessionIdleTimeout;
+    }
+
+    @Override
+    public void setDefaultMaxSessionIdleTimeout(long defaultMaxSessionIdleTimeout) {
+        this.defaultMaxSessionIdleTimeout = defaultMaxSessionIdleTimeout;
     }
 }

@@ -45,13 +45,12 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.ClientEndpointConfigurationBuilder;
+import javax.websocket.OnMessage;
+import javax.websocket.OnOpen;
 import javax.websocket.Session;
-import javax.websocket.WebSocketMessage;
-import javax.websocket.WebSocketOpen;
-import javax.websocket.server.DefaultServerConfiguration;
-import javax.websocket.server.WebSocketEndpoint;
+import javax.websocket.server.ServerEndpoint;
 
-import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
@@ -68,7 +67,7 @@ public class StreamingTextAnnotTest {
 
     @Test
     public void testClient() {
-        final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
+        final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
         Server server = new Server(StreamingTextAnnotEndpoint.class);
 
         try {
@@ -93,18 +92,18 @@ public class StreamingTextAnnotTest {
     /**
      * @author Martin Matula (martin.matula at oracle.com)
      */
-    @WebSocketEndpoint(value = "/streamingtext", configuration = DefaultServerConfiguration.class)
+    @ServerEndpoint(value = "/streamingtext")
     public static class StreamingTextAnnotEndpoint {
         private Session session;
         private StringBuilder sb = new StringBuilder();
         static CountDownLatch messageLatch;
 
-        @WebSocketOpen
+        @OnOpen
         public void onOpen(Session session) {
             System.out.println("STREAMINGSERVER opened !");
             this.session = session;
             try {
-                System.out.println(session.getRemote());
+                System.out.println(session.getBasicRemote());
                 sendPartial("thank ", false);
                 sendPartial("you ", false);
                 sendPartial("very ", false);
@@ -115,7 +114,7 @@ public class StreamingTextAnnotTest {
             }
         }
 
-        @WebSocketMessage
+        @OnMessage
         public void onMessage(String text, boolean last) {
             System.out.println("STREAMINGSERVER piece came: " + text);
             sb.append(text);
@@ -133,7 +132,7 @@ public class StreamingTextAnnotTest {
 
         private void sendPartial(String partialString, boolean isLast) throws IOException, InterruptedException {
             System.out.println("Server sending: " + partialString);
-            session.getRemote().sendPartialString(partialString, isLast);
+            session.getBasicRemote().sendText(partialString, isLast);
         }
     }
 }

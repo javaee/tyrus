@@ -44,15 +44,16 @@ package org.glassfish.tyrus.sample.trading.wsbeans;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.websocket.CloseReason;
 import javax.websocket.Session;
-import javax.websocketWebSocketEndpoint;
-import javax.websocketWebSocketMessage;
+
 import javax.servlet.http.HttpSession;
+
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-@WebSocketEndpoint(
+@ServerEndpoint(
         path = "/twitter",
         Xremote = org.glassfish.tyrus.sample.trading.wsbeans.TwitterRemote.class
 )
@@ -79,7 +80,7 @@ public class Twitter implements Broadcaster {
         }
     }
 
-    @WebSocketMessage
+    @OnMessage
     public void startSession(String message, TwitterRemote tr) {
         if (message.equals("register")) {
             this.initThread();

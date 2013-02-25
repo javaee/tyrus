@@ -41,22 +41,20 @@
 package org.glassfish.tyrus.test.e2e.bean.stin;
 
 
-import javax.websocket.WebSocketMessage;
-import javax.websocket.server.DefaultServerConfiguration;
-import javax.websocket.server.WebSocketEndpoint;
+import javax.websocket.OnMessage;
+import javax.websocket.server.ServerEndpoint;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)
  */
-//    @WebSocketEndpoint(
+//    @ServerEndpoint(
 //        path="/standardInputTypes/int",
 //            Xremote=org.glassfish.tyrus.test.e2e.remote.IntRemote.class
 //    )
-@WebSocketEndpoint(
-        value = "/standardInputTypes/int", configuration = DefaultServerConfiguration.class)
+@ServerEndpoint("/standardInputTypes/int")
 public class IntBean {
 
-    @WebSocketMessage
+    @OnMessage
     public String intTest(int i) {
         if (i == 42) {
             return Util.PASS;
@@ -65,7 +63,7 @@ public class IntBean {
         }
     }
 
-//    @WebSocketMessage(XdynamicPath = "/remote")
+//    @OnMessage(XdynamicPath = "/remote")
 //    public void remoteIntTest(String s, IntRemote r) {
 //        try {
 //            r.sendIntMessage(42);

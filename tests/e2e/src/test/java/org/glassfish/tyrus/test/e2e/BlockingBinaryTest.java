@@ -48,15 +48,14 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.ClientEndpointConfigurationBuilder;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.MessageHandler;
+import javax.websocket.OnOpen;
 import javax.websocket.Session;
-import javax.websocket.WebSocketOpen;
-import javax.websocket.server.DefaultServerConfiguration;
-import javax.websocket.server.WebSocketEndpoint;
+import javax.websocket.server.ServerEndpoint;
 
-import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
@@ -75,7 +74,6 @@ public class BlockingBinaryTest {
     @Ignore // TODO: receiving messages out of order (as every message received on a separate thread due to the async
     // TODO: adapter spawning new thread for every onMessage) - TYRUS-50
     public void testClient() {
-        final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
 
         Server server = new Server(BlockingBinaryEndpoint.class);
 
@@ -83,8 +81,8 @@ public class BlockingBinaryTest {
             server.start();
             CountDownLatch messageLatch = new CountDownLatch(2);
             BlockingBinaryEndpoint.messageLatch = messageLatch;
-            TyrusClientEndpointConfiguration.Builder builder = new TyrusClientEndpointConfiguration.Builder();
-            TyrusClientEndpointConfiguration dcec = builder.build();
+
+            final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
 
             BlockingBinaryClient sbc = new BlockingBinaryClient(messageLatch);
             ClientManager client = ClientManager.createClient();
@@ -103,13 +101,13 @@ public class BlockingBinaryTest {
     /**
      * @author Danny Coward (danny.coward at oracle.com)
      */
-    @WebSocketEndpoint(value = "/blockingbinary", configuration = DefaultServerConfiguration.class)
+    @ServerEndpoint(value = "/blockingbinary")
     public static class BlockingBinaryEndpoint extends Endpoint {
         private Session session;
         static CountDownLatch messageLatch;
         private String message;
 
-        @WebSocketOpen
+        @OnOpen
         public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
             System.out.println("BLOCKINGBSERVER opened !");
             this.session = session;
@@ -144,7 +142,7 @@ public class BlockingBinaryTest {
         public void reply() {
             System.out.println("BLOCKINGBSERVER replying");
             try {
-                OutputStream os = session.getRemote().getSendStream();
+                OutputStream os = session.getBasicRemote().getSendStream();
                 os.write(message.getBytes());
                 os.close();
             } catch (IOException ioe) {
@@ -206,7 +204,7 @@ public class BlockingBinaryTest {
 
             try {
                 System.out.println("BLOCKINGBCLIENT Client sending data to the blocking output stream. ");
-                OutputStream os = session.getRemote().getSendStream();
+                OutputStream os = session.getBasicRemote().getSendStream();
 
                 os.write(MESSAGE_0.getBytes());
                 os.write(MESSAGE_1.getBytes());
@@ -220,7 +218,7 @@ public class BlockingBinaryTest {
         }
 
         private void sendPartial(String partialString, boolean isLast) throws IOException, InterruptedException {
-            session.getRemote().sendPartialBytes(ByteBuffer.wrap(partialString.getBytes()), isLast);
+            session.getBasicRemote().sendBinary(ByteBuffer.wrap(partialString.getBytes()), isLast);
         }
     }
 }

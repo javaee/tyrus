@@ -40,18 +40,16 @@
 package org.glassfish.tyrus.test.e2e.bean.stin;
 
 
-import javax.websocket.WebSocketMessage;
-import javax.websocket.server.DefaultServerConfiguration;
-import javax.websocket.server.WebSocketEndpoint;
+import javax.websocket.OnMessage;
+import javax.websocket.server.ServerEndpoint;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)
  */
-@WebSocketEndpoint(
-        value = "/standardInputTypes/char", configuration = DefaultServerConfiguration.class)
+@ServerEndpoint("/standardInputTypes/char")
 public class CharBean {
 
-    @WebSocketMessage
+    @OnMessage
     public String charTest(char c) {
         if (c == 'c') {
             return Util.PASS;

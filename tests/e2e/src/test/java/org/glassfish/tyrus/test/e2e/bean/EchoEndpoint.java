@@ -40,10 +40,9 @@
 
 package org.glassfish.tyrus.test.e2e.bean;
 
+import javax.websocket.OnMessage;
 import javax.websocket.Session;
-import javax.websocket.WebSocketMessage;
-import javax.websocket.server.DefaultServerConfiguration;
-import javax.websocket.server.WebSocketEndpoint;
+import javax.websocket.server.ServerEndpoint;
 
 /**
  * Bean for basic echo test.
@@ -51,10 +50,10 @@ import javax.websocket.server.WebSocketEndpoint;
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 
-@WebSocketEndpoint(value = "/echo", configuration = DefaultServerConfiguration.class)
+@ServerEndpoint(value = "/echo")
 public class EchoEndpoint {
 
-    @WebSocketMessage
+    @OnMessage
     public String doThat(String message, Session peer) {
         return message;
     }

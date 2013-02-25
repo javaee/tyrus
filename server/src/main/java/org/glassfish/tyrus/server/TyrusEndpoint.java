@@ -62,7 +62,7 @@ import javax.websocket.Session;
 import javax.websocket.server.HandshakeRequest;
 import javax.websocket.server.ServerEndpointConfiguration;
 
-import org.glassfish.tyrus.TyrusExtension;
+import org.glassfish.tyrus.core.TyrusExtension;
 import org.glassfish.tyrus.spi.SPIEndpoint;
 import org.glassfish.tyrus.spi.SPIRegisteredEndpoint;
 import org.glassfish.tyrus.websockets.DefaultWebSocket;
@@ -250,7 +250,8 @@ public class TyrusEndpoint extends WebSocketApplication implements SPIRegistered
             final HandshakeResponse handshakeResponse = createHandshakeResponse(response);
 
             // http://java.net/jira/browse/TYRUS-62
-            ((ServerEndpointConfiguration) configuration).modifyHandshake(createHandshakeRequest(request),
+            final ServerEndpointConfiguration serverEndpointConfiguration = (ServerEndpointConfiguration) configuration;
+            serverEndpointConfiguration.getServerEndpointConfigurator().modifyHandshake(serverEndpointConfiguration, createHandshakeRequest(request),
                     handshakeResponse);
 
             for (Map.Entry<String, List<String>> entry : handshakeResponse.getHeaders().entrySet()) {
@@ -300,7 +301,7 @@ public class TyrusEndpoint extends WebSocketApplication implements SPIRegistered
             }
 
             @Override
-            public Object getSession() {
+            public Object getHttpSession() {
                 return null;  // TODO: Implement.
             }
 

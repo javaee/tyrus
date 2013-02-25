@@ -43,6 +43,7 @@ package org.glassfish.tyrus.tests.servlet.twoappconfig;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.websocket.Endpoint;
 import javax.websocket.server.ServerApplicationConfiguration;
 import javax.websocket.server.ServerEndpointConfiguration;
 
@@ -54,7 +55,7 @@ public class SecondServerApplicationConfiguration implements ServerApplicationCo
     private static boolean annotatedGetterCalled = false;
 
     @Override
-    public Set<Class<? extends ServerEndpointConfiguration>> getEndpointConfigurationClasses(Set<Class<? extends ServerEndpointConfiguration>> scanned) {
+    public Set<ServerEndpointConfiguration> getEndpointConfigurations(Set<Class<? extends Endpoint>> endpointClasses) {
         return null;
     }
 

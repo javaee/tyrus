@@ -39,28 +39,27 @@
  */
 package org.glassfish.tyrus.sample.simplelife;
 
+import javax.websocket.OnClose;
+import javax.websocket.OnMessage;
+import javax.websocket.OnOpen;
 import javax.websocket.Session;
-import javax.websocket.WebSocketClose;
-import javax.websocket.WebSocketMessage;
-import javax.websocket.WebSocketOpen;
-import javax.websocket.server.DefaultServerConfiguration;
-import javax.websocket.server.WebSocketEndpoint;
+import javax.websocket.server.ServerEndpoint;
 
 
-@WebSocketEndpoint(value = "/simplelife", configuration = DefaultServerConfiguration.class)
+@ServerEndpoint(value = "/simplelife")
 public class SimpleLifeBean {
 
-    @WebSocketOpen
+    @OnOpen
     public void hi(Session remote) {
         System.out.println("Someone connected...");
     }
 
-    @WebSocketMessage
+    @OnMessage
     public void handleMessage(String message, Session session) {
         System.out.println("Someone sent me this message: " + message);
     }
 
-    @WebSocketClose
+    @OnClose
     public void bye(Session remote) {
         System.out.println("Someone is disconnecting...");
     }

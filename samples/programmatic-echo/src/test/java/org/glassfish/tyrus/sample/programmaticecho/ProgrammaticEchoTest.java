@@ -45,13 +45,13 @@ import java.net.URISyntaxException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import javax.websocket.ClientEndpointConfigurationBuilder;
 import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 
-import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
@@ -93,12 +93,12 @@ public class ProgrammaticEchoTest {
                             }
                         });
 
-                        session.getRemote().sendString("Do or do not, there is no try.");
+                        session.getBasicRemote().sendText("Do or do not, there is no try.");
                     } catch (IOException e) {
                         // do nothing
                     }
                 }
-            }, new TyrusClientEndpointConfiguration.Builder().build(), getURI());
+            }, ClientEndpointConfigurationBuilder.create().build(), getURI());
 
             messageLatch.await(1, TimeUnit.SECONDS);
             if (messageLatch.getCount() != 0) {

@@ -43,6 +43,7 @@ package org.glassfish.tyrus.tests.servlet.oneappconfig;
 import java.util.HashSet;
 import java.util.Set;
 
+import javax.websocket.Endpoint;
 import javax.websocket.server.ServerApplicationConfiguration;
 import javax.websocket.server.ServerEndpointConfiguration;
 
@@ -50,8 +51,9 @@ import javax.websocket.server.ServerEndpointConfiguration;
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 public class TestServerApplicationConfiguration implements ServerApplicationConfiguration {
+
     @Override
-    public Set<Class<? extends ServerEndpointConfiguration>> getEndpointConfigurationClasses(Set<Class<? extends ServerEndpointConfiguration>> scanned) {
+    public Set<ServerEndpointConfiguration> getEndpointConfigurations(Set<Class<? extends Endpoint>> endpointClasses) {
         return null;
     }
 

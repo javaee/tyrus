@@ -42,27 +42,26 @@ package org.glassfish.tyrus.sample.echo;
 
 import java.io.IOException;
 
+import javax.websocket.OnError;
+import javax.websocket.OnMessage;
+import javax.websocket.OnOpen;
 import javax.websocket.Session;
-import javax.websocket.WebSocketError;
-import javax.websocket.WebSocketMessage;
-import javax.websocket.WebSocketOpen;
-import javax.websocket.server.DefaultServerConfiguration;
-import javax.websocket.server.WebSocketEndpoint;
+import javax.websocket.server.ServerEndpoint;
 
-@WebSocketEndpoint(value = "/echo", configuration = DefaultServerConfiguration.class)
+@ServerEndpoint("/echo")
 public class EchoBean {
 
-    @WebSocketOpen
+    @OnOpen
     public void onOpen(Session session) throws IOException {
-        session.getRemote().sendString("onOpen");
+        session.getBasicRemote().sendText("onOpen");
     }
 
-    @WebSocketMessage
+    @OnMessage
     public String echo(String message) {
         return message + " (from your server)";
     }
 
-    @WebSocketError
+    @OnError
     public void onError(Throwable t) {
         t.printStackTrace();
     }

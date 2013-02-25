@@ -46,19 +46,19 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.ClientEndpointConfigurationBuilder;
+import javax.websocket.OnMessage;
+import javax.websocket.OnOpen;
 import javax.websocket.SendHandler;
 import javax.websocket.SendResult;
 import javax.websocket.Session;
-import javax.websocket.WebSocketMessage;
-import javax.websocket.WebSocketOpen;
-import javax.websocket.server.DefaultServerConfiguration;
-import javax.websocket.server.WebSocketEndpoint;
+import javax.websocket.server.ServerEndpoint;
 
-import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -66,9 +66,10 @@ import org.junit.Test;
  *
  * @author Danny Coward (danny.coward at oracle.com)
  */
+@Ignore
 public class TextFutureCompletionHandlerTest {
 
-    private final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
+    private final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
 
     @Test
     public void testFastClient() {
@@ -107,7 +108,7 @@ public class TextFutureCompletionHandlerTest {
             client.connectToServer(htc, cec, new URI("ws://localhost:8025/websockets/tests/hellocompletionhandlerfuture"));
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertTrue("The client did not get anything back", htc.gotSomethingBack);
-            SendResult sr = TextFutureCompletionHandlerEndpoint.fsr.get();
+            SendResult sr = TextFutureCompletionHandlerEndpoint.sr;
             Assert.assertNotNull(sr);
         } catch (Exception e) {
             e.printStackTrace();
@@ -120,13 +121,13 @@ public class TextFutureCompletionHandlerTest {
     /**
      * @author Danny Coward (danny.coward at oracle.com)
      */
-    @WebSocketEndpoint(value = "/hellocompletionhandlerfuture", configuration = DefaultServerConfiguration.class)
+    @ServerEndpoint(value = "/hellocompletionhandlerfuture")
     public static class TextFutureCompletionHandlerEndpoint {
-        static Future<SendResult> fsr = null;
+        static Future<Void> fsr = null;
         static SendResult sr = null;
         static CountDownLatch messageLatch;
 
-        @WebSocketOpen
+        @OnOpen
         public void init(Session session) {
             System.out.println("HELLOCFSERVER opened");
             //System.out.println(" session container is " + session.getContainer());
@@ -143,21 +144,22 @@ public class TextFutureCompletionHandlerTest {
             }
         }
 
-        @WebSocketMessage
+        @OnMessage
         public void sayHello(String message, Session session) {
             System.out.println("HELLOCFSERVER got  message: " + message + " from session " + session);
             System.out.println("HELLOCFSERVER lets send one back in async mode with a future and completion handler");
             SendHandler sh = new SendHandler() {
-                public void setResult(SendResult sr) {
+                public void onResult(SendResult sr) {
                     if (!sr.isOK()) {
                         throw new RuntimeException(sr.getException());
                     }
+                    TextFutureCompletionHandlerEndpoint.sr = sr;
                 }
             };
 
-            fsr = session.getRemote().sendStringByFuture("server hello");
+            fsr = session.getAsyncRemote().sendText("server hello");
             try {
-                sr = fsr.get();
+                fsr.get();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             } catch (ExecutionException e) {

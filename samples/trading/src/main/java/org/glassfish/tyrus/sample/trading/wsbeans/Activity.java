@@ -41,6 +41,7 @@
 package org.glassfish.tyrus.sample.trading.wsbeans;
 
 import java.util.List;
+
 import javax.websocket.EncodeException;
 import javax.websocket.Encoder;
 

@@ -44,13 +44,12 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.ClientEndpointConfigurationBuilder;
+import javax.websocket.OnMessage;
+import javax.websocket.OnOpen;
 import javax.websocket.Session;
-import javax.websocket.WebSocketMessage;
-import javax.websocket.WebSocketOpen;
-import javax.websocket.server.DefaultServerConfiguration;
-import javax.websocket.server.WebSocketEndpoint;
+import javax.websocket.server.ServerEndpoint;
 
-import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
@@ -66,14 +65,12 @@ public class HelloTextTest {
 
     @Test
     public void testClient() {
-        final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
+        final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
         Server server = new Server(HelloTextEndpoint.class);
 
         try {
             server.start();
             CountDownLatch messageLatch = new CountDownLatch(1);
-            TyrusClientEndpointConfiguration.Builder builder = new TyrusClientEndpointConfiguration.Builder();
-            TyrusClientEndpointConfiguration dcec = builder.build();
 
             HelloTextClient htc = new HelloTextClient(messageLatch);
             ClientManager client = ClientManager.createClient();
@@ -92,19 +89,19 @@ public class HelloTextTest {
     /**
      * @author Danny Coward (danny.coward at oracle.com)
      */
-    @WebSocketEndpoint(value = "/hellotext", configuration = DefaultServerConfiguration.class)
+    @ServerEndpoint(value = "/hellotext")
     public static class HelloTextEndpoint {
 
-        @WebSocketOpen
+        @OnOpen
         public void init(Session session) {
             System.out.println("HELLOSERVER opened");
         }
 
-        @WebSocketMessage
+        @OnMessage
         public void sayHello(String message, Session session) {
             System.out.println("HELLOSERVER got  message: " + message + " from session " + session);
             try {
-                session.getRemote().sendString("server hello");
+                session.getBasicRemote().sendText("server hello");
             } catch (Exception e) {
                 e.printStackTrace();
             }

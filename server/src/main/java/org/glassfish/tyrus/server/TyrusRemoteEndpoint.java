@@ -91,22 +91,22 @@ public class TyrusRemoteEndpoint extends SPIRemoteEndpoint {
     }
 
     @Override
-    public void sendString(String text) throws IOException {
+    public void sendText(String text) throws IOException {
         this.socket.send(text);
     }
 
     @Override
-    public void sendBytes(ByteBuffer byteBuffer) throws IOException {
+    public void sendBinary(ByteBuffer byteBuffer) throws IOException {
         this.socket.send(byteBuffer.array());
     }
 
     @Override
-    public void sendPartialString(String fragment, boolean isLast) throws IOException {
+    public void sendText(String fragment, boolean isLast) throws IOException {
         this.socket.stream(isLast, fragment);
     }
 
     @Override
-    public void sendPartialBytes(ByteBuffer byteBuffer, boolean b) throws IOException {
+    public void sendBinary(ByteBuffer byteBuffer, boolean b) throws IOException {
         byte[] bytes = byteBuffer.array();
         this.socket.stream(b, bytes, 0, bytes.length);
     }

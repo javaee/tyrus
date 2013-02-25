@@ -43,16 +43,15 @@ package org.glassfish.tyrus.test.server;
 import java.net.URI;
 import java.util.ArrayList;
 
+import javax.websocket.ClientEndpoint;
 import javax.websocket.DeploymentException;
+import javax.websocket.OnClose;
+import javax.websocket.OnError;
+import javax.websocket.OnMessage;
+import javax.websocket.OnOpen;
 import javax.websocket.PongMessage;
 import javax.websocket.Session;
-import javax.websocket.WebSocketClient;
-import javax.websocket.WebSocketClose;
-import javax.websocket.WebSocketError;
-import javax.websocket.WebSocketMessage;
-import javax.websocket.WebSocketOpen;
-import javax.websocket.server.DefaultServerConfiguration;
-import javax.websocket.server.WebSocketEndpoint;
+import javax.websocket.server.ServerEndpoint;
 
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
@@ -93,10 +92,10 @@ public class AnnotatedClassModelcheckingTest {
         testServerNegative(TwoSessionParametersErrorBean.class);
     }
 
-    @WebSocketEndpoint(value = "/hello", configuration = DefaultServerConfiguration.class)
+    @ServerEndpoint(value = "/hello")
     public static class TwoSessionParametersErrorBean {
 
-        @WebSocketMessage
+        @OnMessage
         public void twoSessions(PongMessage message, Session peer1, Session peer2) {
 
         }
@@ -107,10 +106,10 @@ public class AnnotatedClassModelcheckingTest {
         testServerNegative(TwoStringParametersErrorBean.class);
     }
 
-    @WebSocketEndpoint(value = "/hello", configuration = DefaultServerConfiguration.class)
+    @ServerEndpoint(value = "/hello")
     public static class TwoStringParametersErrorBean {
 
-        @WebSocketMessage
+        @OnMessage
         public void twoStrings(String message1, String message2, Session peer2) {
 
         }
@@ -121,10 +120,10 @@ public class AnnotatedClassModelcheckingTest {
         testServerNegative(WrongMessageReturnParameter.class);
     }
 
-    @WebSocketEndpoint(value = "/hello", configuration = DefaultServerConfiguration.class)
+    @ServerEndpoint(value = "/hello")
     public static class WrongMessageReturnParameter {
 
-        @WebSocketMessage
+        @OnMessage
         public ArrayList<String> wrongReturn(String message1, Session peer2) {
             return new ArrayList<String>();
         }
@@ -135,10 +134,10 @@ public class AnnotatedClassModelcheckingTest {
         testServerPositive(CorrectMessageReturnParameter1.class);
     }
 
-    @WebSocketEndpoint(value = "/hello", configuration = DefaultServerConfiguration.class)
+    @ServerEndpoint(value = "/hello")
     public static class CorrectMessageReturnParameter1 {
 
-        @WebSocketMessage
+        @OnMessage
         public Float wrongReturn(String message1, Session peer2) {
             return new Float(5);
         }
@@ -149,10 +148,10 @@ public class AnnotatedClassModelcheckingTest {
         testServerPositive(CorrectMessageReturnParameter2.class);
     }
 
-    @WebSocketEndpoint(value = "/hello", configuration = DefaultServerConfiguration.class)
+    @ServerEndpoint(value = "/hello")
     public static class CorrectMessageReturnParameter2 {
 
-        @WebSocketMessage
+        @OnMessage
         public float wrongReturn(String message1, Session peer2) {
             return (float) 5.23;
         }
@@ -163,10 +162,10 @@ public class AnnotatedClassModelcheckingTest {
         testServerNegative(ErrorMethodWithoutThrowableErrorBean.class);
     }
 
-    @WebSocketEndpoint(value = "/hello", configuration = DefaultServerConfiguration.class)
+    @ServerEndpoint(value = "/hello")
     public static class ErrorMethodWithoutThrowableErrorBean {
 
-        @WebSocketError
+        @OnError
         public void wrongOnError(Session peer) {
 
         }
@@ -177,10 +176,10 @@ public class AnnotatedClassModelcheckingTest {
         testServerNegative(ErrorMethodWithWrongParam.class);
     }
 
-    @WebSocketEndpoint(value = "/hello", configuration = DefaultServerConfiguration.class)
+    @ServerEndpoint(value = "/hello")
     public static class ErrorMethodWithWrongParam {
 
-        @WebSocketError
+        @OnError
         public void wrongOnError(Session peer, Throwable t, String s) {
 
         }
@@ -191,10 +190,10 @@ public class AnnotatedClassModelcheckingTest {
         testServerNegative(OpenMethodWithWrongParam.class);
     }
 
-    @WebSocketEndpoint(value = "/hello", configuration = DefaultServerConfiguration.class)
+    @ServerEndpoint(value = "/hello")
     public static class OpenMethodWithWrongParam {
 
-        @WebSocketOpen
+        @OnOpen
         public void wrongOnOpen(Session peer, String s) {
 
         }
@@ -205,10 +204,10 @@ public class AnnotatedClassModelcheckingTest {
         testServerNegative(CloseMethodWithWrongParam.class);
     }
 
-    @WebSocketEndpoint(value = "/hello", configuration = DefaultServerConfiguration.class)
+    @ServerEndpoint(value = "/hello")
     public static class CloseMethodWithWrongParam {
 
-        @WebSocketClose
+        @OnClose
         public void wrongOnClose(Session peer, String s) {
 
         }
@@ -236,26 +235,26 @@ public class AnnotatedClassModelcheckingTest {
         }
     }
 
-    @WebSocketClient
-    @WebSocketEndpoint(value = "/hello", configuration = DefaultServerConfiguration.class)
+    @ClientEndpoint
+    @ServerEndpoint(value = "/hello")
     public static class MultipleWrongMethodsBean {
 
-        @WebSocketClose
+        @OnClose
         public void wrongOnClose(Session peer, String s) {
 
         }
 
-        @WebSocketOpen
+        @OnOpen
         public void wrongOnOpen(Session peer, String s) {
 
         }
 
-        @WebSocketError
+        @OnError
         public void wrongOnError(Session peer, Throwable t, String s) {
 
         }
 
-        @WebSocketMessage
+        @OnMessage
         public void twoStrings(String message1, String message2, Session peer2) {
 
         }

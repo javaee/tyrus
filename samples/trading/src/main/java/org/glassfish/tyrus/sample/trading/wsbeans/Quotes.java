@@ -43,14 +43,14 @@ package org.glassfish.tyrus.sample.trading.wsbeans;
 
 import java.io.IOException;
 import java.util.List;
+
 import javax.websocket.CloseReason;
 import javax.websocket.ServerContainer;
 import javax.websocket.Session;
-import javax.websocketWebSocketEndpoint;
-import javax.websocketWebSocketMessage;
+
 import javax.servlet.http.HttpSession;
 
-@WebSocketEndpoint(
+@ServerEndpoint(
         path = "/quotes", Xremote = org.glassfish.tyrus.sample.trading.wsbeans.QuoteRemote.class
 )
 /**
@@ -74,7 +74,7 @@ public class Quotes implements Broadcaster {
     }
 
 
-    @WebSocketMessage
+    @OnMessage
     public void registerForQuotes(String message, QuoteRemote remote) {
         ServerContainer context = remote.getContext().getContainerContext();
         if (message.equals("register")) {

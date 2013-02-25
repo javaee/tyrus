@@ -40,16 +40,16 @@
 package org.glassfish.tyrus.sample.programmaticecho;
 
 import java.io.IOException;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfiguration;
-import javax.websocket.Extension;
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 import javax.websocket.server.ServerApplicationConfiguration;
+import javax.websocket.server.ServerEndpointConfiguration;
+import javax.websocket.server.ServerEndpointConfigurationBuilder;
 
 import org.glassfish.tyrus.server.TyrusServerConfiguration;
 
@@ -64,34 +64,9 @@ public class MyWsConfiguration extends TyrusServerConfiguration implements Serve
      * Default constructor, reg
      */
     public MyWsConfiguration() {
-        super(new HashSet<Class<?>>(Arrays.<Class<?>>asList(EchoEndpointConfiguration.class)));
-    }
-
-    public static class EchoEndpointConfiguration extends javax.websocket.server.DefaultServerConfiguration {
-        public EchoEndpointConfiguration() {
-            super(EchoEndpoint.class, "echo");
-        }
-
-        @Override
-        public String getNegotiatedSubprotocol(List<String> requestedSubprotocols) {
-            return null;
-        }
-
-        @Override
-        public List<Extension> getNegotiatedExtensions(List<Extension> requestedExtensions) {
-            return requestedExtensions;
-        }
-
-        @Override
-        public boolean checkOrigin(String originHeaderValue) {
-            return true;
-        }
-
-        // TODO http://java.net/jira/browse/WEBSOCKET_SPEC-126
-//        @Override
-//        public boolean matchesURI(URI uri) {
-//            return uri.toString().equals("/sample-programmatic-echo/test");
-//        }
+        super(Collections.<Class<?>>emptySet(), new HashSet<ServerEndpointConfiguration>() {{
+            add(ServerEndpointConfigurationBuilder.create(EchoEndpoint.class, "/echo").build());
+        }});
     }
 
     public static class EchoEndpoint extends Endpoint {
@@ -102,7 +77,7 @@ public class MyWsConfiguration extends TyrusServerConfiguration implements Serve
                 public void onMessage(String message) {
                     System.out.println("##################### Message received");
                     try {
-                        session.getRemote().sendString(message + " (from your server)");
+                        session.getBasicRemote().sendText(message + " (from your server)");
                     } catch (IOException e) {
                         e.printStackTrace();
                     }

@@ -46,10 +46,10 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.ClientEndpointConfigurationBuilder;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.Session;
 
-import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
@@ -67,7 +67,7 @@ public class PrimitiveDataTypesTest {
 
     private String receivedMessage;
 
-    private final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
+    private final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
 
 
     @Test
@@ -123,9 +123,6 @@ public class PrimitiveDataTypesTest {
 
             String address = "ws://localhost:8025/websockets/tests" + segmentPath;
 
-            final TyrusClientEndpointConfiguration.Builder builder = new TyrusClientEndpointConfiguration.Builder();
-            final TyrusClientEndpointConfiguration dcec = builder.build();
-
             ClientManager client = ClientManager.createClient();
             TestAdapter ta = new TestAdapter(message);
             client.connectToServer(ta, cec, new URI(address));
@@ -157,7 +154,7 @@ public class PrimitiveDataTypesTest {
         public void onOpen(Session session) {
             try {
                 session.addMessageHandler(new TestTextMessageHandler(this));
-                session.getRemote().sendString(message);
+                session.getBasicRemote().sendText(message);
             } catch (IOException e) {
                 e.printStackTrace();
             }

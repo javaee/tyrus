@@ -46,15 +46,14 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.ClientEndpointConfigurationBuilder;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.MessageHandler;
+import javax.websocket.OnMessage;
 import javax.websocket.Session;
-import javax.websocket.WebSocketMessage;
-import javax.websocket.server.DefaultServerConfiguration;
-import javax.websocket.server.WebSocketEndpoint;
+import javax.websocket.server.ServerEndpoint;
 
-import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
@@ -77,17 +76,17 @@ public class BinaryTest {
     private ByteBuffer receivedMessageBuffer;
     private byte[] receivedMessageArray;
 
-    private final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
+    private final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
 
     /**
      * Bean to test correct processing of binary message.
      *
      * @author Stepan Kopriva (stepan.kopriva at oracle.com)
      */
-    @WebSocketEndpoint(value = "/binary", configuration = DefaultServerConfiguration.class)
+    @ServerEndpoint(value = "/binary")
     public static class BinaryByteBufferEndpoint {
 
-        @WebSocketMessage
+        @OnMessage
         public ByteBuffer echo(ByteBuffer message) {
             return message;
         }
@@ -106,7 +105,7 @@ public class BinaryTest {
                 @Override
                 public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
                     try {
-                        session.getRemote().sendBytes(ByteBuffer.wrap(BINARY_MESSAGE));
+                        session.getBasicRemote().sendBinary(ByteBuffer.wrap(BINARY_MESSAGE));
                         session.addMessageHandler(new MessageHandler.Basic<ByteBuffer>() {
                             @Override
                             public void onMessage(ByteBuffer data) {
@@ -129,10 +128,10 @@ public class BinaryTest {
         }
     }
 
-    @WebSocketEndpoint(value = "/binary", configuration = DefaultServerConfiguration.class)
+    @ServerEndpoint(value = "/binary")
     public static class BinaryByteArrayEndpoint {
 
-        @WebSocketMessage
+        @OnMessage
         public byte[] echo(byte[] message) {
             return message;
         }
@@ -151,7 +150,7 @@ public class BinaryTest {
                 @Override
                 public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
                     try {
-                        session.getRemote().sendBytes(ByteBuffer.wrap(BINARY_MESSAGE));
+                        session.getBasicRemote().sendBinary(ByteBuffer.wrap(BINARY_MESSAGE));
                         session.addMessageHandler(new MessageHandler.Basic<byte[]>() {
                             @Override
                             public void onMessage(byte[] data) {

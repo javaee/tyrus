@@ -45,13 +45,12 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.ClientEndpointConfigurationBuilder;
 import javax.websocket.EndpointConfiguration;
+import javax.websocket.OnMessage;
 import javax.websocket.Session;
-import javax.websocket.WebSocketMessage;
-import javax.websocket.server.DefaultServerConfiguration;
-import javax.websocket.server.WebSocketEndpoint;
+import javax.websocket.server.ServerEndpoint;
 
-import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.e2e.bean.EchoEndpoint;
@@ -60,7 +59,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Tests the correct behavior of various orders of parameters of methods annotated with {@link javax.websocket.WebSocketMessage}
+ * Tests the correct behavior of various orders of parameters of methods annotated with {@link javax.websocket.OnMessage}
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
@@ -72,7 +71,7 @@ public class MessageParamOrderTest {
 
     private static final String SENT_MESSAGE = "Hello World";
 
-    private final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
+    private final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
 
     @Test
     public void testHello() {
@@ -81,9 +80,6 @@ public class MessageParamOrderTest {
             server.start();
 
             messageLatch = new CountDownLatch(1);
-
-            TyrusClientEndpointConfiguration.Builder builder = new TyrusClientEndpointConfiguration.Builder();
-            TyrusClientEndpointConfiguration dcec = builder.build();
 
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new TestEndpointAdapter() {
@@ -97,7 +93,7 @@ public class MessageParamOrderTest {
                 public void onOpen(Session session) {
                     try {
                         session.addMessageHandler(new TestTextMessageHandler(this));
-                        session.getRemote().sendString(SENT_MESSAGE);
+                        session.getBasicRemote().sendText(SENT_MESSAGE);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -127,22 +123,19 @@ public class MessageParamOrderTest {
             server.start();
             messageLatch = new CountDownLatch(1);
 
-            final TyrusClientEndpointConfiguration.Builder builder = new TyrusClientEndpointConfiguration.Builder();
-            final TyrusClientEndpointConfiguration dcec = builder.build();
-
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new TestEndpointAdapter() {
 
                 @Override
                 public EndpointConfiguration getEndpointConfiguration() {
-                    return dcec;
+                    return cec;
                 }
 
                 @Override
                 public void onOpen(Session session) {
                     try {
                         session.addMessageHandler(new TestTextMessageHandler(this));
-                        session.getRemote().sendString(SENT_MESSAGE);
+                        session.getBasicRemote().sendText(SENT_MESSAGE);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -169,10 +162,10 @@ public class MessageParamOrderTest {
      *
      * @author Stepan Kopriva (stepan.kopriva at oracle.com)
      */
-    @WebSocketEndpoint(value = "/hello", configuration = DefaultServerConfiguration.class)
+    @ServerEndpoint(value = "/hello")
     public static class MessageParamOrderTestBeanEndpoint {
 
-        @WebSocketMessage
+        @OnMessage
         public String doThat(Session peer, String message) {
             return message;
         }

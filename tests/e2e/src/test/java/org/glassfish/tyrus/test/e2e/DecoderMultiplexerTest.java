@@ -46,11 +46,11 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.ClientEndpointConfigurationBuilder;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
 
-import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.e2e.bean.DecoderMultiplexerTestEndpoint;
@@ -74,7 +74,7 @@ public class DecoderMultiplexerTest {
 
     private static final String MESSAGE_B = "bssssssss";
 
-    private final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
+    private final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
 
     @Ignore
     @Test
@@ -105,7 +105,7 @@ public class DecoderMultiplexerTest {
     }
 
     private class TestAdapter extends TestEndpointAdapter {
-        private RemoteEndpoint peer;
+        private RemoteEndpoint.Basic peer;
 
         @Override
         public EndpointConfiguration getEndpointConfiguration() {
@@ -115,8 +115,8 @@ public class DecoderMultiplexerTest {
         @Override
         public void onOpen(Session session) {
             try {
-                peer = session.getRemote();
-                peer.sendString(MESSAGE_A);
+                peer = session.getBasicRemote();
+                peer.sendText(MESSAGE_A);
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -130,7 +130,7 @@ public class DecoderMultiplexerTest {
 
         public void sendMessage(String message) {
             try {
-                peer.sendString(message);
+                peer.sendText(message);
             } catch (IOException e) {
                 e.printStackTrace();
             }

@@ -44,16 +44,15 @@ package org.glassfish.tyrus.sample.cdi;
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 
-import javax.websocket.WebSocketMessage;
-import javax.websocket.server.DefaultServerConfiguration;
-import javax.websocket.server.WebSocketEndpoint;
+import javax.websocket.OnMessage;
+import javax.websocket.server.ServerEndpoint;
 
 import javax.inject.Inject;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-@WebSocketEndpoint(value = "/singleton", configuration = DefaultServerConfiguration.class)
+@ServerEndpoint(value = "/singleton")
 public class InjectToBeanSingleton {
 
     public static final String TEXT = " Inner counter is: ";
@@ -61,7 +60,7 @@ public class InjectToBeanSingleton {
     @Inject
     InjectedSingletonBean bean;
 
-    @WebSocketMessage
+    @OnMessage
     public String doThat(String message) {
         bean.incrementCounter();
         return String.format("%s%s%s", message, TEXT, bean.getCounter());

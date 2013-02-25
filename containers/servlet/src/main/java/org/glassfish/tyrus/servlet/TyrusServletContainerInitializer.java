@@ -45,9 +45,9 @@ import java.util.Iterator;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import javax.websocket.Endpoint;
 import javax.websocket.server.ServerApplicationConfiguration;
-import javax.websocket.server.ServerEndpointConfiguration;
-import javax.websocket.server.WebSocketEndpoint;
+import javax.websocket.server.ServerEndpoint;
 
 import javax.servlet.FilterRegistration;
 import javax.servlet.ServletContainerInitializer;
@@ -63,7 +63,7 @@ import javax.servlet.annotation.HandlesTypes;
  * @author Jitendra Kotamraju
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-@HandlesTypes({WebSocketEndpoint.class, ServerApplicationConfiguration.class, ServerEndpointConfiguration.class})
+@HandlesTypes({ServerEndpoint.class, ServerApplicationConfiguration.class, Endpoint.class})
 public class TyrusServletContainerInitializer implements ServletContainerInitializer {
     private static final Logger LOGGER = Logger.getLogger(TyrusServletContainerInitializer.class.getName());
 
@@ -71,7 +71,6 @@ public class TyrusServletContainerInitializer implements ServletContainerInitial
      * Tyrus classes scanned by container will be filtered.
      */
     private static final Set<Class<?>> FILTERED_CLASSES = new HashSet<Class<?>>(){{
-        add(org.glassfish.tyrus.AnnotatedEndpoint.class);
         add(org.glassfish.tyrus.server.TyrusServerConfiguration.class);
     }};
 

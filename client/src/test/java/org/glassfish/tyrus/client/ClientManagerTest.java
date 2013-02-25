@@ -58,8 +58,8 @@ public class ClientManagerTest {
     public void setMaxSessionIdleTimeout() {
         final ClientManager clientManager = createClientManager();
 
-        clientManager.setMaxSessionIdleTimeout(100);
-        assertEquals(100, clientManager.getMaxSessionIdleTimeout());
+        clientManager.setDefaultMaxSessionIdleTimeout(100);
+        assertEquals(100, clientManager.getDefaultMaxSessionIdleTimeout());
     }
 
     @Test

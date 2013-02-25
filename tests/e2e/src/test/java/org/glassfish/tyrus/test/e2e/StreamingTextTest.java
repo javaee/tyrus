@@ -45,15 +45,14 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.ClientEndpointConfigurationBuilder;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.MessageHandler;
+import javax.websocket.OnOpen;
 import javax.websocket.Session;
-import javax.websocket.WebSocketOpen;
-import javax.websocket.server.DefaultServerConfiguration;
-import javax.websocket.server.WebSocketEndpoint;
+import javax.websocket.server.ServerEndpoint;
 
-import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
@@ -70,7 +69,7 @@ public class StreamingTextTest {
 
     @Test
     public void testClient() {
-        final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
+        final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
         Server server = new Server(StreamingTextEndpoint.class);
 
         try {
@@ -96,12 +95,12 @@ public class StreamingTextTest {
      * @author Danny Coward (danny.coward at oracle.com)
      * @author Martin Matula (martin.matula at oracle.com)
      */
-    @WebSocketEndpoint(value = "/streamingtext", configuration = DefaultServerConfiguration.class)
+    @ServerEndpoint(value = "/streamingtext")
     public static class StreamingTextEndpoint {
         private Session session;
         static CountDownLatch messageLatch;
 
-        @WebSocketOpen
+        @OnOpen
         public void onOpen(Session session) {
             System.out.println("STREAMINGSERVER opened !");
             this.session = session;
@@ -128,7 +127,7 @@ public class StreamingTextTest {
             });
 
             try {
-                System.out.println(session.getRemote());
+                System.out.println(session.getBasicRemote());
                 sendPartial("thank ", false);
                 sendPartial("you ", false);
                 sendPartial("very ", false);
@@ -142,7 +141,7 @@ public class StreamingTextTest {
 
         private void sendPartial(String partialString, boolean isLast) throws IOException, InterruptedException {
             System.out.println("Server sending: " + partialString);
-            session.getRemote().sendPartialString(partialString, isLast);
+            session.getBasicRemote().sendText(partialString, isLast);
         }
     }
 
@@ -196,7 +195,7 @@ public class StreamingTextTest {
         private void sendPartial(String partialString, boolean isLast) throws IOException, InterruptedException {
             System.out.println("Client sending: " + partialString);
             synchronized (StreamingTextClient.class) {
-                session.getRemote().sendPartialString(partialString, isLast);
+                session.getBasicRemote().sendText(partialString, isLast);
                 if (!isLast) {
                     System.out.println("Waiting for the server to process the partial string...");
                     StreamingTextClient.class.wait(5000);

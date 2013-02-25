@@ -44,14 +44,14 @@ import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import javax.websocket.ClientEndpoint;
 import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.ClientEndpointConfigurationBuilder;
 import javax.websocket.EndpointConfiguration;
+import javax.websocket.OnMessage;
+import javax.websocket.OnOpen;
 import javax.websocket.Session;
-import javax.websocket.WebSocketClient;
-import javax.websocket.WebSocketMessage;
-import javax.websocket.WebSocketOpen;
 
-import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.e2e.bean.TestEndpoint;
@@ -67,7 +67,7 @@ import org.junit.Test;
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class  AnnotatedClientTest {
+public class AnnotatedClientTest {
 
     private static String receivedMessage;
 
@@ -78,7 +78,7 @@ public class  AnnotatedClientTest {
     @Test
     public void testAnnotatedInstance() {
         Server server = new Server(TestEndpoint.class);
-        final ClientEndpointConfiguration configuration = new TyrusClientEndpointConfiguration.Builder().build();
+        final ClientEndpointConfiguration configuration = ClientEndpointConfigurationBuilder.create().build();
 
         messageLatch = new CountDownLatch(1);
 
@@ -97,7 +97,7 @@ public class  AnnotatedClientTest {
                 public void onOpen(Session session) {
                     try {
                         session.addMessageHandler(new TestTextMessageHandler(this));
-                        session.getRemote().sendString("hello");
+                        session.getBasicRemote().sendText("hello");
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -108,7 +108,7 @@ public class  AnnotatedClientTest {
                     receivedMessage = message;
                     messageLatch.countDown();
                 }
-            },configuration, new URI("ws://localhost:8025/websockets/tests/echo"));
+            }, configuration, new URI("ws://localhost:8025/websockets/tests/echo"));
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertEquals("hello", receivedMessage);
         } catch (Exception e) {
@@ -163,46 +163,46 @@ public class  AnnotatedClientTest {
      *
      * @author Stepan Kopriva (stepan.kopriva at oracle.com)
      */
-    @WebSocketClient(decoders = {TestDecoder.class})
+    @ClientEndpoint(decoders = {TestDecoder.class})
     public class ClientTestEndpoint {
 
         private static final String SENT_TEST_MESSAGE = "testHello";
 
-        @WebSocketOpen
+        @OnOpen
         public void onOpen(Session p) {
             try {
-                p.getRemote().sendString(TestMessage.PREFIX + SENT_TEST_MESSAGE);
+                p.getBasicRemote().sendText(TestMessage.PREFIX + SENT_TEST_MESSAGE);
 
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
 
-        @WebSocketMessage
+        @OnMessage
         public void onTestMesage(TestMessage tm) {
             receivedTestMessage = tm.getData();
             messageLatch.countDown();
         }
     }
 
-    @WebSocketClient
+    @ClientEndpoint
     public static class SimpleClientTestEndpoint {
         private static final String SENT_MESSAGE = "hello";
 
         public SimpleClientTestEndpoint() {
         }
 
-        @WebSocketOpen
+        @OnOpen
         public void onOpen(Session p) {
             try {
-                p.getRemote().sendString(SENT_MESSAGE);
+                p.getBasicRemote().sendText(SENT_MESSAGE);
 
             } catch (IOException e) {
                 e.printStackTrace();
             }
         }
 
-        @WebSocketMessage
+        @OnMessage
         public void onMessage(String message) {
             receivedMessage = message;
             messageLatch.countDown();

@@ -72,7 +72,7 @@ public class HelloTextClient extends Endpoint {
                     messageLatch.countDown();
                 }
             });
-            session.getRemote().sendString("Client says hello");
+            session.getBasicRemote().sendText("Client says hello");
         } catch (Exception e) {
             e.printStackTrace();
         }

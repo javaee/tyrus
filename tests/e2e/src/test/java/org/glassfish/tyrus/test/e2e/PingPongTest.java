@@ -45,15 +45,14 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.ClientEndpointConfigurationBuilder;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.MessageHandler;
+import javax.websocket.OnOpen;
 import javax.websocket.Session;
-import javax.websocket.WebSocketOpen;
-import javax.websocket.server.DefaultServerConfiguration;
-import javax.websocket.server.WebSocketEndpoint;
+import javax.websocket.server.ServerEndpoint;
 
-import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
@@ -71,7 +70,7 @@ public class PingPongTest {
     @Ignore // TODO works on client test run, not on full build
     @Test
     public void testClient() {
-        final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
+        final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
         Server server = new Server(PingPongEndpoint.class);
 
         try {
@@ -99,12 +98,12 @@ public class PingPongTest {
      * @author Danny Coward (danny.coward at oracle.com)
      */
 
-    @WebSocketEndpoint(value = "/pingpong", configuration = DefaultServerConfiguration.class)
+    @ServerEndpoint(value = "/pingpong")
     public static class PingPongEndpoint {
         static boolean gotCorrectMessage = false;
         private static String SERVER_MESSAGE = "server ping data!";
 
-        @WebSocketOpen
+        @OnOpen
         public void init(Session session) {
             try {
                 session.addMessageHandler(new MessageHandler.Basic<ByteBuffer>() {
@@ -114,7 +113,7 @@ public class PingPongTest {
 
                     }
                 });
-                session.getRemote().sendPing(ByteBuffer.wrap(SERVER_MESSAGE.getBytes()));
+                session.getBasicRemote().sendPing(ByteBuffer.wrap(SERVER_MESSAGE.getBytes()));
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -146,7 +145,7 @@ public class PingPongTest {
                         messageLatch.countDown();
                     }
                 });
-                session.getRemote().sendPing(ByteBuffer.wrap(CLIENT_MESSAGE.getBytes()));
+                session.getBasicRemote().sendPing(ByteBuffer.wrap(CLIENT_MESSAGE.getBytes()));
             } catch (Exception e) {
                 e.printStackTrace();
             }

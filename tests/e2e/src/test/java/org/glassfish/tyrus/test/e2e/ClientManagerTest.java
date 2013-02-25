@@ -46,10 +46,10 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.ClientEndpointConfigurationBuilder;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.Session;
 
-import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.e2e.bean.TestEndpoint;
@@ -68,7 +68,7 @@ public class ClientManagerTest {
 
     private static final String SENT_MESSAGE = "hello";
 
-    private final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
+    private final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
 
     @Test
     public void testClient() {
@@ -90,7 +90,7 @@ public class ClientManagerTest {
                 public void onOpen(Session session) {
                     try {
                         session.addMessageHandler(new TestTextMessageHandler(this));
-                        session.getRemote().sendString(SENT_MESSAGE);
+                        session.getBasicRemote().sendText(SENT_MESSAGE);
                         System.out.println("Sent message: " + SENT_MESSAGE);
                     } catch (IOException e) {
                         e.printStackTrace();

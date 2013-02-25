@@ -47,17 +47,20 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.ClientEndpointConfigurationBuilder;
+import javax.websocket.ClientEndpointConfigurator;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.HandshakeResponse;
 import javax.websocket.MessageHandler;
+import javax.websocket.OnMessage;
 import javax.websocket.Session;
-import javax.websocket.WebSocketMessage;
 import javax.websocket.server.HandshakeRequest;
-import javax.websocket.server.WebSocketEndpoint;
+import javax.websocket.server.ServerEndpoint;
+import javax.websocket.server.ServerEndpointConfiguration;
+import javax.websocket.server.ServerEndpointConfigurator;
 
-import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
-import org.glassfish.tyrus.TyrusServerEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
@@ -75,30 +78,25 @@ public class ModifyRequestResponseHeadersTest {
     private static final String HEADER_NAME = "myHeader";
     private static final String HEADER_VALUE = "Always two there are, a master and an apprentice.";
 
-    @WebSocketEndpoint(value = "/echo", configuration = MyServerConfiguration.class)
+    @ServerEndpoint(value = "/echo", configurator = MyServerConfigurator.class)
     public static class TestEndpoint {
 
-        @WebSocketMessage
+        @OnMessage
         public String onMessage(String message) {
             return message;
         }
     }
 
-    public static class MyServerConfiguration extends TyrusServerEndpointConfiguration {
-
-        public MyServerConfiguration(Class<? extends Endpoint> endpointClass, String path) {
-            super(endpointClass, path);
-        }
+    public static class MyServerConfigurator extends ServerEndpointConfigurator {
 
         @Override
-        public void modifyHandshake(HandshakeRequest request, HandshakeResponse response) {
+        public void modifyHandshake(ServerEndpointConfiguration sec, HandshakeRequest request, HandshakeResponse response) {
             final List<String> list = request.getHeaders().get(HEADER_NAME);
             response.getHeaders().put(HEADER_NAME, list);
-
         }
     }
 
-    public static class MyClientConfiguration extends TyrusClientEndpointConfiguration {
+    public static class MyClientConfigurator extends ClientEndpointConfigurator {
         @Override
         public void beforeRequest(Map<String, List<String>> headers) {
             headers.put(HEADER_NAME, Arrays.asList(HEADER_VALUE));
@@ -121,7 +119,8 @@ public class ModifyRequestResponseHeadersTest {
         try {
             server.start();
 
-            final MyClientConfiguration clientConfiguration = new MyClientConfiguration();
+            final MyClientConfigurator clientConfigurator = new MyClientConfigurator();
+            final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().clientHandshakeConfigurator(clientConfigurator).build();
 
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new Endpoint() {
@@ -137,14 +136,14 @@ public class ModifyRequestResponseHeadersTest {
                             }
                         });
 
-                        session.getRemote().sendString(SENT_MESSAGE);
+                        session.getBasicRemote().sendText(SENT_MESSAGE);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                 }
-            }, clientConfiguration, new URI("ws://localhost:8025/websockets/tests/echo"));
+            }, cec, new URI("ws://localhost:8025/websockets/tests/echo"));
 
-            messageLatch.await(1, TimeUnit.SECONDS);
+            messageLatch.await(1000, TimeUnit.SECONDS);
             assertEquals(0, messageLatch.getCount());
             assertEquals(SENT_MESSAGE, receivedMessage);
         } catch (Exception e) {
@@ -154,6 +153,4 @@ public class ModifyRequestResponseHeadersTest {
             server.stop();
         }
     }
-
-
 }

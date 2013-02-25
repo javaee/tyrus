@@ -42,26 +42,28 @@ package org.glassfish.tyrus.test.e2e;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.List;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.ClientEndpointConfigurationBuilder;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfiguration;
-import javax.websocket.Extension;
 import javax.websocket.MessageHandler;
+import javax.websocket.OnClose;
+import javax.websocket.OnError;
+import javax.websocket.OnMessage;
+import javax.websocket.OnOpen;
 import javax.websocket.Session;
-import javax.websocket.WebSocketClose;
-import javax.websocket.WebSocketError;
-import javax.websocket.WebSocketMessage;
-import javax.websocket.WebSocketOpen;
-import javax.websocket.server.DefaultServerConfiguration;
-import javax.websocket.server.WebSocketEndpoint;
+import javax.websocket.server.ServerEndpoint;
+import javax.websocket.server.ServerEndpointConfiguration;
+import javax.websocket.server.ServerEndpointConfigurationBuilder;
 
-import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
+import org.glassfish.tyrus.server.TyrusServerConfiguration;
 
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
@@ -79,30 +81,27 @@ public class ErrorTest {
     private CountDownLatch messageLatch;
 
     /**
-     * Exception thrown during execution @WebSocketOpen annotated method.
+     * Exception thrown during execution @OnOpen annotated method.
      *
      * @author Danny Coward (danny.coward at oracle.com)
      */
-    @WebSocketEndpoint(
-            value = "/open",
-            configuration = DefaultServerConfiguration.class
-    )
+    @ServerEndpoint("/open")
     public static class OnOpenErrorTestEndpoint {
         public static Throwable throwable;
         public static Session session;
 
-        @WebSocketOpen
+        @OnOpen
         public void open() {
             throw new RuntimeException("testException");
         }
 
-        @WebSocketMessage
+        @OnMessage
         public String message(String message, Session session) {
             // won't be called.
             return "message";
         }
 
-        @WebSocketError
+        @OnError
         public void handleError(Throwable throwable, Session session) {
             OnOpenErrorTestEndpoint.throwable = throwable;
             OnOpenErrorTestEndpoint.session = session;
@@ -111,20 +110,18 @@ public class ErrorTest {
 
     @Test
     public void testErrorOnOpen() {
-        final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
         Server server = new Server(OnOpenErrorTestEndpoint.class);
 
         try {
             server.start();
-            final TyrusClientEndpointConfiguration.Builder builder = new TyrusClientEndpointConfiguration.Builder();
-            final TyrusClientEndpointConfiguration dcec = builder.build();
+            final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
 
             messageLatch = new CountDownLatch(1);
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new TestEndpointAdapter() {
                 @Override
                 public EndpointConfiguration getEndpointConfiguration() {
-                    return dcec;
+                    return cec;
                 }
 
                 @Override
@@ -154,30 +151,27 @@ public class ErrorTest {
     }
 
     /**
-     * Exception thrown during execution @WebSocketError annotated method.
+     * Exception thrown during execution @OnError annotated method.
      *
      * @author Danny Coward (danny.coward at oracle.com)
      */
-    @WebSocketEndpoint(
-            value = "/close",
-            configuration = DefaultServerConfiguration.class
-    )
+    @ServerEndpoint("/close")
     public static class OnCloseErrorTestEndpoint {
         public static Throwable throwable;
         public static Session session;
 
-        @WebSocketClose
+        @OnClose
         public void close() {
             throw new RuntimeException("testException");
         }
 
-        @WebSocketMessage
+        @OnMessage
         public String message(String message, Session session) {
             // won't be called.
             return "message";
         }
 
-        @WebSocketError
+        @OnError
         public void handleError(Throwable throwable, Session session) {
             OnCloseErrorTestEndpoint.throwable = throwable;
             OnCloseErrorTestEndpoint.session = session;
@@ -186,20 +180,18 @@ public class ErrorTest {
 
     @Test
     public void testErrorOnClose() {
-        final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
         Server server = new Server(OnCloseErrorTestEndpoint.class);
 
         try {
             server.start();
-            final TyrusClientEndpointConfiguration.Builder builder = new TyrusClientEndpointConfiguration.Builder();
-            final TyrusClientEndpointConfiguration dcec = builder.build();
+            final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
 
             messageLatch = new CountDownLatch(1);
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new TestEndpointAdapter() {
                 @Override
                 public EndpointConfiguration getEndpointConfiguration() {
-                    return dcec;
+                    return cec;
                 }
 
                 @Override
@@ -233,19 +225,11 @@ public class ErrorTest {
         }
     }
 
-    public static class OnOpenExceptionEndpointServerApplicationConfiguration extends DefaultServerConfiguration {
+    public static class OnOpenExceptionEndpointServerApplicationConfiguration extends TyrusServerConfiguration {
         public OnOpenExceptionEndpointServerApplicationConfiguration() {
-            super(OnOpenExceptionEndpoint.class, "open");
-        }
-
-        @Override
-        public String getNegotiatedSubprotocol(List<String> requestedSubprotocols) {
-            return null;
-        }
-
-        @Override
-        public List<Extension> getNegotiatedExtensions(List<Extension> requestedExtensions) {
-            return requestedExtensions;
+            super(Collections.<Class<?>>emptySet(), new HashSet<ServerEndpointConfiguration>() {{
+                add(ServerEndpointConfigurationBuilder.create(OnOpenExceptionEndpoint.class, "/open").build());
+            }});
         }
     }
 
@@ -268,20 +252,18 @@ public class ErrorTest {
 
     @Test
     public void testErrorOnOpenProgrammatic() {
-        final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
         Server server = new Server(OnOpenExceptionEndpointServerApplicationConfiguration.class);
 
         try {
             server.start();
-            final TyrusClientEndpointConfiguration.Builder builder = new TyrusClientEndpointConfiguration.Builder();
-            final TyrusClientEndpointConfiguration dcec = builder.build();
+            final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
 
             messageLatch = new CountDownLatch(1);
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new TestEndpointAdapter() {
                 @Override
                 public EndpointConfiguration getEndpointConfiguration() {
-                    return dcec;
+                    return cec;
                 }
 
                 @Override
@@ -310,19 +292,11 @@ public class ErrorTest {
         }
     }
 
-    public static class OnMessageExceptionEndpointServerApplicationConfiguration extends DefaultServerConfiguration {
+    public static class OnMessageExceptionEndpointServerApplicationConfiguration extends TyrusServerConfiguration {
         public OnMessageExceptionEndpointServerApplicationConfiguration() {
-            super(OnMessageExceptionEndpoint.class, "open");
-        }
-
-        @Override
-        public String getNegotiatedSubprotocol(List<String> requestedSubprotocols) {
-            return null;
-        }
-
-        @Override
-        public List<Extension> getNegotiatedExtensions(List<Extension> requestedExtensions) {
-            return requestedExtensions;
+            super(Collections.<Class<?>>emptySet(), new HashSet<ServerEndpointConfiguration>() {{
+                add(ServerEndpointConfigurationBuilder.create(OnMessageExceptionEndpoint.class, "/open").build());
+            }});
         }
     }
 
@@ -350,26 +324,24 @@ public class ErrorTest {
 
     @Test
     public void testErrorOnMessageProgrammatic() {
-        final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
         Server server = new Server(OnMessageExceptionEndpointServerApplicationConfiguration.class);
 
         try {
             server.start();
-            final TyrusClientEndpointConfiguration.Builder builder = new TyrusClientEndpointConfiguration.Builder();
-            final TyrusClientEndpointConfiguration dcec = builder.build();
+            final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
 
             messageLatch = new CountDownLatch(1);
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new TestEndpointAdapter() {
                 @Override
                 public EndpointConfiguration getEndpointConfiguration() {
-                    return dcec;
+                    return cec;
                 }
 
                 @Override
                 public void onOpen(Session session) {
                     try {
-                        session.getRemote().sendString("Do or do not, there is no try.");
+                        session.getBasicRemote().sendText("Do or do not, there is no try.");
                     } catch (IOException e) {
                         fail();
                     }

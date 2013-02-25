@@ -48,16 +48,15 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.ClientEndpointConfigurationBuilder;
 import javax.websocket.EncodeException;
 import javax.websocket.EndpointConfiguration;
+import javax.websocket.OnMessage;
+import javax.websocket.OnOpen;
 import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
-import javax.websocket.WebSocketMessage;
-import javax.websocket.WebSocketOpen;
-import javax.websocket.server.DefaultServerConfiguration;
-import javax.websocket.server.WebSocketEndpoint;
+import javax.websocket.server.ServerEndpoint;
 
-import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
@@ -73,7 +72,7 @@ import static org.junit.Assert.assertTrue;
 public class BroadcasterTest {
     private static final String SENT_MESSAGE = "Hello World";
 
-    private final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
+    private final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
 
     @Ignore
     @Test
@@ -103,7 +102,7 @@ public class BroadcasterTest {
                 }
             }
 
-            ea1.peer.sendString(SENT_MESSAGE);
+            ea1.peer.sendText(SENT_MESSAGE);
 
             assertTrue("Timeout reached. Message latch value: " + messageLatch.getCount(),
                     messageLatch.await(5, TimeUnit.SECONDS));
@@ -117,7 +116,7 @@ public class BroadcasterTest {
 
     private static class TEndpointAdapter extends TestEndpointAdapter {
         private final CountDownLatch messageLatch;
-        public RemoteEndpoint peer;
+        public RemoteEndpoint.Basic peer;
 
         TEndpointAdapter(CountDownLatch messageLatch) {
             this.messageLatch = messageLatch;
@@ -130,7 +129,7 @@ public class BroadcasterTest {
 
         @Override
         public synchronized void onOpen(Session session) {
-            this.peer = session.getRemote();
+            this.peer = session.getBasicRemote();
             notifyAll();
         }
 
@@ -144,20 +143,20 @@ public class BroadcasterTest {
      * @author Martin Matula (martin.matula at oracle.com)
      * @author Stepan Kopriva (stepan.kopriva at oracle.com)
      */
-    @WebSocketEndpoint(value = "/broadcast", configuration = DefaultServerConfiguration.class)
+    @ServerEndpoint(value = "/broadcast")
     public static class BroadcasterTestEndpoint {
 
         private Set<Session> connections = new HashSet<Session>();
 
-        @WebSocketOpen
+        @OnOpen
         public void onOpen(Session session) {
             connections.add(session);
         }
 
-        @WebSocketMessage
+        @OnMessage
         public void message(String message, Session session) throws IOException, EncodeException {
             for (Session s : connections) {
-                s.getRemote().sendString(message);
+                s.getBasicRemote().sendText(message);
             }
         }
     }

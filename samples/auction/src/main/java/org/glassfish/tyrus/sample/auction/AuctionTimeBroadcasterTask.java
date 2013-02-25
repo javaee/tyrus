@@ -71,7 +71,7 @@ public class AuctionTimeBroadcasterTask extends TimerTask {
 
                 for (Session arc : owner.getRemoteClients()) {
                     try {
-                        arc.getRemote().sendString(atbm.asString());
+                        arc.getBasicRemote().sendText(atbm.asString());
                     } catch (IOException ex) {
                         Logger.getLogger(PreAuctionTimeBroadcasterTask.class.getName()).log(Level.SEVERE, null, ex);
                     }

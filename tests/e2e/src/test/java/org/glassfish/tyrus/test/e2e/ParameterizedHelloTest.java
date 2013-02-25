@@ -45,13 +45,12 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.ClientEndpointConfigurationBuilder;
 import javax.websocket.EndpointConfiguration;
+import javax.websocket.OnMessage;
 import javax.websocket.Session;
-import javax.websocket.WebSocketMessage;
-import javax.websocket.server.DefaultServerConfiguration;
-import javax.websocket.server.WebSocketEndpoint;
+import javax.websocket.server.ServerEndpoint;
 
-import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
@@ -71,15 +70,13 @@ public class ParameterizedHelloTest {
 
     @Test
     public void testHello() {
-        final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
         Server server = new Server(ParameterizedHelloTestEndpoint.class);
 
         try {
             server.start();
             messageLatch = new CountDownLatch(1);
 
-            final TyrusClientEndpointConfiguration.Builder builder = new TyrusClientEndpointConfiguration.Builder();
-            final TyrusClientEndpointConfiguration dcec = builder.build();
+            final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
 
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new TestEndpointAdapter() {
@@ -92,7 +89,7 @@ public class ParameterizedHelloTest {
                 public void onOpen(Session session) {
                     try {
                         session.addMessageHandler(new TestTextMessageHandler(this));
-                        session.getRemote().sendString(SENT_MESSAGE);
+                        session.getBasicRemote().sendText(SENT_MESSAGE);
                         System.out.println("Hello message sent.");
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -118,10 +115,10 @@ public class ParameterizedHelloTest {
     /**
      * @author Pavel Bucek (pavel.bucek at oracle.com)
      */
-    @WebSocketEndpoint(value = "/hello/{test}/one/{rest: .*}", configuration = DefaultServerConfiguration.class)
+    @ServerEndpoint(value = "/hello/{test}/one/{rest: .*}")
     public static class ParameterizedHelloTestEndpoint {
 
-        @WebSocketMessage
+        @OnMessage
         public String doThat(String message, Session peer) {
             return message;
         }

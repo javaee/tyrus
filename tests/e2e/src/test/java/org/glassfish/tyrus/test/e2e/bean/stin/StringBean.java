@@ -40,17 +40,16 @@
 
 package org.glassfish.tyrus.test.e2e.bean.stin;
 
-import javax.websocket.WebSocketMessage;
-import javax.websocket.server.DefaultServerConfiguration;
-import javax.websocket.server.WebSocketEndpoint;
+import javax.websocket.OnMessage;
+import javax.websocket.server.ServerEndpoint;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)
  */
-@WebSocketEndpoint(value = "/standardInputTypes/String", configuration = DefaultServerConfiguration.class)
+@ServerEndpoint(value = "/standardInputTypes/String")
 public class StringBean {
 
-    @WebSocketMessage
+    @OnMessage
     public String stringTest(String s) {
         if (s.equals("String")) {
             return Util.PASS;

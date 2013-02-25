@@ -40,17 +40,16 @@
 
 package org.glassfish.tyrus.tests.servlet.twoappconfig;
 
-import javax.websocket.WebSocketMessage;
-import javax.websocket.server.DefaultServerConfiguration;
-import javax.websocket.server.WebSocketEndpoint;
+import javax.websocket.OnMessage;
+import javax.websocket.server.ServerEndpoint;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-@WebSocketEndpoint(value = "/plainTwo", configuration = DefaultServerConfiguration.class)
+@ServerEndpoint(value = "/plainTwo")
 public class PlainTwo{
 
-    @WebSocketMessage
+    @OnMessage
     public String onMessage(String s) {
         return "2";
     }

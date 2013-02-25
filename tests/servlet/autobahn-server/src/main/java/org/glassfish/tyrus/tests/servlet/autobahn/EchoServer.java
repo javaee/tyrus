@@ -44,29 +44,28 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.websocket.OnMessage;
 import javax.websocket.Session;
-import javax.websocket.WebSocketMessage;
-import javax.websocket.server.DefaultServerConfiguration;
-import javax.websocket.server.WebSocketEndpoint;
+import javax.websocket.server.ServerEndpoint;
 
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-@WebSocketEndpoint(value = "/echo", configuration = DefaultServerConfiguration.class)
+@ServerEndpoint(value = "/echo")
 public class EchoServer {
 
-    @WebSocketMessage
+    @OnMessage
     public String onText(String text) {
         return text;
     }
 
     private StringBuilder message = new StringBuilder();
 
-    @WebSocketMessage
+    @OnMessage
     public void onPartialText(Session session, String text, boolean last) {
         if(last) {
             try {
-                session.getRemote().sendString(message.append(text).toString());
+                session.getBasicRemote().sendText(message.append(text).toString());
             } catch (IOException e) {
                 //
             }
@@ -76,14 +75,14 @@ public class EchoServer {
         }
     }
 
-    @WebSocketMessage
+    @OnMessage
     public ByteBuffer onBinary(ByteBuffer binary) {
         return binary;
     }
 
     private List<byte[]> buffer = new ArrayList<byte[]>();
 
-    @WebSocketMessage
+    @OnMessage
     public void onPartialBinary(Session session, ByteBuffer binary, boolean last) {
         if(last) {
             try {
@@ -97,7 +96,7 @@ public class EchoServer {
                     }
                 }
 
-                session.getRemote().sendBytes(b);
+                session.getBasicRemote().sendBinary(b);
             } catch (IOException e) {
                 //
             }

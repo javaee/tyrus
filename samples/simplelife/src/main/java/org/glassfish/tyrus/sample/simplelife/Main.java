@@ -40,8 +40,6 @@
 
 package org.glassfish.tyrus.sample.simplelife;
 
-import java.io.IOException;
-
 import org.glassfish.tyrus.server.Server;
 
 /**

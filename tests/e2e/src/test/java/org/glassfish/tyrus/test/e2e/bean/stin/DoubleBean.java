@@ -40,18 +40,16 @@
 package org.glassfish.tyrus.test.e2e.bean.stin;
 
 
-import javax.websocket.WebSocketMessage;
-import javax.websocket.server.DefaultServerConfiguration;
-import javax.websocket.server.WebSocketEndpoint;
+import javax.websocket.OnMessage;
+import javax.websocket.server.ServerEndpoint;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)
  */
-@WebSocketEndpoint(
-        value = "/standardInputTypes/double", configuration = DefaultServerConfiguration.class)
+@ServerEndpoint("/standardInputTypes/double")
 public class DoubleBean {
 
-    @WebSocketMessage
+    @OnMessage
     public String doubleTest(double d) {
         if (d == 42.0) {
             return Util.PASS;

@@ -45,13 +45,12 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.ClientEndpointConfigurationBuilder;
 import javax.websocket.MessageHandler;
+import javax.websocket.OnOpen;
 import javax.websocket.Session;
-import javax.websocket.WebSocketOpen;
-import javax.websocket.server.DefaultServerConfiguration;
-import javax.websocket.server.WebSocketEndpoint;
+import javax.websocket.server.ServerEndpoint;
 
-import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
@@ -67,7 +66,7 @@ public class HelloBinaryTest {
 
     @Test
     public void testClient() {
-        final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
+        final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
         Server server = new Server(HelloBinaryEndpoint.class);
 
         try {
@@ -92,10 +91,10 @@ public class HelloBinaryTest {
      * @author Danny Coward (danny.coward at oracle.com)
      */
 
-    @WebSocketEndpoint(value = "/hellobinary", configuration = DefaultServerConfiguration.class)
+    @ServerEndpoint(value = "/hellobinary")
     public static class HelloBinaryEndpoint {
 
-        @WebSocketOpen
+        @OnOpen
         public void init(Session session) {
             System.out.println("HELLOBSERVER opened");
             session.addMessageHandler(new MyMessageHandler(session));
@@ -112,7 +111,7 @@ public class HelloBinaryTest {
             public void onMessage(ByteBuffer message) {
                 System.out.println("HELLOBSERVER got  message: " + message);
                 try {
-                    session.getRemote().sendBytes(message);
+                    session.getBasicRemote().sendBinary(message);
                 } catch (Exception e) {
 
                 }

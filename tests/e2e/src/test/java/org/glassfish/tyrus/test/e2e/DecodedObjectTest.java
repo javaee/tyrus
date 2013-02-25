@@ -46,6 +46,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.ClientEndpointConfigurationBuilder;
 import javax.websocket.DecodeException;
 import javax.websocket.Decoder;
 import javax.websocket.Endpoint;
@@ -53,7 +54,6 @@ import javax.websocket.EndpointConfiguration;
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 
-import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.e2e.bean.TestEndpoint;
@@ -78,7 +78,7 @@ public class DecodedObjectTest {
 
     private static final String SENT_MESSAGE = "hello";
 
-    private final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
+    private final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
 
     @Ignore
     @Test
@@ -91,9 +91,7 @@ public class DecodedObjectTest {
             messageLatch = new CountDownLatch(1);
             ArrayList<Decoder> decoders = new ArrayList<Decoder>();
             decoders.add(new CustomDecoder());
-            TyrusClientEndpointConfiguration.Builder builder = new TyrusClientEndpointConfiguration.Builder();
-            builder.decoders(decoders);
-            final TyrusClientEndpointConfiguration dcec = builder.build();
+            final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().decoders(decoders).build();
 
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new Endpoint() {
@@ -107,7 +105,7 @@ public class DecodedObjectTest {
                 public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
                     try {
                         session.addMessageHandler(new DecodedMessageHandler());
-                        session.getRemote().sendString(SENT_MESSAGE);
+                        session.getBasicRemote().sendText(SENT_MESSAGE);
                         System.out.println("Sent message: " + SENT_MESSAGE);
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -136,9 +134,7 @@ public class DecodedObjectTest {
             messageLatch = new CountDownLatch(1);
             ArrayList<Decoder> decoders = new ArrayList<Decoder>();
             decoders.add(new ExtendedDecoder());
-            TyrusClientEndpointConfiguration.Builder builder = new TyrusClientEndpointConfiguration.Builder();
-            builder.decoders(decoders);
-            final TyrusClientEndpointConfiguration dcec = builder.build();
+            final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().decoders(decoders).build();
 
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new Endpoint() {
@@ -153,7 +149,7 @@ public class DecodedObjectTest {
                     try {
                         session.addMessageHandler(new ObjectMessageHandler());
                         session.addMessageHandler(new DecodedMessageHandler());
-                        session.getRemote().sendString(SENT_MESSAGE);
+                        session.getBasicRemote().sendText(SENT_MESSAGE);
                         System.out.println("Sent message: " + SENT_MESSAGE);
                     } catch (IOException e) {
                         e.printStackTrace();

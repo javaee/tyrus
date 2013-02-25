@@ -43,17 +43,16 @@ package org.glassfish.tyrus.sample.trading.wsbeans;
 
 import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
-import javax.websocketWebSocketEndpoint;
-import javax.websocketWebSocketMessage;
+
 import javax.servlet.http.HttpSession;
 
-@WebSocketEndpoint(
+@ServerEndpoint(
         path = "/httpsession"
 )
 
 public class HttpSessionTest {
 
-    @WebSocketMessage
+    @OnMessage
     public String doThis(String thiz, RemoteEndpoint remote) {
         Session wsSession = remote.getSession();
         HttpSession httpSession = wsSession.getHttpSession();

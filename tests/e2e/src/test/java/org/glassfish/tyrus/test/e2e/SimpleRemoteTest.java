@@ -46,10 +46,11 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.ClientEndpointConfigurationBuilder;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.Session;
 
-import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.e2e.bean.SimpleRemoteTestEndpoint;
@@ -76,21 +77,21 @@ public class SimpleRemoteTest {
 
         try {
             server.start();
-            TyrusClientEndpointConfiguration.Builder builder = new TyrusClientEndpointConfiguration.Builder();
-            final TyrusClientEndpointConfiguration dcec = builder.build();
+
+            final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
 
             final ClientManager client = ClientManager.createClient();
             client.connectToServer(new TestEndpointAdapter() {
                 @Override
                 public EndpointConfiguration getEndpointConfiguration() {
-                    return dcec;
+                    return cec;
                 }
 
                 @Override
                 public void onOpen(Session session) {
                     try {
                         session.addMessageHandler(new TestTextMessageHandler(this));
-                        session.getRemote().sendString(SENT_MESSAGE);
+                        session.getBasicRemote().sendText(SENT_MESSAGE);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -101,7 +102,8 @@ public class SimpleRemoteTest {
                     receivedMessage = message;
                     messageLatch.countDown();
                 }
-            }, dcec, new URI("ws://localhost:8025/websockets/tests/customremote/hello"));
+            }, cec, new URI("ws://localhost:8025/websockets/tests/customremote/hello"));
+
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertTrue("The received message is the same as the sent one", receivedMessage.equals(SENT_MESSAGE));
         } catch (Exception e) {
@@ -126,29 +128,28 @@ public class SimpleRemoteTest {
                 @Override
                 public void run() {
                     try {
-                        final TyrusClientEndpointConfiguration.Builder builder = new TyrusClientEndpointConfiguration.Builder();
-                        final TyrusClientEndpointConfiguration dcec = builder.build();
+                        final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
 
                         final CountDownLatch perClientLatch = new CountDownLatch(2);
                         final String[] message = new String[]{SENT_MESSAGE + msgNumber.incrementAndGet(),
                                 SENT_MESSAGE + msgNumber.incrementAndGet()};
-                        // replace ClientManager with MockWebSocketClient to confirm the test passes if the backend
+                        // replace ClientManager with MockClientEndpoint to confirm the test passes if the backend
                         // does not have issues
                         final ClientManager client = ClientManager.createClient();
                         client.connectToServer(new TestEndpointAdapter() {
 
                             @Override
                             public EndpointConfiguration getEndpointConfiguration() {
-                                return dcec;
+                                return cec;
                             }
 
                             @Override
                             public void onOpen(Session session) {
                                 try {
                                     session.addMessageHandler(new TestTextMessageHandler(this));
-                                    session.getRemote().sendString(message[1]);
+                                    session.getBasicRemote().sendText(message[1]);
                                     Thread.sleep(1000);
-                                    session.getRemote().sendString(message[0]);
+                                    session.getBasicRemote().sendText(message[0]);
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                 }
@@ -161,7 +162,7 @@ public class SimpleRemoteTest {
                                 assertEquals(testString, s);
                                 messageLatch.countDown();
                             }
-                        }, dcec, new URI("ws://localhost:8025/websockets/tests/customremote/hello"));
+                        }, cec, new URI("ws://localhost:8025/websockets/tests/customremote/hello"));
                         perClientLatch.await(5, TimeUnit.SECONDS);
                     } catch (Exception e) {
                         e.printStackTrace();

@@ -47,15 +47,14 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.ClientEndpointConfigurationBuilder;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.MessageHandler;
+import javax.websocket.OnOpen;
 import javax.websocket.Session;
-import javax.websocket.WebSocketOpen;
-import javax.websocket.server.DefaultServerConfiguration;
-import javax.websocket.server.WebSocketEndpoint;
+import javax.websocket.server.ServerEndpoint;
 
-import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
@@ -74,7 +73,7 @@ public class BlockingStreamingTextTest {
     @Ignore
     @Test
     public void testBlockingStreamingTextServer() {
-        final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
+        final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
 
         Server server = new Server(BlockingStreamingTextEndpoint.class);
 
@@ -102,7 +101,7 @@ public class BlockingStreamingTextTest {
      * @author Danny Coward (danny.coward at oracle.com)
      * @author Martin Matula (martin.matula at oracle.com)
      */
-    @WebSocketEndpoint(value = "/blockingstreaming", configuration = DefaultServerConfiguration.class)
+    @ServerEndpoint(value = "/blockingstreaming")
     public static class BlockingStreamingTextEndpoint extends Endpoint {
         class MyCharacterStreamHandler implements MessageHandler.Async<Reader> {
             Session session;
@@ -125,7 +124,7 @@ public class BlockingStreamingTextTest {
                     String receivedMessage = sb.toString();
                     System.out.println("BLOCKINGSTREAMSERVER received: " + receivedMessage);
 
-                    Writer w = session.getRemote().getSendWriter();
+                    Writer w = session.getBasicRemote().getSendWriter();
                     w.write(receivedMessage.substring(0, 4));
                     w.write(receivedMessage.substring(4, receivedMessage.length()));
                     w.close();
@@ -136,7 +135,7 @@ public class BlockingStreamingTextTest {
             }
         }
 
-        @WebSocketOpen
+        @OnOpen
         public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
             System.out.println("BLOCKINGSERVER opened !");
             session.addMessageHandler(new MyCharacterStreamHandler(session));
@@ -189,11 +188,11 @@ public class BlockingStreamingTextTest {
                 String part;
                 for (int i = 0; i < 10; i++) {
                     part = "blk" + i;
-                    session.getRemote().sendPartialString(part, false);
+                    session.getBasicRemote().sendText(part, false);
                     sb.append(part);
                 }
                 part = "END";
-                session.getRemote().sendPartialString(part, true);
+                session.getBasicRemote().sendText(part, true);
                 sb.append(part);
                 sentMessage = sb.toString();
                 System.out.println("BLOCKINGCLIENT: Sent" + sentMessage);

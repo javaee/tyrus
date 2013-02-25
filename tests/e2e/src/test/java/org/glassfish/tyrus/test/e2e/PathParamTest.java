@@ -45,15 +45,14 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.ClientEndpointConfigurationBuilder;
 import javax.websocket.EndpointConfiguration;
+import javax.websocket.OnError;
+import javax.websocket.OnMessage;
 import javax.websocket.Session;
-import javax.websocket.WebSocketError;
-import javax.websocket.WebSocketMessage;
-import javax.websocket.server.DefaultServerConfiguration;
-import javax.websocket.server.WebSocketEndpoint;
-import javax.websocket.server.WebSocketPathParam;
+import javax.websocket.server.PathParam;
+import javax.websocket.server.ServerEndpoint;
 
-import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
@@ -74,14 +73,14 @@ public class PathParamTest {
 
     private static final String SENT_MESSAGE = "Hello World";
 
-    @WebSocketEndpoint(value = "/pathparam/{first}/{second}/{third: .*}", configuration = DefaultServerConfiguration.class)
+    @ServerEndpoint(value = "/pathparam/{first}/{second}/{third: .*}")
     public static class PathParamTestEndpoint {
 
-        @WebSocketMessage
-        public String doThat(@WebSocketPathParam("first") String first,
-                             @WebSocketPathParam("second") String second,
-                             @WebSocketPathParam("third") String third,
-                             @WebSocketPathParam("fourth") String fourth,
+        @OnMessage
+        public String doThat(@PathParam("first") String first,
+                             @PathParam("second") String second,
+                             @PathParam("third") String third,
+                             @PathParam("fourth") String fourth,
                              String message, Session peer) {
 
             assertNotNull(first);
@@ -97,15 +96,13 @@ public class PathParamTest {
 
     @Test
     public void testPathParam() {
-        final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
         Server server = new Server(PathParamTestEndpoint.class);
 
         try {
             server.start();
             messageLatch = new CountDownLatch(1);
 
-            final TyrusClientEndpointConfiguration.Builder builder = new TyrusClientEndpointConfiguration.Builder();
-            final TyrusClientEndpointConfiguration dcec = builder.build();
+            final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
 
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new TestEndpointAdapter() {
@@ -118,7 +115,7 @@ public class PathParamTest {
                 public void onOpen(Session session) {
                     try {
                         session.addMessageHandler(new TestTextMessageHandler(this));
-                        session.getRemote().sendString(SENT_MESSAGE);
+                        session.getBasicRemote().sendText(SENT_MESSAGE);
                         System.out.println("Hello message sent.");
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -141,15 +138,15 @@ public class PathParamTest {
         }
     }
 
-    @WebSocketEndpoint(value = "/pathparam/{first}/{second}/", configuration = DefaultServerConfiguration.class)
+    @ServerEndpoint(value = "/pathparam/{first}/{second}/")
     public static class PathParamTestBeanError {
 
         public static boolean onErrorCalled = false;
         public static Throwable onErrorThrowable = null;
 
-        @WebSocketMessage
-        public String doThat(@WebSocketPathParam("first") String first,
-                             @WebSocketPathParam("second") Integer second,
+        @OnMessage
+        public String doThat(@PathParam("first") String first,
+                             @PathParam("second") Integer second,
                              String message, Session peer) {
 
             assertNotNull(first);
@@ -160,7 +157,7 @@ public class PathParamTest {
             return message + first + second;
         }
 
-        @WebSocketError
+        @OnError
         public void onError(Throwable t) {
             onErrorCalled = true;
             onErrorThrowable = t;
@@ -169,15 +166,13 @@ public class PathParamTest {
 
     @Test
     public void testPathParamError() {
-        final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
         Server server = new Server(PathParamTestBeanError.class);
 
         try {
             server.start();
             messageLatch = new CountDownLatch(1);
 
-            final TyrusClientEndpointConfiguration.Builder builder = new TyrusClientEndpointConfiguration.Builder();
-            final TyrusClientEndpointConfiguration dcec = builder.build();
+            final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
 
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new TestEndpointAdapter() {
@@ -190,7 +185,7 @@ public class PathParamTest {
                 public void onOpen(Session session) {
                     try {
                         session.addMessageHandler(new TestTextMessageHandler(this));
-                        session.getRemote().sendString(SENT_MESSAGE);
+                        session.getBasicRemote().sendText(SENT_MESSAGE);
                         System.out.println("Hello message sent.");
                     } catch (IOException e) {
                         e.printStackTrace();

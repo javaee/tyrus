@@ -75,7 +75,7 @@ public class HelloBinaryClient extends Endpoint {
                     messageLatch.countDown();
                 }
             });
-            session.getRemote().sendBytes(ByteBuffer.wrap(MESSAGE.getBytes()));
+            session.getBasicRemote().sendBinary(ByteBuffer.wrap(MESSAGE.getBytes()));
 
         } catch (Exception e) {
             e.printStackTrace();

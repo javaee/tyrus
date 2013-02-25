@@ -71,14 +71,14 @@ import org.glassfish.tyrus.websockets.WebSocketRequest;
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class TyrusServletFilter implements Filter {
+class TyrusServletFilter implements Filter {
 
     private static final int INFORMATIONAL_FIXED_PORT = 8080;
     private final static Logger LOGGER = Logger.getLogger(TyrusServletFilter.class.getName());
     private final WebSocketEngine engine;
     private TyrusServerContainer serverContainer = null;
 
-    // @WebSocketEndpoint annotated classes and classes extending ServerApplicationConfiguration
+    // @ServerEndpoint annotated classes and classes extending ServerApplicationConfiguration
     private final Set<Class<?>> classes;
 
     /**

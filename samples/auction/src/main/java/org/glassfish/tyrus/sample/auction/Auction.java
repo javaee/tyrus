@@ -139,7 +139,7 @@ public class Auction {
         this.addArc(arc);
         AuctionMessage.LoginResponseMessage response = new AuctionMessage.LoginResponseMessage(id, item);
         try {
-            arc.getRemote().sendObject(response);
+            arc.getBasicRemote().sendObject(response);
         } catch (IOException | EncodeException e) {
             Logger.getLogger(Auction.class.getName()).log(Level.SEVERE, null, e);
         }
@@ -167,7 +167,7 @@ public class Auction {
         AuctionMessage.PriceUpdateResponseMessage purm = new AuctionMessage.PriceUpdateResponseMessage(id, "" + bestBid);
         for (Session arc : getRemoteClients()) {
             try {
-                arc.getRemote().sendObject(purm);
+                arc.getBasicRemote().sendObject(purm);
             } catch (IOException | EncodeException e) {
                 Logger.getLogger(Auction.class.getName()).log(Level.SEVERE, null, e);
             }
@@ -199,7 +199,7 @@ public class Auction {
         if (bestBidder != null) {
             AuctionMessage.ResultMessage winnerMessage = new AuctionMessage.ResultMessage(id, "Congratulations, You have won the auction.");
             try {
-                bestBidder.getRemote().sendObject(winnerMessage);
+                bestBidder.getBasicRemote().sendObject(winnerMessage);
             } catch (IOException | EncodeException e) {
                 Logger.getLogger(Auction.class.getName()).log(Level.SEVERE, null, e);
             }
@@ -209,7 +209,7 @@ public class Auction {
         for (Session arc : arcList) {
             if (arc != bestBidder) {
                 try {
-                    arc.getRemote().sendObject(loserMessage);
+                    arc.getBasicRemote().sendObject(loserMessage);
                 } catch (IOException | EncodeException e) {
                     Logger.getLogger(Auction.class.getName()).log(Level.SEVERE, null, e);
                 }

@@ -45,10 +45,10 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.ClientEndpointConfigurationBuilder;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.Session;
 
-import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.e2e.bean.TestEndpoint;
@@ -72,7 +72,7 @@ public class ClientTest {
 
     @Test
     public void testClient() {
-        final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
+        final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
         Server server = new Server(TestEndpoint.class);
 
         try {
@@ -81,7 +81,7 @@ public class ClientTest {
 
             ClientManager client = ClientManager.createClient();
             final Session clientSession = client.connectToServer(new TestEndpointAdapter() {
-                private final ClientEndpointConfiguration configuration = new TyrusClientEndpointConfiguration.Builder().build();
+                private final ClientEndpointConfiguration configuration = ClientEndpointConfigurationBuilder.create().build();
 
                 @Override
                 public void onMessage(String message) {
@@ -100,7 +100,7 @@ public class ClientTest {
                     ClientTest.session = session;
                     try {
                         session.addMessageHandler(new TestTextMessageHandler(this));
-                        session.getRemote().sendString(SENT_MESSAGE);
+                        session.getBasicRemote().sendText(SENT_MESSAGE);
                         System.out.println("Sent message: " + SENT_MESSAGE);
                     } catch (IOException e) {
                         e.printStackTrace();

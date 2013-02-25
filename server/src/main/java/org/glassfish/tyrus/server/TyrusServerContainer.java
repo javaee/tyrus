@@ -57,12 +57,11 @@ import javax.websocket.WebSocketContainer;
 import javax.websocket.server.ServerApplicationConfiguration;
 import javax.websocket.server.ServerEndpointConfiguration;
 
-import org.glassfish.tyrus.AnnotatedEndpoint;
-import org.glassfish.tyrus.ComponentProviderService;
-import org.glassfish.tyrus.EndpointWrapper;
-import org.glassfish.tyrus.ErrorCollector;
-import org.glassfish.tyrus.ReflectionHelper;
-import org.glassfish.tyrus.WithProperties;
+import org.glassfish.tyrus.core.AnnotatedEndpoint;
+import org.glassfish.tyrus.core.ComponentProviderService;
+import org.glassfish.tyrus.core.EndpointWrapper;
+import org.glassfish.tyrus.core.ErrorCollector;
+import org.glassfish.tyrus.core.WithProperties;
 import org.glassfish.tyrus.spi.SPIRegisteredEndpoint;
 import org.glassfish.tyrus.spi.TyrusServer;
 
@@ -81,7 +80,7 @@ public class TyrusServerContainer extends WithProperties implements WebSocketCon
     private final ErrorCollector collector;
     private final ComponentProviderService componentProvider;
 
-    private long maxSessionIdleTimeout = 0;
+    private long defaultMaxSessionIdleTimeout = 0;
     private long defaultAsyncSendTimeout = 0;
     private int maxTextMessageBufferSize = 0;
     private int maxBinaryMessageBufferSize = 0;
@@ -92,14 +91,14 @@ public class TyrusServerContainer extends WithProperties implements WebSocketCon
      * @param server      underlying server.
      * @param contextPath context path of current application.
      * @param classes     classes to be included in this application instance. Can contain any combination of annotated
-     *                    endpoints (see {@link javax.websocket.server.WebSocketEndpoint}) or {@link javax.websocket.Endpoint} descendants.
+     *                    endpoints (see {@link javax.websocket.server.ServerEndpoint}) or {@link javax.websocket.Endpoint} descendants.
      */
     public TyrusServerContainer(final TyrusServer server, final String contextPath,
                                 final Set<Class<?>> classes) {
         this.collector = new ErrorCollector();
         this.server = server;
         this.contextPath = contextPath;
-        this.configuration = new TyrusServerConfiguration(classes, this.collector);
+        this.configuration = new TyrusServerConfiguration(classes, Collections.<ServerEndpointConfiguration>emptySet(), this.collector);
         componentProvider = ComponentProviderService.create(collector);
     }
 
@@ -117,15 +116,16 @@ public class TyrusServerContainer extends WithProperties implements WebSocketCon
             for (Class<?> endpointClass : configuration.getAnnotatedEndpointClasses(null)) {
                 AnnotatedEndpoint endpoint = AnnotatedEndpoint.fromClass(endpointClass, componentProvider, true, collector);
                 EndpointConfiguration config = endpoint.getEndpointConfiguration();
-                EndpointWrapper ew = new EndpointWrapper(endpoint, config, componentProvider, this, contextPath, collector);
+                EndpointWrapper ew = new EndpointWrapper(endpoint, config, componentProvider, this, contextPath, collector,
+                        config instanceof ServerEndpointConfiguration ? ((ServerEndpointConfiguration) config).getServerEndpointConfigurator() : null);
                 deploy(ew);
             }
 
             // deploy all the programmatic endpoints
-            for (Class<? extends ServerEndpointConfiguration> endpointClass : configuration.getEndpointConfigurationClasses(null)) {
-                ServerEndpointConfiguration seConfig = ReflectionHelper.getInstance(endpointClass, collector);
-                if (seConfig != null) {
-                    EndpointWrapper ew = new EndpointWrapper(seConfig.getEndpointClass(), seConfig, componentProvider, this, contextPath, collector);
+            for (ServerEndpointConfiguration serverEndpointConfiguration : configuration.getEndpointConfigurations(null)) {
+                if (serverEndpointConfiguration != null) {
+                    EndpointWrapper ew = new EndpointWrapper(serverEndpointConfiguration.getEndpointClass(),
+                            serverEndpointConfiguration, componentProvider, this, contextPath, collector, serverEndpointConfiguration.getServerEndpointConfigurator());
                     deploy(ew);
                 }
             }
@@ -167,16 +167,6 @@ public class TyrusServerContainer extends WithProperties implements WebSocketCon
     }
 
     @Override
-    public long getMaxSessionIdleTimeout() {
-        return maxSessionIdleTimeout;
-    }
-
-    @Override
-    public void setMaxSessionIdleTimeout(long timeout) {
-        this.maxSessionIdleTimeout = timeout;
-    }
-
-    @Override
     public int getDefaultMaxBinaryMessageBufferSize() {
         return maxBinaryMessageBufferSize;
     }
@@ -212,5 +202,15 @@ public class TyrusServerContainer extends WithProperties implements WebSocketCon
     @Override
     public void setAsyncSendTimeout(long timeoutmillis) {
         defaultAsyncSendTimeout = timeoutmillis;
+    }
+
+    @Override
+    public long getDefaultMaxSessionIdleTimeout() {
+        return defaultMaxSessionIdleTimeout;
+    }
+
+    @Override
+    public void setDefaultMaxSessionIdleTimeout(long defaultMaxSessionIdleTimeout) {
+        this.defaultMaxSessionIdleTimeout = defaultMaxSessionIdleTimeout;
     }
 }

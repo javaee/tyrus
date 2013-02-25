@@ -42,6 +42,7 @@ package org.glassfish.tyrus.sample.trading.wsbeans;
 
 import java.io.IOException;
 import java.util.List;
+
 import javax.websocket.EncodeException;
 import javax.websocket.RemoteEndpoint;
 

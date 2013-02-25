@@ -46,6 +46,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.ClientEndpointConfigurationBuilder;
 import javax.websocket.ContainerProvider;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfiguration;
@@ -53,7 +54,6 @@ import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
 
-import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.e2e.bean.EchoEndpoint;
@@ -76,28 +76,26 @@ public class HelloTest {
 
     @Test
     public void testHello() {
-        final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
         Server server = new Server(EchoEndpoint.class);
 
         try {
             server.start();
             messageLatch = new CountDownLatch(1);
 
-            final TyrusClientEndpointConfiguration.Builder builder = new TyrusClientEndpointConfiguration.Builder();
-            final TyrusClientEndpointConfiguration dcec = builder.build();
+            final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
 
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new TestEndpointAdapter() {
                 @Override
                 public EndpointConfiguration getEndpointConfiguration() {
-                    return dcec;
+                    return cec;
                 }
 
                 @Override
                 public void onOpen(Session session) {
                     try {
                         session.addMessageHandler(new TestTextMessageHandler(this));
-                        session.getRemote().sendString(SENT_MESSAGE);
+                        session.getBasicRemote().sendText(SENT_MESSAGE);
                         System.out.println("Hello message sent.");
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -127,7 +125,7 @@ public class HelloTest {
     // http://java.net/jira/browse/TYRUS-63
     @Test
     public void testHelloEndpointClass() {
-        final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
+        final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
         Server server = new Server(EchoEndpoint.class);
 
         try {
@@ -151,7 +149,7 @@ public class HelloTest {
         public void onOpen(Session session, EndpointConfiguration config) {
             try {
                 session.addMessageHandler(this);
-                session.getRemote().sendString(SENT_MESSAGE);
+                session.getBasicRemote().sendText(SENT_MESSAGE);
                 System.out.println("Hello message sent.");
             } catch (IOException e) {
                 e.printStackTrace();

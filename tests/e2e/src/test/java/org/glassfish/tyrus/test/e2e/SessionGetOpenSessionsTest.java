@@ -46,13 +46,13 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.ClientEndpointConfigurationBuilder;
+import javax.websocket.OnError;
+import javax.websocket.OnOpen;
 import javax.websocket.Session;
-import javax.websocket.WebSocketError;
-import javax.websocket.WebSocketOpen;
-import javax.websocket.server.DefaultServerConfiguration;
-import javax.websocket.server.WebSocketEndpoint;
+import javax.websocket.server.ServerEndpoint;
 
-import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
@@ -68,16 +68,16 @@ public class SessionGetOpenSessionsTest {
 
     private static Session session;
 
-    @WebSocketEndpoint(value = "/customremote/hello", configuration = DefaultServerConfiguration.class)
+    @ServerEndpoint(value = "/customremote/hello")
     public static class SessionTestEndpoint {
 
-        @WebSocketOpen
+        @OnOpen
         public void onOpen(Session s) {
             System.out.println("s ### opened! " + s);
             SessionGetOpenSessionsTest.session = s;
         }
 
-        @WebSocketError
+        @OnError
         public void onError(Throwable t) {
             t.printStackTrace();
         }
@@ -86,10 +86,10 @@ public class SessionGetOpenSessionsTest {
     @Test
     public void testGetOpenSessions() {
         final CountDownLatch messageLatch = new CountDownLatch(1);
-        TyrusClientEndpointConfiguration.Builder builder = new TyrusClientEndpointConfiguration.Builder();
-        final TyrusClientEndpointConfiguration dcec = builder.build();
 
         Server server = new Server(SessionTestEndpoint.class);
+
+        final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
 
         try {
             server.start();
@@ -101,7 +101,7 @@ public class SessionGetOpenSessionsTest {
                     public void onOpen(Session session) {
                         System.out.println("c ### opened! " + session);
                         try {
-                            session.getRemote().sendString("a");
+                            session.getBasicRemote().sendText("a");
                         } catch (IOException e) {
                             // nothing
                         }
@@ -110,7 +110,7 @@ public class SessionGetOpenSessionsTest {
                     @Override
                     public void onMessage(String s) {
                     }
-                }, dcec, new URI("ws://localhost:8025/websockets/tests/customremote/hello"));
+                }, cec, new URI("ws://localhost:8025/websockets/tests/customremote/hello"));
             }
 
             for (int i = 0; i < 2; i++) {
@@ -119,7 +119,7 @@ public class SessionGetOpenSessionsTest {
                     public void onOpen(Session session) {
                         System.out.println("c ### opened! " + session);
                         try {
-                            session.getRemote().sendString("a");
+                            session.getBasicRemote().sendText("a");
                         } catch (IOException e) {
                             // nothing
                         }
@@ -128,7 +128,7 @@ public class SessionGetOpenSessionsTest {
                     @Override
                     public void onMessage(String s) {
                     }
-                }, dcec, new URI("wss://localhost:8025/websockets/tests/customremote/hello"));
+                }, cec, new URI("wss://localhost:8025/websockets/tests/customremote/hello"));
             }
 
             messageLatch.await(1, TimeUnit.SECONDS);

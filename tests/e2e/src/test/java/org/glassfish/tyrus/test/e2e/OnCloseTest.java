@@ -45,16 +45,15 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.ClientEndpointConfigurationBuilder;
 import javax.websocket.CloseReason;
 import javax.websocket.EndpointConfiguration;
+import javax.websocket.OnClose;
+import javax.websocket.OnError;
+import javax.websocket.OnMessage;
 import javax.websocket.Session;
-import javax.websocket.WebSocketClose;
-import javax.websocket.WebSocketError;
-import javax.websocket.WebSocketMessage;
-import javax.websocket.server.DefaultServerConfiguration;
-import javax.websocket.server.WebSocketEndpoint;
+import javax.websocket.server.ServerEndpoint;
 
-import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
@@ -67,11 +66,11 @@ import static org.junit.Assert.assertNotNull;
  */
 public class OnCloseTest {
 
-    @WebSocketEndpoint(value = "/close")
+    @ServerEndpoint(value = "/close")
     public static class OnCloseEndpoint {
         public static Session session;
 
-        @WebSocketMessage
+        @OnMessage
         public String message(String message, Session session) {
             try {
                 session.close();
@@ -85,26 +84,25 @@ public class OnCloseTest {
 
     @Test
     public void testOnClose() {
-        final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
         Server server = new Server(OnCloseEndpoint.class);
 
         final CountDownLatch messageLatch = new CountDownLatch(1);
 
         try {
             server.start();
-            final TyrusClientEndpointConfiguration dcec = new TyrusClientEndpointConfiguration.Builder().build();
+            final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
 
             ClientManager.createClient().connectToServer(new TestEndpointAdapter() {
                 @Override
                 public EndpointConfiguration getEndpointConfiguration() {
-                    return dcec;
+                    return cec;
                 }
 
                 @Override
                 public void onOpen(Session session) {
                     session.addMessageHandler(new TestTextMessageHandler(this));
                     try {
-                        session.getRemote().sendString("message");
+                        session.getBasicRemote().sendText("message");
                     } catch (IOException e) {
                         // do nothing.
                     }
@@ -112,7 +110,7 @@ public class OnCloseTest {
 
                 @Override
                 public void onClose(Session session, CloseReason closeReason) {
-                    if (session != null && closeReason != null && closeReason.getCloseCode().getCode() == 1000) {
+                    if (closeReason != null && closeReason.getCloseCode().getCode() == 1000) {
                         messageLatch.countDown();
                     }
                 }
@@ -136,12 +134,12 @@ public class OnCloseTest {
 
     static final String CUSTOM_REASON = "When nine hundred years old you reach, look as good, you will not, hmmm?";
 
-    @WebSocketEndpoint(value = "/close", configuration = DefaultServerConfiguration.class)
+    @ServerEndpoint(value = "/close")
     public static class OnCloseWithCustomReasonEndpoint {
         public static Session session;
         public static volatile CloseReason closeReason;
 
-        @WebSocketMessage
+        @OnMessage
         public String message(String message, Session session) {
             try {
                 session.close(new CloseReason(new CloseReason.CloseCode() {
@@ -158,14 +156,12 @@ public class OnCloseTest {
             return "message";
         }
 
-        @WebSocketClose
+        @OnClose
         public void onClose(Session s, CloseReason c) {
-            if(s != null) {
-                closeReason = c;
-            }
+            closeReason = c;
         }
 
-        @WebSocketError
+        @OnError
         public void onError(Throwable t) {
             t.printStackTrace();
         }
@@ -173,26 +169,25 @@ public class OnCloseTest {
 
     @Test
     public void testOnCloseCustomCloseReasonServerInitiated() {
-        final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
         Server server = new Server(OnCloseWithCustomReasonEndpoint.class);
 
         final CountDownLatch messageLatch = new CountDownLatch(1);
 
         try {
             server.start();
-            final TyrusClientEndpointConfiguration dcec = new TyrusClientEndpointConfiguration.Builder().build();
+            final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
 
             ClientManager.createClient().connectToServer(new TestEndpointAdapter() {
                 @Override
                 public EndpointConfiguration getEndpointConfiguration() {
-                    return dcec;
+                    return cec;
                 }
 
                 @Override
                 public void onOpen(Session session) {
                     session.addMessageHandler(new TestTextMessageHandler(this));
                     try {
-                        session.getRemote().sendString("message");
+                        session.getBasicRemote().sendText("message");
                     } catch (IOException e) {
                         // do nothing.
                     }
@@ -200,7 +195,7 @@ public class OnCloseTest {
 
                 @Override
                 public void onClose(Session session, CloseReason closeReason) {
-                    if (session != null && closeReason != null &&
+                    if (closeReason != null &&
                             closeReason.getCloseCode().getCode() == 4000 &&
                             closeReason.getReasonPhrase().equals(CUSTOM_REASON)) {
                         messageLatch.countDown();
@@ -226,19 +221,18 @@ public class OnCloseTest {
 
     @Test
     public void testOnCloseCustomCloseReasonClientInitiated() {
-        final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
         Server server = new Server(OnCloseWithCustomReasonEndpoint.class);
 
         final CountDownLatch messageLatch = new CountDownLatch(1);
 
         try {
             server.start();
-            final TyrusClientEndpointConfiguration dcec = new TyrusClientEndpointConfiguration.Builder().build();
+            final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
 
             ClientManager.createClient().connectToServer(new TestEndpointAdapter() {
                 @Override
                 public EndpointConfiguration getEndpointConfiguration() {
-                    return dcec;
+                    return cec;
                 }
 
                 @Override

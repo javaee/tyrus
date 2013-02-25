@@ -48,14 +48,14 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import javax.websocket.ClientEndpointConfigurationBuilder;
 import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
-import javax.websocket.server.WebSocketEndpoint;
+import javax.websocket.server.ServerEndpoint;
 
-import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
@@ -154,12 +154,12 @@ public class OneServerApplicationConfigurationDeployTest {
                             }
                         });
 
-                        session.getRemote().sendString("Do or do not, there is no try.");
+                        session.getBasicRemote().sendText("Do or do not, there is no try.");
                     } catch (IOException e) {
                         // do nothing
                     }
                 }
-            }, new TyrusClientEndpointConfiguration.Builder().build(), getURI(PlainEcho.class.getAnnotation(WebSocketEndpoint.class).value()));
+            }, ClientEndpointConfigurationBuilder.create().build(), getURI(PlainEcho.class.getAnnotation(ServerEndpoint.class).value()));
 
             messageLatch.await(1, TimeUnit.SECONDS);
             Assert.assertEquals(0, messageLatch.getCount());
@@ -188,12 +188,12 @@ public class OneServerApplicationConfigurationDeployTest {
                             }
                         });
 
-                        session.getRemote().sendString("Do or do not, there is no try.");
+                        session.getBasicRemote().sendText("Do or do not, there is no try.");
                     } catch (IOException e) {
                         // do nothing
                     }
                 }
-            }, new TyrusClientEndpointConfiguration.Builder().build(), getURI(PlainOne.class.getAnnotation(WebSocketEndpoint.class).value()));
+            }, ClientEndpointConfigurationBuilder.create().build(), getURI(PlainOne.class.getAnnotation(ServerEndpoint.class).value()));
 
             messageLatch.await(1, TimeUnit.SECONDS);
             Assert.assertEquals(0, messageLatch.getCount());

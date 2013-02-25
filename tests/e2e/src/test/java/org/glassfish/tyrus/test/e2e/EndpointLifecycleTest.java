@@ -42,30 +42,27 @@ package org.glassfish.tyrus.test.e2e;
 
 import java.net.URI;
 import java.util.Collections;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.ClientEndpointConfigurationBuilder;
 import javax.websocket.CloseReason;
-import javax.websocket.Decoder;
-import javax.websocket.Encoder;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfiguration;
-import javax.websocket.Extension;
-import javax.websocket.HandshakeResponse;
+import javax.websocket.OnOpen;
 import javax.websocket.Session;
-import javax.websocket.WebSocketOpen;
-import javax.websocket.server.DefaultServerConfiguration;
-import javax.websocket.server.HandshakeRequest;
+import javax.websocket.server.ServerEndpoint;
 import javax.websocket.server.ServerEndpointConfiguration;
-import javax.websocket.server.WebSocketEndpoint;
+import javax.websocket.server.ServerEndpointConfigurationBuilder;
 
-import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
+import org.glassfish.tyrus.server.TyrusServerConfiguration;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -87,32 +84,31 @@ public class EndpointLifecycleTest {
 
         messageLatch = new CountDownLatch(iterations);
         final AtomicInteger msgNumber = new AtomicInteger(0);
-        Server server = new Server(ProgrammaticEndpointConfiguration.class);
+        Server server = new Server(ProgrammaticEndpointApplicationConfiguration.class);
 
         try {
             server.start();
 
             for (int i = 0; i < iterations; i++) {
                 try {
-                    final TyrusClientEndpointConfiguration.Builder builder = new TyrusClientEndpointConfiguration.Builder();
-                    final TyrusClientEndpointConfiguration dcec = builder.build();
+                    final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
 
                     final String message = SENT_MESSAGE + msgNumber.incrementAndGet();
-                    // replace ClientManager with MockWebSocketClient to confirm the test passes if the backend
+                    // replace ClientManager with MockClientEndpoint to confirm the test passes if the backend
                     // does not have issues
                     final ClientManager client = ClientManager.createClient();
                     client.connectToServer(new TestEndpointAdapter() {
 
                         @Override
                         public EndpointConfiguration getEndpointConfiguration() {
-                            return dcec;
+                            return cec;
                         }
 
                         @Override
                         public void onOpen(Session session) {
                             try {
                                 session.addMessageHandler(new TestTextMessageHandler(this));
-                                session.getRemote().sendString(message);
+                                session.getBasicRemote().sendText(message);
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
@@ -122,13 +118,13 @@ public class EndpointLifecycleTest {
                         public void onMessage(String s) {
 
                         }
-                    }, dcec, new URI("ws://localhost:8025/websockets/tests" + PATH));
+                    }, cec, new URI("ws://localhost:8025/websockets/tests" + PATH));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
 
-            messageLatch.await(2000, TimeUnit.SECONDS);
+            messageLatch.await(2, TimeUnit.SECONDS);
             Assert.assertEquals(iterations, EchoEndpoint.getInstancesIds().size());
         } catch (Exception e) {
             e.printStackTrace();
@@ -150,25 +146,24 @@ public class EndpointLifecycleTest {
 
             for (int i = 0; i < iterations; i++) {
                 try {
-                    final TyrusClientEndpointConfiguration.Builder builder = new TyrusClientEndpointConfiguration.Builder();
-                    final TyrusClientEndpointConfiguration dcec = builder.build();
+                    final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
 
                     final String message = SENT_MESSAGE + msgNumber.incrementAndGet();
-                    // replace ClientManager with MockWebSocketClient to confirm the test passes if the backend
+                    // replace ClientManager with MockClientEndpoint to confirm the test passes if the backend
                     // does not have issues
                     final ClientManager client = ClientManager.createClient();
                     client.connectToServer(new TestEndpointAdapter() {
 
                         @Override
                         public EndpointConfiguration getEndpointConfiguration() {
-                            return dcec;
+                            return cec;
                         }
 
                         @Override
                         public void onOpen(Session session) {
                             try {
                                 session.addMessageHandler(new TestTextMessageHandler(this));
-                                session.getRemote().sendString(message);
+                                session.getBasicRemote().sendText(message);
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
@@ -178,7 +173,7 @@ public class EndpointLifecycleTest {
                         public void onMessage(String s) {
 
                         }
-                    }, dcec, new URI("ws://localhost:8025/websockets/tests" + PATH));
+                    }, cec, new URI("ws://localhost:8025/websockets/tests" + PATH));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -194,30 +189,22 @@ public class EndpointLifecycleTest {
         }
     }
 
-    public static class ProgrammaticEndpointConfiguration extends ServerEndpointConfigurationAdapter {
+    public static class ProgrammaticEndpointApplicationConfiguration extends TyrusServerConfiguration {
 
-        @Override
-        public Class<? extends Endpoint> getEndpointClass() {
-            return EchoEndpoint.class;
-        }
-
-        @Override
-        public boolean matchesURI(URI uri) {
-            return true;
-        }
-
-        @Override
-        public String getPath() {
-            return PATH;
+        public ProgrammaticEndpointApplicationConfiguration() {
+            super(Collections.<Class<?>>emptySet(),
+                    new HashSet<ServerEndpointConfiguration>() {{
+                        add(ServerEndpointConfigurationBuilder.create(EchoEndpoint.class, PATH).build());
+                    }});
         }
     }
 
-    @WebSocketEndpoint(value = "/EndpointLifecycleTest", configuration = DefaultServerConfiguration.class)
+    @ServerEndpoint(value = "/EndpointLifecycleTest")
     public static class Annotated {
 
         private static final Set<String> instancesIds = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
 
-        @WebSocketOpen
+        @OnOpen
         public void onOpen(Session s) {
             instancesIds.add(this.toString());
             messageLatch.countDown();
@@ -245,38 +232,6 @@ public class EndpointLifecycleTest {
 
         public static Set<String> getInstancesIds() {
             return instancesIds;
-        }
-    }
-
-    public static abstract class ServerEndpointConfigurationAdapter implements ServerEndpointConfiguration {
-        @Override
-        public String getNegotiatedSubprotocol(List<String> requestedSubprotocols) {
-            return null;
-        }
-
-        @Override
-        public List<Extension> getNegotiatedExtensions(List<Extension> requestedExtensions) {
-            return Collections.emptyList();
-        }
-
-        @Override
-        public boolean checkOrigin(String originHeaderValue) {
-            return true;
-        }
-
-        @Override
-        public void modifyHandshake(HandshakeRequest request, HandshakeResponse response) {
-
-        }
-
-        @Override
-        public List<Encoder> getEncoders() {
-            return Collections.emptyList();
-        }
-
-        @Override
-        public List<Decoder> getDecoders() {
-            return Collections.emptyList();
         }
     }
 }

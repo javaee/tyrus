@@ -54,10 +54,10 @@ import org.glassfish.grizzly.GrizzlyFuture;
  *
  * @author Martin Matula (martin.matula at oracle.com)
  */
-class MockWebSocketClient implements WebSocket {
+class MockClientEndpoint implements WebSocket {
     private final WebSocketListener listener;
 
-    public MockWebSocketClient(String url, WebSocketListener listener) {
+    public MockClientEndpoint(String url, WebSocketListener listener) {
         this.listener = listener;
     }
 

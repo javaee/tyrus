@@ -46,16 +46,15 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.ClientEndpointConfigurationBuilder;
 import javax.websocket.EncodeException;
 import javax.websocket.Encoder;
 import javax.websocket.EndpointConfiguration;
+import javax.websocket.OnMessage;
+import javax.websocket.OnOpen;
 import javax.websocket.Session;
-import javax.websocket.WebSocketMessage;
-import javax.websocket.WebSocketOpen;
-import javax.websocket.server.DefaultServerConfiguration;
-import javax.websocket.server.WebSocketEndpoint;
+import javax.websocket.server.ServerEndpoint;
 
-import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.e2e.message.StringContainer;
@@ -78,7 +77,7 @@ public class EncodedObjectTest {
 
     @Test
     public void testEncodingReturnViaSession() {
-        final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
+        final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
         Server server = new Server(TestEncodeEndpoint.class);
 
         try {
@@ -103,7 +102,7 @@ public class EncodedObjectTest {
                 public void onOpen(Session session) {
                     try {
                         session.addMessageHandler(new TestTextMessageHandler(this));
-                        session.getRemote().sendString(SENT_MESSAGE);
+                        session.getBasicRemote().sendText(SENT_MESSAGE);
                         System.out.println("Sent message: " + SENT_MESSAGE);
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -121,20 +120,20 @@ public class EncodedObjectTest {
         }
     }
 
-    @WebSocketEndpoint(value = "/echo", encoders = {StringContainerEncoder.class}, configuration = DefaultServerConfiguration.class)
+    @ServerEndpoint(value = "/echo", encoders = {StringContainerEncoder.class})
     public static class TestEncodeEndpoint {
-        @WebSocketOpen
+        @OnOpen
         public void onOpen() {
             System.out.println("Client connected to the server!");
         }
 
-        @WebSocketMessage
+        @OnMessage
         public void helloWorld(String message, Session session) {
             try {
 
                 System.out.println("##### Encode Test Bean: Received message: " + message);
 
-                session.getRemote().sendObject(new StringContainer(message));
+                session.getBasicRemote().sendObject(new StringContainer(message));
             } catch (IOException | EncodeException e) {
                 e.printStackTrace();
             }
@@ -143,7 +142,7 @@ public class EncodedObjectTest {
 
     @Test
     public void testEncodingReturnFromMethod() {
-        final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
+        final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
         Server server = new Server(TestEncodeBeanMethodReturn.class);
 
         try {
@@ -168,7 +167,7 @@ public class EncodedObjectTest {
                 public void onOpen(Session session) {
                     try {
                         session.addMessageHandler(new TestTextMessageHandler(this));
-                        session.getRemote().sendString(SENT_MESSAGE);
+                        session.getBasicRemote().sendText(SENT_MESSAGE);
                         System.out.println("Sent message: " + SENT_MESSAGE);
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -186,10 +185,10 @@ public class EncodedObjectTest {
         }
     }
 
-    @WebSocketEndpoint(value = "/echo", encoders = {StringContainerEncoder.class}, configuration = DefaultServerConfiguration.class)
+    @ServerEndpoint(value = "/echo", encoders = {StringContainerEncoder.class})
     public static class TestEncodeBeanMethodReturn {
 
-        @WebSocketMessage
+        @OnMessage
         public StringContainer helloWorld(String message) {
             return new StringContainer(message);
         }

@@ -40,45 +40,20 @@
 
 package org.glassfish.tyrus.server;
 
-import java.net.URI;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import javax.websocket.Decoder;
 import javax.websocket.Encoder;
 import javax.websocket.Extension;
-import javax.websocket.HandshakeResponse;
-import javax.websocket.server.HandshakeRequest;
 import javax.websocket.server.ServerEndpointConfiguration;
+import javax.websocket.server.ServerEndpointConfigurator;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 public abstract class ServerEndpointConfigurationAdapter implements ServerEndpointConfiguration {
-    @Override
-    public String getNegotiatedSubprotocol(List<String> requestedSubprotocols) {
-        return null;
-    }
-
-    @Override
-    public List<Extension> getNegotiatedExtensions(List<Extension> requestedExtensions) {
-        return null;
-    }
-
-    @Override
-    public boolean checkOrigin(String originHeaderValue) {
-        return false;
-    }
-
-    @Override
-    public boolean matchesURI(URI uri) {
-        return false;
-    }
-
-    @Override
-    public void modifyHandshake(HandshakeRequest request, HandshakeResponse response) {
-
-    }
-
     @Override
     public String getPath() {
         return null;
@@ -92,5 +67,26 @@ public abstract class ServerEndpointConfigurationAdapter implements ServerEndpoi
     @Override
     public List<Decoder> getDecoders() {
         return null;
+    }
+
+    @Override
+    public List<String> getSubprotocols() {
+        return Collections.emptyList();
+
+    }
+
+    @Override
+    public List<Extension> getExtensions() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public Map<String, Object> getUserProperties() {
+        return Collections.emptyMap();
+    }
+
+    @Override
+    public ServerEndpointConfigurator getServerEndpointConfigurator() {
+        return new ServerEndpointConfigurator() {};
     }
 }

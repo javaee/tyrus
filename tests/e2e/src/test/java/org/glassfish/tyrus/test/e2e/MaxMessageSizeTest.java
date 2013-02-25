@@ -45,14 +45,14 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfiguration;
-import javax.websocket.DefaultClientConfiguration;
+import javax.websocket.ClientEndpointConfigurationBuilder;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.MessageHandler;
+import javax.websocket.OnError;
+import javax.websocket.OnMessage;
 import javax.websocket.Session;
-import javax.websocket.WebSocketError;
-import javax.websocket.WebSocketMessage;
-import javax.websocket.server.WebSocketEndpoint;
+import javax.websocket.server.ServerEndpoint;
 
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
@@ -68,24 +68,24 @@ public class MaxMessageSizeTest {
     private CountDownLatch messageLatch;
     private String receivedMessage;
 
-    @WebSocketEndpoint(value = "/endpoint1")
+    @ServerEndpoint(value = "/endpoint1")
     public static class Endpoint1 {
 
-        @WebSocketMessage(maxMessageSize = 5)
+        @OnMessage(maxMessageSize = 5)
         public String doThat(String message) {
             return message;
         }
 
-        @WebSocketMessage(maxMessageSize = 5)
+        @OnMessage(maxMessageSize = 5)
         public String doThat(Session s, String message, boolean last) throws IOException {
             return message;
         }
 
 
-        @WebSocketError
+        @OnError
         public void onError(Session s, Throwable t) {
             try {
-                s.getRemote().sendString("error");
+                s.getBasicRemote().sendText("error");
             } catch (IOException e) {
                 // do nothing.
             }
@@ -101,7 +101,7 @@ public class MaxMessageSizeTest {
 
             messageLatch = new CountDownLatch(1);
 
-            final ClientEndpointConfiguration clientConfiguration = new DefaultClientConfiguration();
+            final ClientEndpointConfiguration clientConfiguration = ClientEndpointConfigurationBuilder.create().build();
             ClientManager client = ClientManager.createClient();
 
             client.connectToServer(new Endpoint() {
@@ -117,7 +117,7 @@ public class MaxMessageSizeTest {
                             }
                         });
 
-                        session.getRemote().sendString("TEST1");
+                        session.getBasicRemote().sendText("TEST1");
                     } catch (IOException e) {
                         // do nothing.
                     }
@@ -143,7 +143,7 @@ public class MaxMessageSizeTest {
                             }
                         });
 
-                        session.getRemote().sendString("LONG--");
+                        session.getBasicRemote().sendText("LONG--");
                     } catch (IOException e) {
                         // do nothing.
                     }
@@ -171,7 +171,7 @@ public class MaxMessageSizeTest {
 
             messageLatch = new CountDownLatch(1);
 
-            final ClientEndpointConfiguration clientConfiguration = new DefaultClientConfiguration();
+            final ClientEndpointConfiguration clientConfiguration = ClientEndpointConfigurationBuilder.create().build();
             ClientManager client = ClientManager.createClient();
 
             client.connectToServer(new Endpoint() {
@@ -187,7 +187,7 @@ public class MaxMessageSizeTest {
                             }
                         });
 
-                        session.getRemote().sendPartialString("TEST1", false);
+                        session.getBasicRemote().sendText("TEST1", false);
                     } catch (IOException e) {
                         // do nothing.
                     }
@@ -213,7 +213,7 @@ public class MaxMessageSizeTest {
                             }
                         });
 
-                        session.getRemote().sendPartialString("LONG--", false);
+                        session.getBasicRemote().sendText("LONG--", false);
                     } catch (IOException e) {
                         // do nothing.
                     }

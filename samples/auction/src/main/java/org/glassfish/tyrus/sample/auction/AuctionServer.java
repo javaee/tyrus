@@ -47,11 +47,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.websocket.EncodeException;
+import javax.websocket.OnClose;
+import javax.websocket.OnMessage;
 import javax.websocket.Session;
-import javax.websocket.WebSocketClose;
-import javax.websocket.WebSocketMessage;
-import javax.websocket.server.DefaultServerConfiguration;
-import javax.websocket.server.WebSocketEndpoint;
+import javax.websocket.server.ServerEndpoint;
 
 import org.glassfish.tyrus.sample.auction.decoders.AuctionListRequestDecoder;
 import org.glassfish.tyrus.sample.auction.decoders.BidRequestDecoder;
@@ -65,7 +64,7 @@ import org.glassfish.tyrus.sample.auction.message.AuctionMessage;
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-@WebSocketEndpoint(value = "/auction",
+@ServerEndpoint(value = "/auction",
         decoders = {
                 LoginRequestDecoder.class,
                 BidRequestDecoder.class,
@@ -75,8 +74,7 @@ import org.glassfish.tyrus.sample.auction.message.AuctionMessage;
         },
         encoders = {
                 AuctionMessageEncoder.class
-        },
-        configuration = DefaultServerConfiguration.class
+        }
 )
 public class AuctionServer {
 
@@ -89,19 +87,19 @@ public class AuctionServer {
         add(new Auction(new AuctionItem("Omega", "Nice Omega watches, hand made", 300, System.currentTimeMillis() + 180000, 30)));
     }});
 
-    @WebSocketClose
+    @OnClose
     public void handleClosedConnection(Session session) {
         for (Auction auction : auctions) {
             auction.removeArc(session);
         }
     }
 
-    @WebSocketMessage
+    @OnMessage
     public void handleLogoutRequest(AuctionMessage.LogoutRequestMessage alrm, Session session) {
         handleClosedConnection(session);
     }
 
-    @WebSocketMessage
+    @OnMessage
     public void handleAuctionListRequest(AuctionMessage.AuctionListRequestMessage alrm, Session session) {
         StringBuilder sb = new StringBuilder("-");
 
@@ -110,13 +108,13 @@ public class AuctionServer {
         }
 
         try {
-            session.getRemote().sendObject((new AuctionMessage.AuctionListResponseMessage("0", sb.toString())));
+            session.getBasicRemote().sendObject((new AuctionMessage.AuctionListResponseMessage("0", sb.toString())));
         } catch (IOException | EncodeException e) {
             Logger.getLogger(AuctionServer.class.getName()).log(Level.SEVERE, null, e);
         }
     }
 
-    @WebSocketMessage
+    @OnMessage
     public void handleLoginRequest(AuctionMessage.LoginRequestMessage lrm, Session session) {
         String communicationId = lrm.getCommunicationId();
         for (Auction auction : auctions) {
@@ -126,7 +124,7 @@ public class AuctionServer {
         }
     }
 
-    @WebSocketMessage
+    @OnMessage
     public void handleBidRequest(AuctionMessage.BidRequestMessage brm, Session session) {
         String communicationId = brm.getCommunicationId();
         for (Auction auction : auctions) {

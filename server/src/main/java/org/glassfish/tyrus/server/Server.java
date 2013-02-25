@@ -70,7 +70,7 @@ public class Server {
      * Create new server instance.
      *
      * @param configuration to be registered with the server. Classes annotated with
-     * {@link javax.websocket.server.WebSocketEndpoint},
+     * {@link javax.websocket.server.ServerEndpoint},
      *                      implementing {@link javax.websocket.server.ServerApplicationConfiguration}
      *                      or extending {@link javax.websocket.server.ServerEndpointConfiguration} are supported.
      */
@@ -85,7 +85,7 @@ public class Server {
      * @param port     port of the server.
      * @param rootPath root path to the server App.
      * @param configuration to be registered with the server. Classes annotated with
-     * {@link javax.websocket.server.WebSocketEndpoint},
+     * {@link javax.websocket.server.ServerEndpoint},
      *                      implementing {@link javax.websocket.server.ServerApplicationConfiguration}
      *                      or extending {@link javax.websocket.server.ServerEndpointConfiguration} are supported.
      */
@@ -100,7 +100,7 @@ public class Server {
      * @param port          port of the server.
      * @param rootPath      root path to the server App.
      * @param configuration to be registered with the server. Classes annotated with
-     * {@link javax.websocket.server.WebSocketEndpoint},
+     * {@link javax.websocket.server.ServerEndpoint},
      *                      implementing {@link javax.websocket.server.ServerApplicationConfiguration}
      *                      or extending {@link javax.websocket.server.ServerEndpointConfiguration} are supported.
      */

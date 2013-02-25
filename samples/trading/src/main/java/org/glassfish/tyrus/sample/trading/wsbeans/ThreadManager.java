@@ -42,6 +42,7 @@ package org.glassfish.tyrus.sample.trading.wsbeans;
 
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import javax.servlet.annotation.WebListener;

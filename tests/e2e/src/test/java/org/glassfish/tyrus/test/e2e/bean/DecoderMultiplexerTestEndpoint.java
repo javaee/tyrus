@@ -40,9 +40,8 @@
 
 package org.glassfish.tyrus.test.e2e.bean;
 
-import javax.websocket.WebSocketMessage;
-import javax.websocket.server.DefaultServerConfiguration;
-import javax.websocket.server.WebSocketEndpoint;
+import javax.websocket.OnMessage;
+import javax.websocket.server.ServerEndpoint;
 
 import org.glassfish.tyrus.test.e2e.message.MessageA;
 import org.glassfish.tyrus.test.e2e.message.MessageB;
@@ -53,19 +52,17 @@ import org.glassfish.tyrus.test.e2e.message.MessageB;
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-@WebSocketEndpoint(
+@ServerEndpoint(
         value = "/decodermultiplexer",
-        decoders = {org.glassfish.tyrus.test.e2e.decoder.DecoderA.class, org.glassfish.tyrus.test.e2e.decoder.DecoderB.class},
-        configuration = DefaultServerConfiguration.class
-)
+        decoders = {org.glassfish.tyrus.test.e2e.decoder.DecoderA.class, org.glassfish.tyrus.test.e2e.decoder.DecoderB.class})
 public class DecoderMultiplexerTestEndpoint {
 
-    @WebSocketMessage
+    @OnMessage
     public String onMessageA(MessageA message) {
         return "A: " + message.getData();
     }
 
-    @WebSocketMessage
+    @OnMessage
     public String onMessageB(MessageB message) {
         return "B: " + message.getData();
     }

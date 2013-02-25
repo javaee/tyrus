@@ -48,14 +48,14 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import javax.websocket.ClientEndpointConfigurationBuilder;
 import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
-import javax.websocket.server.WebSocketEndpoint;
+import javax.websocket.server.ServerEndpoint;
 
-import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
@@ -149,12 +149,12 @@ public class ServletTest {
                             }
                         });
 
-                        session.getRemote().sendString("Do or do not, there is no try.");
+                        session.getBasicRemote().sendText("Do or do not, there is no try.");
                     } catch (IOException e) {
                         // do nothing
                     }
                 }
-            }, new TyrusClientEndpointConfiguration.Builder().build(), getURI(PlainEcho.class.getAnnotation(WebSocketEndpoint.class).value()));
+            }, ClientEndpointConfigurationBuilder.create().build(), getURI(PlainEcho.class.getAnnotation(ServerEndpoint.class).value()));
 
             messageLatch.await(1, TimeUnit.SECONDS);
             assertEquals(0, messageLatch.getCount());
@@ -185,13 +185,13 @@ public class ServletTest {
                         });
 
                         for (int i = 0; i < 100; i++) {
-                            session.getRemote().sendString("Do or do not, there is no try.");
+                            session.getBasicRemote().sendText("Do or do not, there is no try.");
                         }
                     } catch (IOException e) {
                         // do nothing
                     }
                 }
-            }, new TyrusClientEndpointConfiguration.Builder().build(), getURI(PlainEcho.class.getAnnotation(WebSocketEndpoint.class).value()));
+            }, ClientEndpointConfigurationBuilder.create().build(), getURI(PlainEcho.class.getAnnotation(ServerEndpoint.class).value()));
 
 
             messageLatch.await(20, TimeUnit.SECONDS);
@@ -223,12 +223,12 @@ public class ServletTest {
                                 }
                             });
 
-                            session.getRemote().sendString("Do or do not, there is no try.");
+                            session.getBasicRemote().sendText("Do or do not, there is no try.");
                         } catch (IOException e) {
                             // do nothing
                         }
                     }
-                }, new TyrusClientEndpointConfiguration.Builder().build(), getURI(PlainEcho.class.getAnnotation(WebSocketEndpoint.class).value()));
+                }, ClientEndpointConfigurationBuilder.create().build(), getURI(PlainEcho.class.getAnnotation(ServerEndpoint.class).value()));
 
                 // TODO - remove when possible.
                 Thread.sleep(100);
@@ -276,12 +276,12 @@ public class ServletTest {
                             }
                         });
 
-                        session.getRemote().sendString(LONG_MESSAGE);
+                        session.getBasicRemote().sendText(LONG_MESSAGE);
                     } catch (IOException e) {
                         // do nothing
                     }
                 }
-            }, new TyrusClientEndpointConfiguration.Builder().build(), getURI(PlainEcho.class.getAnnotation(WebSocketEndpoint.class).value()));
+            }, ClientEndpointConfigurationBuilder.create().build(), getURI(PlainEcho.class.getAnnotation(ServerEndpoint.class).value()));
 
             messageLatch.await(1, TimeUnit.SECONDS);
             assertEquals(0, messageLatch.getCount());
@@ -311,13 +311,13 @@ public class ServletTest {
                         });
 
                         for (int i = 0; i < 10; i++) {
-                            session.getRemote().sendString(LONG_MESSAGE);
+                            session.getBasicRemote().sendText(LONG_MESSAGE);
                         }
                     } catch (IOException e) {
                         // do nothing
                     }
                 }
-            }, new TyrusClientEndpointConfiguration.Builder().build(), getURI(PlainEcho.class.getAnnotation(WebSocketEndpoint.class).value()));
+            }, ClientEndpointConfigurationBuilder.create().build(), getURI(PlainEcho.class.getAnnotation(ServerEndpoint.class).value()));
 
             messageLatch.await(10, TimeUnit.SECONDS);
             assertEquals(0, messageLatch.getCount());
@@ -348,12 +348,12 @@ public class ServletTest {
                                 }
                             });
 
-                            session.getRemote().sendString(LONG_MESSAGE);
+                            session.getBasicRemote().sendText(LONG_MESSAGE);
                         } catch (IOException e) {
                             // do nothing
                         }
                     }
-                }, new TyrusClientEndpointConfiguration.Builder().build(), getURI(PlainEcho.class.getAnnotation(WebSocketEndpoint.class).value()));
+                }, ClientEndpointConfigurationBuilder.create().build(), getURI(PlainEcho.class.getAnnotation(ServerEndpoint.class).value()));
 
                 // TODO - remove when possible.
                 Thread.sleep(300);

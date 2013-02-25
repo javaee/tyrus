@@ -45,12 +45,11 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.websocket.EncodeException;
+import javax.websocket.OnClose;
+import javax.websocket.OnMessage;
+import javax.websocket.OnOpen;
 import javax.websocket.Session;
-import javax.websocket.WebSocketClose;
-import javax.websocket.WebSocketMessage;
-import javax.websocket.WebSocketOpen;
-import javax.websocket.server.DefaultServerConfiguration;
-import javax.websocket.server.WebSocketEndpoint;
+import javax.websocket.server.ServerEndpoint;
 
 /**
  * Endpoint which broadcasts incoming events to all connected peers.
@@ -58,26 +57,26 @@ import javax.websocket.server.WebSocketEndpoint;
  * @author Danny Coward (danny.coward at oracle.com)
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-@WebSocketEndpoint(value = "/draw", configuration = DefaultServerConfiguration.class)
+@ServerEndpoint(value = "/draw")
 public class DrawEndpoint {
 
     private static Set<Session> peers = Collections.newSetFromMap(new ConcurrentHashMap<Session, Boolean>());
 
-    @WebSocketOpen
+    @OnOpen
     public void onOpen(Session session) {
         peers.add(session);
     }
 
-    @WebSocketClose
+    @OnClose
     public void onClose(Session session) {
         peers.remove(session);
     }
 
-    @WebSocketMessage
+    @OnMessage
     public void shapeCreated(String message, Session client) throws IOException, EncodeException {
         for (Session otherSession : peers) {
             if (!otherSession.equals(client)) {
-                otherSession.getRemote().sendString(message);
+                otherSession.getBasicRemote().sendText(message);
             }
         }
     }

@@ -58,9 +58,12 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import javax.websocket.*;
+import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.CloseReason;
+import javax.websocket.HandshakeResponse;
+import javax.websocket.Session;
 
-import org.glassfish.tyrus.TyrusExtension;
+import org.glassfish.tyrus.core.TyrusExtension;
 import org.glassfish.tyrus.server.TyrusEndpoint;
 import org.glassfish.tyrus.server.TyrusRemoteEndpoint;
 import org.glassfish.tyrus.spi.SPIEndpoint;
@@ -191,7 +194,7 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
                     responseExtensions.addAll(TyrusExtension.fromString(value));
                 }
 
-                configuration.afterResponse(new HandshakeResponse() {
+                configuration.getClientEndpointConfigurator().afterResponse(new HandshakeResponse() {
 
                     private final Map<String, List<String>> headers =
                             new TreeMap<String, List<String>>(new Comparator<String>() {
@@ -222,7 +225,7 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
             adaptedHeaders.put(entry.getKey(), value == null ? null : Arrays.asList(value));
         }
 
-        configuration.beforeRequest(adaptedHeaders);
+        configuration.getClientEndpointConfigurator().beforeRequest(adaptedHeaders);
         headers.clear();
 
         for (Map.Entry<String, List<String>> entry : adaptedHeaders.entrySet()) {

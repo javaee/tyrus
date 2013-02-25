@@ -43,23 +43,25 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 import java.nio.ByteBuffer;
-import java.util.List;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.ClientEndpointConfigurationBuilder;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfiguration;
-import javax.websocket.Extension;
 import javax.websocket.MessageHandler;
+import javax.websocket.OnMessage;
 import javax.websocket.Session;
-import javax.websocket.WebSocketMessage;
-import javax.websocket.server.DefaultServerConfiguration;
-import javax.websocket.server.WebSocketEndpoint;
+import javax.websocket.server.ServerEndpoint;
+import javax.websocket.server.ServerEndpointConfiguration;
+import javax.websocket.server.ServerEndpointConfigurationBuilder;
 
-import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
+import org.glassfish.tyrus.server.TyrusServerConfiguration;
 
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
@@ -70,10 +72,10 @@ import static org.junit.Assert.fail;
  */
 public class InputStreamTest {
 
-    @WebSocketEndpoint(value = "/inputStream", configuration = DefaultServerConfiguration.class)
+    @ServerEndpoint(value = "/inputStream")
     public static class InputStreamEndpoint {
 
-        @WebSocketMessage
+        @OnMessage
         public String readInputStream(InputStream is) {
             byte[] buffer = new byte[64];
             try {
@@ -85,43 +87,12 @@ public class InputStreamTest {
         }
     }
 
-    public static class InputStreamEndpointConfiguration extends DefaultServerConfiguration {
+    public static class InputStreamApplicationConfiguration extends TyrusServerConfiguration {
 
-        public InputStreamEndpointConfiguration() {
-            super(InputStreamEndpoint.class, "/inputStream");
-        }
-
-        @Override
-        public String getNegotiatedSubprotocol(List<String> requestedSubprotocols) {
-            return null;
-        }
-
-        @Override
-        public List<Extension> getNegotiatedExtensions(List<Extension> requestedExtensions) {
-            return requestedExtensions;
-        }
-
-        @Override
-        public boolean checkOrigin(String originHeaderValue) {
-            return true;
-        }
-
-        public static class InputStreamEndpoint extends Endpoint {
-            @Override
-            public void onOpen(final Session session, EndpointConfiguration config) {
-                session.addMessageHandler(new MessageHandler.Basic<InputStream>() {
-                    @Override
-                    public void onMessage(InputStream is) {
-                        byte[] buffer = new byte[64];
-                        try {
-                            int i = is.read(buffer);
-                            session.getRemote().sendString(new String(buffer, 0, i));
-                        } catch (IOException e) {
-                            //
-                        }
-                    }
-                });
-            }
+        public InputStreamApplicationConfiguration() {
+            super(Collections.<Class<?>>emptySet(), new HashSet<ServerEndpointConfiguration>() {{
+                add(ServerEndpointConfigurationBuilder.create(InputStreamProgrammaticEndpoint.class, "/inputStream").build());
+            }});
         }
     }
 
@@ -132,11 +103,11 @@ public class InputStreamTest {
 
     @Test
     public void testInputStreamProgrammatic() {
-        _testInputStream(InputStreamEndpointConfiguration.class);
+        _testInputStream(InputStreamApplicationConfiguration.class);
     }
 
     public void _testInputStream(Class<?> endpoint) {
-        final ClientEndpointConfiguration cec = new TyrusClientEndpointConfiguration.Builder().build();
+        final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
         Server server = new Server(endpoint);
         final CountDownLatch messageLatch;
 
@@ -152,12 +123,12 @@ public class InputStreamTest {
                         session.addMessageHandler(new MessageHandler.Basic<String>() {
                             @Override
                             public void onMessage(String message) {
-                                if(message.equals("Do or do not, there is no try.")) {
+                                if (message.equals("Do or do not, there is no try.")) {
                                     messageLatch.countDown();
                                 }
                             }
                         });
-                        session.getRemote().sendBytes(ByteBuffer.wrap("Do or do not, there is no try.".getBytes()));
+                        session.getBasicRemote().sendBinary(ByteBuffer.wrap("Do or do not, there is no try.".getBytes()));
                     } catch (IOException e) {
                         fail();
                     }
@@ -171,6 +142,24 @@ public class InputStreamTest {
             throw new RuntimeException(e.getMessage(), e);
         } finally {
             server.stop();
+        }
+    }
+
+    public static class InputStreamProgrammaticEndpoint extends Endpoint {
+        @Override
+        public void onOpen(final Session session, EndpointConfiguration config) {
+            session.addMessageHandler(new MessageHandler.Basic<InputStream>() {
+                @Override
+                public void onMessage(InputStream is) {
+                    byte[] buffer = new byte[64];
+                    try {
+                        int i = is.read(buffer);
+                        session.getBasicRemote().sendText(new String(buffer, 0, i));
+                    } catch (IOException e) {
+                        //
+                    }
+                }
+            });
         }
     }
 }

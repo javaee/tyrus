@@ -42,9 +42,10 @@ package org.glassfish.tyrus.server;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import org.glassfish.tyrus.OsgiRegistry;
-import org.glassfish.tyrus.ReflectionHelper;
-import org.glassfish.tyrus.TyrusContainerProvider;
+import org.glassfish.tyrus.core.OsgiRegistry;
+import org.glassfish.tyrus.core.ReflectionHelper;
+import org.glassfish.tyrus.core.TyrusContainerProvider;
+import org.glassfish.tyrus.core.OsgiRegistry;
 import org.glassfish.tyrus.spi.TyrusContainer;
 
 /**

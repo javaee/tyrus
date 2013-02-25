@@ -46,13 +46,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
 import javax.websocket.CloseReason;
+import javax.websocket.OnClose;
+import javax.websocket.OnMessage;
+import javax.websocket.OnOpen;
 import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
-import javax.websocket.WebSocketClose;
-import javax.websocket.server.WebSocketEndpoint;
-import javax.websocket.WebSocketMessage;
-import javax.websocket.WebSocketOpen;
-import javax.websocket.server.DefaultServerConfiguration;
+import javax.websocket.server.ServerEndpoint;
 
 import org.glassfish.tyrus.sample.chat.chatdata.ChatTranscriptUpdateMessage;
 import org.glassfish.tyrus.sample.chat.chatdata.ChatUpdateMessage;
@@ -63,12 +62,11 @@ import org.glassfish.tyrus.sample.chat.chatdata.LoginResponseMessage;
 import org.glassfish.tyrus.sample.chat.chatdata.UserListUpdateMessage;
 
 
-@WebSocketEndpoint(value = "/chat",
+@ServerEndpoint(value = "/chat",
         decoders = {org.glassfish.tyrus.sample.chat.chatdata.LoginRequestDecoder.class,
                 org.glassfish.tyrus.sample.chat.chatdata.ChatUpdateDecoder.class,
                 org.glassfish.tyrus.sample.chat.chatdata.DisconnectRequestDecoder.class},
-        encoders = {org.glassfish.tyrus.sample.chat.chatdata.DisconnectResponseEncoder.class},
-        configuration = DefaultServerConfiguration.class)
+        encoders = {org.glassfish.tyrus.sample.chat.chatdata.DisconnectResponseEncoder.class})
 public class ChatServer {
 
     final static Logger logger = Logger.getLogger("application");
@@ -78,18 +76,18 @@ public class ChatServer {
     private List<String> chatTranscript = new ArrayList<String>();
     static int transcriptMaxLines = 20;
 
-    @WebSocketOpen
+    @OnOpen
     public void init(Session s) {
         logger.info("############Someone connected...");
     }
 
-    @WebSocketMessage
+    @OnMessage
     public void handleLoginRequest(LoginRequestMessage lrm, Session session) {
         String newUsername = this.registerNewUsername(lrm.getUsername(), session);
         logger.info("Signing " + newUsername + " into chat.");
         LoginResponseMessage lres = new LoginResponseMessage(newUsername);
         try {
-            session.getRemote().sendString(lres.asString());
+            session.getBasicRemote().sendText(lres.asString());
         } catch (IOException ioe) {
             logger.warning("Error signing " + lrm.getUsername() + " into chat : " + ioe.getMessage());
         }
@@ -98,13 +96,13 @@ public class ChatServer {
         this.broadcastUserList();
     }
 
-    @WebSocketMessage
+    @OnMessage
     public void handleChatMessage(ChatUpdateMessage cum) {
         logger.info("Receiving chat message from " + cum.getUsername());
         this.addToTranscriptAndNotify(cum.getUsername(), cum.getMessage());
     }
 
-    @WebSocketMessage
+    @OnMessage
     public DisconnectResponseMessage handleDisconnectRequest(DisconnectRequestMessage drm) {
         logger.info(drm.getUsername() + " would like to leave chat");
         DisconnectResponseMessage reply = new DisconnectResponseMessage(drm.getUsername());
@@ -113,7 +111,7 @@ public class ChatServer {
         return reply;
     }
 
-    @WebSocketClose
+    @OnClose
     public void handleClientClose(Session session) {
         String username = null;
         logger.info("The web socket closed");
@@ -133,9 +131,9 @@ public class ChatServer {
         logger.info("Broadcasting updated user list");
         UserListUpdateMessage ulum = new UserListUpdateMessage(new ArrayList(connections.keySet()));
         for (Session nextSession : connections.values()) {
-            RemoteEndpoint remote = nextSession.getRemote();
+            RemoteEndpoint.Basic remote = nextSession.getBasicRemote();
             try {
-                remote.sendString(ulum.asString());
+                remote.sendText(ulum.asString());
             } catch (IOException ioe) {
                 logger.warning("Error updating a client " + remote + " : " + ioe.getMessage());
             }
@@ -162,11 +160,11 @@ public class ChatServer {
         logger.info("Broadcasting updated transcript with " + transcriptEntry);
 
         for (Session nextSession : connections.values()) {
-            RemoteEndpoint remote = nextSession.getRemote();
+            RemoteEndpoint.Basic remote = nextSession.getBasicRemote();
             if (remote != null) {
                 ChatTranscriptUpdateMessage cm = new ChatTranscriptUpdateMessage(transcriptEntry);
                 try {
-                    remote.sendString(cm.asString());
+                    remote.sendText(cm.asString());
                 } catch (IOException ioe) {
                     logger.warning("Error updating a client " + remote + " : " + ioe.getMessage());
                 }

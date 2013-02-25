@@ -44,13 +44,14 @@ package org.glassfish.tyrus.sample.trading.wsbeans;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.List;
+
 import javax.websocket.Session;
-import javax.websocketWebSocketEndpoint;
-import javax.websocketWebSocketMessage;
+
 import javax.servlet.http.HttpSession;
+
 import org.glassfish.tyrus.oldservlet.web.WebSocketServerWebIntegration;
 
-@WebSocketEndpoint(
+@ServerEndpoint(
         path = "/buddies", Xremote = org.glassfish.tyrus.sample.trading.wsbeans.BuddiesRemote.class
 )
 /**
@@ -62,7 +63,7 @@ public class Buddies {
 //   @XWebSocketContext
 //   public XEndpointContext myContext;
 
-    @WebSocketMessage
+    @OnMessage
     public void register(String thiz, BuddiesRemote remote) {
         System.out.println("Here");
 //        remote.getContext().getContainerContext().XgetProperties().put(BUDDIES, this);
