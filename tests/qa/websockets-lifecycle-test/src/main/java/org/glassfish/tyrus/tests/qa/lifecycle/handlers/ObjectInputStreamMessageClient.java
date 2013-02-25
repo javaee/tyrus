@@ -57,7 +57,7 @@ public class ObjectInputStreamMessageClient extends LifeCycleClient<ObjectInputS
     
     SendMeSomething original;
     
-    public ObjectInputStreamMessageClient() {
+        public ObjectInputStreamMessageClient() {
         this.original = new SendMeSomething("message", "over network", "now");
     }
     
