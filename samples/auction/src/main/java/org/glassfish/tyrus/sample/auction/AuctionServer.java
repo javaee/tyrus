@@ -82,9 +82,9 @@ public class AuctionServer {
      * Set of auctions (finished, running, to be started auctions).
      */
     private static final Set<Auction> auctions = Collections.unmodifiableSet(new HashSet<Auction>() {{
-        add(new Auction(new AuctionItem("Swatch", "Nice Swatch watches, hand made", 100, System.currentTimeMillis() + 60000, 30)));
-        add(new Auction(new AuctionItem("Rolex", "Nice Rolex watches, hand made", 200, System.currentTimeMillis() + 120000, 30)));
-        add(new Auction(new AuctionItem("Omega", "Nice Omega watches, hand made", 300, System.currentTimeMillis() + 180000, 30)));
+        add(new Auction(new AuctionItem("Swatch", "Nice Swatch watches, hand made", 100, 20)));
+        add(new Auction(new AuctionItem("Rolex", "Nice Rolex watches, hand made", 200, 20)));
+        add(new Auction(new AuctionItem("Omega", "Nice Omega watches, hand made", 300, 20)));
     }});
 
     @OnClose

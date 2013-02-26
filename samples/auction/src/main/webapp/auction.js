@@ -70,6 +70,11 @@ function handleResponse(evt) {
         document.getElementById("remainingTimeID").value = "Bidding allowed once the auction is started";
         document.getElementById("startTimeID").value = messageList[6];
     }
+    if (mString.search("cres") == 0) {
+        document.getElementById("currentPriceID").value = "Auction closed already";
+        document.getElementById("remainingTimeID").value = "Auction closed already";
+        document.getElementById("startTimeID").value = "Auction closed already";
+    }
     if (mString.search("ares") == 0) {
         var message2 = mString.substring(4, mString.length);
         var messageList2 = message2.split(':');
@@ -94,6 +99,9 @@ function handleResponse(evt) {
         var res = document.createElement("p");
         res.style.wordWrap = "break-word";
         res.innerHTML = '<span style="color: red;">Auction Result:</span> ' + messageList4[2];
+        document.getElementById("currentPriceID").value = "Auction closed already";
+        document.getElementById("remainingTimeID").value = "Auction closed already";
+        document.getElementById("startTimeID").value = "Auction closed already";
         document.getElementById("resultID").appendChild(res);
     }
     if (mString.search("dres") == 0) {

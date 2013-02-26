@@ -52,8 +52,7 @@ public class LogoutRequestDecoder implements Decoder.Text<AuctionMessage.LogoutR
     public AuctionMessage.LogoutRequestMessage decode(String s) {
         String[] tokens = s.split(":");
 
-        AuctionMessage.LogoutRequestMessage lrm = new AuctionMessage.LogoutRequestMessage(tokens[1], tokens[2]);
-        return lrm;
+        return new AuctionMessage.LogoutRequestMessage(tokens[1], tokens[2]);
     }
 
     @Override

@@ -52,8 +52,7 @@ public class BidRequestDecoder implements Decoder.Text<AuctionMessage.BidRequest
     public AuctionMessage.BidRequestMessage decode(String s) {
         String[] tokens = s.split(":");
 
-        AuctionMessage.BidRequestMessage brm = new AuctionMessage.BidRequestMessage(tokens[1], tokens[2]);
-        return brm;
+        return new AuctionMessage.BidRequestMessage(tokens[1], tokens[2]);
     }
 
     @Override

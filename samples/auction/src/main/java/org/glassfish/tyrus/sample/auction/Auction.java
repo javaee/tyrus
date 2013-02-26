@@ -53,7 +53,7 @@ import javax.websocket.Session;
 import org.glassfish.tyrus.sample.auction.message.AuctionMessage;
 
 /**
- * Implements the auction protocol
+ * Implements the auction protocol.
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
@@ -87,22 +87,14 @@ public class Auction {
     /*
      * Timer that sends pre-auction time broadcasts
      */
-    private Timer preAuctionTimer;
-
-    /*
-     * Timer that sends pre-auction time broadcasts
-     */
     private Timer auctionRunningTimer;
 
     /*
-     * Bidder of the heighest bid
-     */
-    private Session bestBidder;
-
-    /*
-     * Value of the heighest bid
+     * Value of the highest bid
      */
     private double bestBid;
+
+    private String bestBidderName;
 
     /*
      * Separator used to separate different fields in the communication
@@ -120,7 +112,7 @@ public class Auction {
 
         this.state = AuctionState.PRE_AUCTION;
         this.id = Integer.toString(Auction.idCounter);
-        bestBid = item.getStartingPrice();
+        bestBid = item.getPrice();
         idCounter++;
     }
 
@@ -133,32 +125,53 @@ public class Auction {
     }
 
     /*
-     * New user logs into the auction
+     * New user logs into the auction.
      */
     public void handleLoginRequest(AuctionMessage.LoginRequestMessage lrm, Session arc) {
-        this.addArc(arc);
-        AuctionMessage.LoginResponseMessage response = new AuctionMessage.LoginResponseMessage(id, item);
-        try {
-            arc.getBasicRemote().sendObject(response);
-        } catch (IOException | EncodeException e) {
-            Logger.getLogger(Auction.class.getName()).log(Level.SEVERE, null, e);
-        }
 
-        //first client connected
-        if (arcList.size() == 1) {
-            startPreAuctionTimeBroadcast();
+        arc.getUserProperties().put("name", lrm.getData());
+        synchronized (id) {
+            if (state != AuctionState.AUCTION_FINISHED) {
+                if (!getRemoteClients().contains(arc)) {
+                    this.addArc(arc);
+                }
+                try {
+                    item.setPrice(bestBid);
+                    arc.getBasicRemote().sendObject(new AuctionMessage.LoginResponseMessage(id, item));
+                } catch (IOException | EncodeException e) {
+                    Logger.getLogger(Auction.class.getName()).log(Level.SEVERE, null, e);
+                }
+
+                if(state == AuctionState.PRE_AUCTION){
+                    startAuctionTimeBroadcast();
+                }
+            } else {
+                try {
+                    arc.getBasicRemote().sendObject(new AuctionMessage.LoginResponseMessage(id, item));
+                    if(bestBidderName!= null && bestBidderName.equals(lrm.getData())){
+                        arc.getBasicRemote().sendObject(new AuctionMessage.ResultMessage(id, String.format("Congratulations, You won the auction and will pay %.0f.", bestBid)));
+                    }else{
+                        arc.getBasicRemote().sendObject(new AuctionMessage.ResultMessage(id, String.format("You did not win the auction. The item was sold for %.0f.", bestBid)));
+                    }
+                } catch (IOException | EncodeException e) {
+                    Logger.getLogger(Auction.class.getName()).log(Level.SEVERE, null, e);
+                }
+            }
         }
     }
 
     public void handleBidRequest(AuctionMessage.BidRequestMessage brm, Session arc) {
-        if (state == AuctionState.AUCTION_RUNNING) {
-            Double bid = Double.parseDouble(brm.getData());
-            if (bid > bestBid) {
-                bestBid = bid;
-                bestBidder = arc;
-                sendPriceUpdateMessage();
-                stopAuctionTimeBroadcast();
-                startAuctionTimeBroadcast();
+        synchronized (id) {
+            if (state == AuctionState.AUCTION_RUNNING) {
+                Double bid = Double.parseDouble(brm.getData());
+                if (bid > bestBid) {
+                    bestBid = bid;
+
+                    bestBidderName = (String) arc.getUserProperties().get("name");
+                    sendPriceUpdateMessage();
+                    stopAuctionTimeBroadcast();
+                    startAuctionTimeBroadcast();
+                }
             }
         }
     }
@@ -174,30 +187,27 @@ public class Auction {
         }
     }
 
-    private void startPreAuctionTimeBroadcast() {
-        preAuctionTimer = new Timer();
-        preAuctionTimer.schedule(new PreAuctionTimeBroadcasterTask(this, item.getAuctionStartTime()), 0, 1000);
-    }
-
-    private void stopPreAuctionTimeBroadcast() {
-        preAuctionTimer.cancel();
-    }
-
-    public void switchStateToAuctionRunning() {
-        state = AuctionState.AUCTION_RUNNING;
-        stopPreAuctionTimeBroadcast();
-        startAuctionTimeBroadcast();
-    }
-
     public void switchStateToAuctionFinished() {
-        state = AuctionState.AUCTION_FINISHED;
+        synchronized (id) {
+            state = AuctionState.AUCTION_FINISHED;
+        }
         stopAuctionTimeBroadcast();
         sendAuctionResults();
     }
 
     private void sendAuctionResults() {
-        if (bestBidder != null) {
-            AuctionMessage.ResultMessage winnerMessage = new AuctionMessage.ResultMessage(id, "Congratulations, You have won the auction.");
+        Session bestBidder = null;
+
+        if(bestBidderName != null){
+            for (Session session : getRemoteClients()) {
+                if(session.getUserProperties().get("name").equals(bestBidderName)){
+                    bestBidder = session;
+                }
+            }
+        }
+
+        if (bestBidder!= null) {
+            AuctionMessage.ResultMessage winnerMessage = new AuctionMessage.ResultMessage(id, String.format("Congratulations, You won the auction and will pay %.0f.", bestBid));
             try {
                 bestBidder.getBasicRemote().sendObject(winnerMessage);
             } catch (IOException | EncodeException e) {
@@ -205,8 +215,8 @@ public class Auction {
             }
         }
 
-        AuctionMessage.ResultMessage loserMessage = new AuctionMessage.ResultMessage(id, "User " + "");
-        for (Session arc : arcList) {
+        AuctionMessage.ResultMessage loserMessage = new AuctionMessage.ResultMessage(id, String.format("You did not win the auction. The item was sold for %.0f.", bestBid));
+        for (Session arc : getRemoteClients()) {
             if (arc != bestBidder) {
                 try {
                     arc.getBasicRemote().sendObject(loserMessage);
@@ -218,20 +228,16 @@ public class Auction {
     }
 
     private void startAuctionTimeBroadcast() {
+        synchronized (id) {
+            state = AuctionState.AUCTION_RUNNING;
+        }
         auctionRunningTimer = new Timer();
         auctionRunningTimer.schedule(new AuctionTimeBroadcasterTask(this, item.getBidTimeoutS()), 0, 1000);
+
     }
 
     private void stopAuctionTimeBroadcast() {
         auctionRunningTimer.cancel();
-    }
-
-    public AuctionState getState() {
-        return state;
-    }
-
-    public void setState(AuctionState state) {
-        this.state = state;
     }
 
     public String getId() {

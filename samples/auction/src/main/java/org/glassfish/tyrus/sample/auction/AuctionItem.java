@@ -55,47 +55,37 @@ public class AuctionItem {
     private final String description;
 
     /*
-     * The initial price of the item.
+     * Current price of the item.
      */
-    private final double startingPrice;
-
-    /*
-     * Time when the auction starts in unix time (since 1.1.1970).
-     */
-    private final long auctionStartTime;
+    private double price;
 
     /*
      * Timeout which is applied for one bid.
      */
     private final int bidTimeoutS;
 
-    public AuctionItem(String name, String description, double startingPrice, long auctionStartTime, int bidTimeoutS) {
+    public AuctionItem(String name, String description, double price, int bidTimeoutS) {
         this.name = name;
         this.description = description;
-        this.startingPrice = startingPrice;
-        this.auctionStartTime = auctionStartTime;
+        this.price = price;
         this.bidTimeoutS = bidTimeoutS;
     }
 
     @Override
     public String toString() {
-        return name + Auction.SEPARATOR + description + Auction.SEPARATOR + startingPrice + Auction.SEPARATOR + auctionStartTime + Auction.SEPARATOR + bidTimeoutS + " seconds";
+        return name + Auction.SEPARATOR + description + Auction.SEPARATOR + price + Auction.SEPARATOR + "0" + Auction.SEPARATOR + bidTimeoutS + " seconds";
     }
 
     public int getBidTimeoutS() {
         return bidTimeoutS;
     }
 
-    public long getAuctionStartTime() {
-        return auctionStartTime;
+    public double getPrice() {
+        return price;
     }
 
-    public String getDescription() {
-        return description;
-    }
-
-    public double getStartingPrice() {
-        return startingPrice;
+    public void setPrice(double price){
+        this.price = price;
     }
 
     public String getName() {

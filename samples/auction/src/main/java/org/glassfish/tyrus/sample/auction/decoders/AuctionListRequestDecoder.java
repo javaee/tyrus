@@ -50,11 +50,9 @@ public class AuctionListRequestDecoder implements Decoder.Text<AuctionMessage.Au
 
     @Override
     public AuctionMessage.AuctionListRequestMessage decode(String s) {
-        System.out.println("public AuctionListRequestMessage decode(String s) ");
         String[] tokens = s.split(":");
 
-        AuctionMessage.AuctionListRequestMessage arm = new AuctionMessage.AuctionListRequestMessage(tokens[1], tokens[2]);
-        return arm;
+        return new AuctionMessage.AuctionListRequestMessage(tokens[1], tokens[2]);
     }
 
     @Override

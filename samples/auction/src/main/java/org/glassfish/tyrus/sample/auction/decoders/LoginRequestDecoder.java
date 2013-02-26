@@ -53,8 +53,7 @@ public class LoginRequestDecoder implements Decoder.Text<AuctionMessage.LoginReq
     public AuctionMessage.LoginRequestMessage decode(String s) {
         String[] tokens = s.split(":");
 
-        AuctionMessage.LoginRequestMessage lrm = new AuctionMessage.LoginRequestMessage(tokens[1], tokens[2]);
-        return lrm;
+        return new AuctionMessage.LoginRequestMessage(tokens[1], tokens[2]);
     }
 
     @Override

@@ -53,8 +53,6 @@ public abstract class AuctionMessage<T> {
     public static final String AUCTION_LIST_REQUEST = "xreq";
     private static final String LOGIN_RESPONSE = "lres";
     private static final String PRICE_UPDATE_RESPONSE = "pres";
-    private static final String LOGOUT_RESPONSE = "dres";
-    private static final String PRE_AUCTION_TIME_RESPONSE = "tres";
     private static final String AUCTION_TIME_RESPONSE = "ares";
     private static final String RESULT_RESPONSE = "rres";
     private static final String AUCTION_LIST_RESPONSE = "xres";
@@ -90,16 +88,6 @@ public abstract class AuctionMessage<T> {
 
     public String getCommunicationId() {
         return communicationId;
-    }
-
-    /**
-     * @author Stepan Kopriva (stepan.kopriva at oracle.com)
-     */
-    public static class AuctionClosedResponseMessage extends AuctionMessage<String> {
-
-        public AuctionClosedResponseMessage(String communicationId, String message) {
-            super(LOGIN_RESPONSE, communicationId, message);
-        }
     }
 
     /**
@@ -162,30 +150,10 @@ public abstract class AuctionMessage<T> {
     /**
      * @author Danny Coward (danny.coward at oracle.com)
      */
-    public static class LogoutResponseMessage extends AuctionMessage<String> {
-
-        public LogoutResponseMessage(String communicationId, String username) {
-            super(LOGOUT_RESPONSE, communicationId, username);
-        }
-    }
-
-    /**
-     * @author Danny Coward (danny.coward at oracle.com)
-     */
     public static class LogoutRequestMessage extends AuctionMessage<String> {
 
         public LogoutRequestMessage(String communicationId, String username) {
             super(LOGOUT_REQUEST, communicationId, username);
-        }
-    }
-
-    /**
-     * @author Stepan Kopriva (stepan.kopriva at oracle.com)
-     */
-    public static class PreAuctionTimeBroadcastMessage extends AuctionMessage<String> {
-
-        public PreAuctionTimeBroadcastMessage(String communicationId, String data) {
-            super(PRE_AUCTION_TIME_RESPONSE, communicationId, data);
         }
     }
 
