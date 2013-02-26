@@ -41,37 +41,24 @@ package org.glassfish.tyrus.tests.qa;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.websocket.CloseReason;
+import javax.websocket.ClientEndpointConfigurationBuilder;
 import javax.websocket.ContainerProvider;
 import javax.websocket.DeploymentException;
-import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfiguration;
 import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
 import junit.framework.Assert;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.tests.qa.config.AppConfig;
-import org.glassfish.tyrus.tests.qa.handlers.BasicMessageHandler;
-import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleClient;
-import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleServer;
-import org.glassfish.tyrus.tests.qa.lifecycle.AnnotatedClient;
 import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleDeployment;
-import org.glassfish.tyrus.tests.qa.lifecycle.ProgrammaticClient;
-import org.glassfish.tyrus.tests.qa.lifecycle.handlers.TextMessageClient;
-import org.glassfish.tyrus.tests.qa.lifecycle.handlers.TextMessageServer;
-import org.glassfish.tyrus.tests.qa.lifecycle.config.ClientConfiguration;
-import org.glassfish.tyrus.tests.qa.lifecycle.config.ServerAnnotatedConfiguration;
-import org.glassfish.tyrus.tests.qa.lifecycle.config.ServerConfiguration;
-import org.glassfish.tyrus.tests.qa.lifecycle.config.ServerProgrammaticConfiguration;
-import org.glassfish.tyrus.tests.qa.lifecycle.handlers.ByteBufferMessageClient;
-import org.glassfish.tyrus.tests.qa.lifecycle.handlers.ByteMessageServer;
-import org.glassfish.tyrus.tests.qa.lifecycle.handlers.EmptyMessageHandlerClient;
-import org.glassfish.tyrus.tests.qa.lifecycle.handlers.ObjectInputStreamMessageClient;
-import org.glassfish.tyrus.tests.qa.lifecycle.handlers.ObjectInputStreamMessageServer;
+import org.glassfish.tyrus.tests.qa.lifecycle.config.AnnotatedStringSessionConfig;
+import org.glassfish.tyrus.tests.qa.lifecycle.config.ProgrammaticStringSessionConfig;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.text.AnnotatedStringSession;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.text.ProgrammaticStringSession;
 import org.glassfish.tyrus.tests.qa.regression.Issue;
 import org.glassfish.tyrus.tests.qa.tools.CommChannel;
 import org.glassfish.tyrus.tests.qa.tools.SessionController;
@@ -95,47 +82,44 @@ public class LifeCycleTest {
             LifeCycleDeployment.COMMCHANNEL_PORT);
     TyrusToolkit tyrus = new TyrusToolkit(testConf);
     CommChannel channel;
-    CommChannel.Client client;
     CommChannel.Server server;
 
     @Before
     public void setupServer() throws Exception {
-        channel = new CommChannel(testConf);
-        client = channel.new Client();
-        server = channel.new Server();
-        server.start();
+       channel = new CommChannel(testConf);
+       server = channel.new Server();
+       server.start();
 
     }
 
     @After
     public void stopServer() throws Exception {
-        server.destroy();
+       server.destroy();
     }
 
-    private Session lifeCycleConversation(String sessionName, URI connectURI, SessionController sc, LifeCycleClient clientHandler) throws DeploymentException {
+    private Session deployClient(Class client, URI connectURI) throws DeploymentException, IOException {
         WebSocketContainer wsc = ContainerProvider.getWebSocketContainer();
+        logger.log(Level.INFO, "registering client: {0}", client);
+        logger.log(Level.INFO, "connectTo: {0}", connectURI);
         Session clientSession = wsc.connectToServer(
-                ProgrammaticClient.class,
-                new ClientConfiguration(clientHandler, sc),
+                client,
+                ClientEndpointConfigurationBuilder.create().build(),
                 connectURI);
-
+        logger.log(Level.INFO, "client session: {0}", clientSession);
         return clientSession;
     }
 
-    private Server deployAppInTyrusProgrammatic(LifeCycleServer serverHandler, SessionController sc) throws DeploymentException {
-        ServerProgrammaticConfiguration.registerServer("programmaticLifeCycle", serverHandler);
-        ServerProgrammaticConfiguration.registerSessionController("programmaticSessionController", sc);
-        tyrus.registerEndpoint(ServerProgrammaticConfiguration.class);
+    private Server deployServer(Class config) throws DeploymentException {
+        logger.log(Level.INFO, "registering server: {0}", config);
+        tyrus.registerEndpoint(config);
         final Server tyrusServer = tyrus.startServer();
         return tyrusServer;
     }
 
-    private void lifeCycle(String sessionName, LifeCycleServer serverHandler, LifeCycleClient clientHandler) throws DeploymentException {
+    private void lifeCycle(Class serverHandler, Class clientHandler) throws DeploymentException, IOException {
         final CountDownLatch stopConversation = new CountDownLatch(1);
-        sessionName += "_Programmatic";
-        final SessionController sc = new SessionController(sessionName, client);
-        final Server tyrusServer = deployAppInTyrusProgrammatic(serverHandler, sc);
-        Session clientSession = lifeCycleConversation(sessionName, testConf.getURI(), sc, clientHandler);
+        final Server tyrusServer = deployServer(serverHandler);
+        Session clientSession = deployClient(clientHandler, testConf.getURI());
         // FIXME TC: clientSession.equals(lcSession)
         // FIXME TC: clientSession.addMessageHandler .. .throw excetpion
         try {
@@ -150,151 +134,106 @@ public class LifeCycleTest {
          */
 
         tyrus.stopServer(tyrusServer);
-        Assert.assertEquals("session lifecycle finished", SessionController.SessionState.FINISHED_SERVER.getMessage(), sc.getState());
+        Map userProps = clientSession.getUserProperties();
+        Assert.assertEquals("session lifecycle finished", SessionController.SessionState.FINISHED_SERVER.getMessage(), SessionController.getState());
     }
 
-    private void lifeCycleAnnotated(String sessionName, LifeCycleServer serverHandler, LifeCycleClient clientHandler) throws DeploymentException, InterruptedException {
-        sessionName += "_Annotated";
-        final SessionController sc = new SessionController(sessionName, client);
+    /*
+     private void lifeCycleAnnotated(Class serverHandler, Class clientHandler) throws DeploymentException, InterruptedException, IOException {
+    
+    
 
-        ServerAnnotatedConfiguration.registerServer("annotatedLifeCycle", serverHandler);
-        ServerAnnotatedConfiguration.registerSessionController("annotatedSessionController", sc);
-        tyrus.registerEndpoint(ServerAnnotatedConfiguration.class);
-        final Server tyrusServer = tyrus.startServer();
-        WebSocketContainer wsc = ContainerProvider.getWebSocketContainer();
-        Session clientSession = wsc.connectToServer(
-                AnnotatedClient.class,
-                new ClientConfiguration(clientHandler, sc),
-                testConf.getURI());
-        Thread.sleep(10000);
-        tyrus.stopServer(tyrusServer);
-        Assert.assertEquals(sessionName + ": session lifecycle finished", SessionController.SessionState.FINISHED_SERVER.getMessage(), sc.getState());
-    }
-
+     ServerAnnotatedConfiguration.registerServer("annotatedLifeCycle", serverHandler);
+     ServerAnnotatedConfiguration.registerSessionController("annotatedSessionController", sc);
+     tyrus.registerEndpoint(ServerAnnotatedConfiguration.class);
+     final Server tyrusServer = tyrus.startServer();
+     WebSocketContainer wsc = ContainerProvider.getWebSocketContainer();
+     Session clientSession = wsc.connectToServer(
+     AnnotatedClient.class,
+     new ClientConfiguration(clientHandler, sc),
+     testConf.getURI());
+     Thread.sleep(10000);
+     tyrus.stopServer(tyrusServer);
+     Assert.assertEquals(sessionName + ": session lifecycle finished", SessionController.SessionState.FINISHED_SERVER.getMessage(), sc.getState());
+     }
+     */
     @Test
-    public void testLifeCycleProgrammatic() throws DeploymentException {
+    public void testLifeCycleProgrammatic() throws DeploymentException, IOException {
         Issue.disableAll();
-        lifeCycle("LifeCycle", new TextMessageServer(), new TextMessageClient());
+        lifeCycle(ProgrammaticStringSessionConfig.class, ProgrammaticStringSession.class);
     }
 
     @Test
-    public void testLifeCycleProgrammaticObjects() throws DeploymentException {
+    public void testLifeCycleProgrammaticObjects() throws DeploymentException, IOException {
         Issue.disableAll();
-        lifeCycle("LifeCycle_Objects", new ObjectInputStreamMessageServer(), new ObjectInputStreamMessageClient());
+        //lifeCycle(
     }
 
     @Test
-    public void testLifeCycleProgrammaticByteArray() throws DeploymentException {
+    public void testLifeCycleProgrammaticByteArray() throws DeploymentException, IOException {
         Issue.disableAll();
-        lifeCycle("LifeCycle_ByteArray", new ByteMessageServer(), new ByteBufferMessageClient(1024, true));
+        //lifeCycle("LifeCycle_ByteArray", new ByteMessageServer(), new ByteBufferMessageClient(1024, true));
     }
 
     @Test
-    public void tyrus93_Programmatic() throws DeploymentException {
+    public void tyrus93_Programmatic() throws DeploymentException, IOException {
         Issue.TYRUS_93.disableAllButThisOne();
-        lifeCycle("tyrus_93", new TextMessageServer(), new TextMessageClient());
+        lifeCycle(ProgrammaticStringSessionConfig.class, ProgrammaticStringSession.class);
     }
 
     @Test
-    public void tyrus94_Programmatic() throws DeploymentException {
+    public void tyrus94_Programmatic() throws DeploymentException, IOException {
         Issue.TYRUS_94.disableAllButThisOne();
-        lifeCycle("tyrus_94", new TextMessageServer(), new TextMessageClient());
+        lifeCycle(ProgrammaticStringSessionConfig.class, ProgrammaticStringSession.class);
     }
 
     @Test
-    public void tyrus101_Programmatic() throws DeploymentException {
+    public void tyrus101_Programmatic() throws DeploymentException, IOException {
         Issue.TYRUS_101.disableAllButThisOne();
-        lifeCycle("tyrus_101", new TextMessageServer(), new TextMessageClient());
+        lifeCycle(ProgrammaticStringSessionConfig.class, ProgrammaticStringSession.class);
     }
 
     @Test
-    public void tyrus104_Programmatic() throws DeploymentException {
+    public void tyrus104_Programmatic() throws DeploymentException, IOException {
         Issue.TYRUS_104.disableAllButThisOne();
-        lifeCycle("tyrus_104", new TextMessageServer(), new TextMessageClient());
+        lifeCycle(ProgrammaticStringSessionConfig.class, ProgrammaticStringSession.class);
     }
 
     @Test
-    public void testLifeCycleAnnotated() throws DeploymentException, InterruptedException {
+    public void testLifeCycleAnnotated() throws DeploymentException, InterruptedException, IOException {
         Issue.disableAll();
-        lifeCycleAnnotated("LifeCycle", new TextMessageServer(), new TextMessageClient());
+        lifeCycle(AnnotatedStringSessionConfig.class, AnnotatedStringSession.Client.class);
     }
 
     @Test
-    public void tyrus93_Annotated() throws DeploymentException, InterruptedException {
+    public void tyrus93_Annotated() throws DeploymentException, InterruptedException, IOException {
         Issue.TYRUS_93.disableAllButThisOne();
-        lifeCycleAnnotated("Tyrus93", new TextMessageServer(), new TextMessageClient());
+        lifeCycle(AnnotatedStringSessionConfig.class, AnnotatedStringSession.Client.class);
     }
 
     @Test
-    public void tyrus94_Annotated() throws DeploymentException, InterruptedException {
+    public void tyrus94_Annotated() throws DeploymentException, InterruptedException, IOException {
         Issue.TYRUS_94.disableAllButThisOne();
-        lifeCycleAnnotated("Tyrus94", new TextMessageServer(), new TextMessageClient());
+        lifeCycle(AnnotatedStringSessionConfig.class, AnnotatedStringSession.Client.class);
 
     }
 
     @Test
-    public void tyrus101_Annotated() throws DeploymentException, InterruptedException {
+    public void tyrus101_Annotated() throws DeploymentException, InterruptedException, IOException {
         Issue.TYRUS_101.disableAllButThisOne();
-        lifeCycleAnnotated("Tyrus101", new TextMessageServer(), new TextMessageClient());
+        lifeCycle(AnnotatedStringSessionConfig.class, AnnotatedStringSession.Client.class);
     }
 
     @Test
-    public void tyrus104_Annotated() throws DeploymentException, InterruptedException {
+    public void tyrus104_Annotated() throws DeploymentException, InterruptedException, IOException {
         Issue.TYRUS_104.disableAllButThisOne();
-        lifeCycleAnnotated("Tyrus104", new TextMessageServer(), new TextMessageClient());
+        lifeCycle(AnnotatedStringSessionConfig.class, AnnotatedStringSession.Client.class);
     }
 
     @Test
-    public void addMessageHandlerPossibleOnlyOnce() throws DeploymentException {
+    public void addMessageHandlerPossibleOnlyOnce() throws DeploymentException, IOException {
         Issue.disableAll();
-        final CountDownLatch stopConversation = new CountDownLatch(1);
+        
 
-        String sessionName = "addMessageHandler - possible only once";
-        final SessionController sc = new SessionController(sessionName, client);
-        final Server tyrusServer = deployAppInTyrusProgrammatic(new LifeCycleServer<String>() {
-
-            @Override
-            public void onOpen(Session session, EndpointConfiguration config) {
-                
-            }
-            @Override
-            public void handleMessage(String message, Session session) throws IOException {
-                
-            }
-            @Override
-            public void onClose(Session s, CloseReason reason) {
-                
-            }
-            
-        }, sc);
-        Session clientSession = lifeCycleConversation(sessionName, testConf.getURI(), sc, new EmptyMessageHandlerClient() {
-
-            @Override
-            public void onError(Session s, Throwable thr) {
-                logger.log(Level.SEVERE, "client: onError: {0}", thr.getMessage());
-                if(thr.getMessage().contains("MessageHandler already registered")) {
-                    sc.setState("message.handler.already.registered");
-                }
-            }
-        });
-        clientSession.addMessageHandler(new BasicMessageHandler<String>(clientSession) {
-            @Override
-            public void onMessage(String message) {
-                new TextMessageClient().onMessage(message, session);
-            }
-        });
-        try {
-            stopConversation.await(10, TimeUnit.SECONDS);
-        } catch (InterruptedException ex) {
-            // this is fine
-        }
-        /*
-         if (stopConversation.getCount() != 0) {
-         fail();
-         }
-         */
-
-        tyrus.stopServer(tyrusServer);
-        Assert.assertEquals("add message handler possible onlyconce per session", "message.handler.already.registered", sc.getState());
     }
 }

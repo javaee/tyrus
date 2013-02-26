@@ -40,28 +40,40 @@
 package org.glassfish.tyrus.tests.qa.lifecycle.handlers;
 
 import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.websocket.Session;
-import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleServer;
+import org.glassfish.tyrus.tests.qa.lifecycle.SessionConversation;
+import org.glassfish.tyrus.tests.qa.lifecycle.SessionLifeCycle;
+import org.glassfish.tyrus.tests.qa.lifecycle.ProgrammaticEndpoint;
 
 /**
  *
  * @author michal.conos at oracle.com
  */
-public class ObjectInputStreamMessageServer extends LifeCycleServer<ObjectInputStream> {
-
-    @Override
-    public void handleMessage(ObjectInputStream message, Session session) throws IOException {
-        try {
-            new ObjectOutputStream(session.getRemote().getSendStream()).writeObject(message.readObject());
-        } catch (ClassNotFoundException ex) {
-            logger.log(Level.SEVERE, null, ex);
-            ex.printStackTrace();
-            throw new RuntimeException(ex);
-        }
-    }
+public class StringSessionImpl implements SessionConversation {
     
+    @Override
+    public SessionLifeCycle getSessionConversation() {
+        return new SessionLifeCycle<String>() {
+            @Override
+            public void onServerMessageHandler(String message, Session session) throws IOException {
+                logger.log(Level.INFO, "StringSessionImpl: onServerMessage: {0}", message);
+                session.getBasicRemote().sendText(message);
+            }
+
+            @Override
+            public void onClientMessageHandler(String message, Session session) throws IOException {
+                logger.log(Level.INFO, "StringSessionImpl: onClientMessage: {0}", message);
+                if (message.equals("client.open")) {
+                    closeTheSessionFromClient(session);
+                } 
+            }
+
+            @Override
+            public void startTalk(Session s) throws IOException {
+                logger.log(Level.INFO, "startTalk with client.open");
+                s.getBasicRemote().sendText("client.open");
+            }
+        };
+    }
 }

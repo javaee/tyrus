@@ -39,16 +39,27 @@
  */
 package org.glassfish.tyrus.tests.qa.tools;
 
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.Reader;
 import java.net.URISyntaxException;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.websocket.Session;
+import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleDeployment;
+
 import org.json.JSONException;
 
 /**
- *
  * @author michal.conos at oracle.com
  */
 public class SessionController {
+
     public static final Logger logger = Logger.getLogger(SessionController.class.getCanonicalName());
 
     public enum SessionState {
@@ -71,60 +82,90 @@ public class SessionController {
         public String getMessage() {
             return msg;
         }
-        
+
         @Override
         public String toString() {
             return msg;
         }
     }
-    private final CommChannel.Client channel;
-    private final String sessionName;
+    private final Session session;
+    private final CommChannel commChannel;
+    private final CommChannel.Client client;
 
-    public SessionController(String sessionName, CommChannel.Client channel) {
-        this.channel = channel;
-        this.sessionName = sessionName;
+    public SessionController(Session session) {
+        this.session = session;
+        commChannel = new CommChannel(
+                LifeCycleDeployment.COMMCHANNEL_SCHEME,
+                LifeCycleDeployment.COMMCHANNEL_HOST,
+                LifeCycleDeployment.COMMCHANNEL_PORT);
+        client = commChannel.new Client();
     }
 
-    public CommChannel.Client getChannel() {
-        return channel;
-    }
-
-    public String getSessionName() {
-        return sessionName;
-    }
-
-    private synchronized void changeState(SessionState expect, SessionState newState) {
-        try {
-            logger.log(Level.INFO, "changeState: {0} ---> {1}", new Object[] {expect, newState});
-            String currentState = channel.getSessionStatus(sessionName);
-            logger.log(Level.INFO, "changeState: currState {0}", currentState);
-            if (currentState.equals(expect.getMessage())) {
-                logger.log(Level.INFO, "changeState: Switching to {0}", newState);
-                channel.setSessionStatus(sessionName, newState.getMessage());
-            }
-        } catch (JSONException ex) {
-            ex.printStackTrace();
-            throw new RuntimeException(ex);
-        } catch (URISyntaxException ex) {
-            ex.printStackTrace();
-            throw new RuntimeException(ex);
-        }
+    public Session getSession() {
+        return session;
     }
     
-    public void setState(String customState) {
-        channel.setSessionStatus(sessionName, customState);
+    private static String getId() {
+        //return session.getId();
+        return "/tmp/sessionState";
     }
-    
-    public String getState() {
-        try {
-            return channel.getSessionStatus(sessionName);
-        } catch (URISyntaxException ex) {
-            logger.log(Level.SEVERE, null, ex);
-             throw new RuntimeException(ex);
-        } catch (JSONException ex) {
-            logger.log(Level.SEVERE, null, ex);
-             throw new RuntimeException(ex);
+
+    private static synchronized void changeState(SessionState expect, SessionState newState) {
+
+        logger.log(Level.INFO, "changeState: {0} ---> {1}", new Object[]{expect, newState});
+
+        
+        String currentState = getState();
+        logger.log(Level.INFO, "changeState: currState {0}", currentState);
+        if (currentState.equals(expect.getMessage())) {
+            logger.log(Level.INFO, "changeState: Switching to {0}", newState);
+            setState(newState.getMessage());
         }
+        
+        
+
+    }
+
+    public static synchronized void setState(String customState) {
+        try {
+           PrintWriter wr = new PrintWriter(getId());
+           wr.println(customState);
+           wr.close();
+        }
+        catch(IOException ex) {
+            
+        }
+        logger.log(Level.INFO, "setState: {0}: {1}", new Object[] {getId(), customState});
+        //client.setSessionStatus(getId(), customState);
+    }
+
+    public static synchronized String getState() {
+        String state;
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(getId()));
+            state = br.readLine();
+            
+        }
+        catch(Exception ex) {
+            state="null";
+        }
+        
+        /*
+        try {
+            state  = client.getSessionStatus(getId());
+        } catch (URISyntaxException|JSONException ex) {
+            logger.log(Level.SEVERE, null, ex);
+        }
+        logger.log(Level.INFO, "getState: {0}: {1}", new Object[] {getId(), state});
+        */
+        /*
+        Map<String, Object> userProps = session.getUserProperties();
+        String state = (String)userProps.get(getId());
+        if(state==null) {
+            state="null";
+        }
+        */
+        return state;
     }
 
     public void serverOnOpen() {
@@ -153,14 +194,6 @@ public class SessionController {
     }
 
     public boolean isFinished() {
-        try {
-            return channel.getSessionStatus(sessionName).equals(SessionState.FINISHED_SERVER.getMessage());
-        } catch (URISyntaxException ex) {
-            ex.printStackTrace();
-            throw new RuntimeException(ex);
-        } catch (JSONException ex) {
-            ex.printStackTrace();
-            throw new RuntimeException(ex);
-        }
+        return getState().equals(SessionState.FINISHED_SERVER.getMessage());
     }
 }

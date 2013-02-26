@@ -40,19 +40,65 @@
 package org.glassfish.tyrus.tests.qa.lifecycle.handlers;
 
 import java.io.IOException;
-import java.nio.ByteBuffer;
+import javax.websocket.CloseReason;
+import javax.websocket.EndpointConfiguration;
 import javax.websocket.Session;
-import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleServer;
+import org.glassfish.tyrus.tests.qa.lifecycle.SessionConversation;
+import org.glassfish.tyrus.tests.qa.lifecycle.SessionLifeCycle;
 
 /**
  *
  * @author michal.conos at oracle.com
  */
-public class ByteMessageServer extends LifeCycleServer<byte[]> {
+public class EmptySessionImpl extends SessionLifeCycle<String> implements SessionConversation {
 
     @Override
-    public void handleMessage(byte[] message, Session session) throws IOException {
-        session.getRemote().sendBytes(ByteBuffer.wrap(message));
+    public void onServerMessageHandler(String message, Session session) throws IOException {
+    
     }
+
+    @Override
+    public void onClientMessageHandler(String message, Session session) throws IOException {
+    
+    }
+
+    @Override
+    public void startTalk(Session s) throws IOException {
+    
+    }
+
+    @Override
+    public SessionLifeCycle getSessionConversation() {
+        return new EmptySessionImpl();
+    }
+    
+    @Override
+    public void onServerError(Session s, Throwable thr) {
+    }
+
+    @Override
+    public void onServerClose(Session s, CloseReason reason) {
+
+    }
+
+    @Override
+    public void onServerOpen(Session s, EndpointConfiguration config) {
+
+    }
+    @Override
+    public void onClientError(Session s, Throwable thr) {
+    }
+
+    @Override
+    public void onClientClose(Session s, CloseReason reason) {
+
+    }
+
+    @Override
+    public void onClientOpen(Session s, EndpointConfiguration config) {
+
+    }
+    
+    
     
 }

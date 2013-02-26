@@ -37,40 +37,33 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.tests.qa.lifecycle.handlers;
+package org.glassfish.tyrus.tests.qa.lifecycle.config;
 
-import java.io.IOException;
-import java.util.logging.Level;
-import javax.websocket.CloseReason;
-import javax.websocket.EndpointConfiguration;
-import javax.websocket.Session;
-import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleClient;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+import javax.websocket.Endpoint;
+import javax.websocket.server.ServerApplicationConfiguration;
+import javax.websocket.server.ServerEndpointConfiguration;
+import javax.websocket.server.ServerEndpointConfigurationBuilder;
+import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleDeployment;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.text.ProgrammaticStringSession;
 
 /**
- *
  * @author michal.conos at oracle.com
  */
-public class EmptyMessageHandlerClient extends LifeCycleClient<String> {
+public class ProgrammaticStringSessionConfig implements ServerApplicationConfiguration {
 
     @Override
-    public void handleMessage(String message, Session session) throws IOException {
+    public Set<ServerEndpointConfiguration> getEndpointConfigurations(Set<Class<? extends Endpoint>> set) {
+        Set<ServerEndpointConfiguration> configSet = new HashSet<>();
+        ServerEndpointConfiguration config = ServerEndpointConfigurationBuilder.create(ProgrammaticStringSession.class, LifeCycleDeployment.LIFECYCLE_ENDPOINT_PATH).build();
+        configSet.add(config);
+        return configSet;
     }
 
     @Override
-    public void startTalk(Session s) throws IOException {
-    }
-
-    @Override
-    public void onError(Session s, Throwable thr) {
-    }
-    
-    @Override
-    public void onClose(Session s, CloseReason reason) {
-    
-    }
-    
-    @Override
-    public void onOpen(Session s, EndpointConfiguration config) {
-        
+    public Set<Class<?>> getAnnotatedEndpointClasses(Set<Class<?>> set) {
+        return Collections.EMPTY_SET;
     }
 }

@@ -40,18 +40,57 @@
 package org.glassfish.tyrus.tests.qa.lifecycle.handlers;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import javax.websocket.Session;
-import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleServer;
+import org.glassfish.tyrus.tests.qa.lifecycle.SessionConversation;
+import org.glassfish.tyrus.tests.qa.lifecycle.SessionLifeCycle;
 
 /**
  *
  * @author michal.conos at oracle.com
  */
-public class TextMessageServer extends LifeCycleServer<String> {
-    
+public class ByteSessionImpl extends SessionLifeCycle<byte[]> implements SessionConversation {
+
     @Override
-    public void handleMessage(String message, Session session) throws IOException {
-        session.getRemote().sendString(message);
+    public SessionLifeCycle getSessionConversation() {
+        return new ByteSessionImpl(1024, true);
     }
-    
+   
+    int messageSize;
+    ByteBuffer messageToSend;
+
+    public ByteSessionImpl(int messageSize, boolean directIO) {
+        super();
+        this.messageSize = messageSize;
+        if (directIO) {
+            this.messageToSend = ByteBuffer.allocate(messageSize);
+        } else {
+            this.messageToSend = ByteBuffer.allocateDirect(messageSize);
+        }
+        initSendBuffer();
+    }
+
+    private void initSendBuffer() {
+        for (int idx = 0; idx < messageSize; idx++) {
+            messageToSend.put((byte) idx);
+        }
+    }
+
+    @Override
+    public void onClientMessageHandler(byte[] message, Session session) throws IOException {
+        if (0 == ByteBuffer.wrap(message).compareTo(messageToSend)) {
+            closeTheSessionFromClient(session);
+        }
+    }
+
+    @Override
+    public void onServerMessageHandler(byte[] message, Session session) throws IOException {
+        session.getBasicRemote().sendBinary(ByteBuffer.wrap(message));
+    }
+
+    @Override
+    public void startTalk(Session s) throws IOException {
+        ByteBuffer bb = ByteBuffer.allocate(messageSize);
+        s.getBasicRemote().sendBinary(messageToSend);
+    }
 }

@@ -40,29 +40,62 @@
 package org.glassfish.tyrus.tests.qa.lifecycle.handlers;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.websocket.Session;
-import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleClient;
+import org.glassfish.tyrus.tests.qa.lifecycle.SessionConversation;
+import org.glassfish.tyrus.tests.qa.lifecycle.SessionLifeCycle;
 
 /**
  *
  * @author michal.conos at oracle.com
  */
-public class ObjectInputStreamMessageClient extends LifeCycleClient<ObjectInputStream> {
-    
-    SendMeSomething original;
-    
-        public ObjectInputStreamMessageClient() {
-        this.original = new SendMeSomething("message", "over network", "now");
+public class ObjectInputStreamSessionImpl implements SessionConversation {
+
+    @Override
+    public SessionLifeCycle getSessionConversation() {
+        return new SessionLifeCycle<InputStream>() {
+            ObjectInputStreamSessionImpl.SendMeSomething original;
+
+            @Override
+            public void startTalk(Session s) throws IOException {
+                this.original = new ObjectInputStreamSessionImpl.SendMeSomething("message", "over network", "now");
+                new ObjectOutputStream(s.getBasicRemote().getSendStream()).writeObject(original);
+            }
+
+            @Override
+            public void onServerMessageHandler(InputStream message, Session session) throws IOException {
+                try {
+                    new ObjectOutputStream(session.getBasicRemote().getSendStream()).writeObject(new ObjectInputStream(message).readObject());
+                } catch (ClassNotFoundException ex) {
+                    logger.log(Level.SEVERE, null, ex);
+                    ex.printStackTrace();
+                    throw new RuntimeException(ex);
+                }
+            }
+
+            @Override
+            public void onClientMessageHandler(InputStream message, Session session) throws IOException {
+                try {
+                    SendMeSomething what = (SendMeSomething) new ObjectInputStream(message).readObject();
+                    if (what.equals(original)) {
+                        closeTheSessionFromClient(session);
+                    }
+                } catch (ClassNotFoundException ex) {
+                    logger.log(Level.SEVERE, null, ex);
+                    ex.printStackTrace();
+                    throw new RuntimeException(ex);
+                }
+            }
+        };
     }
-    
-    
+
     static class SendMeSomething implements Serializable {
+
         private String what;
         private String how;
         private String when;
@@ -94,18 +127,17 @@ public class ObjectInputStreamMessageClient extends LifeCycleClient<ObjectInputS
         public void setNice(boolean nice) {
             this.nice = nice;
         }
-        
+
         @Override
         public boolean equals(Object obj) {
-            if(this == obj) {
+            if (this == obj) {
                 return true;
             }
-            if(obj instanceof SendMeSomething) {
-                SendMeSomething dst = (SendMeSomething)obj;
-                if(dst.getHow().equals(how) && dst.getWhat().equals(what) && dst.getWhen().equals(when) && dst.isNice()==nice) {
+            if (obj instanceof SendMeSomething) {
+                SendMeSomething dst = (SendMeSomething) obj;
+                if (dst.getHow().equals(how) && dst.getWhat().equals(what) && dst.getWhen().equals(when) && dst.isNice() == nice) {
                     return true;
-                }
-                else {
+                } else {
                     return false;
                 }
             }
@@ -122,25 +154,4 @@ public class ObjectInputStreamMessageClient extends LifeCycleClient<ObjectInputS
             return hash;
         }
     }
-
-    @Override
-    public void handleMessage(ObjectInputStream message, Session session) throws IOException {
-        try {
-            SendMeSomething what = (SendMeSomething) new ObjectInputStream(message).readObject();
-            if(what.equals(original)) {
-                closeTheSession(session);
-            }
-        } catch (ClassNotFoundException ex) {
-            logger.log(Level.SEVERE, null, ex);
-            ex.printStackTrace();
-            throw new RuntimeException(ex);
-        }
-        
-    }
-
-    @Override
-    public void startTalk(Session s) throws IOException {
-        new ObjectOutputStream(s.getRemote().getSendStream()).writeObject(original);
-    }
-    
 }

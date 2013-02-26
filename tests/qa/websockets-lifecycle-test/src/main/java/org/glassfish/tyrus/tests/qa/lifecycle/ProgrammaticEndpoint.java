@@ -39,53 +39,77 @@
  */
 package org.glassfish.tyrus.tests.qa.lifecycle;
 
-import org.glassfish.tyrus.tests.qa.lifecycle.config.ServerConfiguration;
-import java.io.IOException;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.websocket.CloseReason;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.MessageHandler;
-import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
+import org.glassfish.tyrus.server.TyrusServerContainer;
 import org.glassfish.tyrus.tests.qa.handlers.BasicMessageHandler;
-import org.glassfish.tyrus.tests.qa.regression.Issue;
 import org.glassfish.tyrus.tests.qa.tools.CommChannel;
 import org.glassfish.tyrus.tests.qa.tools.SessionController;
 
-public class ProgrammaticServer extends Endpoint {
+abstract public class ProgrammaticEndpoint<T> extends Endpoint implements MessageHandler.Basic<T> {
 
-    private static final Logger logger = Logger.getLogger(ProgrammaticServer.class.getCanonicalName());
-    LifeCycleServer lifeCycle;
-    SessionController sc;
-    
-    
+    private static final Logger logger = Logger.getLogger(ProgrammaticEndpoint.class.getCanonicalName());
+    protected SessionLifeCycle lifeCycle;
+    protected MessageHandler messageHandler;
+    protected SessionController sc;
+    private Session session = null;
+
+    public abstract void createLifeCycle();
+
+    boolean isServerContainer(Session session) {
+        logger.log(Level.INFO, "websocket.container:{0}", session.getContainer().toString());
+        return session.getContainer() instanceof TyrusServerContainer;
+    }
+
     @Override
-    public void onOpen(Session s, EndpointConfiguration ec) {
-        lifeCycle  = ((ServerConfiguration)ec).getServerHandler();
-        sc = ((ServerConfiguration)ec).getSessionController();
-        lifeCycle.setSessionController(sc);
-        MessageHandler messageHandler = new BasicMessageHandler<String>(s) {
+    public void onMessage(T message) {
+        if (isServerContainer(session)) {
+            logger.log(Level.INFO, "PRGEND:server:onMessage:{0}", message.toString());
+            lifeCycle.onServerMessage(message, session);
+        } else {
+            logger.log(Level.INFO, "PRGEND:client:onMessage:{0}", message.toString());
+            lifeCycle.onClientMessage(message, session);
+        }
+    }
 
-            @Override
-            public void onMessage(String msg) {
-               lifeCycle.onMessage(msg, session);
-            }
-        };
-        s.addMessageHandler(messageHandler);
-        lifeCycle.onOpen(s, ec);
+    @Override
+    public void onOpen(Session session, EndpointConfiguration ec) {
+        if (this.session == null) {
+            this.session = session;
+        }
+        logger.log(Level.INFO, "ProgrammaticEndpoint: onOpen");
+        this.sc = new SessionController(session);
+        createLifeCycle();
+        lifeCycle.setSessionController(sc);
+        session.addMessageHandler(this);
+        if (isServerContainer(session)) {
+            lifeCycle.onServerOpen(session, ec);
+        } else {
+            lifeCycle.onClientOpen(session, ec);
+        }
     }
 
     @Override
     public void onClose(Session s, CloseReason reason) {
-        lifeCycle.onClose(s, reason);
+        if (isServerContainer(s)) {
+            lifeCycle.onServerClose(s, reason);
+        } else {
+            lifeCycle.onClientClose(s, reason);
+        }
     }
 
     @Override
     public void onError(Session s, Throwable thr) {
-        lifeCycle.onError(s, thr);
+        if (isServerContainer(s)) {
+            lifeCycle.onServerError(s, thr);
+        } else {
+            lifeCycle.onClientError(s, thr);
+        }
     }
+   
 }

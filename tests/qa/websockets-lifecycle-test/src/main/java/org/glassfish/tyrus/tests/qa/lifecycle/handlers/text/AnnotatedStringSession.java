@@ -37,62 +37,35 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.tests.qa.lifecycle.config;
+package org.glassfish.tyrus.tests.qa.lifecycle.handlers.text;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import javax.websocket.Endpoint;
-import javax.websocket.Extension;
-import javax.websocket.server.DefaultServerConfiguration;
-import org.eclipse.jetty.io.EndPoint;
-import org.glassfish.tyrus.TyrusServerEndpointConfiguration;
-import org.glassfish.tyrus.tests.qa.lifecycle.AnnotatedServer;
+import javax.websocket.ClientEndpoint;
+import javax.websocket.server.ServerEndpoint;
+import org.glassfish.tyrus.tests.qa.lifecycle.AnnotatedEndpoint;
 import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleDeployment;
-import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleServer;
-import org.glassfish.tyrus.tests.qa.tools.SessionController;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.StringSessionImpl;
 
 /**
  *
  * @author michal.conos at oracle.com
  */
-public class ServerAnnotatedConfiguration extends TyrusServerEndpointConfiguration {
-    
-    public ServerAnnotatedConfiguration() {
-        super(null, LifeCycleDeployment.LIFECYCLE_ENDPOINT_PATH);
+public class AnnotatedStringSession {
+
+    @ServerEndpoint(value = LifeCycleDeployment.LIFECYCLE_ENDPOINT_PATH)
+    static public class Server extends AnnotatedEndpoint<String> {
+
+        @Override
+        public void createLifeCycle() {
+            lifeCycle = new StringSessionImpl().getSessionConversation();
+        }
     }
 
-    private static ConcurrentHashMap<String, LifeCycleServer> _handlers = new ConcurrentHashMap<>();
-    private static ConcurrentHashMap<String, SessionController> _ctrls = new ConcurrentHashMap<>();
+    @ClientEndpoint
+    static public class Client extends AnnotatedEndpoint<String> {
 
-    public static void registerServer(String name, LifeCycleServer handler) {
-        _handlers.put(name, handler);
+        @Override
+        public void createLifeCycle() {
+            lifeCycle = new StringSessionImpl().getSessionConversation();
+        }
     }
-
-    protected static LifeCycleServer getServer(String name) {
-        return _handlers.get(name);
-    }
-
-    public static void registerSessionController(String name, SessionController handler) {
-        _ctrls.put(name, handler);
-    }
-
-    protected static SessionController getSessionController(String name) {
-        return _ctrls.get(name);
-    }
-
-    
-    public LifeCycleServer getServerHandler() {
-        return getServer("annotatedLifeCycle");
-    }
-    
-    public SessionController getSessionController() {
-        return getSessionController("annotatedSessionController");
-    }
-    
-
-    Class<?> getMyServerClass() {
-        return AnnotatedServer.class;
-    }
-    
 }

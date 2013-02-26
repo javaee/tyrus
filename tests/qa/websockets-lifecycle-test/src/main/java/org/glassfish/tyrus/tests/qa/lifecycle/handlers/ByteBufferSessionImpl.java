@@ -42,17 +42,55 @@ package org.glassfish.tyrus.tests.qa.lifecycle.handlers;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import javax.websocket.Session;
-import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleServer;
+import org.glassfish.tyrus.tests.qa.lifecycle.SessionConversation;
+import org.glassfish.tyrus.tests.qa.lifecycle.SessionLifeCycle;
 
 /**
  *
  * @author michal.conos at oracle.com
  */
-public class ByteBufferMessageServer extends LifeCycleServer<ByteBuffer> {
+public class ByteBufferSessionImpl extends SessionLifeCycle<ByteBuffer> implements SessionConversation {
+
+    int messageSize;
+    ByteBuffer messageToSend;
+
+    public ByteBufferSessionImpl(int messageSize, boolean directIO) {
+        super();
+        this.messageSize = messageSize;
+        if (directIO) {
+            this.messageToSend = ByteBuffer.allocate(messageSize);
+        } else {
+            this.messageToSend = ByteBuffer.allocateDirect(messageSize);
+        }
+        initSendBuffer();
+    }
+
+    private void initSendBuffer() {
+        for (int idx = 0; idx < messageSize; idx++) {
+            messageToSend.put((byte) idx);
+        }
+    }
 
     @Override
-    public void handleMessage(ByteBuffer message, Session session) throws IOException {
-        session.getRemote().sendBytes(message);
+    public void onClientMessageHandler(ByteBuffer message, Session session) throws IOException {
+        if (0 == message.compareTo(messageToSend)) {
+            closeTheSessionFromClient(session);
+        }
     }
-    
+
+    @Override
+    public void startTalk(Session s) throws IOException {
+        ByteBuffer bb = ByteBuffer.allocate(messageSize);
+        s.getBasicRemote().sendBinary(messageToSend);
+    }
+
+    @Override
+    public void onServerMessageHandler(ByteBuffer message, Session session) throws IOException {
+        session.getBasicRemote().sendBinary(message);
+    }
+
+    @Override
+    public SessionLifeCycle getSessionConversation() {
+        return new ByteBufferSessionImpl(1024, true);
+    }
 }

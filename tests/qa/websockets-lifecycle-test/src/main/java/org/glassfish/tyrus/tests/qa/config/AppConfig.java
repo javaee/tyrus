@@ -43,22 +43,21 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 /**
- *
  * @author michal.conos at oracle.com
  */
 public class AppConfig {
     public static final String DEFAULT_HOST = "localhost";
     public static final int DEFAULT_PORT = 8025;
-    
+
     private String contextPath;
     private String endpointPath;
     private int port;
     private String host;
-    
+
     private int commPort;
     private String commHost;
     private String commScheme;
-    
+
     public AppConfig(String contextPath, String endpointPath, String commScheme, String commHost, int commPort) {
         setContextPath(contextPath);
         setEndpointPath(endpointPath);
@@ -90,8 +89,7 @@ public class AppConfig {
     public final void setCommScheme(String commScheme) {
         this.commScheme = commScheme;
     }
-    
-    
+
 
     public String getContextPath() {
         return contextPath;
@@ -108,17 +106,17 @@ public class AppConfig {
     public final void setEndpointPath(String endpointPath) {
         this.endpointPath = endpointPath;
     }
-    
+
     public URI getURI() {
         try {
-            return new URI("ws", null, getHost(), getPort(), getContextPath()+ getEndpointPath(), null, null);
+            return new URI("ws", null, getHost(), getPort(), getContextPath() + getEndpointPath(), null, null);
         } catch (URISyntaxException e) {
             e.printStackTrace();
             return null;
         }
     }
-    
-    
+
+
     public String getHost() {
         final String host = System.getProperty("tyrus.test.host");
         if (host != null) {

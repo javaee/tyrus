@@ -37,54 +37,21 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.tests.qa.lifecycle;
+package org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary;
 
-import org.glassfish.tyrus.tests.qa.lifecycle.config.ClientConfiguration;
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.websocket.CloseReason;
-import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfiguration;
-import javax.websocket.MessageHandler;
-import javax.websocket.Session;
-import org.glassfish.tyrus.tests.qa.handlers.BasicMessageHandler;
-import org.glassfish.tyrus.tests.qa.tools.SessionController;
+import java.io.InputStream;
+import org.glassfish.tyrus.tests.qa.lifecycle.ProgrammaticEndpoint;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.ObjectInputStreamSessionImpl;
 
 /**
  *
  * @author michal.conos at oracle.com
  */
-public class ProgrammaticClient extends Endpoint {
-
-    private static final Logger logger = Logger.getLogger(ProgrammaticClient.class.getCanonicalName());
-    LifeCycleClient lifeCycle;
-    SessionController sc;
+public class ProgrammaticObjectInputStreamSession extends ProgrammaticEndpoint<InputStream> {
 
     @Override
-    public void onOpen(Session s, EndpointConfiguration config) {
-
-        lifeCycle = ((ClientConfiguration) config).getLifeCycleClient();
-        sc = ((ClientConfiguration) config).getSessionController();
-        lifeCycle.setSessionController(sc);
-        MessageHandler messageHandler = new BasicMessageHandler<String>(s) {
-            @Override
-            public void onMessage(String message) {
-                lifeCycle.onMessage(message, session);
-            }
-        };
-        s.addMessageHandler(messageHandler);
-        lifeCycle.onOpen(s, config);
-
+    public void createLifeCycle() {
+        lifeCycle = new ObjectInputStreamSessionImpl().getSessionConversation();
     }
-
-    @Override
-    public void onClose(Session s, CloseReason reason) {
-        lifeCycle.onClose(s, reason);
-    }
-
-    @Override
-    public void onError(Session s, Throwable thr) {
-        lifeCycle.onError(s, thr);
-    }
+    
 }

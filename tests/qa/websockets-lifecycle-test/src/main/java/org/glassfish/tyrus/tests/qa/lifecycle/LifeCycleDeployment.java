@@ -40,13 +40,12 @@
 package org.glassfish.tyrus.tests.qa.lifecycle;
 
 /**
- *
  * @author michal.conos at oracle.com
  */
 public interface LifeCycleDeployment {
-     public static final String CONTEXT_PATH = "/websockets-lifecycle-test";
-     public static final String LIFECYCLE_ENDPOINT_PATH = "/life";
-     public static final int COMMCHANNEL_PORT = 9339;
-     public static final String COMMCHANNEL_SCHEME = "http";
-     public static final String COMMCHANNEL_HOST = "localhost";
+    public static final String CONTEXT_PATH = "/websockets-lifecycle-test";
+    public static final String LIFECYCLE_ENDPOINT_PATH = "/life";
+    public static final int COMMCHANNEL_PORT = 9339;
+    public static final String COMMCHANNEL_SCHEME = "http";
+    public static final String COMMCHANNEL_HOST = "localhost";
 }

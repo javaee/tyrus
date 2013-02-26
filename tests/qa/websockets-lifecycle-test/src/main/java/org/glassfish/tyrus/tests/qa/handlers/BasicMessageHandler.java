@@ -44,25 +44,24 @@ import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
 
 /**
- *
  * @author michal.conos at oracle.com
  */
 public abstract class BasicMessageHandler<T> implements MessageHandler.Basic<T> {
 
-    
+
     protected final Session session;
 
     public BasicMessageHandler(Session session) {
         this.session = session;
-        
+
     }
-    
+
     public Session getSession() {
         return session;
     }
-    
-    public RemoteEndpoint getRemoteEndpoint() {
-        return session.getRemote();
+
+    public RemoteEndpoint.Basic getRemoteEndpoint() {
+        return session.getBasicRemote();
     }
-    
+
 }

@@ -40,76 +40,51 @@
 package org.glassfish.tyrus.tests.qa.lifecycle;
 
 import java.io.IOException;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.websocket.CloseReason;
 import javax.websocket.EndpointConfiguration;
-import javax.websocket.RemoteEndpoint;
+import javax.websocket.OnClose;
+import javax.websocket.OnError;
+import javax.websocket.OnMessage;
+import javax.websocket.OnOpen;
 import javax.websocket.Session;
-import org.glassfish.tyrus.tests.qa.lifecycle.config.ClientConfiguration;
-import org.glassfish.tyrus.tests.qa.regression.Issue;
+import org.glassfish.tyrus.tests.qa.tools.CommChannel;
 import org.glassfish.tyrus.tests.qa.tools.SessionController;
 
 /**
- *
  * @author michal.conos at oracle.com
  */
-abstract public class LifeCycleClient<T> {
 
-    private  SessionController sc;
-    protected static final Logger logger = Logger.getLogger(ProgrammaticClient.class.getCanonicalName());
+abstract public class AnnotatedEndpoint<T> {
 
-    public void setSessionController(SessionController sc) {
-        this.sc = sc;
+    protected static final Logger logger = Logger.getLogger(AnnotatedEndpoint.class.getCanonicalName());
+    protected SessionLifeCycle lifeCycle;
+    protected SessionController sc;
+    public abstract void createLifeCycle();
+    
+    @OnOpen
+    public void onOpen(Session session, EndpointConfiguration config) {
+        this.sc = new SessionController(session);
+        createLifeCycle();
+        lifeCycle.setSessionController(sc);
+        lifeCycle.onServerOpen(session, config);
     }
 
-    public void onOpen(Session s, EndpointConfiguration config) {
-        sc=((ClientConfiguration)config).getSessionController();
-        if (!Issue.checkTyrus93(s)) {
-            sc.setState("TYRUS_93_FAIL");
-        }
-        sc.clientOnOpen();
-
-        try {
-            startTalk(s);
-        } catch (IOException ex) {
-            logger.log(Level.SEVERE, null, ex);
-        }
+    @OnMessage
+    public void onMessage(T message, Session session) throws IOException {
+        lifeCycle.onServerMessage(message, session);
     }
 
+    @OnClose
     public void onClose(Session s, CloseReason reason) {
-        logger.log(Level.INFO, "client: Closing the session: {0}", s.toString());
-        //sc.clientOnClose();
-        final RemoteEndpoint remote = s.getRemote();
-        try {
-            s.getRemote().sendString("client:onClose");
-        } catch (IOException ex) {
-            logger.log(Level.SEVERE, null, ex);
-        }
+        lifeCycle.onServerClose(s, reason);
     }
 
+    @OnError
     public void onError(Session s, Throwable thr) {
-        logger.log(Level.SEVERE, "client: onError: {0}", thr.getMessage());
+        lifeCycle.onServerError(s, thr);
     }
-    
-    abstract public void handleMessage(T message, Session session) throws IOException;
-    abstract public void startTalk(Session s) throws IOException;
     
 
-    public void onMessage(T message, Session session) {
-        sc.onMessage();
-        logger.log(Level.INFO, "client:message={0}", message);
-        try {
 
-            handleMessage(message, session);
-        } catch (IOException ex) {
-            ex.printStackTrace();
-            logger.log(Level.SEVERE, null, ex);
-        }
-    }
-    
-    protected void closeTheSession(Session session) throws IOException {
-        logger.log(Level.INFO, "closing the session from the client");
-        session.close(new CloseReason(CloseReason.CloseCodes.GOING_AWAY, "Going away"));
-    }
 }

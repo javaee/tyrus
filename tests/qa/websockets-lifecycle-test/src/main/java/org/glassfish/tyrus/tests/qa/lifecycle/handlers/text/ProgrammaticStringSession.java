@@ -37,55 +37,21 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.tests.qa.lifecycle;
+package org.glassfish.tyrus.tests.qa.lifecycle.handlers.text;
 
-import org.glassfish.tyrus.tests.qa.lifecycle.config.ServerConfiguration;
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.websocket.CloseReason;
-import javax.websocket.EndpointConfiguration;
-import javax.websocket.RemoteEndpoint;
-import javax.websocket.Session;
-import javax.websocket.WebSocketClose;
-import javax.websocket.WebSocketError;
-import javax.websocket.WebSocketMessage;
-import javax.websocket.WebSocketOpen;
-import javax.websocket.server.WebSocketEndpoint;
-import org.glassfish.tyrus.tests.qa.lifecycle.config.ServerAnnotatedConfiguration;
-import org.glassfish.tyrus.tests.qa.tools.SessionController;
+import javax.websocket.MessageHandler;
+import org.glassfish.tyrus.tests.qa.lifecycle.ProgrammaticEndpoint;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.StringSessionImpl;
 
 /**
  *
  * @author michal.conos at oracle.com
  */
-@WebSocketEndpoint(value=LifeCycleDeployment.LIFECYCLE_ENDPOINT_PATH, configuration=ServerAnnotatedConfiguration.class)
-public class AnnotatedServer {
+public class ProgrammaticStringSession extends ProgrammaticEndpoint<String> implements MessageHandler.Basic<String> {
 
-    private static final Logger logger = Logger.getLogger(AnnotatedClient.class.getCanonicalName());
-    LifeCycleServer server;
-    SessionController sc;
-
-    @WebSocketOpen
-    public void onOpen(Session s, EndpointConfiguration config) {
-        server = ((ServerAnnotatedConfiguration) config).getServerHandler();
-        sc = ((ServerConfiguration) config).getSessionController();
-        server.setSessionController(sc);
-        server.onOpen(s, config);
+    @Override
+    public void createLifeCycle() {
+        lifeCycle = new StringSessionImpl().getSessionConversation();
     }
-
-    @WebSocketMessage
-    public void onMessage(String message, Session session) throws IOException {
-       server.onMessage(message, session);
-    }
-
-    @WebSocketClose
-    public void onClose(Session s, CloseReason reason) {
-        server.onClose(s, reason);
-    }
-
-    @WebSocketError
-    public void onError(Session s, Throwable thr) {
-        server.onError(s, thr);
-    }
+    
 }

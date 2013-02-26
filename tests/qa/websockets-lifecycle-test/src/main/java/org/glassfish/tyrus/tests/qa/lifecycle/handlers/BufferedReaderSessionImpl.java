@@ -39,34 +39,57 @@
  */
 package org.glassfish.tyrus.tests.qa.lifecycle.handlers;
 
+import java.io.BufferedReader;
 import java.io.IOException;
-import javax.websocket.CloseReason;
-import javax.websocket.EndpointConfiguration;
+import java.io.Reader;
 import javax.websocket.Session;
-import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleServer;
+import org.glassfish.tyrus.tests.qa.lifecycle.SessionConversation;
+import org.glassfish.tyrus.tests.qa.lifecycle.SessionLifeCycle;
 
 /**
  *
  * @author michal.conos at oracle.com
  */
-public class EmptyMessageHandlerServer extends LifeCycleServer<String> {
+public class BufferedReaderSessionImpl extends SessionLifeCycle<Reader> implements SessionConversation {
 
-     @Override
-    public void onError(Session s, Throwable thr) {
+    private int messageSize;
+    private String messageToSend = "";
+    private String gotMessage = "";
+    private static final String oneLine = "abcdefghijklm\n";
+
+    public BufferedReaderSessionImpl(int messageSize) {
+        this.messageSize = messageSize;
+
     }
-    
+
+    private void initSendMessage() {
+        for (int idx = 0; idx < messageSize / oneLine.length(); idx++) {
+            messageToSend += oneLine;
+        }
+    }
+
     @Override
-    public void onClose(Session s, CloseReason reason) {
-    
+    public void startTalk(Session s) throws IOException {
+        s.getBasicRemote().getSendWriter().write(messageToSend);
     }
-    
+
     @Override
-    public void onOpen(Session s, EndpointConfiguration config) {
-        
+    public void onServerMessageHandler(Reader message, Session session) throws IOException {
+        session.getBasicRemote().getSendWriter().write(new BufferedReader(message).readLine());
     }
+
     @Override
-    public void handleMessage(String message, Session session) throws IOException {
-        
+    public void onClientMessageHandler(Reader message, Session session) throws IOException {
+        for (;;) {
+            gotMessage += new BufferedReader(message).readLine();
+            if (gotMessage.equals(messageToSend)) {
+                closeTheSessionFromClient(session);
+            }
+        }
     }
-    
+
+    @Override
+    public SessionLifeCycle getSessionConversation() {
+        return new BufferedReaderSessionImpl(1024);
+    }
 }

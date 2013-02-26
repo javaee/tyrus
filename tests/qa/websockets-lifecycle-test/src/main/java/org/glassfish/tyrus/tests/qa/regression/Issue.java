@@ -42,11 +42,11 @@ package org.glassfish.tyrus.tests.qa.regression;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import javax.websocket.CloseReason;
 import javax.websocket.Session;
 
 /**
- *
  * @author michal.conos at oracle.com
  */
 public enum Issue {
@@ -171,7 +171,7 @@ public enum Issue {
             }
             try {
                 logger.log(Level.INFO, "TYRUS-104: send string on closed connection");
-                s.getRemote().sendString("Raise onError now - socket is closed");
+                s.getBasicRemote().sendText("Raise onError now - socket is closed");
                 logger.log(Level.SEVERE, "TYRUS-104: IllegalStateException expected, should never get here");
                 s.close();
             } catch (IOException ex) {

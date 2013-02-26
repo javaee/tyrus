@@ -40,27 +40,29 @@
 package org.glassfish.tyrus.tests.qa.tools;
 
 import java.io.IOException;
-import java.util.HashMap;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import org.glassfish.tyrus.tests.qa.config.AppConfig;
+
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.handler.AbstractHandler;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONStringer;
+
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import org.glassfish.tyrus.tests.qa.config.AppConfig;
 
 /**
- *
  * @author michal.conos at oracle.com
  */
 public class CommChannel {
@@ -123,6 +125,7 @@ public class CommChannel {
     public String getHost() {
         return host;
     }
+
     private static Map<String, String> sessions = new ConcurrentHashMap<String, String>();
 
     public class Server {
@@ -216,7 +219,8 @@ public class CommChannel {
         private void startJetty(int port) throws Exception {
             server = new org.eclipse.jetty.server.Server(port);
             server.setHandler(new AbstractHandler() {
-                public void handle(String target, Request request, HttpServletRequest httpRequest, HttpServletResponse response) throws IOException, ServletException {
+                @Override
+                public synchronized  void handle(String target, Request request, HttpServletRequest httpRequest, HttpServletResponse response) throws IOException, ServletException {
                     response.setContentType("text/html;charset=utf-8");
 
                     String path = httpRequest.getPathInfo();
@@ -270,8 +274,8 @@ public class CommChannel {
             ClientResponse response = web.get(ClientResponse.class);
             return response;
         }
-        
-        private  String handleResource(ClientResponse response, String key) throws JSONException {
+
+        private String handleResource(ClientResponse response, String key) throws JSONException {
             switch (response.getStatus()) {
                 case 200:
                     String jsonText = response.getEntity(String.class);
@@ -280,10 +284,10 @@ public class CommChannel {
                 case 404:
                     return "null";
                 default:
-                    throw new RuntimeException("ClientResponse not 200 OK for :" +key + " : "+ response.getStatus());
+                    throw new RuntimeException("ClientResponse not 200 OK for :" + key + " : " + response.getStatus());
             }
         }
-                
+
 
         public String getSessionStatus(String id) throws URISyntaxException, JSONException {
             return handleResource(getResourceStatus("sessions", id), "status");
