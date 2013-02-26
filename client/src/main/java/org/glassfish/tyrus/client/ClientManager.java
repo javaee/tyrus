@@ -41,7 +41,6 @@ package org.glassfish.tyrus.client;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -56,10 +55,8 @@ import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
 
 import org.glassfish.tyrus.core.AnnotatedEndpoint;
-import org.glassfish.tyrus.core.AnnotatedEndpoint;
 import org.glassfish.tyrus.core.ComponentProviderService;
 import org.glassfish.tyrus.core.EndpointWrapper;
-import org.glassfish.tyrus.core.ErrorCollector;
 import org.glassfish.tyrus.core.ErrorCollector;
 import org.glassfish.tyrus.core.ReflectionHelper;
 import org.glassfish.tyrus.core.TyrusContainerProvider;
@@ -81,7 +78,6 @@ public class ClientManager extends ContainerProvider implements WebSocketContain
      */
     private static final String ENGINE_PROVIDER_CLASSNAME = "org.glassfish.tyrus.container.grizzly.GrizzlyEngine";
     private static final Logger LOGGER = Logger.getLogger(ClientManager.class.getName());
-    private final Set<TyrusClientSocket> sockets = new HashSet<TyrusClientSocket>();
     private final TyrusContainer engine;
     private final ComponentProviderService componentProvider;
     private final ErrorCollector collector;
@@ -218,7 +214,6 @@ public class ClientManager extends ContainerProvider implements WebSocketContain
             if (endpoint != null) {
                 EndpointWrapper clientEndpoint = new EndpointWrapper(endpoint, config, componentProvider, this, url, collector, null);
                 clientSocket = engine.openClientSocket(url, config, clientEndpoint);
-                sockets.add(clientSocket);
             }
 
         } catch (Exception e) {
@@ -226,22 +221,10 @@ public class ClientManager extends ContainerProvider implements WebSocketContain
         }
 
         if (!collector.isEmpty()) {
-            if (clientSocket != null) {
-                sockets.remove(clientSocket);
-            }
             throw collector.composeComprehensiveException();
         }
 
         return clientSocket == null ? null : clientSocket.getSession();
-    }
-
-    /**
-     * TODO - should be present in {@link WebSocketContainer}.
-     */
-    public void close() {
-        for (TyrusClientSocket s : sockets) {
-            s.close();
-        }
     }
 
     @Override

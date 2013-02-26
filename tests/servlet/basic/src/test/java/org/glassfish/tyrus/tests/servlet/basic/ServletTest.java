@@ -219,7 +219,6 @@ public class ServletTest {
                                 public void onMessage(String message) {
                                     assertEquals(message, "Do or do not, there is no try.");
                                     messageLatch.countDown();
-                                    client.close();
                                 }
                             });
 
@@ -344,7 +343,6 @@ public class ServletTest {
                                 public void onMessage(String message) {
                                     assertEquals(message, LONG_MESSAGE);
                                     messageLatch.countDown();
-                                    client.close();
                                 }
                             });
 

@@ -45,10 +45,14 @@ import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.websocket.ClientEndpointConfiguration;
 import javax.websocket.ClientEndpointConfigurationBuilder;
+import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfiguration;
+import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 
 import org.glassfish.tyrus.client.ClientManager;
@@ -69,6 +73,7 @@ import static org.junit.Assert.assertTrue;
 public class SimpleRemoteTest {
     private String receivedMessage;
     private static final String SENT_MESSAGE = "Hello World";
+    private static  final Logger LOGGER = Logger.getLogger(SimpleRemoteTest.class.getName());
 
     @Test
     public void testSimpleRemote() {
@@ -114,7 +119,6 @@ public class SimpleRemoteTest {
         }
     }
 
-
     @Test
     public void testSimpleRemoteMT() {
         final int iterations = 5;
@@ -136,17 +140,20 @@ public class SimpleRemoteTest {
                         // replace ClientManager with MockClientEndpoint to confirm the test passes if the backend
                         // does not have issues
                         final ClientManager client = ClientManager.createClient();
-                        client.connectToServer(new TestEndpointAdapter() {
+                        client.connectToServer(new Endpoint()  {
 
                             @Override
-                            public EndpointConfiguration getEndpointConfiguration() {
-                                return cec;
-                            }
-
-                            @Override
-                            public void onOpen(Session session) {
+                            public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
                                 try {
-                                    session.addMessageHandler(new TestTextMessageHandler(this));
+                                    session.addMessageHandler(new MessageHandler.Basic<String>(){
+                                        @Override
+                                        public void onMessage(String s) {
+                                            perClientLatch.countDown();
+                                            String testString = message[(int) perClientLatch.getCount()];
+                                            assertEquals(testString, s);
+                                            messageLatch.countDown();
+                                        }
+                                    });
                                     session.getBasicRemote().sendText(message[1]);
                                     Thread.sleep(1000);
                                     session.getBasicRemote().sendText(message[0]);
@@ -155,12 +162,9 @@ public class SimpleRemoteTest {
                                 }
                             }
 
-                            @Override
-                            public void onMessage(String s) {
-                                perClientLatch.countDown();
-                                String testString = message[(int) perClientLatch.getCount()];
-                                assertEquals(testString, s);
-                                messageLatch.countDown();
+                            public void onError(Session session, Throwable thr) {
+                                LOGGER.log(Level.SEVERE, "onError: ");
+                                thr.printStackTrace();
                             }
                         }, cec, new URI("ws://localhost:8025/websockets/tests/customremote/hello"));
                         perClientLatch.await(5, TimeUnit.SECONDS);

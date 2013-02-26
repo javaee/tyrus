@@ -188,7 +188,7 @@ public class ErrorTest {
 
             messageLatch = new CountDownLatch(1);
             ClientManager client = ClientManager.createClient();
-            client.connectToServer(new TestEndpointAdapter() {
+            final Session session = client.connectToServer(new TestEndpointAdapter() {
                 @Override
                 public EndpointConfiguration getEndpointConfiguration() {
                     return cec;
@@ -208,7 +208,7 @@ public class ErrorTest {
             // TODO: is this really needed? Cannot we somehow force underlying protocol impl to connect immediately
             // TODO: after connectToServer call?
             messageLatch.await(1, TimeUnit.SECONDS);
-            client.close();
+            session.close();
 
             // TODO: is this really needed? Cannot we somehow force underlying protocol impl to connect immediately
             // TODO: after close call?
