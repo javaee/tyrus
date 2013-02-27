@@ -71,6 +71,7 @@ public class AnnotatedStringSession {
 
         @OnOpen
         public void onOpen(Session session, EndpointConfiguration ec) {
+            super.onOpen(session, ec);
             lifeCycle.onServerOpen(session, ec);
         }
 
@@ -108,8 +109,6 @@ public class AnnotatedStringSession {
             createLifeCycle();
             lifeCycle.setSessionController(sc);
             lifeCycle.onClientOpen(session, ec);
-
-
         }
 
         @OnMessage
