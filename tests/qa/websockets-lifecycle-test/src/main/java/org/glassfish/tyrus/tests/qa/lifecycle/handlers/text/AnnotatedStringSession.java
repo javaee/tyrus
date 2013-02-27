@@ -70,9 +70,11 @@ public class AnnotatedStringSession {
         }
 
         @OnOpen
+        @Override
         public void onOpen(Session session, EndpointConfiguration ec) {
             super.onOpen(session, ec);
             lifeCycle.onServerOpen(session, ec);
+            logger.log(Level.INFO, "lifeCycle={0}", lifeCycle.toString());
         }
 
         @OnMessage
