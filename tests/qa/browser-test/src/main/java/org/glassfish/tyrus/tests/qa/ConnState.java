@@ -40,7 +40,6 @@
 package org.glassfish.tyrus.tests.qa;
 
 /**
- *
  * @author michal.conos at oracle.com
  */
 public enum ConnState {
@@ -63,7 +62,7 @@ public enum ConnState {
         if (message.equals(state.getExpMsg())) {
             switch (state) {
                 case NONE:
-                case SERVER_OPEN:   
+                case SERVER_OPEN:
                     return SYN_SENT;
                 case SYN_SENT:
                     return ESTABLISHED;

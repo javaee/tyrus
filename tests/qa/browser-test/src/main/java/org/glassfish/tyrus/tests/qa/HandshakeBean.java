@@ -41,13 +41,13 @@ package org.glassfish.tyrus.tests.qa;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.websocket.Session;
-import javax.websocket.WebSocketMessage;
-import javax.websocket.WebSocketOpen;
-import javax.websocket.server.DefaultServerConfiguration;
-import javax.websocket.server.WebSocketEndpoint;
 
-@WebSocketEndpoint(value = "/chat", configuration = DefaultServerConfiguration.class)
+import javax.websocket.OnMessage;
+import javax.websocket.OnOpen;
+import javax.websocket.Session;
+import javax.websocket.server.ServerEndpoint;
+
+@ServerEndpoint(value = "/chat")
 public class HandshakeBean {
 
     private static ConnState state = ConnState.NONE;
@@ -61,13 +61,14 @@ public class HandshakeBean {
         state = ConnState.NONE;
     }
 
-    @WebSocketOpen
+    @OnOpen
     public void initSession(Session s) {
         logger.log(Level.INFO, "Someone connected:{0}", s.getRequestURI().toString());
+        System.out.println("server.container:"+s.getContainer().toString());
         state = ConnState.SERVER_OPEN;
     }
 
-    @WebSocketMessage
+    @OnMessage
     public String chatHandler(String message) {
         logger.log(Level.INFO, "start: message={0} state={1}\n", new Object[]{message, state});
 

@@ -39,8 +39,6 @@
  */
 package org.glassfish.tyrus.tests.qa;
 
-import org.glassfish.tyrus.tests.qa.ConnState;
-import org.glassfish.tyrus.tests.qa.HandshakeBean;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -50,17 +48,20 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.websocket.ClientEndpointConfigurationBuilder;
 import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
-import org.glassfish.tyrus.TyrusClientEndpointConfiguration;
+
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
+
+import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
-import org.junit.Test;
 
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
@@ -82,7 +83,7 @@ public class HandshakeTest {
      * specified.
      *
      * @return new {@link Server} instance or {@code null} if "tyrus.test.host"
-     * system property is set.
+     *         system property is set.
      */
     private Server startServer() throws DeploymentException {
         final String host = System.getProperty("tyrus.test.host");
@@ -144,6 +145,7 @@ public class HandshakeTest {
             @Override
             public void onOpen(final Session session, EndpointConfiguration endpointConfiguration) {
 
+                System.out.println("client.container:"+session.getContainer().toString());
                 try {
                     session.addMessageHandler(new MessageHandler.Basic<String>() {
                         @Override
@@ -154,7 +156,7 @@ public class HandshakeTest {
                                 assertEquals(message, state.getSendMsg());
                                 if (!sendOver) {
                                     System.out.println("SENDING : " + state.getExpMsg());
-                                    session.getRemote().sendString(state.getExpMsg());
+                                    session.getBasicRemote().sendText(state.getExpMsg());
                                     state = ConnState.next(state.getExpMsg(), state);
                                     if (state == ConnState.BROWSER_OKAY) {
                                         sendOver = true;
@@ -166,20 +168,19 @@ public class HandshakeTest {
                             }
 
 
-
                         }
                     });
 
 
                     System.out.println("SENDING : " + state.getExpMsg());
-                    session.getRemote().sendString(state.getExpMsg());
+                    session.getBasicRemote().sendText(state.getExpMsg());
                     state = ConnState.next(state.getExpMsg(), state);
                 } catch (IOException e) {
                     // do nothing
                 }
 
             }
-        }, new TyrusClientEndpointConfiguration.Builder().build(), getURI());
+        }, ClientEndpointConfigurationBuilder.create().build(), getURI());
 
         stopConversation.await(10, TimeUnit.SECONDS);
         if (stopConversation.getCount() != 0) {
