@@ -40,6 +40,7 @@
 package org.glassfish.tyrus.core;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -50,6 +51,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.websocket.ClientEndpoint;
@@ -272,13 +274,13 @@ public class AnnotatedEndpoint extends Endpoint {
             ServerEndpointConfigurationBuilder builder = ServerEndpointConfigurationBuilder.create(annotatedClass, wseAnnotation.value()).
                     encoders(encoders).decoders(decoders).subprotocols(Arrays.asList(subProtocols));
 
-            if(!wseAnnotation.configurator().equals(ServerEndpointConfigurator.class)) {
+            if (!wseAnnotation.configurator().equals(ServerEndpointConfigurator.class)) {
                 builder = builder.serverEndpointConfigurator(ReflectionHelper.getInstance(wseAnnotation.configurator(), collector));
             }
 
             return builder.build();
 
-        // client endpoint
+            // client endpoint
         } else {
             final ClientEndpoint wscAnnotation = annotatedClass.getAnnotation(ClientEndpoint.class);
 
@@ -425,7 +427,7 @@ public class AnnotatedEndpoint extends Endpoint {
         return null;
     }
 
-    private Object callMethod(Method method, ParameterExtractor[] extractors, Session session, Object... params) {
+    private Object callMethod(Method method, ParameterExtractor[] extractors, Session session, boolean callOnError, Object... params) {
         if (method != null) {
             Object[] paramValues = new Object[extractors.length];
 
@@ -438,14 +440,18 @@ public class AnnotatedEndpoint extends Endpoint {
             try {
                 return method.invoke(endpoint, paramValues);
             } catch (Exception e) {
-                onError(e, session);
+                if (callOnError) {
+                    onError(session, (e instanceof InvocationTargetException ? e.getCause() : e));
+                } else {
+                    LOGGER.log(Level.INFO, String.format("Exception thrown from onError method '%s'", method), e);
+                }
             }
         }
         return null;
     }
 
     void onClose(CloseReason closeReason, Session session) {
-        callMethod(onCloseMethod, onCloseParameters, session, closeReason);
+        callMethod(onCloseMethod, onCloseParameters, session, true, closeReason);
         componentProvider.removeSession(session);
     }
 
@@ -454,13 +460,9 @@ public class AnnotatedEndpoint extends Endpoint {
         onClose(closeReason, session);
     }
 
-    void onError(Throwable thr, Session session) {
-        callMethod(onErrorMethod, onErrorParameters, session, thr);
-    }
-
     @Override
     public void onError(Session session, Throwable thr) {
-        onError(thr, session);
+        callMethod(onErrorMethod, onErrorParameters, session, false, thr);
     }
 
     //    @Override
@@ -473,7 +475,7 @@ public class AnnotatedEndpoint extends Endpoint {
         for (MessageHandlerFactory f : messageHandlerFactories) {
             session.addMessageHandler(f.create(session));
         }
-        callMethod(onOpenMethod, onOpenParameters, session);
+        callMethod(onOpenMethod, onOpenParameters, session, true);
     }
 
     static interface ParameterExtractor {
@@ -523,12 +525,12 @@ public class AnnotatedEndpoint extends Endpoint {
             return new BasicMessageHandler() {
                 @Override
                 public void onMessage(Object message) {
-                    Object result = callMethod(method, extractors, session, message);
+                    Object result = callMethod(method, extractors, session, true, message);
                     if (result != null) {
                         try {
                             session.getBasicRemote().sendObject(result);
                         } catch (Exception e) {
-                            onError(e, session);
+                            onError(session, e);
                         }
                     }
                 }
@@ -557,12 +559,12 @@ public class AnnotatedEndpoint extends Endpoint {
 
                 @Override
                 public void onMessage(Object partialMessage, boolean last) {
-                    Object result = callMethod(method, extractors, session, partialMessage, last);
+                    Object result = callMethod(method, extractors, session, true, partialMessage, last);
                     if (result != null) {
                         try {
                             session.getBasicRemote().sendObject(result);
                         } catch (Exception e) {
-                            onError(e, session);
+                            onError(session, e);
                         }
                     }
                 }

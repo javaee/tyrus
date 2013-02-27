@@ -141,7 +141,7 @@ public class ErrorTest {
 
             assertTrue(OnOpenErrorTestEndpoint.session != null);
             assertTrue(OnOpenErrorTestEndpoint.throwable != null);
-            assertEquals("testException", OnOpenErrorTestEndpoint.throwable.getCause().getMessage());
+            assertEquals("testException", OnOpenErrorTestEndpoint.throwable.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
@@ -216,7 +216,7 @@ public class ErrorTest {
 
             assertTrue(OnCloseErrorTestEndpoint.session != null);
             assertTrue(OnCloseErrorTestEndpoint.throwable != null);
-            assertEquals("testException", OnCloseErrorTestEndpoint.throwable.getCause().getMessage());
+            assertEquals("testException", OnCloseErrorTestEndpoint.throwable.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
