@@ -40,6 +40,7 @@
 package org.glassfish.tyrus.tests.qa.tools;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -125,6 +126,13 @@ public class SessionController {
         
 
     }
+    
+    public static synchronized void resetState() {
+       
+           new File(getId()).delete();
+       
+       
+    }
 
     public static synchronized void setState(String customState) {
         try {
@@ -133,7 +141,7 @@ public class SessionController {
            wr.close();
         }
         catch(IOException ex) {
-            
+            ex.printStackTrace();
         }
         logger.log(Level.INFO, "setState: {0}: {1}", new Object[] {getId(), customState});
         //client.setSessionStatus(getId(), customState);
@@ -148,6 +156,7 @@ public class SessionController {
         }
         catch(Exception ex) {
             state="null";
+            ex.printStackTrace();
         }
         
         /*
@@ -165,6 +174,7 @@ public class SessionController {
             state="null";
         }
         */
+        logger.log(Level.INFO, "getState: {0}: {1}", new Object[] {getId(), state});
         return state;
     }
 

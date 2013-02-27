@@ -89,6 +89,7 @@ public class LifeCycleTest {
        channel = new CommChannel(testConf);
        server = channel.new Server();
        server.start();
+       SessionController.resetState();
 
     }
 
@@ -134,7 +135,7 @@ public class LifeCycleTest {
          */
 
         tyrus.stopServer(tyrusServer);
-        Map userProps = clientSession.getUserProperties();
+        logger.log(Level.INFO, "Asserting: {0} {1}", new Object[] {SessionController.SessionState.FINISHED_SERVER.getMessage(), SessionController.getState()});
         Assert.assertEquals("session lifecycle finished", SessionController.SessionState.FINISHED_SERVER.getMessage(), SessionController.getState());
     }
 

@@ -39,39 +39,12 @@
  */
 package org.glassfish.tyrus.tests.qa.lifecycle;
 
-import java.io.IOException;
-import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.websocket.CloseReason;
-import javax.websocket.EndpointConfiguration;
-import javax.websocket.OnClose;
-import javax.websocket.OnError;
-import javax.websocket.OnMessage;
-import javax.websocket.OnOpen;
-import javax.websocket.Session;
-import org.glassfish.tyrus.server.TyrusServerContainer;
-import org.glassfish.tyrus.tests.qa.tools.CommChannel;
-import org.glassfish.tyrus.tests.qa.tools.SessionController;
 
 /**
+ *
  * @author michal.conos at oracle.com
  */
-abstract public class AnnotatedEndpoint {
-
-    protected static final Logger logger = Logger.getLogger(AnnotatedEndpoint.class.getCanonicalName());
-    protected SessionLifeCycle lifeCycle;
-    protected SessionController sc;
-
-    public abstract void createLifeCycle();
-    protected Session session;
-
-    public void onOpen(Session session, EndpointConfiguration ec) {
-        if (this.session == null) {
-            this.session = session;
-        }
-        logger.log(Level.INFO, "ProgrammaticEndpoint: onOpen");
-        this.sc = new SessionController(session);
-        createLifeCycle();
-        lifeCycle.setSessionController(sc);
-    }
+public interface SessionConversation {
+    public SessionLifeCycle getSessionConversation();
 }

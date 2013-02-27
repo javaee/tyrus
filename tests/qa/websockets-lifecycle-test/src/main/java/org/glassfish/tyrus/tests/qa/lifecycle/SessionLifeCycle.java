@@ -85,11 +85,15 @@ abstract public class SessionLifeCycle<T> {
     }
 
     public void onServerError(Session s, Throwable thr) {
+        logger.log(Level.INFO, "onServerError:", thr);
+                
+        if(thr instanceof RuntimeException && thr.getMessage()!=null && "going onError".equals(thr.getMessage())) {
         sc.serverOnError(thr);
         if (!Issue.checkTyrus94(thr)) {
             sc.setState("server.TYRUS_94");
         }
         sc.serverOnFinish();
+        }
     }
 
     

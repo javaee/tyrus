@@ -37,41 +37,37 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.tests.qa.lifecycle;
+package org.glassfish.tyrus.tests.qa.lifecycle.config;
 
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.websocket.CloseReason;
-import javax.websocket.EndpointConfiguration;
-import javax.websocket.OnClose;
-import javax.websocket.OnError;
-import javax.websocket.OnMessage;
-import javax.websocket.OnOpen;
-import javax.websocket.Session;
-import org.glassfish.tyrus.server.TyrusServerContainer;
-import org.glassfish.tyrus.tests.qa.tools.CommChannel;
-import org.glassfish.tyrus.tests.qa.tools.SessionController;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+import javax.websocket.Endpoint;
+import javax.websocket.server.ServerApplicationConfiguration;
+import javax.websocket.server.ServerEndpoint;
+import javax.websocket.server.ServerEndpointConfiguration;
+import javax.websocket.server.ServerEndpointConfigurationBuilder;
+import org.glassfish.tyrus.tests.qa.lifecycle.AnnotatedEndpoint;
+import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleDeployment;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.StringSessionImpl;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.text.AnnotatedStringSession;
 
 /**
+ *
  * @author michal.conos at oracle.com
  */
-abstract public class AnnotatedEndpoint {
+public class AnnotatedStringSessionConfig implements ServerApplicationConfiguration {
+    
 
-    protected static final Logger logger = Logger.getLogger(AnnotatedEndpoint.class.getCanonicalName());
-    protected SessionLifeCycle lifeCycle;
-    protected SessionController sc;
+    @Override
+    public Set<ServerEndpointConfiguration> getEndpointConfigurations(Set<Class<? extends Endpoint>> set) {
+        return Collections.EMPTY_SET;
+    }
 
-    public abstract void createLifeCycle();
-    protected Session session;
-
-    public void onOpen(Session session, EndpointConfiguration ec) {
-        if (this.session == null) {
-            this.session = session;
-        }
-        logger.log(Level.INFO, "ProgrammaticEndpoint: onOpen");
-        this.sc = new SessionController(session);
-        createLifeCycle();
-        lifeCycle.setSessionController(sc);
+    @Override
+    public Set<Class<?>> getAnnotatedEndpointClasses(Set<Class<?>> set) {
+        Set configSet =  new HashSet<Class<?>>();
+        configSet.add(AnnotatedStringSession.Server.class);
+        return configSet;
     }
 }

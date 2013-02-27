@@ -39,11 +39,21 @@
  */
 package org.glassfish.tyrus.tests.qa.lifecycle.handlers.text;
 
+import java.io.IOException;
+import java.util.logging.Level;
 import javax.websocket.ClientEndpoint;
+import javax.websocket.CloseReason;
+import javax.websocket.EndpointConfiguration;
+import javax.websocket.OnClose;
+import javax.websocket.OnError;
+import javax.websocket.OnMessage;
+import javax.websocket.OnOpen;
+import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 import org.glassfish.tyrus.tests.qa.lifecycle.AnnotatedEndpoint;
 import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleDeployment;
 import org.glassfish.tyrus.tests.qa.lifecycle.handlers.StringSessionImpl;
+import org.glassfish.tyrus.tests.qa.tools.SessionController;
 
 /**
  *
@@ -52,20 +62,69 @@ import org.glassfish.tyrus.tests.qa.lifecycle.handlers.StringSessionImpl;
 public class AnnotatedStringSession {
 
     @ServerEndpoint(value = LifeCycleDeployment.LIFECYCLE_ENDPOINT_PATH)
-    static public class Server extends AnnotatedEndpoint<String> {
+    static public class Server extends AnnotatedEndpoint {
 
         @Override
         public void createLifeCycle() {
             lifeCycle = new StringSessionImpl().getSessionConversation();
         }
+
+        @OnOpen
+        public void onOpen(Session session, EndpointConfiguration ec) {
+            lifeCycle.onServerOpen(session, ec);
+        }
+
+        @OnMessage
+        public void onMessage(String message, Session session) throws IOException {
+            lifeCycle.onServerMessage(message, session);
+        }
+
+        @OnClose
+        public void onClose(Session s, CloseReason reason) {
+            lifeCycle.onServerClose(s, reason);
+        }
+
+        @OnError
+        public void onError(Session s, Throwable thr) {
+            lifeCycle.onServerError(s, thr);
+        }
     }
 
     @ClientEndpoint
-    static public class Client extends AnnotatedEndpoint<String> {
+    static public class Client extends AnnotatedEndpoint {
 
         @Override
         public void createLifeCycle() {
             lifeCycle = new StringSessionImpl().getSessionConversation();
+        }
+
+        @OnOpen
+        public void onOpen(Session session, EndpointConfiguration ec) {
+            if (this.session == null) {
+                this.session = session;
+            }
+            logger.log(Level.INFO, "ProgrammaticEndpoint: onOpen");
+            this.sc = new SessionController(session);
+            createLifeCycle();
+            lifeCycle.setSessionController(sc);
+            lifeCycle.onClientOpen(session, ec);
+
+
+        }
+
+        @OnMessage
+        public void onMessage(String message, Session session) throws IOException {
+            lifeCycle.onClientMessage(message, session);
+        }
+
+        @OnClose
+        public void onClose(Session s, CloseReason reason) {
+            lifeCycle.onClientClose(s, reason);
+        }
+
+        @OnError
+        public void onError(Session s, Throwable thr) {
+            lifeCycle.onClientError(s, thr);
         }
     }
 }
