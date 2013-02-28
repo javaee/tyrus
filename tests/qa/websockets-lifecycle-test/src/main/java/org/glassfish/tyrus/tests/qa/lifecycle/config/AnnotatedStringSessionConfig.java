@@ -57,8 +57,6 @@ import org.glassfish.tyrus.tests.qa.lifecycle.handlers.text.AnnotatedStringSessi
  * @author michal.conos at oracle.com
  */
 public class AnnotatedStringSessionConfig implements ServerApplicationConfiguration {
-    
-
     @Override
     public Set<ServerEndpointConfiguration> getEndpointConfigurations(Set<Class<? extends Endpoint>> set) {
         return Collections.EMPTY_SET;

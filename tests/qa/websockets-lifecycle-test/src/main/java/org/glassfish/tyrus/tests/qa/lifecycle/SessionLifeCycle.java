@@ -40,6 +40,7 @@
 package org.glassfish.tyrus.tests.qa.lifecycle;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -58,9 +59,11 @@ abstract public class SessionLifeCycle<T> {
 
     private SessionController sc;
     protected static final Logger logger = Logger.getLogger(SessionLifeCycle.class.getCanonicalName());
-    
+
     abstract public void onServerMessageHandler(T message, Session session) throws IOException;
+
     abstract public void onClientMessageHandler(T message, Session session) throws IOException;
+
     abstract public void startTalk(Session s) throws IOException;
 
     public void setSessionController(SessionController sc) {
@@ -83,20 +86,35 @@ abstract public class SessionLifeCycle<T> {
         }
         throw new RuntimeException("going onError");
     }
+    
+    private boolean checkError(Throwable thr) {
+        // Programmatic Case
+        if(thr instanceof RuntimeException && thr.getMessage()!=null && "going onError".equals(thr.getMessage())) {
+            return true;
+        }
+        // Annotated case - see TYRUS-94
+        if(thr instanceof InvocationTargetException ) {
+            logger.log(Level.INFO, "TYRUS-94: should be runtime exception!");
+            Throwable cause = thr.getCause();
+            boolean res = cause instanceof RuntimeException && cause.getMessage()!=null && "going onError".equals(cause.getMessage());
+            logger.log(Level.INFO, "At least RuntimeException", thr);
+            logger.log(Level.INFO, "RuntimeException.getMessage()=={0}", cause.getMessage());
+            return res;
+        }
+        return false;
+    }
 
     public void onServerError(Session s, Throwable thr) {
         logger.log(Level.INFO, "onServerError:", thr);
-                
-        if(thr instanceof RuntimeException && thr.getMessage()!=null && "going onError".equals(thr.getMessage())) {
-        sc.serverOnError(thr);
-        if (!Issue.checkTyrus94(thr)) {
-            sc.setState("server.TYRUS_94");
-        }
-        sc.serverOnFinish();
+
+        if (checkError(thr)) {
+            sc.serverOnError(thr);
+            if (!Issue.checkTyrus94(thr)) {
+                sc.setState("server.TYRUS_94");
+            }
+            sc.serverOnFinish();
         }
     }
-
-    
 
     public void onServerMessage(T message, Session session) {
         logger.log(Level.INFO, "server:message={0}", message);
@@ -109,7 +127,7 @@ abstract public class SessionLifeCycle<T> {
             logger.log(Level.SEVERE, null, ex);
         }
     }
-    
+
     public void onClientOpen(Session s, EndpointConfiguration config) {
         if (!Issue.checkTyrus93(s)) {
             sc.setState("TYRUS_93_FAIL");
@@ -137,9 +155,6 @@ abstract public class SessionLifeCycle<T> {
     public void onClientError(Session s, Throwable thr) {
         logger.log(Level.SEVERE, "client: onError: {0}", thr.getMessage());
     }
-
-    
-
 
     public void onClientMessage(T message, Session session) {
         sc.onMessage();
