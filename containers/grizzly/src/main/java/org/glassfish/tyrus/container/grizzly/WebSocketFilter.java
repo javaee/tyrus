@@ -187,6 +187,7 @@ class WebSocketFilter extends BaseFilter {
                 // if there is associated websocket object (which means handshake was passed)
                 // close it gracefully
                 ws.close();
+                WebSocketEngine.getEngine().removeConnection(connection);
             }
         }
         return ctx.getInvokeAction();

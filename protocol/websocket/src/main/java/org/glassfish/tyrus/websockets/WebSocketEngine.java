@@ -43,11 +43,12 @@ package org.glassfish.tyrus.websockets;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.TreeMap;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -80,31 +81,9 @@ public class WebSocketEngine {
     private static final Logger LOGGER = Logger.getLogger(WebSocketEngine.WEBSOCKET);
     public static final String SERVER_KEY_HASH = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
     public static final int MASK_SIZE = 4;
-    private final List<WebSocketApplication> applications = new ArrayList<WebSocketApplication>();
+    private final Set<WebSocketApplication> applications = Collections.newSetFromMap(new ConcurrentHashMap<WebSocketApplication, Boolean>());
 
-    private final Map<Connection, WebSocketHolder> webSocketHolderMap =
-
-            new TreeMap<Connection, WebSocketHolder>(new Comparator<Connection>() {
-                @Override
-                public int compare(Connection o1, Connection o2) {
-                    if (o1 == null || o2 == null) {
-                        if (o1 == null) {
-                            if (o2 == null) {
-                                return 0;
-                            }
-                            return 1;
-                        } else {
-                            return -1;
-                        }
-                    }
-
-                    if (o1.equals(o2)) {
-                        return 0;
-                    } else {
-                        return o1.hashCode() - o2.hashCode();
-                    }
-                }
-            });
+    private final Map<Connection, WebSocketHolder> webSocketHolderMap = new ConcurrentHashMap<>();
 
     private WebSocketEngine() {
     }
@@ -163,7 +142,6 @@ public class WebSocketEngine {
          *
          * @param webSocketHolder holder instance.
          * @throws IOException IOException if an I/O error occurred during the upgrade.
-         *
          * @see WebSocketHolder#webSocket
          */
         public abstract void onWebSocketHolder(WebSocketHolder webSocketHolder) throws IOException;
@@ -173,7 +151,7 @@ public class WebSocketEngine {
      * Evaluate whether connection/request is suitable for upgrade and perform it.
      *
      * @param connection connection.
-     * @param request request.
+     * @param request    request.
      * @return {@code true} if upgrade is performed, {@code false} otherwise.
      * @throws IOException if an I/O error occurred during the upgrade.
      */
@@ -184,8 +162,8 @@ public class WebSocketEngine {
     /**
      * Evaluate whether connection/request is suitable for upgrade and perform it.
      *
-     * @param connection connection.
-     * @param request request.
+     * @param connection              connection.
+     * @param request                 request.
      * @param webSocketHolderListener called when upgrade is going to be performed. Additinally, leaves
      *                                {@link org.glassfish.tyrus.websockets.WebSocket#onConnect()} call
      *                                responsibility to {@link WebSocketHolderListener} instance.
@@ -221,7 +199,7 @@ public class WebSocketEngine {
                     }
                 });
 
-                if(webSocketHolderListener != null) {
+                if (webSocketHolderListener != null) {
                     webSocketHolderListener.onWebSocketHolder(holder);
                 } else {
                     socket.onConnect();
@@ -283,9 +261,7 @@ public class WebSocketEngine {
      *         <tt>false</tt> otherwise.
      */
     public boolean webSocketInProgress(Connection connection) {
-        synchronized(webSocketHolderMap){
-            return webSocketHolderMap.get(connection) != null;
-        }
+        return webSocketHolderMap.get(connection) != null;
     }
 
     /**
@@ -302,19 +278,20 @@ public class WebSocketEngine {
     }
 
     public WebSocketHolder getWebSocketHolder(final Connection connection) {
-        synchronized(webSocketHolderMap){
-            return webSocketHolderMap.get(connection);
-        }
+        return webSocketHolderMap.get(connection);
     }
 
     public WebSocketHolder setWebSocketHolder(final Connection connection, ProtocolHandler handler, WebSocket socket) {
         final WebSocketHolder holder = new WebSocketHolder(handler, socket);
-        synchronized(webSocketHolderMap){
-            webSocketHolderMap.put(connection, holder);
-        }
 
+        webSocketHolderMap.put(connection, holder);
         return holder;
     }
+
+    public void removeConnection(Connection connection) {
+        WebSocketEngine.getEngine().webSocketHolderMap.remove(connection);
+    }
+
 
     private static void handleUnsupportedVersion(final Connection connection,
                                                  final WebSocketRequest request) {

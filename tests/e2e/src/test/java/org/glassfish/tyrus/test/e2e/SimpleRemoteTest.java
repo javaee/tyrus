@@ -121,8 +121,8 @@ public class SimpleRemoteTest {
 
     @Test
     public void testSimpleRemoteMT() {
-        final int iterations = 5;
-        final CountDownLatch messageLatch = new CountDownLatch(2 * iterations);
+        final int clients = 10;
+        final CountDownLatch messageLatch = new CountDownLatch(2 * clients);
         final AtomicInteger msgNumber = new AtomicInteger(0);
         Server server = new Server(SimpleRemoteTestEndpoint.class);
 
@@ -155,13 +155,14 @@ public class SimpleRemoteTest {
                                         }
                                     });
                                     session.getBasicRemote().sendText(message[1]);
-                                    Thread.sleep(1000);
+                                    Thread.sleep(100);
                                     session.getBasicRemote().sendText(message[0]);
                                 } catch (Exception e) {
                                     e.printStackTrace();
                                 }
                             }
 
+                            @Override
                             public void onError(Session session, Throwable thr) {
                                 LOGGER.log(Level.SEVERE, "onError: ");
                                 thr.printStackTrace();
@@ -173,7 +174,7 @@ public class SimpleRemoteTest {
                     }
                 }
             };
-            for (int i = 0; i < iterations; i++) {
+            for (int i = 0; i < clients; i++) {
                 new Thread(runnable).start();
             }
             messageLatch.await(5, TimeUnit.SECONDS);
