@@ -41,7 +41,6 @@ package org.glassfish.tyrus.tests.qa;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -55,9 +54,25 @@ import junit.framework.Assert;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.tests.qa.config.AppConfig;
 import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleDeployment;
+import org.glassfish.tyrus.tests.qa.lifecycle.config.AnnotatedBufferedReaderSessionConfig;
+import org.glassfish.tyrus.tests.qa.lifecycle.config.AnnotatedByteBufferSessionConfig;
+import org.glassfish.tyrus.tests.qa.lifecycle.config.AnnotatedByteSessionConfig;
+import org.glassfish.tyrus.tests.qa.lifecycle.config.AnnotatedObjectInputStreamSessionConfig;
 import org.glassfish.tyrus.tests.qa.lifecycle.config.AnnotatedStringSessionConfig;
+import org.glassfish.tyrus.tests.qa.lifecycle.config.ProgrammaticBufferedReaderSessionConfig;
+import org.glassfish.tyrus.tests.qa.lifecycle.config.ProgrammaticByteBufferSessionConfig;
+import org.glassfish.tyrus.tests.qa.lifecycle.config.ProgrammaticByteSessionConfig;
+import org.glassfish.tyrus.tests.qa.lifecycle.config.ProgrammaticObjectInputStreamSessionConfig;
 import org.glassfish.tyrus.tests.qa.lifecycle.config.ProgrammaticStringSessionConfig;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary.AnnotatedByteBufferSession;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary.AnnotatedByteSession;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary.AnnotatedObjectInputStreamSession;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary.ProgrammaticByteBufferSession;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary.ProgrammaticByteSession;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary.ProgrammaticObjectInputStreamSession;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.text.AnnotatedBufferedReaderSession;
 import org.glassfish.tyrus.tests.qa.lifecycle.handlers.text.AnnotatedStringSession;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.text.ProgrammaticBufferedReaderSession;
 import org.glassfish.tyrus.tests.qa.lifecycle.handlers.text.ProgrammaticStringSession;
 import org.glassfish.tyrus.tests.qa.regression.Issue;
 import org.glassfish.tyrus.tests.qa.tools.CommChannel;
@@ -124,7 +139,7 @@ public class LifeCycleTest {
         // FIXME TC: clientSession.equals(lcSession)
         // FIXME TC: clientSession.addMessageHandler .. .throw excetpion
         try {
-            stopConversation.await(10, TimeUnit.SECONDS);
+            stopConversation.await(1000, TimeUnit.SECONDS);
         } catch (InterruptedException ex) {
             // this is fine
         }
@@ -167,13 +182,25 @@ public class LifeCycleTest {
     @Test
     public void testLifeCycleProgrammaticObjects() throws DeploymentException, IOException {
         Issue.disableAll();
-        //lifeCycle(
+        lifeCycle(ProgrammaticObjectInputStreamSessionConfig.class, ProgrammaticObjectInputStreamSession.class);
     }
 
     @Test
     public void testLifeCycleProgrammaticByteArray() throws DeploymentException, IOException {
         Issue.disableAll();
-        //lifeCycle("LifeCycle_ByteArray", new ByteMessageServer(), new ByteBufferMessageClient(1024, true));
+        lifeCycle(ProgrammaticByteSessionConfig.class, ProgrammaticByteSession.class);
+    }
+    
+    @Test
+    public void testLifeCycleProgrammaticByteBufferArray() throws DeploymentException, IOException {
+        Issue.disableAll();
+        lifeCycle(ProgrammaticByteBufferSessionConfig.class, ProgrammaticByteBufferSession.class);
+    }
+    
+    @Test
+    public void testLifeCycleProgrammaticBufferedReaderArray() throws DeploymentException, IOException {
+        Issue.disableAll();
+        lifeCycle(ProgrammaticBufferedReaderSessionConfig.class, ProgrammaticBufferedReaderSession.class);
     }
 
     @Test
@@ -204,6 +231,30 @@ public class LifeCycleTest {
     public void testLifeCycleAnnotated() throws DeploymentException, InterruptedException, IOException {
         Issue.disableAll();
         lifeCycle(AnnotatedStringSessionConfig.class, AnnotatedStringSession.Client.class);
+    }
+    
+    @Test
+    public void testLifeCycleAnnotatedObjectInputStream() throws DeploymentException, InterruptedException, IOException {
+        Issue.disableAll();
+        lifeCycle(AnnotatedObjectInputStreamSessionConfig.class, AnnotatedObjectInputStreamSession.Client.class);
+    }
+    
+    @Test
+    public void testLifeCycleAnnotatedByte() throws DeploymentException, InterruptedException, IOException {
+        Issue.disableAll();
+        lifeCycle(AnnotatedByteSessionConfig.class, AnnotatedByteSession.Client.class);
+    }
+    
+    @Test
+    public void testLifeCycleAnnotatedByteBuffer() throws DeploymentException, InterruptedException, IOException {
+        Issue.disableAll();
+        lifeCycle(AnnotatedByteBufferSessionConfig.class, AnnotatedByteBufferSession.Client.class);
+    }
+    
+    @Test
+    public void testLifeCycleAnnotatedBufferedReader() throws DeploymentException, InterruptedException, IOException {
+        Issue.disableAll();
+        lifeCycle(AnnotatedBufferedReaderSessionConfig.class, AnnotatedBufferedReaderSession.Client.class);
     }
 
     @Test

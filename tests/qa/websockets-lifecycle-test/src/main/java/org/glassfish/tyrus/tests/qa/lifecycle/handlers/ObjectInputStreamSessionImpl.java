@@ -64,13 +64,16 @@ public class ObjectInputStreamSessionImpl implements SessionConversation {
             @Override
             public void startTalk(Session s) throws IOException {
                 this.original = new ObjectInputStreamSessionImpl.SendMeSomething("message", "over network", "now");
+                logger.log(Level.INFO, "startTalk: Sending:{0}", this.original);
                 new ObjectOutputStream(s.getBasicRemote().getSendStream()).writeObject(original);
+                new ObjectOutputStream(s.getBasicRemote().getSendStream()).close();
             }
 
             @Override
             public void onServerMessageHandler(InputStream message, Session session) throws IOException {
                 try {
                     new ObjectOutputStream(session.getBasicRemote().getSendStream()).writeObject(new ObjectInputStream(message).readObject());
+                    new ObjectOutputStream(session.getBasicRemote().getSendStream()).close();
                 } catch (ClassNotFoundException ex) {
                     logger.log(Level.SEVERE, null, ex);
                     ex.printStackTrace();

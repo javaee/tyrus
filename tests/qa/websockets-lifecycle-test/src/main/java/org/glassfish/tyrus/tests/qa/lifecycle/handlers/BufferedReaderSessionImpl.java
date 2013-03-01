@@ -42,6 +42,9 @@ package org.glassfish.tyrus.tests.qa.lifecycle.handlers;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
+import java.io.Writer;
+import java.util.logging.Level;
+import javax.websocket.MessageHandler.Basic;
 import javax.websocket.Session;
 import org.glassfish.tyrus.tests.qa.lifecycle.SessionConversation;
 import org.glassfish.tyrus.tests.qa.lifecycle.SessionLifeCycle;
@@ -59,6 +62,7 @@ public class BufferedReaderSessionImpl extends SessionLifeCycle<Reader> implemen
 
     public BufferedReaderSessionImpl(int messageSize) {
         this.messageSize = messageSize;
+        initSendMessage();
 
     }
 
@@ -66,22 +70,33 @@ public class BufferedReaderSessionImpl extends SessionLifeCycle<Reader> implemen
         for (int idx = 0; idx < messageSize / oneLine.length(); idx++) {
             messageToSend += oneLine;
         }
+        logger.log(Level.INFO, "XXX:initSendMessage:{0}", messageToSend);
     }
 
     @Override
     public void startTalk(Session s) throws IOException {
-        s.getBasicRemote().getSendWriter().write(messageToSend);
+        logger.log(Level.INFO, "XXX: Send message:{0}", messageToSend);
+        javax.websocket.RemoteEndpoint.Basic basic =  s.getBasicRemote();
+        Writer wr = basic.getSendWriter();
+        wr.write(messageToSend);
+        wr.close();
     }
 
     @Override
     public void onServerMessageHandler(Reader message, Session session) throws IOException {
-        session.getBasicRemote().getSendWriter().write(new BufferedReader(message).readLine());
+        logger.log(Level.INFO, "XXX: HERE I AM!!!");
+        String line = new BufferedReader(message).readLine();
+        logger.log(Level.INFO, "XXX: bounce message:{0}", line);
+        session.getBasicRemote().getSendWriter().write(line);
+        session.getBasicRemote().getSendWriter().close();
     }
 
     @Override
     public void onClientMessageHandler(Reader message, Session session) throws IOException {
         for (;;) {
-            gotMessage += new BufferedReader(message).readLine();
+            String line = new BufferedReader(message).readLine();
+            gotMessage += line;
+            logger.log(Level.INFO, "XXX: got message:{0}", line);
             if (gotMessage.equals(messageToSend)) {
                 closeTheSessionFromClient(session);
             }
