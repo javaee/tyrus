@@ -173,4 +173,109 @@ public class BinaryTest {
         }
     }
 
+    private ByteBuffer receivedMessageBinary;
+
+    @ServerEndpoint(value = "/endpoint1")
+    public static class EndpointBinaryPartialReturningValue {
+
+        @OnMessage
+        public ByteBuffer doThatBinary(Session s, ByteBuffer message, boolean last) throws IOException {
+            return message;
+        }
+    }
+
+    @Test
+    public void binaryPartialHandlerReturningValue() {
+        Server server = new Server(EndpointBinaryPartialReturningValue.class);
+
+        try {
+            server.start();
+
+            messageLatch = new CountDownLatch(1);
+
+            final ClientEndpointConfiguration clientConfiguration = ClientEndpointConfigurationBuilder.create().build();
+            ClientManager client = ClientManager.createClient();
+
+            client.connectToServer(new Endpoint() {
+
+                @Override
+                public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
+                    try {
+                        session.addMessageHandler(new MessageHandler.Basic<ByteBuffer>() {
+                            @Override
+                            public void onMessage(ByteBuffer message) {
+                                receivedMessageBinary = message;
+                                messageLatch.countDown();
+                            }
+                        });
+
+                        session.getBasicRemote().sendBinary(ByteBuffer.wrap("TEST1".getBytes()), false);
+                    } catch (IOException e) {
+                        // do nothing.
+                    }
+                }
+            }, clientConfiguration, new URI("ws://localhost:8025/websockets/tests/endpoint1"));
+
+            messageLatch.await(1, TimeUnit.SECONDS);
+            Assert.assertEquals(0, messageLatch.getCount());
+            Assert.assertEquals(ByteBuffer.wrap("TEST1".getBytes()), receivedMessageBinary);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            server.stop();
+        }
+    }
+
+    @ServerEndpoint(value = "/endpoint1")
+    public static class EndpointBinaryPartialReturningValueByteArray {
+
+        @OnMessage
+        public byte[] doThatBinary(Session s, byte[] message, boolean last) throws IOException {
+            return message;
+        }
+    }
+
+    @Test
+    public void binaryPartialHandlerReturningValueByteArray() {
+        Server server = new Server(EndpointBinaryPartialReturningValueByteArray.class);
+
+        try {
+            server.start();
+
+            messageLatch = new CountDownLatch(1);
+
+            final ClientEndpointConfiguration clientConfiguration = ClientEndpointConfigurationBuilder.create().build();
+            ClientManager client = ClientManager.createClient();
+
+            client.connectToServer(new Endpoint() {
+
+                @Override
+                public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
+                    try {
+                        session.addMessageHandler(new MessageHandler.Basic<ByteBuffer>() {
+                            @Override
+                            public void onMessage(ByteBuffer message) {
+                                receivedMessageBinary = message;
+                                messageLatch.countDown();
+                            }
+                        });
+
+                        session.getBasicRemote().sendBinary(ByteBuffer.wrap("TEST1".getBytes()), false);
+                    } catch (IOException e) {
+                        // do nothing.
+                    }
+                }
+            }, clientConfiguration, new URI("ws://localhost:8025/websockets/tests/endpoint1"));
+
+            messageLatch.await(1, TimeUnit.SECONDS);
+            Assert.assertEquals(0, messageLatch.getCount());
+            Assert.assertEquals(ByteBuffer.wrap("TEST1".getBytes()), receivedMessageBinary);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            server.stop();
+        }
+    }
 }
