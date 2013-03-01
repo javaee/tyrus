@@ -40,6 +40,7 @@
 package org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary;
 
 import java.io.InputStream;
+import javax.websocket.MessageHandler;
 import org.glassfish.tyrus.tests.qa.lifecycle.ProgrammaticEndpoint;
 import org.glassfish.tyrus.tests.qa.lifecycle.handlers.ObjectInputStreamSessionImpl;
 
@@ -47,7 +48,7 @@ import org.glassfish.tyrus.tests.qa.lifecycle.handlers.ObjectInputStreamSessionI
  *
  * @author michal.conos at oracle.com
  */
-public class ProgrammaticObjectInputStreamSession extends ProgrammaticEndpoint<InputStream> {
+public class ProgrammaticObjectInputStreamSession extends ProgrammaticEndpoint<InputStream> implements MessageHandler.Basic<InputStream>{
 
     @Override
     public void createLifeCycle() {

@@ -125,6 +125,7 @@ abstract public class SessionLifeCycle<T> {
         } catch (Exception ex) {
             ex.printStackTrace();
             logger.log(Level.SEVERE, null, ex);
+            sc.setState("on.server.message.exception");
         }
     }
 
@@ -149,6 +150,7 @@ abstract public class SessionLifeCycle<T> {
             s.getBasicRemote().sendText("client:onClose");
         } catch (IOException ex) {
             logger.log(Level.SEVERE, null, ex);
+            sc.setState("on.client.close.exception");
         }
     }
 
@@ -162,6 +164,7 @@ abstract public class SessionLifeCycle<T> {
         try {
             onClientMessageHandler(message, session);
         } catch (IOException ex) {
+            sc.setState("on.client.message.exception");
             ex.printStackTrace();
             logger.log(Level.SEVERE, null, ex);
         }

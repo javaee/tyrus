@@ -68,6 +68,8 @@ abstract public class ProgrammaticEndpoint<T> extends Endpoint implements Messag
 
     @Override
     public void onMessage(T message) {
+        
+        logger.log(Level.INFO, "Programmatic.onMessage:{0}", message.toString());
         if (isServerContainer(session)) {
             logger.log(Level.INFO, "PRGEND:server:onMessage:{0}", message.toString());
             lifeCycle.onServerMessage(message, session);

@@ -49,7 +49,7 @@ import org.glassfish.tyrus.tests.qa.lifecycle.handlers.StringSessionImpl;
  *
  * @author michal.conos at oracle.com
  */
-public class ProgrammaticByteSession extends ProgrammaticEndpoint<String> implements MessageHandler.Basic<String> {
+public class ProgrammaticByteSession extends ProgrammaticEndpoint<byte[]> implements MessageHandler.Basic<byte[]> {
 
     @Override
     public void createLifeCycle() {

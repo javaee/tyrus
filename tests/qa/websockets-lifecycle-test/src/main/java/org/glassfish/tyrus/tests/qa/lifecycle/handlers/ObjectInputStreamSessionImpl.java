@@ -43,6 +43,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.logging.Level;
@@ -65,15 +66,21 @@ public class ObjectInputStreamSessionImpl implements SessionConversation {
             public void startTalk(Session s) throws IOException {
                 this.original = new ObjectInputStreamSessionImpl.SendMeSomething("message", "over network", "now");
                 logger.log(Level.INFO, "startTalk: Sending:{0}", this.original);
-                new ObjectOutputStream(s.getBasicRemote().getSendStream()).writeObject(original);
-                new ObjectOutputStream(s.getBasicRemote().getSendStream()).close();
+                ObjectOutputStream oos = new ObjectOutputStream(s.getBasicRemote().getSendStream());
+                oos.writeObject(original);
+                oos.close();
             }
 
             @Override
-            public void onServerMessageHandler(InputStream message, Session session) throws IOException {
+            public void onServerMessageHandler(InputStream is, Session session) throws IOException {
+                logger.log(Level.INFO, "onServerMessageHandler:is:{0}", is.toString());
                 try {
-                    new ObjectOutputStream(session.getBasicRemote().getSendStream()).writeObject(new ObjectInputStream(message).readObject());
-                    new ObjectOutputStream(session.getBasicRemote().getSendStream()).close();
+                    ObjectOutputStream oos = new ObjectOutputStream(session.getBasicRemote().getSendStream());
+                    ObjectInputStream ois = new ObjectInputStream(is);
+                    logger.log(Level.INFO, "onServerMessageHandler:ois:{0}", ois.toString());
+                    Object objToBounce = ois.readObject();
+                    oos.writeObject(objToBounce);
+                    oos.close();
                 } catch (ClassNotFoundException ex) {
                     logger.log(Level.SEVERE, null, ex);
                     ex.printStackTrace();

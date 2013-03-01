@@ -59,6 +59,19 @@ public class BufferedReaderSessionImpl extends SessionLifeCycle<Reader> implemen
     private String messageToSend = "";
     private String gotMessage = "";
     private static final String oneLine = "abcdefghijklm\n";
+    
+    private String readMessage(Reader rd) throws IOException {
+        String wholeMessage="";
+        BufferedReader br = new BufferedReader(rd);
+        for (;;) {
+            String line = br.readLine();
+            if (line == null) {
+                break;
+            }
+            wholeMessage += line + "\n";
+        }
+        return wholeMessage;
+    }
 
     public BufferedReaderSessionImpl(int messageSize) {
         this.messageSize = messageSize;
@@ -76,30 +89,27 @@ public class BufferedReaderSessionImpl extends SessionLifeCycle<Reader> implemen
     @Override
     public void startTalk(Session s) throws IOException {
         logger.log(Level.INFO, "XXX: Send message:{0}", messageToSend);
-        javax.websocket.RemoteEndpoint.Basic basic =  s.getBasicRemote();
+        javax.websocket.RemoteEndpoint.Basic basic = s.getBasicRemote();
         Writer wr = basic.getSendWriter();
         wr.write(messageToSend);
         wr.close();
     }
 
     @Override
-    public void onServerMessageHandler(Reader message, Session session) throws IOException {
+    public void onServerMessageHandler(Reader reader, Session session) throws IOException {
         logger.log(Level.INFO, "XXX: HERE I AM!!!");
-        String line = new BufferedReader(message).readLine();
-        logger.log(Level.INFO, "XXX: bounce message:{0}", line);
-        session.getBasicRemote().getSendWriter().write(line);
-        session.getBasicRemote().getSendWriter().close();
+        String  message = readMessage(reader);
+        logger.log(Level.INFO, "XXX: bounce message:{0}", message);
+        Writer wr = session.getBasicRemote().getSendWriter();
+        wr.write(message);
+        wr.close();
     }
 
     @Override
-    public void onClientMessageHandler(Reader message, Session session) throws IOException {
-        for (;;) {
-            String line = new BufferedReader(message).readLine();
-            gotMessage += line;
-            logger.log(Level.INFO, "XXX: got message:{0}", line);
-            if (gotMessage.equals(messageToSend)) {
-                closeTheSessionFromClient(session);
-            }
+    public void onClientMessageHandler(Reader reader, Session session) throws IOException {
+        String message = readMessage(reader);
+        if (message.equals(messageToSend)) {
+            closeTheSessionFromClient(session);
         }
     }
 

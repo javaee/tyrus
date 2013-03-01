@@ -39,6 +39,7 @@
  */
 package org.glassfish.tyrus.tests.qa.lifecycle.handlers.text;
 
+import java.io.Reader;
 import javax.websocket.MessageHandler;
 import org.glassfish.tyrus.tests.qa.lifecycle.ProgrammaticEndpoint;
 import org.glassfish.tyrus.tests.qa.lifecycle.handlers.BufferedReaderSessionImpl;
@@ -47,7 +48,7 @@ import org.glassfish.tyrus.tests.qa.lifecycle.handlers.BufferedReaderSessionImpl
  *
  * @author michal.conos at oracle.com
  */
-public class  ProgrammaticBufferedReaderSession extends ProgrammaticEndpoint<String> implements MessageHandler.Basic<String> {
+public class  ProgrammaticBufferedReaderSession extends ProgrammaticEndpoint<Reader> implements MessageHandler.Basic<Reader> {
 
     @Override
     public void createLifeCycle() {
