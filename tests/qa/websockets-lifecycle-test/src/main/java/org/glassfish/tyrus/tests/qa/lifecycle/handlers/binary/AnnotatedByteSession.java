@@ -61,7 +61,8 @@ import org.glassfish.tyrus.tests.qa.tools.SessionController;
  * @author michal.conos at oracle.com
  */
 public class AnnotatedByteSession {
-     @ServerEndpoint(value = LifeCycleDeployment.LIFECYCLE_ENDPOINT_PATH)
+
+    @ServerEndpoint(value = LifeCycleDeployment.LIFECYCLE_ENDPOINT_PATH)
     static public class Server extends AnnotatedEndpoint {
 
         @Override

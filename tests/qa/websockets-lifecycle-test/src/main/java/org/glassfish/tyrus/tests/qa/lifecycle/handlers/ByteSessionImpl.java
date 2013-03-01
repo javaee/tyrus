@@ -41,6 +41,7 @@ package org.glassfish.tyrus.tests.qa.lifecycle.handlers;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.logging.Level;
 import javax.websocket.Session;
 import org.glassfish.tyrus.tests.qa.lifecycle.SessionConversation;
 import org.glassfish.tyrus.tests.qa.lifecycle.SessionLifeCycle;
@@ -57,28 +58,38 @@ public class ByteSessionImpl extends SessionLifeCycle<byte[]> implements Session
     }
    
     int messageSize;
-    ByteBuffer messageToSend;
+    byte [] messageToSend;
 
     public ByteSessionImpl(int messageSize, boolean directIO) {
         super();
         this.messageSize = messageSize;
-        if (directIO) {
-            this.messageToSend = ByteBuffer.allocate(messageSize);
-        } else {
-            this.messageToSend = ByteBuffer.allocateDirect(messageSize);
-        }
+        messageToSend = new byte[messageSize];
         initSendBuffer();
     }
 
     private void initSendBuffer() {
         for (int idx = 0; idx < messageSize; idx++) {
-            messageToSend.put((byte) idx);
+            messageToSend[idx]=(byte) idx;
         }
+    }
+    
+    boolean bb_equal(final byte [] b1, final byte [] b2) {
+        if(b1.length != b2.length) {
+            logger.log(Level.SEVERE, "arrays not equal! {0} {1}", new Object[] {b1.length, b2.length  });
+            return false;
+        }
+        for(int idx=0; idx<b1.length; idx++) {
+            if(b1[idx]!=b2[idx]) {
+                logger.log(Level.SEVERE, "Arrays mismatch at index: {0}", idx);
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
     public void onClientMessageHandler(byte[] message, Session session) throws IOException {
-        if (0 == ByteBuffer.wrap(message).compareTo(messageToSend)) {
+        if (0 == ByteBuffer.wrap(message).compareTo(ByteBuffer.wrap(messageToSend))) {
             closeTheSessionFromClient(session);
         }
     }
@@ -90,7 +101,7 @@ public class ByteSessionImpl extends SessionLifeCycle<byte[]> implements Session
 
     @Override
     public void startTalk(Session s) throws IOException {
-        ByteBuffer bb = ByteBuffer.allocate(messageSize);
-        s.getBasicRemote().sendBinary(messageToSend);
+        ByteBuffer bb = ByteBuffer.wrap(messageToSend);
+        s.getBasicRemote().sendBinary(bb);
     }
 }

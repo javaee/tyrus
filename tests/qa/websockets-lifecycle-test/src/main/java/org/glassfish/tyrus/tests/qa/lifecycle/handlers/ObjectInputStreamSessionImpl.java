@@ -74,9 +74,10 @@ public class ObjectInputStreamSessionImpl implements SessionConversation {
             @Override
             public void onServerMessageHandler(InputStream is, Session session) throws IOException {
                 logger.log(Level.INFO, "onServerMessageHandler:is:{0}", is.toString());
+                logger.log(Level.INFO, "onServerMessageHandler:is avail:{0}", is.available());
                 try {
                     ObjectOutputStream oos = new ObjectOutputStream(session.getBasicRemote().getSendStream());
-                    ObjectInputStream ois = new ObjectInputStream(is);
+                        ObjectInputStream ois = new ObjectInputStream(is);
                     logger.log(Level.INFO, "onServerMessageHandler:ois:{0}", ois.toString());
                     Object objToBounce = ois.readObject();
                     oos.writeObject(objToBounce);

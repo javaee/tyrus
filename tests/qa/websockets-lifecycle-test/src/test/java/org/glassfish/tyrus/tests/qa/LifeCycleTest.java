@@ -139,7 +139,7 @@ public class LifeCycleTest {
         // FIXME TC: clientSession.equals(lcSession)
         // FIXME TC: clientSession.addMessageHandler .. .throw excetpion
         try {
-            stopConversation.await(6, TimeUnit.SECONDS);
+            stopConversation.await(4, TimeUnit.SECONDS);
         } catch (InterruptedException ex) {
             // this is fine
         }
@@ -192,7 +192,7 @@ public class LifeCycleTest {
     }
     
     @Test
-    public void testLifeCycleProgrammaticByteBufferArray() throws DeploymentException, IOException {
+    public void testLifeCycleProgrammaticByteBuffer() throws DeploymentException, IOException {
         Issue.disableAll();
         lifeCycle(ProgrammaticByteBufferSessionConfig.class, ProgrammaticByteBufferSession.class);
     }
@@ -240,7 +240,7 @@ public class LifeCycleTest {
     }
     
     @Test
-    public void testLifeCycleAnnotatedByte() throws DeploymentException, InterruptedException, IOException {
+    public void testLifeCycleAnnotatedByteArray() throws DeploymentException, InterruptedException, IOException {
         Issue.disableAll();
         lifeCycle(AnnotatedByteSessionConfig.class, AnnotatedByteSession.Client.class);
     }

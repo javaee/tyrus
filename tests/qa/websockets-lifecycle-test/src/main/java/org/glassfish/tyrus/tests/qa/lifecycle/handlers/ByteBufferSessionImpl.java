@@ -41,6 +41,7 @@ package org.glassfish.tyrus.tests.qa.lifecycle.handlers;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.logging.Level;
 import javax.websocket.Session;
 import org.glassfish.tyrus.tests.qa.lifecycle.SessionConversation;
 import org.glassfish.tyrus.tests.qa.lifecycle.SessionLifeCycle;
@@ -70,10 +71,31 @@ public class ByteBufferSessionImpl extends SessionLifeCycle<ByteBuffer> implemen
             messageToSend.put((byte) idx);
         }
     }
+    
+    private boolean bb_equals(ByteBuffer b1, ByteBuffer b2) {
+        logger.log(Level.INFO, "compare:{0}", b1.compareTo(b2));
+        //return 0==b1.compareTo(b2);
+        //return b1.array().equals(b2.array());
+        return bb_equal(b1.array(), b2.array());
+    }
+    
+    boolean bb_equal(final byte [] b1, final byte [] b2) {
+        if(b1.length != b2.length) {
+            logger.log(Level.SEVERE, "arrays not equal! {0} {1}", new Object[] {b1.length, b2.length  });
+            return false;
+        }
+        for(int idx=0; idx<b1.length; idx++) {
+            if(b1[idx]!=b2[idx]) {
+                logger.log(Level.SEVERE, "Arrays mismatch at index: {0}", idx);
+                return false;
+            }
+        }
+        return true;
+    }
 
     @Override
     public void onClientMessageHandler(ByteBuffer message, Session session) throws IOException {
-        if (0 == message.compareTo(messageToSend)) {
+        if (bb_equals(message, messageToSend)) {
             closeTheSessionFromClient(session);
         }
     }
