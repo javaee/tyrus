@@ -337,7 +337,11 @@ public class SessionImpl implements Session {
         }
 
         if (!handled) {
-            LOGGER.severe("Unhandled text message in EndpointWrapper");
+            if(message instanceof ByteBuffer){
+                notifyMessageHandlers(((ByteBuffer) message).array(), last);
+            }else{
+                LOGGER.severe("Unhandled text message in EndpointWrapper");
+            }
         }
     }
 
