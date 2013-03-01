@@ -326,7 +326,7 @@ public class EndpointWrapper extends SPIEndpoint {
                         final ByteArrayOutputStream stream = new ByteArrayOutputStream();
                         final Encoder.BinaryStream encoder = (Encoder.BinaryStream) getCoderInstance(session, enc);
 
-                        encoder.encode(message, new ByteArrayOutputStream());
+                        encoder.encode(message, stream);
                         return stream;
                     }
                 } else if (Encoder.TextStream.class.isAssignableFrom(encoderClass)) {
