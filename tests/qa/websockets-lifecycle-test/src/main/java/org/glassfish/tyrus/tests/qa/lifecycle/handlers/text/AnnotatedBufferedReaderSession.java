@@ -41,6 +41,7 @@ package org.glassfish.tyrus.tests.qa.lifecycle.handlers.text;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.Reader;
 import java.util.logging.Level;
 import javax.websocket.ClientEndpoint;
 import javax.websocket.CloseReason;
@@ -79,7 +80,7 @@ public class AnnotatedBufferedReaderSession {
         }
 
         @OnMessage
-        public void onMessage(BufferedReader message, Session session) throws IOException {
+        public void onMessage(Reader message, Session session) throws IOException {
             lifeCycle.onServerMessage(message, session);
         }
 
@@ -115,7 +116,7 @@ public class AnnotatedBufferedReaderSession {
         }
 
         @OnMessage
-        public void onMessage(BufferedReader message, Session session) throws IOException {
+        public void onMessage(Reader message, Session session) throws IOException {
             lifeCycle.onClientMessage(message, session);
         }
 

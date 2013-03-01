@@ -40,6 +40,7 @@
 package org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.util.logging.Level;
 import javax.websocket.ClientEndpoint;
@@ -78,7 +79,7 @@ public class AnnotatedObjectInputStreamSession {
         }
 
         @OnMessage
-        public void onMessage(ObjectInputStream message, Session session) throws IOException {
+        public void onMessage(InputStream message, Session session) throws IOException {
             logger.log(Level.INFO, "SERVER GOT THE MEssage:{0}", message.toString());
             lifeCycle.onServerMessage(message, session);
         }
@@ -116,7 +117,7 @@ public class AnnotatedObjectInputStreamSession {
         }
 
         @OnMessage
-        public void onMessage(ObjectInputStream message, Session session) throws IOException {
+        public void onMessage(InputStream message, Session session) throws IOException {
             lifeCycle.onClientMessage(message, session);
         }
 
