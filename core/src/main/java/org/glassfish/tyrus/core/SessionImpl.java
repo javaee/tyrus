@@ -280,7 +280,7 @@ public class SessionImpl implements Session {
                     ((ByteBuffer) message).remaining());
 
             if (messageSize > maxMessageSize) {
-                throw new IllegalStateException(String.format("Message too long; allowed message size is %d bytes. (Current message is %d bytes).", maxMessageSize, messageSize));
+                throw new MaxMessageSizeException(String.format("Message too long; allowed message size is %d bytes. (Current message is %d bytes).", maxMessageSize, messageSize));
             }
         }
     }

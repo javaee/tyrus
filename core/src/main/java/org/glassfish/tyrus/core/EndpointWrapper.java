@@ -427,9 +427,11 @@ public class EndpointWrapper extends SPIEndpoint {
         try {
             session.notifyMessageHandlers(messageBytes, findApplicableDecoders(session, messageBytes, false));
         } catch (Throwable t) {
-            final Endpoint toCall = endpoint != null ? endpoint :
-                    (Endpoint) componentProvider.getInstance(endpointClass, session, collector);
-            toCall.onError(session, t);
+            if (!processThrowable(t, session)) {
+                final Endpoint toCall = endpoint != null ? endpoint :
+                        (Endpoint) componentProvider.getInstance(endpointClass, session, collector);
+                toCall.onError(session, t);
+            }
         }
     }
 
@@ -439,9 +441,11 @@ public class EndpointWrapper extends SPIEndpoint {
         try {
             session.notifyMessageHandlers(messageString, findApplicableDecoders(session, messageString, true));
         } catch (Throwable t) {
-            final Endpoint toCall = endpoint != null ? endpoint :
-                    (Endpoint) componentProvider.getInstance(endpointClass, session, collector);
-            toCall.onError(session, t);
+            if (!processThrowable(t, session)) {
+                final Endpoint toCall = endpoint != null ? endpoint :
+                        (Endpoint) componentProvider.getInstance(endpointClass, session, collector);
+                toCall.onError(session, t);
+            }
         }
     }
 
@@ -451,9 +455,11 @@ public class EndpointWrapper extends SPIEndpoint {
         try {
             session.notifyMessageHandlers(partialString, last);
         } catch (Throwable t) {
-            final Endpoint toCall = endpoint != null ? endpoint :
-                    (Endpoint) componentProvider.getInstance(endpointClass, session, collector);
-            toCall.onError(session, t);
+            if (!processThrowable(t, session)) {
+                final Endpoint toCall = endpoint != null ? endpoint :
+                        (Endpoint) componentProvider.getInstance(endpointClass, session, collector);
+                toCall.onError(session, t);
+            }
         }
     }
 
@@ -463,12 +469,34 @@ public class EndpointWrapper extends SPIEndpoint {
         try {
             session.notifyMessageHandlers(partialBytes, last);
         } catch (Throwable t) {
-            final Endpoint toCall = endpoint != null ? endpoint :
-                    (Endpoint) componentProvider.getInstance(endpointClass, session, collector);
-            toCall.onError(session, t);
+            if (!processThrowable(t, session)) {
+                final Endpoint toCall = endpoint != null ? endpoint :
+                        (Endpoint) componentProvider.getInstance(endpointClass, session, collector);
+                toCall.onError(session, t);
+            }
         }
     }
 
+    /**
+     * Check {@link Throwable} produced during {@link javax.websocket.OnMessage} annotated method call.
+     *
+     * @param t thrown {@link Throwable}.
+     * @param s {@link Session} related to {@link Throwable}.
+     * @return {@code true} when exception is handled within this method (framework produced it), {@code false}
+     *         otherwise.
+     */
+    private boolean processThrowable(Throwable t, Session s) {
+        if (t instanceof MaxMessageSizeException) {
+            try {
+                s.close(new CloseReason(CloseReason.CloseCodes.TOO_BIG, "Message too big."));
+                return true;
+            } catch (IOException e) {
+                // we don't care.
+            }
+        }
+
+        return false;
+    }
 
     @Override
     public void onPong(SPIRemoteEndpoint gs, ByteBuffer bytes) {

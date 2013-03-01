@@ -46,10 +46,10 @@ import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfiguration;
 import javax.websocket.ClientEndpointConfigurationBuilder;
+import javax.websocket.CloseReason;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfiguration;
 import javax.websocket.MessageHandler;
-import javax.websocket.OnError;
 import javax.websocket.OnMessage;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
@@ -79,16 +79,6 @@ public class MaxMessageSizeTest {
         @OnMessage(maxMessageSize = 5)
         public String doThat(Session s, String message, boolean last) throws IOException {
             return message;
-        }
-
-
-        @OnError
-        public void onError(Session s, Throwable t) {
-            try {
-                s.getBasicRemote().sendText("error");
-            } catch (IOException e) {
-                // do nothing.
-            }
         }
     }
 
@@ -135,25 +125,22 @@ public class MaxMessageSizeTest {
                 @Override
                 public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
                     try {
-                        session.addMessageHandler(new MessageHandler.Basic<String>() {
-                            @Override
-                            public void onMessage(String message) {
-                                receivedMessage = message;
-                                messageLatch.countDown();
-                            }
-                        });
-
                         session.getBasicRemote().sendText("LONG--");
                     } catch (IOException e) {
                         // do nothing.
+                    }
+                }
+
+                @Override
+                public void onClose(Session session, CloseReason closeReason) {
+                    if(closeReason.getCloseCode().equals(CloseReason.CloseCodes.TOO_BIG)) {
+                        messageLatch.countDown();
                     }
                 }
             }, clientConfiguration, new URI("ws://localhost:8025/websockets/tests/endpoint1"));
 
             messageLatch.await(1, TimeUnit.SECONDS);
             Assert.assertEquals(0, messageLatch.getCount());
-            Assert.assertEquals("error", receivedMessage);
-
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
@@ -205,24 +192,22 @@ public class MaxMessageSizeTest {
                 @Override
                 public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
                     try {
-                        session.addMessageHandler(new MessageHandler.Basic<String>() {
-                            @Override
-                            public void onMessage(String message) {
-                                receivedMessage = message;
-                                messageLatch.countDown();
-                            }
-                        });
-
                         session.getBasicRemote().sendText("LONG--", false);
                     } catch (IOException e) {
                         // do nothing.
+                    }
+                }
+
+                @Override
+                public void onClose(Session session, CloseReason closeReason) {
+                    if(closeReason.getCloseCode().equals(CloseReason.CloseCodes.TOO_BIG)) {
+                        messageLatch.countDown();
                     }
                 }
             }, clientConfiguration, new URI("ws://localhost:8025/websockets/tests/endpoint1"));
 
             messageLatch.await(1, TimeUnit.SECONDS);
             Assert.assertEquals(0, messageLatch.getCount());
-            Assert.assertEquals("error", receivedMessage);
 
         } catch (Exception e) {
             e.printStackTrace();
