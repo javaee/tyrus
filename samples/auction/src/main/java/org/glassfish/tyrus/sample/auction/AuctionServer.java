@@ -52,10 +52,7 @@ import javax.websocket.OnMessage;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
-import org.glassfish.tyrus.sample.auction.decoders.AuctionListRequestDecoder;
-import org.glassfish.tyrus.sample.auction.decoders.BidRequestDecoder;
-import org.glassfish.tyrus.sample.auction.decoders.LoginRequestDecoder;
-import org.glassfish.tyrus.sample.auction.decoders.LogoutRequestDecoder;
+import org.glassfish.tyrus.sample.auction.decoders.AuctionMessageDecoder;
 import org.glassfish.tyrus.sample.auction.encoders.AuctionMessageEncoder;
 import org.glassfish.tyrus.sample.auction.message.AuctionMessage;
 
@@ -66,11 +63,7 @@ import org.glassfish.tyrus.sample.auction.message.AuctionMessage;
  */
 @ServerEndpoint(value = "/auction",
         decoders = {
-                LoginRequestDecoder.class,
-                BidRequestDecoder.class,
-                LogoutRequestDecoder.class,
-                AuctionListRequestDecoder.class,
-                LogoutRequestDecoder.class
+                AuctionMessageDecoder.class,
         },
         encoders = {
                 AuctionMessageEncoder.class
@@ -95,43 +88,44 @@ public class AuctionServer {
     }
 
     @OnMessage
-    public void handleLogoutRequest(AuctionMessage.LogoutRequestMessage alrm, Session session) {
-        handleClosedConnection(session);
-    }
+    public void handleMessage(AuctionMessage message, Session session){
+        String communicationId;
 
-    @OnMessage
-    public void handleAuctionListRequest(AuctionMessage.AuctionListRequestMessage alrm, Session session) {
-        StringBuilder sb = new StringBuilder("-");
-
-        for (Auction auction : auctions) {
-            sb.append(auction.getId()).append("-").append(auction.getItem().getName()).append("-");
-        }
-
-        try {
-            session.getBasicRemote().sendObject((new AuctionMessage.AuctionListResponseMessage("0", sb.toString())));
-        } catch (IOException | EncodeException e) {
-            Logger.getLogger(AuctionServer.class.getName()).log(Level.SEVERE, null, e);
-        }
-    }
-
-    @OnMessage
-    public void handleLoginRequest(AuctionMessage.LoginRequestMessage lrm, Session session) {
-        String communicationId = lrm.getCommunicationId();
-        for (Auction auction : auctions) {
-            if (communicationId.equals(auction.getId())) {
-                auction.handleLoginRequest(lrm, session);
-            }
-        }
-    }
-
-    @OnMessage
-    public void handleBidRequest(AuctionMessage.BidRequestMessage brm, Session session) {
-        String communicationId = brm.getCommunicationId();
-        for (Auction auction : auctions) {
-            if (communicationId.equals(auction.getId())) {
-                auction.handleBidRequest(brm, session);
+        switch (message.getType()){
+            case AuctionMessage.LOGOUT_REQUEST:
+                handleClosedConnection(session);
                 break;
-            }
+            case AuctionMessage.AUCTION_LIST_REQUEST:
+                StringBuilder sb = new StringBuilder("-");
+
+                for (Auction auction : auctions) {
+                    sb.append(auction.getId()).append("-").append(auction.getItem().getName()).append("-");
+                }
+
+                try {
+                    session.getBasicRemote().sendObject((new AuctionMessage.AuctionListResponseMessage("0", sb.toString())));
+                } catch (IOException | EncodeException e) {
+                    Logger.getLogger(AuctionServer.class.getName()).log(Level.SEVERE, null, e);
+                }
+                break;
+            case AuctionMessage.LOGIN_REQUEST:
+                communicationId = message.getCommunicationId();
+                for (Auction auction : auctions) {
+                    if (communicationId.equals(auction.getId())) {
+                        auction.handleLoginRequest(message, session);
+                    }
+                }
+                break;
+            case AuctionMessage.BID_REQUEST:
+                communicationId = message.getCommunicationId();
+                for (Auction auction : auctions) {
+                    if (communicationId.equals(auction.getId())) {
+                        auction.handleBidRequest(message, session);
+                        break;
+                    }
+                }
+                break;
         }
+
     }
 }

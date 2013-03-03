@@ -46,6 +46,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.websocket.CloseReason;
+import javax.websocket.Decoder;
 import javax.websocket.DeploymentException;
 import javax.websocket.Encoder;
 import javax.websocket.EndpointConfiguration;
@@ -75,11 +76,11 @@ class AnnotatedClassValidityChecker {
      *
      * @param annotatedClass class for which this checker is constructed.
      */
-    public AnnotatedClassValidityChecker(Class<?> annotatedClass, List<Encoder> encoders, ErrorCollector collector) {
+    public AnnotatedClassValidityChecker(Class<?> annotatedClass, List<Encoder> encoders, List<Decoder> decoders, ErrorCollector collector) {
         this.annotatedClass = annotatedClass;
         this.encoders = encoders;
         this.collector = collector;
-        this.handlerManager = new MessageHandlerManager();
+        this.handlerManager = new MessageHandlerManager(decoders);
     }
 
     /**

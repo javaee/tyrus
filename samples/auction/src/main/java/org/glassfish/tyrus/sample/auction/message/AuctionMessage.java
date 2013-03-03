@@ -45,7 +45,7 @@ import org.glassfish.tyrus.sample.auction.AuctionItem;
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public abstract class AuctionMessage<T> {
+public class AuctionMessage{
 
     public static final String LOGIN_REQUEST = "lreq";
     public static final String BID_REQUEST = "breq";
@@ -65,45 +65,63 @@ public abstract class AuctionMessage<T> {
     /*
      * Message data
      */
-    private final T data;
+    private final Object data;
 
     /*
      * ID used for communication purposes
      */
     private final String communicationId;
 
-    AuctionMessage(String type, String communicationId, T data) {
+    /**
+     * Create new message.
+     *
+     * @param type message type.
+     * @param communicationId auction id.
+     * @param data message data.
+     */
+    public AuctionMessage(String type, String communicationId, Object data) {
         this.type = type;
         this.communicationId = communicationId;
         this.data = data;
     }
 
-    public String asString() {
+    @Override
+    public String toString() {
         return type + Auction.SEPARATOR + communicationId + Auction.SEPARATOR + data.toString();
     }
 
-    public T getData() {
+    /**
+     * Get auction data.
+     *
+     * @return auction data.
+     */
+    public Object getData() {
         return data;
     }
 
+    /**
+     * ID of the auction this message is relevant to.
+     *
+     * @return auction id.
+     */
     public String getCommunicationId() {
         return communicationId;
     }
 
     /**
-     * @author Stepan Kopriva (stepan.kopriva at oracle.com)
+     * Get message type.
+     *
+     * @return message type.
      */
-    public static class AuctionListRequestMessage extends AuctionMessage<String> {
-
-        public AuctionListRequestMessage(String communicationId, String message) {
-            super(AUCTION_LIST_REQUEST, communicationId, message);
-        }
+    public String getType() {
+        return type;
     }
+
 
     /**
      * @author Stepan Kopriva (stepan.kopriva at oracle.com)
      */
-    public static class AuctionListResponseMessage extends AuctionMessage<String> {
+    public static class AuctionListResponseMessage extends AuctionMessage {
 
         public AuctionListResponseMessage(String communicationId, String data) {
             super(AUCTION_LIST_RESPONSE, communicationId, data);
@@ -113,34 +131,14 @@ public abstract class AuctionMessage<T> {
     /**
      * @author Stepan Kopriva (stepan.kopriva at oracle.com)
      */
-    public static class AuctionTimeBroadcastMessage extends AuctionMessage<Integer> {
+    public static class AuctionTimeBroadcastMessage extends AuctionMessage {
 
         public AuctionTimeBroadcastMessage(String communicationId, int time) {
             super(AUCTION_TIME_RESPONSE, communicationId, time);
         }
     }
 
-    /**
-     * @author Stepan Kopriva (stepan.kopriva at oracle.com)
-     */
-    public static class BidRequestMessage extends AuctionMessage<String> {
-
-        public BidRequestMessage(String communicationId, String data) {
-            super(BID_REQUEST, communicationId, data);
-        }
-    }
-
-    /**
-     * @author Stepan Kopriva (stepan.kopriva at oracle.com)
-     */
-    public static class LoginRequestMessage extends AuctionMessage<String> {
-
-        public LoginRequestMessage(String communicationId, String username) {
-            super(LOGIN_REQUEST, communicationId, username);
-        }
-    }
-
-    public static class LoginResponseMessage extends AuctionMessage<AuctionItem> {
+    public static class LoginResponseMessage extends AuctionMessage {
 
         public LoginResponseMessage(String communicationId, AuctionItem item) {
             super(LOGIN_RESPONSE, communicationId, item);
@@ -148,19 +146,9 @@ public abstract class AuctionMessage<T> {
     }
 
     /**
-     * @author Danny Coward (danny.coward at oracle.com)
-     */
-    public static class LogoutRequestMessage extends AuctionMessage<String> {
-
-        public LogoutRequestMessage(String communicationId, String username) {
-            super(LOGOUT_REQUEST, communicationId, username);
-        }
-    }
-
-    /**
      * @author Stepan Kopriva (stepan.kopriva at oracle.com)
      */
-    public static class PriceUpdateResponseMessage extends AuctionMessage<String> {
+    public static class PriceUpdateResponseMessage extends AuctionMessage {
 
         public PriceUpdateResponseMessage(String communicationId, String price) {
             super(PRICE_UPDATE_RESPONSE, communicationId, price);
@@ -170,7 +158,7 @@ public abstract class AuctionMessage<T> {
     /**
      * @author Stepan Kopriva (stepan.kopriva at oracle.com)
      */
-    public static class ResultMessage extends AuctionMessage<String> {
+    public static class ResultMessage extends AuctionMessage {
 
         public ResultMessage(String communicationId, String data) {
             super(RESULT_RESPONSE, communicationId, data);

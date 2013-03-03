@@ -39,6 +39,8 @@
  */
 package org.glassfish.tyrus.sample.simplelife;
 
+import java.io.IOException;
+
 import javax.websocket.OnClose;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
@@ -57,6 +59,11 @@ public class SimpleLifeBean {
     @OnMessage
     public void handleMessage(String message, Session session) {
         System.out.println("Someone sent me this message: " + message);
+        try {
+            session.getBasicRemote().sendText(message);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @OnClose

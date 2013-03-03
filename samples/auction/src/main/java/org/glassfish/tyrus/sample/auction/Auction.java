@@ -127,9 +127,9 @@ public class Auction {
     /*
      * New user logs into the auction.
      */
-    public void handleLoginRequest(AuctionMessage.LoginRequestMessage lrm, Session arc) {
+    public void handleLoginRequest(AuctionMessage messsage, Session arc) {
 
-        arc.getUserProperties().put("name", lrm.getData());
+        arc.getUserProperties().put("name", messsage.getData());
         synchronized (id) {
             if (state != AuctionState.AUCTION_FINISHED) {
                 if (!getRemoteClients().contains(arc)) {
@@ -148,7 +148,7 @@ public class Auction {
             } else {
                 try {
                     arc.getBasicRemote().sendObject(new AuctionMessage.LoginResponseMessage(id, item));
-                    if(bestBidderName!= null && bestBidderName.equals(lrm.getData())){
+                    if(bestBidderName!= null && bestBidderName.equals(messsage.getData())){
                         arc.getBasicRemote().sendObject(new AuctionMessage.ResultMessage(id, String.format("Congratulations, You won the auction and will pay %.0f.", bestBid)));
                     }else{
                         arc.getBasicRemote().sendObject(new AuctionMessage.ResultMessage(id, String.format("You did not win the auction. The item was sold for %.0f.", bestBid)));
@@ -160,10 +160,10 @@ public class Auction {
         }
     }
 
-    public void handleBidRequest(AuctionMessage.BidRequestMessage brm, Session arc) {
+    public void handleBidRequest(AuctionMessage message, Session arc) {
         synchronized (id) {
             if (state == AuctionState.AUCTION_RUNNING) {
-                Double bid = Double.parseDouble(brm.getData());
+                Double bid = Double.parseDouble((String)message.getData());
                 if (bid > bestBid) {
                     bestBid = bid;
 

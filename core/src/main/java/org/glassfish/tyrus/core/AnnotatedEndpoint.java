@@ -140,7 +140,7 @@ public class AnnotatedEndpoint extends Endpoint {
         ParameterExtractor[] onErrorParameters = null;
 
         Map<Integer, Class<?>> unknownParams = new HashMap<Integer, Class<?>>();
-        AnnotatedClassValidityChecker validityChecker = new AnnotatedClassValidityChecker(annotatedClass, configuration.getEncoders(), collector);
+        AnnotatedClassValidityChecker validityChecker = new AnnotatedClassValidityChecker(annotatedClass, configuration.getEncoders(), configuration.getDecoders(), collector);
 
         // TODO: how about methods from the superclass?
         for (Method m : annotatedClass.getDeclaredMethods()) {
@@ -270,6 +270,7 @@ public class AnnotatedEndpoint extends Endpoint {
                 }
             }
 
+            decoders.addAll(EndpointWrapper.getDefaultDecoders());
 
             ServerEndpointConfigurationBuilder builder = ServerEndpointConfigurationBuilder.create(annotatedClass, wseAnnotation.value()).
                     encoders(encoders).decoders(decoders).subprotocols(Arrays.asList(subProtocols));
@@ -313,6 +314,8 @@ public class AnnotatedEndpoint extends Endpoint {
                     decoders.add(new CoderWrapper<Decoder>(decoderClass, decoderType));
                 }
             }
+
+            decoders.addAll(EndpointWrapper.getDefaultDecoders());
 
             return ClientEndpointConfigurationBuilder.create().encoders(encoders).decoders(decoders).
                     preferredSubprotocols(Arrays.asList(subProtocols)).build();

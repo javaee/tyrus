@@ -52,6 +52,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import javax.websocket.Decoder;
 import javax.websocket.MessageHandler;
 import javax.websocket.PongMessage;
 
@@ -64,20 +65,35 @@ import javax.websocket.PongMessage;
  */
 class MessageHandlerManager {
 
-    private static final List<Class<?>> TEXT_HANDLER_TYPES = Arrays.asList(String.class, Reader.class);
-    private static final List<Class<?>> BINARY_HANDLER_TYPES = Arrays.asList(ByteBuffer.class, InputStream.class, byte[].class);
+    private static final List<Class<?>> WHOLE_TEXT_HANDLER_TYPES = Arrays.asList(String.class, Reader.class);
+    private static final Class<?> PARTIAL_TEXT_HANDLER_TYPE = String.class;
+    private static final List<Class<?>> WHOLE_BINARY_HANDLER_TYPES = Arrays.asList(ByteBuffer.class, InputStream.class, byte[].class);
+    private static final List<Class<?>> PARTIAL_BINARY_HANDLER_TYPES = Arrays.asList(ByteBuffer.class, byte[].class);
     private static final Class<?> PONG_HANDLER_TYPE = PongMessage.class;
 
-    private boolean basicTextHandlerPresent = false;
-    private boolean basicBinaryHandlerPresent = false;
-    private boolean basicPongHandlerPresent = false;
-    private final Map<Class<?>, MessageHandler> basicHandlers = new HashMap<Class<?>, MessageHandler>();
-
-    private boolean asyncTextHandlerPresent = false;
-    private boolean asyncBinaryHandlerPresent = false;
-    private final Map<Class<?>, MessageHandler> asyncHandlers = new HashMap<Class<?>, MessageHandler>();
+    private boolean textHandlerPresent = false;
+    private boolean binaryHandlerPresent = false;
+    private boolean pongHandlerPresent = false;
+    private final Map<Class<?>, MessageHandler> registeredHandlers = new HashMap<Class<?>, MessageHandler>();
+    private final List<Decoder> decoders;
 
     private Set<MessageHandler> messageHandlerCache;
+
+    /**
+     * Construct manager with no decoders.
+     */
+    MessageHandlerManager() {
+        this(Collections.<Decoder>emptyList());
+    }
+
+    /**
+     * Construct manager.
+     *
+     * @param decoders registered {@link Decoder}s.
+     */
+    MessageHandlerManager(List<Decoder> decoders) {
+        this.decoders = decoders;
+    }
 
     /**
      * Add {@link MessageHandler} to the manager.
@@ -92,67 +108,71 @@ class MessageHandlerManager {
 
         final Class<?> handlerClass = getHandlerType(handler);
 
-        if (handler instanceof MessageHandler.Basic) {
-            // basic types
-            // text
-            if (TEXT_HANDLER_TYPES.contains(handlerClass)) {
-                if (basicTextHandlerPresent) {
+        if (handler instanceof MessageHandler.Basic) { //WHOLE MESSAGE HANDLER
+            if (WHOLE_TEXT_HANDLER_TYPES.contains(handlerClass)) { // text
+                if (textHandlerPresent) {
                     throwException("Text MessageHandler already registered.");
                 } else {
-                    basicTextHandlerPresent = true;
+                    textHandlerPresent = true;
                 }
-            }
-
-            // binary
-            if (BINARY_HANDLER_TYPES.contains(handlerClass)) {
-                if (basicBinaryHandlerPresent) {
+            } else if (WHOLE_BINARY_HANDLER_TYPES.contains(handlerClass)) { // binary
+                if (binaryHandlerPresent) {
                     throwException("Binary MessageHandler already registered.");
                 } else {
-                    basicBinaryHandlerPresent = true;
+                    binaryHandlerPresent = true;
                 }
-            }
-
-            // pong
-            if (PONG_HANDLER_TYPE == handlerClass) {
-                if (basicPongHandlerPresent) {
+            } else if (PONG_HANDLER_TYPE == handlerClass) { // pong
+                if (pongHandlerPresent) {
                     throwException("Pong MessageHander already registered.");
                 } else {
-                    basicPongHandlerPresent = true;
+                    pongHandlerPresent = true;
+                }
+            } else {
+                boolean decoderExists = false;
+
+                if (checkTextDecoders(handlerClass)) {//decodable text
+                    if (textHandlerPresent) {
+                        throwException("Text MessageHandler already registered.");
+                    } else {
+                        textHandlerPresent = true;
+                        decoderExists = true;
+                    }
+                } else if (checkBinaryDecoders(handlerClass)) {//decodable binary
+                    if (binaryHandlerPresent) {
+                        throwException("Text MessageHandler already registered.");
+                    } else {
+                        binaryHandlerPresent = true;
+                        decoderExists = true;
+                    }
+                }
+
+                if (!decoderExists) {
+                    throwException(String.format("Decoder for type: %s has not been registered.", handlerClass));
                 }
             }
-
-            // map of all registered handlers
-            if (basicHandlers.containsKey(handlerClass)) {
-                throwException(String.format("MessageHandler for type: %s already registered.", handlerClass));
-            } else {
-                basicHandlers.put(handlerClass, handler);
-            }
-        } else if (handler instanceof MessageHandler.Async) {
-            //async types
-            // text
-            if (TEXT_HANDLER_TYPES.contains(handlerClass)) {
-                if (asyncTextHandlerPresent) {
+        } else { // PARTIAL MESSAGE HANDLER
+            if (PARTIAL_TEXT_HANDLER_TYPE.equals(handlerClass)) { // text
+                if (textHandlerPresent) {
                     throwException("Text MessageHandler already registered.");
                 } else {
-                    asyncTextHandlerPresent = true;
+                    textHandlerPresent = true;
                 }
-            }
-
-            // binary
-            if (BINARY_HANDLER_TYPES.contains(handlerClass)) {
-                if (asyncBinaryHandlerPresent) {
+            } else if (PARTIAL_BINARY_HANDLER_TYPES.contains(handlerClass)) { // binary
+                if (binaryHandlerPresent) {
                     throwException("Binary MessageHandler already registered.");
                 } else {
-                    asyncBinaryHandlerPresent = true;
+                    binaryHandlerPresent = true;
                 }
-            }
-
-            // map of all registered handlers
-            if (asyncHandlers.containsKey(handlerClass)) {
-                throwException(String.format("MessageHandler for type: %s already registered.", handlerClass));
             } else {
-                asyncHandlers.put(handlerClass, handler);
+                throwException(String.format("Partial MessageHandler can't be of type: %s.", handlerClass));
             }
+        }
+
+        // map of all registered handlers
+        if (registeredHandlers.containsKey(handlerClass)) {
+            throwException(String.format("MessageHandler for type: %s already registered.", handlerClass));
+        } else {
+            registeredHandlers.put(handlerClass, handler);
         }
 
         messageHandlerCache = null;
@@ -168,21 +188,47 @@ class MessageHandlerManager {
      * @param handler handler which will be removed.
      */
     public void removeMessageHandler(MessageHandler handler) {
-        Iterator<Map.Entry<Class<?>, MessageHandler>> iterator = basicHandlers.entrySet().iterator();
+        boolean wasRegistered = false;
+        Iterator<Map.Entry<Class<?>, MessageHandler>> iterator = registeredHandlers.entrySet().iterator();
+        final Class<?> handlerClass = getHandlerType(handler);
+
         while (iterator.hasNext()) {
             final Map.Entry<Class<?>, MessageHandler> next = iterator.next();
             if (next.getValue().equals(handler)) {
                 iterator.remove();
                 messageHandlerCache = null;
+                wasRegistered = true;
+                break;
             }
         }
 
-        iterator = asyncHandlers.entrySet().iterator();
-        while (iterator.hasNext()) {
-            final Map.Entry<Class<?>, MessageHandler> next = iterator.next();
-            if (next.getValue().equals(handler)) {
-                iterator.remove();
-                messageHandlerCache = null;
+        if (!wasRegistered) {
+            return;
+        }
+
+        if (handler instanceof MessageHandler.Basic) { //WHOLE MESSAGE HANDLER
+            if (WHOLE_TEXT_HANDLER_TYPES.contains(handlerClass)) { // text
+                textHandlerPresent = false;
+
+            } else if (WHOLE_BINARY_HANDLER_TYPES.contains(handlerClass)) { // binary
+                binaryHandlerPresent = false;
+
+            } else if (PONG_HANDLER_TYPE == handlerClass) { // pong
+                pongHandlerPresent = false;
+            } else {
+                if (checkTextDecoders(handlerClass)) {//decodable text
+                    textHandlerPresent = false;
+
+                } else if (checkBinaryDecoders(handlerClass)) {//decodable binary
+                    binaryHandlerPresent = false;
+                }
+            }
+        } else { // PARTIAL MESSAGE HANDLER
+            if (PARTIAL_TEXT_HANDLER_TYPE.equals(handlerClass)) { // text
+                textHandlerPresent = false;
+
+            } else if (PARTIAL_BINARY_HANDLER_TYPES.contains(handlerClass)) { // binary
+                binaryHandlerPresent = false;
             }
         }
     }
@@ -194,12 +240,7 @@ class MessageHandlerManager {
      */
     public Set<MessageHandler> getMessageHandlers() {
         if (messageHandlerCache == null) {
-            final HashSet<MessageHandler> messageHandlers = new HashSet<MessageHandler>();
-
-            messageHandlers.addAll(basicHandlers.values());
-            messageHandlers.addAll(asyncHandlers.values());
-
-            messageHandlerCache = Collections.unmodifiableSet(messageHandlers);
+            messageHandlerCache = Collections.unmodifiableSet(new HashSet(registeredHandlers.values()));
         }
 
         return messageHandlerCache;
@@ -220,6 +261,38 @@ class MessageHandlerManager {
         }
         Class<?> result = ReflectionHelper.getClassType(handler.getClass(), root);
         return result == null ? Object.class : result;
+    }
+
+    private boolean checkTextDecoders(Class<?> requiredType) {
+        for (Decoder decoder : decoders) {
+            if (decoder instanceof CoderWrapper && isTextDecoder((CoderWrapper) decoder)) {
+                if (((CoderWrapper<Decoder>) decoder).getType().isAssignableFrom(requiredType)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private boolean checkBinaryDecoders(Class<?> requiredType) {
+        for (Decoder decoder : decoders) {
+            if (decoder instanceof CoderWrapper && isBinaryDecoder((CoderWrapper) decoder)) {
+                if (((CoderWrapper<Decoder>) decoder).getType().isAssignableFrom(requiredType)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    private static boolean isTextDecoder(CoderWrapper<Decoder> decoder) {
+        return Decoder.Text.class.isAssignableFrom(decoder.getCoderClass()) || Decoder.TextStream.class.isAssignableFrom(decoder.getCoderClass());
+    }
+
+    private static boolean isBinaryDecoder(CoderWrapper<Decoder> decoder) {
+        return Decoder.Binary.class.isAssignableFrom(decoder.getCoderClass()) || Decoder.BinaryStream.class.isAssignableFrom(decoder.getCoderClass());
     }
 
 }

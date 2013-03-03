@@ -102,7 +102,6 @@ public class EndpointWrapper extends SPIEndpoint {
             new ConcurrentHashMap<SPIRemoteEndpoint, SessionImpl>();
     private final ErrorCollector collector;
     private final ComponentProviderService componentProvider;
-
     private final ServerEndpointConfigurator serverEndpointConfigurator;
 
     // the following is set during the handshake
@@ -186,12 +185,10 @@ public class EndpointWrapper extends SPIEndpoint {
             }
         }
 
-        decoders.addAll(PrimitiveDecoders.ALL_WRAPPED);
-        decoders.add(new CoderWrapper<Decoder>(NoOpTextCoder.class, String.class));
-        decoders.add(new CoderWrapper<Decoder>(NoOpByteBufferCoder.class, ByteBuffer.class));
-        decoders.add(new CoderWrapper<Decoder>(NoOpByteArrayCoder.class, byte[].class));
-        decoders.add(new CoderWrapper<Decoder>(ReaderDecoder.class, Reader.class));
-        decoders.add(new CoderWrapper<Decoder>(InputStreamDecoder.class, InputStream.class));
+        //this wrapper represents endpoint which is not annotated endpoint
+        if (endpoint == null || !(endpoint instanceof AnnotatedEndpoint)) {
+            decoders.addAll(getDefaultDecoders());
+        }
 
         for (Encoder encoder : this.configuration.getEncoders()) {
             if (encoder instanceof CoderWrapper) {
@@ -224,6 +221,18 @@ public class EndpointWrapper extends SPIEndpoint {
 
         return serverEndpointConfigurator.checkOrigin(hr.getHeader("Origin")) &&
                 serverEndpointConfigurator.matchesURI(getEndpointPath(sec.getPath()), URI.create(uri), templateValues);
+    }
+
+    static List<CoderWrapper<Decoder>> getDefaultDecoders(){
+        final List<CoderWrapper<Decoder>> defaultDecoders = new ArrayList<CoderWrapper<Decoder>>();
+        defaultDecoders.addAll(PrimitiveDecoders.ALL_WRAPPED);
+        defaultDecoders.add(new CoderWrapper<Decoder>(NoOpTextCoder.class, String.class));
+        defaultDecoders.add(new CoderWrapper<Decoder>(NoOpByteBufferCoder.class, ByteBuffer.class));
+        defaultDecoders.add(new CoderWrapper<Decoder>(NoOpByteArrayCoder.class, byte[].class));
+        defaultDecoders.add(new CoderWrapper<Decoder>(ReaderDecoder.class, Reader.class));
+        defaultDecoders.add(new CoderWrapper<Decoder>(InputStreamDecoder.class, InputStream.class));
+
+        return defaultDecoders;
     }
 
     private String getEndpointPath(String relativePath) {
@@ -543,6 +552,15 @@ public class EndpointWrapper extends SPIEndpoint {
 
     boolean isOpen(SessionImpl session) {
         return remoteEndpointToSession.values().contains(session);
+    }
+
+    /**
+     * Registered {@link Decoder}s.
+     *
+     * @return {@link List} of registered {@link Decoder}s.
+     */
+    public List<Decoder> getDecoders() {
+        return (List<Decoder>) (List<?>) decoders;
     }
 
     private Class<?> getEncoderClassType(Class<?> encoderClass) {

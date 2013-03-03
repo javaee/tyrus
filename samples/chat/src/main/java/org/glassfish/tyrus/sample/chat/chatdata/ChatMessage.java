@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011 - 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -53,14 +53,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class ChatMessage {
-    static String LOGIN_REQUEST = "lreq";
-    static String LOGIN_RESPONSE = "lres";
-    static String USERLIST_UPDATE = "ulupd";
-    static String CHAT_MESSAGE = "ctmsg";
-    static String CHATTRANSCRIPT_UPDATE = "ctupd";
-    static String DISCONNECT_REQUEST = "dreq";
-    static String DISCONNECT_RESPONSE = "dres";
-    static String SEP = ":";
+    public static final String LOGIN_REQUEST = "lreq";
+    public static final String LOGIN_RESPONSE = "lres";
+    public static final String USERLIST_UPDATE = "ulupd";
+    public static final String CHAT_MESSAGE = "ctmsg";
+    public static final String CHATTRANSCRIPT_UPDATE = "ctupd";
+    public static final String DISCONNECT_REQUEST = "dreq";
+    public static final String DISCONNECT_RESPONSE = "dres";
+    public static final String SEP = ":";
 
     String type;
 
@@ -97,7 +97,7 @@ public abstract class ChatMessage {
     }
 
 
-    private static ChatMessage parseMessage(String s) {
+    public static ChatMessage parseMessage(String s) {
         System.out.println("Parse: " + s);
         ChatMessage chatMessage;
 
@@ -134,7 +134,9 @@ public abstract class ChatMessage {
 
     abstract Object getData();
 
-
+    public String getType() {
+        return type;
+    }
 }
 
 

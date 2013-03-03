@@ -53,9 +53,12 @@ import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
+import org.glassfish.tyrus.sample.chat.chatdata.ChatDecoder;
+import org.glassfish.tyrus.sample.chat.chatdata.ChatMessage;
 import org.glassfish.tyrus.sample.chat.chatdata.ChatTranscriptUpdateMessage;
 import org.glassfish.tyrus.sample.chat.chatdata.ChatUpdateMessage;
 import org.glassfish.tyrus.sample.chat.chatdata.DisconnectRequestMessage;
+import org.glassfish.tyrus.sample.chat.chatdata.DisconnectResponseEncoder;
 import org.glassfish.tyrus.sample.chat.chatdata.DisconnectResponseMessage;
 import org.glassfish.tyrus.sample.chat.chatdata.LoginRequestMessage;
 import org.glassfish.tyrus.sample.chat.chatdata.LoginResponseMessage;
@@ -63,10 +66,8 @@ import org.glassfish.tyrus.sample.chat.chatdata.UserListUpdateMessage;
 
 
 @ServerEndpoint(value = "/chat",
-        decoders = {org.glassfish.tyrus.sample.chat.chatdata.LoginRequestDecoder.class,
-                org.glassfish.tyrus.sample.chat.chatdata.ChatUpdateDecoder.class,
-                org.glassfish.tyrus.sample.chat.chatdata.DisconnectRequestDecoder.class},
-        encoders = {org.glassfish.tyrus.sample.chat.chatdata.DisconnectResponseEncoder.class})
+        decoders = {ChatDecoder.class},
+        encoders = {DisconnectResponseEncoder.class})
 public class ChatServer {
 
     final static Logger logger = Logger.getLogger("application");
@@ -82,27 +83,38 @@ public class ChatServer {
     }
 
     @OnMessage
-    public void handleLoginRequest(LoginRequestMessage lrm, Session session) {
-        String newUsername = this.registerNewUsername(lrm.getUsername(), session);
+    public void handleMessage(ChatMessage message, Session session){
+        switch (message.getType()){
+            case ChatMessage.LOGIN_REQUEST:
+               handleLoginRequest((LoginRequestMessage) message, session);
+                break;
+            case ChatMessage.CHAT_MESSAGE:
+                handleChatMessage((ChatUpdateMessage) message);
+                break;
+            case ChatMessage.DISCONNECT_REQUEST:
+                handleDisconnectRequest((DisconnectRequestMessage) message);
+        }
+    }
+
+    public void handleLoginRequest(LoginRequestMessage message, Session session) {
+        String newUsername = this.registerNewUsername(message.getUsername(), session);
         logger.info("Signing " + newUsername + " into chat.");
         LoginResponseMessage lres = new LoginResponseMessage(newUsername);
         try {
             session.getBasicRemote().sendText(lres.asString());
         } catch (IOException ioe) {
-            logger.warning("Error signing " + lrm.getUsername() + " into chat : " + ioe.getMessage());
+            logger.warning("Error signing " + message.getUsername() + " into chat : " + ioe.getMessage());
         }
 
         this.addToTranscriptAndNotify(newUsername, " has just joined.");
         this.broadcastUserList();
     }
 
-    @OnMessage
-    public void handleChatMessage(ChatUpdateMessage cum) {
-        logger.info("Receiving chat message from " + cum.getUsername());
-        this.addToTranscriptAndNotify(cum.getUsername(), cum.getMessage());
+    public void handleChatMessage(ChatUpdateMessage message) {
+        logger.info("Receiving chat message from " + message.getUsername());
+        this.addToTranscriptAndNotify(message.getUsername(), message.getMessage());
     }
 
-    @OnMessage
     public DisconnectResponseMessage handleDisconnectRequest(DisconnectRequestMessage drm) {
         logger.info(drm.getUsername() + " would like to leave chat");
         DisconnectResponseMessage reply = new DisconnectResponseMessage(drm.getUsername());

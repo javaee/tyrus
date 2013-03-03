@@ -49,11 +49,6 @@ import java.util.StringTokenizer;
 abstract class ListMessage extends ChatMessage {
     List dataList = new ArrayList();
 
-    ListMessage(String type, String dataString) {
-        super(type);
-        parseDataString(dataString);
-    }
-
     ListMessage(String type) {
         super(type);
     }

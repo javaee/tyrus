@@ -49,9 +49,10 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 import javax.websocket.CloseReason;
+import javax.websocket.OnMessage;
+import javax.websocket.Session;
+import javax.websocket.server.ServerEndpoint;
 
-import org.glassfish.tyrus.core.RemoteEndpointWrapper;
-import org.glassfish.tyrus.core.SessionImpl;
 import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
 
 import org.junit.Assert;
@@ -65,11 +66,13 @@ import org.junit.Test;
 public class RemoteEndpointWrapperTest {
 
     private final byte[] sentBytes = {'a', 'b', 'c'};
+    private final EndpointWrapper ew = new EndpointWrapper(EchoEndpoint.class, null,null, null,null, null, null);
 
     @Test
     public void testGetSendStream() throws IOException {
+
         TestRemoteEndpoint tre = new TestRemoteEndpoint();
-        SessionImpl testSession = new SessionImpl(null, null, null, null, null, true, null, null, Collections.<String, String>emptyMap());
+        SessionImpl testSession = new SessionImpl(null, null, ew, null, null, true, null, null, Collections.<String, String>emptyMap());
         RemoteEndpointWrapper.Basic rew = new RemoteEndpointWrapper.Basic(testSession, tre, null);
         OutputStream stream = rew.getSendStream();
 
@@ -94,7 +97,7 @@ public class RemoteEndpointWrapperTest {
 
         char[] toSend = sentString.toCharArray();
         TestRemoteEndpoint tre = new TestRemoteEndpoint();
-        SessionImpl testSession = new SessionImpl(null, null, null, null, null, true, null, null, Collections.<String, String>emptyMap());
+        SessionImpl testSession = new SessionImpl(null, null, ew, null, null, true, null, null, Collections.<String, String>emptyMap());
         RemoteEndpointWrapper.Basic rew = new RemoteEndpointWrapper.Basic(testSession, tre, null);
         Writer writer = rew.getSendWriter();
 
@@ -173,4 +176,12 @@ public class RemoteEndpointWrapperTest {
         }
     }
 
+    @ServerEndpoint(value = "/echo")
+    private static class EchoEndpoint {
+
+        @OnMessage
+        public String doThat(String message, Session peer) {
+            return message;
+        }
+    }
 }

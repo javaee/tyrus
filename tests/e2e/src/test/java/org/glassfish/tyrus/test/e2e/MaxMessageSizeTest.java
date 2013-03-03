@@ -75,6 +75,10 @@ public class MaxMessageSizeTest {
         public String doThat(String message) {
             return message;
         }
+    }
+
+    @ServerEndpoint(value = "/endpoint2")
+    public static class Endpoint2 {
 
         @OnMessage(maxMessageSize = 5)
         public String doThat(Session s, String message, boolean last) throws IOException {
@@ -151,7 +155,7 @@ public class MaxMessageSizeTest {
 
     @Test
     public void runTestAsync() {
-        Server server = new Server(Endpoint1.class);
+        Server server = new Server(Endpoint2.class);
 
         try {
             server.start();
@@ -179,7 +183,7 @@ public class MaxMessageSizeTest {
                         // do nothing.
                     }
                 }
-            }, clientConfiguration, new URI("ws://localhost:8025/websockets/tests/endpoint1"));
+            }, clientConfiguration, new URI("ws://localhost:8025/websockets/tests/endpoint2"));
 
             messageLatch.await(1, TimeUnit.SECONDS);
             Assert.assertEquals(0, messageLatch.getCount());
@@ -204,7 +208,7 @@ public class MaxMessageSizeTest {
                         messageLatch.countDown();
                     }
                 }
-            }, clientConfiguration, new URI("ws://localhost:8025/websockets/tests/endpoint1"));
+            }, clientConfiguration, new URI("ws://localhost:8025/websockets/tests/endpoint2"));
 
             messageLatch.await(1, TimeUnit.SECONDS);
             Assert.assertEquals(0, messageLatch.getCount());
