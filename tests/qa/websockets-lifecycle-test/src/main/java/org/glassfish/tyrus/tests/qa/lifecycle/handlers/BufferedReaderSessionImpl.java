@@ -44,7 +44,6 @@ import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.logging.Level;
-import javax.websocket.MessageHandler.Basic;
 import javax.websocket.Session;
 import org.glassfish.tyrus.tests.qa.lifecycle.SessionConversation;
 import org.glassfish.tyrus.tests.qa.lifecycle.SessionLifeCycle;
@@ -116,5 +115,15 @@ public class BufferedReaderSessionImpl extends SessionLifeCycle<Reader> implemen
     @Override
     public SessionLifeCycle getSessionConversation() {
         return new BufferedReaderSessionImpl(1024);
+    }
+
+    @Override
+    public void onServerMessageHandler(Reader message, Session session, boolean last) throws IOException {
+        
+    }
+
+    @Override
+    public void onClientMessageHandler(Reader message, Session session, boolean last) throws IOException {
+        
     }
 }

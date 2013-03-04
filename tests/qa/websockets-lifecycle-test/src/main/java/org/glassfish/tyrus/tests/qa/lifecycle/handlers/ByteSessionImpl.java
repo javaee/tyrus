@@ -104,4 +104,12 @@ public class ByteSessionImpl extends SessionLifeCycle<byte[]> implements Session
         ByteBuffer bb = ByteBuffer.wrap(messageToSend);
         s.getBasicRemote().sendBinary(bb);
     }
+
+    @Override
+    public void onServerMessageHandler(byte[] message, Session session, boolean last) throws IOException {
+    }
+
+    @Override
+    public void onClientMessageHandler(byte[] message, Session session, boolean last) throws IOException {
+    }
 }

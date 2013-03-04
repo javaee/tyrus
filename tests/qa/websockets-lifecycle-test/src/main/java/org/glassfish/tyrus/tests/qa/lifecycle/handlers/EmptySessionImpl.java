@@ -98,6 +98,14 @@ public class EmptySessionImpl extends SessionLifeCycle<String> implements Sessio
     public void onClientOpen(Session s, EndpointConfiguration config) {
 
     }
+
+    @Override
+    public void onServerMessageHandler(String message, Session session, boolean last) throws IOException {
+    }
+
+    @Override
+    public void onClientMessageHandler(String message, Session session, boolean last) throws IOException {
+    }
     
     
     

@@ -51,7 +51,7 @@ import org.glassfish.tyrus.tests.qa.handlers.BasicMessageHandler;
 import org.glassfish.tyrus.tests.qa.tools.CommChannel;
 import org.glassfish.tyrus.tests.qa.tools.SessionController;
 
-abstract public class ProgrammaticEndpoint<T> extends Endpoint implements MessageHandler.Basic<T> {
+abstract public class ProgrammaticEndpoint<T> extends Endpoint implements MessageHandler.Basic<T>, MessageHandler.Async<T> {
 
     private static final Logger logger = Logger.getLogger(ProgrammaticEndpoint.class.getCanonicalName());
     protected SessionLifeCycle lifeCycle;
@@ -76,6 +76,19 @@ abstract public class ProgrammaticEndpoint<T> extends Endpoint implements Messag
         } else {
             logger.log(Level.INFO, "PRGEND:client:onMessage:{0}", message.toString());
             lifeCycle.onClientMessage(message, session);
+        }
+    }
+    
+     @Override
+    public void onMessage(T message, boolean last) {
+        
+        logger.log(Level.INFO, "Programmatic.onMessage partial:{0}", message.toString());
+        if (isServerContainer(session)) {
+            logger.log(Level.INFO, "PRGEND:server:onMessage partial:{0}", message.toString());
+            lifeCycle.onServerMessage(message, session, last);
+        } else {
+            logger.log(Level.INFO, "PRGEND:client:onMessage partial:{0}", message.toString());
+            lifeCycle.onClientMessage(message, session, last);
         }
     }
 

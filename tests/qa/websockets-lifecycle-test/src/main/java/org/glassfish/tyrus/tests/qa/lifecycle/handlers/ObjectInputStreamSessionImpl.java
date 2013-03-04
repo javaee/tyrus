@@ -102,6 +102,14 @@ public class ObjectInputStreamSessionImpl implements SessionConversation {
                     throw new RuntimeException(ex);
                 }
             }
+
+            @Override
+            public void onServerMessageHandler(InputStream message, Session session, boolean last) throws IOException {
+            }
+
+            @Override
+            public void onClientMessageHandler(InputStream message, Session session, boolean last) throws IOException {
+            }
         };
     }
 

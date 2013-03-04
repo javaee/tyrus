@@ -74,6 +74,14 @@ public class StringSessionImpl implements SessionConversation {
                 logger.log(Level.INFO, "startTalk with client.open");
                 s.getBasicRemote().sendText("client.open");
             }
+
+            @Override
+            public void onServerMessageHandler(String message, Session session, boolean last) throws IOException {
+            }
+
+            @Override
+            public void onClientMessageHandler(String message, Session session, boolean last) throws IOException {
+            }
         };
     }
 }

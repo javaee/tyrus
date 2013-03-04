@@ -61,8 +61,10 @@ abstract public class SessionLifeCycle<T> {
     protected static final Logger logger = Logger.getLogger(SessionLifeCycle.class.getCanonicalName());
 
     abstract public void onServerMessageHandler(T message, Session session) throws IOException;
+    abstract public void onServerMessageHandler(T message, Session session, boolean last) throws IOException;
 
     abstract public void onClientMessageHandler(T message, Session session) throws IOException;
+    abstract public void onClientMessageHandler(T message, Session session, boolean last) throws IOException;
 
     abstract public void startTalk(Session s) throws IOException;
 
@@ -128,6 +130,19 @@ abstract public class SessionLifeCycle<T> {
             sc.setState("on.server.message.exception");
         }
     }
+    
+    public void onServerMessage(T message, Session session, boolean last) {
+        logger.log(Level.INFO, "server:message={0}", message);
+        sc.onMessage();
+        try {
+            //throw new RuntimeException();
+            onServerMessageHandler(message, session, last);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            logger.log(Level.SEVERE, null, ex);
+            sc.setState("on.server.message.exception");
+        }
+    }
 
     public void onClientOpen(Session s, EndpointConfiguration config) {
         if (!Issue.checkTyrus93(s)) {
@@ -165,6 +180,18 @@ abstract public class SessionLifeCycle<T> {
             onClientMessageHandler(message, session);
         } catch (IOException ex) {
             sc.setState("on.client.message.exception");
+            ex.printStackTrace();
+            logger.log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public void onClientMessage(T message, Session session, boolean last) {
+        sc.onMessage();
+        logger.log(Level.INFO, "client:message={0}", message);
+        try {
+            onClientMessageHandler(message, session, last);
+        } catch (IOException ex) {
+            sc.setState("on.client.partial.message.exception");
             ex.printStackTrace();
             logger.log(Level.SEVERE, null, ex);
         }
