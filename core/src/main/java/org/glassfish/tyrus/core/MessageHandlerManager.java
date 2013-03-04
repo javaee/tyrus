@@ -60,6 +60,8 @@ import javax.websocket.PongMessage;
  * Manages registered {@link MessageHandler}s and checks whether the new ones may be registered.
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
+ *
  * @see MessageHandler
  * @see javax.websocket.OnMessage
  */
@@ -72,7 +74,9 @@ class MessageHandlerManager {
     private static final Class<?> PONG_HANDLER_TYPE = PongMessage.class;
 
     private boolean textHandlerPresent = false;
+    private boolean textWholeHandlerPresent = false;
     private boolean binaryHandlerPresent = false;
+    private boolean binaryWholeHandlerPresent = false;
     private boolean pongHandlerPresent = false;
     private final Map<Class<?>, MessageHandler> registeredHandlers = new HashMap<Class<?>, MessageHandler>();
     private final List<Decoder> decoders;
@@ -114,12 +118,14 @@ class MessageHandlerManager {
                     throwException("Text MessageHandler already registered.");
                 } else {
                     textHandlerPresent = true;
+                    textWholeHandlerPresent = true;
                 }
             } else if (WHOLE_BINARY_HANDLER_TYPES.contains(handlerClass)) { // binary
                 if (binaryHandlerPresent) {
                     throwException("Binary MessageHandler already registered.");
                 } else {
                     binaryHandlerPresent = true;
+                    binaryWholeHandlerPresent = true;
                 }
             } else if (PONG_HANDLER_TYPE == handlerClass) { // pong
                 if (pongHandlerPresent) {
@@ -135,6 +141,7 @@ class MessageHandlerManager {
                         throwException("Text MessageHandler already registered.");
                     } else {
                         textHandlerPresent = true;
+                        textWholeHandlerPresent = true;
                         decoderExists = true;
                     }
                 } else if (checkBinaryDecoders(handlerClass)) {//decodable binary
@@ -142,6 +149,7 @@ class MessageHandlerManager {
                         throwException("Text MessageHandler already registered.");
                     } else {
                         binaryHandlerPresent = true;
+                        binaryWholeHandlerPresent = true;
                         decoderExists = true;
                     }
                 }
@@ -209,18 +217,22 @@ class MessageHandlerManager {
         if (handler instanceof MessageHandler.Basic) { //WHOLE MESSAGE HANDLER
             if (WHOLE_TEXT_HANDLER_TYPES.contains(handlerClass)) { // text
                 textHandlerPresent = false;
+                textWholeHandlerPresent = false;
 
             } else if (WHOLE_BINARY_HANDLER_TYPES.contains(handlerClass)) { // binary
                 binaryHandlerPresent = false;
+                binaryWholeHandlerPresent = false;
 
             } else if (PONG_HANDLER_TYPE == handlerClass) { // pong
                 pongHandlerPresent = false;
             } else {
                 if (checkTextDecoders(handlerClass)) {//decodable text
                     textHandlerPresent = false;
+                    textWholeHandlerPresent = false;
 
                 } else if (checkBinaryDecoders(handlerClass)) {//decodable binary
                     binaryHandlerPresent = false;
+                    binaryWholeHandlerPresent = false;
                 }
             }
         } else { // PARTIAL MESSAGE HANDLER
@@ -246,7 +258,7 @@ class MessageHandlerManager {
         return messageHandlerCache;
     }
 
-    private Class<?> getHandlerType(MessageHandler handler) {
+    static Class<?> getHandlerType(MessageHandler handler) {
         Class<?> root;
         if (handler instanceof AsyncMessageHandler) {
             return ((AsyncMessageHandler) handler).getType();
@@ -295,4 +307,19 @@ class MessageHandlerManager {
         return Decoder.Binary.class.isAssignableFrom(decoder.getCoderClass()) || Decoder.BinaryStream.class.isAssignableFrom(decoder.getCoderClass());
     }
 
+    boolean isWholeTextHandlerPresent() {
+        return textWholeHandlerPresent;
+    }
+
+    boolean isWholeBinaryHandlerPresent() {
+        return binaryWholeHandlerPresent;
+    }
+
+    boolean isPartialTextHandlerPresent() {
+        return textHandlerPresent && !textWholeHandlerPresent;
+    }
+
+    boolean isPartialBinaryHandlerPresent() {
+        return binaryHandlerPresent && !binaryWholeHandlerPresent;
+    }
 }

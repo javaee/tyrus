@@ -154,11 +154,6 @@ public class SessionImpl implements Session {
     }
 
     @Override
-    public String toString() {
-        return "Session(" + hashCode() + ", " + this.isOpen() + ")";
-    }
-
-    @Override
     public int getMaxBinaryMessageBufferSize() {
         return maxBinaryMessageBufferSize;
     }
@@ -297,7 +292,7 @@ public class SessionImpl implements Session {
             for (MessageHandler mh : this.getOrderedMessageHandlers()) {
                 Class<?> type;
                 if ((mh instanceof MessageHandler.Basic)
-                        && (type = getHandlerType(mh)).isAssignableFrom(decoder.getType())) {
+                        && (type = MessageHandlerManager.getHandlerType(mh)).isAssignableFrom(decoder.getType())) {
 
                     if (mh instanceof BasicMessageHandler) {
                         checkMessageSize(message, ((BasicMessageHandler) mh).getMaxMessageSize());
@@ -323,7 +318,7 @@ public class SessionImpl implements Session {
 
         for (MessageHandler handler : this.getMessageHandlers()) {
             if ((handler instanceof MessageHandler.Async) &&
-                    getHandlerType(handler).isAssignableFrom(message.getClass())) {
+                    MessageHandlerManager.getHandlerType(handler).isAssignableFrom(message.getClass())) {
 
                 if (handler instanceof AsyncMessageHandler) {
                     checkMessageSize(message, ((AsyncMessageHandler) handler).getMaxMessageSize());
@@ -345,6 +340,22 @@ public class SessionImpl implements Session {
         }
     }
 
+    boolean isWholeTextHandlerPresent() {
+        return handlerManager.isWholeTextHandlerPresent();
+    }
+
+    boolean isWholeBinaryHandlerPresent() {
+        return handlerManager.isWholeBinaryHandlerPresent();
+    }
+
+    boolean isPartialTextHandlerPresent() {
+        return handlerManager.isPartialTextHandlerPresent();
+    }
+
+    boolean isPartialBinaryHandlerPresent() {
+        return handlerManager.isPartialBinaryHandlerPresent();
+    }
+
     private List<MessageHandler> getOrderedMessageHandlers() {
         Set<MessageHandler> handlers = this.getMessageHandlers();
         ArrayList<MessageHandler> result = new ArrayList<MessageHandler>();
@@ -355,31 +366,14 @@ public class SessionImpl implements Session {
         return result;
     }
 
-    private Class<?> getHandlerType(MessageHandler handler) {
-        Class<?> root;
-        if (handler instanceof AsyncMessageHandler) {
-            return ((AsyncMessageHandler) handler).getType();
-        } else if (handler instanceof BasicMessageHandler) {
-            return ((BasicMessageHandler) handler).getType();
-        } else if (handler instanceof MessageHandler.Async) {
-            root = MessageHandler.Async.class;
-        } else if (handler instanceof MessageHandler.Basic) {
-            root = MessageHandler.Basic.class;
-        } else {
-            throw new IllegalArgumentException(handler.getClass().getName()); // should never happen
-        }
-        Class<?> result = ReflectionHelper.getClassType(handler.getClass(), root);
-        return result == null ? Object.class : result;
-    }
-
     private class MessageHandlerComparator implements Comparator<MessageHandler> {
 
         @Override
         public int compare(MessageHandler o1, MessageHandler o2) {
             if (o1 instanceof MessageHandler.Basic) {
                 if (o2 instanceof MessageHandler.Basic) {
-                    Class<?> type1 = getHandlerType(o1);
-                    Class<?> type2 = getHandlerType(o2);
+                    Class<?> type1 = MessageHandlerManager.getHandlerType(o1);
+                    Class<?> type2 = MessageHandlerManager.getHandlerType(o2);
 
                     if (type1.isAssignableFrom(type2)) {
                         return 1;
@@ -396,5 +390,16 @@ public class SessionImpl implements Session {
             }
             return 0;
         }
+    }
+
+    @Override
+    public String toString() {
+        final StringBuffer sb = new StringBuffer();
+        sb.append("SessionImpl");
+        sb.append("{uri=").append(uri);
+        sb.append(", id='").append(id).append('\'');
+        sb.append(", endpoint=").append(endpoint);
+        sb.append('}');
+        return sb.toString();
     }
 }

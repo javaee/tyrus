@@ -39,13 +39,9 @@
  */
 package org.glassfish.tyrus.tests.servlet.autobahn;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
 
 import javax.websocket.OnMessage;
-import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
 /**
@@ -59,65 +55,8 @@ public class EchoServer {
         return text;
     }
 
-    private StringBuilder message = new StringBuilder();
-
-    @OnMessage
-    public void onPartialText(Session session, String text, boolean last) {
-        if(last) {
-            try {
-                session.getBasicRemote().sendText(message.append(text).toString());
-            } catch (IOException e) {
-                //
-            }
-            message = new StringBuilder();
-        } else {
-            message.append(text);
-        }
-    }
-
     @OnMessage
     public ByteBuffer onBinary(ByteBuffer binary) {
         return binary;
-    }
-
-    private List<byte[]> buffer = new ArrayList<byte[]>();
-
-    @OnMessage
-    public void onPartialBinary(Session session, ByteBuffer binary, boolean last) {
-        if(last) {
-            try {
-                ByteBuffer b = null;
-
-                for(byte[] bytes : buffer) {
-                    if(b == null) {
-                        b = ByteBuffer.wrap(bytes);
-                    } else {
-                        b = joinBuffers(b, ByteBuffer.wrap(bytes));
-                    }
-                }
-
-                session.getBasicRemote().sendBinary(b);
-            } catch (IOException e) {
-                //
-            }
-            buffer.clear();
-        } else {
-            buffer.add(binary.array());
-        }
-    }
-
-    private ByteBuffer joinBuffers(ByteBuffer bb1, ByteBuffer bb2) {
-
-        final int remaining1 = bb1.remaining();
-        final int remaining2 = bb2.remaining();
-        byte[] array = new byte[remaining1 + remaining2];
-        bb1.get(array, 0, remaining1);
-        System.arraycopy(bb2.array(), 0, array, remaining1, remaining2);
-
-
-        ByteBuffer buf = ByteBuffer.wrap(array);
-        buf.limit(remaining1 + remaining2);
-
-        return buf;
     }
 }

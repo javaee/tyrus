@@ -58,6 +58,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.websocket.CloseReason;
 import javax.websocket.Decoder;
@@ -86,6 +88,9 @@ import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 public class EndpointWrapper extends SPIEndpoint {
+
+    private final static Logger LOGGER = Logger.getLogger(EndpointWrapper.class.getName());
+
     /**
      * The container for this session.
      */
@@ -223,7 +228,7 @@ public class EndpointWrapper extends SPIEndpoint {
                 serverEndpointConfigurator.matchesURI(getEndpointPath(sec.getPath()), URI.create(uri), templateValues);
     }
 
-    static List<CoderWrapper<Decoder>> getDefaultDecoders(){
+    static List<CoderWrapper<Decoder>> getDefaultDecoders() {
         final List<CoderWrapper<Decoder>> defaultDecoders = new ArrayList<CoderWrapper<Decoder>>();
         defaultDecoders.addAll(PrimitiveDecoders.ALL_WRAPPED);
         defaultDecoders.add(new CoderWrapper<Decoder>(NoOpTextCoder.class, String.class));
@@ -434,7 +439,14 @@ public class EndpointWrapper extends SPIEndpoint {
     public void onMessage(SPIRemoteEndpoint gs, ByteBuffer messageBytes) {
         SessionImpl session = remoteEndpointToSession.get(gs);
         try {
-            session.notifyMessageHandlers(messageBytes, findApplicableDecoders(session, messageBytes, false));
+            state = EndpointState.RUNNING;
+            if (session.isWholeBinaryHandlerPresent()) {
+                session.notifyMessageHandlers(messageBytes, findApplicableDecoders(session, messageBytes, false));
+            } else if (session.isPartialBinaryHandlerPresent()) {
+                session.notifyMessageHandlers(messageBytes, true);
+            } else {
+                throw new IllegalStateException(String.format("Binary messageHandler not found. Session: '%s'.", session));
+            }
         } catch (Throwable t) {
             if (!processThrowable(t, session)) {
                 final Endpoint toCall = endpoint != null ? endpoint :
@@ -448,7 +460,14 @@ public class EndpointWrapper extends SPIEndpoint {
     public void onMessage(SPIRemoteEndpoint gs, String messageString) {
         SessionImpl session = remoteEndpointToSession.get(gs);
         try {
-            session.notifyMessageHandlers(messageString, findApplicableDecoders(session, messageString, true));
+            state = EndpointState.RUNNING;
+            if (session.isWholeTextHandlerPresent()) {
+                session.notifyMessageHandlers(messageString, findApplicableDecoders(session, messageString, true));
+            } else if (session.isPartialTextHandlerPresent()) {
+                session.notifyMessageHandlers(messageString, true);
+            } else {
+                throw new IllegalStateException(String.format("Text messageHandler not found. Session: '%s'.", session));
+            }
         } catch (Throwable t) {
             if (!processThrowable(t, session)) {
                 final Endpoint toCall = endpoint != null ? endpoint :
@@ -458,11 +477,45 @@ public class EndpointWrapper extends SPIEndpoint {
         }
     }
 
+    private enum EndpointState {
+        RUNNING,
+        RECEIVING_TEXT,
+        RECEIVING_BINARY
+    }
+
+    private EndpointState state = EndpointState.RUNNING;
+    private StringBuffer stringBuffer;
+    private List<ByteBuffer> binaryBufferList;
+
     @Override
     public void onPartialMessage(SPIRemoteEndpoint gs, String partialString, boolean last) {
         SessionImpl session = remoteEndpointToSession.get(gs);
         try {
-            session.notifyMessageHandlers(partialString, last);
+            if (session.isPartialTextHandlerPresent()) {
+                session.notifyMessageHandlers(partialString, last);
+                state = EndpointState.RUNNING;
+            } else if (session.isWholeTextHandlerPresent()) {
+                switch (state) {
+                    case RUNNING:
+                        stringBuffer = new StringBuffer();
+                        stringBuffer.append(partialString);
+                        state = EndpointState.RECEIVING_TEXT;
+                        break;
+                    case RECEIVING_TEXT:
+                        stringBuffer.append(partialString);
+                        if (last) {
+                            final String message = stringBuffer.toString();
+                            session.notifyMessageHandlers(message, findApplicableDecoders(session, message, true));
+                            stringBuffer = null;
+                            state = EndpointState.RUNNING;
+                        }
+                        break;
+                    default:
+                        stringBuffer = null;
+                        state = EndpointState.RUNNING;
+                        throw new IllegalStateException(String.format("Text message received out of order. Session: '%s'.", session));
+                }
+            }
         } catch (Throwable t) {
             if (!processThrowable(t, session)) {
                 final Endpoint toCall = endpoint != null ? endpoint :
@@ -476,7 +529,40 @@ public class EndpointWrapper extends SPIEndpoint {
     public void onPartialMessage(SPIRemoteEndpoint gs, ByteBuffer partialBytes, boolean last) {
         SessionImpl session = remoteEndpointToSession.get(gs);
         try {
-            session.notifyMessageHandlers(partialBytes, last);
+            if (session.isPartialBinaryHandlerPresent()) {
+                session.notifyMessageHandlers(partialBytes, last);
+                state = EndpointState.RUNNING;
+            } else if (session.isWholeBinaryHandlerPresent()) {
+                switch (state) {
+                    case RUNNING:
+                        binaryBufferList = new ArrayList<ByteBuffer>();
+                        binaryBufferList.add(partialBytes);
+                        state = EndpointState.RECEIVING_BINARY;
+                        break;
+                    case RECEIVING_BINARY:
+                        binaryBufferList.add(partialBytes);
+                        if (last) {
+                            ByteBuffer b = null;
+
+                            for (ByteBuffer buffered : binaryBufferList) {
+                                if (b == null) {
+                                    b = buffered;
+                                } else {
+                                    b = joinBuffers(b, buffered);
+                                }
+                            }
+
+                            session.notifyMessageHandlers(b, findApplicableDecoders(session, b, false));
+                            binaryBufferList = null;
+                            state = EndpointState.RUNNING;
+                        }
+                        break;
+                    default:
+                        binaryBufferList = null;
+                        state = EndpointState.RUNNING;
+                        throw new IllegalStateException(String.format("Binary message received out of order. Session: '%s'.", session));
+                }
+            }
         } catch (Throwable t) {
             if (!processThrowable(t, session)) {
                 final Endpoint toCall = endpoint != null ? endpoint :
@@ -486,18 +572,37 @@ public class EndpointWrapper extends SPIEndpoint {
         }
     }
 
+    private ByteBuffer joinBuffers(ByteBuffer bb1, ByteBuffer bb2) {
+
+        final int remaining1 = bb1.remaining();
+        final int remaining2 = bb2.remaining();
+        byte[] array = new byte[remaining1 + remaining2];
+        bb1.get(array, 0, remaining1);
+        System.arraycopy(bb2.array(), 0, array, remaining1, remaining2);
+
+
+        ByteBuffer buf = ByteBuffer.wrap(array);
+        buf.limit(remaining1 + remaining2);
+
+        return buf;
+    }
+
     /**
      * Check {@link Throwable} produced during {@link javax.websocket.OnMessage} annotated method call.
      *
-     * @param t thrown {@link Throwable}.
-     * @param s {@link Session} related to {@link Throwable}.
+     * @param throwable thrown {@link Throwable}.
+     * @param session   {@link Session} related to {@link Throwable}.
      * @return {@code true} when exception is handled within this method (framework produced it), {@code false}
      *         otherwise.
      */
-    private boolean processThrowable(Throwable t, Session s) {
-        if (t instanceof MaxMessageSizeException) {
+    private boolean processThrowable(Throwable throwable, Session session) {
+        if (LOGGER.isLoggable(Level.FINE)) {
+            LOGGER.log(Level.FINE, String.format("Exception thrown while processing message. Session: '%session'.", session), throwable);
+        }
+
+        if (throwable instanceof MaxMessageSizeException) {
             try {
-                s.close(new CloseReason(CloseReason.CloseCodes.TOO_BIG, "Message too big."));
+                session.close(new CloseReason(CloseReason.CloseCodes.TOO_BIG, "Message too big."));
                 return true;
             } catch (IOException e) {
                 // we don't care.
@@ -559,7 +664,7 @@ public class EndpointWrapper extends SPIEndpoint {
      *
      * @return {@link List} of registered {@link Decoder}s.
      */
-    public List<Decoder> getDecoders() {
+    List<Decoder> getDecoders() {
         return (List<Decoder>) (List<?>) decoders;
     }
 
@@ -589,5 +694,17 @@ public class EndpointWrapper extends SPIEndpoint {
         } else {
             return null;
         }
+    }
+
+    @Override
+    public String toString() {
+        final StringBuffer sb = new StringBuffer();
+        sb.append("EndpointWrapper");
+        sb.append("{endpointClass=").append(endpointClass);
+        sb.append(", endpoint=").append(endpoint);
+        sb.append(", uri='").append(uri).append('\'');
+        sb.append(", contextPath='").append(contextPath).append('\'');
+        sb.append('}');
+        return sb.toString();
     }
 }
