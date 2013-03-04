@@ -41,6 +41,7 @@ package org.glassfish.tyrus.tests.qa.lifecycle.handlers;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.logging.Level;
@@ -52,7 +53,7 @@ import org.glassfish.tyrus.tests.qa.lifecycle.SessionLifeCycle;
  *
  * @author michal.conos at oracle.com
  */
-public class BufferedReaderSessionImpl extends SessionLifeCycle<Reader> implements SessionConversation {
+public class BufferedReaderSessionImpl extends SessionLifeCycle<Reader, InputStream> implements SessionConversation {
 
     private int messageSize;
     private String messageToSend = "";
@@ -118,12 +119,12 @@ public class BufferedReaderSessionImpl extends SessionLifeCycle<Reader> implemen
     }
 
     @Override
-    public void onServerMessageHandler(Reader message, Session session, boolean last) throws IOException {
+    public void onServerMessageHandler(InputStream message, Session session, boolean last) throws IOException {
         
     }
 
     @Override
-    public void onClientMessageHandler(Reader message, Session session, boolean last) throws IOException {
+    public void onClientMessageHandler(InputStream message, Session session, boolean last) throws IOException {
         
     }
 }

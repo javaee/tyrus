@@ -55,16 +55,16 @@ import org.glassfish.tyrus.tests.qa.tools.SessionController;
 /**
  * @author michal.conos at oracle.com
  */
-abstract public class SessionLifeCycle<T> {
+abstract public class SessionLifeCycle<T,U> {
 
     private SessionController sc;
     protected static final Logger logger = Logger.getLogger(SessionLifeCycle.class.getCanonicalName());
 
     abstract public void onServerMessageHandler(T message, Session session) throws IOException;
-    abstract public void onServerMessageHandler(T message, Session session, boolean last) throws IOException;
+    abstract public void onServerMessageHandler(U message, Session session, boolean last) throws IOException;
 
     abstract public void onClientMessageHandler(T message, Session session) throws IOException;
-    abstract public void onClientMessageHandler(T message, Session session, boolean last) throws IOException;
+    abstract public void onClientMessageHandler(U message, Session session, boolean last) throws IOException;
 
     abstract public void startTalk(Session s) throws IOException;
 
@@ -131,7 +131,7 @@ abstract public class SessionLifeCycle<T> {
         }
     }
     
-    public void onServerMessage(T message, Session session, boolean last) {
+    public void onServerMessage(U message, Session session, boolean last) {
         logger.log(Level.INFO, "server:message={0}", message);
         sc.onMessage();
         try {
@@ -185,7 +185,7 @@ abstract public class SessionLifeCycle<T> {
         }
     }
     
-    public void onClientMessage(T message, Session session, boolean last) {
+    public void onClientMessage(U message, Session session, boolean last) {
         sc.onMessage();
         logger.log(Level.INFO, "client:message={0}", message);
         try {

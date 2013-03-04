@@ -44,6 +44,7 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.io.Reader;
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.logging.Level;
@@ -59,7 +60,7 @@ public class ObjectInputStreamSessionImpl implements SessionConversation {
 
     @Override
     public SessionLifeCycle getSessionConversation() {
-        return new SessionLifeCycle<InputStream>() {
+        return new SessionLifeCycle<InputStream, Reader>() {
             ObjectInputStreamSessionImpl.SendMeSomething original;
 
             @Override
@@ -104,11 +105,11 @@ public class ObjectInputStreamSessionImpl implements SessionConversation {
             }
 
             @Override
-            public void onServerMessageHandler(InputStream message, Session session, boolean last) throws IOException {
+            public void onServerMessageHandler(Reader message, Session session, boolean last) throws IOException {
             }
 
             @Override
-            public void onClientMessageHandler(InputStream message, Session session, boolean last) throws IOException {
+            public void onClientMessageHandler(Reader message, Session session, boolean last) throws IOException {
             }
         };
     }

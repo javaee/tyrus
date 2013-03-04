@@ -55,10 +55,11 @@ import org.glassfish.tyrus.tests.qa.lifecycle.SessionLifeCycle;
  *
  * @author michal.conos at oracle.com
  */
-public class ByteBufferSessionImpl extends SessionLifeCycle<ByteBuffer> implements SessionConversation {
+public class ByteBufferSessionImpl extends SessionLifeCycle<ByteBuffer, String> implements SessionConversation {
 
     int messageSize;
     ByteBuffer messageToSend;
+    String textMessageToSend;
 
     public ByteBufferSessionImpl(int messageSize, boolean directIO) {
         super();
@@ -74,6 +75,7 @@ public class ByteBufferSessionImpl extends SessionLifeCycle<ByteBuffer> implemen
     private void initSendBuffer() {
         for (int idx = 0; idx < messageSize; idx++) {
             messageToSend.put((byte) idx);
+            textMessageToSend+=(char)idx;
         }
     }
     
@@ -115,7 +117,7 @@ public class ByteBufferSessionImpl extends SessionLifeCycle<ByteBuffer> implemen
             @Override
             public void run() {
                 try {
-                    s.getBasicRemote().sendBinary(messageToSend, false);
+                    s.getBasicRemote().sendText(textMessageToSend, false);
                     done.countDown();
                 } catch (IOException ex) {
                     logger.log(Level.SEVERE, null, ex);
@@ -126,7 +128,7 @@ public class ByteBufferSessionImpl extends SessionLifeCycle<ByteBuffer> implemen
             @Override
             public void run() {
                 try {
-                    s.getBasicRemote().sendBinary(messageToSend, false);
+                    s.getBasicRemote().sendText(textMessageToSend, false);
                     done.countDown();
                 } catch (IOException ex) {
                     logger.log(Level.SEVERE, null, ex);
@@ -137,7 +139,7 @@ public class ByteBufferSessionImpl extends SessionLifeCycle<ByteBuffer> implemen
             @Override
             public void run() {
                 try {
-                    s.getBasicRemote().sendBinary(messageToSend, false);
+                    s.getBasicRemote().sendText(textMessageToSend, false);
                     done.countDown();
                 } catch (IOException ex) {
                     logger.log(Level.SEVERE, null, ex);
@@ -164,8 +166,8 @@ public class ByteBufferSessionImpl extends SessionLifeCycle<ByteBuffer> implemen
     }
     
     @Override
-    public void onServerMessageHandler(ByteBuffer message, Session session, boolean last) throws IOException {
-        session.getBasicRemote().sendBinary(message, last);
+    public void onServerMessageHandler(String message, Session session, boolean last) throws IOException {
+        session.getBasicRemote().sendText(message, last);
     }
 
     @Override
@@ -174,7 +176,7 @@ public class ByteBufferSessionImpl extends SessionLifeCycle<ByteBuffer> implemen
     }
 
     @Override
-    public void onClientMessageHandler(ByteBuffer message, Session session, boolean last) throws IOException {
+    public void onClientMessageHandler(String message, Session session, boolean last) throws IOException {
         logger.log(Level.INFO, "message:{0}", message);
         logger.log(Level.INFO, "last:{0}", last);
     }

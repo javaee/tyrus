@@ -50,7 +50,7 @@ import org.glassfish.tyrus.tests.qa.lifecycle.SessionLifeCycle;
  *
  * @author michal.conos at oracle.com
  */
-public class EmptySessionImpl extends SessionLifeCycle<String> implements SessionConversation {
+public class EmptySessionImpl extends SessionLifeCycle<String, byte[]> implements SessionConversation {
 
     @Override
     public void onServerMessageHandler(String message, Session session) throws IOException {
@@ -100,11 +100,11 @@ public class EmptySessionImpl extends SessionLifeCycle<String> implements Sessio
     }
 
     @Override
-    public void onServerMessageHandler(String message, Session session, boolean last) throws IOException {
+    public void onServerMessageHandler(byte[] message, Session session, boolean last) throws IOException {
     }
 
     @Override
-    public void onClientMessageHandler(String message, Session session, boolean last) throws IOException {
+    public void onClientMessageHandler(byte[] message, Session session, boolean last) throws IOException {
     }
     
     

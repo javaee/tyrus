@@ -40,6 +40,7 @@
 package org.glassfish.tyrus.tests.qa.lifecycle.handlers;
 
 import java.io.IOException;
+import java.io.Reader;
 import java.nio.ByteBuffer;
 import java.util.logging.Level;
 import javax.websocket.Session;
@@ -50,7 +51,7 @@ import org.glassfish.tyrus.tests.qa.lifecycle.SessionLifeCycle;
  *
  * @author michal.conos at oracle.com
  */
-public class ByteSessionImpl extends SessionLifeCycle<byte[]> implements SessionConversation {
+public class ByteSessionImpl extends SessionLifeCycle<byte[], Reader> implements SessionConversation {
 
     @Override
     public SessionLifeCycle getSessionConversation() {
@@ -106,10 +107,10 @@ public class ByteSessionImpl extends SessionLifeCycle<byte[]> implements Session
     }
 
     @Override
-    public void onServerMessageHandler(byte[] message, Session session, boolean last) throws IOException {
+    public void onServerMessageHandler(Reader message, Session session, boolean last) throws IOException {
     }
 
     @Override
-    public void onClientMessageHandler(byte[] message, Session session, boolean last) throws IOException {
+    public void onClientMessageHandler(Reader message, Session session, boolean last) throws IOException {
     }
 }

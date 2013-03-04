@@ -54,7 +54,7 @@ public class StringSessionImpl implements SessionConversation {
     
     @Override
     public SessionLifeCycle getSessionConversation() {
-        return new SessionLifeCycle<String>() {
+        return new SessionLifeCycle<String, byte[]>() {
             @Override
             public void onServerMessageHandler(String message, Session session) throws IOException {
                 logger.log(Level.INFO, "StringSessionImpl: onServerMessage: {0}", message);
@@ -76,11 +76,11 @@ public class StringSessionImpl implements SessionConversation {
             }
 
             @Override
-            public void onServerMessageHandler(String message, Session session, boolean last) throws IOException {
+            public void onServerMessageHandler(byte [] message, Session session, boolean last) throws IOException {
             }
 
             @Override
-            public void onClientMessageHandler(String message, Session session, boolean last) throws IOException {
+            public void onClientMessageHandler(byte[] message, Session session, boolean last) throws IOException {
             }
         };
     }
