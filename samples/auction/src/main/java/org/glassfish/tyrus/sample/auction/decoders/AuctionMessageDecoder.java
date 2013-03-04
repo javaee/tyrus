@@ -64,4 +64,3 @@ public class AuctionMessageDecoder implements Decoder.Text<AuctionMessage> {
                 s.startsWith(AuctionMessage.LOGOUT_REQUEST);
     }
 }
-                                                  A
