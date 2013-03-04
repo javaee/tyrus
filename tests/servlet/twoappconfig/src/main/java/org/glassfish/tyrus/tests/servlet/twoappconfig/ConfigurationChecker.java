@@ -51,7 +51,7 @@ public class ConfigurationChecker {
 
     @OnMessage
     public String onMessage(String s) {
-        if(SecondServerApplicationConfiguration.isAnnotatedGetterCalled()){
+        if(SecondServerApplicationConfig.isAnnotatedGetterCalled()){
             return "1";
         }else{
             return "0";

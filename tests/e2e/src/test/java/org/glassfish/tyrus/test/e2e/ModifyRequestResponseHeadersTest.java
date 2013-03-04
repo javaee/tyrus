@@ -47,19 +47,16 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import javax.websocket.ClientEndpointConfiguration;
-import javax.websocket.ClientEndpointConfigurationBuilder;
-import javax.websocket.ClientEndpointConfigurator;
+import javax.websocket.ClientEndpointConfig;
 import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfiguration;
+import javax.websocket.EndpointConfig;
 import javax.websocket.HandshakeResponse;
 import javax.websocket.MessageHandler;
 import javax.websocket.OnMessage;
 import javax.websocket.Session;
 import javax.websocket.server.HandshakeRequest;
 import javax.websocket.server.ServerEndpoint;
-import javax.websocket.server.ServerEndpointConfiguration;
-import javax.websocket.server.ServerEndpointConfigurator;
+import javax.websocket.server.ServerEndpointConfig;
 
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
@@ -87,16 +84,16 @@ public class ModifyRequestResponseHeadersTest {
         }
     }
 
-    public static class MyServerConfigurator extends ServerEndpointConfigurator {
+    public static class MyServerConfigurator extends ServerEndpointConfig.Configurator {
 
         @Override
-        public void modifyHandshake(ServerEndpointConfiguration sec, HandshakeRequest request, HandshakeResponse response) {
+        public void modifyHandshake(ServerEndpointConfig sec, HandshakeRequest request, HandshakeResponse response) {
             final List<String> list = request.getHeaders().get(HEADER_NAME);
             response.getHeaders().put(HEADER_NAME, list);
         }
     }
 
-    public static class MyClientConfigurator extends ClientEndpointConfigurator {
+    public static class MyClientConfigurator extends ClientEndpointConfig.Configurator {
         @Override
         public void beforeRequest(Map<String, List<String>> headers) {
             headers.put(HEADER_NAME, Arrays.asList(HEADER_VALUE));
@@ -120,15 +117,15 @@ public class ModifyRequestResponseHeadersTest {
             server.start();
 
             final MyClientConfigurator clientConfigurator = new MyClientConfigurator();
-            final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().clientHandshakeConfigurator(clientConfigurator).build();
+            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().configurator(clientConfigurator).build();
 
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new Endpoint() {
 
                 @Override
-                public void onOpen(final Session session, EndpointConfiguration endpointConfiguration) {
+                public void onOpen(final Session session, EndpointConfig EndpointConfig) {
                     try {
-                        session.addMessageHandler(new MessageHandler.Basic<String>() {
+                        session.addMessageHandler(new MessageHandler.Whole<String>() {
                             @Override
                             public void onMessage(String message) {
                                 receivedMessage = message;

@@ -39,14 +39,14 @@
  */
 package org.glassfish.tyrus.client;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Set;
 import java.util.logging.Logger;
 
 import javax.websocket.ClientEndpoint;
-import javax.websocket.ClientEndpointConfiguration;
-import javax.websocket.ClientEndpointConfigurationBuilder;
+import javax.websocket.ClientEndpointConfig;
 import javax.websocket.ContainerProvider;
 import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
@@ -109,12 +109,8 @@ public class ClientManager extends ContainerProvider implements WebSocketContain
     }
 
     @Override
-    protected <T> T getContainer(Class<T> tClass) {
-        if(tClass.equals(WebSocketContainer.class)) {
-            return (T) new ClientManager();
-        } else {
-            return null;
-        }
+    protected WebSocketContainer getContainer() {
+        return new ClientManager();
     }
 
     /**
@@ -152,15 +148,20 @@ public class ClientManager extends ContainerProvider implements WebSocketContain
     }
 
     @Override
-    public Session connectToServer(Class<? extends Endpoint> endpointClass, ClientEndpointConfiguration cec, URI path) throws DeploymentException {
+    public Session connectToServer(Class<? extends Endpoint> endpointClass, ClientEndpointConfig cec, URI path) throws DeploymentException {
         return connectToServer(endpointClass, cec, path.toString());
+    }
+
+    @Override
+    public Session connectToServer(Endpoint endpointInstance, ClientEndpointConfig cec, URI path) throws DeploymentException, IOException {
+        return connectToServer(endpointInstance, cec, path.toString());
     }
 
     public Session connectToServer(Object obj, URI path) throws DeploymentException {
         return connectToServer(obj, null, path.toString());
     }
 
-    public Session connectToServer(Object obj, ClientEndpointConfiguration cec, URI path) throws DeploymentException {
+    public Session connectToServer(Object obj, ClientEndpointConfig cec, URI path) throws DeploymentException {
         return connectToServer(obj, cec, path.toString());
     }
 
@@ -173,9 +174,9 @@ public class ClientManager extends ContainerProvider implements WebSocketContain
      * @return {@link Session}.
      * @throws DeploymentException
      */
-    Session connectToServer(Object o, ClientEndpointConfiguration configuration, String url) throws DeploymentException {
+    Session connectToServer(Object o, ClientEndpointConfig configuration, String url) throws DeploymentException {
         // TODO use maxSessionIdleTimeout, maxBinaryMessageBufferSize and maxTextMessageBufferSize
-        ClientEndpointConfiguration config;
+        ClientEndpointConfig config;
         Endpoint endpoint;
         TyrusClientSocket clientSocket = null;
 
@@ -192,15 +193,15 @@ public class ClientManager extends ContainerProvider implements WebSocketContain
         try {
             if (o instanceof Endpoint) {
                 endpoint = (Endpoint) o;
-                config = configuration == null ? ClientEndpointConfigurationBuilder.create().build() : configuration;
+                config = configuration == null ? ClientEndpointConfig.Builder.create().build() : configuration;
             } else if (o instanceof Class) {
                 if (Endpoint.class.isAssignableFrom((Class<?>) o)) {
                     //noinspection unchecked
                     endpoint = ReflectionHelper.getInstance(((Class<Endpoint>) o), collector);
-                    config = configuration == null ? ClientEndpointConfigurationBuilder.create().build() : configuration;
+                    config = configuration == null ? ClientEndpointConfig.Builder.create().build() : configuration;
                 } else if ((((Class<?>) o).getAnnotation(ClientEndpoint.class) != null)) {
                     endpoint = AnnotatedEndpoint.fromClass((Class) o, componentProvider, false, collector);
-                    config = (ClientEndpointConfiguration) ((AnnotatedEndpoint) endpoint).getEndpointConfiguration();
+                    config = (ClientEndpointConfig) ((AnnotatedEndpoint) endpoint).getEndpointConfig();
                 } else {
                     collector.addException(new DeploymentException(String.format("Class %s in not Endpoint descendant and does not have @ClientEndpoint", ((Class<?>) o).getName())));
                     endpoint = null;
@@ -208,7 +209,7 @@ public class ClientManager extends ContainerProvider implements WebSocketContain
                 }
             } else {
                 endpoint = AnnotatedEndpoint.fromInstance(o, componentProvider, false, collector);
-                config = (ClientEndpointConfiguration) ((AnnotatedEndpoint) endpoint).getEndpointConfiguration();
+                config = (ClientEndpointConfig) ((AnnotatedEndpoint) endpoint).getEndpointConfig();
             }
 
             if (endpoint != null) {

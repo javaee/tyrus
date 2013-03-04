@@ -43,17 +43,17 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import javax.websocket.Endpoint;
-import javax.websocket.server.ServerApplicationConfiguration;
-import javax.websocket.server.ServerEndpointConfiguration;
+import javax.websocket.server.ServerApplicationConfig;
+import javax.websocket.server.ServerEndpointConfig;
 import org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary.AnnotatedObjectInputStreamSession;
 
 /**
  *
  * @author michal.conos at oracle.com
  */
-public class AnnotatedObjectInputStreamSessionConfig implements ServerApplicationConfiguration  {
+public class AnnotatedObjectInputStreamSessionConfig implements ServerApplicationConfig  {
      @Override
-    public Set<ServerEndpointConfiguration> getEndpointConfigurations(Set<Class<? extends Endpoint>> set) {
+    public Set<ServerEndpointConfig> getEndpointConfigs(Set<Class<? extends Endpoint>> set) {
         return Collections.EMPTY_SET;
     }
 

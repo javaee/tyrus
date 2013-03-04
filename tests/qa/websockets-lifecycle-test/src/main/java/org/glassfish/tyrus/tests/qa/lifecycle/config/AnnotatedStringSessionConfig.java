@@ -43,10 +43,10 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import javax.websocket.Endpoint;
-import javax.websocket.server.ServerApplicationConfiguration;
+import javax.websocket.server.ServerApplicationConfig;
 import javax.websocket.server.ServerEndpoint;
-import javax.websocket.server.ServerEndpointConfiguration;
-import javax.websocket.server.ServerEndpointConfigurationBuilder;
+import javax.websocket.server.ServerEndpointConfig;
+import javax.websocket.server.ServerEndpointConfig.Builder;
 import org.glassfish.tyrus.tests.qa.lifecycle.AnnotatedEndpoint;
 import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleDeployment;
 import org.glassfish.tyrus.tests.qa.lifecycle.handlers.StringSessionImpl;
@@ -56,9 +56,9 @@ import org.glassfish.tyrus.tests.qa.lifecycle.handlers.text.AnnotatedStringSessi
  *
  * @author michal.conos at oracle.com
  */
-public class AnnotatedStringSessionConfig implements ServerApplicationConfiguration {
+public class AnnotatedStringSessionConfig implements ServerApplicationConfig {
     @Override
-    public Set<ServerEndpointConfiguration> getEndpointConfigurations(Set<Class<? extends Endpoint>> set) {
+    public Set<ServerEndpointConfig> getEndpointConfigs(Set<Class<? extends Endpoint>> set) {
         return Collections.EMPTY_SET;
     }
 

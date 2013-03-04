@@ -48,10 +48,10 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import javax.websocket.ClientEndpointConfigurationBuilder;
+import javax.websocket.ClientEndpointConfig;
 import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfiguration;
+import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
@@ -65,13 +65,13 @@ import org.junit.Test;
 import junit.framework.Assert;
 
 /**
- * Tests correct deployment of one {@link javax.websocket.server.ServerApplicationConfiguration}.
+ * Tests correct deployment of one {@link javax.websocket.server.ServerApplicationConfig}.
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  *
  */
-public class NoServerApplicationConfigurationDeployTest {
+public class NoServerApplicationConfigDeployTest {
 
     private final String CONTEXT_PATH = "/noappconfig-test";
     private final String DEFAULT_HOST = "localhost";
@@ -133,7 +133,7 @@ public class NoServerApplicationConfigurationDeployTest {
     }
 
     @Test
-    public void noServerAppConfigEcho() throws DeploymentException, InterruptedException {
+    public void noServerAppConfigEcho() throws DeploymentException, InterruptedException, IOException {
         final Server server = startServer();
 
         final CountDownLatch messageLatch = new CountDownLatch(1);
@@ -142,9 +142,9 @@ public class NoServerApplicationConfigurationDeployTest {
             final ClientManager client = ClientManager.createClient();
             client.connectToServer(new Endpoint() {
                 @Override
-                public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
+                public void onOpen(Session session, EndpointConfig EndpointConfig) {
                     try {
-                        session.addMessageHandler(new MessageHandler.Basic<String>() {
+                        session.addMessageHandler(new MessageHandler.Whole<String>() {
                             @Override
                             public void onMessage(String message) {
                                 Assert.assertEquals(message, "Do or do not, there is no try.");
@@ -157,7 +157,7 @@ public class NoServerApplicationConfigurationDeployTest {
                         // do nothing
                     }
                 }
-            }, ClientEndpointConfigurationBuilder.create().build(), getURI(PlainEcho.class.getAnnotation(ServerEndpoint.class).value()));
+            }, ClientEndpointConfig.Builder.create().build(), getURI(PlainEcho.class.getAnnotation(ServerEndpoint.class).value()));
 
             messageLatch.await(1, TimeUnit.SECONDS);
             Assert.assertEquals(0, messageLatch.getCount());
@@ -167,7 +167,7 @@ public class NoServerApplicationConfigurationDeployTest {
     }
 
     @Test
-    public void noServerAppConfigOne() throws DeploymentException, InterruptedException {
+    public void noServerAppConfigOne() throws DeploymentException, InterruptedException, IOException {
         final Server server = startServer();
 
         final CountDownLatch messageLatch = new CountDownLatch(1);
@@ -178,9 +178,9 @@ public class NoServerApplicationConfigurationDeployTest {
             final ClientManager client = ClientManager.createClient();
             client.connectToServer(new Endpoint() {
                 @Override
-                public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
+                public void onOpen(Session session, EndpointConfig EndpointConfig) {
                     try {
-                        session.addMessageHandler(new MessageHandler.Basic<String>() {
+                        session.addMessageHandler(new MessageHandler.Whole<String>() {
                             @Override
                             public void onMessage(String message) {
                                 Assert.assertEquals(message, "Do or do not, there is no try.");
@@ -193,7 +193,7 @@ public class NoServerApplicationConfigurationDeployTest {
                         // do nothing
                     }
                 }
-            }, ClientEndpointConfigurationBuilder.create().build(), getURI("/one"));
+            }, ClientEndpointConfig.Builder.create().build(), getURI("/one"));
 
             messageLatch.await(1, TimeUnit.SECONDS);
             Assert.assertEquals(0, messageLatch.getCount());

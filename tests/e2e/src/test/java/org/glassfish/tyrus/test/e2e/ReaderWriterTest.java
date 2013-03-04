@@ -48,16 +48,14 @@ import java.util.HashSet;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import javax.websocket.ClientEndpointConfiguration;
-import javax.websocket.ClientEndpointConfigurationBuilder;
+import javax.websocket.ClientEndpointConfig;
 import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfiguration;
+import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
 import javax.websocket.OnMessage;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
-import javax.websocket.server.ServerEndpointConfiguration;
-import javax.websocket.server.ServerEndpointConfigurationBuilder;
+import javax.websocket.server.ServerEndpointConfig;
 
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
@@ -90,8 +88,8 @@ public class ReaderWriterTest {
     public static class ReaderEndpointApplicationConfiguration extends TyrusServerConfiguration {
 
         public ReaderEndpointApplicationConfiguration() {
-            super(Collections.<Class<?>>emptySet(), new HashSet<ServerEndpointConfiguration>() {{
-                add(ServerEndpointConfigurationBuilder.create(ReaderProgrammaticEndpoint.class, "/reader").build());
+            super(Collections.<Class<?>>emptySet(), new HashSet<ServerEndpointConfig>() {{
+                add(ServerEndpointConfig.Builder.create(ReaderProgrammaticEndpoint.class, "/reader").build());
             }});
         }
     }
@@ -117,7 +115,7 @@ public class ReaderWriterTest {
     }
 
     public void _testReader(Class<?> endpoint) {
-        final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
+        final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
         Server server = new Server(endpoint);
         final CountDownLatch messageLatch;
 
@@ -128,9 +126,9 @@ public class ReaderWriterTest {
             client.connectToServer(new Endpoint() {
 
                 @Override
-                public void onOpen(Session session, EndpointConfiguration configuration) {
+                public void onOpen(Session session, EndpointConfig configuration) {
                     try {
-                        session.addMessageHandler(new MessageHandler.Basic<String>() {
+                        session.addMessageHandler(new MessageHandler.Whole<String>() {
                             @Override
                             public void onMessage(String message) {
                                 if (message.equals("Do or do not, there is no try.")) {
@@ -156,7 +154,7 @@ public class ReaderWriterTest {
     }
 
     public void _testWriter(Class<?> endpoint) {
-        final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
+        final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
         Server server = new Server(endpoint);
         final CountDownLatch messageLatch;
 
@@ -167,9 +165,9 @@ public class ReaderWriterTest {
             client.connectToServer(new Endpoint() {
 
                 @Override
-                public void onOpen(Session session, EndpointConfiguration configuration) {
+                public void onOpen(Session session, EndpointConfig configuration) {
                     try {
-                        session.addMessageHandler(new MessageHandler.Basic<String>() {
+                        session.addMessageHandler(new MessageHandler.Whole<String>() {
                             @Override
                             public void onMessage(String message) {
                                 if (message.equals("Do or do not, there is no try.")) {
@@ -198,8 +196,8 @@ public class ReaderWriterTest {
 
     public static class ReaderProgrammaticEndpoint extends Endpoint {
         @Override
-        public void onOpen(final Session session, EndpointConfiguration config) {
-            session.addMessageHandler(new MessageHandler.Basic<Reader>() {
+        public void onOpen(final Session session, EndpointConfig config) {
+            session.addMessageHandler(new MessageHandler.Whole<Reader>() {
                 @Override
                 public void onMessage(Reader r) {
                     char[] buffer = new char[64];

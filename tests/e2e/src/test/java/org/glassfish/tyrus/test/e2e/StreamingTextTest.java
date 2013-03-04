@@ -44,10 +44,9 @@ import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import javax.websocket.ClientEndpointConfiguration;
-import javax.websocket.ClientEndpointConfigurationBuilder;
+import javax.websocket.ClientEndpointConfig;
 import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfiguration;
+import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
@@ -69,7 +68,7 @@ public class StreamingTextTest {
 
     @Test
     public void testClient() {
-        final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
+        final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
         Server server = new Server(StreamingTextEndpoint.class);
 
         try {
@@ -105,7 +104,7 @@ public class StreamingTextTest {
             System.out.println("STREAMINGSERVER opened !");
             this.session = session;
 
-            session.addMessageHandler(new MessageHandler.Async<String>() {
+            session.addMessageHandler(new MessageHandler.Partial<String>() {
                 StringBuilder sb = new StringBuilder();
 
                 @Override
@@ -159,11 +158,11 @@ public class StreamingTextTest {
         }
 
         //    @Override
-        //    public EndpointConfiguration getEndpointConfiguration() {
+        //    public EndpointConfig getEndpointConfig() {
         //        return null;
         //    }
 
-        public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
+        public void onOpen(Session session, EndpointConfig EndpointConfig) {
             System.out.println("STREAMINGCLIENT opened !");
 
             this.session = session;
@@ -176,7 +175,7 @@ public class StreamingTextTest {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            session.addMessageHandler(new MessageHandler.Async<String>() {
+            session.addMessageHandler(new MessageHandler.Partial<String>() {
                 StringBuilder sb = new StringBuilder();
 
                 public void onMessage(String text, boolean last) {

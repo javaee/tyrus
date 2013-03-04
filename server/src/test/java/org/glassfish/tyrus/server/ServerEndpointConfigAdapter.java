@@ -38,30 +38,54 @@
  * holder.
  */
 
-package org.glassfish.tyrus.tests.servlet.oneappconfig;
+package org.glassfish.tyrus.server;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 
-import javax.websocket.Endpoint;
-import javax.websocket.server.ServerApplicationConfiguration;
-import javax.websocket.server.ServerEndpointConfiguration;
+import javax.websocket.Decoder;
+import javax.websocket.Encoder;
+import javax.websocket.Extension;
+import javax.websocket.server.ServerEndpointConfig;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class TestServerApplicationConfiguration implements ServerApplicationConfiguration {
-
+public abstract class ServerEndpointConfigAdapter implements ServerEndpointConfig {
     @Override
-    public Set<ServerEndpointConfiguration> getEndpointConfigurations(Set<Class<? extends Endpoint>> endpointClasses) {
+    public String getPath() {
         return null;
     }
 
     @Override
-    public Set<Class<?>> getAnnotatedEndpointClasses(Set<Class<?>> scanned) {
-        return new HashSet<Class<?>>() {{
-            add(PlainEcho.class);
-            add(PlainOne.class);
-        }};
+    public List<Class<? extends Encoder>> getEncoders() {
+        return null;
+    }
+
+    @Override
+    public List<Class<? extends Decoder>> getDecoders() {
+        return null;
+    }
+
+    @Override
+    public List<String> getSubprotocols() {
+        return Collections.emptyList();
+
+    }
+
+    @Override
+    public List<Extension> getExtensions() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public Map<String, Object> getUserProperties() {
+        return Collections.emptyMap();
+    }
+
+    @Override
+    public Configurator getConfigurator() {
+        return new ServerEndpointConfig.Configurator() {};
     }
 }

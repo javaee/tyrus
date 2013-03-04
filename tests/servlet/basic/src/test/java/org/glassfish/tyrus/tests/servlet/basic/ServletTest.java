@@ -48,10 +48,10 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import javax.websocket.ClientEndpointConfigurationBuilder;
+import javax.websocket.ClientEndpointConfig;
 import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfiguration;
+import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
@@ -130,7 +130,7 @@ public class ServletTest {
     }
 
     @Test
-    public void testPlainEchoShort() throws DeploymentException, InterruptedException {
+    public void testPlainEchoShort() throws DeploymentException, InterruptedException, IOException {
         final Server server = startServer();
 
         final CountDownLatch messageLatch = new CountDownLatch(1);
@@ -139,9 +139,9 @@ public class ServletTest {
             final ClientManager client = ClientManager.createClient();
             client.connectToServer(new Endpoint() {
                 @Override
-                public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
+                public void onOpen(Session session, EndpointConfig EndpointConfig) {
                     try {
-                        session.addMessageHandler(new MessageHandler.Basic<String>() {
+                        session.addMessageHandler(new MessageHandler.Whole<String>() {
                             @Override
                             public void onMessage(String message) {
                                 assertEquals(message, "Do or do not, there is no try.");
@@ -154,7 +154,7 @@ public class ServletTest {
                         // do nothing
                     }
                 }
-            }, ClientEndpointConfigurationBuilder.create().build(), getURI(PlainEcho.class.getAnnotation(ServerEndpoint.class).value()));
+            }, ClientEndpointConfig.Builder.create().build(), getURI(PlainEcho.class.getAnnotation(ServerEndpoint.class).value()));
 
             messageLatch.await(1, TimeUnit.SECONDS);
             assertEquals(0, messageLatch.getCount());
@@ -165,7 +165,7 @@ public class ServletTest {
 
     @Test
     @Ignore("TODO")
-    public void testPlainEchoShort100() throws DeploymentException, InterruptedException {
+    public void testPlainEchoShort100() throws DeploymentException, InterruptedException, IOException {
         final Server server = startServer();
 
         final CountDownLatch messageLatch = new CountDownLatch(100);
@@ -174,9 +174,9 @@ public class ServletTest {
             final ClientManager client = ClientManager.createClient();
             client.connectToServer(new Endpoint() {
                 @Override
-                public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
+                public void onOpen(Session session, EndpointConfig EndpointConfig) {
                     try {
-                        session.addMessageHandler(new MessageHandler.Basic<String>() {
+                        session.addMessageHandler(new MessageHandler.Whole<String>() {
                             @Override
                             public void onMessage(String message) {
                                 assertEquals(message, "Do or do not, there is no try.");
@@ -191,7 +191,7 @@ public class ServletTest {
                         // do nothing
                     }
                 }
-            }, ClientEndpointConfigurationBuilder.create().build(), getURI(PlainEcho.class.getAnnotation(ServerEndpoint.class).value()));
+            }, ClientEndpointConfig.Builder.create().build(), getURI(PlainEcho.class.getAnnotation(ServerEndpoint.class).value()));
 
 
             messageLatch.await(20, TimeUnit.SECONDS);
@@ -202,7 +202,7 @@ public class ServletTest {
     }
 
     @Test
-    public void testPlainEchoShort10Sequence() throws DeploymentException, InterruptedException {
+    public void testPlainEchoShort10Sequence() throws DeploymentException, InterruptedException, IOException {
         final Server server = startServer();
 
         final CountDownLatch messageLatch = new CountDownLatch(10);
@@ -212,9 +212,9 @@ public class ServletTest {
                 final ClientManager client = ClientManager.createClient();
                 client.connectToServer(new Endpoint() {
                     @Override
-                    public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
+                    public void onOpen(Session session, EndpointConfig EndpointConfig) {
                         try {
-                            session.addMessageHandler(new MessageHandler.Basic<String>() {
+                            session.addMessageHandler(new MessageHandler.Whole<String>() {
                                 @Override
                                 public void onMessage(String message) {
                                     assertEquals(message, "Do or do not, there is no try.");
@@ -227,7 +227,7 @@ public class ServletTest {
                             // do nothing
                         }
                     }
-                }, ClientEndpointConfigurationBuilder.create().build(), getURI(PlainEcho.class.getAnnotation(ServerEndpoint.class).value()));
+                }, ClientEndpointConfig.Builder.create().build(), getURI(PlainEcho.class.getAnnotation(ServerEndpoint.class).value()));
 
                 // TODO - remove when possible.
                 Thread.sleep(100);
@@ -256,7 +256,7 @@ public class ServletTest {
                     "1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890";
 
     @Test
-    public void testPlainEchoLong() throws DeploymentException, InterruptedException {
+    public void testPlainEchoLong() throws DeploymentException, InterruptedException, IOException {
         final Server server = startServer();
 
         final CountDownLatch messageLatch = new CountDownLatch(1);
@@ -265,9 +265,9 @@ public class ServletTest {
             final ClientManager client = ClientManager.createClient();
             client.connectToServer(new Endpoint() {
                 @Override
-                public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
+                public void onOpen(Session session, EndpointConfig EndpointConfig) {
                     try {
-                        session.addMessageHandler(new MessageHandler.Basic<String>() {
+                        session.addMessageHandler(new MessageHandler.Whole<String>() {
                             @Override
                             public void onMessage(String message) {
                                 assertEquals(message, LONG_MESSAGE);
@@ -280,7 +280,7 @@ public class ServletTest {
                         // do nothing
                     }
                 }
-            }, ClientEndpointConfigurationBuilder.create().build(), getURI(PlainEcho.class.getAnnotation(ServerEndpoint.class).value()));
+            }, ClientEndpointConfig.Builder.create().build(), getURI(PlainEcho.class.getAnnotation(ServerEndpoint.class).value()));
 
             messageLatch.await(1, TimeUnit.SECONDS);
             assertEquals(0, messageLatch.getCount());
@@ -290,7 +290,7 @@ public class ServletTest {
     }
 
     @Test
-    public void testPlainEchoLong10() throws DeploymentException, InterruptedException {
+    public void testPlainEchoLong10() throws DeploymentException, InterruptedException, IOException {
         final Server server = startServer();
 
         final CountDownLatch messageLatch = new CountDownLatch(10);
@@ -299,9 +299,9 @@ public class ServletTest {
             final ClientManager client = ClientManager.createClient();
             client.connectToServer(new Endpoint() {
                 @Override
-                public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
+                public void onOpen(Session session, EndpointConfig EndpointConfig) {
                     try {
-                        session.addMessageHandler(new MessageHandler.Basic<String>() {
+                        session.addMessageHandler(new MessageHandler.Whole<String>() {
                             @Override
                             public void onMessage(String message) {
                                 assertEquals(message, LONG_MESSAGE);
@@ -316,7 +316,7 @@ public class ServletTest {
                         // do nothing
                     }
                 }
-            }, ClientEndpointConfigurationBuilder.create().build(), getURI(PlainEcho.class.getAnnotation(ServerEndpoint.class).value()));
+            }, ClientEndpointConfig.Builder.create().build(), getURI(PlainEcho.class.getAnnotation(ServerEndpoint.class).value()));
 
             messageLatch.await(10, TimeUnit.SECONDS);
             assertEquals(0, messageLatch.getCount());
@@ -326,7 +326,7 @@ public class ServletTest {
     }
 
     @Test
-    public void testPlainEchoLong10Sequence() throws DeploymentException, InterruptedException {
+    public void testPlainEchoLong10Sequence() throws DeploymentException, InterruptedException, IOException {
         final Server server = startServer();
 
         final CountDownLatch messageLatch = new CountDownLatch(10);
@@ -336,9 +336,9 @@ public class ServletTest {
                 final ClientManager client = ClientManager.createClient();
                 client.connectToServer(new Endpoint() {
                     @Override
-                    public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
+                    public void onOpen(Session session, EndpointConfig EndpointConfig) {
                         try {
-                            session.addMessageHandler(new MessageHandler.Basic<String>() {
+                            session.addMessageHandler(new MessageHandler.Whole<String>() {
                                 @Override
                                 public void onMessage(String message) {
                                     assertEquals(message, LONG_MESSAGE);
@@ -351,7 +351,7 @@ public class ServletTest {
                             // do nothing
                         }
                     }
-                }, ClientEndpointConfigurationBuilder.create().build(), getURI(PlainEcho.class.getAnnotation(ServerEndpoint.class).value()));
+                }, ClientEndpointConfig.Builder.create().build(), getURI(PlainEcho.class.getAnnotation(ServerEndpoint.class).value()));
 
                 // TODO - remove when possible.
                 Thread.sleep(300);

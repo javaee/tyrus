@@ -46,10 +46,10 @@ import java.net.URISyntaxException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import javax.websocket.ClientEndpointConfigurationBuilder;
+import javax.websocket.ClientEndpointConfig;
 import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfiguration;
+import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 
@@ -89,7 +89,7 @@ public class CdiTest {
 
 
     @Test
-    public void testEcho() throws DeploymentException, InterruptedException {
+    public void testEcho() throws DeploymentException, InterruptedException, IOException {
         final String host = System.getProperty("tyrus.test.host");
         if (host == null) {
             return;
@@ -100,9 +100,9 @@ public class CdiTest {
         final ClientManager client = ClientManager.createClient();
         client.connectToServer(new Endpoint() {
             @Override
-            public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
+            public void onOpen(Session session, EndpointConfig EndpointConfig) {
                 try {
-                    session.addMessageHandler(new MessageHandler.Basic<String>() {
+                    session.addMessageHandler(new MessageHandler.Whole<String>() {
                         @Override
                         public void onMessage(String message) {
                             assertEquals(message, String.format("%s (from your server)", SENT_MESSAGE));
@@ -115,7 +115,7 @@ public class CdiTest {
                     //do nothing
                 }
             }
-        }, ClientEndpointConfigurationBuilder.create().build(), getURI("/simple"));
+        }, ClientEndpointConfig.Builder.create().build(), getURI("/simple"));
 
         messageLatch.await(1, TimeUnit.SECONDS);
         if (messageLatch.getCount() != 0) {
@@ -125,7 +125,7 @@ public class CdiTest {
 
 
     @Test
-    public void testStatefulOneClientTwoMessages() throws DeploymentException, InterruptedException {
+    public void testStatefulOneClientTwoMessages() throws DeploymentException, InterruptedException, IOException {
         final String host = System.getProperty("tyrus.test.host");
         if (host == null) {
             return;
@@ -138,9 +138,9 @@ public class CdiTest {
             boolean first = true;
 
             @Override
-            public void onOpen(final Session session, EndpointConfiguration endpointConfiguration) {
+            public void onOpen(final Session session, EndpointConfig EndpointConfig) {
                 try {
-                    session.addMessageHandler(new MessageHandler.Basic<String>() {
+                    session.addMessageHandler(new MessageHandler.Whole<String>() {
                         @Override
                         public void onMessage(String message) {
                             if (first) {
@@ -164,7 +164,7 @@ public class CdiTest {
                     //do nothing
                 }
             }
-        }, ClientEndpointConfigurationBuilder.create().build(), getURI("/stateful"));
+        }, ClientEndpointConfig.Builder.create().build(), getURI("/stateful"));
 
         messageLatch.await(1, TimeUnit.SECONDS);
         if (messageLatch.getCount() != 0) {
@@ -173,23 +173,23 @@ public class CdiTest {
     }
 
     @Test
-    public void testStatefulTwoMessagesFromTwoClients() throws InterruptedException, DeploymentException {
+    public void testStatefulTwoMessagesFromTwoClients() throws InterruptedException, DeploymentException, IOException {
         testFromTwoClients("/stateful", String.format("%s%s1", SENT_MESSAGE, InjectToBeanStateful.TEXT), String.format("%s%s1", SENT_MESSAGE, InjectToBeanStateful.TEXT));
     }
 
     @Test
-    public void testSingletonTwoMessagesFromTwoClients() throws InterruptedException, DeploymentException {
+    public void testSingletonTwoMessagesFromTwoClients() throws InterruptedException, DeploymentException, IOException {
         testFromTwoClients("/singleton", String.format("%s%s1", SENT_MESSAGE, InjectToBeanStateful.TEXT), String.format("%s%s2", SENT_MESSAGE, InjectToBeanStateful.TEXT));
     }
 
-    public void testFromTwoClients(String path, final String expected1, final String expected2) throws DeploymentException, InterruptedException {
+    public void testFromTwoClients(String path, final String expected1, final String expected2) throws DeploymentException, InterruptedException, IOException {
         ClientManager client = ClientManager.createClient();
 
         testOneClient(client, path, expected1);
         testOneClient(client, path, expected2);
     }
 
-    public void testOneClient(ClientManager client, String path, final String expected) throws InterruptedException, DeploymentException {
+    public void testOneClient(ClientManager client, String path, final String expected) throws InterruptedException, DeploymentException, IOException {
         final String host = System.getProperty("tyrus.test.host");
         if (host == null) {
             return;
@@ -199,9 +199,9 @@ public class CdiTest {
         client.connectToServer(new Endpoint() {
 
             @Override
-            public void onOpen(final Session session, EndpointConfiguration endpointConfiguration) {
+            public void onOpen(final Session session, EndpointConfig EndpointConfig) {
                 try {
-                    session.addMessageHandler(new MessageHandler.Basic<String>() {
+                    session.addMessageHandler(new MessageHandler.Whole<String>() {
                         @Override
                         public void onMessage(String message) {
                             assertEquals("Unexpected message.", message, expected);
@@ -214,7 +214,7 @@ public class CdiTest {
                     //do nothing
                 }
             }
-        }, ClientEndpointConfigurationBuilder.create().build(), getURI(path));
+        }, ClientEndpointConfig.Builder.create().build(), getURI(path));
 
         messageLatch.await(2, TimeUnit.SECONDS);
         if (messageLatch.getCount() != 0) {

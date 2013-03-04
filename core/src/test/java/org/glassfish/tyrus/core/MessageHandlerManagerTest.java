@@ -47,6 +47,7 @@ import java.util.Arrays;
 
 import javax.websocket.DecodeException;
 import javax.websocket.Decoder;
+import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
 import javax.websocket.PongMessage;
 
@@ -63,19 +64,19 @@ public class MessageHandlerManagerTest {
     public void simpleTest() {
         MessageHandlerManager messageHandlerManager = new MessageHandlerManager();
 
-        messageHandlerManager.addMessageHandler(new MessageHandler.Basic<String>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Whole<String>() {
             @Override
             public void onMessage(String message) {
             }
         });
 
-        messageHandlerManager.addMessageHandler(new MessageHandler.Basic<ByteBuffer>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Whole<ByteBuffer>() {
             @Override
             public void onMessage(ByteBuffer message) {
             }
         });
 
-        messageHandlerManager.addMessageHandler(new MessageHandler.Basic<PongMessage>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Whole<PongMessage>() {
             @Override
             public void onMessage(PongMessage message) {
             }
@@ -86,13 +87,13 @@ public class MessageHandlerManagerTest {
     public void multipleTextHandlers() {
         MessageHandlerManager messageHandlerManager = new MessageHandlerManager();
 
-        messageHandlerManager.addMessageHandler(new MessageHandler.Basic<String>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Whole<String>() {
             @Override
             public void onMessage(String message) {
             }
         });
 
-        messageHandlerManager.addMessageHandler(new MessageHandler.Basic<Reader>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Whole<Reader>() {
             @Override
             public void onMessage(Reader message) {
             }
@@ -103,13 +104,13 @@ public class MessageHandlerManagerTest {
     public void multipleTextHandlersCombined() {
         MessageHandlerManager messageHandlerManager = new MessageHandlerManager();
 
-        messageHandlerManager.addMessageHandler(new MessageHandler.Basic<String>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Whole<String>() {
             @Override
             public void onMessage(String message) {
             }
         });
 
-        messageHandlerManager.addMessageHandler(new MessageHandler.Async<Reader>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Partial<Reader>() {
 
             @Override
             public void onMessage(Reader reader, boolean b) {
@@ -120,15 +121,15 @@ public class MessageHandlerManagerTest {
 
     @Test(expected = IllegalStateException.class)
     public void multipleTextHandlersWithDecoder() {
-        MessageHandlerManager messageHandlerManager = new MessageHandlerManager(Arrays.<Decoder>asList(new CoderWrapper<Decoder>(new TestTextDecoder(),MessageHandlerManagerTest.class)));
+        MessageHandlerManager messageHandlerManager = MessageHandlerManager.fromDecoderInstances(Arrays.<Decoder>asList(new CoderWrapper<Decoder>(new TestTextDecoder(), MessageHandlerManagerTest.class)));
 
-        messageHandlerManager.addMessageHandler(new MessageHandler.Basic<MessageHandlerManagerTest>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Whole<MessageHandlerManagerTest>() {
             @Override
             public void onMessage(MessageHandlerManagerTest message) {
             }
         });
 
-        messageHandlerManager.addMessageHandler(new MessageHandler.Async<Reader>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Partial<Reader>() {
 
             @Override
             public void onMessage(Reader reader, boolean b) {
@@ -141,7 +142,7 @@ public class MessageHandlerManagerTest {
     public void noDecoderTest() {
         MessageHandlerManager messageHandlerManager = new MessageHandlerManager();
 
-        messageHandlerManager.addMessageHandler(new MessageHandler.Basic<MessageHandlerManagerTest>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Whole<MessageHandlerManagerTest>() {
             @Override
             public void onMessage(MessageHandlerManagerTest message) {
             }
@@ -159,19 +160,24 @@ public class MessageHandlerManagerTest {
         public boolean willDecode(String s) {
             return false;
         }
+
+        @Override
+        public void setEndpointConfig(EndpointConfig config) {
+            // do nothing.
+        }
     }
 
     @Test(expected = IllegalStateException.class)
     public void multipleStringHandlers() {
         MessageHandlerManager messageHandlerManager = new MessageHandlerManager();
 
-        messageHandlerManager.addMessageHandler(new MessageHandler.Basic<String>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Whole<String>() {
             @Override
             public void onMessage(String message) {
             }
         });
 
-        messageHandlerManager.addMessageHandler(new MessageHandler.Basic<String>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Whole<String>() {
             @Override
             public void onMessage(String message) {
             }
@@ -182,13 +188,13 @@ public class MessageHandlerManagerTest {
     public void multipleBinaryHandlers() {
         MessageHandlerManager messageHandlerManager = new MessageHandlerManager();
 
-        messageHandlerManager.addMessageHandler(new MessageHandler.Basic<InputStream>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Whole<InputStream>() {
             @Override
             public void onMessage(InputStream message) {
             }
         });
 
-        messageHandlerManager.addMessageHandler(new MessageHandler.Basic<ByteBuffer>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Whole<ByteBuffer>() {
             @Override
             public void onMessage(ByteBuffer message) {
             }
@@ -199,13 +205,13 @@ public class MessageHandlerManagerTest {
     public void multipleBinaryHandlersCombined() {
         MessageHandlerManager messageHandlerManager = new MessageHandlerManager();
 
-        messageHandlerManager.addMessageHandler(new MessageHandler.Basic<InputStream>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Whole<InputStream>() {
             @Override
             public void onMessage(InputStream message) {
             }
         });
 
-        messageHandlerManager.addMessageHandler(new MessageHandler.Async<ByteBuffer>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Partial<ByteBuffer>() {
             @Override
             public void onMessage(ByteBuffer message, boolean last) {
             }
@@ -216,13 +222,13 @@ public class MessageHandlerManagerTest {
     public void multipleBinaryHandlersWithByteArray() {
         MessageHandlerManager messageHandlerManager = new MessageHandlerManager();
 
-        messageHandlerManager.addMessageHandler(new MessageHandler.Basic<byte[]>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Whole<byte[]>() {
             @Override
             public void onMessage(byte[] message) {
             }
         });
 
-        messageHandlerManager.addMessageHandler(new MessageHandler.Basic<ByteBuffer>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Whole<ByteBuffer>() {
             @Override
             public void onMessage(ByteBuffer message) {
             }
@@ -233,32 +239,30 @@ public class MessageHandlerManagerTest {
     public void multipleInputStreamHandlers() {
         MessageHandlerManager messageHandlerManager = new MessageHandlerManager();
 
-        messageHandlerManager.addMessageHandler(new MessageHandler.Basic<InputStream>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Whole<InputStream>() {
             @Override
             public void onMessage(InputStream message) {
             }
         });
 
-        messageHandlerManager.addMessageHandler(new MessageHandler.Basic<InputStream>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Whole<InputStream>() {
             @Override
             public void onMessage(InputStream message) {
             }
         });
     }
 
-
-
     @Test(expected = IllegalStateException.class)
     public void multiplePongHandlers() {
         MessageHandlerManager messageHandlerManager = new MessageHandlerManager();
 
-        messageHandlerManager.addMessageHandler(new MessageHandler.Basic<PongMessage>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Whole<PongMessage>() {
             @Override
             public void onMessage(PongMessage message) {
             }
         });
 
-        messageHandlerManager.addMessageHandler(new MessageHandler.Basic<PongMessage>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Whole<PongMessage>() {
             @Override
             public void onMessage(PongMessage message) {
             }
@@ -267,15 +271,15 @@ public class MessageHandlerManagerTest {
 
     @Test(expected = IllegalStateException.class)
     public void multipleBasicDecodable() {
-        MessageHandlerManager messageHandlerManager = new MessageHandlerManager(Arrays.<Decoder>asList(new CoderWrapper<Decoder>(new TestTextDecoder(),MessageHandlerManagerTest.class)));
+        MessageHandlerManager messageHandlerManager = new MessageHandlerManager(Arrays.<Class<? extends Decoder>>asList(TestTextDecoder.class));
 
-        messageHandlerManager.addMessageHandler(new MessageHandler.Basic<MessageHandlerManagerTest>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Whole<MessageHandlerManagerTest>() {
             @Override
             public void onMessage(MessageHandlerManagerTest message) {
             }
         });
 
-        messageHandlerManager.addMessageHandler(new MessageHandler.Basic<MessageHandlerManagerTest>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Whole<MessageHandlerManagerTest>() {
             @Override
             public void onMessage(MessageHandlerManagerTest message) {
             }
@@ -286,13 +290,13 @@ public class MessageHandlerManagerTest {
     public void multipleTextHandlersPartial() {
         MessageHandlerManager messageHandlerManager = new MessageHandlerManager();
 
-        messageHandlerManager.addMessageHandler(new MessageHandler.Async<String>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Partial<String>() {
             @Override
             public void onMessage(String message, boolean last) {
             }
         });
 
-        messageHandlerManager.addMessageHandler(new MessageHandler.Async<String>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Partial<String>() {
             @Override
             public void onMessage(String message, boolean last) {
             }
@@ -303,7 +307,7 @@ public class MessageHandlerManagerTest {
     public void wrongPartialHandlerType() {
         MessageHandlerManager messageHandlerManager = new MessageHandlerManager();
 
-        messageHandlerManager.addMessageHandler(new MessageHandler.Async<MessageHandlerManagerTest>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Partial<MessageHandlerManagerTest>() {
             @Override
             public void onMessage(MessageHandlerManagerTest message, boolean last) {
             }
@@ -314,13 +318,13 @@ public class MessageHandlerManagerTest {
     public void multipleBinaryHandlersWithByteArrayPartial() {
         MessageHandlerManager messageHandlerManager = new MessageHandlerManager();
 
-        messageHandlerManager.addMessageHandler(new MessageHandler.Async<byte[]>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Partial<byte[]>() {
             @Override
             public void onMessage(byte[] message, boolean last) {
             }
         });
 
-        messageHandlerManager.addMessageHandler(new MessageHandler.Async<ByteBuffer>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Partial<ByteBuffer>() {
             @Override
             public void onMessage(ByteBuffer message, boolean last) {
             }
@@ -332,13 +336,13 @@ public class MessageHandlerManagerTest {
         MessageHandlerManager messageHandlerManager = new MessageHandlerManager();
 
 
-        messageHandlerManager.addMessageHandler(new MessageHandler.Async<ByteBuffer>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Partial<ByteBuffer>() {
             @Override
             public void onMessage(ByteBuffer message, boolean last) {
             }
         });
 
-        messageHandlerManager.addMessageHandler(new MessageHandler.Async<ByteBuffer>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Partial<ByteBuffer>() {
             @Override
             public void onMessage(ByteBuffer message, boolean last) {
             }
@@ -351,13 +355,13 @@ public class MessageHandlerManagerTest {
         MessageHandlerManager messageHandlerManager = new MessageHandlerManager();
 
 
-        messageHandlerManager.addMessageHandler(new MessageHandler.Async<MessageHandlerManagerTest>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Partial<MessageHandlerManagerTest>() {
             @Override
             public void onMessage(MessageHandlerManagerTest message, boolean last) {
             }
         });
 
-        messageHandlerManager.addMessageHandler(new MessageHandler.Async<MessageHandlerManagerTest>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Partial<MessageHandlerManagerTest>() {
             @Override
             public void onMessage(MessageHandlerManagerTest message, boolean last) {
             }
@@ -369,17 +373,17 @@ public class MessageHandlerManagerTest {
         MessageHandlerManager messageHandlerManager = new MessageHandlerManager();
 
 
-        final MessageHandler.Basic<String> handler1 = new MessageHandler.Basic<String>() {
+        final MessageHandler.Whole<String> handler1 = new MessageHandler.Whole<String>() {
             @Override
             public void onMessage(String message) {
             }
         };
-        final MessageHandler.Basic<ByteBuffer> handler2 = new MessageHandler.Basic<ByteBuffer>() {
+        final MessageHandler.Whole<ByteBuffer> handler2 = new MessageHandler.Whole<ByteBuffer>() {
             @Override
             public void onMessage(ByteBuffer message) {
             }
         };
-        final MessageHandler.Basic<PongMessage> handler3 = new MessageHandler.Basic<PongMessage>() {
+        final MessageHandler.Whole<PongMessage> handler3 = new MessageHandler.Whole<PongMessage>() {
             @Override
             public void onMessage(PongMessage message) {
             }
@@ -396,33 +400,32 @@ public class MessageHandlerManagerTest {
 
     @Test
     public void addRemoveAddHandlers() {
-        MessageHandlerManager messageHandlerManager = new MessageHandlerManager(Arrays.<Decoder>asList(new CoderWrapper<Decoder>(new TestTextDecoder(),MessageHandlerManagerTest.class)));
+        MessageHandlerManager messageHandlerManager = new MessageHandlerManager(Arrays.<Class<? extends Decoder>>asList(TestTextDecoder.class));
 
 
-        final MessageHandler.Basic<String> handler1 = new MessageHandler.Basic<String>() {
+        final MessageHandler.Whole<String> handler1 = new MessageHandler.Whole<String>() {
             @Override
             public void onMessage(String message) {
             }
         };
 
-        final MessageHandler.Async<ByteBuffer> handler2 = new MessageHandler.Async<ByteBuffer>() {
+        final MessageHandler.Partial<ByteBuffer> handler2 = new MessageHandler.Partial<ByteBuffer>() {
             @Override
             public void onMessage(ByteBuffer message, boolean last) {
             }
         };
 
-        final MessageHandler.Basic<PongMessage> handler3 = new MessageHandler.Basic<PongMessage>() {
+        final MessageHandler.Whole<PongMessage> handler3 = new MessageHandler.Whole<PongMessage>() {
             @Override
             public void onMessage(PongMessage message) {
             }
         };
 
-        final MessageHandler.Basic<MessageHandlerManagerTest> handler4 = new MessageHandler.Basic<MessageHandlerManagerTest>() {
+        final MessageHandler.Whole<MessageHandlerManagerTest> handler4 = new MessageHandler.Whole<MessageHandlerManagerTest>() {
             @Override
             public void onMessage(MessageHandlerManagerTest message) {
             }
         };
-
 
         messageHandlerManager.addMessageHandler(handler1);
         messageHandlerManager.addMessageHandler(handler2);
@@ -476,17 +479,17 @@ public class MessageHandlerManagerTest {
         MessageHandlerManager messageHandlerManager = new MessageHandlerManager();
 
 
-        final MessageHandler.Basic<String> handler1 = new MessageHandler.Basic<String>() {
+        final MessageHandler.Whole<String> handler1 = new MessageHandler.Whole<String>() {
             @Override
             public void onMessage(String message) {
             }
         };
-        final MessageHandler.Async<ByteBuffer> handler2 = new MessageHandler.Async<ByteBuffer>() {
+        final MessageHandler.Partial<ByteBuffer> handler2 = new MessageHandler.Partial<ByteBuffer>() {
             @Override
             public void onMessage(ByteBuffer message, boolean last) {
             }
         };
-        final MessageHandler.Basic<PongMessage> handler3 = new MessageHandler.Basic<PongMessage>() {
+        final MessageHandler.Whole<PongMessage> handler3 = new MessageHandler.Whole<PongMessage>() {
             @Override
             public void onMessage(PongMessage message) {
             }

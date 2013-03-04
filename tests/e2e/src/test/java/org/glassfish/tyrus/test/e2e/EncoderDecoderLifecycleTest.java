@@ -47,23 +47,22 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import javax.websocket.ClientEndpointConfigurationBuilder;
+import javax.websocket.ClientEndpointConfig;
 import javax.websocket.ContainerProvider;
 import javax.websocket.DecodeException;
 import javax.websocket.Decoder;
 import javax.websocket.EncodeException;
 import javax.websocket.Encoder;
 import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfiguration;
+import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
 import javax.websocket.OnError;
 import javax.websocket.OnMessage;
 import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
-import javax.websocket.server.ServerApplicationConfiguration;
+import javax.websocket.server.ServerApplicationConfig;
 import javax.websocket.server.ServerEndpoint;
-import javax.websocket.server.ServerEndpointConfiguration;
-import javax.websocket.server.ServerEndpointConfigurationBuilder;
+import javax.websocket.server.ServerEndpointConfig;
 
 import org.glassfish.tyrus.server.Server;
 
@@ -88,9 +87,11 @@ public class EncoderDecoderLifecycleTest {
 
         @Override
         public String toString() {
-            return "MyType{" +
-                    "s='" + s + '\'' +
-                    '}';
+            final StringBuffer sb = new StringBuffer();
+            sb.append("MyType");
+            sb.append("{s='").append(s).append('\'');
+            sb.append('}');
+            return sb.toString();
         }
     }
 
@@ -103,6 +104,11 @@ public class EncoderDecoderLifecycleTest {
 
             System.out.println("### MyEncoder encode(" + object + ")");
             return object.s;
+        }
+
+        @Override
+        public void setEndpointConfig(EndpointConfig config) {
+            // do nothing.
         }
     }
 
@@ -120,6 +126,11 @@ public class EncoderDecoderLifecycleTest {
 
             System.out.println("### MyDecoder decode(" + s + ")");
             return new MyType(s);
+        }
+
+        @Override
+        public void setEndpointConfig(EndpointConfig config) {
+            // do nothing.
         }
     }
 
@@ -141,9 +152,9 @@ public class EncoderDecoderLifecycleTest {
         }
     }
 
-    public static class ClientEndpoint extends Endpoint implements MessageHandler.Basic<String> {
+    public static class ClientEndpoint extends Endpoint implements MessageHandler.Whole<String> {
         @Override
-        public void onOpen(Session session, EndpointConfiguration config) {
+        public void onOpen(Session session, EndpointConfig config) {
             session.addMessageHandler(this);
 
             try {
@@ -181,7 +192,7 @@ public class EncoderDecoderLifecycleTest {
             messageLatch = new CountDownLatch(1);
 
             WebSocketContainer client = ContainerProvider.getWebSocketContainer();
-            Session session = client.connectToServer(ClientEndpoint.class, ClientEndpointConfigurationBuilder.create().build(),
+            Session session = client.connectToServer(ClientEndpoint.class, ClientEndpointConfig.Builder.create().build(),
                     new URI("ws://localhost:8025/websockets/tests/myEndpoint"));
 
             messageLatch.await(5, TimeUnit.SECONDS);
@@ -198,7 +209,7 @@ public class EncoderDecoderLifecycleTest {
             assertEquals(1, MyEncoder.instances.size());
 
             messageLatch = new CountDownLatch(1);
-            client.connectToServer(ClientEndpoint.class, ClientEndpointConfigurationBuilder.create().build(),
+            client.connectToServer(ClientEndpoint.class, ClientEndpointConfig.Builder.create().build(),
                     new URI("ws://localhost:8025/websockets/tests/myEndpoint"));
             messageLatch.await(5, TimeUnit.SECONDS);
 
@@ -213,12 +224,12 @@ public class EncoderDecoderLifecycleTest {
         }
     }
 
-    public static class MyEndpointProgrammatic extends Endpoint implements MessageHandler.Basic<MyType> {
+    public static class MyEndpointProgrammatic extends Endpoint implements MessageHandler.Whole<MyType> {
 
         private Session session;
 
         @Override
-        public void onOpen(Session session, EndpointConfiguration config) {
+        public void onOpen(Session session, EndpointConfig config) {
             System.out.println("### MyEndpointProgrammatic onOpen()");
 
             this.session = session;
@@ -243,13 +254,13 @@ public class EncoderDecoderLifecycleTest {
         }
     }
 
-    public static class MyApplicationConfiguration implements ServerApplicationConfiguration {
+    public static class MyApplicationConfiguration implements ServerApplicationConfig {
         @Override
-        public Set<ServerEndpointConfiguration> getEndpointConfigurations(Set<Class<? extends Endpoint>> scanned) {
-            return new HashSet<ServerEndpointConfiguration>() {{
-                add(ServerEndpointConfigurationBuilder.create(MyEndpointProgrammatic.class, "/myEndpoint").
-                        decoders(Arrays.<Decoder>asList(new MyDecoder())).
-                        encoders(Arrays.<Encoder>asList(new MyEncoder())).build());
+        public Set<ServerEndpointConfig> getEndpointConfigs(Set<Class<? extends Endpoint>> scanned) {
+            return new HashSet<ServerEndpointConfig>() {{
+                add(ServerEndpointConfig.Builder.create(MyEndpointProgrammatic.class, "/myEndpoint").
+                        decoders(Arrays.<Class<? extends Decoder>>asList(MyDecoder.class)).
+                        encoders(Arrays.<Class<? extends Encoder>>asList(MyEncoder.class)).build());
             }};
         }
 
@@ -259,7 +270,7 @@ public class EncoderDecoderLifecycleTest {
         }
     }
 
-    // encoders/decoders singletons
+    // encoders/decoders per session
     @Test
     public void testProgrammatic() {
         cleanup();
@@ -271,7 +282,7 @@ public class EncoderDecoderLifecycleTest {
             messageLatch = new CountDownLatch(1);
 
             WebSocketContainer client = ContainerProvider.getWebSocketContainer();
-            Session session = client.connectToServer(ClientEndpoint.class, ClientEndpointConfigurationBuilder.create().build(), new URI("ws://localhost:8025/websockets/tests/myEndpoint"));
+            Session session = client.connectToServer(ClientEndpoint.class, ClientEndpointConfig.Builder.create().build(), new URI("ws://localhost:8025/websockets/tests/myEndpoint"));
 
             messageLatch.await(1, TimeUnit.SECONDS);
 
@@ -287,12 +298,12 @@ public class EncoderDecoderLifecycleTest {
             assertEquals(1, MyEncoder.instances.size());
 
             messageLatch = new CountDownLatch(1);
-            client.connectToServer(ClientEndpoint.class, ClientEndpointConfigurationBuilder.create().build(), new URI("ws://localhost:8025/websockets/tests/myEndpoint"));
+            client.connectToServer(ClientEndpoint.class, ClientEndpointConfig.Builder.create().build(), new URI("ws://localhost:8025/websockets/tests/myEndpoint"));
             messageLatch.await(5, TimeUnit.SECONDS);
 
             assertEquals(0, messageLatch.getCount());
-            assertEquals(1, MyDecoder.instances.size());
-            assertEquals(1, MyEncoder.instances.size());
+            assertEquals(2, MyDecoder.instances.size());
+            assertEquals(2, MyEncoder.instances.size());
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e);

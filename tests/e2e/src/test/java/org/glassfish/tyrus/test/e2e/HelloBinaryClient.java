@@ -43,7 +43,7 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.CountDownLatch;
 
 import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfiguration;
+import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 
@@ -60,14 +60,14 @@ public class HelloBinaryClient extends Endpoint {
     }
 
 //    @Override
-//    public EndpointConfiguration getEndpointConfiguration() {
+//    public EndpointConfig getEndpointConfig() {
 //        return null;
 //    }
 
-    public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
+    public void onOpen(Session session, EndpointConfig EndpointConfig) {
         System.out.println("HELLOBCLIENT opened !!");
         try {
-            session.addMessageHandler(new MessageHandler.Basic<ByteBuffer>() {
+            session.addMessageHandler(new MessageHandler.Whole<ByteBuffer>() {
                 public void onMessage(ByteBuffer bb) {
                     System.out.println("HELLOBCLIENT received: " + new String(bb.array()));
                     echoWorked = (MESSAGE.equals(new String(bb.array())));

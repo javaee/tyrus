@@ -46,10 +46,9 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import javax.websocket.ClientEndpointConfiguration;
-import javax.websocket.ClientEndpointConfigurationBuilder;
+import javax.websocket.ClientEndpointConfig;
 import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfiguration;
+import javax.websocket.EndpointConfig;
 import javax.websocket.Extension;
 import javax.websocket.MessageHandler;
 import javax.websocket.OnMessage;
@@ -57,7 +56,6 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
-import org.glassfish.tyrus.core.TyrusExtension;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.core.TyrusExtension;
 import org.glassfish.tyrus.server.Server;
@@ -115,7 +113,7 @@ public class ExtensionsTest {
             extensions.add(new TyrusExtension("ext1", list1));
             extensions.add(new TyrusExtension("ext2", list2));
 
-            final ClientEndpointConfiguration clientConfiguration = ClientEndpointConfigurationBuilder.create().extensions(extensions).build();
+            final ClientEndpointConfig clientConfiguration = ClientEndpointConfig.Builder.create().extensions(extensions).build();
 
             ClientManager client = ClientManager.createClient();
             ExtensionsClientEndpoint clientEndpoint = new ExtensionsClientEndpoint();
@@ -137,11 +135,11 @@ public class ExtensionsTest {
         private volatile String receivedMessage;
 
         @Override
-        public void onOpen(final Session session, EndpointConfiguration endpointConfiguration) {
+        public void onOpen(final Session session, EndpointConfig EndpointConfig) {
             try {
-                System.out.println("client conf: " + endpointConfiguration);
+                System.out.println("client conf: " + EndpointConfig);
 
-                session.addMessageHandler(new MessageHandler.Basic<String>() {
+                session.addMessageHandler(new MessageHandler.Whole<String>() {
                     @Override
                     public void onMessage(String message) {
                         for (Extension extension : session.getNegotiatedExtensions()) {

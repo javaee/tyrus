@@ -49,10 +49,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.websocket.ClientEndpointConfigurationBuilder;
+import javax.websocket.ClientEndpointConfig.Builder;
 import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfiguration;
+import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 
@@ -143,11 +143,11 @@ public class HandshakeTest {
             boolean sendOver = false;
 
             @Override
-            public void onOpen(final Session session, EndpointConfiguration endpointConfiguration) {
+            public void onOpen(final Session session, EndpointConfig EndpointConfig) {
 
                 System.out.println("client.container:"+session.getContainer().toString());
                 try {
-                    session.addMessageHandler(new MessageHandler.Basic<String>() {
+                    session.addMessageHandler(new MessageHandler.Whole<String>() {
                         @Override
                         public void onMessage(String message) {
 
@@ -180,7 +180,7 @@ public class HandshakeTest {
                 }
 
             }
-        }, ClientEndpointConfigurationBuilder.create().build(), getURI());
+        }, ClientEndpointConfig.Builder.create().build(), getURI());
 
         stopConversation.await(10, TimeUnit.SECONDS);
         if (stopConversation.getCount() != 0) {

@@ -45,10 +45,10 @@ import java.net.URISyntaxException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import javax.websocket.ClientEndpointConfigurationBuilder;
+import javax.websocket.ClientEndpointConfig;
 import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfiguration;
+import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 
@@ -83,9 +83,9 @@ public class ProgrammaticEchoTest {
             final ClientManager client = ClientManager.createClient();
             client.connectToServer(new Endpoint() {
                 @Override
-                public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
+                public void onOpen(Session session, EndpointConfig EndpointConfig) {
                     try {
-                        session.addMessageHandler(new MessageHandler.Basic<String>() {
+                        session.addMessageHandler(new MessageHandler.Whole<String>() {
                             @Override
                             public void onMessage(String message) {
                                 assertEquals(message, "Do or do not, there is no try. (from your server)");
@@ -98,7 +98,7 @@ public class ProgrammaticEchoTest {
                         // do nothing
                     }
                 }
-            }, ClientEndpointConfigurationBuilder.create().build(), getURI());
+            }, ClientEndpointConfig.Builder.create().build(), getURI());
 
             messageLatch.await(1, TimeUnit.SECONDS);
             if (messageLatch.getCount() != 0) {

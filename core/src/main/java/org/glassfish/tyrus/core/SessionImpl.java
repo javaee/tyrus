@@ -107,7 +107,7 @@ public class SessionImpl implements Session {
         this.pathParameters = pathParameters == null ? Collections.<String, String>emptyMap() : Collections.unmodifiableMap(pathParameters);
         this.basicRemote = new RemoteEndpointWrapper.Basic(this, remoteEndpoint, endpointWrapper);
         this.asyncRemote = new RemoteEndpointWrapper.Async(this, remoteEndpoint, endpointWrapper, 0);
-        this.handlerManager = new MessageHandlerManager(endpointWrapper.getDecoders());
+        this.handlerManager = MessageHandlerManager.fromDecoderInstances(endpointWrapper.getDecoders());
     }
 
     /**
@@ -291,7 +291,7 @@ public class SessionImpl implements Session {
         for (CoderWrapper<Decoder> decoder : availableDecoders) {
             for (MessageHandler mh : this.getOrderedMessageHandlers()) {
                 Class<?> type;
-                if ((mh instanceof MessageHandler.Basic)
+                if ((mh instanceof MessageHandler.Whole)
                         && (type = MessageHandlerManager.getHandlerType(mh)).isAssignableFrom(decoder.getType())) {
 
                     if (mh instanceof BasicMessageHandler) {
@@ -301,7 +301,7 @@ public class SessionImpl implements Session {
                     Object object = endpoint.decodeCompleteMessage(this, message, type);
                     if (object != null) {
                         //noinspection unchecked
-                        ((MessageHandler.Basic) mh).onMessage(object);
+                        ((MessageHandler.Whole) mh).onMessage(object);
                         decoded = true;
                         break;
                     }
@@ -317,7 +317,7 @@ public class SessionImpl implements Session {
         boolean handled = false;
 
         for (MessageHandler handler : this.getMessageHandlers()) {
-            if ((handler instanceof MessageHandler.Async) &&
+            if ((handler instanceof MessageHandler.Partial) &&
                     MessageHandlerManager.getHandlerType(handler).isAssignableFrom(message.getClass())) {
 
                 if (handler instanceof AsyncMessageHandler) {
@@ -325,7 +325,7 @@ public class SessionImpl implements Session {
                 }
 
                 //noinspection unchecked
-                ((MessageHandler.Async) handler).onMessage(message, last);
+                ((MessageHandler.Partial) handler).onMessage(message, last);
                 handled = true;
                 break;
             }
@@ -370,8 +370,8 @@ public class SessionImpl implements Session {
 
         @Override
         public int compare(MessageHandler o1, MessageHandler o2) {
-            if (o1 instanceof MessageHandler.Basic) {
-                if (o2 instanceof MessageHandler.Basic) {
+            if (o1 instanceof MessageHandler.Whole) {
+                if (o2 instanceof MessageHandler.Whole) {
                     Class<?> type1 = MessageHandlerManager.getHandlerType(o1);
                     Class<?> type2 = MessageHandlerManager.getHandlerType(o2);
 
@@ -385,7 +385,7 @@ public class SessionImpl implements Session {
                 } else {
                     return 1;
                 }
-            } else if (o2 instanceof MessageHandler.Basic) {
+            } else if (o2 instanceof MessageHandler.Whole) {
                 return 1;
             }
             return 0;

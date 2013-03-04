@@ -45,7 +45,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.websocket.ClientEndpointConfigurationBuilder;
+import javax.websocket.ClientEndpointConfig.Builder;
 import javax.websocket.ContainerProvider;
 import javax.websocket.DeploymentException;
 import javax.websocket.Session;
@@ -119,7 +119,7 @@ public class LifeCycleTest {
         logger.log(Level.INFO, "connectTo: {0}", connectURI);
         Session clientSession = wsc.connectToServer(
                 client,
-                ClientEndpointConfigurationBuilder.create().build(),
+                ClientEndpointConfig.Builder.create().build(),
                 connectURI);
         logger.log(Level.INFO, "client session: {0}", clientSession);
         return clientSession;

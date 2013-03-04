@@ -44,12 +44,12 @@ import java.util.Collections;
 import java.util.HashSet;
 
 import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfiguration;
+import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
-import javax.websocket.server.ServerApplicationConfiguration;
-import javax.websocket.server.ServerEndpointConfiguration;
-import javax.websocket.server.ServerEndpointConfigurationBuilder;
+import javax.websocket.server.ServerApplicationConfig;
+import javax.websocket.server.ServerEndpointConfig;
+import javax.websocket.server.ServerEndpointConfig.Builder;
 
 import org.glassfish.tyrus.server.TyrusServerConfiguration;
 
@@ -58,21 +58,21 @@ import org.glassfish.tyrus.server.TyrusServerConfiguration;
  *
  * @author Martin Matula (martin.matula at oracle.com)
  */
-public class MyWsConfiguration extends TyrusServerConfiguration implements ServerApplicationConfiguration {
+public class MyWsConfiguration extends TyrusServerConfiguration implements ServerApplicationConfig {
 
     /**
      * Default constructor, reg
      */
     public MyWsConfiguration() {
-        super(Collections.<Class<?>>emptySet(), new HashSet<ServerEndpointConfiguration>() {{
-            add(ServerEndpointConfigurationBuilder.create(EchoEndpoint.class, "/echo").build());
+        super(Collections.<Class<?>>emptySet(), new HashSet<ServerEndpointConfig>() {{
+            add(ServerEndpointConfig.Builder.create(EchoEndpoint.class, "/echo").build());
         }});
     }
 
     public static class EchoEndpoint extends Endpoint {
         @Override
-        public void onOpen(final Session session, final EndpointConfiguration endpointConfiguration) {
-            session.addMessageHandler(new MessageHandler.Basic<String>() {
+        public void onOpen(final Session session, final EndpointConfig EndpointConfig) {
+            session.addMessageHandler(new MessageHandler.Whole<String>() {
                 @Override
                 public void onMessage(String message) {
                     System.out.println("##################### Message received");

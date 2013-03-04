@@ -44,18 +44,18 @@ import java.util.HashSet;
 import java.util.Set;
 
 import javax.websocket.Endpoint;
-import javax.websocket.server.ServerApplicationConfiguration;
-import javax.websocket.server.ServerEndpointConfiguration;
+import javax.websocket.server.ServerApplicationConfig;
+import javax.websocket.server.ServerEndpointConfig;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class SecondServerApplicationConfiguration implements ServerApplicationConfiguration {
+public class TestServerApplicationConfig implements ServerApplicationConfig {
 
     private static boolean annotatedGetterCalled = false;
 
     @Override
-    public Set<ServerEndpointConfiguration> getEndpointConfigurations(Set<Class<? extends Endpoint>> endpointClasses) {
+    public Set<ServerEndpointConfig> getEndpointConfigs(Set<Class<? extends Endpoint>> endpointClasses) {
         return null;
     }
 
@@ -63,7 +63,8 @@ public class SecondServerApplicationConfiguration implements ServerApplicationCo
     public Set<Class<?>> getAnnotatedEndpointClasses(Set<Class<?>> scanned) {
         annotatedGetterCalled = true;
         HashSet<Class<?>> toReturn = new HashSet<Class<?>>();
-            toReturn.add(ConfigurationChecker.class);
+            toReturn.add(PlainEcho.class);
+            toReturn.add(PlainOne.class);
 
         return toReturn;
     }

@@ -46,7 +46,7 @@ import javax.websocket.MessageHandler;
  *
  * @author Martin Matula (martin.matula at oracle.com)
  */
-interface BasicMessageHandler extends MessageHandler.Basic {
+interface BasicMessageHandler extends MessageHandler.Whole {
     Class<?> getType();
     long getMaxMessageSize();
 }

@@ -44,6 +44,7 @@ import java.io.StringReader;
 
 import javax.websocket.DecodeException;
 import javax.websocket.Decoder;
+import javax.websocket.EndpointConfig;
 
 /**
  * Built in {@link Decoder} for {@link Reader}.
@@ -60,5 +61,10 @@ class ReaderDecoder implements Decoder.Text<Reader> {
     @Override
     public Reader decode(String s) throws DecodeException {
         return new StringReader(s);
+    }
+
+    @Override
+    public void setEndpointConfig(EndpointConfig config) {
+        // do nothing.
     }
 }

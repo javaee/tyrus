@@ -43,6 +43,7 @@ package org.glassfish.tyrus.core;
 import java.io.InputStream;
 import java.io.Reader;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -61,7 +62,6 @@ import javax.websocket.PongMessage;
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  * @author Pavel Bucek (pavel.bucek at oracle.com)
- *
  * @see MessageHandler
  * @see javax.websocket.OnMessage
  */
@@ -79,7 +79,7 @@ class MessageHandlerManager {
     private boolean binaryWholeHandlerPresent = false;
     private boolean pongHandlerPresent = false;
     private final Map<Class<?>, MessageHandler> registeredHandlers = new HashMap<Class<?>, MessageHandler>();
-    private final List<Decoder> decoders;
+    private final List<Class<? extends Decoder>> decoders;
 
     private Set<MessageHandler> messageHandlerCache;
 
@@ -87,7 +87,7 @@ class MessageHandlerManager {
      * Construct manager with no decoders.
      */
     MessageHandlerManager() {
-        this(Collections.<Decoder>emptyList());
+        this(Collections.<Class<? extends Decoder>>emptyList());
     }
 
     /**
@@ -95,8 +95,26 @@ class MessageHandlerManager {
      *
      * @param decoders registered {@link Decoder}s.
      */
-    MessageHandlerManager(List<Decoder> decoders) {
+    MessageHandlerManager(List<Class<? extends Decoder>> decoders) {
         this.decoders = decoders;
+    }
+
+    /**
+     * Construct manager.
+     *
+     * @param decoders registered {@link Decoder}s.
+     */
+    static MessageHandlerManager fromDecoderInstances(List<Decoder> decoders) {
+        List<Class<? extends Decoder>> decoderList = new ArrayList<Class<? extends Decoder>>();
+        for (Decoder decoder : decoders) {
+            if(decoder instanceof CoderWrapper) {
+                decoderList.add(((CoderWrapper<? extends Decoder>) decoder).getCoderClass());
+            } else {
+                decoderList.add(decoder.getClass());
+            }
+        }
+
+        return new MessageHandlerManager(decoderList);
     }
 
     /**
@@ -106,13 +124,13 @@ class MessageHandlerManager {
      */
     public void addMessageHandler(MessageHandler handler) throws IllegalStateException {
 
-        if (!(handler instanceof MessageHandler.Basic) && !(handler instanceof MessageHandler.Async)) {
-            throwException("MessageHandler must implement MessageHandler.Basic or MessageHandler.Async.");
+        if (!(handler instanceof MessageHandler.Whole) && !(handler instanceof MessageHandler.Partial)) {
+            throwException("MessageHandler must implement MessageHandler.Whole or MessageHandler.Partial.");
         }
 
         final Class<?> handlerClass = getHandlerType(handler);
 
-        if (handler instanceof MessageHandler.Basic) { //WHOLE MESSAGE HANDLER
+        if (handler instanceof MessageHandler.Whole) { //WHOLE MESSAGE HANDLER
             if (WHOLE_TEXT_HANDLER_TYPES.contains(handlerClass)) { // text
                 if (textHandlerPresent) {
                     throwException("Text MessageHandler already registered.");
@@ -214,7 +232,7 @@ class MessageHandlerManager {
             return;
         }
 
-        if (handler instanceof MessageHandler.Basic) { //WHOLE MESSAGE HANDLER
+        if (handler instanceof MessageHandler.Whole) { //WHOLE MESSAGE HANDLER
             if (WHOLE_TEXT_HANDLER_TYPES.contains(handlerClass)) { // text
                 textHandlerPresent = false;
                 textWholeHandlerPresent = false;
@@ -264,10 +282,10 @@ class MessageHandlerManager {
             return ((AsyncMessageHandler) handler).getType();
         } else if (handler instanceof BasicMessageHandler) {
             return ((BasicMessageHandler) handler).getType();
-        } else if (handler instanceof MessageHandler.Async) {
-            root = MessageHandler.Async.class;
-        } else if (handler instanceof MessageHandler.Basic) {
-            root = MessageHandler.Basic.class;
+        } else if (handler instanceof MessageHandler.Partial) {
+            root = MessageHandler.Partial.class;
+        } else if (handler instanceof MessageHandler.Whole) {
+            root = MessageHandler.Whole.class;
         } else {
             throw new IllegalArgumentException(handler.getClass().getName()); // should never happen
         }
@@ -276,35 +294,29 @@ class MessageHandlerManager {
     }
 
     private boolean checkTextDecoders(Class<?> requiredType) {
-        for (Decoder decoder : decoders) {
-            if (decoder instanceof CoderWrapper && isTextDecoder((CoderWrapper) decoder)) {
-                if (((CoderWrapper<Decoder>) decoder).getType().isAssignableFrom(requiredType)) {
-                    return true;
-                }
-            }
+        for (Class<? extends Decoder> decoderClass : decoders) {
+            if (isTextDecoder(decoderClass) && AnnotatedEndpoint.getDecoderClassType(decoderClass).isAssignableFrom(requiredType))
+                return true;
         }
 
         return false;
     }
 
     private boolean checkBinaryDecoders(Class<?> requiredType) {
-        for (Decoder decoder : decoders) {
-            if (decoder instanceof CoderWrapper && isBinaryDecoder((CoderWrapper) decoder)) {
-                if (((CoderWrapper<Decoder>) decoder).getType().isAssignableFrom(requiredType)) {
-                    return true;
-                }
-            }
+        for (Class<? extends Decoder> decoderClass : decoders) {
+            if (isBinaryDecoder(decoderClass) && AnnotatedEndpoint.getDecoderClassType(decoderClass).isAssignableFrom(requiredType))
+                return true;
         }
 
         return false;
     }
 
-    private static boolean isTextDecoder(CoderWrapper<Decoder> decoder) {
-        return Decoder.Text.class.isAssignableFrom(decoder.getCoderClass()) || Decoder.TextStream.class.isAssignableFrom(decoder.getCoderClass());
+    private boolean isTextDecoder(Class<? extends Decoder> decoderClass) {
+        return Decoder.Text.class.isAssignableFrom(decoderClass) || Decoder.TextStream.class.isAssignableFrom(decoderClass);
     }
 
-    private static boolean isBinaryDecoder(CoderWrapper<Decoder> decoder) {
-        return Decoder.Binary.class.isAssignableFrom(decoder.getCoderClass()) || Decoder.BinaryStream.class.isAssignableFrom(decoder.getCoderClass());
+    private boolean isBinaryDecoder(Class<? extends Decoder> decoderClass) {
+        return Decoder.Binary.class.isAssignableFrom(decoderClass) || Decoder.BinaryStream.class.isAssignableFrom(decoderClass);
     }
 
     boolean isWholeTextHandlerPresent() {

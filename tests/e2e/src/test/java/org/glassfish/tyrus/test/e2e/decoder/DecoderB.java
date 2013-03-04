@@ -42,6 +42,7 @@ package org.glassfish.tyrus.test.e2e.decoder;
 
 import javax.websocket.DecodeException;
 import javax.websocket.Decoder;
+import javax.websocket.EndpointConfig;
 
 import org.glassfish.tyrus.test.e2e.message.MessageB;
 
@@ -60,4 +61,8 @@ public class DecoderB implements Decoder.Text<MessageB> {
         return s.startsWith("b");
     }
 
+    @Override
+    public void setEndpointConfig(EndpointConfig config) {
+        // do nothing.
+    }
 }

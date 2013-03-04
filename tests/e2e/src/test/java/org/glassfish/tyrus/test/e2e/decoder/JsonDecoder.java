@@ -42,6 +42,7 @@ package org.glassfish.tyrus.test.e2e.decoder;
 
 import javax.websocket.DecodeException;
 import javax.websocket.Decoder;
+import javax.websocket.EndpointConfig;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -61,5 +62,10 @@ public class JsonDecoder implements Decoder.Text<JSONObject> {
 
     public boolean willDecode(String s) {
         return true;
+    }
+
+    @Override
+    public void setEndpointConfig(EndpointConfig config) {
+        // do nothing.
     }
 }

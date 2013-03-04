@@ -43,8 +43,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import javax.websocket.Endpoint;
-import javax.websocket.server.ServerApplicationConfiguration;
-import javax.websocket.server.ServerEndpointConfiguration;
+import javax.websocket.server.ServerApplicationConfig;
+import javax.websocket.server.ServerEndpointConfig;
 import org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary.AnnotatedByteSession;
 
 
@@ -52,9 +52,9 @@ import org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary.AnnotatedByteSessi
  *
  * @author michal.conos at oracle.com
  */
-public class  AnnotatedByteSessionConfig implements ServerApplicationConfiguration  {
+public class  AnnotatedByteSessionConfig implements ServerApplicationConfig  {
      @Override
-    public Set<ServerEndpointConfiguration> getEndpointConfigurations(Set<Class<? extends Endpoint>> set) {
+    public Set<ServerEndpointConfig> getEndpointConfigs(Set<Class<? extends Endpoint>> set) {
         return Collections.EMPTY_SET;
     }
 

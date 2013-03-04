@@ -47,10 +47,9 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import javax.websocket.ClientEndpointConfiguration;
-import javax.websocket.ClientEndpointConfigurationBuilder;
+import javax.websocket.ClientEndpointConfig;
 import javax.websocket.EncodeException;
-import javax.websocket.EndpointConfiguration;
+import javax.websocket.EndpointConfig;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.RemoteEndpoint;
@@ -72,7 +71,7 @@ import static org.junit.Assert.assertTrue;
 public class BroadcasterTest {
     private static final String SENT_MESSAGE = "Hello World";
 
-    private final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
+    private final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
     @Ignore
     @Test
@@ -123,7 +122,7 @@ public class BroadcasterTest {
         }
 
         @Override
-        public EndpointConfiguration getEndpointConfiguration() {
+        public EndpointConfig getEndpointConfig() {
             return null;
         }
 

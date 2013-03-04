@@ -42,6 +42,7 @@ package org.glassfish.tyrus.test.e2e.encoder;
 
 import javax.websocket.EncodeException;
 import javax.websocket.Encoder;
+import javax.websocket.EndpointConfig;
 
 import org.json.JSONObject;
 
@@ -54,5 +55,10 @@ public class JsonEncoder implements Encoder.Text<JSONObject> {
     @Override
     public String encode(JSONObject o) throws EncodeException {
         return o.toString();
+    }
+
+    @Override
+    public void setEndpointConfig(EndpointConfig config) {
+        // do nothing.
     }
 }

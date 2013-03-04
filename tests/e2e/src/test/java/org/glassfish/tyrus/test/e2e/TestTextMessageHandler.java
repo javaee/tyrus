@@ -45,7 +45,7 @@ import javax.websocket.MessageHandler;
 /**
  * @author Danny Coward (danny.coward at oracle.com)
  */
-public class TestTextMessageHandler implements MessageHandler.Basic<String> {
+public class TestTextMessageHandler implements MessageHandler.Whole<String> {
 
     private TestEndpointAdapter endpointAdapter;
 

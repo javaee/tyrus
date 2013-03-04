@@ -44,11 +44,10 @@ import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import javax.websocket.ClientEndpointConfiguration;
-import javax.websocket.ClientEndpointConfigurationBuilder;
+import javax.websocket.ClientEndpointConfig;
 import javax.websocket.CloseReason;
 import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfiguration;
+import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
 import javax.websocket.OnMessage;
 import javax.websocket.Session;
@@ -95,15 +94,15 @@ public class MaxMessageSizeTest {
 
             messageLatch = new CountDownLatch(1);
 
-            final ClientEndpointConfiguration clientConfiguration = ClientEndpointConfigurationBuilder.create().build();
+            final ClientEndpointConfig clientConfiguration = ClientEndpointConfig.Builder.create().build();
             ClientManager client = ClientManager.createClient();
 
             client.connectToServer(new Endpoint() {
 
                 @Override
-                public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
+                public void onOpen(Session session, EndpointConfig EndpointConfig) {
                     try {
-                        session.addMessageHandler(new MessageHandler.Basic<String>() {
+                        session.addMessageHandler(new MessageHandler.Whole<String>() {
                             @Override
                             public void onMessage(String message) {
                                 receivedMessage = message;
@@ -127,7 +126,7 @@ public class MaxMessageSizeTest {
             client.connectToServer(new Endpoint() {
 
                 @Override
-                public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
+                public void onOpen(Session session, EndpointConfig EndpointConfig) {
                     try {
                         session.getBasicRemote().sendText("LONG--");
                     } catch (IOException e) {
@@ -162,15 +161,15 @@ public class MaxMessageSizeTest {
 
             messageLatch = new CountDownLatch(1);
 
-            final ClientEndpointConfiguration clientConfiguration = ClientEndpointConfigurationBuilder.create().build();
+            final ClientEndpointConfig clientConfiguration = ClientEndpointConfig.Builder.create().build();
             ClientManager client = ClientManager.createClient();
 
             client.connectToServer(new Endpoint() {
 
                 @Override
-                public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
+                public void onOpen(Session session, EndpointConfig EndpointConfig) {
                     try {
-                        session.addMessageHandler(new MessageHandler.Basic<String>() {
+                        session.addMessageHandler(new MessageHandler.Whole<String>() {
                             @Override
                             public void onMessage(String message) {
                                 receivedMessage = message;
@@ -194,7 +193,7 @@ public class MaxMessageSizeTest {
             client.connectToServer(new Endpoint() {
 
                 @Override
-                public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
+                public void onOpen(Session session, EndpointConfig EndpointConfig) {
                     try {
                         session.getBasicRemote().sendText("LONG--", false);
                     } catch (IOException e) {

@@ -46,12 +46,11 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import javax.websocket.ClientEndpointConfiguration;
-import javax.websocket.ClientEndpointConfigurationBuilder;
+import javax.websocket.ClientEndpointConfig;
 import javax.websocket.EncodeException;
 import javax.websocket.Encoder;
 import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfiguration;
+import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
 import javax.websocket.OnMessage;
 import javax.websocket.Session;
@@ -92,6 +91,11 @@ public class EncoderBinaryStreamTest {
         public void encode(Apple object, OutputStream os) throws EncodeException, IOException {
             os.write("apple".getBytes());
         }
+
+        @Override
+        public void setEndpointConfig(EndpointConfig config) {
+            // do nothing.
+        }
     }
 
     @Test
@@ -100,15 +104,15 @@ public class EncoderBinaryStreamTest {
 
         try {
             server.start();
-            final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
+            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
             messageLatch = new CountDownLatch(1);
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new Endpoint() {
 
                 @Override
-                public void onOpen(Session session, EndpointConfiguration config) {
-                    session.addMessageHandler(new MessageHandler.Basic<ByteBuffer>() {
+                public void onOpen(Session session, EndpointConfig config) {
+                    session.addMessageHandler(new MessageHandler.Whole<ByteBuffer>() {
                         @Override
                         public void onMessage(ByteBuffer message) {
                             if ("apple".equals(new String(message.array()))) {

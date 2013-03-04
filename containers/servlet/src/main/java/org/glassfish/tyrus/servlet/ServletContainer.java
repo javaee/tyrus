@@ -41,7 +41,7 @@ package org.glassfish.tyrus.servlet;
 
 import java.io.IOException;
 
-import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.ClientEndpointConfig;
 
 import org.glassfish.tyrus.server.TyrusEndpoint;
 import org.glassfish.tyrus.spi.SPIEndpoint;
@@ -83,7 +83,7 @@ public class ServletContainer implements TyrusContainer {
     }
 
     @Override
-    public TyrusClientSocket openClientSocket(String url, ClientEndpointConfiguration cec, SPIEndpoint endpoint) {
+    public TyrusClientSocket openClientSocket(String url, ClientEndpointConfig cec, SPIEndpoint endpoint) {
         return null;  // TODO: Implement.
     }
 }

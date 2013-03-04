@@ -48,10 +48,10 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import javax.websocket.ClientEndpointConfigurationBuilder;
+import javax.websocket.ClientEndpointConfig;
 import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfiguration;
+import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 
@@ -126,7 +126,7 @@ public class EchoTest {
     }
 
     @Test
-    public void testEcho() throws DeploymentException, InterruptedException {
+    public void testEcho() throws DeploymentException, InterruptedException, IOException {
         final Server server = startServer();
 
         final CountDownLatch messageLatch = new CountDownLatch(1);
@@ -135,9 +135,9 @@ public class EchoTest {
         final ClientManager client = ClientManager.createClient();
         client.connectToServer(new Endpoint() {
             @Override
-            public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
+            public void onOpen(Session session, EndpointConfig EndpointConfig) {
                 try {
-                    session.addMessageHandler(new MessageHandler.Basic<String>() {
+                    session.addMessageHandler(new MessageHandler.Whole<String>() {
                         @Override
                         public void onMessage(String message) {
                             System.out.println("### Received: " + message);
@@ -155,9 +155,9 @@ public class EchoTest {
                     // do nothing
                 }
             }
-        }, ClientEndpointConfigurationBuilder.create().build(), getURI());
+        }, ClientEndpointConfig.Builder.create().build(), getURI());
 
-        messageLatch.await(100, TimeUnit.SECONDS);
+        messageLatch.await(1, TimeUnit.SECONDS);
         if (messageLatch.getCount() != 0 || onOpenLatch.getCount() != 0) {
             fail();
         }

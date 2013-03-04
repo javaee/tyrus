@@ -46,10 +46,9 @@ import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import javax.websocket.ClientEndpointConfiguration;
-import javax.websocket.ClientEndpointConfigurationBuilder;
+import javax.websocket.ClientEndpointConfig;
 import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfiguration;
+import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
@@ -73,7 +72,7 @@ public class BlockingStreamingTextTest {
     @Ignore
     @Test
     public void testBlockingStreamingTextServer() {
-        final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
+        final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
         Server server = new Server(BlockingStreamingTextEndpoint.class);
 
@@ -103,7 +102,7 @@ public class BlockingStreamingTextTest {
      */
     @ServerEndpoint(value = "/blockingstreaming")
     public static class BlockingStreamingTextEndpoint extends Endpoint {
-        class MyCharacterStreamHandler implements MessageHandler.Async<Reader> {
+        class MyCharacterStreamHandler implements MessageHandler.Partial<Reader> {
             Session session;
 
             MyCharacterStreamHandler(Session session) {
@@ -136,7 +135,7 @@ public class BlockingStreamingTextTest {
         }
 
         @OnOpen
-        public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
+        public void onOpen(Session session, EndpointConfig EndpointConfig) {
             System.out.println("BLOCKINGSERVER opened !");
             session.addMessageHandler(new MyCharacterStreamHandler(session));
         }
@@ -155,12 +154,12 @@ public class BlockingStreamingTextTest {
             this.messageLatch = messageLatch;
         }
 
-        public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
+        public void onOpen(Session session, EndpointConfig EndpointConfig) {
             System.out.println("BLOCKINGCLIENT opened !");
 
             send(session);
 
-            session.addMessageHandler(new MessageHandler.Async<Reader>() {
+            session.addMessageHandler(new MessageHandler.Partial<Reader>() {
                 final StringBuilder sb = new StringBuilder();
 
                 public void onMessage(Reader r, boolean isLast) {

@@ -78,7 +78,7 @@ class TyrusServletFilter implements Filter {
     private final WebSocketEngine engine;
     private TyrusServerContainer serverContainer = null;
 
-    // @ServerEndpoint annotated classes and classes extending ServerApplicationConfiguration
+    // @ServerEndpoint annotated classes and classes extending ServerApplicationConfig
     private final Set<Class<?>> classes;
 
     /**

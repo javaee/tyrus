@@ -45,7 +45,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.websocket.CloseReason;
-import javax.websocket.EndpointConfiguration;
+import javax.websocket.EndpointConfig;
 import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
 
@@ -70,7 +70,7 @@ abstract public class SessionLifeCycle<T> {
         this.sc = sc;
     }
 
-    public void onServerOpen(Session s, EndpointConfiguration config) {
+    public void onServerOpen(Session s, EndpointConfig config) {
         logger.log(Level.INFO, "Someone connected:{0}", s.getRequestURI().toString());
         sc.serverOnOpen();
     }
@@ -129,7 +129,7 @@ abstract public class SessionLifeCycle<T> {
         }
     }
 
-    public void onClientOpen(Session s, EndpointConfiguration config) {
+    public void onClientOpen(Session s, EndpointConfig config) {
         if (!Issue.checkTyrus93(s)) {
             sc.setState("TYRUS_93_FAIL");
         }

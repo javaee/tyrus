@@ -45,9 +45,8 @@ import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import javax.websocket.ClientEndpointConfiguration;
-import javax.websocket.ClientEndpointConfigurationBuilder;
-import javax.websocket.EndpointConfiguration;
+import javax.websocket.ClientEndpointConfig;
+import javax.websocket.EndpointConfig;
 import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
 
@@ -74,7 +73,7 @@ public class DecoderMultiplexerTest {
 
     private static final String MESSAGE_B = "bssssssss";
 
-    private final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
+    private final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
     @Ignore
     @Test
@@ -108,7 +107,7 @@ public class DecoderMultiplexerTest {
         private RemoteEndpoint.Basic peer;
 
         @Override
-        public EndpointConfiguration getEndpointConfiguration() {
+        public EndpointConfig getEndpointConfig() {
             return null;
         }
 

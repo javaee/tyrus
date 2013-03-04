@@ -43,8 +43,6 @@ package org.glassfish.tyrus.core;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -67,12 +65,11 @@ import javax.websocket.DeploymentException;
 import javax.websocket.EncodeException;
 import javax.websocket.Encoder;
 import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfiguration;
+import javax.websocket.EndpointConfig;
 import javax.websocket.Extension;
 import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
-import javax.websocket.server.ServerEndpointConfiguration;
-import javax.websocket.server.ServerEndpointConfigurator;
+import javax.websocket.server.ServerEndpointConfig;
 
 import org.glassfish.tyrus.spi.SPIEndpoint;
 import org.glassfish.tyrus.spi.SPIHandshakeRequest;
@@ -100,14 +97,14 @@ public class EndpointWrapper extends SPIEndpoint {
     private final List<CoderWrapper<Decoder>> decoders = new ArrayList<CoderWrapper<Decoder>>();
     private final List<CoderWrapper<Encoder>> encoders = new ArrayList<CoderWrapper<Encoder>>();
 
-    private final EndpointConfiguration configuration;
+    private final EndpointConfig configuration;
     private final Class<?> endpointClass;
     private final Endpoint endpoint;
     private final Map<SPIRemoteEndpoint, SessionImpl> remoteEndpointToSession =
             new ConcurrentHashMap<SPIRemoteEndpoint, SessionImpl>();
     private final ErrorCollector collector;
     private final ComponentProviderService componentProvider;
-    private final ServerEndpointConfigurator serverEndpointConfigurator;
+    private final ServerEndpointConfig.Configurator configurator;
 
     // the following is set during the handshake
     private String uri;
@@ -125,10 +122,10 @@ public class EndpointWrapper extends SPIEndpoint {
      * @param contextPath       context path.
      * @param collector         error collector.
      */
-    public EndpointWrapper(Class<?> endpointClass, EndpointConfiguration configuration,
+    public EndpointWrapper(Class<?> endpointClass, EndpointConfig configuration,
                            ComponentProviderService componentProvider, WebSocketContainer container,
-                           String contextPath, ErrorCollector collector, ServerEndpointConfigurator serverEndpointConfigurator) {
-        this(null, endpointClass, configuration, componentProvider, container, contextPath, collector, serverEndpointConfigurator);
+                           String contextPath, ErrorCollector collector, ServerEndpointConfig.Configurator configurator) {
+        this(null, endpointClass, configuration, componentProvider, container, contextPath, collector, configurator);
     }
 
     /**
@@ -141,14 +138,14 @@ public class EndpointWrapper extends SPIEndpoint {
      * @param contextPath       context path.
      * @param collector         error collector.
      */
-    public EndpointWrapper(Endpoint endpoint, EndpointConfiguration configuration, ComponentProviderService componentProvider, WebSocketContainer container,
-                           String contextPath, ErrorCollector collector, ServerEndpointConfigurator serverEndpointConfigurator) {
-        this(endpoint, null, configuration, componentProvider, container, contextPath, collector, serverEndpointConfigurator);
+    public EndpointWrapper(Endpoint endpoint, EndpointConfig configuration, ComponentProviderService componentProvider, WebSocketContainer container,
+                           String contextPath, ErrorCollector collector, ServerEndpointConfig.Configurator configurator) {
+        this(endpoint, null, configuration, componentProvider, container, contextPath, collector, configurator);
     }
 
-    private EndpointWrapper(Endpoint endpoint, Class<?> endpointClass, EndpointConfiguration configuration,
+    private EndpointWrapper(Endpoint endpoint, Class<?> endpointClass, EndpointConfig configuration,
                             ComponentProviderService componentProvider, WebSocketContainer container,
-                            String contextPath, ErrorCollector collector, ServerEndpointConfigurator serverEndpointConfigurator) {
+                            String contextPath, ErrorCollector collector, ServerEndpointConfig.Configurator configurator) {
         this.endpointClass = endpointClass;
         this.endpoint = endpoint;
         this.container = container;
@@ -159,19 +156,19 @@ public class EndpointWrapper extends SPIEndpoint {
         this.uri = contextPath;
         this.collector = collector;
         this.componentProvider = componentProvider;
-        this.serverEndpointConfigurator = serverEndpointConfigurator;
+        this.configurator = configurator;
 
-        this.configuration = configuration == null ? new EndpointConfiguration() {
+        this.configuration = configuration == null ? new EndpointConfig() {
 
             private final Map<String, Object> properties = new HashMap<String, Object>();
 
             @Override
-            public List<Encoder> getEncoders() {
+            public List<Class<? extends Encoder>> getEncoders() {
                 return Collections.emptyList();
             }
 
             @Override
-            public List<Decoder> getDecoders() {
+            public List<Class<? extends Decoder>> getDecoders() {
                 return Collections.emptyList();
             }
 
@@ -181,27 +178,22 @@ public class EndpointWrapper extends SPIEndpoint {
             }
         } : configuration;
 
-        for (Decoder dec : this.configuration.getDecoders()) {
-            if (dec instanceof CoderWrapper) {
-                decoders.add((CoderWrapper) dec);
-            } else {
-                Class<?> type = getDecoderClassType(dec.getClass());
-                decoders.add(new CoderWrapper(dec, type));
-            }
+        for (Class<? extends Decoder> decoderClass : this.configuration.getDecoders()) {
+            Class<?> type = getDecoderClassType(decoderClass);
+            decoders.add(new CoderWrapper<Decoder>(decoderClass, type));
         }
 
         //this wrapper represents endpoint which is not annotated endpoint
         if (endpoint == null || !(endpoint instanceof AnnotatedEndpoint)) {
-            decoders.addAll(getDefaultDecoders());
+            for (Class<? extends Decoder> decoderClass : getDefaultDecoders()) {
+                Class<?> type = getDecoderClassType(decoderClass);
+                decoders.add(new CoderWrapper<Decoder>(decoderClass, type));
+            }
         }
 
-        for (Encoder encoder : this.configuration.getEncoders()) {
-            if (encoder instanceof CoderWrapper) {
-                encoders.add((CoderWrapper) encoder);
-            } else {
-                Class<?> type = getEncoderClassType(encoder.getClass());
-                encoders.add(new CoderWrapper(encoder, type));
-            }
+        for (Class<? extends Encoder> encoderClass : this.configuration.getEncoders()) {
+            Class<?> type = getEncoderClassType(encoderClass);
+            encoders.add(new CoderWrapper<Encoder>(encoderClass, type));
         }
 
         encoders.add(new CoderWrapper<Encoder>(NoOpTextCoder.class, String.class));
@@ -212,10 +204,10 @@ public class EndpointWrapper extends SPIEndpoint {
 
     @Override
     public boolean checkHandshake(SPIHandshakeRequest hr) {
-        ServerEndpointConfiguration sec;
+        ServerEndpointConfig sec;
 
-        if (configuration instanceof ServerEndpointConfiguration) {
-            sec = (ServerEndpointConfiguration) configuration;
+        if (configuration instanceof ServerEndpointConfig) {
+            sec = (ServerEndpointConfig) configuration;
         } else {
             return false;
         }
@@ -224,20 +216,19 @@ public class EndpointWrapper extends SPIEndpoint {
         queryString = hr.getQueryString();
         isSecure = hr.isSecure();
 
-        return serverEndpointConfigurator.checkOrigin(hr.getHeader("Origin")) &&
-                serverEndpointConfigurator.matchesURI(getEndpointPath(sec.getPath()), URI.create(uri), templateValues);
+        return configurator.checkOrigin(hr.getHeader("Origin")) &&
+                configurator.matchesURI(getEndpointPath(sec.getPath()), URI.create(uri), templateValues);
     }
 
-    static List<CoderWrapper<Decoder>> getDefaultDecoders() {
-        final List<CoderWrapper<Decoder>> defaultDecoders = new ArrayList<CoderWrapper<Decoder>>();
-        defaultDecoders.addAll(PrimitiveDecoders.ALL_WRAPPED);
-        defaultDecoders.add(new CoderWrapper<Decoder>(NoOpTextCoder.class, String.class));
-        defaultDecoders.add(new CoderWrapper<Decoder>(NoOpByteBufferCoder.class, ByteBuffer.class));
-        defaultDecoders.add(new CoderWrapper<Decoder>(NoOpByteArrayCoder.class, byte[].class));
-        defaultDecoders.add(new CoderWrapper<Decoder>(ReaderDecoder.class, Reader.class));
-        defaultDecoders.add(new CoderWrapper<Decoder>(InputStreamDecoder.class, InputStream.class));
-
-        return defaultDecoders;
+    static List<Class<? extends Decoder>> getDefaultDecoders() {
+        final List<Class<? extends Decoder>> classList = new ArrayList<>();
+        classList.addAll(PrimitiveDecoders.ALL);
+        classList.add(NoOpTextCoder.class);
+        classList.add(NoOpByteBufferCoder.class);
+        classList.add(NoOpByteArrayCoder.class);
+        classList.add(ReaderDecoder.class);
+        classList.add(InputStreamDecoder.class);
+        return classList;
     }
 
     private String getEndpointPath(String relativePath) {
@@ -364,8 +355,8 @@ public class EndpointWrapper extends SPIEndpoint {
 
     @Override
     public List<Extension> getNegotiatedExtensions(List<Extension> clientExtensions) {
-        if (configuration instanceof ServerEndpointConfiguration) {
-            return serverEndpointConfigurator.getNegotiatedExtensions(((ServerEndpointConfiguration) configuration).getExtensions(), clientExtensions);
+        if (configuration instanceof ServerEndpointConfig) {
+            return configurator.getNegotiatedExtensions(((ServerEndpointConfig) configuration).getExtensions(), clientExtensions);
         } else {
             return Collections.emptyList();
         }
@@ -373,8 +364,8 @@ public class EndpointWrapper extends SPIEndpoint {
 
     @Override
     public String getNegotiatedProtocol(List<String> clientProtocols) {
-        if (configuration instanceof ServerEndpointConfiguration) {
-            return serverEndpointConfigurator.getNegotiatedSubprotocol(((ServerEndpointConfiguration) configuration).getSubprotocols(), clientProtocols);
+        if (configuration instanceof ServerEndpointConfig) {
+            return configurator.getNegotiatedSubprotocol(((ServerEndpointConfig) configuration).getSubprotocols(), clientProtocols);
         } else {
             return null;
         }
@@ -651,7 +642,7 @@ public class EndpointWrapper extends SPIEndpoint {
     }
 
     @Override
-    public EndpointConfiguration getEndpointConfiguration() {
+    public EndpointConfig getEndpointConfig() {
         return configuration;
     }
 

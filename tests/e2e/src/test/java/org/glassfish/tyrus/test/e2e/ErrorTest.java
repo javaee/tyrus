@@ -47,10 +47,9 @@ import java.util.HashSet;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import javax.websocket.ClientEndpointConfiguration;
-import javax.websocket.ClientEndpointConfigurationBuilder;
+import javax.websocket.ClientEndpointConfig;
 import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfiguration;
+import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
 import javax.websocket.OnClose;
 import javax.websocket.OnError;
@@ -58,8 +57,7 @@ import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
-import javax.websocket.server.ServerEndpointConfiguration;
-import javax.websocket.server.ServerEndpointConfigurationBuilder;
+import javax.websocket.server.ServerEndpointConfig;
 
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
@@ -114,13 +112,13 @@ public class ErrorTest {
 
         try {
             server.start();
-            final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
+            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
             messageLatch = new CountDownLatch(1);
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new TestEndpointAdapter() {
                 @Override
-                public EndpointConfiguration getEndpointConfiguration() {
+                public EndpointConfig getEndpointConfig() {
                     return cec;
                 }
 
@@ -184,13 +182,13 @@ public class ErrorTest {
 
         try {
             server.start();
-            final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
+            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
             messageLatch = new CountDownLatch(1);
             ClientManager client = ClientManager.createClient();
             final Session session = client.connectToServer(new TestEndpointAdapter() {
                 @Override
-                public EndpointConfiguration getEndpointConfiguration() {
+                public EndpointConfig getEndpointConfig() {
                     return cec;
                 }
 
@@ -225,10 +223,10 @@ public class ErrorTest {
         }
     }
 
-    public static class OnOpenExceptionEndpointServerApplicationConfiguration extends TyrusServerConfiguration {
-        public OnOpenExceptionEndpointServerApplicationConfiguration() {
-            super(Collections.<Class<?>>emptySet(), new HashSet<ServerEndpointConfiguration>() {{
-                add(ServerEndpointConfigurationBuilder.create(OnOpenExceptionEndpoint.class, "/open").build());
+    public static class OnOpenExceptionEndpointServerApplicationConfig extends TyrusServerConfiguration {
+        public OnOpenExceptionEndpointServerApplicationConfig() {
+            super(Collections.<Class<?>>emptySet(), new HashSet<ServerEndpointConfig>() {{
+                add(ServerEndpointConfig.Builder.create(OnOpenExceptionEndpoint.class, "/open").build());
             }});
         }
     }
@@ -239,7 +237,7 @@ public class ErrorTest {
         public static Session session;
 
         @Override
-        public void onOpen(Session session, EndpointConfiguration config) {
+        public void onOpen(Session session, EndpointConfig config) {
             throw new RuntimeException("testException");
         }
 
@@ -252,17 +250,17 @@ public class ErrorTest {
 
     @Test
     public void testErrorOnOpenProgrammatic() {
-        Server server = new Server(OnOpenExceptionEndpointServerApplicationConfiguration.class);
+        Server server = new Server(OnOpenExceptionEndpointServerApplicationConfig.class);
 
         try {
             server.start();
-            final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
+            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
             messageLatch = new CountDownLatch(1);
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new TestEndpointAdapter() {
                 @Override
-                public EndpointConfiguration getEndpointConfiguration() {
+                public EndpointConfig getEndpointConfig() {
                     return cec;
                 }
 
@@ -292,21 +290,21 @@ public class ErrorTest {
         }
     }
 
-    public static class OnMessageExceptionEndpointServerApplicationConfiguration extends TyrusServerConfiguration {
-        public OnMessageExceptionEndpointServerApplicationConfiguration() {
-            super(Collections.<Class<?>>emptySet(), new HashSet<ServerEndpointConfiguration>() {{
-                add(ServerEndpointConfigurationBuilder.create(OnMessageExceptionEndpoint.class, "/open").build());
+    public static class OnMessageExceptionEndpointServerApplicationConfig extends TyrusServerConfiguration {
+        public OnMessageExceptionEndpointServerApplicationConfig() {
+            super(Collections.<Class<?>>emptySet(), new HashSet<ServerEndpointConfig>() {{
+                add(ServerEndpointConfig.Builder.create(OnMessageExceptionEndpoint.class, "/open").build());
             }});
         }
     }
 
-    public static class OnMessageExceptionEndpoint extends Endpoint implements MessageHandler.Basic<String> {
+    public static class OnMessageExceptionEndpoint extends Endpoint implements MessageHandler.Whole<String> {
 
         public static Throwable throwable;
         public static Session session;
 
         @Override
-        public void onOpen(Session session, EndpointConfiguration config) {
+        public void onOpen(Session session, EndpointConfig config) {
             session.addMessageHandler(this);
         }
 
@@ -324,17 +322,17 @@ public class ErrorTest {
 
     @Test
     public void testErrorOnMessageProgrammatic() {
-        Server server = new Server(OnMessageExceptionEndpointServerApplicationConfiguration.class);
+        Server server = new Server(OnMessageExceptionEndpointServerApplicationConfig.class);
 
         try {
             server.start();
-            final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
+            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
             messageLatch = new CountDownLatch(1);
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new TestEndpointAdapter() {
                 @Override
-                public EndpointConfiguration getEndpointConfiguration() {
+                public EndpointConfig getEndpointConfig() {
                     return cec;
                 }
 

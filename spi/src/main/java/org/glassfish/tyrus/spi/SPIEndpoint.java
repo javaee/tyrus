@@ -44,7 +44,7 @@ import java.util.List;
 import java.util.Set;
 
 import javax.websocket.CloseReason;
-import javax.websocket.EndpointConfiguration;
+import javax.websocket.EndpointConfig;
 import javax.websocket.Extension;
 import javax.websocket.Session;
 
@@ -195,5 +195,5 @@ public abstract class SPIEndpoint {
      *
      * @return configuration.
      */
-    public abstract EndpointConfiguration getEndpointConfiguration();
+    public abstract EndpointConfig getEndpointConfig();
 }
