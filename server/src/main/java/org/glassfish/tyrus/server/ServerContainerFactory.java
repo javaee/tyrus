@@ -45,7 +45,6 @@ import java.util.logging.Logger;
 import org.glassfish.tyrus.core.OsgiRegistry;
 import org.glassfish.tyrus.core.ReflectionHelper;
 import org.glassfish.tyrus.core.TyrusContainerProvider;
-import org.glassfish.tyrus.core.OsgiRegistry;
 import org.glassfish.tyrus.spi.TyrusContainer;
 
 /**

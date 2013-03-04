@@ -49,7 +49,6 @@ import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 import javax.websocket.server.ServerApplicationConfig;
 import javax.websocket.server.ServerEndpointConfig;
-import javax.websocket.server.ServerEndpointConfig.Builder;
 
 import org.glassfish.tyrus.server.TyrusServerConfiguration;
 
