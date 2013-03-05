@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -55,7 +55,7 @@ import org.glassfish.tyrus.websockets.WebSocketEngine;
 import org.glassfish.tyrus.websockets.frametypes.ClosingFrameType;
 
 public class ClosingFrame extends DataFrame {
-    public static final byte[] EMPTY_BYTES = new byte[0];
+    private static final byte[] EMPTY_BYTES = new byte[0];
     private int code = WebSocket.NORMAL_CLOSURE;
     private String reason;
 
@@ -91,7 +91,7 @@ public class ClosingFrame extends DataFrame {
         }
         if (bytes.length > 0) {
             code = (int) WebSocketEngine.toLong(bytes, 0, 2);
-            if (code < 1000 || code == 1004 || code == 1005 || code == 1006 || (code > 1011 && code < 3000) || code > 4999) {
+            if (code < 1000 || (code > 1015 && code < 3000) || code > 4999) {
                 throw new ProtocolError("Illegal status code: " + code);
             }
             if (bytes.length > 2) {

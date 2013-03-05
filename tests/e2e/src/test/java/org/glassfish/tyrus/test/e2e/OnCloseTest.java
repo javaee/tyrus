@@ -46,6 +46,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfig;
 import javax.websocket.CloseReason;
+import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfig;
 import javax.websocket.OnClose;
 import javax.websocket.OnError;
@@ -269,6 +270,148 @@ public class OnCloseTest {
             throw new RuntimeException(e.getMessage(), e);
         } finally {
             server.stop();
+        }
+    }
+
+    @ServerEndpoint(value = "/close")
+    public static class OnCloseAllSupportedReasonsEndpoint {
+
+        @OnMessage
+        public String message(final Integer message, Session session) {
+            try {
+                session.close(new CloseReason(new CloseReason.CloseCode() {
+                    @Override
+                    public int getCode() {
+                        // custom close codes (4000-4999)
+                        return message;
+                    }
+                }, null));
+                return null;
+            } catch (IOException e) {
+                // do nothing.
+            }
+            return "message";
+        }
+
+        @OnError
+        public void onError(Throwable t) {
+            t.printStackTrace();
+        }
+    }
+
+    @Test
+    public void testOnCloseServerInitiated() {
+        Server server = new Server(OnCloseAllSupportedReasonsEndpoint.class);
+
+        // close codes 1000 - 1015
+        for (int i = 1000; i < 1016; i++) {
+            final CountDownLatch messageLatch = new CountDownLatch(1);
+
+            final int closeCode = i;
+            System.out.println("### Testing CloseCode " + i);
+
+            try {
+                server.start();
+                final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
+
+                ClientManager.createClient().connectToServer(new Endpoint() {
+                    @Override
+                    public void onOpen(Session session, EndpointConfig endpointConfig) {
+                        try {
+                            session.getBasicRemote().sendObject(closeCode);
+                        } catch (Exception e) {
+                            // do nothing.
+                        }
+                    }
+
+                    @Override
+                    public void onClose(Session session, CloseReason closeReason) {
+                        System.out.println("#### received: " + closeReason);
+                        if (closeReason != null &&
+                                closeReason.getCloseCode().getCode() == closeCode) {
+                            messageLatch.countDown();
+                        }
+                    }
+                }, cec, new URI("ws://localhost:8025/websockets/tests/close"));
+
+                messageLatch.await(1, TimeUnit.SECONDS);
+
+                assertEquals(0L, messageLatch.getCount());
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new RuntimeException(e.getMessage(), e);
+            } finally {
+                server.stop();
+            }
+        }
+    }
+
+    @ServerEndpoint(value = "/close")
+    public static class OnCloseAllSupportedReasonsClientInitEndpoint {
+
+        public static CloseReason closeReason;
+
+        @OnMessage
+        public String message(final Integer message, Session session) {
+            return "message";
+        }
+
+        @OnClose
+        public void onClose(CloseReason closeReason, Session session) {
+            this.closeReason = closeReason;
+            myMessageLatch.countDown();
+        }
+
+        @OnError
+        public void onError(Throwable t) {
+            t.printStackTrace();
+        }
+    }
+
+    static CountDownLatch myMessageLatch = new CountDownLatch(1);
+
+    @Test
+    public void testOnCloseClientInitiated() {
+        Server server = new Server(OnCloseAllSupportedReasonsClientInitEndpoint.class);
+
+        // close codes 1000 - 1015
+        for (int i = 1000; i < 1016; i++) {
+
+            final int closeCode = i;
+            System.out.println("### Testing CloseCode " + i);
+            myMessageLatch = new CountDownLatch(1);
+
+            try {
+                server.start();
+                final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
+
+                ClientManager.createClient().connectToServer(new Endpoint() {
+                    @Override
+                    public void onOpen(Session session, EndpointConfig endpointConfig) {
+                        try {
+                            session.close(new CloseReason(new CloseReason.CloseCode() {
+                                @Override
+                                public int getCode() {
+                                    // custom close codes (4000-4999)
+                                    return closeCode;
+                                }
+                            }, null));
+                        } catch (Exception e) {
+                            // do nothing.
+                        }
+                    }
+                }, cec, new URI("ws://localhost:8025/websockets/tests/close"));
+
+                myMessageLatch.await(1, TimeUnit.SECONDS);
+                assertEquals(closeCode, OnCloseAllSupportedReasonsClientInitEndpoint.closeReason.getCloseCode().getCode());
+
+                assertEquals(0L, myMessageLatch.getCount());
+            } catch (Exception e) {
+                e.printStackTrace();
+                throw new RuntimeException(e.getMessage(), e);
+            } finally {
+                server.stop();
+            }
         }
     }
 }
