@@ -40,6 +40,7 @@
 
 package org.glassfish.tyrus.sample.cdi;
 
+import javax.annotation.PostConstruct;
 import javax.ejb.Singleton;
 
 /**
@@ -49,12 +50,18 @@ import javax.ejb.Singleton;
 public class InjectedSingletonBean {
 
     private int counter = 0;
+    private boolean postConstructCalled = false;
 
     public int getCounter() {
-        return counter;
+        return postConstructCalled ? counter : -1;
     }
 
     public void incrementCounter() {
         counter++;
+    }
+
+    @PostConstruct
+    public void postConstruct(){
+        postConstructCalled = true;
     }
 }

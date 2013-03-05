@@ -69,10 +69,10 @@ public class ComponentProviderService {
      * Searches for registered {@link ComponentProvider}s and registers them with this service.
      * </p>
      * {@link DefaultComponentProvider} is always added to found providers.
-     * @param errorCollector error collector.
+     *
      * @return initialized {@link ComponentProviderService}.
      */
-    public static ComponentProviderService create(ErrorCollector errorCollector){
+    public static ComponentProviderService create() {
         final List<ComponentProvider> foundProviders = new ArrayList<ComponentProvider>();
         ServiceFinder<ComponentProvider> finder = ServiceFinder.find(ComponentProvider.class);
 
@@ -113,11 +113,13 @@ public class ComponentProviderService {
                 if (componentProvider.isApplicable(c)) {
                     try {
                         loaded = componentProvider.provideInstance(c);
-                        if(classObjectMap == null) {
-                            sessionToObject.put(session, new HashMap<Class<?>, Object>());
+                        if (loaded != null) {
+                            if (classObjectMap == null) {
+                                sessionToObject.put(session, new HashMap<Class<?>, Object>());
+                            }
+                            sessionToObject.get(session).put(c, loaded);
+                            break;
                         }
-                        sessionToObject.get(session).put(c, loaded);
-                        break;
                     } catch (Exception e) {
                         collector.addException(new DeploymentException(String.format("Component provider %s threw exception when providing instance of class %s",
                                 componentProvider.getClass().getName(), c.getName()), e));

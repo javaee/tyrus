@@ -43,6 +43,7 @@ package org.glassfish.tyrus.sample.cdi;
 import javax.websocket.OnMessage;
 import javax.websocket.server.ServerEndpoint;
 
+import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 
 /**
@@ -53,11 +54,18 @@ import javax.inject.Inject;
 @ServerEndpoint(value = "/simple")
 public class InjectToBeanSimple {
 
+    private boolean postConstructCalled = false;
+
     @Inject
     InjectedSimpleBean bean;
 
     @OnMessage
     public String echo(String message) {
-        return String.format("%s%s", message, bean.getText());
+        return postConstructCalled ? String.format("%s%s", message, bean.getText()) : "PostConstruct was not called";
+    }
+
+    @PostConstruct
+    public void postConstruct(){
+        postConstructCalled = true;
     }
 }

@@ -40,25 +40,26 @@
 
 package org.glassfish.tyrus.sample.cdi;
 
+import javax.websocket.OnMessage;
+import javax.websocket.server.ServerEndpoint;
+
 import javax.annotation.PostConstruct;
 import javax.ejb.Stateful;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
+@ServerEndpoint(value = "/stateful")
 @Stateful
-public class InjectedStatefulBean {
+public class StatefulBean {
 
-    private int counter = 0;
+    int counter = 0;
     private boolean postConstructCalled = false;
 
 
-    public int getCounter() {
-        return postConstructCalled ? counter : -1;
-    }
-
-    public void incrementCounter() {
-        counter++;
+    @OnMessage
+    public String echo(String message) {
+        return postConstructCalled ? String.format("%s%s", message, counter++) : "PostConstruct not called.";
     }
 
     @PostConstruct

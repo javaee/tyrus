@@ -43,15 +43,17 @@ package org.glassfish.tyrus.sample.cdi;
 import javax.websocket.OnMessage;
 import javax.websocket.server.ServerEndpoint;
 
+import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-@ServerEndpoint(value = "/stateful")
+@ServerEndpoint(value = "/injectingstateful")
 public class InjectToBeanStateful {
 
     public static final String TEXT = " Inner counter is: ";
+    private boolean postConstructCalled = false;
 
     @Inject
     InjectedStatefulBean bean;
@@ -59,6 +61,11 @@ public class InjectToBeanStateful {
     @OnMessage
     public String doThat(String message) {
         bean.incrementCounter();
-        return String.format("%s%s%s", message, TEXT, bean.getCounter());
+        return postConstructCalled ? String.format("%s%s%s", message, TEXT, bean.getCounter()) : "PostConstruct not called.";
+    }
+
+    @PostConstruct
+    public void postConstruct(){
+        postConstructCalled = true;
     }
 }

@@ -57,7 +57,6 @@ import org.glassfish.tyrus.client.ClientManager;
 
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.fail;
 
 /**
  * This test works properly with EE container only.
@@ -87,9 +86,8 @@ public class CdiTest {
         }
     }
 
-
     @Test
-    public void testEcho() throws DeploymentException, InterruptedException, IOException {
+    public void testSimple() throws DeploymentException, InterruptedException, IOException {
         final String host = System.getProperty("tyrus.test.host");
         if (host == null) {
             return;
@@ -117,12 +115,9 @@ public class CdiTest {
             }
         }, ClientEndpointConfig.Builder.create().build(), getURI("/simple"));
 
-        messageLatch.await(1, TimeUnit.SECONDS);
-        if (messageLatch.getCount() != 0) {
-            fail();
-        }
+        messageLatch.await(2, TimeUnit.SECONDS);
+        assertEquals("Number of received messages is not 0.", 0, messageLatch.getCount());
     }
-
 
     @Test
     public void testStatefulOneClientTwoMessages() throws DeploymentException, InterruptedException, IOException {
@@ -164,22 +159,31 @@ public class CdiTest {
                     //do nothing
                 }
             }
-        }, ClientEndpointConfig.Builder.create().build(), getURI("/stateful"));
+        }, ClientEndpointConfig.Builder.create().build(), getURI("/injectingstateful"));
 
         messageLatch.await(1, TimeUnit.SECONDS);
-        if (messageLatch.getCount() != 0) {
-            fail("Messages not received");
-        }
+        assertEquals("Number of received messages is not 0.", 0, messageLatch.getCount());
+
+    }
+
+    @Test
+    public void testInjectedStatefulTwoMessagesFromTwoClients() throws InterruptedException, DeploymentException, IOException {
+        testFromTwoClients("/injectingstateful", String.format("%s%s1", SENT_MESSAGE, InjectToBeanStateful.TEXT), String.format("%s%s1", SENT_MESSAGE, InjectToBeanStateful.TEXT));
+    }
+
+    @Test
+    public void testInjectedSingletonTwoMessagesFromTwoClients() throws InterruptedException, DeploymentException, IOException {
+        testFromTwoClients("/injectingsingleton", String.format("%s%s1", SENT_MESSAGE, InjectToBeanSingleton.TEXT), String.format("%s%s2", SENT_MESSAGE, InjectToBeanStateful.TEXT));
     }
 
     @Test
     public void testStatefulTwoMessagesFromTwoClients() throws InterruptedException, DeploymentException, IOException {
-        testFromTwoClients("/stateful", String.format("%s%s1", SENT_MESSAGE, InjectToBeanStateful.TEXT), String.format("%s%s1", SENT_MESSAGE, InjectToBeanStateful.TEXT));
+        testFromTwoClients("/stateful", String.format("%s0", SENT_MESSAGE), String.format("%s0", SENT_MESSAGE));
     }
 
     @Test
     public void testSingletonTwoMessagesFromTwoClients() throws InterruptedException, DeploymentException, IOException {
-        testFromTwoClients("/singleton", String.format("%s%s1", SENT_MESSAGE, InjectToBeanStateful.TEXT), String.format("%s%s2", SENT_MESSAGE, InjectToBeanStateful.TEXT));
+        testFromTwoClients("/singleton", String.format("%s0", SENT_MESSAGE), String.format("%s1", SENT_MESSAGE));
     }
 
     public void testFromTwoClients(String path, final String expected1, final String expected2) throws DeploymentException, InterruptedException, IOException {
@@ -211,14 +215,16 @@ public class CdiTest {
 
                     session.getBasicRemote().sendText("Do or do not, there is no try.");
                 } catch (IOException e) {
-                    //do nothing
+                    e.printStackTrace();
                 }
+            }
+
+            public void onError(Session session, Throwable thr) {
+                thr.printStackTrace();
             }
         }, ClientEndpointConfig.Builder.create().build(), getURI(path));
 
         messageLatch.await(2, TimeUnit.SECONDS);
-        if (messageLatch.getCount() != 0) {
-            fail("Wrong number of received messages");
-        }
+        assertEquals("Number of received messages is not 0.", 0, messageLatch.getCount());
     }
 }

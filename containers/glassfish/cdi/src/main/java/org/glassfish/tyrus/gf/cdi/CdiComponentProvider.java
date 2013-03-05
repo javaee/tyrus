@@ -40,12 +40,11 @@
 
 package org.glassfish.tyrus.gf.cdi;
 
+import java.util.Set;
 import java.util.logging.Logger;
 
-import javax.enterprise.context.spi.CreationalContext;
-import javax.enterprise.inject.spi.AnnotatedType;
+import javax.enterprise.inject.spi.Bean;
 import javax.enterprise.inject.spi.BeanManager;
-import javax.enterprise.inject.spi.InjectionTarget;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
@@ -93,21 +92,15 @@ public class CdiComponentProvider extends ComponentProvider {
     @Override
     public <T> T provideInstance(Class<T> c) {
         if (managerRetrieved) {
-            T managedObject;
-            AnnotatedType annotatedType;
-            InjectionTarget it;
-            CreationalContext cc;
-
             synchronized (beanManager) {
-                annotatedType = beanManager.createAnnotatedType(c);
-                it = beanManager.createInjectionTarget(annotatedType);
-                cc = beanManager.createCreationalContext(null);
-            }
-            managedObject = (T) it.produce(cc);
-            it.inject(managedObject, cc);
-            it.postConstruct(managedObject);
+                final Set<Bean<?>> beans = beanManager.getBeans(c);
 
-            return managedObject;
+                if (beans.size() > 0) {
+                    return (T) beanManager.getReference(beans.iterator().next(), c, beanManager.createCreationalContext(null));
+                } else {
+                    return null;
+                }
+            }
         } else {
             return null;
         }

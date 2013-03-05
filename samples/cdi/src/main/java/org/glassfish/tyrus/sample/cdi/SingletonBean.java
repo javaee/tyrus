@@ -40,25 +40,29 @@
 
 package org.glassfish.tyrus.sample.cdi;
 
+import javax.websocket.OnMessage;
+import javax.websocket.server.ServerEndpoint;
+
 import javax.annotation.PostConstruct;
-import javax.ejb.Stateful;
+import javax.ejb.Singleton;
+import javax.interceptor.Interceptors;
+
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-@Stateful
-public class InjectedStatefulBean {
+@ServerEndpoint(value = "/singleton")
+@Singleton
+@Interceptors(LoggingInterceptor.class)
+public class SingletonBean {
 
-    private int counter = 0;
+    int counter = 0;
     private boolean postConstructCalled = false;
+    public static boolean interceptorCalled = false;
 
-
-    public int getCounter() {
-        return postConstructCalled ? counter : -1;
-    }
-
-    public void incrementCounter() {
-        counter++;
+    @OnMessage
+    public String echo(String message) {
+        return (postConstructCalled && interceptorCalled) ? String.format("%s%s", message, counter++) : "PostConstruct not called.";
     }
 
     @PostConstruct

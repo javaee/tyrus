@@ -49,6 +49,8 @@
 <title>Web Socket CDI Sample Client</title>
 <script language="javascript" type="text/javascript">
     var simpleBeanUri = getRootUri() + "/sample-cdi/simple";
+    var injectingSingletonUri = getRootUri() + "/sample-cdi/injectingsingleton";
+    var injectingStatefulUri = getRootUri() + "/sample-cdi/injectingstateful";
     var singletonUri = getRootUri() + "/sample-cdi/singleton";
     var statefulUri = getRootUri() + "/sample-cdi/stateful";
 
@@ -109,11 +111,13 @@
 <h2 style="text-align: center;">Web Socket Echo Client</h2>
 
 <div style="text-align: center;"><img style=" width: 64px; height: 64px;" alt="" src="HTML5_Logo_512.png"></div>
-<br></br>
+</br></br>
 
 <div style="text-align: center;">
     <form action="">
         <input onclick="send_message(simpleBeanUri)" value="Send message to simple bean" type="button">
+        <input onclick="send_message(injectingSingletonUri)" value="Send message to bean injecting singleton bean" type="button">
+        <input onclick="send_message(injectingStatefulUri)" value="Send message to bean injecting stateful bean" type="button"></br></br>
         <input onclick="send_message(singletonUri)" value="Send message to singleton bean" type="button">
         <input onclick="send_message(statefulUri)" value="Send message to stateful bean" type="button"></br></br>
         <input id="textID" name="message" value="Hello Web Sockets !" type="text"><br>

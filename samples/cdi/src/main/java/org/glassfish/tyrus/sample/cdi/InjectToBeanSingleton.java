@@ -47,15 +47,17 @@ package org.glassfish.tyrus.sample.cdi;
 import javax.websocket.OnMessage;
 import javax.websocket.server.ServerEndpoint;
 
+import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-@ServerEndpoint(value = "/singleton")
+@ServerEndpoint(value = "/injectingsingleton")
 public class InjectToBeanSingleton {
 
     public static final String TEXT = " Inner counter is: ";
+    private boolean postConstructCalled = false;
 
     @Inject
     InjectedSingletonBean bean;
@@ -63,6 +65,11 @@ public class InjectToBeanSingleton {
     @OnMessage
     public String doThat(String message) {
         bean.incrementCounter();
-        return String.format("%s%s%s", message, TEXT, bean.getCounter());
+        return postConstructCalled ? String.format("%s%s%s", message, TEXT, bean.getCounter()) : "PostConstruct not called.";
+    }
+
+    @PostConstruct
+    public void postConstruct(){
+        postConstructCalled = true;
     }
 }

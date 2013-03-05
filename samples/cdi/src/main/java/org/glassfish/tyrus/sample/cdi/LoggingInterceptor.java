@@ -40,29 +40,20 @@
 
 package org.glassfish.tyrus.sample.cdi;
 
-import javax.annotation.PostConstruct;
-import javax.ejb.Stateful;
+import java.util.logging.Logger;
+
+import javax.interceptor.AroundInvoke;
+import javax.interceptor.InvocationContext;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-@Stateful
-public class InjectedStatefulBean {
+public class LoggingInterceptor {
 
-    private int counter = 0;
-    private boolean postConstructCalled = false;
-
-
-    public int getCounter() {
-        return postConstructCalled ? counter : -1;
-    }
-
-    public void incrementCounter() {
-        counter++;
-    }
-
-    @PostConstruct
-    public void postConstruct(){
-        postConstructCalled = true;
+    @AroundInvoke
+    public Object manageTransaction(InvocationContext ctx) throws Exception {
+        SingletonBean.interceptorCalled = true;
+        Logger.getLogger(getClass().getName()).info("LOGGING.");
+        return ctx.proceed();
     }
 }

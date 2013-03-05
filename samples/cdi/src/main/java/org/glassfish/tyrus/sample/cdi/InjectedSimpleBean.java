@@ -40,14 +40,22 @@
 
 package org.glassfish.tyrus.sample.cdi;
 
+import javax.annotation.PostConstruct;
+
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 public class InjectedSimpleBean {
 
     private static final String TEXT = " (from your server)";
+    private boolean postConstructCalled = false;
 
     public String getText() {
-        return TEXT;
+        return postConstructCalled ? TEXT : null;
+    }
+
+    @PostConstruct
+    public void postConstruct(){
+        postConstructCalled = true;
     }
 }
