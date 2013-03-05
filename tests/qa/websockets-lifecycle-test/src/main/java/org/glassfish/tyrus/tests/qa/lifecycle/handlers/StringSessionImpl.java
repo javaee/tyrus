@@ -41,7 +41,11 @@ package org.glassfish.tyrus.tests.qa.lifecycle.handlers;
 
 import java.io.IOException;
 import java.util.logging.Level;
+<<<<<<< .mine
+import javax.websocket.RemoteEndpoint.Basic;
+=======
 
+>>>>>>> .r432
 import javax.websocket.Session;
 
 import org.glassfish.tyrus.tests.qa.lifecycle.SessionConversation;
@@ -51,38 +55,55 @@ import org.glassfish.tyrus.tests.qa.lifecycle.SessionLifeCycle;
  *
  * @author michal.conos at oracle.com
  */
-public class StringSessionImpl implements SessionConversation {
+public class StringSessionImpl extends SessionLifeCycle<String> {
     
+    String gotPartial="";
+    
+    public StringSessionImpl(boolean partial) {
+        super(partial);
+    }
+
     @Override
-    public SessionLifeCycle getSessionConversation() {
-        return new SessionLifeCycle<String, byte[]>() {
-            @Override
-            public void onServerMessageHandler(String message, Session session) throws IOException {
-                logger.log(Level.INFO, "StringSessionImpl: onServerMessage: {0}", message);
-                session.getBasicRemote().sendText(message);
-            }
+    public void onServerMessageHandler(String message, Session session) throws IOException {
+        logger.log(Level.INFO, "StringSessionImpl: onServerMessage: {0}", message);
+        session.getBasicRemote().sendText(message);
+    }
 
-            @Override
-            public void onClientMessageHandler(String message, Session session) throws IOException {
-                logger.log(Level.INFO, "StringSessionImpl: onClientMessage: {0}", message);
-                if (message.equals("client.open")) {
-                    closeTheSessionFromClient(session);
-                } 
-            }
+    @Override
+    public void onClientMessageHandler(String message, Session session) throws IOException {
+        logger.log(Level.INFO, "StringSessionImpl: onClientMessage: {0}", message);
+        if (message.equals("client.open")) {
+            closeTheSessionFromClient(session);
+        }
+    }
 
-            @Override
-            public void startTalk(Session s) throws IOException {
-                logger.log(Level.INFO, "startTalk with client.open");
-                s.getBasicRemote().sendText("client.open");
-            }
+    @Override
+    public void startTalk(Session s) throws IOException {
+        logger.log(Level.INFO, "startTalk with client.open");
+        s.getBasicRemote().sendText("client.open");
+    }
 
-            @Override
-            public void onServerMessageHandler(byte [] message, Session session, boolean last) throws IOException {
-            }
+    @Override
+    public void onServerMessageHandler(String message, Session session, boolean last) throws IOException {
+        session.getBasicRemote().sendText(message, last);
+    }
 
-            @Override
-            public void onClientMessageHandler(byte[] message, Session session, boolean last) throws IOException {
-            }
-        };
+    @Override
+    public void onClientMessageHandler(String message, Session session, boolean last) throws IOException {
+        gotPartial+=message;
+        if(last && gotPartial.equals("client.openclient.openclient.open.client.openclient.open")) {
+            closeTheSessionFromClient(session);
+        }
+    }
+
+    @Override
+    public void startTalkPartial(Session s) throws IOException {
+        gotPartial = "";
+        Basic remote = s.getBasicRemote();
+        remote.sendText("client.open", false);
+        remote.sendText("client.open", false);
+        remote.sendText("client.open", false);
+        remote.sendText("client.open", false);
+        remote.sendText("client.open", true);
     }
 }

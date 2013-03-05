@@ -43,7 +43,11 @@ import java.io.IOException;
 import java.io.Reader;
 import java.nio.ByteBuffer;
 import java.util.logging.Level;
+<<<<<<< .mine
+import javax.websocket.RemoteEndpoint.Basic;
+=======
 
+>>>>>>> .r432
 import javax.websocket.Session;
 
 import org.glassfish.tyrus.tests.qa.lifecycle.SessionConversation;
@@ -53,18 +57,18 @@ import org.glassfish.tyrus.tests.qa.lifecycle.SessionLifeCycle;
  *
  * @author michal.conos at oracle.com
  */
-public class ByteSessionImpl extends SessionLifeCycle<byte[], Reader> implements SessionConversation {
+public class ByteSessionImpl extends SessionLifeCycle<byte[]> implements SessionConversation {
 
     @Override
-    public SessionLifeCycle getSessionConversation() {
-        return new ByteSessionImpl(1024, true);
+    public SessionLifeCycle getSessionConversation(boolean partial) {
+        return new ByteSessionImpl(1024, true, partial);
     }
    
     int messageSize;
     byte [] messageToSend;
 
-    public ByteSessionImpl(int messageSize, boolean directIO) {
-        super();
+    public ByteSessionImpl(int messageSize, boolean directIO, boolean partial) {
+        super(partial);
         this.messageSize = messageSize;
         messageToSend = new byte[messageSize];
         initSendBuffer();
@@ -109,10 +113,22 @@ public class ByteSessionImpl extends SessionLifeCycle<byte[], Reader> implements
     }
 
     @Override
-    public void onServerMessageHandler(Reader message, Session session, boolean last) throws IOException {
+    public void onServerMessageHandler(byte[] message, Session session, boolean last) throws IOException {
+        session.getBasicRemote().sendBinary(ByteBuffer.wrap(message), last);
     }
 
     @Override
-    public void onClientMessageHandler(Reader message, Session session, boolean last) throws IOException {
+    public void onClientMessageHandler(byte[] message, Session session, boolean last) throws IOException {
+    }
+
+    @Override
+    public void startTalkPartial(Session s) throws IOException {
+        ByteBuffer bb = ByteBuffer.wrap(messageToSend);
+        Basic remote = s.getBasicRemote();
+        remote.sendBinary(bb, false);
+        remote.sendBinary(bb, false);
+        remote.sendBinary(bb, false);
+        remote.sendBinary(bb, false);
+        remote.sendBinary(bb, true);
     }
 }

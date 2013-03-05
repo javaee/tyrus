@@ -42,29 +42,29 @@ package org.glassfish.tyrus.tests.qa.lifecycle.config;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-
 import javax.websocket.Endpoint;
-import javax.websocket.server.ServerApplicationConfig;
-import javax.websocket.server.ServerEndpointConfig;
-
-import org.glassfish.tyrus.tests.qa.lifecycle.handlers.text.AnnotatedBufferedReaderSession;
-
-
+import javax.websocket.server.ServerApplicationConfiguration;
+import javax.websocket.server.ServerEndpointConfiguration;
+import javax.websocket.server.ServerEndpointConfigurationBuilder;
+import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleDeployment;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary.ProgrammaticWholeMessageByteSession;
 
 /**
  *
  * @author michal.conos at oracle.com
  */
-public class AnnotatedBufferedReaderSessionConfig implements ServerApplicationConfig {
-       @Override
-    public Set<ServerEndpointConfig> getEndpointConfigs(Set<Class<? extends Endpoint>> set) {
-        return Collections.EMPTY_SET;
+public class ProgrammaticWholeMessageByteSessionConfig implements ServerApplicationConfiguration {
+
+    @Override
+    public Set<ServerEndpointConfiguration> getEndpointConfigurations(Set<Class<? extends Endpoint>> set) {
+        Set<ServerEndpointConfiguration> configSet = new HashSet<>();
+        ServerEndpointConfiguration config = ServerEndpointConfigurationBuilder.create(ProgrammaticWholeMessageByteSession.class, LifeCycleDeployment.LIFECYCLE_ENDPOINT_PATH).build();
+        configSet.add(config);
+        return configSet;
     }
 
     @Override
     public Set<Class<?>> getAnnotatedEndpointClasses(Set<Class<?>> set) {
-        Set configSet =  new HashSet<Class<?>>();
-        configSet.add(AnnotatedBufferedReaderSession.Server.class);
-        return configSet;
+        return Collections.EMPTY_SET;
     }
 }

@@ -37,23 +37,34 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary;
+package org.glassfish.tyrus.tests.qa.lifecycle.config;
 
-import javax.websocket.MessageHandler;
-
-import org.glassfish.tyrus.tests.qa.lifecycle.ProgrammaticEndpoint;
-import org.glassfish.tyrus.tests.qa.lifecycle.handlers.ByteSessionImpl;
-
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+import javax.websocket.Endpoint;
+import javax.websocket.server.ServerApplicationConfiguration;
+import javax.websocket.server.ServerEndpointConfiguration;
+import javax.websocket.server.ServerEndpointConfigurationBuilder;
+import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleDeployment;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary.ProgrammaticWholeMessageByteBufferSession;
 
 /**
  *
  * @author michal.conos at oracle.com
  */
-public class ProgrammaticByteSession extends ProgrammaticEndpoint<byte[]> implements MessageHandler.Whole<byte[]> {
+public class ProgrammaticWholeMessageByteBufferSessionConfig implements ServerApplicationConfiguration {
 
     @Override
-    public void createLifeCycle() {
-        lifeCycle = new ByteSessionImpl(1024, false).getSessionConversation();
+    public Set<ServerEndpointConfiguration> getEndpointConfigurations(Set<Class<? extends Endpoint>> set) {
+        Set<ServerEndpointConfiguration> configSet = new HashSet<>();
+        ServerEndpointConfiguration config = ServerEndpointConfigurationBuilder.create(ProgrammaticWholeMessageByteBufferSession.class, LifeCycleDeployment.LIFECYCLE_ENDPOINT_PATH).build();
+        configSet.add(config);
+        return configSet;
     }
-    
+
+    @Override
+    public Set<Class<?>> getAnnotatedEndpointClasses(Set<Class<?>> set) {
+        return Collections.EMPTY_SET;
+    }
 }

@@ -41,10 +41,17 @@ package org.glassfish.tyrus.tests.qa.lifecycle;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+<<<<<<< .mine
+import javax.websocket.EndpointConfiguration;
+=======
 
 import javax.websocket.EndpointConfig;
+>>>>>>> .r432
 import javax.websocket.Session;
+<<<<<<< .mine
+=======
 
+>>>>>>> .r432
 import org.glassfish.tyrus.tests.qa.tools.SessionController;
 
 /**
@@ -63,7 +70,7 @@ abstract public class AnnotatedEndpoint {
         if (this.session == null) {
             this.session = session;
         }
-        logger.log(Level.INFO, "ProgrammaticEndpoint: onOpen");
+        logger.log(Level.INFO, "AnnotatedEndpoint: onOpen");
         this.sc = new SessionController(session);
         createLifeCycle();
         lifeCycle.setSessionController(sc);

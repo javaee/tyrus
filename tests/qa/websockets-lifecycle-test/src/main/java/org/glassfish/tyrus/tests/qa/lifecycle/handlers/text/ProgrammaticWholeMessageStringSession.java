@@ -37,33 +37,21 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.tests.qa.lifecycle.config;
+package org.glassfish.tyrus.tests.qa.lifecycle.handlers.text;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-
-import javax.websocket.Endpoint;
-import javax.websocket.server.ServerApplicationConfig;
-import javax.websocket.server.ServerEndpointConfig;
-
-import org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary.AnnotatedByteBufferSession;
-
+import javax.websocket.MessageHandler;
+import org.glassfish.tyrus.tests.qa.lifecycle.ProgrammaticWholeMessageEndpoint;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.StringSessionImpl;
 
 /**
  *
  * @author michal.conos at oracle.com
  */
-public class  AnnotatedByteBufferSessionConfig implements ServerApplicationConfig  {
-     @Override
-    public Set<ServerEndpointConfig> getEndpointConfigs(Set<Class<? extends Endpoint>> set) {
-        return Collections.EMPTY_SET;
-    }
+public class ProgrammaticWholeMessageStringSession extends ProgrammaticWholeMessageEndpoint<String> implements MessageHandler.Basic<String> {
 
     @Override
-    public Set<Class<?>> getAnnotatedEndpointClasses(Set<Class<?>> set) {
-        Set configSet =  new HashSet<Class<?>>();
-        configSet.add(AnnotatedByteBufferSession.Server.class);
-        return configSet;
+    public void createLifeCycle() {
+        lifeCycle = new StringSessionImpl(false);
     }
+    
 }

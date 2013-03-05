@@ -55,7 +55,7 @@ import org.glassfish.tyrus.tests.qa.lifecycle.SessionLifeCycle;
  *
  * @author michal.conos at oracle.com
  */
-public class BufferedReaderSessionImpl extends SessionLifeCycle<Reader, InputStream> implements SessionConversation {
+public class BufferedReaderSessionImpl extends SessionLifeCycle<Reader> implements SessionConversation {
 
     private int messageSize;
     private String messageToSend = "";
@@ -76,9 +76,9 @@ public class BufferedReaderSessionImpl extends SessionLifeCycle<Reader, InputStr
     }
 
     public BufferedReaderSessionImpl(int messageSize) {
+        super(false);
         this.messageSize = messageSize;
         initSendMessage();
-
     }
 
     private void initSendMessage() {
@@ -116,17 +116,22 @@ public class BufferedReaderSessionImpl extends SessionLifeCycle<Reader, InputStr
     }
 
     @Override
-    public SessionLifeCycle getSessionConversation() {
+    public SessionLifeCycle getSessionConversation(boolean partial) {
         return new BufferedReaderSessionImpl(1024);
     }
 
     @Override
-    public void onServerMessageHandler(InputStream message, Session session, boolean last) throws IOException {
+    public void onServerMessageHandler(Reader message, Session session, boolean last) throws IOException {
         
     }
 
     @Override
-    public void onClientMessageHandler(InputStream message, Session session, boolean last) throws IOException {
+    public void onClientMessageHandler(Reader message, Session session, boolean last) throws IOException {
+        
+    }
+
+    @Override
+    public void startTalkPartial(Session s) throws IOException {
         
     }
 }

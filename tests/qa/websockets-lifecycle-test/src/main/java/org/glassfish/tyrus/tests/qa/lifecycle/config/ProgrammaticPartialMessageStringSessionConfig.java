@@ -42,23 +42,23 @@ package org.glassfish.tyrus.tests.qa.lifecycle.config;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
-
 import javax.websocket.Endpoint;
-import javax.websocket.server.ServerApplicationConfig;
-import javax.websocket.server.ServerEndpointConfig;
-
+import javax.websocket.server.ServerApplicationConfiguration;
+import javax.websocket.server.ServerEndpointConfiguration;
+import javax.websocket.server.ServerEndpointConfigurationBuilder;
 import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleDeployment;
-import org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary.ProgrammaticObjectInputStreamSession;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.text.ProgrammaticPartialMessageStringSession;
 
 /**
  *
  * @author michal.conos at oracle.com
  */
-public class ProgrammaticObjectInputStreamSessionConfig implements ServerApplicationConfig{
-     @Override
-    public Set<ServerEndpointConfig> getEndpointConfigs(Set<Class<? extends Endpoint>> set) {
-        Set<ServerEndpointConfig> configSet = new HashSet<>();
-        ServerEndpointConfig config = ServerEndpointConfig.Builder.create(ProgrammaticObjectInputStreamSession.class, LifeCycleDeployment.LIFECYCLE_ENDPOINT_PATH).build();
+public class ProgrammaticPartialMessageStringSessionConfig implements ServerApplicationConfiguration {
+
+    @Override
+    public Set<ServerEndpointConfiguration> getEndpointConfigurations(Set<Class<? extends Endpoint>> set) {
+        Set<ServerEndpointConfiguration> configSet = new HashSet<>();
+        ServerEndpointConfiguration config = ServerEndpointConfigurationBuilder.create(ProgrammaticPartialMessageStringSession.class, LifeCycleDeployment.LIFECYCLE_ENDPOINT_PATH).build();
         configSet.add(config);
         return configSet;
     }

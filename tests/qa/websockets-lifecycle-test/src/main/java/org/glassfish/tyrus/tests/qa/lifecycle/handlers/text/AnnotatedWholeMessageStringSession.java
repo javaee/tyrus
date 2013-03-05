@@ -37,50 +37,48 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary;
+package org.glassfish.tyrus.tests.qa.lifecycle.handlers.text;
 
 import java.io.IOException;
 import java.util.logging.Level;
-
 import javax.websocket.ClientEndpoint;
 import javax.websocket.CloseReason;
-import javax.websocket.EndpointConfig;
+import javax.websocket.EndpointConfiguration;
 import javax.websocket.OnClose;
 import javax.websocket.OnError;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
-
 import org.glassfish.tyrus.tests.qa.lifecycle.AnnotatedEndpoint;
 import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleDeployment;
-import org.glassfish.tyrus.tests.qa.lifecycle.handlers.ByteSessionImpl;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.StringSessionImpl;
 import org.glassfish.tyrus.tests.qa.tools.SessionController;
 
 /**
  *
  * @author michal.conos at oracle.com
  */
-public class AnnotatedByteSession {
+public class AnnotatedWholeMessageStringSession {
 
     @ServerEndpoint(value = LifeCycleDeployment.LIFECYCLE_ENDPOINT_PATH)
     static public class Server extends AnnotatedEndpoint {
 
         @Override
         public void createLifeCycle() {
-            lifeCycle = new ByteSessionImpl(1024, true).getSessionConversation();
+            lifeCycle = new StringSessionImpl(false);
         }
 
         @OnOpen
         @Override
-        public void onOpen(Session session, EndpointConfig ec) {
+        public void onOpen(Session session, EndpointConfiguration ec) {
             super.onOpen(session, ec);
             lifeCycle.onServerOpen(session, ec);
             logger.log(Level.INFO, "lifeCycle={0}", lifeCycle.toString());
         }
 
         @OnMessage
-        public void onMessage(byte[] message, Session session) throws IOException {
+        public void onMessage(String message, Session session) throws IOException {
             lifeCycle.onServerMessage(message, session);
         }
 
@@ -100,11 +98,11 @@ public class AnnotatedByteSession {
 
         @Override
         public void createLifeCycle() {
-            lifeCycle = new ByteSessionImpl(1024, true).getSessionConversation();
+            lifeCycle = new StringSessionImpl(false);
         }
 
         @OnOpen
-        public void onOpen(Session session, EndpointConfig ec) {
+        public void onOpen(Session session, EndpointConfiguration ec) {
             if (this.session == null) {
                 this.session = session;
             }
@@ -116,7 +114,7 @@ public class AnnotatedByteSession {
         }
 
         @OnMessage
-        public void onMessage(byte[] message, Session session) throws IOException {
+        public void onMessage(String message, Session session) throws IOException {
             lifeCycle.onClientMessage(message, session);
         }
 

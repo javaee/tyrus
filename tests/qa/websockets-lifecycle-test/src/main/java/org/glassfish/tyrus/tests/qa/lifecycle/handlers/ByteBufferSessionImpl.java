@@ -46,7 +46,6 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
-
 import javax.websocket.Session;
 
 import org.glassfish.tyrus.tests.qa.lifecycle.SessionConversation;
@@ -56,20 +55,21 @@ import org.glassfish.tyrus.tests.qa.lifecycle.SessionLifeCycle;
  *
  * @author michal.conos at oracle.com
  */
-public class ByteBufferSessionImpl extends SessionLifeCycle<ByteBuffer, String> implements SessionConversation {
+public class ByteBufferSessionImpl extends SessionLifeCycle<ByteBuffer> implements SessionConversation {
 
     int messageSize;
     ByteBuffer messageToSend;
     String textMessageToSend;
 
-    public ByteBufferSessionImpl(int messageSize, boolean directIO) {
-        super();
+    public ByteBufferSessionImpl(int messageSize, boolean directIO, boolean partial) {
+        super(partial);
         this.messageSize = messageSize;
         if (directIO) {
             this.messageToSend = ByteBuffer.allocate(messageSize);
         } else {
             this.messageToSend = ByteBuffer.allocateDirect(messageSize);
         }
+        
         initSendBuffer();
     }
 
@@ -112,7 +112,33 @@ public class ByteBufferSessionImpl extends SessionLifeCycle<ByteBuffer, String> 
     public void startTalk(final Session s) throws IOException {
         ByteBuffer bb = ByteBuffer.allocate(messageSize);
         s.getBasicRemote().sendBinary(messageToSend);
-        List<Thread> partialMsgWorkers = new ArrayList<>();
+       
+    }
+
+    @Override
+    public void onServerMessageHandler(ByteBuffer message, Session session) throws IOException {
+        session.getBasicRemote().sendBinary(message);
+    }
+    
+    @Override
+    public void onServerMessageHandler(ByteBuffer message, Session session, boolean last) throws IOException {
+        session.getBasicRemote().sendBinary(message, last);
+    }
+
+    @Override
+    public SessionLifeCycle getSessionConversation(boolean partial) {
+        return new ByteBufferSessionImpl(1024, true, partial);
+    }
+
+    @Override
+    public void onClientMessageHandler(ByteBuffer message, Session session, boolean last) throws IOException {
+        logger.log(Level.INFO, "message:{0}", message);
+        logger.log(Level.INFO, "last:{0}", last);
+    }
+
+    @Override
+    public void startTalkPartial(final Session s) throws IOException {
+         List<Thread> partialMsgWorkers = new ArrayList<>();
         final CountDownLatch done = new CountDownLatch(3);
         partialMsgWorkers.add(new Thread() {
             @Override
@@ -159,26 +185,5 @@ public class ByteBufferSessionImpl extends SessionLifeCycle<ByteBuffer, String> 
         }
         
         s.getBasicRemote().sendBinary(messageToSend, true);
-    }
-
-    @Override
-    public void onServerMessageHandler(ByteBuffer message, Session session) throws IOException {
-        session.getBasicRemote().sendBinary(message);
-    }
-    
-    @Override
-    public void onServerMessageHandler(String message, Session session, boolean last) throws IOException {
-        session.getBasicRemote().sendText(message, last);
-    }
-
-    @Override
-    public SessionLifeCycle getSessionConversation() {
-        return new ByteBufferSessionImpl(1024, true);
-    }
-
-    @Override
-    public void onClientMessageHandler(String message, Session session, boolean last) throws IOException {
-        logger.log(Level.INFO, "message:{0}", message);
-        logger.log(Level.INFO, "last:{0}", last);
     }
 }

@@ -55,21 +55,33 @@ import org.glassfish.tyrus.tests.qa.tools.SessionController;
 /**
  * @author michal.conos at oracle.com
  */
-abstract public class SessionLifeCycle<T,U> {
+abstract public class SessionLifeCycle<T> {
 
+    public SessionLifeCycle(boolean partial) {
+        this.partialMessageHandler = partial;
+    }
+    private boolean partialMessageHandler;
     private SessionController sc;
     protected static final Logger logger = Logger.getLogger(SessionLifeCycle.class.getCanonicalName());
 
     abstract public void onServerMessageHandler(T message, Session session) throws IOException;
-    abstract public void onServerMessageHandler(U message, Session session, boolean last) throws IOException;
+
+    abstract public void onServerMessageHandler(T message, Session session, boolean last) throws IOException;
 
     abstract public void onClientMessageHandler(T message, Session session) throws IOException;
-    abstract public void onClientMessageHandler(U message, Session session, boolean last) throws IOException;
+
+    abstract public void onClientMessageHandler(T message, Session session, boolean last) throws IOException;
 
     abstract public void startTalk(Session s) throws IOException;
 
+    abstract public void startTalkPartial(Session s) throws IOException;
+
     public void setSessionController(SessionController sc) {
         this.sc = sc;
+    }
+    
+    public void setPartialMessageHandler(boolean partial) {
+        partialMessageHandler = partial;
     }
 
     public void onServerOpen(Session s, EndpointConfig config) {
@@ -88,17 +100,17 @@ abstract public class SessionLifeCycle<T,U> {
         }
         throw new RuntimeException("going onError");
     }
-    
+
     private boolean checkError(Throwable thr) {
         // Programmatic Case
-        if(thr instanceof RuntimeException && thr.getMessage()!=null && "going onError".equals(thr.getMessage())) {
+        if (thr instanceof RuntimeException && thr.getMessage() != null && "going onError".equals(thr.getMessage())) {
             return true;
         }
         // Annotated case - see TYRUS-94
-        if(thr instanceof InvocationTargetException ) {
+        if (thr instanceof InvocationTargetException) {
             logger.log(Level.INFO, "TYRUS-94: should be runtime exception!");
             Throwable cause = thr.getCause();
-            boolean res = cause instanceof RuntimeException && cause.getMessage()!=null && "going onError".equals(cause.getMessage());
+            boolean res = cause instanceof RuntimeException && cause.getMessage() != null && "going onError".equals(cause.getMessage());
             logger.log(Level.INFO, "At least RuntimeException", thr);
             logger.log(Level.INFO, "RuntimeException.getMessage()=={0}", cause.getMessage());
             return res;
@@ -130,8 +142,8 @@ abstract public class SessionLifeCycle<T,U> {
             sc.setState("on.server.message.exception");
         }
     }
-    
-    public void onServerMessage(U message, Session session, boolean last) {
+
+    public void onServerMessage(T message, Session session, boolean last) {
         logger.log(Level.INFO, "server:message={0}", message);
         sc.onMessage();
         try {
@@ -151,7 +163,11 @@ abstract public class SessionLifeCycle<T,U> {
         sc.clientOnOpen();
 
         try {
-            startTalk(s);
+            if (partialMessageHandler) {
+                startTalkPartial(s);
+            } else {
+                startTalk(s);
+            }
         } catch (IOException ex) {
             logger.log(Level.SEVERE, null, ex);
         }
@@ -184,8 +200,8 @@ abstract public class SessionLifeCycle<T,U> {
             logger.log(Level.SEVERE, null, ex);
         }
     }
-    
-    public void onClientMessage(U message, Session session, boolean last) {
+
+    public void onClientMessage(T message, Session session, boolean last) {
         sc.onMessage();
         logger.log(Level.INFO, "client:message={0}", message);
         try {

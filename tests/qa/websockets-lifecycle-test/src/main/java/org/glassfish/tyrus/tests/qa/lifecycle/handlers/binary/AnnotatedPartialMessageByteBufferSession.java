@@ -40,49 +40,47 @@
 package org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary;
 
 import java.io.IOException;
-import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.util.logging.Level;
-
 import javax.websocket.ClientEndpoint;
 import javax.websocket.CloseReason;
-import javax.websocket.EndpointConfig;
+import javax.websocket.EndpointConfiguration;
 import javax.websocket.OnClose;
 import javax.websocket.OnError;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
-
 import org.glassfish.tyrus.tests.qa.lifecycle.AnnotatedEndpoint;
 import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleDeployment;
-import org.glassfish.tyrus.tests.qa.lifecycle.handlers.ObjectInputStreamSessionImpl;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.ByteBufferSessionImpl;
 import org.glassfish.tyrus.tests.qa.tools.SessionController;
 
 /**
  *
  * @author michal.conos at oracle.com
  */
-public class AnnotatedObjectInputStreamSession {
-     @ServerEndpoint(value = LifeCycleDeployment.LIFECYCLE_ENDPOINT_PATH)
+public class AnnotatedPartialMessageByteBufferSession {
+
+    @ServerEndpoint(value = LifeCycleDeployment.LIFECYCLE_ENDPOINT_PATH)
     static public class Server extends AnnotatedEndpoint {
 
         @Override
         public void createLifeCycle() {
-            lifeCycle = new ObjectInputStreamSessionImpl().getSessionConversation();
+            lifeCycle = new ByteBufferSessionImpl(1024, true, true);
         }
 
         @OnOpen
         @Override
-        public void onOpen(Session session, EndpointConfig ec) {
+        public void onOpen(Session session, EndpointConfiguration ec) {
             super.onOpen(session, ec);
             lifeCycle.onServerOpen(session, ec);
             logger.log(Level.INFO, "lifeCycle={0}", lifeCycle.toString());
         }
 
         @OnMessage
-        public void onMessage(InputStream message, Session session) throws IOException {
-            logger.log(Level.INFO, "SERVER GOT THE MEssage:{0}", message.toString());
-            lifeCycle.onServerMessage(message, session);
+        public void onMessage(ByteBuffer message, Session session, boolean last) throws IOException {
+            lifeCycle.onServerMessage(message, session, last);
         }
 
         @OnClose
@@ -101,12 +99,11 @@ public class AnnotatedObjectInputStreamSession {
 
         @Override
         public void createLifeCycle() {
-            lifeCycle = new ObjectInputStreamSessionImpl().getSessionConversation();
+            lifeCycle = new ByteBufferSessionImpl(1024, true, true);
         }
 
         @OnOpen
-        @Override
-        public void onOpen(Session session, EndpointConfig ec) {
+        public void onOpen(Session session, EndpointConfiguration ec) {
             if (this.session == null) {
                 this.session = session;
             }
@@ -118,8 +115,8 @@ public class AnnotatedObjectInputStreamSession {
         }
 
         @OnMessage
-        public void onMessage(InputStream message, Session session) throws IOException {
-            lifeCycle.onClientMessage(message, session);
+        public void onMessage(ByteBuffer message, Session session, boolean last) throws IOException {
+            lifeCycle.onClientMessage(message, session, last);
         }
 
         @OnClose

@@ -37,32 +37,22 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.tests.qa.lifecycle.config;
+package org.glassfish.tyrus.tests.qa.lifecycle.handlers.text;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-
-import javax.websocket.Endpoint;
-import javax.websocket.server.ServerApplicationConfig;
-import javax.websocket.server.ServerEndpointConfig;
-
-import org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary.AnnotatedObjectInputStreamSession;
+import java.io.Reader;
+import javax.websocket.MessageHandler;
+import org.glassfish.tyrus.tests.qa.lifecycle.ProgrammaticWholeMessageEndpoint;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.BufferedReaderSessionImpl;
 
 /**
  *
  * @author michal.conos at oracle.com
  */
-public class AnnotatedObjectInputStreamSessionConfig implements ServerApplicationConfig  {
-     @Override
-    public Set<ServerEndpointConfig> getEndpointConfigs(Set<Class<? extends Endpoint>> set) {
-        return Collections.EMPTY_SET;
-    }
+public class  ProgrammaticWholeMessageBufferedReaderSession extends ProgrammaticWholeMessageEndpoint<Reader> implements MessageHandler.Basic<Reader> {
 
     @Override
-    public Set<Class<?>> getAnnotatedEndpointClasses(Set<Class<?>> set) {
-        Set configSet =  new HashSet<Class<?>>();
-        configSet.add(AnnotatedObjectInputStreamSession.Server.class);
-        return configSet;
+    public void createLifeCycle() {
+        lifeCycle = new BufferedReaderSessionImpl(1024);
     }
+    
 }

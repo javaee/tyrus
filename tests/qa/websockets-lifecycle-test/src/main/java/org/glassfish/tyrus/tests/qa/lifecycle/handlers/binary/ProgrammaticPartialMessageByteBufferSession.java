@@ -37,32 +37,22 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.tests.qa.lifecycle.config;
+package org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary;
 
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
-
-import javax.websocket.Endpoint;
-import javax.websocket.server.ServerApplicationConfig;
-import javax.websocket.server.ServerEndpointConfig;
-
-import org.glassfish.tyrus.tests.qa.lifecycle.handlers.text.AnnotatedStringSession;
+import java.nio.ByteBuffer;
+import javax.websocket.MessageHandler;
+import org.glassfish.tyrus.tests.qa.lifecycle.ProgrammaticEndpointPartialMessageEndpoint;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.ByteBufferSessionImpl;
 
 /**
  *
  * @author michal.conos at oracle.com
  */
-public class AnnotatedStringSessionConfig implements ServerApplicationConfig {
-    @Override
-    public Set<ServerEndpointConfig> getEndpointConfigs(Set<Class<? extends Endpoint>> set) {
-        return Collections.EMPTY_SET;
-    }
+public class ProgrammaticPartialMessageByteBufferSession extends ProgrammaticEndpointPartialMessageEndpoint<ByteBuffer> implements MessageHandler.Async<ByteBuffer> {
 
     @Override
-    public Set<Class<?>> getAnnotatedEndpointClasses(Set<Class<?>> set) {
-        Set configSet =  new HashSet<Class<?>>();
-        configSet.add(AnnotatedStringSession.Server.class);
-        return configSet;
+    public void createLifeCycle() {
+        lifeCycle = new ByteBufferSessionImpl(1024, true, true);
     }
+    
 }

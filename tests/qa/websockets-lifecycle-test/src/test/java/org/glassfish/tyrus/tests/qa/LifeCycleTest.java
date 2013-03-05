@@ -54,26 +54,30 @@ import junit.framework.Assert;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.tests.qa.config.AppConfig;
 import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleDeployment;
-import org.glassfish.tyrus.tests.qa.lifecycle.config.AnnotatedBufferedReaderSessionConfig;
-import org.glassfish.tyrus.tests.qa.lifecycle.config.AnnotatedByteBufferSessionConfig;
-import org.glassfish.tyrus.tests.qa.lifecycle.config.AnnotatedByteSessionConfig;
-import org.glassfish.tyrus.tests.qa.lifecycle.config.AnnotatedObjectInputStreamSessionConfig;
-import org.glassfish.tyrus.tests.qa.lifecycle.config.AnnotatedStringSessionConfig;
-import org.glassfish.tyrus.tests.qa.lifecycle.config.ProgrammaticBufferedReaderSessionConfig;
-import org.glassfish.tyrus.tests.qa.lifecycle.config.ProgrammaticByteBufferSessionConfig;
-import org.glassfish.tyrus.tests.qa.lifecycle.config.ProgrammaticByteSessionConfig;
-import org.glassfish.tyrus.tests.qa.lifecycle.config.ProgrammaticObjectInputStreamSessionConfig;
-import org.glassfish.tyrus.tests.qa.lifecycle.config.ProgrammaticStringSessionConfig;
-import org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary.AnnotatedByteBufferSession;
-import org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary.AnnotatedByteSession;
-import org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary.AnnotatedObjectInputStreamSession;
-import org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary.ProgrammaticByteBufferSession;
-import org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary.ProgrammaticByteSession;
-import org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary.ProgrammaticObjectInputStreamSession;
-import org.glassfish.tyrus.tests.qa.lifecycle.handlers.text.AnnotatedBufferedReaderSession;
-import org.glassfish.tyrus.tests.qa.lifecycle.handlers.text.AnnotatedStringSession;
-import org.glassfish.tyrus.tests.qa.lifecycle.handlers.text.ProgrammaticBufferedReaderSession;
-import org.glassfish.tyrus.tests.qa.lifecycle.handlers.text.ProgrammaticStringSession;
+import org.glassfish.tyrus.tests.qa.lifecycle.config.ProgrammaticPartialMessageByteBufferSessionConfig;
+import org.glassfish.tyrus.tests.qa.lifecycle.config.ProgrammaticPartialMessageByteSessionConfig;
+import org.glassfish.tyrus.tests.qa.lifecycle.config.ProgrammaticPartialMessageStringSessionConfig;
+import org.glassfish.tyrus.tests.qa.lifecycle.config.ProgrammaticWholeMessageBufferedReaderSessionConfig;
+import org.glassfish.tyrus.tests.qa.lifecycle.config.ProgrammaticWholeMessageByteBufferSessionConfig;
+import org.glassfish.tyrus.tests.qa.lifecycle.config.ProgrammaticWholeMessageByteSessionConfig;
+import org.glassfish.tyrus.tests.qa.lifecycle.config.ProgrammaticWholeMessageObjectInputStreamSessionConfig;
+import org.glassfish.tyrus.tests.qa.lifecycle.config.ProgrammaticWholeMessageStringSessionConfig;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary.AnnotatedPartialMessageByteBufferSession;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary.AnnotatedPartialMessageByteSession;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary.AnnotatedWholeMessageByteBufferSession;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary.AnnotatedWholeMessageByteSession;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary.AnnotatedWholeMessageObjectInputStreamSession;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary.ProgrammaticPartialMessageByteBufferSession;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary.ProgrammaticPartialMessageByteSession;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary.ProgrammaticWholeMessageByteBufferSession;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary.ProgrammaticWholeMessageByteSession;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary.ProgrammaticWholeMessageObjectInputStreamSession;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.text.AnnotatedPartialMessageStringSession;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.text.AnnotatedWholeMessageBufferedReaderSession;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.text.AnnotatedWholeMessageStringSession;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.text.ProgrammaticPartialMessageStringSession;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.text.ProgrammaticWholeMessageBufferedReaderSession;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.text.ProgrammaticWholeMessageStringSession;
 import org.glassfish.tyrus.tests.qa.regression.Issue;
 import org.glassfish.tyrus.tests.qa.tools.CommChannel;
 import org.glassfish.tyrus.tests.qa.tools.SessionController;
@@ -176,110 +180,151 @@ public class LifeCycleTest {
     @Test
     public void testLifeCycleProgrammatic() throws DeploymentException, IOException {
         Issue.disableAll();
-        lifeCycle(ProgrammaticStringSessionConfig.class, ProgrammaticStringSession.class);
+        lifeCycle(ProgrammaticWholeMessageStringSessionConfig.class, ProgrammaticWholeMessageStringSession.class);
     }
 
     @Test
     public void testLifeCycleProgrammaticObjects() throws DeploymentException, IOException {
         Issue.disableAll();
-        lifeCycle(ProgrammaticObjectInputStreamSessionConfig.class, ProgrammaticObjectInputStreamSession.class);
+        lifeCycle(ProgrammaticWholeMessageObjectInputStreamSessionConfig.class, ProgrammaticWholeMessageObjectInputStreamSession.class);
     }
 
     @Test
     public void testLifeCycleProgrammaticByteArray() throws DeploymentException, IOException {
         Issue.disableAll();
-        lifeCycle(ProgrammaticByteSessionConfig.class, ProgrammaticByteSession.class);
+        lifeCycle(ProgrammaticWholeMessageByteSessionConfig.class, ProgrammaticWholeMessageByteSession.class);
     }
     
     @Test
     public void testLifeCycleProgrammaticByteBuffer() throws DeploymentException, IOException {
         Issue.disableAll();
-        lifeCycle(ProgrammaticByteBufferSessionConfig.class, ProgrammaticByteBufferSession.class);
+        lifeCycle(ProgrammaticWholeMessageByteBufferSessionConfig.class, ProgrammaticWholeMessageByteBufferSession.class);
     }
     
     @Test
     public void testLifeCycleProgrammaticBufferedReader() throws DeploymentException, IOException {
         Issue.disableAll();
-        lifeCycle(ProgrammaticBufferedReaderSessionConfig.class, ProgrammaticBufferedReaderSession.class);
+        lifeCycle(ProgrammaticWholeMessageBufferedReaderSessionConfig.class, ProgrammaticWholeMessageBufferedReaderSession.class);
+    }
+    
+     @Test
+    public void testLifeCycleProgrammaticStingPartialMessage() throws DeploymentException, IOException {
+        Issue.disableAll();
+        lifeCycle(ProgrammaticPartialMessageStringSessionConfig.class, ProgrammaticPartialMessageStringSession.class);
     }
 
+
+    @Test
+    public void testLifeCycleProgrammaticByteArrayPartialMessage() throws DeploymentException, IOException {
+        Issue.disableAll();
+        lifeCycle(ProgrammaticPartialMessageByteSessionConfig.class, ProgrammaticPartialMessageByteSession.class);
+    }
+    
+    @Test
+    public void testLifeCycleProgrammaticByteBufferPartialMessage() throws DeploymentException, IOException {
+        Issue.disableAll();
+        lifeCycle(ProgrammaticPartialMessageByteBufferSessionConfig.class, ProgrammaticPartialMessageByteBufferSession.class);
+    }
+    
+    
     @Test
     public void tyrus93_Programmatic() throws DeploymentException, IOException {
         Issue.TYRUS_93.disableAllButThisOne();
-        lifeCycle(ProgrammaticStringSessionConfig.class, ProgrammaticStringSession.class);
+        lifeCycle(ProgrammaticWholeMessageStringSessionConfig.class, ProgrammaticWholeMessageStringSession.class);
     }
 
     @Test
     public void tyrus94_Programmatic() throws DeploymentException, IOException {
         Issue.TYRUS_94.disableAllButThisOne();
-        lifeCycle(ProgrammaticStringSessionConfig.class, ProgrammaticStringSession.class);
+        lifeCycle(ProgrammaticWholeMessageStringSessionConfig.class, ProgrammaticWholeMessageStringSession.class);
     }
 
     @Test
     public void tyrus101_Programmatic() throws DeploymentException, IOException {
         Issue.TYRUS_101.disableAllButThisOne();
-        lifeCycle(ProgrammaticStringSessionConfig.class, ProgrammaticStringSession.class);
+        lifeCycle(ProgrammaticWholeMessageStringSessionConfig.class, ProgrammaticWholeMessageStringSession.class);
     }
 
     @Test
     public void tyrus104_Programmatic() throws DeploymentException, IOException {
         Issue.TYRUS_104.disableAllButThisOne();
-        lifeCycle(ProgrammaticStringSessionConfig.class, ProgrammaticStringSession.class);
+        lifeCycle(ProgrammaticWholeMessageStringSessionConfig.class, ProgrammaticWholeMessageStringSession.class);
     }
 
     @Test
     public void testLifeCycleAnnotated() throws DeploymentException, InterruptedException, IOException {
         Issue.disableAll();
-        lifeCycle(AnnotatedStringSessionConfig.class, AnnotatedStringSession.Client.class);
+        lifeCycle(AnnotatedWholeMessageStringSession.Server.class, AnnotatedWholeMessageStringSession.Client.class);
     }
     
     @Test
     public void testLifeCycleAnnotatedObjectInputStream() throws DeploymentException, InterruptedException, IOException {
         Issue.disableAll();
-        lifeCycle(AnnotatedObjectInputStreamSessionConfig.class, AnnotatedObjectInputStreamSession.Client.class);
+        lifeCycle(AnnotatedWholeMessageObjectInputStreamSession.Server.class, AnnotatedWholeMessageObjectInputStreamSession.Client.class);
     }
     
     @Test
     public void testLifeCycleAnnotatedByteArray() throws DeploymentException, InterruptedException, IOException {
         Issue.disableAll();
-        lifeCycle(AnnotatedByteSessionConfig.class, AnnotatedByteSession.Client.class);
+        lifeCycle(AnnotatedWholeMessageByteSession.Server.class, AnnotatedWholeMessageByteSession.Client.class);
     }
     
     @Test
     public void testLifeCycleAnnotatedByteBuffer() throws DeploymentException, InterruptedException, IOException {
         Issue.disableAll();
-        lifeCycle(AnnotatedByteBufferSessionConfig.class, AnnotatedByteBufferSession.Client.class);
+        lifeCycle(AnnotatedWholeMessageByteBufferSession.Server.class, AnnotatedWholeMessageByteBufferSession.Client.class);
     }
     
     @Test
     public void testLifeCycleAnnotatedBufferedReader() throws DeploymentException, InterruptedException, IOException {
         Issue.disableAll();
-        lifeCycle(AnnotatedBufferedReaderSessionConfig.class, AnnotatedBufferedReaderSession.Client.class);
+        lifeCycle(AnnotatedWholeMessageBufferedReaderSession.Server.class, AnnotatedWholeMessageBufferedReaderSession.Client.class);
     }
+    
+    @Test
+    public void testLifeCycleAnnotatedStringPartialMessage() throws DeploymentException, InterruptedException, IOException {
+        Issue.disableAll();
+        lifeCycle(AnnotatedPartialMessageStringSession.Server.class, AnnotatedPartialMessageStringSession.Client.class);
+    }
+    
+    
+    
+    @Test
+    public void testLifeCycleAnnotatedByteArrayPartialMessage() throws DeploymentException, InterruptedException, IOException {
+        Issue.disableAll();
+        lifeCycle(AnnotatedPartialMessageByteSession.Server.class, AnnotatedPartialMessageByteSession.Client.class);
+    }
+    
+    @Test
+    public void testLifeCycleAnnotatedByteBufferPartialMessage() throws DeploymentException, InterruptedException, IOException {
+        Issue.disableAll();
+        lifeCycle(AnnotatedPartialMessageByteBufferSession.Server.class, AnnotatedPartialMessageByteBufferSession.Client.class);
+    }
+    
 
     @Test
     public void tyrus93_Annotated() throws DeploymentException, InterruptedException, IOException {
         Issue.TYRUS_93.disableAllButThisOne();
-        lifeCycle(AnnotatedStringSessionConfig.class, AnnotatedStringSession.Client.class);
+        lifeCycle(AnnotatedWholeMessageStringSession.Server.class, AnnotatedWholeMessageStringSession.Client.class);
     }
 
     @Test
     public void tyrus94_Annotated() throws DeploymentException, InterruptedException, IOException {
         Issue.TYRUS_94.disableAllButThisOne();
-        lifeCycle(AnnotatedStringSessionConfig.class, AnnotatedStringSession.Client.class);
+        lifeCycle(AnnotatedWholeMessageStringSession.Server.class, AnnotatedWholeMessageStringSession.Client.class);
 
     }
 
     @Test
     public void tyrus101_Annotated() throws DeploymentException, InterruptedException, IOException {
         Issue.TYRUS_101.disableAllButThisOne();
-        lifeCycle(AnnotatedStringSessionConfig.class, AnnotatedStringSession.Client.class);
+        lifeCycle(AnnotatedWholeMessageStringSession.Server.class, AnnotatedWholeMessageStringSession.Client.class);
     }
 
     @Test
     public void tyrus104_Annotated() throws DeploymentException, InterruptedException, IOException {
         Issue.TYRUS_104.disableAllButThisOne();
-        lifeCycle(AnnotatedStringSessionConfig.class, AnnotatedStringSession.Client.class);
+        lifeCycle(AnnotatedWholeMessageStringSession.Server.class, AnnotatedWholeMessageStringSession.Client.class);
     }
 
     @Test

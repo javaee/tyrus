@@ -37,24 +37,22 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.tests.qa.lifecycle.handlers.text;
+package org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary;
 
-import java.io.Reader;
-
+import java.io.InputStream;
 import javax.websocket.MessageHandler;
-
-import org.glassfish.tyrus.tests.qa.lifecycle.ProgrammaticEndpoint;
-import org.glassfish.tyrus.tests.qa.lifecycle.handlers.BufferedReaderSessionImpl;
+import org.glassfish.tyrus.tests.qa.lifecycle.ProgrammaticWholeMessageEndpoint;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.ObjectInputStreamSessionImpl;
 
 /**
  *
  * @author michal.conos at oracle.com
  */
-public class  ProgrammaticBufferedReaderSession extends ProgrammaticEndpoint<Reader> implements MessageHandler.Whole<Reader> {
+public class ProgrammaticWholeMessageObjectInputStreamSession extends ProgrammaticWholeMessageEndpoint<InputStream> implements MessageHandler.Basic<InputStream>{
 
     @Override
     public void createLifeCycle() {
-        lifeCycle = new BufferedReaderSessionImpl(1024).getSessionConversation();
+        lifeCycle = new ObjectInputStreamSessionImpl();
     }
     
 }

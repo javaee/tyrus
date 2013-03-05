@@ -43,26 +43,34 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+<<<<<<< .mine
+=======
 import java.io.Reader;
+>>>>>>> .r432
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.logging.Level;
 
 import javax.websocket.Session;
+<<<<<<< .mine
+=======
 
 import org.glassfish.tyrus.tests.qa.lifecycle.SessionConversation;
+>>>>>>> .r432
 import org.glassfish.tyrus.tests.qa.lifecycle.SessionLifeCycle;
 
 /**
  *
  * @author michal.conos at oracle.com
  */
-public class ObjectInputStreamSessionImpl implements SessionConversation {
+public class ObjectInputStreamSessionImpl extends SessionLifeCycle<InputStream> {
 
-    @Override
-    public SessionLifeCycle getSessionConversation() {
-        return new SessionLifeCycle<InputStream, Reader>() {
-            ObjectInputStreamSessionImpl.SendMeSomething original;
+    
+            public ObjectInputStreamSessionImpl() {
+                super(false);
+            }
+    
+            SendMeSomething original;
 
             @Override
             public void startTalk(Session s) throws IOException {
@@ -71,6 +79,11 @@ public class ObjectInputStreamSessionImpl implements SessionConversation {
                 ObjectOutputStream oos = new ObjectOutputStream(s.getBasicRemote().getSendStream());
                 oos.writeObject(original);
                 oos.close();
+            }
+            
+            @Override
+            public void startTalkPartial(Session s) {
+                
             }
 
             @Override
@@ -106,14 +119,14 @@ public class ObjectInputStreamSessionImpl implements SessionConversation {
             }
 
             @Override
-            public void onServerMessageHandler(Reader message, Session session, boolean last) throws IOException {
+            public void onServerMessageHandler(InputStream message, Session session, boolean last) throws IOException {
             }
 
             @Override
-            public void onClientMessageHandler(Reader message, Session session, boolean last) throws IOException {
+            public void onClientMessageHandler(InputStream message, Session session, boolean last) throws IOException {
             }
-        };
-    }
+        
+    
 
     static class SendMeSomething implements Serializable {
 

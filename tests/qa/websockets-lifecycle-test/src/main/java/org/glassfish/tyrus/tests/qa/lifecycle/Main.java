@@ -49,7 +49,7 @@ import org.glassfish.tyrus.server.Server;
 public class Main {
 
     public static void main(String[] args) {
-        Server server = new Server("localhost", 8080, "/websockets-lifecycle-test", org.glassfish.tyrus.tests.qa.lifecycle.ProgrammaticEndpoint.class);
+        Server server = new Server("localhost", 8080, "/websockets-lifecycle-test", org.glassfish.tyrus.tests.qa.lifecycle.ProgrammaticWholeMessageEndpoint.class);
 
         try {
             server.start();

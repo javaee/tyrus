@@ -37,83 +37,33 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.tests.qa.lifecycle.handlers;
+package org.glassfish.tyrus.tests.qa.lifecycle.config;
 
-import java.io.IOException;
-
-import javax.websocket.CloseReason;
-import javax.websocket.EndpointConfig;
-import javax.websocket.Session;
-
-import org.glassfish.tyrus.tests.qa.lifecycle.SessionConversation;
-import org.glassfish.tyrus.tests.qa.lifecycle.SessionLifeCycle;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+import javax.websocket.Endpoint;
+import javax.websocket.server.ServerApplicationConfiguration;
+import javax.websocket.server.ServerEndpointConfiguration;
+import javax.websocket.server.ServerEndpointConfigurationBuilder;
+import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleDeployment;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.text.ProgrammaticWholeMessageStringSession;
 
 /**
- *
  * @author michal.conos at oracle.com
  */
-public class EmptySessionImpl extends SessionLifeCycle<String> implements SessionConversation {
-    
-    public EmptySessionImpl() {
-        super(false);
+public class ProgrammaticWholeMessageStringSessionConfig implements ServerApplicationConfiguration {
+
+    @Override
+    public Set<ServerEndpointConfiguration> getEndpointConfigurations(Set<Class<? extends Endpoint>> set) {
+        Set<ServerEndpointConfiguration> configSet = new HashSet<>();
+        ServerEndpointConfiguration config = ServerEndpointConfigurationBuilder.create(ProgrammaticWholeMessageStringSession.class, LifeCycleDeployment.LIFECYCLE_ENDPOINT_PATH).build();
+        configSet.add(config);
+        return configSet;
     }
 
     @Override
-    public void onServerMessageHandler(String message, Session session) throws IOException {
-    
-    }
-
-    @Override
-    public void onClientMessageHandler(String message, Session session) throws IOException {
-    
-    }
-
-    @Override
-    public void startTalk(Session s) throws IOException {
-    
-    }
-
-    @Override
-    public SessionLifeCycle getSessionConversation(boolean partial) {
-        return new EmptySessionImpl();
-    }
-    
-    @Override
-    public void onServerError(Session s, Throwable thr) {
-    }
-
-    @Override
-    public void onServerClose(Session s, CloseReason reason) {
-
-    }
-
-    @Override
-    public void onServerOpen(Session s, EndpointConfig config) {
-
-    }
-    @Override
-    public void onClientError(Session s, Throwable thr) {
-    }
-
-    @Override
-    public void onClientClose(Session s, CloseReason reason) {
-
-    }
-
-    @Override
-    public void onClientOpen(Session s, EndpointConfig config) {
-
-    }
-
-    @Override
-    public void onServerMessageHandler(String message, Session session, boolean last) throws IOException {
-    }
-
-    @Override
-    public void onClientMessageHandler(String message, Session session, boolean last) throws IOException {
-    }
-
-    @Override
-    public void startTalkPartial(Session s) throws IOException {
+    public Set<Class<?>> getAnnotatedEndpointClasses(Set<Class<?>> set) {
+        return Collections.EMPTY_SET;
     }
 }

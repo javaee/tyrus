@@ -41,19 +41,19 @@ package org.glassfish.tyrus.tests.qa.lifecycle;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import javax.websocket.CloseReason;
 import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfig;
+import javax.websocket.EndpointConfiguration;
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
-
 import org.glassfish.tyrus.server.TyrusServerContainer;
+import org.glassfish.tyrus.tests.qa.handlers.BasicMessageHandler;
+import org.glassfish.tyrus.tests.qa.tools.CommChannel;
 import org.glassfish.tyrus.tests.qa.tools.SessionController;
 
-abstract public class ProgrammaticEndpoint<T> extends Endpoint implements MessageHandler.Basic<T>, MessageHandler.Async<T> {
+abstract public class ProgrammaticWholeMessageEndpoint<T> extends Endpoint implements MessageHandler.Basic<T> {
 
-    private static final Logger logger = Logger.getLogger(ProgrammaticEndpoint.class.getCanonicalName());
+    private static final Logger logger = Logger.getLogger(ProgrammaticWholeMessageEndpoint.class.getCanonicalName());
     protected SessionLifeCycle lifeCycle;
     protected MessageHandler messageHandler;
     protected SessionController sc;
@@ -79,21 +79,8 @@ abstract public class ProgrammaticEndpoint<T> extends Endpoint implements Messag
         }
     }
     
-     @Override
-    public void onMessage(T message, boolean last) {
-        
-        logger.log(Level.INFO, "Programmatic.onMessage partial:{0}", message.toString());
-        if (isServerContainer(session)) {
-            logger.log(Level.INFO, "PRGEND:server:onMessage partial:{0}", message.toString());
-            lifeCycle.onServerMessage(message, session, last);
-        } else {
-            logger.log(Level.INFO, "PRGEND:client:onMessage partial:{0}", message.toString());
-            lifeCycle.onClientMessage(message, session, last);
-        }
-    }
-
     @Override
-    public void onOpen(Session session, EndpointConfig ec) {
+    public void onOpen(Session session, EndpointConfiguration ec) {
         if (this.session == null) {
             this.session = session;
         }

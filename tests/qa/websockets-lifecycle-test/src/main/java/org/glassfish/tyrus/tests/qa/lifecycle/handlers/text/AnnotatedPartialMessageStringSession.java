@@ -40,48 +40,45 @@
 package org.glassfish.tyrus.tests.qa.lifecycle.handlers.text;
 
 import java.io.IOException;
-import java.io.Reader;
 import java.util.logging.Level;
-
 import javax.websocket.ClientEndpoint;
 import javax.websocket.CloseReason;
-import javax.websocket.EndpointConfig;
+import javax.websocket.EndpointConfiguration;
 import javax.websocket.OnClose;
 import javax.websocket.OnError;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
-
 import org.glassfish.tyrus.tests.qa.lifecycle.AnnotatedEndpoint;
 import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleDeployment;
-import org.glassfish.tyrus.tests.qa.lifecycle.handlers.BufferedReaderSessionImpl;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.StringSessionImpl;
 import org.glassfish.tyrus.tests.qa.tools.SessionController;
 
 /**
  *
  * @author michal.conos at oracle.com
  */
-public class AnnotatedBufferedReaderSession {
-     @ServerEndpoint(value = LifeCycleDeployment.LIFECYCLE_ENDPOINT_PATH)
+public class AnnotatedPartialMessageStringSession {
+    @ServerEndpoint(value = LifeCycleDeployment.LIFECYCLE_ENDPOINT_PATH)
     static public class Server extends AnnotatedEndpoint {
 
         @Override
         public void createLifeCycle() {
-            lifeCycle = new BufferedReaderSessionImpl(1024).getSessionConversation();
+            lifeCycle = new StringSessionImpl(true);
         }
 
         @OnOpen
         @Override
-        public void onOpen(Session session, EndpointConfig ec) {
+        public void onOpen(Session session, EndpointConfiguration ec) {
             super.onOpen(session, ec);
             lifeCycle.onServerOpen(session, ec);
             logger.log(Level.INFO, "lifeCycle={0}", lifeCycle.toString());
         }
 
         @OnMessage
-        public void onMessage(Reader message, Session session) throws IOException {
-            lifeCycle.onServerMessage(message, session);
+        public void onMessage(String message, Session session, boolean last) throws IOException {
+            lifeCycle.onServerMessage(message, session, last);
         }
 
         @OnClose
@@ -100,11 +97,11 @@ public class AnnotatedBufferedReaderSession {
 
         @Override
         public void createLifeCycle() {
-            lifeCycle = new BufferedReaderSessionImpl(1024).getSessionConversation();
+            lifeCycle = new StringSessionImpl(true);
         }
 
         @OnOpen
-        public void onOpen(Session session, EndpointConfig ec) {
+        public void onOpen(Session session, EndpointConfiguration ec) {
             if (this.session == null) {
                 this.session = session;
             }
@@ -116,8 +113,8 @@ public class AnnotatedBufferedReaderSession {
         }
 
         @OnMessage
-        public void onMessage(Reader message, Session session) throws IOException {
-            lifeCycle.onClientMessage(message, session);
+        public void onMessage(String message, Session session, boolean last) throws IOException {
+            lifeCycle.onClientMessage(message, session, last);
         }
 
         @OnClose

@@ -40,23 +40,17 @@
 package org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary;
 
 import java.nio.ByteBuffer;
-
 import javax.websocket.MessageHandler;
-
-import org.glassfish.tyrus.tests.qa.lifecycle.ProgrammaticEndpoint;
-import org.glassfish.tyrus.tests.qa.lifecycle.handlers.ByteBufferSessionImpl;
+import org.glassfish.tyrus.tests.qa.lifecycle.ProgrammaticEndpointPartialMessageEndpoint;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.ByteSessionImpl;
 
 /**
  *
  * @author michal.conos at oracle.com
  */
-public class ProgrammaticByteBufferSession  extends ProgrammaticEndpoint<ByteBuffer> implements MessageHandler.Whole<ByteBuffer> {
-
+public class ProgrammaticPartialMessageByteSession extends ProgrammaticEndpointPartialMessageEndpoint<byte[]> implements MessageHandler.Async<byte[]>{
     @Override
     public void createLifeCycle() {
-        lifeCycle = new ByteBufferSessionImpl(1024, true).getSessionConversation();
+        lifeCycle = new ByteSessionImpl(1024, false, true);
     }
-    
 }
-
-

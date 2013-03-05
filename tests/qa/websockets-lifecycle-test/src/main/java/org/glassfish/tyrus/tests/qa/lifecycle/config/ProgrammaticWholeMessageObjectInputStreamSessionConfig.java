@@ -37,24 +37,34 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary;
+package org.glassfish.tyrus.tests.qa.lifecycle.config;
 
-import java.io.InputStream;
-
-import javax.websocket.MessageHandler;
-
-import org.glassfish.tyrus.tests.qa.lifecycle.ProgrammaticEndpoint;
-import org.glassfish.tyrus.tests.qa.lifecycle.handlers.ObjectInputStreamSessionImpl;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+import javax.websocket.Endpoint;
+import javax.websocket.server.ServerApplicationConfiguration;
+import javax.websocket.server.ServerEndpointConfiguration;
+import javax.websocket.server.ServerEndpointConfigurationBuilder;
+import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleDeployment;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary.ProgrammaticWholeMessageObjectInputStreamSession;
 
 /**
  *
  * @author michal.conos at oracle.com
  */
-public class ProgrammaticObjectInputStreamSession extends ProgrammaticEndpoint<InputStream> implements MessageHandler.Whole<InputStream>{
+public class ProgrammaticWholeMessageObjectInputStreamSessionConfig implements ServerApplicationConfiguration{
+     @Override
+    public Set<ServerEndpointConfiguration> getEndpointConfigurations(Set<Class<? extends Endpoint>> set) {
+        Set<ServerEndpointConfiguration> configSet = new HashSet<>();
+        ServerEndpointConfiguration config = ServerEndpointConfigurationBuilder.create(ProgrammaticWholeMessageObjectInputStreamSession.class, LifeCycleDeployment.LIFECYCLE_ENDPOINT_PATH).build();
+        configSet.add(config);
+        return configSet;
+    }
 
     @Override
-    public void createLifeCycle() {
-        lifeCycle = new ObjectInputStreamSessionImpl().getSessionConversation();
+    public Set<Class<?>> getAnnotatedEndpointClasses(Set<Class<?>> set) {
+        return Collections.EMPTY_SET;
     }
     
 }
