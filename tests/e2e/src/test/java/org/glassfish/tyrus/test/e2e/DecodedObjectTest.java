@@ -45,12 +45,11 @@ import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import javax.websocket.ClientEndpointConfiguration;
-import javax.websocket.ClientEndpointConfigurationBuilder;
+import javax.websocket.ClientEndpointConfig;
 import javax.websocket.DecodeException;
 import javax.websocket.Decoder;
 import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfiguration;
+import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 
@@ -78,7 +77,7 @@ public class DecodedObjectTest {
 
     private static final String SENT_MESSAGE = "hello";
 
-    private final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
+    private final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
     @Ignore
     @Test
@@ -89,20 +88,20 @@ public class DecodedObjectTest {
         try {
             server.start();
             messageLatch = new CountDownLatch(1);
-            ArrayList<Decoder> decoders = new ArrayList<Decoder>();
-            decoders.add(new CustomDecoder());
-            final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().decoders(decoders).build();
+            ArrayList<Class<? extends Decoder>> decoders = new ArrayList<Class<? extends Decoder>>();
+            decoders.add(CustomDecoder.class);
+            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().decoders(decoders).build();
 
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new Endpoint() {
 
 //                @Override
-//                public EndpointConfiguration getEndpointConfiguration() {
+//                public EndpointConfig getEndpointConfig() {
 //                    return dcec;
 //                }
 
                 @Override
-                public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
+                public void onOpen(Session session, EndpointConfig EndpointConfig) {
                     try {
                         session.addMessageHandler(new DecodedMessageHandler());
                         session.getBasicRemote().sendText(SENT_MESSAGE);
@@ -132,20 +131,20 @@ public class DecodedObjectTest {
         try {
             server.start();
             messageLatch = new CountDownLatch(1);
-            ArrayList<Decoder> decoders = new ArrayList<Decoder>();
-            decoders.add(new ExtendedDecoder());
-            final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().decoders(decoders).build();
+            ArrayList<Class<? extends Decoder>> decoders = new ArrayList<Class<? extends Decoder>>();
+            decoders.add(ExtendedDecoder.class);
+            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().decoders(decoders).build();
 
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new Endpoint() {
 
 //                @Override
-//                public EndpointConfiguration getEndpointConfiguration() {
+//                public EndpointConfig getEndpointConfig() {
 //                    return dcec;
 //                }
 
                 @Override
-                public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
+                public void onOpen(Session session, EndpointConfig EndpointConfig) {
                     try {
                         session.addMessageHandler(new ObjectMessageHandler());
                         session.addMessageHandler(new DecodedMessageHandler());
@@ -179,6 +178,11 @@ public class DecodedObjectTest {
         public boolean willDecode(String s) {
             return true;
         }
+
+        @Override
+        public void setEndpointConfig(EndpointConfig config) {
+            // do nothing.
+        }
     }
 
     class ExtendedDecoder implements Decoder.Text<ExtendedStringContainer> {
@@ -192,9 +196,14 @@ public class DecodedObjectTest {
         public boolean willDecode(String s) {
             return true;
         }
+
+        @Override
+        public void setEndpointConfig(EndpointConfig config) {
+            // do nothing.
+        }
     }
 
-    class DecodedMessageHandler implements MessageHandler.Basic<StringContainer> {
+    class DecodedMessageHandler implements MessageHandler.Whole<StringContainer> {
 
         @Override
         public void onMessage(StringContainer customObject) {
@@ -204,7 +213,7 @@ public class DecodedObjectTest {
         }
     }
 
-    class ObjectMessageHandler implements MessageHandler.Basic<Object> {
+    class ObjectMessageHandler implements MessageHandler.Whole<Object> {
 
         @Override
         public void onMessage(Object customObject) {

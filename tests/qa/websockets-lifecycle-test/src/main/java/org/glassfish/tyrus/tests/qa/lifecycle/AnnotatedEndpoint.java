@@ -39,18 +39,12 @@
  */
 package org.glassfish.tyrus.tests.qa.lifecycle;
 
-import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.websocket.CloseReason;
-import javax.websocket.EndpointConfiguration;
-import javax.websocket.OnClose;
-import javax.websocket.OnError;
-import javax.websocket.OnMessage;
-import javax.websocket.OnOpen;
+
+import javax.websocket.EndpointConfig;
 import javax.websocket.Session;
-import org.glassfish.tyrus.server.TyrusServerContainer;
-import org.glassfish.tyrus.tests.qa.tools.CommChannel;
+
 import org.glassfish.tyrus.tests.qa.tools.SessionController;
 
 /**
@@ -65,7 +59,7 @@ abstract public class AnnotatedEndpoint {
     public abstract void createLifeCycle();
     protected Session session;
 
-    public void onOpen(Session session, EndpointConfiguration ec) {
+    public void onOpen(Session session, EndpointConfig ec) {
         if (this.session == null) {
             this.session = session;
         }

@@ -55,12 +55,12 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.websocket.CloseReason;
-import javax.websocket.EndpointConfiguration;
+import javax.websocket.EndpointConfig;
 import javax.websocket.Extension;
 import javax.websocket.HandshakeResponse;
 import javax.websocket.Session;
 import javax.websocket.server.HandshakeRequest;
-import javax.websocket.server.ServerEndpointConfiguration;
+import javax.websocket.server.ServerEndpointConfig;
 
 import org.glassfish.tyrus.core.TyrusExtension;
 import org.glassfish.tyrus.spi.SPIEndpoint;
@@ -244,14 +244,14 @@ public class TyrusEndpoint extends WebSocketApplication implements SPIRegistered
 
     @Override
     public void onHandShakeResponse(WebSocketRequest request, WebSocketResponse response) {
-        final EndpointConfiguration configuration = this.endpoint.getEndpointConfiguration();
+        final EndpointConfig configuration = this.endpoint.getEndpointConfig();
 
-        if (configuration instanceof ServerEndpointConfiguration) {
+        if (configuration instanceof ServerEndpointConfig) {
             final HandshakeResponse handshakeResponse = createHandshakeResponse(response);
 
             // http://java.net/jira/browse/TYRUS-62
-            final ServerEndpointConfiguration serverEndpointConfiguration = (ServerEndpointConfiguration) configuration;
-            serverEndpointConfiguration.getServerEndpointConfigurator().modifyHandshake(serverEndpointConfiguration, createHandshakeRequest(request),
+            final ServerEndpointConfig serverEndpointConfig = (ServerEndpointConfig) configuration;
+            serverEndpointConfig.getConfigurator().modifyHandshake(serverEndpointConfig, createHandshakeRequest(request),
                     handshakeResponse);
 
             for (Map.Entry<String, List<String>> entry : handshakeResponse.getHeaders().entrySet()) {

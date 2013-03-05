@@ -45,8 +45,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
-import javax.websocket.ClientEndpointConfiguration;
-import javax.websocket.ClientEndpointConfigurationBuilder;
+import javax.websocket.ClientEndpointConfig;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.SendHandler;
@@ -69,7 +68,7 @@ import org.junit.Test;
 @Ignore
 public class TextFutureCompletionHandlerTest {
 
-    private final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
+    private final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
     @Test
     public void testFastClient() {

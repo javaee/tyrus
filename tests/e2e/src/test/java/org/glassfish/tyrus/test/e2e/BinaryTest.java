@@ -45,10 +45,9 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import javax.websocket.ClientEndpointConfiguration;
-import javax.websocket.ClientEndpointConfigurationBuilder;
+import javax.websocket.ClientEndpointConfig;
 import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfiguration;
+import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
 import javax.websocket.OnMessage;
 import javax.websocket.Session;
@@ -76,7 +75,7 @@ public class BinaryTest {
     private ByteBuffer receivedMessageBuffer;
     private byte[] receivedMessageArray;
 
-    private final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
+    private final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
     /**
      * Bean to test correct processing of binary message.
@@ -103,10 +102,10 @@ public class BinaryTest {
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new Endpoint() {
                 @Override
-                public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
+                public void onOpen(Session session, EndpointConfig EndpointConfig) {
                     try {
                         session.getBasicRemote().sendBinary(ByteBuffer.wrap(BINARY_MESSAGE));
-                        session.addMessageHandler(new MessageHandler.Basic<ByteBuffer>() {
+                        session.addMessageHandler(new MessageHandler.Whole<ByteBuffer>() {
                             @Override
                             public void onMessage(ByteBuffer data) {
                                 receivedMessageBuffer = data;
@@ -148,10 +147,10 @@ public class BinaryTest {
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new Endpoint() {
                 @Override
-                public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
+                public void onOpen(Session session, EndpointConfig EndpointConfig) {
                     try {
                         session.getBasicRemote().sendBinary(ByteBuffer.wrap(BINARY_MESSAGE));
-                        session.addMessageHandler(new MessageHandler.Basic<byte[]>() {
+                        session.addMessageHandler(new MessageHandler.Whole<byte[]>() {
                             @Override
                             public void onMessage(byte[] data) {
                                 receivedMessageArray = data;
@@ -193,15 +192,15 @@ public class BinaryTest {
 
             messageLatch = new CountDownLatch(1);
 
-            final ClientEndpointConfiguration clientConfiguration = ClientEndpointConfigurationBuilder.create().build();
+            final ClientEndpointConfig clientConfiguration = ClientEndpointConfig.Builder.create().build();
             ClientManager client = ClientManager.createClient();
 
             client.connectToServer(new Endpoint() {
 
                 @Override
-                public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
+                public void onOpen(Session session, EndpointConfig EndpointConfig) {
                     try {
-                        session.addMessageHandler(new MessageHandler.Basic<ByteBuffer>() {
+                        session.addMessageHandler(new MessageHandler.Whole<ByteBuffer>() {
                             @Override
                             public void onMessage(ByteBuffer message) {
                                 receivedMessageBinary = message;
@@ -245,15 +244,15 @@ public class BinaryTest {
 
             messageLatch = new CountDownLatch(1);
 
-            final ClientEndpointConfiguration clientConfiguration = ClientEndpointConfigurationBuilder.create().build();
+            final ClientEndpointConfig clientConfiguration = ClientEndpointConfig.Builder.create().build();
             ClientManager client = ClientManager.createClient();
 
             client.connectToServer(new Endpoint() {
 
                 @Override
-                public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
+                public void onOpen(Session session, EndpointConfig EndpointConfig) {
                     try {
-                        session.addMessageHandler(new MessageHandler.Basic<ByteBuffer>() {
+                        session.addMessageHandler(new MessageHandler.Whole<ByteBuffer>() {
                             @Override
                             public void onMessage(ByteBuffer message) {
                                 receivedMessageBinary = message;

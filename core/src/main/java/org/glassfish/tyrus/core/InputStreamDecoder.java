@@ -45,6 +45,7 @@ import java.nio.ByteBuffer;
 
 import javax.websocket.DecodeException;
 import javax.websocket.Decoder;
+import javax.websocket.EndpointConfig;
 
 /**
  * Built in {@link Decoder} for {@link java.io.InputStream}.
@@ -60,5 +61,10 @@ class InputStreamDecoder implements Decoder.Binary<InputStream> {
     @Override
     public InputStream decode(ByteBuffer bytes) throws DecodeException {
         return new ByteArrayInputStream(bytes.array());
+    }
+
+    @Override
+    public void setEndpointConfig(EndpointConfig config) {
+        // do nothing.
     }
 }

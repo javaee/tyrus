@@ -40,7 +40,7 @@
 package org.glassfish.tyrus.spi;
 
 
-import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.ClientEndpointConfig;
 
 /**
  * The TyrusContainer is the starting point of the provider SPI. The provider must implement this
@@ -70,5 +70,5 @@ public interface TyrusContainer {
      * @param endpoint endpoint instance.
      * @return representation of incoming socket.
      */
-    public TyrusClientSocket openClientSocket(String url, ClientEndpointConfiguration cec, SPIEndpoint endpoint);
+    public TyrusClientSocket openClientSocket(String url, ClientEndpointConfig cec, SPIEndpoint endpoint);
 }

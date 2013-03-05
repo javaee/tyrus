@@ -46,7 +46,7 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import javax.websocket.Endpoint;
-import javax.websocket.server.ServerApplicationConfiguration;
+import javax.websocket.server.ServerApplicationConfig;
 import javax.websocket.server.ServerEndpoint;
 
 import javax.servlet.FilterRegistration;
@@ -63,7 +63,7 @@ import javax.servlet.annotation.HandlesTypes;
  * @author Jitendra Kotamraju
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-@HandlesTypes({ServerEndpoint.class, ServerApplicationConfiguration.class, Endpoint.class})
+@HandlesTypes({ServerEndpoint.class, ServerApplicationConfig.class, Endpoint.class})
 public class TyrusServletContainerInitializer implements ServletContainerInitializer {
     private static final Logger LOGGER = Logger.getLogger(TyrusServletContainerInitializer.class.getName());
 

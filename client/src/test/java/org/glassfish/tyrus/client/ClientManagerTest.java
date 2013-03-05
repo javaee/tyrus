@@ -39,7 +39,7 @@
  */
 package org.glassfish.tyrus.client;
 
-import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.ClientEndpointConfig;
 
 import org.glassfish.tyrus.spi.SPIEndpoint;
 import org.glassfish.tyrus.spi.TyrusClientSocket;
@@ -90,7 +90,7 @@ public class ClientManagerTest {
         }
 
         @Override
-        public TyrusClientSocket openClientSocket(String url, ClientEndpointConfiguration cec, SPIEndpoint endpoint) {
+        public TyrusClientSocket openClientSocket(String url, ClientEndpointConfig cec, SPIEndpoint endpoint) {
             return null;
         }
     }

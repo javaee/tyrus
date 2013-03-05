@@ -43,7 +43,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.ClientEndpointConfig;
 
 import org.glassfish.tyrus.server.TyrusEndpoint;
 import org.glassfish.tyrus.spi.SPIEndpoint;
@@ -98,7 +98,7 @@ public class GrizzlyEngine implements TyrusContainer {
     }
 
     @Override
-    public TyrusClientSocket openClientSocket(String url, ClientEndpointConfiguration cec, SPIEndpoint endpoint) {
+    public TyrusClientSocket openClientSocket(String url, ClientEndpointConfig cec, SPIEndpoint endpoint) {
         URI uri;
 
         try {

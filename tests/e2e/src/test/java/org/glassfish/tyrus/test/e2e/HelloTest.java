@@ -45,11 +45,10 @@ import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import javax.websocket.ClientEndpointConfiguration;
-import javax.websocket.ClientEndpointConfigurationBuilder;
+import javax.websocket.ClientEndpointConfig;
 import javax.websocket.ContainerProvider;
 import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfiguration;
+import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
@@ -82,12 +81,12 @@ public class HelloTest {
             server.start();
             messageLatch = new CountDownLatch(1);
 
-            final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
+            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new TestEndpointAdapter() {
                 @Override
-                public EndpointConfiguration getEndpointConfiguration() {
+                public EndpointConfig getEndpointConfig() {
                     return cec;
                 }
 
@@ -125,7 +124,7 @@ public class HelloTest {
     // http://java.net/jira/browse/TYRUS-63
     @Test
     public void testHelloEndpointClass() {
-        final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
+        final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
         Server server = new Server(EchoEndpoint.class);
 
         try {
@@ -144,9 +143,9 @@ public class HelloTest {
         }
     }
 
-    public final static class MyEndpoint extends Endpoint implements MessageHandler.Basic<String> {
+    public final static class MyEndpoint extends Endpoint implements MessageHandler.Whole<String> {
         @Override
-        public void onOpen(Session session, EndpointConfiguration config) {
+        public void onOpen(Session session, EndpointConfig config) {
             try {
                 session.addMessageHandler(this);
                 session.getBasicRemote().sendText(SENT_MESSAGE);

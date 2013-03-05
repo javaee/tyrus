@@ -48,10 +48,10 @@ import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import javax.websocket.ClientEndpointConfigurationBuilder;
+import javax.websocket.ClientEndpointConfig;
 import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfiguration;
+import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
@@ -64,13 +64,13 @@ import org.junit.Test;
 import junit.framework.Assert;
 
 /**
- * Tests correct deployment of one {@link javax.websocket.server.ServerApplicationConfiguration}.
+ * Tests correct deployment of one {@link javax.websocket.server.ServerApplicationConfig}.
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  *
  */
-public class TwoServerApplicationConfigurationDeployTest {
+public class TwoServerApplicationConfigDeployTest {
 
     private final String CONTEXT_PATH = "/twoappconfig-test";
     private final String DEFAULT_HOST = "localhost";
@@ -80,8 +80,8 @@ public class TwoServerApplicationConfigurationDeployTest {
         add(PlainEcho.class);
         add(PlainOne.class);
         add(PlainTwo.class);
-        add(TestServerApplicationConfiguration.class);
-        add(SecondServerApplicationConfiguration.class);
+        add(TestServerApplicationConfig.class);
+        add(SecondServerApplicationConfig.class);
     }};
 
     /**
@@ -136,7 +136,7 @@ public class TwoServerApplicationConfigurationDeployTest {
     }
 
     @Test
-    public void twoServerAppConfigOne() throws DeploymentException, InterruptedException {
+    public void twoServerAppConfigOne() throws DeploymentException, InterruptedException, IOException {
         final Server server = startServer();
 
         final CountDownLatch messageLatch = new CountDownLatch(1);
@@ -145,9 +145,9 @@ public class TwoServerApplicationConfigurationDeployTest {
             final ClientManager client = ClientManager.createClient();
             client.connectToServer(new Endpoint() {
                 @Override
-                public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
+                public void onOpen(Session session, EndpointConfig EndpointConfig) {
                     try {
-                        session.addMessageHandler(new MessageHandler.Basic<String>() {
+                        session.addMessageHandler(new MessageHandler.Whole<String>() {
                             @Override
                             public void onMessage(String message) {
                                 Assert.assertEquals(message, "1");
@@ -160,7 +160,7 @@ public class TwoServerApplicationConfigurationDeployTest {
                         // do nothing
                     }
                 }
-            }, ClientEndpointConfigurationBuilder.create().build(), getURI(PlainOne.class.getAnnotation(ServerEndpoint.class).value()));
+            }, ClientEndpointConfig.Builder.create().build(), getURI(PlainOne.class.getAnnotation(ServerEndpoint.class).value()));
 
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertEquals(0, messageLatch.getCount());
@@ -170,7 +170,7 @@ public class TwoServerApplicationConfigurationDeployTest {
     }
 
     @Test
-    public void checkIfConfigurationWasCalled() throws DeploymentException, InterruptedException {
+    public void checkIfConfigurationWasCalled() throws DeploymentException, InterruptedException, IOException {
         final Server server = startServer();
 
         final CountDownLatch messageLatch = new CountDownLatch(1);
@@ -179,9 +179,9 @@ public class TwoServerApplicationConfigurationDeployTest {
             final ClientManager client = ClientManager.createClient();
             client.connectToServer(new Endpoint() {
                 @Override
-                public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
+                public void onOpen(Session session, EndpointConfig EndpointConfig) {
                     try {
-                        session.addMessageHandler(new MessageHandler.Basic<String>() {
+                        session.addMessageHandler(new MessageHandler.Whole<String>() {
                             @Override
                             public void onMessage(String message) {
                                 Assert.assertEquals(message, "1");
@@ -194,7 +194,7 @@ public class TwoServerApplicationConfigurationDeployTest {
                         // do nothing
                     }
                 }
-            }, ClientEndpointConfigurationBuilder.create().build(), getURI(ConfigurationChecker.class.getAnnotation(ServerEndpoint.class).value()));
+            }, ClientEndpointConfig.Builder.create().build(), getURI(ConfigurationChecker.class.getAnnotation(ServerEndpoint.class).value()));
 
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertEquals("MessageCount", 0, messageLatch.getCount());

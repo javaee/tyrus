@@ -47,15 +47,15 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Logger;
 
-import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.ClientEndpointConfig;
 import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfiguration;
+import javax.websocket.EndpointConfig;
 import javax.websocket.Extension;
 import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
-import javax.websocket.server.ServerApplicationConfiguration;
-import javax.websocket.server.ServerEndpointConfiguration;
+import javax.websocket.server.ServerApplicationConfig;
+import javax.websocket.server.ServerEndpointConfig;
 
 import org.glassfish.tyrus.core.AnnotatedEndpoint;
 import org.glassfish.tyrus.core.ComponentProviderService;
@@ -75,7 +75,7 @@ import org.glassfish.tyrus.spi.TyrusServer;
 public class TyrusServerContainer extends WithProperties implements WebSocketContainer {
     private final TyrusServer server;
     private final String contextPath;
-    private final ServerApplicationConfiguration configuration;
+    private final ServerApplicationConfig configuration;
     private final Set<SPIRegisteredEndpoint> endpoints = new HashSet<SPIRegisteredEndpoint>();
     private final ErrorCollector collector;
     private final ComponentProviderService componentProvider;
@@ -98,7 +98,7 @@ public class TyrusServerContainer extends WithProperties implements WebSocketCon
         this.collector = new ErrorCollector();
         this.server = server;
         this.contextPath = contextPath;
-        this.configuration = new TyrusServerConfiguration(classes, Collections.<ServerEndpointConfiguration>emptySet(), this.collector);
+        this.configuration = new TyrusServerConfiguration(classes, Collections.<ServerEndpointConfig>emptySet(), this.collector);
         componentProvider = ComponentProviderService.create(collector);
     }
 
@@ -115,17 +115,17 @@ public class TyrusServerContainer extends WithProperties implements WebSocketCon
             // deploy all the annotated endpoints
             for (Class<?> endpointClass : configuration.getAnnotatedEndpointClasses(null)) {
                 AnnotatedEndpoint endpoint = AnnotatedEndpoint.fromClass(endpointClass, componentProvider, true, collector);
-                EndpointConfiguration config = endpoint.getEndpointConfiguration();
+                EndpointConfig config = endpoint.getEndpointConfig();
                 EndpointWrapper ew = new EndpointWrapper(endpoint, config, componentProvider, this, contextPath, collector,
-                        config instanceof ServerEndpointConfiguration ? ((ServerEndpointConfiguration) config).getServerEndpointConfigurator() : null);
+                        config instanceof ServerEndpointConfig ? ((ServerEndpointConfig) config).getConfigurator() : null);
                 deploy(ew);
             }
 
             // deploy all the programmatic endpoints
-            for (ServerEndpointConfiguration serverEndpointConfiguration : configuration.getEndpointConfigurations(null)) {
-                if (serverEndpointConfiguration != null) {
-                    EndpointWrapper ew = new EndpointWrapper(serverEndpointConfiguration.getEndpointClass(),
-                            serverEndpointConfiguration, componentProvider, this, contextPath, collector, serverEndpointConfiguration.getServerEndpointConfigurator());
+            for (ServerEndpointConfig serverEndpointConfig : configuration.getEndpointConfigs(null)) {
+                if (serverEndpointConfig != null) {
+                    EndpointWrapper ew = new EndpointWrapper(serverEndpointConfig.getEndpointClass(),
+                            serverEndpointConfig, componentProvider, this, contextPath, collector, serverEndpointConfig.getConfigurator());
                     deploy(ew);
                 }
             }
@@ -162,7 +162,17 @@ public class TyrusServerContainer extends WithProperties implements WebSocketCon
     }
 
     @Override
-    public Session connectToServer(Class<? extends Endpoint> endpointClass, ClientEndpointConfiguration cec, URI path) throws DeploymentException {
+    public Session connectToServer(Class<? extends Endpoint> endpointClass, ClientEndpointConfig cec, URI path) throws DeploymentException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Session connectToServer(Object annotatedEndpointInstance, URI path) throws DeploymentException, IOException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public Session connectToServer(Endpoint endpointInstance, ClientEndpointConfig cec, URI path) throws DeploymentException, IOException {
         throw new UnsupportedOperationException();
     }
 

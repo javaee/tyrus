@@ -38,38 +38,30 @@
  * holder.
  */
 
-package org.glassfish.tyrus.tests.servlet.twoappconfig;
+package org.glassfish.tyrus.tests.servlet.oneappconfig;
 
 import java.util.HashSet;
 import java.util.Set;
 
 import javax.websocket.Endpoint;
-import javax.websocket.server.ServerApplicationConfiguration;
-import javax.websocket.server.ServerEndpointConfiguration;
+import javax.websocket.server.ServerApplicationConfig;
+import javax.websocket.server.ServerEndpointConfig;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class TestServerApplicationConfiguration implements ServerApplicationConfiguration {
-
-    private static boolean annotatedGetterCalled = false;
+public class TestServerApplicationConfig implements ServerApplicationConfig {
 
     @Override
-    public Set<ServerEndpointConfiguration> getEndpointConfigurations(Set<Class<? extends Endpoint>> endpointClasses) {
+    public Set<ServerEndpointConfig> getEndpointConfigs(Set<Class<? extends Endpoint>> endpointClasses) {
         return null;
     }
 
     @Override
     public Set<Class<?>> getAnnotatedEndpointClasses(Set<Class<?>> scanned) {
-        annotatedGetterCalled = true;
-        HashSet<Class<?>> toReturn = new HashSet<Class<?>>();
-            toReturn.add(PlainEcho.class);
-            toReturn.add(PlainOne.class);
-
-        return toReturn;
-    }
-
-    public static boolean isAnnotatedGetterCalled() {
-        return annotatedGetterCalled;
+        return new HashSet<Class<?>>() {{
+            add(PlainEcho.class);
+            add(PlainOne.class);
+        }};
     }
 }

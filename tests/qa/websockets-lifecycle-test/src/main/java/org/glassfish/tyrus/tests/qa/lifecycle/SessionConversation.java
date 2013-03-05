@@ -39,8 +39,6 @@
  */
 package org.glassfish.tyrus.tests.qa.lifecycle;
 
-import java.util.logging.Logger;
-
 /**
  *
  * @author michal.conos at oracle.com

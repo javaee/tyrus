@@ -44,8 +44,7 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import javax.websocket.ClientEndpointConfiguration;
-import javax.websocket.ClientEndpointConfigurationBuilder;
+import javax.websocket.ClientEndpointConfig;
 import javax.websocket.MessageHandler;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
@@ -66,7 +65,7 @@ public class HelloBinaryTest {
 
     @Test
     public void testClient() {
-        final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
+        final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
         Server server = new Server(HelloBinaryEndpoint.class);
 
         try {
@@ -101,7 +100,7 @@ public class HelloBinaryTest {
 
         }
 
-        class MyMessageHandler implements MessageHandler.Basic<ByteBuffer> {
+        class MyMessageHandler implements MessageHandler.Whole<ByteBuffer> {
             private Session session;
 
             MyMessageHandler(Session session) {

@@ -44,10 +44,9 @@ import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import javax.websocket.ClientEndpointConfiguration;
-import javax.websocket.ClientEndpointConfigurationBuilder;
+import javax.websocket.ClientEndpointConfig;
 import javax.websocket.CloseReason;
-import javax.websocket.EndpointConfiguration;
+import javax.websocket.EndpointConfig;
 import javax.websocket.OnClose;
 import javax.websocket.OnError;
 import javax.websocket.OnMessage;
@@ -90,11 +89,11 @@ public class OnCloseTest {
 
         try {
             server.start();
-            final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
+            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
             ClientManager.createClient().connectToServer(new TestEndpointAdapter() {
                 @Override
-                public EndpointConfiguration getEndpointConfiguration() {
+                public EndpointConfig getEndpointConfig() {
                     return cec;
                 }
 
@@ -175,11 +174,11 @@ public class OnCloseTest {
 
         try {
             server.start();
-            final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
+            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
             ClientManager.createClient().connectToServer(new TestEndpointAdapter() {
                 @Override
-                public EndpointConfiguration getEndpointConfiguration() {
+                public EndpointConfig getEndpointConfig() {
                     return cec;
                 }
 
@@ -227,11 +226,11 @@ public class OnCloseTest {
 
         try {
             server.start();
-            final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
+            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
             ClientManager.createClient().connectToServer(new TestEndpointAdapter() {
                 @Override
-                public EndpointConfiguration getEndpointConfiguration() {
+                public EndpointConfig getEndpointConfig() {
                     return cec;
                 }
 

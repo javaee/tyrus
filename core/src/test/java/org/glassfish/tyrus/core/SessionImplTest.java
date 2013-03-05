@@ -64,19 +64,19 @@ public class SessionImplTest {
     public void simpleTest() {
         Session session = new SessionImpl(null, null, ew, null, null, false, null, null, null);
 
-        session.addMessageHandler(new MessageHandler.Basic<String>() {
+        session.addMessageHandler(new MessageHandler.Whole<String>() {
             @Override
             public void onMessage(String message) {
             }
         });
 
-        session.addMessageHandler(new MessageHandler.Basic<ByteBuffer>() {
+        session.addMessageHandler(new MessageHandler.Whole<ByteBuffer>() {
             @Override
             public void onMessage(ByteBuffer message) {
             }
         });
 
-        session.addMessageHandler(new MessageHandler.Basic<PongMessage>() {
+        session.addMessageHandler(new MessageHandler.Whole<PongMessage>() {
             @Override
             public void onMessage(PongMessage message) {
             }
@@ -89,13 +89,13 @@ public class SessionImplTest {
     public void multipleTextHandlers() {
         Session session = new SessionImpl(null, null, ew, null, null, false, null, null, null);
 
-        session.addMessageHandler(new MessageHandler.Basic<String>() {
+        session.addMessageHandler(new MessageHandler.Whole<String>() {
             @Override
             public void onMessage(String message) {
             }
         });
 
-        session.addMessageHandler(new MessageHandler.Basic<Reader>() {
+        session.addMessageHandler(new MessageHandler.Whole<Reader>() {
             @Override
             public void onMessage(Reader message) {
             }
@@ -106,13 +106,13 @@ public class SessionImplTest {
     public void multipleStringHandlers() {
         Session session = new SessionImpl(null, null, ew, null, null, false, null, null, null);
 
-        session.addMessageHandler(new MessageHandler.Basic<String>() {
+        session.addMessageHandler(new MessageHandler.Whole<String>() {
             @Override
             public void onMessage(String message) {
             }
         });
 
-        session.addMessageHandler(new MessageHandler.Basic<String>() {
+        session.addMessageHandler(new MessageHandler.Whole<String>() {
             @Override
             public void onMessage(String message) {
             }
@@ -123,13 +123,13 @@ public class SessionImplTest {
     public void multipleBinaryHandlers() {
         Session session = new SessionImpl(null, null, ew, null, null, false, null, null, null);
 
-        session.addMessageHandler(new MessageHandler.Basic<InputStream>() {
+        session.addMessageHandler(new MessageHandler.Whole<InputStream>() {
             @Override
             public void onMessage(InputStream message) {
             }
         });
 
-        session.addMessageHandler(new MessageHandler.Basic<ByteBuffer>() {
+        session.addMessageHandler(new MessageHandler.Whole<ByteBuffer>() {
             @Override
             public void onMessage(ByteBuffer message) {
             }
@@ -140,13 +140,13 @@ public class SessionImplTest {
     public void multipleBinaryHandlersWithByteArray() {
         Session session = new SessionImpl(null, null, ew, null, null, false, null, null, null);
 
-        session.addMessageHandler(new MessageHandler.Basic<byte[]>() {
+        session.addMessageHandler(new MessageHandler.Whole<byte[]>() {
             @Override
             public void onMessage(byte[] message) {
             }
         });
 
-        session.addMessageHandler(new MessageHandler.Basic<ByteBuffer>() {
+        session.addMessageHandler(new MessageHandler.Whole<ByteBuffer>() {
             @Override
             public void onMessage(ByteBuffer message) {
             }
@@ -157,13 +157,13 @@ public class SessionImplTest {
     public void multipleInputStreamHandlers() {
         Session session = new SessionImpl(null, null, ew, null, null, false, null, null, null);
 
-        session.addMessageHandler(new MessageHandler.Basic<InputStream>() {
+        session.addMessageHandler(new MessageHandler.Whole<InputStream>() {
             @Override
             public void onMessage(InputStream message) {
             }
         });
 
-        session.addMessageHandler(new MessageHandler.Basic<InputStream>() {
+        session.addMessageHandler(new MessageHandler.Whole<InputStream>() {
             @Override
             public void onMessage(InputStream message) {
             }
@@ -174,13 +174,13 @@ public class SessionImplTest {
     public void multiplePongHandlers() {
         Session session = new SessionImpl(null, null, ew, null, null, false, null, null, null);
 
-        session.addMessageHandler(new MessageHandler.Basic<PongMessage>() {
+        session.addMessageHandler(new MessageHandler.Whole<PongMessage>() {
             @Override
             public void onMessage(PongMessage message) {
             }
         });
 
-        session.addMessageHandler(new MessageHandler.Basic<PongMessage>() {
+        session.addMessageHandler(new MessageHandler.Whole<PongMessage>() {
             @Override
             public void onMessage(PongMessage message) {
             }
@@ -191,13 +191,13 @@ public class SessionImplTest {
     public void multipleBasicDecodable() {
         Session session = new SessionImpl(null, null, ew, null, null, false, null, null, null);
 
-        session.addMessageHandler(new MessageHandler.Basic<SessionImplTest>() {
+        session.addMessageHandler(new MessageHandler.Whole<SessionImplTest>() {
             @Override
             public void onMessage(SessionImplTest message) {
             }
         });
 
-        session.addMessageHandler(new MessageHandler.Basic<SessionImplTest>() {
+        session.addMessageHandler(new MessageHandler.Whole<SessionImplTest>() {
             @Override
             public void onMessage(SessionImplTest message) {
             }
@@ -208,13 +208,13 @@ public class SessionImplTest {
     public void multipleTextHandlersAsync() {
         Session session = new SessionImpl(null, null, ew, null, null, false, null, null, null);
 
-        session.addMessageHandler(new MessageHandler.Async<String>() {
+        session.addMessageHandler(new MessageHandler.Partial<String>() {
             @Override
             public void onMessage(String message, boolean last) {
             }
         });
 
-        session.addMessageHandler(new MessageHandler.Async<Reader>() {
+        session.addMessageHandler(new MessageHandler.Partial<Reader>() {
             @Override
             public void onMessage(Reader message, boolean last) {
             }
@@ -225,13 +225,13 @@ public class SessionImplTest {
     public void multipleStringHandlersAsync() {
         Session session = new SessionImpl(null, null, ew, null, null, false, null, null, null);
 
-        session.addMessageHandler(new MessageHandler.Async<String>() {
+        session.addMessageHandler(new MessageHandler.Partial<String>() {
             @Override
             public void onMessage(String message, boolean last) {
             }
         });
 
-        session.addMessageHandler(new MessageHandler.Async<String>() {
+        session.addMessageHandler(new MessageHandler.Partial<String>() {
             @Override
             public void onMessage(String message, boolean last) {
             }
@@ -242,13 +242,13 @@ public class SessionImplTest {
     public void multipleBinaryHandlersAsync() {
         Session session = new SessionImpl(null, null, ew, null, null, false, null, null, null);
 
-        session.addMessageHandler(new MessageHandler.Async<InputStream>() {
+        session.addMessageHandler(new MessageHandler.Partial<InputStream>() {
             @Override
             public void onMessage(InputStream message, boolean last) {
             }
         });
 
-        session.addMessageHandler(new MessageHandler.Async<ByteBuffer>() {
+        session.addMessageHandler(new MessageHandler.Partial<ByteBuffer>() {
             @Override
             public void onMessage(ByteBuffer message, boolean last) {
             }
@@ -259,13 +259,13 @@ public class SessionImplTest {
     public void multipleBinaryHandlersWithByteArrayAsync() {
         Session session = new SessionImpl(null, null, ew, null, null, false, null, null, null);
 
-        session.addMessageHandler(new MessageHandler.Async<byte[]>() {
+        session.addMessageHandler(new MessageHandler.Partial<byte[]>() {
             @Override
             public void onMessage(byte[] message, boolean last) {
             }
         });
 
-        session.addMessageHandler(new MessageHandler.Async<ByteBuffer>() {
+        session.addMessageHandler(new MessageHandler.Partial<ByteBuffer>() {
             @Override
             public void onMessage(ByteBuffer message, boolean last) {
             }
@@ -277,13 +277,13 @@ public class SessionImplTest {
         Session session = new SessionImpl(null, null, ew, null, null, false, null, null, null);
 
 
-        session.addMessageHandler(new MessageHandler.Async<InputStream>() {
+        session.addMessageHandler(new MessageHandler.Partial<InputStream>() {
             @Override
             public void onMessage(InputStream message, boolean last) {
             }
         });
 
-        session.addMessageHandler(new MessageHandler.Async<InputStream>() {
+        session.addMessageHandler(new MessageHandler.Partial<InputStream>() {
             @Override
             public void onMessage(InputStream message, boolean last) {
             }
@@ -295,13 +295,13 @@ public class SessionImplTest {
         Session session = new SessionImpl(null, null, ew, null, null, false, null, null, null);
 
 
-        session.addMessageHandler(new MessageHandler.Async<PongMessage>() {
+        session.addMessageHandler(new MessageHandler.Partial<PongMessage>() {
             @Override
             public void onMessage(PongMessage message, boolean last) {
             }
         });
 
-        session.addMessageHandler(new MessageHandler.Async<PongMessage>() {
+        session.addMessageHandler(new MessageHandler.Partial<PongMessage>() {
             @Override
             public void onMessage(PongMessage message, boolean last) {
             }
@@ -313,13 +313,13 @@ public class SessionImplTest {
         Session session = new SessionImpl(null, null, ew, null, null, false, null, null, null);
 
 
-        session.addMessageHandler(new MessageHandler.Async<SessionImplTest>() {
+        session.addMessageHandler(new MessageHandler.Partial<SessionImplTest>() {
             @Override
             public void onMessage(SessionImplTest message, boolean last) {
             }
         });
 
-        session.addMessageHandler(new MessageHandler.Async<SessionImplTest>() {
+        session.addMessageHandler(new MessageHandler.Partial<SessionImplTest>() {
             @Override
             public void onMessage(SessionImplTest message, boolean last) {
             }
@@ -330,17 +330,17 @@ public class SessionImplTest {
     public void getHandlers() {
         Session session = new SessionImpl(null, null, ew, null, null, false, null, null, null);
 
-        final MessageHandler.Basic<String> handler1 = new MessageHandler.Basic<String>() {
+        final MessageHandler.Whole<String> handler1 = new MessageHandler.Whole<String>() {
             @Override
             public void onMessage(String message) {
             }
         };
-        final MessageHandler.Basic<ByteBuffer> handler2 = new MessageHandler.Basic<ByteBuffer>() {
+        final MessageHandler.Whole<ByteBuffer> handler2 = new MessageHandler.Whole<ByteBuffer>() {
             @Override
             public void onMessage(ByteBuffer message) {
             }
         };
-        final MessageHandler.Basic<PongMessage> handler3 = new MessageHandler.Basic<PongMessage>() {
+        final MessageHandler.Whole<PongMessage> handler3 = new MessageHandler.Whole<PongMessage>() {
             @Override
             public void onMessage(PongMessage message) {
             }
@@ -360,17 +360,17 @@ public class SessionImplTest {
         Session session = new SessionImpl(null, null, ew, null, null, false, null, null, null);
 
 
-        final MessageHandler.Async<String> handler1 = new MessageHandler.Async<String>() {
+        final MessageHandler.Partial<String> handler1 = new MessageHandler.Partial<String>() {
             @Override
             public void onMessage(String message, boolean last) {
             }
         };
-        final MessageHandler.Basic<ByteBuffer> handler2 = new MessageHandler.Basic<ByteBuffer>() {
+        final MessageHandler.Whole<ByteBuffer> handler2 = new MessageHandler.Whole<ByteBuffer>() {
             @Override
             public void onMessage(ByteBuffer message) {
             }
         };
-        final MessageHandler.Basic<PongMessage> handler3 = new MessageHandler.Basic<PongMessage>() {
+        final MessageHandler.Whole<PongMessage> handler3 = new MessageHandler.Whole<PongMessage>() {
             @Override
             public void onMessage(PongMessage message) {
             }

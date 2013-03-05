@@ -55,13 +55,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.websocket.ClientEndpoint;
-import javax.websocket.ClientEndpointConfigurationBuilder;
+import javax.websocket.ClientEndpointConfig;
 import javax.websocket.CloseReason;
 import javax.websocket.Decoder;
 import javax.websocket.DeploymentException;
 import javax.websocket.Encoder;
 import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfiguration;
+import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
 import javax.websocket.OnClose;
 import javax.websocket.OnError;
@@ -70,8 +70,7 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
-import javax.websocket.server.ServerEndpointConfigurationBuilder;
-import javax.websocket.server.ServerEndpointConfigurator;
+import javax.websocket.server.ServerEndpointConfig;
 
 /**
  * AnnotatedEndpoint of a class annotated using the ServerEndpoint annotations.
@@ -91,7 +90,7 @@ public class AnnotatedEndpoint extends Endpoint {
     private final ParameterExtractor[] onOpenParameters;
     private final ParameterExtractor[] onCloseParameters;
     private final ParameterExtractor[] onErrorParameters;
-    private final EndpointConfiguration configuration;
+    private final EndpointConfig configuration;
     private final ErrorCollector collector;
     private final ComponentProviderService componentProvider;
 
@@ -127,7 +126,7 @@ public class AnnotatedEndpoint extends Endpoint {
 
     private AnnotatedEndpoint(Class<?> annotatedClass, Object instance, ComponentProviderService componentProvider, Boolean isServerEndpoint, ErrorCollector collector) throws DeploymentException {
         this.collector = collector;
-        this.configuration = createEndpointConfiguration(annotatedClass, isServerEndpoint);
+        this.configuration = createEndpointConfig(annotatedClass, isServerEndpoint);
         this.annotatedInstance = instance;
         this.annotatedClass = annotatedClass;
         this.componentProvider = componentProvider;
@@ -197,7 +196,7 @@ public class AnnotatedEndpoint extends Endpoint {
                     if (unknownParams.size() == 1) {
                         Map.Entry<Integer, Class<?>> entry = unknownParams.entrySet().iterator().next();
                         extractors[entry.getKey()] = new ParamValue(0);
-                        handlerFactory = new BasicHandler(m, extractors, entry.getValue(), maxMessageSize);
+                        handlerFactory = new WholeHandler(m, extractors, entry.getValue(), maxMessageSize);
                         messageHandlerFactories.add(handlerFactory);
                         validityChecker.checkOnMessageParams(m, handlerFactory.create(null));
                     } else if (unknownParams.size() == 2) {
@@ -213,7 +212,7 @@ public class AnnotatedEndpoint extends Endpoint {
                         extractors[message.getKey()] = new ParamValue(0);
                         extractors[last.getKey()] = new ParamValue(1);
                         if (last.getValue() == boolean.class || last.getValue() == Boolean.class) {
-                            handlerFactory = new AsyncHandler(m, extractors, message.getValue(), maxMessageSize);
+                            handlerFactory = new PartialHandler(m, extractors, message.getValue(), maxMessageSize);
                             messageHandlerFactories.add(handlerFactory);
                             validityChecker.checkOnMessageParams(m, handlerFactory.create(null));
                         } else {
@@ -234,7 +233,7 @@ public class AnnotatedEndpoint extends Endpoint {
         this.onCloseParameters = onCloseParameters;
     }
 
-    private EndpointConfiguration createEndpointConfiguration(Class<?> annotatedClass, boolean isServerEndpoint) {
+    private EndpointConfig createEndpointConfig(Class<?> annotatedClass, boolean isServerEndpoint) {
         if (isServerEndpoint) {
             final ServerEndpoint wseAnnotation = annotatedClass.getAnnotation(ServerEndpoint.class);
 
@@ -245,38 +244,21 @@ public class AnnotatedEndpoint extends Endpoint {
 
             // default value
 //            if (wseAnnotation.configuration().equals(DefaultServerConfiguration.class)) {
-            Class<? extends Encoder>[] encoderClasses;
-            Class<? extends Decoder>[] decoderClasses;
+            List<Class<? extends Encoder>> encoderClasses = new ArrayList<Class<? extends Encoder>>();
+            List<Class<? extends Decoder>> decoderClasses = new ArrayList<Class<? extends Decoder>>();
             String[] subProtocols;
 
-            encoderClasses = wseAnnotation.encoders();
-            decoderClasses = wseAnnotation.decoders();
+            encoderClasses.addAll(Arrays.asList(wseAnnotation.encoders()));
+            decoderClasses.addAll(Arrays.asList(wseAnnotation.decoders()));
             subProtocols = wseAnnotation.subprotocols();
 
-            List<Encoder> encoders = new ArrayList<Encoder>();
-            if (encoderClasses != null) {
-                //noinspection unchecked
-                for (Class<? extends Encoder> encoderClass : encoderClasses) {
-                    Class<?> encoderType = getEncoderClassType(encoderClass);
-                    encoders.add(new CoderWrapper<Encoder>(encoderClass, encoderType));
-                }
-            }
-            List<Decoder> decoders = new ArrayList<Decoder>();
-            if (decoderClasses != null) {
-                //noinspection unchecked
-                for (Class<? extends Decoder> decoderClass : decoderClasses) {
-                    Class<?> decoderType = getDecoderClassType(decoderClass);
-                    decoders.add(new CoderWrapper<Decoder>(decoderClass, decoderType));
-                }
-            }
+            decoderClasses.addAll(EndpointWrapper.getDefaultDecoders());
 
-            decoders.addAll(EndpointWrapper.getDefaultDecoders());
+            ServerEndpointConfig.Builder builder = ServerEndpointConfig.Builder.create(annotatedClass, wseAnnotation.value()).
+                    encoders(encoderClasses).decoders(decoderClasses).subprotocols(Arrays.asList(subProtocols));
 
-            ServerEndpointConfigurationBuilder builder = ServerEndpointConfigurationBuilder.create(annotatedClass, wseAnnotation.value()).
-                    encoders(encoders).decoders(decoders).subprotocols(Arrays.asList(subProtocols));
-
-            if (!wseAnnotation.configurator().equals(ServerEndpointConfigurator.class)) {
-                builder = builder.serverEndpointConfigurator(ReflectionHelper.getInstance(wseAnnotation.configurator(), collector));
+            if (!wseAnnotation.configurator().equals(ServerEndpointConfig.Configurator.class)) {
+                builder = builder.configurator(ReflectionHelper.getInstance(wseAnnotation.configurator(), collector));
             }
 
             return builder.build();
@@ -292,12 +274,12 @@ public class AnnotatedEndpoint extends Endpoint {
 
             // TODO - wscAnnotation.configuration()?
 
-            Class<? extends Encoder>[] encoderClasses;
-            Class<? extends Decoder>[] decoderClasses;
+            List<Class<? extends Encoder>> encoderClasses = new ArrayList<Class<? extends Encoder>>();
+            List<Class<? extends Decoder>> decoderClasses = new ArrayList<Class<? extends Decoder>>();
             String[] subProtocols;
 
-            encoderClasses = wscAnnotation.encoders();
-            decoderClasses = wscAnnotation.decoders();
+            encoderClasses.addAll(Arrays.asList(wscAnnotation.encoders()));
+            decoderClasses.addAll(Arrays.asList(wscAnnotation.decoders()));
             subProtocols = wscAnnotation.subprotocols();
 
             List<Encoder> encoders = new ArrayList<Encoder>();
@@ -315,14 +297,14 @@ public class AnnotatedEndpoint extends Endpoint {
                 }
             }
 
-            decoders.addAll(EndpointWrapper.getDefaultDecoders());
+            decoderClasses.addAll(EndpointWrapper.getDefaultDecoders());
 
-            return ClientEndpointConfigurationBuilder.create().encoders(encoders).decoders(decoders).
+            return ClientEndpointConfig.Builder.create().encoders(encoderClasses).decoders(decoderClasses).
                     preferredSubprotocols(Arrays.asList(subProtocols)).build();
         }
     }
 
-    private static Class<?> getDecoderClassType(Class<?> decoder) {
+    static Class<?> getDecoderClassType(Class<?> decoder) {
         Class<?> rootClass = null;
 
         if (Decoder.Text.class.isAssignableFrom(decoder)) {
@@ -340,7 +322,7 @@ public class AnnotatedEndpoint extends Endpoint {
         return as == null ? Object.class : (as[0] == null ? Object.class : as[0]);
     }
 
-    private static Class<?> getEncoderClassType(Class<?> encoder) {
+    static Class<?> getEncoderClassType(Class<?> encoder) {
         Class<?> rootClass = null;
 
         if (Encoder.Text.class.isAssignableFrom(encoder)) {
@@ -393,11 +375,11 @@ public class AnnotatedEndpoint extends Endpoint {
                         return session;
                     }
                 };
-            } else if (type == EndpointConfiguration.class) {
+            } else if (type == EndpointConfig.class) {
                 result[i] = new ParameterExtractor() {
                     @Override
                     public Object value(Session session, Object... values) {
-                        return getEndpointConfiguration();
+                        return getEndpointConfig();
                     }
                 };
             } else if (params.contains(type)) {
@@ -469,12 +451,12 @@ public class AnnotatedEndpoint extends Endpoint {
     }
 
     //    @Override
-    public EndpointConfiguration getEndpointConfiguration() {
+    public EndpointConfig getEndpointConfig() {
         return configuration;
     }
 
     @Override
-    public void onOpen(Session session, EndpointConfiguration configuration) {
+    public void onOpen(Session session, EndpointConfig configuration) {
         for (MessageHandlerFactory f : messageHandlerFactories) {
             session.addMessageHandler(f.create(session));
         }
@@ -518,8 +500,8 @@ public class AnnotatedEndpoint extends Endpoint {
         abstract MessageHandler create(Session session);
     }
 
-    class BasicHandler extends MessageHandlerFactory {
-        BasicHandler(Method method, ParameterExtractor[] extractors, Class<?> type, long maxMessageSize) {
+    class WholeHandler extends MessageHandlerFactory {
+        WholeHandler(Method method, ParameterExtractor[] extractors, Class<?> type, long maxMessageSize) {
             super(method, extractors, type, maxMessageSize);
         }
 
@@ -551,8 +533,8 @@ public class AnnotatedEndpoint extends Endpoint {
         }
     }
 
-    class AsyncHandler extends MessageHandlerFactory {
-        AsyncHandler(Method method, ParameterExtractor[] extractors, Class<?> type, long maxMessageSize) {
+    class PartialHandler extends MessageHandlerFactory {
+        PartialHandler(Method method, ParameterExtractor[] extractors, Class<?> type, long maxMessageSize) {
             super(method, extractors, type, maxMessageSize);
         }
 

@@ -45,6 +45,7 @@ import javax.websocket.DecodeException;
 import javax.websocket.Decoder;
 import javax.websocket.EncodeException;
 import javax.websocket.Encoder;
+import javax.websocket.EndpointConfig;
 
 /**
  * {@link Encoder} and {@link Decoder} implementation for byte array.
@@ -65,5 +66,10 @@ class NoOpByteArrayCoder implements Decoder.Binary<byte[]>, Encoder.Binary<byte[
     @Override
     public byte[] decode(ByteBuffer bytes) throws DecodeException {
         return bytes.array();
+    }
+
+    @Override
+    public void setEndpointConfig(EndpointConfig config) {
+        // do nothing.
     }
 }

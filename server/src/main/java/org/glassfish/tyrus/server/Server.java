@@ -71,8 +71,8 @@ public class Server {
      *
      * @param configuration to be registered with the server. Classes annotated with
      * {@link javax.websocket.server.ServerEndpoint},
-     *                      implementing {@link javax.websocket.server.ServerApplicationConfiguration}
-     *                      or extending {@link javax.websocket.server.ServerEndpointConfiguration} are supported.
+     *                      implementing {@link javax.websocket.server.ServerApplicationConfig}
+     *                      or extending {@link javax.websocket.server.ServerEndpointConfig} are supported.
      */
     public Server(Class<?>... configuration) {
         this(null, 0, null, configuration);
@@ -86,8 +86,8 @@ public class Server {
      * @param rootPath root path to the server App.
      * @param configuration to be registered with the server. Classes annotated with
      * {@link javax.websocket.server.ServerEndpoint},
-     *                      implementing {@link javax.websocket.server.ServerApplicationConfiguration}
-     *                      or extending {@link javax.websocket.server.ServerEndpointConfiguration} are supported.
+     *                      implementing {@link javax.websocket.server.ServerApplicationConfig}
+     *                      or extending {@link javax.websocket.server.ServerEndpointConfig} are supported.
      */
     public Server(String hostName, int port, String rootPath, Class<?>... configuration) {
         this(hostName, port, rootPath, new HashSet<Class<?>>(Arrays.asList(configuration)));
@@ -101,8 +101,8 @@ public class Server {
      * @param rootPath      root path to the server App.
      * @param configuration to be registered with the server. Classes annotated with
      * {@link javax.websocket.server.ServerEndpoint},
-     *                      implementing {@link javax.websocket.server.ServerApplicationConfiguration}
-     *                      or extending {@link javax.websocket.server.ServerEndpointConfiguration} are supported.
+     *                      implementing {@link javax.websocket.server.ServerApplicationConfig}
+     *                      or extending {@link javax.websocket.server.ServerEndpointConfig} are supported.
      */
     public Server(String hostName, int port, String rootPath, Set<Class<?>> configuration) {
         this.hostName = hostName == null ? DEFAULT_HOST_NAME : hostName;

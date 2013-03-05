@@ -49,7 +49,7 @@ import javax.websocket.CloseReason;
 import javax.websocket.Decoder;
 import javax.websocket.DeploymentException;
 import javax.websocket.Encoder;
-import javax.websocket.EndpointConfiguration;
+import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
 
 /**
@@ -67,7 +67,7 @@ class AnnotatedClassValidityChecker {
     private static final String FORBIDDEN_RETURN_TYPE = " has got unsupported return type.";
 
     private final Class<?> annotatedClass;
-    private final List<Encoder> encoders;
+    private final List<Class<? extends Encoder>> encoders;
     private final ErrorCollector collector;
     private final MessageHandlerManager handlerManager;
 
@@ -76,7 +76,7 @@ class AnnotatedClassValidityChecker {
      *
      * @param annotatedClass class for which this checker is constructed.
      */
-    public AnnotatedClassValidityChecker(Class<?> annotatedClass, List<Encoder> encoders, List<Decoder> decoders, ErrorCollector collector) {
+    public AnnotatedClassValidityChecker(Class<?> annotatedClass, List<Class<? extends Encoder>> encoders, List<Class<? extends Decoder>> decoders, ErrorCollector collector) {
         this.annotatedClass = annotatedClass;
         this.encoders = encoders;
         this.collector = collector;
@@ -120,7 +120,7 @@ class AnnotatedClassValidityChecker {
      */
     public void checkOnOpenParams(Method method, Map<Integer, Class<?>> params) {
         for (Class<?> value : params.values()) {
-            if (value != EndpointConfiguration.class) {
+            if (value != EndpointConfig.class) {
                 logDeploymentException(new DeploymentException(String.format("%s:%s %s", getPrefix(method.getName()), value, FORBIDDEN_WEB_SOCKET_OPEN_PARAM)));
             }
         }
@@ -168,11 +168,9 @@ class AnnotatedClassValidityChecker {
     }
 
     private boolean checkEncoders(Class<?> requiredType) {
-        for (Encoder encoder : encoders) {
-            if (encoder instanceof CoderWrapper) {
-                if (((CoderWrapper<Encoder>) encoder).getType().isAssignableFrom(requiredType)) {
-                    return true;
-                }
+        for (Class<? extends Encoder> encoderClass : encoders) {
+            if(AnnotatedEndpoint.getEncoderClassType(encoderClass).isAssignableFrom(requiredType)) {
+                return true;
             }
         }
 

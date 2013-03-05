@@ -123,8 +123,8 @@
     </developers>
 
     <properties>
-        <websocket-api.version>1.0-b13</websocket-api.version>
-        <websocket.api.build_number>13</websocket.api.build_number>
+        <websocket-api.version>1.0-b14</websocket-api.version>
+        <websocket.api.build_number>14</websocket.api.build_number>
 
         <servlet.api.version>3.0.1</servlet.api.version>
         <grizzly.version>2.3-rc4</grizzly.version>

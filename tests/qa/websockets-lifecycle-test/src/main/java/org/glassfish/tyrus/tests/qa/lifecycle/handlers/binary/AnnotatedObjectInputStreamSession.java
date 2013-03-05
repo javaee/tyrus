@@ -41,17 +41,18 @@ package org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectInputStream;
 import java.util.logging.Level;
+
 import javax.websocket.ClientEndpoint;
 import javax.websocket.CloseReason;
-import javax.websocket.EndpointConfiguration;
+import javax.websocket.EndpointConfig;
 import javax.websocket.OnClose;
 import javax.websocket.OnError;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
+
 import org.glassfish.tyrus.tests.qa.lifecycle.AnnotatedEndpoint;
 import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleDeployment;
 import org.glassfish.tyrus.tests.qa.lifecycle.handlers.ObjectInputStreamSessionImpl;
@@ -72,7 +73,7 @@ public class AnnotatedObjectInputStreamSession {
 
         @OnOpen
         @Override
-        public void onOpen(Session session, EndpointConfiguration ec) {
+        public void onOpen(Session session, EndpointConfig ec) {
             super.onOpen(session, ec);
             lifeCycle.onServerOpen(session, ec);
             logger.log(Level.INFO, "lifeCycle={0}", lifeCycle.toString());
@@ -105,7 +106,7 @@ public class AnnotatedObjectInputStreamSession {
 
         @OnOpen
         @Override
-        public void onOpen(Session session, EndpointConfiguration ec) {
+        public void onOpen(Session session, EndpointConfig ec) {
             if (this.session == null) {
                 this.session = session;
             }

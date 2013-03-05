@@ -47,10 +47,9 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import javax.websocket.ClientEndpointConfiguration;
-import javax.websocket.ClientEndpointConfigurationBuilder;
+import javax.websocket.ClientEndpointConfig;
 import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfiguration;
+import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
@@ -71,7 +70,7 @@ public class StreamingBinaryTest {
 
     @Test
     public void testClient() {
-        final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
+        final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
         Server server = new Server(StreamingBinaryEndpoint.class);
 
         try {
@@ -108,7 +107,7 @@ public class StreamingBinaryTest {
             System.out.println("STREAMINGBSERVER opened !");
             this.session = session;
 
-            session.addMessageHandler(new MessageHandler.Async<ByteBuffer>() {
+            session.addMessageHandler(new MessageHandler.Partial<ByteBuffer>() {
                 StringBuilder sb = new StringBuilder();
 
                 @Override
@@ -164,17 +163,17 @@ public class StreamingBinaryTest {
         }
 
         //    @Override
-        //    public EndpointConfiguration getEndpointConfiguration() {
+        //    public EndpointConfig getEndpointConfig() {
         //        return null;
         //    }
 
-        public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
+        public void onOpen(Session session, EndpointConfig EndpointConfig) {
 
             System.out.println("STREAMINGBCLIENT opened !");
 
             this.session = session;
 
-            session.addMessageHandler(new MessageHandler.Async<ByteBuffer>() {
+            session.addMessageHandler(new MessageHandler.Partial<ByteBuffer>() {
                 StringBuilder sb = new StringBuilder();
 
                 public void onMessage(ByteBuffer bb, boolean last) {

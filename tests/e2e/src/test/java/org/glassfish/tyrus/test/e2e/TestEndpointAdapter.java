@@ -41,7 +41,7 @@
 package org.glassfish.tyrus.test.e2e;
 
 import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfiguration;
+import javax.websocket.EndpointConfig;
 import javax.websocket.Session;
 
 /**
@@ -53,11 +53,11 @@ public abstract class TestEndpointAdapter extends Endpoint {
     public abstract void onOpen(Session session);
 
     @Override
-    public void onOpen(Session session, EndpointConfiguration config) {
+    public void onOpen(Session session, EndpointConfig config) {
         onOpen(session);
     }
 
-    public EndpointConfiguration getEndpointConfiguration() {
+    public EndpointConfig getEndpointConfig() {
         return null;
     }
 }

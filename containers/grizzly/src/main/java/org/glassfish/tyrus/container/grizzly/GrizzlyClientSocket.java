@@ -58,7 +58,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import javax.websocket.ClientEndpointConfiguration;
+import javax.websocket.ClientEndpointConfig;
 import javax.websocket.CloseReason;
 import javax.websocket.HandshakeResponse;
 import javax.websocket.Session;
@@ -105,7 +105,7 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
     private final AtomicReference<State> state = new AtomicReference<State>(State.NEW);
     private final TyrusRemoteEndpoint remoteEndpoint;
     private final long timeoutMs;
-    private final ClientEndpointConfiguration configuration;
+    private final ClientEndpointConfig configuration;
     private Session session = null;
 
     private final List<javax.websocket.Extension> responseExtensions = new ArrayList<javax.websocket.Extension>();
@@ -121,7 +121,7 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
      * @param configuration client endpoint configuration.
      * @param timeoutMs     TODO
      */
-    public GrizzlyClientSocket(URI uri, ClientEndpointConfiguration configuration, long timeoutMs) {
+    public GrizzlyClientSocket(URI uri, ClientEndpointConfig configuration, long timeoutMs) {
         this.uri = uri;
         this.configuration = configuration;
         protocolHandler = WebSocketEngine.DEFAULT_VERSION.createHandler(true);
@@ -194,7 +194,7 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
                     responseExtensions.addAll(TyrusExtension.fromString(value));
                 }
 
-                configuration.getClientEndpointConfigurator().afterResponse(new HandshakeResponse() {
+                configuration.getConfigurator().afterResponse(new HandshakeResponse() {
 
                     private final Map<String, List<String>> headers =
                             new TreeMap<String, List<String>>(new Comparator<String>() {
@@ -225,7 +225,7 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
             adaptedHeaders.put(entry.getKey(), value == null ? null : Arrays.asList(value));
         }
 
-        configuration.getClientEndpointConfigurator().beforeRequest(adaptedHeaders);
+        configuration.getConfigurator().beforeRequest(adaptedHeaders);
         headers.clear();
 
         for (Map.Entry<String, List<String>> entry : adaptedHeaders.entrySet()) {

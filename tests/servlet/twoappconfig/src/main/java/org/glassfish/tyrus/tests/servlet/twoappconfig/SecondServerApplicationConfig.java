@@ -38,55 +38,37 @@
  * holder.
  */
 
-package org.glassfish.tyrus.server;
+package org.glassfish.tyrus.tests.servlet.twoappconfig;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.HashSet;
+import java.util.Set;
 
-import javax.websocket.Decoder;
-import javax.websocket.Encoder;
-import javax.websocket.Extension;
-import javax.websocket.server.ServerEndpointConfiguration;
-import javax.websocket.server.ServerEndpointConfigurator;
+import javax.websocket.Endpoint;
+import javax.websocket.server.ServerApplicationConfig;
+import javax.websocket.server.ServerEndpointConfig;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public abstract class ServerEndpointConfigurationAdapter implements ServerEndpointConfiguration {
+public class SecondServerApplicationConfig implements ServerApplicationConfig {
+
+    private static boolean annotatedGetterCalled = false;
+
     @Override
-    public String getPath() {
+    public Set<ServerEndpointConfig> getEndpointConfigs(Set<Class<? extends Endpoint>> endpointClasses) {
         return null;
     }
 
     @Override
-    public List<Encoder> getEncoders() {
-        return null;
+    public Set<Class<?>> getAnnotatedEndpointClasses(Set<Class<?>> scanned) {
+        annotatedGetterCalled = true;
+        HashSet<Class<?>> toReturn = new HashSet<Class<?>>();
+            toReturn.add(ConfigurationChecker.class);
+
+        return toReturn;
     }
 
-    @Override
-    public List<Decoder> getDecoders() {
-        return null;
-    }
-
-    @Override
-    public List<String> getSubprotocols() {
-        return Collections.emptyList();
-
-    }
-
-    @Override
-    public List<Extension> getExtensions() {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public Map<String, Object> getUserProperties() {
-        return Collections.emptyMap();
-    }
-
-    @Override
-    public ServerEndpointConfigurator getServerEndpointConfigurator() {
-        return new ServerEndpointConfigurator() {};
+    public static boolean isAnnotatedGetterCalled() {
+        return annotatedGetterCalled;
     }
 }

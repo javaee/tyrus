@@ -47,10 +47,9 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import javax.websocket.ClientEndpointConfiguration;
-import javax.websocket.ClientEndpointConfigurationBuilder;
+import javax.websocket.ClientEndpointConfig;
 import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfiguration;
+import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
 import javax.websocket.OnMessage;
 import javax.websocket.Session;
@@ -98,15 +97,15 @@ public class MessageHandlersTest {
 
         try {
             server.start();
-            final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
+            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
             messageLatch = new CountDownLatch(1);
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new Endpoint() {
 
                 @Override
-                public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
-                    session.addMessageHandler(new MessageHandler.Basic<String>() {
+                public void onOpen(Session session, EndpointConfig EndpointConfig) {
+                    session.addMessageHandler(new MessageHandler.Whole<String>() {
                         @Override
                         public void onMessage(String message) {
                             if (message.equals("In my experience, there's no such thing as luck.")) {
@@ -141,15 +140,15 @@ public class MessageHandlersTest {
 
         try {
             server.start();
-            final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
+            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
             messageLatch = new CountDownLatch(1);
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new Endpoint() {
 
                 @Override
-                public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
-                    session.addMessageHandler(new MessageHandler.Basic<String>() {
+                public void onOpen(Session session, EndpointConfig EndpointConfig) {
+                    session.addMessageHandler(new MessageHandler.Whole<String>() {
                         @Override
                         public void onMessage(String message) {
                             if (message.equals("In my experience, there's no such thing as luck.")) {
@@ -184,15 +183,15 @@ public class MessageHandlersTest {
 
         try {
             server.start();
-            final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
+            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
             messageLatch = new CountDownLatch(1);
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new Endpoint() {
 
                 @Override
-                public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
-                    session.addMessageHandler(new MessageHandler.Basic<String>() {
+                public void onOpen(Session session, EndpointConfig EndpointConfig) {
+                    session.addMessageHandler(new MessageHandler.Whole<String>() {
                         @Override
                         public void onMessage(String message) {
                             if (message.equals("In my experience, there's no such thing as luck.")) {
@@ -229,15 +228,15 @@ public class MessageHandlersTest {
 
         try {
             server.start();
-            final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
+            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
             messageLatch = new CountDownLatch(1);
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new Endpoint() {
 
                 @Override
-                public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
-                    session.addMessageHandler(new MessageHandler.Basic<String>() {
+                public void onOpen(Session session, EndpointConfig EndpointConfig) {
+                    session.addMessageHandler(new MessageHandler.Whole<String>() {
                         @Override
                         public void onMessage(String message) {
                             if (message.equals("In my experience, there's no such thing as luck.")) {
@@ -365,15 +364,15 @@ public class MessageHandlersTest {
 
         try {
             server.start();
-            final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
+            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
             messageLatch = new CountDownLatch(1);
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new Endpoint() {
 
                 @Override
-                public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
-                    session.addMessageHandler(new MessageHandler.Basic<byte[]>() {
+                public void onOpen(Session session, EndpointConfig EndpointConfig) {
+                    session.addMessageHandler(new MessageHandler.Whole<byte[]>() {
                         @Override
                         public void onMessage(byte[] message) {
                             if (new String(message).equals("In my experience, there's no such thing as luck.")) {
@@ -408,15 +407,15 @@ public class MessageHandlersTest {
 
         try {
             server.start();
-            final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
+            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
             messageLatch = new CountDownLatch(1);
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new Endpoint() {
 
                 @Override
-                public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
-                    session.addMessageHandler(new MessageHandler.Basic<byte[]>() {
+                public void onOpen(Session session, EndpointConfig EndpointConfig) {
+                    session.addMessageHandler(new MessageHandler.Whole<byte[]>() {
                         @Override
                         public void onMessage(byte[] message) {
                             if (new String(message).equals("In my experience, there's no such thing as luck.")) {
@@ -451,15 +450,15 @@ public class MessageHandlersTest {
 
         try {
             server.start();
-            final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
+            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
             messageLatch = new CountDownLatch(1);
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new Endpoint() {
 
                 @Override
-                public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
-                    session.addMessageHandler(new MessageHandler.Basic<byte[]>() {
+                public void onOpen(Session session, EndpointConfig EndpointConfig) {
+                    session.addMessageHandler(new MessageHandler.Whole<byte[]>() {
                         @Override
                         public void onMessage(byte[] message) {
                             if (new String(message).equals("In my experience, there's no such thing as luck.")) {
@@ -496,15 +495,15 @@ public class MessageHandlersTest {
 
         try {
             server.start();
-            final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
+            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
             messageLatch = new CountDownLatch(1);
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new Endpoint() {
 
                 @Override
-                public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
-                    session.addMessageHandler(new MessageHandler.Basic<byte[]>() {
+                public void onOpen(Session session, EndpointConfig EndpointConfig) {
+                    session.addMessageHandler(new MessageHandler.Whole<byte[]>() {
                         @Override
                         public void onMessage(byte[] message) {
                             if (new String(message).equals("In my experience, there's no such thing as luck.")) {
@@ -541,15 +540,15 @@ public class MessageHandlersTest {
 
         try {
             server.start();
-            final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
+            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
             messageLatch = new CountDownLatch(1);
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new Endpoint() {
 
                 @Override
-                public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
-                    session.addMessageHandler(new MessageHandler.Basic<ByteBuffer>() {
+                public void onOpen(Session session, EndpointConfig EndpointConfig) {
+                    session.addMessageHandler(new MessageHandler.Whole<ByteBuffer>() {
                         @Override
                         public void onMessage(ByteBuffer message) {
                             if (new String(message.array()).equals("In my experience, there's no such thing as luck.")) {
@@ -584,15 +583,15 @@ public class MessageHandlersTest {
 
         try {
             server.start();
-            final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
+            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
             messageLatch = new CountDownLatch(1);
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new Endpoint() {
 
                 @Override
-                public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
-                    session.addMessageHandler(new MessageHandler.Basic<ByteBuffer>() {
+                public void onOpen(Session session, EndpointConfig EndpointConfig) {
+                    session.addMessageHandler(new MessageHandler.Whole<ByteBuffer>() {
                         @Override
                         public void onMessage(ByteBuffer message) {
                             if (new String(message.array()).equals("In my experience, there's no such thing as luck.")) {
@@ -627,15 +626,15 @@ public class MessageHandlersTest {
 
         try {
             server.start();
-            final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
+            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
             messageLatch = new CountDownLatch(1);
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new Endpoint() {
 
                 @Override
-                public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
-                    session.addMessageHandler(new MessageHandler.Basic<ByteBuffer>() {
+                public void onOpen(Session session, EndpointConfig EndpointConfig) {
+                    session.addMessageHandler(new MessageHandler.Whole<ByteBuffer>() {
                         @Override
                         public void onMessage(ByteBuffer message) {
                             if (new String(message.array()).equals("In my experience, there's no such thing as luck.")) {
@@ -672,15 +671,15 @@ public class MessageHandlersTest {
 
         try {
             server.start();
-            final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
+            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
             messageLatch = new CountDownLatch(1);
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new Endpoint() {
 
                 @Override
-                public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
-                    session.addMessageHandler(new MessageHandler.Basic<ByteBuffer>() {
+                public void onOpen(Session session, EndpointConfig EndpointConfig) {
+                    session.addMessageHandler(new MessageHandler.Whole<ByteBuffer>() {
                         @Override
                         public void onMessage(ByteBuffer message) {
                             if (new String(message.array()).equals("In my experience, there's no such thing as luck.")) {
@@ -738,15 +737,15 @@ public class MessageHandlersTest {
 
         try {
             server.start();
-            final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
+            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
             messageLatch = new CountDownLatch(1);
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new Endpoint() {
 
                 @Override
-                public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
-                    session.addMessageHandler(new MessageHandler.Basic<String>() {
+                public void onOpen(Session session, EndpointConfig EndpointConfig) {
+                    session.addMessageHandler(new MessageHandler.Whole<String>() {
                         @Override
                         public void onMessage(String message) {
                             if (message.equals("In my experience, there's no such thing as luck.")) {
@@ -781,15 +780,15 @@ public class MessageHandlersTest {
 
         try {
             server.start();
-            final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
+            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
             messageLatch = new CountDownLatch(1);
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new Endpoint() {
 
                 @Override
-                public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
-                    session.addMessageHandler(new MessageHandler.Basic<ByteBuffer>() {
+                public void onOpen(Session session, EndpointConfig EndpointConfig) {
+                    session.addMessageHandler(new MessageHandler.Whole<ByteBuffer>() {
                         @Override
                         public void onMessage(ByteBuffer message) {
                             if (message.equals(ByteBuffer.wrap("In my experience, there's no such thing as luck.".getBytes()))) {

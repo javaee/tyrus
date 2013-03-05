@@ -46,7 +46,7 @@ import javax.websocket.Session;
 /**
  * @author michal.conos at oracle.com
  */
-public abstract class BasicMessageHandler<T> implements MessageHandler.Basic<T> {
+public abstract class BasicMessageHandler<T> implements MessageHandler.Whole<T> {
 
 
     protected final Session session;
@@ -60,7 +60,7 @@ public abstract class BasicMessageHandler<T> implements MessageHandler.Basic<T> 
         return session;
     }
 
-    public RemoteEndpoint.Basic getRemoteEndpoint() {
+    public RemoteEndpoint.Whole getRemoteEndpoint() {
         return session.getBasicRemote();
     }
 

@@ -44,10 +44,9 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import javax.websocket.ClientEndpointConfiguration;
-import javax.websocket.ClientEndpointConfigurationBuilder;
+import javax.websocket.ClientEndpointConfig;
 import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfiguration;
+import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
@@ -70,7 +69,7 @@ public class PingPongTest {
     @Ignore // TODO works on client test run, not on full build
     @Test
     public void testClient() {
-        final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
+        final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
         Server server = new Server(PingPongEndpoint.class);
 
         try {
@@ -106,7 +105,7 @@ public class PingPongTest {
         @OnOpen
         public void init(Session session) {
             try {
-                session.addMessageHandler(new MessageHandler.Basic<ByteBuffer>() {
+                session.addMessageHandler(new MessageHandler.Whole<ByteBuffer>() {
                     public void onMessage(ByteBuffer bb) {
                         System.out.println("PINGPONGSERVER received pong: " + new String(bb.array()));
                         gotCorrectMessage = SERVER_MESSAGE.equals(new String(bb.array()));
@@ -133,13 +132,13 @@ public class PingPongTest {
         }
 
         //    @Override
-        //    public EndpointConfiguration getEndpointConfiguration() {
+        //    public EndpointConfig getEndpointConfig() {
         //        return null;
         //    }
 
-        public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
+        public void onOpen(Session session, EndpointConfig EndpointConfig) {
             try {
-                session.addMessageHandler(new MessageHandler.Basic<ByteBuffer>() {
+                session.addMessageHandler(new MessageHandler.Whole<ByteBuffer>() {
                     public void onMessage(ByteBuffer bb) {
                         gotCorrectMessageBack = CLIENT_MESSAGE.equals(new String(bb.array()));
                         messageLatch.countDown();

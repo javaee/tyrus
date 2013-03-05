@@ -48,21 +48,21 @@ import java.util.Set;
 
 import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
-import javax.websocket.server.ServerApplicationConfiguration;
+import javax.websocket.server.ServerApplicationConfig;
 import javax.websocket.server.ServerEndpoint;
-import javax.websocket.server.ServerEndpointConfiguration;
+import javax.websocket.server.ServerEndpointConfig;
 
 import org.glassfish.tyrus.core.ErrorCollector;
 import org.glassfish.tyrus.core.ReflectionHelper;
 
 /**
- * Container for either deployed {@link ServerApplicationConfiguration}s, if any, or deployed classes.
+ * Container for either deployed {@link ServerApplicationConfig}s, if any, or deployed classes.
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class TyrusServerConfiguration implements ServerApplicationConfiguration {
+public class TyrusServerConfiguration implements ServerApplicationConfig {
 
-    private final Set<ServerEndpointConfiguration> serverEndpointConfigurations = new HashSet<ServerEndpointConfiguration>();
+    private final Set<ServerEndpointConfig> serverEndpointConfigs = new HashSet<ServerEndpointConfig>();
     private final Set<Class<?>> annotatedClasses = new HashSet<Class<?>>();
 
     /**
@@ -70,11 +70,11 @@ public class TyrusServerConfiguration implements ServerApplicationConfiguration 
      *
      * @param classes classes to be included in this application instance. Can contain any combination of annotated
      *                endpoints (see {@link ServerEndpoint}). Cannot be {@code null}.
-     * @param serverEndpointConfigurations List of instances of {@link ServerEndpointConfiguration} to be deployed.
+     * @param serverEndpointConfigs List of instances of {@link ServerEndpointConfig} to be deployed.
      * @throws IllegalArgumentException when any of the arguments is {@code null}.
      */
-    public TyrusServerConfiguration(Set<Class<?>> classes, Set<ServerEndpointConfiguration> serverEndpointConfigurations) {
-        this(classes, serverEndpointConfigurations, new ErrorCollector());
+    public TyrusServerConfiguration(Set<Class<?>> classes, Set<ServerEndpointConfig> serverEndpointConfigs) {
+        this(classes, serverEndpointConfigs, new ErrorCollector());
     }
 
     /**
@@ -82,18 +82,18 @@ public class TyrusServerConfiguration implements ServerApplicationConfiguration 
      *
      * @param classes                      classes to be included in this application instance. Can contain any combination of annotated
      *                                     endpoints (see {@link ServerEndpoint}).
-     * @param serverEndpointConfigurations List of instances of {@link ServerEndpointConfiguration} to be deployed.
+     * @param serverEndpointConfigs List of instances of {@link ServerEndpointConfig} to be deployed.
      * @param errorCollector               model errors are reported to this instance. Cannot be {@code null}.
      * @throws IllegalArgumentException when any of the arguments is {@code null}.
      */
-    public TyrusServerConfiguration(Set<Class<?>> classes, Set<ServerEndpointConfiguration> serverEndpointConfigurations, ErrorCollector errorCollector) {
-        if (classes == null || serverEndpointConfigurations == null || errorCollector == null) {
+    public TyrusServerConfiguration(Set<Class<?>> classes, Set<ServerEndpointConfig> serverEndpointConfigs, ErrorCollector errorCollector) {
+        if (classes == null || serverEndpointConfigs == null || errorCollector == null) {
             throw new IllegalArgumentException();
         }
 
-        this.serverEndpointConfigurations.addAll(serverEndpointConfigurations);
+        this.serverEndpointConfigs.addAll(serverEndpointConfigs);
 
-        final Set<ServerApplicationConfiguration> configurations = new HashSet<ServerApplicationConfiguration>();
+        final Set<ServerApplicationConfig> configurations = new HashSet<ServerApplicationConfig>();
         final Set<Class<? extends Endpoint>> scannedProgramatics = new HashSet<Class<? extends Endpoint>>();
         final Set<Class<?>> scannedAnnotateds = new HashSet<Class<?>>();
 
@@ -104,8 +104,8 @@ public class TyrusServerConfiguration implements ServerApplicationConfiguration 
                 errorCollector.addException(new DeploymentException(cls.getName() + ": Deployed Classes can't be abstract nor interface. The class will not be deployed."));
                 it.remove();
             }
-            if (ServerApplicationConfiguration.class.isAssignableFrom(cls)) {
-                ServerApplicationConfiguration config = (ServerApplicationConfiguration) ReflectionHelper.getInstance(cls, errorCollector);
+            if (ServerApplicationConfig.class.isAssignableFrom(cls)) {
+                ServerApplicationConfig config = (ServerApplicationConfig) ReflectionHelper.getInstance(cls, errorCollector);
                 configurations.add(config);
             }
 
@@ -119,10 +119,10 @@ public class TyrusServerConfiguration implements ServerApplicationConfiguration 
         }
 
         if (!configurations.isEmpty()) {
-            for (ServerApplicationConfiguration configuration : configurations) {
-                Set<ServerEndpointConfiguration> programmatic = configuration.getEndpointConfigurations(scannedProgramatics);
-                programmatic = programmatic == null ? new HashSet<ServerEndpointConfiguration>() : programmatic;
-                this.serverEndpointConfigurations.addAll(programmatic);
+            for (ServerApplicationConfig configuration : configurations) {
+                Set<ServerEndpointConfig> programmatic = configuration.getEndpointConfigs(scannedProgramatics);
+                programmatic = programmatic == null ? new HashSet<ServerEndpointConfig>() : programmatic;
+                this.serverEndpointConfigs.addAll(programmatic);
 
                 Set<Class<?>> annotated = configuration.getAnnotatedEndpointClasses(scannedAnnotateds);
                 annotated = annotated == null ? new HashSet<Class<?>>() : annotated;
@@ -134,14 +134,14 @@ public class TyrusServerConfiguration implements ServerApplicationConfiguration 
     }
 
     /**
-     * Gets all the {@link ServerEndpointConfiguration} classes which should be deployed.
+     * Gets all the {@link ServerEndpointConfig} classes which should be deployed.
      *
      * @param scanned is unused.
-     * @return all the {@link ServerEndpointConfiguration} classes which should be deployed.
+     * @return all the {@link ServerEndpointConfig} classes which should be deployed.
      */
     @Override
-    public Set<ServerEndpointConfiguration> getEndpointConfigurations(Set<Class<? extends Endpoint>> scanned) {
-        return Collections.unmodifiableSet(serverEndpointConfigurations);
+    public Set<ServerEndpointConfig> getEndpointConfigs(Set<Class<? extends Endpoint>> scanned) {
+        return Collections.unmodifiableSet(serverEndpointConfigs);
     }
 
     /**

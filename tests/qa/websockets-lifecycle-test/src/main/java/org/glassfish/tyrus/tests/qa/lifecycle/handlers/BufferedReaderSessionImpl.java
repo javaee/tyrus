@@ -45,7 +45,9 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.logging.Level;
+
 import javax.websocket.Session;
+
 import org.glassfish.tyrus.tests.qa.lifecycle.SessionConversation;
 import org.glassfish.tyrus.tests.qa.lifecycle.SessionLifeCycle;
 
@@ -89,7 +91,7 @@ public class BufferedReaderSessionImpl extends SessionLifeCycle<Reader, InputStr
     @Override
     public void startTalk(Session s) throws IOException {
         logger.log(Level.INFO, "XXX: Send message:{0}", messageToSend);
-        javax.websocket.RemoteEndpoint.Basic basic = s.getBasicRemote();
+        javax.websocket.RemoteEndpoint.Whole basic = s.getBasicRemote();
         Writer wr = basic.getSendWriter();
         wr.write(messageToSend);
         wr.close();

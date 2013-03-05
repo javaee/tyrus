@@ -42,9 +42,11 @@ package org.glassfish.tyrus.tests.qa.lifecycle.config;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+
 import javax.websocket.Endpoint;
-import javax.websocket.server.ServerApplicationConfiguration;
-import javax.websocket.server.ServerEndpointConfiguration;
+import javax.websocket.server.ServerApplicationConfig;
+import javax.websocket.server.ServerEndpointConfig;
+
 import org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary.AnnotatedByteBufferSession;
 
 
@@ -52,9 +54,9 @@ import org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary.AnnotatedByteBuffe
  *
  * @author michal.conos at oracle.com
  */
-public class  AnnotatedByteBufferSessionConfig implements ServerApplicationConfiguration  {
+public class  AnnotatedByteBufferSessionConfig implements ServerApplicationConfig  {
      @Override
-    public Set<ServerEndpointConfiguration> getEndpointConfigurations(Set<Class<? extends Endpoint>> set) {
+    public Set<ServerEndpointConfig> getEndpointConfigs(Set<Class<? extends Endpoint>> set) {
         return Collections.EMPTY_SET;
     }
 

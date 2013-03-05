@@ -43,14 +43,14 @@ import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import javax.websocket.ClientEndpointConfiguration;
-import javax.websocket.ClientEndpointConfigurationBuilder;
+import javax.websocket.ClientEndpointConfig;
 import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfiguration;
+import javax.websocket.EndpointConfig;
 import javax.websocket.OnError;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
+import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 
 import org.glassfish.tyrus.client.ClientManager;
@@ -91,19 +91,43 @@ public class Tyrus109 {
         }
     }
 
+    @ServerEndpoint("/bookings/{guest-id}")
+    public class BookingServer {
+
+        @OnMessage
+        public void processBookingRequest(
+                @PathParam("guest-id") String guestID,
+                String message,
+                Session session) {
+            // process booking from the given guest here
+        }
+    }
+
+
+    @ServerEndpoint("/rewards/{vip-level}")
+    public class RewardServer {
+        @OnMessage
+        public void processReward(
+                @PathParam("vip-level") Integer vipLevel,
+                String message, Session session) {
+            // process reward here
+        }
+    }
+
+
     @Test
     public void testErrorOnOpen() {
         Server server = new Server(OnOpenErrorTestEndpoint.class);
 
         try {
             server.start();
-            final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
+            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
             CountDownLatch messageLatch = new CountDownLatch(1);
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new Endpoint() {
                 @Override
-                public void onOpen(Session session, EndpointConfiguration configuration) {
+                public void onOpen(Session session, EndpointConfig configuration) {
                     // do nothing
                 }
             }, cec, new URI("ws://localhost:8025/websockets/tests/open"));

@@ -48,10 +48,9 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.websocket.ClientEndpointConfiguration;
-import javax.websocket.ClientEndpointConfigurationBuilder;
+import javax.websocket.ClientEndpointConfig;
 import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfiguration;
+import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 
@@ -83,12 +82,12 @@ public class SimpleRemoteTest {
         try {
             server.start();
 
-            final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
+            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
             final ClientManager client = ClientManager.createClient();
             client.connectToServer(new TestEndpointAdapter() {
                 @Override
-                public EndpointConfiguration getEndpointConfiguration() {
+                public EndpointConfig getEndpointConfig() {
                     return cec;
                 }
 
@@ -132,7 +131,7 @@ public class SimpleRemoteTest {
                 @Override
                 public void run() {
                     try {
-                        final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
+                        final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
                         final CountDownLatch perClientLatch = new CountDownLatch(2);
                         final String[] message = new String[]{SENT_MESSAGE + msgNumber.incrementAndGet(),
@@ -143,9 +142,9 @@ public class SimpleRemoteTest {
                         client.connectToServer(new Endpoint()  {
 
                             @Override
-                            public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
+                            public void onOpen(Session session, EndpointConfig EndpointConfig) {
                                 try {
-                                    session.addMessageHandler(new MessageHandler.Basic<String>(){
+                                    session.addMessageHandler(new MessageHandler.Whole<String>(){
                                         @Override
                                         public void onMessage(String s) {
                                             perClientLatch.countDown();

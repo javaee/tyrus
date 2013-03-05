@@ -42,6 +42,7 @@ package org.glassfish.tyrus.core;
 
 import javax.websocket.Decoder;
 import javax.websocket.Encoder;
+import javax.websocket.EndpointConfig;
 
 /**
  * Wrapper of coders storing the coder coder class (and optionally coder instance), return type of the encode / decode
@@ -50,7 +51,7 @@ import javax.websocket.Encoder;
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class CoderWrapper<T> implements Decoder, Encoder {
+class CoderWrapper<T> implements Decoder, Encoder {
 
     private final Class<? extends T> coderClass;
     private final T coder;
@@ -109,5 +110,10 @@ public class CoderWrapper<T> implements Decoder, Encoder {
      */
     public T getCoder() {
         return coder;
+    }
+
+    @Override
+    public void setEndpointConfig(EndpointConfig config) {
+        // TODO XXX FIXME
     }
 }

@@ -42,7 +42,7 @@ package org.glassfish.tyrus.test.e2e;
 import java.util.concurrent.CountDownLatch;
 
 import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfiguration;
+import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 
@@ -58,14 +58,14 @@ public class HelloTextClient extends Endpoint {
     }
 
 //    @Override
-//    public EndpointConfiguration getEndpointConfiguration() {
+//    public EndpointConfig getEndpointConfig() {
 //        return null;
 //    }
 
-    public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
+    public void onOpen(Session session, EndpointConfig EndpointConfig) {
         System.out.println("HELLOCLIENT opened !!");
         try {
-            session.addMessageHandler(new MessageHandler.Basic<String>() {
+            session.addMessageHandler(new MessageHandler.Whole<String>() {
                 public void onMessage(String text) {
                     System.out.println("HELLOCLIENT received: " + text);
                     gotSomethingBack = true;

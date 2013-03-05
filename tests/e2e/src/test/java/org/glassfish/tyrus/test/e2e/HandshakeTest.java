@@ -48,10 +48,8 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import javax.websocket.ClientEndpointConfiguration;
-import javax.websocket.ClientEndpointConfigurationBuilder;
-import javax.websocket.ClientEndpointConfigurator;
-import javax.websocket.EndpointConfiguration;
+import javax.websocket.ClientEndpointConfig;
+import javax.websocket.EndpointConfig;
 import javax.websocket.HandshakeResponse;
 import javax.websocket.Session;
 
@@ -76,7 +74,7 @@ public class HandshakeTest {
 
     private static final String SENT_MESSAGE = "hello";
 
-    public static class MyClientEndpointConfigurator extends ClientEndpointConfigurator {
+    public static class MyClientEndpointConfigurator extends ClientEndpointConfig.Configurator {
 
         public HandshakeResponse hr;
 
@@ -100,8 +98,8 @@ public class HandshakeTest {
 
             final MyClientEndpointConfigurator myClientEndpointConfigurator = new MyClientEndpointConfigurator();
 
-            final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().
-                    preferredSubprotocols(subprotocols).clientHandshakeConfigurator(myClientEndpointConfigurator).build();
+            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().
+                    preferredSubprotocols(subprotocols).configurator(myClientEndpointConfigurator).build();
 
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new TestEndpointAdapter() {
@@ -113,7 +111,7 @@ public class HandshakeTest {
                 }
 
                 @Override
-                public EndpointConfiguration getEndpointConfiguration() {
+                public EndpointConfig getEndpointConfig() {
                     return cec;
                 }
 

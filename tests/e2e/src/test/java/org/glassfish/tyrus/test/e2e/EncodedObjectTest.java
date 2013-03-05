@@ -45,11 +45,10 @@ import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import javax.websocket.ClientEndpointConfiguration;
-import javax.websocket.ClientEndpointConfigurationBuilder;
+import javax.websocket.ClientEndpointConfig;
 import javax.websocket.EncodeException;
 import javax.websocket.Encoder;
-import javax.websocket.EndpointConfiguration;
+import javax.websocket.EndpointConfig;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
@@ -77,7 +76,7 @@ public class EncodedObjectTest {
 
     @Test
     public void testEncodingReturnViaSession() {
-        final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
+        final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
         Server server = new Server(TestEncodeEndpoint.class);
 
         try {
@@ -94,7 +93,7 @@ public class EncodedObjectTest {
                 }
 
                 @Override
-                public EndpointConfiguration getEndpointConfiguration() {
+                public EndpointConfig getEndpointConfig() {
                     return null;
                 }
 
@@ -110,7 +109,7 @@ public class EncodedObjectTest {
                 }
             }, cec, new URI("ws://localhost:8025/websockets/tests/echo"));
 
-            messageLatch.await(5, TimeUnit.SECONDS);
+            messageLatch.await(5000, TimeUnit.SECONDS);
             Assert.assertEquals(SENT_MESSAGE, receivedMessage);
         } catch (Exception e) {
             e.printStackTrace();
@@ -142,7 +141,7 @@ public class EncodedObjectTest {
 
     @Test
     public void testEncodingReturnFromMethod() {
-        final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
+        final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
         Server server = new Server(TestEncodeBeanMethodReturn.class);
 
         try {
@@ -159,7 +158,7 @@ public class EncodedObjectTest {
                 }
 
                 @Override
-                public EndpointConfiguration getEndpointConfiguration() {
+                public EndpointConfig getEndpointConfig() {
                     return null;
                 }
 
@@ -202,6 +201,11 @@ public class EncodedObjectTest {
         @Override
         public String encode(StringContainer object) throws EncodeException {
             return object.getString();
+        }
+
+        @Override
+        public void setEndpointConfig(EndpointConfig config) {
+            // do nothing.
         }
     }
 }

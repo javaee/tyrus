@@ -44,9 +44,8 @@ import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import javax.websocket.ClientEndpointConfiguration;
-import javax.websocket.ClientEndpointConfigurationBuilder;
-import javax.websocket.EndpointConfiguration;
+import javax.websocket.ClientEndpointConfig;
+import javax.websocket.EndpointConfig;
 import javax.websocket.Session;
 
 import org.glassfish.tyrus.client.ClientManager;
@@ -72,7 +71,7 @@ public class ClientTest {
 
     @Test
     public void testClient() {
-        final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
+        final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
         Server server = new Server(TestEndpoint.class);
 
         try {
@@ -81,7 +80,7 @@ public class ClientTest {
 
             ClientManager client = ClientManager.createClient();
             final Session clientSession = client.connectToServer(new TestEndpointAdapter() {
-                private final ClientEndpointConfiguration configuration = ClientEndpointConfigurationBuilder.create().build();
+                private final ClientEndpointConfig configuration = ClientEndpointConfig.Builder.create().build();
 
                 @Override
                 public void onMessage(String message) {
@@ -91,7 +90,7 @@ public class ClientTest {
                 }
 
                 @Override
-                public EndpointConfiguration getEndpointConfiguration() {
+                public EndpointConfig getEndpointConfig() {
                     return configuration;
                 }
 

@@ -45,9 +45,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpoint;
-import javax.websocket.ClientEndpointConfiguration;
-import javax.websocket.ClientEndpointConfigurationBuilder;
-import javax.websocket.EndpointConfiguration;
+import javax.websocket.ClientEndpointConfig;
+import javax.websocket.EndpointConfig;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
@@ -78,7 +77,7 @@ public class AnnotatedClientTest {
     @Test
     public void testAnnotatedInstance() {
         Server server = new Server(TestEndpoint.class);
-        final ClientEndpointConfiguration configuration = ClientEndpointConfigurationBuilder.create().build();
+        final ClientEndpointConfig configuration = ClientEndpointConfig.Builder.create().build();
 
         messageLatch = new CountDownLatch(1);
 
@@ -89,7 +88,7 @@ public class AnnotatedClientTest {
 
             client.connectToServer(new TestEndpointAdapter() {
                 @Override
-                public EndpointConfiguration getEndpointConfiguration() {
+                public EndpointConfig getEndpointConfig() {
                     return configuration;
                 }
 

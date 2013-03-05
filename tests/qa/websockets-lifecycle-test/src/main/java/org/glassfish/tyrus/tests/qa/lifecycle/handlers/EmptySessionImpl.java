@@ -40,9 +40,11 @@
 package org.glassfish.tyrus.tests.qa.lifecycle.handlers;
 
 import java.io.IOException;
+
 import javax.websocket.CloseReason;
-import javax.websocket.EndpointConfiguration;
+import javax.websocket.EndpointConfig;
 import javax.websocket.Session;
+
 import org.glassfish.tyrus.tests.qa.lifecycle.SessionConversation;
 import org.glassfish.tyrus.tests.qa.lifecycle.SessionLifeCycle;
 
@@ -82,7 +84,7 @@ public class EmptySessionImpl extends SessionLifeCycle<String, byte[]> implement
     }
 
     @Override
-    public void onServerOpen(Session s, EndpointConfiguration config) {
+    public void onServerOpen(Session s, EndpointConfig config) {
 
     }
     @Override
@@ -95,7 +97,7 @@ public class EmptySessionImpl extends SessionLifeCycle<String, byte[]> implement
     }
 
     @Override
-    public void onClientOpen(Session s, EndpointConfiguration config) {
+    public void onClientOpen(Session s, EndpointConfig config) {
 
     }
 

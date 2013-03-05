@@ -46,7 +46,7 @@ import javax.websocket.MessageHandler;
  *
  * @author Martin Matula (martin.matula at oracle.com)
  */
-interface AsyncMessageHandler extends MessageHandler.Async {
+interface AsyncMessageHandler extends MessageHandler.Partial {
     Class<?> getType();
     long getMaxMessageSize();
 }

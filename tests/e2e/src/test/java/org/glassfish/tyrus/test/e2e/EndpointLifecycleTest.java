@@ -49,16 +49,14 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.websocket.ClientEndpointConfiguration;
-import javax.websocket.ClientEndpointConfigurationBuilder;
+import javax.websocket.ClientEndpointConfig;
 import javax.websocket.CloseReason;
 import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfiguration;
+import javax.websocket.EndpointConfig;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
-import javax.websocket.server.ServerEndpointConfiguration;
-import javax.websocket.server.ServerEndpointConfigurationBuilder;
+import javax.websocket.server.ServerEndpointConfig;
 
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
@@ -91,7 +89,7 @@ public class EndpointLifecycleTest {
 
             for (int i = 0; i < iterations; i++) {
                 try {
-                    final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
+                    final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
                     final String message = SENT_MESSAGE + msgNumber.incrementAndGet();
                     // replace ClientManager with MockClientEndpoint to confirm the test passes if the backend
@@ -100,7 +98,7 @@ public class EndpointLifecycleTest {
                     client.connectToServer(new TestEndpointAdapter() {
 
                         @Override
-                        public EndpointConfiguration getEndpointConfiguration() {
+                        public EndpointConfig getEndpointConfig() {
                             return cec;
                         }
 
@@ -146,7 +144,7 @@ public class EndpointLifecycleTest {
 
             for (int i = 0; i < iterations; i++) {
                 try {
-                    final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
+                    final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
                     final String message = SENT_MESSAGE + msgNumber.incrementAndGet();
                     // replace ClientManager with MockClientEndpoint to confirm the test passes if the backend
@@ -155,7 +153,7 @@ public class EndpointLifecycleTest {
                     client.connectToServer(new TestEndpointAdapter() {
 
                         @Override
-                        public EndpointConfiguration getEndpointConfiguration() {
+                        public EndpointConfig getEndpointConfig() {
                             return cec;
                         }
 
@@ -193,8 +191,8 @@ public class EndpointLifecycleTest {
 
         public ProgrammaticEndpointApplicationConfiguration() {
             super(Collections.<Class<?>>emptySet(),
-                    new HashSet<ServerEndpointConfiguration>() {{
-                        add(ServerEndpointConfigurationBuilder.create(EchoEndpoint.class, PATH).build());
+                    new HashSet<ServerEndpointConfig>() {{
+                        add(ServerEndpointConfig.Builder.create(EchoEndpoint.class, PATH).build());
                     }});
         }
     }
@@ -220,7 +218,7 @@ public class EndpointLifecycleTest {
         private static final Set<String> instancesIds = Collections.newSetFromMap(new ConcurrentHashMap<String, Boolean>());
 
         @Override
-        public void onOpen(Session session, EndpointConfiguration config) {
+        public void onOpen(Session session, EndpointConfig config) {
             instancesIds.add(this.toString());
             messageLatch.countDown();
         }

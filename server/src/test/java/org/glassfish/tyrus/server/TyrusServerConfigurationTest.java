@@ -45,11 +45,11 @@ import java.util.HashSet;
 import java.util.Set;
 
 import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfiguration;
+import javax.websocket.EndpointConfig;
 import javax.websocket.Session;
-import javax.websocket.server.ServerApplicationConfiguration;
+import javax.websocket.server.ServerApplicationConfig;
 import javax.websocket.server.ServerEndpoint;
-import javax.websocket.server.ServerEndpointConfiguration;
+import javax.websocket.server.ServerEndpointConfig;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -62,7 +62,7 @@ import org.junit.Test;
 public class TyrusServerConfigurationTest {
 
     @Test
-    public void testNoServerApplicationConfiguration() {
+    public void testNoServerApplicationConfig() {
         Set<Class<?>> scanned = new HashSet<Class<?>>() {{
             add(AnnotatedA.class);
             add(AnnotatedB.class);
@@ -71,20 +71,20 @@ public class TyrusServerConfigurationTest {
             add(Other.class);
         }};
 
-        TyrusServerConfiguration configuration = new TyrusServerConfiguration(scanned, Collections.<ServerEndpointConfiguration>emptySet());
+        TyrusServerConfiguration configuration = new TyrusServerConfiguration(scanned, Collections.<ServerEndpointConfig>emptySet());
 
         Assert.assertEquals(2, configuration.getAnnotatedEndpointClasses(null).size());
         Assert.assertTrue(configuration.getAnnotatedEndpointClasses(null).contains(AnnotatedA.class));
         Assert.assertTrue(configuration.getAnnotatedEndpointClasses(null).contains(AnnotatedB.class));
 
         // TODO XXX FIXME
-//        Assert.assertEquals(2, configuration.getEndpointConfigurations(null).size());
-//        Assert.assertTrue(configuration.getEndpointConfigurations(null).contains(ProgrammaticConfA.class));
-//        Assert.assertTrue(configuration.getEndpointConfigurations(null).contains(ProgrammaticConfB.class));
+//        Assert.assertEquals(2, configuration.getEndpointConfigs(null).size());
+//        Assert.assertTrue(configuration.getEndpointConfigs(null).contains(ProgrammaticConfA.class));
+//        Assert.assertTrue(configuration.getEndpointConfigs(null).contains(ProgrammaticConfB.class));
     }
 
     @Test
-    public void testOneServerApplicationConfiguration() {
+    public void testOneServerApplicationConfig() {
         Set<Class<?>> scanned = new HashSet<Class<?>>() {{
             add(ApplicationConfA.class);
             add(ProgrammaticConfB.class);
@@ -92,18 +92,18 @@ public class TyrusServerConfigurationTest {
             add(Other.class);
         }};
 
-        TyrusServerConfiguration configuration = new TyrusServerConfiguration(scanned, Collections.<ServerEndpointConfiguration>emptySet());
+        TyrusServerConfiguration configuration = new TyrusServerConfiguration(scanned, Collections.<ServerEndpointConfig>emptySet());
 
         Assert.assertEquals(1, configuration.getAnnotatedEndpointClasses(null).size());
         Assert.assertTrue(configuration.getAnnotatedEndpointClasses(null).contains(AnnotatedA.class));
 
         // TODO XXX FIXME
-//        Assert.assertEquals(1, configuration.getEndpointConfigurations(null).size());
-//        Assert.assertTrue(configuration.getEndpointConfigurations(null).contains(ProgrammaticConfA.class));
+//        Assert.assertEquals(1, configuration.getEndpointConfigs(null).size());
+//        Assert.assertTrue(configuration.getEndpointConfigs(null).contains(ProgrammaticConfA.class));
     }
 
     @Test
-    public void testTwoServerApplicationConfiguration() {
+    public void testTwoServerApplicationConfig() {
         Set<Class<?>> scanned = new HashSet<Class<?>>() {{
             add(ApplicationConfA.class);
             add(ApplicationConfB.class);
@@ -113,14 +113,14 @@ public class TyrusServerConfigurationTest {
             add(Other.class);
         }};
 
-        TyrusServerConfiguration configuration = new TyrusServerConfiguration(scanned, Collections.<ServerEndpointConfiguration>emptySet());
+        TyrusServerConfiguration configuration = new TyrusServerConfiguration(scanned, Collections.<ServerEndpointConfig>emptySet());
 
         Assert.assertEquals(1, configuration.getAnnotatedEndpointClasses(null).size());
         Assert.assertTrue(configuration.getAnnotatedEndpointClasses(null).contains(AnnotatedA.class));
 
         // TODO XXX FIXME
-//        Assert.assertEquals(1, configuration.getEndpointConfigurations(null).size());
-//        Assert.assertTrue(configuration.getEndpointConfigurations(null).contains(ProgrammaticConfA.class));
+//        Assert.assertEquals(1, configuration.getEndpointConfigs(null).size());
+//        Assert.assertTrue(configuration.getEndpointConfigs(null).contains(ProgrammaticConfA.class));
     }
 
     @ServerEndpoint(value = "/AA")
@@ -137,37 +137,37 @@ public class TyrusServerConfigurationTest {
 
     public class ProgrammaticA extends Endpoint {
         @Override
-        public void onOpen(Session session, EndpointConfiguration config) {
+        public void onOpen(Session session, EndpointConfig config) {
         }
     }
 
     public class ProgrammaticB extends Endpoint {
         @Override
-        public void onOpen(Session session, EndpointConfiguration config) {
+        public void onOpen(Session session, EndpointConfig config) {
         }
     }
 
     public class ProgrammaticC extends Endpoint {
         @Override
-        public void onOpen(Session session, EndpointConfiguration config) {
+        public void onOpen(Session session, EndpointConfig config) {
         }
     }
 
-    public static class ProgrammaticConfA extends ServerEndpointConfigurationAdapter {
+    public static class ProgrammaticConfA extends ServerEndpointConfigAdapter {
         @Override
         public Class<?> getEndpointClass() {
             return ProgrammaticA.class;
         }
     }
 
-    public static class ProgrammaticConfB extends ServerEndpointConfigurationAdapter {
+    public static class ProgrammaticConfB extends ServerEndpointConfigAdapter {
         @Override
         public Class<?> getEndpointClass() {
             return ProgrammaticB.class;
         }
     }
 
-    public static class ProgrammaticConfC extends ServerEndpointConfigurationAdapter {
+    public static class ProgrammaticConfC extends ServerEndpointConfigAdapter {
         @Override
         public Class<?> getEndpointClass() {
             return ProgrammaticC.class;
@@ -177,10 +177,10 @@ public class TyrusServerConfigurationTest {
     public class Other {
     }
 
-    public static class ApplicationConfA implements ServerApplicationConfiguration {
+    public static class ApplicationConfA implements ServerApplicationConfig {
         @Override
-        public Set<ServerEndpointConfiguration> getEndpointConfigurations(Set<Class<? extends Endpoint>> scanned) {
-            return new HashSet<ServerEndpointConfiguration>() {{
+        public Set<ServerEndpointConfig> getEndpointConfigs(Set<Class<? extends Endpoint>> scanned) {
+            return new HashSet<ServerEndpointConfig>() {{
                 add(new ProgrammaticConfA());
             }};
 
@@ -194,10 +194,10 @@ public class TyrusServerConfigurationTest {
         }
     }
 
-    public static class ApplicationConfB implements ServerApplicationConfiguration {
+    public static class ApplicationConfB implements ServerApplicationConfig {
         @Override
-        public Set<ServerEndpointConfiguration> getEndpointConfigurations(Set<Class<? extends Endpoint>> scanned) {
-            return new HashSet<ServerEndpointConfiguration>() {{
+        public Set<ServerEndpointConfig> getEndpointConfigs(Set<Class<? extends Endpoint>> scanned) {
+            return new HashSet<ServerEndpointConfig>() {{
                 add(new ProgrammaticConfA());
             }};
         }

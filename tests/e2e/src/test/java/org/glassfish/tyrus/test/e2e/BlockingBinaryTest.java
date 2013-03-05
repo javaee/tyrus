@@ -47,10 +47,9 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import javax.websocket.ClientEndpointConfiguration;
-import javax.websocket.ClientEndpointConfigurationBuilder;
+import javax.websocket.ClientEndpointConfig;
 import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfiguration;
+import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
@@ -82,7 +81,7 @@ public class BlockingBinaryTest {
             CountDownLatch messageLatch = new CountDownLatch(2);
             BlockingBinaryEndpoint.messageLatch = messageLatch;
 
-            final ClientEndpointConfiguration cec = ClientEndpointConfigurationBuilder.create().build();
+            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
             BlockingBinaryClient sbc = new BlockingBinaryClient(messageLatch);
             ClientManager client = ClientManager.createClient();
@@ -108,11 +107,11 @@ public class BlockingBinaryTest {
         private String message;
 
         @OnOpen
-        public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
+        public void onOpen(Session session, EndpointConfig EndpointConfig) {
             System.out.println("BLOCKINGBSERVER opened !");
             this.session = session;
 
-            session.addMessageHandler(new MessageHandler.Async<InputStream>() {
+            session.addMessageHandler(new MessageHandler.Partial<InputStream>() {
                 StringBuilder sb = new StringBuilder();
 
                 @Override
@@ -135,7 +134,7 @@ public class BlockingBinaryTest {
         }
 
         //    @Override
-        //    public EndpointConfiguration getEndpointConfiguration() {
+        //    public EndpointConfig getEndpointConfig() {
         //        return null;
         //    }
 
@@ -168,17 +167,17 @@ public class BlockingBinaryTest {
         }
 
         //    @Override
-        //    public EndpointConfiguration getEndpointConfiguration() {
+        //    public EndpointConfig getEndpointConfig() {
         //        return null;
         //    }
 
-        public void onOpen(Session session, EndpointConfiguration endpointConfiguration) {
+        public void onOpen(Session session, EndpointConfig EndpointConfig) {
 
             System.out.println("BLOCKINGBCLIENT opened !");
 
             this.session = session;
 
-            session.addMessageHandler(new MessageHandler.Async<InputStream>() {
+            session.addMessageHandler(new MessageHandler.Partial<InputStream>() {
                 StringBuilder sb = new StringBuilder();
 
                 public void onMessage(InputStream is, boolean isLast) {
