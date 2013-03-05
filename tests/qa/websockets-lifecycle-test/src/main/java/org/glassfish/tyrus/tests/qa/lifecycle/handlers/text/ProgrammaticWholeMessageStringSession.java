@@ -47,7 +47,7 @@ import org.glassfish.tyrus.tests.qa.lifecycle.handlers.StringSessionImpl;
  *
  * @author michal.conos at oracle.com
  */
-public class ProgrammaticWholeMessageStringSession extends ProgrammaticWholeMessageEndpoint<String> implements MessageHandler.Basic<String> {
+public class ProgrammaticWholeMessageStringSession extends ProgrammaticWholeMessageEndpoint<String> implements MessageHandler.Whole<String> {
 
     @Override
     public void createLifeCycle() {

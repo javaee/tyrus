@@ -41,17 +41,9 @@ package org.glassfish.tyrus.tests.qa.lifecycle;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-<<<<<<< .mine
-import javax.websocket.EndpointConfiguration;
-=======
-
 import javax.websocket.EndpointConfig;
->>>>>>> .r432
-import javax.websocket.Session;
-<<<<<<< .mine
-=======
 
->>>>>>> .r432
+import javax.websocket.Session;
 import org.glassfish.tyrus.tests.qa.tools.SessionController;
 
 /**

@@ -48,7 +48,7 @@ import org.glassfish.tyrus.tests.qa.lifecycle.handlers.StringSessionImpl;
  *
  * @author michal.conos at oracle.com
  */
-public class ProgrammaticPartialMessageStringSession extends ProgrammaticEndpointPartialMessageEndpoint<String> implements MessageHandler.Async<String> {
+public class ProgrammaticPartialMessageStringSession extends ProgrammaticEndpointPartialMessageEndpoint<String> implements MessageHandler.Partial<String> {
    
     @Override
     public void createLifeCycle() {

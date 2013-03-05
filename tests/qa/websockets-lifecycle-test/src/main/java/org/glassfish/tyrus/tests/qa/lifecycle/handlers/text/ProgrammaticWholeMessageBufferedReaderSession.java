@@ -48,7 +48,7 @@ import org.glassfish.tyrus.tests.qa.lifecycle.handlers.BufferedReaderSessionImpl
  *
  * @author michal.conos at oracle.com
  */
-public class  ProgrammaticWholeMessageBufferedReaderSession extends ProgrammaticWholeMessageEndpoint<Reader> implements MessageHandler.Basic<Reader> {
+public class  ProgrammaticWholeMessageBufferedReaderSession extends ProgrammaticWholeMessageEndpoint<Reader> implements MessageHandler.Whole<Reader> {
 
     @Override
     public void createLifeCycle() {

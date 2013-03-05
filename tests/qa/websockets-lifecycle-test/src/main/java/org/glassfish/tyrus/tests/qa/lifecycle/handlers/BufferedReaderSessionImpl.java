@@ -41,7 +41,6 @@ package org.glassfish.tyrus.tests.qa.lifecycle.handlers;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.Reader;
 import java.io.Writer;
 import java.util.logging.Level;
@@ -91,7 +90,7 @@ public class BufferedReaderSessionImpl extends SessionLifeCycle<Reader> implemen
     @Override
     public void startTalk(Session s) throws IOException {
         logger.log(Level.INFO, "XXX: Send message:{0}", messageToSend);
-        javax.websocket.RemoteEndpoint.Whole basic = s.getBasicRemote();
+        javax.websocket.RemoteEndpoint.Basic basic = s.getBasicRemote();
         Writer wr = basic.getSendWriter();
         wr.write(messageToSend);
         wr.close();

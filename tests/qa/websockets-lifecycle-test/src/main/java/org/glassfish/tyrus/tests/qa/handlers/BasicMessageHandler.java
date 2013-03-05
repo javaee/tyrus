@@ -60,7 +60,7 @@ public abstract class BasicMessageHandler<T> implements MessageHandler.Whole<T> 
         return session;
     }
 
-    public RemoteEndpoint.Whole getRemoteEndpoint() {
+    public RemoteEndpoint.Basic getRemoteEndpoint() {
         return session.getBasicRemote();
     }
 

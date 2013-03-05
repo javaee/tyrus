@@ -48,7 +48,7 @@ import org.glassfish.tyrus.tests.qa.lifecycle.handlers.ObjectInputStreamSessionI
  *
  * @author michal.conos at oracle.com
  */
-public class ProgrammaticWholeMessageObjectInputStreamSession extends ProgrammaticWholeMessageEndpoint<InputStream> implements MessageHandler.Basic<InputStream>{
+public class ProgrammaticWholeMessageObjectInputStreamSession extends ProgrammaticWholeMessageEndpoint<InputStream> implements MessageHandler.Whole<InputStream>{
 
     @Override
     public void createLifeCycle() {

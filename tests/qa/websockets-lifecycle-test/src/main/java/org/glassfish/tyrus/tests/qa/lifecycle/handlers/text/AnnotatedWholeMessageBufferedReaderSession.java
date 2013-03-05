@@ -45,7 +45,7 @@ import java.io.Reader;
 import java.util.logging.Level;
 import javax.websocket.ClientEndpoint;
 import javax.websocket.CloseReason;
-import javax.websocket.EndpointConfiguration;
+import javax.websocket.EndpointConfig;
 import javax.websocket.OnClose;
 import javax.websocket.OnError;
 import javax.websocket.OnMessage;
@@ -74,7 +74,7 @@ public class AnnotatedWholeMessageBufferedReaderSession {
 
         @OnOpen
         @Override
-        public void onOpen(Session session, EndpointConfiguration ec) {
+        public void onOpen(Session session, EndpointConfig ec) {
             super.onOpen(session, ec);
             lifeCycle.onServerOpen(session, ec);
             logger.log(Level.INFO, "lifeCycle={0}", lifeCycle.toString());
@@ -105,7 +105,7 @@ public class AnnotatedWholeMessageBufferedReaderSession {
         }
 
         @OnOpen
-        public void onOpen(Session session, EndpointConfiguration ec) {
+        public void onOpen(Session session, EndpointConfig ec) {
             if (this.session == null) {
                 this.session = session;
             }

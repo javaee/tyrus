@@ -43,9 +43,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import javax.websocket.Endpoint;
-import javax.websocket.server.ServerApplicationConfiguration;
-import javax.websocket.server.ServerEndpointConfiguration;
-import javax.websocket.server.ServerEndpointConfigurationBuilder;
+import javax.websocket.server.ServerApplicationConfig;
+import javax.websocket.server.ServerEndpointConfig;
 import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleDeployment;
 import org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary.ProgrammaticPartialMessageByteSession;
 
@@ -53,12 +52,12 @@ import org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary.ProgrammaticPartia
  *
  * @author michal.conos at oracle.com
  */
-public class ProgrammaticPartialMessageByteSessionConfig implements ServerApplicationConfiguration {
+public class ProgrammaticPartialMessageByteSessionConfig implements ServerApplicationConfig {
 
     @Override
-    public Set<ServerEndpointConfiguration> getEndpointConfigurations(Set<Class<? extends Endpoint>> set) {
-        Set<ServerEndpointConfiguration> configSet = new HashSet<>();
-        ServerEndpointConfiguration config = ServerEndpointConfigurationBuilder.create(ProgrammaticPartialMessageByteSession.class, LifeCycleDeployment.LIFECYCLE_ENDPOINT_PATH).build();
+    public Set<ServerEndpointConfig> getEndpointConfigs(Set<Class<? extends Endpoint>> set) {
+        Set<ServerEndpointConfig> configSet = new HashSet<>();
+        ServerEndpointConfig config = ServerEndpointConfig.Builder.create(ProgrammaticPartialMessageByteSession.class, LifeCycleDeployment.LIFECYCLE_ENDPOINT_PATH).build();
         configSet.add(config);
         return configSet;
     }

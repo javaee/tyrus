@@ -48,7 +48,7 @@ import org.glassfish.tyrus.tests.qa.lifecycle.handlers.ByteSessionImpl;
  *
  * @author michal.conos at oracle.com
  */
-public class ProgrammaticPartialMessageByteSession extends ProgrammaticEndpointPartialMessageEndpoint<byte[]> implements MessageHandler.Async<byte[]>{
+public class ProgrammaticPartialMessageByteSession extends ProgrammaticEndpointPartialMessageEndpoint<byte[]> implements MessageHandler.Partial<byte[]>{
     @Override
     public void createLifeCycle() {
         lifeCycle = new ByteSessionImpl(1024, false, true);

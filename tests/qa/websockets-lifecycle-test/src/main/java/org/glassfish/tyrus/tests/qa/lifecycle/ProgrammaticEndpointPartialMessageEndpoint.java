@@ -43,7 +43,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.websocket.CloseReason;
 import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfiguration;
+import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 import org.glassfish.tyrus.server.TyrusServerContainer;
@@ -53,7 +53,7 @@ import org.glassfish.tyrus.tests.qa.tools.SessionController;
  *
  * @author michal.conos at oracle.com
  */
-abstract public class ProgrammaticEndpointPartialMessageEndpoint <T> extends Endpoint implements MessageHandler.Async<T> {
+abstract public class ProgrammaticEndpointPartialMessageEndpoint <T> extends Endpoint implements MessageHandler.Partial<T> {
     private static final Logger logger = Logger.getLogger(ProgrammaticEndpointPartialMessageEndpoint.class.getCanonicalName());
     protected SessionLifeCycle lifeCycle;
     protected MessageHandler messageHandler;
@@ -81,7 +81,7 @@ abstract public class ProgrammaticEndpointPartialMessageEndpoint <T> extends End
     }
     
     @Override
-    public void onOpen(Session session, EndpointConfiguration ec) {
+    public void onOpen(Session session, EndpointConfig ec) {
         if (this.session == null) {
             this.session = session;
         }

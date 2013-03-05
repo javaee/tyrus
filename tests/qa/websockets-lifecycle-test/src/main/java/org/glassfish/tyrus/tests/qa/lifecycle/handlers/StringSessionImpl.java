@@ -41,14 +41,10 @@ package org.glassfish.tyrus.tests.qa.lifecycle.handlers;
 
 import java.io.IOException;
 import java.util.logging.Level;
-<<<<<<< .mine
-import javax.websocket.RemoteEndpoint.Basic;
-=======
 
->>>>>>> .r432
+import javax.websocket.RemoteEndpoint.Basic;
 import javax.websocket.Session;
 
-import org.glassfish.tyrus.tests.qa.lifecycle.SessionConversation;
 import org.glassfish.tyrus.tests.qa.lifecycle.SessionLifeCycle;
 
 /**

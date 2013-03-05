@@ -48,7 +48,7 @@ import org.glassfish.tyrus.tests.qa.lifecycle.handlers.ByteBufferSessionImpl;
  *
  * @author michal.conos at oracle.com
  */
-public class ProgrammaticWholeMessageByteBufferSession  extends ProgrammaticWholeMessageEndpoint<ByteBuffer> implements MessageHandler.Basic<ByteBuffer> {
+public class ProgrammaticWholeMessageByteBufferSession  extends ProgrammaticWholeMessageEndpoint<ByteBuffer> implements MessageHandler.Whole<ByteBuffer> {
 
     @Override
     public void createLifeCycle() {

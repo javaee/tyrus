@@ -43,20 +43,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-<<<<<<< .mine
-=======
-import java.io.Reader;
->>>>>>> .r432
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.logging.Level;
 
 import javax.websocket.Session;
-<<<<<<< .mine
-=======
 
-import org.glassfish.tyrus.tests.qa.lifecycle.SessionConversation;
->>>>>>> .r432
 import org.glassfish.tyrus.tests.qa.lifecycle.SessionLifeCycle;
 
 /**
