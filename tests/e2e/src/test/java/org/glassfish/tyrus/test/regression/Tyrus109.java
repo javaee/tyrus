@@ -50,7 +50,6 @@ import javax.websocket.OnError;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
-import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 
 import org.glassfish.tyrus.client.ClientManager;
@@ -91,30 +90,6 @@ public class Tyrus109 {
         }
     }
 
-    @ServerEndpoint("/bookings/{guest-id}")
-    public class BookingServer {
-
-        @OnMessage
-        public void processBookingRequest(
-                @PathParam("guest-id") String guestID,
-                String message,
-                Session session) {
-            // process booking from the given guest here
-        }
-    }
-
-
-    @ServerEndpoint("/rewards/{vip-level}")
-    public class RewardServer {
-        @OnMessage
-        public void processReward(
-                @PathParam("vip-level") Integer vipLevel,
-                String message, Session session) {
-            // process reward here
-        }
-    }
-
-
     @Test
     public void testErrorOnOpen() {
         Server server = new Server(OnOpenErrorTestEndpoint.class);
@@ -139,7 +114,7 @@ public class Tyrus109 {
             assertNotNull(OnOpenErrorTestEndpoint.session);
             assertNotNull(OnOpenErrorTestEndpoint.throwable);
             assertEquals(1, OnOpenErrorTestEndpoint.counter);
-            assertEquals("testException", OnOpenErrorTestEndpoint.throwable.getCause().getMessage());
+            assertEquals("testException", OnOpenErrorTestEndpoint.throwable.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
