@@ -87,8 +87,11 @@ public class StringSessionImpl extends SessionLifeCycle<String> {
     @Override
     public void onClientMessageHandler(String message, Session session, boolean last) throws IOException {
         gotPartial+=message;
-        if(last && gotPartial.equals("client.openclient.openclient.open.client.openclient.open")) {
-            closeTheSessionFromClient(session);
+        if(last) {
+            logger.log(Level.INFO, "Last one: {0}", gotPartial);
+            if(gotPartial.equals("client.openclient.openclient.openclient.openclient.open")) {
+                closeTheSessionFromClient(session);
+            }
         }
     }
 
