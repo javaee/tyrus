@@ -273,6 +273,10 @@ public class OnCloseTest {
         }
     }
 
+    static int[] supportedCloseReasons = {
+            1000, 1001, 1002, 1003, 1007, 1008, 1009, 1010, 1011
+    };
+
     @ServerEndpoint(value = "/close")
     public static class OnCloseAllSupportedReasonsEndpoint {
 
@@ -304,7 +308,7 @@ public class OnCloseTest {
         Server server = new Server(OnCloseAllSupportedReasonsEndpoint.class);
 
         // close codes 1000 - 1015
-        for (int i = 1000; i < 1016; i++) {
+        for(int i : supportedCloseReasons) {
             final CountDownLatch messageLatch = new CountDownLatch(1);
 
             final int closeCode = i;
@@ -375,8 +379,7 @@ public class OnCloseTest {
         Server server = new Server(OnCloseAllSupportedReasonsClientInitEndpoint.class);
 
         // close codes 1000 - 1015
-        for (int i = 1000; i < 1016; i++) {
-
+        for (int i : supportedCloseReasons) {
             final int closeCode = i;
             System.out.println("### Testing CloseCode " + i);
             myMessageLatch = new CountDownLatch(1);
