@@ -59,15 +59,21 @@ public class ByteBufferSessionImpl extends SessionLifeCycle<ByteBuffer> implemen
 
     int messageSize;
     ByteBuffer messageToSend;
-    String textMessageToSend;
+    ByteBuffer gotPartial;
+    ByteBuffer wholeMessage;
+    //String textMessageToSend;
 
     public ByteBufferSessionImpl(int messageSize, boolean directIO, boolean partial) {
         super(partial);
         this.messageSize = messageSize;
         if (directIO) {
             this.messageToSend = ByteBuffer.allocate(messageSize);
+            gotPartial = ByteBuffer.allocate(messageSize*4);
+        wholeMessage = ByteBuffer.allocate(messageSize*4);
         } else {
             this.messageToSend = ByteBuffer.allocateDirect(messageSize);
+            gotPartial = ByteBuffer.allocateDirect(messageSize*4);
+        wholeMessage = ByteBuffer.allocateDirect(messageSize*4);
         }
         
         initSendBuffer();
@@ -76,8 +82,12 @@ public class ByteBufferSessionImpl extends SessionLifeCycle<ByteBuffer> implemen
     private void initSendBuffer() {
         for (int idx = 0; idx < messageSize; idx++) {
             messageToSend.put((byte) idx);
-            textMessageToSend+=(char)idx;
+//            textMessageToSend+=(char)idx;
         }
+        wholeMessage.put(messageToSend.array());
+        wholeMessage.put(messageToSend.array());
+        wholeMessage.put(messageToSend.array());
+        wholeMessage.put(messageToSend.array());
     }
     
     private boolean bb_equals(ByteBuffer b1, ByteBuffer b2) {
@@ -134,6 +144,12 @@ public class ByteBufferSessionImpl extends SessionLifeCycle<ByteBuffer> implemen
     public void onClientMessageHandler(ByteBuffer message, Session session, boolean last) throws IOException {
         logger.log(Level.INFO, "message:{0}", message);
         logger.log(Level.INFO, "last:{0}", last);
+        gotPartial.put(message);
+        if(last) {
+            if(bb_equals(gotPartial,wholeMessage)) {
+                closeTheSessionFromClient(session);
+            }
+        }
     }
 
     @Override
@@ -144,7 +160,8 @@ public class ByteBufferSessionImpl extends SessionLifeCycle<ByteBuffer> implemen
             @Override
             public void run() {
                 try {
-                    s.getBasicRemote().sendText(textMessageToSend, false);
+                    //s.getBasicRemote().sendText(textMessageToSend, false);
+                    s.getBasicRemote().sendBinary(messageToSend, false);
                     done.countDown();
                 } catch (IOException ex) {
                     logger.log(Level.SEVERE, null, ex);
@@ -155,7 +172,8 @@ public class ByteBufferSessionImpl extends SessionLifeCycle<ByteBuffer> implemen
             @Override
             public void run() {
                 try {
-                    s.getBasicRemote().sendText(textMessageToSend, false);
+                    //s.getBasicRemote().sendText(textMessageToSend, false);
+                    s.getBasicRemote().sendBinary(messageToSend, false);
                     done.countDown();
                 } catch (IOException ex) {
                     logger.log(Level.SEVERE, null, ex);
@@ -166,7 +184,8 @@ public class ByteBufferSessionImpl extends SessionLifeCycle<ByteBuffer> implemen
             @Override
             public void run() {
                 try {
-                    s.getBasicRemote().sendText(textMessageToSend, false);
+                    //s.getBasicRemote().sendText(textMessageToSend, false);
+                    s.getBasicRemote().sendBinary(messageToSend, false);
                     done.countDown();
                 } catch (IOException ex) {
                     logger.log(Level.SEVERE, null, ex);
