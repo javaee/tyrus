@@ -50,6 +50,7 @@ import javax.websocket.Session;
 
 import org.glassfish.tyrus.tests.qa.lifecycle.SessionConversation;
 import org.glassfish.tyrus.tests.qa.lifecycle.SessionLifeCycle;
+import sun.awt.image.ByteBandedRaster;
 
 /**
  *
@@ -61,30 +62,40 @@ public class ByteSessionImpl extends SessionLifeCycle<byte[]> implements Session
     public SessionLifeCycle getSessionConversation(boolean partial) {
         return new ByteSessionImpl(1024, true, partial);
     }
-   
     int messageSize;
-    byte [] messageToSend;
+    byte[] messageToSend;
+    ByteBuffer gotPartial, wholeMessage;
 
     public ByteSessionImpl(int messageSize, boolean directIO, boolean partial) {
         super(partial);
         this.messageSize = messageSize;
         messageToSend = new byte[messageSize];
+        gotPartial = ByteBuffer.allocate(messageSize * 5);
+        wholeMessage = ByteBuffer.allocate(messageSize * 5);
         initSendBuffer();
+
     }
 
     private void initSendBuffer() {
         for (int idx = 0; idx < messageSize; idx++) {
-            messageToSend[idx]=(byte) idx;
+            messageToSend[idx] = (byte) idx;
         }
+
+        wholeMessage.put(ByteBuffer.wrap(messageToSend));
+        wholeMessage.put(ByteBuffer.wrap(messageToSend));
+        wholeMessage.put(ByteBuffer.wrap(messageToSend));
+        wholeMessage.put(ByteBuffer.wrap(messageToSend));
+        wholeMessage.put(ByteBuffer.wrap(messageToSend));
+
     }
-    
-    boolean bb_equal(final byte [] b1, final byte [] b2) {
-        if(b1.length != b2.length) {
-            logger.log(Level.SEVERE, "arrays not equal! {0} {1}", new Object[] {b1.length, b2.length  });
+
+    boolean bb_equal(final byte[] b1, final byte[] b2) {
+        if (b1.length != b2.length) {
+            logger.log(Level.SEVERE, "arrays not equal! {0} {1}", new Object[]{b1.length, b2.length});
             return false;
         }
-        for(int idx=0; idx<b1.length; idx++) {
-            if(b1[idx]!=b2[idx]) {
+        for (int idx = 0; idx < b1.length; idx++) {
+            if (b1[idx] != b2[idx]) {
                 logger.log(Level.SEVERE, "Arrays mismatch at index: {0}", idx);
                 return false;
             }
@@ -117,6 +128,14 @@ public class ByteSessionImpl extends SessionLifeCycle<byte[]> implements Session
 
     @Override
     public void onClientMessageHandler(byte[] message, Session session, boolean last) throws IOException {
+        gotPartial.put(ByteBuffer.wrap(message));
+        if (last) {
+            logger.log(Level.INFO, "got Last one:{0}", gotPartial);
+            if (0 == gotPartial.compareTo(wholeMessage)) {
+                closeTheSessionFromClient(session);
+            }
+        }
+
     }
 
     @Override
