@@ -221,7 +221,7 @@ public class EndpointWrapper extends SPIEndpoint {
     }
 
     static List<Class<? extends Decoder>> getDefaultDecoders() {
-        final List<Class<? extends Decoder>> classList = new ArrayList<>();
+        final List<Class<? extends Decoder>> classList = new ArrayList<Class<? extends Decoder>>();
         classList.addAll(PrimitiveDecoders.ALL);
         classList.add(NoOpTextCoder.class);
         classList.add(NoOpByteBufferCoder.class);

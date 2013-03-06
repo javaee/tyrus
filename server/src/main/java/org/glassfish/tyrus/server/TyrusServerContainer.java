@@ -88,24 +88,30 @@ public class TyrusServerContainer extends WithProperties implements WebSocketCon
     /**
      * Create new {@link TyrusServerContainer}.
      *
-     * @param server      underlying server.
-     * @param contextPath context path of current application.
-     * @param classes     classes to be included in this application instance. Can contain any combination of annotated
-     *                    endpoints (see {@link javax.websocket.server.ServerEndpoint}) or {@link javax.websocket.Endpoint} descendants.
+     * @param server                  underlying server.
+     * @param contextPath             context path of current application.
+     * @param classes                 classes to be included in this application instance. Can contain any combination of annotated
+     *                                endpoints (see {@link javax.websocket.server.ServerEndpoint}) or {@link javax.websocket.Endpoint} descendants.
+     * @param dynamicallyAddedClasses dynamically deployed classes. See {@link javax.websocket.server.ServerContainer#addEndpoint(Class)}.
+     * @param dynamicallyAddedEndpointConfigs
+     *                                dynamically deployed {@link ServerEndpointConfig ServerEndpointConfigs}. See
+     *                                {@link javax.websocket.server.ServerContainer#addEndpoint(ServerEndpointConfig)}.
      */
     public TyrusServerContainer(final TyrusServer server, final String contextPath,
-                                final Set<Class<?>> classes) {
+                                final Set<Class<?>> classes, final Set<Class<?>> dynamicallyAddedClasses,
+                                final Set<ServerEndpointConfig> dynamicallyAddedEndpointConfigs) {
         this.collector = new ErrorCollector();
         this.server = server;
         this.contextPath = contextPath;
-        this.configuration = new TyrusServerConfiguration(classes, Collections.<ServerEndpointConfig>emptySet(), this.collector);
-        componentProvider = ComponentProviderService.create();
+        this.configuration = new TyrusServerConfiguration((classes == null ? Collections.<Class<?>>emptySet() : classes),
+                dynamicallyAddedClasses, dynamicallyAddedEndpointConfigs, this.collector);
+        this.componentProvider = ComponentProviderService.create();
     }
 
     /**
      * Start container.
      *
-     * @throws IOException when any IO related issues emerge during {@link org.glassfish.tyrus.spi.TyrusServer#start()}.
+     * @throws IOException         when any IO related issues emerge during {@link org.glassfish.tyrus.spi.TyrusServer#start()}.
      * @throws DeploymentException when any deployment related error is found; should contain list of all found issues.
      */
     public void start() throws IOException, DeploymentException {
@@ -122,10 +128,10 @@ public class TyrusServerContainer extends WithProperties implements WebSocketCon
             }
 
             // deploy all the programmatic endpoints
-            for (ServerEndpointConfig serverEndpointConfig : configuration.getEndpointConfigs(null)) {
-                if (serverEndpointConfig != null) {
-                    EndpointWrapper ew = new EndpointWrapper(serverEndpointConfig.getEndpointClass(),
-                            serverEndpointConfig, componentProvider, this, contextPath, collector, serverEndpointConfig.getConfigurator());
+            for (ServerEndpointConfig serverEndpointConfiguration : configuration.getEndpointConfigs(null)) {
+                if (serverEndpointConfiguration != null) {
+                    EndpointWrapper ew = new EndpointWrapper(serverEndpointConfiguration.getEndpointClass(),
+                            serverEndpointConfiguration, componentProvider, this, contextPath, collector, serverEndpointConfiguration.getConfigurator());
                     deploy(ew);
                 }
             }

@@ -39,8 +39,11 @@
  */
 package org.glassfish.tyrus.server;
 
+import java.util.Collections;
 import java.util.Set;
 import java.util.logging.Logger;
+
+import javax.websocket.server.ServerEndpointConfig;
 
 import org.glassfish.tyrus.core.OsgiRegistry;
 import org.glassfish.tyrus.core.ReflectionHelper;
@@ -59,7 +62,7 @@ public class ServerContainerFactory {
     private static void initOsgiRegistry() {
         try {
             osgiRegistry = OsgiRegistry.getInstance();
-            if(osgiRegistry != null) {
+            if (osgiRegistry != null) {
                 osgiRegistry.hookUp();
             }
         } catch (Throwable e) {
@@ -71,19 +74,19 @@ public class ServerContainerFactory {
      * Creates a new server container based on the supplied container provider.
      *
      * @param providerClassName Container provider implementation class name.
-     * @param contextPath URI path at which the websocket server should be exposed at.
-     * @param port Port at which the server should listen.
-     * @param classes Server configuration.
+     * @param contextPath       URI path at which the websocket server should be exposed at.
+     * @param port              Port at which the server should listen.
+     * @param classes           Server configuration.
      * @return New instance of {@link TyrusServerContainer}.
      */
     public static TyrusServerContainer create(String providerClassName, String contextPath, int port,
-                                         Set<Class<?>> classes) {
+                                              Set<Class<?>> classes) {
         Class<? extends TyrusContainer> providerClass;
 
         initOsgiRegistry();
 
         try {
-            if(osgiRegistry != null) {
+            if (osgiRegistry != null) {
                 //noinspection unchecked
                 providerClass = (Class<TyrusContainer>) osgiRegistry.classForNameWithException(providerClassName);
             } else {
@@ -94,7 +97,8 @@ public class ServerContainerFactory {
             throw new RuntimeException("Failed to load container provider class: " + providerClassName, e);
         }
         Logger.getLogger(ServerContainerFactory.class.getName()).info("Provider class loaded: " + providerClassName);
-        TyrusServerContainer container = create(providerClass, contextPath, port, classes);
+        TyrusServerContainer container = create(providerClass, contextPath, port, classes, Collections.<Class<?>>emptySet(),
+                Collections.<ServerEndpointConfig>emptySet());
         TyrusContainerProvider.getContainerProvider().setContainer(container);
         return container;
     }
@@ -102,20 +106,26 @@ public class ServerContainerFactory {
     /**
      * Creates a new server container based on the supplied container provider.
      *
-     * @param providerClass Container provider implementation class.
-     * @param contextPath URI path at which the websocket server should be exposed at.
-     * @param port Port at which the server should listen.
-     * @param configuration Server configuration.
+     * @param providerClass           Container provider implementation class.
+     * @param contextPath             URI path at which the websocket server should be exposed at.
+     * @param port                    Port at which the server should listen.
+     * @param configuration           Server configuration.
+     * @param dynamicallyAddedClasses dynamically deployed classes. See {@link javax.websocket.server.ServerContainer#addEndpoint(Class)}.
+     * @param dynamicallyAddedEndpointConfigs
+     *                                dynamically deployed {@link ServerEndpointConfig ServerEndpointConfigs}. See
+     *                                {@link javax.websocket.server.ServerContainer#addEndpoint(ServerEndpointConfig)}.
      * @return New instance of {@link TyrusServerContainer}.
      */
     public static TyrusServerContainer create(Class<? extends TyrusContainer> providerClass, String contextPath, int port,
-                                         Set<Class<?>> configuration) {
+                                              Set<Class<?>> configuration, Set<Class<?>> dynamicallyAddedClasses,
+                                              Set<ServerEndpointConfig> dynamicallyAddedEndpointConfigs) {
         TyrusContainer containerProvider;
         try {
             containerProvider = ReflectionHelper.getInstance(providerClass);
         } catch (Exception e) {
             throw new RuntimeException("Failed to instantiate provider class: " + providerClass.getName(), e);
         }
-        return new TyrusServerContainer(containerProvider.createServer(contextPath, port), contextPath, configuration);
+        return new TyrusServerContainer(containerProvider.createServer(contextPath, port), contextPath, configuration,
+                dynamicallyAddedClasses, dynamicallyAddedEndpointConfigs);
     }
 }

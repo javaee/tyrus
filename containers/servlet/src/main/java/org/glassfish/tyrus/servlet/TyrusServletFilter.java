@@ -41,12 +41,19 @@ package org.glassfish.tyrus.servlet;
 
 import java.io.IOException;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Logger;
+
+import javax.websocket.server.ServerContainer;
+import javax.websocket.server.ServerContainerProvider;
+import javax.websocket.server.ServerEndpointConfig;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
+import javax.servlet.FilterRegistration;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.ServletRequest;
@@ -78,8 +85,13 @@ class TyrusServletFilter implements Filter {
     private final WebSocketEngine engine;
     private TyrusServerContainer serverContainer = null;
 
-    // @ServerEndpoint annotated classes and classes extending ServerApplicationConfig
+    private boolean registered = false;
+
+    // @ServerEndpoint annotated classes and classes extending ServerApplicationConfiguration
     private final Set<Class<?>> classes;
+    private final ServletContext servletContext;
+    private final Set<Class<?>> dynamicallyDeployedClasses = new HashSet<Class<?>>();
+    private final Set<ServerEndpointConfig> dynamicallyDeployedServerEndpointConfigs = new HashSet<ServerEndpointConfig>();
 
     /**
      * Constructor.
@@ -88,17 +100,61 @@ class TyrusServletFilter implements Filter {
      */
     public TyrusServletFilter(Set<Class<?>> classes) {
         this.classes = classes;
+        this.servletContext = null;
         engine = WebSocketEngine.getEngine();
     }
+
+    public TyrusServletFilter(ServletContext servletContext) {
+        this.classes = null;
+        this.servletContext = servletContext;
+        engine = WebSocketEngine.getEngine();
+    }
+
+    void addClass(Class<?> clazz) {
+        if (this.serverContainer != null) {
+            throw new IllegalStateException("Filter already initiated.");
+        }
+        this.dynamicallyDeployedClasses.add(clazz);
+
+        checkFilterRegistration();
+    }
+
+    void addServerEndpointConfig(ServerEndpointConfig serverEndpointConfig) {
+        if (this.serverContainer != null) {
+            throw new IllegalStateException("Filter already initiated.");
+        }
+        this.dynamicallyDeployedServerEndpointConfigs.add(serverEndpointConfig);
+
+        checkFilterRegistration();
+    }
+
+    private void checkFilterRegistration() {
+        if(servletContext != null && !registered) {
+            registered = true;
+
+            final FilterRegistration.Dynamic reg = servletContext.addFilter("WebSocket filter", this);
+            reg.setAsyncSupported(true);
+            reg.addMappingForUrlPatterns(null, true, "/*");
+            TyrusServletContainerInitializer.LOGGER.info("Registering WebSocket filter for url pattern /*");
+        }
+    }
+
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
         String contextRoot = filterConfig.getServletContext().getContextPath();
-        this.serverContainer = ServerContainerFactory.create(ServletContainer.class, contextRoot,INFORMATIONAL_FIXED_PORT, classes);
+        this.serverContainer = ServerContainerFactory.create(ServletContainer.class, contextRoot, INFORMATIONAL_FIXED_PORT, classes, dynamicallyDeployedClasses, dynamicallyDeployedServerEndpointConfigs);
         try {
             serverContainer.start();
         } catch (Exception e) {
             throw new ServletException("Web socket server initialization failed.", e);
+        } finally {
+
+            // remove reference to filter.
+            final ServerContainer container = ServerContainerProvider.getServerContainer();
+            if (container instanceof TyrusServerContainerProvider) {
+                ((TyrusServerContainerProvider) container).cleanup();
+            }
         }
     }
 

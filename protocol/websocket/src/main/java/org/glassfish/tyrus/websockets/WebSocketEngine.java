@@ -83,7 +83,7 @@ public class WebSocketEngine {
     public static final int MASK_SIZE = 4;
     private final Set<WebSocketApplication> applications = Collections.newSetFromMap(new ConcurrentHashMap<WebSocketApplication, Boolean>());
 
-    private final Map<Connection, WebSocketHolder> webSocketHolderMap = new ConcurrentHashMap<>();
+    private final Map<Connection, WebSocketHolder> webSocketHolderMap = new ConcurrentHashMap<Connection, WebSocketHolder>();
 
     private WebSocketEngine() {
     }
@@ -305,11 +305,11 @@ public class WebSocketEngine {
      * WebSocketHolder object, which gets associated with the Grizzly {@link Connection}.
      */
     public final static class WebSocketHolder {
-        public volatile WebSocket webSocket;
+        public final WebSocket webSocket;
+        public final ProtocolHandler handler;
         public volatile HandShake handshake;
         public volatile WebSocketApplication application;
         public volatile ByteBuffer buffer;
-        public volatile ProtocolHandler handler;
 
         WebSocketHolder(final ProtocolHandler handler, final WebSocket socket) {
             this.handler = handler;

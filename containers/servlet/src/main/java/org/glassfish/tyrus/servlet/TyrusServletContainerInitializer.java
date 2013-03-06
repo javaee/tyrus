@@ -43,10 +43,13 @@ package org.glassfish.tyrus.servlet;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.websocket.Endpoint;
 import javax.websocket.server.ServerApplicationConfig;
+import javax.websocket.server.ServerContainer;
+import javax.websocket.server.ServerContainerProvider;
 import javax.websocket.server.ServerEndpoint;
 
 import javax.servlet.FilterRegistration;
@@ -65,33 +68,47 @@ import javax.servlet.annotation.HandlesTypes;
  */
 @HandlesTypes({ServerEndpoint.class, ServerApplicationConfig.class, Endpoint.class})
 public class TyrusServletContainerInitializer implements ServletContainerInitializer {
-    private static final Logger LOGGER = Logger.getLogger(TyrusServletContainerInitializer.class.getName());
+    static final Logger LOGGER = Logger.getLogger(TyrusServletContainerInitializer.class.getName());
 
     /**
      * Tyrus classes scanned by container will be filtered.
      */
-    private static final Set<Class<?>> FILTERED_CLASSES = new HashSet<Class<?>>(){{
+    private static final Set<Class<?>> FILTERED_CLASSES = new HashSet<Class<?>>() {{
         add(org.glassfish.tyrus.server.TyrusServerConfiguration.class);
     }};
 
     public void onStartup(Set<Class<?>> classes, ServletContext ctx) throws ServletException {
         if (classes == null || classes.isEmpty()) {
-            // do nothing. We rely on servlet scanning mechanism and if there are no classes provided
-            // by it, we cannot deploy anything.
+            // prepare for possible programmatic deployment
+            final ServerContainer serverContainer = ServerContainerProvider.getServerContainer();
+            if (serverContainer instanceof TyrusServerContainerProvider) {
+                ((TyrusServerContainerProvider) serverContainer).setTyrusFilter(new TyrusServletFilter(ctx));
+            } else {
+                LOGGER.log(Level.WARNING, "ServerContainer.deploy is not supported.");
+            }
+
             return;
         }
 
         for (Iterator<Class<?>> it = classes.iterator(); it.hasNext(); ) {
             Class<?> cls = it.next();
 
-            if(FILTERED_CLASSES.contains(cls)){
+            if (FILTERED_CLASSES.contains(cls)) {
                 it.remove();
             }
         }
 
-        final FilterRegistration.Dynamic reg = ctx.addFilter("WebSocket filter", new TyrusServletFilter(classes));
+        final TyrusServletFilter filter = new TyrusServletFilter(classes);
+        final FilterRegistration.Dynamic reg = ctx.addFilter("WebSocket filter", filter);
         reg.setAsyncSupported(true);
         reg.addMappingForUrlPatterns(null, true, "/*");
         LOGGER.info("Registering WebSocket filter for url pattern /*");
+
+        final ServerContainer serverContainer = ServerContainerProvider.getServerContainer();
+        if (serverContainer instanceof TyrusServerContainerProvider) {
+            ((TyrusServerContainerProvider) serverContainer).setTyrusFilter(filter);
+        } else {
+            LOGGER.log(Level.WARNING, "ServerContainer.deploy is not supported.");
+        }
     }
 }

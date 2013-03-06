@@ -68,25 +68,27 @@ public class TyrusServerConfiguration implements ServerApplicationConfig {
     /**
      * Create new {@link TyrusServerConfiguration}.
      *
-     * @param classes classes to be included in this application instance. Can contain any combination of annotated
-     *                endpoints (see {@link ServerEndpoint}). Cannot be {@code null}.
+     * @param classes               classes to be included in this application instance. Can contain any combination of annotated
+     *                              endpoints (see {@link ServerEndpoint}). Cannot be {@code null}.
      * @param serverEndpointConfigs List of instances of {@link ServerEndpointConfig} to be deployed.
      * @throws IllegalArgumentException when any of the arguments is {@code null}.
      */
     public TyrusServerConfiguration(Set<Class<?>> classes, Set<ServerEndpointConfig> serverEndpointConfigs) {
-        this(classes, serverEndpointConfigs, new ErrorCollector());
+        this(classes, Collections.<Class<?>>emptySet(), serverEndpointConfigs, new ErrorCollector());
     }
 
     /**
      * Create new {@link TyrusServerConfiguration}.
      *
-     * @param classes                      classes to be included in this application instance. Can contain any combination of annotated
-     *                                     endpoints (see {@link ServerEndpoint}).
-     * @param serverEndpointConfigs List of instances of {@link ServerEndpointConfig} to be deployed.
-     * @param errorCollector               model errors are reported to this instance. Cannot be {@code null}.
+     * @param classes                 classes to be included in this application instance. Can contain any combination of annotated
+     *                                endpoints (see {@link ServerEndpoint}).
+     * @param dynamicallyAddedClasses dynamically deployed classes. See {@link javax.websocket.server.ServerContainer#addEndpoint(Class)}.
+     * @param serverEndpointConfigs   List of instances of {@link ServerEndpointConfig} to be deployed.
+     * @param errorCollector          model errors are reported to this instance. Cannot be {@code null}.
      * @throws IllegalArgumentException when any of the arguments is {@code null}.
      */
-    public TyrusServerConfiguration(Set<Class<?>> classes, Set<ServerEndpointConfig> serverEndpointConfigs, ErrorCollector errorCollector) {
+    public TyrusServerConfiguration(Set<Class<?>> classes, Set<Class<?>> dynamicallyAddedClasses,
+                                    Set<ServerEndpointConfig> serverEndpointConfigs, ErrorCollector errorCollector) {
         if (classes == null || serverEndpointConfigs == null || errorCollector == null) {
             throw new IllegalArgumentException();
         }
@@ -100,10 +102,11 @@ public class TyrusServerConfiguration implements ServerApplicationConfig {
         for (Iterator<Class<?>> it = classes.iterator(); it.hasNext(); ) {
             Class<?> cls = it.next();
 
-            if (cls.isInterface() || Modifier.isAbstract(cls.getModifiers())) {
-                errorCollector.addException(new DeploymentException(cls.getName() + ": Deployed Classes can't be abstract nor interface. The class will not be deployed."));
+            if (isAbstract(cls, errorCollector)) {
                 it.remove();
+                continue;
             }
+
             if (ServerApplicationConfig.class.isAssignableFrom(cls)) {
                 ServerApplicationConfig config = (ServerApplicationConfig) ReflectionHelper.getInstance(cls, errorCollector);
                 configurations.add(config);
@@ -115,6 +118,26 @@ public class TyrusServerConfiguration implements ServerApplicationConfig {
 
             if (cls.isAnnotationPresent(ServerEndpoint.class)) {
                 scannedAnnotateds.add(cls);
+            }
+        }
+
+        // iterate through dynamically deployed classes
+        // main difference compared to "scanning" deployment is that all classes will be deployed, no matter if
+        // ServerApplicationConfiguration descendant is found.
+        for (Class<?> c : dynamicallyAddedClasses) {
+
+            // not ifaces nor abstract classes
+            if (isAbstract(c, errorCollector)) {
+                continue;
+            }
+
+            // or add any @ServerEndpoint annotated class
+            if (c.isAnnotationPresent(ServerEndpoint.class)) {
+                annotatedClasses.add(c);
+
+                // nothing else is expected/supported.
+            } else {
+                errorCollector.addException(new DeploymentException(String.format("Class %s is not ServerApplicationConfiguration descendant nor has @ServerEndpoint annotation.", c.getName())));
             }
         }
 
@@ -131,6 +154,15 @@ public class TyrusServerConfiguration implements ServerApplicationConfig {
         } else {
             annotatedClasses.addAll(scannedAnnotateds);
         }
+    }
+
+    private boolean isAbstract(Class<?> clazz, ErrorCollector errorCollector) {
+        if (clazz.isInterface() || Modifier.isAbstract(clazz.getModifiers())) {
+            errorCollector.addException(new DeploymentException(String.format("%s: Deployed Classes can't be abstract nor interface. The class will not be deployed.", clazz.getName())));
+            return true;
+        }
+
+        return false;
     }
 
     /**
