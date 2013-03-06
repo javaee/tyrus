@@ -42,7 +42,11 @@ package org.glassfish.tyrus.core;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.websocket.DecodeException;
 import javax.websocket.Decoder;
@@ -53,9 +57,11 @@ import javax.websocket.EndpointConfig;
  *
  * @author Martin Matula (martin.matula at oracle.com)
  * @author Danny Coward (danny.coward at oracle.com)
+ * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 public abstract class PrimitiveDecoders<T> implements Decoder.Text<T> {
     public static final List<Class<? extends Decoder>> ALL;
+    public static final Map<Class<?>, Decoder.Text<?>> ALL_INSTANCES;
 
     static {
         ALL = Collections.unmodifiableList(Arrays.<Class<? extends Decoder>>asList(
@@ -68,6 +74,8 @@ public abstract class PrimitiveDecoders<T> implements Decoder.Text<T> {
                 LongDecoder.class,
                 ShortDecoder.class
         ));
+
+        ALL_INSTANCES = getAllInstances();
     }
 
     @Override
@@ -78,61 +86,135 @@ public abstract class PrimitiveDecoders<T> implements Decoder.Text<T> {
     public static class BooleanDecoder extends PrimitiveDecoders<Boolean> {
         @Override
         public Boolean decode(String s) throws DecodeException {
-            return Boolean.valueOf(s);
+            Boolean result;
+
+            try {
+                result = Boolean.valueOf(s);
+            } catch (Exception e) {
+                throw new DecodeException(s, "Decoding failed", e);
+            }
+
+            return result;
         }
     }
 
     public static class ByteDecoder extends PrimitiveDecoders<Byte> {
         @Override
         public Byte decode(String s) throws DecodeException {
-            return Byte.valueOf(s);
-        }
+            Byte result;
+
+            try {
+                result = Byte.valueOf(s);
+            } catch (Exception e) {
+                throw new DecodeException(s, "Decoding failed", e);
+            }
+
+            return result;        }
     }
 
     public static class CharacterDecoder extends PrimitiveDecoders<Character> {
         @Override
         public Character decode(String s) throws DecodeException {
-            return s.charAt(0);
+            Character result;
+
+            try {
+                result = s.charAt(0);
+            } catch (Exception e) {
+                throw new DecodeException(s, "Decoding failed", e);
+            }
+
+            return result;
         }
     }
 
     public static class DoubleDecoder extends PrimitiveDecoders<Double> {
         @Override
         public Double decode(String s) throws DecodeException {
-            return Double.valueOf(s);
-        }
+            Double result;
+
+            try {
+                result = Double.valueOf(s);
+            } catch (Exception e) {
+                throw new DecodeException(s, "Decoding failed", e);
+            }
+
+            return result;        }
     }
 
     public static class FloatDecoder extends PrimitiveDecoders<Float> {
         @Override
         public Float decode(String s) throws DecodeException {
-            return Float.valueOf(s);
-        }
+            Float result;
+
+            try {
+                result = Float.valueOf(s);
+            } catch (Exception e) {
+                throw new DecodeException(s, "Decoding failed", e);
+            }
+
+            return result;        }
     }
 
     public static class IntegerDecoder extends PrimitiveDecoders<Integer> {
         @Override
         public Integer decode(String s) throws DecodeException {
-            return Integer.valueOf(s);
-        }
+            Integer result;
+
+            try {
+                result = Integer.valueOf(s);
+            } catch (Exception e) {
+                throw new DecodeException(s, "Decoding failed", e);
+            }
+
+            return result;        }
     }
 
     public static class LongDecoder extends PrimitiveDecoders<Long> {
         @Override
         public Long decode(String s) throws DecodeException {
-            return Long.valueOf(s);
-        }
+            Long result;
+
+            try {
+                result = Long.valueOf(s);
+            } catch (Exception e) {
+                throw new DecodeException(s, "Decoding failed", e);
+            }
+
+            return result;        }
     }
 
     public static class ShortDecoder extends PrimitiveDecoders<Short> {
         @Override
         public Short decode(String s) throws DecodeException {
-            return Short.valueOf(s);
-        }
+            Short result;
+
+            try {
+                result = Short.valueOf(s);
+            } catch (Exception e) {
+                throw new DecodeException(s, "Decoding failed", e);
+            }
+
+            return result;        }
     }
 
     @Override
     public void setEndpointConfig(EndpointConfig config) {
         // do nothing.
     }
+
+    private static Map<Class<?>, Decoder.Text<?>> getAllInstances() {
+        Map<Class<?>, Decoder.Text<?>> map = new HashMap<Class<?>, Decoder.Text<?>>();
+
+        for (Class<? extends Decoder> dec : ALL) {
+            Class<?> type = ReflectionHelper.getClassType(dec, Decoder.Text.class);
+            try {
+                map.put(type, (Decoder.Text<?>) dec.newInstance());
+            } catch (InstantiationException | IllegalAccessException e) {
+                Logger.getLogger(PrimitiveDecoders.class.getName()).log(Level.WARNING,String.format("Decoder %s could not have been instantiated.",dec));
+            }
+        }
+
+        return map;
+    }
+
 }

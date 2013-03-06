@@ -57,12 +57,14 @@ import org.glassfish.tyrus.server.Server;
 
 import org.junit.Assert;
 import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
+ * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 public class PathParamTest {
 
@@ -207,4 +209,149 @@ public class PathParamTest {
             server.stop();
         }
     }
+
+    @ServerEndpoint(value = "/pathparam/{first}/{second}/")
+    public static class PathParamTestBeanErrorNotPrimitive {
+
+        @OnMessage
+        public String doThat(@PathParam("first") String first,
+                             @PathParam("second") PathParamTest second,
+                             String message, Session peer) {
+
+            return message + first + second;
+        }
+    }
+
+    @Test
+    public void testPathParamErrorNotPrimitive() {
+        Server server = new Server(PathParamTestBeanErrorNotPrimitive.class);
+        boolean exceptionThrown = false;
+
+        try {
+            server.start();
+        } catch (Exception e) {
+            exceptionThrown = true;
+        } finally {
+            server.stop();
+            assertEquals(true, exceptionThrown);
+        }
+    }
+
+
+    @ServerEndpoint(value = "/pathparam/{first}/{second}/{third}/{fourth}/{fifth}/{sixth}/{seventh}/{eighth}")
+    public static class PathParamTestEndpointPrimitiveBoxing {
+
+        @OnMessage
+        public String doThat(@PathParam("first") String first,
+                             @PathParam("second") Integer second,
+                             @PathParam("third") Boolean third,
+                             @PathParam("fourth") Long fourth,
+                             @PathParam("fifth") Float fifth,
+                             @PathParam("sixth") Double sixth,
+                             @PathParam("seventh") Character seventh,
+                             @PathParam("eighth") Byte eighth,
+                             String message, Session peer) {
+            assertNotNull(first);
+            assertNotNull(second);
+            assertNotNull(third);
+            assertNotNull(fourth);
+            assertNotNull(fifth);
+            assertNotNull(sixth);
+            assertNotNull(seventh);
+            assertNotNull(eighth);
+            assertNotNull(message);
+            assertNotNull(peer);
+
+            return message + first + second + third + fourth + fifth + sixth + seventh + eighth;
+        }
+    }
+
+    @ServerEndpoint(value = "/pathparam/{first}/{second}/{third}/{fourth}/{fifth}/{sixth}/{seventh}/{eighth}")
+    public static class PathParamTestEndpointPrimitives {
+
+        @OnMessage
+        public String doThat(@PathParam("first") String first,
+                             @PathParam("second") int second,
+                             @PathParam("third") boolean third,
+                             @PathParam("fourth") long fourth,
+                             @PathParam("fifth") float fifth,
+                             @PathParam("sixth") double sixth,
+                             @PathParam("seventh") char seventh,
+                             @PathParam("eighth") byte eighth,
+                             String message, Session peer) {
+            assertNotNull(first);
+            assertNotNull(second);
+            assertNotNull(third);
+            assertNotNull(fourth);
+            assertNotNull(fifth);
+            assertNotNull(sixth);
+            assertNotNull(seventh);
+            assertNotNull(eighth);
+            assertNotNull(message);
+            assertNotNull(peer);
+
+            return message + first + second + third + fourth + fifth + sixth + seventh + eighth;
+        }
+
+        @OnError
+        public void onError(Throwable t) {
+            t.printStackTrace();
+        }
+    }
+
+    @Test
+    public void testPathParamPrimitives() {
+        testPathParamPrimitive(PathParamTestEndpointPrimitives.class);
+    }
+
+    @Test
+    public void testPathParamPrimitivesBoxing() {
+        testPathParamPrimitive(PathParamTestEndpointPrimitiveBoxing.class);
+    }
+
+    public void testPathParamPrimitive(Class<?> testedClass) {
+        Server server = new Server(testedClass);
+
+        try {
+            server.start();
+            messageLatch = new CountDownLatch(1);
+
+            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
+
+            ClientManager client = ClientManager.createClient();
+            client.connectToServer(new TestEndpointAdapter() {
+                @Override
+                public EndpointConfig getEndpointConfig() {
+                    return null;
+                }
+
+                @Override
+                public void onOpen(Session session) {
+                    try {
+                        session.addMessageHandler(new TestTextMessageHandler(this));
+                        session.getBasicRemote().sendText(SENT_MESSAGE);
+                        System.out.println("Hello message sent.");
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                @Override
+                public void onMessage(String message) {
+                    receivedMessage = message;
+                    messageLatch.countDown();
+                    System.out.println("Received message: " + message);
+                }
+            }, cec, new URI("wss://localhost:8025/websockets/tests/pathparam/first/2/true/4/5/6/c/0"));
+            messageLatch.await(5, TimeUnit.SECONDS);
+            Assert.assertEquals(SENT_MESSAGE + "first" + "2" + "true" + "4" + "5.0" + "6.0" + "c" + "0", receivedMessage);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            server.stop();
+        }
+    }
+
+
 }

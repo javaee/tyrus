@@ -57,6 +57,7 @@ import java.util.logging.Logger;
 import javax.websocket.ClientEndpoint;
 import javax.websocket.ClientEndpointConfig;
 import javax.websocket.CloseReason;
+import javax.websocket.DecodeException;
 import javax.websocket.Decoder;
 import javax.websocket.DeploymentException;
 import javax.websocket.Encoder;
@@ -340,15 +341,15 @@ public class AnnotatedEndpoint extends Endpoint {
         return as == null ? Object.class : (as[0] == null ? Object.class : as[0]);
     }
 
-    private ParameterExtractor[] getOnCloseParameterExtractors(Method method, Map<Integer, Class<?>> unknownParams) {
+    private ParameterExtractor[] getOnCloseParameterExtractors(final Method method, Map<Integer, Class<?>> unknownParams) {
         return getParameterExtractors(method, unknownParams, new HashSet<Class<?>>(Arrays.asList(CloseReason.class)));
     }
 
-    private ParameterExtractor[] getParameterExtractors(Method method, Map<Integer, Class<?>> unknownParams) {
+    private ParameterExtractor[] getParameterExtractors(final Method method, Map<Integer, Class<?>> unknownParams) {
         return getParameterExtractors(method, unknownParams, Collections.<Class<?>>emptySet());
     }
 
-    private ParameterExtractor[] getParameterExtractors(Method method, Map<Integer, Class<?>> unknownParams, Set<Class<?>> params) {
+    private ParameterExtractor[] getParameterExtractors(final Method method, Map<Integer, Class<?>> unknownParams, Set<Class<?>> params) {
         ParameterExtractor[] result = new ParameterExtractor[method.getParameterTypes().length];
         boolean sessionPresent = false;
         unknownParams.clear();
@@ -357,10 +358,25 @@ public class AnnotatedEndpoint extends Endpoint {
             final Class<?> type = method.getParameterTypes()[i];
             final String pathParamName = getPathParamName(method.getParameterAnnotations()[i]);
             if (pathParamName != null) {
+                if (!(PrimitivesToWrappers.isPrimitiveWrapper(type) || type.isPrimitive() || type.equals(String.class))) {
+                    collector.addException(new DeploymentException(String.format("Method:%s: %s is not allowed type for PathParameter", method.getName(), type.getName())));
+                }
+
                 result[i] = new ParameterExtractor() {
+
+                    final Decoder.Text<?> decoder = PrimitiveDecoders.ALL_INSTANCES.get(PrimitivesToWrappers.getPrimitiveWrapper(type));
+
                     @Override
-                    public Object value(Session session, Object... values) {
-                        return session.getPathParameters().get(pathParamName);
+                    public Object value(Session session, Object... values) throws DecodeException {
+                        Object result = null;
+
+                        if (decoder != null) {
+                            result = decoder.decode(session.getPathParameters().get(pathParamName));
+                        } else if (type.equals(String.class)) {
+                            result = session.getPathParameters().get(pathParamName);
+                        }
+
+                        return result;
                     }
                 };
             } else if (type == Session.class) {
@@ -419,10 +435,11 @@ public class AnnotatedEndpoint extends Endpoint {
             final Object endpoint = annotatedInstance != null ? annotatedInstance :
                     componentProvider.getInstance(annotatedClass, session, collector);
 
-            for (int i = 0; i < paramValues.length; i++) {
-                paramValues[i] = extractors[i].value(session, params);
-            }
             try {
+                for (int i = 0; i < paramValues.length; i++) {
+                    paramValues[i] = extractors[i].value(session, params);
+                }
+
                 return method.invoke(endpoint, paramValues);
             } catch (Exception e) {
                 if (callOnError) {
@@ -464,7 +481,7 @@ public class AnnotatedEndpoint extends Endpoint {
     }
 
     static interface ParameterExtractor {
-        Object value(Session session, Object... paramValues);
+        Object value(Session session, Object... paramValues) throws DecodeException;
     }
 
     static class ParamValue implements ParameterExtractor {
