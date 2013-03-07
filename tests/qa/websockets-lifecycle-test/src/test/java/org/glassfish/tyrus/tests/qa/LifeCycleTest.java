@@ -41,6 +41,7 @@ package org.glassfish.tyrus.tests.qa;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -105,16 +106,16 @@ public class LifeCycleTest {
 
     @Before
     public void setupServer() throws Exception {
-       channel = new CommChannel(testConf);
-       server = channel.new Server();
-       server.start();
-       SessionController.resetState();
+        channel = new CommChannel(testConf);
+        server = channel.new Server();
+        server.start();
+        SessionController.resetState();
 
     }
 
     @After
     public void stopServer() throws Exception {
-       server.destroy();
+        server.destroy();
     }
 
     private Session deployClient(Class client, URI connectURI) throws DeploymentException, IOException {
@@ -137,9 +138,13 @@ public class LifeCycleTest {
     }
 
     private void lifeCycle(Class serverHandler, Class clientHandler) throws DeploymentException, IOException {
+        lifeCycle(serverHandler, clientHandler, testConf.getURI(), true);
+    }
+
+    private void lifeCycle(Class serverHandler, Class clientHandler, URI clientUri, boolean testMe) throws DeploymentException, IOException {
         final CountDownLatch stopConversation = new CountDownLatch(1);
         final Server tyrusServer = deployServer(serverHandler);
-        Session clientSession = deployClient(clientHandler, testConf.getURI());
+        Session clientSession = deployClient(clientHandler, clientUri);
         // FIXME TC: clientSession.equals(lcSession)
         // FIXME TC: clientSession.addMessageHandler .. .throw excetpion
         try {
@@ -154,8 +159,10 @@ public class LifeCycleTest {
          */
 
         tyrus.stopServer(tyrusServer);
-        logger.log(Level.INFO, "Asserting: {0} {1}", new Object[] {SessionController.SessionState.FINISHED_SERVER.getMessage(), SessionController.getState()});
+        if(testMe) {
+        logger.log(Level.INFO, "Asserting: {0} {1}", new Object[]{SessionController.SessionState.FINISHED_SERVER.getMessage(), SessionController.getState()});
         Assert.assertEquals("session lifecycle finished", SessionController.SessionState.FINISHED_SERVER.getMessage(), SessionController.getState());
+        }
     }
 
     /*
@@ -194,39 +201,37 @@ public class LifeCycleTest {
         Issue.disableAll();
         lifeCycle(ProgrammaticWholeMessageByteSessionConfig.class, ProgrammaticWholeMessageByteSession.class);
     }
-    
+
     @Test
     public void testLifeCycleProgrammaticByteBuffer() throws DeploymentException, IOException {
         Issue.disableAll();
         lifeCycle(ProgrammaticWholeMessageByteBufferSessionConfig.class, ProgrammaticWholeMessageByteBufferSession.class);
     }
-    
+
     @Test
     public void testLifeCycleProgrammaticBufferedReader() throws DeploymentException, IOException {
         Issue.disableAll();
         lifeCycle(ProgrammaticWholeMessageBufferedReaderSessionConfig.class, ProgrammaticWholeMessageBufferedReaderSession.class);
     }
-    
-     @Test
+
+    @Test
     public void testLifeCycleProgrammaticStingPartialMessage() throws DeploymentException, IOException {
         Issue.disableAll();
         lifeCycle(ProgrammaticPartialMessageStringSessionConfig.class, ProgrammaticPartialMessageStringSession.class);
     }
-
 
     @Test
     public void testLifeCycleProgrammaticByteArrayPartialMessage() throws DeploymentException, IOException {
         Issue.disableAll();
         lifeCycle(ProgrammaticPartialMessageByteSessionConfig.class, ProgrammaticPartialMessageByteSession.class);
     }
-    
+
     @Test
     public void testLifeCycleProgrammaticByteBufferPartialMessage() throws DeploymentException, IOException {
         Issue.disableAll();
         lifeCycle(ProgrammaticPartialMessageByteBufferSessionConfig.class, ProgrammaticPartialMessageByteBufferSession.class);
     }
-    
-    
+
     @Test
     public void tyrus93_Programmatic() throws DeploymentException, IOException {
         Issue.TYRUS_93.disableAllButThisOne();
@@ -256,51 +261,48 @@ public class LifeCycleTest {
         Issue.disableAll();
         lifeCycle(AnnotatedWholeMessageStringSession.Server.class, AnnotatedWholeMessageStringSession.Client.class);
     }
-    
+
     @Test
     public void testLifeCycleAnnotatedObjectInputStream() throws DeploymentException, InterruptedException, IOException {
         Issue.disableAll();
         lifeCycle(AnnotatedWholeMessageObjectInputStreamSession.Server.class, AnnotatedWholeMessageObjectInputStreamSession.Client.class);
     }
-    
+
     @Test
     public void testLifeCycleAnnotatedByteArray() throws DeploymentException, InterruptedException, IOException {
         Issue.disableAll();
         lifeCycle(AnnotatedWholeMessageByteSession.Server.class, AnnotatedWholeMessageByteSession.Client.class);
     }
-    
+
     @Test
     public void testLifeCycleAnnotatedByteBuffer() throws DeploymentException, InterruptedException, IOException {
         Issue.disableAll();
         lifeCycle(AnnotatedWholeMessageByteBufferSession.Server.class, AnnotatedWholeMessageByteBufferSession.Client.class);
     }
-    
+
     @Test
     public void testLifeCycleAnnotatedBufferedReader() throws DeploymentException, InterruptedException, IOException {
         Issue.disableAll();
         lifeCycle(AnnotatedWholeMessageBufferedReaderSession.Server.class, AnnotatedWholeMessageBufferedReaderSession.Client.class);
     }
-    
+
     @Test
     public void testLifeCycleAnnotatedStringPartialMessage() throws DeploymentException, InterruptedException, IOException {
         Issue.disableAll();
         lifeCycle(AnnotatedPartialMessageStringSession.Server.class, AnnotatedPartialMessageStringSession.Client.class);
     }
-    
-    
-    
+
     @Test
     public void testLifeCycleAnnotatedByteArrayPartialMessage() throws DeploymentException, InterruptedException, IOException {
         Issue.disableAll();
         lifeCycle(AnnotatedPartialMessageByteSession.Server.class, AnnotatedPartialMessageByteSession.Client.class);
     }
-    
+
     @Test
     public void testLifeCycleAnnotatedByteBufferPartialMessage() throws DeploymentException, InterruptedException, IOException {
         Issue.disableAll();
         lifeCycle(AnnotatedPartialMessageByteBufferSession.Server.class, AnnotatedPartialMessageByteBufferSession.Client.class);
     }
-    
 
     @Test
     public void tyrus93_Annotated() throws DeploymentException, InterruptedException, IOException {
@@ -328,9 +330,36 @@ public class LifeCycleTest {
     }
 
     @Test
+    //TODO
     public void addMessageHandlerPossibleOnlyOnce() throws DeploymentException, IOException {
         Issue.disableAll();
-        
 
+
+    }
+
+    @Test
+    public void testURIMatchAnnotated() throws DeploymentException, URISyntaxException, IOException {
+        boolean handshakeExThrown = false;
+        try {
+            Issue.disableAll();
+            lifeCycle(AnnotatedWholeMessageStringSession.Server.class, AnnotatedWholeMessageStringSession.Client.class, new URI("ws://localhost/aaaaa"), false);
+        } catch (org.glassfish.tyrus.websockets.HandshakeException hex) {
+            handshakeExThrown = true;
+        }
+
+        Assert.assertEquals("URI don't match and Hnadshake  exception is not thrown", true, handshakeExThrown);
+    }
+    
+    @Test
+    public void testURIMatchProgrammatic() throws DeploymentException, URISyntaxException, IOException {
+        boolean handshakeExThrown = false;
+        try {
+            Issue.disableAll();
+            lifeCycle(ProgrammaticWholeMessageStringSessionConfig.class, ProgrammaticWholeMessageStringSession.class, new URI("ws://localhost/aaaaa"), false);
+        } catch (org.glassfish.tyrus.websockets.HandshakeException hex) {
+            handshakeExThrown = true;
+        }
+
+        Assert.assertEquals("URI don't match and Hnadshake  exception is not thrown", true, handshakeExThrown);
     }
 }
