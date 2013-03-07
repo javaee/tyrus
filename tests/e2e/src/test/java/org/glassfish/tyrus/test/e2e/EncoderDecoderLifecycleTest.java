@@ -68,6 +68,8 @@ import org.glassfish.tyrus.server.Server;
 
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
@@ -87,7 +89,7 @@ public class EncoderDecoderLifecycleTest {
 
         @Override
         public String toString() {
-            final StringBuffer sb = new StringBuffer();
+            final StringBuilder sb = new StringBuilder();
             sb.append("MyType");
             sb.append("{s='").append(s).append('\'');
             sb.append('}');
@@ -98,6 +100,9 @@ public class EncoderDecoderLifecycleTest {
     public static class MyEncoder implements Encoder.Text<MyType> {
         public static final Set<MyEncoder> instances = new HashSet<>();
 
+        public boolean initialized = false;
+        public boolean destroyed = false;
+
         @Override
         public String encode(MyType object) throws EncodeException {
             instances.add(this);
@@ -107,13 +112,24 @@ public class EncoderDecoderLifecycleTest {
         }
 
         @Override
-        public void setEndpointConfig(EndpointConfig config) {
-            // do nothing.
+        public void init(EndpointConfig config) {
+            if(config != null) {
+                initialized = true;
+            }
+        }
+
+        @Override
+        public void destroy() {
+            destroyed = true;
+            destroyCallLatch.countDown();
         }
     }
 
     public static class MyDecoder implements Decoder.Text<MyType> {
         public static final Set<MyDecoder> instances = new HashSet<>();
+
+        public boolean initialized = false;
+        public boolean destroyed = false;
 
         @Override
         public boolean willDecode(String s) {
@@ -129,8 +145,16 @@ public class EncoderDecoderLifecycleTest {
         }
 
         @Override
-        public void setEndpointConfig(EndpointConfig config) {
-            // do nothing.
+        public void init(EndpointConfig config) {
+            if(config != null) {
+                initialized = true;
+            }
+        }
+
+        @Override
+        public void destroy() {
+            destroyed = true;
+            destroyCallLatch.countDown();
         }
     }
 
@@ -179,6 +203,7 @@ public class EncoderDecoderLifecycleTest {
     }
 
     static CountDownLatch messageLatch;
+    static volatile CountDownLatch destroyCallLatch;
 
     // encoders/decoders per session
     @Test
@@ -201,6 +226,15 @@ public class EncoderDecoderLifecycleTest {
             assertEquals(1, MyDecoder.instances.size());
             assertEquals(1, MyEncoder.instances.size());
 
+            for(MyDecoder decoder : MyDecoder.instances) {
+                assertTrue(decoder.initialized);
+                assertFalse(decoder.destroyed);
+            }
+            for(MyEncoder encoder : MyEncoder.instances) {
+                assertTrue(encoder.initialized);
+                assertFalse(encoder.destroyed);
+            }
+
             messageLatch = new CountDownLatch(1);
             session.getBasicRemote().sendText("test");
             messageLatch.await(5, TimeUnit.SECONDS);
@@ -208,14 +242,42 @@ public class EncoderDecoderLifecycleTest {
             assertEquals(1, MyDecoder.instances.size());
             assertEquals(1, MyEncoder.instances.size());
 
+            destroyCallLatch = new CountDownLatch(2);
+            session.close();
+            destroyCallLatch.await(5, TimeUnit.SECONDS);
+
+
+            for(MyDecoder decoder : MyDecoder.instances) {
+                assertTrue(decoder.initialized);
+                assertTrue(decoder.destroyed);
+            }
+            for(MyEncoder encoder : MyEncoder.instances) {
+                assertTrue(encoder.initialized);
+                assertTrue(encoder.destroyed);
+            }
+
             messageLatch = new CountDownLatch(1);
-            client.connectToServer(ClientEndpoint.class, ClientEndpointConfig.Builder.create().build(),
+            session = client.connectToServer(ClientEndpoint.class, ClientEndpointConfig.Builder.create().build(),
                     new URI("ws://localhost:8025/websockets/tests/myEndpoint"));
             messageLatch.await(5, TimeUnit.SECONDS);
 
             assertEquals(0, messageLatch.getCount());
             assertEquals(2, MyDecoder.instances.size());
             assertEquals(2, MyEncoder.instances.size());
+
+            destroyCallLatch = new CountDownLatch(4);
+            session.close();
+            destroyCallLatch.await(4, TimeUnit.SECONDS);
+
+
+            for(MyDecoder decoder : MyDecoder.instances) {
+                assertTrue(decoder.initialized);
+                assertTrue(decoder.destroyed);
+            }
+            for(MyEncoder encoder : MyEncoder.instances) {
+                assertTrue(encoder.initialized);
+                assertTrue(encoder.destroyed);
+            }
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -282,13 +344,23 @@ public class EncoderDecoderLifecycleTest {
             messageLatch = new CountDownLatch(1);
 
             WebSocketContainer client = ContainerProvider.getWebSocketContainer();
-            Session session = client.connectToServer(ClientEndpoint.class, ClientEndpointConfig.Builder.create().build(), new URI("ws://localhost:8025/websockets/tests/myEndpoint"));
+            Session session = client.connectToServer(ClientEndpoint.class, ClientEndpointConfig.Builder.create().build(),
+                    new URI("ws://localhost:8025/websockets/tests/myEndpoint"));
 
-            messageLatch.await(1, TimeUnit.SECONDS);
+            messageLatch.await(5, TimeUnit.SECONDS);
 
             assertEquals(0, messageLatch.getCount());
             assertEquals(1, MyDecoder.instances.size());
             assertEquals(1, MyEncoder.instances.size());
+
+            for(MyDecoder decoder : MyDecoder.instances) {
+                assertTrue(decoder.initialized);
+                assertFalse(decoder.destroyed);
+            }
+            for(MyEncoder encoder : MyEncoder.instances) {
+                assertTrue(encoder.initialized);
+                assertFalse(encoder.destroyed);
+            }
 
             messageLatch = new CountDownLatch(1);
             session.getBasicRemote().sendText("test");
@@ -297,13 +369,42 @@ public class EncoderDecoderLifecycleTest {
             assertEquals(1, MyDecoder.instances.size());
             assertEquals(1, MyEncoder.instances.size());
 
+            destroyCallLatch = new CountDownLatch(2);
+            session.close();
+            destroyCallLatch.await(5, TimeUnit.SECONDS);
+
+
+            for(MyDecoder decoder : MyDecoder.instances) {
+                assertTrue(decoder.initialized);
+                assertTrue(decoder.destroyed);
+            }
+            for(MyEncoder encoder : MyEncoder.instances) {
+                assertTrue(encoder.initialized);
+                assertTrue(encoder.destroyed);
+            }
+
             messageLatch = new CountDownLatch(1);
-            client.connectToServer(ClientEndpoint.class, ClientEndpointConfig.Builder.create().build(), new URI("ws://localhost:8025/websockets/tests/myEndpoint"));
+            session = client.connectToServer(ClientEndpoint.class, ClientEndpointConfig.Builder.create().build(),
+                    new URI("ws://localhost:8025/websockets/tests/myEndpoint"));
             messageLatch.await(5, TimeUnit.SECONDS);
 
             assertEquals(0, messageLatch.getCount());
             assertEquals(2, MyDecoder.instances.size());
             assertEquals(2, MyEncoder.instances.size());
+
+            destroyCallLatch = new CountDownLatch(4);
+            session.close();
+            destroyCallLatch.await(4, TimeUnit.SECONDS);
+
+
+            for(MyDecoder decoder : MyDecoder.instances) {
+                assertTrue(decoder.initialized);
+                assertTrue(decoder.destroyed);
+            }
+            for(MyEncoder encoder : MyEncoder.instances) {
+                assertTrue(encoder.initialized);
+                assertTrue(encoder.destroyed);
+            }
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e);

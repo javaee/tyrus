@@ -41,14 +41,13 @@
 package org.glassfish.tyrus.sample.auction.decoders;
 
 import javax.websocket.Decoder;
-import javax.websocket.EndpointConfig;
 
 import org.glassfish.tyrus.sample.auction.message.AuctionMessage;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class AuctionMessageDecoder implements Decoder.Text<AuctionMessage> {
+public class AuctionMessageDecoder extends Decoder.Adapter implements Decoder.Text<AuctionMessage> {
 
     @Override
     public AuctionMessage decode(String s) {
@@ -63,10 +62,5 @@ public class AuctionMessageDecoder implements Decoder.Text<AuctionMessage> {
                 s.startsWith(AuctionMessage.AUCTION_LIST_REQUEST) ||
                 s.startsWith(AuctionMessage.LOGIN_REQUEST) ||
                 s.startsWith(AuctionMessage.LOGOUT_REQUEST);
-    }
-
-    @Override
-    public void setEndpointConfig(EndpointConfig config) {
-        // do nothing.
     }
 }

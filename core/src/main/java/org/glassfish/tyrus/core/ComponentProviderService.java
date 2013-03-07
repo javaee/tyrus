@@ -46,7 +46,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.websocket.Decoder;
 import javax.websocket.DeploymentException;
+import javax.websocket.Encoder;
+import javax.websocket.EndpointConfig;
 import javax.websocket.Session;
 
 import org.glassfish.tyrus.spi.ComponentProvider;
@@ -90,7 +93,17 @@ public class ComponentProviderService {
     }
 
     /**
-     * Provide an instance of class which is coupled to {@link Session}. Currently these are endpoints only.
+     * Copy constructor.
+     *
+     * @param componentProviderService original instance.
+     */
+    public ComponentProviderService(ComponentProviderService componentProviderService) {
+        this.providers = componentProviderService.providers;
+        this.sessionToObject = componentProviderService.sessionToObject;
+    }
+
+    /**
+     * Provide an instance of class which is coupled to {@link Session}.
      * </p>
      * The first time the method is called the provider creates an instance and caches it.
      * Next time the method is called the cached instance is returned.
@@ -109,11 +122,56 @@ public class ComponentProviderService {
             Object fromMap = classObjectMap.get(c);
             loaded = c.isAssignableFrom(fromMap.getClass()) ? (T) fromMap : null;
         } else {
+            try {
+                // returns not-null value
+                loaded = getEndpointInstance(c);
+                if (classObjectMap == null) {
+                    sessionToObject.put(session, new HashMap<Class<?>, Object>());
+                }
+                sessionToObject.get(session).put(c, loaded);
+            } catch (Exception e) {
+                collector.addException(new DeploymentException(String.format("Component provider threw exception when providing instance of class %s",
+                        c.getName()), e));
+            }
+        }
+
+        return loaded;
+    }
+
+    /**
+     * Provide an instance of {@link javax.websocket.Encoder} or {@link javax.websocket.Decoder} descendant which is coupled to {@link Session}.
+     * </p>
+     * The first time the method is called the provider creates an instance, calls {@link javax.websocket.Encoder#init(javax.websocket.EndpointConfig)}
+     * or {@link javax.websocket.Decoder#init(javax.websocket.EndpointConfig)} and caches it.
+     * Next time the method is called the cached instance is returned.
+     *
+     * @param c              {@link Class} whose instance will be provided.
+     * @param collector      error collector.
+     * @param endpointConfig configuration corresponding to current context. Used for
+     *                       {@link javax.websocket.Encoder#init(javax.websocket.EndpointConfig)} and
+     *                       {@link javax.websocket.Decoder#init(javax.websocket.EndpointConfig)}
+     * @param <T>            type of the provided instance.
+     * @return instance
+     */
+    public <T> T getCoderInstance(Class<T> c, Session session, EndpointConfig endpointConfig, ErrorCollector collector) {
+        T loaded = null;
+
+        final Map<Class<?>, Object> classObjectMap = sessionToObject.get(session);
+
+        if (classObjectMap != null && classObjectMap.containsKey(c)) {
+            Object fromMap = classObjectMap.get(c);
+            loaded = c.isAssignableFrom(fromMap.getClass()) ? (T) fromMap : null;
+        } else {
             for (ComponentProvider componentProvider : providers) {
                 if (componentProvider.isApplicable(c)) {
                     try {
                         loaded = componentProvider.provideInstance(c);
                         if (loaded != null) {
+                            if (loaded instanceof Encoder) {
+                                ((Encoder) loaded).init(endpointConfig);
+                            } else if (loaded instanceof Decoder) {
+                                ((Decoder) loaded).init(endpointConfig);
+                            }
                             if (classObjectMap == null) {
                                 sessionToObject.put(session, new HashMap<Class<?>, Object>());
                             }
@@ -137,6 +195,51 @@ public class ComponentProviderService {
      * @param session to be removed.
      */
     public void removeSession(Session session) {
+        final Map<Class<?>, Object> classObjectMap = sessionToObject.get(session);
+        if (classObjectMap != null) {
+            for (Object o : classObjectMap.values()) {
+                if (o instanceof Encoder) {
+                    ((Encoder) o).destroy();
+                } else if (o instanceof Decoder) {
+                    ((Decoder) o).destroy();
+                }
+            }
+        }
         sessionToObject.remove(session);
+    }
+
+    /**
+     * This method is called by the container each time a new client
+     * connects to the logical endpoint this configurator configures.
+     * Developers may override this method to control instantiation of
+     * endpoint instances in order to customize the initialization
+     * of the endpoint instance, or manage them in some other way.
+     * If the developer overrides this method, services like
+     * dependency injection that are otherwise supported, for example, when
+     * the implementation is part of the Java EE platform
+     * may not be available.
+     * The platform default implementation of this method returns a new
+     * endpoint instance per call, thereby ensuring that there is one
+     * endpoint instance per client, the default deployment cardinality.
+     *
+     * @param endpointClass the class of the endpoint.
+     * @param <T>           the type of the endpoint.
+     * @return an instance of the endpoint that will handle all
+     *         interactions from a new client.
+     * @throws InstantiationException if there was an error producing the
+     *                                endpoint instance.
+     * @see javax.websocket.server.ServerEndpointConfig.Configurator#getEndpointInstance(Class)
+     */
+    public <T> T getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
+        for (ComponentProvider componentProvider : providers) {
+            if (componentProvider.isApplicable(endpointClass)) {
+                final T t = componentProvider.provideInstance(endpointClass);
+                if (t != null) {
+                    return t;
+                }
+            }
+        }
+
+        throw new InstantiationException(String.format("Component provider for class %s not found.", endpointClass.getName()));
     }
 }

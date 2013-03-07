@@ -42,14 +42,13 @@ package org.glassfish.tyrus.test.e2e.decoder;
 
 import javax.websocket.DecodeException;
 import javax.websocket.Decoder;
-import javax.websocket.EndpointConfig;
 
 import org.glassfish.tyrus.test.e2e.message.MessageB;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)
  */
-public class DecoderB implements Decoder.Text<MessageB> {
+public class DecoderB extends Decoder.Adapter implements Decoder.Text<MessageB> {
 
     @Override
     public MessageB decode(String s) throws DecodeException {
@@ -59,10 +58,5 @@ public class DecoderB implements Decoder.Text<MessageB> {
 
     public boolean willDecode(String s) {
         return s.startsWith("b");
-    }
-
-    @Override
-    public void setEndpointConfig(EndpointConfig config) {
-        // do nothing.
     }
 }

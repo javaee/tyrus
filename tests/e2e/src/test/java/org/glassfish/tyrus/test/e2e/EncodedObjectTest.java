@@ -196,16 +196,11 @@ public class EncodedObjectTest {
     /**
      * @author Stepan Kopriva (stepan.kopriva at oracle.com)
      */
-    public static class StringContainerEncoder implements Encoder.Text<StringContainer> {
+    public static class StringContainerEncoder extends Encoder.Adapter implements Encoder.Text<StringContainer> {
 
         @Override
         public String encode(StringContainer object) throws EncodeException {
             return object.getString();
-        }
-
-        @Override
-        public void setEndpointConfig(EndpointConfig config) {
-            // do nothing.
         }
     }
 }

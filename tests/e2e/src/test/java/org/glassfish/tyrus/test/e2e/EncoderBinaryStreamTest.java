@@ -86,15 +86,10 @@ public class EncoderBinaryStreamTest {
 
     }
 
-    public static class BinaryStreamEncoder implements Encoder.BinaryStream<Apple> {
+    public static class BinaryStreamEncoder extends Encoder.Adapter implements Encoder.BinaryStream<Apple> {
         @Override
         public void encode(Apple object, OutputStream os) throws EncodeException, IOException {
             os.write("apple".getBytes());
-        }
-
-        @Override
-        public void setEndpointConfig(EndpointConfig config) {
-            // do nothing.
         }
     }
 

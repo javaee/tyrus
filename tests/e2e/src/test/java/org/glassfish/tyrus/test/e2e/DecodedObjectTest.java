@@ -167,7 +167,7 @@ public class DecodedObjectTest {
         }
     }
 
-    class CustomDecoder implements Decoder.Text<StringContainer> {
+    class CustomDecoder extends Decoder.Adapter implements Decoder.Text<StringContainer> {
 
         @Override
         public StringContainer decode(String s) throws DecodeException {
@@ -178,14 +178,9 @@ public class DecodedObjectTest {
         public boolean willDecode(String s) {
             return true;
         }
-
-        @Override
-        public void setEndpointConfig(EndpointConfig config) {
-            // do nothing.
-        }
     }
 
-    class ExtendedDecoder implements Decoder.Text<ExtendedStringContainer> {
+    class ExtendedDecoder extends Decoder.Adapter implements Decoder.Text<ExtendedStringContainer> {
 
         @Override
         public ExtendedStringContainer decode(String s) throws DecodeException {
@@ -195,11 +190,6 @@ public class DecodedObjectTest {
         @Override
         public boolean willDecode(String s) {
             return true;
-        }
-
-        @Override
-        public void setEndpointConfig(EndpointConfig config) {
-            // do nothing.
         }
     }
 

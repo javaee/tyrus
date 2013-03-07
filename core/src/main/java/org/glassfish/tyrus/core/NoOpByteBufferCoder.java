@@ -45,14 +45,13 @@ import javax.websocket.DecodeException;
 import javax.websocket.Decoder;
 import javax.websocket.EncodeException;
 import javax.websocket.Encoder;
-import javax.websocket.EndpointConfig;
 
 /**
  * {@link Encoder} and {@link Decoder} implementation for {@link ByteBuffer}.
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-class NoOpByteBufferCoder implements Decoder.Binary<ByteBuffer>, Encoder.Binary<ByteBuffer> {
+class NoOpByteBufferCoder extends Encoder.Adapter implements Decoder.Binary<ByteBuffer>, Encoder.Binary<ByteBuffer> {
     @Override
     public boolean willDecode(ByteBuffer bytes) {
         return true;
@@ -66,10 +65,5 @@ class NoOpByteBufferCoder implements Decoder.Binary<ByteBuffer>, Encoder.Binary<
     @Override
     public ByteBuffer encode(ByteBuffer object) throws EncodeException {
         return object;
-    }
-
-    @Override
-    public void setEndpointConfig(EndpointConfig config) {
-        // do nothing.
     }
 }

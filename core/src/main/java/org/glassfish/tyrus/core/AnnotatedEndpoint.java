@@ -130,7 +130,12 @@ public class AnnotatedEndpoint extends Endpoint {
         this.configuration = createEndpointConfig(annotatedClass, isServerEndpoint);
         this.annotatedInstance = instance;
         this.annotatedClass = annotatedClass;
-        this.componentProvider = componentProvider;
+        this.componentProvider = isServerEndpoint ? new ComponentProviderService(componentProvider) {
+            @Override
+            public <T> T getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
+                return ((ServerEndpointConfig)configuration).getConfigurator().getEndpointInstance(endpointClass);
+            }
+        } : componentProvider;
 
         Method onOpen = null;
         Method onClose = null;
@@ -243,8 +248,6 @@ public class AnnotatedEndpoint extends Endpoint {
                 return null;
             }
 
-            // default value
-//            if (wseAnnotation.configuration().equals(DefaultServerConfiguration.class)) {
             List<Class<? extends Encoder>> encoderClasses = new ArrayList<Class<? extends Encoder>>();
             List<Class<? extends Decoder>> decoderClasses = new ArrayList<Class<? extends Decoder>>();
             String[] subProtocols;
@@ -282,21 +285,6 @@ public class AnnotatedEndpoint extends Endpoint {
             encoderClasses.addAll(Arrays.asList(wscAnnotation.encoders()));
             decoderClasses.addAll(Arrays.asList(wscAnnotation.decoders()));
             subProtocols = wscAnnotation.subprotocols();
-
-            List<Encoder> encoders = new ArrayList<Encoder>();
-            if (encoderClasses != null) {
-                for (Class<? extends Encoder> encoderClass : encoderClasses) {
-                    final Class<?> type = getEncoderClassType(encoderClass);
-                    encoders.add(new CoderWrapper<Encoder>(encoderClass, type));
-                }
-            }
-            List<Decoder> decoders = new ArrayList<Decoder>();
-            if (decoderClasses != null) {
-                for (Class<? extends Decoder> decoderClass : decoderClasses) {
-                    Class<?> decoderType = getDecoderClassType(decoderClass);
-                    decoders.add(new CoderWrapper<Decoder>(decoderClass, decoderType));
-                }
-            }
 
             decoderClasses.addAll(EndpointWrapper.getDefaultDecoders());
 

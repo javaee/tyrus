@@ -50,7 +50,6 @@ import java.util.logging.Logger;
 
 import javax.websocket.DecodeException;
 import javax.websocket.Decoder;
-import javax.websocket.EndpointConfig;
 
 /**
  * Collection of decoders for all primitive types.
@@ -59,7 +58,7 @@ import javax.websocket.EndpointConfig;
  * @author Danny Coward (danny.coward at oracle.com)
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public abstract class PrimitiveDecoders<T> implements Decoder.Text<T> {
+public abstract class PrimitiveDecoders<T> extends Decoder.Adapter implements Decoder.Text<T> {
     public static final List<Class<? extends Decoder>> ALL;
     public static final Map<Class<?>, Decoder.Text<?>> ALL_INSTANCES;
 
@@ -195,11 +194,6 @@ public abstract class PrimitiveDecoders<T> implements Decoder.Text<T> {
             }
 
             return result;        }
-    }
-
-    @Override
-    public void setEndpointConfig(EndpointConfig config) {
-        // do nothing.
     }
 
     private static Map<Class<?>, Decoder.Text<?>> getAllInstances() {

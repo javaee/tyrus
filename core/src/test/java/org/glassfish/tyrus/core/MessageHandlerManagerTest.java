@@ -47,7 +47,6 @@ import java.util.Arrays;
 
 import javax.websocket.DecodeException;
 import javax.websocket.Decoder;
-import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
 import javax.websocket.PongMessage;
 
@@ -149,7 +148,7 @@ public class MessageHandlerManagerTest {
         });
     }
 
-    public static class TestTextDecoder implements Decoder.Text<MessageHandlerManagerTest>{
+    public static class TestTextDecoder extends Decoder.Adapter implements Decoder.Text<MessageHandlerManagerTest>{
 
         @Override
         public MessageHandlerManagerTest decode(String s) throws DecodeException {
@@ -159,11 +158,6 @@ public class MessageHandlerManagerTest {
         @Override
         public boolean willDecode(String s) {
             return false;
-        }
-
-        @Override
-        public void setEndpointConfig(EndpointConfig config) {
-            // do nothing.
         }
     }
 

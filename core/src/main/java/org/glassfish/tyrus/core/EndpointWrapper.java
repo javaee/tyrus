@@ -145,7 +145,7 @@ public class EndpointWrapper extends SPIEndpoint {
 
     private EndpointWrapper(Endpoint endpoint, Class<?> endpointClass, EndpointConfig configuration,
                             ComponentProviderService componentProvider, WebSocketContainer container,
-                            String contextPath, ErrorCollector collector, ServerEndpointConfig.Configurator configurator) {
+                            String contextPath, ErrorCollector collector, final ServerEndpointConfig.Configurator configurator) {
         this.endpointClass = endpointClass;
         this.endpoint = endpoint;
         this.container = container;
@@ -155,8 +155,13 @@ public class EndpointWrapper extends SPIEndpoint {
         // this.uri is then used for creating SessionImpl and used as a return value in Session.getRequestURI() method.
         this.uri = contextPath;
         this.collector = collector;
-        this.componentProvider = componentProvider;
         this.configurator = configurator;
+        this.componentProvider = configurator == null ? componentProvider : new ComponentProviderService(componentProvider) {
+            @Override
+            public  <T> T getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
+                return configurator.getEndpointInstance(endpointClass);
+            }
+        };
 
         this.configuration = configuration == null ? new EndpointConfig() {
 
@@ -239,7 +244,7 @@ public class EndpointWrapper extends SPIEndpoint {
     private <T> T getCoderInstance(Session session, CoderWrapper<T> wrapper) {
         final T coder = wrapper.getCoder();
         if (coder == null) {
-            return this.componentProvider.getInstance(wrapper.getCoderClass(), session, collector);
+            return this.componentProvider.getCoderInstance(wrapper.getCoderClass(), session, getEndpointConfig(), collector);
         }
 
         return coder;
@@ -689,7 +694,7 @@ public class EndpointWrapper extends SPIEndpoint {
 
     @Override
     public String toString() {
-        final StringBuffer sb = new StringBuffer();
+        final StringBuilder sb = new StringBuilder();
         sb.append("EndpointWrapper");
         sb.append("{endpointClass=").append(endpointClass);
         sb.append(", endpoint=").append(endpoint);

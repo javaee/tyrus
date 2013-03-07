@@ -42,21 +42,15 @@ package org.glassfish.tyrus.core;
 
 import javax.websocket.EncodeException;
 import javax.websocket.Encoder;
-import javax.websocket.EndpointConfig;
 
 /**
  * Fall-back encoder - encoders any object to string using {@link Object#toString()} method.
  *
  * @author Martin Matula (martin.matula at oracle.com)
  */
-class ToStringEncoder implements Encoder.Text<Object> {
+class ToStringEncoder extends Encoder.Adapter implements Encoder.Text<Object> {
     @Override
     public String encode(Object object) throws EncodeException {
         return object.toString();
-    }
-
-    @Override
-    public void setEndpointConfig(EndpointConfig config) {
-        // do nothing.
     }
 }

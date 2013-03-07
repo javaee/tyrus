@@ -49,6 +49,7 @@ import javax.websocket.HandshakeResponse;
 import javax.websocket.server.HandshakeRequest;
 import javax.websocket.server.ServerEndpointConfig;
 
+import org.glassfish.tyrus.core.ComponentProviderService;
 import org.glassfish.tyrus.core.internal.PathPattern;
 
 /**
@@ -57,6 +58,13 @@ import org.glassfish.tyrus.core.internal.PathPattern;
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 public class TyrusServerEndpointConfigurator extends ServerEndpointConfig.Configurator {
+
+    private final ComponentProviderService componentProviderService;
+
+    public TyrusServerEndpointConfigurator() {
+        this.componentProviderService = ComponentProviderService.create();
+    }
+
     @Override
     public String getNegotiatedSubprotocol(List<String> supported, List<String> requested) {
         if (requested != null) {
@@ -102,5 +110,10 @@ public class TyrusServerEndpointConfigurator extends ServerEndpointConfig.Config
     @Override
     public void modifyHandshake(ServerEndpointConfig sec, HandshakeRequest request, HandshakeResponse response) {
 
+    }
+
+    @Override
+    public <T> T getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
+        return componentProviderService.getEndpointInstance(endpointClass);
     }
 }
