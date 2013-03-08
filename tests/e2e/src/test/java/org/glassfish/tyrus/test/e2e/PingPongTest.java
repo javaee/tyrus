@@ -39,52 +39,88 @@
  */
 package org.glassfish.tyrus.test.e2e;
 
+import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfig;
+import javax.websocket.ContainerProvider;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
-import javax.websocket.OnOpen;
+import javax.websocket.OnMessage;
+import javax.websocket.PongMessage;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
-import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
-import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 
 /**
  * Tests sending and receiving ping and pongs
  *
- * @author Danny Coward (danny.coward at oracle.com)
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 public class PingPongTest {
-    @Ignore // TODO works on client test run, not on full build
+
+    @ServerEndpoint(value = "/pingpong")
+    public static class PingPongEndpoint {
+        public static CountDownLatch pongCountDownLatch;
+
+        @OnMessage
+        public void onPong(PongMessage pongMessage) {
+            System.out.println("### PingPongEndpoint - received pong \"" + new String(pongMessage.getApplicationData().array()) + "\"");
+            if (pongMessage.getApplicationData().equals(ByteBuffer.wrap("ping message server".getBytes()))) {
+                pongCountDownLatch.countDown();
+            }
+        }
+
+        @OnMessage
+        public void onMessage(Session session, String message) throws IOException {
+            System.out.println("### PingPongEndpoint - sending ping \"ping message server\"");
+            session.getBasicRemote().sendPing(ByteBuffer.wrap("ping message server".getBytes()));
+        }
+    }
+
     @Test
-    public void testClient() {
-        final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
+    public void testPongClient() {
         Server server = new Server(PingPongEndpoint.class);
 
         try {
             server.start();
-            CountDownLatch messageLatch = new CountDownLatch(1);
+            final CountDownLatch messageLatch = new CountDownLatch(1);
 
-            PingPongClient htc = new PingPongClient(messageLatch);
-            ClientManager client = ClientManager.createClient();
-            client.connectToServer(htc, cec, new URI("ws://localhost:8025/websockets/tests/pingpong"));
+            ContainerProvider.getWebSocketContainer().connectToServer(new Endpoint() {
+                @Override
+                public void onOpen(Session session, EndpointConfig config) {
+                    try {
+                        session.addMessageHandler(new MessageHandler.Whole<PongMessage>() {
+                            @Override
+                            public void onMessage(PongMessage message) {
+                                System.out.println("### Client - received pong \"" + new String(message.getApplicationData().array()) + "\"");
+                                if (message.getApplicationData().equals(ByteBuffer.wrap("ping message client".getBytes()))) {
+                                    messageLatch.countDown();
+                                }
+                            }
+                        });
 
-            messageLatch.await(5, TimeUnit.SECONDS);
-            Assert.assertTrue("The client got the pong back with the right message, and so did the server", PingPongEndpoint.gotCorrectMessage);
-            Assert.assertTrue("The client got the pong back with the right message, and so did the server", htc.gotCorrectMessageBack);
+                        System.out.println("### Client - sending ping \"ping message client\"");
+                        session.getBasicRemote().sendPing(ByteBuffer.wrap("ping message client".getBytes()));
 
-            Assert.assertTrue("The client got the pong back with the right message, and so did the server", PingPongEndpoint.gotCorrectMessage && htc.gotCorrectMessageBack);
+                    } catch (IOException e) {
+                        // do nothing.
+                    }
+                }
+            }, ClientEndpointConfig.Builder.create().build(), new URI("ws://localhost:8025/websockets/tests/pingpong"));
+
+            messageLatch.await(1, TimeUnit.SECONDS);
+            assertEquals(0, messageLatch.getCount());
+
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
@@ -93,63 +129,33 @@ public class PingPongTest {
         }
     }
 
-    /**
-     * @author Danny Coward (danny.coward at oracle.com)
-     */
+    @Test
+    public void testPongServer() {
+        Server server = new Server(PingPongEndpoint.class);
 
-    @ServerEndpoint(value = "/pingpong")
-    public static class PingPongEndpoint {
-        static boolean gotCorrectMessage = false;
-        private static String SERVER_MESSAGE = "server ping data!";
+        try {
+            server.start();
+            PingPongEndpoint.pongCountDownLatch = new CountDownLatch(1);
 
-        @OnOpen
-        public void init(Session session) {
-            try {
-                session.addMessageHandler(new MessageHandler.Whole<ByteBuffer>() {
-                    public void onMessage(ByteBuffer bb) {
-                        System.out.println("PINGPONGSERVER received pong: " + new String(bb.array()));
-                        gotCorrectMessage = SERVER_MESSAGE.equals(new String(bb.array()));
-
+            ContainerProvider.getWebSocketContainer().connectToServer(new Endpoint() {
+                @Override
+                public void onOpen(Session session, EndpointConfig config) {
+                    try {
+                        session.getBasicRemote().sendText("ping-initiator");
+                    } catch (IOException e) {
+                        // do nothing.
                     }
-                });
-                session.getBasicRemote().sendPing(ByteBuffer.wrap(SERVER_MESSAGE.getBytes()));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+                }
+            }, ClientEndpointConfig.Builder.create().build(), new URI("ws://localhost:8025/websockets/tests/pingpong"));
+
+            PingPongEndpoint.pongCountDownLatch.await(1, TimeUnit.SECONDS);
+            assertEquals(0, PingPongEndpoint.pongCountDownLatch.getCount());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            server.stop();
         }
-    }
-
-    /**
-     * @author Danny Coward (danny.coward at oracle.com)
-     */
-    public static class PingPongClient extends Endpoint {
-        boolean gotCorrectMessageBack = false;
-        private final CountDownLatch messageLatch;
-        private static String CLIENT_MESSAGE = "client ping data!";
-
-        public PingPongClient(CountDownLatch messageLatch) {
-            this.messageLatch = messageLatch;
-        }
-
-        //    @Override
-        //    public EndpointConfig getEndpointConfig() {
-        //        return null;
-        //    }
-
-        public void onOpen(Session session, EndpointConfig EndpointConfig) {
-            try {
-                session.addMessageHandler(new MessageHandler.Whole<ByteBuffer>() {
-                    public void onMessage(ByteBuffer bb) {
-                        gotCorrectMessageBack = CLIENT_MESSAGE.equals(new String(bb.array()));
-                        messageLatch.countDown();
-                    }
-                });
-                session.getBasicRemote().sendPing(ByteBuffer.wrap(CLIENT_MESSAGE.getBytes()));
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-
     }
 }

@@ -239,7 +239,8 @@ public class TyrusEndpoint extends WebSocketApplication implements SPIRegistered
 
     @Override
     public void onPing(WebSocket socket, byte[] bytes) {
-        // TODO
+        TyrusRemoteEndpoint gs = TyrusRemoteEndpoint.get(socket);
+        this.endpoint.onPing(gs, ByteBuffer.wrap(bytes));
     }
 
     @Override

@@ -67,6 +67,7 @@ import javax.websocket.Encoder;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfig;
 import javax.websocket.Extension;
+import javax.websocket.PongMessage;
 import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
 import javax.websocket.server.ServerEndpointConfig;
@@ -609,8 +610,18 @@ public class EndpointWrapper extends SPIEndpoint {
     }
 
     @Override
-    public void onPong(SPIRemoteEndpoint gs, ByteBuffer bytes) {
-        //TODO What should I call?
+    public void onPong(SPIRemoteEndpoint gs, final ByteBuffer bytes) {
+        SessionImpl session = remoteEndpointToSession.get(gs);
+        if(session.isPongHandlerPreset()) {
+            session.notifyPongHandler(new PongMessage() {
+                @Override
+                public ByteBuffer getApplicationData() {
+                    return bytes;
+                }
+            });
+        } else {
+            LOGGER.log(Level.FINE, String.format("Unhandled pong message. Session: '%s'", session));
+        }
     }
 
     // the endpoint needs to respond as soon as possible (see the websocket RFC)
@@ -621,7 +632,8 @@ public class EndpointWrapper extends SPIEndpoint {
         try {
             session.getBasicRemote().sendPong(bytes);
         } catch (IOException e) {
-            // TODO XXX FIXME
+            // do nothing.
+            // we might consider calling onError, but there should be better defined exception.
         }
     }
 

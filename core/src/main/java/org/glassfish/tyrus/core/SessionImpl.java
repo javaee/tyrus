@@ -58,6 +58,7 @@ import javax.websocket.CloseReason;
 import javax.websocket.Decoder;
 import javax.websocket.Extension;
 import javax.websocket.MessageHandler;
+import javax.websocket.PongMessage;
 import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
@@ -332,10 +333,19 @@ public class SessionImpl implements Session {
         }
 
         if (!handled) {
-            if(message instanceof ByteBuffer){
+            if (message instanceof ByteBuffer) {
                 notifyMessageHandlers(((ByteBuffer) message).array(), last);
-            }else{
+            } else {
                 LOGGER.severe("Unhandled text message in EndpointWrapper");
+            }
+        }
+    }
+
+    void notifyPongHandler(PongMessage pongMessage) {
+        final Set<MessageHandler> messageHandlers = this.getMessageHandlers();
+        for (MessageHandler handler : messageHandlers) {
+            if (MessageHandlerManager.getHandlerType(handler).equals(PongMessage.class)) {
+                ((MessageHandler.Whole<PongMessage>) handler).onMessage(pongMessage);
             }
         }
     }
@@ -354,6 +364,10 @@ public class SessionImpl implements Session {
 
     boolean isPartialBinaryHandlerPresent() {
         return handlerManager.isPartialBinaryHandlerPresent();
+    }
+
+    boolean isPongHandlerPreset() {
+        return handlerManager.isPongHandlerPresent();
     }
 
     private List<MessageHandler> getOrderedMessageHandlers() {

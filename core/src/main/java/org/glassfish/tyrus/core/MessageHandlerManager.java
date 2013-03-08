@@ -62,6 +62,7 @@ import javax.websocket.PongMessage;
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  * @author Pavel Bucek (pavel.bucek at oracle.com)
+ *
  * @see MessageHandler
  * @see javax.websocket.OnMessage
  */
@@ -333,5 +334,9 @@ class MessageHandlerManager {
 
     boolean isPartialBinaryHandlerPresent() {
         return binaryHandlerPresent && !binaryWholeHandlerPresent;
+    }
+
+    boolean isPongHandlerPresent() {
+        return pongHandlerPresent;
     }
 }

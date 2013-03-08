@@ -140,7 +140,6 @@ public class DefaultWebSocket implements WebSocket {
     }
 
     public void onPing(DataFrame frame) {
-        send(new DataFrame(new PongFrameType(), frame.getBytes()));
         for (WebSocketListener listener : listeners) {
             listener.onPing(this, frame.getBytes());
         }
