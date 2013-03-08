@@ -92,7 +92,7 @@ public abstract class SPIRemoteEndpoint {
      *
      * @param applicationData the data to be carried in the ping request.
      */
-    public abstract void sendPing(ByteBuffer applicationData);
+    public abstract void sendPing(ByteBuffer applicationData) throws IOException;
 
     /**
      * Allows the developer to send an unsolicited Pong message containing the given application
@@ -101,7 +101,7 @@ public abstract class SPIRemoteEndpoint {
      *
      * @param applicationData the application data to be carried in the pong response.
      */
-    public abstract void sendPong(ByteBuffer applicationData);
+    public abstract void sendPong(ByteBuffer applicationData) throws IOException;
 
     /**
      * Send a Close message.

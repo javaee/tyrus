@@ -59,6 +59,7 @@ import org.glassfish.tyrus.server.Server;
 
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 
 /**
@@ -150,6 +151,43 @@ public class PingPongTest {
 
             PingPongEndpoint.pongCountDownLatch.await(1, TimeUnit.SECONDS);
             assertEquals(0, PingPongEndpoint.pongCountDownLatch.getCount());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            server.stop();
+        }
+    }
+
+    @Test
+    public void testLimits() {
+        Server server = new Server(PingPongEndpoint.class);
+
+        try {
+            server.start();
+            PingPongEndpoint.pongCountDownLatch = new CountDownLatch(1);
+
+            final Session session = ContainerProvider.getWebSocketContainer().connectToServer(new Endpoint() {
+                @Override
+                public void onOpen(Session session, EndpointConfig config) {
+                    // do nothing.
+                }
+            }, ClientEndpointConfig.Builder.create().build(), new URI("ws://localhost:8025/websockets/tests/pingpong"));
+
+            session.getBasicRemote().sendPing(ByteBuffer.wrap("12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345".getBytes()));
+            try {
+                session.getBasicRemote().sendPing(ByteBuffer.wrap("123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456".getBytes()));
+                fail();
+            } catch (IllegalArgumentException e) {
+            }
+            session.getBasicRemote().sendPong(ByteBuffer.wrap("12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345".getBytes()));
+            try {
+                session.getBasicRemote().sendPong(ByteBuffer.wrap("123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456".getBytes()));
+                fail();
+            } catch (IllegalArgumentException e) {
+
+            }
 
         } catch (Exception e) {
             e.printStackTrace();

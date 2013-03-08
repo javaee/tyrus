@@ -217,12 +217,18 @@ public class RemoteEndpointWrapper implements RemoteEndpoint {
     }
 
     @Override
-    public void sendPing(ByteBuffer applicationData) {
+    public void sendPing(ByteBuffer applicationData) throws IOException {
+        if(applicationData != null && applicationData.remaining() > 125) {
+            throw new IllegalArgumentException("Ping applicationData exceeded the maximum allowed payload of 125 bytes.");
+        }
         remoteEndpoint.sendPing(applicationData);
     }
 
     @Override
-    public void sendPong(ByteBuffer applicationData) {
+    public void sendPong(ByteBuffer applicationData) throws IOException {
+        if(applicationData != null && applicationData.remaining() > 125) {
+            throw new IllegalArgumentException("Pong applicationData exceeded the maximum allowed payload of 125 bytes.");
+        }
         remoteEndpoint.sendPong(applicationData);
     }
 
