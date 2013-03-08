@@ -50,8 +50,7 @@ import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
 import org.junit.Test;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
@@ -416,5 +415,23 @@ public class SessionImplTest {
         public String doThat(String message, Session peer) {
             return message;
         }
+    }
+
+    @Test
+    public void userPropertiesTest(){
+        Session session1 = new SessionImpl(null, null, ew, null, null, false, null, null, null);
+        Session session2 = new SessionImpl(null, null, ew, null, null, false, null, null, null);
+
+        final String test1 = "test1";
+        final String test2 = "test2";
+
+        session1.getUserProperties().put(test1, test1);
+        session2.getUserProperties().put(test2, test2);
+
+        assertNull(session1.getUserProperties().get(test2));
+        assertNull(session2.getUserProperties().get(test1));
+
+        assertNotNull(session1.getUserProperties().get(test1));
+        assertNotNull(session2.getUserProperties().get(test2));
     }
 }

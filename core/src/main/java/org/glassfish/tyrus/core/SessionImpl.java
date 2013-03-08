@@ -91,7 +91,7 @@ public class SessionImpl implements Session {
 
     private final String id = UUID.randomUUID().toString();
     private static final Logger LOGGER = Logger.getLogger(SessionImpl.class.getName());
-    private static final Map<String, Object> userProperties = new HashMap<String, Object>();
+    private final Map<String, Object> userProperties = new HashMap<String, Object>();
     private final MessageHandlerManager handlerManager;
 
     SessionImpl(WebSocketContainer container, SPIRemoteEndpoint remoteEndpoint, EndpointWrapper endpointWrapper,
