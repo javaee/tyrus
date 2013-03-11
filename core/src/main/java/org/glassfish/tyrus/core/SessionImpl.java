@@ -52,7 +52,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Logger;
 
 import javax.websocket.CloseReason;
@@ -95,9 +94,6 @@ public class SessionImpl implements Session {
     private static final Logger LOGGER = Logger.getLogger(SessionImpl.class.getName());
     private final Map<String, Object> userProperties = new HashMap<String, Object>();
     private final MessageHandlerManager handlerManager;
-    private static final String SESSION_NOT_OPEN = "The connection is currently not open.";
-    private AtomicBoolean connected = new AtomicBoolean(true);
-
 
     SessionImpl(WebSocketContainer container, SPIRemoteEndpoint remoteEndpoint, EndpointWrapper endpointWrapper,
                 String subprotocol, List<Extension> extensions, boolean isSecure,
@@ -132,25 +128,22 @@ public class SessionImpl implements Session {
 
     @Override
     public RemoteEndpoint.Async getAsyncRemote() {
-        checkConnectionStatus();
         return asyncRemote;
     }
 
     @Override
     public RemoteEndpoint.Basic getBasicRemote() {
-        checkConnectionStatus();
         return basicRemote;
     }
 
     @Override
     public boolean isOpen() {
-        return connected.get();
+        return endpoint.isOpen(this);
     }
 
     @Override
     public void close() throws IOException {
         this.close(new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, "no reason given"));
-
     }
 
     /**
@@ -158,8 +151,6 @@ public class SessionImpl implements Session {
      */
     @Override
     public void close(CloseReason closeReason) throws IOException {
-        checkConnectionStatus();
-        this.connected.set(false);
         basicRemote.close(closeReason);
     }
 
@@ -216,7 +207,6 @@ public class SessionImpl implements Session {
 
     @Override
     public void addMessageHandler(MessageHandler handler) {
-        checkConnectionStatus();
         synchronized (handlerManager) {
             handlerManager.addMessageHandler(handler);
         }
@@ -224,7 +214,6 @@ public class SessionImpl implements Session {
 
     @Override
     public Set<MessageHandler> getMessageHandlers() {
-        checkConnectionStatus();
         synchronized (handlerManager) {
             return handlerManager.getMessageHandlers();
         }
@@ -232,7 +221,6 @@ public class SessionImpl implements Session {
 
     @Override
     public void removeMessageHandler(MessageHandler handler) {
-        checkConnectionStatus();
         synchronized (handlerManager) {
             handlerManager.removeMessageHandler(handler);
         }
@@ -274,12 +262,6 @@ public class SessionImpl implements Session {
         return null;  // TODO: Implement.
     }
 
-    private void checkConnectionStatus() {
-        if (!connected.get()) {
-            throw new IllegalStateException(SESSION_NOT_OPEN);
-        }
-    }
-
     void setNegotiatedSubprotocol(String negotiatedSubprotocol) {
         this.negotiatedSubprotocol = negotiatedSubprotocol;
     }
@@ -300,7 +282,6 @@ public class SessionImpl implements Session {
     }
 
     void notifyMessageHandlers(Object message, List<CoderWrapper<Decoder>> availableDecoders) {
-        checkConnectionStatus();
 
         boolean decoded = false;
 
@@ -334,7 +315,6 @@ public class SessionImpl implements Session {
     }
 
     void notifyMessageHandlers(Object message, boolean last) {
-        checkConnectionStatus();
         boolean handled = false;
 
         for (MessageHandler handler : this.getMessageHandlers()) {
@@ -391,7 +371,6 @@ public class SessionImpl implements Session {
     }
 
     private List<MessageHandler> getOrderedMessageHandlers() {
-        checkConnectionStatus();
         Set<MessageHandler> handlers = this.getMessageHandlers();
         ArrayList<MessageHandler> result = new ArrayList<MessageHandler>();
 
@@ -425,7 +404,6 @@ public class SessionImpl implements Session {
             }
             return 0;
         }
-
     }
 
     @Override

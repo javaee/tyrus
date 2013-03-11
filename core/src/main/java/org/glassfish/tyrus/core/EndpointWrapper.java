@@ -640,13 +640,6 @@ public class EndpointWrapper extends SPIEndpoint {
     @Override
     public void onClose(SPIRemoteEndpoint gs, CloseReason closeReason) {
         Session session = remoteEndpointToSession.get(gs);
-        try {
-            if(session.isOpen()){
-                session.close();
-            }
-        } catch (IOException e) {
-            LOGGER.log(Level.FINE, "Exception while closing the session.");
-        }
 
         final Endpoint toCall = endpoint != null ? endpoint :
                 (Endpoint) componentProvider.getInstance(endpointClass, session, collector);
