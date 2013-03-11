@@ -52,7 +52,6 @@ import javax.websocket.CloseReason;
 import javax.websocket.EncodeException;
 import javax.websocket.RemoteEndpoint;
 import javax.websocket.SendHandler;
-import javax.websocket.Session;
 
 import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
 
@@ -256,9 +255,5 @@ public class RemoteEndpointWrapper implements RemoteEndpoint {
     public void close(CloseReason cr) {
         Logger.getLogger(RemoteEndpointWrapper.class.getName()).fine("Close public void close(CloseReason cr): " + cr);
         remoteEndpoint.close(cr);
-    }
-
-    public Session getSession() {
-        return session;
     }
 }

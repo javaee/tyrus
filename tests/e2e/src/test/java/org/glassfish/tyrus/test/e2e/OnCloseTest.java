@@ -48,6 +48,7 @@ import javax.websocket.ClientEndpointConfig;
 import javax.websocket.CloseReason;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfig;
+import javax.websocket.MessageHandler;
 import javax.websocket.OnClose;
 import javax.websocket.OnError;
 import javax.websocket.OnMessage;
@@ -308,7 +309,7 @@ public class OnCloseTest {
         Server server = new Server(OnCloseAllSupportedReasonsEndpoint.class);
 
         // close codes 1000 - 1015
-        for(int i : supportedCloseReasons) {
+        for (int i : supportedCloseReasons) {
             final CountDownLatch messageLatch = new CountDownLatch(1);
 
             final int closeCode = i;
@@ -415,6 +416,457 @@ public class OnCloseTest {
             } finally {
                 server.stop();
             }
+        }
+    }
+
+    @ServerEndpoint(value = "/close")
+    public static class DoubleCloseEndpoint {
+        public static CountDownLatch messageLatch;
+        public static boolean exceptionThrown = false;
+
+        @OnMessage
+        public String message(String message, Session session) {
+            try {
+                session.close();
+                session.close();
+            } catch (IllegalStateException e) {
+                exceptionThrown = true;
+                messageLatch.countDown();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return "message";
+        }
+    }
+
+    @Test
+    public void testDoubleClose() {
+        Server server = new Server(DoubleCloseEndpoint.class);
+
+        DoubleCloseEndpoint.messageLatch = new CountDownLatch(1);
+
+        try {
+            server.start();
+            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
+
+            ClientManager.createClient().connectToServer(new TestEndpointAdapter() {
+                @Override
+                public EndpointConfig getEndpointConfig() {
+                    return cec;
+                }
+
+                @Override
+                public void onMessage(String message) {
+
+                }
+
+                @Override
+                public void onOpen(Session session) {
+                    session.addMessageHandler(new TestTextMessageHandler(this));
+                    try {
+                        session.getBasicRemote().sendText("message");
+                    } catch (IOException e) {
+                        // do nothing.
+                    }
+                }
+            }, cec, new URI("ws://localhost:8025/websockets/tests/close"));
+
+            DoubleCloseEndpoint.messageLatch.await(1, TimeUnit.SECONDS);
+            assertEquals(0L, DoubleCloseEndpoint.messageLatch.getCount());
+            assertEquals(true, DoubleCloseEndpoint.exceptionThrown);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            server.stop();
+        }
+    }
+
+    @ServerEndpoint(value = "/close")
+    public static class CloseGetAll {
+        public static CountDownLatch messageLatch;
+        public static boolean exceptionAddMessageHandlerThrown = false;
+        public static boolean exceptionRemoveMessageHandlerThrown = false;
+        public static boolean exceptionGetAsyncRemoteThrown = false;
+        public static boolean exceptionGetBasicRemoteThrown = false;
+        public static boolean inCloseExceptionAddMessageHandlerThrown = false;
+        public static boolean inCloseExceptionRemoveMessageHandlerThrown = false;
+        public static boolean inCloseExceptionGetAsyncRemoteThrown = false;
+        public static boolean inCloseExceptionGetBasicRemoteThrown = false;
+
+
+        @OnMessage
+        public String message(String message, Session session) {
+            try {
+                session.close();
+                session.addMessageHandler(null);
+            } catch (IllegalStateException e) {
+                exceptionAddMessageHandlerThrown = true;
+                messageLatch.countDown();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            try {
+                session.removeMessageHandler(null);
+            } catch (IllegalStateException e) {
+                exceptionRemoveMessageHandlerThrown = true;
+                messageLatch.countDown();
+            }
+
+            try {
+                session.getBasicRemote();
+            } catch (IllegalStateException e) {
+                exceptionGetBasicRemoteThrown = true;
+                messageLatch.countDown();
+            }
+
+            try {
+                session.getAsyncRemote();
+            } catch (IllegalStateException e) {
+                exceptionGetAsyncRemoteThrown = true;
+                messageLatch.countDown();
+            }
+
+            return "message";
+        }
+
+        @OnClose
+        public void onClose(Session session) {
+            System.out.println("onClose");
+
+            try {
+                session.addMessageHandler(null);
+            } catch (IllegalStateException e) {
+                inCloseExceptionAddMessageHandlerThrown = true;
+                messageLatch.countDown();
+            }
+
+            try {
+                session.removeMessageHandler(null);
+            } catch (IllegalStateException e) {
+                inCloseExceptionRemoveMessageHandlerThrown = true;
+                messageLatch.countDown();
+            }
+
+            try {
+                session.getBasicRemote();
+            } catch (IllegalStateException e) {
+                inCloseExceptionGetBasicRemoteThrown = true;
+                messageLatch.countDown();
+            }
+
+            try {
+                session.getAsyncRemote();
+            } catch (IllegalStateException e) {
+                inCloseExceptionGetAsyncRemoteThrown = true;
+                messageLatch.countDown();
+            }
+
+        }
+    }
+
+    @Test
+    public void testCloseSessionServer() {
+        Server server = new Server(CloseGetAll.class);
+
+        CloseGetAll.messageLatch = new CountDownLatch(8);
+
+        boolean exceptionAddMessageHandlerThrown = false;
+        boolean exceptionRemoveMessageHandlerThrown = false;
+        boolean exceptionGetAsyncRemoteThrown = false;
+        boolean exceptionGetBasicRemoteThrown = false;
+
+        try {
+            server.start();
+            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
+
+            Session clientSession = ClientManager.createClient().connectToServer(new TestEndpointAdapter() {
+
+                @Override
+                public EndpointConfig getEndpointConfig() {
+                    return cec;
+                }
+
+                @Override
+                public void onMessage(String message) {
+
+                }
+
+                @Override
+                public void onOpen(Session session) {
+                    session.addMessageHandler(new TestTextMessageHandler(this));
+                    try {
+                        session.getBasicRemote().sendText("message");
+                    } catch (IOException e) {
+                        // do nothing.
+                    }
+                }
+
+                @Override
+                public void onClose(javax.websocket.Session session, javax.websocket.CloseReason closeReason) {
+                    System.out.println("Client session closed");
+                    boolean inCloseExceptionAddMessageHandlerThrown = false;
+                    boolean inCloseExceptionRemoveMessageHandlerThrown = false;
+                    boolean inCloseExceptionGetAsyncRemoteThrown = false;
+                    boolean inCloseExceptionGetBasicRemoteThrown = false;
+
+                    try {
+                        session.addMessageHandler(null);
+                    } catch (IllegalStateException e) {
+                        inCloseExceptionAddMessageHandlerThrown = true;
+                    }
+
+                    try {
+                        session.removeMessageHandler(null);
+                    } catch (IllegalStateException e) {
+                        inCloseExceptionRemoveMessageHandlerThrown = true;
+                    }
+
+                    try {
+                        session.getBasicRemote();
+                    } catch (IllegalStateException e) {
+                        inCloseExceptionGetBasicRemoteThrown = true;
+                    }
+
+                    try {
+                        session.getAsyncRemote();
+                    } catch (IllegalStateException e) {
+                        inCloseExceptionGetAsyncRemoteThrown = true;
+                    }
+
+                    assertEquals(true, inCloseExceptionAddMessageHandlerThrown);
+                    assertEquals(true, inCloseExceptionGetAsyncRemoteThrown);
+                    assertEquals(true, inCloseExceptionGetBasicRemoteThrown);
+                    assertEquals(true, inCloseExceptionRemoveMessageHandlerThrown);
+                }
+            }, cec, new URI("ws://localhost:8025/websockets/tests/close"));
+
+            CloseGetAll.messageLatch.await(2, TimeUnit.SECONDS);
+            assertEquals(0L, CloseGetAll.messageLatch.getCount());
+            assertEquals(true, CloseGetAll.exceptionAddMessageHandlerThrown);
+            assertEquals(true, CloseGetAll.exceptionGetAsyncRemoteThrown);
+            assertEquals(true, CloseGetAll.exceptionGetBasicRemoteThrown);
+            assertEquals(true, CloseGetAll.exceptionRemoveMessageHandlerThrown);
+            assertEquals(true, CloseGetAll.inCloseExceptionAddMessageHandlerThrown);
+            assertEquals(true, CloseGetAll.inCloseExceptionGetAsyncRemoteThrown);
+            assertEquals(true, CloseGetAll.inCloseExceptionGetBasicRemoteThrown);
+            assertEquals(true, CloseGetAll.inCloseExceptionRemoveMessageHandlerThrown);
+
+            try {
+                clientSession.addMessageHandler(null);
+            } catch (IllegalStateException e) {
+                exceptionAddMessageHandlerThrown = true;
+            }
+
+            try {
+                clientSession.removeMessageHandler(null);
+            } catch (IllegalStateException e) {
+                exceptionRemoveMessageHandlerThrown = true;
+            }
+
+            try {
+                clientSession.getBasicRemote();
+            } catch (IllegalStateException e) {
+                exceptionGetBasicRemoteThrown = true;
+            }
+
+            try {
+                clientSession.getAsyncRemote();
+            } catch (IllegalStateException e) {
+                exceptionGetAsyncRemoteThrown = true;
+            }
+
+            assertEquals(true, exceptionAddMessageHandlerThrown);
+            assertEquals(true, exceptionGetAsyncRemoteThrown);
+            assertEquals(true, exceptionGetBasicRemoteThrown);
+            assertEquals(true, exceptionRemoveMessageHandlerThrown);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            server.stop();
+        }
+    }
+
+    @ServerEndpoint(value = "/close")
+    public static class CloseGetAllClient {
+        public static CountDownLatch messageLatch;
+        public static boolean inCloseExceptionAddMessageHandlerThrown = false;
+        public static boolean inCloseExceptionRemoveMessageHandlerThrown = false;
+        public static boolean inCloseExceptionGetAsyncRemoteThrown = false;
+        public static boolean inCloseExceptionGetBasicRemoteThrown = false;
+
+
+        @OnMessage
+        public String message(String message, Session session) {
+            return message;
+        }
+
+        @OnClose
+        public void onClose(Session session) {
+            System.out.println("onClose");
+
+            try {
+                session.addMessageHandler(null);
+            } catch (IllegalStateException e) {
+                inCloseExceptionAddMessageHandlerThrown = true;
+                messageLatch.countDown();
+            }
+
+            try {
+                session.removeMessageHandler(null);
+            } catch (IllegalStateException e) {
+                inCloseExceptionRemoveMessageHandlerThrown = true;
+                messageLatch.countDown();
+            }
+
+            try {
+                session.getBasicRemote();
+            } catch (IllegalStateException e) {
+                inCloseExceptionGetBasicRemoteThrown = true;
+                messageLatch.countDown();
+            }
+
+            try {
+                session.getAsyncRemote();
+            } catch (IllegalStateException e) {
+                inCloseExceptionGetAsyncRemoteThrown = true;
+                messageLatch.countDown();
+            }
+
+        }
+    }
+
+    @Test
+    public void testCloseSessionEndpointClient() {
+        Server server = new Server(CloseGetAllClient.class);
+
+        CloseGetAllClient.messageLatch = new CountDownLatch(4);
+
+        boolean exceptionAddMessageHandlerThrown = false;
+        boolean exceptionRemoveMessageHandlerThrown = false;
+        boolean exceptionGetAsyncRemoteThrown = false;
+        boolean exceptionGetBasicRemoteThrown = false;
+
+        try {
+            server.start();
+            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
+
+            Session clientSession = ClientManager.createClient().connectToServer(new TestEndpointAdapter() {
+
+                @Override
+                public EndpointConfig getEndpointConfig() {
+                    return cec;
+                }
+
+                @Override
+                public void onMessage(String message) {
+
+                }
+
+                @Override
+                public void onOpen(final Session session) {
+                    session.addMessageHandler(new MessageHandler.Whole <String>(){
+
+                        @Override
+                        public void onMessage(String s) {
+                            try {
+                                session.close();
+                            } catch (IOException e) {
+                                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                            }
+                        }
+                    });
+                    try {
+                        session.getBasicRemote().sendText("message");
+                    } catch (IOException e) {
+                        // do nothing.
+                    }
+                }
+
+                @Override
+                public void onClose(javax.websocket.Session session, javax.websocket.CloseReason closeReason) {
+                    System.out.println("Client session closed");
+                    boolean inCloseExceptionAddMessageHandlerThrown = false;
+                    boolean inCloseExceptionRemoveMessageHandlerThrown = false;
+                    boolean inCloseExceptionGetAsyncRemoteThrown = false;
+                    boolean inCloseExceptionGetBasicRemoteThrown = false;
+
+                    try {
+                        session.addMessageHandler(null);
+                    } catch (IllegalStateException e) {
+                        inCloseExceptionAddMessageHandlerThrown = true;
+                    }
+
+                    try {
+                        session.removeMessageHandler(null);
+                    } catch (IllegalStateException e) {
+                        inCloseExceptionRemoveMessageHandlerThrown = true;
+                    }
+
+                    try {
+                        session.getBasicRemote();
+                    } catch (IllegalStateException e) {
+                        inCloseExceptionGetBasicRemoteThrown = true;
+                    }
+
+                    try {
+                        session.getAsyncRemote();
+                    } catch (IllegalStateException e) {
+                        inCloseExceptionGetAsyncRemoteThrown = true;
+                    }
+
+                    assertEquals(true, inCloseExceptionAddMessageHandlerThrown);
+                    assertEquals(true, inCloseExceptionGetAsyncRemoteThrown);
+                    assertEquals(true, inCloseExceptionGetBasicRemoteThrown);
+                    assertEquals(true, inCloseExceptionRemoveMessageHandlerThrown);
+                }
+            }, cec, new URI("ws://localhost:8025/websockets/tests/close"));
+
+            CloseGetAllClient.messageLatch.await(2, TimeUnit.SECONDS);
+            assertEquals(0L, CloseGetAllClient.messageLatch.getCount());
+
+            assertEquals(true, CloseGetAllClient.inCloseExceptionAddMessageHandlerThrown);
+            assertEquals(true, CloseGetAllClient.inCloseExceptionGetAsyncRemoteThrown);
+            assertEquals(true, CloseGetAllClient.inCloseExceptionGetBasicRemoteThrown);
+            assertEquals(true, CloseGetAllClient.inCloseExceptionRemoveMessageHandlerThrown);
+
+            try {
+                clientSession.addMessageHandler(null);
+            } catch (IllegalStateException e) {
+                exceptionAddMessageHandlerThrown = true;
+            }
+
+            try {
+                clientSession.removeMessageHandler(null);
+            } catch (IllegalStateException e) {
+                exceptionRemoveMessageHandlerThrown = true;
+            }
+
+            try {
+                clientSession.getBasicRemote();
+            } catch (IllegalStateException e) {
+                exceptionGetBasicRemoteThrown = true;
+            }
+
+            try {
+                clientSession.getAsyncRemote();
+            } catch (IllegalStateException e) {
+                exceptionGetAsyncRemoteThrown = true;
+            }
+
+            assertEquals(true, exceptionAddMessageHandlerThrown);
+            assertEquals(true, exceptionGetAsyncRemoteThrown);
+            assertEquals(true, exceptionGetBasicRemoteThrown);
+            assertEquals(true, exceptionRemoveMessageHandlerThrown);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            server.stop();
         }
     }
 }

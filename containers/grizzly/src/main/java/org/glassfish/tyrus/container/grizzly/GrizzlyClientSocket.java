@@ -57,6 +57,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.websocket.ClientEndpointConfig;
 import javax.websocket.CloseReason;
@@ -369,6 +371,14 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
 
     @Override
     public void onClose(ClosingFrame dataFrame) {
+            try {
+                if(session.isOpen()){
+                    session.close();
+                }
+            } catch (IOException e) {
+                Logger.getLogger(GrizzlyClientSocket.class.getName()).log(Level.FINE, "Exception while closing the session.");
+            }
+
         if (state.compareAndSet(State.CONNECTED, State.CLOSING)) {
             protocolHandler.close(dataFrame.getCode(), dataFrame.getTextPayload());
         } else {
