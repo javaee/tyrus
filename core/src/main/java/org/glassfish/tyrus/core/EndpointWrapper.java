@@ -43,6 +43,8 @@ package org.glassfish.tyrus.core;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
@@ -436,7 +438,7 @@ public class EndpointWrapper extends SPIEndpoint {
     public void onMessage(SPIRemoteEndpoint gs, ByteBuffer messageBytes) {
         SessionImpl session = remoteEndpointToSession.get(gs);
         try {
-            state = EndpointState.RUNNING;
+            session.setState(SessionImpl.State.RUNNING);
             if (session.isWholeBinaryHandlerPresent()) {
                 session.notifyMessageHandlers(messageBytes, findApplicableDecoders(session, messageBytes, false));
             } else if (session.isPartialBinaryHandlerPresent()) {
@@ -457,7 +459,7 @@ public class EndpointWrapper extends SPIEndpoint {
     public void onMessage(SPIRemoteEndpoint gs, String messageString) {
         SessionImpl session = remoteEndpointToSession.get(gs);
         try {
-            state = EndpointState.RUNNING;
+            session.setState(SessionImpl.State.RUNNING);
             if (session.isWholeTextHandlerPresent()) {
                 session.notifyMessageHandlers(messageString, findApplicableDecoders(session, messageString, true));
             } else if (session.isPartialTextHandlerPresent()) {
@@ -474,42 +476,55 @@ public class EndpointWrapper extends SPIEndpoint {
         }
     }
 
-    private enum EndpointState {
-        RUNNING,
-        RECEIVING_TEXT,
-        RECEIVING_BINARY
-    }
-
-    private EndpointState state = EndpointState.RUNNING;
-    private StringBuffer stringBuffer;
-    private List<ByteBuffer> binaryBufferList;
-
     @Override
     public void onPartialMessage(SPIRemoteEndpoint gs, String partialString, boolean last) {
         SessionImpl session = remoteEndpointToSession.get(gs);
         try {
             if (session.isPartialTextHandlerPresent()) {
                 session.notifyMessageHandlers(partialString, last);
-                state = EndpointState.RUNNING;
-            } else if (session.isWholeTextHandlerPresent()) {
-                switch (state) {
+                session.setState(SessionImpl.State.RUNNING);
+            } else if(session.isReaderHandlerPresent()){
+                ReaderBuffer buffer = session.getReaderBuffer();
+                switch (session.getState()) {
                     case RUNNING:
-                        stringBuffer = new StringBuffer();
-                        stringBuffer.append(partialString);
-                        state = EndpointState.RECEIVING_TEXT;
+                        if(buffer == null){
+                            buffer = new ReaderBuffer();
+                            session.setReaderBuffer(buffer);
+                        }
+
+                        buffer.setMessageHandler((session.getMessageHandler(Reader.class)));
+                        buffer.appendMessagePart(partialString, last);
                         break;
                     case RECEIVING_TEXT:
-                        stringBuffer.append(partialString);
+                        buffer.appendMessagePart(partialString, last);
                         if (last) {
-                            final String message = stringBuffer.toString();
-                            session.notifyMessageHandlers(message, findApplicableDecoders(session, message, true));
-                            stringBuffer = null;
-                            state = EndpointState.RUNNING;
+                            session.setState(SessionImpl.State.RUNNING);
                         }
                         break;
                     default:
-                        stringBuffer = null;
-                        state = EndpointState.RUNNING;
+                        session.setState(SessionImpl.State.RUNNING);
+                        throw new IllegalStateException(String.format("Partial text message received out of order. Session: '%s'.", session));
+                }
+            } else if (session.isWholeTextHandlerPresent()) {
+                switch (session.getState()) {
+                    case RUNNING:
+                        StringBuffer sb = new StringBuffer();
+                        session.setStringBuffer(sb);
+                        sb.append(partialString);
+                        session.setState(SessionImpl.State.RECEIVING_TEXT);
+                        break;
+                    case RECEIVING_TEXT:
+                        session.getStringBuffer().append(partialString);
+                        if (last) {
+                            final String message = session.getStringBuffer().toString();
+                            session.notifyMessageHandlers(message, findApplicableDecoders(session, message, true));
+                            session.setStringBuffer(null);
+                            session.setState(SessionImpl.State.RUNNING);
+                        }
+                        break;
+                    default:
+                        session.setStringBuffer(null);
+                        session.setState(SessionImpl.State.RUNNING);
                         throw new IllegalStateException(String.format("Text message received out of order. Session: '%s'.", session));
                 }
             }
@@ -528,20 +543,43 @@ public class EndpointWrapper extends SPIEndpoint {
         try {
             if (session.isPartialBinaryHandlerPresent()) {
                 session.notifyMessageHandlers(partialBytes, last);
-                state = EndpointState.RUNNING;
-            } else if (session.isWholeBinaryHandlerPresent()) {
-                switch (state) {
+                session.setState(SessionImpl.State.RUNNING);
+            } else if(session.isInputStreamHandlerPresent()){
+                InputStreamBuffer buffer = session.getInputStreamBuffer();
+                switch (session.getState()) {
                     case RUNNING:
-                        binaryBufferList = new ArrayList<ByteBuffer>();
-                        binaryBufferList.add(partialBytes);
-                        state = EndpointState.RECEIVING_BINARY;
+                        if(buffer == null){
+                            buffer = new InputStreamBuffer();
+                            session.setInputStreamBuffer(buffer);
+                        }
+
+                        buffer.setMessageHandler((session.getMessageHandler(InputStream.class)));
+                        buffer.appendMessagePart(partialBytes, last);
+                        break;
+                    case RECEIVING_TEXT:
+                        buffer.appendMessagePart(partialBytes, last);
+                        if (last) {
+                            session.setState(SessionImpl.State.RUNNING);
+                        }
+                        break;
+                    default:
+                        session.setState(SessionImpl.State.RUNNING);
+                        throw new IllegalStateException(String.format("Partial binary message received out of order. Session: '%s'.", session));
+                }
+            } else if (session.isWholeBinaryHandlerPresent()) {
+                switch (session.getState()) {
+                    case RUNNING:
+                        ArrayList<ByteBuffer> bufferList = new ArrayList<ByteBuffer>();
+                        session.setBinaryBufferList(bufferList);
+                        bufferList.add(partialBytes);
+                        session.setState(SessionImpl.State.RECEIVING_BINARY);
                         break;
                     case RECEIVING_BINARY:
-                        binaryBufferList.add(partialBytes);
+                        session.getBinaryBufferList().add(partialBytes);
                         if (last) {
                             ByteBuffer b = null;
 
-                            for (ByteBuffer buffered : binaryBufferList) {
+                            for (ByteBuffer buffered : session.getBinaryBufferList()) {
                                 if (b == null) {
                                     b = buffered;
                                 } else {
@@ -550,13 +588,13 @@ public class EndpointWrapper extends SPIEndpoint {
                             }
 
                             session.notifyMessageHandlers(b, findApplicableDecoders(session, b, false));
-                            binaryBufferList = null;
-                            state = EndpointState.RUNNING;
+                            session.setBinaryBufferList(null);
+                            session.setState(SessionImpl.State.RUNNING);
                         }
                         break;
                     default:
-                        binaryBufferList = null;
-                        state = EndpointState.RUNNING;
+                        session.setBinaryBufferList(null);
+                        session.setState(SessionImpl.State.RUNNING);
                         throw new IllegalStateException(String.format("Binary message received out of order. Session: '%s'.", session));
                 }
             }

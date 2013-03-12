@@ -79,6 +79,8 @@ class MessageHandlerManager {
     private boolean binaryHandlerPresent = false;
     private boolean binaryWholeHandlerPresent = false;
     private boolean pongHandlerPresent = false;
+    private boolean readerHandlerPresent = false;
+    private boolean inputStreamHandlerPresent = false;
     private final Map<Class<?>, MessageHandler> registeredHandlers = new HashMap<Class<?>, MessageHandler>();
     private final List<Class<? extends Decoder>> decoders;
 
@@ -136,6 +138,9 @@ class MessageHandlerManager {
                 if (textHandlerPresent) {
                     throwException("Text MessageHandler already registered.");
                 } else {
+                    if(Reader.class.isAssignableFrom(handlerClass)){
+                        readerHandlerPresent = true;
+                    }
                     textHandlerPresent = true;
                     textWholeHandlerPresent = true;
                 }
@@ -143,6 +148,9 @@ class MessageHandlerManager {
                 if (binaryHandlerPresent) {
                     throwException("Binary MessageHandler already registered.");
                 } else {
+                    if(InputStream.class.isAssignableFrom(handlerClass)){
+                        inputStreamHandlerPresent = true;
+                    }
                     binaryHandlerPresent = true;
                     binaryWholeHandlerPresent = true;
                 }
@@ -334,6 +342,14 @@ class MessageHandlerManager {
 
     boolean isPartialBinaryHandlerPresent() {
         return binaryHandlerPresent && !binaryWholeHandlerPresent;
+    }
+
+    public boolean isReaderHandlerPresent() {
+        return readerHandlerPresent;
+    }
+
+    public boolean isInputStreamHandlerPresent() {
+        return inputStreamHandlerPresent;
     }
 
     boolean isPongHandlerPresent() {

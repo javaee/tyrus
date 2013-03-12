@@ -40,6 +40,8 @@
 package org.glassfish.tyrus.test.e2e;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.Reader;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -59,6 +61,7 @@ import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
 import org.junit.Test;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -210,7 +213,7 @@ public class MessageHandlersTest {
                 }
             }, cec, new URI("ws://localhost:8025/websockets/tests/whole"));
 
-            messageLatch.await(1, TimeUnit.SECONDS);
+            messageLatch.await(5000, TimeUnit.SECONDS);
             assertEquals(0, messageLatch.getCount());
 
 
@@ -255,7 +258,7 @@ public class MessageHandlersTest {
                 }
             }, cec, new URI("ws://localhost:8025/websockets/tests/partial"));
 
-            messageLatch.await(1, TimeUnit.SECONDS);
+            messageLatch.await(5000, TimeUnit.SECONDS);
             assertEquals(0, messageLatch.getCount());
 
 
@@ -816,4 +819,202 @@ public class MessageHandlersTest {
             server.stop();
         }
     }
+
+    @ServerEndpoint("/reader")
+    public static class WholeReader {
+
+        public static CountDownLatch receivedMessageLatch = new CountDownLatch(1);
+
+
+        @OnMessage
+        public void onMessage(Session session, Reader reader) throws IOException {
+            receivedMessageLatch.countDown();
+
+            StringBuilder sb = new StringBuilder();
+            int i;
+
+            while ((i = reader.read()) != -1) {
+                sb.append((char) i);
+            }
+
+            reader.close();
+            session.getBasicRemote().sendText(sb.toString());
+        }
+    }
+
+    @Test
+    public void clientPartialServerWholeReader() {
+        Server server = new Server(WholeReader.class);
+
+        try {
+            server.start();
+            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
+
+            messageLatch = new CountDownLatch(2);
+            ClientManager client = ClientManager.createClient();
+            client.connectToServer(new Endpoint() {
+                boolean first = true;
+
+                @Override
+                public void onOpen(final Session session, EndpointConfig EndpointConfig) {
+                    session.addMessageHandler(new MessageHandler.Whole<String>() {
+                        @Override
+                        public void onMessage(String message) {
+                            System.out.println("Client received message: " + message);
+
+                            if (message.equals("In my experience, there's no such thing as luck.")) {
+                                messageLatch.countDown();
+                            }
+                            if (first) {
+                                try {
+                                    WholeReader.receivedMessageLatch = new CountDownLatch(1);
+                                    session.getBasicRemote().sendText("In my experience", false);
+                                    WholeReader.receivedMessageLatch.await(1, TimeUnit.SECONDS);
+                                    WholeReader.receivedMessageLatch = new CountDownLatch(1);
+                                    session.getBasicRemote().sendText(", there's no such ", false);
+                                    WholeReader.receivedMessageLatch.await(1, TimeUnit.SECONDS);
+                                    WholeReader.receivedMessageLatch = new CountDownLatch(1);
+                                    session.getBasicRemote().sendText("thing as luck.", true);
+                                } catch (IOException | InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+
+                                first = false;
+                            }
+                        }
+                    });
+
+                    try {
+                        session.getBasicRemote().sendText("In my experience", false);
+                        WholeReader.receivedMessageLatch.await(1, TimeUnit.SECONDS);
+                        WholeReader.receivedMessageLatch = new CountDownLatch(1);
+                        session.getBasicRemote().sendText(", there's no such ", false);
+                        WholeReader.receivedMessageLatch.await(1, TimeUnit.SECONDS);
+                        WholeReader.receivedMessageLatch = new CountDownLatch(1);
+                        session.getBasicRemote().sendText("thing as luck.", true);
+                    } catch (IOException | InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                public void onError(Session session, Throwable thr) {
+                    thr.printStackTrace();
+                }
+            }, cec, new URI("ws://localhost:8025/websockets/tests/reader"));
+
+            messageLatch.await(3, TimeUnit.SECONDS);
+            assertEquals(0, messageLatch.getCount());
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            server.stop();
+        }
+    }
+
+    @ServerEndpoint("/inputstream")
+    public static class WholeInputStream {
+
+        public static CountDownLatch receivedMessageLatch = new CountDownLatch(1);
+
+        @OnMessage
+        public void onMessage(Session session, InputStream is) throws IOException {
+            receivedMessageLatch.countDown();
+
+            ArrayList<Byte> bytes = new ArrayList<Byte>();
+            int i;
+
+            while ((i = is.read()) != -1) {
+                bytes.add((byte) i);
+            }
+
+            byte[] result = new byte[bytes.size()];
+            for (int j = 0; j < bytes.size(); j++) {
+                result[j] = bytes.get(j);
+            }
+
+
+            is.close();
+            session.getBasicRemote().sendBinary(ByteBuffer.wrap(result));
+        }
+    }
+
+    @Test
+    public void clientPartialServerWholeInputStream() {
+        Server server = new Server(WholeInputStream.class);
+
+        try {
+            server.start();
+            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
+
+            messageLatch = new CountDownLatch(2);
+            ClientManager client = ClientManager.createClient();
+            client.connectToServer(new Endpoint() {
+                boolean first = true;
+                byte[] buf1 = {1, 2, 3};
+                byte[] buf2 = {4, 5, 6};
+                byte[] buf3 = {7, 8, 9};
+                byte[] result = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+
+                @Override
+                public void onOpen(final Session session, EndpointConfig EndpointConfig) {
+                    session.addMessageHandler(new MessageHandler.Whole<byte[]>() {
+                        @Override
+                        public void onMessage(byte[] message) {
+                            System.out.println("Client received message: " + message.toString());
+                            assertArrayEquals(result, message);
+                            messageLatch.countDown();
+
+                            if (first) {
+                                try {
+                                    WholeInputStream.receivedMessageLatch = new CountDownLatch(1);
+                                    session.getBasicRemote().sendBinary(ByteBuffer.wrap(buf1), false);
+                                    WholeInputStream.receivedMessageLatch.await(1, TimeUnit.SECONDS);
+                                    WholeInputStream.receivedMessageLatch = new CountDownLatch(1);
+                                    session.getBasicRemote().sendBinary(ByteBuffer.wrap(buf2), false);
+                                    WholeInputStream.receivedMessageLatch.await(1, TimeUnit.SECONDS);
+                                    WholeInputStream.receivedMessageLatch = new CountDownLatch(1);
+                                    session.getBasicRemote().sendBinary(ByteBuffer.wrap(buf3), true);
+                                } catch (IOException | InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+
+                                first = false;
+                            }
+                        }
+                    });
+
+                    try {
+                        WholeInputStream.receivedMessageLatch = new CountDownLatch(1);
+                        session.getBasicRemote().sendBinary(ByteBuffer.wrap(buf1), false);
+                        WholeInputStream.receivedMessageLatch.await(1, TimeUnit.SECONDS);
+                        WholeInputStream.receivedMessageLatch = new CountDownLatch(1);
+                        session.getBasicRemote().sendBinary(ByteBuffer.wrap(buf2), false);
+                        WholeInputStream.receivedMessageLatch.await(1, TimeUnit.SECONDS);
+                        WholeInputStream.receivedMessageLatch = new CountDownLatch(1);
+                        session.getBasicRemote().sendBinary(ByteBuffer.wrap(buf3), true);
+                    } catch (IOException | InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                public void onError(Session session, Throwable thr) {
+                    thr.printStackTrace();
+                }
+            }, cec, new URI("ws://localhost:8025/websockets/tests/inputstream"));
+
+            messageLatch.await(3, TimeUnit.SECONDS);
+            assertEquals(0, messageLatch.getCount());
+
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            server.stop();
+        }
+    }
+
 }

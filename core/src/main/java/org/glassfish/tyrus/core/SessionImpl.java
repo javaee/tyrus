@@ -95,6 +95,18 @@ public class SessionImpl implements Session {
     private final Map<String, Object> userProperties = new HashMap<String, Object>();
     private final MessageHandlerManager handlerManager;
 
+    public enum State {
+        RUNNING,
+        RECEIVING_TEXT,
+        RECEIVING_BINARY
+    }
+
+    private State state = State.RUNNING;
+    private StringBuffer stringBuffer;
+    private List<ByteBuffer> binaryBufferList;
+    private ReaderBuffer readerBuffer;
+    private InputStreamBuffer inputStreamBuffer;
+
     SessionImpl(WebSocketContainer container, SPIRemoteEndpoint remoteEndpoint, EndpointWrapper endpointWrapper,
                 String subprotocol, List<Extension> extensions, boolean isSecure,
                 URI uri, String queryString, Map<String, String> pathParameters) {
@@ -314,6 +326,16 @@ public class SessionImpl implements Session {
         }
     }
 
+    <T> MessageHandler.Whole<T> getMessageHandler(Class<T> c){
+        for (MessageHandler mh : this.getOrderedMessageHandlers()) {
+            if (MessageHandlerManager.getHandlerType(mh) == c) {
+                return (MessageHandler.Whole<T>) mh;
+            }
+        }
+
+        return null;
+    }
+
     void notifyMessageHandlers(Object message, boolean last) {
         boolean handled = false;
 
@@ -366,6 +388,14 @@ public class SessionImpl implements Session {
         return handlerManager.isPartialBinaryHandlerPresent();
     }
 
+    boolean isReaderHandlerPresent() {
+        return handlerManager.isReaderHandlerPresent();
+    }
+
+    boolean isInputStreamHandlerPresent() {
+        return handlerManager.isInputStreamHandlerPresent();
+    }
+
     boolean isPongHandlerPreset() {
         return handlerManager.isPongHandlerPresent();
     }
@@ -404,6 +434,46 @@ public class SessionImpl implements Session {
             }
             return 0;
         }
+    }
+
+    State getState() {
+        return state;
+    }
+
+    StringBuffer getStringBuffer() {
+        return stringBuffer;
+    }
+
+    List<ByteBuffer> getBinaryBufferList() {
+        return binaryBufferList;
+    }
+
+    void setState(State state) {
+        this.state = state;
+    }
+
+    void setStringBuffer(StringBuffer stringBuffer) {
+        this.stringBuffer = stringBuffer;
+    }
+
+    void setBinaryBufferList(List<ByteBuffer> binaryBufferList) {
+        this.binaryBufferList = binaryBufferList;
+    }
+
+    ReaderBuffer getReaderBuffer() {
+        return readerBuffer;
+    }
+
+    InputStreamBuffer getInputStreamBuffer() {
+        return inputStreamBuffer;
+    }
+
+    void setReaderBuffer(ReaderBuffer readerBuffer) {
+        this.readerBuffer = readerBuffer;
+    }
+
+    void setInputStreamBuffer(InputStreamBuffer inputStreamBuffer) {
+        this.inputStreamBuffer = inputStreamBuffer;
     }
 
     @Override
