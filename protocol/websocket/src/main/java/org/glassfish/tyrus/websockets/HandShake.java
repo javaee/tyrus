@@ -41,11 +41,7 @@
 package org.glassfish.tyrus.websockets;
 
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.logging.Logger;
 
 /**
@@ -188,17 +184,13 @@ public abstract class HandShake {
 
     protected <T> String getHeaderFromList(List<T> list) {
         StringBuilder sb = new StringBuilder();
-
-        int i = 0;
-        do {
-            if (i != 0) {
+        Iterator<T> it = list.iterator();
+        while(it.hasNext()) {
+            sb.append(it.next());
+            if (it.hasNext()) {
                 sb.append(", ");
             }
-            sb.append(list.get(i));
-
-            i++;
-        } while (i < list.size());
-
+        }
         return sb.toString();
     }
 
@@ -345,7 +337,10 @@ public abstract class HandShake {
         setHeaders(response);
 
         if (subProtocols != null && !subProtocols.isEmpty()) {
-            response.getHeaders().put(WebSocketEngine.SEC_WS_PROTOCOL_HEADER, getHeaderFromList(application.getSupportedProtocols(subProtocols)));
+            List<String> appProtocols = application.getSupportedProtocols(subProtocols);
+            if (!appProtocols.isEmpty()) {
+                response.getHeaders().put(WebSocketEngine.SEC_WS_PROTOCOL_HEADER, getHeaderFromList(appProtocols));
+            }
         }
         if (!application.getSupportedExtensions().isEmpty() && !getExtensions().isEmpty()) {
             List<Extension> intersection =
