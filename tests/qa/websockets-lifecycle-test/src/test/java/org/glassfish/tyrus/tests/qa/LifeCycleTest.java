@@ -59,6 +59,7 @@ import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.tests.qa.config.AppConfig;
 import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleDeployment;
 import org.glassfish.tyrus.tests.qa.lifecycle.config.CustomConfigurationProtocolsProgrammatic;
+import org.glassfish.tyrus.tests.qa.lifecycle.config.MyExtension;
 import org.glassfish.tyrus.tests.qa.lifecycle.config.ProgrammaticPartialMessageByteBufferSessionConfig;
 import org.glassfish.tyrus.tests.qa.lifecycle.config.ProgrammaticPartialMessageByteSessionConfig;
 import org.glassfish.tyrus.tests.qa.lifecycle.config.ProgrammaticPartialMessageStringSessionConfig;
@@ -109,7 +110,7 @@ import org.junit.Test;
  * @author Michal Conos (michal.conos at oracle.com)
  */
 public class LifeCycleTest {
-
+    
     private static final Logger logger = Logger.getLogger(LifeCycleTest.class.getCanonicalName());
     AppConfig testConf = new AppConfig(
             LifeCycleDeployment.CONTEXT_PATH,
@@ -120,25 +121,25 @@ public class LifeCycleTest {
     TyrusToolkit tyrus = new TyrusToolkit(testConf);
     CommChannel channel;
     CommChannel.Server server;
-
+    
     @Before
     public void setupServer() throws Exception {
         channel = new CommChannel(testConf);
         server = channel.new Server();
         server.start();
         SessionController.resetState();
-
+        
     }
-
+    
     @After
     public void stopServer() throws Exception {
         server.destroy();
     }
-
+    
     private Session deployClient(Class client, URI connectURI) throws DeploymentException, IOException {
         return deployClient(client, connectURI, ClientEndpointConfig.Builder.create().build());
     }
-
+    
     private Session deployClient(Class client, URI connectURI, ClientEndpointConfig cec) throws DeploymentException, IOException {
         WebSocketContainer wsc = ContainerProvider.getWebSocketContainer();
         logger.log(Level.INFO, "deployClient: registering client: {0}", client);
@@ -152,22 +153,22 @@ public class LifeCycleTest {
         logger.log(Level.INFO, "deployClient: Negotiated subprotocol: {0}", clientSession.getNegotiatedSubprotocol());
         return clientSession;
     }
-
+    
     private Server deployServer(Class config) throws DeploymentException {
         logger.log(Level.INFO, "registering server: {0}", config);
         tyrus.registerEndpoint(config);
         final Server tyrusServer = tyrus.startServer();
         return tyrusServer;
     }
-
+    
     private void lifeCycle(Class serverHandler, Class clientHandler) throws DeploymentException, IOException {
         lifeCycle(serverHandler, clientHandler, SessionController.SessionState.FINISHED_SERVER.getMessage(), testConf.getURI(), null);
     }
-
+    
     private void lifeCycle(Class serverHandler, Class clientHandler, ClientEndpointConfig cec) throws DeploymentException, IOException {
         lifeCycle(serverHandler, clientHandler, SessionController.SessionState.FINISHED_SERVER.getMessage(), testConf.getURI(), cec);
     }
-
+    
     private void lifeCycle(Class serverHandler, Class clientHandler, String state, URI clientUri, ClientEndpointConfig cec) throws DeploymentException, IOException {
         final CountDownLatch stopConversation = new CountDownLatch(1);
         final Server tyrusServer = deployServer(serverHandler);
@@ -187,7 +188,7 @@ public class LifeCycleTest {
          fail();
          }
          */
-
+        
         tyrus.stopServer(tyrusServer);
         if (state != null) {
             logger.log(Level.INFO, "Asserting: {0} {1}", new Object[]{state, SessionController.getState()});
@@ -219,154 +220,154 @@ public class LifeCycleTest {
         Issue.disableAll();
         lifeCycle(ProgrammaticWholeMessageStringSessionConfig.class, ProgrammaticWholeMessageStringSession.class);
     }
-
+    
     @Test
     public void testLifeCycleProgrammaticObjects() throws DeploymentException, IOException {
         Issue.disableAll();
         lifeCycle(ProgrammaticWholeMessageObjectInputStreamSessionConfig.class, ProgrammaticWholeMessageObjectInputStreamSession.class);
     }
-
+    
     @Test
     public void testLifeCycleProgrammaticByteArray() throws DeploymentException, IOException {
         Issue.disableAll();
         lifeCycle(ProgrammaticWholeMessageByteSessionConfig.class, ProgrammaticWholeMessageByteSession.class);
     }
-
+    
     @Test
     public void testLifeCycleProgrammaticByteBuffer() throws DeploymentException, IOException {
         Issue.disableAll();
         lifeCycle(ProgrammaticWholeMessageByteBufferSessionConfig.class, ProgrammaticWholeMessageByteBufferSession.class);
     }
-
+    
     @Test
     public void testLifeCycleProgrammaticBufferedReader() throws DeploymentException, IOException {
         Issue.disableAll();
         lifeCycle(ProgrammaticWholeMessageBufferedReaderSessionConfig.class, ProgrammaticWholeMessageBufferedReaderSession.class);
     }
-
+    
     @Test
     public void testLifeCycleProgrammaticStingPartialMessage() throws DeploymentException, IOException {
         Issue.disableAll();
         lifeCycle(ProgrammaticPartialMessageStringSessionConfig.class, ProgrammaticPartialMessageStringSession.class);
     }
-
+    
     @Test
     public void testLifeCycleProgrammaticByteArrayPartialMessage() throws DeploymentException, IOException {
         Issue.disableAll();
         lifeCycle(ProgrammaticPartialMessageByteSessionConfig.class, ProgrammaticPartialMessageByteSession.class);
     }
-
+    
     @Test
     public void testLifeCycleProgrammaticByteBufferPartialMessage() throws DeploymentException, IOException {
         Issue.disableAll();
         lifeCycle(ProgrammaticPartialMessageByteBufferSessionConfig.class, ProgrammaticPartialMessageByteBufferSession.class);
     }
-
+    
     @Test
     public void tyrus93_Programmatic() throws DeploymentException, IOException {
         Issue.TYRUS_93.disableAllButThisOne();
         lifeCycle(ProgrammaticWholeMessageStringSessionConfig.class, ProgrammaticWholeMessageStringSession.class);
     }
-
+    
     @Test
     public void tyrus94_Programmatic() throws DeploymentException, IOException {
         Issue.TYRUS_94.disableAllButThisOne();
         lifeCycle(ProgrammaticWholeMessageStringSessionConfig.class, ProgrammaticWholeMessageStringSession.class);
     }
-
+    
     @Test
     public void tyrus101_Programmatic() throws DeploymentException, IOException {
         Issue.TYRUS_101.disableAllButThisOne();
         lifeCycle(ProgrammaticWholeMessageStringSessionConfig.class, ProgrammaticWholeMessageStringSession.class);
     }
-
+    
     @Test
     public void tyrus104_Programmatic() throws DeploymentException, IOException {
         Issue.TYRUS_104.disableAllButThisOne();
         lifeCycle(ProgrammaticWholeMessageStringSessionConfig.class, ProgrammaticWholeMessageStringSession.class);
     }
-
+    
     @Test
     public void testLifeCycleAnnotated() throws DeploymentException, InterruptedException, IOException {
         Issue.disableAll();
         lifeCycle(AnnotatedWholeMessageStringSession.Server.class, AnnotatedWholeMessageStringSession.Client.class);
     }
-
+    
     @Test
     public void testLifeCycleAnnotatedObjectInputStream() throws DeploymentException, InterruptedException, IOException {
         Issue.disableAll();
         lifeCycle(AnnotatedWholeMessageObjectInputStreamSession.Server.class, AnnotatedWholeMessageObjectInputStreamSession.Client.class);
     }
-
+    
     @Test
     public void testLifeCycleAnnotatedByteArray() throws DeploymentException, InterruptedException, IOException {
         Issue.disableAll();
         lifeCycle(AnnotatedWholeMessageByteSession.Server.class, AnnotatedWholeMessageByteSession.Client.class);
     }
-
+    
     @Test
     public void testLifeCycleAnnotatedByteBuffer() throws DeploymentException, InterruptedException, IOException {
         Issue.disableAll();
         lifeCycle(AnnotatedWholeMessageByteBufferSession.Server.class, AnnotatedWholeMessageByteBufferSession.Client.class);
     }
-
+    
     @Test
     public void testLifeCycleAnnotatedBufferedReader() throws DeploymentException, InterruptedException, IOException {
         Issue.disableAll();
         lifeCycle(AnnotatedWholeMessageBufferedReaderSession.Server.class, AnnotatedWholeMessageBufferedReaderSession.Client.class);
     }
-
+    
     @Test
     public void testLifeCycleAnnotatedStringPartialMessage() throws DeploymentException, InterruptedException, IOException {
         Issue.disableAll();
         lifeCycle(AnnotatedPartialMessageStringSession.Server.class, AnnotatedPartialMessageStringSession.Client.class);
     }
-
+    
     @Test
     public void testLifeCycleAnnotatedByteArrayPartialMessage() throws DeploymentException, InterruptedException, IOException {
         Issue.disableAll();
         lifeCycle(AnnotatedPartialMessageByteSession.Server.class, AnnotatedPartialMessageByteSession.Client.class);
     }
-
+    
     @Test
     public void testLifeCycleAnnotatedByteBufferPartialMessage() throws DeploymentException, InterruptedException, IOException {
         Issue.disableAll();
         lifeCycle(AnnotatedPartialMessageByteBufferSession.Server.class, AnnotatedPartialMessageByteBufferSession.Client.class);
     }
-
+    
     @Test
     public void tyrus93_Annotated() throws DeploymentException, InterruptedException, IOException {
         Issue.TYRUS_93.disableAllButThisOne();
         lifeCycle(AnnotatedWholeMessageStringSession.Server.class, AnnotatedWholeMessageStringSession.Client.class);
     }
-
+    
     @Test
     public void tyrus94_Annotated() throws DeploymentException, InterruptedException, IOException {
         Issue.TYRUS_94.disableAllButThisOne();
         lifeCycle(AnnotatedWholeMessageStringSession.Server.class, AnnotatedWholeMessageStringSession.Client.class);
-
+        
     }
-
+    
     @Test
     public void tyrus101_Annotated() throws DeploymentException, InterruptedException, IOException {
         Issue.TYRUS_101.disableAllButThisOne();
         lifeCycle(AnnotatedWholeMessageStringSession.Server.class, AnnotatedWholeMessageStringSession.Client.class);
     }
-
+    
     @Test
     public void tyrus104_Annotated() throws DeploymentException, InterruptedException, IOException {
         Issue.TYRUS_104.disableAllButThisOne();
         lifeCycle(AnnotatedWholeMessageStringSession.Server.class, AnnotatedWholeMessageStringSession.Client.class);
     }
-
+    
     @Test
     //TODO
     public void addMessageHandlerPossibleOnlyOnce() throws DeploymentException, IOException {
         Issue.disableAll();
-
-
+        
+        
     }
-
+    
     @Test
     public void testURIMatchAnnotated() throws DeploymentException, URISyntaxException, IOException {
         boolean exThrown = false;
@@ -376,10 +377,10 @@ public class LifeCycleTest {
         } catch (Exception ex) {
             exThrown = true;
         }
-
+        
         Assert.assertEquals("URI don't match and Hnadshake  exception is not thrown", true, exThrown);
     }
-
+    
     @Test
     public void testURIMatchProgrammatic() throws DeploymentException, URISyntaxException, IOException {
         boolean exThrown = false;
@@ -389,10 +390,10 @@ public class LifeCycleTest {
         } catch (Exception ex) {
             exThrown = true;
         }
-
+        
         Assert.assertEquals("URI don't match and Hnadshake  exception is not thrown", true, exThrown);
     }
-
+    
     private void isMultipleAnnotationEx(Exception ex, String what) {
         if (ex == null || ex.getMessage() == null) {
             Assert.fail("isMultipleAnnotationEx: ex==null or ex.getMessage()==null");
@@ -401,7 +402,7 @@ public class LifeCycleTest {
             Assert.fail(ex.getMessage());
         }
     }
-
+    
     private void multipleDeployment(Class server, Class client, String whichOne) {
         Exception exThrown = null;
         try {
@@ -412,67 +413,67 @@ public class LifeCycleTest {
         }
         isMultipleAnnotationEx(exThrown, whichOne);
     }
-
+    
     @Test
     public void testMaxMessageSizeOnClient() throws DeploymentException, IOException {
         Issue.disableAll();
         lifeCycle(MaxMessageSizeOnClient.Server.class, MaxMessageSizeOnClient.Client.class, SessionController.SessionState.OPEN_SERVER.getMessage(), testConf.getURI(), null);
     }
-
+    
     @Test
     public void testMaxMessageSizeOnServer() throws DeploymentException, IOException {
         Issue.disableAll();
         lifeCycle(MaxMessageSizeOnServer.Server.class, MaxMessageSizeOnServer.Client.class, SessionController.SessionState.OPEN_CLIENT.getMessage(), testConf.getURI(), null);
     }
-
+    
     @Test
     public void testClientOnErrorDuplication() throws DeploymentException, IOException {
         Issue.disableAll();
         multipleDeployment(ClientOnErrorDuplication.Server.class, ClientOnErrorDuplication.Client.class, "Multiple methods using @OnError annotation");
     }
-
+    
     @Test
     public void testServerOnErrorDuplication() throws DeploymentException, IOException {
         Issue.disableAll();
         multipleDeployment(ServerOnErrorDuplication.Server.class, ServerOnErrorDuplication.Client.class, "Multiple methods using @OnError annotation");
     }
-
+    
     @Test
     public void testClientOnMessageDuplication() throws DeploymentException, IOException {
         Issue.disableAll();
         multipleDeployment(ClientOnMessageDuplication.Server.class, ClientOnMessageDuplication.Client.class, "Binary MessageHandler already registered");
     }
-
+    
     @Test
     public void testServerOnMessageDuplication() throws DeploymentException, IOException {
         Issue.disableAll();
         multipleDeployment(ServerOnMessageDuplication.Server.class, ServerOnMessageDuplication.Client.class, "Binary MessageHandler already registered");
     }
-
+    
     @Test
     public void testClientOnOpenDuplication() throws DeploymentException, IOException {
         Issue.disableAll();
         multipleDeployment(ClientOnOpenDuplication.Server.class, ClientOnOpenDuplication.Client.class, "Multiple methods using @OnOpen annotation");
     }
-
+    
     @Test
     public void testServerOnOpenDuplication() throws DeploymentException, IOException {
         Issue.disableAll();
         multipleDeployment(ServerOnOpenDuplication.Server.class, ServerOnOpenDuplication.Client.class, "Multiple methods using @OnOpen annotation");
     }
-
+    
     @Test
     public void testClientOnCloseDuplication() throws DeploymentException, IOException {
         Issue.disableAll();
         multipleDeployment(ClientOnCloseDuplication.Server.class, ClientOnCloseDuplication.Client.class, "Multiple methods using @OnClose annotation");
     }
-
+    
     @Test
     public void testServerOnCloseDuplication() throws DeploymentException, IOException {
         Issue.disableAll();
         multipleDeployment(ServerOnCloseDuplication.Server.class, ServerOnCloseDuplication.Client.class, "Multiple methods using @OnClose annotation");
     }
-
+    
     @Test
     public void testLifeCycleAnnotatedSubProtocols() throws DeploymentException, InterruptedException, IOException {
         Issue.disableAll();
@@ -490,7 +491,7 @@ public class LifeCycleTest {
         lifeCycle(
                 SubprotocolsViaCustomConfigurator.Server.class,
                 SubprotocolsViaCustomConfigurator.Client.class);
-     
+        
     }
     
     @Test
@@ -512,5 +513,14 @@ public class LifeCycleTest {
                 .build());
     }
     
-    
+    @Test
+    public void testLifeCycleProgrammaticExtensions() throws DeploymentException, InterruptedException, IOException {
+        Issue.disableAll();
+        
+        lifeCycle(
+                CustomConfigurationProtocolsProgrammatic.class,
+                ProgrammaticWholeMessageStringSession.class,
+                ClientEndpointConfig.Builder.create().extensions(MyExtension.initExtensions())
+                .build());
+    }
 }

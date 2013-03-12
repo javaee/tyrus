@@ -44,35 +44,68 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.websocket.Extension;
-import javax.websocket.Extension.Parameter;
-import javax.websocket.server.ServerEndpointConfig;
-import org.glassfish.tyrus.tests.qa.lifecycle.SessionLifeCycle;
 
 /**
  *
  * @author michal.conos at oracle.com
  */
-public class CustomConfiguratorProtocols extends ServerEndpointConfig.Configurator {
+public class MyExtension implements Extension {
 
-    protected static final Logger logger = Logger.getLogger(SessionLifeCycle.class.getCanonicalName());
+        static List<Extension> extensions = new CopyOnWriteArrayList<>();
+        String name;
+        Map<String, String> map;
 
-     
-    @Override
-    public String getNegotiatedSubprotocol(List<String> supported, List<String> requested) {
-        return "mikc10";
+        public MyExtension(String name, Map map) {
+            this.name = name;
+            this.map = map;
+        }
+
+        public MyExtension(String name, String param, String value) {
+            Map params = new HashMap();
+            params.put(param, value);
+            this.map = params;
+        }
+
+        @Override
+        public String getName() {
+            return name;
+        }
+
+        @Override
+        public List<Extension.Parameter> getParameters() {
+            List<Extension.Parameter> params = new ArrayList<>();
+
+            for (final String name : map.keySet()) {
+                final String val = map.get(name);
+
+                params.add(new Extension.Parameter() {
+                    @Override
+                    public String getName() {
+                        return name;
+                    }
+
+                    @Override
+                    public String getValue() {
+                        return val;
+                    }
+                });
+            }
+
+            return params;
+        }
+
+        public static List<Extension> initExtensions() {
+            for (int i = 0; i < 100; i++) {
+                extensions.add(
+                        new MyExtension(
+                        "mikcext" + i,
+                        "mikcparam" + i,
+                        "mikcval" + i));
+            }
+            return extensions;
+        }
     }
 
-    @Override
-    public List<Extension> getNegotiatedExtensions(List<Extension> installed, List<Extension> requested) {
-        return MyExtension.initExtensions();
-    }
 
-    @Override
-    public boolean checkOrigin(String originHeaderValue) {
-        logger.log(Level.INFO, "Orogon:{0}", originHeaderValue);
-        return true;
-    }
-}
+
