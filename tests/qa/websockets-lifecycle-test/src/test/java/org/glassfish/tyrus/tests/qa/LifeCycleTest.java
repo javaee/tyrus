@@ -42,6 +42,9 @@ package org.glassfish.tyrus.tests.qa;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -55,6 +58,7 @@ import junit.framework.Assert;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.tests.qa.config.AppConfig;
 import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleDeployment;
+import org.glassfish.tyrus.tests.qa.lifecycle.config.CustomConfigurationProtocolsProgrammatic;
 import org.glassfish.tyrus.tests.qa.lifecycle.config.ProgrammaticPartialMessageByteBufferSessionConfig;
 import org.glassfish.tyrus.tests.qa.lifecycle.config.ProgrammaticPartialMessageByteSessionConfig;
 import org.glassfish.tyrus.tests.qa.lifecycle.config.ProgrammaticPartialMessageStringSessionConfig;
@@ -63,6 +67,8 @@ import org.glassfish.tyrus.tests.qa.lifecycle.config.ProgrammaticWholeMessageByt
 import org.glassfish.tyrus.tests.qa.lifecycle.config.ProgrammaticWholeMessageByteSessionConfig;
 import org.glassfish.tyrus.tests.qa.lifecycle.config.ProgrammaticWholeMessageObjectInputStreamSessionConfig;
 import org.glassfish.tyrus.tests.qa.lifecycle.config.ProgrammaticWholeMessageStringSessionConfig;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.annotations.AnnotatedSubprotocols;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.annotations.ExtensionsViaCustomConfigurator;
 import org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary.AnnotatedPartialMessageByteBufferSession;
 import org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary.AnnotatedPartialMessageByteSession;
 import org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary.AnnotatedWholeMessageByteBufferSession;
@@ -76,6 +82,17 @@ import org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary.ProgrammaticWholeM
 import org.glassfish.tyrus.tests.qa.lifecycle.handlers.text.AnnotatedPartialMessageStringSession;
 import org.glassfish.tyrus.tests.qa.lifecycle.handlers.text.AnnotatedWholeMessageBufferedReaderSession;
 import org.glassfish.tyrus.tests.qa.lifecycle.handlers.text.AnnotatedWholeMessageStringSession;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.annotations.MaxMessageSizeOnClient;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.annotations.MaxMessageSizeOnServer;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.annotations.SubprotocolsViaCustomConfigurator;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.deployment.ClientOnCloseDuplication;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.deployment.ClientOnErrorDuplication;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.deployment.ClientOnMessageDuplication;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.deployment.ClientOnOpenDuplication;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.deployment.ServerOnCloseDuplication;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.deployment.ServerOnErrorDuplication;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.deployment.ServerOnMessageDuplication;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.deployment.ServerOnOpenDuplication;
 import org.glassfish.tyrus.tests.qa.lifecycle.handlers.text.ProgrammaticPartialMessageStringSession;
 import org.glassfish.tyrus.tests.qa.lifecycle.handlers.text.ProgrammaticWholeMessageBufferedReaderSession;
 import org.glassfish.tyrus.tests.qa.lifecycle.handlers.text.ProgrammaticWholeMessageStringSession;
@@ -119,14 +136,20 @@ public class LifeCycleTest {
     }
 
     private Session deployClient(Class client, URI connectURI) throws DeploymentException, IOException {
+        return deployClient(client, connectURI, ClientEndpointConfig.Builder.create().build());
+    }
+
+    private Session deployClient(Class client, URI connectURI, ClientEndpointConfig cec) throws DeploymentException, IOException {
         WebSocketContainer wsc = ContainerProvider.getWebSocketContainer();
-        logger.log(Level.INFO, "registering client: {0}", client);
-        logger.log(Level.INFO, "connectTo: {0}", connectURI);
+        logger.log(Level.INFO, "deployClient: registering client: {0}", client);
+        logger.log(Level.INFO, "deployClient: connectTo: {0}", connectURI);
+        logger.log(Level.INFO, "deployClient: subProtocols: {0}", cec.getPreferredSubprotocols());
         Session clientSession = wsc.connectToServer(
                 client,
-                ClientEndpointConfig.Builder.create().build(),
+                cec,
                 connectURI);
-        logger.log(Level.INFO, "client session: {0}", clientSession);
+        logger.log(Level.INFO, "deployClient: client session: {0}", clientSession);
+        logger.log(Level.INFO, "deployClient: Negotiated subprotocol: {0}", clientSession.getNegotiatedSubprotocol());
         return clientSession;
     }
 
@@ -138,13 +161,20 @@ public class LifeCycleTest {
     }
 
     private void lifeCycle(Class serverHandler, Class clientHandler) throws DeploymentException, IOException {
-        lifeCycle(serverHandler, clientHandler, testConf.getURI(), true);
+        lifeCycle(serverHandler, clientHandler, SessionController.SessionState.FINISHED_SERVER.getMessage(), testConf.getURI(), null);
     }
 
-    private void lifeCycle(Class serverHandler, Class clientHandler, URI clientUri, boolean testMe) throws DeploymentException, IOException {
+    private void lifeCycle(Class serverHandler, Class clientHandler, ClientEndpointConfig cec) throws DeploymentException, IOException {
+        lifeCycle(serverHandler, clientHandler, SessionController.SessionState.FINISHED_SERVER.getMessage(), testConf.getURI(), cec);
+    }
+
+    private void lifeCycle(Class serverHandler, Class clientHandler, String state, URI clientUri, ClientEndpointConfig cec) throws DeploymentException, IOException {
         final CountDownLatch stopConversation = new CountDownLatch(1);
         final Server tyrusServer = deployServer(serverHandler);
-        Session clientSession = deployClient(clientHandler, clientUri);
+        if (cec == null) {
+            cec = ClientEndpointConfig.Builder.create().build();
+        }
+        Session clientSession = deployClient(clientHandler, clientUri, cec);
         // FIXME TC: clientSession.equals(lcSession)
         // FIXME TC: clientSession.addMessageHandler .. .throw excetpion
         try {
@@ -159,9 +189,9 @@ public class LifeCycleTest {
          */
 
         tyrus.stopServer(tyrusServer);
-        if(testMe) {
-        logger.log(Level.INFO, "Asserting: {0} {1}", new Object[]{SessionController.SessionState.FINISHED_SERVER.getMessage(), SessionController.getState()});
-        Assert.assertEquals("session lifecycle finished", SessionController.SessionState.FINISHED_SERVER.getMessage(), SessionController.getState());
+        if (state != null) {
+            logger.log(Level.INFO, "Asserting: {0} {1}", new Object[]{state, SessionController.getState()});
+            Assert.assertEquals("session lifecycle finished", state, SessionController.getState());
         }
     }
 
@@ -339,27 +369,148 @@ public class LifeCycleTest {
 
     @Test
     public void testURIMatchAnnotated() throws DeploymentException, URISyntaxException, IOException {
-        boolean handshakeExThrown = false;
+        boolean exThrown = false;
         try {
             Issue.disableAll();
-            lifeCycle(AnnotatedWholeMessageStringSession.Server.class, AnnotatedWholeMessageStringSession.Client.class, new URI("ws://localhost/aaaaa"), false);
-        } catch (org.glassfish.tyrus.websockets.HandshakeException hex) {
-            handshakeExThrown = true;
+            lifeCycle(AnnotatedWholeMessageStringSession.Server.class, AnnotatedWholeMessageStringSession.Client.class, null, new URI("ws://localhost/aaaaa"), null);
+        } catch (Exception ex) {
+            exThrown = true;
         }
 
-        Assert.assertEquals("URI don't match and Hnadshake  exception is not thrown", true, handshakeExThrown);
+        Assert.assertEquals("URI don't match and Hnadshake  exception is not thrown", true, exThrown);
+    }
+
+    @Test
+    public void testURIMatchProgrammatic() throws DeploymentException, URISyntaxException, IOException {
+        boolean exThrown = false;
+        try {
+            Issue.disableAll();
+            lifeCycle(ProgrammaticWholeMessageStringSessionConfig.class, ProgrammaticWholeMessageStringSession.class, null, new URI("ws://localhost/aaaaa"), null);
+        } catch (Exception ex) {
+            exThrown = true;
+        }
+
+        Assert.assertEquals("URI don't match and Hnadshake  exception is not thrown", true, exThrown);
+    }
+
+    private void isMultipleAnnotationEx(Exception ex, String what) {
+        if (ex == null || ex.getMessage() == null) {
+            Assert.fail("isMultipleAnnotationEx: ex==null or ex.getMessage()==null");
+        }
+        if (!ex.getMessage().startsWith(what)) {
+            Assert.fail(ex.getMessage());
+        }
+    }
+
+    private void multipleDeployment(Class server, Class client, String whichOne) {
+        Exception exThrown = null;
+        try {
+            lifeCycle(server, client, null, testConf.getURI(), null);
+        } catch (Exception e) {
+            exThrown = e;
+            e.printStackTrace();
+        }
+        isMultipleAnnotationEx(exThrown, whichOne);
+    }
+
+    @Test
+    public void testMaxMessageSizeOnClient() throws DeploymentException, IOException {
+        Issue.disableAll();
+        lifeCycle(MaxMessageSizeOnClient.Server.class, MaxMessageSizeOnClient.Client.class, SessionController.SessionState.OPEN_SERVER.getMessage(), testConf.getURI(), null);
+    }
+
+    @Test
+    public void testMaxMessageSizeOnServer() throws DeploymentException, IOException {
+        Issue.disableAll();
+        lifeCycle(MaxMessageSizeOnServer.Server.class, MaxMessageSizeOnServer.Client.class, SessionController.SessionState.OPEN_CLIENT.getMessage(), testConf.getURI(), null);
+    }
+
+    @Test
+    public void testClientOnErrorDuplication() throws DeploymentException, IOException {
+        Issue.disableAll();
+        multipleDeployment(ClientOnErrorDuplication.Server.class, ClientOnErrorDuplication.Client.class, "Multiple methods using @OnError annotation");
+    }
+
+    @Test
+    public void testServerOnErrorDuplication() throws DeploymentException, IOException {
+        Issue.disableAll();
+        multipleDeployment(ServerOnErrorDuplication.Server.class, ServerOnErrorDuplication.Client.class, "Multiple methods using @OnError annotation");
+    }
+
+    @Test
+    public void testClientOnMessageDuplication() throws DeploymentException, IOException {
+        Issue.disableAll();
+        multipleDeployment(ClientOnMessageDuplication.Server.class, ClientOnMessageDuplication.Client.class, "Binary MessageHandler already registered");
+    }
+
+    @Test
+    public void testServerOnMessageDuplication() throws DeploymentException, IOException {
+        Issue.disableAll();
+        multipleDeployment(ServerOnMessageDuplication.Server.class, ServerOnMessageDuplication.Client.class, "Binary MessageHandler already registered");
+    }
+
+    @Test
+    public void testClientOnOpenDuplication() throws DeploymentException, IOException {
+        Issue.disableAll();
+        multipleDeployment(ClientOnOpenDuplication.Server.class, ClientOnOpenDuplication.Client.class, "Multiple methods using @OnOpen annotation");
+    }
+
+    @Test
+    public void testServerOnOpenDuplication() throws DeploymentException, IOException {
+        Issue.disableAll();
+        multipleDeployment(ServerOnOpenDuplication.Server.class, ServerOnOpenDuplication.Client.class, "Multiple methods using @OnOpen annotation");
+    }
+
+    @Test
+    public void testClientOnCloseDuplication() throws DeploymentException, IOException {
+        Issue.disableAll();
+        multipleDeployment(ClientOnCloseDuplication.Server.class, ClientOnCloseDuplication.Client.class, "Multiple methods using @OnClose annotation");
+    }
+
+    @Test
+    public void testServerOnCloseDuplication() throws DeploymentException, IOException {
+        Issue.disableAll();
+        multipleDeployment(ServerOnCloseDuplication.Server.class, ServerOnCloseDuplication.Client.class, "Multiple methods using @OnClose annotation");
+    }
+
+    @Test
+    public void testLifeCycleAnnotatedSubProtocols() throws DeploymentException, InterruptedException, IOException {
+        Issue.disableAll();
+        List<String> subProtocols = Arrays.asList(LifeCycleDeployment.clientProtoOrder);
+        lifeCycle(
+                AnnotatedSubprotocols.Server.class,
+                AnnotatedSubprotocols.Client.class,
+                ClientEndpointConfig.Builder.create().preferredSubprotocols(subProtocols)
+                .build());
     }
     
     @Test
-    public void testURIMatchProgrammatic() throws DeploymentException, URISyntaxException, IOException {
-        boolean handshakeExThrown = false;
-        try {
-            Issue.disableAll();
-            lifeCycle(ProgrammaticWholeMessageStringSessionConfig.class, ProgrammaticWholeMessageStringSession.class, new URI("ws://localhost/aaaaa"), false);
-        } catch (org.glassfish.tyrus.websockets.HandshakeException hex) {
-            handshakeExThrown = true;
-        }
-
-        Assert.assertEquals("URI don't match and Hnadshake  exception is not thrown", true, handshakeExThrown);
+    public void testLifeCycleSubProtocolsViaCustomConfigurator() throws DeploymentException, InterruptedException, IOException {
+        Issue.disableAll();
+        lifeCycle(
+                SubprotocolsViaCustomConfigurator.Server.class,
+                SubprotocolsViaCustomConfigurator.Client.class);
+     
     }
+    
+    @Test
+    public void testLifeCycleExtensionsViaCustomConfigurator() throws DeploymentException, InterruptedException, IOException {
+        Issue.disableAll();
+        lifeCycle(
+                ExtensionsViaCustomConfigurator.Server.class,
+                ExtensionsViaCustomConfigurator.Client.class);
+    }
+    
+    @Test
+    public void testLifeCycleProgrammaticSubProtocols() throws DeploymentException, InterruptedException, IOException {
+        Issue.disableAll();
+        List<String> subProtocols = Arrays.asList(LifeCycleDeployment.clientProtoOrder);
+        lifeCycle(
+                CustomConfigurationProtocolsProgrammatic.class,
+                ProgrammaticWholeMessageStringSession.class,
+                ClientEndpointConfig.Builder.create().preferredSubprotocols(subProtocols)
+                .build());
+    }
+    
+    
 }

@@ -37,74 +37,40 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary;
+package org.glassfish.tyrus.tests.qa.lifecycle.config;
 
-import java.io.IOException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
-import javax.websocket.ClientEndpoint;
-import javax.websocket.CloseReason;
+import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfig;
-import javax.websocket.OnClose;
-import javax.websocket.OnError;
-import javax.websocket.OnMessage;
-import javax.websocket.OnOpen;
+import javax.websocket.MessageHandler;
 import javax.websocket.Session;
-import javax.websocket.server.ServerEndpoint;
-import org.glassfish.tyrus.tests.qa.lifecycle.AnnotatedEndpoint;
+import javax.websocket.server.ServerApplicationConfig;
+import javax.websocket.server.ServerEndpointConfig;
 import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleDeployment;
-import org.glassfish.tyrus.tests.qa.lifecycle.handlers.ByteSessionImpl;
+import org.glassfish.tyrus.tests.qa.lifecycle.ProgrammaticWholeMessageEndpoint;
 import org.glassfish.tyrus.tests.qa.lifecycle.handlers.StringSessionImpl;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.text.ProgrammaticWholeMessageStringSession;
 import org.glassfish.tyrus.tests.qa.tools.SessionController;
 
 /**
  *
  * @author michal.conos at oracle.com
  */
-public class AnnotatedWholeMessageByteSession {
+public class CustomConfigurationProtocolsProgrammatic implements ServerApplicationConfig {
 
-    @ServerEndpoint(value = LifeCycleDeployment.LIFECYCLE_ENDPOINT_PATH)
-    static public class Server extends AnnotatedEndpoint {
-
-        @Override
-        public void createLifeCycle() {
-            lifeCycle = new ByteSessionImpl(1024, true, false);
-        }
-
-        @OnOpen
-        @Override
-        public void onOpen(Session session, EndpointConfig ec) {
-            super.onOpen(session, ec);
-            lifeCycle.onServerOpen(session, ec);
-            logger.log(Level.INFO, "lifeCycle={0}", lifeCycle.toString());
-        }
-
-        
-        @OnMessage
-        public void onMessage(byte[] message, Session session) throws IOException {
-            logger.log(Level.INFO, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa");
-            lifeCycle.onServerMessage(message, session);
-        }
-
-        @OnClose
-        public void onClose(Session s, CloseReason reason) {
-            lifeCycle.onServerClose(s, reason);
-        }
-
-        @OnError
-        public void onError(Session s, Throwable thr) {
-            lifeCycle.onServerError(s, thr);
-        }
-    }
-
-    @ClientEndpoint
-    static public class Client extends AnnotatedEndpoint {
+    static class StringLifeCycle extends ProgrammaticWholeMessageEndpoint<String> implements MessageHandler.Whole<String> {
 
         @Override
         public void createLifeCycle() {
-            lifeCycle = new ByteSessionImpl(1024, true, false);
+            lifeCycle = new StringSessionImpl(false);
         }
 
-        @OnOpen
+        @Override
         public void onOpen(Session session, EndpointConfig ec) {
             if (this.session == null) {
                 this.session = session;
@@ -112,23 +78,28 @@ public class AnnotatedWholeMessageByteSession {
             logger.log(Level.INFO, "ProgrammaticEndpoint: onOpen");
             this.sc = new SessionController(session);
             createLifeCycle();
+            
+            logger.log(Level.INFO, "Get Subprotocols: {0}", ((ServerEndpointConfig)ec).getSubprotocols());
+            logger.log(Level.INFO, "Get negotiated subprotocol: {0}", session.getNegotiatedSubprotocol());
             lifeCycle.setSessionController(sc);
-            lifeCycle.onClientOpen(session, ec);
+            session.addMessageHandler(this);
+            lifeCycle.onServerOpen(session, ec);
         }
+    }
 
-        @OnMessage
-        public void onMessage(byte[] message, Session session) throws IOException {
-            lifeCycle.onClientMessage(message, session);
-        }
+    @Override
+    public Set<ServerEndpointConfig> getEndpointConfigs(Set<Class<? extends Endpoint>> set) {
+        Set<ServerEndpointConfig> configSet = new HashSet<>();
+        List<String> protocols = Arrays.asList(LifeCycleDeployment.serverProtoOrder);
+        ServerEndpointConfig config = ServerEndpointConfig.Builder.create(
+                StringLifeCycle.class,
+                LifeCycleDeployment.LIFECYCLE_ENDPOINT_PATH).subprotocols(protocols).build();
+        configSet.add(config);
+        return configSet;
+    }
 
-        @OnClose
-        public void onClose(Session s, CloseReason reason) {
-            lifeCycle.onClientClose(s, reason);
-        }
-
-        @OnError
-        public void onError(Session s, Throwable thr) {
-            lifeCycle.onClientError(s, thr);
-        }
+    @Override
+    public Set<Class<?>> getAnnotatedEndpointClasses(Set<Class<?>> set) {
+        return Collections.EMPTY_SET;
     }
 }

@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary;
+package org.glassfish.tyrus.tests.qa.lifecycle.handlers.deployment;
 
 import java.io.IOException;
 import java.util.logging.Level;
@@ -53,21 +53,19 @@ import javax.websocket.server.ServerEndpoint;
 import org.glassfish.tyrus.tests.qa.lifecycle.AnnotatedEndpoint;
 import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleDeployment;
 import org.glassfish.tyrus.tests.qa.lifecycle.handlers.ByteSessionImpl;
-import org.glassfish.tyrus.tests.qa.lifecycle.handlers.StringSessionImpl;
 import org.glassfish.tyrus.tests.qa.tools.SessionController;
 
 /**
  *
  * @author michal.conos at oracle.com
  */
-public class AnnotatedWholeMessageByteSession {
-
+public class ClientOnErrorDuplication {
     @ServerEndpoint(value = LifeCycleDeployment.LIFECYCLE_ENDPOINT_PATH)
     static public class Server extends AnnotatedEndpoint {
 
         @Override
         public void createLifeCycle() {
-            lifeCycle = new ByteSessionImpl(1024, true, false);
+            lifeCycle = new ByteSessionImpl(1024, true, true);
         }
 
         @OnOpen
@@ -78,11 +76,9 @@ public class AnnotatedWholeMessageByteSession {
             logger.log(Level.INFO, "lifeCycle={0}", lifeCycle.toString());
         }
 
-        
         @OnMessage
-        public void onMessage(byte[] message, Session session) throws IOException {
-            logger.log(Level.INFO, "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAa");
-            lifeCycle.onServerMessage(message, session);
+        public void onMessage(byte[] message, Session session, boolean last) throws IOException {
+            lifeCycle.onServerMessage(message, session, last);
         }
 
         @OnClose
@@ -101,7 +97,7 @@ public class AnnotatedWholeMessageByteSession {
 
         @Override
         public void createLifeCycle() {
-            lifeCycle = new ByteSessionImpl(1024, true, false);
+            lifeCycle = new ByteSessionImpl(1024, true, true);
         }
 
         @OnOpen
@@ -117,8 +113,8 @@ public class AnnotatedWholeMessageByteSession {
         }
 
         @OnMessage
-        public void onMessage(byte[] message, Session session) throws IOException {
-            lifeCycle.onClientMessage(message, session);
+        public void onMessage(byte[] message, Session session, boolean last) throws IOException {
+            lifeCycle.onClientMessage(message, session, last);
         }
 
         @OnClose
@@ -129,6 +125,11 @@ public class AnnotatedWholeMessageByteSession {
         @OnError
         public void onError(Session s, Throwable thr) {
             lifeCycle.onClientError(s, thr);
+        }
+        
+        @OnError
+        public void onError(Throwable thr) {
+            lifeCycle.onClientError(null, thr);
         }
     }
 }

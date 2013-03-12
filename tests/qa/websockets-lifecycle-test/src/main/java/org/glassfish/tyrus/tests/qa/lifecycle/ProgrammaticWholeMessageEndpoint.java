@@ -53,11 +53,11 @@ import org.glassfish.tyrus.tests.qa.tools.SessionController;
 
 abstract public class ProgrammaticWholeMessageEndpoint<T> extends Endpoint implements MessageHandler.Whole<T> {
 
-    private static final Logger logger = Logger.getLogger(ProgrammaticWholeMessageEndpoint.class.getCanonicalName());
+    protected static final Logger logger = Logger.getLogger(ProgrammaticWholeMessageEndpoint.class.getCanonicalName());
     protected SessionLifeCycle lifeCycle;
     protected MessageHandler messageHandler;
     protected SessionController sc;
-    private Session session = null;
+    protected Session session = null;
 
     public abstract void createLifeCycle();
 

@@ -50,7 +50,6 @@ import javax.websocket.Session;
 
 import org.glassfish.tyrus.tests.qa.lifecycle.SessionConversation;
 import org.glassfish.tyrus.tests.qa.lifecycle.SessionLifeCycle;
-import sun.awt.image.ByteBandedRaster;
 
 /**
  *
