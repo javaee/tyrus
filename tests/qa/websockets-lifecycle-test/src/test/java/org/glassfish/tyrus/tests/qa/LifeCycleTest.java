@@ -125,15 +125,15 @@ public class LifeCycleTest {
     @Before
     public void setupServer() throws Exception {
         channel = new CommChannel(testConf);
-        server = channel.new Server();
-        server.start();
+        //server = channel.new Server();
+        //server.start();
         SessionController.resetState();
         
     }
     
     @After
     public void stopServer() throws Exception {
-        server.destroy();
+        //server.destroy();
     }
     
     private Session deployClient(Class client, URI connectURI) throws DeploymentException, IOException {
