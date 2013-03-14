@@ -112,11 +112,18 @@ public class TyrusEndpoint extends WebSocketApplication implements SPIRegistered
     @Override
     public boolean isApplicationRequest(WebSocketRequest o) {
         // TODO - proper header parsing
-
         String protocols = o.getHeaders().get(WebSocketEngine.SEC_WS_PROTOCOL_HEADER);
-        temporaryNegotiatedProtocol = endpoint.getNegotiatedProtocol(
-                protocols == null ? Collections.<String>emptyList() : Arrays.asList(protocols.split(","))
-        );
+        List<String> protocolsList;
+        if(protocols == null) {
+            protocolsList = Collections.emptyList();
+        } else {
+            protocolsList = new ArrayList<String>();
+            for(String s : Arrays.asList(protocols.split(","))) {
+                protocolsList.add(s.trim());
+            }
+        }
+
+        temporaryNegotiatedProtocol = endpoint.getNegotiatedProtocol(protocolsList);
 
         final List<Extension> extensions = TyrusExtension.fromString(o.getHeaders().get(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER));
         temporaryNegotiatedExtensions = endpoint.getNegotiatedExtensions(extensions);
