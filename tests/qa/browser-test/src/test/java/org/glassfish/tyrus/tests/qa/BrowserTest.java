@@ -121,6 +121,43 @@ public class BrowserTest {
         logger.log(Level.INFO, "=======================================================");
     }
     
+     @Test
+    public void testChromeClientChat() throws InterruptedException, Exception {
+        logger.log(Level.INFO, "============testChromeClientChat=================");
+        TestScenarios ts = new TestScenarios(new SeleniumToolkit(SeleniumToolkit.Browser.CHROME));
+        ts.testChatSample();
+        logger.log(Level.INFO, "==================================================");
+    }
+        
+    @Test
+    public void testChromefoxClientChatWithTwoUsers() throws InterruptedException, Exception {
+        logger.log(Level.INFO, "============testChromeClientChatWithTwoUsers=================");
+        SeleniumToolkit aliceBrowser = new SeleniumToolkit(SeleniumToolkit.Browser.CHROME);
+        SeleniumToolkit bobBrowser = new SeleniumToolkit(SeleniumToolkit.Browser.CHROME);
+        TestScenarios ts = new TestScenarios(aliceBrowser, bobBrowser);
+        ts.testChatSampleWithTwoUsers();
+        logger.log(Level.INFO, "==============================================================");
+    }
+    
+    @Test
+    public void testChromeClientChatWith100Users() throws InterruptedException, Exception {
+        List<SeleniumToolkit> toolkits = new ArrayList<SeleniumToolkit>();
+        // Launch 100 browsers
+        for(int idx=0; idx<TestScenarios.MAX_CHAT_CLIENTS; idx++) {
+            toolkits.add(new SeleniumToolkit(SeleniumToolkit.Browser.CHROME));
+        }
+        TestScenarios ts = new TestScenarios(toolkits.toArray(new SeleniumToolkit[toolkits.size()]));
+        ts.testChatSampleWith100Users();
+    }
+    
+    @Test
+    public void testChromeClientAuction() throws InterruptedException, Exception {
+        logger.log(Level.INFO, "============testFirefoxClientAuction=================");
+        TestScenarios ts = new TestScenarios(new SeleniumToolkit(SeleniumToolkit.Browser.CHROME));
+        ts.testAuctionSample();
+        logger.log(Level.INFO, "=====================================================");
+    }
+    
     //
     // Visit http://code.google.com/p/selenium/wiki/SafariDriver to know more about Safari Driver
     // installation.
