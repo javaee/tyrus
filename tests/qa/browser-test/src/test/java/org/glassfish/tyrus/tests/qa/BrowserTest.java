@@ -66,98 +66,98 @@ public class BrowserTest {
         SeleniumToolkit.quit();
     }
 
-    
-    @Test
-    public void testFirefoxClientSimpleHandshake() throws InterruptedException {
-        logger.log(Level.INFO, "===============testFirefoxClientHandshake===============");
-        TestScenarios ts = new TestScenarios(new SeleniumToolkit(SeleniumToolkit.Browser.FIREFOX));
+    private void simpleClientHandShake(SeleniumToolkit.Browser browser) throws InterruptedException {
+        logger.log(Level.INFO, "===============testSimpleClientHandshake===============");
+        TestScenarios ts = new TestScenarios(new SeleniumToolkit(browser));
         ts.testSimpleHandshake();
         logger.log(Level.INFO, "========================================================");
     }
-    
-    
-    @Test
-    public void testFirefoxClientChat() throws InterruptedException, Exception {
-        logger.log(Level.INFO, "============testFirefoxClientChat=================");
-        TestScenarios ts = new TestScenarios(new SeleniumToolkit(SeleniumToolkit.Browser.FIREFOX));
+
+    private void clientChat(SeleniumToolkit.Browser browser) throws InterruptedException, Exception {
+        logger.log(Level.INFO, "============testClientChatApp=================");
+        TestScenarios ts = new TestScenarios(new SeleniumToolkit(browser));
         ts.testChatSample();
         logger.log(Level.INFO, "==================================================");
     }
-        
-    @Test
-    public void testFirefoxClientChatWithTwoUsers() throws InterruptedException, Exception {
-        logger.log(Level.INFO, "============testFirefoxClientChatWithTwoUsers=================");
-        SeleniumToolkit aliceBrowser = new SeleniumToolkit(SeleniumToolkit.Browser.FIREFOX);
-        SeleniumToolkit bobBrowser = new SeleniumToolkit(SeleniumToolkit.Browser.FIREFOX);
+
+    private void twoClientsChat(SeleniumToolkit.Browser alice, SeleniumToolkit.Browser bob) throws InterruptedException, Exception {
+        logger.log(Level.INFO, "============testClientChatWithTwoUsers=================");
+        SeleniumToolkit aliceBrowser = new SeleniumToolkit(alice);
+        SeleniumToolkit bobBrowser = new SeleniumToolkit(bob);
         TestScenarios ts = new TestScenarios(aliceBrowser, bobBrowser);
         ts.testChatSampleWithTwoUsers();
         logger.log(Level.INFO, "==============================================================");
     }
-    
-    @Test
-    public void testFirefoxClientChatWith100Users() throws InterruptedException, Exception {
+
+    private void chatScalabitlity(SeleniumToolkit.Browser browser) throws InterruptedException, Exception {
+        logger.log(Level.INFO, "=============testScalabilityWith" + TestScenarios.MAX_CHAT_CLIENTS + "Users===============================");
         List<SeleniumToolkit> toolkits = new ArrayList<SeleniumToolkit>();
         // Launch 100 browsers
-        for(int idx=0; idx<TestScenarios.MAX_CHAT_CLIENTS; idx++) {
-            toolkits.add(new SeleniumToolkit(SeleniumToolkit.Browser.FIREFOX));
+        for (int idx = 0; idx < TestScenarios.MAX_CHAT_CLIENTS; idx++) {
+            toolkits.add(new SeleniumToolkit(browser));
         }
         TestScenarios ts = new TestScenarios(toolkits.toArray(new SeleniumToolkit[toolkits.size()]));
         ts.testChatSampleWith100Users();
+        logger.log(Level.INFO, "==============================================================");
     }
-    
-    @Test
-    public void testFirefoxClientAuction() throws InterruptedException, Exception {
-        logger.log(Level.INFO, "============testFirefoxClientAuction=================");
+
+    private void auctionTest(SeleniumToolkit.Browser browser) throws InterruptedException, Exception {
+        logger.log(Level.INFO, "============testClientAuction=================");
         TestScenarios ts = new TestScenarios(new SeleniumToolkit(SeleniumToolkit.Browser.FIREFOX));
         ts.testAuctionSample();
         logger.log(Level.INFO, "=====================================================");
     }
 
     @Test
+    public void testFirefoxClientSimpleHandshake() throws InterruptedException {
+        simpleClientHandShake(SeleniumToolkit.Browser.FIREFOX);
+    }
+
+    @Test
+    public void testFirefoxClientChat() throws InterruptedException, Exception {
+        clientChat(SeleniumToolkit.Browser.FIREFOX);
+    }
+
+    @Test
+    public void testFirefoxClientChatWithTwoUsers() throws InterruptedException, Exception {
+        twoClientsChat(SeleniumToolkit.Browser.FIREFOX, SeleniumToolkit.Browser.FIREFOX);
+    }
+
+    @Test
+    public void testFirefoxClientChatWith100Users() throws InterruptedException, Exception {
+        chatScalabitlity(SeleniumToolkit.Browser.FIREFOX);
+    }
+
+    @Test
+    public void testFirefoxClientAuction() throws InterruptedException, Exception {
+        auctionTest(SeleniumToolkit.Browser.FIREFOX);
+    }
+
+    @Test
     public void testChromeClient() throws InterruptedException {
-        logger.log(Level.INFO, "===============testChromeClientHandshake===============");
-        TestScenarios ts = new TestScenarios(new SeleniumToolkit(SeleniumToolkit.Browser.CHROME));
-        ts.testSimpleHandshake();
-        logger.log(Level.INFO, "=======================================================");
+        simpleClientHandShake(SeleniumToolkit.Browser.CHROME);
     }
-    
-     @Test
+
+    @Test
     public void testChromeClientChat() throws InterruptedException, Exception {
-        logger.log(Level.INFO, "============testChromeClientChat=================");
-        TestScenarios ts = new TestScenarios(new SeleniumToolkit(SeleniumToolkit.Browser.CHROME));
-        ts.testChatSample();
-        logger.log(Level.INFO, "==================================================");
+        clientChat(SeleniumToolkit.Browser.CHROME);
     }
-        
+
     @Test
     public void testChromefoxClientChatWithTwoUsers() throws InterruptedException, Exception {
-        logger.log(Level.INFO, "============testChromeClientChatWithTwoUsers=================");
-        SeleniumToolkit aliceBrowser = new SeleniumToolkit(SeleniumToolkit.Browser.CHROME);
-        SeleniumToolkit bobBrowser = new SeleniumToolkit(SeleniumToolkit.Browser.CHROME);
-        TestScenarios ts = new TestScenarios(aliceBrowser, bobBrowser);
-        ts.testChatSampleWithTwoUsers();
-        logger.log(Level.INFO, "==============================================================");
+        twoClientsChat(SeleniumToolkit.Browser.CHROME, SeleniumToolkit.Browser.CHROME);
     }
-    
+
     @Test
     public void testChromeClientChatWith100Users() throws InterruptedException, Exception {
-        List<SeleniumToolkit> toolkits = new ArrayList<SeleniumToolkit>();
-        // Launch 100 browsers
-        for(int idx=0; idx<TestScenarios.MAX_CHAT_CLIENTS; idx++) {
-            toolkits.add(new SeleniumToolkit(SeleniumToolkit.Browser.CHROME));
-        }
-        TestScenarios ts = new TestScenarios(toolkits.toArray(new SeleniumToolkit[toolkits.size()]));
-        ts.testChatSampleWith100Users();
+        chatScalabitlity(SeleniumToolkit.Browser.CHROME);
     }
-    
+
     @Test
     public void testChromeClientAuction() throws InterruptedException, Exception {
-        logger.log(Level.INFO, "============testFirefoxClientAuction=================");
-        TestScenarios ts = new TestScenarios(new SeleniumToolkit(SeleniumToolkit.Browser.CHROME));
-        ts.testAuctionSample();
-        logger.log(Level.INFO, "=====================================================");
+        auctionTest(SeleniumToolkit.Browser.CHROME);
     }
-    
+
     //
     // Visit http://code.google.com/p/selenium/wiki/SafariDriver to know more about Safari Driver
     // installation.
@@ -165,19 +165,60 @@ public class BrowserTest {
     @Test
     public void testSafariClient() throws InterruptedException {
         Assume.assumeTrue(SeleniumToolkit.safariPlatform());
-        logger.log(Level.INFO, "===============testChromeClientHandshake===============");
-        TestScenarios ts = new TestScenarios(new SeleniumToolkit(SeleniumToolkit.Browser.SAFARI));
-        ts.testSimpleHandshake();
-        logger.log(Level.INFO, "=======================================================");
+        simpleClientHandShake(SeleniumToolkit.Browser.SAFARI);
+    }
+
+    @Test
+    public void testSafariClientChat() throws InterruptedException, Exception {
+        Assume.assumeTrue(SeleniumToolkit.safariPlatform());
+        clientChat(SeleniumToolkit.Browser.SAFARI);
+    }
+
+    @Test
+    public void testSafariClientChatWithTwoUsers() throws InterruptedException, Exception {
+        Assume.assumeTrue(SeleniumToolkit.safariPlatform());
+        twoClientsChat(SeleniumToolkit.Browser.SAFARI, SeleniumToolkit.Browser.SAFARI);
+    }
+
+    @Test
+    public void testSafariClientChatWith100Users() throws InterruptedException, Exception {
+        Assume.assumeTrue(SeleniumToolkit.safariPlatform());
+        chatScalabitlity(SeleniumToolkit.Browser.SAFARI);
+    }
+
+    @Test
+    public void testSafariClientAuction() throws InterruptedException, Exception {
+        Assume.assumeTrue(SeleniumToolkit.safariPlatform());
+        auctionTest(SeleniumToolkit.Browser.SAFARI);
     }
 
     @Test
     public void testInternetExplorerClientSimpleHandshake() throws InterruptedException {
         Assume.assumeTrue(SeleniumToolkit.onWindows()); // skip this test on non-Windows platforms
-        logger.log(Level.INFO, "==========testInternetExplorerClientHandshake==========");
-        TestScenarios ts = new TestScenarios(new SeleniumToolkit(SeleniumToolkit.Browser.IE));
-        ts.testSimpleHandshake();
-        logger.log(Level.INFO, "=======================================================");
+        simpleClientHandShake(SeleniumToolkit.Browser.IE);
     }
-    
+
+    @Test
+    public void testInternetExplorerClientChat() throws InterruptedException, Exception {
+        Assume.assumeTrue(SeleniumToolkit.onWindows()); // skip this test on non-Windows platforms
+        clientChat(SeleniumToolkit.Browser.IE);
+    }
+
+    @Test
+    public void testInternetExplorerClientChatWithTwoUsers() throws InterruptedException, Exception {
+        Assume.assumeTrue(SeleniumToolkit.onWindows()); // skip this test on non-Windows platforms
+        twoClientsChat(SeleniumToolkit.Browser.IE, SeleniumToolkit.Browser.IE);
+    }
+
+    @Test
+    public void testInterentExplorerClientChatWith100Users() throws InterruptedException, Exception {
+        Assume.assumeTrue(SeleniumToolkit.onWindows()); // skip this test on non-Windows platforms
+        chatScalabitlity(SeleniumToolkit.Browser.IE);
+    }
+
+    @Test
+    public void testInternetExplorerClientAuction() throws InterruptedException, Exception {
+        Assume.assumeTrue(SeleniumToolkit.onWindows()); // skip this test on non-Windows platforms
+        auctionTest(SeleniumToolkit.Browser.IE);
+    }
 }
