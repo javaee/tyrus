@@ -90,13 +90,18 @@ abstract public class SessionLifeCycle<T> {
     }
 
     public void onServerClose(Session s, CloseReason reason) {
-        logger.log(Level.INFO, "Clossing the session: {0}", s.toString());
-        sc.serverOnClose();
+        logger.log(Level.INFO, "Closing the session: {0}", s.toString());
+        logger.log(Level.INFO, "Closing the session with reason: {0}", reason);
+        
         if (!Issue.checkTyrus101(reason)) {
             sc.setState("server.TYRUS101");
         }
         if (!Issue.checkTyrus104(s)) {
             sc.setState("server.TYRUS104");
+        }
+        
+        if(reason!=null && reason.getCloseCode().equals(CloseReason.CloseCodes.GOING_AWAY) && reason.getReasonPhrase()!=null && reason.getReasonPhrase().equals("Going away")) {
+          sc.serverOnClose();
         }
         throw new RuntimeException("going onError");
     }
