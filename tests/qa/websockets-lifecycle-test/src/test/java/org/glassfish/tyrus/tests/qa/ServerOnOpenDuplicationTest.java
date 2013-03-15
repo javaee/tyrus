@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -37,60 +37,24 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.tests.qa.tools;
+package org.glassfish.tyrus.tests.qa;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.io.IOException;
 
 import javax.websocket.DeploymentException;
 
-import org.glassfish.tyrus.server.Server;
-import org.glassfish.tyrus.tests.qa.config.AppConfig;
+import org.glassfish.tyrus.tests.qa.lifecycle.handlers.deployment.ServerOnOpenDuplication;
+import org.glassfish.tyrus.tests.qa.regression.Issue;
+
+import org.junit.Test;
 
 /**
- * @author michal.conos at oracle.com
+ * @author Michal Conos (michal.conos at oracle.com)
  */
-public class TyrusToolkit {
-    private static final Logger logger = Logger.getLogger(TyrusToolkit.class.getCanonicalName());
-
-    private AppConfig config;
-    private Set<Class<?>> endpointClasses = new HashSet<Class<?>>();
-    private Server server;
-
-
-    public TyrusToolkit(AppConfig config) {
-        this.config = config;
-    }
-
-    public void registerEndpoint(Class<?> endpoint) {
-        endpointClasses.add(endpoint);
-    }
-
-    /**
-     * Start embedded server unless "tyrus.test.host" system property is
-     * specified.
-     *
-     * @return new {@link Server} instance or {@code null} if "tyrus.test.host"
-     *         system property is set.
-     */
-    public Server startServer() throws DeploymentException {
-        final String host = System.getProperty("tyrus.test.host");
-        if (host == null) {
-            server = new Server(config.getHost(), config.getPort(), config.getContextPath(), endpointClasses);
-            server.start();
-            logger.log(Level.INFO, "Tyrus Server started at {0}:{1}", new Object[]{config.getHost(), config.getPort()});
-            return server;
-        } else {
-            return null;
-        }
-    }
-
-    public void stopServer() {
-        if (server != null) {
-            server.stop();
-            logger.log(Level.INFO, "Tyrus Server stopped");
-        }
+public class ServerOnOpenDuplicationTest extends AbstractLifeCycleTestBase {
+    @Test
+    public void testServerOnOpenDuplication() throws DeploymentException, IOException {
+        Issue.disableAll();
+        multipleDeployment(ServerOnOpenDuplication.Server.class, ServerOnOpenDuplication.Client.class, "Multiple methods using @OnOpen annotation");
     }
 }
