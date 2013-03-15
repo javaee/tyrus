@@ -162,30 +162,35 @@ public class BrowserTest {
     // Visit http://code.google.com/p/selenium/wiki/SafariDriver to know more about Safari Driver
     // installation.
     //
+    @Ignore
     @Test
     public void testSafariClient() throws InterruptedException {
         Assume.assumeTrue(SeleniumToolkit.safariPlatform());
         simpleClientHandShake(SeleniumToolkit.Browser.SAFARI);
     }
-
+    
+    @Ignore
     @Test
     public void testSafariClientChat() throws InterruptedException, Exception {
         Assume.assumeTrue(SeleniumToolkit.safariPlatform());
         clientChat(SeleniumToolkit.Browser.SAFARI);
     }
-
+    
+    @Ignore
     @Test
     public void testSafariClientChatWithTwoUsers() throws InterruptedException, Exception {
         Assume.assumeTrue(SeleniumToolkit.safariPlatform());
         twoClientsChat(SeleniumToolkit.Browser.SAFARI, SeleniumToolkit.Browser.SAFARI);
     }
 
+    @Ignore
     @Test
     public void testSafariClientChatWith100Users() throws InterruptedException, Exception {
         Assume.assumeTrue(SeleniumToolkit.safariPlatform());
         chatScalabitlity(SeleniumToolkit.Browser.SAFARI);
     }
 
+    @Ignore
     @Test
     public void testSafariClientAuction() throws InterruptedException, Exception {
         Assume.assumeTrue(SeleniumToolkit.safariPlatform());
