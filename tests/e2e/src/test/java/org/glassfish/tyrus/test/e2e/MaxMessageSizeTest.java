@@ -44,11 +44,13 @@ import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import javax.websocket.ClientEndpoint;
 import javax.websocket.ClientEndpointConfig;
 import javax.websocket.CloseReason;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
+import javax.websocket.OnClose;
 import javax.websocket.OnMessage;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
@@ -56,8 +58,10 @@ import javax.websocket.server.ServerEndpoint;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
-import org.junit.Assert;
 import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
@@ -70,10 +74,18 @@ public class MaxMessageSizeTest {
     @ServerEndpoint(value = "/endpoint1")
     public static class Endpoint1 {
 
+        public static CloseReason closeReason = null;
+
         @OnMessage(maxMessageSize = 5)
         public String doThat(String message) {
             return message;
         }
+
+        @OnClose
+        public void onClose(CloseReason c) {
+            closeReason = c;
+        }
+
     }
 
     @ServerEndpoint(value = "/endpoint2")
@@ -118,8 +130,8 @@ public class MaxMessageSizeTest {
             }, clientConfiguration, new URI("ws://localhost:8025/websockets/tests/endpoint1"));
 
             messageLatch.await(1, TimeUnit.SECONDS);
-            Assert.assertEquals(0, messageLatch.getCount());
-            Assert.assertEquals("TEST1", receivedMessage);
+            assertEquals(0, messageLatch.getCount());
+            assertEquals("TEST1", receivedMessage);
 
             messageLatch = new CountDownLatch(1);
 
@@ -143,7 +155,7 @@ public class MaxMessageSizeTest {
             }, clientConfiguration, new URI("ws://localhost:8025/websockets/tests/endpoint1"));
 
             messageLatch.await(1, TimeUnit.SECONDS);
-            Assert.assertEquals(0, messageLatch.getCount());
+            assertEquals(0, messageLatch.getCount());
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
@@ -185,8 +197,8 @@ public class MaxMessageSizeTest {
             }, clientConfiguration, new URI("ws://localhost:8025/websockets/tests/endpoint2"));
 
             messageLatch.await(1, TimeUnit.SECONDS);
-            Assert.assertEquals(0, messageLatch.getCount());
-            Assert.assertEquals("TEST1", receivedMessage);
+            assertEquals(0, messageLatch.getCount());
+            assertEquals("TEST1", receivedMessage);
 
             messageLatch = new CountDownLatch(1);
 
@@ -210,7 +222,68 @@ public class MaxMessageSizeTest {
             }, clientConfiguration, new URI("ws://localhost:8025/websockets/tests/endpoint2"));
 
             messageLatch.await(1, TimeUnit.SECONDS);
-            Assert.assertEquals(0, messageLatch.getCount());
+            assertEquals(0, messageLatch.getCount());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            server.stop();
+        }
+    }
+
+    @ClientEndpoint
+    public static class MyClientEndpoint {
+
+        public static CountDownLatch latch;
+
+        @OnMessage(maxMessageSize = 3)
+        public void onMessage(String message) {
+            latch.countDown();
+        }
+    }
+
+    @Test
+    public void testClient() {
+        Server server = new Server(Endpoint1.class);
+
+        try {
+            server.start();
+
+            messageLatch = new CountDownLatch(1);
+            Endpoint1.closeReason = null;
+
+            final ClientEndpointConfig clientConfiguration = ClientEndpointConfig.Builder.create().build();
+            ClientManager client = ClientManager.createClient();
+
+            final Session session = client.connectToServer(MyClientEndpoint.class, new URI("ws://localhost:8025/websockets/tests/endpoint1"));
+
+            Thread.sleep(1000);
+
+            MyClientEndpoint.latch = new CountDownLatch(1);
+            session.getBasicRemote().sendText("t");
+            MyClientEndpoint.latch.await(1, TimeUnit.SECONDS);
+            assertEquals(0, MyClientEndpoint.latch.getCount());
+            assertNull(Endpoint1.closeReason);
+
+            MyClientEndpoint.latch = new CountDownLatch(1);
+            session.getBasicRemote().sendText("te");
+            MyClientEndpoint.latch.await(1, TimeUnit.SECONDS);
+            assertEquals(0, MyClientEndpoint.latch.getCount());
+            assertNull(Endpoint1.closeReason);
+
+            MyClientEndpoint.latch = new CountDownLatch(1);
+            session.getBasicRemote().sendText("tes");
+            MyClientEndpoint.latch.await(1, TimeUnit.SECONDS);
+            assertEquals(0, MyClientEndpoint.latch.getCount());
+            assertNull(Endpoint1.closeReason);
+
+            MyClientEndpoint.latch = new CountDownLatch(1);
+            session.getBasicRemote().sendText("test");
+            MyClientEndpoint.latch.await(1, TimeUnit.SECONDS);
+            assertEquals(1, MyClientEndpoint.latch.getCount());
+            assertNotNull(Endpoint1.closeReason);
+            assertEquals(CloseReason.CloseCodes.TOO_BIG, Endpoint1.closeReason.getCloseCode());
 
         } catch (Exception e) {
             e.printStackTrace();
