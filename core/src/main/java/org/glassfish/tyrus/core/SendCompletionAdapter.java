@@ -82,11 +82,11 @@ public class SendCompletionAdapter {
                 try {
                     switch (state) {
                         case TEXT:
-                            rew.sendText((String) message);
+                            rew.remoteEndpoint.sendText((String) message);
                             break;
 
                         case BINARY:
-                            rew.sendBinary((ByteBuffer) message);
+                            rew.remoteEndpoint.sendBinary((ByteBuffer) message);
                             break;
 
                         case OBJECT:
