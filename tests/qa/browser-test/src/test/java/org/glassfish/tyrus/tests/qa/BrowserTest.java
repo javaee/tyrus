@@ -133,26 +133,31 @@ public class BrowserTest {
         auctionTest(SeleniumToolkit.Browser.FIREFOX);
     }
 
+    @Ignore
     @Test
     public void testChromeClient() throws InterruptedException {
         simpleClientHandShake(SeleniumToolkit.Browser.CHROME);
     }
 
+    @Ignore
     @Test
     public void testChromeClientChat() throws InterruptedException, Exception {
         clientChat(SeleniumToolkit.Browser.CHROME);
     }
 
+    @Ignore
     @Test
     public void testChromefoxClientChatWithTwoUsers() throws InterruptedException, Exception {
         twoClientsChat(SeleniumToolkit.Browser.CHROME, SeleniumToolkit.Browser.CHROME);
     }
 
+    @Ignore
     @Test
     public void testChromeClientChatWith100Users() throws InterruptedException, Exception {
         chatScalabitlity(SeleniumToolkit.Browser.CHROME);
     }
 
+    @Ignore
     @Test
     public void testChromeClientAuction() throws InterruptedException, Exception {
         auctionTest(SeleniumToolkit.Browser.CHROME);
@@ -168,14 +173,14 @@ public class BrowserTest {
         Assume.assumeTrue(SeleniumToolkit.safariPlatform());
         simpleClientHandShake(SeleniumToolkit.Browser.SAFARI);
     }
-    
+
     @Ignore
     @Test
     public void testSafariClientChat() throws InterruptedException, Exception {
         Assume.assumeTrue(SeleniumToolkit.safariPlatform());
         clientChat(SeleniumToolkit.Browser.SAFARI);
     }
-    
+
     @Ignore
     @Test
     public void testSafariClientChatWithTwoUsers() throws InterruptedException, Exception {

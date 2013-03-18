@@ -96,7 +96,7 @@ public class TestScenarios {
     
     class AuctionSample {
         private static final String AUCTION_CONTEXT_PATH = "/sample-auction";
-        public static final int AUCTION_TIMEOUT=35000;
+        public static final int AUCTION_TIMEOUT=2000;
         
         SeleniumToolkit session;
         JavascriptExecutor js;
