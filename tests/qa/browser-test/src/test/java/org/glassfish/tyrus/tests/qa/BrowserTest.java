@@ -227,6 +227,7 @@ public class BrowserTest {
     }
 
     @Test
+    @Ignore
     public void testInternetExplorerClientAuction() throws InterruptedException, Exception {
         Assume.assumeTrue(SeleniumToolkit.onWindows()); // skip this test on non-Windows platforms
         auctionTest(SeleniumToolkit.Browser.IE);
