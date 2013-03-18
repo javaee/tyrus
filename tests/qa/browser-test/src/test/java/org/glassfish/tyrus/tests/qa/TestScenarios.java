@@ -149,7 +149,7 @@ public class TestScenarios {
     private final String DEFAULT_HOST = "localhost";
     private final int DEFAULT_INSTANCE_PORT = 8080;
     private final String HANDSHAKE_CONTEXT_PATH = "/browser-test";
-    static final int MAX_CHAT_CLIENTS=100;
+    static final int MAX_CHAT_CLIENTS=20;
     
     private static final Logger logger = Logger.getLogger(TestScenarios.class.getCanonicalName());
     SeleniumToolkit toolkit = null;
