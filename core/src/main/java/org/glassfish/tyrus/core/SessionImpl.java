@@ -275,7 +275,7 @@ public class SessionImpl implements Session {
     }
 
     void setNegotiatedSubprotocol(String negotiatedSubprotocol) {
-        this.negotiatedSubprotocol = negotiatedSubprotocol;
+        this.negotiatedSubprotocol = negotiatedSubprotocol == null ? "" : negotiatedSubprotocol;
     }
 
     void setNegotiatedExtensions(List<Extension> negotiatedExtensions) {
