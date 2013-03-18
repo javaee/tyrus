@@ -53,7 +53,7 @@ import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
  */
 public class OutputStreamToAsyncBinaryAdapter extends OutputStream {
     private final SPIRemoteEndpoint re;
-    int buffer = -1;
+    private int buffer = -1;
 
     public OutputStreamToAsyncBinaryAdapter(SPIRemoteEndpoint re) {
         this.re = re;
@@ -75,8 +75,7 @@ public class OutputStreamToAsyncBinaryAdapter extends OutputStream {
 
     @Override
     public void flush() throws IOException {
-        this.sendBuffer(true);
-        buffer = -1;
+        // do nothing.
     }
 
     @Override

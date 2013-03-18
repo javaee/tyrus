@@ -50,6 +50,7 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -111,6 +112,7 @@ public class EndpointWrapper extends SPIEndpoint {
 
     // the following is set during the handshake
     private String uri;
+    private Principal principal;
     private final Map<String, String> templateValues = new HashMap<String, String>();
     private boolean isSecure;
     private String queryString;
@@ -223,6 +225,7 @@ public class EndpointWrapper extends SPIEndpoint {
         uri = hr.getRequestUri();
         queryString = hr.getQueryString();
         isSecure = hr.isSecure();
+        principal = hr.getUserPrincipal();
 
         return configurator.checkOrigin(hr.getHeader("Origin")) &&
                 configurator.matchesURI(getEndpointPath(sec.getPath()), URI.create(uri), templateValues);
@@ -395,7 +398,7 @@ public class EndpointWrapper extends SPIEndpoint {
     @Override
     public Session createSessionForRemoteEndpoint(SPIRemoteEndpoint re, String subprotocol, List<Extension> extensions) {
         final SessionImpl session = new SessionImpl(container, re, this, subprotocol, extensions, isSecure,
-                uri == null ? null : URI.create(uri), queryString, templateValues);
+                uri == null ? null : URI.create(uri), queryString, templateValues, principal);
         remoteEndpointToSession.put(re, session);
         return session;
     }
@@ -411,7 +414,7 @@ public class EndpointWrapper extends SPIEndpoint {
         if (session == null) {
             // create a new session
             session = new SessionImpl(container, gs, this, subprotocol, extensions, isSecure,
-                    uri == null ? null : URI.create(uri), queryString, templateValues);
+                    uri == null ? null : URI.create(uri), queryString, templateValues, principal);
         } else {
             // Session was already created in WebSocketContainer#connectToServer call
             // we need to update extensions and subprotocols

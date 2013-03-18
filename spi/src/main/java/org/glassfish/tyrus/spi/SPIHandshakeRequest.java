@@ -39,6 +39,8 @@
  */
 package org.glassfish.tyrus.spi;
 
+import java.security.Principal;
+
 /**
  * The provider passes the handshake request to
  * the SDK created endpoint
@@ -57,11 +59,30 @@ public interface SPIHandshakeRequest {
     public String getHeader(String name);
 
     /**
-     * Get the Http request uri  underlying Http handshake request.
+     * Get the Http request uri underlying Http handshake request.
+     *
+     * @return request uri.
      */
     public String getRequestUri();
 
+    /**
+     * Get information about underlying connection.
+     *
+     * @return {@code true} when connection is secuded, {@code false} otherwise.
+     */
     public boolean isSecure();
 
+    /**
+     * Get query string.
+     *
+     * @return query string.
+     */
     public String getQueryString();
+
+    /**
+     * Get user {@link Principal}.
+     *
+     * @return user principal.
+     */
+    public Principal getUserPrincipal();
 }

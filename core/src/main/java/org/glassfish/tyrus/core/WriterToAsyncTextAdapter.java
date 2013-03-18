@@ -52,7 +52,7 @@ import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
  */
 public class WriterToAsyncTextAdapter extends Writer {
     private final SPIRemoteEndpoint re;
-    String buffer = null;
+    private String buffer = null;
 
     public WriterToAsyncTextAdapter(SPIRemoteEndpoint re) {
         this.re = re;
@@ -73,7 +73,7 @@ public class WriterToAsyncTextAdapter extends Writer {
 
     @Override
     public void flush() throws IOException {
-        this.sendBuffer(true);
+        this.sendBuffer(false);
         buffer = null;
     }
 

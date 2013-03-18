@@ -41,6 +41,7 @@ package org.glassfish.tyrus.test.e2e;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.Reader;
 import java.net.URI;
 import java.nio.ByteBuffer;
@@ -1017,4 +1018,63 @@ public class MessageHandlersTest {
         }
     }
 
+    @Test
+    public void clientSendStreamServerWholeInputStream() {
+        Server server = new Server(WholeInputStream.class);
+
+        try {
+            server.start();
+            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
+
+            messageLatch = new CountDownLatch(1);
+            ClientManager client = ClientManager.createClient();
+            client.connectToServer(new Endpoint() {
+                byte[] buf1 = {1, 2, 3};
+                byte[] buf2 = {4, 5, 6};
+                byte[] buf3 = {7, 8, 9};
+                byte[] result = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+
+                @Override
+                public void onOpen(final Session session, EndpointConfig EndpointConfig) {
+
+                    session.addMessageHandler(new MessageHandler.Whole<byte[]>() {
+                        @Override
+                        public void onMessage(byte[] message) {
+                            for (int i = 0; i < result.length; i++) {
+                                assertEquals(result[i], message[i]);
+                            }
+
+                            messageLatch.countDown();
+                        }
+                    });
+
+                    try {
+                        final OutputStream sendStream = session.getBasicRemote().getSendStream();
+
+                        sendStream.write(buf1);
+                        sendStream.write(buf2);
+                        sendStream.write(buf3);
+
+                        sendStream.flush();
+                        sendStream.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                public void onError(Session session, Throwable thr) {
+                    thr.printStackTrace();
+                }
+            }, cec, new URI("ws://localhost:8025/websockets/tests/inputstream"));
+
+            messageLatch.await(3, TimeUnit.SECONDS);
+            assertEquals(0, messageLatch.getCount());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            server.stop();
+        }
+    }
 }

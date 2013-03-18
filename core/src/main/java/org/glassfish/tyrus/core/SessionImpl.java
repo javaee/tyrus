@@ -89,6 +89,7 @@ public class SessionImpl implements Session {
     private final URI uri;
     private final String queryString;
     private final Map<String, String> pathParameters;
+    private final Principal userPrincipal;
     private int maxBinaryMessageBufferSize = 0;
     private int maxTextMessageBufferSize = 0;
     private long maxIdleTimeout = 0;
@@ -134,7 +135,7 @@ public class SessionImpl implements Session {
 
     SessionImpl(WebSocketContainer container, SPIRemoteEndpoint remoteEndpoint, EndpointWrapper endpointWrapper,
                 String subprotocol, List<Extension> extensions, boolean isSecure,
-                URI uri, String queryString, Map<String, String> pathParameters) {
+                URI uri, String queryString, Map<String, String> pathParameters, Principal principal) {
         this.container = container;
         this.endpoint = endpointWrapper;
         this.negotiatedSubprotocol = subprotocol;
@@ -146,6 +147,7 @@ public class SessionImpl implements Session {
         this.basicRemote = new RemoteEndpointWrapper.Basic(this, remoteEndpoint, endpointWrapper);
         this.asyncRemote = new RemoteEndpointWrapper.Async(this, remoteEndpoint, endpointWrapper, 0);
         this.handlerManager = MessageHandlerManager.fromDecoderInstances(endpointWrapper.getDecoders());
+        this.userPrincipal = principal;
     }
 
     /**
@@ -303,7 +305,7 @@ public class SessionImpl implements Session {
 
     @Override
     public Principal getUserPrincipal() {
-        return null;  // TODO: Implement.
+        return userPrincipal;
     }
 
     void restartTimer(){
@@ -547,7 +549,7 @@ public class SessionImpl implements Session {
         return sb.toString();
     }
 
-    class SessionTimerTask extends TimerTask {
+    private class SessionTimerTask extends TimerTask {
 
         @Override
         public void run() {

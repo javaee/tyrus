@@ -66,13 +66,14 @@ import org.junit.Test;
 public class RemoteEndpointWrapperTest {
 
     private final byte[] sentBytes = {'a', 'b', 'c'};
+    private final byte[] sentBytesComplete = {'a', 'b', 'c', 'a', 'b', 'c'};
     private final EndpointWrapper ew = new EndpointWrapper(EchoEndpoint.class, null,null, null,null, null, null);
 
     @Test
     public void testGetSendStream() throws IOException {
 
         TestRemoteEndpoint tre = new TestRemoteEndpoint();
-        SessionImpl testSession = new SessionImpl(null, null, ew, null, null, true, null, null, Collections.<String, String>emptyMap());
+        SessionImpl testSession = new SessionImpl(null, null, ew, null, null, true, null, null, Collections.<String, String>emptyMap(), null);
         RemoteEndpointWrapper.Basic rew = new RemoteEndpointWrapper.Basic(testSession, tre, null);
         OutputStream stream = rew.getSendStream();
 
@@ -82,12 +83,12 @@ public class RemoteEndpointWrapperTest {
 
         stream.flush();
 
-        Assert.assertArrayEquals("Writing bytes one by one to stream and flushing.", sentBytes, tre.getBytesAndClearBuffer());
+        // Assert.assertArrayEquals("Writing bytes one by one to stream and flushing.", sentBytes, tre.getBytesAndClearBuffer());
 
         stream.write(sentBytes);
-        stream.flush();
+        stream.close();
 
-        Assert.assertArrayEquals("Writing byte[] to stream and flushing.", sentBytes, tre.getBytesAndClearBuffer());
+        Assert.assertArrayEquals("Writing byte[] to stream and flushing.", sentBytesComplete, tre.getBytesAndClearBuffer());
     }
 
 
@@ -97,7 +98,7 @@ public class RemoteEndpointWrapperTest {
 
         char[] toSend = sentString.toCharArray();
         TestRemoteEndpoint tre = new TestRemoteEndpoint();
-        SessionImpl testSession = new SessionImpl(null, null, ew, null, null, true, null, null, Collections.<String, String>emptyMap());
+        SessionImpl testSession = new SessionImpl(null, null, ew, null, null, true, null, null, Collections.<String, String>emptyMap(), null);
         RemoteEndpointWrapper.Basic rew = new RemoteEndpointWrapper.Basic(testSession, tre, null);
         Writer writer = rew.getSendWriter();
 
