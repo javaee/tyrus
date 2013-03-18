@@ -68,14 +68,14 @@ public class ByteBufferSessionImpl extends SessionLifeCycle<ByteBuffer> implemen
         this.messageSize = messageSize;
         if (directIO) {
             this.messageToSend = ByteBuffer.allocate(messageSize);
-            gotPartial = ByteBuffer.allocate(messageSize*4);
-        wholeMessage = ByteBuffer.allocate(messageSize*4);
+            gotPartial = ByteBuffer.allocate(messageSize * 4);
+            wholeMessage = ByteBuffer.allocate(messageSize * 4);
         } else {
             this.messageToSend = ByteBuffer.allocateDirect(messageSize);
-            gotPartial = ByteBuffer.allocateDirect(messageSize*4);
-        wholeMessage = ByteBuffer.allocateDirect(messageSize*4);
+            gotPartial = ByteBuffer.allocateDirect(messageSize * 4);
+            wholeMessage = ByteBuffer.allocateDirect(messageSize * 4);
         }
-        
+
         initSendBuffer();
     }
 
@@ -89,21 +89,21 @@ public class ByteBufferSessionImpl extends SessionLifeCycle<ByteBuffer> implemen
         wholeMessage.put(messageToSend.array());
         wholeMessage.put(messageToSend.array());
     }
-    
+
     private boolean bb_equals(ByteBuffer b1, ByteBuffer b2) {
         logger.log(Level.INFO, "compare:{0}", b1.compareTo(b2));
         //return 0==b1.compareTo(b2);
         //return b1.array().equals(b2.array());
         return bb_equal(b1.array(), b2.array());
     }
-    
-    boolean bb_equal(final byte [] b1, final byte [] b2) {
-        if(b1.length != b2.length) {
-            logger.log(Level.SEVERE, "arrays not equal! {0} {1}", new Object[] {b1.length, b2.length  });
+
+    boolean bb_equal(final byte[] b1, final byte[] b2) {
+        if (b1.length != b2.length) {
+            logger.log(Level.SEVERE, "arrays not equal! {0} {1}", new Object[]{b1.length, b2.length});
             return false;
         }
-        for(int idx=0; idx<b1.length; idx++) {
-            if(b1[idx]!=b2[idx]) {
+        for (int idx = 0; idx < b1.length; idx++) {
+            if (b1[idx] != b2[idx]) {
                 logger.log(Level.SEVERE, "Arrays mismatch at index: {0}", idx);
                 return false;
             }
@@ -122,14 +122,14 @@ public class ByteBufferSessionImpl extends SessionLifeCycle<ByteBuffer> implemen
     public void startTalk(final Session s) throws IOException {
         ByteBuffer bb = ByteBuffer.allocate(messageSize);
         s.getBasicRemote().sendBinary(messageToSend);
-       
+
     }
 
     @Override
     public void onServerMessageHandler(ByteBuffer message, Session session) throws IOException {
         session.getBasicRemote().sendBinary(message);
     }
-    
+
     @Override
     public void onServerMessageHandler(ByteBuffer message, Session session, boolean last) throws IOException {
         session.getBasicRemote().sendBinary(message, last);
@@ -145,8 +145,8 @@ public class ByteBufferSessionImpl extends SessionLifeCycle<ByteBuffer> implemen
         logger.log(Level.INFO, "message:{0}", message);
         logger.log(Level.INFO, "last:{0}", last);
         gotPartial.put(message);
-        if(last) {
-            if(bb_equals(gotPartial,wholeMessage)) {
+        if (last) {
+            if (bb_equals(gotPartial, wholeMessage)) {
                 closeTheSessionFromClient(session);
             }
         }
@@ -154,7 +154,7 @@ public class ByteBufferSessionImpl extends SessionLifeCycle<ByteBuffer> implemen
 
     @Override
     public void startTalkPartial(final Session s) throws IOException {
-         List<Thread> partialMsgWorkers = new ArrayList<>();
+        List<Thread> partialMsgWorkers = new ArrayList<>();
         final CountDownLatch done = new CountDownLatch(3);
         partialMsgWorkers.add(new Thread() {
             @Override
@@ -192,17 +192,17 @@ public class ByteBufferSessionImpl extends SessionLifeCycle<ByteBuffer> implemen
                 }
             }
         });
-        
-        for(Thread t: partialMsgWorkers) {
+
+        for (Thread t : partialMsgWorkers) {
             t.start();
         }
-        
+
         try {
             done.await(10, TimeUnit.SECONDS);
         } catch (InterruptedException ex) {
             logger.log(Level.SEVERE, null, ex);
         }
-        
+
         s.getBasicRemote().sendBinary(messageToSend, true);
     }
 }
