@@ -103,7 +103,7 @@ public class BrowserTest {
 
     private void auctionTest(SeleniumToolkit.Browser browser) throws InterruptedException, Exception {
         logger.log(Level.INFO, "============testClientAuction=================");
-        TestScenarios ts = new TestScenarios(new SeleniumToolkit(SeleniumToolkit.Browser.FIREFOX));
+        TestScenarios ts = new TestScenarios(new SeleniumToolkit(browser));
         ts.testAuctionSample();
         logger.log(Level.INFO, "=====================================================");
     }
