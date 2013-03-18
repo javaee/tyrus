@@ -84,26 +84,31 @@ public class RemoteEndpointWrapper implements RemoteEndpoint {
         @Override
         public void sendText(String text) throws IOException {
             remoteEndpoint.sendText(text);
+            session.restartTimer();
         }
 
         @Override
         public void sendBinary(ByteBuffer data) throws IOException {
             remoteEndpoint.sendBinary(data);
+            session.restartTimer();
         }
 
         @Override
         public void sendText(String partialMessage, boolean isLast) throws IOException {
             remoteEndpoint.sendText(partialMessage, isLast);
+            session.restartTimer();
         }
 
         @Override
         public void sendBinary(ByteBuffer partialByte, boolean isLast) throws IOException {
             remoteEndpoint.sendBinary(partialByte, isLast);
+            session.restartTimer();
         }
 
         @Override
         public void sendObject(Object data) throws IOException, EncodeException {
             sendPolymorphic(data);
+            session.restartTimer();
         }
 
         @Override
@@ -172,17 +177,20 @@ public class RemoteEndpointWrapper implements RemoteEndpoint {
         public void sendText(String text, SendHandler handler) {
             SendCompletionAdapter goesAway = new SendCompletionAdapter(this, SendCompletionAdapter.State.TEXT);
             goesAway.send(text, handler);
+            session.restartTimer();
         }
 
         @Override
         public Future<Void> sendText(String text) {
             SendCompletionAdapter goesAway = new SendCompletionAdapter(this, SendCompletionAdapter.State.TEXT);
+            session.restartTimer();
             return goesAway.send(text, null);
         }
 
         @Override
         public Future<Void> sendBinary(ByteBuffer data) {
             SendCompletionAdapter goesAway = new SendCompletionAdapter(this, SendCompletionAdapter.State.BINARY);
+            session.restartTimer();
             return goesAway.send(data, null);
         }
 
@@ -190,12 +198,14 @@ public class RemoteEndpointWrapper implements RemoteEndpoint {
         public void sendBinary(ByteBuffer data, SendHandler completion) {
             SendCompletionAdapter goesAway = new SendCompletionAdapter(this, SendCompletionAdapter.State.BINARY);
             goesAway.send(data, completion);
+            session.restartTimer();
         }
 
         @Override
         public void sendObject(Object data, SendHandler handler) {
             SendCompletionAdapter goesAway = new SendCompletionAdapter(this, SendCompletionAdapter.State.BINARY);
             goesAway.send(data, handler);
+            session.restartTimer();
         }
 
         @Override

@@ -51,7 +51,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.UUID;
+import java.util.logging.Level;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Logger;
 
@@ -89,6 +92,7 @@ public class SessionImpl implements Session {
     private int maxBinaryMessageBufferSize = 0;
     private int maxTextMessageBufferSize = 0;
     private long maxIdleTimeout = 0;
+    private Timer timer;
 
     private final String id = UUID.randomUUID().toString();
     private static final Logger LOGGER = Logger.getLogger(SessionImpl.class.getName());
@@ -228,6 +232,7 @@ public class SessionImpl implements Session {
     @Override
     public void setMaxIdleTimeout(long maxIdleTimeout) {
         this.maxIdleTimeout = maxIdleTimeout;
+        restartTimer();
     }
 
     @Override
@@ -299,6 +304,19 @@ public class SessionImpl implements Session {
     @Override
     public Principal getUserPrincipal() {
         return null;  // TODO: Implement.
+    }
+
+    void restartTimer(){
+        if(timer != null){
+            timer.cancel();
+        }
+
+        if(this.getMaxIdleTimeout() < 1){
+            return;
+        }
+
+        timer = new Timer();
+        timer.schedule(new SessionTimerTask(), this.getMaxIdleTimeout());
     }
 
     private void checkConnectionState() {
@@ -527,5 +545,17 @@ public class SessionImpl implements Session {
         sb.append(", endpoint=").append(endpoint);
         sb.append('}');
         return sb.toString();
+    }
+
+    class SessionTimerTask extends TimerTask {
+
+        @Override
+        public void run() {
+            try {
+                SessionImpl.this.close(new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, "Session closed by the container because of the idle timeout."));
+            } catch (IOException e) {
+                LOGGER.log(Level.FINE,"Session could not been closed. "+e.getMessage());
+            }
+        }
     }
 }

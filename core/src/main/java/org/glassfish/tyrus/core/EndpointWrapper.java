@@ -437,6 +437,8 @@ public class EndpointWrapper extends SPIEndpoint {
     @Override
     public void onMessage(SPIRemoteEndpoint gs, ByteBuffer messageBytes) {
         SessionImpl session = remoteEndpointToSession.get(gs);
+        session.restartTimer();
+
         try {
             session.setState(SessionImpl.State.RUNNING);
             if (session.isWholeBinaryHandlerPresent()) {
@@ -458,6 +460,8 @@ public class EndpointWrapper extends SPIEndpoint {
     @Override
     public void onMessage(SPIRemoteEndpoint gs, String messageString) {
         SessionImpl session = remoteEndpointToSession.get(gs);
+        session.restartTimer();
+
         try {
             session.setState(SessionImpl.State.RUNNING);
             if (session.isWholeTextHandlerPresent()) {
@@ -479,6 +483,8 @@ public class EndpointWrapper extends SPIEndpoint {
     @Override
     public void onPartialMessage(SPIRemoteEndpoint gs, String partialString, boolean last) {
         SessionImpl session = remoteEndpointToSession.get(gs);
+        session.restartTimer();
+
         try {
             if (session.isPartialTextHandlerPresent()) {
                 session.notifyMessageHandlers(partialString, last);
@@ -540,6 +546,8 @@ public class EndpointWrapper extends SPIEndpoint {
     @Override
     public void onPartialMessage(SPIRemoteEndpoint gs, ByteBuffer partialBytes, boolean last) {
         SessionImpl session = remoteEndpointToSession.get(gs);
+        session.restartTimer();
+
         try {
             if (session.isPartialBinaryHandlerPresent()) {
                 session.notifyMessageHandlers(partialBytes, last);
