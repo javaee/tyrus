@@ -59,7 +59,6 @@ import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -70,8 +69,6 @@ import org.junit.Test;
 public class BlockingBinaryTest {
 
     @Test
-    @Ignore // TODO: receiving messages out of order (as every message received on a separate thread due to the async
-    // TODO: adapter spawning new thread for every onMessage) - TYRUS-50
     public void testClient() {
 
         Server server = new Server(BlockingBinaryEndpoint.class);
@@ -111,15 +108,15 @@ public class BlockingBinaryTest {
             System.out.println("BLOCKINGBSERVER opened !");
             this.session = session;
 
-            session.addMessageHandler(new MessageHandler.Partial<InputStream>() {
+            session.addMessageHandler(new MessageHandler.Whole<InputStream>() {
                 StringBuilder sb = new StringBuilder();
 
                 @Override
-                public void onMessage(InputStream is, boolean isLast) {
+                public void onMessage(InputStream is) {
                     try {
                         int i;
                         while ((i = is.read()) != -1) {
-                            //System.out.println("BLOCKINGBSERVER read " + (char) i + " from the input stream.");
+                            System.out.println("BLOCKINGBSERVER read " + (char) i + " from the input stream.");
                             sb.append((char) i);
                         }
                     } catch (IOException ioe) {
@@ -132,11 +129,6 @@ public class BlockingBinaryTest {
                 }
             });
         }
-
-        //    @Override
-        //    public EndpointConfig getEndpointConfig() {
-        //        return null;
-        //    }
 
         public void reply() {
             System.out.println("BLOCKINGBSERVER replying");
@@ -166,21 +158,17 @@ public class BlockingBinaryTest {
             this.messageLatch = messageLatch;
         }
 
-        //    @Override
-        //    public EndpointConfig getEndpointConfig() {
-        //        return null;
-        //    }
-
+        @Override
         public void onOpen(Session session, EndpointConfig EndpointConfig) {
 
             System.out.println("BLOCKINGBCLIENT opened !");
 
             this.session = session;
 
-            session.addMessageHandler(new MessageHandler.Partial<InputStream>() {
+            session.addMessageHandler(new MessageHandler.Whole<InputStream>() {
                 StringBuilder sb = new StringBuilder();
 
-                public void onMessage(InputStream is, boolean isLast) {
+                public void onMessage(InputStream is) {
                     int i;
 
                     try {
