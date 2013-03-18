@@ -175,7 +175,7 @@ public class WebSocketEngine {
         WebSocket socket = null;
         try {
             if (app != null) {
-                final ProtocolHandler protocolHandler = loadHandler(request.getHeaders());
+                final ProtocolHandler protocolHandler = loadHandler(request);
                 if (protocolHandler == null) {
                     handleUnsupportedVersion(connection, request);
                     return false;
@@ -215,9 +215,9 @@ public class WebSocketEngine {
         return false;
     }
 
-    private static ProtocolHandler loadHandler(Map<String, String> headers) {
+    private static ProtocolHandler loadHandler(WebSocketRequest request) {
         for (Version version : Version.values()) {
-            if (version.validate(headers)) {
+            if (version.validate(request)) {
                 return version.createHandler(false);
             }
         }

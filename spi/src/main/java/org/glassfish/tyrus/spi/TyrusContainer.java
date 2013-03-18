@@ -65,10 +65,12 @@ public interface TyrusContainer {
     /**
      * Open client socket - connect to endpoint specified with {@code url} parameter.
      *
-     * @param url      address where remote service is deployed.
-     * @param cec      endpoint configuration.
-     * @param endpoint endpoint instance.
+     * @param url               address where remote service is deployed.
+     * @param cec               endpoint configuration.
+     * @param endpoint          endpoint instance.
+     * @param handshakeListener handshake listener.
      * @return representation of incoming socket.
      */
-    public TyrusClientSocket openClientSocket(String url, ClientEndpointConfig cec, SPIEndpoint endpoint);
+    public TyrusClientSocket openClientSocket(String url, ClientEndpointConfig cec, SPIEndpoint endpoint,
+                                              SPIHandshakeListener handshakeListener);
 }

@@ -40,8 +40,6 @@
 
 package org.glassfish.tyrus.websockets.draft17;
 
-import java.net.URI;
-
 import org.glassfish.tyrus.websockets.WebSocketEngine;
 import org.glassfish.tyrus.websockets.WebSocketRequest;
 import org.glassfish.tyrus.websockets.draft08.HandShake08;
@@ -52,8 +50,8 @@ public class HandShake17 extends HandShake08 {
     // ------------------------------------------------------------ Constructors
 
 
-    public HandShake17(URI uri) {
-        super(uri);
+    public HandShake17(WebSocketRequest webSocketRequest, boolean client) {
+        super(webSocketRequest, client);
     }
 
     public HandShake17(WebSocketRequest request) {
@@ -71,9 +69,9 @@ public class HandShake17 extends HandShake08 {
     @Override
     public WebSocketRequest getRequest() {
         WebSocketRequest request = super.getRequest();
-        final String headerValue = request.getHeaders().get(WebSocketEngine.SEC_WS_ORIGIN_HEADER);
+        final String headerValue = request.getFirstHeaderValue(WebSocketEngine.SEC_WS_ORIGIN_HEADER);
         request.getHeaders().remove(WebSocketEngine.SEC_WS_ORIGIN_HEADER);
-        request.getHeaders().put(WebSocketEngine.ORIGIN_HEADER, headerValue);
+        request.putSingleHeader(WebSocketEngine.ORIGIN_HEADER, headerValue);
         return request;
     }
 }

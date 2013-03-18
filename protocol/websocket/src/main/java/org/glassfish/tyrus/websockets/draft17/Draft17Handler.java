@@ -40,8 +40,6 @@
 
 package org.glassfish.tyrus.websockets.draft17;
 
-import java.net.URI;
-
 import org.glassfish.tyrus.websockets.HandShake;
 import org.glassfish.tyrus.websockets.WebSocketRequest;
 import org.glassfish.tyrus.websockets.draft08.Draft08Handler;
@@ -61,13 +59,13 @@ public class Draft17Handler extends Draft08Handler {
 
 
     @Override
-    public HandShake createHandShake(URI uri) {
-        return new HandShake17(uri);
+    public HandShake createClientHandShake(WebSocketRequest webSocketRequest, boolean client) {
+        return new HandShake17(webSocketRequest, client);
     }
 
     @Override
-    public HandShake createHandShake(WebSocketRequest request) {
-        return new HandShake17(request);
+    public HandShake createHandShake(WebSocketRequest webSocketRequest) {
+        return new HandShake17(webSocketRequest);
     }
 
 }

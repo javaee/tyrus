@@ -40,8 +40,6 @@
 
 package org.glassfish.tyrus.websockets;
 
-import java.util.Map;
-
 import org.glassfish.tyrus.websockets.draft06.Draft06Handler;
 import org.glassfish.tyrus.websockets.draft07.Draft07Handler;
 import org.glassfish.tyrus.websockets.draft08.Draft08Handler;
@@ -59,8 +57,8 @@ public enum Version {
         }
 
         @Override
-        public boolean validate(Map<String, String> headers) {
-            return this.wireProtocolVersion.equals(headers.get(WebSocketEngine.SEC_WS_VERSION));
+        public boolean validate(WebSocketRequest request) {
+            return this.wireProtocolVersion.equals(request.getFirstHeaderValue(WebSocketEngine.SEC_WS_VERSION));
         }
     },
 
@@ -71,8 +69,8 @@ public enum Version {
         }
 
         @Override
-        public boolean validate(Map<String, String> headers) {
-            return wireProtocolVersion.equals(headers.get(WebSocketEngine.SEC_WS_VERSION));
+        public boolean validate(WebSocketRequest request) {
+            return wireProtocolVersion.equals(request.getFirstHeaderValue(WebSocketEngine.SEC_WS_VERSION));
         }
     },
 
@@ -83,8 +81,8 @@ public enum Version {
         }
 
         @Override
-        public boolean validate(Map<String, String> headers) {
-            return wireProtocolVersion.equals(headers.get(WebSocketEngine.SEC_WS_VERSION));
+        public boolean validate(WebSocketRequest request) {
+            return wireProtocolVersion.equals(request.getFirstHeaderValue(WebSocketEngine.SEC_WS_VERSION));
         }
     },
 
@@ -95,14 +93,14 @@ public enum Version {
         }
 
         @Override
-        public boolean validate(Map<String, String> headers) {
-            return wireProtocolVersion.equals(headers.get(WebSocketEngine.SEC_WS_VERSION));
+        public boolean validate(WebSocketRequest request) {
+            return wireProtocolVersion.equals(request.getFirstHeaderValue(WebSocketEngine.SEC_WS_VERSION));
         }
     };
 
     public abstract ProtocolHandler createHandler(boolean mask);
 
-    public abstract boolean validate(Map<String, String> headers);
+    public abstract boolean validate(WebSocketRequest request);
 
     protected final String wireProtocolVersion;
 

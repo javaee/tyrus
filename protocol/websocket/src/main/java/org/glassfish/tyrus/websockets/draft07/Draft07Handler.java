@@ -40,7 +40,6 @@
 
 package org.glassfish.tyrus.websockets.draft07;
 
-import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.Locale;
 
@@ -266,13 +265,13 @@ public class Draft07Handler extends ProtocolHandler {
     }
 
     @Override
-    public HandShake createHandShake(WebSocketRequest request) {
-        return new HandShake07(request);
+    public HandShake createHandShake(WebSocketRequest webSocketRequest) {
+        return new HandShake07(webSocketRequest);
     }
 
     @Override
-    public HandShake createHandShake(URI uri) {
-        return new HandShake07(uri);
+    public HandShake createClientHandShake(WebSocketRequest webSocketRequest, boolean client) {
+        return new HandShake07(webSocketRequest, client);
     }
 
 

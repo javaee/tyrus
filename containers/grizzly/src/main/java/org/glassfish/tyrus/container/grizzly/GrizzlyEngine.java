@@ -47,6 +47,7 @@ import javax.websocket.ClientEndpointConfig;
 
 import org.glassfish.tyrus.server.TyrusEndpoint;
 import org.glassfish.tyrus.spi.SPIEndpoint;
+import org.glassfish.tyrus.spi.SPIHandshakeListener;
 import org.glassfish.tyrus.spi.SPIRegisteredEndpoint;
 import org.glassfish.tyrus.spi.TyrusClientSocket;
 import org.glassfish.tyrus.spi.TyrusContainer;
@@ -98,7 +99,8 @@ public class GrizzlyEngine implements TyrusContainer {
     }
 
     @Override
-    public TyrusClientSocket openClientSocket(String url, ClientEndpointConfig cec, SPIEndpoint endpoint) {
+    public TyrusClientSocket openClientSocket(String url, ClientEndpointConfig cec, SPIEndpoint endpoint,
+                                              SPIHandshakeListener listener) {
         URI uri;
 
         try {
@@ -108,7 +110,7 @@ public class GrizzlyEngine implements TyrusContainer {
             return null;
         }
 
-        GrizzlyClientSocket clientSocket = new GrizzlyClientSocket(uri, cec, 1000);
+        GrizzlyClientSocket clientSocket = new GrizzlyClientSocket(uri, cec, 1000, listener);
         clientSocket.addEndpoint(endpoint);
         clientSocket.connect();
         return clientSocket;

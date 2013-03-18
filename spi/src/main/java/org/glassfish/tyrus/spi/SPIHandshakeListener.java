@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -37,45 +37,29 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.server;
+package org.glassfish.tyrus.spi;
 
-import org.glassfish.tyrus.spi.SPIHandshakeRequest;
-import org.glassfish.tyrus.websockets.WebSocketRequest;
+import java.util.Map;
 
 /**
- * {@link WebSocketRequest} wrapper.
+ * Called when response is received from the server.
  *
- * @author Danny Coward (danny.coward at oracle.com)
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class TyrusHandshakeRequest implements SPIHandshakeRequest {
-    private final WebSocketRequest rp;
+public interface SPIHandshakeListener {
 
     /**
-     * Wrap {@link WebSocketRequest} into {@link SPIHandshakeRequest}.
+     * Called when correct handshake response is received.
      *
-     * @param rp {@link WebSocketRequest} instance to be wrapped.
+     * @param headers of the handshake response.
      */
-    public TyrusHandshakeRequest(WebSocketRequest rp) {
-        this.rp = rp;
-    }
+    public void onResponseHeaders(Map<String, String> headers);
 
-    @Override
-    public String getHeader(String name) {
-        return rp.getHeaders().get(name);
-    }
 
-    @Override
-    public String getRequestUri() {
-        return rp.getRequestURI();
-    }
-
-    @Override
-    public boolean isSecure() {
-        return rp.isSecure();
-    }
-
-    @Override
-    public String getQueryString() {
-        return rp.getQueryString();
-    }
+    /**
+     * Called when an error is found in handshake response.
+     *
+     * @param exception error found during handshake response check.
+     */
+    public void onError(Throwable exception);
 }

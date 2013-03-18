@@ -44,15 +44,11 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -60,13 +56,14 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import javax.websocket.ClientEndpointConfig;
 import javax.websocket.CloseReason;
-import javax.websocket.HandshakeResponse;
 import javax.websocket.Session;
 
+import org.glassfish.tyrus.core.RequestContext;
 import org.glassfish.tyrus.core.TyrusExtension;
 import org.glassfish.tyrus.server.TyrusEndpoint;
 import org.glassfish.tyrus.server.TyrusRemoteEndpoint;
 import org.glassfish.tyrus.spi.SPIEndpoint;
+import org.glassfish.tyrus.spi.SPIHandshakeListener;
 import org.glassfish.tyrus.spi.TyrusClientSocket;
 import org.glassfish.tyrus.websockets.DataFrame;
 import org.glassfish.tyrus.websockets.Extension;
@@ -106,6 +103,7 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
     private final TyrusRemoteEndpoint remoteEndpoint;
     private final long timeoutMs;
     private final ClientEndpointConfig configuration;
+    private final SPIHandshakeListener listener;
     private Session session = null;
 
     private final List<javax.websocket.Extension> responseExtensions = new ArrayList<javax.websocket.Extension>();
@@ -120,13 +118,15 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
      * @param uri           endpoint address.
      * @param configuration client endpoint configuration.
      * @param timeoutMs     TODO
+     * @param listener      listener called when response is received.
      */
-    public GrizzlyClientSocket(URI uri, ClientEndpointConfig configuration, long timeoutMs) {
+    public GrizzlyClientSocket(URI uri, ClientEndpointConfig configuration, long timeoutMs, SPIHandshakeListener listener) {
         this.uri = uri;
         this.configuration = configuration;
         protocolHandler = WebSocketEngine.DEFAULT_VERSION.createHandler(true);
         remoteEndpoint = new TyrusRemoteEndpoint(this);
         this.timeoutMs = timeoutMs;
+        this.listener = listener;
     }
 
     /**
@@ -145,8 +145,10 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
                     final org.glassfish.tyrus.websockets.Connection connection = getConnection(conn);
 
                     protocolHandler.setConnection(connection);
-                    WebSocketEngine.WebSocketHolder holder = WebSocketEngine.getEngine().setWebSocketHolder(connection, protocolHandler, GrizzlyClientSocket.this);
-                    holder.handshake = protocolHandler.createHandShake(uri);
+                    WebSocketEngine.WebSocketHolder holder = WebSocketEngine.getEngine()
+                            .setWebSocketHolder(connection, protocolHandler, GrizzlyClientSocket.this);
+                    holder.handshake = protocolHandler.createClientHandShake(
+                            RequestContext.Builder.create().requestURI(uri).build(), true);
                     prepareHandshake(holder.handshake);
                 }
             };
@@ -194,45 +196,17 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
                     responseExtensions.addAll(TyrusExtension.fromString(value));
                 }
 
-                configuration.getConfigurator().afterResponse(new HandshakeResponse() {
+                listener.onResponseHeaders(originalHeaders);
+            }
 
-                    private final Map<String, List<String>> headers =
-                            new TreeMap<String, List<String>>(new Comparator<String>() {
-
-                                @Override
-                                public int compare(String o1, String o2) {
-                                    return o1.toLowerCase().compareTo(o2.toLowerCase());
-                                }
-                            });
-
-                    @Override
-                    public Map<String, List<String>> getHeaders() {
-                        for (Map.Entry<String, String> entry : originalHeaders.entrySet()) {
-                            headers.put(entry.getKey(), Arrays.asList(entry.getValue()));
-                        }
-                        return headers;
-                    }
-                });
+            @Override
+            public void onError(HandshakeException exception) {
+                listener.onError(exception);
             }
         });
 
-        // TODO - remove/refactor after API change (Map<String, List<String>> -> Map<String, String>).
-        Map<String, String> headers = handshake.composeRequest().getHeaders();
-        Map<String, List<String>> adaptedHeaders = new HashMap<String, List<String>>();
-
-        for (Map.Entry<String, String> entry : headers.entrySet()) {
-            String value = entry.getValue();
-            adaptedHeaders.put(entry.getKey(), value == null ? null : Arrays.asList(value));
-        }
-
-        configuration.getConfigurator().beforeRequest(adaptedHeaders);
-        headers.clear();
-
-        for (Map.Entry<String, List<String>> entry : adaptedHeaders.entrySet()) {
-            final List<String> value = entry.getValue();
-            headers.put(entry.getKey(), value == null ? null : value.get(0));
-        }
-
+        handshake.prepareRequest();
+        configuration.getConfigurator().beforeRequest(handshake.getRequest().getHeaders());
     }
 
     /**

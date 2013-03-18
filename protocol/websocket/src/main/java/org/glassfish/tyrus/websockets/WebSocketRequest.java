@@ -40,99 +40,87 @@
 
 package org.glassfish.tyrus.websockets;
 
-import java.util.Comparator;
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
 
 /**
- * TODO: Abstract class/builder?
+ * Request representation.
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class WebSocketRequest {
-
-    private String requestPath;
-
-    private final Map<String, String> headers = new TreeMap<String, String>(new Comparator<String>() {
-        @Override
-        public int compare(String o1, String o2) {
-            return o1.toLowerCase().compareTo(o2.toLowerCase());
-        }
-    });
+public interface WebSocketRequest {
 
     /**
-     * @return TODO
+     * Get request headers.
+     *
+     * @return request headers. List items represent headers from HTTP request.
      */
-    public Map<String, String> getHeaders() {
-        return headers;
-    }
+    public Map<String, List<String>> getHeaders();
 
     /**
-     * Returns the header values corresponding to the name.
+     * Return the header values corresponding to the name.
      *
      * @param name header name.
      * @return {@link List} of header values iff found, {@code null} otherwise.
      */
-    public String getHeader(String name) {
-        return headers.get(name);
-    }
+    public String getHeader(String name);
 
     /**
-     * Gets the first header value from the {@link List} of header values corresponding to the name.
-     *
-     * TODO - remove?
+     * Get the first header value from the {@link List} of header values corresponding to the name.
      *
      * @param name header name.
      * @return {@link String} value iff it exists, {@code null} otherwise.
      */
-    public String getFirstHeaderValue(String name) {
-        if (getHeader(name) != null) {
-            return getHeader(name);
-        }
-
-        return null;
-    }
+    public String getFirstHeaderValue(String name);
 
     /**
-     * @return TODO
+     * Put single header value into headers map.
+     *
+     * @param headerName  header name.
+     * @param headerValue header value.
      */
-    public String getRequestPath() {
-        return requestPath;
-    }
+    public void putSingleHeader(String headerName, String headerValue);
 
     /**
-     * @param requestPath TODO
+     * Get request path.
+     *
+     * @return request path.
      */
-    public void setRequestPath(String requestPath) {
-        this.requestPath = requestPath;
-    }
+    public String getRequestPath();
 
     /**
-     * @return TODO
+     * Set request path.
+     *
+     * @param requestPath request path to be set.
      */
-    public String getRequestURI() {
-        return null; // TODO
-    }
+    public void setRequestPath(String requestPath);
 
     /**
-     * @return TODO
+     * Get request URI.
+     *
+     * @return request URI.
      */
-    public String getQueryString() {
-        return null;  // TODO: Implement.
-    }
+    public URI getRequestURI();
 
     /**
-     * @return TODO
+     * Get query string.
+     *
+     * @return unparsed query string.
      */
-    public Connection getConnection() {
-        return null;  // TODO: Implement.
-    }
+    public String getQueryString();
 
     /**
-     * @return TODO
+     * Get {@link Connection}.
+     *
+     * @return underlying connection.
      */
-    public boolean isSecure() {
-        return false;  // TODO: Implement.
-    }
+    public Connection getConnection();
+
+    /**
+     * Get information about connection secure state.
+     *
+     * @return {@code true} if connection is secure, {@code false} otherwise.
+     */
+    public boolean isSecure();
 }

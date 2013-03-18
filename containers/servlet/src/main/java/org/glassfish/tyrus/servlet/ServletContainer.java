@@ -45,6 +45,7 @@ import javax.websocket.ClientEndpointConfig;
 
 import org.glassfish.tyrus.server.TyrusEndpoint;
 import org.glassfish.tyrus.spi.SPIEndpoint;
+import org.glassfish.tyrus.spi.SPIHandshakeListener;
 import org.glassfish.tyrus.spi.SPIRegisteredEndpoint;
 import org.glassfish.tyrus.spi.TyrusClientSocket;
 import org.glassfish.tyrus.spi.TyrusContainer;
@@ -53,7 +54,6 @@ import org.glassfish.tyrus.websockets.WebSocketEngine;
 
 /**
  * Servlet container.
- *
  */
 public class ServletContainer implements TyrusContainer {
     @Override
@@ -83,7 +83,8 @@ public class ServletContainer implements TyrusContainer {
     }
 
     @Override
-    public TyrusClientSocket openClientSocket(String url, ClientEndpointConfig cec, SPIEndpoint endpoint) {
-        return null;  // TODO: Implement.
+    public TyrusClientSocket openClientSocket(String url, ClientEndpointConfig cec, SPIEndpoint endpoint,
+                                              SPIHandshakeListener listener) {
+        return null;
     }
 }

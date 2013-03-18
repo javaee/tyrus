@@ -40,11 +40,9 @@
 
 package org.glassfish.tyrus.websockets.draft06;
 
-import java.net.URI;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import org.glassfish.tyrus.websockets.HandShake;
 import org.glassfish.tyrus.websockets.HandshakeException;
@@ -57,19 +55,18 @@ public class HandShake06 extends HandShake {
     private final List<String> enabledExtensions = Collections.emptyList();
     private final List<String> enabledProtocols = Collections.emptyList();
 
-    public HandShake06(URI url) {
-        super(url);
+    public HandShake06(WebSocketRequest webSocketRequest, boolean client) {
+        super(webSocketRequest, client);
         secKey = new SecKey();
     }
 
     public HandShake06(WebSocketRequest request) {
         super(request);
-        final Map<String, String> headers = request.getHeaders();
-        String value = headers.get(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER);
+        String value = request.getFirstHeaderValue(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER);
         if (value != null) {
             setExtensions(HandShake.fromHeaders(Arrays.asList(value)));
         }
-        secKey = SecKey.generateServerKey(new SecKey(headers.get(WebSocketEngine.SEC_WS_KEY_HEADER)));
+        secKey = SecKey.generateServerKey(new SecKey(request.getFirstHeaderValue(WebSocketEngine.SEC_WS_KEY_HEADER)));
     }
 
     public void setHeaders(WebSocketResponse response) {
@@ -83,11 +80,11 @@ public class HandShake06 extends HandShake {
     @Override
     public WebSocketRequest getRequest() {
         final WebSocketRequest webSocketRequest = super.getRequest();
-        webSocketRequest.getHeaders().put(WebSocketEngine.SEC_WS_KEY_HEADER, secKey.toString());
-        webSocketRequest.getHeaders().put(WebSocketEngine.SEC_WS_ORIGIN_HEADER, getOrigin());
-        webSocketRequest.getHeaders().put(WebSocketEngine.SEC_WS_VERSION, getVersion() + "");
+        webSocketRequest.putSingleHeader(WebSocketEngine.SEC_WS_KEY_HEADER, secKey.toString());
+        webSocketRequest.putSingleHeader(WebSocketEngine.SEC_WS_ORIGIN_HEADER, getOrigin());
+        webSocketRequest.putSingleHeader(WebSocketEngine.SEC_WS_VERSION, getVersion() + "");
         if (!getExtensions().isEmpty()) {
-            webSocketRequest.getHeaders().put(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER, getHeaderFromList(getExtensions()));
+            webSocketRequest.putSingleHeader(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER, getHeaderFromList(getExtensions()));
         }
         return webSocketRequest;
     }

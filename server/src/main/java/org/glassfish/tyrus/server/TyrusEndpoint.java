@@ -39,10 +39,7 @@
  */
 package org.glassfish.tyrus.server;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
-import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -62,6 +59,7 @@ import javax.websocket.Session;
 import javax.websocket.server.HandshakeRequest;
 import javax.websocket.server.ServerEndpointConfig;
 
+import org.glassfish.tyrus.core.RequestContext;
 import org.glassfish.tyrus.core.TyrusExtension;
 import org.glassfish.tyrus.spi.SPIEndpoint;
 import org.glassfish.tyrus.spi.SPIRegisteredEndpoint;
@@ -110,9 +108,9 @@ public class TyrusEndpoint extends WebSocketApplication implements SPIRegistered
     }
 
     @Override
-    public boolean isApplicationRequest(WebSocketRequest o) {
+    public boolean isApplicationRequest(WebSocketRequest webSocketRequest) {
         // TODO - proper header parsing
-        String protocols = o.getHeaders().get(WebSocketEngine.SEC_WS_PROTOCOL_HEADER);
+        String protocols = webSocketRequest.getFirstHeaderValue(WebSocketEngine.SEC_WS_PROTOCOL_HEADER);
         List<String> protocolsList;
         if(protocols == null) {
             protocolsList = Collections.emptyList();
@@ -125,10 +123,10 @@ public class TyrusEndpoint extends WebSocketApplication implements SPIRegistered
 
         temporaryNegotiatedProtocol = endpoint.getNegotiatedProtocol(protocolsList);
 
-        final List<Extension> extensions = TyrusExtension.fromString(o.getHeaders().get(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER));
+        final List<Extension> extensions = TyrusExtension.fromString(webSocketRequest.getFirstHeaderValue(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER));
         temporaryNegotiatedExtensions = endpoint.getNegotiatedExtensions(extensions);
 
-        return endpoint.checkHandshake(new TyrusHandshakeRequest(o));
+        return endpoint.checkHandshake(webSocketRequest instanceof RequestContext ? (RequestContext)webSocketRequest : null);
     }
 
     @Override
@@ -271,58 +269,11 @@ public class TyrusEndpoint extends WebSocketApplication implements SPIRegistered
     }
 
     private HandshakeRequest createHandshakeRequest(final WebSocketRequest webSocketRequest) {
+        if(webSocketRequest instanceof RequestContext) {
+            return (HandshakeRequest) webSocketRequest;
+        }
 
-        // TODO
-        // http://java.net/jira/browse/TYRUS-60
-        return new HandshakeRequest() {
-            @Override
-            public Map<String, List<String>> getHeaders() {
-                final Map<String, List<String>> headers = new TreeMap<String, List<String>>(new Comparator<String>() {
-                    @Override
-                    public int compare(String o1, String o2) {
-                        return o1.toLowerCase().compareTo(o2.toLowerCase());
-                    }
-                });
-                for (Map.Entry<String, String> entry : webSocketRequest.getHeaders().entrySet()) {
-                    headers.put(entry.getKey(), Arrays.asList(entry.getValue()));
-                }
-                return headers;
-            }
-
-            @Override
-            public Principal getUserPrincipal() {
-                return null;  // TODO: Implement.
-            }
-
-            @Override
-            public URI getRequestURI() {
-                try {
-                    return new URI(webSocketRequest.getRequestURI());
-                } catch (URISyntaxException e) {
-                    return null;
-                }
-            }
-
-            @Override
-            public boolean isUserInRole(String role) {
-                return false;  // TODO: Implement.
-            }
-
-            @Override
-            public Object getHttpSession() {
-                return null;  // TODO: Implement.
-            }
-
-            @Override
-            public Map<String, List<String>> getParameterMap() {
-                return null;  // TODO: Implement.
-            }
-
-            @Override
-            public String getQueryString() {
-                return webSocketRequest.getQueryString();
-            }
-        };
+        return null;
     }
 
     private HandshakeResponse createHandshakeResponse(final WebSocketResponse webSocketResponse) {

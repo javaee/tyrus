@@ -40,7 +40,6 @@
 
 package org.glassfish.tyrus.websockets;
 
-import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
@@ -53,17 +52,19 @@ import org.glassfish.tyrus.websockets.frametypes.BinaryFrameType;
 import org.glassfish.tyrus.websockets.frametypes.TextFrameType;
 
 public abstract class ProtocolHandler {
-    protected Connection connection;
-    private WebSocket webSocket;
-    protected byte inFragmentedType;
-    protected byte outFragmentedType;
-    protected final boolean maskData;
-    protected boolean processingFragment;
-    protected Charset utf8 = new StrictUtf8();
-    protected CharsetDecoder currentDecoder = utf8.newDecoder();
-    protected ByteBuffer remainder;
 
-    public ProtocolHandler(boolean maskData) {
+    private final Charset utf8 = new StrictUtf8();
+    private final CharsetDecoder currentDecoder = utf8.newDecoder();
+    private WebSocket webSocket;
+    private byte outFragmentedType;
+    private ByteBuffer remainder;
+
+    protected final boolean maskData;
+    protected Connection connection;
+    protected byte inFragmentedType;
+    protected boolean processingFragment;
+
+    protected ProtocolHandler(boolean maskData) {
         this.maskData = maskData;
     }
 
@@ -118,20 +119,20 @@ public abstract class ProtocolHandler {
 */
 
     /**
-     * Server side.
+     * Create {@link HandShake} on server side.
      *
-     * @param requestContent TODO
-     * @return TODO
+     * @param webSocketRequest representation of received initial HTTP request.
+     * @return new {@link HandShake} instance.
      */
-    public abstract HandShake createHandShake(WebSocketRequest requestContent);
+    protected abstract HandShake createHandShake(WebSocketRequest webSocketRequest);
 
     /**
-     * Client side.
+     * Create {@link HandShake} on client side.
      *
-     * @param uri TODO
-     * @return TODO
+     * @param webSocketRequest representation of HTTP request to be sent.
+     * @return new {@link HandShake} instance.
      */
-    public abstract HandShake createHandShake(URI uri);
+    public abstract HandShake createClientHandShake(WebSocketRequest webSocketRequest, boolean client);
 
     public Future<DataFrame> send(byte[] data) {
         return send(new DataFrame(new BinaryFrameType(), data));
@@ -186,15 +187,15 @@ public abstract class ProtocolHandler {
         return parse(buffer);
     }
 
-    public abstract DataFrame parse(ByteBuffer buffer);
+    protected abstract DataFrame parse(ByteBuffer buffer);
 
     /**
-     * Convert a byte[] to a long.  Used for rebuilding payload length.
+     * Convert a byte[] to a long. Used for rebuilding payload length.
      *
-     * @param bytes TODO
-     * @return TODO
+     * @param bytes byte array to be converted.
+     * @return converted byte array.
      */
-    public long decodeLength(byte[] bytes) {
+    protected long decodeLength(byte[] bytes) {
         return WebSocketEngine.toLong(bytes, 0, bytes.length);
     }
 
@@ -207,7 +208,7 @@ public abstract class ProtocolHandler {
      * @param length the payload size
      * @return the array
      */
-    public byte[] encodeLength(final long length) {
+    protected byte[] encodeLength(final long length) {
         byte[] lengthBytes;
         if (length <= 125) {
             lengthBytes = new byte[1];
@@ -227,7 +228,7 @@ public abstract class ProtocolHandler {
         return lengthBytes;
     }
 
-    protected void validate(final byte fragmentType, byte opcode) {
+    void validate(final byte fragmentType, byte opcode) {
         if (fragmentType != 0 && opcode != fragmentType && !isControlFrame(opcode)) {
             throw new WebSocketException("Attempting to send a message while sending fragments of another");
         }
@@ -300,7 +301,7 @@ public abstract class ProtocolHandler {
         }
     }
 
-    protected ByteBuffer getByteBuffer(final byte[] data) {
+    ByteBuffer getByteBuffer(final byte[] data) {
         if (remainder == null) {
             return ByteBuffer.wrap(data);
         } else {

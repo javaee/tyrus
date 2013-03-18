@@ -40,6 +40,8 @@
 package org.glassfish.tyrus.servlet;
 
 import java.io.IOException;
+import java.net.URI;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Set;
@@ -62,12 +64,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.WebConnection;
 
+import org.glassfish.tyrus.core.RequestContext;
 import org.glassfish.tyrus.server.ServerContainerFactory;
 import org.glassfish.tyrus.server.TyrusServerContainer;
-import org.glassfish.tyrus.websockets.Connection;
 import org.glassfish.tyrus.websockets.HandshakeException;
 import org.glassfish.tyrus.websockets.WebSocketEngine;
-import org.glassfish.tyrus.websockets.WebSocketRequest;
 
 /**
  * Filter used for Servlet integration.
@@ -215,35 +216,33 @@ class TyrusServletFilter implements Filter {
             final TyrusHttpUpgradeHandlerProxy handler = new TyrusHttpUpgradeHandlerProxy();
 
             final ConnectionImpl webSocketConnection = new ConnectionImpl(handler, httpServletResponse);
-            WebSocketRequest webSocketRequest = new WebSocketRequest() {
-                @Override
-                public String getRequestURI() {
-                    return httpServletRequest.getRequestURI();
-                }
 
-                @Override
-                public String getQueryString() {
-                    return httpServletRequest.getQueryString();
-                }
-
-                @Override
-                public Connection getConnection() {
-                    return webSocketConnection;
-                }
-            };
+            final RequestContext requestContext = RequestContext.Builder.create()
+                    .requestURI(URI.create(httpServletRequest.getRequestURI()))
+                    .queryString(httpServletRequest.getQueryString())
+                    .connection(webSocketConnection)
+                    .requestPath(httpServletRequest.getServletPath())
+                    .httpSession(httpServletRequest.getSession())
+                    .secure(httpServletRequest.isSecure())
+                    .userPrincipal(httpServletRequest.getUserPrincipal())
+                    .isUserInRoleDelegate(new RequestContext.Builder.IsUserInRoleDelegate() {
+                        @Override
+                        public boolean isUserInRole(String role) {
+                            return httpServletRequest.isUserInRole(role);
+                        }
+                    })
+                    .build();
 
             Enumeration<String> headerNames = httpServletRequest.getHeaderNames();
 
             while (headerNames.hasMoreElements()) {
                 String key = headerNames.nextElement();
 
-                webSocketRequest.getHeaders().put(key, httpServletRequest.getHeader(key));
+                requestContext.getHeaders().put(key, Arrays.asList(httpServletRequest.getHeader(key)));
             }
 
-            webSocketRequest.setRequestPath(httpServletRequest.getServletPath());
-
             try {
-                if (!engine.upgrade(webSocketConnection, webSocketRequest, new WebSocketEngine.WebSocketHolderListener() {
+                if (!engine.upgrade(webSocketConnection, requestContext, new WebSocketEngine.WebSocketHolderListener() {
                     @Override
                     public void onWebSocketHolder(WebSocketEngine.WebSocketHolder webSocketHolder) throws IOException {
                         LOGGER.config("Upgrading Servlet request");
@@ -257,7 +256,7 @@ class TyrusServletFilter implements Filter {
 
             } catch (HandshakeException e) {
                 // TODO
-//                ctx.write(composeHandshakeError(request, e));
+                // ctx.write(composeHandshakeError(request, e));
             }
 
             // Servlet bug ?? Not sure why we need to flush the headers

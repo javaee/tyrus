@@ -47,6 +47,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfig;
 import javax.websocket.ContainerProvider;
+import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
@@ -56,9 +57,13 @@ import javax.websocket.WebSocketContainer;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.e2e.bean.EchoEndpoint;
+import org.glassfish.tyrus.websockets.HandshakeException;
 
 import org.junit.Assert;
 import org.junit.Test;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * Tests the basic echo.
@@ -112,6 +117,50 @@ public class HelloTest {
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            server.stop();
+        }
+    }
+
+    @Test
+    public void testHello404() {
+        Server server = new Server(EchoEndpoint.class);
+
+        try {
+            server.start();
+            messageLatch = new CountDownLatch(1);
+
+            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
+
+            ClientManager client = ClientManager.createClient();
+            client.connectToServer(new TestEndpointAdapter() {
+                @Override
+                public EndpointConfig getEndpointConfig() {
+                    return cec;
+                }
+
+                @Override
+                public void onOpen(Session session) {
+                    try {
+                        session.addMessageHandler(new TestTextMessageHandler(this));
+                        session.getBasicRemote().sendText(SENT_MESSAGE);
+                        System.out.println("Hello message sent.");
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                @Override
+                public void onMessage(String message) {
+                    receivedMessage = message;
+                    messageLatch.countDown();
+                }
+            }, cec, new URI("wss://localhost:8025/websockets/tests/echo404"));
+            fail();
+        } catch (Exception e) {
+            assertNotNull(e);
+            assertTrue(e instanceof DeploymentException);
+            assertTrue(e.getCause() instanceof HandshakeException);
         } finally {
             server.stop();
         }

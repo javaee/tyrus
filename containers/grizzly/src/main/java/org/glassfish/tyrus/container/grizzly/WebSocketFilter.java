@@ -41,8 +41,8 @@
 package org.glassfish.tyrus.container.grizzly;
 
 import java.io.IOException;
+import java.net.URI;
 import java.nio.ByteBuffer;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -50,6 +50,7 @@ import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.glassfish.tyrus.core.RequestContext;
 import org.glassfish.tyrus.websockets.DataFrame;
 import org.glassfish.tyrus.websockets.FramingException;
 import org.glassfish.tyrus.websockets.HandshakeException;
@@ -153,8 +154,8 @@ class WebSocketFilter extends BaseFilter {
         builder = builder.method(Method.GET);
         builder = builder.uri(webSocketRequest.getRequestPath());
 
-        for (Map.Entry<String, String> entry : webSocketRequest.getHeaders().entrySet()) {
-            builder.header(entry.getKey(), entry.getValue());
+        for (String key : webSocketRequest.getHeaders().keySet()) {
+            builder.header(key, webSocketRequest.getFirstHeaderValue(key));
         }
 
         HttpContent httpContent1 = HttpContent.builder(builder.build()).build();
@@ -314,8 +315,14 @@ class WebSocketFilter extends BaseFilter {
     private NextAction handleClientHandShake(FilterChainContext ctx, HttpContent content) {
         final WebSocketHolder holder = WebSocketEngine.getEngine().getWebSocketHolder(getWebSocketConnection(ctx, content));
 
-        holder.handshake.validateServerResponse(getWebSocketResponse((HttpResponsePacket) content.getHttpHeader()));
-        holder.webSocket.onConnect();
+        try {
+            final WebSocketResponse webSocketResponse = getWebSocketResponse((HttpResponsePacket) content.getHttpHeader());
+            holder.handshake.validateServerResponse(webSocketResponse);
+            holder.handshake.getResponseListener().onResponseHeaders(webSocketResponse.getHeaders());
+            holder.webSocket.onConnect();
+        } catch (HandshakeException e) {
+            holder.handshake.getResponseListener().onError(e);
+        }
 
         if (content.getContent().hasRemaining()) {
             return ctx.getRerunFilterAction();
@@ -440,32 +447,17 @@ class WebSocketFilter extends BaseFilter {
 
         final HttpRequestPacket requestPacket = (HttpRequestPacket) requestContent.getHttpHeader();
 
-        WebSocketRequest request = new WebSocketRequest() {
-            @Override
-            public String getRequestURI() {
-                return requestPacket.getRequestURI();
-            }
-
-            @Override
-            public String getQueryString() {
-                return requestPacket.getQueryString();
-            }
-
-            @Override
-            public org.glassfish.tyrus.websockets.Connection getConnection() {
-                return getWebSocketConnection(ctx, requestContent);
-            }
-
-            @Override
-            public boolean isSecure() {
-                return requestPacket.getRequestURI().toLowerCase().startsWith("wss");
-            }
-        };
+        final RequestContext requestContext = RequestContext.Builder.create()
+                .requestURI(URI.create(requestPacket.getRequestURI()))
+                .queryString(requestPacket.getQueryString())
+                .connection(getWebSocketConnection(ctx, requestContent))
+                .secure(false)
+                .build();
 
         for (String name : requestPacket.getHeaders().names()) {
-            request.getHeaders().put(name, requestPacket.getHeader(name));
+            requestContext.putSingleHeader(name, requestPacket.getHeader(name));
         }
 
-        return request;
+        return requestContext;
     }
 }

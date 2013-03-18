@@ -42,7 +42,15 @@ package org.glassfish.tyrus.client;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import javax.websocket.ClientEndpoint;
@@ -51,6 +59,7 @@ import javax.websocket.ContainerProvider;
 import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
 import javax.websocket.Extension;
+import javax.websocket.HandshakeResponse;
 import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
 
@@ -60,6 +69,7 @@ import org.glassfish.tyrus.core.EndpointWrapper;
 import org.glassfish.tyrus.core.ErrorCollector;
 import org.glassfish.tyrus.core.ReflectionHelper;
 import org.glassfish.tyrus.core.TyrusContainerProvider;
+import org.glassfish.tyrus.spi.SPIHandshakeListener;
 import org.glassfish.tyrus.spi.TyrusClientSocket;
 import org.glassfish.tyrus.spi.TyrusContainer;
 
@@ -176,7 +186,7 @@ public class ClientManager extends ContainerProvider implements WebSocketContain
      */
     Session connectToServer(Object o, ClientEndpointConfig configuration, String url) throws DeploymentException {
         // TODO use maxSessionIdleTimeout, maxBinaryMessageBufferSize and maxTextMessageBufferSize
-        ClientEndpointConfig config;
+        ClientEndpointConfig config = null;
         Endpoint endpoint;
         TyrusClientSocket clientSocket = null;
 
@@ -184,11 +194,13 @@ public class ClientManager extends ContainerProvider implements WebSocketContain
             URI uri = new URI(url);
             String scheme = uri.getScheme();
             if (scheme == null || !(scheme.equals("ws") || scheme.equals("wss"))) {
-                throw new DeploymentException("Incorrect scheme in WebSocket endpoint URI="+url);
+                throw new DeploymentException("Incorrect scheme in WebSocket endpoint URI=" + url);
             }
         } catch (URISyntaxException e) {
-            throw new DeploymentException("Incorrect WebSocket endpoint URI="+url, e);
+            throw new DeploymentException("Incorrect WebSocket endpoint URI=" + url, e);
         }
+
+        final CountDownLatch responseLatch = new CountDownLatch(1);
 
         try {
             if (o instanceof Endpoint) {
@@ -212,9 +224,46 @@ public class ClientManager extends ContainerProvider implements WebSocketContain
                 config = (ClientEndpointConfig) ((AnnotatedEndpoint) endpoint).getEndpointConfig();
             }
 
+            final ClientEndpointConfig finalConfig = config;
+
             if (endpoint != null) {
                 EndpointWrapper clientEndpoint = new EndpointWrapper(endpoint, config, componentProvider, this, url, collector, null);
-                clientSocket = engine.openClientSocket(url, config, clientEndpoint);
+                SPIHandshakeListener listener = new SPIHandshakeListener() {
+
+                    @Override
+                    public void onResponseHeaders(final Map<String, String> originalHeaders) {
+
+                        final Map<String, List<String>> headers =
+                                new TreeMap<String, List<String>>(new Comparator<String>() {
+
+                                    @Override
+                                    public int compare(String o1, String o2) {
+                                        return o1.toLowerCase().compareTo(o2.toLowerCase());
+                                    }
+                                });
+
+                        for (Map.Entry<String, String> entry : originalHeaders.entrySet()) {
+                            headers.put(entry.getKey(), Arrays.asList(entry.getValue()));
+                        }
+
+                        finalConfig.getConfigurator().afterResponse(new HandshakeResponse() {
+
+                            @Override
+                            public Map<String, List<String>> getHeaders() {
+                                return headers;
+                            }
+                        });
+
+                        responseLatch.countDown();
+                    }
+
+                    @Override
+                    public void onError(Throwable exception) {
+                        finalConfig.getUserProperties().put("org.glassfish.tyrus.client.exception", exception);
+                        responseLatch.countDown();
+                    }
+                };
+                clientSocket = engine.openClientSocket(url, config, clientEndpoint, listener);
             }
 
         } catch (Exception e) {
@@ -225,7 +274,26 @@ public class ClientManager extends ContainerProvider implements WebSocketContain
             throw collector.composeComprehensiveException();
         }
 
-        return clientSocket == null ? null : clientSocket.getSession();
+        if (clientSocket != null) {
+            try {
+                // TODO - configurable timeout?
+                responseLatch.await(10, TimeUnit.SECONDS);
+                if (responseLatch.getCount() == 0) {
+                    final Object exception = config.getUserProperties().get("org.glassfish.tyrus.client.exception");
+                    if (exception != null) {
+                        throw new DeploymentException("Handshake error.", (Throwable) exception);
+                    }
+
+                    return clientSocket.getSession();
+                }
+            } catch (InterruptedException e) {
+                throw new DeploymentException("Handshaker response not received.", e);
+            }
+
+            throw new DeploymentException("Handshake response not received.");
+        }
+
+        return null;
     }
 
     @Override
@@ -250,9 +318,8 @@ public class ClientManager extends ContainerProvider implements WebSocketContain
 
     @Override
     public Set<Extension> getInstalledExtensions() {
-        return null;
+        return Collections.emptySet();
     }
-
 
     @Override
     public long getDefaultAsyncSendTimeout() {

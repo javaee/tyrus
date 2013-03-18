@@ -40,14 +40,12 @@
 
 package org.glassfish.tyrus.websockets.draft07;
 
-import java.net.URI;
-
 import org.glassfish.tyrus.websockets.WebSocketRequest;
 import org.glassfish.tyrus.websockets.draft06.HandShake06;
 
 public class HandShake07 extends HandShake06 {
-    public HandShake07(URI uri) {
-        super(uri);
+    public HandShake07(WebSocketRequest webSocketRequest, boolean client) {
+        super(webSocketRequest, client);
     }
 
     public HandShake07(WebSocketRequest request) {
