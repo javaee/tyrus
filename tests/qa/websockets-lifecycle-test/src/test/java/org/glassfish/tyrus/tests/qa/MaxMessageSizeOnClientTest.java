@@ -56,6 +56,6 @@ public class MaxMessageSizeOnClientTest extends AbstractLifeCycleTestBase {
     @Test
     public void testMaxMessageSizeOnClient() throws DeploymentException, IOException {
         Issue.disableAll();
-        lifeCycle(MaxMessageSizeOnClient.Server.class, MaxMessageSizeOnClient.Client.class, SessionController.SessionState.OPEN_SERVER.getMessage(), testConf.getURI(), null);
+        lifeCycle(MaxMessageSizeOnClient.Server.class, MaxMessageSizeOnClient.Client.class, SessionController.SessionState.MESSAGE.getMessage(), testConf.getURI(), null);
     }
 }
