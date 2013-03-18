@@ -455,7 +455,9 @@ public class EndpointWrapper extends SPIEndpoint {
             if (!processThrowable(t, session)) {
                 final Endpoint toCall = endpoint != null ? endpoint :
                         (Endpoint) componentProvider.getInstance(endpointClass, session, collector);
-                toCall.onError(session, t);
+                if(toCall != null) {
+                    toCall.onError(session, t);
+                }
             }
         }
     }
@@ -478,7 +480,9 @@ public class EndpointWrapper extends SPIEndpoint {
             if (!processThrowable(t, session)) {
                 final Endpoint toCall = endpoint != null ? endpoint :
                         (Endpoint) componentProvider.getInstance(endpointClass, session, collector);
-                toCall.onError(session, t);
+                if(toCall != null) {
+                    toCall.onError(session, t);
+                }
             }
         }
     }
@@ -541,7 +545,9 @@ public class EndpointWrapper extends SPIEndpoint {
             if (!processThrowable(t, session)) {
                 final Endpoint toCall = endpoint != null ? endpoint :
                         (Endpoint) componentProvider.getInstance(endpointClass, session, collector);
-                toCall.onError(session, t);
+                if(toCall != null) {
+                    toCall.onError(session, t);
+                }
             }
         }
     }
@@ -613,7 +619,9 @@ public class EndpointWrapper extends SPIEndpoint {
             if (!processThrowable(t, session)) {
                 final Endpoint toCall = endpoint != null ? endpoint :
                         (Endpoint) componentProvider.getInstance(endpointClass, session, collector);
-                toCall.onError(session, t);
+                if(toCall != null) {
+                    toCall.onError(session, t);
+                }
             }
         }
     }

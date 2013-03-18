@@ -45,16 +45,17 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
+
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 import javax.websocket.server.ServerApplicationConfig;
 import javax.websocket.server.ServerEndpointConfig;
+
 import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleDeployment;
 import org.glassfish.tyrus.tests.qa.lifecycle.ProgrammaticWholeMessageEndpoint;
 import org.glassfish.tyrus.tests.qa.lifecycle.handlers.StringSessionImpl;
-import org.glassfish.tyrus.tests.qa.lifecycle.handlers.text.ProgrammaticWholeMessageStringSession;
 import org.glassfish.tyrus.tests.qa.tools.SessionController;
 
 /**
@@ -63,7 +64,7 @@ import org.glassfish.tyrus.tests.qa.tools.SessionController;
  */
 public class CustomConfigurationProtocolsProgrammatic implements ServerApplicationConfig {
 
-    static class StringLifeCycle extends ProgrammaticWholeMessageEndpoint<String> implements MessageHandler.Whole<String> {
+    public static class StringLifeCycle extends ProgrammaticWholeMessageEndpoint<String> implements MessageHandler.Whole<String> {
 
         @Override
         public void createLifeCycle() {
