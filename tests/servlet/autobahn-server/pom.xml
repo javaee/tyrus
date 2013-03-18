@@ -50,7 +50,6 @@
     </parent>
 
     <packaging>war</packaging>
-    <groupId>org.glassfish.tyrus.tests</groupId>
     <artifactId>tyrus-tests-servlet-autobahn-server</artifactId>
 
     <name>Tyrus Autobahn Echo Server</name>

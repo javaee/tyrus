@@ -161,7 +161,7 @@ public class EndpointWrapper extends SPIEndpoint {
         this.configurator = configurator;
         this.componentProvider = configurator == null ? componentProvider : new ComponentProviderService(componentProvider) {
             @Override
-            public  <T> T getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
+            public <T> T getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
                 return configurator.getEndpointInstance(endpointClass);
             }
         };
@@ -483,11 +483,11 @@ public class EndpointWrapper extends SPIEndpoint {
             if (session.isPartialTextHandlerPresent()) {
                 session.notifyMessageHandlers(partialString, last);
                 session.setState(SessionImpl.State.RUNNING);
-            } else if(session.isReaderHandlerPresent()){
+            } else if (session.isReaderHandlerPresent()) {
                 ReaderBuffer buffer = session.getReaderBuffer();
                 switch (session.getState()) {
                     case RUNNING:
-                        if(buffer == null){
+                        if (buffer == null) {
                             buffer = new ReaderBuffer();
                             session.setReaderBuffer(buffer);
                         }
@@ -544,11 +544,11 @@ public class EndpointWrapper extends SPIEndpoint {
             if (session.isPartialBinaryHandlerPresent()) {
                 session.notifyMessageHandlers(partialBytes, last);
                 session.setState(SessionImpl.State.RUNNING);
-            } else if(session.isInputStreamHandlerPresent()){
+            } else if (session.isInputStreamHandlerPresent()) {
                 InputStreamBuffer buffer = session.getInputStreamBuffer();
                 switch (session.getState()) {
                     case RUNNING:
-                        if(buffer == null){
+                        if (buffer == null) {
                             buffer = new InputStreamBuffer();
                             session.setInputStreamBuffer(buffer);
                         }
@@ -650,7 +650,7 @@ public class EndpointWrapper extends SPIEndpoint {
     @Override
     public void onPong(SPIRemoteEndpoint gs, final ByteBuffer bytes) {
         SessionImpl session = remoteEndpointToSession.get(gs);
-        if(session.isPongHandlerPreset()) {
+        if (session.isPongHandlerPreset()) {
             session.notifyPongHandler(new PongMessage() {
                 @Override
                 public ByteBuffer getApplicationData() {
@@ -677,8 +677,13 @@ public class EndpointWrapper extends SPIEndpoint {
 
     @Override
     public void onClose(SPIRemoteEndpoint gs, CloseReason closeReason) {
-        Session session = remoteEndpointToSession.get(gs);
+        SessionImpl session = remoteEndpointToSession.get(gs);
 
+        if (session == null) {
+            return;
+        }
+
+        session.setState(SessionImpl.State.CLOSED);
         final Endpoint toCall = endpoint != null ? endpoint :
                 (Endpoint) componentProvider.getInstance(endpointClass, session, collector);
 

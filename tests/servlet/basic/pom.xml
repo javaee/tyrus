@@ -50,7 +50,6 @@
     </parent>
 
     <packaging>war</packaging>
-    <groupId>org.glassfish.tyrus.tests</groupId>
     <artifactId>tyrus-tests-servlet-basic</artifactId>
 
     <name>Tyrus Servlet Basic Tests</name>

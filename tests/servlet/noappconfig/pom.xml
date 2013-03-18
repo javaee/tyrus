@@ -50,7 +50,6 @@
     </parent>
 
     <packaging>war</packaging>
-    <groupId>org.glassfish.tyrus.tests.servlet.noappconfig</groupId>
     <artifactId>tyrus-tests-servlet-noappconfig</artifactId>
 
     <name>Tyrus Servlet Integration Test (no app config)</name>

@@ -52,6 +52,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Logger;
 
 import javax.websocket.CloseReason;
@@ -85,7 +86,6 @@ public class SessionImpl implements Session {
     private final URI uri;
     private final String queryString;
     private final Map<String, String> pathParameters;
-
     private int maxBinaryMessageBufferSize = 0;
     private int maxTextMessageBufferSize = 0;
     private long maxIdleTimeout = 0;
@@ -94,14 +94,35 @@ public class SessionImpl implements Session {
     private static final Logger LOGGER = Logger.getLogger(SessionImpl.class.getName());
     private final Map<String, Object> userProperties = new HashMap<String, Object>();
     private final MessageHandlerManager handlerManager;
+    private static final String SESSION_CLOSED = "The connection has been closed.";
+    private final AtomicReference<State> state = new AtomicReference<State>(State.RUNNING);
 
+    /**
+     * Session state.
+     */
     public enum State {
+
+        /**
+         * {@link Session} is running and is not receiving partial messages on registered {@link MessageHandler.Whole}.
+         */
         RUNNING,
+
+        /**
+         * {@link Session} is currently receiving text partial message on registered {@link MessageHandler.Whole}.
+         */
         RECEIVING_TEXT,
-        RECEIVING_BINARY
+
+        /**
+         * {@link Session} is currently receiving binary partial message on registered {@link MessageHandler.Whole}.
+         */
+        RECEIVING_BINARY,
+
+        /**
+         * {@link Session} has been already closed.
+         */
+        CLOSED
     }
 
-    private State state = State.RUNNING;
     private StringBuffer stringBuffer;
     private List<ByteBuffer> binaryBufferList;
     private ReaderBuffer readerBuffer;
@@ -140,22 +161,24 @@ public class SessionImpl implements Session {
 
     @Override
     public RemoteEndpoint.Async getAsyncRemote() {
+        checkConnectionState();
         return asyncRemote;
     }
 
     @Override
     public RemoteEndpoint.Basic getBasicRemote() {
+        checkConnectionState();
         return basicRemote;
     }
 
     @Override
     public boolean isOpen() {
-        return endpoint.isOpen(this);
+        return (!(state.get() == State.CLOSED));
     }
 
     @Override
     public void close() throws IOException {
-        this.close(new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, "no reason given"));
+        basicRemote.close(new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, "no reason given"));
     }
 
     /**
@@ -163,6 +186,7 @@ public class SessionImpl implements Session {
      */
     @Override
     public void close(CloseReason closeReason) throws IOException {
+        checkConnectionState();
         basicRemote.close(closeReason);
     }
 
@@ -219,6 +243,7 @@ public class SessionImpl implements Session {
 
     @Override
     public void addMessageHandler(MessageHandler handler) {
+        checkConnectionState();
         synchronized (handlerManager) {
             handlerManager.addMessageHandler(handler);
         }
@@ -226,6 +251,7 @@ public class SessionImpl implements Session {
 
     @Override
     public Set<MessageHandler> getMessageHandlers() {
+        checkConnectionState();
         synchronized (handlerManager) {
             return handlerManager.getMessageHandlers();
         }
@@ -233,6 +259,7 @@ public class SessionImpl implements Session {
 
     @Override
     public void removeMessageHandler(MessageHandler handler) {
+        checkConnectionState();
         synchronized (handlerManager) {
             handlerManager.removeMessageHandler(handler);
         }
@@ -274,6 +301,12 @@ public class SessionImpl implements Session {
         return null;  // TODO: Implement.
     }
 
+    private void checkConnectionState() {
+        if (this.state.get() == State.CLOSED) {
+            throw new IllegalStateException(SESSION_CLOSED);
+        }
+    }
+
     void setNegotiatedSubprotocol(String negotiatedSubprotocol) {
         this.negotiatedSubprotocol = negotiatedSubprotocol == null ? "" : negotiatedSubprotocol;
     }
@@ -294,6 +327,7 @@ public class SessionImpl implements Session {
     }
 
     void notifyMessageHandlers(Object message, List<CoderWrapper<Decoder>> availableDecoders) {
+        checkConnectionState();
 
         boolean decoded = false;
 
@@ -337,6 +371,7 @@ public class SessionImpl implements Session {
     }
 
     void notifyMessageHandlers(Object message, boolean last) {
+        checkConnectionState();
         boolean handled = false;
 
         for (MessageHandler handler : this.getMessageHandlers()) {
@@ -401,6 +436,7 @@ public class SessionImpl implements Session {
     }
 
     private List<MessageHandler> getOrderedMessageHandlers() {
+        checkConnectionState();
         Set<MessageHandler> handlers = this.getMessageHandlers();
         ArrayList<MessageHandler> result = new ArrayList<MessageHandler>();
 
@@ -437,7 +473,7 @@ public class SessionImpl implements Session {
     }
 
     State getState() {
-        return state;
+        return state.get();
     }
 
     StringBuffer getStringBuffer() {
@@ -448,8 +484,14 @@ public class SessionImpl implements Session {
         return binaryBufferList;
     }
 
-    void setState(State state) {
-        this.state = state;
+    /**
+     * Set the state of the {@link Session}.
+     *
+     * @param state the newly set state.
+     */
+    public void setState(State state) {
+        checkConnectionState();
+        this.state.set(state);
     }
 
     void setStringBuffer(StringBuffer stringBuffer) {

@@ -50,7 +50,6 @@
     </parent>
 
     <packaging>war</packaging>
-    <groupId>org.glassfish.tyrus.tests</groupId>
     <artifactId>tyrus-tests-servlet-dynamic-deploy</artifactId>
 
     <name>Tyrus Servlet Dynamic Deploy Test</name>

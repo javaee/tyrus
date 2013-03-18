@@ -53,6 +53,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.websocket.ClientEndpointConfig;
 import javax.websocket.CloseReason;
@@ -273,7 +275,7 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
 
     @Override
     public void close() {
-        close(100000, "Closing");
+        close(CloseReason.CloseCodes.NORMAL_CLOSURE.getCode(), "Closing");
     }
 
     @Override
@@ -290,14 +292,10 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
     public void close(int i, String s) {
         if (state.compareAndSet(State.CONNECTED, State.CLOSING)) {
             protocolHandler.close(i, s);
-            if (transport != null) {
-                try {
-                    transport.stop();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
+            closeTransport();
         }
+
+        this.onClose(new ClosingFrame(i, s));
     }
 
     @Override
@@ -343,12 +341,16 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
 
     @Override
     public void onClose(ClosingFrame dataFrame) {
-        if (state.compareAndSet(State.CONNECTED, State.CLOSING)) {
-            protocolHandler.close(dataFrame.getCode(), dataFrame.getTextPayload());
-        } else {
+        if (state.get() == State.CLOSED) {
+            return;
+        }
+
+        if (!state.compareAndSet(State.CLOSING, State.CLOSED)) {
             state.set(State.CLOSED);
             protocolHandler.doClose();
+            closeTransport();
         }
+
         for (SPIEndpoint endpoint : endpoints) {
             CloseReason closeReason = null;
 
@@ -393,5 +395,15 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
 
     private static org.glassfish.tyrus.websockets.Connection getConnection(final Connection connection) {
         return new ConnectionImpl(connection);
+    }
+
+    private void closeTransport() {
+        if (transport != null) {
+            try {
+                transport.stop();
+            } catch (IOException e) {
+                Logger.getLogger(GrizzlyClientSocket.class.getName()).log(Level.FINE, "Transport closing problem.");
+            }
+        }
     }
 }
