@@ -90,6 +90,9 @@ public class HelloTest {
 
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new TestEndpointAdapter() {
+
+                private Session session;
+
                 @Override
                 public EndpointConfig getEndpointConfig() {
                     return cec;
@@ -97,6 +100,9 @@ public class HelloTest {
 
                 @Override
                 public void onOpen(Session session) {
+
+                    this.session = session;
+
                     try {
                         session.addMessageHandler(new TestTextMessageHandler(this));
                         session.getBasicRemote().sendText(SENT_MESSAGE);
@@ -109,7 +115,11 @@ public class HelloTest {
                 @Override
                 public void onMessage(String message) {
                     receivedMessage = message;
-                    messageLatch.countDown();
+
+                    // TYRUS-141
+                    if (session.getNegotiatedSubprotocol() != null) {
+                        messageLatch.countDown();
+                    }
                 }
             }, cec, new URI("wss://localhost:8025/websockets/tests/echo"));
             messageLatch.await(5, TimeUnit.SECONDS);

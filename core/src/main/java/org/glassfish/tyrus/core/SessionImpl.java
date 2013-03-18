@@ -326,7 +326,7 @@ public class SessionImpl implements Session {
         }
     }
 
-    <T> MessageHandler.Whole<T> getMessageHandler(Class<T> c){
+    <T> MessageHandler.Whole<T> getMessageHandler(Class<T> c) {
         for (MessageHandler mh : this.getOrderedMessageHandlers()) {
             if (MessageHandlerManager.getHandlerType(mh) == c) {
                 return (MessageHandler.Whole<T>) mh;

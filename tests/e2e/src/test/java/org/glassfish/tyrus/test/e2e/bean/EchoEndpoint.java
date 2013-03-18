@@ -49,12 +49,17 @@ import javax.websocket.server.ServerEndpoint;
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-
 @ServerEndpoint(value = "/echo")
 public class EchoEndpoint {
 
     @OnMessage
-    public String doThat(String message, Session peer) {
-        return message;
+    public String doThat(String message, Session session) {
+
+        // TYRUS-141
+        if (session.getNegotiatedSubprotocol() != null) {
+            return message;
+        }
+
+        return null;
     }
 }

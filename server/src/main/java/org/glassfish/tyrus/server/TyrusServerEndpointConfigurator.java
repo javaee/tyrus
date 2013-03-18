@@ -75,7 +75,7 @@ public class TyrusServerEndpointConfigurator extends ServerEndpointConfig.Config
             }
         }
 
-        return null;
+        return "";
     }
 
     @Override
