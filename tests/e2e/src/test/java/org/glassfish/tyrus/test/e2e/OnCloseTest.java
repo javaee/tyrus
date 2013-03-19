@@ -485,4 +485,260 @@ public class OnCloseTest {
             server.stop();
         }
     }
+
+    @ServerEndpoint(value = "/close")
+    public static class SessionTestAllMethodsAfterCloseEndpoint {
+        public static CountDownLatch messageLatch;
+        public static boolean exceptionsThrown = false;
+
+        @OnMessage
+        public String message(String message, Session session) {
+            boolean checker = true;
+            boolean thrown = false;
+
+            try {
+                session.close();
+                session.close(new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, "Normal closure."));
+            } catch (IllegalStateException e) {
+                exceptionsThrown = true;
+                thrown = true;
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            checker &= thrown;
+            thrown = false;
+            try{
+                session.getAsyncRemote();
+            }catch (IllegalStateException e){
+                thrown = true;
+            }
+
+            checker &= thrown;
+            thrown = false;
+            try{
+                session.getBasicRemote();
+            }catch (IllegalStateException e){
+                thrown = true;
+            }
+
+            checker &= thrown;
+            thrown = false;
+            try{
+                session.addMessageHandler(null);
+            }catch (IllegalStateException e){
+                thrown = true;
+            }
+
+            checker &= thrown;
+            thrown = false;
+            try{
+                session.getContainer();
+            }catch (IllegalStateException e){
+                thrown = true;
+            }
+
+            checker &= thrown;
+            thrown = false;
+            try{
+                session.getId();
+            }catch (IllegalStateException e){
+                thrown = true;
+            }
+
+            checker &= thrown;
+            thrown = false;
+            try{
+                session.getMaxBinaryMessageBufferSize();
+            }catch (IllegalStateException e){
+                thrown = true;
+            }
+
+            checker &= thrown;
+            thrown = false;
+            try{
+                session.getMaxIdleTimeout();
+            }catch (IllegalStateException e){
+                thrown = true;
+            }
+
+            checker &= thrown;
+            thrown = false;
+            try{
+                session.getNegotiatedExtensions();
+            }catch (IllegalStateException e){
+                thrown = true;
+            }
+
+            checker &= thrown;
+            thrown = false;
+            try{
+                session.getMessageHandlers();
+            }catch (IllegalStateException e){
+                thrown = true;
+            }
+
+            checker &= thrown;
+            thrown = false;
+            try{
+                session.getMaxTextMessageBufferSize();
+            }catch (IllegalStateException e){
+                thrown = true;
+            }
+
+            checker &= thrown;
+            thrown = false;
+            try{
+                session.getNegotiatedSubprotocol();
+            }catch (IllegalStateException e){
+                thrown = true;
+            }
+
+            checker &= thrown;
+            thrown = false;
+            try{
+                session.getOpenSessions();
+            }catch (IllegalStateException e){
+                thrown = true;
+            }
+
+            checker &= thrown;
+            thrown = false;
+            try{
+                session.getPathParameters();
+            }catch (IllegalStateException e){
+                thrown = true;
+            }
+
+            checker &= thrown;
+            thrown = false;
+            try{
+                session.getProtocolVersion();
+            }catch (IllegalStateException e){
+                thrown = true;
+            }
+
+            checker &= thrown;
+            thrown = false;
+            try{
+                session.getQueryString();
+            }catch (IllegalStateException e){
+                thrown = true;
+            }
+
+            checker &= thrown;
+            thrown = false;
+            try{
+                session.getRequestParameterMap();
+            }catch (IllegalStateException e){
+                thrown = true;
+            }
+
+            checker &= thrown;
+            thrown = false;
+            try{
+                session.getRequestURI();
+            }catch (IllegalStateException e){
+                thrown = true;
+            }
+
+            checker &= thrown;
+            thrown = false;
+            try{
+                session.getUserPrincipal();
+            }catch (IllegalStateException e){
+                thrown = true;
+            }
+
+            checker &= thrown;
+            thrown = false;
+            try{
+                session.getUserProperties();
+            }catch (IllegalStateException e){
+                thrown = true;
+            }
+
+            checker &= thrown;
+            thrown = false;
+            try{
+                session.isSecure();
+            }catch (IllegalStateException e){
+                thrown = true;
+            }
+
+            checker &= thrown;
+            thrown = false;
+            try{
+                session.removeMessageHandler(null);
+            }catch (IllegalStateException e){
+                thrown = true;
+            }
+
+            checker &= thrown;
+            thrown = false;
+            try{
+                session.setMaxBinaryMessageBufferSize(10);
+            }catch (IllegalStateException e){
+                thrown = true;
+            }
+
+            checker &= thrown;
+            thrown = false;
+            try{
+                session.setMaxIdleTimeout(1);
+            }catch (IllegalStateException e){
+                thrown = true;
+            }
+
+            if(checker &= thrown){
+                exceptionsThrown = true;
+            }
+
+            messageLatch.countDown();
+            return "message";
+        }
+    }
+
+    @Test
+    public void testSessionAllMethodsAfterClose() {
+        Server server = new Server(SessionTestAllMethodsAfterCloseEndpoint.class);
+
+        SessionTestAllMethodsAfterCloseEndpoint.messageLatch = new CountDownLatch(1);
+
+        try {
+            server.start();
+            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
+
+            ClientManager.createClient().connectToServer(new TestEndpointAdapter() {
+                @Override
+                public EndpointConfig getEndpointConfig() {
+                    return cec;
+                }
+
+                @Override
+                public void onMessage(String message) {
+
+                }
+
+                @Override
+                public void onOpen(Session session) {
+                    session.addMessageHandler(new TestTextMessageHandler(this));
+                    try {
+                        session.getBasicRemote().sendText("message");
+                    } catch (IOException e) {
+                        // do nothing.
+                    }
+                }
+            }, cec, new URI("ws://localhost:8025/websockets/tests/close"));
+
+            SessionTestAllMethodsAfterCloseEndpoint.messageLatch.await(2, TimeUnit.SECONDS);
+            assertEquals(0L, SessionTestAllMethodsAfterCloseEndpoint.messageLatch.getCount());
+            assertEquals(true, SessionTestAllMethodsAfterCloseEndpoint.exceptionsThrown);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            server.stop();
+        }
+    }
 }

@@ -702,7 +702,7 @@ public class EndpointWrapper extends SPIEndpoint {
             return;
         }
 
-        session.setState(SessionImpl.State.CLOSED);
+        session.setState(SessionImpl.State.CLOSING);
         final Endpoint toCall = endpoint != null ? endpoint :
                 (Endpoint) componentProvider.getInstance(endpointClass, session, collector);
 
@@ -716,6 +716,7 @@ public class EndpointWrapper extends SPIEndpoint {
             }
         }
 
+        session.setState(SessionImpl.State.CLOSED);
         remoteEndpointToSession.remove(gs);
         componentProvider.removeSession(session);
     }

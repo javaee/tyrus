@@ -51,38 +51,16 @@ import javax.websocket.server.ServerEndpoint;
  */
 @ServerEndpoint(value = "/closeclt")
 public class CloseClientEndpoint {
-    public static boolean inCloseExceptionAddMessageHandlerThrown = false;
-    public static boolean inCloseExceptionRemoveMessageHandlerThrown = false;
-    public static boolean inCloseExceptionGetAsyncRemoteThrown = false;
-    public static boolean inCloseExceptionGetBasicRemoteThrown = false;
+
+    public static boolean inCloseSendTextExceptionThrown = false;
 
     @OnClose
     public void onClose(Session session) {
-
         try {
-            session.addMessageHandler(null);
-        } catch (IllegalStateException e) {
-            inCloseExceptionAddMessageHandlerThrown = true;
+            session.getBasicRemote().sendText("Hello.");
+        } catch (Exception e) {
+            inCloseSendTextExceptionThrown = true;
         }
-
-        try {
-            session.removeMessageHandler(null);
-        } catch (IllegalStateException e) {
-            inCloseExceptionRemoveMessageHandlerThrown = true;
-        }
-
-        try {
-            session.getBasicRemote();
-        } catch (IllegalStateException e) {
-            inCloseExceptionGetBasicRemoteThrown = true;
-        }
-
-        try {
-            session.getAsyncRemote();
-        } catch (IllegalStateException e) {
-            inCloseExceptionGetAsyncRemoteThrown = true;
-        }
-
     }
 
     @OnMessage

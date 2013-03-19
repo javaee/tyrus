@@ -57,19 +57,14 @@ public class ServiceEndpoint {
                     CloseServerEndpoint.removeMessageHandlerExceptionThrown &&
                     CloseServerEndpoint.getBasicRemoteExceptionThrown &&
                     CloseServerEndpoint.getAsyncRemoteExceptionThrown &&
-                    CloseServerEndpoint.inCloseExceptionAddMessageHandlerThrown &&
-                    CloseServerEndpoint.inCloseExceptionGetAsyncRemoteThrown &&
-                    CloseServerEndpoint.inCloseExceptionGetBasicRemoteThrown &&
-                    CloseServerEndpoint.inCloseExceptionRemoveMessageHandlerThrown) {
+                    CloseServerEndpoint.inCloseSendTextExceptionThrown &&
+                    !CloseServerEndpoint.inCloseGetTimeoutExceptionThrown) {
                 return "1";
             } else {
                 return "0";
             }
         } else {
-            if (CloseClientEndpoint.inCloseExceptionAddMessageHandlerThrown &&
-                    CloseClientEndpoint.inCloseExceptionGetAsyncRemoteThrown &&
-                    CloseClientEndpoint.inCloseExceptionGetBasicRemoteThrown &&
-                    CloseClientEndpoint.inCloseExceptionRemoveMessageHandlerThrown) {
+            if (CloseClientEndpoint.inCloseSendTextExceptionThrown) {
                 return "1";
             } else {
                 return "0";

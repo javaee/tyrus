@@ -73,8 +73,10 @@ public class SessionCloseApplicationTest {
     private final String CONTEXT_PATH = "/session-test";
     private final String DEFAULT_HOST = "localhost";
     private final int DEFAULT_PORT = 8025;
-    public static String messageReceived1 = "not received.";
-    public static String messageReceived2 = "not received.";
+    private static String messageReceived1 = "not received.";
+    private static String messageReceived2 = "not received.";
+    private static boolean inCloseSendMessageExceptionThrown1 = false;
+    private static boolean inCloseSendMessageExceptionThrown2 = false;
 
     private final Set<Class<?>> endpointClasses = new HashSet<Class<?>>() {{
         add(CloseServerEndpoint.class);
@@ -165,39 +167,12 @@ public class SessionCloseApplicationTest {
 
                 @Override
                 public void onClose(javax.websocket.Session session, javax.websocket.CloseReason closeReason) {
-                    boolean inCloseExceptionAddMessageHandlerThrown = false;
-                    boolean inCloseExceptionRemoveMessageHandlerThrown = false;
-                    boolean inCloseExceptionGetAsyncRemoteThrown = false;
-                    boolean inCloseExceptionGetBasicRemoteThrown = false;
-
                     try {
-                        session.addMessageHandler(null);
-                    } catch (IllegalStateException e) {
-                        inCloseExceptionAddMessageHandlerThrown = true;
+                        session.getBasicRemote().sendText("Hello.");
+                    } catch (Exception e) {
+                        inCloseSendMessageExceptionThrown1 = true;
                     }
 
-                    try {
-                        session.removeMessageHandler(null);
-                    } catch (IllegalStateException e) {
-                        inCloseExceptionRemoveMessageHandlerThrown = true;
-                    }
-
-                    try {
-                        session.getBasicRemote();
-                    } catch (IllegalStateException e) {
-                        inCloseExceptionGetBasicRemoteThrown = true;
-                    }
-
-                    try {
-                        session.getAsyncRemote();
-                    } catch (IllegalStateException e) {
-                        inCloseExceptionGetAsyncRemoteThrown = true;
-                    }
-
-                    Assert.assertEquals(true, inCloseExceptionAddMessageHandlerThrown);
-                    Assert.assertEquals(true, inCloseExceptionGetAsyncRemoteThrown);
-                    Assert.assertEquals(true, inCloseExceptionGetBasicRemoteThrown);
-                    Assert.assertEquals(true, inCloseExceptionRemoveMessageHandlerThrown);
                     clientLatch.countDown();
                 }
 
@@ -236,6 +211,7 @@ public class SessionCloseApplicationTest {
             Assert.assertEquals(true, exceptionGetAsyncRemoteThrown);
             Assert.assertEquals(true, exceptionGetBasicRemoteThrown);
             Assert.assertEquals(true, exceptionRemoveMessageHandlerThrown);
+            Assert.assertEquals(true, inCloseSendMessageExceptionThrown1);
 
             final CountDownLatch messageLatch = new CountDownLatch(1);
 
@@ -313,39 +289,12 @@ public class SessionCloseApplicationTest {
 
                 @Override
                 public void onClose(javax.websocket.Session session, javax.websocket.CloseReason closeReason) {
-                    boolean inCloseExceptionAddMessageHandlerThrown = false;
-                    boolean inCloseExceptionRemoveMessageHandlerThrown = false;
-                    boolean inCloseExceptionGetAsyncRemoteThrown = false;
-                    boolean inCloseExceptionGetBasicRemoteThrown = false;
-
                     try {
-                        session.addMessageHandler(null);
-                    } catch (IllegalStateException e) {
-                        inCloseExceptionAddMessageHandlerThrown = true;
+                        session.getBasicRemote().sendText("Hello");
+                    } catch (Exception e) {
+                        inCloseSendMessageExceptionThrown2 = true;
                     }
 
-                    try {
-                        session.removeMessageHandler(null);
-                    } catch (IllegalStateException e) {
-                        inCloseExceptionRemoveMessageHandlerThrown = true;
-                    }
-
-                    try {
-                        session.getBasicRemote();
-                    } catch (IllegalStateException e) {
-                        inCloseExceptionGetBasicRemoteThrown = true;
-                    }
-
-                    try {
-                        session.getAsyncRemote();
-                    } catch (IllegalStateException e) {
-                        inCloseExceptionGetAsyncRemoteThrown = true;
-                    }
-
-                    Assert.assertEquals(true, inCloseExceptionAddMessageHandlerThrown);
-                    Assert.assertEquals(true, inCloseExceptionGetAsyncRemoteThrown);
-                    Assert.assertEquals(true, inCloseExceptionGetBasicRemoteThrown);
-                    Assert.assertEquals(true, inCloseExceptionRemoveMessageHandlerThrown);
                     clientLatch.countDown();
                 }
 
@@ -384,6 +333,7 @@ public class SessionCloseApplicationTest {
             Assert.assertEquals(true, exceptionGetAsyncRemoteThrown);
             Assert.assertEquals(true, exceptionGetBasicRemoteThrown);
             Assert.assertEquals(true, exceptionRemoveMessageHandlerThrown);
+            Assert.assertEquals(true, inCloseSendMessageExceptionThrown2);
 
             final CountDownLatch messageLatch = new CountDownLatch(1);
 

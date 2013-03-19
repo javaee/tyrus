@@ -57,11 +57,8 @@ public class CloseServerEndpoint {
     public static boolean removeMessageHandlerExceptionThrown = false;
     public static boolean getAsyncRemoteExceptionThrown = false;
     public static boolean getBasicRemoteExceptionThrown = false;
-    public static boolean inCloseExceptionAddMessageHandlerThrown = false;
-    public static boolean inCloseExceptionRemoveMessageHandlerThrown = false;
-    public static boolean inCloseExceptionGetAsyncRemoteThrown = false;
-    public static boolean inCloseExceptionGetBasicRemoteThrown = false;
-
+    public static boolean inCloseSendTextExceptionThrown = false;
+    public static boolean inCloseGetTimeoutExceptionThrown = false;
 
     @OnMessage
     public void message(String message, Session session) {
@@ -98,30 +95,18 @@ public class CloseServerEndpoint {
 
     @OnClose
     public void onClose(Session session) {
+
         try {
-            session.addMessageHandler(null);
-        } catch (IllegalStateException e) {
-            inCloseExceptionAddMessageHandlerThrown = true;
+            session.getMaxIdleTimeout();
+        } catch (Exception e) {
+            inCloseGetTimeoutExceptionThrown = true;
         }
 
         try {
-            session.removeMessageHandler(null);
-        } catch (IllegalStateException e) {
-            inCloseExceptionRemoveMessageHandlerThrown = true;
+            session.getBasicRemote().sendText("Hello.");
+        } catch (Exception e) {
+            inCloseSendTextExceptionThrown = true;
         }
-
-        try {
-            session.getBasicRemote();
-        } catch (IllegalStateException e) {
-            inCloseExceptionGetBasicRemoteThrown = true;
-        }
-
-        try {
-            session.getAsyncRemote();
-        } catch (IllegalStateException e) {
-            inCloseExceptionGetAsyncRemoteThrown = true;
-        }
-
     }
 
     @OnError

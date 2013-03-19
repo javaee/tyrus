@@ -54,8 +54,8 @@ import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.UUID;
-import java.util.logging.Level;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.websocket.CloseReason;
@@ -123,6 +123,11 @@ public class SessionImpl implements Session {
         RECEIVING_BINARY,
 
         /**
+         * {@link Session} is being closed.
+         */
+        CLOSING,
+
+        /**
          * {@link Session} has been already closed.
          */
         CLOSED
@@ -157,33 +162,36 @@ public class SessionImpl implements Session {
      */
     @Override
     public String getProtocolVersion() {
+        checkConnectionState(State.CLOSED);
         return "13"; // TODO
     }
 
     @Override
     public String getNegotiatedSubprotocol() {
+        checkConnectionState(State.CLOSED);
         return negotiatedSubprotocol;
     }
 
     @Override
     public RemoteEndpoint.Async getAsyncRemote() {
-        checkConnectionState();
+        checkConnectionState(State.CLOSED, State.CLOSING);
         return asyncRemote;
     }
 
     @Override
     public RemoteEndpoint.Basic getBasicRemote() {
-        checkConnectionState();
+        checkConnectionState(State.CLOSED, State.CLOSING);
         return basicRemote;
     }
 
     @Override
     public boolean isOpen() {
-        return (!(state.get() == State.CLOSED));
+        return (!(state.get() == State.CLOSED || state.get() == State.CLOSING));
     }
 
     @Override
     public void close() throws IOException {
+        changeStateToClosing();
         basicRemote.close(new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, "no reason given"));
     }
 
@@ -192,65 +200,76 @@ public class SessionImpl implements Session {
      */
     @Override
     public void close(CloseReason closeReason) throws IOException {
-        checkConnectionState();
+        checkConnectionState(State.CLOSED);
+        changeStateToClosing();
         basicRemote.close(closeReason);
     }
 
     @Override
     public int getMaxBinaryMessageBufferSize() {
+        checkConnectionState(State.CLOSED);
         return maxBinaryMessageBufferSize;
     }
 
     @Override
     public void setMaxBinaryMessageBufferSize(int maxBinaryMessageBufferSize) {
+        checkConnectionState(State.CLOSED);
         this.maxBinaryMessageBufferSize = maxBinaryMessageBufferSize;
     }
 
     @Override
     public int getMaxTextMessageBufferSize() {
+        checkConnectionState(State.CLOSED);
         return maxTextMessageBufferSize;
     }
 
     @Override
     public void setMaxTextMessageBufferSize(int maxTextMessageBufferSize) {
+        checkConnectionState(State.CLOSED);
         this.maxTextMessageBufferSize = maxTextMessageBufferSize;
     }
 
     @Override
     public Set<Session> getOpenSessions() {
+        checkConnectionState(State.CLOSED);
         return Collections.unmodifiableSet(endpoint.getOpenSessions());
     }
 
     @Override
     public List<Extension> getNegotiatedExtensions() {
+        checkConnectionState(State.CLOSED);
         return negotiatedExtensions;
     }
 
     @Override
     public long getMaxIdleTimeout() {
+        checkConnectionState(State.CLOSED);
         return maxIdleTimeout;
     }
 
     @Override
     public void setMaxIdleTimeout(long maxIdleTimeout) {
+        checkConnectionState(State.CLOSED);
         this.maxIdleTimeout = maxIdleTimeout;
         restartTimer();
     }
 
     @Override
     public boolean isSecure() {
+        checkConnectionState(State.CLOSED);
         return isSecure;
     }
 
     @Override
     public WebSocketContainer getContainer() {
+        checkConnectionState(State.CLOSED);
         return this.container;
     }
 
 
     @Override
     public void addMessageHandler(MessageHandler handler) {
-        checkConnectionState();
+        checkConnectionState(State.CLOSED);
         synchronized (handlerManager) {
             handlerManager.addMessageHandler(handler);
         }
@@ -258,7 +277,7 @@ public class SessionImpl implements Session {
 
     @Override
     public Set<MessageHandler> getMessageHandlers() {
-        checkConnectionState();
+        checkConnectionState(State.CLOSED);
         synchronized (handlerManager) {
             return handlerManager.getMessageHandlers();
         }
@@ -266,7 +285,7 @@ public class SessionImpl implements Session {
 
     @Override
     public void removeMessageHandler(MessageHandler handler) {
-        checkConnectionState();
+        checkConnectionState(State.CLOSED);
         synchronized (handlerManager) {
             handlerManager.removeMessageHandler(handler);
         }
@@ -274,37 +293,44 @@ public class SessionImpl implements Session {
 
     @Override
     public URI getRequestURI() {
+        checkConnectionState(State.CLOSED);
         return uri;
     }
 
     // TODO: this method should be deleted?
     @Override
     public Map<String, List<String>> getRequestParameterMap() {
+        checkConnectionState(State.CLOSED);
         return Collections.emptyMap();
     }
 
     @Override
     public Map<String, String> getPathParameters() {
+        checkConnectionState(State.CLOSED);
         return pathParameters;
     }
 
     @Override
     public Map<String, Object> getUserProperties() {
+        checkConnectionState(State.CLOSED);
         return userProperties;
     }
 
     @Override
     public String getQueryString() {
+        checkConnectionState(State.CLOSED);
         return queryString;
     }
 
     @Override
     public String getId() {
+        checkConnectionState(State.CLOSED);
         return id;
     }
 
     @Override
     public Principal getUserPrincipal() {
+        checkConnectionState(State.CLOSED);
         return userPrincipal;
     }
 
@@ -321,9 +347,11 @@ public class SessionImpl implements Session {
         timer.schedule(new SessionTimerTask(), this.getMaxIdleTimeout());
     }
 
-    private void checkConnectionState() {
-        if (this.state.get() == State.CLOSED) {
-            throw new IllegalStateException(SESSION_CLOSED);
+    private void checkConnectionState(State... states) {
+        for (State s : states) {
+            if(state.get() == s){
+                throw new IllegalStateException(SESSION_CLOSED);
+            }
         }
     }
 
@@ -347,7 +375,7 @@ public class SessionImpl implements Session {
     }
 
     void notifyMessageHandlers(Object message, List<CoderWrapper<Decoder>> availableDecoders) {
-        checkConnectionState();
+        checkConnectionState(State.CLOSED);
 
         boolean decoded = false;
 
@@ -391,7 +419,7 @@ public class SessionImpl implements Session {
     }
 
     void notifyMessageHandlers(Object message, boolean last) {
-        checkConnectionState();
+        checkConnectionState(State.CLOSED);
         boolean handled = false;
 
         for (MessageHandler handler : this.getMessageHandlers()) {
@@ -456,7 +484,7 @@ public class SessionImpl implements Session {
     }
 
     private List<MessageHandler> getOrderedMessageHandlers() {
-        checkConnectionState();
+        checkConnectionState(State.CLOSED);
         Set<MessageHandler> handlers = this.getMessageHandlers();
         ArrayList<MessageHandler> result = new ArrayList<MessageHandler>();
 
@@ -510,7 +538,7 @@ public class SessionImpl implements Session {
      * @param state the newly set state.
      */
     public void setState(State state) {
-        checkConnectionState();
+        checkConnectionState(State.CLOSED);
         this.state.set(state);
     }
 
@@ -559,5 +587,11 @@ public class SessionImpl implements Session {
                 LOGGER.log(Level.FINE,"Session could not been closed. "+e.getMessage());
             }
         }
+    }
+
+    private void changeStateToClosing(){
+        state.compareAndSet(State.RUNNING, State.CLOSING);
+        state.compareAndSet(State.RECEIVING_BINARY, State.CLOSING);
+        state.compareAndSet(State.RECEIVING_TEXT, State.CLOSING);
     }
 }
