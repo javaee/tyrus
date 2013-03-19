@@ -45,6 +45,7 @@ import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -91,6 +92,7 @@ public class ClientManager extends ContainerProvider implements WebSocketContain
     private final TyrusContainer engine;
     private final ComponentProviderService componentProvider;
     private final ErrorCollector collector;
+    private final Map<String, Object> properties = new HashMap<String, Object>();
 
     private long defaultAsyncSendTimeout;
     private long defaultMaxSessionIdleTimeout;
@@ -263,7 +265,7 @@ public class ClientManager extends ContainerProvider implements WebSocketContain
                         responseLatch.countDown();
                     }
                 };
-                clientSocket = engine.openClientSocket(url, config, clientEndpoint, listener);
+                clientSocket = engine.openClientSocket(url, config, clientEndpoint, listener, properties);
             }
 
         } catch (Exception e) {
@@ -339,5 +341,9 @@ public class ClientManager extends ContainerProvider implements WebSocketContain
     @Override
     public void setDefaultMaxSessionIdleTimeout(long defaultMaxSessionIdleTimeout) {
         this.defaultMaxSessionIdleTimeout = defaultMaxSessionIdleTimeout;
+    }
+
+    public Map<String, Object> getProperties() {
+        return properties;
     }
 }

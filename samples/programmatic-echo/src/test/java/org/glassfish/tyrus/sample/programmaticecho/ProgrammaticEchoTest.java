@@ -74,7 +74,7 @@ public class ProgrammaticEchoTest {
 
     @Test
     public void testEcho() throws DeploymentException {
-        final Server server = Main.getServer("localhost", 8025, "/sample-programmatic-echo");
+        final Server server = new Server("localhost", 8025, "/sample-programmatic-echo", MyWsConfiguration.class);
         server.start();
 
         try {

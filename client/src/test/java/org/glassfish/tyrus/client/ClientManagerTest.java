@@ -39,6 +39,8 @@
  */
 package org.glassfish.tyrus.client;
 
+import java.util.Map;
+
 import javax.websocket.ClientEndpointConfig;
 
 import org.glassfish.tyrus.spi.SPIEndpoint;
@@ -92,9 +94,8 @@ public class ClientManagerTest {
 
         @Override
         public TyrusClientSocket openClientSocket(String url, ClientEndpointConfig cec, SPIEndpoint endpoint,
-                                                  SPIHandshakeListener listener) {
+                                                  SPIHandshakeListener listener, Map<String, Object> properties) {
             return null;
         }
     }
-
 }

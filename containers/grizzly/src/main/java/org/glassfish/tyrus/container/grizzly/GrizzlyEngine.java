@@ -42,6 +42,7 @@ package org.glassfish.tyrus.container.grizzly;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Map;
 
 import javax.websocket.ClientEndpointConfig;
 
@@ -55,11 +56,15 @@ import org.glassfish.tyrus.spi.TyrusServer;
 import org.glassfish.tyrus.websockets.WebSocketEngine;
 
 import org.glassfish.grizzly.http.server.HttpServer;
+import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)
  */
 public class GrizzlyEngine implements TyrusContainer {
+
+    public static final String SSL_ENGINE_CONFIGURATOR = "org.glassfish.tyrus.client.sslEngineConfigurator";
+
     private final WebSocketEngine engine;
 
     /**
@@ -100,7 +105,7 @@ public class GrizzlyEngine implements TyrusContainer {
 
     @Override
     public TyrusClientSocket openClientSocket(String url, ClientEndpointConfig cec, SPIEndpoint endpoint,
-                                              SPIHandshakeListener listener) {
+                                              SPIHandshakeListener listener, Map<String, Object> properties) {
         URI uri;
 
         try {
@@ -110,7 +115,8 @@ public class GrizzlyEngine implements TyrusContainer {
             return null;
         }
 
-        GrizzlyClientSocket clientSocket = new GrizzlyClientSocket(uri, cec, 1000, listener);
+        GrizzlyClientSocket clientSocket = new GrizzlyClientSocket(uri, cec, 1000, listener,
+                properties == null ? null : (SSLEngineConfigurator) properties.get(SSL_ENGINE_CONFIGURATOR));
         clientSocket.addEndpoint(endpoint);
         clientSocket.connect();
         return clientSocket;

@@ -87,6 +87,8 @@ import org.glassfish.grizzly.http.HttpClientFilter;
 import org.glassfish.grizzly.nio.transport.TCPNIOConnectorHandler;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransportBuilder;
+import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
+import org.glassfish.grizzly.ssl.SSLFilter;
 
 /**
  * Implementation of the WebSocket interface.
@@ -106,6 +108,7 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
     private final long timeoutMs;
     private final ClientEndpointConfig configuration;
     private final SPIHandshakeListener listener;
+    private final SSLEngineConfigurator clientSSLEngineConfigurator;
     private Session session = null;
 
     private final List<javax.websocket.Extension> responseExtensions = new ArrayList<javax.websocket.Extension>();
@@ -117,18 +120,21 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
     /**
      * Create new instance.
      *
-     * @param uri           endpoint address.
-     * @param configuration client endpoint configuration.
-     * @param timeoutMs     TODO
-     * @param listener      listener called when response is received.
+     * @param uri                         endpoint address.
+     * @param configuration               client endpoint configuration.
+     * @param timeoutMs                   TODO
+     * @param listener                    listener called when response is received.
+     * @param clientSSLEngineConfigurator ssl engine configurator
      */
-    public GrizzlyClientSocket(URI uri, ClientEndpointConfig configuration, long timeoutMs, SPIHandshakeListener listener) {
+    public GrizzlyClientSocket(URI uri, ClientEndpointConfig configuration, long timeoutMs, SPIHandshakeListener listener,
+                               SSLEngineConfigurator clientSSLEngineConfigurator) {
         this.uri = uri;
         this.configuration = configuration;
         protocolHandler = WebSocketEngine.DEFAULT_VERSION.createHandler(true);
         remoteEndpoint = new TyrusRemoteEndpoint(this);
         this.timeoutMs = timeoutMs;
         this.listener = listener;
+        this.clientSSLEngineConfigurator = clientSSLEngineConfigurator;
     }
 
     /**
@@ -137,6 +143,7 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
     public void connect() {
         try {
             transport = TCPNIOTransportBuilder.newInstance().build();
+
             transport.start();
 
             final TCPNIOConnectorHandler connectorHandler = new TCPNIOConnectorHandler(transport) {
@@ -155,7 +162,7 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
                 }
             };
 
-            connectorHandler.setProcessor(createFilterChain());
+            connectorHandler.setProcessor(createFilterChain(null, clientSSLEngineConfigurator));
             int port = uri.getPort();
             if (port == -1) {
                 String scheme = uri.getScheme();
@@ -385,9 +392,13 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
         throw new UnsupportedOperationException();
     }
 
-    private static Processor createFilterChain() {
+    private static Processor createFilterChain(SSLEngineConfigurator serverSSLEngineConfigurator,
+                                               SSLEngineConfigurator clientSSLEngineConfigurator) {
         FilterChainBuilder clientFilterChainBuilder = FilterChainBuilder.stateless();
         clientFilterChainBuilder.add(new TransportFilter());
+        if (serverSSLEngineConfigurator != null || clientSSLEngineConfigurator != null) {
+            clientFilterChainBuilder.add(new SSLFilter(serverSSLEngineConfigurator, clientSSLEngineConfigurator));
+        }
         clientFilterChainBuilder.add(new HttpClientFilter());
         clientFilterChainBuilder.add(new WebSocketFilter());
         return clientFilterChainBuilder.build();

@@ -40,6 +40,8 @@
 package org.glassfish.tyrus.spi;
 
 
+import java.util.Map;
+
 import javax.websocket.ClientEndpointConfig;
 
 /**
@@ -69,8 +71,9 @@ public interface TyrusContainer {
      * @param cec               endpoint configuration.
      * @param endpoint          endpoint instance.
      * @param handshakeListener handshake listener.
+     * @param properties        properties map.
      * @return representation of incoming socket.
      */
     public TyrusClientSocket openClientSocket(String url, ClientEndpointConfig cec, SPIEndpoint endpoint,
-                                              SPIHandshakeListener handshakeListener);
+                                              SPIHandshakeListener handshakeListener, Map<String, Object> properties);
 }

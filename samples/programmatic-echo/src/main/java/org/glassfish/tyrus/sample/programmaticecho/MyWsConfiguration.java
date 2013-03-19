@@ -42,6 +42,7 @@ package org.glassfish.tyrus.sample.programmaticecho;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Set;
 
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfig;
@@ -50,22 +51,23 @@ import javax.websocket.Session;
 import javax.websocket.server.ServerApplicationConfig;
 import javax.websocket.server.ServerEndpointConfig;
 
-import org.glassfish.tyrus.server.TyrusServerConfiguration;
-
 /**
  * Custom server configuration.
  *
  * @author Martin Matula (martin.matula at oracle.com)
  */
-public class MyWsConfiguration extends TyrusServerConfiguration implements ServerApplicationConfig {
+public class MyWsConfiguration implements ServerApplicationConfig {
 
-    /**
-     * Default constructor, reg
-     */
-    public MyWsConfiguration() {
-        super(Collections.<Class<?>>emptySet(), new HashSet<ServerEndpointConfig>() {{
+    @Override
+    public Set<ServerEndpointConfig> getEndpointConfigs(Set<Class<? extends Endpoint>> endpointClasses) {
+        return new HashSet<ServerEndpointConfig>() {{
             add(ServerEndpointConfig.Builder.create(EchoEndpoint.class, "/echo").build());
-        }});
+        }};
+    }
+
+    @Override
+    public Set<Class<?>> getAnnotatedEndpointClasses(Set<Class<?>> scanned) {
+        return Collections.emptySet();
     }
 
     public static class EchoEndpoint extends Endpoint {
