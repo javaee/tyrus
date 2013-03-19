@@ -64,6 +64,7 @@ import org.junit.After;
 import org.junit.Before;
 
 import junit.framework.Assert;
+import org.glassfish.tyrus.tests.qa.tools.ServerToolkit;
 
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
@@ -71,32 +72,29 @@ import junit.framework.Assert;
  */
 public abstract class AbstractLifeCycleTestBase {
 
-    private static final Logger logger = Logger.getLogger(AbstractLifeCycleTestBase.class.getCanonicalName());
+    protected static final Logger logger = Logger.getLogger(AbstractLifeCycleTestBase.class.getCanonicalName());
 
     AppConfig testConf = new AppConfig(
             LifeCycleDeployment.CONTEXT_PATH,
             LifeCycleDeployment.LIFECYCLE_ENDPOINT_PATH,
             LifeCycleDeployment.COMMCHANNEL_SCHEME,
             LifeCycleDeployment.COMMCHANNEL_HOST,
-            LifeCycleDeployment.COMMCHANNEL_PORT);
-    TyrusToolkit tyrus = new TyrusToolkit(testConf);
-    CommChannel channel;
-    CommChannel.Server server;
+            LifeCycleDeployment.COMMCHANNEL_PORT,
+            LifeCycleDeployment.INSTALL_ROOT);
+    ServerToolkit tyrus;
 
-    private Server tyrusServer;
+
+    //private Server tyrusServer;
 
     @Before
     public void setupServer() throws Exception {
-        channel = new CommChannel(testConf);
-        //server = channel.new Server();
-        //server.start();
+        tyrus = new TyrusToolkit(testConf);
         SessionController.resetState();
 
     }
 
     @After
     public void stopServer() {
-        //server.destroy();
         tyrus.stopServer();
     }
 
@@ -129,7 +127,7 @@ public abstract class AbstractLifeCycleTestBase {
     protected void deployServer(Class config) throws DeploymentException {
         logger.log(Level.INFO, "registering server: {0}", config);
         tyrus.registerEndpoint(config);
-        tyrusServer = tyrus.startServer();
+        tyrus.startServer();
     }
 
     protected void lifeCycle(Class serverHandler, Class clientHandler) throws DeploymentException, IOException {

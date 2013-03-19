@@ -53,17 +53,26 @@ public class AppConfig {
     private String endpointPath;
     private int port;
     private String host;
+    private String installRoot;
 
     private int commPort;
     private String commHost;
     private String commScheme;
 
-    public AppConfig(String contextPath, String endpointPath, String commScheme, String commHost, int commPort) {
+    public AppConfig(String contextPath, String endpointPath, String commScheme, String commHost, int commPort, String installRoot) {
         setContextPath(contextPath);
         setEndpointPath(endpointPath);
         setCommHost(commHost);
         setCommPort(commPort);
         setCommScheme(commScheme);
+    }
+    
+    public void setInstallRoot(String installRoot) {
+        this.installRoot=installRoot;
+    }
+    
+    public String getInstallRoot() {
+        return installRoot;
     }
 
     public int getCommPort() {

@@ -47,8 +47,6 @@ import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 import org.glassfish.tyrus.server.TyrusServerContainer;
-import org.glassfish.tyrus.tests.qa.handlers.BasicMessageHandler;
-import org.glassfish.tyrus.tests.qa.tools.CommChannel;
 import org.glassfish.tyrus.tests.qa.tools.SessionController;
 
 abstract public class ProgrammaticWholeMessageEndpoint<T> extends Endpoint implements MessageHandler.Whole<T> {
