@@ -172,8 +172,6 @@ public class SessionCloseApplicationTest {
                     } catch (Exception e) {
                         inCloseSendMessageExceptionThrown1 = true;
                     }
-
-                    clientLatch.countDown();
                 }
 
                 public void onError(javax.websocket.Session session, Throwable thr){
@@ -181,7 +179,7 @@ public class SessionCloseApplicationTest {
                 }
             }, cec, getURI(CloseServerEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
 
-            clientLatch.await(2, TimeUnit.SECONDS);
+            clientLatch.await(1, TimeUnit.SECONDS);
 
             try {
                 clientSession.addMessageHandler(null);
@@ -294,8 +292,6 @@ public class SessionCloseApplicationTest {
                     } catch (Exception e) {
                         inCloseSendMessageExceptionThrown2 = true;
                     }
-
-                    clientLatch.countDown();
                 }
 
                 public void onError(javax.websocket.Session session, Throwable thr){
@@ -303,7 +299,7 @@ public class SessionCloseApplicationTest {
                 }
             }, cec, getURI(CloseClientEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
 
-            clientLatch.await(2, TimeUnit.SECONDS);
+            clientLatch.await(1, TimeUnit.SECONDS);
 
             try {
                 clientSession.addMessageHandler(null);

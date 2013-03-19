@@ -440,9 +440,9 @@ public class EndpointWrapper extends SPIEndpoint {
     @Override
     public void onMessage(SPIRemoteEndpoint gs, ByteBuffer messageBytes) {
         SessionImpl session = remoteEndpointToSession.get(gs);
-        session.restartTimer();
 
         try {
+            session.restartTimer();
             session.setState(SessionImpl.State.RUNNING);
             if (session.isWholeBinaryHandlerPresent()) {
                 session.notifyMessageHandlers(messageBytes, findApplicableDecoders(session, messageBytes, false));
@@ -465,9 +465,9 @@ public class EndpointWrapper extends SPIEndpoint {
     @Override
     public void onMessage(SPIRemoteEndpoint gs, String messageString) {
         SessionImpl session = remoteEndpointToSession.get(gs);
-        session.restartTimer();
 
         try {
+            session.restartTimer();
             session.setState(SessionImpl.State.RUNNING);
             if (session.isWholeTextHandlerPresent()) {
                 session.notifyMessageHandlers(messageString, findApplicableDecoders(session, messageString, true));
@@ -490,9 +490,9 @@ public class EndpointWrapper extends SPIEndpoint {
     @Override
     public void onPartialMessage(SPIRemoteEndpoint gs, String partialString, boolean last) {
         SessionImpl session = remoteEndpointToSession.get(gs);
-        session.restartTimer();
 
         try {
+            session.restartTimer();
             if (session.isPartialTextHandlerPresent()) {
                 session.notifyMessageHandlers(partialString, last);
                 session.setState(SessionImpl.State.RUNNING);
@@ -555,9 +555,9 @@ public class EndpointWrapper extends SPIEndpoint {
     @Override
     public void onPartialMessage(SPIRemoteEndpoint gs, ByteBuffer partialBytes, boolean last) {
         SessionImpl session = remoteEndpointToSession.get(gs);
-        session.restartTimer();
 
         try {
+            session.restartTimer();
             if (session.isPartialBinaryHandlerPresent()) {
                 session.notifyMessageHandlers(partialBytes, last);
                 session.setState(SessionImpl.State.RUNNING);
@@ -708,6 +708,7 @@ public class EndpointWrapper extends SPIEndpoint {
 
         try {
             toCall.onClose(session, closeReason);
+            session.setState(SessionImpl.State.CLOSED);
         } catch (Throwable t) {
             if (toCall != null) {
                 toCall.onError(session, t);
@@ -716,7 +717,6 @@ public class EndpointWrapper extends SPIEndpoint {
             }
         }
 
-        session.setState(SessionImpl.State.CLOSED);
         remoteEndpointToSession.remove(gs);
         componentProvider.removeSession(session);
     }
