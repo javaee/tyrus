@@ -232,10 +232,11 @@ public class GlassFishToolkit implements ServerToolkit {
             return true;
         }
         //Endpoint itself is not blacklisted
-        if (Endpoint.class.isAssignableFrom(tryMe)) {
-            logger.log(Level.INFO, "Programmatic Endpoint: {0}", tryMe.getCanonicalName());
-            return true;
-        }
+        // TYRUS-150
+        //if (Endpoint.class.isAssignableFrom(tryMe)) {
+        //    logger.log(Level.INFO, "Programmatic Endpoint: {0}", tryMe.getCanonicalName());
+        //    return true;
+        //}
 
         return false;
     }
