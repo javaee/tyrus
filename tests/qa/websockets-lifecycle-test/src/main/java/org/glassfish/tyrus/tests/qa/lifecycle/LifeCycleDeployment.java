@@ -50,7 +50,7 @@ public interface LifeCycleDeployment {
     public static final String COMMCHANNEL_SCHEME = "http";
     public static final String COMMCHANNEL_HOST = "localhost";
     public static final long DEBUG_TIMEOUT=6000;
-    public static final long NORMAL_TIMEOUT=4;
+    public static final long NORMAL_TIMEOUT=5;
     public static final String[] serverProtoOrder = { 
         "mikc21", "mikc22", "mikc23", "mikc24.111", "mikc25/0", "mikc26-0", "mikc27+0", "mikc28*9", "mikc291", "mikc210",
         "mikc21", "mikc22", "mikc23", "mikc24.111", "mikc25/0", "mikc26-0", "mikc27+0", "mikc28*9", "mikc291", "mikc210",

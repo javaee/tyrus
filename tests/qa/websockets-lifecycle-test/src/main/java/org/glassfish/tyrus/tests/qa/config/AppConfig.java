@@ -46,15 +46,18 @@ import java.net.URISyntaxException;
  * @author michal.conos at oracle.com
  */
 public class AppConfig {
+
+    public enum AppServer {
+        TYRUS,
+        GLASSFISH
+    };
     public static final String DEFAULT_HOST = "localhost";
     public static final int DEFAULT_PORT = 8025;
-
     private String contextPath;
     private String endpointPath;
     private int port;
     private String host;
     private String installRoot;
-
     private int commPort;
     private String commHost;
     private String commScheme;
@@ -65,12 +68,13 @@ public class AppConfig {
         setCommHost(commHost);
         setCommPort(commPort);
         setCommScheme(commScheme);
+        setInstallRoot(installRoot);
     }
-    
-    public void setInstallRoot(String installRoot) {
-        this.installRoot=installRoot;
+
+    public final void setInstallRoot(String installRoot) {
+        this.installRoot = installRoot;
     }
-    
+
     public String getInstallRoot() {
         return installRoot;
     }
@@ -99,7 +103,6 @@ public class AppConfig {
         this.commScheme = commScheme;
     }
 
-
     public String getContextPath() {
         return contextPath;
     }
@@ -125,6 +128,13 @@ public class AppConfig {
         }
     }
 
+    public AppServer getWebSocketContainer() {
+        final String container = System.getProperty("websocket.container");
+        if (container != null && container.equals("glassfish")) {
+            return AppServer.GLASSFISH;
+        }
+        return AppServer.TYRUS;
+    }
 
     public String getHost() {
         final String host = System.getProperty("tyrus.test.host");

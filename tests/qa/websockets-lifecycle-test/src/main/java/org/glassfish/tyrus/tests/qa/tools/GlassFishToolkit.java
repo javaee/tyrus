@@ -43,6 +43,8 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
@@ -56,6 +58,9 @@ import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
 import javax.websocket.server.ServerApplicationConfig;
 import javax.websocket.server.ServerEndpoint;
+import org.apache.commons.exec.CommandLine;
+import org.apache.commons.exec.DefaultExecutor;
+import org.apache.commons.exec.ExecuteException;
 import org.glassfish.embeddable.BootstrapProperties;
 import org.glassfish.embeddable.GlassFishException;
 import org.glassfish.embeddable.GlassFishProperties;
@@ -107,18 +112,76 @@ public class GlassFishToolkit implements ServerToolkit {
             + "</glassfish-web-app>";
     private String appName;
     private AppConfig config;
-    
+
     public GlassFishToolkit(AppConfig config) {
         this.config = config;
         this.installRoot = config.getInstallRoot();
     }
 
-    private ClassLoader getInstalledGFClassLoader(String installRoot) throws Exception {
-        File gfJar = new File(installRoot, SHELL_JAR);
-        File felixJar = new File(installRoot, FELIX_JAR);
-        URLClassLoader classLoader = new URLClassLoader(
-                new URL[]{gfJar.toURI().toURL(), felixJar.toURI().toURL()}, getClass().getClassLoader());
-        return classLoader;
+    public class Asadmin {
+
+        private final static String ASADMIN_CMD = "%s/bin/asadmin %s";
+        private final static String ASADMIN_DEFAULT_DOMAIN = "domain1";
+        private final static String ASADMIN_START_DOMAIN = "start-domain %s";
+        private final static String ASADMIN_STOP_DOMAIN = "stop-domain %s";
+        private final static String ASADMIN_DEPLOY_WAR = "deploy %s";
+        private final static String ASADMIN_UNDEPLOY_APP = "undeploy %s";
+        private final static String ASADMIN_LIST_APPS = "list-applications";
+
+        public String getAsadminStartDomain(String domain) {
+            return String.format(ASADMIN_CMD, installRoot, String.format(ASADMIN_START_DOMAIN, domain));
+        }
+
+        public String getAsadminStopDomain(String domain) {
+            return String.format(ASADMIN_CMD, installRoot, String.format(ASADMIN_STOP_DOMAIN, domain));
+        }
+
+        public String getAsadminStartDomain1() {
+            return getAsadminStartDomain(ASADMIN_DEFAULT_DOMAIN);
+        }
+
+        public String getAsadminStopDomain1() {
+            return getAsadminStopDomain(ASADMIN_DEFAULT_DOMAIN);
+        }
+
+        public String getAsadminListApplications() {
+            return String.format(ASADMIN_CMD, installRoot, ASADMIN_LIST_APPS);
+        }
+
+        public String getAsadminDeployCommand(String warfile) {
+            return String.format(ASADMIN_CMD, installRoot, String.format(ASADMIN_DEPLOY_WAR, warfile));
+        }
+
+        public String getAsadminUnDeployCommand(String appname) {
+            return String.format(ASADMIN_CMD, installRoot, String.format(ASADMIN_UNDEPLOY_APP, appname));
+        }
+
+        public void exec(String cmd) {
+            logger.log(Level.INFO, "asadmin.exec: {0}", cmd);
+            CommandLine cmdLine = CommandLine.parse(cmd);
+            DefaultExecutor executor = new DefaultExecutor();
+            try {
+                int exitValue = executor.execute(cmdLine);
+                logger.log(Level.INFO, "asadmin.exec: {0}", exitValue);
+                if (exitValue != 0) {
+                    logger.log(Level.SEVERE, "Can't execute:{0}", cmdLine.toString());
+                    throw new RuntimeException("Can't start GF server:" + exitValue);
+                }
+
+            } catch (ExecuteException ex) {
+                ex.printStackTrace();
+                throw new RuntimeException(ex.getMessage());
+            } catch (IOException ex) {
+                ex.printStackTrace();
+                throw new RuntimeException(ex.getMessage());
+            }
+        }
+
+        public void exec(String[] commands) {
+            for (String cmd : commands) {
+                exec(cmd);
+            }
+        }
     }
 
     private File createWebXml(String path) throws IOException {
@@ -136,13 +199,16 @@ public class GlassFishToolkit implements ServerToolkit {
         return new File(new File(getClazzCanonicalName(clazz).replace('.', '/')).getParent());
     }
 
-    private Class<?> getClazzForFile(File clazz) throws ClassNotFoundException {
+    private Class<?> getClazzForFile(File clazz) throws ClassNotFoundException, MalformedURLException {
         String clazzCanonicalName = getClazzCanonicalName(clazz);
+        //URLClassLoader cl = new URLClassLoader(new URL[] {new URL("file://"+clazz.getAbsoluteFile().getParent())});
         logger.log(Level.INFO, "getClazzForFile(): {0}", clazzCanonicalName);
-        return Class.forName(clazzCanonicalName);
+        logger.log(Level.INFO, "getClazzForFile(): {0}", clazz.getAbsolutePath());
+        //logger.log(Level.INFO, "getClazzForFile(): classloader:{0}", cl.getURLs());
+        return Class.forName(clazzCanonicalName); //, true, cl);
     }
 
-    private boolean isBlackListed(File clazz) throws ClassNotFoundException {
+    private boolean isBlackListed(File clazz) throws ClassNotFoundException, MalformedURLException {
         //logger.log(Level.INFO, "File? {0}", clazzCanonicalName);
 
         Class tryMe = getClazzForFile(clazz);
@@ -166,10 +232,10 @@ public class GlassFishToolkit implements ServerToolkit {
             return true;
         }
         //Endpoint itself is not blacklisted
-        //if (Endpoint.class.isAssignableFrom(tryMe)) {
-        //    logger.log(Level.INFO, "Programmatic Endpoint: {0}", tryMe.getCanonicalName());
-        //    return true;
-        //}
+        if (Endpoint.class.isAssignableFrom(tryMe)) {
+            logger.log(Level.INFO, "Programmatic Endpoint: {0}", tryMe.getCanonicalName());
+            return true;
+        }
 
         return false;
     }
@@ -190,6 +256,7 @@ public class GlassFishToolkit implements ServerToolkit {
         List<File> addClasses = new ArrayList<>();
         File tempDir = FileUtils.getTempDirectory();
         File dstDirectory = new File(tempDir, "lib");
+        FileUtils.forceDelete(dstDirectory);
         FileUtils.forceMkdir(dstDirectory);
         File source = new File("target/classes");
         FileUtils.copyDirectory(source, dstDirectory);
@@ -209,42 +276,34 @@ public class GlassFishToolkit implements ServerToolkit {
 
         }
         archive.addClassPath(dstDirectory);
-        archive.addMetadata(createWebXml(path), "glassfish-web.xml");
+        archive.addMetadata(createWebXml(path), "WEB-INF/glassfish-web.xml");
         return archive;
+    }
+
+    private String getLocalFileFromURI(URI file) {
+        if (file.getScheme().equals("file")) {
+            return file.toString().replaceFirst("file:", "");
+        }
+        return null;
     }
 
     @Override
     public void startServer() throws DeploymentException {
-        ClassLoader cl;
         try {
-            cl = getInstalledGFClassLoader(installRoot);
-            //String gfModule="/home/mikc/glassfish3/glassfish/modules/glassfish.jar";
-            //Iterator<RuntimeBuilder> runtimeBuilders = ServiceLoader.load(RuntimeBuilder.class, cl).iterator();
+            Asadmin asadmin = new Asadmin();
+            asadmin.exec(
+                    new String[]{
+                        asadmin.getAsadminStartDomain1(),
+                        asadmin.getAsadminDeployCommand(getLocalFileFromURI(deploy.toURI())),
+                        asadmin.getAsadminListApplications()
+                    });
+            try {
+                Thread.sleep(10000);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(GlassFishToolkit.class.getName()).log(Level.SEVERE, null, ex);
+            }
 
-            //while (runtimeBuilders.hasNext()) {
-            //      RuntimeBuilder builder = runtimeBuilders.next();
-            //}
-            GlassFishProperties glassfishProperties = new GlassFishProperties();
-            //glassfishProperties.setPort("http-listener", 8080);
-            BootstrapProperties bp = new BootstrapProperties();
-            //String httpListener = String.format(NETWORK_LISTENER_KEY, "http-listener");
-            //glassfishProperties.setProperty(httpListener + ".port", String.valueOf(9090));
-            //glassfishProperties.setProperty(httpListener + ".enabled", "true");
-            // bp.setProperty(PLATFORM_KEY, "Static");
-            bp.setInstallRoot(installRoot);
-            glassfishProperties.setInstanceRoot(installRoot + "/domains/domain1");
-            GlassFishRuntime gfr = GlassFishRuntime.bootstrap(bp, cl);
-            glassFish = gfr.newGlassFish(glassfishProperties);
-
-            // Start Embedded GlassFish
-            glassFish.start();
-            
-            Deployer deployer = glassFish.getDeployer();
-            appName = deployer.deploy(deploy.toURI());
-        } catch (ClassNotFoundException ex) {
-            ex.printStackTrace();
-            throw new RuntimeException(ex.getMessage());
-        } catch (Exception ex) {
+        } catch (IOException ex) {
             ex.printStackTrace();
             throw new RuntimeException(ex.getMessage());
         }
@@ -252,21 +311,21 @@ public class GlassFishToolkit implements ServerToolkit {
 
     @Override
     public void stopServer() {
-        if (glassFish != null) {
-            try {
-                if(appName!=null) {
-                    Deployer deployer = glassFish.getDeployer();
-                    deployer.undeploy(appName);
-                }
-                glassFish.stop();
-                glassFish.dispose();
-            } catch (GlassFishException ex) {
-                ex.printStackTrace();
-                throw new RuntimeException(ex.getMessage());
-            }
+        try {
+            Asadmin asadmin = new Asadmin();
+            String appname = FilenameUtils.removeExtension(new File(getLocalFileFromURI(deploy.toURI())).getName());
+            asadmin.exec(
+                    new String[]{
+                        asadmin.getAsadminUnDeployCommand(appname),
+                        asadmin.getAsadminListApplications(),
+                        asadmin.getAsadminStopDomain1()
+                    });
+        } catch (IOException ex) {
+            ex.printStackTrace();
+            throw new RuntimeException(ex.getMessage());
         }
     }
-    
+
     @Override
     public void registerEndpoint(Class<?> endpoint) {
         try {

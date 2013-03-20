@@ -64,6 +64,7 @@ import org.junit.After;
 import org.junit.Before;
 
 import junit.framework.Assert;
+import org.glassfish.tyrus.tests.qa.tools.GlassFishToolkit;
 import org.glassfish.tyrus.tests.qa.tools.ServerToolkit;
 
 /**
@@ -88,7 +89,12 @@ public abstract class AbstractLifeCycleTestBase {
 
     @Before
     public void setupServer() throws Exception {
-        tyrus = new TyrusToolkit(testConf);
+        if(testConf.getWebSocketContainer().equals(AppConfig.AppServer.GLASSFISH)) {
+            tyrus = new GlassFishToolkit(testConf);
+        }
+        else {
+            tyrus = new TyrusToolkit(testConf);
+        }
         SessionController.resetState();
 
     }

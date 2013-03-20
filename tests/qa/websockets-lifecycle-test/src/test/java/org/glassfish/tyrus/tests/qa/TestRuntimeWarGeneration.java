@@ -42,6 +42,7 @@ package org.glassfish.tyrus.tests.qa;
 import java.io.IOException;
 import java.util.logging.Level;
 import org.glassfish.embeddable.archive.ScatteredArchive;
+import org.glassfish.tyrus.tests.qa.config.AppConfig;
 import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleDeployment;
 import org.glassfish.tyrus.tests.qa.lifecycle.handlers.text.AnnotatedWholeMessageBufferedReaderSession;
 import org.glassfish.tyrus.tests.qa.tools.GlassFishToolkit;
@@ -57,11 +58,10 @@ public class TestRuntimeWarGeneration extends AbstractLifeCycleTestBase {
     @Ignore
     @Test
     public void testRuntimeWarGeneration() throws IOException, ClassNotFoundException {
-        GlassFishToolkit glassFish = new GlassFishToolkit(null);
+        GlassFishToolkit glassFish = new GlassFishToolkit(new AppConfig(null, null, null, null, 0, null));
         ScatteredArchive arch = glassFish.makeWar(AnnotatedWholeMessageBufferedReaderSession.Server.class, LifeCycleDeployment.LIFECYCLE_ENDPOINT_PATH);
         
        logger.log(Level.INFO, "Archive : {0}", arch.toURI());
-        System.in.read();;
     }
     
 }
