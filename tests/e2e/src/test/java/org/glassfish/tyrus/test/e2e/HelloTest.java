@@ -218,8 +218,8 @@ public class HelloTest {
 
         @Override
         public void onMessage(String message) {
-            messageLatchEndpoint.countDown();
             receivedMessageEndpoint = message;
+            messageLatchEndpoint.countDown();
         }
     }
 }
