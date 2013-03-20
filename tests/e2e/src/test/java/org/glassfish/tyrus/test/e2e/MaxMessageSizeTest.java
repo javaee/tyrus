@@ -74,7 +74,7 @@ public class MaxMessageSizeTest {
     @ServerEndpoint(value = "/endpoint1")
     public static class Endpoint1 {
 
-        public static CloseReason closeReason = null;
+        public static volatile CloseReason closeReason = null;
 
         @OnMessage(maxMessageSize = 5)
         public String doThat(String message) {

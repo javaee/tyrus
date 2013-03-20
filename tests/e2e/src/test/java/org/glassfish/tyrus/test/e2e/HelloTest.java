@@ -74,7 +74,7 @@ public class HelloTest {
 
     private CountDownLatch messageLatch;
 
-    private String receivedMessage;
+    private volatile String receivedMessage;
 
     private static final String SENT_MESSAGE = "Hello World";
 
@@ -123,6 +123,7 @@ public class HelloTest {
                 }
             }, cec, new URI("wss://localhost:8025/websockets/tests/echo"));
             messageLatch.await(5, TimeUnit.SECONDS);
+            Assert.assertEquals(0L, messageLatch.getCount());
             Assert.assertEquals(SENT_MESSAGE, receivedMessage);
         } catch (Exception e) {
             e.printStackTrace();
@@ -177,7 +178,7 @@ public class HelloTest {
     }
 
     public static CountDownLatch messageLatchEndpoint;
-    public static String receivedMessageEndpoint;
+    public static volatile String receivedMessageEndpoint;
 
     // TYRUS-63: connectToServer with Endpoint class
     // http://java.net/jira/browse/TYRUS-63
@@ -193,6 +194,7 @@ public class HelloTest {
             WebSocketContainer client = ContainerProvider.getWebSocketContainer();
             client.connectToServer(MyEndpoint.class, cec, new URI("wss://localhost:8025/websockets/tests/echo"));
             messageLatchEndpoint.await(5, TimeUnit.SECONDS);
+            Assert.assertEquals(0L, messageLatchEndpoint.getCount());
             Assert.assertEquals(SENT_MESSAGE, receivedMessageEndpoint);
         } catch (Exception e) {
             e.printStackTrace();
