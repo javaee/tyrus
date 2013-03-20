@@ -221,6 +221,7 @@ public class BrowserTest {
     }
 
     @Test
+    @Ignore
     public void testInterentExplorerClientChatWith100Users() throws InterruptedException, Exception {
         Assume.assumeTrue(SeleniumToolkit.onWindows()); // skip this test on non-Windows platforms
         chatScalabitlity(SeleniumToolkit.Browser.IE);
