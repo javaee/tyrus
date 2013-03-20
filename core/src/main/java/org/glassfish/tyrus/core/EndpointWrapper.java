@@ -397,10 +397,12 @@ public class EndpointWrapper extends SPIEndpoint {
 
     @Override
     public Session createSessionForRemoteEndpoint(SPIRemoteEndpoint re, String subprotocol, List<Extension> extensions) {
-        final SessionImpl session = new SessionImpl(container, re, this, subprotocol, extensions, isSecure,
-                uri == null ? null : URI.create(uri), queryString, templateValues, principal);
-        remoteEndpointToSession.put(re, session);
-        return session;
+        synchronized (remoteEndpointToSession) {
+            final SessionImpl session = new SessionImpl(container, re, this, subprotocol, extensions, isSecure,
+                    uri == null ? null : URI.create(uri), queryString, templateValues, principal);
+            remoteEndpointToSession.put(re, session);
+            return session;
+        }
     }
 
     @Override
