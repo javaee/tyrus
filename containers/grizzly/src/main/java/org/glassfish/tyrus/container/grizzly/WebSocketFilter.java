@@ -451,7 +451,7 @@ class WebSocketFilter extends BaseFilter {
                 .requestURI(URI.create(requestPacket.getRequestURI()))
                 .queryString(requestPacket.getQueryString())
                 .connection(getWebSocketConnection(ctx, requestContent))
-                .secure(false)
+                .secure(requestPacket.isSecure())
                 .build();
 
         for (String name : requestPacket.getHeaders().names()) {
