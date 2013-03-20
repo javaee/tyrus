@@ -79,36 +79,23 @@ import org.glassfish.tyrus.websockets.WebSocketEngine;
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-class TyrusServletFilter implements Filter {
+public class TyrusServletFilter implements Filter {
 
     private static final int INFORMATIONAL_FIXED_PORT = 8080;
     private final static Logger LOGGER = Logger.getLogger(TyrusServletFilter.class.getName());
-    private final WebSocketEngine engine;
+    private final WebSocketEngine engine = WebSocketEngine.getEngine();
     private TyrusServerContainer serverContainer = null;
 
     private boolean registered = false;
 
     // @ServerEndpoint annotated classes and classes extending ServerApplicationConfiguration
-    private final Set<Class<?>> classes;
-    private final ServletContext servletContext;
+    private Set<Class<?>> classes = null;
+    private ServletContext servletContext = null;
     private final Set<Class<?>> dynamicallyDeployedClasses = new HashSet<Class<?>>();
     private final Set<ServerEndpointConfig> dynamicallyDeployedServerEndpointConfigs = new HashSet<ServerEndpointConfig>();
 
-    /**
-     * Constructor.
-     *
-     * @param classes set of classes to be used as configuration or endpoints.
-     */
-    public TyrusServletFilter(Set<Class<?>> classes) {
-        this.classes = classes;
-        this.servletContext = null;
-        engine = WebSocketEngine.getEngine();
-    }
+    public TyrusServletFilter() {
 
-    public TyrusServletFilter(ServletContext servletContext) {
-        this.classes = null;
-        this.servletContext = servletContext;
-        engine = WebSocketEngine.getEngine();
     }
 
     void addClass(Class<?> clazz) {
@@ -139,6 +126,7 @@ class TyrusServletFilter implements Filter {
             TyrusServletContainerInitializer.LOGGER.info("Registering WebSocket filter for url pattern /*");
         }
     }
+
 
 
     @Override
@@ -270,5 +258,23 @@ class TyrusServletFilter implements Filter {
     @Override
     public void destroy() {
         serverContainer.stop();
+    }
+
+    /**
+     * Set the {@link ServletContext}.
+     *
+     * @param servletContext to be set.
+     */
+    public void setServletContext(ServletContext servletContext) {
+        this.servletContext = servletContext;
+    }
+
+    /**
+     * Set the scanned classes.
+     *
+     * @param classes scanned classes.
+     */
+    public void setClasses(Set<Class<?>> classes) {
+        this.classes = classes;
     }
 }

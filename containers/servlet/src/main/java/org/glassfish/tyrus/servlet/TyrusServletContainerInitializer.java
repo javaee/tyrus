@@ -82,7 +82,9 @@ public class TyrusServletContainerInitializer implements ServletContainerInitial
             // prepare for possible programmatic deployment
             final ServerContainer serverContainer = ServerContainerProvider.getServerContainer();
             if (serverContainer instanceof TyrusServerContainerProvider) {
-                ((TyrusServerContainerProvider) serverContainer).setTyrusFilter(new TyrusServletFilter(ctx));
+                TyrusServletFilter filter = ctx.createFilter(TyrusServletFilter.class);
+                filter.setServletContext(ctx);
+                ((TyrusServerContainerProvider) serverContainer).setTyrusFilter(filter);
             } else {
                 LOGGER.log(Level.WARNING, "ServerContainer.deploy is not supported.");
             }
@@ -98,7 +100,8 @@ public class TyrusServletContainerInitializer implements ServletContainerInitial
             }
         }
 
-        final TyrusServletFilter filter = new TyrusServletFilter(classes);
+        TyrusServletFilter filter = ctx.createFilter(TyrusServletFilter.class);
+        filter.setClasses(classes);
         final FilterRegistration.Dynamic reg = ctx.addFilter("WebSocket filter", filter);
         reg.setAsyncSupported(true);
         reg.addMappingForUrlPatterns(null, true, "/*");
