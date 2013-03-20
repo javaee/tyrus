@@ -45,6 +45,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
@@ -61,6 +63,8 @@ import org.glassfish.tyrus.core.ReflectionHelper;
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 public class TyrusServerConfiguration implements ServerApplicationConfig {
+
+    private static final Logger LOGGER = Logger.getLogger(TyrusServerConfiguration.class.getName());
 
     private final Set<ServerEndpointConfig> serverEndpointConfigs = new HashSet<ServerEndpointConfig>();
     private final Set<Class<?>> annotatedClasses = new HashSet<Class<?>>();
@@ -158,7 +162,7 @@ public class TyrusServerConfiguration implements ServerApplicationConfig {
 
     private boolean isAbstract(Class<?> clazz, ErrorCollector errorCollector) {
         if (clazz.isInterface() || Modifier.isAbstract(clazz.getModifiers())) {
-            errorCollector.addException(new DeploymentException(String.format("%s: Deployed Classes can't be abstract nor interface. The class will not be deployed.", clazz.getName())));
+            LOGGER.log(Level.WARNING, String.format("%s: Deployed class can't be abstract nor interface. The class will not be deployed.", clazz.getName()));
             return true;
         }
 

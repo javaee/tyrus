@@ -127,8 +127,6 @@ public class TyrusServletFilter implements Filter {
         }
     }
 
-
-
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
         String contextRoot = filterConfig.getServletContext().getContextPath();
