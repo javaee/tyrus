@@ -408,38 +408,44 @@ public class EndpointWrapper extends SPIEndpoint {
         // TODO: disconnect the endpoint?
     }
 
+    private SessionImpl getSession(SPIRemoteEndpoint gs) {
+        synchronized (remoteEndpointToSession) {
+            return remoteEndpointToSession.get(gs);
+        }
+    }
+
     @Override
     public void onConnect(SPIRemoteEndpoint gs, String subprotocol, List<Extension> extensions) {
-        SessionImpl session = remoteEndpointToSession.get(gs);
-        if (session == null) {
-            // create a new session
-            session = new SessionImpl(container, gs, this, subprotocol, extensions, isSecure,
-                    uri == null ? null : URI.create(uri), queryString, templateValues, principal);
-        } else {
+        synchronized (remoteEndpointToSession) {
+            SessionImpl session = remoteEndpointToSession.get(gs);
+            if (session == null) {
+                // create a new session
+                session = new SessionImpl(container, gs, this, subprotocol, extensions, isSecure,
+                        uri == null ? null : URI.create(uri), queryString, templateValues, principal);
+                remoteEndpointToSession.put(gs, session);
+            }
             // Session was already created in WebSocketContainer#connectToServer call
             // we need to update extensions and subprotocols
             session.setNegotiatedExtensions(extensions);
             session.setNegotiatedSubprotocol(subprotocol);
-        }
 
-        remoteEndpointToSession.put(gs, session);
-
-        final Endpoint toCall = endpoint != null ? endpoint :
-                (Endpoint) componentProvider.getInstance(endpointClass, session, collector);
-        try {
-            toCall.onOpen(session, configuration);
-        } catch (Throwable t) {
-            if (toCall != null) {
-                toCall.onError(session, t);
-            } else {
-                collector.addException(new DeploymentException(t.getMessage(), t));
+            final Endpoint toCall = endpoint != null ? endpoint :
+                    (Endpoint) componentProvider.getInstance(endpointClass, session, collector);
+            try {
+                toCall.onOpen(session, configuration);
+            } catch (Throwable t) {
+                if (toCall != null) {
+                    toCall.onError(session, t);
+                } else {
+                    collector.addException(new DeploymentException(t.getMessage(), t));
+                }
             }
         }
     }
 
     @Override
     public void onMessage(SPIRemoteEndpoint gs, ByteBuffer messageBytes) {
-        SessionImpl session = remoteEndpointToSession.get(gs);
+        SessionImpl session = getSession(gs);
 
         try {
             session.restartTimer();
@@ -455,7 +461,7 @@ public class EndpointWrapper extends SPIEndpoint {
             if (!processThrowable(t, session)) {
                 final Endpoint toCall = endpoint != null ? endpoint :
                         (Endpoint) componentProvider.getInstance(endpointClass, session, collector);
-                if(toCall != null) {
+                if (toCall != null) {
                     toCall.onError(session, t);
                 }
             }
@@ -464,7 +470,7 @@ public class EndpointWrapper extends SPIEndpoint {
 
     @Override
     public void onMessage(SPIRemoteEndpoint gs, String messageString) {
-        SessionImpl session = remoteEndpointToSession.get(gs);
+        SessionImpl session = getSession(gs);
 
         try {
             session.restartTimer();
@@ -480,7 +486,7 @@ public class EndpointWrapper extends SPIEndpoint {
             if (!processThrowable(t, session)) {
                 final Endpoint toCall = endpoint != null ? endpoint :
                         (Endpoint) componentProvider.getInstance(endpointClass, session, collector);
-                if(toCall != null) {
+                if (toCall != null) {
                     toCall.onError(session, t);
                 }
             }
@@ -489,7 +495,7 @@ public class EndpointWrapper extends SPIEndpoint {
 
     @Override
     public void onPartialMessage(SPIRemoteEndpoint gs, String partialString, boolean last) {
-        SessionImpl session = remoteEndpointToSession.get(gs);
+        SessionImpl session = getSession(gs);
 
         try {
             session.restartTimer();
@@ -545,7 +551,7 @@ public class EndpointWrapper extends SPIEndpoint {
             if (!processThrowable(t, session)) {
                 final Endpoint toCall = endpoint != null ? endpoint :
                         (Endpoint) componentProvider.getInstance(endpointClass, session, collector);
-                if(toCall != null) {
+                if (toCall != null) {
                     toCall.onError(session, t);
                 }
             }
@@ -554,7 +560,7 @@ public class EndpointWrapper extends SPIEndpoint {
 
     @Override
     public void onPartialMessage(SPIRemoteEndpoint gs, ByteBuffer partialBytes, boolean last) {
-        SessionImpl session = remoteEndpointToSession.get(gs);
+        SessionImpl session = getSession(gs);
 
         try {
             session.restartTimer();
@@ -619,7 +625,7 @@ public class EndpointWrapper extends SPIEndpoint {
             if (!processThrowable(t, session)) {
                 final Endpoint toCall = endpoint != null ? endpoint :
                         (Endpoint) componentProvider.getInstance(endpointClass, session, collector);
-                if(toCall != null) {
+                if (toCall != null) {
                     toCall.onError(session, t);
                 }
             }
@@ -668,7 +674,8 @@ public class EndpointWrapper extends SPIEndpoint {
 
     @Override
     public void onPong(SPIRemoteEndpoint gs, final ByteBuffer bytes) {
-        SessionImpl session = remoteEndpointToSession.get(gs);
+        SessionImpl session = getSession(gs);
+
         if (session.isPongHandlerPreset()) {
             session.notifyPongHandler(new PongMessage() {
                 @Override
@@ -685,7 +692,8 @@ public class EndpointWrapper extends SPIEndpoint {
     // no involvement from application layer, there is no ping listener
     @Override
     public void onPing(SPIRemoteEndpoint gs, ByteBuffer bytes) {
-        SessionImpl session = remoteEndpointToSession.get(gs);
+        SessionImpl session = getSession(gs);
+
         try {
             session.getBasicRemote().sendPong(bytes);
         } catch (IOException e) {
@@ -696,7 +704,7 @@ public class EndpointWrapper extends SPIEndpoint {
 
     @Override
     public void onClose(SPIRemoteEndpoint gs, CloseReason closeReason) {
-        SessionImpl session = remoteEndpointToSession.get(gs);
+        SessionImpl session = getSession(gs);
 
         if (session == null) {
             return;
@@ -717,8 +725,10 @@ public class EndpointWrapper extends SPIEndpoint {
             }
         }
 
-        remoteEndpointToSession.remove(gs);
-        componentProvider.removeSession(session);
+        synchronized (remoteEndpointToSession) {
+            remoteEndpointToSession.remove(gs);
+            componentProvider.removeSession(session);
+        }
     }
 
     @Override

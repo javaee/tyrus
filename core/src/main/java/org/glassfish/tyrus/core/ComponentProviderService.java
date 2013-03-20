@@ -63,7 +63,7 @@ import org.glassfish.tyrus.spi.ComponentProvider;
  */
 public class ComponentProviderService {
 
-    private final Map<Session, Map<Class<?>, Object>> sessionToObject;
+    private volatile Map<Session, Map<Class<?>, Object>> sessionToObject;
     private final List<ComponentProvider> providers;
 
     /**
