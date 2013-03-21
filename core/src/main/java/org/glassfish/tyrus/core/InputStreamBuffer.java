@@ -71,12 +71,10 @@ class InputStreamBuffer {
     }
 
     private void blockOnReaderThread() {
-        synchronized (lock) {
-            try {
-                this.lock.wait();
-            } catch (InterruptedException e) {
-                // thread unblocked
-            }
+        try {
+            this.lock.wait();
+        } catch (InterruptedException e) {
+            // thread unblocked
         }
     }
 
@@ -86,23 +84,25 @@ class InputStreamBuffer {
      * @return next received bytes.
      */
     public byte getNextByte() {
-        if (this.bufferedFragments.isEmpty()) {
-            if (receivedLast) {
-                this.inputStream = null;
-                return -1;
-            } else { // there's more to come...so wait here...
-                blockOnReaderThread();
+        synchronized (lock) {
+            if (this.bufferedFragments.isEmpty()) {
+                if (receivedLast) {
+                    this.inputStream = null;
+                    return -1;
+                } else { // there's more to come...so wait here...
+                    blockOnReaderThread();
+                }
             }
+
+            ByteBuffer firstBuffer = bufferedFragments.get(0);
+            byte result = firstBuffer.get();
+
+            if (!firstBuffer.hasRemaining()) {
+                bufferedFragments.remove(0);
+            }
+
+            return result;
         }
-
-        ByteBuffer firstBuffer = bufferedFragments.get(0);
-        byte result = firstBuffer.get();
-
-        if(!firstBuffer.hasRemaining()){
-            bufferedFragments.remove(0);
-        }
-
-        return result;
     }
 
     /**
@@ -117,13 +117,12 @@ class InputStreamBuffer {
      * Append next message part to the buffer.
      *
      * @param message the message.
-     * @param last should be {@code true} iff this is the last part of the message, {@code false} otherwise.
+     * @param last    should be {@code true} iff this is the last part of the message, {@code false} otherwise.
      */
     public void appendMessagePart(ByteBuffer message, boolean last) {
-        this.receivedLast = last;
-        bufferedFragments.add(message);
-
         synchronized (lock) {
+            this.receivedLast = last;
+            bufferedFragments.add(message);
             this.lock.notifyAll();
         }
 
