@@ -167,7 +167,7 @@ public class GetEndpointInstanceTest {
                 }
             }, cec, new URI("ws://localhost:8025/websockets/tests/echoAnnotated"));
 
-            messageLatch.await(1000, TimeUnit.SECONDS);
+            messageLatch.await(5, TimeUnit.SECONDS);
             assertEquals(0, messageLatch.getCount());
             assertEquals(SENT_MESSAGE, receivedMessage);
         } catch (Exception e) {
@@ -210,7 +210,7 @@ public class GetEndpointInstanceTest {
                 }
             }, cec, new URI("ws://localhost:8025/websockets/tests/echoProgrammatic"));
 
-            messageLatch.await(1000, TimeUnit.SECONDS);
+            messageLatch.await(5, TimeUnit.SECONDS);
             assertEquals(0, messageLatch.getCount());
             assertEquals(SENT_MESSAGE, receivedMessage);
         } catch (Exception e) {

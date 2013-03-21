@@ -259,7 +259,7 @@ public class OnCloseTest {
                 }
             }, cec, new URI("ws://localhost:8025/websockets/tests/close"));
 
-            messageLatch.await(100, TimeUnit.SECONDS);
+            messageLatch.await(5, TimeUnit.SECONDS);
             Thread.sleep(1000);
 
             assertNotNull(OnCloseWithCustomReasonEndpoint.closeReason);

@@ -109,7 +109,7 @@ public class EncodedObjectTest {
                 }
             }, cec, new URI("ws://localhost:8025/websockets/tests/echo"));
 
-            messageLatch.await(5000, TimeUnit.SECONDS);
+            messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertEquals(SENT_MESSAGE, receivedMessage);
         } catch (Exception e) {
             e.printStackTrace();

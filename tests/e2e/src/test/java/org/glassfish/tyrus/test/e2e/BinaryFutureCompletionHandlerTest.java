@@ -83,7 +83,7 @@ public class BinaryFutureCompletionHandlerTest {
             HelloBinaryClient htc = new HelloBinaryClient(messageLatch);
             ClientManager client = ClientManager.createClient();
             client.connectToServer(htc, cec, new URI("ws://localhost:8025/websockets/tests/binaryhellocompletionhandlerfuture"));
-            messageLatch.await(5000, TimeUnit.SECONDS);
+            messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertTrue("The client got the echo back", htc.echoWorked);
 //            Assert.assertNotNull(BinaryFutureCompletionHandlerEndpoint.sr);
         } catch (Exception e) {
