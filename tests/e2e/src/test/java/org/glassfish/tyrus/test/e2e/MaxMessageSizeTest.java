@@ -129,7 +129,7 @@ public class MaxMessageSizeTest {
                 }
             }, clientConfiguration, new URI("ws://localhost:8025/websockets/tests/endpoint1"));
 
-            messageLatch.await(1, TimeUnit.SECONDS);
+            messageLatch.await(5, TimeUnit.SECONDS);
             assertEquals(0, messageLatch.getCount());
             assertEquals("TEST1", receivedMessage);
 
@@ -154,7 +154,7 @@ public class MaxMessageSizeTest {
                 }
             }, clientConfiguration, new URI("ws://localhost:8025/websockets/tests/endpoint1"));
 
-            messageLatch.await(1, TimeUnit.SECONDS);
+            messageLatch.await(5, TimeUnit.SECONDS);
             assertEquals(0, messageLatch.getCount());
         } catch (Exception e) {
             e.printStackTrace();
@@ -196,7 +196,7 @@ public class MaxMessageSizeTest {
                 }
             }, clientConfiguration, new URI("ws://localhost:8025/websockets/tests/endpoint2"));
 
-            messageLatch.await(1, TimeUnit.SECONDS);
+            messageLatch.await(5, TimeUnit.SECONDS);
             assertEquals(0, messageLatch.getCount());
             assertEquals("TEST1", receivedMessage);
 
@@ -221,7 +221,7 @@ public class MaxMessageSizeTest {
                 }
             }, clientConfiguration, new URI("ws://localhost:8025/websockets/tests/endpoint2"));
 
-            messageLatch.await(1, TimeUnit.SECONDS);
+            messageLatch.await(5, TimeUnit.SECONDS);
             assertEquals(0, messageLatch.getCount());
 
         } catch (Exception e) {

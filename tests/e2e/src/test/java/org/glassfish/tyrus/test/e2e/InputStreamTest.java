@@ -133,7 +133,7 @@ public class InputStreamTest {
                 }
             }, cec, new URI("ws://localhost:8025/websockets/tests/inputStream"));
 
-            messageLatch.await(1, TimeUnit.SECONDS);
+            messageLatch.await(5, TimeUnit.SECONDS);
             assertEquals(0, messageLatch.getCount());
         } catch (Exception e) {
             e.printStackTrace();
