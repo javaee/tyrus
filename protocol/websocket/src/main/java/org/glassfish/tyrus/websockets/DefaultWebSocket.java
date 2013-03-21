@@ -43,6 +43,7 @@ package org.glassfish.tyrus.websockets;
 import java.util.EnumSet;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -54,6 +55,8 @@ public class DefaultWebSocket implements WebSocket {
     private final Queue<WebSocketListener> listeners = new ConcurrentLinkedQueue<WebSocketListener>();
     private final ProtocolHandler protocolHandler;
     private final WebSocketRequest request;
+
+    private final CountDownLatch onConnectLatch = new CountDownLatch(1);
 
     enum State {
         NEW, CONNECTED, CLOSING, CLOSED
@@ -109,10 +112,13 @@ public class DefaultWebSocket implements WebSocket {
         for (WebSocketListener listener : listeners) {
             listener.onConnect(this);
         }
+
+        onConnectLatch.countDown();
     }
 
     @Override
     public void onFragment(boolean last, byte[] fragment) {
+        awaitOnConnect();
         for (WebSocketListener listener : listeners) {
             listener.onFragment(this, fragment, last);
         }
@@ -120,6 +126,7 @@ public class DefaultWebSocket implements WebSocket {
 
     @Override
     public void onFragment(boolean last, String fragment) {
+        awaitOnConnect();
         for (WebSocketListener listener : listeners) {
             listener.onFragment(this, fragment, last);
         }
@@ -127,6 +134,7 @@ public class DefaultWebSocket implements WebSocket {
 
     @Override
     public void onMessage(byte[] data) {
+        awaitOnConnect();
         for (WebSocketListener listener : listeners) {
             listener.onMessage(this, data);
         }
@@ -134,12 +142,14 @@ public class DefaultWebSocket implements WebSocket {
 
     @Override
     public void onMessage(String text) {
+        awaitOnConnect();
         for (WebSocketListener listener : listeners) {
             listener.onMessage(this, text);
         }
     }
 
     public void onPing(DataFrame frame) {
+        awaitOnConnect();
         for (WebSocketListener listener : listeners) {
             listener.onPing(this, frame.getBytes());
         }
@@ -147,6 +157,7 @@ public class DefaultWebSocket implements WebSocket {
 
     @Override
     public void onPong(DataFrame frame) {
+        awaitOnConnect();
         for (WebSocketListener listener : listeners) {
             listener.onPong(this, frame.getBytes());
         }
@@ -190,6 +201,15 @@ public class DefaultWebSocket implements WebSocket {
     @Override
     public Future<DataFrame> sendPong(byte[] data) {
         return send(new DataFrame(new PongFrameType(), data));
+    }
+
+    // return boolean, check return value
+    private void awaitOnConnect() {
+        try {
+            onConnectLatch.await();
+        } catch (InterruptedException e) {
+            // do nothing.
+        }
     }
 
     private Future<DataFrame> send(DataFrame frame) {

@@ -50,6 +50,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
@@ -110,6 +111,8 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
     private final SPIHandshakeListener listener;
     private final SSLEngineConfigurator clientSSLEngineConfigurator;
     private Session session = null;
+
+    private final CountDownLatch onConnectLatch = new CountDownLatch(1);
 
     private final List<javax.websocket.Extension> responseExtensions = new ArrayList<javax.websocket.Extension>();
 
@@ -316,10 +319,14 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
         for (SPIEndpoint endpoint : endpoints) {
             endpoint.onConnect(remoteEndpoint, null, responseExtensions);
         }
+
+        onConnectLatch.countDown();
     }
 
     @Override
     public void onMessage(String message) {
+        awaitOnConnect();
+
         for (SPIEndpoint endpoint : endpoints) {
             endpoint.onMessage(remoteEndpoint, message);
         }
@@ -327,6 +334,8 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
 
     @Override
     public void onMessage(byte[] bytes) {
+        awaitOnConnect();
+
         for (SPIEndpoint endpoint : endpoints) {
             endpoint.onMessage(remoteEndpoint, ByteBuffer.wrap(bytes));
         }
@@ -334,6 +343,8 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
 
     @Override
     public void onFragment(boolean b, String s) {
+        awaitOnConnect();
+
         for (SPIEndpoint endpoint : endpoints) {
             endpoint.onPartialMessage(remoteEndpoint, s, b);
         }
@@ -341,6 +352,8 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
 
     @Override
     public void onFragment(boolean bool, byte[] bytes) {
+        awaitOnConnect();
+
         for (SPIEndpoint endpoint : endpoints) {
             endpoint.onPartialMessage(remoteEndpoint, ByteBuffer.wrap(bytes), bool);
         }
@@ -348,6 +361,8 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
 
     @Override
     public void onClose(ClosingFrame dataFrame) {
+        awaitOnConnect();
+
         if (state.get() == State.CLOSED) {
             return;
         }
@@ -370,6 +385,8 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
 
     @Override
     public void onPing(DataFrame dataFrame) {
+        awaitOnConnect();
+
         for (SPIEndpoint endpoint : endpoints) {
             endpoint.onPing(remoteEndpoint, ByteBuffer.wrap(dataFrame.getBytes()));
         }
@@ -377,6 +394,8 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
 
     @Override
     public void onPong(DataFrame dataFrame) {
+        awaitOnConnect();
+
         for (SPIEndpoint endpoint : endpoints) {
             endpoint.onPong(remoteEndpoint, ByteBuffer.wrap(dataFrame.getBytes()));
         }
@@ -390,6 +409,15 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
     @Override
     public boolean remove(WebSocketListener webSocketListener) {
         throw new UnsupportedOperationException();
+    }
+
+    // return boolean, check return value
+    private void awaitOnConnect() {
+        try {
+            onConnectLatch.await();
+        } catch (InterruptedException e) {
+            // do nothing.
+        }
     }
 
     private static Processor createFilterChain(SSLEngineConfigurator serverSSLEngineConfigurator,

@@ -73,12 +73,14 @@ public class TyrusRemoteEndpoint extends SPIRemoteEndpoint {
      * @return Corresponding {@link TyrusRemoteEndpoint}.
      */
     public static TyrusRemoteEndpoint get(WebSocket socket) {
-        TyrusRemoteEndpoint s = sockets.get(socket);
-        if (s == null) {
-            s = new TyrusRemoteEndpoint(socket);
-            sockets.put(socket, s);
+        synchronized (sockets) {
+            TyrusRemoteEndpoint s = sockets.get(socket);
+            if (s == null) {
+                s = new TyrusRemoteEndpoint(socket);
+                sockets.put(socket, s);
+            }
+            return s;
         }
-        return s;
     }
 
     /**
@@ -87,7 +89,9 @@ public class TyrusRemoteEndpoint extends SPIRemoteEndpoint {
      * @param socket socket instance to be removed.
      */
     public static void remove(WebSocket socket) {
-        sockets.remove(socket);
+        synchronized (sockets) {
+            sockets.remove(socket);
+        }
     }
 
     @Override
