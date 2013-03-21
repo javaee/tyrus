@@ -46,21 +46,19 @@ import org.junit.Test;
 import javax.websocket.*;
 import javax.websocket.server.ServerEndpoint;
 import java.net.URI;
-import java.nio.ByteBuffer;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Basic test for RemoteEndpoint.Async.sendBinary()
+ * Basic test for RemoteEndpoint.Async.sendObject()
  *
  * @author Jitendra Kotamraju
  */
-public class AsyncBinaryTest {
+public class AsyncObjectTest {
 
     @Test
-    public void testTextFuture() throws Exception {
-
+    public void testObjectFuture() throws Exception {
         Server server = new Server(AsncEchoServer.class);
         try {
             server.start();
@@ -70,23 +68,23 @@ public class AsyncBinaryTest {
             container.connectToServer(
                     new AsyncClient(messageLatch),
                     ClientEndpointConfig.Builder.create().build(),
-                    new URI("ws://localhost:8025/websockets/tests/async-basic-echo-binary"));
+                    new URI("ws://localhost:8025/websockets/tests/async-basic-echo-object"));
             messageLatch.await(5, TimeUnit.SECONDS);
 
             // Check the number of received messages
-            Assert.assertEquals("Didn't receive all the messages. ", 0, messageLatch.getCount());
+            Assert.assertEquals(0, messageLatch.getCount());
         } finally {
             server.stop();
         }
     }
 
     // Server endpoint that just echos messages asynchronously
-    @ServerEndpoint(value = "/async-basic-echo-binary")
+    @ServerEndpoint(value = "/async-basic-echo-object")
     public static class AsncEchoServer {
 
         @OnMessage
-        public void echo(ByteBuffer buf, Session session) throws Exception {
-            Future<Void> f = session.getAsyncRemote().sendBinary(buf);
+        public void echo(int message, Session session) throws Exception {
+            Future<Void> f = session.getAsyncRemote().sendObject(message);
             f.get();
         }
 
@@ -104,14 +102,14 @@ public class AsyncBinaryTest {
 
         public void onOpen(Session session, EndpointConfig EndpointConfig) {
             try {
-                session.addMessageHandler(new MessageHandler.Whole<ByteBuffer>() {
-                    public void onMessage(ByteBuffer buf) {
+                session.addMessageHandler(new MessageHandler.Whole<String>() {
+                    public void onMessage(String text) {
                         messageLatch.countDown();
                     }
                 });
 
                 for(int i=0; i < noMessages; i++) {
-                    session.getAsyncRemote().sendBinary(ByteBuffer.wrap(new byte[]{(byte) i}));
+                    session.getAsyncRemote().sendObject(i);
                 }
             } catch (Exception e) {
                 e.printStackTrace();

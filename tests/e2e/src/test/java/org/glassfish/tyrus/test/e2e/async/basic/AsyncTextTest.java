@@ -52,7 +52,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Basic test for
+ * Basic test for RemoteEndpoint.Async.sendText()
  *
  * @author Jitendra Kotamraju
  */
@@ -70,7 +70,7 @@ public class AsyncTextTest {
             container.connectToServer(
                     new AsyncClient(messageLatch),
                     ClientEndpointConfig.Builder.create().build(),
-                    new URI("ws://localhost:8025/websockets/tests/async-basic-echo"));
+                    new URI("ws://localhost:8025/websockets/tests/async-basic-echo-text"));
             messageLatch.await(5, TimeUnit.SECONDS);
 
             // Check the number of received messages
@@ -81,7 +81,7 @@ public class AsyncTextTest {
     }
 
     // Server endpoint that just echos messages asynchronously
-    @ServerEndpoint(value = "/async-basic-echo")
+    @ServerEndpoint(value = "/async-basic-echo-text")
     public static class AsncEchoServer {
 
         @OnMessage

@@ -63,13 +63,13 @@ import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class RemoteEndpointWrapper implements RemoteEndpoint {
+public abstract class RemoteEndpointWrapper implements RemoteEndpoint {
 
     protected final SPIRemoteEndpoint remoteEndpoint;
     protected final SessionImpl session;
     protected final EndpointWrapper endpointWrapper;
 
-    RemoteEndpointWrapper(SessionImpl session, SPIRemoteEndpoint remoteEndpoint, EndpointWrapper endpointWrapper) {
+    private RemoteEndpointWrapper(SessionImpl session, SPIRemoteEndpoint remoteEndpoint, EndpointWrapper endpointWrapper) {
         this.remoteEndpoint = remoteEndpoint;
         this.endpointWrapper = endpointWrapper;
         this.session = session;
@@ -83,13 +83,13 @@ public class RemoteEndpointWrapper implements RemoteEndpoint {
 
         @Override
         public void sendText(String text) throws IOException {
-            remoteEndpoint.sendText(text);
+            super.sendSyncText(text);
             session.restartTimer();
         }
 
         @Override
         public void sendBinary(ByteBuffer data) throws IOException {
-            remoteEndpoint.sendBinary(data);
+            super.sendSyncBinary(data);
             session.restartTimer();
         }
 
@@ -107,7 +107,7 @@ public class RemoteEndpointWrapper implements RemoteEndpoint {
 
         @Override
         public void sendObject(Object data) throws IOException, EncodeException {
-            sendPolymorphic(data);
+            super.sendSyncObject(data);
             session.restartTimer();
         }
 
@@ -121,48 +121,6 @@ public class RemoteEndpointWrapper implements RemoteEndpoint {
             return new WriterToAsyncTextAdapter(remoteEndpoint);
         }
 
-        private void sendPrimitiveMessage(Object data) throws IOException, EncodeException {
-            if (isPrimitiveData(data)) {
-                this.sendText(data.toString());
-            } else {
-                throw new EncodeException(data, "Object " + data + " is not a primitive type.");
-            }
-        }
-        @SuppressWarnings("unchecked")
-        private void sendPolymorphic(Object o) throws IOException, EncodeException {
-            if (o instanceof String) {
-                this.sendText((String) o);
-            } else if (isPrimitiveData(o)) {
-                this.sendPrimitiveMessage(o);
-            } else {
-                Object toSend = endpointWrapper.doEncode(session, o);
-                if (toSend instanceof String) {
-                    this.sendText((String) toSend);
-                } else if (toSend instanceof ByteBuffer) {
-                    this.sendBinary((ByteBuffer) toSend);
-                } else if (toSend instanceof StringWriter) {
-                    StringWriter writer = (StringWriter) toSend;
-                    StringBuffer sb = writer.getBuffer();
-                    this.sendText(sb.toString());
-                } else if (toSend instanceof ByteArrayOutputStream) {
-                    ByteArrayOutputStream baos = (ByteArrayOutputStream) toSend;
-                    ByteBuffer buffer = ByteBuffer.wrap(baos.toByteArray());
-                    this.sendBinary(buffer);
-                }
-
-            }
-        }
-        private boolean isPrimitiveData(Object data) {
-            Class dataClass = data.getClass();
-            return (dataClass.equals(Integer.class) ||
-                    dataClass.equals(Byte.class) ||
-                    dataClass.equals(Short.class) ||
-                    dataClass.equals(Long.class) ||
-                    dataClass.equals(Float.class) ||
-                    dataClass.equals(Double.class) ||
-                    dataClass.equals(Boolean.class) ||
-                    dataClass.equals(Character.class));
-        }
     }
 
     static class Async extends RemoteEndpointWrapper implements RemoteEndpoint.Async {
@@ -203,7 +161,7 @@ public class RemoteEndpointWrapper implements RemoteEndpoint {
 
         @Override
         public void sendObject(Object data, SendHandler handler) {
-            SendCompletionAdapter goesAway = new SendCompletionAdapter(this, SendCompletionAdapter.State.BINARY);
+            SendCompletionAdapter goesAway = new SendCompletionAdapter(this, SendCompletionAdapter.State.OBJECT);
             goesAway.send(data, handler);
             session.restartTimer();
         }
@@ -220,9 +178,53 @@ public class RemoteEndpointWrapper implements RemoteEndpoint {
 
         @Override
         public Future<Void> sendObject(Object data) {
-            SendCompletionAdapter goesAway = new SendCompletionAdapter(this, SendCompletionAdapter.State.TEXT);
+            SendCompletionAdapter goesAway = new SendCompletionAdapter(this, SendCompletionAdapter.State.OBJECT);
             return goesAway.send(data, null);
         }
+    }
+
+    protected void sendSyncText(String data) throws IOException {
+        remoteEndpoint.sendText(data);
+    }
+
+    protected void sendSyncBinary(ByteBuffer buf) throws IOException {
+        remoteEndpoint.sendBinary(buf);
+    }
+
+    @SuppressWarnings("unchecked")
+    protected void sendSyncObject(Object o) throws IOException, EncodeException {
+        if (o instanceof String) {
+            remoteEndpoint.sendText((String) o);
+        } else if (isPrimitiveData(o)) {
+            remoteEndpoint.sendText(o.toString());
+        } else {
+            Object toSend = endpointWrapper.doEncode(session, o);
+            if (toSend instanceof String) {
+                remoteEndpoint.sendText((String) toSend);
+            } else if (toSend instanceof ByteBuffer) {
+                remoteEndpoint.sendBinary((ByteBuffer) toSend);
+            } else if (toSend instanceof StringWriter) {
+                StringWriter writer = (StringWriter) toSend;
+                StringBuffer sb = writer.getBuffer();
+                remoteEndpoint.sendText(sb.toString());
+            } else if (toSend instanceof ByteArrayOutputStream) {
+                ByteArrayOutputStream baos = (ByteArrayOutputStream) toSend;
+                ByteBuffer buffer = ByteBuffer.wrap(baos.toByteArray());
+                remoteEndpoint.sendBinary(buffer);
+            }
+        }
+    }
+
+    protected boolean isPrimitiveData(Object data) {
+        Class dataClass = data.getClass();
+        return (dataClass.equals(Integer.class) ||
+                dataClass.equals(Byte.class) ||
+                dataClass.equals(Short.class) ||
+                dataClass.equals(Long.class) ||
+                dataClass.equals(Float.class) ||
+                dataClass.equals(Double.class) ||
+                dataClass.equals(Boolean.class) ||
+                dataClass.equals(Character.class));
     }
 
     @Override
