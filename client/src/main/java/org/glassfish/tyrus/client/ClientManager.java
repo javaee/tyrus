@@ -146,6 +146,10 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
 
     @Override
     public Session connectToServer(Class annotatedEndpointClass, URI path) throws DeploymentException {
+        if (annotatedEndpointClass.getAnnotation(ClientEndpoint.class) == null) {
+            throw new DeploymentException(String.format("Class argument in connectToServer(Class, URI) is to be annotated endpoint class." +
+                    "Class %s does not have @ClientEndpoint", annotatedEndpointClass.getName()));
+        }
         return connectToServer(annotatedEndpointClass, null, path.toString());
     }
 
