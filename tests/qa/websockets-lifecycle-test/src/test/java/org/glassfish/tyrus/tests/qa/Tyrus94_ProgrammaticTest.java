@@ -42,10 +42,12 @@ package org.glassfish.tyrus.tests.qa;
 import java.io.IOException;
 
 import javax.websocket.DeploymentException;
+import org.glassfish.tyrus.tests.qa.config.AppConfig;
 
 import org.glassfish.tyrus.tests.qa.lifecycle.config.ProgrammaticWholeMessageStringSessionConfig;
 import org.glassfish.tyrus.tests.qa.lifecycle.handlers.text.ProgrammaticWholeMessageStringSession;
 import org.glassfish.tyrus.tests.qa.regression.Issue;
+import org.junit.Assume;
 
 import org.junit.Test;
 
@@ -55,6 +57,7 @@ import org.junit.Test;
 public class Tyrus94_ProgrammaticTest extends AbstractLifeCycleTestBase {
     @Test
     public void testTyrus94_Programmatic() throws DeploymentException, IOException {
+        Assume.assumeTrue(AppConfig.isTyrusContainer());
         Issue.TYRUS_94.disableAllButThisOne();
         lifeCycle(ProgrammaticWholeMessageStringSessionConfig.class, ProgrammaticWholeMessageStringSession.class);
     }

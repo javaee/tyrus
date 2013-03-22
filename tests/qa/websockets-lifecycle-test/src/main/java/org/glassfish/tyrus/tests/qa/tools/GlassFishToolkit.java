@@ -51,6 +51,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.websocket.ClientEndpoint;
@@ -121,13 +122,17 @@ public class GlassFishToolkit implements ServerToolkit {
     public class Asadmin {
 
         private final static String ASADMIN_CMD = "%s/bin/asadmin %s";
+        private final static String ASADMIN_SET_PROPERTY = "--properties %s=%s";
         private final static String ASADMIN_DEFAULT_DOMAIN = "domain1";
         private final static String ASADMIN_START_DOMAIN = "start-domain %s";
         private final static String ASADMIN_STOP_DOMAIN = "stop-domain %s";
         private final static String ASADMIN_DEPLOY_WAR = "deploy %s";
+        private final static String ASADMIN_DEPLOY_WAR_PROPS = "deploy --properties %s=%s %s";
         private final static String ASADMIN_UNDEPLOY_APP = "undeploy %s";
         private final static String ASADMIN_LIST_APPS = "list-applications";
 
+        
+        
         public String getAsadminStartDomain(String domain) {
             return String.format(ASADMIN_CMD, installRoot, String.format(ASADMIN_START_DOMAIN, domain));
         }
@@ -151,6 +156,10 @@ public class GlassFishToolkit implements ServerToolkit {
         public String getAsadminDeployCommand(String warfile) {
             return String.format(ASADMIN_CMD, installRoot, String.format(ASADMIN_DEPLOY_WAR, warfile));
         }
+        
+        public String getAsadminDeployCommand(String warfile, String key, String value) {
+            return String.format(ASADMIN_CMD, installRoot, String.format(ASADMIN_DEPLOY_WAR_PROPS, key, value, warfile));
+        }
 
         public String getAsadminUnDeployCommand(String appname) {
             return String.format(ASADMIN_CMD, installRoot, String.format(ASADMIN_UNDEPLOY_APP, appname));
@@ -161,8 +170,10 @@ public class GlassFishToolkit implements ServerToolkit {
             CommandLine cmdLine = CommandLine.parse(cmd);
             DefaultExecutor executor = new DefaultExecutor();
             try {
-                int exitValue = executor.execute(cmdLine);
-                logger.log(Level.INFO, "asadmin.exec: {0}", exitValue);
+                Map<String, String> env = System.getenv();
+                //env.put("WEBSOCKET_CONTAINER", "GLASSFISH");
+                int exitValue = executor.execute(cmdLine, env);
+                logger.log(Level.INFO, "asadmin.exec.rc: {0}", exitValue);
                 if (exitValue != 0) {
                     logger.log(Level.SEVERE, "Can't execute:{0}", cmdLine.toString());
                     throw new RuntimeException("Can't start GF server:" + exitValue);

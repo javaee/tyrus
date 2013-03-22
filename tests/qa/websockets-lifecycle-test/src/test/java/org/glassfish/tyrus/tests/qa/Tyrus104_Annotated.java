@@ -42,9 +42,11 @@ package org.glassfish.tyrus.tests.qa;
 import java.io.IOException;
 
 import javax.websocket.DeploymentException;
+import org.glassfish.tyrus.tests.qa.config.AppConfig;
 
 import org.glassfish.tyrus.tests.qa.lifecycle.handlers.text.AnnotatedWholeMessageStringSession;
 import org.glassfish.tyrus.tests.qa.regression.Issue;
+import org.junit.Assume;
 
 import org.junit.Test;
 
@@ -54,6 +56,7 @@ import org.junit.Test;
 public class Tyrus104_Annotated extends AbstractLifeCycleTestBase {
     @Test
     public void testTyrus104_Annotated() throws DeploymentException, InterruptedException, IOException {
+        Assume.assumeTrue(AppConfig.isTyrusContainer());
         Issue.TYRUS_104.disableAllButThisOne();
         lifeCycle(AnnotatedWholeMessageStringSession.Server.class, AnnotatedWholeMessageStringSession.Client.class);
     }

@@ -72,6 +72,7 @@ public class AnnotatedWholeMessageStringSession {
         @OnOpen
         @Override
         public void onOpen(Session session, EndpointConfig ec) {
+            logger.log(Level.INFO, "websocket.container:{0}", session.getContainer().toString());
             super.onOpen(session, ec);
             lifeCycle.onServerOpen(session, ec);
             logger.log(Level.INFO, "lifeCycle={0}", lifeCycle.toString());

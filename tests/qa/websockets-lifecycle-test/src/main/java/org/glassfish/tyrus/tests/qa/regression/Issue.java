@@ -45,6 +45,7 @@ import java.util.logging.Logger;
 
 import javax.websocket.CloseReason;
 import javax.websocket.Session;
+import org.glassfish.tyrus.tests.qa.config.AppConfig;
 
 /**
  * @author michal.conos at oracle.com
@@ -69,6 +70,9 @@ public enum Issue {
      * @return true if enabled, false if the issue is disabled
      */
     public boolean isEnabled() {
+        if(AppConfig.isGlassFishContainer()) {
+            return false;
+        }
         return enabled;
     }
 

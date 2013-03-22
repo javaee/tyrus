@@ -53,10 +53,8 @@ import javax.websocket.Endpoint;
 import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
 
-import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.tests.qa.config.AppConfig;
 import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleDeployment;
-import org.glassfish.tyrus.tests.qa.tools.CommChannel;
 import org.glassfish.tyrus.tests.qa.tools.SessionController;
 import org.glassfish.tyrus.tests.qa.tools.TyrusToolkit;
 
@@ -83,13 +81,15 @@ public abstract class AbstractLifeCycleTestBase {
             LifeCycleDeployment.COMMCHANNEL_PORT,
             LifeCycleDeployment.INSTALL_ROOT);
     ServerToolkit tyrus;
+    
+    
 
 
     //private Server tyrusServer;
 
     @Before
     public void setupServer() throws Exception {
-        if(testConf.getWebSocketContainer().equals(AppConfig.AppServer.GLASSFISH)) {
+        if(AppConfig.isGlassFishContainer()) {
             tyrus = new GlassFishToolkit(testConf);
         }
         else {
@@ -173,7 +173,7 @@ public abstract class AbstractLifeCycleTestBase {
          }
          */
 
-        tyrus.stopServer();
+        //tyrus.stopServer();
 
         if (state != null) {
             logger.log(Level.INFO, "Asserting: {0} {1}", new Object[]{state, SessionController.getState()});

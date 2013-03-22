@@ -39,15 +39,23 @@
  */
 package org.glassfish.tyrus.tests.qa.config;
 
+import java.io.PrintStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Map;
+import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * @author michal.conos at oracle.com
  */
 public class AppConfig {
 
+    private static final Logger logger = Logger.getLogger(AppConfig.class.getCanonicalName());
+
     public enum AppServer {
+
         TYRUS,
         GLASSFISH
     };
@@ -76,6 +84,10 @@ public class AppConfig {
     }
 
     public String getInstallRoot() {
+        final String gfInstallRoot = System.getProperty("glassfish.installRoot");
+        if (gfInstallRoot != null) {
+            return gfInstallRoot;
+        }
         return installRoot;
     }
 
@@ -128,12 +140,31 @@ public class AppConfig {
         }
     }
 
-    public AppServer getWebSocketContainer() {
-        final String container = System.getProperty("websocket.container");
+    public static AppServer getWebSocketContainer() {
+        Map<String, String> runtimeEnv = System.getenv();
+        Properties props = System.getProperties();
+        if (props != null && props.containsKey("com.sun.aas.installRoot")) {
+            return AppServer.GLASSFISH;
+        }
+        //props.list(System.out);
+        String container = System.getProperty("websocket.container");
+        //if(container==null) {
+        //    container = System.getenv("WEBSOCKET_CONTAINER");
+        //}
+        logger.log(Level.INFO, "getWebSocketContainer(): {0}", container);
+        //logger.log(Level.INFO, "Environment: {0}", runtimeEnv);
         if (container != null && container.equals("glassfish")) {
             return AppServer.GLASSFISH;
         }
         return AppServer.TYRUS;
+    }
+
+    public static boolean isGlassFishContainer() {
+        return getWebSocketContainer().equals(AppConfig.AppServer.GLASSFISH);
+    }
+
+    public static boolean isTyrusContainer() {
+        return !isGlassFishContainer();
     }
 
     public String getHost() {
