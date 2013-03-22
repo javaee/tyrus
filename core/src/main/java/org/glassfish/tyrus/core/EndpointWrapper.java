@@ -95,7 +95,7 @@ public class EndpointWrapper extends SPIEndpoint {
     /**
      * The container for this session.
      */
-    private final WebSocketContainer container;
+    final BaseContainer container;
     private final String contextPath;
 
     private final List<CoderWrapper<Decoder>> decoders = new ArrayList<CoderWrapper<Decoder>>();
@@ -128,7 +128,7 @@ public class EndpointWrapper extends SPIEndpoint {
      * @param collector         error collector.
      */
     public EndpointWrapper(Class<?> endpointClass, EndpointConfig configuration,
-                           ComponentProviderService componentProvider, WebSocketContainer container,
+                           ComponentProviderService componentProvider, BaseContainer container,
                            String contextPath, ErrorCollector collector, ServerEndpointConfig.Configurator configurator) {
         this(null, endpointClass, configuration, componentProvider, container, contextPath, collector, configurator);
     }
@@ -143,13 +143,13 @@ public class EndpointWrapper extends SPIEndpoint {
      * @param contextPath       context path.
      * @param collector         error collector.
      */
-    public EndpointWrapper(Endpoint endpoint, EndpointConfig configuration, ComponentProviderService componentProvider, WebSocketContainer container,
+    public EndpointWrapper(Endpoint endpoint, EndpointConfig configuration, ComponentProviderService componentProvider, BaseContainer container,
                            String contextPath, ErrorCollector collector, ServerEndpointConfig.Configurator configurator) {
         this(endpoint, null, configuration, componentProvider, container, contextPath, collector, configurator);
     }
 
     private EndpointWrapper(Endpoint endpoint, Class<?> endpointClass, EndpointConfig configuration,
-                            ComponentProviderService componentProvider, WebSocketContainer container,
+                            ComponentProviderService componentProvider, BaseContainer container,
                             String contextPath, ErrorCollector collector, final ServerEndpointConfig.Configurator configurator) {
         this.endpointClass = endpointClass;
         this.endpoint = endpoint;

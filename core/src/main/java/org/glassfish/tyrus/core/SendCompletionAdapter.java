@@ -75,7 +75,8 @@ public class SendCompletionAdapter {
         final SendHandler cmpltn = completion;
         final FutureSendResult fsr = new FutureSendResult();
 
-        Thread sendThread = new Thread() {
+        rew.endpointWrapper.container.getExecutorService().execute(new Runnable() {
+
             @Override
             public void run() {
                 SendResult sr = new SendResult();
@@ -103,8 +104,8 @@ public class SendCompletionAdapter {
                     fsr.setResult(sr);
                 }
             }
-        };
-        sendThread.start();
+        });
+
         return fsr;
     }
 }

@@ -64,12 +64,7 @@ import javax.websocket.HandshakeResponse;
 import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
 
-import org.glassfish.tyrus.core.AnnotatedEndpoint;
-import org.glassfish.tyrus.core.ComponentProviderService;
-import org.glassfish.tyrus.core.EndpointWrapper;
-import org.glassfish.tyrus.core.ErrorCollector;
-import org.glassfish.tyrus.core.ReflectionHelper;
-import org.glassfish.tyrus.core.TyrusContainerProvider;
+import org.glassfish.tyrus.core.*;
 import org.glassfish.tyrus.spi.SPIHandshakeListener;
 import org.glassfish.tyrus.spi.TyrusClientSocket;
 import org.glassfish.tyrus.spi.TyrusContainer;
@@ -80,7 +75,7 @@ import org.glassfish.tyrus.spi.TyrusContainer;
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class ClientManager extends ContainerProvider implements WebSocketContainer {
+public class ClientManager extends BaseContainer implements WebSocketContainer {
 
     /**
      * Default {@link TyrusContainer} class name.
@@ -118,11 +113,6 @@ public class ClientManager extends ContainerProvider implements WebSocketContain
      */
     public static ClientManager createClient(String engineProviderClassname) {
         return new ClientManager(engineProviderClassname);
-    }
-
-    @Override
-    protected WebSocketContainer getContainer() {
-        return new ClientManager();
     }
 
     /**

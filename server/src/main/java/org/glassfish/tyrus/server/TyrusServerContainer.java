@@ -45,8 +45,13 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
+import javax.naming.InitialContext;
 import javax.websocket.ClientEndpointConfig;
 import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
@@ -57,11 +62,7 @@ import javax.websocket.WebSocketContainer;
 import javax.websocket.server.ServerApplicationConfig;
 import javax.websocket.server.ServerEndpointConfig;
 
-import org.glassfish.tyrus.core.AnnotatedEndpoint;
-import org.glassfish.tyrus.core.ComponentProviderService;
-import org.glassfish.tyrus.core.EndpointWrapper;
-import org.glassfish.tyrus.core.ErrorCollector;
-import org.glassfish.tyrus.core.WithProperties;
+import org.glassfish.tyrus.core.*;
 import org.glassfish.tyrus.spi.SPIRegisteredEndpoint;
 import org.glassfish.tyrus.spi.TyrusServer;
 
@@ -72,7 +73,7 @@ import org.glassfish.tyrus.spi.TyrusServer;
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class TyrusServerContainer extends WithProperties implements WebSocketContainer {
+public class TyrusServerContainer extends BaseContainer implements WebSocketContainer {
     private final TyrusServer server;
     private final String contextPath;
     private final ServerApplicationConfig configuration;
