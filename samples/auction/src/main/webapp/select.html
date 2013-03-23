@@ -2,7 +2,7 @@
 
     DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
 
-    Copyright (c) 2011 - 2012 Oracle and/or its affiliates. All rights reserved.
+    Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
 
     The contents of this file are subject to the terms of either the GNU
     General Public License Version 2 only ("GPL") or the Common Development
@@ -40,30 +40,32 @@
 
 -->
 <!DOCTYPE html>
+<head>
+    <meta charset="utf-8"/>
 
-<meta charset="utf-8"/>
+    <title id="titleID">Web Sockets Auction Client</title>
 
-<title id="titleID">Web Sockets Auction Client</title>
+    <link rel="stylesheet" href="css/main.css">
+    <script type="text/javascript" src="select.js"></script>
+</head>
+<body>
+<h2>Web Sockets Auction Client</h2>
 
-<script language="javascript" type="text/javascript" src="select.js">
-</script>
-
-<h2 style="text-align: center;">Web Sockets Auction Client</h2>
-
-<div style="text-align: center;">
-    <img style=" width: 64px; height: 64px;" alt="" src="HTML5_Logo_512.png">
-    <img style=" width: 64px; height: 64px;" alt="" src="websocket-sdk.png">
-
-    <br></br>
+<div id="html5images">
+    <img alt="" src="HTML5_Logo_512.png">
+    <img alt="" src="websocket-sdk.png">
+</div>
+<div class="centered">
+    <br>
 
     <form action="">
-        <br></br><br></br><br></br>
-        <select id="comboID" name="websites" size="10" style="width:600px">
+        <br><br><br>
+        <select id="comboID" name="websites" size="10">
         </select>
-        <br></br>
-        <input type="button" id="selectButtonID" onclick="selected()" value="Go To Auction">
+        <br>
+        <input type="button" id="selectButtonID" onclick="selected();" value="Go To Auction">
     </form>
 </div>
 <div id="output"></div>
-
+</body>
 </html>
