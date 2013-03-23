@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2010-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -37,38 +37,59 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.core.internal.l10n;
+package org.glassfish.tyrus.websockets.uri.internal;
 
 /**
- * @author WS Development Team
+ * A URI template for a URI path.
+ *
+ * @author Paul Sandoz
+ * @author Yegor Bugayenko (yegor256 at java.net)
  */
-public final class LocalizableMessage implements Localizable {
+public final class PathTemplate extends UriTemplate {
 
-    private final String _bundlename;
-    private final String _key;
-    private final Object[] _args;
+    /**
+     * Internal parser of this PathTemplate.
+     * @see #PathTemplate(String)
+     */
+    private static final class PathTemplateParser extends UriTemplateParser {
 
-    public LocalizableMessage(String bundlename, String key, Object... args) {
-        _bundlename = bundlename;
-        _key = key;
-        if (args == null) {
-            args = new Object[0];
+        /**
+         * Public constructor.
+         *
+         * @param path the URI path template
+         */
+        public PathTemplateParser(final String path) {
+            super(path);
         }
-        _args = args;
+
+        @Override
+        protected String encodeLiteralCharacters(final String literalCharacters) {
+
+            return UriComponent.contextualEncode(
+                    literalCharacters,
+                    UriComponent.Type.PATH);
+        }
     }
 
-    @Override
-    public String getKey() {
-        return _key;
+    /**
+     * Create a URI path template and encode (percent escape) any characters of
+     * the template that are not valid URI characters. Paths that don't start with
+     * a slash ({@code '/'}) will be automatically prefixed with one.
+     *
+     * @param path the URI path template.
+     */
+    public PathTemplate(final String path) {
+        super(new PathTemplateParser(PathTemplate.prefixWithSlash(path)));
     }
 
-    @Override
-    public Object[] getArguments() {
-        return _args;
-    }
-
-    @Override
-    public String getResourceBundleName() {
-        return _bundlename;
+    /**
+     * Converts the path provided to a slash-leading form, no matter what is provided.
+     *
+     * @param path the URI path template.
+     * @return slash-prefixed path.
+     * @see #PathTemplate(String)
+     */
+    private static String prefixWithSlash(final String path) {
+        return !path.isEmpty() && path.charAt(0) == '/' ? path : "/" + path;
     }
 }

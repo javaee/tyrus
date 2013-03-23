@@ -145,7 +145,6 @@ public abstract class WebSocketApplication implements WebSocketListener {
         return request.getHeaders().get(WebSocketEngine.UPGRADE) != null &&
                 // RFC 6455, paragraph 4.2.1.3
                 WebSocketEngine.WEBSOCKET.equalsIgnoreCase(upgradeHeader) && isApplicationRequest(request);
-
     }
 
     /**
@@ -180,8 +179,14 @@ public abstract class WebSocketApplication implements WebSocketListener {
      * @param request the incoming HTTP request.
      * @return <code>true</code> if this application can service this request
      */
-
     protected abstract boolean isApplicationRequest(WebSocketRequest request);
+
+    /**
+     * Return path for which is current {@link WebSocketApplication} registered.
+     *
+     * @return path. {@code null} will be returned when called on client {@link WebSocketApplication}.
+     */
+    public abstract String getPath();
 
     /**
      * Return the websocket extensions supported by this <code>WebSocketApplication</code>.

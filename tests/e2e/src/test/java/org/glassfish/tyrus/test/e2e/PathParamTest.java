@@ -74,7 +74,7 @@ public class PathParamTest {
 
     private static final String SENT_MESSAGE = "Hello World";
 
-    @ServerEndpoint(value = "/pathparam/{first}/{second}/{third: .*}")
+    @ServerEndpoint(value = "/pathparam/{first}/{second}/{third}")
     public static class PathParamTestEndpoint {
 
         @OnMessage
@@ -128,9 +128,9 @@ public class PathParamTest {
                     receivedMessage = message;
                     messageLatch.countDown();
                 }
-            }, cec, new URI("wss://localhost:8025/websockets/tests/pathparam/first/second/th/ird"));
+            }, cec, new URI("wss://localhost:8025/websockets/tests/pathparam/first/second/third"));
             messageLatch.await(5, TimeUnit.SECONDS);
-            Assert.assertEquals(SENT_MESSAGE + "first" + "second" + "th/ird", receivedMessage);
+            Assert.assertEquals(SENT_MESSAGE + "first" + "second" + "third", receivedMessage);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);

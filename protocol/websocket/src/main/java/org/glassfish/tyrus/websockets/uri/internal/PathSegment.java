@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.core.internal;
+package org.glassfish.tyrus.websockets.uri.internal;
 
 /**
  * Represents a URI path segment and any associated matrix parameters. When an

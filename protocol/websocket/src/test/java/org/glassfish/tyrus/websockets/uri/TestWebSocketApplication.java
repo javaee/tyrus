@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -37,59 +37,59 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.core.internal;
+package org.glassfish.tyrus.websockets.uri;
+
+import org.glassfish.tyrus.websockets.WebSocket;
+import org.glassfish.tyrus.websockets.WebSocketApplication;
+import org.glassfish.tyrus.websockets.WebSocketRequest;
+import org.glassfish.tyrus.websockets.WebSocketResponse;
 
 /**
- * A URI template for a URI path.
- *
- * @author Paul Sandoz
- * @author Yegor Bugayenko (yegor256 at java.net)
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public final class PathTemplate extends UriTemplate {
+public class TestWebSocketApplication extends WebSocketApplication {
 
-    /**
-     * Internal parser of this PathTemplate.
-     * @see #PathTemplate(String)
-     */
-    private static final class PathTemplateParser extends UriTemplateParser {
+    private final String path;
 
-        /**
-         * Public constructor.
-         *
-         * @param path the URI path template
-         */
-        public PathTemplateParser(final String path) {
-            super(path);
-        }
-
-        @Override
-        protected String encodeLiteralCharacters(final String literalCharacters) {
-
-            return UriComponent.contextualEncode(
-                    literalCharacters,
-                    UriComponent.Type.PATH);
-        }
+    public TestWebSocketApplication(String path) {
+        this.path = path;
     }
 
-    /**
-     * Create a URI path template and encode (percent escape) any characters of
-     * the template that are not valid URI characters. Paths that don't start with
-     * a slash ({@code '/'}) will be automatically prefixed with one.
-     *
-     * @param path the URI path template.
-     */
-    public PathTemplate(final String path) {
-        super(new PathTemplateParser(PathTemplate.prefixWithSlash(path)));
+    @Override
+    public void onHandShakeResponse(WebSocketRequest request, WebSocketResponse response) {
     }
 
-    /**
-     * Converts the path provided to a slash-leading form, no matter what is provided.
-     *
-     * @param path the URI path template.
-     * @return slash-prefixed path.
-     * @see #PathTemplate(String)
-     */
-    private static String prefixWithSlash(final String path) {
-        return !path.isEmpty() && path.charAt(0) == '/' ? path : "/" + path;
+    @Override
+    protected boolean isApplicationRequest(WebSocketRequest request) {
+        return false;
+    }
+
+    @Override
+    public String getPath() {
+        return path;
+    }
+
+    @Override
+    public void onMessage(WebSocket socket, String text) {
+    }
+
+    @Override
+    public void onMessage(WebSocket socket, byte[] bytes) {
+    }
+
+    @Override
+    public void onPing(WebSocket socket, byte[] bytes) {
+    }
+
+    @Override
+    public void onPong(WebSocket socket, byte[] bytes) {
+    }
+
+    @Override
+    public void onFragment(WebSocket socket, String fragment, boolean last) {
+    }
+
+    @Override
+    public void onFragment(WebSocket socket, byte[] fragment, boolean last) {
     }
 }

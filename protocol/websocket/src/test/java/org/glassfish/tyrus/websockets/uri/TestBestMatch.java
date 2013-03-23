@@ -37,70 +37,58 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.core;
+package org.glassfish.tyrus.websockets.uri;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.net.URI;
+import java.util.HashSet;
+import java.util.Set;
 
-import javax.websocket.WebSocketContainer;
-
-import javax.naming.InitialContext;
+import org.glassfish.tyrus.websockets.WebSocketApplication;
 
 /**
- * Base WebSocket container.
- * <p/>
- * Client and Server containers extend this to provide additional functionality.
- *
- * @author Jitendra Kotamraju
+ * @author dannycoward
  */
-public abstract class BaseContainer implements WebSocketContainer {
-    private final ExecutorService executorService;
+public class TestBestMatch {
+    private URI uri;
+    private Set<WebSocketApplication> eps = new HashSet<WebSocketApplication>();
+    private String title;
 
-    public BaseContainer() {
-        this.executorService = newExecutorService();
+    public TestBestMatch(String title) {
+        this.title = title;
     }
 
-    protected ExecutorService getExecutorService() {
-        return executorService;
+    public TestBestMatch addEP(TestWebSocketApplication ep) {
+        this.eps.add(ep);
+        return this;
     }
 
-    private static ExecutorService newExecutorService() {
-        ExecutorService es = null;
-        // Get the default MangedExecutorService, if available
-        try {
-            InitialContext ic = new InitialContext();
-            es = (ExecutorService) ic.lookup("java:comp/DefaultManagedExecutorService");
-        } catch (Exception e) {
-            // ignore
-        }
-        if (es == null) {
-            es = Executors.newCachedThreadPool(new DaemonThreadFactory());
-        }
-        return es;
+    public TestBestMatch setUri(URI uri) {
+        this.uri = uri;
+        return this;
     }
 
-    private static class DaemonThreadFactory implements ThreadFactory {
-        static final AtomicInteger poolNumber = new AtomicInteger(1);
-        final AtomicInteger threadNumber = new AtomicInteger(1);
-        final String namePrefix;
 
-        DaemonThreadFactory() {
-            namePrefix = "tyrus-" + poolNumber.getAndIncrement() + "-thread-";
-        }
-
-        @Override
-        public Thread newThread(Runnable r) {
-            Thread t = new Thread(null, r, namePrefix + threadNumber.getAndIncrement(), 0);
-            if (!t.isDaemon()) {
-                t.setDaemon(true);
+    public void verifyResult(boolean shouldHaveAMatch, String whichPathMatched) {
+        System.out.println("RUNNING MATCH TEST: " + this.title + ", eps=" + this.eps);
+        Match m = Match.getBestMatch(this.uri.toString(), this.eps);
+        System.out.println("  Match for " + this.uri + " calculated is: " + m);
+        if (shouldHaveAMatch) {
+            if (m == null) {
+                throw new RuntimeException("Test Failed: was expecting a match on " + whichPathMatched + ", but didn't get one.");
+            } else {
+                if (!m.getPath().equals(whichPathMatched)) {
+                    throw new RuntimeException("Test Failed: wrong path matched. Expected " + whichPathMatched + ", but got " + m.getPath());
+                } else {
+                    System.out.println("Test passed: expected match on " + whichPathMatched + ", got " + m.getPath());
+                }
             }
-            if (t.getPriority() != Thread.NORM_PRIORITY) {
-                t.setPriority(Thread.NORM_PRIORITY);
+        } else {// shouldn't be a match
+            if (m != null) {
+                System.out.println("Test failed, wasn't expecting a match, got one.");
+                throw new RuntimeException("Test failed");
+            } else {
+                System.out.println("Test passed, expected no match for " + this.uri + ", got no match.");
             }
-            return t;
         }
     }
-
 }

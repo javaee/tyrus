@@ -43,6 +43,7 @@ package org.glassfish.tyrus.websockets;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -53,6 +54,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.glassfish.tyrus.websockets.draft06.ClosingFrame;
+import org.glassfish.tyrus.websockets.uri.Match;
 
 /**
  * WebSockets engine implementation (singleton), which handles {@link WebSocketApplication}s registration, responsible
@@ -63,6 +65,7 @@ import org.glassfish.tyrus.websockets.draft06.ClosingFrame;
  * @see WebSocketApplication
  */
 public class WebSocketEngine {
+
     public static final String SEC_WS_ACCEPT = "Sec-WebSocket-Accept";
     public static final String SEC_WS_KEY_HEADER = "Sec-WebSocket-Key";
     public static final String SEC_WS_ORIGIN_HEADER = "Sec-WebSocket-Origin";
@@ -124,11 +127,25 @@ public class WebSocketEngine {
     }
 
     WebSocketApplication getApplication(WebSocketRequest request) {
-        for (WebSocketApplication application : applications) {
-            if (application.upgrade(request)) {
-                return application;
+        if (applications.isEmpty()) {
+            return null;
+        }
+
+        final String requestPath = request.getRequestURI().toString();
+
+        for (Match m : Match.getAllMatches(requestPath, applications)) {
+            final WebSocketApplication webSocketApplication = m.getWebSocketApplication();
+
+            request.getParameterMap().clear();
+            for (String name : m.getParameterNames()) {
+                request.getParameterMap().put(name, Arrays.asList(m.getParameterValue(name)));
+            }
+
+            if (webSocketApplication.upgrade(request)) {
+                return webSocketApplication;
             }
         }
+
         return null;
     }
 

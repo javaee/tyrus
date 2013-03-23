@@ -37,22 +37,10 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-
-package org.glassfish.tyrus.core.internal.l10n;
-
 /**
- * @author WS Development Team
+ * Common classes that provide support for URI templates,
+ * encoding/decoding of URI components and multivalued collections.
+ *
+ * Taken from Jersey 2 - org.glassfish.jersey.uri.
  */
-public class LocalizableMessageFactory {
-
-    private final String _bundlename;
-
-    public LocalizableMessageFactory(String bundlename) {
-        _bundlename = bundlename;
-    }
-
-    public Localizable getMessage(String key, Object... args) {
-        return new LocalizableMessage(_bundlename, key, args);
-    }
-
-}
+package org.glassfish.tyrus.websockets.uri.internal;

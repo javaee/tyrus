@@ -123,4 +123,11 @@ public interface WebSocketRequest {
      * @return {@code true} if connection is secure, {@code false} otherwise.
      */
     public boolean isSecure();
+
+    /**
+     * Return the request parameters associated with the request.
+     *
+     * @return the unmodifiable map of the request parameters.
+     */
+    public Map<String, List<String>> getParameterMap();
 }

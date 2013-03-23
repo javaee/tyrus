@@ -196,4 +196,11 @@ public abstract class SPIEndpoint {
      * @return configuration.
      */
     public abstract EndpointConfig getEndpointConfig();
+
+    /**
+     * Get Endpoint <b>absolute</b> path.
+     *
+     * @return endpoint absolute path.
+     */
+    public abstract String getEndpointPath();
 }

@@ -37,10 +37,8 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+
 /**
- * Common classes that provide support for URI templates,
- * encoding/decoding of URI components and multivalued collections.
- *
- * Taken from Jersey 2 - org.glassfish.jersey.uri.
+ * Common internal localization utility classes.
  */
-package org.glassfish.tyrus.core.internal;
+package org.glassfish.tyrus.websockets.uri.internal.l10n;

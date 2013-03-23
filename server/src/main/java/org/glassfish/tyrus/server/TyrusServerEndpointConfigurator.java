@@ -50,7 +50,6 @@ import javax.websocket.server.HandshakeRequest;
 import javax.websocket.server.ServerEndpointConfig;
 
 import org.glassfish.tyrus.core.ComponentProviderService;
-import org.glassfish.tyrus.core.internal.PathPattern;
 
 /**
  * Tyrus implementation of {@link ServerEndpointConfig.Configurator}.
@@ -102,9 +101,8 @@ public class TyrusServerEndpointConfigurator extends ServerEndpointConfig.Config
 
     @Override
     public boolean matchesURI(String path, URI requestUri, Map<String, String> templateExpansion) {
-        final PathPattern pathPattern = new PathPattern(path);
-
-        return pathPattern.match(requestUri.toString(), pathPattern.getTemplate().getTemplateVariables(), templateExpansion);
+        // do nothing! - TODO XXX FIXME - TO BE REMOVED
+        return false;
     }
 
     @Override

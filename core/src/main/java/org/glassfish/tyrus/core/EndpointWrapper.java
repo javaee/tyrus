@@ -72,7 +72,6 @@ import javax.websocket.EndpointConfig;
 import javax.websocket.Extension;
 import javax.websocket.PongMessage;
 import javax.websocket.Session;
-import javax.websocket.WebSocketContainer;
 import javax.websocket.server.ServerEndpointConfig;
 
 import org.glassfish.tyrus.spi.SPIEndpoint;
@@ -227,8 +226,11 @@ public class EndpointWrapper extends SPIEndpoint {
         isSecure = hr.isSecure();
         principal = hr.getUserPrincipal();
 
-        return configurator.checkOrigin(hr.getHeader("Origin")) &&
-                configurator.matchesURI(getEndpointPath(sec.getPath()), URI.create(uri), templateValues);
+        for(Map.Entry<String, List<String>> entry : hr.getParameterMap().entrySet()) {
+            this.templateValues.put(entry.getKey(), entry.getValue().get(0));
+        }
+
+        return configurator.checkOrigin(hr.getHeader("Origin"));
     }
 
     static List<Class<? extends Decoder>> getDefaultDecoders() {
@@ -242,9 +244,14 @@ public class EndpointWrapper extends SPIEndpoint {
         return classList;
     }
 
-    private String getEndpointPath(String relativePath) {
-        return (contextPath.endsWith("/") ? contextPath.substring(0, contextPath.length() - 1) : contextPath)
-                + "/" + (relativePath.startsWith("/") ? relativePath.substring(1) : relativePath);
+    public String getEndpointPath() {
+        if (configuration instanceof ServerEndpointConfig) {
+            String relativePath = ((ServerEndpointConfig) configuration).getPath();
+            return (contextPath.endsWith("/") ? contextPath.substring(0, contextPath.length() - 1) : contextPath)
+                    + "/" + (relativePath.startsWith("/") ? relativePath.substring(1) : relativePath);
+        }
+
+        return null;
     }
 
     private <T> T getCoderInstance(Session session, CoderWrapper<T> wrapper) {

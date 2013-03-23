@@ -37,70 +37,34 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.core;
+package org.glassfish.tyrus.websockets.uri;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ThreadFactory;
-import java.util.concurrent.atomic.AtomicInteger;
-
-import javax.websocket.WebSocketContainer;
-
-import javax.naming.InitialContext;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * Base WebSocket container.
- * <p/>
- * Client and Server containers extend this to provide additional functionality.
- *
- * @author Jitendra Kotamraju
+ * @author dannycoward
  */
-public abstract class BaseContainer implements WebSocketContainer {
-    private final ExecutorService executorService;
+public class TestEquivalentPaths {
+    private String title;
+    private List<String> paths = new ArrayList<String>();
 
-    public BaseContainer() {
-        this.executorService = newExecutorService();
+    public TestEquivalentPaths(String title) {
+        this.title = title;
     }
 
-    protected ExecutorService getExecutorService() {
-        return executorService;
+    public TestEquivalentPaths addPath(String path) {
+        this.paths.add(path);
+        return this;
     }
 
-    private static ExecutorService newExecutorService() {
-        ExecutorService es = null;
-        // Get the default MangedExecutorService, if available
-        try {
-            InitialContext ic = new InitialContext();
-            es = (ExecutorService) ic.lookup("java:comp/DefaultManagedExecutorService");
-        } catch (Exception e) {
-            // ignore
-        }
-        if (es == null) {
-            es = Executors.newCachedThreadPool(new DaemonThreadFactory());
-        }
-        return es;
-    }
-
-    private static class DaemonThreadFactory implements ThreadFactory {
-        static final AtomicInteger poolNumber = new AtomicInteger(1);
-        final AtomicInteger threadNumber = new AtomicInteger(1);
-        final String namePrefix;
-
-        DaemonThreadFactory() {
-            namePrefix = "tyrus-" + poolNumber.getAndIncrement() + "-thread-";
-        }
-
-        @Override
-        public Thread newThread(Runnable r) {
-            Thread t = new Thread(null, r, namePrefix + threadNumber.getAndIncrement(), 0);
-            if (!t.isDaemon()) {
-                t.setDaemon(true);
-            }
-            if (t.getPriority() != Thread.NORM_PRIORITY) {
-                t.setPriority(Thread.NORM_PRIORITY);
-            }
-            return t;
+    public void runTest(boolean hasEquivalentPaths) {
+        System.out.println("RUNNING EQUIV TEST: " + this.title + " on " + this.paths);
+        boolean result = Match.checkForEquivalents(paths);
+        if (result == hasEquivalentPaths) {
+            System.out.println("Test Passed: as expected, equiv paths was: " + hasEquivalentPaths);
+        } else {
+            throw new RuntimeException("Was expecting equiv paths: " + hasEquivalentPaths + " but got " + result);
         }
     }
-
 }

@@ -38,7 +38,7 @@
  * holder.
  */
 
-package org.glassfish.tyrus.core.internal;
+package org.glassfish.tyrus.websockets.uri.internal;
 
 /**
  * Parser for string URI with template parameters which produces {@link java.net.URI URIs} from Strings.

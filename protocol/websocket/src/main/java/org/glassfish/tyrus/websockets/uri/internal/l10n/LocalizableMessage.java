@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2010-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -37,61 +37,38 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.spi;
-
-import java.security.Principal;
-import java.util.List;
-import java.util.Map;
+package org.glassfish.tyrus.websockets.uri.internal.l10n;
 
 /**
- * The provider passes the handshake request to
- * the SDK created endpoint
- *
- * @author Danny Coward (danny.coward at oracle.com)
+ * @author WS Development Team
  */
-public interface SPIHandshakeRequest {
+public final class LocalizableMessage implements Localizable {
 
-    /**
-     * Get the Http Header value for the given header name
-     * in the underlying Http handshake request.
-     *
-     * @param name the name of the header.
-     * @return the header value.
-     */
-    public String getHeader(String name);
+    private final String _bundlename;
+    private final String _key;
+    private final Object[] _args;
 
-    /**
-     * Get the Http request uri underlying Http handshake request.
-     *
-     * @return request uri.
-     */
-    public String getRequestUri();
+    public LocalizableMessage(String bundlename, String key, Object... args) {
+        _bundlename = bundlename;
+        _key = key;
+        if (args == null) {
+            args = new Object[0];
+        }
+        _args = args;
+    }
 
-    /**
-     * Get information about underlying connection.
-     *
-     * @return {@code true} when connection is secuded, {@code false} otherwise.
-     */
-    public boolean isSecure();
+    @Override
+    public String getKey() {
+        return _key;
+    }
 
-    /**
-     * Get query string.
-     *
-     * @return query string.
-     */
-    public String getQueryString();
+    @Override
+    public Object[] getArguments() {
+        return _args;
+    }
 
-    /**
-     * Get user {@link Principal}.
-     *
-     * @return user principal.
-     */
-    public Principal getUserPrincipal();
-
-    /**
-     * Return the request parameters associated with the request.
-     *
-     * @return the unmodifiable map of the request parameters.
-     */
-    public Map<String, List<String>> getParameterMap();
+    @Override
+    public String getResourceBundleName() {
+        return _bundlename;
+    }
 }

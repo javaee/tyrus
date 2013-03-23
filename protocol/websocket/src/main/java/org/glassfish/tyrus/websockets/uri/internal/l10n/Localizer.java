@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.core.internal.l10n;
+package org.glassfish.tyrus.websockets.uri.internal.l10n;
 
 import java.text.MessageFormat;
 import java.util.HashMap;
@@ -98,8 +98,8 @@ public class Localizer {
                         try {
                             bundle =
                                     ResourceBundle.getBundle(
-                                    alternateBundleName,
-                                    _locale);
+                                            alternateBundleName,
+                                            _locale);
                         } catch (MissingResourceException e2) {
                             // try OSGi - TODO XXX FIXME
 //                                OsgiRegistry osgiRegistry = ReflectionHelper.getOsgiRegistryInstance();
@@ -139,9 +139,7 @@ public class Localizer {
                 }
             }
 
-            String message = MessageFormat.format(msg, args);
-            return message;
-
+            return MessageFormat.format(msg, args);
         } catch (MissingResourceException e) {
             return getDefaultMessage(l);
         }

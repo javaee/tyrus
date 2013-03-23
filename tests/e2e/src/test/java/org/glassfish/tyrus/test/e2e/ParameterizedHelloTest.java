@@ -100,7 +100,7 @@ public class ParameterizedHelloTest {
                     receivedMessage = message;
                     messageLatch.countDown();
                 }
-            }, cec, new URI("wss://localhost:8025/websockets/tests/hello/whatever/one/test1234/test4567"));
+            }, cec, new URI("wss://localhost:8025/websockets/tests/hello/whatever/one/test1234"));
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertTrue("The received message is the same as the sent one", receivedMessage.equals(SENT_MESSAGE));
         } catch (Exception e) {
