@@ -39,16 +39,25 @@
  */
 package org.glassfish.tyrus.test.e2e.async.basic;
 
-import org.glassfish.tyrus.server.Server;
-import org.junit.Assert;
-import org.junit.Test;
-
-import javax.websocket.*;
-import javax.websocket.server.ServerEndpoint;
 import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+
+import javax.websocket.ClientEndpointConfig;
+import javax.websocket.ContainerProvider;
+import javax.websocket.Endpoint;
+import javax.websocket.EndpointConfig;
+import javax.websocket.MessageHandler;
+import javax.websocket.OnMessage;
+import javax.websocket.Session;
+import javax.websocket.WebSocketContainer;
+import javax.websocket.server.ServerEndpoint;
+
+import org.glassfish.tyrus.server.Server;
+
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Basic test for RemoteEndpoint.Async.sendObject()

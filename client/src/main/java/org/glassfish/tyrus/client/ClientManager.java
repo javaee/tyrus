@@ -56,7 +56,6 @@ import java.util.logging.Logger;
 
 import javax.websocket.ClientEndpoint;
 import javax.websocket.ClientEndpointConfig;
-import javax.websocket.ContainerProvider;
 import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
 import javax.websocket.Extension;
@@ -64,7 +63,13 @@ import javax.websocket.HandshakeResponse;
 import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
 
-import org.glassfish.tyrus.core.*;
+import org.glassfish.tyrus.core.AnnotatedEndpoint;
+import org.glassfish.tyrus.core.BaseContainer;
+import org.glassfish.tyrus.core.ComponentProviderService;
+import org.glassfish.tyrus.core.EndpointWrapper;
+import org.glassfish.tyrus.core.ErrorCollector;
+import org.glassfish.tyrus.core.ReflectionHelper;
+import org.glassfish.tyrus.core.TyrusContainerProvider;
 import org.glassfish.tyrus.spi.SPIHandshakeListener;
 import org.glassfish.tyrus.spi.TyrusClientSocket;
 import org.glassfish.tyrus.spi.TyrusContainer;

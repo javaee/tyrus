@@ -44,7 +44,15 @@ import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import javax.websocket.*;
+import javax.websocket.ClientEndpoint;
+import javax.websocket.ClientEndpointConfig;
+import javax.websocket.ContainerProvider;
+import javax.websocket.DeploymentException;
+import javax.websocket.EndpointConfig;
+import javax.websocket.OnMessage;
+import javax.websocket.OnOpen;
+import javax.websocket.Session;
+import javax.websocket.WebSocketContainer;
 
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
@@ -154,8 +162,8 @@ public class AnnotatedClientTest {
 
     @Test
     public void testNonAnnotatedClass() throws Exception {
+        WebSocketContainer wc = ContainerProvider.getWebSocketContainer();
         try {
-            WebSocketContainer wc = ContainerProvider.getWebSocketContainer();
             wc.connectToServer(String.class, new URI("ws://localhost:8025/websockets/tests/echo"));
         } catch(DeploymentException de) {
             // Expected exception, ignore
