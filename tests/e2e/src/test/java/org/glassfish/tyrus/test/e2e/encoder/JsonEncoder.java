@@ -43,13 +43,15 @@ package org.glassfish.tyrus.test.e2e.encoder;
 import javax.websocket.EncodeException;
 import javax.websocket.Encoder;
 
+import org.glassfish.tyrus.core.CoderAdapter;
+
 import org.json.JSONObject;
 
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)
  */
-public class JsonEncoder extends Encoder.Adapter implements Encoder.Text<JSONObject> {
+public class JsonEncoder extends CoderAdapter implements Encoder.Text<JSONObject> {
 
     @Override
     public String encode(JSONObject o) throws EncodeException {

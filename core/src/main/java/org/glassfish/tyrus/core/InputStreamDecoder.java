@@ -51,7 +51,7 @@ import javax.websocket.Decoder;
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-class InputStreamDecoder extends Decoder.Adapter implements Decoder.Binary<InputStream> {
+class InputStreamDecoder extends CoderAdapter implements Decoder.Binary<InputStream> {
     @Override
     public boolean willDecode(ByteBuffer bytes) {
         return true;

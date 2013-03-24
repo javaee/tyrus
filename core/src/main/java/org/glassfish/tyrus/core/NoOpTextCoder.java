@@ -47,7 +47,7 @@ import javax.websocket.Encoder;
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-class NoOpTextCoder extends Encoder.Adapter implements Decoder.Text<String>, Encoder.Text<String> {
+class NoOpTextCoder extends CoderAdapter implements Decoder.Text<String>, Encoder.Text<String> {
     @Override
     public boolean willDecode(String s) {
         return true;

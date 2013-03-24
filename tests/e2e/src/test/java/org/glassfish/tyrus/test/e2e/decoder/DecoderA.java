@@ -43,12 +43,13 @@ package org.glassfish.tyrus.test.e2e.decoder;
 import javax.websocket.DecodeException;
 import javax.websocket.Decoder;
 
+import org.glassfish.tyrus.core.CoderAdapter;
 import org.glassfish.tyrus.test.e2e.message.MessageA;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)
  */
-public class DecoderA extends Decoder.Adapter implements Decoder.Text<MessageA> {
+public class DecoderA extends CoderAdapter implements Decoder.Text<MessageA> {
 
     @Override
     public MessageA decode(String s) throws DecodeException {

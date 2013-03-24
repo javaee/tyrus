@@ -41,16 +41,27 @@ package org.glassfish.tyrus.sample.auction.encoders;
 
 import javax.websocket.EncodeException;
 import javax.websocket.Encoder;
+import javax.websocket.EndpointConfig;
 
 import org.glassfish.tyrus.sample.auction.message.AuctionMessage;
 
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class AuctionMessageEncoder extends Encoder.Adapter implements Encoder.Text<AuctionMessage> {
+public class AuctionMessageEncoder implements Encoder.Text<AuctionMessage> {
 
     @Override
     public String encode(AuctionMessage object) throws EncodeException {
         return object.toString();
+    }
+
+    @Override
+    public void init(EndpointConfig config) {
+        // do nothing.
+    }
+
+    @Override
+    public void destroy() {
+        // do nothing.
     }
 }

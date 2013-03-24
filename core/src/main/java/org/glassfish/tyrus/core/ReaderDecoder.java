@@ -50,7 +50,7 @@ import javax.websocket.Decoder;
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-class ReaderDecoder extends Decoder.Adapter implements Decoder.Text<Reader> {
+class ReaderDecoder extends CoderAdapter implements Decoder.Text<Reader> {
 
     @Override
     public boolean willDecode(String s) {

@@ -41,15 +41,23 @@
 package org.glassfish.tyrus.sample.chat.chatdata;
 
 import javax.websocket.Encoder;
+import javax.websocket.EndpointConfig;
 
-public class DisconnectResponseEncoder extends Encoder.Adapter implements Encoder.Text<DisconnectResponseMessage> {
-
-    public DisconnectResponseEncoder() {
-    }
+public class DisconnectResponseEncoder implements Encoder.Text<DisconnectResponseMessage> {
 
     @Override
     public String encode(DisconnectResponseMessage data) {
         DisconnectResponseMessage drm = (DisconnectResponseMessage) data;
         return drm.asString();
+    }
+
+    @Override
+    public void init(EndpointConfig config) {
+        // do nothing.
+    }
+
+    @Override
+    public void destroy() {
+        // do nothing.
     }
 }

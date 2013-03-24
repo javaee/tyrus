@@ -48,7 +48,7 @@ import javax.websocket.Encoder;
  *
  * @author Martin Matula (martin.matula at oracle.com)
  */
-class ToStringEncoder extends Encoder.Adapter implements Encoder.Text<Object> {
+class ToStringEncoder extends CoderAdapter implements Encoder.Text<Object> {
     @Override
     public String encode(Object object) throws EncodeException {
         return object.toString();

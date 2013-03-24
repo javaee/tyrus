@@ -55,6 +55,7 @@ import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
 import org.glassfish.tyrus.client.ClientManager;
+import org.glassfish.tyrus.core.CoderAdapter;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.e2e.message.StringContainer;
 
@@ -195,7 +196,7 @@ public class EncodedObjectTest {
     /**
      * @author Stepan Kopriva (stepan.kopriva at oracle.com)
      */
-    public static class StringContainerEncoder extends Encoder.Adapter implements Encoder.Text<StringContainer> {
+    public static class StringContainerEncoder extends CoderAdapter implements Encoder.Text<StringContainer> {
 
         @Override
         public String encode(StringContainer object) throws EncodeException {

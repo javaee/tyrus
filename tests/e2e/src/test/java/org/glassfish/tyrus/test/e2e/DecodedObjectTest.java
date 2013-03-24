@@ -54,6 +54,7 @@ import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 
 import org.glassfish.tyrus.client.ClientManager;
+import org.glassfish.tyrus.core.CoderAdapter;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.e2e.bean.TestEndpoint;
 import org.glassfish.tyrus.test.e2e.message.StringContainer;
@@ -167,7 +168,7 @@ public class DecodedObjectTest {
         }
     }
 
-    class CustomDecoder extends Decoder.Adapter implements Decoder.Text<StringContainer> {
+    class CustomDecoder extends CoderAdapter implements Decoder.Text<StringContainer> {
 
         @Override
         public StringContainer decode(String s) throws DecodeException {
@@ -180,7 +181,7 @@ public class DecodedObjectTest {
         }
     }
 
-    class ExtendedDecoder extends Decoder.Adapter implements Decoder.Text<ExtendedStringContainer> {
+    class ExtendedDecoder extends CoderAdapter implements Decoder.Text<ExtendedStringContainer> {
 
         @Override
         public ExtendedStringContainer decode(String s) throws DecodeException {

@@ -43,13 +43,15 @@ package org.glassfish.tyrus.test.e2e.decoder;
 import javax.websocket.DecodeException;
 import javax.websocket.Decoder;
 
+import org.glassfish.tyrus.core.CoderAdapter;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)
  */
-public class JsonDecoder extends Decoder.Adapter implements Decoder.Text<JSONObject> {
+public class JsonDecoder extends CoderAdapter implements Decoder.Text<JSONObject> {
 
     public JSONObject decode(String s) throws DecodeException {
         try {

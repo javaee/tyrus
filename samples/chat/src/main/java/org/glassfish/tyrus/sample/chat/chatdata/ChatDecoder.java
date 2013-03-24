@@ -41,11 +41,12 @@
 package org.glassfish.tyrus.sample.chat.chatdata;
 
 import javax.websocket.Decoder;
+import javax.websocket.EndpointConfig;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class ChatDecoder extends Decoder.Adapter implements Decoder.Text<ChatMessage> {
+public class ChatDecoder implements Decoder.Text<ChatMessage> {
 
     public ChatMessage decode(String s) {
         return ChatMessage.parseMessage(s);
@@ -55,5 +56,15 @@ public class ChatDecoder extends Decoder.Adapter implements Decoder.Text<ChatMes
         return s.startsWith(DisconnectRequestMessage.DISCONNECT_REQUEST) ||
                 s.startsWith(DisconnectRequestMessage.LOGIN_REQUEST) ||
                 s.startsWith(DisconnectRequestMessage.CHAT_MESSAGE);
+    }
+
+    @Override
+    public void init(EndpointConfig config) {
+        // do nothing.
+    }
+
+    @Override
+    public void destroy() {
+        // do nothing.
     }
 }
