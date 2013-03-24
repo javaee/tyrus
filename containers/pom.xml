@@ -55,6 +55,17 @@
     <modules>
         <module>glassfish</module>
         <module>grizzly</module>
-        <module>servlet</module>
     </modules>
+
+    <profiles>
+        <profile>
+            <id>jdk7</id>
+            <activation>
+                <jdk>1.7</jdk>
+            </activation>
+            <modules>
+                <module>servlet</module>
+            </modules>
+        </profile>
+    </profiles>
 </project>

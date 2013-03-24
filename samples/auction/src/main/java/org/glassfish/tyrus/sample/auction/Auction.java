@@ -39,7 +39,6 @@
  */
 package org.glassfish.tyrus.sample.auction;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -47,7 +46,6 @@ import java.util.Timer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.websocket.EncodeException;
 import javax.websocket.Session;
 
 import org.glassfish.tyrus.sample.auction.message.AuctionMessage;
@@ -82,7 +80,7 @@ public class Auction {
     /*
      * List of remote clients (Peers)
      */
-    private final List<Session> arcList = new ArrayList<>();
+    private final List<Session> arcList = new ArrayList<Session>();
 
     /*
      * Timer that sends pre-auction time broadcasts
@@ -138,7 +136,7 @@ public class Auction {
                 try {
                     item.setPrice(bestBid);
                     arc.getBasicRemote().sendObject(new AuctionMessage.LoginResponseMessage(id, item));
-                } catch (IOException | EncodeException e) {
+                } catch (Exception e) {
                     Logger.getLogger(Auction.class.getName()).log(Level.SEVERE, null, e);
                 }
 
@@ -153,7 +151,7 @@ public class Auction {
                     }else{
                         arc.getBasicRemote().sendObject(new AuctionMessage.ResultMessage(id, String.format("You did not win the auction. The item was sold for %.0f.", bestBid)));
                     }
-                } catch (IOException | EncodeException e) {
+                } catch (Exception e) {
                     Logger.getLogger(Auction.class.getName()).log(Level.SEVERE, null, e);
                 }
             }
@@ -181,7 +179,7 @@ public class Auction {
         for (Session arc : getRemoteClients()) {
             try {
                 arc.getBasicRemote().sendObject(purm);
-            } catch (IOException | EncodeException e) {
+            } catch (Exception e) {
                 Logger.getLogger(Auction.class.getName()).log(Level.SEVERE, null, e);
             }
         }
@@ -210,7 +208,7 @@ public class Auction {
             AuctionMessage.ResultMessage winnerMessage = new AuctionMessage.ResultMessage(id, String.format("Congratulations, You won the auction and will pay %.0f.", bestBid));
             try {
                 bestBidder.getBasicRemote().sendObject(winnerMessage);
-            } catch (IOException | EncodeException e) {
+            } catch (Exception e) {
                 Logger.getLogger(Auction.class.getName()).log(Level.SEVERE, null, e);
             }
         }
@@ -220,7 +218,7 @@ public class Auction {
             if (arc != bestBidder) {
                 try {
                     arc.getBasicRemote().sendObject(loserMessage);
-                } catch (IOException | EncodeException e) {
+                } catch (Exception e) {
                     Logger.getLogger(Auction.class.getName()).log(Level.SEVERE, null, e);
                 }
             }

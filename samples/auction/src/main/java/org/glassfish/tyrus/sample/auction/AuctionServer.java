@@ -39,14 +39,12 @@
  */
 package org.glassfish.tyrus.sample.auction;
 
-import java.io.IOException;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.websocket.EncodeException;
 import javax.websocket.OnClose;
 import javax.websocket.OnMessage;
 import javax.websocket.Session;
@@ -61,13 +59,10 @@ import org.glassfish.tyrus.sample.auction.message.AuctionMessage;
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-@ServerEndpoint(value = "/auction",
-        decoders = {
-                AuctionMessageDecoder.class,
-        },
-        encoders = {
-                AuctionMessageEncoder.class
-        }
+@ServerEndpoint(
+        value = "/auction",
+        decoders = {AuctionMessageDecoder.class},
+        encoders = {AuctionMessageEncoder.class}
 )
 public class AuctionServer {
 
@@ -88,44 +83,43 @@ public class AuctionServer {
     }
 
     @OnMessage
-    public void handleMessage(AuctionMessage message, Session session){
+    public void handleMessage(AuctionMessage message, Session session) {
         String communicationId;
 
-        switch (message.getType()){
-            case AuctionMessage.LOGOUT_REQUEST:
-                handleClosedConnection(session);
-                break;
-            case AuctionMessage.AUCTION_LIST_REQUEST:
-                StringBuilder sb = new StringBuilder("-");
+        final String messageType = message.getType();
 
-                for (Auction auction : auctions) {
-                    sb.append(auction.getId()).append("-").append(auction.getItem().getName()).append("-");
-                }
+        if (messageType.equals(AuctionMessage.LOGOUT_REQUEST)) {
+            handleClosedConnection(session);
 
-                try {
-                    session.getBasicRemote().sendObject((new AuctionMessage.AuctionListResponseMessage("0", sb.toString())));
-                } catch (IOException | EncodeException e) {
-                    Logger.getLogger(AuctionServer.class.getName()).log(Level.SEVERE, null, e);
+        } else if (messageType.equals(AuctionMessage.AUCTION_LIST_REQUEST)) {
+            StringBuilder sb = new StringBuilder("-");
+
+            for (Auction auction : auctions) {
+                sb.append(auction.getId()).append("-").append(auction.getItem().getName()).append("-");
+            }
+
+            try {
+                session.getBasicRemote().sendObject((new AuctionMessage.AuctionListResponseMessage("0", sb.toString())));
+            } catch (Exception e) {
+                Logger.getLogger(AuctionServer.class.getName()).log(Level.SEVERE, null, e);
+            }
+
+        } else if (messageType.equals(AuctionMessage.LOGIN_REQUEST)) {
+            communicationId = message.getCommunicationId();
+            for (Auction auction : auctions) {
+                if (communicationId.equals(auction.getId())) {
+                    auction.handleLoginRequest(message, session);
                 }
-                break;
-            case AuctionMessage.LOGIN_REQUEST:
-                communicationId = message.getCommunicationId();
-                for (Auction auction : auctions) {
-                    if (communicationId.equals(auction.getId())) {
-                        auction.handleLoginRequest(message, session);
-                    }
+            }
+
+        } else if (messageType.equals(AuctionMessage.BID_REQUEST)) {
+            communicationId = message.getCommunicationId();
+            for (Auction auction : auctions) {
+                if (communicationId.equals(auction.getId())) {
+                    auction.handleBidRequest(message, session);
+                    break;
                 }
-                break;
-            case AuctionMessage.BID_REQUEST:
-                communicationId = message.getCommunicationId();
-                for (Auction auction : auctions) {
-                    if (communicationId.equals(auction.getId())) {
-                        auction.handleBidRequest(message, session);
-                        break;
-                    }
-                }
-                break;
+            }
         }
-
     }
 }

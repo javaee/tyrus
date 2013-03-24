@@ -282,7 +282,7 @@ public class MessageHandlersTest {
     @ServerEndpoint("/partial")
     public static class PartialByteArray {
 
-        private List<byte[]> buffer = new ArrayList<>();
+        private List<byte[]> buffer = new ArrayList<byte[]>();
 
         @OnMessage
         public void onMessage(Session session, byte[] message, boolean isLast) {
@@ -319,7 +319,7 @@ public class MessageHandlersTest {
     @ServerEndpoint("/partial")
     public static class PartialByteBuffer {
 
-        private List<byte[]> buffer = new ArrayList<>();
+        private List<byte[]> buffer = new ArrayList<byte[]>();
 
         @OnMessage
         public void onMessage(Session session, ByteBuffer message, boolean isLast) {
@@ -876,7 +876,7 @@ public class MessageHandlersTest {
                                     WholeReader.receivedMessageLatch.await(1, TimeUnit.SECONDS);
                                     WholeReader.receivedMessageLatch = new CountDownLatch(1);
                                     session.getBasicRemote().sendText("thing as luck.", true);
-                                } catch (IOException | InterruptedException e) {
+                                } catch (Exception e) {
                                     e.printStackTrace();
                                 }
 
@@ -893,7 +893,7 @@ public class MessageHandlersTest {
                         WholeReader.receivedMessageLatch.await(1, TimeUnit.SECONDS);
                         WholeReader.receivedMessageLatch = new CountDownLatch(1);
                         session.getBasicRemote().sendText("thing as luck.", true);
-                    } catch (IOException | InterruptedException e) {
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }
@@ -936,7 +936,6 @@ public class MessageHandlersTest {
                 result[j] = bytes.get(j);
             }
 
-
             is.close();
             session.getBasicRemote().sendBinary(ByteBuffer.wrap(result));
         }
@@ -978,7 +977,7 @@ public class MessageHandlersTest {
                                     WholeInputStream.receivedMessageLatch.await(1, TimeUnit.SECONDS);
                                     WholeInputStream.receivedMessageLatch = new CountDownLatch(1);
                                     session.getBasicRemote().sendBinary(ByteBuffer.wrap(buf3), true);
-                                } catch (IOException | InterruptedException e) {
+                                } catch (Exception e) {
                                     e.printStackTrace();
                                 }
 
@@ -996,7 +995,7 @@ public class MessageHandlersTest {
                         WholeInputStream.receivedMessageLatch.await(1, TimeUnit.SECONDS);
                         WholeInputStream.receivedMessageLatch = new CountDownLatch(1);
                         session.getBasicRemote().sendBinary(ByteBuffer.wrap(buf3), true);
-                    } catch (IOException | InterruptedException e) {
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }

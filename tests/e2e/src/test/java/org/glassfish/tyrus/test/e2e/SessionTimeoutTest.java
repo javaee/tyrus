@@ -40,7 +40,6 @@
 
 package org.glassfish.tyrus.test.e2e;
 
-import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -162,7 +161,7 @@ public class SessionTimeoutTest {
                         Thread.sleep(250);
                         session.getBasicRemote().sendText("Nothing");
                         Thread.sleep(250);
-                    } catch (IOException | InterruptedException e) {
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }
@@ -235,7 +234,7 @@ public class SessionTimeoutTest {
                     try {
                         session.getBasicRemote().sendText("Nothing");
                         Thread.sleep(200);
-                    } catch (IOException | InterruptedException e) {
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }
@@ -261,10 +260,12 @@ public class SessionTimeoutTest {
         public static boolean clientOnCloseCalled = false;
 
         @OnOpen
-        public void onOpen(Session session) {}
+        public void onOpen(Session session) {
+        }
 
         @OnClose
-        public void onClose(Session session) {}
+        public void onClose(Session session) {
+        }
     }
 
     @Test

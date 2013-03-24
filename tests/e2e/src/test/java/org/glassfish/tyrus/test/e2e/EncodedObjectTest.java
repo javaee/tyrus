@@ -129,11 +129,10 @@ public class EncodedObjectTest {
         @OnMessage
         public void helloWorld(String message, Session session) {
             try {
-
                 System.out.println("##### Encode Test Bean: Received message: " + message);
 
                 session.getBasicRemote().sendObject(new StringContainer(message));
-            } catch (IOException | EncodeException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }

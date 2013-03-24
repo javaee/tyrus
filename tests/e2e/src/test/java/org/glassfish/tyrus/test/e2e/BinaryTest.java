@@ -118,7 +118,7 @@ public class BinaryTest {
                 }
             }, cec, new URI("ws://localhost:8025/websockets/tests/binary"));
             messageLatch.await(5, TimeUnit.SECONDS);
-            Assert.assertArrayEquals("The received message is the same as the sent one", receivedMessageBuffer.array(), BINARY_MESSAGE);
+            Assert.assertArrayEquals("The received message is the same as the sent one", BINARY_MESSAGE, receivedMessageBuffer.array());
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
@@ -163,7 +163,7 @@ public class BinaryTest {
                 }
             }, cec, new URI("ws://localhost:8025/websockets/tests/binary"));
             messageLatch.await(5, TimeUnit.SECONDS);
-            Assert.assertArrayEquals("The received message is the same as the sent one", receivedMessageArray, BINARY_MESSAGE);
+            Assert.assertArrayEquals("The received message is the same as the sent one", BINARY_MESSAGE, receivedMessageArray);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);

@@ -109,7 +109,7 @@ public class ExtensionsTest {
                 add(new TyrusExtension.TyrusParameter("prop3", "val3"));
             }};
 
-            ArrayList<Extension> extensions = new ArrayList<>();
+            ArrayList<Extension> extensions = new ArrayList<Extension>();
             extensions.add(new TyrusExtension("ext1", list1));
             extensions.add(new TyrusExtension("ext2", list2));
 

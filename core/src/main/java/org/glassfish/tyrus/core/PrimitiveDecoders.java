@@ -203,7 +203,7 @@ public abstract class PrimitiveDecoders<T> extends Decoder.Adapter implements De
             Class<?> type = ReflectionHelper.getClassType(dec, Decoder.Text.class);
             try {
                 map.put(type, (Decoder.Text<?>) dec.newInstance());
-            } catch (InstantiationException | IllegalAccessException e) {
+            } catch (Exception e) {
                 Logger.getLogger(PrimitiveDecoders.class.getName()).log(Level.WARNING,String.format("Decoder %s could not have been instantiated.",dec));
             }
         }

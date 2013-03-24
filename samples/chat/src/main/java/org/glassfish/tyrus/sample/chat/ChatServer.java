@@ -65,9 +65,11 @@ import org.glassfish.tyrus.sample.chat.chatdata.LoginResponseMessage;
 import org.glassfish.tyrus.sample.chat.chatdata.UserListUpdateMessage;
 
 
-@ServerEndpoint(value = "/chat",
+@ServerEndpoint(
+        value = "/chat",
         decoders = {ChatDecoder.class},
-        encoders = {DisconnectResponseEncoder.class})
+        encoders = {DisconnectResponseEncoder.class}
+)
 public class ChatServer {
 
     final static Logger logger = Logger.getLogger("application");
@@ -83,16 +85,15 @@ public class ChatServer {
     }
 
     @OnMessage
-    public void handleMessage(ChatMessage message, Session session){
-        switch (message.getType()){
-            case ChatMessage.LOGIN_REQUEST:
-               handleLoginRequest((LoginRequestMessage) message, session);
-                break;
-            case ChatMessage.CHAT_MESSAGE:
-                handleChatMessage((ChatUpdateMessage) message);
-                break;
-            case ChatMessage.DISCONNECT_REQUEST:
-                handleDisconnectRequest((DisconnectRequestMessage) message);
+    public void handleMessage(ChatMessage message, Session session) {
+        final String messageType = message.getType();
+
+        if (messageType.equals(ChatMessage.LOGIN_REQUEST)) {
+            handleLoginRequest((LoginRequestMessage) message, session);
+        } else if (messageType.equals(ChatMessage.CHAT_MESSAGE)) {
+            handleChatMessage((ChatUpdateMessage) message);
+        } else if (messageType.equals(ChatMessage.DISCONNECT_REQUEST)) {
+            handleDisconnectRequest((DisconnectRequestMessage) message);
         }
     }
 

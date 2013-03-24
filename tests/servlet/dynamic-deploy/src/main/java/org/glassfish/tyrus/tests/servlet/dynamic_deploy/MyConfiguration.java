@@ -58,6 +58,6 @@ public class MyConfiguration implements ServerApplicationConfig {
 
     @Override
     public Set<Class<?>> getAnnotatedEndpointClasses(Set<Class<?>> scanned) {
-        return new HashSet<>(Arrays.<Class<?>>asList(EchoEndpoint.class));
+        return new HashSet<Class<?>>(Arrays.<Class<?>>asList(EchoEndpoint.class));
     }
 }

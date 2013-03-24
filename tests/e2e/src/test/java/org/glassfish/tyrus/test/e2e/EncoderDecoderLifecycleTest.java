@@ -98,7 +98,7 @@ public class EncoderDecoderLifecycleTest {
     }
 
     public static class MyEncoder implements Encoder.Text<MyType> {
-        public static final Set<MyEncoder> instances = new HashSet<>();
+        public static final Set<MyEncoder> instances = new HashSet<MyEncoder>();
 
         public boolean initialized = false;
         public boolean destroyed = false;
@@ -113,7 +113,7 @@ public class EncoderDecoderLifecycleTest {
 
         @Override
         public void init(EndpointConfig config) {
-            if(config != null) {
+            if (config != null) {
                 initialized = true;
             }
         }
@@ -126,7 +126,7 @@ public class EncoderDecoderLifecycleTest {
     }
 
     public static class MyDecoder implements Decoder.Text<MyType> {
-        public static final Set<MyDecoder> instances = new HashSet<>();
+        public static final Set<MyDecoder> instances = new HashSet<MyDecoder>();
 
         public boolean initialized = false;
         public boolean destroyed = false;
@@ -146,7 +146,7 @@ public class EncoderDecoderLifecycleTest {
 
         @Override
         public void init(EndpointConfig config) {
-            if(config != null) {
+            if (config != null) {
                 initialized = true;
             }
         }
@@ -226,11 +226,11 @@ public class EncoderDecoderLifecycleTest {
             assertEquals(1, MyDecoder.instances.size());
             assertEquals(1, MyEncoder.instances.size());
 
-            for(MyDecoder decoder : MyDecoder.instances) {
+            for (MyDecoder decoder : MyDecoder.instances) {
                 assertTrue(decoder.initialized);
                 assertFalse(decoder.destroyed);
             }
-            for(MyEncoder encoder : MyEncoder.instances) {
+            for (MyEncoder encoder : MyEncoder.instances) {
                 assertTrue(encoder.initialized);
                 assertFalse(encoder.destroyed);
             }
@@ -247,11 +247,11 @@ public class EncoderDecoderLifecycleTest {
             destroyCallLatch.await(5, TimeUnit.SECONDS);
 
 
-            for(MyDecoder decoder : MyDecoder.instances) {
+            for (MyDecoder decoder : MyDecoder.instances) {
                 assertTrue(decoder.initialized);
                 assertTrue(decoder.destroyed);
             }
-            for(MyEncoder encoder : MyEncoder.instances) {
+            for (MyEncoder encoder : MyEncoder.instances) {
                 assertTrue(encoder.initialized);
                 assertTrue(encoder.destroyed);
             }
@@ -270,11 +270,11 @@ public class EncoderDecoderLifecycleTest {
             destroyCallLatch.await(4, TimeUnit.SECONDS);
 
 
-            for(MyDecoder decoder : MyDecoder.instances) {
+            for (MyDecoder decoder : MyDecoder.instances) {
                 assertTrue(decoder.initialized);
                 assertTrue(decoder.destroyed);
             }
-            for(MyEncoder encoder : MyEncoder.instances) {
+            for (MyEncoder encoder : MyEncoder.instances) {
                 assertTrue(encoder.initialized);
                 assertTrue(encoder.destroyed);
             }
@@ -353,11 +353,11 @@ public class EncoderDecoderLifecycleTest {
             assertEquals(1, MyDecoder.instances.size());
             assertEquals(1, MyEncoder.instances.size());
 
-            for(MyDecoder decoder : MyDecoder.instances) {
+            for (MyDecoder decoder : MyDecoder.instances) {
                 assertTrue(decoder.initialized);
                 assertFalse(decoder.destroyed);
             }
-            for(MyEncoder encoder : MyEncoder.instances) {
+            for (MyEncoder encoder : MyEncoder.instances) {
                 assertTrue(encoder.initialized);
                 assertFalse(encoder.destroyed);
             }
@@ -374,11 +374,11 @@ public class EncoderDecoderLifecycleTest {
             destroyCallLatch.await(5, TimeUnit.SECONDS);
 
 
-            for(MyDecoder decoder : MyDecoder.instances) {
+            for (MyDecoder decoder : MyDecoder.instances) {
                 assertTrue(decoder.initialized);
                 assertTrue(decoder.destroyed);
             }
-            for(MyEncoder encoder : MyEncoder.instances) {
+            for (MyEncoder encoder : MyEncoder.instances) {
                 assertTrue(encoder.initialized);
                 assertTrue(encoder.destroyed);
             }
@@ -397,11 +397,11 @@ public class EncoderDecoderLifecycleTest {
             destroyCallLatch.await(4, TimeUnit.SECONDS);
 
 
-            for(MyDecoder decoder : MyDecoder.instances) {
+            for (MyDecoder decoder : MyDecoder.instances) {
                 assertTrue(decoder.initialized);
                 assertTrue(decoder.destroyed);
             }
-            for(MyEncoder encoder : MyEncoder.instances) {
+            for (MyEncoder encoder : MyEncoder.instances) {
                 assertTrue(encoder.initialized);
                 assertTrue(encoder.destroyed);
             }
