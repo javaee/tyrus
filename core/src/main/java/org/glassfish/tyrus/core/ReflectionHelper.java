@@ -98,7 +98,7 @@ public class ReflectionHelper {
     public static String objectToString(Object o) {
         if (o == null)
             return "null";
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append(o.getClass().getName()).
                 append('@').append(Integer.toHexString(o.hashCode()));
         return sb.toString();

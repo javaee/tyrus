@@ -568,7 +568,7 @@ public class SessionImpl implements Session {
 
     @Override
     public String toString() {
-        final StringBuffer sb = new StringBuffer();
+        final StringBuilder sb = new StringBuilder();
         sb.append("SessionImpl");
         sb.append("{uri=").append(uri);
         sb.append(", id='").append(id).append('\'');

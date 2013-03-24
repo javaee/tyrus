@@ -110,4 +110,15 @@ class CoderWrapper<T> extends Decoder.Adapter implements Decoder, Encoder {
     public T getCoder() {
         return coder;
     }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder();
+        sb.append("CoderWrapper");
+        sb.append("{coderClass=").append(coderClass);
+        sb.append(", coder=").append(coder);
+        sb.append(", type=").append(type);
+        sb.append('}');
+        return sb.toString();
+    }
 }
