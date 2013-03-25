@@ -82,8 +82,8 @@ public class TyrusServerContainer extends BaseContainer implements WebSocketCont
 
     private long defaultMaxSessionIdleTimeout = 0;
     private long defaultAsyncSendTimeout = 0;
-    private int maxTextMessageBufferSize = 0;
-    private int maxBinaryMessageBufferSize = 0;
+    private int maxTextMessageBufferSize = Integer.MAX_VALUE;
+    private int maxBinaryMessageBufferSize = Integer.MAX_VALUE;
 
     /**
      * Create new {@link TyrusServerContainer}.

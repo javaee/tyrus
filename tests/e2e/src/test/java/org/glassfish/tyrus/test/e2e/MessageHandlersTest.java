@@ -126,7 +126,7 @@ public class MessageHandlersTest {
                 }
             }, cec, new URI("ws://localhost:8025/websockets/tests/whole"));
 
-            messageLatch.await(5, TimeUnit.SECONDS);
+            messageLatch.await(5000, TimeUnit.SECONDS);
             assertEquals(0, messageLatch.getCount());
 
 
@@ -214,7 +214,7 @@ public class MessageHandlersTest {
                 }
             }, cec, new URI("ws://localhost:8025/websockets/tests/whole"));
 
-            messageLatch.await(1, TimeUnit.SECONDS);
+            messageLatch.await(5, TimeUnit.SECONDS);
             assertEquals(0, messageLatch.getCount());
 
 

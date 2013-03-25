@@ -42,6 +42,8 @@ package org.glassfish.tyrus.core;
 
 import java.io.Reader;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.websocket.MessageHandler;
 
@@ -60,12 +62,18 @@ class ReaderBuffer {
     private BufferedStringReader reader = null;
     private MessageHandler.Whole<Reader> messageHandler;
     private final Object lock;
+    private int bufferSize;
+    private int currentlyBuffered;
+    private boolean buffering;
+    private static final Logger LOGGER = Logger.getLogger(InputStreamBuffer.class.getName());
 
     /**
      * Constructor.
      */
     public ReaderBuffer() {
         this.lock = new Object();
+        currentlyBuffered = 0;
+        buffering = true;
     }
 
     /**
@@ -97,6 +105,8 @@ class ReaderBuffer {
         if (this.queue.isEmpty()) {
             if (receivedLast) {
                 this.reader = null;
+                this.currentlyBuffered = 0;
+                buffering = true;
                 return null;
             } else { // there's more to come...so wait here...
                 blockOnReaderThread();
@@ -104,7 +114,7 @@ class ReaderBuffer {
         }
 
         char[] chrs = new char[number > queue.size() ? queue.size() : number];
-        for (int i=0; i< chrs.length; i++) {
+        for (int i = 0; i < chrs.length; i++) {
             chrs[i] = queue.poll();
         }
         return chrs;
@@ -126,13 +136,26 @@ class ReaderBuffer {
      * @param last    should be {@code true} iff this is the last part of the message, {@code false} otherwise.
      */
     public void appendMessagePart(String message, boolean last) {
-        this.receivedLast = last;
-        char[] chars = message.toCharArray();
-        for (char c : chars) {
-            queue.add(c);
-        }
-
         synchronized (lock) {
+            this.receivedLast = last;
+
+            currentlyBuffered += message.length();
+            if (currentlyBuffered <= bufferSize) {
+                char[] chars = message.toCharArray();
+                for (char c : chars) {
+                    queue.add(c);
+
+                }
+            } else {
+                if (buffering) {
+                    buffering = false;
+                    final MaxMessageSizeException maxMessageSizeException = new MaxMessageSizeException("Partial message could not be delivered due to buffer overflow.");
+                    LOGGER.log(Level.FINE, "Partial message could not be delivered due to buffer overflow.", maxMessageSizeException);
+                    receivedLast = true;
+                    throw maxMessageSizeException;
+                }
+            }
+
             this.lock.notifyAll();
         }
 
@@ -145,5 +168,17 @@ class ReaderBuffer {
             };
             t.start();
         }
+    }
+
+    /**
+     * Reset the buffer size.
+     *
+     * @param bufferSize the size to be set.
+     */
+    public void resetBuffer(int bufferSize) {
+        this.bufferSize = bufferSize;
+        currentlyBuffered = 0;
+        buffering = true;
+        queue.clear();
     }
 }

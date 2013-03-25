@@ -44,6 +44,8 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.websocket.MessageHandler;
 
@@ -62,12 +64,16 @@ class InputStreamBuffer {
     private BufferedInputStream inputStream = null;
     private MessageHandler.Whole<InputStream> messageHandler;
     private final Object lock;
+    private int bufferSize;
+    private int currentlyBuffered;
+    private static final Logger LOGGER = Logger.getLogger(InputStreamBuffer.class.getName());
 
     /**
      * Constructor.
      */
     public InputStreamBuffer() {
         this.lock = new Object();
+        currentlyBuffered = 0;
     }
 
     private void blockOnReaderThread() {
@@ -88,6 +94,7 @@ class InputStreamBuffer {
             if (this.bufferedFragments.isEmpty()) {
                 if (receivedLast) {
                     this.inputStream = null;
+                    this.currentlyBuffered = 0;
                     return -1;
                 } else { // there's more to come...so wait here...
                     blockOnReaderThread();
@@ -121,8 +128,17 @@ class InputStreamBuffer {
      */
     public void appendMessagePart(ByteBuffer message, boolean last) {
         synchronized (lock) {
+            currentlyBuffered += message.remaining();
+            if (currentlyBuffered <= bufferSize) {
+                bufferedFragments.add(message);
+            } else {
+                final MaxMessageSizeException maxMessageSizeException = new MaxMessageSizeException("Partial message could not be delivered due to buffer overflow.");
+                LOGGER.log(Level.FINE, "Partial message could not be delivered due to buffer overflow.", maxMessageSizeException);
+                receivedLast = true;
+                throw maxMessageSizeException;
+            }
+
             this.receivedLast = last;
-            bufferedFragments.add(message);
             this.lock.notifyAll();
         }
 
@@ -144,5 +160,16 @@ class InputStreamBuffer {
      */
     public void setMessageHandler(MessageHandler.Whole<InputStream> messageHandler) {
         this.messageHandler = messageHandler;
+    }
+
+    /**
+     * Reset the buffer size.
+     *
+     * @param bufferSize the size to be set.
+     */
+    public void resetBuffer(int bufferSize) {
+        this.bufferSize = bufferSize;
+        currentlyBuffered = 0;
+        bufferedFragments.clear();
     }
 }

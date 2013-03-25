@@ -213,11 +213,7 @@ public class EndpointWrapper extends SPIEndpoint {
 
     @Override
     public boolean checkHandshake(SPIHandshakeRequest hr) {
-        ServerEndpointConfig sec;
-
-        if (configuration instanceof ServerEndpointConfig) {
-            sec = (ServerEndpointConfig) configuration;
-        } else {
+        if (!(configuration instanceof ServerEndpointConfig)) {
             return false;
         }
 
@@ -226,7 +222,7 @@ public class EndpointWrapper extends SPIEndpoint {
         isSecure = hr.isSecure();
         principal = hr.getUserPrincipal();
 
-        for(Map.Entry<String, List<String>> entry : hr.getParameterMap().entrySet()) {
+        for (Map.Entry<String, List<String>> entry : hr.getParameterMap().entrySet()) {
             this.templateValues.put(entry.getKey(), entry.getValue().get(0));
         }
 
@@ -519,9 +515,10 @@ public class EndpointWrapper extends SPIEndpoint {
                             buffer = new ReaderBuffer();
                             session.setReaderBuffer(buffer);
                         }
-
+                        buffer.resetBuffer(session.getMaxTextMessageBufferSize());
                         buffer.setMessageHandler((session.getMessageHandler(Reader.class)));
                         buffer.appendMessagePart(partialString, last);
+                        session.setState(SessionImpl.State.RECEIVING_TEXT);
                         break;
                     case RECEIVING_TEXT:
                         buffer.appendMessagePart(partialString, last);
@@ -536,22 +533,19 @@ public class EndpointWrapper extends SPIEndpoint {
             } else if (session.isWholeTextHandlerPresent()) {
                 switch (session.getState()) {
                     case RUNNING:
-                        StringBuffer sb = new StringBuffer();
-                        session.setStringBuffer(sb);
-                        sb.append(partialString);
+                        session.getTextBuffer().resetBuffer(session.getMaxTextMessageBufferSize());
+                        session.getTextBuffer().appendMessagePart(partialString);
                         session.setState(SessionImpl.State.RECEIVING_TEXT);
                         break;
                     case RECEIVING_TEXT:
-                        session.getStringBuffer().append(partialString);
+                        session.getTextBuffer().appendMessagePart(partialString);
                         if (last) {
-                            final String message = session.getStringBuffer().toString();
+                            final String message = session.getTextBuffer().getBufferedContent();
                             session.notifyMessageHandlers(message, findApplicableDecoders(session, message, true));
-                            session.setStringBuffer(null);
                             session.setState(SessionImpl.State.RUNNING);
                         }
                         break;
                     default:
-                        session.setStringBuffer(null);
                         session.setState(SessionImpl.State.RUNNING);
                         throw new IllegalStateException(String.format("Text message received out of order. Session: '%s'.", session));
                 }
@@ -584,11 +578,12 @@ public class EndpointWrapper extends SPIEndpoint {
                             buffer = new InputStreamBuffer();
                             session.setInputStreamBuffer(buffer);
                         }
-
+                        buffer.resetBuffer(session.getMaxBinaryMessageBufferSize());
                         buffer.setMessageHandler((session.getMessageHandler(InputStream.class)));
                         buffer.appendMessagePart(partialBytes, last);
+                        session.setState(SessionImpl.State.RECEIVING_BINARY);
                         break;
-                    case RECEIVING_TEXT:
+                    case RECEIVING_BINARY:
                         buffer.appendMessagePart(partialBytes, last);
                         if (last) {
                             session.setState(SessionImpl.State.RUNNING);
@@ -601,31 +596,19 @@ public class EndpointWrapper extends SPIEndpoint {
             } else if (session.isWholeBinaryHandlerPresent()) {
                 switch (session.getState()) {
                     case RUNNING:
-                        ArrayList<ByteBuffer> bufferList = new ArrayList<ByteBuffer>();
-                        session.setBinaryBufferList(bufferList);
-                        bufferList.add(partialBytes);
+                        session.getBinaryBuffer().resetBuffer(session.getMaxBinaryMessageBufferSize());
+                        session.getBinaryBuffer().appendMessagePart(partialBytes);
                         session.setState(SessionImpl.State.RECEIVING_BINARY);
                         break;
                     case RECEIVING_BINARY:
-                        session.getBinaryBufferList().add(partialBytes);
+                        session.getBinaryBuffer().appendMessagePart(partialBytes);
                         if (last) {
-                            ByteBuffer b = null;
-
-                            for (ByteBuffer buffered : session.getBinaryBufferList()) {
-                                if (b == null) {
-                                    b = buffered;
-                                } else {
-                                    b = joinBuffers(b, buffered);
-                                }
-                            }
-
-                            session.notifyMessageHandlers(b, findApplicableDecoders(session, b, false));
-                            session.setBinaryBufferList(null);
+                            ByteBuffer bb = session.getBinaryBuffer().getBufferedContent();
+                            session.notifyMessageHandlers(bb, findApplicableDecoders(session, bb, false));
                             session.setState(SessionImpl.State.RUNNING);
                         }
                         break;
                     default:
-                        session.setBinaryBufferList(null);
                         session.setState(SessionImpl.State.RUNNING);
                         throw new IllegalStateException(String.format("Binary message received out of order. Session: '%s'.", session));
                 }
@@ -639,21 +622,6 @@ public class EndpointWrapper extends SPIEndpoint {
                 }
             }
         }
-    }
-
-    private ByteBuffer joinBuffers(ByteBuffer bb1, ByteBuffer bb2) {
-
-        final int remaining1 = bb1.remaining();
-        final int remaining2 = bb2.remaining();
-        byte[] array = new byte[remaining1 + remaining2];
-        bb1.get(array, 0, remaining1);
-        System.arraycopy(bb2.array(), 0, array, remaining1, remaining2);
-
-
-        ByteBuffer buf = ByteBuffer.wrap(array);
-        buf.limit(remaining1 + remaining2);
-
-        return buf;
     }
 
     /**

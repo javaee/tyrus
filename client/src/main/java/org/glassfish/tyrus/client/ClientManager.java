@@ -96,8 +96,8 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
 
     private long defaultAsyncSendTimeout;
     private long defaultMaxSessionIdleTimeout;
-    private int maxBinaryMessageBufferSize;
-    private int maxTextMessageBufferSize;
+    private int maxBinaryMessageBufferSize = Integer.MAX_VALUE;
+    private int maxTextMessageBufferSize = Integer.MAX_VALUE;
 
     /**
      * Create new {@link ClientManager} instance.

@@ -90,8 +90,8 @@ public class SessionImpl implements Session {
     private final String queryString;
     private final Map<String, String> pathParameters;
     private final Principal userPrincipal;
-    private int maxBinaryMessageBufferSize = 0;
-    private int maxTextMessageBufferSize = 0;
+    private int maxBinaryMessageBufferSize = Integer.MAX_VALUE;
+    private int maxTextMessageBufferSize = Integer.MAX_VALUE;
     private long maxIdleTimeout = 0;
     private Timer timer;
 
@@ -101,6 +101,11 @@ public class SessionImpl implements Session {
     private final MessageHandlerManager handlerManager;
     private static final String SESSION_CLOSED = "The connection has been closed.";
     private final AtomicReference<State> state = new AtomicReference<State>(State.RUNNING);
+
+    private final TextBuffer textBuffer = new TextBuffer();
+    private final BinaryBuffer binaryBuffer = new BinaryBuffer();
+    private ReaderBuffer readerBuffer;
+    private InputStreamBuffer inputStreamBuffer;
 
     /**
      * Session state.
@@ -133,11 +138,6 @@ public class SessionImpl implements Session {
         CLOSED
     }
 
-    private StringBuffer stringBuffer;
-    private List<ByteBuffer> binaryBufferList;
-    private ReaderBuffer readerBuffer;
-    private InputStreamBuffer inputStreamBuffer;
-
     SessionImpl(WebSocketContainer container, SPIRemoteEndpoint remoteEndpoint, EndpointWrapper endpointWrapper,
                 String subprotocol, List<Extension> extensions, boolean isSecure,
                 URI uri, String queryString, Map<String, String> pathParameters, Principal principal) {
@@ -153,6 +153,11 @@ public class SessionImpl implements Session {
         this.asyncRemote = new RemoteEndpointWrapper.Async(this, remoteEndpoint, endpointWrapper, 0);
         this.handlerManager = MessageHandlerManager.fromDecoderInstances(endpointWrapper.getDecoders());
         this.userPrincipal = principal;
+
+        if(container != null) {
+            maxTextMessageBufferSize = container.getDefaultMaxTextMessageBufferSize();
+            maxBinaryMessageBufferSize = container.getDefaultMaxBinaryMessageBufferSize();
+        }
     }
 
     /**
@@ -524,12 +529,12 @@ public class SessionImpl implements Session {
         return state.get();
     }
 
-    StringBuffer getStringBuffer() {
-        return stringBuffer;
+    TextBuffer getTextBuffer() {
+        return textBuffer;
     }
 
-    List<ByteBuffer> getBinaryBufferList() {
-        return binaryBufferList;
+    BinaryBuffer getBinaryBuffer() {
+        return binaryBuffer;
     }
 
     /**
@@ -540,14 +545,6 @@ public class SessionImpl implements Session {
     public void setState(State state) {
         checkConnectionState(State.CLOSED);
         this.state.set(state);
-    }
-
-    void setStringBuffer(StringBuffer stringBuffer) {
-        this.stringBuffer = stringBuffer;
-    }
-
-    void setBinaryBufferList(List<ByteBuffer> binaryBufferList) {
-        this.binaryBufferList = binaryBufferList;
     }
 
     ReaderBuffer getReaderBuffer() {

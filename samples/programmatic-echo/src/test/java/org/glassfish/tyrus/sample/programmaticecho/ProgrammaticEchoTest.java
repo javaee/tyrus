@@ -81,7 +81,7 @@ public class ProgrammaticEchoTest {
             final CountDownLatch messageLatch = new CountDownLatch(1);
 
             final ClientManager client = ClientManager.createClient();
-            client.connectToServer(new Endpoint() {
+            final Session session = client.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig EndpointConfig) {
                     try {
@@ -101,6 +101,9 @@ public class ProgrammaticEchoTest {
             }, ClientEndpointConfig.Builder.create().build(), getURI());
 
             messageLatch.await(1, TimeUnit.SECONDS);
+
+            System.out.println("###### " + session.getOpenSessions().size());
+
             if (messageLatch.getCount() != 0) {
                 fail();
             }
