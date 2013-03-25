@@ -113,7 +113,7 @@ class MatchComparator implements Comparator<Match> {
                     }
                 }
                 // both had same indices
-                System.out.println("COMPARED: EQUAL");
+                debug("COMPARED: EQUAL");
                 return 0;
             }
         }
