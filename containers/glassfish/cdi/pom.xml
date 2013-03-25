@@ -46,7 +46,7 @@
     <parent>
         <groupId>org.glassfish.tyrus</groupId>
         <artifactId>tyrus-containers-glassfish-project</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>1.0-b14</version>
     </parent>
 
     <packaging>jar</packaging>
