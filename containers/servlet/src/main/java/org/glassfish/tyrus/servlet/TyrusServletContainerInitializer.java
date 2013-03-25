@@ -43,13 +43,11 @@ package org.glassfish.tyrus.servlet;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.websocket.Endpoint;
 import javax.websocket.server.ServerApplicationConfig;
 import javax.websocket.server.ServerContainer;
-import javax.websocket.server.ServerContainerProvider;
 import javax.websocket.server.ServerEndpoint;
 
 import javax.servlet.FilterRegistration;
@@ -80,14 +78,11 @@ public class TyrusServletContainerInitializer implements ServletContainerInitial
     public void onStartup(Set<Class<?>> classes, ServletContext ctx) throws ServletException {
         if (classes == null || classes.isEmpty()) {
             // prepare for possible programmatic deployment
-            final ServerContainer serverContainer = ServerContainerProvider.getServerContainer();
-            if (serverContainer instanceof TyrusServerContainerProvider) {
-                TyrusServletFilter filter = ctx.createFilter(TyrusServletFilter.class);
-                filter.setServletContext(ctx);
-                ((TyrusServerContainerProvider) serverContainer).setTyrusFilter(filter);
-            } else {
-                LOGGER.log(Level.WARNING, "ServerContainer.deploy is not supported.");
-            }
+            final ServerContainer serverContainer = new TyrusServletServerContainer();
+            ctx.setAttribute(TyrusServletServerContainer.SERVER_CONTAINER_ATTRIBUTE, serverContainer);
+            TyrusServletFilter filter = ctx.createFilter(TyrusServletFilter.class);
+            filter.setServletContext(ctx);
+            ((TyrusServletServerContainer) serverContainer).setTyrusFilter(filter);
 
             return;
         }
@@ -107,11 +102,8 @@ public class TyrusServletContainerInitializer implements ServletContainerInitial
         reg.addMappingForUrlPatterns(null, true, "/*");
         LOGGER.info("Registering WebSocket filter for url pattern /*");
 
-        final ServerContainer serverContainer = ServerContainerProvider.getServerContainer();
-        if (serverContainer instanceof TyrusServerContainerProvider) {
-            ((TyrusServerContainerProvider) serverContainer).setTyrusFilter(filter);
-        } else {
-            LOGGER.log(Level.WARNING, "ServerContainer.deploy is not supported.");
-        }
+        final TyrusServletServerContainer serverContainer = new TyrusServletServerContainer();
+        ctx.setAttribute(TyrusServletServerContainer.SERVER_CONTAINER_ATTRIBUTE, serverContainer);
+        serverContainer.setTyrusFilter(filter);
     }
 }

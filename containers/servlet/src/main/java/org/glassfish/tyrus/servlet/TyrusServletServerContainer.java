@@ -49,22 +49,23 @@ import javax.websocket.Endpoint;
 import javax.websocket.Extension;
 import javax.websocket.Session;
 import javax.websocket.server.ServerContainer;
-import javax.websocket.server.ServerContainerProvider;
 import javax.websocket.server.ServerEndpointConfig;
 
 /**
- * Tyrus implementation of {@link ServerContainerProvider} and {@link ServerContainer}.
+ * Tyrus implementation of {@link ServerContainer}.
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class TyrusServerContainerProvider extends ServerContainerProvider implements ServerContainer {
+public class TyrusServletServerContainer implements ServerContainer {
+
+    public static final String SERVER_CONTAINER_ATTRIBUTE = "javax.websocket.server.ServerContainer";
 
     private static final ThreadLocal<TyrusServletFilter> tyrusFilter = new ThreadLocal<TyrusServletFilter>();
 
     @Override
     public void addEndpoint(Class<?> endpointClass) throws DeploymentException {
         final TyrusServletFilter filter = tyrusFilter.get();
-        if(filter != null) {
+        if (filter != null) {
             filter.addClass(endpointClass);
         } else {
             throw new IllegalStateException("Not in 'deploy' scope.");
@@ -74,20 +75,15 @@ public class TyrusServerContainerProvider extends ServerContainerProvider implem
     @Override
     public void addEndpoint(ServerEndpointConfig serverEndpointConfig) throws DeploymentException {
         final TyrusServletFilter filter = tyrusFilter.get();
-        if(filter != null) {
+        if (filter != null) {
             filter.addServerEndpointConfig(serverEndpointConfig);
         } else {
             throw new IllegalStateException("Not in 'deploy' scope.");
         }
     }
 
-    @Override
-    protected ServerContainer getContainer() {
-        return this;
-    }
-
     void setTyrusFilter(final TyrusServletFilter tyrusFilter) {
-        TyrusServerContainerProvider.tyrusFilter.set(tyrusFilter);
+        TyrusServletServerContainer.tyrusFilter.set(tyrusFilter);
     }
 
     void cleanup() {

@@ -42,7 +42,6 @@ package org.glassfish.tyrus.tests.servlet.dynamic_deploy;
 import javax.websocket.DeploymentException;
 import javax.websocket.OnMessage;
 import javax.websocket.server.ServerContainer;
-import javax.websocket.server.ServerContainerProvider;
 import javax.websocket.server.ServerEndpoint;
 
 import javax.servlet.ServletContextEvent;
@@ -61,7 +60,7 @@ public class MyServletContextListenerAnnotated implements ServletContextListener
 
     @Override
     public void contextInitialized(ServletContextEvent servletContextEvent) {
-        final ServerContainer serverContainer = ServerContainerProvider.getServerContainer();
+        final ServerContainer serverContainer = (ServerContainer) servletContextEvent.getServletContext().getAttribute("javax.websocket.server.ServerContainer");
 
         try {
             // this is the important call

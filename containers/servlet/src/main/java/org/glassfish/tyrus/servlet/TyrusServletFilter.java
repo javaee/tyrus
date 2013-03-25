@@ -48,7 +48,6 @@ import java.util.Set;
 import java.util.logging.Logger;
 
 import javax.websocket.server.ServerContainer;
-import javax.websocket.server.ServerContainerProvider;
 import javax.websocket.server.ServerEndpointConfig;
 
 import javax.servlet.Filter;
@@ -66,7 +65,6 @@ import javax.servlet.http.WebConnection;
 
 import org.glassfish.tyrus.core.RequestContext;
 import org.glassfish.tyrus.server.ServerContainerFactory;
-import org.glassfish.tyrus.server.TyrusServerContainer;
 import org.glassfish.tyrus.websockets.HandshakeException;
 import org.glassfish.tyrus.websockets.WebSocketEngine;
 
@@ -84,7 +82,7 @@ public class TyrusServletFilter implements Filter {
     private static final int INFORMATIONAL_FIXED_PORT = 8080;
     private final static Logger LOGGER = Logger.getLogger(TyrusServletFilter.class.getName());
     private final WebSocketEngine engine = WebSocketEngine.getEngine();
-    private TyrusServerContainer serverContainer = null;
+    private org.glassfish.tyrus.server.TyrusServerContainer serverContainer = null;
 
     private boolean registered = false;
 
@@ -117,7 +115,7 @@ public class TyrusServletFilter implements Filter {
     }
 
     private void checkFilterRegistration() {
-        if(servletContext != null && !registered) {
+        if (servletContext != null && !registered) {
             registered = true;
 
             final FilterRegistration.Dynamic reg = servletContext.addFilter("WebSocket filter", this);
@@ -138,9 +136,9 @@ public class TyrusServletFilter implements Filter {
         } finally {
 
             // remove reference to filter.
-            final ServerContainer container = ServerContainerProvider.getServerContainer();
-            if (container instanceof TyrusServerContainerProvider) {
-                ((TyrusServerContainerProvider) container).cleanup();
+            final ServerContainer container = (ServerContainer) filterConfig.getServletContext().getAttribute(TyrusServletServerContainer.SERVER_CONTAINER_ATTRIBUTE);
+            if (container instanceof TyrusServletServerContainer) {
+                ((TyrusServletServerContainer) container).cleanup();
             }
         }
     }

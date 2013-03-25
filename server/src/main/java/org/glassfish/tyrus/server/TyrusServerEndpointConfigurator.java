@@ -39,10 +39,8 @@
  */
 package org.glassfish.tyrus.server;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import javax.websocket.Extension;
 import javax.websocket.HandshakeResponse;
@@ -97,12 +95,6 @@ public class TyrusServerEndpointConfigurator extends ServerEndpointConfig.Config
     @Override
     public boolean checkOrigin(String originHeaderValue) {
         return true;
-    }
-
-    @Override
-    public boolean matchesURI(String path, URI requestUri, Map<String, String> templateExpansion) {
-        // do nothing! - TODO XXX FIXME - TO BE REMOVED
-        return false;
     }
 
     @Override

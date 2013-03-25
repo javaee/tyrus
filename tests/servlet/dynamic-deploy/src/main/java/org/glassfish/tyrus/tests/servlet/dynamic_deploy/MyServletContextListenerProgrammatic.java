@@ -47,7 +47,6 @@ import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 import javax.websocket.server.ServerContainer;
-import javax.websocket.server.ServerContainerProvider;
 import javax.websocket.server.ServerEndpointConfig;
 
 import javax.servlet.ServletContextEvent;
@@ -64,7 +63,7 @@ public class MyServletContextListenerProgrammatic extends Endpoint implements Se
 
     @Override
     public void contextInitialized(ServletContextEvent sce) {
-        final ServerContainer serverContainer = ServerContainerProvider.getServerContainer();
+        final ServerContainer serverContainer = (ServerContainer) sce.getServletContext().getAttribute("javax.websocket.server.ServerContainer");
 
         try {
             // this is the important call
