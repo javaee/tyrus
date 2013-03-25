@@ -157,7 +157,7 @@ public class TyrusServerContainer extends BaseContainer implements WebSocketCont
         for (SPIRegisteredEndpoint wsa : this.endpoints) {
             wsa.remove();
             this.server.unregister(wsa);
-            Logger.getLogger(getClass().getName()).info("Closing down : " + wsa);
+            Logger.getLogger(getClass().getName()).fine("Closing down : " + wsa);
         }
         server.stop();
     }
