@@ -154,7 +154,7 @@ public class ByteBufferSessionImpl extends SessionLifeCycle<ByteBuffer> implemen
 
     @Override
     public void startTalkPartial(final Session s) throws IOException {
-        List<Thread> partialMsgWorkers = new ArrayList<>();
+        List<Thread> partialMsgWorkers = new ArrayList<Thread>();
         final CountDownLatch done = new CountDownLatch(3);
         partialMsgWorkers.add(new Thread() {
             @Override

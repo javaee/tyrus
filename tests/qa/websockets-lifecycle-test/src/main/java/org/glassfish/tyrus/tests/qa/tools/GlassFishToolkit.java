@@ -265,7 +265,7 @@ public class GlassFishToolkit implements ServerToolkit {
         String name = clazz.getName();
 
         //archive.addClassPath(new File("target/classes"));
-        List<File> addClasses = new ArrayList<>();
+        List<File> addClasses = new ArrayList<File>();
         File tempDir = FileUtils.getTempDirectory();
         File dstDirectory = new File(tempDir, "lib");
         FileUtils.forceDelete(dstDirectory);

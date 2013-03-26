@@ -56,7 +56,7 @@ public class ProgrammaticPartialMessageByteSessionConfig implements ServerApplic
 
     @Override
     public Set<ServerEndpointConfig> getEndpointConfigs(Set<Class<? extends Endpoint>> set) {
-        Set<ServerEndpointConfig> configSet = new HashSet<>();
+        Set<ServerEndpointConfig> configSet = new HashSet<ServerEndpointConfig>();
         ServerEndpointConfig config = ServerEndpointConfig.Builder.create(ProgrammaticPartialMessageByteSession.class, LifeCycleDeployment.LIFECYCLE_ENDPOINT_PATH).build();
         configSet.add(config);
         return configSet;

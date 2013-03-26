@@ -90,7 +90,7 @@ public class CustomConfigurationProtocolsProgrammatic implements ServerApplicati
 
     @Override
     public Set<ServerEndpointConfig> getEndpointConfigs(Set<Class<? extends Endpoint>> set) {
-        Set<ServerEndpointConfig> configSet = new HashSet<>();
+        Set<ServerEndpointConfig> configSet = new HashSet<ServerEndpointConfig>();
         List<String> protocols = Arrays.asList(LifeCycleDeployment.serverProtoOrder);
         ServerEndpointConfig config = ServerEndpointConfig.Builder.create(
                 StringLifeCycle.class,

@@ -52,7 +52,7 @@ import javax.websocket.Extension;
  */
 public class MyExtension implements Extension {
 
-        static List<Extension> extensions = new CopyOnWriteArrayList<>();
+        static List<Extension> extensions = new CopyOnWriteArrayList<Extension>();
         String name;
         Map<String, String> map;
 
@@ -74,7 +74,7 @@ public class MyExtension implements Extension {
 
         @Override
         public List<Extension.Parameter> getParameters() {
-            List<Extension.Parameter> params = new ArrayList<>();
+            List<Extension.Parameter> params = new ArrayList<Extension.Parameter>();
 
             for (final String name : map.keySet()) {
                 final String val = map.get(name);

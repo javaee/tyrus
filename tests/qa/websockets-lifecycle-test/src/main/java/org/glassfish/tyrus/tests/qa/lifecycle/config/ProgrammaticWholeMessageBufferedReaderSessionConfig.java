@@ -56,7 +56,7 @@ public class ProgrammaticWholeMessageBufferedReaderSessionConfig implements Serv
 
     @Override
     public Set<ServerEndpointConfig> getEndpointConfigs(Set<Class<? extends Endpoint>> set) {
-        Set<ServerEndpointConfig> configSet = new HashSet<>();
+        Set<ServerEndpointConfig> configSet = new HashSet<ServerEndpointConfig>();
         ServerEndpointConfig config = ServerEndpointConfig.Builder.create(ProgrammaticWholeMessageBufferedReaderSession.class, LifeCycleDeployment.LIFECYCLE_ENDPOINT_PATH).build();
         configSet.add(config);
         return configSet;
