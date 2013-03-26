@@ -122,7 +122,7 @@ public class GlassFishToolkit implements ServerToolkit {
 
     public class Asadmin {
 
-        private final static String ASADMIN_CMD = "%s/bin/asadmin %s";
+        private final static String ASADMIN_CMD = "%s/bin/asadmin.bat %s";
         private final static String ASADMIN_SET_PROPERTY = "--properties %s=%s";
         private final static String ASADMIN_DEFAULT_DOMAIN = "domain1";
         private final static String ASADMIN_START_DOMAIN = "start-domain %s";
