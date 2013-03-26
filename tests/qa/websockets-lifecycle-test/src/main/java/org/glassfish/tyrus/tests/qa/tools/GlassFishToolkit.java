@@ -290,7 +290,7 @@ public class GlassFishToolkit implements ServerToolkit {
         File tempDir = FileUtils.getTempDirectory();
         File dstDirectory = new File(tempDir, "lib");
         try {
-            FileUtils.forceDelete(dstDirectory);
+            FileUtils.forceDelete(new File(FilenameUtils.separatorsToUnix(dstDirectory.toString())));
         } catch (FileNotFoundException ex) {
             logger.log(Level.SEVERE, "forceDelete:", ex.getMessage());
         }
