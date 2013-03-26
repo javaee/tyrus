@@ -63,7 +63,6 @@ import javax.websocket.Session;
 
 import org.glassfish.tyrus.core.RequestContext;
 import org.glassfish.tyrus.core.TyrusExtension;
-import org.glassfish.tyrus.server.TyrusEndpoint;
 import org.glassfish.tyrus.server.TyrusRemoteEndpoint;
 import org.glassfish.tyrus.spi.SPIEndpoint;
 import org.glassfish.tyrus.spi.SPIHandshakeListener;
@@ -377,7 +376,7 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
             CloseReason closeReason = null;
 
             if (dataFrame != null) {
-                closeReason = new CloseReason(TyrusEndpoint.getCloseCode(dataFrame.getCode()), dataFrame.getReason());
+                closeReason = new CloseReason(CloseReason.CloseCodes.getCloseCode(dataFrame.getCode()), dataFrame.getReason());
             }
             endpoint.onClose(remoteEndpoint, closeReason);
         }

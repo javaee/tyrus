@@ -185,7 +185,7 @@ public class TyrusEndpoint extends WebSocketApplication implements SPIRegistered
         CloseReason closeReason = null;
 
         if (frame != null) {
-            closeReason = new CloseReason(TyrusEndpoint.getCloseCode(frame.getCode()), frame.getReason() == null ? "" : frame.getReason());
+            closeReason = new CloseReason(CloseReason.CloseCodes.getCloseCode(frame.getCode()), frame.getReason() == null ? "" : frame.getReason());
         }
 
         this.endpoint.onClose(gs, closeReason);
@@ -302,61 +302,4 @@ public class TyrusEndpoint extends WebSocketApplication implements SPIRegistered
         };
     }
 
-    /**
-     * Creates {@link javax.websocket.CloseReason.CloseCode} from given integer value.
-     * <p/>
-     * Present only for our convenience, should be removed once http://java.net/jira/browse/WEBSOCKET_SPEC-102 is
-     * resolved.
-     *
-     * @param code close code.
-     * @return {@link javax.websocket.CloseReason.CloseCode} instance corresponding to given value or newly created
-     *         anonymous class if code is not present in {@link javax.websocket.CloseReason.CloseCodes} enumeration.
-     * @throws IllegalArgumentException when code is smaller than 1000 (not used) or bigger than 4999. See RFC-6455,
-     *                                  section 7.4 for more details.
-     */
-    public static CloseReason.CloseCode getCloseCode(final int code) {
-        if (code < 1000 || code > 4999) {
-            throw new IllegalArgumentException();
-        }
-
-        switch (code) {
-            case 1000:
-                return CloseReason.CloseCodes.NORMAL_CLOSURE;
-            case 1001:
-                return CloseReason.CloseCodes.GOING_AWAY;
-            case 1002:
-                return CloseReason.CloseCodes.PROTOCOL_ERROR;
-            case 1003:
-                return CloseReason.CloseCodes.CANNOT_ACCEPT;
-            case 1004:
-                return CloseReason.CloseCodes.RESERVED;
-            case 1005:
-                return CloseReason.CloseCodes.NO_STATUS_CODE;
-            case 1006:
-                return CloseReason.CloseCodes.CLOSED_ABNORMALLY;
-            case 1007:
-                return CloseReason.CloseCodes.NOT_CONSISTENT;
-            case 1008:
-                return CloseReason.CloseCodes.VIOLATED_POLICY;
-            case 1009:
-                return CloseReason.CloseCodes.TOO_BIG;
-            case 1010:
-                return CloseReason.CloseCodes.NO_EXTENSION;
-            case 1011:
-                return CloseReason.CloseCodes.UNEXPECTED_CONDITION;
-            case 1012:
-                return CloseReason.CloseCodes.SERVICE_RESTART;
-            case 1013:
-                return CloseReason.CloseCodes.TRY_AGAIN_LATER;
-            case 1015:
-                return CloseReason.CloseCodes.TLS_HANDSHAKE_FAILURE;
-        }
-
-        return new CloseReason.CloseCode() {
-            @Override
-            public int getCode() {
-                return code;
-            }
-        };
-    }
 }
