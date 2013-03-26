@@ -68,13 +68,15 @@ public abstract class BaseContainer implements WebSocketContainer {
 
     private static ExecutorService newExecutorService() {
         ExecutorService es = null;
+
         // Get the default MangedExecutorService, if available
-        try {
-            InitialContext ic = new InitialContext();
-            es = (ExecutorService) ic.lookup("java:comp/DefaultManagedExecutorService");
-        } catch (Exception e) {
-            // ignore
-        }
+// Commenting out the following since the ManagedExecutorService is not working
+//        try {
+//            InitialContext ic = new InitialContext();
+//            es = (ExecutorService) ic.lookup("java:comp/DefaultManagedExecutorService");
+//        } catch (Exception e) {
+//            // ignore
+//        }
         if (es == null) {
             es = Executors.newCachedThreadPool(new DaemonThreadFactory());
         }
