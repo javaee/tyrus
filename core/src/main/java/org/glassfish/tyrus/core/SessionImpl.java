@@ -237,7 +237,7 @@ public class SessionImpl implements Session {
     @Override
     public Set<Session> getOpenSessions() {
         checkConnectionState(State.CLOSED);
-        return Collections.unmodifiableSet(endpoint.getOpenSessions());
+        return endpoint.getOpenSessions();
     }
 
     @Override
