@@ -122,7 +122,8 @@ public class GlassFishToolkit implements ServerToolkit {
 
     public class Asadmin {
 
-        private final static String ASADMIN_CMD = "%s/bin/asadmin.bat %s";
+        private final static String ASADMIN_CMD_UNIX = "%s/bin/asadmin %s";
+        private final static String ASADMIN_CMD_WINDOWS = "%s/bin/asadmin.bat %s";
         private final static String ASADMIN_SET_PROPERTY = "--properties %s=%s";
         private final static String ASADMIN_DEFAULT_DOMAIN = "domain1";
         private final static String ASADMIN_START_DOMAIN = "start-domain %s";
@@ -132,36 +133,57 @@ public class GlassFishToolkit implements ServerToolkit {
         private final static String ASADMIN_UNDEPLOY_APP = "undeploy %s";
         private final static String ASADMIN_LIST_APPS = "list-applications";
 
+        private boolean onWindows() {
+            return System.getProperty("os.name").startsWith("Windows");
+        }
+
+        private String getAsadminCommand() {
+            if (onWindows()) {
+                return ASADMIN_CMD_WINDOWS;
+            } else {
+                return ASADMIN_CMD_UNIX;
+            }
+        }
+
+        private String getDomain() {
+            final String domain = System.getProperty("glassfish.domain");
+            if (domain != null) {
+                return domain;
+            } else {
+                return ASADMIN_DEFAULT_DOMAIN;
+            }
+        }
+
         public String getAsadminStartDomain(String domain) {
-            return String.format(ASADMIN_CMD, installRoot, String.format(ASADMIN_START_DOMAIN, domain));
+            return String.format(getAsadminCommand(), installRoot, String.format(ASADMIN_START_DOMAIN, domain));
         }
 
         public String getAsadminStopDomain(String domain) {
-            return String.format(ASADMIN_CMD, installRoot, String.format(ASADMIN_STOP_DOMAIN, domain));
+            return String.format(getAsadminCommand(), installRoot, String.format(ASADMIN_STOP_DOMAIN, domain));
         }
 
         public String getAsadminStartDomain1() {
-            return getAsadminStartDomain(ASADMIN_DEFAULT_DOMAIN);
+            return getAsadminStartDomain(getDomain());
         }
 
         public String getAsadminStopDomain1() {
-            return getAsadminStopDomain(ASADMIN_DEFAULT_DOMAIN);
+            return getAsadminStopDomain(getDomain());
         }
 
         public String getAsadminListApplications() {
-            return String.format(ASADMIN_CMD, installRoot, ASADMIN_LIST_APPS);
+            return String.format(getAsadminCommand(), installRoot, ASADMIN_LIST_APPS);
         }
 
         public String getAsadminDeployCommand(String warfile) {
-            return String.format(ASADMIN_CMD, installRoot, String.format(ASADMIN_DEPLOY_WAR, warfile));
+            return String.format(getAsadminCommand(), installRoot, String.format(ASADMIN_DEPLOY_WAR, warfile));
         }
 
         public String getAsadminDeployCommand(String warfile, String key, String value) {
-            return String.format(ASADMIN_CMD, installRoot, String.format(ASADMIN_DEPLOY_WAR_PROPS, key, value, warfile));
+            return String.format(getAsadminCommand(), installRoot, String.format(ASADMIN_DEPLOY_WAR_PROPS, key, value, warfile));
         }
 
         public String getAsadminUnDeployCommand(String appname) {
-            return String.format(ASADMIN_CMD, installRoot, String.format(ASADMIN_UNDEPLOY_APP, appname));
+            return String.format(getAsadminCommand(), installRoot, String.format(ASADMIN_UNDEPLOY_APP, appname));
         }
 
         public void exec(String cmd) {
