@@ -41,6 +41,7 @@ package org.glassfish.tyrus.tests.qa.tools;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -131,8 +132,6 @@ public class GlassFishToolkit implements ServerToolkit {
         private final static String ASADMIN_UNDEPLOY_APP = "undeploy %s";
         private final static String ASADMIN_LIST_APPS = "list-applications";
 
-        
-        
         public String getAsadminStartDomain(String domain) {
             return String.format(ASADMIN_CMD, installRoot, String.format(ASADMIN_START_DOMAIN, domain));
         }
@@ -156,7 +155,7 @@ public class GlassFishToolkit implements ServerToolkit {
         public String getAsadminDeployCommand(String warfile) {
             return String.format(ASADMIN_CMD, installRoot, String.format(ASADMIN_DEPLOY_WAR, warfile));
         }
-        
+
         public String getAsadminDeployCommand(String warfile, String key, String value) {
             return String.format(ASADMIN_CMD, installRoot, String.format(ASADMIN_DEPLOY_WAR_PROPS, key, value, warfile));
         }
@@ -202,7 +201,7 @@ public class GlassFishToolkit implements ServerToolkit {
     }
 
     private String getClazzCanonicalName(File clazz) {
-        logger.log(Level.INFO, "getClazzCanonicalName:{0}", clazz.toString());
+        logger.log(Level.FINE, "getClazzCanonicalName:{0}", clazz.toString());
         return FilenameUtils.removeExtension(clazz.toString()).replaceFirst("target/classes/", "").replace('/', '.');
     }
 
@@ -213,33 +212,33 @@ public class GlassFishToolkit implements ServerToolkit {
     private Class<?> getClazzForFile(File clazz) throws ClassNotFoundException, MalformedURLException {
         String clazzCanonicalName = getClazzCanonicalName(clazz);
         //URLClassLoader cl = new URLClassLoader(new URL[] {new URL("file://"+clazz.getAbsoluteFile().getParent())});
-        logger.log(Level.INFO, "getClazzForFile(): {0}", clazzCanonicalName);
-        logger.log(Level.INFO, "getClazzForFile(): {0}", clazz.getAbsolutePath());
-        //logger.log(Level.INFO, "getClazzForFile(): classloader:{0}", cl.getURLs());
+        logger.log(Level.FINE, "getClazzForFile(): {0}", clazzCanonicalName);
+        logger.log(Level.FINE, "getClazzForFile(): {0}", clazz.getAbsolutePath());
+        //logger.log(Level.FINE, "getClazzForFile(): classloader:{0}", cl.getURLs());
         return Class.forName(clazzCanonicalName); //, true, cl);
     }
 
     private boolean isBlackListed(File clazz) throws ClassNotFoundException, MalformedURLException {
-        //logger.log(Level.INFO, "File? {0}", clazzCanonicalName);
+        //logger.log(Level.FINE, "File? {0}", clazzCanonicalName);
 
         Class tryMe = getClazzForFile(clazz);
 
 
 
-        logger.log(Level.INFO, "File? {0}", tryMe.getCanonicalName());
+        logger.log(Level.FINE, "File? {0}", tryMe.getCanonicalName());
 
-        logger.log(Level.INFO, "Interfaces:{0}", tryMe.getInterfaces());
+        logger.log(Level.FINE, "Interfaces:{0}", tryMe.getInterfaces());
         if (Arrays.asList(tryMe.getInterfaces()).contains((ServerApplicationConfig.class))) {
-            logger.log(Level.INFO, "ServerApplicationConfig : {0}", tryMe.getCanonicalName());
+            logger.log(Level.FINE, "ServerApplicationConfig : {0}", tryMe.getCanonicalName());
             return true;
         }
         if (tryMe.isAnnotationPresent(ServerEndpoint.class)) {
-            logger.log(Level.INFO, "Annotated ServerEndpoint: {0}", tryMe.getCanonicalName());
+            logger.log(Level.FINE, "Annotated ServerEndpoint: {0}", tryMe.getCanonicalName());
             return true;
         }
 
         if (tryMe.isAnnotationPresent(ClientEndpoint.class)) {
-            logger.log(Level.INFO, "Annotated ClientEndpoint: {0}", tryMe.getCanonicalName());
+            logger.log(Level.FINE, "Annotated ClientEndpoint: {0}", tryMe.getCanonicalName());
             return true;
         }
         //Endpoint itself is not blacklisted
@@ -253,7 +252,7 @@ public class GlassFishToolkit implements ServerToolkit {
     }
 
     private File getFileForClazz(Class clazz) {
-        logger.log(Level.INFO, "Obtaining file for : {0}", clazz.getCanonicalName());
+        logger.log(Level.FINE, "Obtaining file for : {0}", clazz.getCanonicalName());
 
         String clazzBasename = new File(clazz.getCanonicalName().replace('.', '/')).getName();
 
@@ -268,11 +267,15 @@ public class GlassFishToolkit implements ServerToolkit {
         List<File> addClasses = new ArrayList<File>();
         File tempDir = FileUtils.getTempDirectory();
         File dstDirectory = new File(tempDir, "lib");
-        FileUtils.forceDelete(dstDirectory);
+        try {
+            FileUtils.forceDelete(dstDirectory);
+        } catch (FileNotFoundException ex) {
+            logger.log(Level.SEVERE, "forceDelete:", ex.getMessage());
+        }
         FileUtils.forceMkdir(dstDirectory);
         File source = new File("target/classes");
         FileUtils.copyDirectory(source, dstDirectory);
-        logger.log(Level.INFO, "tempdir:{0}", dstDirectory.toString());
+        logger.log(Level.FINE, "tempdir:{0}", dstDirectory.toString());
         String targetCanonicalName = clazz.getCanonicalName();
         for (File addMe : FileUtils.listFiles(dstDirectory, new String[]{"class"}, true)) {
             File srcClazz = new File(addMe.toString().replaceFirst(dstDirectory.toString(), "target/classes"));
@@ -281,7 +284,7 @@ public class GlassFishToolkit implements ServerToolkit {
                 continue;
             }
             if (isBlackListed(srcClazz)) {
-                logger.log(Level.INFO, "Deleting : {0}", addMe.toString());
+                logger.log(Level.FINE, "Deleting : {0}", addMe.toString());
                 FileUtils.forceDelete(addMe);
             }
 

@@ -156,7 +156,8 @@ public class SessionController {
         }
         catch(Exception ex) {
             state="null";
-            ex.printStackTrace();
+            //ex.printStackTrace();
+            logger.log(Level.WARNING, "getState:", ex.getMessage());
         }
         
         /*
@@ -180,14 +181,17 @@ public class SessionController {
 
     public void serverOnOpen() {
         changeState(SessionState.START, SessionState.OPEN_SERVER);
+        changeState(SessionState.OPEN_CLIENT, SessionState.OPEN_SERVER);
     }
 
     public void clientOnOpen() {
+        changeState(SessionState.START, SessionState.OPEN_CLIENT);
         changeState(SessionState.OPEN_SERVER, SessionState.OPEN_CLIENT);
     }
 
     public void onMessage() {
         changeState(SessionState.OPEN_CLIENT, SessionState.MESSAGE);
+        changeState(SessionState.OPEN_SERVER, SessionState.MESSAGE);
     }
 
     public void serverOnClose() {
