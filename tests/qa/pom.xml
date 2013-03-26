@@ -55,8 +55,8 @@
     <name>Tyrus QA Tests</name>
 
     <modules>
-      <!-- TODO: add modules -->
       <module>browser-test</module>
+      <module>websockets-lifecycle-test</module>
     </modules>
 
    <dependencies>
