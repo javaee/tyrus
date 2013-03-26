@@ -201,7 +201,7 @@ public class GlassFishToolkit implements ServerToolkit {
     }
 
     private String getClazzCanonicalName(File clazz) {
-        logger.log(Level.FINE, "getClazzCanonicalName:{0}", clazz.toString());
+        logger.log(Level.INFO, "getClazzCanonicalName:{0}", clazz.toString());
         return FilenameUtils.removeExtension(clazz.toString()).replaceFirst("target/classes/", "").replace('/', '.');
     }
 
@@ -212,8 +212,8 @@ public class GlassFishToolkit implements ServerToolkit {
     private Class<?> getClazzForFile(File clazz) throws ClassNotFoundException, MalformedURLException {
         String clazzCanonicalName = getClazzCanonicalName(clazz);
         //URLClassLoader cl = new URLClassLoader(new URL[] {new URL("file://"+clazz.getAbsoluteFile().getParent())});
-        logger.log(Level.FINE, "getClazzForFile(): {0}", clazzCanonicalName);
-        logger.log(Level.FINE, "getClazzForFile(): {0}", clazz.getAbsolutePath());
+        logger.log(Level.INFO, "getClazzForFile(): {0}", clazzCanonicalName);
+        logger.log(Level.INFO, "getClazzForFile(): {0}", clazz.getAbsolutePath());
         //logger.log(Level.FINE, "getClazzForFile(): classloader:{0}", cl.getURLs());
         return Class.forName(clazzCanonicalName); //, true, cl);
     }
