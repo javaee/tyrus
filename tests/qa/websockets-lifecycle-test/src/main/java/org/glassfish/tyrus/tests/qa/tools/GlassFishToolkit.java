@@ -278,6 +278,7 @@ public class GlassFishToolkit implements ServerToolkit {
         logger.log(Level.FINE, "tempdir:{0}", dstDirectory.toString());
         String targetCanonicalName = clazz.getCanonicalName();
         for (File addMe : FileUtils.listFiles(dstDirectory, new String[]{"class"}, true)) {
+            logger.log(Level.INFO, "addme:{0}", addMe.toString());
             File srcClazz = new File(addMe.toString().replaceFirst(dstDirectory.toString(), "target/classes"));
             String srcClazzCanonicalName = getClazzForFile(srcClazz).getCanonicalName();
             if (srcClazzCanonicalName != null && srcClazzCanonicalName.equals(targetCanonicalName)) {
