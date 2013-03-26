@@ -202,7 +202,7 @@ public class GlassFishToolkit implements ServerToolkit {
 
     private String getClazzCanonicalName(File clazz) {
         logger.log(Level.INFO, "getClazzCanonicalName:{0}", clazz.toString());
-        return FilenameUtils.removeExtension(clazz.toString()).replaceFirst("target/classes/", "").replace('/', '.');
+        return FilenameUtils.removeExtension(FilenameUtils.separatorsToUnix(clazz.toString())).replaceFirst("target/classes/", "").replace('/', '.');
     }
 
     private File getDirname(File clazz) {
