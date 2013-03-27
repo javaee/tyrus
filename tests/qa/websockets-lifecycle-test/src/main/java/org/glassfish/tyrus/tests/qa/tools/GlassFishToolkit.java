@@ -352,10 +352,16 @@ public class GlassFishToolkit implements ServerToolkit {
     public void stopServer() {
         try {
             Asadmin asadmin = new Asadmin();
-            String appname = FilenameUtils.removeExtension(new File(getLocalFileFromURI(deploy.toURI())).getName());
+            if (deploy != null) {
+                String appname = FilenameUtils.removeExtension(new File(getLocalFileFromURI(deploy.toURI())).getName());
+                try {
+                    asadmin.exec(asadmin.getAsadminUnDeployCommand(appname));
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                }
+            }
             asadmin.exec(
                     new String[]{
-                        asadmin.getAsadminUnDeployCommand(appname),
                         asadmin.getAsadminListApplications(),
                         asadmin.getAsadminStopDomain1()
                     });
