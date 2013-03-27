@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -39,44 +39,66 @@
  */
 package org.glassfish.tyrus.test.e2e;
 
+import java.net.URI;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
-import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfig;
-import javax.websocket.MessageHandler;
-import javax.websocket.Session;
+import javax.websocket.ClientEndpointConfig;
+import javax.websocket.OnMessage;
+import javax.websocket.server.PathParam;
+import javax.websocket.server.ServerEndpoint;
+
+import org.glassfish.tyrus.client.ClientManager;
+import org.glassfish.tyrus.server.Server;
+
+import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 
 /**
- * @author Danny Coward (danny.coward at oracle.com)
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class HelloTextClient extends Endpoint {
-    boolean gotSomethingBack = false;
-    String message = null;
-    private final CountDownLatch messageLatch;
+public class UriMatchingTest {
 
-    public HelloTextClient(CountDownLatch messageLatch) {
-        this.messageLatch = messageLatch;
+    @ServerEndpoint("/{a}")
+    public static class WSL1ParamServer {
+
+        @OnMessage
+        public String echo(@PathParam("a") String param, String echo) {
+            return echo + param + getClass().getName();
+        }
     }
 
-//    @Override
-//    public EndpointConfig getEndpointConfig() {
-//        return null;
-//    }
 
-    public void onOpen(Session session, EndpointConfig EndpointConfig) {
-        System.out.println("HELLOCLIENT opened !!");
+    @ServerEndpoint("/a")
+    public static class WSL1ExactServer {
+
+        @OnMessage
+        public String echo(String echo) {
+            return echo + getClass().getName();
+        }
+    }
+
+
+    @Test
+    public void testClient() {
+        final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
+        Server server = new Server(WSL1ExactServer.class, WSL1ParamServer.class);
+
         try {
-            session.addMessageHandler(new MessageHandler.Whole<String>() {
-                public void onMessage(String text) {
-                    System.out.println("HELLOCLIENT received: " + text);
-                    gotSomethingBack = true;
-                    message = text;
-                    messageLatch.countDown();
-                }
-            });
-            session.getBasicRemote().sendText("Client says hello");
+            server.start();
+            CountDownLatch messageLatch = new CountDownLatch(1);
+
+            HelloTextClient htc = new HelloTextClient(messageLatch);
+            ClientManager client = ClientManager.createClient();
+            client.connectToServer(htc, cec, new URI("ws://localhost:8025/websockets/tests/a"));
+
+            messageLatch.await(5, TimeUnit.SECONDS);
+            assertEquals("Client says hello" + WSL1ExactServer.class.getName(), htc.message);
         } catch (Exception e) {
             e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            server.stop();
         }
     }
 }

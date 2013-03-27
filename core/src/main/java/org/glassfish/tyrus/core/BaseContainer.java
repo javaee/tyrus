@@ -46,8 +46,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.websocket.WebSocketContainer;
 
-import javax.naming.InitialContext;
-
 /**
  * Base WebSocket container.
  * <p/>

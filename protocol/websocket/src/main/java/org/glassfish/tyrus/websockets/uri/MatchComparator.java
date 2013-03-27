@@ -54,8 +54,8 @@ class MatchComparator implements Comparator<Match> {
         if (noisy) System.out.println(message);
     }
 
-    // m1 wins = return 1
-    // m2 wins = return -1
+    // m1 wins = return -1
+    // m2 wins = return 1
     // neither wins = return 0
     @Override
     public int compare(Match m1, Match m2) {
@@ -69,12 +69,12 @@ class MatchComparator implements Comparator<Match> {
                 return 0;
             } else { // m2not exact, m1 is, m1 wins
                 debug("COMPARED: M1 wins");
-                return 1; // m1 wins
+                return -1; // m1 wins
             }
         } else { // m1 is not exact, m2 is, m2 wins
             if (m2exact) {
                 debug("COMPARED: M2 wins");
-                return -1; //m2 is exact, m1 isn't, so m2 wins
+                return 1; //m2 is exact, m1 isn't, so m2 wins
             } else { // neither are exact !
                 // iterate through the variable segment indices, left to right
                 // test each one: the one with the larger index wins since
@@ -90,10 +90,10 @@ class MatchComparator implements Comparator<Match> {
 
                     if (i > m2Indices.size() - 1) {
                         debug("COMPARED: M2 wins - 1");
-                        return -1; //m2 wins because m1 has more variables to go.
+                        return 1; //m2 wins because m1 has more variables to go.
                     } else if (i > m1Indices.size() - 1) {
                         debug("COMPARED: M1 wins - 1");
-                        return 1; // m1 wins because m2 has more variables to go
+                        return -1; // m1 wins because m2 has more variables to go
                     } else {
                         int m1Index = m1Indices.get(i);
                         int m2Index = m2Indices.get(i);
@@ -101,11 +101,11 @@ class MatchComparator implements Comparator<Match> {
                         if (m1Index > m2Index) {
                             // m1 wins as it has a larger exact path
                             debug("COMPARED: M1 wins - 2");
-                            return 1;
+                            return -1;
                         } else if (m2Index > m1Index) {
                             // m2 wins as it has a larger exact path
                             debug("COMPARED: M2 wins -2");
-                            return -1;
+                            return 1;
                         } else {
                             // continue...
                         }

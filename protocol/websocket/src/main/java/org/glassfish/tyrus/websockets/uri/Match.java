@@ -193,7 +193,7 @@ public class Match {
         if (sortedMatches.isEmpty()) {
             return null;
         } else {
-            return sortedMatches.get(sortedMatches.size() - 1);
+            return sortedMatches.get(0);
         }
     }
 
