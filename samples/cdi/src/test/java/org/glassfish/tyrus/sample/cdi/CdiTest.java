@@ -227,4 +227,38 @@ public class CdiTest {
         messageLatch.await(2, TimeUnit.SECONDS);
         assertEquals("Number of received messages is not 0.", 0, messageLatch.getCount());
     }
+
+    @Test
+    public void testApplicationScoped() throws DeploymentException, InterruptedException, IOException {
+        final String host = System.getProperty("tyrus.test.host");
+        if (host == null) {
+            return;
+        }
+
+        final CountDownLatch messageLatch = new CountDownLatch(1);
+
+        final ClientManager client = ClientManager.createClient();
+        client.connectToServer(new Endpoint() {
+            @Override
+            public void onOpen(Session session, EndpointConfig EndpointConfig) {
+                try {
+                    session.addMessageHandler(new MessageHandler.Whole<String>() {
+                        @Override
+                        public void onMessage(String message) {
+                            System.out.println("IAS received: " + message);
+                            assertEquals(message, String.format("%s (from your server)", SENT_MESSAGE));
+                            messageLatch.countDown();
+                        }
+                    });
+
+                    session.getBasicRemote().sendText(SENT_MESSAGE);
+                } catch (IOException e) {
+                    //do nothing
+                }
+            }
+        }, ClientEndpointConfig.Builder.create().build(), getURI("/injectingappscoped"));
+
+        messageLatch.await(2, TimeUnit.SECONDS);
+        assertEquals("Number of received messages is not 0.", 0, messageLatch.getCount());
+    }
 }
