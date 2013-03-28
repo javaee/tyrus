@@ -157,9 +157,8 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
 
                     protocolHandler.setConnection(connection);
                     WebSocketEngine.WebSocketHolder holder = WebSocketEngine.getEngine()
-                            .setWebSocketHolder(connection, protocolHandler, GrizzlyClientSocket.this);
-                    holder.handshake = protocolHandler.createClientHandShake(
-                            RequestContext.Builder.create().requestURI(uri).build(), true);
+                            .setWebSocketHolder(connection, protocolHandler, RequestContext.Builder.create().requestURI(uri).build(), GrizzlyClientSocket.this, null);
+
                     prepareHandshake(holder.handshake);
                 }
             };

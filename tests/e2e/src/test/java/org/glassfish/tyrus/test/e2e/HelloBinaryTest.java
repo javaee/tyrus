@@ -97,7 +97,6 @@ public class HelloBinaryTest {
         public void init(Session session) {
             System.out.println("HELLOBSERVER opened");
             session.addMessageHandler(new MyMessageHandler(session));
-
         }
 
         class MyMessageHandler implements MessageHandler.Whole<ByteBuffer> {

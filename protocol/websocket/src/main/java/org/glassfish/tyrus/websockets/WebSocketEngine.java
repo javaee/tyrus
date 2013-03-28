@@ -200,8 +200,7 @@ public class WebSocketEngine {
                 protocolHandler.setConnection(connection);
                 socket = app.createSocket(protocolHandler, request, app);
                 WebSocketHolder holder =
-                        WebSocketEngine.getEngine().setWebSocketHolder(connection, protocolHandler, socket);
-                holder.application = app;
+                        WebSocketEngine.getEngine().setWebSocketHolder(connection, protocolHandler, null, socket, app);
                 protocolHandler.handshake(connection, app, request);
                 request.getConnection().addCloseListener(new Connection.CloseListener() {
                     @Override
@@ -298,8 +297,8 @@ public class WebSocketEngine {
         return webSocketHolderMap.get(connection);
     }
 
-    public WebSocketHolder setWebSocketHolder(final Connection connection, ProtocolHandler handler, WebSocket socket) {
-        final WebSocketHolder holder = new WebSocketHolder(handler, socket);
+    public WebSocketHolder setWebSocketHolder(final Connection connection, ProtocolHandler handler, WebSocketRequest request, WebSocket socket, WebSocketApplication application) {
+        final WebSocketHolder holder = new WebSocketHolder(handler, socket, (request == null ? null : handler.createClientHandShake(request, true)), application);
 
         webSocketHolderMap.put(connection, holder);
         return holder;
@@ -324,13 +323,16 @@ public class WebSocketEngine {
     public final static class WebSocketHolder {
         public final WebSocket webSocket;
         public final ProtocolHandler handler;
-        public volatile HandShake handshake;
-        public volatile WebSocketApplication application;
+        public final HandShake handshake;
+        public final WebSocketApplication application;
         public volatile ByteBuffer buffer;
 
-        WebSocketHolder(final ProtocolHandler handler, final WebSocket socket) {
+        WebSocketHolder(final ProtocolHandler handler, final WebSocket socket, final HandShake handshake,
+                        final WebSocketApplication application) {
             this.handler = handler;
             this.webSocket = socket;
+            this.handshake = handshake;
+            this.application = application;
         }
     }
 }
