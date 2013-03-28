@@ -293,7 +293,7 @@ public class AnnotatedEndpoint extends Endpoint {
         }
     }
 
-    static Class<?> getDecoderClassType(Class<?> decoder) {
+    static Class<?> getDecoderClassType(Class<? extends Decoder> decoder) {
         Class<?> rootClass = null;
 
         if (Decoder.Text.class.isAssignableFrom(decoder)) {
@@ -311,7 +311,7 @@ public class AnnotatedEndpoint extends Endpoint {
         return as == null ? Object.class : (as[0] == null ? Object.class : as[0]);
     }
 
-    static Class<?> getEncoderClassType(Class<?> encoder) {
+    static Class<?> getEncoderClassType(Class<? extends Encoder> encoder) {
         Class<?> rootClass = null;
 
         if (Encoder.Text.class.isAssignableFrom(encoder)) {
