@@ -156,6 +156,7 @@
     </properties>
 
     <modules>
+        <module>bom</module>
         <module>client</module>
         <module>containers</module>
         <module>core</module>
