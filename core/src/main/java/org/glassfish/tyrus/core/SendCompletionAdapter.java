@@ -69,39 +69,44 @@ public class SendCompletionAdapter {
         this.state = state;
     }
 
-    // public Future<SendResult> send(Object msg, SendHandler completion) {
-    public Future<Void> send(Object msg, SendHandler completion) {
+    public Future<Void> send(Object msg,final SendHandler completion) {
         final Object message = msg;
-        final SendHandler cmpltn = completion;
         final FutureSendResult fsr = new FutureSendResult();
 
         rew.endpointWrapper.container.getExecutorService().execute(new Runnable() {
 
             @Override
             public void run() {
-                SendResult sr = new SendResult();
+                Future<?> result = null;
+                SendResult sr = null;
+
                 try {
                     switch (state) {
                         case TEXT:
-                            rew.sendSyncText((String) message);
+                            result = rew.sendSyncText((String) message);
                             break;
 
                         case BINARY:
-                            rew.sendSyncBinary((ByteBuffer) message);
+                            result = rew.sendSyncBinary((ByteBuffer) message);
                             break;
 
                         case OBJECT:
-                            rew.sendSyncObject(message);
+                            result = rew.sendSyncObject(message);
                             break;
                     }
 
+                    result.get();
                 } catch (Throwable thw) {
                     sr = new SendResult(thw);
+                    fsr.setFailure(thw);
                 } finally {
-                    if (cmpltn != null) {
-                        cmpltn.onResult(sr);
+                    if(sr == null){
+                        sr = new SendResult();
                     }
-                    fsr.setResult(sr);
+                    if (completion != null) {
+                        completion.onResult(sr);
+                    }
+                    fsr.setDone();
                 }
             }
         });
@@ -109,5 +114,3 @@ public class SendCompletionAdapter {
         return fsr;
     }
 }
-
-

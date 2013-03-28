@@ -60,6 +60,7 @@
         <module>dynamic-deploy</module>
         <module>noappconfig</module>
         <module>oneappconfig</module>
+        <module>remote-endpoint-timeout</module>
         <module>session</module>
         <module>twoappconfig</module>
     </modules>

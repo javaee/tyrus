@@ -40,6 +40,8 @@
 
 package org.glassfish.tyrus.test.e2e;
 
+import java.util.concurrent.Future;
+
 import org.glassfish.tyrus.websockets.DataFrame;
 import org.glassfish.tyrus.websockets.WebSocket;
 import org.glassfish.tyrus.websockets.WebSocketListener;
@@ -54,20 +56,21 @@ import org.glassfish.grizzly.GrizzlyFuture;
  *
  * @author Martin Matula (martin.matula at oracle.com)
  */
-class MockClientEndpoint implements WebSocket {
+class MockWebSocketClient implements WebSocket {
     private final WebSocketListener listener;
 
-    public MockClientEndpoint(String url, WebSocketListener listener) {
+    public MockWebSocketClient(String url, WebSocketListener listener) {
         this.listener = listener;
     }
 
+    @Override
     public GrizzlyFuture<DataFrame> send(String message) {
         listener.onMessage(this, message);
         return null;
     }
 
     @Override
-    public GrizzlyFuture<DataFrame> send(byte[] bytes) {
+    public Future<DataFrame> send(byte[] data) {
         return null;
     }
 
@@ -82,9 +85,10 @@ class MockClientEndpoint implements WebSocket {
     }
 
     @Override
-    public GrizzlyFuture<DataFrame> stream(boolean b, String s) {
+    public Future<DataFrame> stream(boolean last, String fragment) {
         return null;
     }
+
 
     @Override
     public GrizzlyFuture<DataFrame> stream(boolean b, byte[] bytes, int i, int i1) {
@@ -149,6 +153,9 @@ class MockClientEndpoint implements WebSocket {
     public boolean remove(WebSocketListener webSocketListener) {
         return false;
     }
+
+    @Override
+    public void setWriteTimeout(long timeoutMs) {}
 
     public void connect() {
         listener.onConnect(this);

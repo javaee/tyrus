@@ -299,4 +299,11 @@ public interface WebSocket {
      */
     boolean remove(WebSocketListener listener);
 
+    /**
+     * Sets the timeout for the writing operation.
+     *
+     * @param timeoutMs timeout in milliseconds.
+     */
+    public abstract void setWriteTimeout(long timeoutMs);
+
 }

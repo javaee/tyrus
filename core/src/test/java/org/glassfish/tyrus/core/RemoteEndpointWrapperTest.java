@@ -44,16 +44,24 @@ package org.glassfish.tyrus.core;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Writer;
+import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Set;
+import java.util.concurrent.Future;
 
+import javax.websocket.ClientEndpointConfig;
 import javax.websocket.CloseReason;
+import javax.websocket.DeploymentException;
+import javax.websocket.Endpoint;
+import javax.websocket.Extension;
 import javax.websocket.OnMessage;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
 import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
+import org.glassfish.tyrus.websockets.DataFrame;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -67,14 +75,14 @@ public class RemoteEndpointWrapperTest {
 
     private final byte[] sentBytes = {'a', 'b', 'c'};
     private final byte[] sentBytesComplete = {'a', 'b', 'c', 'a', 'b', 'c'};
-    private final EndpointWrapper ew = new EndpointWrapper(EchoEndpoint.class, null,null, null,null, null, null);
+    private final EndpointWrapper ew = new EndpointWrapper(EchoEndpoint.class, null,null, new TestContainer() ,null, null, null);
 
     @Test
     public void testGetSendStream() throws IOException {
 
         TestRemoteEndpoint tre = new TestRemoteEndpoint();
-        SessionImpl testSession = new SessionImpl(null, null, ew, null, null, true, null, null, Collections.<String, String>emptyMap(), null);
-        RemoteEndpointWrapper.Basic rew = new RemoteEndpointWrapper.Basic(testSession, tre, null);
+        SessionImpl testSession = new SessionImpl(null, tre, ew, null, null, true, null, null, Collections.<String, String>emptyMap(), null);
+        RemoteEndpointWrapper.Basic rew = new RemoteEndpointWrapper.Basic(testSession, tre, ew);
         OutputStream stream = rew.getSendStream();
 
         for (byte b : sentBytes) {
@@ -98,8 +106,8 @@ public class RemoteEndpointWrapperTest {
 
         char[] toSend = sentString.toCharArray();
         TestRemoteEndpoint tre = new TestRemoteEndpoint();
-        SessionImpl testSession = new SessionImpl(null, null, ew, null, null, true, null, null, Collections.<String, String>emptyMap(), null);
-        RemoteEndpointWrapper.Basic rew = new RemoteEndpointWrapper.Basic(testSession, tre, null);
+        SessionImpl testSession = new SessionImpl(null, tre, ew, null, null, true, null, null, Collections.<String, String>emptyMap(), null);
+        RemoteEndpointWrapper.Basic rew = new RemoteEndpointWrapper.Basic(testSession, tre, ew);
         Writer writer = rew.getSendWriter();
 
         writer.write(toSend, 0, 3);
@@ -122,36 +130,38 @@ public class RemoteEndpointWrapperTest {
         StringBuilder builder = new StringBuilder();
 
         @Override
-        public void sendText(String text) throws IOException {
-
+        public Future<DataFrame> sendText(String text) throws IOException {
+            return null;
         }
 
         @Override
-        public void sendBinary(ByteBuffer data) throws IOException {
-
+        public Future<DataFrame> sendBinary(ByteBuffer data) throws IOException {
+            return null;
         }
 
         @Override
-        public void sendText(String fragment, boolean isLast) throws IOException {
+        public Future<DataFrame> sendText(String fragment, boolean isLast) throws IOException {
             builder.append(fragment);
+            return null;
         }
 
         @Override
-        public void sendBinary(ByteBuffer partialByte, boolean isLast) throws IOException {
+        public Future<DataFrame> sendBinary(ByteBuffer partialByte, boolean isLast) throws IOException {
             byte[] bytes = partialByte.array();
             for (byte b : bytes) {
                 bytesToSend.add(b);
             }
+            return null;
         }
 
         @Override
-        public void sendPing(ByteBuffer applicationData) {
-
+        public Future<DataFrame> sendPing(ByteBuffer applicationData) {
+            return null;
         }
 
         @Override
-        public void sendPong(ByteBuffer applicationData) {
-
+        public Future<DataFrame> sendPong(ByteBuffer applicationData) {
+            return null;
         }
 
         public byte[] getBytesAndClearBuffer() {
@@ -175,6 +185,11 @@ public class RemoteEndpointWrapperTest {
         public void close(CloseReason closeReason) {
 
         }
+
+        @Override
+        public void setWriteTimeout(long timeoutMs) {
+
+        }
     }
 
     @ServerEndpoint(value = "/echo")
@@ -183,6 +198,74 @@ public class RemoteEndpointWrapperTest {
         @OnMessage
         public String doThat(String message, Session peer) {
             return message;
+        }
+    }
+
+    private static class TestContainer extends BaseContainer{
+
+        @Override
+        public long getDefaultAsyncSendTimeout() {
+            return 0;
+        }
+
+        @Override
+        public void setAsyncSendTimeout(long l) {
+
+        }
+
+        @Override
+        public Session connectToServer(Object o, URI uri) throws DeploymentException, IOException {
+            return null;
+        }
+
+        @Override
+        public Session connectToServer(Class<?> aClass, URI uri) throws DeploymentException, IOException {
+            return null;
+        }
+
+        @Override
+        public Session connectToServer(Endpoint endpoint, ClientEndpointConfig clientEndpointConfig, URI uri) throws DeploymentException, IOException {
+            return null;
+        }
+
+        @Override
+        public Session connectToServer(Class<? extends Endpoint> aClass, ClientEndpointConfig clientEndpointConfig, URI uri) throws DeploymentException, IOException {
+            return null;
+        }
+
+        @Override
+        public long getDefaultMaxSessionIdleTimeout() {
+            return 0;
+        }
+
+        @Override
+        public void setDefaultMaxSessionIdleTimeout(long l) {
+
+        }
+
+        @Override
+        public int getDefaultMaxBinaryMessageBufferSize() {
+            return 0;
+        }
+
+        @Override
+        public void setDefaultMaxBinaryMessageBufferSize(int i) {
+
+        }
+
+        @Override
+        public int getDefaultMaxTextMessageBufferSize() {
+            return 0;
+        }
+
+        @Override
+        public void setDefaultMaxTextMessageBufferSize(int i) {
+
+        }
+
+        @Override
+        public Set<Extension> getInstalledExtensions() {
+            return null;
         }
     }
 }

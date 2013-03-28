@@ -41,6 +41,7 @@ package org.glassfish.tyrus.spi;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.concurrent.Future;
 
 import javax.websocket.CloseReason;
 
@@ -57,14 +58,14 @@ public abstract class SPIRemoteEndpoint {
      *
      * @param text the message to be sent.
      */
-    public abstract void sendText(String text) throws IOException;
+    public abstract Future<?> sendText(String text) throws IOException;
 
     /**
      * Send a binary message, returning when all of the message has been transmitted.
      *
      * @param data the message to be sent.
      */
-    public abstract void sendBinary(ByteBuffer data) throws IOException;
+    public abstract Future<?> sendBinary(ByteBuffer data) throws IOException;
 
     /**
      * Send a text message in pieces, blocking until all of the message has been transmitted. The runtime
@@ -74,7 +75,7 @@ public abstract class SPIRemoteEndpoint {
      * @param fragment the piece of the message being sent.
      * @param isLast   Whether the fragment being sent is the last piece of the message.
      */
-    public abstract void sendText(String fragment, boolean isLast) throws IOException;
+    public abstract Future<?> sendText(String fragment, boolean isLast) throws IOException;
 
     /**
      * Send a binary message in pieces, blocking until all of the message has been transmitted. The runtime
@@ -84,7 +85,7 @@ public abstract class SPIRemoteEndpoint {
      * @param partialByte the piece of the message being sent.
      * @param isLast      Whether the fragment being sent is the last piece of the message.
      */
-    public abstract void sendBinary(ByteBuffer partialByte, boolean isLast) throws IOException; // or Iterable<byte[]>
+    public abstract Future<?> sendBinary(ByteBuffer partialByte, boolean isLast) throws IOException; // or Iterable<byte[]>
 
     /**
      * Send a Ping message containing the given application data to the remote endpoint. The corresponding Pong message may be picked
@@ -92,7 +93,7 @@ public abstract class SPIRemoteEndpoint {
      *
      * @param applicationData the data to be carried in the ping request.
      */
-    public abstract void sendPing(ByteBuffer applicationData) throws IOException;
+    public abstract Future<?> sendPing(ByteBuffer applicationData) throws IOException;
 
     /**
      * Allows the developer to send an unsolicited Pong message containing the given application
@@ -101,7 +102,7 @@ public abstract class SPIRemoteEndpoint {
      *
      * @param applicationData the application data to be carried in the pong response.
      */
-    public abstract void sendPong(ByteBuffer applicationData) throws IOException;
+    public abstract Future<?> sendPong(ByteBuffer applicationData) throws IOException;
 
     /**
      * Send a Close message.
@@ -110,4 +111,10 @@ public abstract class SPIRemoteEndpoint {
      */
     public abstract void close(CloseReason closeReason);
 
+    /**
+     * Sets the timeout for the writing operation.
+     *
+     * @param timeoutMs timeout in milliseconds.
+     */
+    public abstract void setWriteTimeout(long timeoutMs);
 }

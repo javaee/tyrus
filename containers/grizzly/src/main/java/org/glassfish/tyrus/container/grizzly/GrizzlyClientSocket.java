@@ -44,12 +44,9 @@ import java.net.InetSocketAddress;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -100,7 +97,7 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
 
     private final URI uri;
     private final ProtocolHandler protocolHandler;
-    private final Set<SPIEndpoint> endpoints = Collections.newSetFromMap(new ConcurrentHashMap<SPIEndpoint, Boolean>());
+    private final SPIEndpoint endpoint;
     private TCPNIOTransport transport;
     private final EnumSet<State> connected = EnumSet.range(State.CONNECTED, State.CLOSING);
     private final AtomicReference<State> state = new AtomicReference<State>(State.NEW);
@@ -128,15 +125,20 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
      * @param listener                    listener called when response is received.
      * @param clientSSLEngineConfigurator ssl engine configurator
      */
-    public GrizzlyClientSocket(URI uri, ClientEndpointConfig configuration, long timeoutMs, SPIHandshakeListener listener,
+    public GrizzlyClientSocket(SPIEndpoint endpoint, URI uri, ClientEndpointConfig configuration, long timeoutMs, SPIHandshakeListener listener,
                                SSLEngineConfigurator clientSSLEngineConfigurator) {
+        this.endpoint = endpoint;
         this.uri = uri;
         this.configuration = configuration;
         protocolHandler = WebSocketEngine.DEFAULT_VERSION.createHandler(true);
+        protocolHandler.setContainer(endpoint.getWebSocketContainer());
         remoteEndpoint = new TyrusRemoteEndpoint(this);
         this.timeoutMs = timeoutMs;
         this.listener = listener;
         this.clientSSLEngineConfigurator = clientSSLEngineConfigurator;
+        if (session == null) {
+            session = endpoint.createSessionForRemoteEndpoint(remoteEndpoint, null, null);
+        }
     }
 
     /**
@@ -219,18 +221,6 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
         configuration.getConfigurator().beforeRequest(handshake.getRequest().getHeaders());
     }
 
-    /**
-     * Add new SPI_Endpoint to the socket.
-     *
-     * @param endpoint to be added.
-     */
-    public void addEndpoint(SPIEndpoint endpoint) {
-        endpoints.add(endpoint);
-        if (session == null) {
-            session = endpoint.createSessionForRemoteEndpoint(remoteEndpoint, null, null);
-        }
-    }
-
     @Override
     public Future<DataFrame> send(String s) {
         if (isConnected()) {
@@ -252,13 +242,13 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
     @Override
     public Future<DataFrame> sendPing(byte[] bytes) {
         DataFrame df = new DataFrame(new PingFrameType(), bytes);
-        return this.protocolHandler.send(df);
+        return this.protocolHandler.send(df, false);
     }
 
     @Override
     public Future<DataFrame> sendPong(byte[] bytes) {
         DataFrame df = new DataFrame(new PongFrameType(), bytes);
-        return this.protocolHandler.send(df);
+        return this.protocolHandler.send(df, false);
     }
 
     @Override
@@ -314,47 +304,32 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
     @Override
     public void onConnect() {
         state.set(State.CONNECTED);
-        for (SPIEndpoint endpoint : endpoints) {
-            endpoint.onConnect(remoteEndpoint, null, responseExtensions);
-        }
-
+        endpoint.onConnect(remoteEndpoint, null, responseExtensions);
         onConnectLatch.countDown();
     }
 
     @Override
     public void onMessage(String message) {
         awaitOnConnect();
-
-        for (SPIEndpoint endpoint : endpoints) {
-            endpoint.onMessage(remoteEndpoint, message);
-        }
+        endpoint.onMessage(remoteEndpoint, message);
     }
 
     @Override
     public void onMessage(byte[] bytes) {
         awaitOnConnect();
-
-        for (SPIEndpoint endpoint : endpoints) {
-            endpoint.onMessage(remoteEndpoint, ByteBuffer.wrap(bytes));
-        }
+        endpoint.onMessage(remoteEndpoint, ByteBuffer.wrap(bytes));
     }
 
     @Override
     public void onFragment(boolean b, String s) {
         awaitOnConnect();
-
-        for (SPIEndpoint endpoint : endpoints) {
-            endpoint.onPartialMessage(remoteEndpoint, s, b);
-        }
+        endpoint.onPartialMessage(remoteEndpoint, s, b);
     }
 
     @Override
     public void onFragment(boolean bool, byte[] bytes) {
         awaitOnConnect();
-
-        for (SPIEndpoint endpoint : endpoints) {
-            endpoint.onPartialMessage(remoteEndpoint, ByteBuffer.wrap(bytes), bool);
-        }
+        endpoint.onPartialMessage(remoteEndpoint, ByteBuffer.wrap(bytes), bool);
     }
 
     @Override
@@ -371,32 +346,24 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
             closeTransport();
         }
 
-        for (SPIEndpoint endpoint : endpoints) {
-            CloseReason closeReason = null;
+        CloseReason closeReason = null;
 
-            if (dataFrame != null) {
-                closeReason = new CloseReason(CloseReason.CloseCodes.getCloseCode(dataFrame.getCode()), dataFrame.getReason());
-            }
-            endpoint.onClose(remoteEndpoint, closeReason);
+        if (dataFrame != null) {
+            closeReason = new CloseReason(CloseReason.CloseCodes.getCloseCode(dataFrame.getCode()), dataFrame.getReason());
         }
+        endpoint.onClose(remoteEndpoint, closeReason);
     }
 
     @Override
     public void onPing(DataFrame dataFrame) {
         awaitOnConnect();
-
-        for (SPIEndpoint endpoint : endpoints) {
-            endpoint.onPing(remoteEndpoint, ByteBuffer.wrap(dataFrame.getBytes()));
-        }
+        endpoint.onPing(remoteEndpoint, ByteBuffer.wrap(dataFrame.getBytes()));
     }
 
     @Override
     public void onPong(DataFrame dataFrame) {
         awaitOnConnect();
-
-        for (SPIEndpoint endpoint : endpoints) {
-            endpoint.onPong(remoteEndpoint, ByteBuffer.wrap(dataFrame.getBytes()));
-        }
+        endpoint.onPong(remoteEndpoint, ByteBuffer.wrap(dataFrame.getBytes()));
     }
 
     @Override
@@ -407,6 +374,11 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
     @Override
     public boolean remove(WebSocketListener webSocketListener) {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void setWriteTimeout(long timeoutMs) {
+        protocolHandler.setWriteTimeout(timeoutMs);
     }
 
     // return boolean, check return value

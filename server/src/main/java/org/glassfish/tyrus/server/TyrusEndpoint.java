@@ -136,6 +136,7 @@ public class TyrusEndpoint extends WebSocketApplication implements SPIRegistered
 
     @Override
     public WebSocket createSocket(final ProtocolHandler handler, final WebSocketRequest requestPacket, final WebSocketListener... listeners) {
+        handler.setContainer(endpoint.getWebSocketContainer());
         return new DefaultWebSocket(handler, requestPacket, listeners);
     }
 

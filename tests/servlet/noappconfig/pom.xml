@@ -52,7 +52,7 @@
     <packaging>war</packaging>
     <artifactId>tyrus-tests-servlet-noappconfig</artifactId>
 
-    <name>Tyrus Servlet Integration Test (no app config)</name>
+    <name>Tyrus Servlet No App Config</name>
 
     <dependencies>
         <dependency>

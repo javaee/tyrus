@@ -45,7 +45,13 @@ import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CoderResult;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
+import javax.websocket.WebSocketContainer;
 
 import org.glassfish.tyrus.websockets.draft06.ClosingFrame;
 import org.glassfish.tyrus.websockets.frametypes.BinaryFrameType;
@@ -58,6 +64,8 @@ public abstract class ProtocolHandler {
     private WebSocket webSocket;
     private byte outFragmentedType;
     private ByteBuffer remainder;
+    private long writeTimeoutMs = -1;
+    private WebSocketContainer container;
 
     protected final boolean maskData;
     protected Connection connection;
@@ -74,13 +82,17 @@ public abstract class ProtocolHandler {
         return handshake;
     }
 
+    public final Future<DataFrame> send(DataFrame frame, boolean useTimeout) {
+        return send(frame, null, useTimeout);
+    }
+
     public final Future<DataFrame> send(DataFrame frame) {
-        return send(frame, null);
+        return send(frame, null, true);
     }
 
     public Future<DataFrame> send(DataFrame frame,
-                                  Connection.CompletionHandler<DataFrame> completionHandler) {
-        return write(frame, completionHandler);
+                                  Connection.CompletionHandler<DataFrame> completionHandler, Boolean useTimeout) {
+        return write(frame, completionHandler, useTimeout);
     }
 
     public Connection getConnection() {
@@ -104,19 +116,6 @@ public abstract class ProtocolHandler {
     }
 
     public abstract byte[] frame(DataFrame frame);
-/*
-    public void readFrame() {
-        while (connection.ready()) {
-            try {
-                unframe(buffer, parsingFrame).respond(getWebSocket());
-            } catch (FramingException fe) {
-                fe.printStackTrace();
-                System.out.println("connection = " + connection);
-                getWebSocket().close();
-            }
-        }
-    }
-*/
 
     /**
      * Create {@link HandShake} on server side.
@@ -169,18 +168,50 @@ public abstract class ProtocolHandler {
                             webSocket.onClose(closingFrame);
                         }
                     }
-                });
+                }, false);
     }
 
     @SuppressWarnings({"unchecked"})
     private Future<DataFrame> write(final DataFrame frame,
-                                    final Connection.CompletionHandler<DataFrame> completionHandler) {
+                                    final Connection.CompletionHandler<DataFrame> completionHandler, boolean useTimeout) {
         final Connection localConnection = connection;
+        final WriteFuture<DataFrame> future = new WriteFuture<DataFrame>();
+
         if (localConnection == null) {
             throw new IllegalStateException("Connection is null");
         }
 
-        return localConnection.write(frame, completionHandler);
+
+        if (writeTimeoutMs > 0 && container instanceof ExecutorServiceProvider) {
+            ExecutorService executor = ((ExecutorServiceProvider) container).getExecutorService();
+            try {
+                executor.submit(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        Future<DataFrame> result = localConnection.write(frame, completionHandler);
+                        try {
+                            result.get();
+                        } catch (InterruptedException e) {
+                            future.setFailure(e);
+                        } catch (ExecutionException e) {
+                            future.setFailure(e);
+                        }
+                        future.setResult(frame);
+                    }
+                }).get(writeTimeoutMs, TimeUnit.MILLISECONDS);
+            } catch (InterruptedException e) {
+                future.setFailure(e);
+            } catch (ExecutionException e) {
+                future.setFailure(e);
+            } catch (TimeoutException e) {
+                future.setFailure(e);
+            }
+
+            return future;
+        } else {
+            return localConnection.write(frame, completionHandler);
+        }
     }
 
     public DataFrame unframe(ByteBuffer buffer) {
@@ -314,4 +345,42 @@ public abstract class ProtocolHandler {
             return ByteBuffer.wrap(b);
         }
     }
+
+    /**
+     * Sets the timeout for the writing operation.
+     *
+     * @param timeoutMs timeout in milliseconds.
+     */
+    public void setWriteTimeout(long timeoutMs) {
+        this.writeTimeoutMs = timeoutMs;
+    }
+
+    /**
+     * Sets the container.
+     *
+     * @param container container.
+     */
+    public void setContainer(WebSocketContainer container) {
+        this.container = container;
+    }
+
+//    public static class WriteConnectionHandler<DataFrame> extends Connection.CompletionHandler<DataFrame> {
+//
+//        WriteFuture<DataFrame> future;
+//
+//        public WriteConnectionHandler(WriteFuture<DataFrame> future) {
+//            this.future = future;
+//        }
+//
+//        @Override
+//        public void completed(DataFrame result) {
+//            future.setResult(result);
+//        }
+//
+//        @Override
+//        public void failed(Throwable throwable) {
+//            future.setFailure(throwable);
+//        }
+//    }
+
 }

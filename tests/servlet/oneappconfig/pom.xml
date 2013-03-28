@@ -52,7 +52,7 @@
     <packaging>war</packaging>
     <artifactId>tyrus-tests-servlet-oneappconfig</artifactId>
 
-    <name>Tyrus Servlet Integration Test (one app config)</name>
+    <name>Tyrus Servlet One App Config</name>
 
     <dependencies>
         <dependency>

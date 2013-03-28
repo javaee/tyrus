@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -37,76 +37,48 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.core;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+package org.glassfish.tyrus.tests.servlet.remote;
+
+import java.nio.ByteBuffer;
+
+import javax.websocket.OnMessage;
+import javax.websocket.SendHandler;
+import javax.websocket.SendResult;
+import javax.websocket.Session;
+import javax.websocket.server.ServerEndpoint;
 
 /**
- * Implementation of Future for SendResults.
- * Currently this does not support cancelling the operations but it may in the future.
- *
- * @author Danny Coward (danny.coward at oracle.com)
- * @author Martin Matula (martin.matula at oracle.com)
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class FutureSendResult implements Future<Void> {
+@ServerEndpoint(value = "/byhandler")
+public class TimeoutEndpointResultByHandler {
 
-    private final CountDownLatch latch = new CountDownLatch(1);
-    private Throwable throwable = null;
+    private byte[] longMessage = new byte[100000000];
+    public static boolean timeoutRaised = false;
 
-    @Override
-    public boolean cancel(boolean mayInterruptIfRunning) {
-        return false;
-    }
+    @OnMessage
+    public void onMessage(String s, Session session) {
+        MySendHandler handler = new MySendHandler();
 
-    @Override
-    public boolean isCancelled() {
-        return false;
-    }
-
-    @Override
-    public boolean isDone() {
-        return (latch.getCount() == 0);
-    }
-
-    @Override
-    public Void get() throws InterruptedException, ExecutionException {
-        latch.await();
-
-        if (throwable != null) {
-            throw new ExecutionException(throwable);
+        for (int i : longMessage) {
+            longMessage[i] = 0;
         }
 
-        return null;
+        session.getAsyncRemote().setSendTimeout(1);
+        System.out.println("Message sent: ");
+        session.getAsyncRemote().sendBinary(ByteBuffer.wrap(longMessage), handler);
     }
 
-    @Override
-    public Void get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-        return get();
-    }
 
-    /**
-     * Sets that the task is done.
-     */
-    public void setDone() {
-        if (latch.getCount() == 1) {
-            latch.countDown();
-        }
-    }
+    public static class MySendHandler implements SendHandler {
 
-    /**
-     * Task was not finished.
-     *
-     * @param thr throwable.
-     */
-    public void setFailure(Throwable thr) {
-        if (latch.getCount() == 1) {
-            this.throwable = thr;
-            latch.countDown();
+        @Override
+        public void onResult(SendResult sendResult) {
+            System.out.println("Result: "+sendResult.isOK());
+            if(!sendResult.isOK()){
+                timeoutRaised = true;
+            }
         }
     }
 }

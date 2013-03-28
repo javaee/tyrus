@@ -46,6 +46,7 @@ import java.util.concurrent.Future;
 import org.glassfish.tyrus.websockets.Connection;
 import org.glassfish.tyrus.websockets.DataFrame;
 import org.glassfish.tyrus.websockets.WebSocketResponse;
+import org.glassfish.tyrus.websockets.WriteFuture;
 
 import org.glassfish.grizzly.EmptyCompletionHandler;
 import org.glassfish.grizzly.filterchain.FilterChainContext;
@@ -63,7 +64,6 @@ class ConnectionImpl extends Connection {
     private final HttpContent httpContent;
     private final org.glassfish.grizzly.Connection connection;
 
-
     public ConnectionImpl(final FilterChainContext ctx, final HttpContent httpContent) {
         this.ctx = ctx;
         this.connection = ctx.getConnection();
@@ -76,13 +76,10 @@ class ConnectionImpl extends Connection {
         this.httpContent = null;
     }
 
-
     @Override
     @SuppressWarnings({"unchecked"})
     public Future<DataFrame> write(final DataFrame frame, final CompletionHandler completionHandler) {
-
-        final WebSocketFilter.ResultFuture<DataFrame> localFuture = new WebSocketFilter.ResultFuture<DataFrame>();
-
+        final WriteFuture<DataFrame> future = new WriteFuture<DataFrame>();
         connection.write(frame, new EmptyCompletionHandler() {
 
             @Override
@@ -91,7 +88,7 @@ class ConnectionImpl extends Connection {
                     completionHandler.completed(frame);
                 }
 
-                localFuture.result(frame);
+                future.setResult(frame);
             }
 
             @Override
@@ -100,12 +97,11 @@ class ConnectionImpl extends Connection {
                     completionHandler.failed(throwable);
                 }
 
-                localFuture.failure(throwable);
+                future.setFailure(throwable);
             }
-        }
-        );
+        });
 
-        return localFuture;
+        return future;
     }
 
     @Override

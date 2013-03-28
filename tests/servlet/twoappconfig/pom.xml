@@ -52,7 +52,7 @@
     <packaging>war</packaging>
     <groupId>org.glassfish.tyrus.tests.servlet.twoappconfig</groupId>
     <artifactId>tyrus-tests-servlet-twoappconfig</artifactId>
-    <name>Tyrus Servlet Integration Test (two app config)</name>
+    <name>Tyrus Servlet Two App Config</name>
 
     <dependencies>
         <dependency>

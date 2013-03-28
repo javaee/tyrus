@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -37,7 +37,8 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.core;
+
+package org.glassfish.tyrus.websockets;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -46,17 +47,15 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 /**
- * Implementation of Future for SendResults.
- * Currently this does not support cancelling the operations but it may in the future.
+ * Represents the result of writing a {@link DataFrame}.
  *
- * @author Danny Coward (danny.coward at oracle.com)
- * @author Martin Matula (martin.matula at oracle.com)
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class FutureSendResult implements Future<Void> {
+public class WriteFuture<T> implements Future<T> {
 
-    private final CountDownLatch latch = new CountDownLatch(1);
+    private T result;
     private Throwable throwable = null;
+    private CountDownLatch latch = new CountDownLatch(1);
 
     @Override
     public boolean cancel(boolean mayInterruptIfRunning) {
@@ -74,38 +73,41 @@ public class FutureSendResult implements Future<Void> {
     }
 
     @Override
-    public Void get() throws InterruptedException, ExecutionException {
+    public T get() throws InterruptedException, ExecutionException {
         latch.await();
 
-        if (throwable != null) {
+        if(throwable != null){
             throw new ExecutionException(throwable);
         }
 
-        return null;
+        return result;
     }
 
     @Override
-    public Void get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+    public T get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
         return get();
     }
 
     /**
-     * Sets that the task is done.
+     * Sets the result of the message writing process.
+     *
+     * @param result result
      */
-    public void setDone() {
+    public void setResult(T result) {
         if (latch.getCount() == 1) {
             latch.countDown();
+            this.result = result;
         }
     }
 
     /**
-     * Task was not finished.
+     * Sets the failure result of message writing process.
      *
-     * @param thr throwable.
+     * @param throwable throwable.
      */
-    public void setFailure(Throwable thr) {
+    public void setFailure(Throwable throwable) {
         if (latch.getCount() == 1) {
-            this.throwable = thr;
+            this.throwable = throwable;
             latch.countDown();
         }
     }

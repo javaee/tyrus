@@ -42,10 +42,7 @@ package org.glassfish.tyrus.servlet;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
@@ -54,6 +51,7 @@ import org.glassfish.tyrus.websockets.Connection;
 import org.glassfish.tyrus.websockets.DataFrame;
 import org.glassfish.tyrus.websockets.WebSocketEngine;
 import org.glassfish.tyrus.websockets.WebSocketResponse;
+import org.glassfish.tyrus.websockets.WriteFuture;
 
 /**
  * {@link Connection} implementation used in Servlet integration.
@@ -81,6 +79,7 @@ class ConnectionImpl extends Connection {
     @Override
     public Future<DataFrame> write(final DataFrame frame, CompletionHandler<DataFrame> completionHandler) {
         final ServletOutputStream outputStream = tyrusHttpUpgradeHandler.getOutputStream();
+        final WriteFuture<DataFrame> future = new WriteFuture<DataFrame>();
 
         try {
             final byte[] bytes = WebSocketEngine.getEngine().getWebSocketHolder(this).handler.frame(frame);
@@ -92,38 +91,16 @@ class ConnectionImpl extends Connection {
                 completionHandler.completed(frame);
             }
 
+            future.setResult(frame);
         } catch (IOException e) {
             if (completionHandler != null) {
                 completionHandler.failed(e);
             }
+
+            future.setFailure(e);
         }
 
-        return new Future<DataFrame>() {
-            @Override
-            public boolean cancel(boolean mayInterruptIfRunning) {
-                return false;
-            }
-
-            @Override
-            public boolean isCancelled() {
-                return false;
-            }
-
-            @Override
-            public boolean isDone() {
-                return true;
-            }
-
-            @Override
-            public DataFrame get() throws InterruptedException, ExecutionException {
-                return frame;
-            }
-
-            @Override
-            public DataFrame get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-                return frame;
-            }
-        };
+        return future;
     }
 
     @Override

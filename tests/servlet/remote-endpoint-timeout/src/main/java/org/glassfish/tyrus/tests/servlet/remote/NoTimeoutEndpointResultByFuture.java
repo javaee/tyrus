@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -37,76 +37,38 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.core;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
+package org.glassfish.tyrus.tests.servlet.remote;
+
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+
+import javax.websocket.OnError;
+import javax.websocket.OnMessage;
+import javax.websocket.Session;
+import javax.websocket.server.ServerEndpoint;
 
 /**
- * Implementation of Future for SendResults.
- * Currently this does not support cancelling the operations but it may in the future.
- *
- * @author Danny Coward (danny.coward at oracle.com)
- * @author Martin Matula (martin.matula at oracle.com)
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class FutureSendResult implements Future<Void> {
+@ServerEndpoint(value = "/nobyfuture")
+public class NoTimeoutEndpointResultByFuture {
 
-    private final CountDownLatch latch = new CountDownLatch(1);
-    private Throwable throwable = null;
+    public static boolean timeoutRaised = false;
 
-    @Override
-    public boolean cancel(boolean mayInterruptIfRunning) {
-        return false;
-    }
-
-    @Override
-    public boolean isCancelled() {
-        return false;
-    }
-
-    @Override
-    public boolean isDone() {
-        return (latch.getCount() == 0);
-    }
-
-    @Override
-    public Void get() throws InterruptedException, ExecutionException {
-        latch.await();
-
-        if (throwable != null) {
-            throw new ExecutionException(throwable);
-        }
-
-        return null;
-    }
-
-    @Override
-    public Void get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-        return get();
-    }
-
-    /**
-     * Sets that the task is done.
-     */
-    public void setDone() {
-        if (latch.getCount() == 1) {
-            latch.countDown();
+    @OnMessage
+    public void onMessage(String s, Session session) {
+        session.getAsyncRemote().setSendTimeout(1000000);
+        Future<Void> future = session.getAsyncRemote().sendText(s);
+        try{
+            future.get();
+        } catch(Exception e){
+            e.printStackTrace();
+            timeoutRaised = true;
         }
     }
 
-    /**
-     * Task was not finished.
-     *
-     * @param thr throwable.
-     */
-    public void setFailure(Throwable thr) {
-        if (latch.getCount() == 1) {
-            this.throwable = thr;
-            latch.countDown();
-        }
+    @OnError
+    public void error(Session s, Throwable t){
+        t.printStackTrace();
     }
 }

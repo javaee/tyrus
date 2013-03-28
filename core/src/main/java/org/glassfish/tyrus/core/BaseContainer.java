@@ -46,6 +46,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.websocket.WebSocketContainer;
 
+import org.glassfish.tyrus.websockets.ExecutorServiceProvider;
+
 /**
  * Base WebSocket container.
  * <p/>
@@ -53,14 +55,15 @@ import javax.websocket.WebSocketContainer;
  *
  * @author Jitendra Kotamraju
  */
-public abstract class BaseContainer implements WebSocketContainer {
+public abstract class BaseContainer extends ExecutorServiceProvider implements WebSocketContainer{
     private final ExecutorService executorService;
 
     public BaseContainer() {
         this.executorService = newExecutorService();
     }
 
-    protected ExecutorService getExecutorService() {
+    @Override
+    public ExecutorService getExecutorService() {
         return executorService;
     }
 

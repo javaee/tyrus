@@ -126,9 +126,8 @@ public abstract class RemoteEndpointWrapper implements RemoteEndpoint {
     static class Async extends RemoteEndpointWrapper implements RemoteEndpoint.Async {
         private long sendTimeout;
 
-        Async(SessionImpl session, SPIRemoteEndpoint remoteEndpoint, EndpointWrapper endpointWrapper, long sendTimeout) {
+        Async(SessionImpl session, SPIRemoteEndpoint remoteEndpoint, EndpointWrapper endpointWrapper) {
             super(session, remoteEndpoint, endpointWrapper);
-            this.sendTimeout = sendTimeout;
         }
 
         @Override
@@ -174,6 +173,7 @@ public abstract class RemoteEndpointWrapper implements RemoteEndpoint {
         @Override
         public void setSendTimeout(long timeoutmillis) {
             sendTimeout = timeoutmillis;
+            remoteEndpoint.setWriteTimeout(timeoutmillis);
         }
 
         @Override
@@ -183,36 +183,38 @@ public abstract class RemoteEndpointWrapper implements RemoteEndpoint {
         }
     }
 
-    protected void sendSyncText(String data) throws IOException {
-        remoteEndpoint.sendText(data);
+    protected Future<?> sendSyncText(String data) throws IOException {
+        return remoteEndpoint.sendText(data);
     }
 
-    protected void sendSyncBinary(ByteBuffer buf) throws IOException {
-        remoteEndpoint.sendBinary(buf);
+    protected Future<?> sendSyncBinary(ByteBuffer buf) throws IOException {
+        return remoteEndpoint.sendBinary(buf);
     }
 
     @SuppressWarnings("unchecked")
-    protected void sendSyncObject(Object o) throws IOException, EncodeException {
+    protected Future<?> sendSyncObject(Object o) throws IOException, EncodeException {
         if (o instanceof String) {
-            remoteEndpoint.sendText((String) o);
+            return remoteEndpoint.sendText((String) o);
         } else if (isPrimitiveData(o)) {
-            remoteEndpoint.sendText(o.toString());
+            return remoteEndpoint.sendText(o.toString());
         } else {
             Object toSend = endpointWrapper.doEncode(session, o);
             if (toSend instanceof String) {
-                remoteEndpoint.sendText((String) toSend);
+                return remoteEndpoint.sendText((String) toSend);
             } else if (toSend instanceof ByteBuffer) {
-                remoteEndpoint.sendBinary((ByteBuffer) toSend);
+                return remoteEndpoint.sendBinary((ByteBuffer) toSend);
             } else if (toSend instanceof StringWriter) {
                 StringWriter writer = (StringWriter) toSend;
                 StringBuffer sb = writer.getBuffer();
-                remoteEndpoint.sendText(sb.toString());
+                return remoteEndpoint.sendText(sb.toString());
             } else if (toSend instanceof ByteArrayOutputStream) {
                 ByteArrayOutputStream baos = (ByteArrayOutputStream) toSend;
                 ByteBuffer buffer = ByteBuffer.wrap(baos.toByteArray());
-                remoteEndpoint.sendBinary(buffer);
+                return remoteEndpoint.sendBinary(buffer);
             }
         }
+
+        return null;
     }
 
     protected boolean isPrimitiveData(Object data) {

@@ -47,6 +47,7 @@ import javax.websocket.CloseReason;
 import javax.websocket.EndpointConfig;
 import javax.websocket.Extension;
 import javax.websocket.Session;
+import javax.websocket.WebSocketContainer;
 
 /**
  * The WebSocket SDK implements SPIEndpoint with its representation of
@@ -203,4 +204,6 @@ public abstract class SPIEndpoint {
      * @return endpoint absolute path.
      */
     public abstract String getEndpointPath();
+
+    public abstract WebSocketContainer getWebSocketContainer();
 }

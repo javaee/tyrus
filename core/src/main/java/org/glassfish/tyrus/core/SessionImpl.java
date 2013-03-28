@@ -150,7 +150,7 @@ public class SessionImpl implements Session {
         this.queryString = queryString;
         this.pathParameters = pathParameters == null ? Collections.<String, String>emptyMap() : Collections.unmodifiableMap(pathParameters);
         this.basicRemote = new RemoteEndpointWrapper.Basic(this, remoteEndpoint, endpointWrapper);
-        this.asyncRemote = new RemoteEndpointWrapper.Async(this, remoteEndpoint, endpointWrapper, 0);
+        this.asyncRemote = new RemoteEndpointWrapper.Async(this, remoteEndpoint, endpointWrapper);
         this.handlerManager = MessageHandlerManager.fromDecoderInstances(endpointWrapper.getDecoders());
         this.userPrincipal = principal;
 

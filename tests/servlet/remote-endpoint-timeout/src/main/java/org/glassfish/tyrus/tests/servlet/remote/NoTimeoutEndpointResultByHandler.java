@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -37,76 +37,47 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.core;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
+package org.glassfish.tyrus.tests.servlet.remote;
+
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import javax.websocket.OnError;
+import javax.websocket.OnMessage;
+import javax.websocket.SendHandler;
+import javax.websocket.SendResult;
+import javax.websocket.Session;
+import javax.websocket.server.ServerEndpoint;
 
 /**
- * Implementation of Future for SendResults.
- * Currently this does not support cancelling the operations but it may in the future.
- *
- * @author Danny Coward (danny.coward at oracle.com)
- * @author Martin Matula (martin.matula at oracle.com)
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class FutureSendResult implements Future<Void> {
+@ServerEndpoint(value = "/nobyhandler")
+public class NoTimeoutEndpointResultByHandler {
 
-    private final CountDownLatch latch = new CountDownLatch(1);
-    private Throwable throwable = null;
+    public static boolean timeoutRaised = false;
 
-    @Override
-    public boolean cancel(boolean mayInterruptIfRunning) {
-        return false;
+    @OnMessage
+    public void onMessage(String s, Session session) {
+        MySendHandler handler = new MySendHandler();
+        session.getAsyncRemote().setSendTimeout(1000);
+        session.getAsyncRemote().sendText(s, handler);
     }
 
-    @Override
-    public boolean isCancelled() {
-        return false;
+    @OnError
+    public void error(Session s, Throwable t){
+        t.printStackTrace();
     }
 
-    @Override
-    public boolean isDone() {
-        return (latch.getCount() == 0);
-    }
+    public static class MySendHandler implements SendHandler {
 
-    @Override
-    public Void get() throws InterruptedException, ExecutionException {
-        latch.await();
-
-        if (throwable != null) {
-            throw new ExecutionException(throwable);
-        }
-
-        return null;
-    }
-
-    @Override
-    public Void get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-        return get();
-    }
-
-    /**
-     * Sets that the task is done.
-     */
-    public void setDone() {
-        if (latch.getCount() == 1) {
-            latch.countDown();
-        }
-    }
-
-    /**
-     * Task was not finished.
-     *
-     * @param thr throwable.
-     */
-    public void setFailure(Throwable thr) {
-        if (latch.getCount() == 1) {
-            this.throwable = thr;
-            latch.countDown();
+        @Override
+        public void onResult(SendResult sendResult) {
+            if(!sendResult.isOK()){
+                Logger.getLogger(NoTimeoutEndpointResultByHandler.class.getName()).log(Level.SEVERE, "Result is not OK.");
+                timeoutRaised = true;
+            }
         }
     }
 }

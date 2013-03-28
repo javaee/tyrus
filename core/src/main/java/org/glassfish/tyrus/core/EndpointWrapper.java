@@ -72,6 +72,7 @@ import javax.websocket.EndpointConfig;
 import javax.websocket.Extension;
 import javax.websocket.PongMessage;
 import javax.websocket.Session;
+import javax.websocket.WebSocketContainer;
 import javax.websocket.server.ServerEndpointConfig;
 
 import org.glassfish.tyrus.spi.SPIEndpoint;
@@ -248,6 +249,11 @@ public class EndpointWrapper extends SPIEndpoint {
         }
 
         return null;
+    }
+
+    @Override
+    public WebSocketContainer getWebSocketContainer() {
+        return container;
     }
 
     private <T> T getCoderInstance(Session session, CoderWrapper<T> wrapper) {

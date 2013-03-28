@@ -42,10 +42,12 @@ package org.glassfish.tyrus.server;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
 
 import javax.websocket.CloseReason;
 
 import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
+import org.glassfish.tyrus.websockets.DataFrame;
 import org.glassfish.tyrus.websockets.WebSocket;
 
 /**
@@ -95,38 +97,43 @@ public class TyrusRemoteEndpoint extends SPIRemoteEndpoint {
     }
 
     @Override
-    public void sendText(String text) throws IOException {
-        this.socket.send(text);
+    public Future<DataFrame> sendText(String text) throws IOException {
+        return this.socket.send(text);
     }
 
     @Override
-    public void sendBinary(ByteBuffer byteBuffer) throws IOException {
-        this.socket.send(byteBuffer.array());
+    public Future<DataFrame> sendBinary(ByteBuffer byteBuffer) throws IOException {
+        return this.socket.send(byteBuffer.array());
     }
 
     @Override
-    public void sendText(String fragment, boolean isLast) throws IOException {
-        this.socket.stream(isLast, fragment);
+    public Future<DataFrame> sendText(String fragment, boolean isLast) throws IOException {
+        return this.socket.stream(isLast, fragment);
     }
 
     @Override
-    public void sendBinary(ByteBuffer byteBuffer, boolean b) throws IOException {
+    public Future<DataFrame> sendBinary(ByteBuffer byteBuffer, boolean b) throws IOException {
         byte[] bytes = byteBuffer.array();
-        this.socket.stream(b, bytes, 0, bytes.length);
+        return this.socket.stream(b, bytes, 0, bytes.length);
     }
 
     @Override
-    public void sendPing(ByteBuffer byteBuffer) {
-        this.socket.sendPing(byteBuffer.array());
+    public Future<DataFrame> sendPing(ByteBuffer byteBuffer) {
+        return this.socket.sendPing(byteBuffer.array());
     }
 
     @Override
-    public void sendPong(ByteBuffer byteBuffer) {
-        this.socket.sendPong(byteBuffer.array());
+    public Future<DataFrame> sendPong(ByteBuffer byteBuffer) {
+        return this.socket.sendPong(byteBuffer.array());
     }
 
     @Override
     public void close(CloseReason closeReason) {
         this.socket.close(closeReason.getCloseCode().getCode(), closeReason.getReasonPhrase());
+    }
+
+    @Override
+    public void setWriteTimeout(long timeoutMs) {
+        socket.setWriteTimeout(timeoutMs);
     }
 }

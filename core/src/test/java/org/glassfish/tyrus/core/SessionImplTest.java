@@ -39,15 +39,21 @@
  */
 package org.glassfish.tyrus.core;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.nio.ByteBuffer;
+import java.util.concurrent.Future;
 
+import javax.websocket.CloseReason;
 import javax.websocket.MessageHandler;
 import javax.websocket.OnMessage;
 import javax.websocket.PongMessage;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
+
+import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
+import org.glassfish.tyrus.websockets.DataFrame;
 
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -435,6 +441,51 @@ public class SessionImplTest {
     }
 
     private SessionImpl createSession(EndpointWrapper endpointWrapper) {
-        return new SessionImpl(null, null, endpointWrapper, null, null, false, null, null, null, null);
+        return new SessionImpl(null, new TestRemoteEndpoint(), endpointWrapper, null, null, false, null, null, null, null);
     }
+
+    private static class TestRemoteEndpoint extends SPIRemoteEndpoint{
+
+
+        @Override
+        public Future<?> sendText(String text) throws IOException {
+            return null;
+        }
+
+        @Override
+        public Future<?> sendBinary(ByteBuffer data) throws IOException {
+            return null;
+        }
+
+        @Override
+        public Future<?> sendText(String fragment, boolean isLast) throws IOException {
+            return null;
+        }
+
+        @Override
+        public Future<?> sendBinary(ByteBuffer partialByte, boolean isLast) throws IOException {
+            return null;
+        }
+
+        @Override
+        public Future<DataFrame> sendPing(ByteBuffer applicationData) throws IOException {
+            return null;
+        }
+
+        @Override
+        public Future<DataFrame> sendPong(ByteBuffer applicationData) throws IOException {
+            return null;
+        }
+
+        @Override
+        public void close(CloseReason closeReason) {
+
+        }
+
+        @Override
+        public void setWriteTimeout(long timeoutMs) {
+
+        }
+    }
+
 }

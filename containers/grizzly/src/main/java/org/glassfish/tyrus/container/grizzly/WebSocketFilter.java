@@ -43,10 +43,7 @@ package org.glassfish.tyrus.container.grizzly;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -398,44 +395,6 @@ class WebSocketFilter extends BaseFilter {
         if (filterChain.indexOfType(IdleTimeoutFilter.class) >= 0) {
             IdleTimeoutFilter.setCustomTimeout(ctx.getConnection(),
                     wsTimeoutMS, TimeUnit.MILLISECONDS);
-        }
-    }
-
-    public static class ResultFuture<T> implements Future<T> {
-
-        private T result;
-
-        @Override
-        public boolean cancel(boolean mayInterruptIfRunning) {
-            return false;
-        }
-
-        @Override
-        public boolean isCancelled() {
-            return false;
-        }
-
-        @Override
-        public boolean isDone() {
-            return result != null;
-        }
-
-        @Override
-        public T get() throws InterruptedException, ExecutionException {
-            return result;
-        }
-
-        @Override
-        public T get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-            return get();
-        }
-
-        public void result(T result) {
-            this.result = result;
-        }
-
-        public void failure(Throwable t) {
-            // TODO XXX FIXME
         }
     }
 

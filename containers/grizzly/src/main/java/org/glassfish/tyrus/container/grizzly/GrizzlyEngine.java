@@ -65,6 +65,8 @@ public class GrizzlyEngine implements TyrusContainer {
 
     public static final String SSL_ENGINE_CONFIGURATOR = "org.glassfish.tyrus.client.sslEngineConfigurator";
 
+    //The same value Grizzly is using for socket timeout.
+    private static final long CLIENT_SOCKET_TIMEOUT = 30000;
     private final WebSocketEngine engine;
 
     /**
@@ -115,9 +117,8 @@ public class GrizzlyEngine implements TyrusContainer {
             return null;
         }
 
-        GrizzlyClientSocket clientSocket = new GrizzlyClientSocket(uri, cec, 1000, listener,
+        GrizzlyClientSocket clientSocket = new GrizzlyClientSocket(endpoint, uri, cec, CLIENT_SOCKET_TIMEOUT, listener,
                 properties == null ? null : (SSLEngineConfigurator) properties.get(SSL_ENGINE_CONFIGURATOR));
-        clientSocket.addEndpoint(endpoint);
         clientSocket.connect();
         return clientSocket;
     }
