@@ -42,6 +42,7 @@ package org.glassfish.tyrus.tests.qa.lifecycle.handlers.deployment;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.logging.Level;
+
 import javax.websocket.ClientEndpoint;
 import javax.websocket.CloseReason;
 import javax.websocket.EndpointConfig;
@@ -51,17 +52,17 @@ import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
+
 import org.glassfish.tyrus.tests.qa.lifecycle.AnnotatedEndpoint;
 import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleDeployment;
 import org.glassfish.tyrus.tests.qa.lifecycle.handlers.ByteSessionImpl;
 import org.glassfish.tyrus.tests.qa.tools.SessionController;
 
 /**
- *
  * @author mikc
  */
 public class ServerOnMessageDuplication {
-     @ServerEndpoint(value = LifeCycleDeployment.LIFECYCLE_ENDPOINT_PATH)
+    @ServerEndpoint(value = LifeCycleDeployment.LIFECYCLE_ENDPOINT_PATH)
     static public class Server extends AnnotatedEndpoint {
 
         @Override
@@ -81,7 +82,7 @@ public class ServerOnMessageDuplication {
         public void onMessage(byte[] message, Session session, boolean last) throws IOException {
             lifeCycle.onServerMessage(message, session, last);
         }
-        
+
         @OnMessage
         public void onMessage(InputStream message, Session session) throws IOException {
             lifeCycle.onServerMessage(message, session);
@@ -122,7 +123,7 @@ public class ServerOnMessageDuplication {
         public void onMessage(byte[] message, Session session, boolean last) throws IOException {
             lifeCycle.onClientMessage(message, session, last);
         }
-        
+
         @OnClose
         public void onClose(Session s, CloseReason reason) {
             lifeCycle.onClientClose(s, reason);
@@ -132,6 +133,6 @@ public class ServerOnMessageDuplication {
         public void onError(Session s, Throwable thr) {
             lifeCycle.onClientError(s, thr);
         }
-        
+
     }
 }

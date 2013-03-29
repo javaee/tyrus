@@ -40,23 +40,17 @@
 
 -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-	<modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+    <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>org.glassfish.tyrus.tests.qa</groupId>
         <artifactId>tyrus-tests-qa-project</artifactId>
         <version>1.0-SNAPSHOT</version>
-		</parent>
+    </parent>
 
-<!--
-    <parent>
-        <groupId>org.glassfish.tyrus.samples</groupId>
-        <artifactId>tyrus-samples-project</artifactId>
-        <version>1.0-SNAPSHOT</version>
-		</parent>
-		-->
     <packaging>war</packaging>
-    <artifactId>tyrus-browser-test</artifactId>
+    <artifactId>tyrus-tests-qa-browser-test</artifactId>
 
     <name>Tyrus Browser Test</name>
 
@@ -79,15 +73,14 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <scope>test</scope>
-            <version>4.10</version>
         </dependency>
-        
+
         <dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>servlet-api</artifactId>
             <version>2.4</version>
         </dependency>
-        
+
         <dependency>
             <groupId>org.seleniumhq.selenium</groupId>
             <artifactId>selenium-java</artifactId>
@@ -122,18 +115,6 @@
                             </excludes>
                         </configuration>
                     </plugin>
-                    <!--
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-war-plugin</artifactId>
-                        <configuration>
-                            <packagingExcludes>WEB-INF/lib/grizzly-*, WEB-INF/lib/tyrus-container-grizzly*
-                            </packagingExcludes>
-                            <failOnMissingWebXml>false</failOnMissingWebXml>
-                        </configuration>
-                    </plugin>
-                    -->
-                    
                 </plugins>
             </build>
         </profile>

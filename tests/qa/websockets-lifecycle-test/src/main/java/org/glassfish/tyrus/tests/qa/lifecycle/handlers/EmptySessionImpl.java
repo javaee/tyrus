@@ -49,35 +49,34 @@ import org.glassfish.tyrus.tests.qa.lifecycle.SessionConversation;
 import org.glassfish.tyrus.tests.qa.lifecycle.SessionLifeCycle;
 
 /**
- *
- * @author michal.conos at oracle.com
+ * @author Michal Čonos (michal.conos at oracle.com)
  */
 public class EmptySessionImpl extends SessionLifeCycle<String> implements SessionConversation {
-    
+
     public EmptySessionImpl() {
         super(false);
     }
 
     @Override
     public void onServerMessageHandler(String message, Session session) throws IOException {
-    
+
     }
 
     @Override
     public void onClientMessageHandler(String message, Session session) throws IOException {
-    
+
     }
 
     @Override
     public void startTalk(Session s) throws IOException {
-    
+
     }
 
     @Override
     public SessionLifeCycle getSessionConversation(boolean partial) {
         return new EmptySessionImpl();
     }
-    
+
     @Override
     public void onServerError(Session s, Throwable thr) {
     }
@@ -91,6 +90,7 @@ public class EmptySessionImpl extends SessionLifeCycle<String> implements Sessio
     public void onServerOpen(Session s, EndpointConfig config) {
 
     }
+
     @Override
     public void onClientError(Session s, Throwable thr) {
     }

@@ -46,14 +46,14 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
+
 import javax.websocket.Session;
 
 import org.glassfish.tyrus.tests.qa.lifecycle.SessionConversation;
 import org.glassfish.tyrus.tests.qa.lifecycle.SessionLifeCycle;
 
 /**
- *
- * @author michal.conos at oracle.com
+ * @author Michal Čonos (michal.conos at oracle.com)
  */
 public class ByteBufferSessionImpl extends SessionLifeCycle<ByteBuffer> implements SessionConversation {
 

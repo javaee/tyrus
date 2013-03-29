@@ -41,6 +41,7 @@ package org.glassfish.tyrus.tests.qa.lifecycle.handlers.deployment;
 
 import java.io.IOException;
 import java.util.logging.Level;
+
 import javax.websocket.ClientEndpoint;
 import javax.websocket.CloseReason;
 import javax.websocket.EndpointConfig;
@@ -50,17 +51,17 @@ import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
+
 import org.glassfish.tyrus.tests.qa.lifecycle.AnnotatedEndpoint;
 import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleDeployment;
 import org.glassfish.tyrus.tests.qa.lifecycle.handlers.ByteSessionImpl;
 import org.glassfish.tyrus.tests.qa.tools.SessionController;
 
 /**
- *
- * @author michal.conos at oracle.com
+ * @author Michal Čonos (michal.conos at oracle.com)
  */
 public class ClientOnCloseDuplication {
-      @ServerEndpoint(value = LifeCycleDeployment.LIFECYCLE_ENDPOINT_PATH)
+    @ServerEndpoint(value = LifeCycleDeployment.LIFECYCLE_ENDPOINT_PATH)
     static public class Server extends AnnotatedEndpoint {
 
         @Override
@@ -121,7 +122,7 @@ public class ClientOnCloseDuplication {
         public void onClose(Session s, CloseReason reason) {
             lifeCycle.onClientClose(s, reason);
         }
-        
+
         @OnClose
         public void onClose(CloseReason reason) {
             lifeCycle.onClientClose(null, reason);

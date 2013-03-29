@@ -52,14 +52,14 @@ import javax.websocket.Session;
 import org.glassfish.tyrus.tests.qa.lifecycle.SessionLifeCycle;
 
 /**
- *
- * @author michal.conos at oracle.com
+ * @author Michal Čonos (michal.conos at oracle.com)
  */
 public class ObjectInputStreamSessionImpl extends SessionLifeCycle<InputStream> {
 
     public ObjectInputStreamSessionImpl() {
         super(false);
     }
+
     SendMeSomething original;
 
     @Override

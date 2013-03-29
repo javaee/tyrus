@@ -41,6 +41,7 @@ package org.glassfish.tyrus.tests.qa.lifecycle.handlers.annotations;
 
 import java.io.IOException;
 import java.util.logging.Level;
+
 import javax.websocket.ClientEndpoint;
 import javax.websocket.ClientEndpointConfig;
 import javax.websocket.CloseReason;
@@ -52,6 +53,7 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 import javax.websocket.server.ServerEndpointConfig;
+
 import org.glassfish.tyrus.tests.qa.lifecycle.AnnotatedEndpoint;
 import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleDeployment;
 import org.glassfish.tyrus.tests.qa.lifecycle.config.CustomConfiguratorProtocols;
@@ -59,8 +61,7 @@ import org.glassfish.tyrus.tests.qa.lifecycle.handlers.StringSessionImpl;
 import org.glassfish.tyrus.tests.qa.tools.SessionController;
 
 /**
- *
- * @author michal.conos at oracle.com
+ * @author Michal Čonos (michal.conos at oracle.com)
  */
 public class SubprotocolsViaCustomConfigurator {
 
@@ -88,7 +89,7 @@ public class SubprotocolsViaCustomConfigurator {
             super.onOpen(session, ec);
             lifeCycle.onServerOpen(session, ec);
             logger.log(Level.INFO, "lifeCycle={0}", lifeCycle.toString());
-            logger.log(Level.INFO, "extendsion={0}", ((ServerEndpointConfig)ec).getExtensions());
+            logger.log(Level.INFO, "extendsion={0}", ((ServerEndpointConfig) ec).getExtensions());
             checkSubProtocols(session);
         }
 

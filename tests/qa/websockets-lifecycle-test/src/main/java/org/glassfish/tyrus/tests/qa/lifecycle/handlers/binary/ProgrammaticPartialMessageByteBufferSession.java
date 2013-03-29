@@ -40,13 +40,14 @@
 package org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary;
 
 import java.nio.ByteBuffer;
+
 import javax.websocket.MessageHandler;
+
 import org.glassfish.tyrus.tests.qa.lifecycle.ProgrammaticEndpointPartialMessageEndpoint;
 import org.glassfish.tyrus.tests.qa.lifecycle.handlers.ByteBufferSessionImpl;
 
 /**
- *
- * @author michal.conos at oracle.com
+ * @author Michal Čonos (michal.conos at oracle.com)
  */
 public class ProgrammaticPartialMessageByteBufferSession extends ProgrammaticEndpointPartialMessageEndpoint<ByteBuffer> implements MessageHandler.Partial<ByteBuffer> {
 
@@ -54,5 +55,5 @@ public class ProgrammaticPartialMessageByteBufferSession extends ProgrammaticEnd
     public void createLifeCycle() {
         lifeCycle = new ByteBufferSessionImpl(1024, true, true);
     }
-    
+
 }

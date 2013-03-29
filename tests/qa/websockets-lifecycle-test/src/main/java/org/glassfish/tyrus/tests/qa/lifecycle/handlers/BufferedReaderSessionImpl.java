@@ -51,8 +51,7 @@ import org.glassfish.tyrus.tests.qa.lifecycle.SessionConversation;
 import org.glassfish.tyrus.tests.qa.lifecycle.SessionLifeCycle;
 
 /**
- *
- * @author michal.conos at oracle.com
+ * @author Michal Čonos (michal.conos at oracle.com)
  */
 public class BufferedReaderSessionImpl extends SessionLifeCycle<Reader> implements SessionConversation {
 
@@ -60,11 +59,11 @@ public class BufferedReaderSessionImpl extends SessionLifeCycle<Reader> implemen
     private String messageToSend = "";
     private String gotMessage = "";
     private static final String oneLine = "abcdefghijklm\n";
-    
+
     private String readMessage(Reader rd) throws IOException {
-        String wholeMessage="";
+        String wholeMessage = "";
         BufferedReader br = new BufferedReader(rd);
-        for (;;) {
+        for (; ; ) {
             String line = br.readLine();
             if (line == null) {
                 break;
@@ -99,7 +98,7 @@ public class BufferedReaderSessionImpl extends SessionLifeCycle<Reader> implemen
     @Override
     public void onServerMessageHandler(Reader reader, Session session) throws IOException {
         logger.log(Level.INFO, "XXX: HERE I AM!!!");
-        String  message = readMessage(reader);
+        String message = readMessage(reader);
         logger.log(Level.INFO, "XXX: bounce message:{0}", message);
         Writer wr = session.getBasicRemote().getSendWriter();
         wr.write(message);
@@ -121,16 +120,16 @@ public class BufferedReaderSessionImpl extends SessionLifeCycle<Reader> implemen
 
     @Override
     public void onServerMessageHandler(Reader message, Session session, boolean last) throws IOException {
-        
+
     }
 
     @Override
     public void onClientMessageHandler(Reader message, Session session, boolean last) throws IOException {
-        
+
     }
 
     @Override
     public void startTalkPartial(Session s) throws IOException {
-        
+
     }
 }

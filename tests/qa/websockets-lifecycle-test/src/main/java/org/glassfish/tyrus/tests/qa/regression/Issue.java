@@ -45,10 +45,11 @@ import java.util.logging.Logger;
 
 import javax.websocket.CloseReason;
 import javax.websocket.Session;
+
 import org.glassfish.tyrus.tests.qa.config.AppConfig;
 
 /**
- * @author michal.conos at oracle.com
+ * @author Michal Čonos (michal.conos at oracle.com)
  */
 public enum Issue {
 
@@ -56,6 +57,7 @@ public enum Issue {
     TYRUS_94("ServerEndPoint: onError(): throwable.getCause()==null"),
     TYRUS_101("CloseReason not propagated to server side (when close() initiated from client)"),
     TYRUS_104("session should raise IllegalStateException when Session.getRemote() called on a closed session");
+
     private static final Logger logger = Logger.getLogger(Issue.class.getCanonicalName());
     private String description;
     private boolean enabled;
@@ -70,7 +72,7 @@ public enum Issue {
      * @return true if enabled, false if the issue is disabled
      */
     public boolean isEnabled() {
-        if(AppConfig.isGlassFishContainer()) {
+        if (AppConfig.isGlassFishContainer()) {
             return false;
         }
         return enabled;
@@ -92,8 +94,6 @@ public enum Issue {
 
     /**
      * Disable all issue but the on requested. Handy for regression testing
-     *
-     * @param issue the issue which stays enabled. All other issues are disabled
      */
     public void disableAllButThisOne() {
         disableAll();

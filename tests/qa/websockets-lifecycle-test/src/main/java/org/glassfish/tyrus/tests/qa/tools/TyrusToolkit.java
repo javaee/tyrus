@@ -43,12 +43,14 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import javax.websocket.DeploymentException;
+
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.tests.qa.config.AppConfig;
 
 /**
- * @author michal.conos at oracle.com
+ * @author Michal Čonos (michal.conos at oracle.com)
  */
 public class TyrusToolkit implements ServerToolkit {
     private static final Logger logger = Logger.getLogger(TyrusToolkit.class.getCanonicalName());
@@ -70,9 +72,6 @@ public class TyrusToolkit implements ServerToolkit {
     /**
      * Start embedded server unless "tyrus.test.host" system property is
      * specified.
-     *
-     * @return new {@link Server} instance or {@code null} if "tyrus.test.host"
-     *         system property is set.
      */
     @Override
     public void startServer() throws DeploymentException {
@@ -81,7 +80,7 @@ public class TyrusToolkit implements ServerToolkit {
             server = new Server(config.getHost(), config.getPort(), config.getContextPath(), endpointClasses);
             server.start();
             logger.log(Level.INFO, "Tyrus Server started at {0}:{1}", new Object[]{config.getHost(), config.getPort()});
-        } 
+        }
     }
 
     @Override

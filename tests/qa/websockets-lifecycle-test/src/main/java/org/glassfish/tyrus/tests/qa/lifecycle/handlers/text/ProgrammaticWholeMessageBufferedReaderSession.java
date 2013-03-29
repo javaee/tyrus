@@ -40,19 +40,20 @@
 package org.glassfish.tyrus.tests.qa.lifecycle.handlers.text;
 
 import java.io.Reader;
+
 import javax.websocket.MessageHandler;
+
 import org.glassfish.tyrus.tests.qa.lifecycle.ProgrammaticWholeMessageEndpoint;
 import org.glassfish.tyrus.tests.qa.lifecycle.handlers.BufferedReaderSessionImpl;
 
 /**
- *
- * @author michal.conos at oracle.com
+ * @author Michal Čonos (michal.conos at oracle.com)
  */
-public class  ProgrammaticWholeMessageBufferedReaderSession extends ProgrammaticWholeMessageEndpoint<Reader> implements MessageHandler.Whole<Reader> {
+public class ProgrammaticWholeMessageBufferedReaderSession extends ProgrammaticWholeMessageEndpoint<Reader> implements MessageHandler.Whole<Reader> {
 
     @Override
     public void createLifeCycle() {
         lifeCycle = new BufferedReaderSessionImpl(1024);
     }
-    
+
 }

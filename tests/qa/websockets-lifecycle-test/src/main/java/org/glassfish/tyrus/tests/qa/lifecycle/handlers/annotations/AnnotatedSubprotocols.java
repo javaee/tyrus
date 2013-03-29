@@ -40,8 +40,8 @@
 package org.glassfish.tyrus.tests.qa.lifecycle.handlers.annotations;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.logging.Level;
+
 import javax.websocket.ClientEndpoint;
 import javax.websocket.ClientEndpointConfig;
 import javax.websocket.CloseReason;
@@ -52,26 +52,25 @@ import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
-import javax.websocket.server.ServerEndpointConfig;
+
 import org.glassfish.tyrus.tests.qa.lifecycle.AnnotatedEndpoint;
 import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleDeployment;
 import org.glassfish.tyrus.tests.qa.lifecycle.handlers.StringSessionImpl;
 import org.glassfish.tyrus.tests.qa.tools.SessionController;
 
 /**
- *
- * @author michal.conos at oracle.com
+ * @author Michal Čonos (michal.conos at oracle.com)
  */
 public class AnnotatedSubprotocols {
 
-    @ServerEndpoint(value = LifeCycleDeployment.LIFECYCLE_ENDPOINT_PATH, subprotocols=
-             {
-        "mikc21", "mikc22", "mikc23", "mikc24.111", "mikc25/0", "mikc26-0", "mikc27+0", "mikc28*9", "mikc291", "mikc210",
-        "mikc21", "mikc22", "mikc23", "mikc24.111", "mikc25/0", "mikc26-0", "mikc27+0", "mikc28*9", "mikc291", "mikc210",
-        "mikc21", "mikc22", "mikc23", "mikc24.111", "mikc25/0", "mikc26-0", "mikc27+0", "mikc28*9", "mikc291", "mikc210",
-        "mikc21", "mikc22", "mikc23", "mikc24.111", "mikc25/0", "mikc26-0", "mikc27+0", "mikc28*9", "mikc291", "mikc210",
-        "mikc21", "mikc22", "mikc23", "mikc24.111", "mikc25/0", "mikc26-0", "mikc27+0", "mikc28*9", "mikc291", "mikc10", "mikc10"
-    })
+    @ServerEndpoint(value = LifeCycleDeployment.LIFECYCLE_ENDPOINT_PATH, subprotocols =
+            {
+                    "mikc21", "mikc22", "mikc23", "mikc24.111", "mikc25/0", "mikc26-0", "mikc27+0", "mikc28*9", "mikc291", "mikc210",
+                    "mikc21", "mikc22", "mikc23", "mikc24.111", "mikc25/0", "mikc26-0", "mikc27+0", "mikc28*9", "mikc291", "mikc210",
+                    "mikc21", "mikc22", "mikc23", "mikc24.111", "mikc25/0", "mikc26-0", "mikc27+0", "mikc28*9", "mikc291", "mikc210",
+                    "mikc21", "mikc22", "mikc23", "mikc24.111", "mikc25/0", "mikc26-0", "mikc27+0", "mikc28*9", "mikc291", "mikc210",
+                    "mikc21", "mikc22", "mikc23", "mikc24.111", "mikc25/0", "mikc26-0", "mikc27+0", "mikc28*9", "mikc291", "mikc10", "mikc10"
+            })
     static public class Server extends AnnotatedEndpoint {
 
         @Override
@@ -80,7 +79,7 @@ public class AnnotatedSubprotocols {
         }
 
         private void checkSubProtocols(Session s) {
-            logger.log(Level.INFO, "checkSubProtocols:{0}",s.getNegotiatedSubprotocol());
+            logger.log(Level.INFO, "checkSubProtocols:{0}", s.getNegotiatedSubprotocol());
 
             if (!s.getNegotiatedSubprotocol().equals("mikc10")) {
                 throw new RuntimeException("checkSubProtocols: bad subprotocol! Got:" + s.getNegotiatedSubprotocol());
@@ -117,35 +116,35 @@ public class AnnotatedSubprotocols {
         }
     }
 
-    @ClientEndpoint(subprotocols=
-            { 
-        "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
-        "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
-        "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
-        "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
-        "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
-        "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
-        "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
-        "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
-        "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
-        "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
-        "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
-        "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
-        "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
-        "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
-        "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
-        "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
-        "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
-        "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
-        "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
-        "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
-        "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
-        "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
-        "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
-        "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
-        "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10"
-    }
-            )
+    @ClientEndpoint(subprotocols =
+            {
+                    "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
+                    "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
+                    "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
+                    "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
+                    "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
+                    "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
+                    "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
+                    "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
+                    "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
+                    "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
+                    "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
+                    "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
+                    "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
+                    "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
+                    "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
+                    "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
+                    "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
+                    "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
+                    "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
+                    "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
+                    "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
+                    "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
+                    "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
+                    "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10",
+                    "mikc1", "mikc2", "mikc3", "mikc4.111", "mikc5/0", "mikc6-0", "mikc7+0", "mikc8*9", "mikc91", "mikc10"
+            }
+    )
     static public class Client extends AnnotatedEndpoint {
 
         @Override
@@ -159,12 +158,12 @@ public class AnnotatedSubprotocols {
                 this.session = session;
             }
             logger.log(Level.INFO, "AnnotatedEndpoint.Client: onOpen");
-            logger.log(Level.INFO, "Client can do:{0}", ((ClientEndpointConfig)ec).getPreferredSubprotocols());
+            logger.log(Level.INFO, "Client can do:{0}", ((ClientEndpointConfig) ec).getPreferredSubprotocols());
             this.sc = new SessionController(session);
             createLifeCycle();
             lifeCycle.setSessionController(sc);
             lifeCycle.onClientOpen(session, ec);
-            
+
         }
 
         @OnMessage

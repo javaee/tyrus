@@ -41,13 +41,14 @@ package org.glassfish.tyrus.tests.qa.lifecycle;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.websocket.EndpointConfig;
 
+import javax.websocket.EndpointConfig;
 import javax.websocket.Session;
+
 import org.glassfish.tyrus.tests.qa.tools.SessionController;
 
 /**
- * @author michal.conos at oracle.com
+ * @author Michal Čonos (michal.conos at oracle.com)
  */
 abstract public class AnnotatedEndpoint {
 
@@ -56,6 +57,7 @@ abstract public class AnnotatedEndpoint {
     protected SessionController sc;
 
     public abstract void createLifeCycle();
+
     protected Session session;
 
     public void onOpen(Session session, EndpointConfig ec) {

@@ -39,7 +39,6 @@
  */
 package org.glassfish.tyrus.tests.qa.config;
 
-import java.io.PrintStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
@@ -48,17 +47,17 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * @author michal.conos at oracle.com
+ * @author Michal Čonos (michal.conos at oracle.com)
  */
 public class AppConfig {
 
     private static final Logger logger = Logger.getLogger(AppConfig.class.getCanonicalName());
 
     public enum AppServer {
-
         TYRUS,
         GLASSFISH
-    };
+    }
+
     public static final String DEFAULT_HOST = "localhost";
     public static final int DEFAULT_PORT = 8025;
     private String contextPath;

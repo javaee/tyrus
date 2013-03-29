@@ -45,20 +45,21 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
+
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 import javax.websocket.server.ServerApplicationConfig;
 import javax.websocket.server.ServerEndpointConfig;
+
 import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleDeployment;
 import org.glassfish.tyrus.tests.qa.lifecycle.ProgrammaticWholeMessageEndpoint;
 import org.glassfish.tyrus.tests.qa.lifecycle.handlers.StringSessionImpl;
 import org.glassfish.tyrus.tests.qa.tools.SessionController;
 
 /**
- *
- * @author michal.conos at oracle.com
+ * @author Michal Čonos (michal.conos at oracle.com)
  */
 public class CustomConfigurationExtensionsProgrammatic implements ServerApplicationConfig {
 
@@ -77,8 +78,8 @@ public class CustomConfigurationExtensionsProgrammatic implements ServerApplicat
             logger.log(Level.INFO, "ProgrammaticEndpoint: onOpen");
             this.sc = new SessionController(session);
             createLifeCycle();
-            
-            logger.log(Level.INFO, "Get Extensions: {0}", ((ServerEndpointConfig)ec).getExtensions());
+
+            logger.log(Level.INFO, "Get Extensions: {0}", ((ServerEndpointConfig) ec).getExtensions());
             logger.log(Level.INFO, "Get negotiated extensions: {0}", session.getNegotiatedExtensions());
             lifeCycle.setSessionController(sc);
             session.addMessageHandler(this);
@@ -101,5 +102,5 @@ public class CustomConfigurationExtensionsProgrammatic implements ServerApplicat
     public Set<Class<?>> getAnnotatedEndpointClasses(Set<Class<?>> set) {
         return Collections.EMPTY_SET;
     }
-    
+
 }

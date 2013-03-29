@@ -41,19 +41,20 @@ package org.glassfish.tyrus.tests.qa.lifecycle;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import javax.websocket.CloseReason;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
+
 import org.glassfish.tyrus.server.TyrusServerContainer;
 import org.glassfish.tyrus.tests.qa.tools.SessionController;
 
 /**
- *
- * @author michal.conos at oracle.com
+ * @author Michal Čonos (michal.conos at oracle.com)
  */
-abstract public class ProgrammaticEndpointPartialMessageEndpoint <T> extends Endpoint implements MessageHandler.Partial<T> {
+abstract public class ProgrammaticEndpointPartialMessageEndpoint<T> extends Endpoint implements MessageHandler.Partial<T> {
     private static final Logger logger = Logger.getLogger(ProgrammaticEndpointPartialMessageEndpoint.class.getCanonicalName());
     protected SessionLifeCycle lifeCycle;
     protected MessageHandler messageHandler;
@@ -69,7 +70,7 @@ abstract public class ProgrammaticEndpointPartialMessageEndpoint <T> extends End
 
     @Override
     public void onMessage(T message, boolean last) {
-        
+
         logger.log(Level.INFO, "Programmatic.onMessage:{0}", message.toString());
         if (isServerContainer(session)) {
             logger.log(Level.INFO, "PRGEND:server:onMessage:{0}", message.toString());
@@ -79,7 +80,7 @@ abstract public class ProgrammaticEndpointPartialMessageEndpoint <T> extends End
             lifeCycle.onClientMessage(message, session, last);
         }
     }
-    
+
     @Override
     public void onOpen(Session session, EndpointConfig ec) {
         if (this.session == null) {

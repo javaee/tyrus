@@ -44,68 +44,68 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CopyOnWriteArrayList;
+
 import javax.websocket.Extension;
 
 /**
- *
- * @author michal.conos at oracle.com
+ * @author Michal Čonos (michal.conos at oracle.com)
  */
 public class MyExtension implements Extension {
 
-        static List<Extension> extensions = new CopyOnWriteArrayList<Extension>();
-        String name;
-        Map<String, String> map;
+    static List<Extension> extensions = new CopyOnWriteArrayList<Extension>();
+    String name;
+    Map<String, String> map;
 
-        public MyExtension(String name, Map map) {
-            this.name = name;
-            this.map = map;
-        }
-
-        public MyExtension(String name, String param, String value) {
-            Map params = new HashMap();
-            params.put(param, value);
-            this.map = params;
-        }
-
-        @Override
-        public String getName() {
-            return name;
-        }
-
-        @Override
-        public List<Extension.Parameter> getParameters() {
-            List<Extension.Parameter> params = new ArrayList<Extension.Parameter>();
-
-            for (final String name : map.keySet()) {
-                final String val = map.get(name);
-
-                params.add(new Extension.Parameter() {
-                    @Override
-                    public String getName() {
-                        return name;
-                    }
-
-                    @Override
-                    public String getValue() {
-                        return val;
-                    }
-                });
-            }
-
-            return params;
-        }
-
-        public static List<Extension> initExtensions() {
-            for (int i = 0; i < 100; i++) {
-                extensions.add(
-                        new MyExtension(
-                        "mikcext" + i,
-                        "mikcparam" + i,
-                        "mikcval" + i));
-            }
-            return extensions;
-        }
+    public MyExtension(String name, Map map) {
+        this.name = name;
+        this.map = map;
     }
+
+    public MyExtension(String name, String param, String value) {
+        Map params = new HashMap();
+        params.put(param, value);
+        this.map = params;
+    }
+
+    @Override
+    public String getName() {
+        return name;
+    }
+
+    @Override
+    public List<Extension.Parameter> getParameters() {
+        List<Extension.Parameter> params = new ArrayList<Extension.Parameter>();
+
+        for (final String name : map.keySet()) {
+            final String val = map.get(name);
+
+            params.add(new Extension.Parameter() {
+                @Override
+                public String getName() {
+                    return name;
+                }
+
+                @Override
+                public String getValue() {
+                    return val;
+                }
+            });
+        }
+
+        return params;
+    }
+
+    public static List<Extension> initExtensions() {
+        for (int i = 0; i < 100; i++) {
+            extensions.add(
+                    new MyExtension(
+                            "mikcext" + i,
+                            "mikcparam" + i,
+                            "mikcval" + i));
+        }
+        return extensions;
+    }
+}
 
 
 

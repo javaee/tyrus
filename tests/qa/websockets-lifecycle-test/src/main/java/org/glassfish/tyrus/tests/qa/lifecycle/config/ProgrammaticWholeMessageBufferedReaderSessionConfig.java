@@ -42,15 +42,16 @@ package org.glassfish.tyrus.tests.qa.lifecycle.config;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+
 import javax.websocket.Endpoint;
 import javax.websocket.server.ServerApplicationConfig;
 import javax.websocket.server.ServerEndpointConfig;
+
 import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleDeployment;
 import org.glassfish.tyrus.tests.qa.lifecycle.handlers.text.ProgrammaticWholeMessageBufferedReaderSession;
 
 /**
- *
- * @author michal.conos at oracle.com
+ * @author Michal Čonos (michal.conos at oracle.com)
  */
 public class ProgrammaticWholeMessageBufferedReaderSessionConfig implements ServerApplicationConfig {
 

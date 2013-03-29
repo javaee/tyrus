@@ -39,27 +39,23 @@
  */
 package org.glassfish.tyrus.tests.qa.lifecycle.config;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import javax.websocket.Extension;
-import javax.websocket.Extension.Parameter;
 import javax.websocket.server.ServerEndpointConfig;
+
 import org.glassfish.tyrus.tests.qa.lifecycle.SessionLifeCycle;
 
 /**
- *
- * @author michal.conos at oracle.com
+ * @author Michal Čonos (michal.conos at oracle.com)
  */
 public class CustomConfiguratorProtocols extends ServerEndpointConfig.Configurator {
 
     protected static final Logger logger = Logger.getLogger(SessionLifeCycle.class.getCanonicalName());
 
-     
+
     @Override
     public String getNegotiatedSubprotocol(List<String> supported, List<String> requested) {
         return "mikc10";

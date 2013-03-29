@@ -48,13 +48,12 @@ import javax.websocket.Session;
 import org.glassfish.tyrus.tests.qa.lifecycle.SessionLifeCycle;
 
 /**
- *
- * @author michal.conos at oracle.com
+ * @author Michal Čonos (michal.conos at oracle.com)
  */
 public class StringSessionImpl extends SessionLifeCycle<String> {
-    
-    String gotPartial="";
-    
+
+    String gotPartial = "";
+
     public StringSessionImpl(boolean partial) {
         super(partial);
     }
@@ -86,10 +85,10 @@ public class StringSessionImpl extends SessionLifeCycle<String> {
 
     @Override
     public void onClientMessageHandler(String message, Session session, boolean last) throws IOException {
-        gotPartial+=message;
-        if(last) {
+        gotPartial += message;
+        if (last) {
             logger.log(Level.INFO, "Last one: {0}", gotPartial);
-            if(gotPartial.equals("client.openclient.openclient.openclient.openclient.open")) {
+            if (gotPartial.equals("client.openclient.openclient.openclient.openclient.open")) {
                 closeTheSessionFromClient(session);
             }
         }

@@ -40,12 +40,12 @@
 package org.glassfish.tyrus.tests.qa.lifecycle.handlers.text;
 
 import javax.websocket.MessageHandler;
+
 import org.glassfish.tyrus.tests.qa.lifecycle.ProgrammaticWholeMessageEndpoint;
 import org.glassfish.tyrus.tests.qa.lifecycle.handlers.StringSessionImpl;
 
 /**
- *
- * @author michal.conos at oracle.com
+ * @author Michal Čonos (michal.conos at oracle.com)
  */
 public class ProgrammaticWholeMessageStringSession extends ProgrammaticWholeMessageEndpoint<String> implements MessageHandler.Whole<String> {
 
@@ -53,5 +53,5 @@ public class ProgrammaticWholeMessageStringSession extends ProgrammaticWholeMess
     public void createLifeCycle() {
         lifeCycle = new StringSessionImpl(false);
     }
-    
+
 }

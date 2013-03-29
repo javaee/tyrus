@@ -40,8 +40,7 @@
 package org.glassfish.tyrus.tests.qa.lifecycle;
 
 /**
- *
- * @author michal.conos at oracle.com
+ * @author Michal Čonos (michal.conos at oracle.com)
  */
 public interface SessionConversation {
     public SessionLifeCycle getSessionConversation(boolean partial);

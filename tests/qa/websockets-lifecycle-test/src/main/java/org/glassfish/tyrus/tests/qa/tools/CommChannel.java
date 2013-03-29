@@ -63,7 +63,7 @@ import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 
 /**
- * @author michal.conos at oracle.com
+ * @author Michal Čonos (michal.conos at oracle.com)
  */
 public class CommChannel {
 
@@ -220,7 +220,7 @@ public class CommChannel {
             server = new org.eclipse.jetty.server.Server(port);
             server.setHandler(new AbstractHandler() {
                 @Override
-                public synchronized  void handle(String target, Request request, HttpServletRequest httpRequest, HttpServletResponse response) throws IOException, ServletException {
+                public synchronized void handle(String target, Request request, HttpServletRequest httpRequest, HttpServletResponse response) throws IOException, ServletException {
                     response.setContentType("text/html;charset=utf-8");
 
                     String path = httpRequest.getPathInfo();

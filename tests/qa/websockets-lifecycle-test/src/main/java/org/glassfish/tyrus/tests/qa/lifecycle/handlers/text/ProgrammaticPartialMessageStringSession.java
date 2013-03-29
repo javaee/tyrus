@@ -39,17 +39,16 @@
  */
 package org.glassfish.tyrus.tests.qa.lifecycle.handlers.text;
 
-import java.io.Reader;
 import javax.websocket.MessageHandler;
+
 import org.glassfish.tyrus.tests.qa.lifecycle.ProgrammaticEndpointPartialMessageEndpoint;
 import org.glassfish.tyrus.tests.qa.lifecycle.handlers.StringSessionImpl;
 
 /**
- *
- * @author michal.conos at oracle.com
+ * @author Michal Čonos (michal.conos at oracle.com)
  */
 public class ProgrammaticPartialMessageStringSession extends ProgrammaticEndpointPartialMessageEndpoint<String> implements MessageHandler.Partial<String> {
-   
+
     @Override
     public void createLifeCycle() {
         lifeCycle = new StringSessionImpl(true);

@@ -39,80 +39,52 @@
  */
 package org.glassfish.tyrus.tests.qa.tools;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
-import java.net.URL;
-import java.net.URLClassLoader;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import javax.websocket.ClientEndpoint;
 import javax.websocket.DeploymentException;
-import javax.websocket.Endpoint;
 import javax.websocket.server.ServerApplicationConfig;
 import javax.websocket.server.ServerEndpoint;
+
+import org.glassfish.tyrus.tests.qa.config.AppConfig;
+
+import org.glassfish.embeddable.archive.ScatteredArchive;
+
 import org.apache.commons.exec.CommandLine;
 import org.apache.commons.exec.DefaultExecutor;
 import org.apache.commons.exec.ExecuteException;
-import org.glassfish.embeddable.BootstrapProperties;
-import org.glassfish.embeddable.GlassFishException;
-import org.glassfish.embeddable.GlassFishProperties;
-import org.glassfish.embeddable.GlassFishRuntime;
-import org.glassfish.embeddable.archive.ScatteredArchive;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.filefilter.RegexFileFilter;
-import org.glassfish.embeddable.Deployer;
-import org.glassfish.tyrus.tests.qa.config.AppConfig;
-import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleDeployment;
 
 /**
- *
  * @author Michal Conos (michal.conos at oracle.com)
  */
 public class GlassFishToolkit implements ServerToolkit {
 
     private String installRoot;
     private ScatteredArchive deploy;
-    private org.glassfish.embeddable.GlassFish glassFish;
     private final static Logger logger = Logger.getLogger(GlassFishToolkit.class.getName());
-    public final static String PLATFORM_KEY = "GlassFish_Platform";
-    public final static String INSTANCE_ROOT_PROP_NAME = "com.sun.aas.instanceRoot";
-    public static final String INSTALL_ROOT_PROP_NAME = "com.sun.aas.installRoot";
-    public static final String CONFIG_FILE_URI_PROP_NAME = "org.glassfish.embeddable.configFileURI";
-    private static final String NETWORK_LISTENER_KEY = "embedded-glassfish-config."
-            + "server.network-config.network-listeners.network-listener.%s";
-    public static String thisArtifactId = "org.glassfish.embedded:maven-embedded-glassfish-plugin";
-    private static String SHELL_JAR = "lib/embedded/glassfish-embedded-static-shell.jar";
-    private static String FELIX_JAR = "osgi/felix/bin/felix.jar";
-    private static final String EMBEDDED_GROUP_ID = "org.glassfish.main.extras";
-    private static final String EMBEDDED_ALL = "glassfish-embedded-all";
-    private static final String EMBEDDED_ARTIFACT_PREFIX = "glassfish-embedded-";
-    private static final String GF_API_GROUP_ID = "org.glassfish";
-    private static final String GF_API_ARTIFACT_ID = "simple-glassfish-api";
-    private static final String DEFAULT_GF_VERSION = "3.1";
-    private static String gfVersion;
+
     private static final String glassfishWeb =
             "<!DOCTYPE glassfish-web-app PUBLIC \"-//GlassFish.org//DTD GlassFish Application Server 3.1 Servlet 3.0//EN\" \"http://glassfish.org/dtds/glassfish-web-app_3_0-1.dtd\">"
-            + "<glassfish-web-app error-url=\"\">"
-            + "<context-root>%s</context-root>"
-            + "<class-loader delegate=\"true\"/>"
-            + "<jsp-config>"
-            + "<property name=\"keepgenerated\" value=\"true\">"
-            + "<description>Keep a copy of the generated servlet class' java code.</description>"
-            + "</property>"
-            + "</jsp-config>"
-            + "</glassfish-web-app>";
-    private String appName;
+                    + "<glassfish-web-app error-url=\"\">"
+                    + "<context-root>%s</context-root>"
+                    + "<class-loader delegate=\"true\"/>"
+                    + "<jsp-config>"
+                    + "<property name=\"keepgenerated\" value=\"true\">"
+                    + "<description>Keep a copy of the generated servlet class' java code.</description>"
+                    + "</property>"
+                    + "</jsp-config>"
+                    + "</glassfish-web-app>";
     private AppConfig config;
 
     public GlassFishToolkit(AppConfig config) {
@@ -124,7 +96,6 @@ public class GlassFishToolkit implements ServerToolkit {
 
         private final static String ASADMIN_CMD_UNIX = "%s/bin/asadmin %s";
         private final static String ASADMIN_CMD_WINDOWS = "%s/bin/asadmin.bat %s";
-        private final static String ASADMIN_SET_PROPERTY = "--properties %s=%s";
         private final static String ASADMIN_DEFAULT_DOMAIN = "domain1";
         private final static String ASADMIN_START_DOMAIN = "start-domain %s";
         private final static String ASADMIN_STOP_DOMAIN = "stop-domain %s";
@@ -246,7 +217,6 @@ public class GlassFishToolkit implements ServerToolkit {
         Class tryMe = getClazzForFile(clazz);
 
 
-
         logger.log(Level.FINE, "File? {0}", tryMe.getCanonicalName());
 
         logger.log(Level.FINE, "Interfaces:{0}", tryMe.getInterfaces());
@@ -332,9 +302,9 @@ public class GlassFishToolkit implements ServerToolkit {
             Asadmin asadmin = new Asadmin();
             asadmin.exec(
                     new String[]{
-                        asadmin.getAsadminStartDomain1(),
-                        asadmin.getAsadminDeployCommand(getLocalFileFromURI(deploy.toURI())),
-                        asadmin.getAsadminListApplications()
+                            asadmin.getAsadminStartDomain1(),
+                            asadmin.getAsadminDeployCommand(getLocalFileFromURI(deploy.toURI())),
+                            asadmin.getAsadminListApplications()
                     });
             try {
                 Thread.sleep(10000);
@@ -362,8 +332,8 @@ public class GlassFishToolkit implements ServerToolkit {
             }
             asadmin.exec(
                     new String[]{
-                        asadmin.getAsadminListApplications(),
-                        asadmin.getAsadminStopDomain1()
+                            asadmin.getAsadminListApplications(),
+                            asadmin.getAsadminStopDomain1()
                     });
         } catch (IOException ex) {
             ex.printStackTrace();

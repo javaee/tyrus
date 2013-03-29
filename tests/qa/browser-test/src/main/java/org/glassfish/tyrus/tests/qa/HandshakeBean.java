@@ -64,7 +64,7 @@ public class HandshakeBean {
     @OnOpen
     public void initSession(Session s) {
         logger.log(Level.INFO, "Someone connected:{0}", s.getRequestURI().toString());
-        System.out.println("server.container:"+s.getContainer().toString());
+        System.out.println("server.container:" + s.getContainer().toString());
         state = ConnState.SERVER_OPEN;
     }
 

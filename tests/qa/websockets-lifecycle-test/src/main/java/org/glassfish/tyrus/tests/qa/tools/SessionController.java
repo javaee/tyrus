@@ -41,23 +41,18 @@ package org.glassfish.tyrus.tests.qa.tools;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.Reader;
-import java.net.URISyntaxException;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import javax.websocket.Session;
+
 import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleDeployment;
 
-import org.json.JSONException;
-
 /**
- * @author michal.conos at oracle.com
+ * @author Michal Čonos (michal.conos at oracle.com)
  */
 public class SessionController {
 
@@ -89,6 +84,7 @@ public class SessionController {
             return msg;
         }
     }
+
     private final Session session;
     private final CommChannel commChannel;
     private final CommChannel.Client client;
@@ -105,7 +101,7 @@ public class SessionController {
     public Session getSession() {
         return session;
     }
-    
+
     private static String getId() {
         //return session.getId();
         return "/tmp/sessionState";
@@ -115,35 +111,33 @@ public class SessionController {
 
         logger.log(Level.INFO, "changeState: {0} ---> {1}", new Object[]{expect, newState});
 
-        
+
         String currentState = getState();
         logger.log(Level.INFO, "changeState: currState {0}", currentState);
         if (currentState.equals(expect.getMessage())) {
             logger.log(Level.INFO, "changeState: Switching to {0}", newState);
             setState(newState.getMessage());
         }
-        
-        
+
 
     }
-    
+
     public static synchronized void resetState() {
-       
-           new File(getId()).delete();
-       
-       
+
+        new File(getId()).delete();
+
+
     }
 
     public static synchronized void setState(String customState) {
         try {
-           PrintWriter wr = new PrintWriter(getId());
-           wr.println(customState);
-           wr.close();
-        }
-        catch(IOException ex) {
+            PrintWriter wr = new PrintWriter(getId());
+            wr.println(customState);
+            wr.close();
+        } catch (IOException ex) {
             ex.printStackTrace();
         }
-        logger.log(Level.INFO, "setState: {0}: {1}", new Object[] {getId(), customState});
+        logger.log(Level.INFO, "setState: {0}: {1}", new Object[]{getId(), customState});
         //client.setSessionStatus(getId(), customState);
     }
 
@@ -152,10 +146,9 @@ public class SessionController {
         try {
             BufferedReader br = new BufferedReader(new FileReader(getId()));
             state = br.readLine();
-            
-        }
-        catch(Exception ex) {
-            state="null";
+
+        } catch (Exception ex) {
+            state = "null";
             //ex.printStackTrace();
             logger.log(Level.WARNING, "getState:", ex.getMessage());
         }
@@ -175,7 +168,7 @@ public class SessionController {
             state="null";
         }
         */
-        logger.log(Level.INFO, "getState: {0}: {1}", new Object[] {getId(), state});
+        logger.log(Level.INFO, "getState: {0}: {1}", new Object[]{getId(), state});
         return state;
     }
 

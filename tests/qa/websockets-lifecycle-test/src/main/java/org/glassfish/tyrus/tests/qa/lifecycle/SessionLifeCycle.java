@@ -53,13 +53,14 @@ import org.glassfish.tyrus.tests.qa.regression.Issue;
 import org.glassfish.tyrus.tests.qa.tools.SessionController;
 
 /**
- * @author michal.conos at oracle.com
+ * @author Michal Čonos (michal.conos at oracle.com)
  */
 abstract public class SessionLifeCycle<T> {
 
     public SessionLifeCycle(boolean partial) {
         this.partialMessageHandler = partial;
     }
+
     private boolean partialMessageHandler;
     private SessionController sc;
     protected static final Logger logger = Logger.getLogger(SessionLifeCycle.class.getCanonicalName());
@@ -79,7 +80,7 @@ abstract public class SessionLifeCycle<T> {
     public void setSessionController(SessionController sc) {
         this.sc = sc;
     }
-    
+
     public void setPartialMessageHandler(boolean partial) {
         partialMessageHandler = partial;
     }
@@ -92,16 +93,16 @@ abstract public class SessionLifeCycle<T> {
     public void onServerClose(Session s, CloseReason reason) {
         logger.log(Level.INFO, "Closing the session: {0}", s.toString());
         logger.log(Level.INFO, "Closing the session with reason: {0}", reason);
-        
+
         if (!Issue.checkTyrus101(reason)) {
             sc.setState("server.TYRUS101");
         }
         if (!Issue.checkTyrus104(s)) {
             sc.setState("server.TYRUS104");
         }
-        
-        if(reason!=null && reason.getCloseCode().equals(CloseReason.CloseCodes.GOING_AWAY) && reason.getReasonPhrase()!=null && reason.getReasonPhrase().equals("Going away")) {
-          sc.serverOnClose();
+
+        if (reason != null && reason.getCloseCode().equals(CloseReason.CloseCodes.GOING_AWAY) && reason.getReasonPhrase() != null && reason.getReasonPhrase().equals("Going away")) {
+            sc.serverOnClose();
         }
         throw new RuntimeException("going onError");
     }

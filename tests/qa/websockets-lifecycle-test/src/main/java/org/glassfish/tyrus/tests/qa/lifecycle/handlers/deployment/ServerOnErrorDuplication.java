@@ -41,6 +41,7 @@ package org.glassfish.tyrus.tests.qa.lifecycle.handlers.deployment;
 
 import java.io.IOException;
 import java.util.logging.Level;
+
 import javax.websocket.ClientEndpoint;
 import javax.websocket.CloseReason;
 import javax.websocket.EndpointConfig;
@@ -50,14 +51,14 @@ import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
+
 import org.glassfish.tyrus.tests.qa.lifecycle.AnnotatedEndpoint;
 import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleDeployment;
 import org.glassfish.tyrus.tests.qa.lifecycle.handlers.ByteSessionImpl;
 import org.glassfish.tyrus.tests.qa.tools.SessionController;
 
 /**
- *
- * @author michal.conos at oracle.com
+ * @author Michal Čonos (michal.conos at oracle.com)
  */
 public class ServerOnErrorDuplication {
     @ServerEndpoint(value = LifeCycleDeployment.LIFECYCLE_ENDPOINT_PATH)
@@ -90,7 +91,7 @@ public class ServerOnErrorDuplication {
         public void onError(Session s, Throwable thr) {
             lifeCycle.onServerError(s, thr);
         }
-        
+
         @OnError
         public void onError(Throwable thr) {
             lifeCycle.onClientError(null, thr);
@@ -131,8 +132,8 @@ public class ServerOnErrorDuplication {
         public void onError(Session s, Throwable thr) {
             lifeCycle.onClientError(s, thr);
         }
-        
-        
+
+
     }
-    
+
 }

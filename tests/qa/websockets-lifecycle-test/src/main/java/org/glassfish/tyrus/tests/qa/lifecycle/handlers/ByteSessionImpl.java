@@ -40,20 +40,17 @@
 package org.glassfish.tyrus.tests.qa.lifecycle.handlers;
 
 import java.io.IOException;
-import java.io.Reader;
 import java.nio.ByteBuffer;
 import java.util.logging.Level;
 
 import javax.websocket.RemoteEndpoint.Basic;
-
 import javax.websocket.Session;
 
 import org.glassfish.tyrus.tests.qa.lifecycle.SessionConversation;
 import org.glassfish.tyrus.tests.qa.lifecycle.SessionLifeCycle;
 
 /**
- *
- * @author michal.conos at oracle.com
+ * @author Michal Čonos (michal.conos at oracle.com)
  */
 public class ByteSessionImpl extends SessionLifeCycle<byte[]> implements SessionConversation {
 
@@ -61,6 +58,7 @@ public class ByteSessionImpl extends SessionLifeCycle<byte[]> implements Session
     public SessionLifeCycle getSessionConversation(boolean partial) {
         return new ByteSessionImpl(1024, true, partial);
     }
+
     int messageSize;
     byte[] messageToSend;
     ByteBuffer gotPartial, wholeMessage;

@@ -42,11 +42,12 @@ package org.glassfish.tyrus.tests.qa.tools;
 import javax.websocket.DeploymentException;
 
 /**
- *
  * @author Michal Conos (michal.conos at oracle.com)
  */
 public interface ServerToolkit {
     public void registerEndpoint(Class<?> endpoint);
+
     public void startServer() throws DeploymentException;
+
     public void stopServer();
 }

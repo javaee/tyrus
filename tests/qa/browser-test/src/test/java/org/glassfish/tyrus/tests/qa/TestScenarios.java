@@ -52,7 +52,7 @@ import org.openqa.selenium.WebDriver;
 
 /**
  *
- * @author michal.conos at oracle.com
+ * @author Michal Čonos (michal.conos at oracle.com)
  */
 public class TestScenarios {
 

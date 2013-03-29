@@ -59,8 +59,7 @@ import org.glassfish.tyrus.tests.qa.lifecycle.handlers.StringSessionImpl;
 import org.glassfish.tyrus.tests.qa.tools.SessionController;
 
 /**
- *
- * @author michal.conos at oracle.com
+ * @author Michal Čonos (michal.conos at oracle.com)
  */
 public class CustomConfigurationProtocolsProgrammatic implements ServerApplicationConfig {
 
@@ -79,8 +78,8 @@ public class CustomConfigurationProtocolsProgrammatic implements ServerApplicati
             logger.log(Level.INFO, "ProgrammaticEndpoint: onOpen");
             this.sc = new SessionController(session);
             createLifeCycle();
-            
-            logger.log(Level.INFO, "Get Subprotocols: {0}", ((ServerEndpointConfig)ec).getSubprotocols());
+
+            logger.log(Level.INFO, "Get Subprotocols: {0}", ((ServerEndpointConfig) ec).getSubprotocols());
             logger.log(Level.INFO, "Get negotiated subprotocol: {0}", session.getNegotiatedSubprotocol());
             lifeCycle.setSessionController(sc);
             session.addMessageHandler(this);

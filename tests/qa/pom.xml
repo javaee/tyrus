@@ -40,7 +40,8 @@
 
 -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -55,16 +56,16 @@
     <name>Tyrus QA Tests</name>
 
     <modules>
-      <module>browser-test</module>
-      <module>websockets-lifecycle-test</module>
+        <module>browser-test</module>
+        <module>lifecycle-test</module>
     </modules>
 
-   <dependencies>
+    <dependencies>
         <dependency>
             <groupId>org.glassfish.tyrus</groupId>
             <artifactId>tyrus-server</artifactId>
         </dependency>
-   </dependencies>
+    </dependencies>
 
     <build>
         <plugins>

@@ -40,14 +40,13 @@
 package org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary;
 
 import javax.websocket.MessageHandler;
+
 import org.glassfish.tyrus.tests.qa.lifecycle.ProgrammaticWholeMessageEndpoint;
 import org.glassfish.tyrus.tests.qa.lifecycle.handlers.ByteSessionImpl;
-import org.glassfish.tyrus.tests.qa.lifecycle.handlers.StringSessionImpl;
 
 
 /**
- *
- * @author michal.conos at oracle.com
+ * @author Michal Čonos (michal.conos at oracle.com)
  */
 public class ProgrammaticWholeMessageByteSession extends ProgrammaticWholeMessageEndpoint<byte[]> implements MessageHandler.Whole<byte[]> {
 
@@ -55,5 +54,5 @@ public class ProgrammaticWholeMessageByteSession extends ProgrammaticWholeMessag
     public void createLifeCycle() {
         lifeCycle = new ByteSessionImpl(1024, false, false);
     }
-    
+
 }
