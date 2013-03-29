@@ -46,7 +46,7 @@
     <parent>
         <groupId>net.java</groupId>
         <artifactId>jvnet-parent</artifactId>
-        <version>3</version>
+        <version>4</version>
     </parent>
 
     <groupId>org.glassfish.tyrus</groupId>
@@ -123,8 +123,8 @@
     </developers>
 
     <properties>
-        <websocket-api.version>1.0-rc2</websocket-api.version>
-        <websocket.api.build_number>16</websocket.api.build_number>
+        <websocket-api.version>1.0-rc3</websocket-api.version>
+        <websocket.api.build_number>17</websocket.api.build_number>
 
         <servlet.api.version>3.0.1</servlet.api.version>
         <grizzly.version>2.3-rc7</grizzly.version>
