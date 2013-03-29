@@ -41,6 +41,9 @@ package org.glassfish.tyrus.tests.qa;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -72,7 +75,6 @@ import org.glassfish.tyrus.tests.qa.tools.ServerToolkit;
 public abstract class AbstractLifeCycleTestBase {
 
     protected static final Logger logger = Logger.getLogger(AbstractLifeCycleTestBase.class.getCanonicalName());
-
     AppConfig testConf = new AppConfig(
             LifeCycleDeployment.CONTEXT_PATH,
             LifeCycleDeployment.LIFECYCLE_ENDPOINT_PATH,
@@ -81,18 +83,13 @@ public abstract class AbstractLifeCycleTestBase {
             LifeCycleDeployment.COMMCHANNEL_PORT,
             LifeCycleDeployment.INSTALL_ROOT);
     ServerToolkit tyrus;
-    
-    
-
 
     //private Server tyrusServer;
-
     @Before
     public void setupServer() throws Exception {
-        if(AppConfig.isGlassFishContainer()) {
+        if (AppConfig.isGlassFishContainer()) {
             tyrus = new GlassFishToolkit(testConf);
-        }
-        else {
+        } else {
             tyrus = new TyrusToolkit(testConf);
         }
         SessionController.resetState();
@@ -145,6 +142,13 @@ public abstract class AbstractLifeCycleTestBase {
     }
 
     protected void lifeCycle(Class serverHandler, Class clientHandler, String state, URI clientUri, ClientEndpointConfig cec) throws DeploymentException, IOException {
+        Set<String> states = new HashSet<String>();
+        states.add(state);
+        lifeCycle(serverHandler, clientHandler, states, clientUri, cec);
+    }
+    
+
+    protected void lifeCycle(Class serverHandler, Class clientHandler, Set state, URI clientUri, ClientEndpointConfig cec) throws DeploymentException, IOException {
         final CountDownLatch stopConversation = new CountDownLatch(1);
         try {
             deployServer(serverHandler);
@@ -175,31 +179,38 @@ public abstract class AbstractLifeCycleTestBase {
 
         //tyrus.stopServer();
 
-        if (state != null) {
-            logger.log(Level.INFO, "Asserting: {0} {1}", new Object[]{state, SessionController.getState()});
-            Assert.assertEquals("session lifecycle finished", state, SessionController.getState());
+        if (!state.isEmpty()) {
+            logger.log(Level.INFO, "Asserting: {0} contains {1}", new Object[]{state, SessionController.getState()});
+            if (!state.contains(SessionController.getState())) {
+                Assert.fail("session lifecycle finished");
+            }
+            else {
+                Assert.assertTrue("session lifecycle finished", true);
+            }
         }
+
+        /*
+         private void lifeCycleAnnotated(Class serverHandler, Class clientHandler) throws DeploymentException, InterruptedException, IOException {
+    
+    
+
+         ServerAnnotatedConfiguration.registerServer("annotatedLifeCycle", serverHandler);
+         ServerAnnotatedConfiguration.registerSessionController("annotatedSessionController", sc);
+         tyrus.registerEndpoint(ServerAnnotatedConfiguration.class);
+         final Server tyrusServer = tyrus.startServer();
+         WebSocketContainer wsc = ContainerProvider.getWebSocketContainer();
+         Session clientSession = wsc.connectToServer(
+         AnnotatedClient.class,
+         new ClientConfiguration(clientHandler, sc),
+         testConf.getURI());
+         Thread.sleep(10000);
+         tyrus.stopServer(tyrusServer);
+         Assert.assertEquals(sessionName + ": session lifecycle finished", SessionController.SessionState.FINISHED_SERVER.getMessage(), sc.getState());
+         }
+         */
     }
 
-    /*
-     private void lifeCycleAnnotated(Class serverHandler, Class clientHandler) throws DeploymentException, InterruptedException, IOException {
     
-    
-
-     ServerAnnotatedConfiguration.registerServer("annotatedLifeCycle", serverHandler);
-     ServerAnnotatedConfiguration.registerSessionController("annotatedSessionController", sc);
-     tyrus.registerEndpoint(ServerAnnotatedConfiguration.class);
-     final Server tyrusServer = tyrus.startServer();
-     WebSocketContainer wsc = ContainerProvider.getWebSocketContainer();
-     Session clientSession = wsc.connectToServer(
-     AnnotatedClient.class,
-     new ClientConfiguration(clientHandler, sc),
-     testConf.getURI());
-     Thread.sleep(10000);
-     tyrus.stopServer(tyrusServer);
-     Assert.assertEquals(sessionName + ": session lifecycle finished", SessionController.SessionState.FINISHED_SERVER.getMessage(), sc.getState());
-     }
-     */
 
     protected void isMultipleAnnotationEx(Exception ex, String what) {
         if (ex == null || ex.getMessage() == null) {
@@ -213,13 +224,11 @@ public abstract class AbstractLifeCycleTestBase {
     protected void multipleDeployment(Class server, Class client, String whichOne) {
         Exception exThrown = null;
         try {
-            lifeCycle(server, client, null, testConf.getURI(), null);
+            lifeCycle(server, client, Collections.EMPTY_SET, testConf.getURI(), null);
         } catch (Exception e) {
             exThrown = e;
             e.printStackTrace();
         }
         isMultipleAnnotationEx(exThrown, whichOne);
     }
-
-
 }

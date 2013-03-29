@@ -42,6 +42,7 @@ package org.glassfish.tyrus.tests.qa;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collections;
 
 import javax.websocket.DeploymentException;
 
@@ -62,7 +63,7 @@ public class URIMatchProgrammaticTest extends AbstractLifeCycleTestBase {
         boolean exThrown = false;
         try {
             Issue.disableAll();
-            lifeCycle(ProgrammaticWholeMessageStringSessionConfig.class, ProgrammaticWholeMessageStringSession.class, null, new URI("ws://localhost/aaaaa"), null);
+            lifeCycle(ProgrammaticWholeMessageStringSessionConfig.class, ProgrammaticWholeMessageStringSession.class, Collections.EMPTY_SET, new URI("ws://localhost/aaaaa"), null);
         } catch (Exception ex) {
             exThrown = true;
         }

@@ -42,6 +42,7 @@ package org.glassfish.tyrus.tests.qa;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Collections;
 
 import javax.websocket.DeploymentException;
 
@@ -61,7 +62,7 @@ public class URIMatchAnnotatedTest extends AbstractLifeCycleTestBase {
         boolean exThrown = false;
         try {
             Issue.disableAll();
-            lifeCycle(AnnotatedWholeMessageStringSession.Server.class, AnnotatedWholeMessageStringSession.Client.class, null, new URI("ws://localhost/aaaaa"), null);
+            lifeCycle(AnnotatedWholeMessageStringSession.Server.class, AnnotatedWholeMessageStringSession.Client.class, Collections.EMPTY_SET, new URI("ws://localhost/aaaaa"), null);
         } catch (Exception ex) {
             exThrown = true;
         }
