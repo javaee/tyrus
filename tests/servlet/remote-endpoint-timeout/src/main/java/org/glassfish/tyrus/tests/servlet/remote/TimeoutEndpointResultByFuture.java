@@ -54,7 +54,7 @@ import javax.websocket.server.ServerEndpoint;
 @ServerEndpoint(value = "/byfuture")
 public class TimeoutEndpointResultByFuture {
 
-    private byte[] longMessage = new byte[100000000];
+    private byte[] longMessage = new byte[1000000];
     public static boolean timeoutRaised = false;
 
     @OnMessage
