@@ -47,6 +47,7 @@ import javax.websocket.CloseReason;
 import javax.websocket.Session;
 
 import org.glassfish.tyrus.tests.qa.config.AppConfig;
+import org.glassfish.tyrus.tests.qa.lifecycle.MyException;
 
 /**
  * @author Michal Čonos (michal.conos at oracle.com)
@@ -144,14 +145,12 @@ public enum Issue {
 
     public static boolean checkTyrus94(Throwable thr) {
         if (Issue.TYRUS_94.isEnabled()) {
-            try {
-                logger.log(Level.SEVERE, "TYRUS-94: nError: {0}", thr.getLocalizedMessage());
-                logger.log(Level.SEVERE, "TYRUS-94: onError: {0}", thr.getMessage());
-                logger.log(Level.SEVERE, "TYRUS-94: onError: cause: {0}", thr.getCause().getMessage());
-            } catch (RuntimeException ex) {
-                return false;
-                //sc.setState("server.TYRUS_94");
+            if(thr instanceof MyException) {
+                return true;
             }
+
+            logger.log(Level.INFO, String.format("Received %s, expected MyException.class", thr.getClass().getName()));
+            return false;
         }
         return true;
     }

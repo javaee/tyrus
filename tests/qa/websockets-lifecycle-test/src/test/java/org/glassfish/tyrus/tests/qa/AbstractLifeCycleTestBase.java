@@ -58,6 +58,8 @@ import javax.websocket.WebSocketContainer;
 
 import org.glassfish.tyrus.tests.qa.config.AppConfig;
 import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleDeployment;
+import org.glassfish.tyrus.tests.qa.tools.GlassFishToolkit;
+import org.glassfish.tyrus.tests.qa.tools.ServerToolkit;
 import org.glassfish.tyrus.tests.qa.tools.SessionController;
 import org.glassfish.tyrus.tests.qa.tools.TyrusToolkit;
 
@@ -65,8 +67,6 @@ import org.junit.After;
 import org.junit.Before;
 
 import junit.framework.Assert;
-import org.glassfish.tyrus.tests.qa.tools.GlassFishToolkit;
-import org.glassfish.tyrus.tests.qa.tools.ServerToolkit;
 
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
@@ -183,9 +183,6 @@ public abstract class AbstractLifeCycleTestBase {
             logger.log(Level.INFO, "Asserting: {0} contains {1}", new Object[]{state, SessionController.getState()});
             if (!state.contains(SessionController.getState())) {
                 Assert.fail("session lifecycle finished");
-            }
-            else {
-                Assert.assertTrue("session lifecycle finished", true);
             }
         }
 

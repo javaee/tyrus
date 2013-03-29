@@ -104,7 +104,7 @@ abstract public class SessionLifeCycle<T> {
         if (reason != null && reason.getCloseCode().equals(CloseReason.CloseCodes.GOING_AWAY) && reason.getReasonPhrase() != null && reason.getReasonPhrase().equals("Going away")) {
             sc.serverOnClose();
         }
-        throw new RuntimeException("going onError");
+        throw new MyException("going onError");
     }
 
     private boolean checkError(Throwable thr) {
