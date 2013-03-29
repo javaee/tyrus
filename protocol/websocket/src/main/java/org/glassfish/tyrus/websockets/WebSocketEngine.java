@@ -53,6 +53,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.websocket.DeploymentException;
+
 import org.glassfish.tyrus.websockets.draft06.ClosingFrame;
 import org.glassfish.tyrus.websockets.uri.Match;
 
@@ -245,9 +247,21 @@ public class WebSocketEngine {
      * <code>WebSocketEngine</code>.
      *
      * @param app the {@link WebSocketApplication} to register.
+     * @throws DeploymentException when added applications responds to same path as some already registered application.
      */
-    public void register(WebSocketApplication app) {
+    public void register(WebSocketApplication app) throws DeploymentException {
+        checkPath(app);
         applications.add(app);
+    }
+
+    private void checkPath(WebSocketApplication app) throws DeploymentException {
+        for (WebSocketApplication webSocketApplication : applications) {
+            if (Match.isEquivalent(app.getPath(), webSocketApplication.getPath())) {
+                throw new DeploymentException(String.format(
+                        "Found Equivalent paths. Added path: '%s' is equivalent with '%s'.", app.getPath(),
+                        webSocketApplication.getPath()));
+            }
+        }
     }
 
     /**

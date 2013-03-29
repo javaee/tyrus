@@ -45,6 +45,7 @@ import java.net.URISyntaxException;
 import java.util.Map;
 
 import javax.websocket.ClientEndpointConfig;
+import javax.websocket.DeploymentException;
 
 import org.glassfish.tyrus.server.TyrusEndpoint;
 import org.glassfish.tyrus.spi.SPIEndpoint;
@@ -92,7 +93,7 @@ public class GrizzlyEngine implements TyrusContainer {
             }
 
             @Override
-            public SPIRegisteredEndpoint register(SPIEndpoint endpoint) {
+            public SPIRegisteredEndpoint register(SPIEndpoint endpoint) throws DeploymentException {
                 TyrusEndpoint ge = new TyrusEndpoint(endpoint);
                 engine.register(ge);
                 return ge;

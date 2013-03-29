@@ -233,7 +233,6 @@ public class Match {
         return eList;
     }
 
-
     /**
      * Check for equivalent path.
      *
@@ -256,7 +255,14 @@ public class Match {
         return false;
     }
 
-    private static boolean isEquivalent(String path1, String path2) {
+    /**
+     * Check for equivalent paths.
+     *
+     * @param path1 path to be checked.
+     * @param path2 path to be checked.
+     * @return {@code true} when provided path are equivalent, {@code false} otherwise.
+     */
+    public static boolean isEquivalent(String path1, String path2) {
         debug("isEquivalent ? " + path1 + " and " + path2);
         List<String> path1EList = asEquivalenceList(path1);
         List<String> path2EList = asEquivalenceList(path2);

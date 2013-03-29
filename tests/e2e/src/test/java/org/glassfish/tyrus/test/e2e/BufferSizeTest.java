@@ -94,7 +94,6 @@ public class BufferSizeTest {
         public void onClose(CloseReason c) {
             closeReason = c;
         }
-
     }
 
     @Test

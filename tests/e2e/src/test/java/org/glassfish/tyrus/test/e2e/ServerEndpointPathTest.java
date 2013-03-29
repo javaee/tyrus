@@ -44,6 +44,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfig;
+import javax.websocket.DeploymentException;
 import javax.websocket.OnMessage;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
@@ -57,7 +58,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class UriMatchingTest {
+public class ServerEndpointPathTest {
 
     @ServerEndpoint("/{a}")
     public static class WSL1ParamServer {
@@ -68,7 +69,6 @@ public class UriMatchingTest {
         }
     }
 
-
     @ServerEndpoint("/a")
     public static class WSL1ExactServer {
 
@@ -78,9 +78,8 @@ public class UriMatchingTest {
         }
     }
 
-
     @Test
-    public void testClient() {
+    public void testExactMatching() {
         final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
         Server server = new Server(WSL1ExactServer.class, WSL1ParamServer.class);
 
@@ -100,5 +99,15 @@ public class UriMatchingTest {
         } finally {
             server.stop();
         }
+    }
+
+    @ServerEndpoint("/{samePath}")
+    public static class AEndpoint {
+    }
+
+    @Test(expected = DeploymentException.class)
+    public void testEquivalentPaths() throws DeploymentException {
+        Server server = new Server(WSL1ParamServer.class, AEndpoint.class);
+        server.start();
     }
 }

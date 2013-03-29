@@ -145,7 +145,7 @@ public class TyrusServerContainer extends BaseContainer implements WebSocketCont
         }
     }
 
-    private void deploy(EndpointWrapper wrapper) {
+    private void deploy(EndpointWrapper wrapper) throws DeploymentException {
         SPIRegisteredEndpoint ge = server.register(wrapper);
         endpoints.add(ge);
     }
