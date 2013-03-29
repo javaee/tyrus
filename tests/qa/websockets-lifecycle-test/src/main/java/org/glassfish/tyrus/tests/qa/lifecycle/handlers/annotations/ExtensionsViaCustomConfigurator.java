@@ -74,8 +74,8 @@ public class ExtensionsViaCustomConfigurator {
         private void checkExtensions(Session s) {
             logger.log(Level.INFO, "checkExtensions:{0}", s.getNegotiatedExtensions());
 
-            if (s.getNegotiatedExtensions().size()!=10) {
-                throw new RuntimeException("checkSubProtocols: bad subprotocol! Got:" + s.getNegotiatedSubprotocol());
+            if (s.getNegotiatedExtensions().size()!=100) {
+                throw new RuntimeException("checkSubProtocols: bad ext size! Got:" + s.getNegotiatedExtensions().size());
             }
 
 
