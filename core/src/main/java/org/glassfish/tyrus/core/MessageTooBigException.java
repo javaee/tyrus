@@ -43,14 +43,15 @@ package org.glassfish.tyrus.core;
  * Thrown when {@link javax.websocket.OnMessage#maxMessageSize()} is smaller than received message size.
  * <p/>
  * Underlying web socket connection will be closed with {@link javax.websocket.CloseReason.CloseCode}
- * {@link javax.websocket.CloseReason.CloseCodes#TOO_BIG}.
+ * {@link javax.websocket.CloseReason.CloseCodes#TOO_BIG} and {@link javax.websocket.OnError} annotated method (or
+ * {@link javax.websocket.Endpoint#onError(javax.websocket.Session, Throwable)} will be called with instance of this
+ * class as {@link Throwable} parameter.
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-class MaxMessageSizeException extends RuntimeException {
+public class MessageTooBigException extends RuntimeException {
 
-    MaxMessageSizeException(String message) {
+    MessageTooBigException(String message) {
         super(message);
     }
-
 }

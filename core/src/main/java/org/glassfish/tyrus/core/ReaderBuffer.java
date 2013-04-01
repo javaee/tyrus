@@ -149,10 +149,10 @@ class ReaderBuffer {
             } else {
                 if (buffering) {
                     buffering = false;
-                    final MaxMessageSizeException maxMessageSizeException = new MaxMessageSizeException("Partial message could not be delivered due to buffer overflow.");
-                    LOGGER.log(Level.FINE, "Partial message could not be delivered due to buffer overflow.", maxMessageSizeException);
+                    final MessageTooBigException messageTooBigException = new MessageTooBigException("Partial message could not be delivered due to buffer overflow.");
+                    LOGGER.log(Level.FINE, "Partial message could not be delivered due to buffer overflow.", messageTooBigException);
                     receivedLast = true;
-                    throw maxMessageSizeException;
+                    throw messageTooBigException;
                 }
             }
 

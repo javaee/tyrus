@@ -59,9 +59,9 @@ class TextBuffer {
         if (buffer.length() + message.length() <= bufferSize) {
             buffer.append(message);
         } else {
-            final MaxMessageSizeException maxMessageSizeException = new MaxMessageSizeException("Partial message could not be delivered due to buffer overflow.");
-            LOGGER.log(Level.FINE, "Partial message could not be delivered due to buffer overflow.", maxMessageSizeException);
-            throw maxMessageSizeException;
+            final MessageTooBigException messageTooBigException = new MessageTooBigException("Partial message could not be delivered due to buffer overflow.");
+            LOGGER.log(Level.FINE, "Partial message could not be delivered due to buffer overflow.", messageTooBigException);
+            throw messageTooBigException;
         }
     }
 

@@ -643,10 +643,10 @@ public class EndpointWrapper extends SPIEndpoint {
             LOGGER.log(Level.FINE, String.format("Exception thrown while processing message. Session: '%session'.", session), throwable);
         }
 
-        if (throwable instanceof MaxMessageSizeException) {
+        if (throwable instanceof MessageTooBigException) {
             try {
                 session.close(new CloseReason(CloseReason.CloseCodes.TOO_BIG, "Message too big."));
-                return true;
+                return false;
             } catch (IOException e) {
                 // we don't care.
             }

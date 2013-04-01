@@ -132,10 +132,10 @@ class InputStreamBuffer {
             if (currentlyBuffered <= bufferSize) {
                 bufferedFragments.add(message);
             } else {
-                final MaxMessageSizeException maxMessageSizeException = new MaxMessageSizeException("Partial message could not be delivered due to buffer overflow.");
-                LOGGER.log(Level.FINE, "Partial message could not be delivered due to buffer overflow.", maxMessageSizeException);
+                final MessageTooBigException messageTooBigException = new MessageTooBigException("Partial message could not be delivered due to buffer overflow.");
+                LOGGER.log(Level.FINE, "Partial message could not be delivered due to buffer overflow.", messageTooBigException);
                 receivedLast = true;
-                throw maxMessageSizeException;
+                throw messageTooBigException;
             }
 
             this.receivedLast = last;

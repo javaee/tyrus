@@ -51,6 +51,7 @@ import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
 import javax.websocket.OnClose;
+import javax.websocket.OnError;
 import javax.websocket.OnMessage;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
@@ -75,6 +76,7 @@ public class MaxMessageSizeTest {
     public static class Endpoint1 {
 
         public static volatile CloseReason closeReason = null;
+        public static volatile Throwable throwable = null;
 
         @OnMessage(maxMessageSize = 5)
         public String doThat(String message) {
@@ -86,13 +88,21 @@ public class MaxMessageSizeTest {
             closeReason = c;
         }
 
+        @OnError
+        public void onError(Session s, Throwable t) {
+            // onError needs to be called after session is closed.
+            if(!s.isOpen()) {
+                throwable = t;
+            }
+        }
+
     }
 
     @ServerEndpoint(value = "/endpoint2")
     public static class Endpoint2 {
 
         @OnMessage(maxMessageSize = 5)
-        public String doThat(Session s, String message, boolean last) throws IOException {
+        public String doThat(Session s, String message, boolean last) {
             return message;
         }
     }
@@ -156,6 +166,7 @@ public class MaxMessageSizeTest {
 
             messageLatch.await(5, TimeUnit.SECONDS);
             assertEquals(0, messageLatch.getCount());
+            assertNotNull(Endpoint1.throwable);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
@@ -236,10 +247,19 @@ public class MaxMessageSizeTest {
     public static class MyClientEndpoint {
 
         public static CountDownLatch latch;
+        public static volatile Throwable throwable = null;
 
         @OnMessage(maxMessageSize = 3)
         public void onMessage(String message) {
             latch.countDown();
+        }
+
+        @OnError
+        public void onError(Session s, Throwable t) {
+            // onError needs to be called after session is closed.
+            if(!s.isOpen()) {
+                throwable = t;
+            }
         }
     }
 
@@ -283,6 +303,7 @@ public class MaxMessageSizeTest {
             MyClientEndpoint.latch.await(1, TimeUnit.SECONDS);
             assertEquals(1, MyClientEndpoint.latch.getCount());
             assertNotNull(Endpoint1.closeReason);
+            assertNotNull(MyClientEndpoint.throwable);
             assertEquals(CloseReason.CloseCodes.TOO_BIG, Endpoint1.closeReason.getCloseCode());
 
         } catch (Exception e) {
