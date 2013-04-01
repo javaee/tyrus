@@ -53,7 +53,7 @@
     <groupId>org.glassfish.tyrus</groupId>
     <artifactId>tyrus-bom</artifactId>
     <packaging>pom</packaging>
-    <name>tyrus-bom</name>
+    <name>Tyrus BOM</name>
 
     <description>Tyrus Bill of Materials (BOM)</description>
 
