@@ -62,7 +62,6 @@ import javax.websocket.PongMessage;
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  * @author Pavel Bucek (pavel.bucek at oracle.com)
- *
  * @see MessageHandler
  * @see javax.websocket.OnMessage
  */
@@ -110,7 +109,7 @@ class MessageHandlerManager {
     static MessageHandlerManager fromDecoderInstances(List<Decoder> decoders) {
         List<Class<? extends Decoder>> decoderList = new ArrayList<Class<? extends Decoder>>();
         for (Decoder decoder : decoders) {
-            if(decoder instanceof CoderWrapper) {
+            if (decoder instanceof CoderWrapper) {
                 decoderList.add(((CoderWrapper<? extends Decoder>) decoder).getCoderClass());
             } else {
                 decoderList.add(decoder.getClass());
@@ -138,7 +137,7 @@ class MessageHandlerManager {
                 if (textHandlerPresent) {
                     throwException("Text MessageHandler already registered.");
                 } else {
-                    if(Reader.class.isAssignableFrom(handlerClass)){
+                    if (Reader.class.isAssignableFrom(handlerClass)) {
                         readerHandlerPresent = true;
                     }
                     textHandlerPresent = true;
@@ -148,7 +147,7 @@ class MessageHandlerManager {
                 if (binaryHandlerPresent) {
                     throwException("Binary MessageHandler already registered.");
                 } else {
-                    if(InputStream.class.isAssignableFrom(handlerClass)){
+                    if (InputStream.class.isAssignableFrom(handlerClass)) {
                         inputStreamHandlerPresent = true;
                     }
                     binaryHandlerPresent = true;
@@ -296,7 +295,7 @@ class MessageHandlerManager {
         } else if (handler instanceof MessageHandler.Whole) {
             root = MessageHandler.Whole.class;
         } else {
-            throw new IllegalArgumentException(handler.getClass().getName()); // should never happen
+            throw new IllegalArgumentException(String.format("Illegal MessageHandler argument value: %s", handler));
         }
         Class<?> result = ReflectionHelper.getClassType(handler.getClass(), root);
         return result == null ? Object.class : result;
