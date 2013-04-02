@@ -56,7 +56,6 @@ import org.junit.Test;
 public class Tyrus94_AnnotatedTest extends AbstractLifeCycleTestBase {
     @Test
     public void testTyrus94_Annotated() throws DeploymentException, InterruptedException, IOException {
-        Assume.assumeTrue(AppConfig.isTyrusContainer());
         Issue.TYRUS_94.disableAllButThisOne();
         lifeCycle(AnnotatedWholeMessageStringSession.Server.class, AnnotatedWholeMessageStringSession.Client.class);
 

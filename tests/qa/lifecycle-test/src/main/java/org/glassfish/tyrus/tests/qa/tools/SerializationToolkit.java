@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -37,27 +37,58 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.tests.qa;
+package org.glassfish.tyrus.tests.qa.tools;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
-
-import javax.websocket.DeploymentException;
-import org.glassfish.tyrus.tests.qa.config.AppConfig;
-
-import org.glassfish.tyrus.tests.qa.lifecycle.config.ProgrammaticWholeMessageStringSessionConfig;
-import org.glassfish.tyrus.tests.qa.lifecycle.handlers.text.ProgrammaticWholeMessageStringSession;
-import org.glassfish.tyrus.tests.qa.regression.Issue;
-import org.junit.Assume;
-
-import org.junit.Test;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import org.apache.commons.io.FileUtils;
 
 /**
+ *
  * @author Michal Conos (michal.conos at oracle.com)
  */
-public class Tyrus101_ProgrammaticTest extends AbstractLifeCycleTestBase {
-    @Test
-    public void testTyrus101_Programmatic() throws DeploymentException, IOException {
-        Issue.TYRUS_101.disableAllButThisOne();
-        lifeCycle(ProgrammaticWholeMessageStringSessionConfig.class, ProgrammaticWholeMessageStringSession.class);
+public class SerializationToolkit {
+
+    File store;
+
+    public SerializationToolkit() throws IOException {
+        this(File.createTempFile("tests", "websockets"));
+    }
+
+    public SerializationToolkit(File store) {
+        this.store = store;
+    }
+
+    public SerializationToolkit(String store) {
+        this(new File(store));
+    }
+
+    public void save(Object obj) {
+        try {
+            ObjectOutputStream oos = new ObjectOutputStream(
+                    new FileOutputStream(store));
+            oos.writeObject(obj);
+            oos.close();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    public Object load() {
+        Object o = null;
+        try {
+            ObjectInputStream ois = new ObjectInputStream(
+                    new FileInputStream(store));
+            o = ois.readObject();
+            ois.close();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return o;
     }
 }

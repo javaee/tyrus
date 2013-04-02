@@ -57,7 +57,6 @@ import org.junit.Test;
 public class Tyrus93_ProgrammaticTest extends AbstractLifeCycleTestBase {
     @Test
     public void testTyrus93_Programmatic() throws DeploymentException, IOException {
-        Assume.assumeTrue(AppConfig.isTyrusContainer());
         Issue.TYRUS_93.disableAllButThisOne();
         lifeCycle(ProgrammaticWholeMessageStringSessionConfig.class, ProgrammaticWholeMessageStringSession.class);
     }

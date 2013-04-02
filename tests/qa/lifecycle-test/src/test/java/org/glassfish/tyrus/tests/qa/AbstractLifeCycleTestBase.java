@@ -180,9 +180,10 @@ public abstract class AbstractLifeCycleTestBase {
         //tyrus.stopServer();
 
         if (!state.isEmpty()) {
-            logger.log(Level.INFO, "Asserting: {0} contains {1}", new Object[]{state, SessionController.getState()});
-            if (!state.contains(SessionController.getState())) {
-                Assert.fail("session lifecycle finished");
+            String finalState = SessionController.getState();
+            logger.log(Level.INFO, "Asserting: {0} contains {1}", new Object[]{state, finalState});
+            if (!state.contains(finalState)) {
+                Assert.fail("session lifecycle finished with final state: "+finalState+" expected:"+state);
             }
         }
 

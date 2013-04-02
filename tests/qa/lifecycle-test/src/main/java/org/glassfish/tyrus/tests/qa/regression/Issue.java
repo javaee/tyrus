@@ -39,20 +39,24 @@
  */
 package org.glassfish.tyrus.tests.qa.regression;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.websocket.CloseReason;
 import javax.websocket.Session;
+import org.apache.commons.io.FileUtils;
 
 import org.glassfish.tyrus.tests.qa.config.AppConfig;
 import org.glassfish.tyrus.tests.qa.lifecycle.MyException;
+import org.glassfish.tyrus.tests.qa.tools.SerializationToolkit;
 
 /**
  * @author Michal Čonos (michal.conos at oracle.com)
  */
-public enum Issue {
+public enum Issue implements java.io.Serializable {
 
     TYRUS_93("ClientEndpoint session.getRequestURI()==null"),
     TYRUS_94("ServerEndPoint: onError(): throwable.getCause()==null"),
@@ -62,9 +66,11 @@ public enum Issue {
     private static final Logger logger = Logger.getLogger(Issue.class.getCanonicalName());
     private String description;
     private boolean enabled;
+    private SerializationToolkit stool;
 
-    private void setEnabled(boolean enabled) {
+    private void setEnabled(boolean enabled)  {
         this.enabled = enabled;
+        stool.save(this);
     }
 
     /**
@@ -73,30 +79,32 @@ public enum Issue {
      * @return true if enabled, false if the issue is disabled
      */
     public boolean isEnabled() {
-        if (AppConfig.isGlassFishContainer()) {
-            return false;
+        Object obj = stool.load();
+        if(obj!=null && obj instanceof Issue && ((Issue) obj).enabled) {
+            logger.log(Level.INFO, "Issue: {0} enabled", this.toString());
+            return true;
         }
-        return enabled;
+        return false;
     }
 
     /**
      * Disable issue
      */
-    public void disable() {
+    public void disable()  {
         setEnabled(false);
     }
 
     /**
      * Enable issue
      */
-    public void enable() {
+    public void enable()  {
         setEnabled(true);
     }
 
     /**
      * Disable all issue but the on requested. Handy for regression testing
      */
-    public void disableAllButThisOne() {
+    public void disableAllButThisOne()  {
         disableAll();
         this.enable();
     }
@@ -104,7 +112,7 @@ public enum Issue {
     /**
      * Enable All issues in the database
      */
-    public static void enableAll() {
+    public static void enableAll()  {
         for (Issue crno : Issue.values()) {
             crno.enable();
         }
@@ -124,9 +132,11 @@ public enum Issue {
      *
      * @param description issue description
      */
-    Issue(String description) {
+    Issue(String description)  {
         this.description = description;
         this.enabled = true;
+        this.stool=new SerializationToolkit(new File(FileUtils.getTempDirectory(), this.toString()));
+        stool.save(this);
     }
 
     public static boolean checkTyrus93(Session s) {
