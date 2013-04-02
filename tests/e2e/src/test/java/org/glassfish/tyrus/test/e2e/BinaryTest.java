@@ -215,7 +215,7 @@ public class BinaryTest {
                 }
             }, clientConfiguration, new URI("ws://localhost:8025/websockets/tests/endpoint1"));
 
-            messageLatch.await(1, TimeUnit.SECONDS);
+            messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertEquals(0, messageLatch.getCount());
             Assert.assertEquals(ByteBuffer.wrap("TEST1".getBytes()), receivedMessageBinary);
         } catch (Exception e) {
@@ -267,7 +267,7 @@ public class BinaryTest {
                 }
             }, clientConfiguration, new URI("ws://localhost:8025/websockets/tests/endpoint1"));
 
-            messageLatch.await(1, TimeUnit.SECONDS);
+            messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertEquals(0, messageLatch.getCount());
             Assert.assertEquals(ByteBuffer.wrap("TEST1".getBytes()), receivedMessageBinary);
         } catch (Exception e) {
