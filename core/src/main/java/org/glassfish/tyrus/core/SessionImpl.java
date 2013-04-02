@@ -579,7 +579,10 @@ public class SessionImpl implements Session {
         @Override
         public void run() {
             try {
-                SessionImpl.this.close(new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, "Session closed by the container because of the idle timeout."));
+                SessionImpl session = SessionImpl.this;
+                if(session.isOpen()) {
+                    session.close(new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, "Session closed by the container because of the idle timeout."));
+                }
             } catch (IOException e) {
                 LOGGER.log(Level.FINE,"Session could not been closed. "+e.getMessage());
             }

@@ -56,8 +56,11 @@ import javax.websocket.server.ServerEndpoint;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
-import org.junit.Assert;
 import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
@@ -66,7 +69,9 @@ public class SessionTimeoutTest {
 
     @ServerEndpoint(value = "/timeout")
     public static class SessionTimeoutEndpoint {
-        private static CountDownLatch latch = new CountDownLatch(1);
+        private static final CountDownLatch latch = new CountDownLatch(1);
+        private static final CountDownLatch onOpenLatch = new CountDownLatch(1);
+
         private static boolean onClosedCalled = false;
         private long timeoutSetTime;
         private static final long TIMEOUT = 300;
@@ -75,11 +80,12 @@ public class SessionTimeoutTest {
         public void onOpen(Session session) {
             session.setMaxIdleTimeout(TIMEOUT);
             timeoutSetTime = System.currentTimeMillis();
+            onOpenLatch.countDown();
         }
 
         @OnClose
         public void onClose(Session session) {
-            Assert.assertTrue(System.currentTimeMillis() - timeoutSetTime - TIMEOUT < 20);
+            assertTrue(System.currentTimeMillis() - timeoutSetTime - TIMEOUT < 20);
             onClosedCalled = true;
             latch.countDown();
         }
@@ -108,8 +114,11 @@ public class SessionTimeoutTest {
                 }
             }, cec, new URI("ws://localhost:8025/websockets/tests/timeout"));
 
+            SessionTimeoutEndpoint.onOpenLatch.await(5, TimeUnit.SECONDS);
+            assertEquals(0, SessionTimeoutEndpoint.onOpenLatch.getCount());
+
             SessionTimeoutEndpoint.latch.await(3, TimeUnit.SECONDS);
-            Assert.assertTrue(SessionTimeoutEndpoint.onClosedCalled);
+            assertTrue(SessionTimeoutEndpoint.onClosedCalled);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
@@ -120,19 +129,19 @@ public class SessionTimeoutTest {
 
     @ServerEndpoint(value = "/timeout")
     public static class SessionNoTimeoutEndpoint {
-        private static CountDownLatch latch = new CountDownLatch(1);
+        private static final CountDownLatch latch = new CountDownLatch(1);
+        private static final CountDownLatch onOpenLatch = new CountDownLatch(1);
         private static boolean onClosedCalled = false;
-        private long timeoutSetTime;
-        private static final long TIMEOUT = 500;
+        private static final long TIMEOUT = 1000;
 
         @OnOpen
         public void onOpen(Session session) {
             session.setMaxIdleTimeout(TIMEOUT);
-            timeoutSetTime = System.currentTimeMillis();
+            onOpenLatch.countDown();
         }
 
         @OnClose
-        public void onClose(Session session) {
+        public void onClose(Session session, CloseReason closeReason) {
             onClosedCalled = true;
             latch.countDown();
         }
@@ -172,8 +181,12 @@ public class SessionTimeoutTest {
                 }
             }, cec, new URI("ws://localhost:8025/websockets/tests/timeout"));
 
-            SessionNoTimeoutEndpoint.latch.await(1, TimeUnit.SECONDS);
-            Assert.assertFalse(SessionNoTimeoutEndpoint.onClosedCalled);
+            SessionNoTimeoutEndpoint.onOpenLatch.await(5, TimeUnit.SECONDS);
+            assertEquals(0, SessionNoTimeoutEndpoint.onOpenLatch.getCount());
+
+            SessionNoTimeoutEndpoint.latch.await(500, TimeUnit.MILLISECONDS);
+            assertEquals(1, SessionNoTimeoutEndpoint.latch.getCount());
+            assertFalse(SessionNoTimeoutEndpoint.onClosedCalled);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
@@ -185,7 +198,6 @@ public class SessionTimeoutTest {
     @ServerEndpoint(value = "/timeout")
     public static class SessionTimeoutChangedEndpoint {
         private static CountDownLatch latch = new CountDownLatch(1);
-        private static boolean onClosedCalled = false;
         private long timeoutSetTime;
         private static final long TIMEOUT1 = 300;
         private static final long TIMEOUT2 = 700;
@@ -209,8 +221,7 @@ public class SessionTimeoutTest {
 
         @OnClose
         public void onClose(Session session) {
-            Assert.assertTrue(System.currentTimeMillis() - timeoutSetTime - TIMEOUT2 < 20);
-            onClosedCalled = true;
+            assertTrue(System.currentTimeMillis() - timeoutSetTime - TIMEOUT2 < 20);
             latch.countDown();
         }
     }
@@ -246,7 +257,7 @@ public class SessionTimeoutTest {
             }, cec, new URI("ws://localhost:8025/websockets/tests/timeout"));
 
             SessionNoTimeoutEndpoint.latch.await(3, TimeUnit.SECONDS);
-            Assert.assertTrue(SessionNoTimeoutEndpoint.onClosedCalled);
+            assertTrue(SessionNoTimeoutEndpoint.onClosedCalled);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
@@ -272,7 +283,6 @@ public class SessionTimeoutTest {
     public void testSessionClientTimeout() {
         Server server = new Server(SessionClientTimeoutEndpoint.class);
         final CountDownLatch onCloseLatch = new CountDownLatch(1);
-
 
         try {
             server.start();
@@ -301,7 +311,7 @@ public class SessionTimeoutTest {
             session.setMaxIdleTimeout(200);
 
             onCloseLatch.await(2, TimeUnit.SECONDS);
-            Assert.assertTrue(SessionClientTimeoutEndpoint.clientOnCloseCalled);
+            assertTrue(SessionClientTimeoutEndpoint.clientOnCloseCalled);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
