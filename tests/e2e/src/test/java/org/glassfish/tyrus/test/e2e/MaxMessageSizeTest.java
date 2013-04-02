@@ -77,6 +77,7 @@ public class MaxMessageSizeTest {
 
         public static volatile CloseReason closeReason = null;
         public static volatile Throwable throwable = null;
+        public static final CountDownLatch exceptionLatch = new CountDownLatch(1);
 
         @OnMessage(maxMessageSize = 5)
         public String doThat(String message) {
@@ -94,6 +95,8 @@ public class MaxMessageSizeTest {
             if(!s.isOpen()) {
                 throwable = t;
             }
+
+            exceptionLatch.countDown();
         }
 
     }
@@ -166,6 +169,7 @@ public class MaxMessageSizeTest {
 
             messageLatch.await(5, TimeUnit.SECONDS);
             assertEquals(0, messageLatch.getCount());
+            Endpoint1.exceptionLatch.await(5, TimeUnit.SECONDS);
             assertNotNull(Endpoint1.throwable);
         } catch (Exception e) {
             e.printStackTrace();
