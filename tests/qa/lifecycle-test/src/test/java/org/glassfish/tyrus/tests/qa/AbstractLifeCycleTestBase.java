@@ -146,7 +146,6 @@ public abstract class AbstractLifeCycleTestBase {
         states.add(state);
         lifeCycle(serverHandler, clientHandler, states, clientUri, cec);
     }
-    
 
     protected void lifeCycle(Class serverHandler, Class clientHandler, Set state, URI clientUri, ClientEndpointConfig cec) throws DeploymentException, IOException {
         final CountDownLatch stopConversation = new CountDownLatch(1);
@@ -183,7 +182,7 @@ public abstract class AbstractLifeCycleTestBase {
             String finalState = SessionController.getState();
             logger.log(Level.INFO, "Asserting: {0} contains {1}", new Object[]{state, finalState});
             if (!state.contains(finalState)) {
-                Assert.fail("session lifecycle finished with final state: "+finalState+" expected:"+state);
+                Assert.fail("session lifecycle finished with final state: " + finalState + " expected:" + state);
             }
         }
 
@@ -208,8 +207,6 @@ public abstract class AbstractLifeCycleTestBase {
          */
     }
 
-    
-
     protected void isMultipleAnnotationEx(Exception ex, String what) {
         if (ex == null || ex.getMessage() == null) {
             Assert.fail("isMultipleAnnotationEx: ex==null or ex.getMessage()==null");
@@ -227,6 +224,12 @@ public abstract class AbstractLifeCycleTestBase {
             exThrown = e;
             e.printStackTrace();
         }
-        isMultipleAnnotationEx(exThrown, whichOne);
+        if (AppConfig.isGlassFishContainer()) {
+            if(exThrown instanceof DeploymentException) {
+                logger.log(Level.INFO, "The DeploymentExcetion looks good here");
+            }
+        } else {
+            isMultipleAnnotationEx(exThrown, whichOne);
+        }
     }
 }

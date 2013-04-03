@@ -40,16 +40,11 @@
 package org.glassfish.tyrus.tests.qa.regression;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
 import javax.websocket.CloseReason;
 import javax.websocket.Session;
-import org.apache.commons.io.FileUtils;
-
-import org.glassfish.tyrus.tests.qa.config.AppConfig;
 import org.glassfish.tyrus.tests.qa.lifecycle.MyException;
 import org.glassfish.tyrus.tests.qa.tools.SerializationToolkit;
 
@@ -126,6 +121,14 @@ public enum Issue implements java.io.Serializable {
             crno.disable();
         }
     }
+    
+    public static String getTempDirectoryPath() {
+        return System.getProperty("java.io.tmpdir");
+    }
+    
+    public static File getTempDirectory() {
+        return new File(getTempDirectoryPath());
+    }
 
     /**
      * Issue is created with a description
@@ -135,7 +138,7 @@ public enum Issue implements java.io.Serializable {
     Issue(String description)  {
         this.description = description;
         this.enabled = true;
-        this.stool=new SerializationToolkit(new File(FileUtils.getTempDirectory(), this.toString()));
+        this.stool=new SerializationToolkit(new File(getTempDirectory(), this.toString()));
         stool.save(this);
     }
 
