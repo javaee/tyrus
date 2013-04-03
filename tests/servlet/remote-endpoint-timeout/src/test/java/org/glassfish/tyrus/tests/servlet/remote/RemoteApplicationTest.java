@@ -163,7 +163,7 @@ public class RemoteApplicationTest {
                 }
             }, ClientEndpointConfig.Builder.create().build(), getURI(TimeoutEndpointResultByHandler.class.getAnnotation(ServerEndpoint.class).value()));
 
-            messageLatch.await(1, TimeUnit.SECONDS);
+            messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertEquals(1, messageLatch.getCount());
 
             final CountDownLatch serviceMessageLatch = new CountDownLatch(1);
@@ -187,7 +187,7 @@ public class RemoteApplicationTest {
                 }
             }, ClientEndpointConfig.Builder.create().build(), getURI(ServiceEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
 
-            serviceMessageLatch.await(1, TimeUnit.SECONDS);
+            serviceMessageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertEquals(0, serviceMessageLatch.getCount());
             Assert.assertTrue(receivedMessage1.equals("1"));
         } finally {
