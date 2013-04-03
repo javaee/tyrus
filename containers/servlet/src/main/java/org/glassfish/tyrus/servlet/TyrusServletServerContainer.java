@@ -59,13 +59,16 @@ import javax.websocket.server.ServerEndpointConfig;
 public class TyrusServletServerContainer implements ServerContainer {
 
     public static final String SERVER_CONTAINER_ATTRIBUTE = "javax.websocket.server.ServerContainer";
+    private final TyrusServletFilter filter;
+    private boolean canDeploy = true;
 
-    private static final ThreadLocal<TyrusServletFilter> tyrusFilter = new ThreadLocal<TyrusServletFilter>();
+    TyrusServletServerContainer(TyrusServletFilter filter) {
+        this.filter = filter;
+    }
 
     @Override
     public void addEndpoint(Class<?> endpointClass) throws DeploymentException {
-        final TyrusServletFilter filter = tyrusFilter.get();
-        if (filter != null) {
+        if (canDeploy) {
             filter.addClass(endpointClass);
         } else {
             throw new IllegalStateException("Not in 'deploy' scope.");
@@ -74,22 +77,12 @@ public class TyrusServletServerContainer implements ServerContainer {
 
     @Override
     public void addEndpoint(ServerEndpointConfig serverEndpointConfig) throws DeploymentException {
-        final TyrusServletFilter filter = tyrusFilter.get();
-        if (filter != null) {
+        if (canDeploy) {
             filter.addServerEndpointConfig(serverEndpointConfig);
         } else {
             throw new IllegalStateException("Not in 'deploy' scope.");
         }
     }
-
-    void setTyrusFilter(final TyrusServletFilter tyrusFilter) {
-        TyrusServletServerContainer.tyrusFilter.set(tyrusFilter);
-    }
-
-    void cleanup() {
-        tyrusFilter.remove();
-    }
-
 
     @Override
     public long getDefaultAsyncSendTimeout() {
@@ -154,5 +147,9 @@ public class TyrusServletServerContainer implements ServerContainer {
     @Override
     public Set<Extension> getInstalledExtensions() {
         throw new UnsupportedOperationException();
+    }
+
+    void doneDeployment() {
+        canDeploy = false;
     }
 }

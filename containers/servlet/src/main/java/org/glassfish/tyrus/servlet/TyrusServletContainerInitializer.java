@@ -78,12 +78,10 @@ public class TyrusServletContainerInitializer implements ServletContainerInitial
     public void onStartup(Set<Class<?>> classes, ServletContext ctx) throws ServletException {
         if (classes == null || classes.isEmpty()) {
             // prepare for possible programmatic deployment
-            final ServerContainer serverContainer = new TyrusServletServerContainer();
-            ctx.setAttribute(TyrusServletServerContainer.SERVER_CONTAINER_ATTRIBUTE, serverContainer);
             TyrusServletFilter filter = ctx.createFilter(TyrusServletFilter.class);
             filter.setServletContext(ctx);
-            ((TyrusServletServerContainer) serverContainer).setTyrusFilter(filter);
-
+            ServerContainer serverContainer = new TyrusServletServerContainer(filter);
+            ctx.setAttribute(TyrusServletServerContainer.SERVER_CONTAINER_ATTRIBUTE, serverContainer);
             return;
         }
 
@@ -102,8 +100,7 @@ public class TyrusServletContainerInitializer implements ServletContainerInitial
         reg.addMappingForUrlPatterns(null, true, "/*");
         LOGGER.info("Registering WebSocket filter for url pattern /*");
 
-        final TyrusServletServerContainer serverContainer = new TyrusServletServerContainer();
+        final TyrusServletServerContainer serverContainer = new TyrusServletServerContainer(filter);
         ctx.setAttribute(TyrusServletServerContainer.SERVER_CONTAINER_ATTRIBUTE, serverContainer);
-        serverContainer.setTyrusFilter(filter);
     }
 }

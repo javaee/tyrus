@@ -138,7 +138,7 @@ public class TyrusServletFilter implements Filter {
             // remove reference to filter.
             final ServerContainer container = (ServerContainer) filterConfig.getServletContext().getAttribute(TyrusServletServerContainer.SERVER_CONTAINER_ATTRIBUTE);
             if (container instanceof TyrusServletServerContainer) {
-                ((TyrusServletServerContainer) container).cleanup();
+                ((TyrusServletServerContainer) container).doneDeployment();
             }
         }
     }
