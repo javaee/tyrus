@@ -46,6 +46,7 @@ import java.util.logging.Logger;
 import javax.websocket.CloseReason;
 import javax.websocket.Session;
 import org.glassfish.tyrus.tests.qa.lifecycle.MyException;
+import org.glassfish.tyrus.tests.qa.tools.Misc;
 import org.glassfish.tyrus.tests.qa.tools.SerializationToolkit;
 
 /**
@@ -123,11 +124,11 @@ public enum Issue implements java.io.Serializable {
     }
     
     public static String getTempDirectoryPath() {
-        return System.getProperty("java.io.tmpdir");
+        return Misc.getTempDirectoryPath();
     }
     
     public static File getTempDirectory() {
-        return new File(getTempDirectoryPath());
+        return Misc.getTempDirectory();
     }
 
     /**

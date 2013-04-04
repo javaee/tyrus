@@ -86,25 +86,19 @@ public class SessionController {
     }
 
     private final Session session;
-    private final CommChannel commChannel;
-    private final CommChannel.Client client;
+    
 
     public SessionController(Session session) {
         this.session = session;
-        commChannel = new CommChannel(
-                LifeCycleDeployment.COMMCHANNEL_SCHEME,
-                LifeCycleDeployment.COMMCHANNEL_HOST,
-                LifeCycleDeployment.COMMCHANNEL_PORT);
-        client = commChannel.new Client();
     }
 
     public Session getSession() {
         return session;
     }
 
-    private static String getId() {
+    private static File getId() {
         //return session.getId();
-        return "/tmp/sessionState";
+        return new File(Misc.getTempDirectory(), "sessionState");
     }
 
     private static synchronized void changeState(SessionState expect, SessionState newState) {
@@ -123,10 +117,7 @@ public class SessionController {
     }
 
     public static synchronized void resetState() {
-
-        new File(getId()).delete();
-
-
+        getId().delete();
     }
 
     public static synchronized void setState(String customState) {
