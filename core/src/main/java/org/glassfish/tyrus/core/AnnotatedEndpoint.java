@@ -276,8 +276,6 @@ public class AnnotatedEndpoint extends Endpoint {
                 return null;
             }
 
-            // TODO - wscAnnotation.configuration()?
-
             List<Class<? extends Encoder>> encoderClasses = new ArrayList<Class<? extends Encoder>>();
             List<Class<? extends Decoder>> decoderClasses = new ArrayList<Class<? extends Decoder>>();
             String[] subProtocols;
@@ -288,8 +286,10 @@ public class AnnotatedEndpoint extends Endpoint {
 
             decoderClasses.addAll(EndpointWrapper.getDefaultDecoders());
 
+            ClientEndpointConfig.Configurator configurator = ReflectionHelper.getInstance(wscAnnotation.configurator(), collector);
+
             return ClientEndpointConfig.Builder.create().encoders(encoderClasses).decoders(decoderClasses).
-                    preferredSubprotocols(Arrays.asList(subProtocols)).build();
+                    preferredSubprotocols(Arrays.asList(subProtocols)).configurator(configurator).build();
         }
     }
 

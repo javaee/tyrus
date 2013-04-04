@@ -47,12 +47,14 @@ import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import javax.websocket.ClientEndpoint;
 import javax.websocket.ClientEndpointConfig;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfig;
 import javax.websocket.HandshakeResponse;
 import javax.websocket.MessageHandler;
 import javax.websocket.OnMessage;
+import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.HandshakeRequest;
 import javax.websocket.server.ServerEndpoint;
@@ -63,6 +65,7 @@ import org.glassfish.tyrus.server.Server;
 
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
@@ -94,8 +97,11 @@ public class ModifyRequestResponseHeadersTest {
     }
 
     public static class MyClientConfigurator extends ClientEndpointConfig.Configurator {
+        static volatile boolean called = false;
+
         @Override
         public void beforeRequest(Map<String, List<String>> headers) {
+            called = true;
             headers.put(HEADER_NAME, Arrays.asList(HEADER_VALUE));
         }
 
@@ -108,8 +114,9 @@ public class ModifyRequestResponseHeadersTest {
     }
 
     @Test
-    public void testHeaders() {
+    public void testHeadersProgrammatic() {
         Server server = new Server(TestEndpoint.class);
+        MyClientConfigurator.called = false;
 
         final CountDownLatch messageLatch = new CountDownLatch(1);
 
@@ -142,7 +149,48 @@ public class ModifyRequestResponseHeadersTest {
 
             messageLatch.await(5, TimeUnit.SECONDS);
             assertEquals(0, messageLatch.getCount());
+            assertTrue(MyClientConfigurator.called);
             assertEquals(SENT_MESSAGE, receivedMessage);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            server.stop();
+        }
+    }
+
+    @ClientEndpoint(configurator = MyClientConfigurator.class)
+    public static class MyClientEndpoint {
+        public static final CountDownLatch messageLatch = new CountDownLatch(1);
+        public static volatile String receivedMessage;
+
+        @OnOpen
+        public void onOpen(Session session) throws IOException {
+            session.getBasicRemote().sendText(SENT_MESSAGE);
+        }
+
+        @OnMessage
+        public void onMessage(String message) {
+            receivedMessage = message;
+            messageLatch.countDown();
+        }
+    }
+
+    @Test
+    public void testHeadersAnnotated() {
+        Server server = new Server(TestEndpoint.class);
+        MyClientConfigurator.called = false;
+
+        try {
+            server.start();
+
+            ClientManager client = ClientManager.createClient();
+            client.connectToServer(MyClientEndpoint.class, new URI("ws://localhost:8025/websockets/tests/echo"));
+
+            MyClientEndpoint.messageLatch.await(5, TimeUnit.SECONDS);
+            assertTrue(MyClientConfigurator.called);
+            assertEquals(0, MyClientEndpoint.messageLatch.getCount());
+            assertEquals(SENT_MESSAGE, MyClientEndpoint.receivedMessage);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
