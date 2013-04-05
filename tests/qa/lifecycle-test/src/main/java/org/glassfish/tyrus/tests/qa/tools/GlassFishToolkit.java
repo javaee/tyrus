@@ -364,6 +364,9 @@ public class GlassFishToolkit implements ServerToolkit {
         } catch (ClassNotFoundException ex) {
             ex.printStackTrace();
             throw new RuntimeException(ex.getMessage());
+        }  catch (InterruptedException ex) {
+            ex.printStackTrace();
+            throw new RuntimeException(ex.getMessage());
         }
     }
 }
