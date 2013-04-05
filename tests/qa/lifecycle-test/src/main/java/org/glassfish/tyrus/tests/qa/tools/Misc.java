@@ -40,19 +40,57 @@
 package org.glassfish.tyrus.tests.qa.tools;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
  * @author michal.conos at oracle.com
  */
 public class Misc {
-    
+
+    private static final Logger logger = Logger.getLogger(Misc.class.getCanonicalName());
+
     public static String getTempDirectoryPath() {
         return System.getProperty("java.io.tmpdir");
     }
-    
+
     public static File getTempDirectory() {
         return new File(getTempDirectoryPath());
     }
-    
+
+    public static void delete(final File path, final long timeout) throws InterruptedException {
+        final CountDownLatch timer = new CountDownLatch(1);
+        Thread worker = new Thread() {
+            @Override
+            public void run() {
+                try {
+                    for (;;) {
+                        if (path.delete()) {
+                            timer.countDown();
+                            break;
+                        } else {
+                            logger.log(Level.SEVERE, "Delete did not succeded for {0}", path.toString());
+                            Thread.sleep(timeout * 10); // 100 tries
+                        }
+
+
+                    }
+                } catch (Exception ex) {
+                    logger.log(Level.SEVERE, null, ex);
+                }
+            }
+        };
+        worker.start();
+        timer.await(timeout, TimeUnit.SECONDS);
+        if(timer.getCount()>0) {
+            worker.interrupt();
+            throw new RuntimeException(String.format("Delete of %s failed after %d secs!", path.toString(), timeout));
+        }
+    }
 }

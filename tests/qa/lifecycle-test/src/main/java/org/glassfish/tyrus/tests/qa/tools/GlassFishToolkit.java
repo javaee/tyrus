@@ -254,7 +254,7 @@ public class GlassFishToolkit implements ServerToolkit {
         return new File(getDirname(new File(clazz.toString())), clazzBasename);
     }
 
-    public ScatteredArchive makeWar(Class clazz, String path) throws IOException, ClassNotFoundException {
+    public ScatteredArchive makeWar(Class clazz, String path) throws IOException, ClassNotFoundException, InterruptedException {
         ScatteredArchive archive = new ScatteredArchive("testapp", ScatteredArchive.Type.WAR);
         String name = clazz.getName();
 
@@ -283,7 +283,8 @@ public class GlassFishToolkit implements ServerToolkit {
             if (isBlackListed(srcClazz)) {
                 logger.log(Level.FINE, "Deleting : {0}", addMe.toString());
                 
-                Files.delete(Paths.get(addMe.getAbsolutePath()));
+                //Files.delete(Paths.get(addMe.getAbsolutePath()));
+                Misc.delete(addMe, 1800); // delete file with 30mins timeout
                 //try {
                 //    addMe.setWritable(true);
                 //    FileUtils.forceDelete(addMe);
