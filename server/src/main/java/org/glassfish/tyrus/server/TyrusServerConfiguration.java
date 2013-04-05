@@ -127,7 +127,7 @@ public class TyrusServerConfiguration implements ServerApplicationConfig {
 
         // iterate through dynamically deployed classes
         // main difference compared to "scanning" deployment is that all classes will be deployed, no matter if
-        // ServerApplicationConfiguration descendant is found.
+        // ServerApplicationConfig descendant is found.
         for (Class<?> c : dynamicallyAddedClasses) {
 
             // not ifaces nor abstract classes
@@ -141,7 +141,7 @@ public class TyrusServerConfiguration implements ServerApplicationConfig {
 
                 // nothing else is expected/supported.
             } else {
-                errorCollector.addException(new DeploymentException(String.format("Class %s is not ServerApplicationConfiguration descendant nor has @ServerEndpoint annotation.", c.getName())));
+                errorCollector.addException(new DeploymentException(String.format("Class %s is not ServerApplicationConfig descendant nor has @ServerEndpoint annotation.", c.getName())));
             }
         }
 

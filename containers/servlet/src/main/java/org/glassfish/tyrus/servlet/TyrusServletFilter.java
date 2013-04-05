@@ -86,7 +86,7 @@ public class TyrusServletFilter implements Filter {
 
     private boolean registered = false;
 
-    // @ServerEndpoint annotated classes and classes extending ServerApplicationConfiguration
+    // @ServerEndpoint annotated classes and classes extending ServerApplicationConfig
     private Set<Class<?>> classes = null;
     private ServletContext servletContext = null;
     private final Set<Class<?>> dynamicallyDeployedClasses = new HashSet<Class<?>>();
