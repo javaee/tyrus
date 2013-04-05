@@ -43,6 +43,9 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -279,7 +282,16 @@ public class GlassFishToolkit implements ServerToolkit {
             }
             if (isBlackListed(srcClazz)) {
                 logger.log(Level.FINE, "Deleting : {0}", addMe.toString());
-                FileUtils.forceDelete(addMe);
+                
+                Files.delete(Paths.get(addMe.getAbsolutePath()));
+                //try {
+                //    addMe.setWritable(true);
+                //    FileUtils.forceDelete(addMe);
+                //}
+                //catch(Exception ex) {
+                //    ex.printStackTrace();
+                //}
+                
             }
 
 
