@@ -70,6 +70,21 @@ public class HandshakeException extends WebSocketException {
     }
 
     /**
+     * Construct a <tt>HandshakeException</tt>.
+     *
+     * @param code    error code
+     * @param message error description
+     * @param cause   the cause (which is saved for later retrieval by the
+     *                {@link #getCause()} method).  (A <tt>null</tt> value is
+     *                permitted, and indicates that the cause is nonexistent or
+     *                unknown.)
+     */
+    public HandshakeException(int code, String message, Throwable cause) {
+        super(message, cause);
+        this.code = code;
+    }
+
+    /**
      * Get the error code.
      *
      * @return the error code.

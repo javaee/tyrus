@@ -45,6 +45,7 @@ import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.websocket.server.ServerContainer;
@@ -195,7 +196,7 @@ public class TyrusServletFilter implements Filter {
         // check for mandatory websocket header
         final String header = httpServletRequest.getHeader(WebSocketEngine.SEC_WS_KEY_HEADER);
         if (header != null) {
-            LOGGER.config("Setting up WebSocket protocol handler");
+            LOGGER.fine("Setting up WebSocket protocol handler");
 
             final TyrusHttpUpgradeHandlerProxy handler = new TyrusHttpUpgradeHandlerProxy();
 
@@ -228,9 +229,13 @@ public class TyrusServletFilter implements Filter {
             try {
                 if (!engine.upgrade(webSocketConnection, requestContext, new WebSocketEngine.WebSocketHolderListener() {
                     @Override
-                    public void onWebSocketHolder(WebSocketEngine.WebSocketHolder webSocketHolder) throws IOException {
-                        LOGGER.config("Upgrading Servlet request");
-                        handler.setHandler(httpServletRequest.upgrade(TyrusHttpUpgradeHandler.class));
+                    public void onWebSocketHolder(WebSocketEngine.WebSocketHolder webSocketHolder) throws HandshakeException {
+                        LOGGER.fine("Upgrading Servlet request");
+                        try {
+                            handler.setHandler(httpServletRequest.upgrade(TyrusHttpUpgradeHandler.class));
+                        } catch (Exception e) {
+                            throw new HandshakeException(500, "Handshake error.", e);
+                        }
                         handler.setWebSocketHolder(engine.getWebSocketHolder(webSocketConnection));
                     }
                 })) {
@@ -239,13 +244,12 @@ public class TyrusServletFilter implements Filter {
                 }
 
             } catch (HandshakeException e) {
-                // TODO
-                // ctx.write(composeHandshakeError(request, e));
+                LOGGER.log(Level.CONFIG, e.getMessage(), e);
             }
 
             // Servlet bug ?? Not sure why we need to flush the headers
             response.flushBuffer();
-            LOGGER.config("Handshake Complete");
+            LOGGER.fine("Handshake Complete");
         } else {
             filterChain.doFilter(request, response);
         }

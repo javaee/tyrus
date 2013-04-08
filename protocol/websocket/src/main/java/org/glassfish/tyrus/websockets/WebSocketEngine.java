@@ -160,10 +160,10 @@ public class WebSocketEngine {
          * call is on listener when it is used.
          *
          * @param webSocketHolder holder instance.
-         * @throws IOException IOException if an I/O error occurred during the upgrade.
+         * @throws HandshakeException if an error occurred during the upgrade process.
          * @see WebSocketHolder#webSocket
          */
-        public abstract void onWebSocketHolder(WebSocketHolder webSocketHolder) throws IOException;
+        public abstract void onWebSocketHolder(WebSocketHolder webSocketHolder) throws HandshakeException;
     }
 
     /**
@@ -187,9 +187,9 @@ public class WebSocketEngine {
      *                                {@link org.glassfish.tyrus.websockets.WebSocket#onConnect()} call
      *                                responsibility to {@link WebSocketHolderListener} instance.
      * @return {@code true} if upgrade is performed, {@code false} otherwise.
-     * @throws IOException if an I/O error occurred during the upgrade.
+     * @throws HandshakeException if an error occurred during the upgrade.
      */
-    public boolean upgrade(Connection connection, WebSocketRequest request, WebSocketHolderListener webSocketHolderListener) throws IOException {
+    public boolean upgrade(Connection connection, WebSocketRequest request, WebSocketHolderListener webSocketHolderListener) throws HandshakeException {
         final WebSocketApplication app = WebSocketEngine.getEngine().getApplication(request);
         WebSocket socket = null;
         try {
