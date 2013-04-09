@@ -265,12 +265,15 @@ public class GlassFishToolkit implements ServerToolkit {
         try {
             Thread.sleep(1000);
             FileUtils.forceDelete(new File(FilenameUtils.separatorsToUnix(dstDirectory.toString())));
+            Thread.sleep(1000);
         } catch (Exception ex) {
             logger.log(Level.SEVERE, "forceDelete:", ex.getMessage());
         }
         FileUtils.forceMkdir(dstDirectory);
         File source = new File("target/classes");
+        Thread.sleep(1000);
         FileUtils.copyDirectory(source, dstDirectory);
+        Thread.sleep(5000);
         logger.log(Level.FINE, "tempdir:{0}", dstDirectory.toString());
         String targetCanonicalName = clazz.getCanonicalName();
         for (File addMe : FileUtils.listFiles(dstDirectory, new String[]{"class"}, true)) {
