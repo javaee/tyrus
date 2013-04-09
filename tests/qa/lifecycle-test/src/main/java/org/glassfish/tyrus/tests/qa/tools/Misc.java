@@ -50,6 +50,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 
 /**
  *
@@ -71,7 +72,7 @@ public class Misc {
         }
         for(File src: fileSet) {
             File srcParent = src.getParentFile();
-            String targetDir = srcParent.toString();
+            String targetDir = FilenameUtils.separatorsToUnix(srcParent.toString());
             if(regex!=null) {
                 if(move==null) {
                     move = "";
