@@ -48,8 +48,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -76,18 +78,17 @@ public class GlassFishToolkit implements ServerToolkit {
     private String installRoot;
     private ScatteredArchive deploy;
     private final static Logger logger = Logger.getLogger(GlassFishToolkit.class.getName());
-
     private static final String glassfishWeb =
             "<!DOCTYPE glassfish-web-app PUBLIC \"-//GlassFish.org//DTD GlassFish Application Server 3.1 Servlet 3.0//EN\" \"http://glassfish.org/dtds/glassfish-web-app_3_0-1.dtd\">"
-                    + "<glassfish-web-app error-url=\"\">"
-                    + "<context-root>%s</context-root>"
-                    + "<class-loader delegate=\"true\"/>"
-                    + "<jsp-config>"
-                    + "<property name=\"keepgenerated\" value=\"true\">"
-                    + "<description>Keep a copy of the generated servlet class' java code.</description>"
-                    + "</property>"
-                    + "</jsp-config>"
-                    + "</glassfish-web-app>";
+            + "<glassfish-web-app error-url=\"\">"
+            + "<context-root>%s</context-root>"
+            + "<class-loader delegate=\"true\"/>"
+            + "<jsp-config>"
+            + "<property name=\"keepgenerated\" value=\"true\">"
+            + "<description>Keep a copy of the generated servlet class' java code.</description>"
+            + "</property>"
+            + "</jsp-config>"
+            + "</glassfish-web-app>";
     private AppConfig config;
 
     public GlassFishToolkit(AppConfig config) {
@@ -271,35 +272,49 @@ public class GlassFishToolkit implements ServerToolkit {
         }
         FileUtils.forceMkdir(dstDirectory);
         File source = new File("target/classes");
-        Thread.sleep(1000);
-        FileUtils.copyDirectory(source, dstDirectory);
-        Thread.sleep(5000);
-        logger.log(Level.FINE, "tempdir:{0}", dstDirectory.toString());
-        String targetCanonicalName = clazz.getCanonicalName();
-        for (File addMe : FileUtils.listFiles(dstDirectory, new String[]{"class"}, true)) {
-            logger.log(Level.INFO, "addme:{0}", addMe.toString());
-            File srcClazz = new File(FilenameUtils.separatorsToUnix(addMe.toString()).replaceFirst(FilenameUtils.separatorsToUnix(dstDirectory.toString()), "target/classes"));
-            String srcClazzCanonicalName = getClazzForFile(srcClazz).getCanonicalName();
-            if (srcClazzCanonicalName != null && srcClazzCanonicalName.equals(targetCanonicalName)) {
+        Set<File> warFiles = new HashSet<File>();
+        for (File addMe : FileUtils.listFiles(source, new String[]{"class"}, true)) {
+            String srcClazzCanonicalName = getClazzForFile(addMe).getCanonicalName();
+            if (srcClazzCanonicalName != null && srcClazzCanonicalName.equals(clazz.getCanonicalName())) {
+                warFiles.add(addMe);
                 continue;
             }
-            if (isBlackListed(srcClazz)) {
-                logger.log(Level.FINE, "Deleting : {0}", addMe.toString());
-                
-                //Files.delete(Paths.get(addMe.getAbsolutePath()));
-                Misc.delete(addMe, 1800); // delete file with 30mins timeout
-                //try {
-                //    addMe.setWritable(true);
-                //    FileUtils.forceDelete(addMe);
-                //}
-                //catch(Exception ex) {
-                //    ex.printStackTrace();
-                //}
-                
+            if (!isBlackListed(addMe)) {
+                warFiles.add(addMe);
             }
-
-
         }
+        Misc.copyFiles(warFiles, dstDirectory, "^target/classes", "");
+        /*
+         Thread.sleep(1000);
+         FileUtils.copyDirectory(source, dstDirectory);
+         Thread.sleep(5000);
+         logger.log(Level.FINE, "tempdir:{0}", dstDirectory.toString());
+         String targetCanonicalName = clazz.getCanonicalName();
+         for (File addMe : FileUtils.listFiles(dstDirectory, new String[]{"class"}, true)) {
+         logger.log(Level.INFO, "addme:{0}", addMe.toString());
+         File srcClazz = new File(FilenameUtils.separatorsToUnix(addMe.toString()).replaceFirst(FilenameUtils.separatorsToUnix(dstDirectory.toString()), "target/classes"));
+         String srcClazzCanonicalName = getClazzForFile(srcClazz).getCanonicalName();
+         if (srcClazzCanonicalName != null && srcClazzCanonicalName.equals(targetCanonicalName)) {
+         continue;
+         }
+         if (isBlackListed(srcClazz)) {
+         logger.log(Level.FINE, "Deleting : {0}", addMe.toString());
+                
+         //Files.delete(Paths.get(addMe.getAbsolutePath()));
+         Misc.delete(addMe, 1800); // delete file with 30mins timeout
+         //try {
+         //    addMe.setWritable(true);
+         //    FileUtils.forceDelete(addMe);
+         //}
+         //catch(Exception ex) {
+         //    ex.printStackTrace();
+         //}
+                
+         }
+
+
+         }
+         */
         archive.addClassPath(dstDirectory);
         archive.addMetadata(createWebXml(path), "WEB-INF/glassfish-web.xml");
         return archive;
@@ -318,9 +333,9 @@ public class GlassFishToolkit implements ServerToolkit {
             Asadmin asadmin = new Asadmin();
             asadmin.exec(
                     new String[]{
-                            asadmin.getAsadminStartDomain1(),
-                            asadmin.getAsadminDeployCommand(getLocalFileFromURI(deploy.toURI())),
-                            asadmin.getAsadminListApplications()
+                        asadmin.getAsadminStartDomain1(),
+                        asadmin.getAsadminDeployCommand(getLocalFileFromURI(deploy.toURI())),
+                        asadmin.getAsadminListApplications()
                     });
             try {
                 Thread.sleep(10000);
@@ -348,8 +363,8 @@ public class GlassFishToolkit implements ServerToolkit {
             }
             asadmin.exec(
                     new String[]{
-                            asadmin.getAsadminListApplications(),
-                            asadmin.getAsadminStopDomain1()
+                        asadmin.getAsadminListApplications(),
+                        asadmin.getAsadminStopDomain1()
                     });
         } catch (IOException ex) {
             ex.printStackTrace();
@@ -367,7 +382,7 @@ public class GlassFishToolkit implements ServerToolkit {
         } catch (ClassNotFoundException ex) {
             ex.printStackTrace();
             throw new RuntimeException(ex.getMessage());
-        }  catch (InterruptedException ex) {
+        } catch (InterruptedException ex) {
             ex.printStackTrace();
             throw new RuntimeException(ex.getMessage());
         }

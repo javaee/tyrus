@@ -43,10 +43,13 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.io.FileUtils;
 
 /**
  *
@@ -55,6 +58,34 @@ import java.util.logging.Logger;
 public class Misc {
 
     private static final Logger logger = Logger.getLogger(Misc.class.getCanonicalName());
+
+    /**
+     * Copy file set to the target directory. If the directory does not exist
+     * it is created.
+     * @param fileSet set of files to be copied
+     * @param dstDirectory  destination where the files are copied
+     */
+    public static void copyFiles(Set<File> fileSet, File dstDirectory, String regex, String move) throws IOException {
+        if(!dstDirectory.isDirectory()) {
+            FileUtils.forceMkdir(dstDirectory);
+        }
+        for(File src: fileSet) {
+            File srcParent = src.getParentFile();
+            String targetDir = srcParent.toString();
+            if(regex!=null) {
+                if(move==null) {
+                    move = "";
+                }
+                targetDir = targetDir.replaceFirst(regex, move);
+            }
+            File dst = new File(dstDirectory, targetDir);
+            logger.log(Level.INFO, "copyFiles: {0} ---> {1}", new Object[] {src, dst});
+            FileUtils.copyFileToDirectory(src, dst);
+        }
+    }
+    
+    
+
 
     public static String getTempDirectoryPath() {
         return System.getProperty("java.io.tmpdir");
