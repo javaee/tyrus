@@ -61,6 +61,7 @@ import org.glassfish.tyrus.websockets.draft06.ClosingFrame;
 import org.glassfish.grizzly.Buffer;
 import org.glassfish.grizzly.Connection;
 import org.glassfish.grizzly.Grizzly;
+import org.glassfish.grizzly.attributes.AttributeHolder;
 import org.glassfish.grizzly.filterchain.BaseFilter;
 import org.glassfish.grizzly.filterchain.Filter;
 import org.glassfish.grizzly.filterchain.FilterChain;
@@ -206,7 +207,7 @@ class WebSocketFilter extends BaseFilter {
     @SuppressWarnings("unchecked")
     public NextAction handleRead(FilterChainContext ctx) throws IOException {
         // Get the parsed HttpContent (we assume prev. filter was HTTP)
-        final HttpContent message = (HttpContent) ctx.getMessage();
+        final HttpContent message = ctx.getMessage();
         // Get the Grizzly Connection
         final org.glassfish.tyrus.websockets.Connection connection = getWebSocketConnection(ctx, message);
         // Get the HTTP header
@@ -225,9 +226,23 @@ class WebSocketFilter extends BaseFilter {
                 // if it's not a websocket connection - pass the processing to the next filter
                 return ctx.getInvokeAction();
             }
+
+            final String ATTR_NAME = "org.glassfish.tyrus.container.grizzly.WebSocketFilter.HANDSHAKE_PROCESSED";
+
+            final AttributeHolder attributeHolder = ctx.getAttributes();
+            if (attributeHolder != null) {
+                final Object attribute = attributeHolder.getAttribute(ATTR_NAME);
+                if (attribute != null) {
+                    // handshake was already performed on this context.
+                    return ctx.getInvokeAction();
+                } else {
+                    attributeHolder.setAttribute(ATTR_NAME, true);
+                }
+            }
             // Handle handshake
             return handleHandshake(ctx, message);
         }
+
         // this is websocket with the completed handshake
         if (message.getContent().hasRemaining()) {
             // get the frame(s) content
@@ -281,7 +296,7 @@ class WebSocketFilter extends BaseFilter {
         final WebSocket websocket = getWebSocket(connection);
         // if there is one
         if (websocket != null) {
-            final DataFrame frame = (DataFrame) ctx.getMessage();
+            final DataFrame frame = ctx.getMessage();
             final WebSocketHolder holder = WebSocketEngine.getEngine().getWebSocketHolder(connection);
             final Buffer wrap = Buffers.wrap(ctx.getMemoryManager(), holder.handler.frame(frame));
             ctx.setMessage(wrap);
@@ -311,6 +326,11 @@ class WebSocketFilter extends BaseFilter {
 
     private NextAction handleClientHandShake(FilterChainContext ctx, HttpContent content) {
         final WebSocketHolder holder = WebSocketEngine.getEngine().getWebSocketHolder(getWebSocketConnection(ctx, content));
+
+        if (holder == null) {
+            content.recycle();
+            return ctx.getStopAction();
+        }
 
         try {
             final WebSocketResponse webSocketResponse = getWebSocketResponse((HttpResponsePacket) content.getHttpHeader());

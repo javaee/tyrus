@@ -154,7 +154,7 @@ public class SessionImpl implements Session {
         this.handlerManager = MessageHandlerManager.fromDecoderInstances(endpointWrapper.getDecoders());
         this.userPrincipal = principal;
 
-        if(container != null) {
+        if (container != null) {
             maxTextMessageBufferSize = container.getDefaultMaxTextMessageBufferSize();
             maxBinaryMessageBufferSize = container.getDefaultMaxBinaryMessageBufferSize();
         }
@@ -339,12 +339,12 @@ public class SessionImpl implements Session {
         return userPrincipal;
     }
 
-    void restartTimer(){
-        if(timer != null){
+    void restartTimer() {
+        if (timer != null) {
             timer.cancel();
         }
 
-        if(this.getMaxIdleTimeout() < 1){
+        if (this.getMaxIdleTimeout() < 1) {
             return;
         }
 
@@ -354,7 +354,7 @@ public class SessionImpl implements Session {
 
     private void checkConnectionState(State... states) {
         for (State s : states) {
-            if(state.get() == s){
+            if (state.get() == s) {
                 throw new IllegalStateException(SESSION_CLOSED);
             }
         }
@@ -489,7 +489,6 @@ public class SessionImpl implements Session {
     }
 
     private List<MessageHandler> getOrderedMessageHandlers() {
-        checkConnectionState(State.CLOSED);
         Set<MessageHandler> handlers = this.getMessageHandlers();
         ArrayList<MessageHandler> result = new ArrayList<MessageHandler>();
 
@@ -580,16 +579,16 @@ public class SessionImpl implements Session {
         public void run() {
             try {
                 SessionImpl session = SessionImpl.this;
-                if(session.isOpen()) {
+                if (session.isOpen()) {
                     session.close(new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, "Session closed by the container because of the idle timeout."));
                 }
             } catch (IOException e) {
-                LOGGER.log(Level.FINE,"Session could not been closed. "+e.getMessage());
+                LOGGER.log(Level.FINE, "Session could not been closed. " + e.getMessage());
             }
         }
     }
 
-    private void changeStateToClosing(){
+    private void changeStateToClosing() {
         state.compareAndSet(State.RUNNING, State.CLOSING);
         state.compareAndSet(State.RECEIVING_BINARY, State.CLOSING);
         state.compareAndSet(State.RECEIVING_TEXT, State.CLOSING);

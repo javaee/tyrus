@@ -48,7 +48,9 @@ import org.glassfish.tyrus.websockets.DataFrame;
 import org.glassfish.tyrus.websockets.WebSocketResponse;
 import org.glassfish.tyrus.websockets.WriteFuture;
 
+import org.glassfish.grizzly.Closeable;
 import org.glassfish.grizzly.EmptyCompletionHandler;
+import org.glassfish.grizzly.ICloseType;
 import org.glassfish.grizzly.filterchain.FilterChainContext;
 import org.glassfish.grizzly.http.HttpContent;
 import org.glassfish.grizzly.http.HttpRequestPacket;
@@ -79,6 +81,10 @@ class ConnectionImpl extends Connection {
     @Override
     @SuppressWarnings({"unchecked"})
     public Future<DataFrame> write(final DataFrame frame, final CompletionHandler completionHandler) {
+        if (!connection.isOpen()) {
+            return null;
+        }
+
         final WriteFuture<DataFrame> future = new WriteFuture<DataFrame>();
         connection.write(frame, new EmptyCompletionHandler() {
 
@@ -126,9 +132,9 @@ class ConnectionImpl extends Connection {
 
         final org.glassfish.tyrus.websockets.Connection webSocketConnection = this;
 
-        connection.addCloseListener(new org.glassfish.grizzly.Connection.CloseListener() {
+        connection.addCloseListener(new org.glassfish.grizzly.CloseListener() {
             @Override
-            public void onClosed(org.glassfish.grizzly.Connection connection, org.glassfish.grizzly.Connection.CloseType closeType) throws IOException {
+            public void onClosed(Closeable closeable, ICloseType iCloseType) throws IOException {
                 closeListener.onClose(webSocketConnection);
             }
         });
