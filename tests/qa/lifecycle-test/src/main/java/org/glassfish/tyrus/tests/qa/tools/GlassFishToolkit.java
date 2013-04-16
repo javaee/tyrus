@@ -103,9 +103,9 @@ public class GlassFishToolkit implements ServerToolkit {
         private final static String ASADMIN_DEFAULT_DOMAIN = "domain1";
         private final static String ASADMIN_START_DOMAIN = "start-domain %s";
         private final static String ASADMIN_STOP_DOMAIN = "stop-domain %s";
-        private final static String ASADMIN_DEPLOY_WAR = "deploy %s";
-        private final static String ASADMIN_DEPLOY_WAR_PROPS = "deploy --properties %s=%s %s";
-        private final static String ASADMIN_UNDEPLOY_APP = "undeploy %s";
+        private final static String ASADMIN_DEPLOY_WAR = "deploy --force=true %s";
+        private final static String ASADMIN_DEPLOY_WAR_PROPS = "deploy --force=true --properties %s=%s %s";
+        private final static String ASADMIN_UNDEPLOY_APP = "undeploy --cascade=true %s";
         private final static String ASADMIN_LIST_APPS = "list-applications";
 
         private boolean onWindows() {
@@ -198,7 +198,7 @@ public class GlassFishToolkit implements ServerToolkit {
     }
 
     private String getClazzCanonicalName(File clazz) {
-        logger.log(Level.INFO, "getClazzCanonicalName:{0}", clazz.toString());
+        logger.log(Level.FINE, "getClazzCanonicalName:{0}", clazz.toString());
         return FilenameUtils.removeExtension(FilenameUtils.separatorsToUnix(clazz.toString())).replaceFirst("target/classes/", "").replace('/', '.');
     }
 
@@ -209,8 +209,8 @@ public class GlassFishToolkit implements ServerToolkit {
     private Class<?> getClazzForFile(File clazz) throws ClassNotFoundException, MalformedURLException {
         String clazzCanonicalName = getClazzCanonicalName(clazz);
         //URLClassLoader cl = new URLClassLoader(new URL[] {new URL("file://"+clazz.getAbsoluteFile().getParent())});
-        logger.log(Level.INFO, "getClazzForFile(): {0}", clazzCanonicalName);
-        logger.log(Level.INFO, "getClazzForFile(): {0}", clazz.getAbsolutePath());
+        logger.log(Level.FINE, "getClazzForFile(): {0}", clazzCanonicalName);
+        logger.log(Level.FINE, "getClazzForFile(): {0}", clazz.getAbsolutePath());
         //logger.log(Level.FINE, "getClazzForFile(): classloader:{0}", cl.getURLs());
         return Class.forName(clazzCanonicalName); //, true, cl);
     }
@@ -317,6 +317,7 @@ public class GlassFishToolkit implements ServerToolkit {
          */
         archive.addClassPath(dstDirectory);
         archive.addMetadata(createWebXml(path), "WEB-INF/glassfish-web.xml");
+        logger.log(Level.INFO, "Target WAR: {0}", FileUtils.listFiles(dstDirectory, new String[] {"*"}, true));
         return archive;
     }
 

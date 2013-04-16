@@ -80,7 +80,7 @@ public class Misc {
                 targetDir = targetDir.replaceFirst(regex, move);
             }
             File dst = new File(dstDirectory, targetDir);
-            logger.log(Level.INFO, "copyFiles: {0} ---> {1}", new Object[] {src, dst});
+            logger.log(Level.FINE, "copyFiles: {0} ---> {1}", new Object[] {src, dst});
             FileUtils.copyFileToDirectory(src, dst);
         }
     }
