@@ -167,13 +167,11 @@ public class SessionImpl implements Session {
      */
     @Override
     public String getProtocolVersion() {
-        checkConnectionState(State.CLOSED);
         return "13"; // TODO
     }
 
     @Override
     public String getNegotiatedSubprotocol() {
-        checkConnectionState(State.CLOSED);
         return negotiatedSubprotocol;
     }
 
@@ -212,7 +210,6 @@ public class SessionImpl implements Session {
 
     @Override
     public int getMaxBinaryMessageBufferSize() {
-        checkConnectionState(State.CLOSED);
         return maxBinaryMessageBufferSize;
     }
 
@@ -224,7 +221,6 @@ public class SessionImpl implements Session {
 
     @Override
     public int getMaxTextMessageBufferSize() {
-        checkConnectionState(State.CLOSED);
         return maxTextMessageBufferSize;
     }
 
@@ -242,13 +238,11 @@ public class SessionImpl implements Session {
 
     @Override
     public List<Extension> getNegotiatedExtensions() {
-        checkConnectionState(State.CLOSED);
         return negotiatedExtensions;
     }
 
     @Override
     public long getMaxIdleTimeout() {
-        checkConnectionState(State.CLOSED);
         return maxIdleTimeout;
     }
 
@@ -261,13 +255,11 @@ public class SessionImpl implements Session {
 
     @Override
     public boolean isSecure() {
-        checkConnectionState(State.CLOSED);
         return isSecure;
     }
 
     @Override
     public WebSocketContainer getContainer() {
-        checkConnectionState(State.CLOSED);
         return this.container;
     }
 
@@ -282,7 +274,6 @@ public class SessionImpl implements Session {
 
     @Override
     public Set<MessageHandler> getMessageHandlers() {
-        checkConnectionState(State.CLOSED);
         synchronized (handlerManager) {
             return handlerManager.getMessageHandlers();
         }
@@ -298,7 +289,6 @@ public class SessionImpl implements Session {
 
     @Override
     public URI getRequestURI() {
-        checkConnectionState(State.CLOSED);
         return uri;
     }
 
@@ -311,31 +301,26 @@ public class SessionImpl implements Session {
 
     @Override
     public Map<String, String> getPathParameters() {
-        checkConnectionState(State.CLOSED);
         return pathParameters;
     }
 
     @Override
     public Map<String, Object> getUserProperties() {
-        checkConnectionState(State.CLOSED);
         return userProperties;
     }
 
     @Override
     public String getQueryString() {
-        checkConnectionState(State.CLOSED);
         return queryString;
     }
 
     @Override
     public String getId() {
-        checkConnectionState(State.CLOSED);
         return id;
     }
 
     @Override
     public Principal getUserPrincipal() {
-        checkConnectionState(State.CLOSED);
         return userPrincipal;
     }
 

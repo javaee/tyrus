@@ -281,9 +281,10 @@ public class SessionTimeoutTest {
     }
 
     @Test
-    public void testSessionClientTimeout() {
+    public void testSessionClientTimeoutSession() {
         Server server = new Server(SessionClientTimeoutEndpoint.class);
         final CountDownLatch onCloseLatch = new CountDownLatch(1);
+        SessionClientTimeoutEndpoint.clientOnCloseCalled = false;
 
         try {
             server.start();
@@ -310,6 +311,49 @@ public class SessionTimeoutTest {
                 }
             }, cec, new URI("ws://localhost:8025/websockets/tests/timeout"));
             session.setMaxIdleTimeout(200);
+
+            onCloseLatch.await(2, TimeUnit.SECONDS);
+            assertTrue(SessionClientTimeoutEndpoint.clientOnCloseCalled);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            server.stop();
+        }
+    }
+
+    @Test
+    public void testSessionClientTimeoutContainer() {
+        Server server = new Server(SessionClientTimeoutEndpoint.class);
+        final CountDownLatch onCloseLatch = new CountDownLatch(1);
+        SessionClientTimeoutEndpoint.clientOnCloseCalled = false;
+
+        try {
+            server.start();
+            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
+
+            final ClientManager client = ClientManager.createClient();
+            client.setDefaultMaxSessionIdleTimeout(200);
+            Session session = client.connectToServer(new TestEndpointAdapter() {
+                @Override
+                public void onMessage(String message) {
+                }
+
+                @Override
+                public void onOpen(Session session) {
+                }
+
+                @Override
+                public EndpointConfig getEndpointConfig() {
+                    return cec;
+                }
+
+                @Override
+                public void onClose(Session session, CloseReason closeReason) {
+                    SessionClientTimeoutEndpoint.clientOnCloseCalled = true;
+                    onCloseLatch.countDown();
+                }
+            }, cec, new URI("ws://localhost:8025/websockets/tests/timeout"));
 
             onCloseLatch.await(2, TimeUnit.SECONDS);
             assertTrue(SessionClientTimeoutEndpoint.clientOnCloseCalled);

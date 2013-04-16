@@ -285,7 +285,11 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                         throw new DeploymentException("Handshake error.", (Throwable) exception);
                     }
 
-                    return clientSocket.getSession();
+                    final Session session = clientSocket.getSession();
+                    session.setMaxBinaryMessageBufferSize(maxBinaryMessageBufferSize);
+                    session.setMaxTextMessageBufferSize(maxTextMessageBufferSize);
+                    session.setMaxIdleTimeout(defaultMaxSessionIdleTimeout);
+                    return session;
                 }
             } catch (InterruptedException e) {
                 throw new DeploymentException("Handshaker response not received.", e);
