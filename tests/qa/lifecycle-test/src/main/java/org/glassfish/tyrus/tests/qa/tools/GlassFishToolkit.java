@@ -271,6 +271,7 @@ public class GlassFishToolkit implements ServerToolkit {
             logger.log(Level.SEVERE, "forceDelete:", ex.getMessage());
         }
         FileUtils.forceMkdir(dstDirectory);
+        logger.log(Level.INFO, "BEFORE: Target WAR: {0}", FileUtils.listFiles(dstDirectory, null, true));
         File source = new File("target/classes");
         Set<File> warFiles = new HashSet<File>();
         for (File addMe : FileUtils.listFiles(source, new String[]{"class"}, true)) {
@@ -284,37 +285,6 @@ public class GlassFishToolkit implements ServerToolkit {
             }
         }
         Misc.copyFiles(warFiles, dstDirectory, "^target/classes", "");
-        /*
-         Thread.sleep(1000);
-         FileUtils.copyDirectory(source, dstDirectory);
-         Thread.sleep(5000);
-         logger.log(Level.FINE, "tempdir:{0}", dstDirectory.toString());
-         String targetCanonicalName = clazz.getCanonicalName();
-         for (File addMe : FileUtils.listFiles(dstDirectory, new String[]{"class"}, true)) {
-         logger.log(Level.INFO, "addme:{0}", addMe.toString());
-         File srcClazz = new File(FilenameUtils.separatorsToUnix(addMe.toString()).replaceFirst(FilenameUtils.separatorsToUnix(dstDirectory.toString()), "target/classes"));
-         String srcClazzCanonicalName = getClazzForFile(srcClazz).getCanonicalName();
-         if (srcClazzCanonicalName != null && srcClazzCanonicalName.equals(targetCanonicalName)) {
-         continue;
-         }
-         if (isBlackListed(srcClazz)) {
-         logger.log(Level.FINE, "Deleting : {0}", addMe.toString());
-                
-         //Files.delete(Paths.get(addMe.getAbsolutePath()));
-         Misc.delete(addMe, 1800); // delete file with 30mins timeout
-         //try {
-         //    addMe.setWritable(true);
-         //    FileUtils.forceDelete(addMe);
-         //}
-         //catch(Exception ex) {
-         //    ex.printStackTrace();
-         //}
-                
-         }
-
-
-         }
-         */
         archive.addClassPath(dstDirectory);
         archive.addMetadata(createWebXml(path), "WEB-INF/glassfish-web.xml");
         logger.log(Level.INFO, "Target WAR: {0}", FileUtils.listFiles(dstDirectory, null, true));
