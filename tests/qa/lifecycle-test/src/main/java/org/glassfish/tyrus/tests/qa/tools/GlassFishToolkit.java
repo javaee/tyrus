@@ -317,7 +317,7 @@ public class GlassFishToolkit implements ServerToolkit {
          */
         archive.addClassPath(dstDirectory);
         archive.addMetadata(createWebXml(path), "WEB-INF/glassfish-web.xml");
-        logger.log(Level.INFO, "Target WAR: {0}", FileUtils.listFiles(dstDirectory, new String[] {"*"}, true));
+        logger.log(Level.INFO, "Target WAR: {0}", FileUtils.listFiles(dstDirectory, null, true));
         return archive;
     }
 
