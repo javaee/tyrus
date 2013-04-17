@@ -40,6 +40,7 @@
 package org.glassfish.tyrus.tests.qa;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.logging.Level;
 import org.glassfish.embeddable.archive.ScatteredArchive;
 import org.glassfish.tyrus.tests.qa.config.AppConfig;
@@ -57,7 +58,7 @@ public class TestRuntimeWarGeneration extends AbstractLifeCycleTestBase {
     
     @Ignore
     @Test
-    public void testRuntimeWarGeneration() throws IOException, ClassNotFoundException, InterruptedException {
+    public void testRuntimeWarGeneration() throws IOException, ClassNotFoundException, InterruptedException, URISyntaxException {
         GlassFishToolkit glassFish = new GlassFishToolkit(new AppConfig(null, null, null, null, 0, null));
         ScatteredArchive arch = glassFish.makeWar(AnnotatedWholeMessageBufferedReaderSession.Server.class, LifeCycleDeployment.LIFECYCLE_ENDPOINT_PATH);
         

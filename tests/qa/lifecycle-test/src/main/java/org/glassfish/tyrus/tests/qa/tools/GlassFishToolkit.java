@@ -43,9 +43,11 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.FileAttribute;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -255,21 +257,15 @@ public class GlassFishToolkit implements ServerToolkit {
         return new File(getDirname(new File(clazz.toString())), clazzBasename);
     }
 
-    public ScatteredArchive makeWar(Class clazz, String path) throws IOException, ClassNotFoundException, InterruptedException {
+    public ScatteredArchive makeWar(Class clazz, String path) throws IOException, ClassNotFoundException, InterruptedException, URISyntaxException {
         ScatteredArchive archive = new ScatteredArchive("testapp", ScatteredArchive.Type.WAR);
         String name = clazz.getName();
 
         //archive.addClassPath(new File("target/classes"));
         List<File> addClasses = new ArrayList<File>();
         File tempDir = FileUtils.getTempDirectory();
-        File dstDirectory = new File(tempDir, "lib");
-        try {
-            Thread.sleep(1000);
-            FileUtils.forceDelete(new File(FilenameUtils.separatorsToUnix(dstDirectory.toString())));
-            Thread.sleep(1000);
-        } catch (Exception ex) {
-            logger.log(Level.SEVERE, "forceDelete:", ex.getMessage());
-        }
+        Path dir = Files.createTempDirectory(Paths.get(new URI("file", tempDir.getAbsolutePath(), null)), null);
+        File dstDirectory = new File(dir.toFile(), "lib");
         FileUtils.forceMkdir(dstDirectory);
         logger.log(Level.INFO, "BEFORE: Target WAR: {0}", FileUtils.listFiles(dstDirectory, null, true));
         File source = new File("target/classes");
@@ -354,6 +350,9 @@ public class GlassFishToolkit implements ServerToolkit {
             ex.printStackTrace();
             throw new RuntimeException(ex.getMessage());
         } catch (InterruptedException ex) {
+            ex.printStackTrace();
+            throw new RuntimeException(ex.getMessage());
+        } catch (URISyntaxException ex) {
             ex.printStackTrace();
             throw new RuntimeException(ex.getMessage());
         }
