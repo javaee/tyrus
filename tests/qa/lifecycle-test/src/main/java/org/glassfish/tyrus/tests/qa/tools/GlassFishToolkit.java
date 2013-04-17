@@ -264,7 +264,7 @@ public class GlassFishToolkit implements ServerToolkit {
         //archive.addClassPath(new File("target/classes"));
         List<File> addClasses = new ArrayList<File>();
         File tempDir = FileUtils.getTempDirectory();
-        Path dir = Files.createTempDirectory(Paths.get(new URI("file", tempDir.getAbsolutePath(), null)), null);
+        Path dir = Files.createTempDirectory(Paths.get(tempDir.toURI()), null);
         File dstDirectory = new File(dir.toFile(), "lib");
         FileUtils.forceMkdir(dstDirectory);
         logger.log(Level.INFO, "BEFORE: Target WAR: {0}", FileUtils.listFiles(dstDirectory, null, true));
