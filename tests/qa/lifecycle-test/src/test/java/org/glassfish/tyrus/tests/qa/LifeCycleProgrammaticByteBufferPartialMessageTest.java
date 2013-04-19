@@ -45,7 +45,7 @@ import javax.websocket.DeploymentException;
 
 import org.glassfish.tyrus.tests.qa.lifecycle.config.ProgrammaticPartialMessageByteBufferSessionConfig;
 import org.glassfish.tyrus.tests.qa.lifecycle.handlers.binary.ProgrammaticPartialMessageByteBufferSession;
-import org.glassfish.tyrus.tests.qa.regression.Issue;
+import org.glassfish.tyrus.tests.qa.tools.IssueManipulator;
 
 import org.junit.Test;
 
@@ -55,7 +55,7 @@ import org.junit.Test;
 public class LifeCycleProgrammaticByteBufferPartialMessageTest extends AbstractLifeCycleTestBase {
     @Test
     public void testLifeCycleProgrammaticByteBufferPartialMessage() throws DeploymentException, IOException {
-        Issue.disableAll();
+        IssueManipulator.disableAll();
         lifeCycle(ProgrammaticPartialMessageByteBufferSessionConfig.class, ProgrammaticPartialMessageByteBufferSession.class);
     }
 }

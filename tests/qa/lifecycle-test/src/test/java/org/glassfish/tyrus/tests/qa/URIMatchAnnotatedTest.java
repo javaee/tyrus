@@ -52,6 +52,7 @@ import org.glassfish.tyrus.tests.qa.regression.Issue;
 import org.junit.Test;
 
 import junit.framework.Assert;
+import org.glassfish.tyrus.tests.qa.tools.IssueManipulator;
 
 /**
  * @author Michal Conos (michal.conos at oracle.com)
@@ -61,7 +62,7 @@ public class URIMatchAnnotatedTest extends AbstractLifeCycleTestBase {
     public void testURIMatchAnnotated() throws DeploymentException, URISyntaxException, IOException {
         boolean exThrown = false;
         try {
-            Issue.disableAll();
+            IssueManipulator.disableAll();
             lifeCycle(AnnotatedWholeMessageStringSession.Server.class, AnnotatedWholeMessageStringSession.Client.class, Collections.EMPTY_SET, new URI("ws://localhost/aaaaa"), null);
         } catch (Exception ex) {
             exThrown = true;

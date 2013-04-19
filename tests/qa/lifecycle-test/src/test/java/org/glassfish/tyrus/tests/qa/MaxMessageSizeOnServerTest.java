@@ -47,6 +47,7 @@ import javax.websocket.DeploymentException;
 
 import org.glassfish.tyrus.tests.qa.lifecycle.handlers.annotations.MaxMessageSizeOnServer;
 import org.glassfish.tyrus.tests.qa.regression.Issue;
+import org.glassfish.tyrus.tests.qa.tools.IssueManipulator;
 import org.glassfish.tyrus.tests.qa.tools.SessionController;
 
 import org.junit.Test;
@@ -57,7 +58,7 @@ import org.junit.Test;
 public class MaxMessageSizeOnServerTest extends AbstractLifeCycleTestBase {
     @Test
     public void testMaxMessageSizeOnServer() throws DeploymentException, IOException {
-        Issue.disableAll();
+        IssueManipulator.disableAll();
         Set<String> possibleEndings = new HashSet<String>();
         possibleEndings.add(SessionController.SessionState.OPEN_CLIENT.getMessage());
         possibleEndings.add(SessionController.SessionState.OPEN_SERVER.getMessage());

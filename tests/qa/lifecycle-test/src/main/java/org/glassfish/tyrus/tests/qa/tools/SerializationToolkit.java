@@ -46,7 +46,10 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
+import org.glassfish.tyrus.tests.qa.regression.Issue;
 
 /**
  *
@@ -55,6 +58,7 @@ import org.apache.commons.io.FileUtils;
 public class SerializationToolkit {
 
     File store;
+    private static final Logger logger = Logger.getLogger(SerializationToolkit.class.getCanonicalName());
 
     public SerializationToolkit() throws IOException {
         this(File.createTempFile("tests", "websockets"));
@@ -80,6 +84,7 @@ public class SerializationToolkit {
     }
 
     public Object load() {
+        
         Object o = null;
         try {
             ObjectInputStream ois = new ObjectInputStream(

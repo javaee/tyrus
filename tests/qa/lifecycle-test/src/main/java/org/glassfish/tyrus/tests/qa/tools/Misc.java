@@ -59,34 +59,34 @@ import org.apache.commons.io.FilenameUtils;
 public class Misc {
 
     private static final Logger logger = Logger.getLogger(Misc.class.getCanonicalName());
+    private static final char UNIX_SEPARATOR = '/';
+    private static final char WINDOWS_SEPARATOR = '\\';
 
     /**
-     * Copy file set to the target directory. If the directory does not exist
-     * it is created.
+     * Copy file set to the target directory. If the directory does not exist it
+     * is created.
+     *
      * @param fileSet set of files to be copied
-     * @param dstDirectory  destination where the files are copied
+     * @param dstDirectory destination where the files are copied
      */
     public static void copyFiles(Set<File> fileSet, File dstDirectory, String regex, String move) throws IOException {
-        if(!dstDirectory.isDirectory()) {
+        if (!dstDirectory.isDirectory()) {
             FileUtils.forceMkdir(dstDirectory);
         }
-        for(File src: fileSet) {
+        for (File src : fileSet) {
             File srcParent = src.getParentFile();
             String targetDir = FilenameUtils.separatorsToUnix(srcParent.toString());
-            if(regex!=null) {
-                if(move==null) {
+            if (regex != null) {
+                if (move == null) {
                     move = "";
                 }
                 targetDir = targetDir.replaceFirst(regex, move);
             }
             File dst = new File(dstDirectory, targetDir);
-            logger.log(Level.FINE, "copyFiles: {0} ---> {1}", new Object[] {src, dst});
+            logger.log(Level.FINE, "copyFiles: {0} ---> {1}", new Object[]{src, dst});
             FileUtils.copyFileToDirectory(src, dst);
         }
     }
-    
-    
-
 
     public static String getTempDirectoryPath() {
         return System.getProperty("java.io.tmpdir");
@@ -94,6 +94,13 @@ public class Misc {
 
     public static File getTempDirectory() {
         return new File(getTempDirectoryPath());
+    }
+
+    public static String separatorsToUnix(String path) {
+        if (path == null || path.indexOf(WINDOWS_SEPARATOR) == -1) {
+            return path;
+        }
+        return path.replace(WINDOWS_SEPARATOR, UNIX_SEPARATOR);
     }
 
     public static void delete(final File path, final long timeout) throws InterruptedException {
@@ -120,7 +127,7 @@ public class Misc {
         };
         worker.start();
         timer.await(timeout, TimeUnit.SECONDS);
-        if(timer.getCount()>0) {
+        if (timer.getCount() > 0) {
             worker.interrupt();
             throw new RuntimeException(String.format("Delete of %s failed after %d secs!", path.toString(), timeout));
         }

@@ -44,7 +44,7 @@ import java.io.IOException;
 import javax.websocket.DeploymentException;
 
 import org.glassfish.tyrus.tests.qa.lifecycle.handlers.text.AnnotatedWholeMessageBufferedReaderSession;
-import org.glassfish.tyrus.tests.qa.regression.Issue;
+import org.glassfish.tyrus.tests.qa.tools.IssueManipulator;
 
 import org.junit.Test;
 
@@ -54,7 +54,7 @@ import org.junit.Test;
 public class LifeCycleAnnotatedBufferedReaderTest extends AbstractLifeCycleTestBase {
     @Test
     public void testLifeCycleAnnotatedBufferedReader() throws DeploymentException, InterruptedException, IOException {
-        Issue.disableAll();
+        IssueManipulator.disableAll();
         lifeCycle(AnnotatedWholeMessageBufferedReaderSession.Server.class, AnnotatedWholeMessageBufferedReaderSession.Client.class);
     }
 }

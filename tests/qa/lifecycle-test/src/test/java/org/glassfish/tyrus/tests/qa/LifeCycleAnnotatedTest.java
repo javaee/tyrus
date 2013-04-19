@@ -44,7 +44,7 @@ import java.io.IOException;
 import javax.websocket.DeploymentException;
 
 import org.glassfish.tyrus.tests.qa.lifecycle.handlers.text.AnnotatedWholeMessageStringSession;
-import org.glassfish.tyrus.tests.qa.regression.Issue;
+import org.glassfish.tyrus.tests.qa.tools.IssueManipulator;
 
 import org.junit.Test;
 
@@ -54,7 +54,8 @@ import org.junit.Test;
 public class LifeCycleAnnotatedTest extends AbstractLifeCycleTestBase {
     @Test
     public void testLifeCycleAnnotated() throws DeploymentException, InterruptedException, IOException {
-        Issue.disableAll();
+        IssueManipulator.disableAll();
+        System.out.println("lifecycleannotated2");
         lifeCycle(AnnotatedWholeMessageStringSession.Server.class, AnnotatedWholeMessageStringSession.Client.class);
     }
 }

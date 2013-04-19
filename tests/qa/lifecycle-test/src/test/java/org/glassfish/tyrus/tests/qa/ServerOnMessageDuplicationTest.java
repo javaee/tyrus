@@ -44,7 +44,7 @@ import java.io.IOException;
 import javax.websocket.DeploymentException;
 
 import org.glassfish.tyrus.tests.qa.lifecycle.handlers.deployment.ServerOnMessageDuplication;
-import org.glassfish.tyrus.tests.qa.regression.Issue;
+import org.glassfish.tyrus.tests.qa.tools.IssueManipulator;
 
 import org.junit.Test;
 
@@ -54,7 +54,7 @@ import org.junit.Test;
 public class ServerOnMessageDuplicationTest extends AbstractLifeCycleTestBase {
     @Test
     public void testServerOnMessageDuplication() throws DeploymentException, IOException {
-        Issue.disableAll();
+        IssueManipulator.disableAll();
         multipleDeployment(ServerOnMessageDuplication.Server.class, ServerOnMessageDuplication.Client.class, "Binary MessageHandler already registered");
     }
 }

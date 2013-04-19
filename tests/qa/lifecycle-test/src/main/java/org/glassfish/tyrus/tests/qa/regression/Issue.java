@@ -52,21 +52,18 @@ import org.glassfish.tyrus.tests.qa.tools.SerializationToolkit;
 /**
  * @author Michal Čonos (michal.conos at oracle.com)
  */
-public enum Issue implements java.io.Serializable {
+public class Issue implements java.io.Serializable {
+    
+    public enum IssueId { TYRUS_101, TYRUS_104, TYRUS_94, TYRUS_93 };
 
-    TYRUS_93("ClientEndpoint session.getRequestURI()==null"),
-    TYRUS_94("ServerEndPoint: onError(): throwable.getCause()==null"),
-    TYRUS_101("CloseReason not propagated to server side (when close() initiated from client)"),
-    TYRUS_104("session should raise IllegalStateException when Session.getRemote() called on a closed session");
 
     private static final Logger logger = Logger.getLogger(Issue.class.getCanonicalName());
+    private IssueId id;
     private String description;
     private boolean enabled;
-    private SerializationToolkit stool;
 
-    private void setEnabled(boolean enabled)  {
+    private void setEnabled(boolean enabled) {
         this.enabled = enabled;
-        stool.save(this);
     }
 
     /**
@@ -75,60 +72,22 @@ public enum Issue implements java.io.Serializable {
      * @return true if enabled, false if the issue is disabled
      */
     public boolean isEnabled() {
-        Object obj = stool.load();
-        if(obj!=null && obj instanceof Issue && ((Issue) obj).enabled) {
-            logger.log(Level.INFO, "Issue: {0} enabled", this.toString());
-            return true;
-        }
-        return false;
+        logger.log(Level.INFO, "Issue {0} enabled", this);
+        return enabled;
     }
 
     /**
      * Disable issue
      */
-    public void disable()  {
+    public void disable() {
         setEnabled(false);
     }
 
     /**
      * Enable issue
      */
-    public void enable()  {
+    public void enable() {
         setEnabled(true);
-    }
-
-    /**
-     * Disable all issue but the on requested. Handy for regression testing
-     */
-    public void disableAllButThisOne()  {
-        disableAll();
-        this.enable();
-    }
-
-    /**
-     * Enable All issues in the database
-     */
-    public static void enableAll()  {
-        for (Issue crno : Issue.values()) {
-            crno.enable();
-        }
-    }
-
-    /**
-     * Disable all issue in the database
-     */
-    public static void disableAll() {
-        for (Issue crno : Issue.values()) {
-            crno.disable();
-        }
-    }
-    
-    public static String getTempDirectoryPath() {
-        return Misc.getTempDirectoryPath();
-    }
-    
-    public static File getTempDirectory() {
-        return Misc.getTempDirectory();
     }
 
     /**
@@ -136,67 +95,15 @@ public enum Issue implements java.io.Serializable {
      *
      * @param description issue description
      */
-    Issue(String description)  {
+    public Issue(IssueId id, String description) {
+        this.id = id;
         this.description = description;
         this.enabled = true;
-        this.stool=new SerializationToolkit(new File(getTempDirectory(), this.toString()));
-        stool.save(this);
+    }
+    
+    public IssueId getIssueId() {
+        return id;
     }
 
-    public static boolean checkTyrus93(Session s) {
-        if (Issue.TYRUS_93.isEnabled()) {
-            try {
-                logger.log(Level.INFO, "Tyrus-93: Client connecting:{0}", s.getRequestURI().toString());
-            } catch (NullPointerException npe) {
-                logger.log(Level.SEVERE, "Tyrus-93: NPE!");
-                return false;
-            }
-        } else {
-            logger.log(Level.INFO, "Client connecting:{0}", s.getRequestURI());
-        }
-        return true;
-    }
-
-    public static boolean checkTyrus94(Throwable thr) {
-        if (Issue.TYRUS_94.isEnabled()) {
-            if(thr instanceof MyException) {
-                return true;
-            }
-
-            logger.log(Level.INFO, String.format("Received %s, expected MyException.class", thr.getClass().getName()));
-            return false;
-        }
-        return true;
-    }
-
-    public static boolean checkTyrus101(CloseReason reason) {
-        if (Issue.TYRUS_101.isEnabled()) {
-            logger.log(Level.INFO, "TYRUS-101: reason={0}", reason);
-            if (reason != null) {
-                logger.log(Level.INFO, "TYRUS-101: reason.getCloseCode={0}", reason.getCloseCode());
-            }
-            return reason != null && reason.getCloseCode().equals(CloseReason.CloseCodes.GOING_AWAY);
-        }
-        return true;
-    }
-
-    public static boolean checkTyrus104(Session s) {
-        if (Issue.TYRUS_104.isEnabled()) {
-            if (s.isOpen()) {
-                logger.log(Level.SEVERE, "TYRUS-104: isOpen on a closed session must return false");
-                return false; // isClosed
-            }
-            try {
-                logger.log(Level.INFO, "TYRUS-104: send string on closed connection");
-                s.getBasicRemote().sendText("Raise onError now - socket is closed");
-                logger.log(Level.SEVERE, "TYRUS-104: IllegalStateException expected, should never get here");
-                s.close();
-            } catch (IOException ex) {
-                return true;
-            } catch (IllegalStateException ex) {
-                return true;
-            }
-        }
-        return true;
-    }
+    
 }

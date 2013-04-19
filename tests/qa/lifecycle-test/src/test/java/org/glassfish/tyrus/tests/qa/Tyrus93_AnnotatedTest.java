@@ -46,6 +46,7 @@ import org.glassfish.tyrus.tests.qa.config.AppConfig;
 
 import org.glassfish.tyrus.tests.qa.lifecycle.handlers.text.AnnotatedWholeMessageStringSession;
 import org.glassfish.tyrus.tests.qa.regression.Issue;
+import org.glassfish.tyrus.tests.qa.tools.IssueManipulator;
 import org.junit.Assume;
 
 import org.junit.Test;
@@ -56,7 +57,7 @@ import org.junit.Test;
 public class Tyrus93_AnnotatedTest extends AbstractLifeCycleTestBase {
     @Test
     public void testTyrus93_Annotated() throws DeploymentException, InterruptedException, IOException {
-        Issue.TYRUS_93.disableAllButThisOne();
+        IssueManipulator.disableAllButThisOne(Issue.IssueId.TYRUS_93);
         lifeCycle(AnnotatedWholeMessageStringSession.Server.class, AnnotatedWholeMessageStringSession.Client.class);
     }
 }

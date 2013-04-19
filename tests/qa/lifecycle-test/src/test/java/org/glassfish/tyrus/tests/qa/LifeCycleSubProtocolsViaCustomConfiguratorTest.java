@@ -44,7 +44,7 @@ import java.io.IOException;
 import javax.websocket.DeploymentException;
 
 import org.glassfish.tyrus.tests.qa.lifecycle.handlers.annotations.SubprotocolsViaCustomConfigurator;
-import org.glassfish.tyrus.tests.qa.regression.Issue;
+import org.glassfish.tyrus.tests.qa.tools.IssueManipulator;
 
 import org.junit.Test;
 
@@ -54,7 +54,7 @@ import org.junit.Test;
 public class LifeCycleSubProtocolsViaCustomConfiguratorTest extends AbstractLifeCycleTestBase {
     @Test
     public void testLifeCycleSubProtocolsViaCustomConfigurator() throws DeploymentException, InterruptedException, IOException {
-        Issue.disableAll();
+        IssueManipulator.disableAll();
         lifeCycle(
                 SubprotocolsViaCustomConfigurator.Server.class,
                 SubprotocolsViaCustomConfigurator.Client.class);

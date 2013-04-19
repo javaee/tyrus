@@ -47,6 +47,7 @@ import org.glassfish.tyrus.tests.qa.config.AppConfig;
 import org.glassfish.tyrus.tests.qa.lifecycle.config.ProgrammaticWholeMessageStringSessionConfig;
 import org.glassfish.tyrus.tests.qa.lifecycle.handlers.text.ProgrammaticWholeMessageStringSession;
 import org.glassfish.tyrus.tests.qa.regression.Issue;
+import org.glassfish.tyrus.tests.qa.tools.IssueManipulator;
 import org.junit.Assume;
 
 import org.junit.Test;
@@ -57,7 +58,7 @@ import org.junit.Test;
 public class Tyrus101_ProgrammaticTest extends AbstractLifeCycleTestBase {
     @Test
     public void testTyrus101_Programmatic() throws DeploymentException, IOException {
-        Issue.TYRUS_101.disableAllButThisOne();
+        IssueManipulator.disableAllButThisOne(Issue.IssueId.TYRUS_101);
         lifeCycle(ProgrammaticWholeMessageStringSessionConfig.class, ProgrammaticWholeMessageStringSession.class);
     }
 }

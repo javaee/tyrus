@@ -49,7 +49,7 @@ import javax.websocket.DeploymentException;
 import org.glassfish.tyrus.tests.qa.lifecycle.LifeCycleDeployment;
 import org.glassfish.tyrus.tests.qa.lifecycle.config.CustomConfigurationProtocolsProgrammatic;
 import org.glassfish.tyrus.tests.qa.lifecycle.handlers.text.ProgrammaticWholeMessageStringSession;
-import org.glassfish.tyrus.tests.qa.regression.Issue;
+import org.glassfish.tyrus.tests.qa.tools.IssueManipulator;
 
 import org.junit.Test;
 
@@ -59,7 +59,7 @@ import org.junit.Test;
 public class LifeCycleProgrammaticSubProtocolsTest extends AbstractLifeCycleTestBase {
     @Test
     public void testLifeCycleProgrammaticSubProtocols() throws DeploymentException, InterruptedException, IOException {
-        Issue.disableAll();
+        IssueManipulator.disableAll();
         List<String> subProtocols = Arrays.asList(LifeCycleDeployment.clientProtoOrder);
         lifeCycle(
                 CustomConfigurationProtocolsProgrammatic.class,

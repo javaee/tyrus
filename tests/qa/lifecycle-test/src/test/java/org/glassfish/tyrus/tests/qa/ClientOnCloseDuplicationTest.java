@@ -44,7 +44,7 @@ import java.io.IOException;
 import javax.websocket.DeploymentException;
 
 import org.glassfish.tyrus.tests.qa.lifecycle.handlers.deployment.ClientOnCloseDuplication;
-import org.glassfish.tyrus.tests.qa.regression.Issue;
+import org.glassfish.tyrus.tests.qa.tools.IssueManipulator;
 
 import org.junit.Test;
 
@@ -54,7 +54,7 @@ import org.junit.Test;
 public class ClientOnCloseDuplicationTest extends AbstractLifeCycleTestBase {
     @Test
     public void testClientOnCloseDuplication() throws DeploymentException, IOException {
-        Issue.disableAll();
+        IssueManipulator.disableAll();
         multipleDeployment(ClientOnCloseDuplication.Server.class, ClientOnCloseDuplication.Client.class, "Multiple methods using @OnClose annotation");
     }
 }

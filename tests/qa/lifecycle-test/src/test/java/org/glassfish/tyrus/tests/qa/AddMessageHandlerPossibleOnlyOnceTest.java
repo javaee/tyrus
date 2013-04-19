@@ -40,21 +40,20 @@
 package org.glassfish.tyrus.tests.qa;
 
 import java.io.IOException;
-
 import javax.websocket.DeploymentException;
-
-import org.glassfish.tyrus.tests.qa.regression.Issue;
-
+import org.glassfish.tyrus.tests.qa.tools.IssueManipulator;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
  * @author Michal Conos (michal.conos at oracle.com)
  */
 public class AddMessageHandlerPossibleOnlyOnceTest extends AbstractLifeCycleTestBase {
+
+    @Ignore
     @Test
-    //TODO
     public void testAddMessageHandlerPossibleOnlyOnce() throws DeploymentException, IOException {
-        Issue.disableAll();
+        IssueManipulator.disableAll();
 
 
     }

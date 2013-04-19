@@ -45,7 +45,7 @@ import javax.websocket.DeploymentException;
 
 import org.glassfish.tyrus.tests.qa.lifecycle.config.ProgrammaticWholeMessageStringSessionConfig;
 import org.glassfish.tyrus.tests.qa.lifecycle.handlers.text.ProgrammaticWholeMessageStringSession;
-import org.glassfish.tyrus.tests.qa.regression.Issue;
+import org.glassfish.tyrus.tests.qa.tools.IssueManipulator;
 
 import org.junit.Test;
 
@@ -55,7 +55,7 @@ import org.junit.Test;
 public class LifeCycleProgrammaticTest extends AbstractLifeCycleTestBase {
     @Test
     public void testLifeCycleProgrammatic() throws DeploymentException, IOException {
-        Issue.disableAll();
+        IssueManipulator.disableAll();
         lifeCycle(ProgrammaticWholeMessageStringSessionConfig.class, ProgrammaticWholeMessageStringSession.class);
     }
 }

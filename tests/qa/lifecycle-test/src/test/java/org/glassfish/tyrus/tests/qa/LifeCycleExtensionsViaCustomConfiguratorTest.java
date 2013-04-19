@@ -44,7 +44,7 @@ import java.io.IOException;
 import javax.websocket.DeploymentException;
 
 import org.glassfish.tyrus.tests.qa.lifecycle.handlers.annotations.ExtensionsViaCustomConfigurator;
-import org.glassfish.tyrus.tests.qa.regression.Issue;
+import org.glassfish.tyrus.tests.qa.tools.IssueManipulator;
 
 import org.junit.Test;
 
@@ -54,7 +54,7 @@ import org.junit.Test;
 public class LifeCycleExtensionsViaCustomConfiguratorTest extends AbstractLifeCycleTestBase {
     @Test
     public void testLifeCycleExtensionsViaCustomConfigurator() throws DeploymentException, InterruptedException, IOException {
-        Issue.disableAll();
+        IssueManipulator.disableAll();
         lifeCycle(
                 ExtensionsViaCustomConfigurator.Server.class,
                 ExtensionsViaCustomConfigurator.Client.class);

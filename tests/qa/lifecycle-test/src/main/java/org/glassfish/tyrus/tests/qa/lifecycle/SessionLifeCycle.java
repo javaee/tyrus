@@ -50,6 +50,8 @@ import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
 
 import org.glassfish.tyrus.tests.qa.regression.Issue;
+import org.glassfish.tyrus.tests.qa.regression.IssueTests;
+import org.glassfish.tyrus.tests.qa.tools.IssueManipulator;
 import org.glassfish.tyrus.tests.qa.tools.SessionController;
 
 /**
@@ -93,11 +95,12 @@ abstract public class SessionLifeCycle<T> {
     public void onServerClose(Session s, CloseReason reason) {
         logger.log(Level.INFO, "Closing the session: {0}", s.toString());
         logger.log(Level.INFO, "Closing the session with reason: {0}", reason);
-
-        if (!Issue.checkTyrus101(reason)) {
+        
+        if (!IssueTests.checkTyrus101(reason)) {
             sc.setState("server.TYRUS101");
         }
-        if (!Issue.checkTyrus104(s)) {
+        
+        if (!IssueTests.checkTyrus104(s)) {
             sc.setState("server.TYRUS104");
         }
 
@@ -129,7 +132,7 @@ abstract public class SessionLifeCycle<T> {
 
         if (checkError(thr)) {
             sc.serverOnError(thr);
-            if (!Issue.checkTyrus94(thr)) {
+            if (!IssueTests.checkTyrus94(thr)) {
                 sc.setState("server.TYRUS_94");
             }
             sc.serverOnFinish();
@@ -163,7 +166,8 @@ abstract public class SessionLifeCycle<T> {
     }
 
     public void onClientOpen(Session s, EndpointConfig config) {
-        if (!Issue.checkTyrus93(s)) {
+        
+        if (!IssueTests.checkTyrus93(s)) {
             sc.setState("TYRUS_93_FAIL");
         }
         sc.clientOnOpen();

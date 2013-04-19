@@ -53,6 +53,7 @@ import org.glassfish.tyrus.tests.qa.regression.Issue;
 import org.junit.Test;
 
 import junit.framework.Assert;
+import org.glassfish.tyrus.tests.qa.tools.IssueManipulator;
 
 /**
  * @author Michal Conos (michal.conos at oracle.com)
@@ -62,7 +63,7 @@ public class URIMatchProgrammaticTest extends AbstractLifeCycleTestBase {
     public void testURIMatchProgrammatic() throws DeploymentException, URISyntaxException, IOException {
         boolean exThrown = false;
         try {
-            Issue.disableAll();
+            IssueManipulator.disableAll();
             lifeCycle(ProgrammaticWholeMessageStringSessionConfig.class, ProgrammaticWholeMessageStringSession.class, Collections.EMPTY_SET, new URI("ws://localhost/aaaaa"), null);
         } catch (Exception ex) {
             exThrown = true;
