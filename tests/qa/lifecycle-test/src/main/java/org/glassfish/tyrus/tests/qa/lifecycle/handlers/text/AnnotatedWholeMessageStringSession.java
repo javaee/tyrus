@@ -108,7 +108,7 @@ public class AnnotatedWholeMessageStringSession {
             if (this.session == null) {
                 this.session = session;
             }
-            logger.log(Level.INFO, "ProgrammaticEndpoint: onOpen");
+            logger.log(Level.INFO, "AnnotatedEndpoint: onOpen");
             this.sc = new SessionController(session);
             createLifeCycle();
             lifeCycle.setSessionController(sc);

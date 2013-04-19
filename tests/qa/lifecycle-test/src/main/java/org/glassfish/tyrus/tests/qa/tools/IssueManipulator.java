@@ -97,7 +97,7 @@ public class IssueManipulator {
         if (issue == null) {
             throw new IllegalArgumentException("issue is null!");
         }
-        logger.log(Level.INFO, String.format("XXX: saveIssue(): Saving issue:%s [%s]", getIssueHolder(issue), issue.isEnabled()));
+        logger.log(Level.FINE, String.format("saveIssue(): Saving issue:%s [%s]", getIssueHolder(issue), issue.isEnabled()));
         SerializationToolkit stool = new SerializationToolkit(getIssueHolder(issue));
         stool.save(issue);
     }
@@ -110,7 +110,7 @@ public class IssueManipulator {
         Object obj = stool.load();
         if(obj!=null && obj instanceof Issue) {
             Issue retrivedIssue = (Issue)obj;
-            logger.log(Level.INFO, String.format("XXX: loadIssue(): Loading issue:%s [%s]", getIssueHolder(issue), retrivedIssue.isEnabled()));
+            logger.log(Level.FINE, String.format("loadIssue(): Loading issue:%s [%s]", getIssueHolder(issue), retrivedIssue.isEnabled()));
             return retrivedIssue;
         }
 
