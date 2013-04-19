@@ -286,9 +286,11 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                     }
 
                     final Session session = clientSocket.getSession();
-                    session.setMaxBinaryMessageBufferSize(maxBinaryMessageBufferSize);
-                    session.setMaxTextMessageBufferSize(maxTextMessageBufferSize);
-                    session.setMaxIdleTimeout(defaultMaxSessionIdleTimeout);
+                    if(session.isOpen()) {
+                        session.setMaxBinaryMessageBufferSize(maxBinaryMessageBufferSize);
+                        session.setMaxTextMessageBufferSize(maxTextMessageBufferSize);
+                        session.setMaxIdleTimeout(defaultMaxSessionIdleTimeout);
+                    }
                     return session;
                 }
             } catch (InterruptedException e) {

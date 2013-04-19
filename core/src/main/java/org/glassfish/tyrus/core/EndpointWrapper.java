@@ -483,7 +483,7 @@ public class EndpointWrapper extends SPIEndpoint {
     public void onMessage(SPIRemoteEndpoint gs, String messageString) {
         SessionImpl session = getSession(gs);
 
-        if(session == null) {
+        if (session == null) {
             LOGGER.log(Level.FINE, "Message received on already closed connection.");
             return;
         }
