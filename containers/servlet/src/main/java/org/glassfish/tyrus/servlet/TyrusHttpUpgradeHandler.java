@@ -222,10 +222,10 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
         }
     }
 
-    ServletOutputStream getOutputStream() {
+    WebConnection getWebConnection() {
         if(!initiated) {
             throw new IllegalStateException();
         }
-        return os;
+        return wc;
     }
 }

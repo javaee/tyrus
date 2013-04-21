@@ -57,7 +57,6 @@ import javax.servlet.FilterConfig;
 import javax.servlet.FilterRegistration;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
-import javax.servlet.ServletOutputStream;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
@@ -179,8 +178,8 @@ public class TyrusServletFilter implements Filter {
         }
 
         @Override
-        ServletOutputStream getOutputStream() {
-            return handler.getOutputStream();
+        WebConnection getWebConnection() {
+            return handler.getWebConnection();
         }
 
         void setHandler(TyrusHttpUpgradeHandler handler) {

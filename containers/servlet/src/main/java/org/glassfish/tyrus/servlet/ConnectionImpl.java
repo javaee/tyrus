@@ -40,7 +40,6 @@
 package org.glassfish.tyrus.servlet;
 
 
-import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.Future;
 
@@ -52,6 +51,7 @@ import org.glassfish.tyrus.websockets.DataFrame;
 import org.glassfish.tyrus.websockets.WebSocketEngine;
 import org.glassfish.tyrus.websockets.WebSocketResponse;
 import org.glassfish.tyrus.websockets.WriteFuture;
+import org.glassfish.tyrus.websockets.frametypes.ClosingFrameType;
 
 /**
  * {@link Connection} implementation used in Servlet integration.
@@ -78,10 +78,10 @@ class ConnectionImpl extends Connection {
     // TODO: Future<DataFrame> write(byte[] frame, CompletionHandler completionHandler)?
     @Override
     public Future<DataFrame> write(final DataFrame frame, CompletionHandler<DataFrame> completionHandler) {
-        final ServletOutputStream outputStream = tyrusHttpUpgradeHandler.getOutputStream();
         final WriteFuture<DataFrame> future = new WriteFuture<DataFrame>();
 
         try {
+            final ServletOutputStream outputStream = tyrusHttpUpgradeHandler.getWebConnection().getOutputStream();
             final byte[] bytes = WebSocketEngine.getEngine().getWebSocketHolder(this).handler.frame(frame);
 
             outputStream.write(bytes);
@@ -92,7 +92,11 @@ class ConnectionImpl extends Connection {
             }
 
             future.setResult(frame);
-        } catch (IOException e) {
+
+            if(frame.getType() instanceof ClosingFrameType) {
+                tyrusHttpUpgradeHandler.getWebConnection().close();
+            }
+        } catch (Exception e) {
             if (completionHandler != null) {
                 completionHandler.failed(e);
             }
@@ -117,6 +121,11 @@ class ConnectionImpl extends Connection {
 
     @Override
     public void closeSilently() {
+        try {
+            tyrusHttpUpgradeHandler.getWebConnection().close();
+        } catch (Exception e) {
+            // do nothing.
+        }
     }
 
     @Override
