@@ -71,7 +71,7 @@ public class EchoTest {
     private final int DEFAULT_PORT = 8025;
 
     private final Set<Class<?>> endpointClasses = new HashSet<Class<?>>() {{
-        add(EchoBean.class);
+        add(EchoEndpoint.class);
     }};
 
     /**

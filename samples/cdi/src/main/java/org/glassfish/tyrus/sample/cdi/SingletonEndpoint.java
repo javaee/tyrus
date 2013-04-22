@@ -43,19 +43,30 @@ package org.glassfish.tyrus.sample.cdi;
 import javax.websocket.OnMessage;
 import javax.websocket.server.ServerEndpoint;
 
-import javax.inject.Inject;
+import javax.annotation.PostConstruct;
+import javax.ejb.Singleton;
+import javax.interceptor.Interceptors;
+
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-@ServerEndpoint("/injectingappscoped")
-public class InjectToApplicationScoped {
+@ServerEndpoint(value = "/singleton")
+@Singleton
+@Interceptors(LoggingInterceptor.class)
+public class SingletonEndpoint {
 
-    @Inject
-    InjectedApplicationScoped bean;
+    int counter = 0;
+    private boolean postConstructCalled = false;
+    public static boolean interceptorCalled = false;
 
     @OnMessage
     public String echo(String message) {
-        return message+bean.getText();
+        return (postConstructCalled && interceptorCalled) ? String.format("%s%s", message, counter++) : "PostConstruct not called.";
+    }
+
+    @PostConstruct
+    public void postConstruct(){
+        postConstructCalled = true;
     }
 }

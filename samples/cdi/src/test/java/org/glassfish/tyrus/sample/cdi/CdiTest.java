@@ -139,7 +139,7 @@ public class CdiTest {
                         @Override
                         public void onMessage(String message) {
                             if (first) {
-                                assertEquals("First message was wrong", String.format("%s%s1", SENT_MESSAGE, InjectToBeanStateful.TEXT), message);
+                                assertEquals("First message was wrong", String.format("%s%s1", SENT_MESSAGE, InjectToStatefulEndpoint.TEXT), message);
                                 messageLatch.countDown();
                                 try {
                                     session.getBasicRemote().sendText(SENT_MESSAGE);
@@ -148,7 +148,7 @@ public class CdiTest {
                                 }
                                 first = false;
                             } else {
-                                assertEquals("Second message was wrong", String.format("%s%s2", SENT_MESSAGE, InjectToBeanStateful.TEXT), message);
+                                assertEquals("Second message was wrong", String.format("%s%s2", SENT_MESSAGE, InjectToStatefulEndpoint.TEXT), message);
                                 messageLatch.countDown();
                             }
                         }
@@ -168,12 +168,12 @@ public class CdiTest {
 
     @Test
     public void testInjectedStatefulTwoMessagesFromTwoClients() throws InterruptedException, DeploymentException, IOException {
-        testFromTwoClients("/injectingstateful", String.format("%s%s1", SENT_MESSAGE, InjectToBeanStateful.TEXT), String.format("%s%s1", SENT_MESSAGE, InjectToBeanStateful.TEXT));
+        testFromTwoClients("/injectingstateful", String.format("%s%s1", SENT_MESSAGE, InjectToStatefulEndpoint.TEXT), String.format("%s%s1", SENT_MESSAGE, InjectToStatefulEndpoint.TEXT));
     }
 
     @Test
     public void testInjectedSingletonTwoMessagesFromTwoClients() throws InterruptedException, DeploymentException, IOException {
-        testFromTwoClients("/injectingsingleton", String.format("%s%s1", SENT_MESSAGE, InjectToBeanSingleton.TEXT), String.format("%s%s2", SENT_MESSAGE, InjectToBeanStateful.TEXT));
+        testFromTwoClients("/injectingsingleton", String.format("%s%s1", SENT_MESSAGE, InjectToSingletonEndpoint.TEXT), String.format("%s%s2", SENT_MESSAGE, InjectToStatefulEndpoint.TEXT));
     }
 
     @Test

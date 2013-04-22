@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -38,22 +38,31 @@
  * holder.
  */
 
-package org.glassfish.tyrus.sample.cdi;
+package org.glassfish.tyrus.sample.echo;
 
-import java.util.logging.Logger;
+import java.io.IOException;
 
-import javax.interceptor.AroundInvoke;
-import javax.interceptor.InvocationContext;
+import javax.websocket.OnError;
+import javax.websocket.OnMessage;
+import javax.websocket.OnOpen;
+import javax.websocket.Session;
+import javax.websocket.server.ServerEndpoint;
 
-/**
- * @author Stepan Kopriva (stepan.kopriva at oracle.com)
- */
-public class LoggingInterceptor {
+@ServerEndpoint("/echo")
+public class EchoEndpoint {
 
-    @AroundInvoke
-    public Object manageTransaction(InvocationContext ctx) throws Exception {
-        SingletonEndpoint.interceptorCalled = true;
-        Logger.getLogger(getClass().getName()).info("LOGGING.");
-        return ctx.proceed();
+    @OnOpen
+    public void onOpen(Session session) throws IOException {
+        session.getBasicRemote().sendText("onOpen");
+    }
+
+    @OnMessage
+    public String echo(String message) {
+        return message + " (from your server)";
+    }
+
+    @OnError
+    public void onError(Throwable t) {
+        t.printStackTrace();
     }
 }

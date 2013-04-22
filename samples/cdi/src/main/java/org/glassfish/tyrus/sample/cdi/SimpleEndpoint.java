@@ -47,21 +47,21 @@ import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 
 /**
+ * Bean where {@link InjectedSimpleBean} is injected.
+ *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-@ServerEndpoint(value = "/injectingstateful")
-public class InjectToBeanStateful {
+@ServerEndpoint(value = "/simple")
+public class SimpleEndpoint {
 
-    public static final String TEXT = " Inner counter is: ";
     private boolean postConstructCalled = false;
 
     @Inject
-    InjectedStatefulBean bean;
+    InjectedSimpleBean bean;
 
     @OnMessage
-    public String doThat(String message) {
-        bean.incrementCounter();
-        return postConstructCalled ? String.format("%s%s%s", message, TEXT, bean.getCounter()) : "PostConstruct not called.";
+    public String echo(String message) {
+        return postConstructCalled ? String.format("%s%s", message, bean.getText()) : "PostConstruct was not called";
     }
 
     @PostConstruct

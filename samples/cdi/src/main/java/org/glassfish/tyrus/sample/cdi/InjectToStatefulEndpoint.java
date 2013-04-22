@@ -44,22 +44,24 @@ import javax.websocket.OnMessage;
 import javax.websocket.server.ServerEndpoint;
 
 import javax.annotation.PostConstruct;
-import javax.ejb.Stateful;
+import javax.inject.Inject;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-@ServerEndpoint(value = "/stateful")
-@Stateful
-public class StatefulBean {
+@ServerEndpoint(value = "/injectingstateful")
+public class InjectToStatefulEndpoint {
 
-    int counter = 0;
+    public static final String TEXT = " Inner counter is: ";
     private boolean postConstructCalled = false;
 
+    @Inject
+    InjectedStatefulBean bean;
 
     @OnMessage
-    public String echo(String message) {
-        return postConstructCalled ? String.format("%s%s", message, counter++) : "PostConstruct not called.";
+    public String doThat(String message) {
+        bean.incrementCounter();
+        return postConstructCalled ? String.format("%s%s%s", message, TEXT, bean.getCounter()) : "PostConstruct not called.";
     }
 
     @PostConstruct

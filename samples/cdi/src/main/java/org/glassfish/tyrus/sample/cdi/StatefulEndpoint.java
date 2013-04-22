@@ -40,20 +40,30 @@
 
 package org.glassfish.tyrus.sample.cdi;
 
-import java.util.logging.Logger;
+import javax.websocket.OnMessage;
+import javax.websocket.server.ServerEndpoint;
 
-import javax.interceptor.AroundInvoke;
-import javax.interceptor.InvocationContext;
+import javax.annotation.PostConstruct;
+import javax.ejb.Stateful;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class LoggingInterceptor {
+@ServerEndpoint(value = "/stateful")
+@Stateful
+public class StatefulEndpoint {
 
-    @AroundInvoke
-    public Object manageTransaction(InvocationContext ctx) throws Exception {
-        SingletonEndpoint.interceptorCalled = true;
-        Logger.getLogger(getClass().getName()).info("LOGGING.");
-        return ctx.proceed();
+    int counter = 0;
+    private boolean postConstructCalled = false;
+
+
+    @OnMessage
+    public String echo(String message) {
+        return postConstructCalled ? String.format("%s%s", message, counter++) : "PostConstruct not called.";
+    }
+
+    @PostConstruct
+    public void postConstruct(){
+        postConstructCalled = true;
     }
 }

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -37,39 +37,38 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+package org.glassfish.tyrus.sample.simplelife;
 
-package org.glassfish.tyrus.sample.cdi;
+import java.io.IOException;
 
-/**
- * @author Stepan Kopriva (stepan.kopriva at oracle.com)
- */
-
+import javax.websocket.OnClose;
 import javax.websocket.OnMessage;
+import javax.websocket.OnOpen;
+import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
-import javax.annotation.PostConstruct;
-import javax.inject.Inject;
 
-/**
- * @author Stepan Kopriva (stepan.kopriva at oracle.com)
- */
-@ServerEndpoint(value = "/injectingsingleton")
-public class InjectToBeanSingleton {
+@ServerEndpoint(value = "/simplelife")
+public class SimpleLifeEndpoint {
 
-    public static final String TEXT = " Inner counter is: ";
-    private boolean postConstructCalled = false;
-
-    @Inject
-    InjectedSingletonBean bean;
+    @OnOpen
+    public void hi(Session remote) {
+        System.out.println("Someone connected...");
+    }
 
     @OnMessage
-    public String doThat(String message) {
-        bean.incrementCounter();
-        return postConstructCalled ? String.format("%s%s%s", message, TEXT, bean.getCounter()) : "PostConstruct not called.";
+    public void handleMessage(String message, Session session) {
+        System.out.println("Someone sent me this message: " + message);
+        try {
+            session.getBasicRemote().sendText(message);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    @PostConstruct
-    public void postConstruct(){
-        postConstructCalled = true;
+    @OnClose
+    public void bye(Session remote) {
+        System.out.println("Someone is disconnecting...");
     }
+
 }

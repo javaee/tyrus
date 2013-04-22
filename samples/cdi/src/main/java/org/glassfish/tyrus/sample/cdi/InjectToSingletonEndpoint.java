@@ -40,20 +40,36 @@
 
 package org.glassfish.tyrus.sample.cdi;
 
-import java.util.logging.Logger;
+/**
+ * @author Stepan Kopriva (stepan.kopriva at oracle.com)
+ */
 
-import javax.interceptor.AroundInvoke;
-import javax.interceptor.InvocationContext;
+import javax.websocket.OnMessage;
+import javax.websocket.server.ServerEndpoint;
+
+import javax.annotation.PostConstruct;
+import javax.inject.Inject;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class LoggingInterceptor {
+@ServerEndpoint(value = "/injectingsingleton")
+public class InjectToSingletonEndpoint {
 
-    @AroundInvoke
-    public Object manageTransaction(InvocationContext ctx) throws Exception {
-        SingletonEndpoint.interceptorCalled = true;
-        Logger.getLogger(getClass().getName()).info("LOGGING.");
-        return ctx.proceed();
+    public static final String TEXT = " Inner counter is: ";
+    private boolean postConstructCalled = false;
+
+    @Inject
+    InjectedSingletonBean bean;
+
+    @OnMessage
+    public String doThat(String message) {
+        bean.incrementCounter();
+        return postConstructCalled ? String.format("%s%s%s", message, TEXT, bean.getCounter()) : "PostConstruct not called.";
+    }
+
+    @PostConstruct
+    public void postConstruct(){
+        postConstructCalled = true;
     }
 }
