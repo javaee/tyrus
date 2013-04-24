@@ -46,7 +46,7 @@
     <parent>
         <groupId>org.glassfish.tyrus.bundles</groupId>
         <artifactId>tyrus-bundles</artifactId>
-        <version>1.0-SNAPSHOT</version>
+        <version>1.0-rc4</version>
     </parent>
 
     <artifactId>tyrus-samples</artifactId>
