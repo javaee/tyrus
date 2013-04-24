@@ -126,7 +126,7 @@
         <websocket-api.version>1.0-rc5</websocket-api.version>
         <websocket.api.build_number>18</websocket.api.build_number>
 
-        <servlet.api.version>3.0.1</servlet.api.version>
+        <servlet.api.version>3.1-b09</servlet.api.version>
         <grizzly.version>2.3.1</grizzly.version>
         <javax.ejb-api.version>3.2-b01</javax.ejb-api.version>
         <cdi-api.version>1.1-PRD</cdi-api.version>
@@ -157,6 +157,7 @@
 
     <modules>
         <module>bom</module>
+        <module>bundles</module>
         <module>client</module>
         <module>containers</module>
         <module>core</module>
@@ -309,6 +310,29 @@
                     <groupId>org.apache.maven.plugins</groupId>
                     <artifactId>maven-war-plugin</artifactId>
                     <version>2.3</version>
+                </plugin>
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-javadoc-plugin</artifactId>
+                    <version>2.9</version>
+                    <configuration>
+                        <doctitle>Tyrus ${project.version} API Documentation</doctitle>
+                        <bottom>
+                            <![CDATA[Copyright &#169; 2013,
+                                <a href="http://www.oracle.com">Oracle</a>
+                                and/or its affiliates.
+                                All Rights Reserved. Use is subject to license terms.]]>
+                        </bottom>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <id>attach-javadocs</id>
+                            <phase>package</phase>
+                            <goals>
+                                <goal>jar</goal>
+                            </goals>
+                        </execution>
+                    </executions>
                 </plugin>
             </plugins>
         </pluginManagement>
