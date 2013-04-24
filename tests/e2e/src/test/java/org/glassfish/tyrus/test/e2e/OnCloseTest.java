@@ -208,7 +208,7 @@ public class OnCloseTest {
                 }
             }, cec, new URI("ws://localhost:8025/websockets/tests/close"));
 
-            messageLatch.await(1, TimeUnit.SECONDS);
+            messageLatch.await(5, TimeUnit.SECONDS);
 
             assertEquals(0L, messageLatch.getCount());
         } catch (Exception e) {
