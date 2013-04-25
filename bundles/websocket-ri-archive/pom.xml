@@ -49,7 +49,7 @@
         <version>1.0-rc4</version>
     </parent>
 
-    <artifactId>websocket-ri</artifactId>
+    <artifactId>websocket-ri-archive</artifactId>
     <name>Tyrus Websocket RI Archive</name>
     <packaging>pom</packaging>
 
