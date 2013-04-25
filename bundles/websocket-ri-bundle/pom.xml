@@ -49,8 +49,7 @@
         <version>1.0-SNAPSHOT</version>
     </parent>
 
-    <groupId>org.glassfish.tyrus</groupId>
-    <artifactId>websocket-ri</artifactId>
+    <artifactId>websocket-ri-bundle</artifactId>
     <name>Tyrus Websocket RI Bundle</name>
     <packaging>bundle</packaging>
 
