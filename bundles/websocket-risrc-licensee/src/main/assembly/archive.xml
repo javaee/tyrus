@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <!--
 
     DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
@@ -40,29 +39,35 @@
     holder.
 
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-
-    <modelVersion>4.0.0</modelVersion>
-
-    <parent>
-        <groupId>org.glassfish.tyrus</groupId>
-        <artifactId>tyrus-project</artifactId>
-        <version>1.0-SNAPSHOT</version>
-    </parent>
-
-    <groupId>org.glassfish.tyrus.bundles</groupId>
-    <artifactId>tyrus-bundles</artifactId>
-    <packaging>pom</packaging>
-    <name>Tyrus Bundles</name>
-
-    <description>Tyrus bundles umbrella project module.</description>
-
-    <modules>
-        <module>samples</module>
-        <module>websocket-ri-archive</module>
-        <module>websocket-ri-bundle</module>
-        <module>websocket-risrc-licensee</module>
-    </modules>
-
-</project>
+<assembly>
+    <id>dist</id>
+    <formats>
+        <format>zip</format>
+    </formats>
+    <fileSets>
+        <!-- TLDA license -->
+        <fileSet>
+            <directory>target/assembly</directory>
+            <includes>
+                <include>*.txt</include>
+            </includes>
+            <outputDirectory/>
+        </fileSet>
+        <fileSet>
+            <directory>${project.basedir}/../..</directory>
+            <outputDirectory>/</outputDirectory>
+            <useDefaultExcludes>true</useDefaultExcludes>
+            <includes>
+                <include>pom.xml</include>
+                <include>client/**</include>
+                <include>containers/**</include>
+                <include>core/**</include>
+                <include>impl/**</include>
+                <include>protocol/**</include>
+                <include>server/**</include>
+                <include>spi/**</include>
+                <include>spi-providers/**</include>
+            </includes>
+        </fileSet>
+    </fileSets>
+</assembly>
