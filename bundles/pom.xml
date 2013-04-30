@@ -62,7 +62,9 @@
         <module>samples</module>
         <module>websocket-ri-archive</module>
         <module>websocket-ri-bundle</module>
+<!--
         <module>websocket-risrc-licensee</module>
+-->
     </modules>
 
 </project>
