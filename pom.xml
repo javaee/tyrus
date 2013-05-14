@@ -161,6 +161,7 @@
         <module>client</module>
         <module>containers</module>
         <module>core</module>
+        <module>docs</module>
         <module>protocol</module>
         <module>samples</module>
         <module>server</module>
