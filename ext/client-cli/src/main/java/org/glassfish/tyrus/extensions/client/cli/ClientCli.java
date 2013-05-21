@@ -39,6 +39,8 @@
  */
 package org.glassfish.tyrus.extensions.client.cli;
 
+import java.io.FileDescriptor;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -62,10 +64,12 @@ import jline.console.completer.StringsCompleter;
  * Simple WebSocket CLI client, handy tool usable for simple endpoint testing.
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
+ * @author Gerard Davison (gerard.davison at oracle.com)
  */
 public class ClientCli {
 
-    public static final String CONSOLE_PREFIX_NO_CONN = "tyrus-client> ";
+    public static final String NAME = "tyrus-client";
+    public static final String CONSOLE_PREFIX_NO_CONN = NAME + "> ";
     public static final String CONSOLE_PREFIX_CONN = "session %s> ";
 
     private static volatile Session session = null;
@@ -129,11 +133,13 @@ public class ClientCli {
         final WebSocketContainer webSocketContainer = ContainerProvider.getWebSocketContainer();
 
         try {
-            final ConsoleReader console = new ConsoleReader();
+            final ConsoleReader console = new ConsoleReader(
+                    NAME,
+                    new FileInputStream(FileDescriptor.in), System.out, null);
 
             //
 
-            console.addCompleter(new StringsCompleter("open", "close", "send", "ping", "exit", "quit"));
+            console.addCompleter(new StringsCompleter("open", "close", "send", "ping", "exit", "quit", "help"));
             console.setPrompt(getPrompt());
 
             // If we have one parameter assume it to be a URI
@@ -151,43 +157,77 @@ public class ClientCli {
             mainLoop:
             while ((line = console.readLine()) != null) {
 
-                // Get ride of extranious white space
-                //
-                line = line.trim();
+                try {
+                    // Get ride of extranious white space
+                    //
+                    line = line.trim();
 
-                if (line.length() == 0) {
-                    // Do nothing
-                } else if (line.startsWith("open ")) {
-                    final String uri = line.substring(5);
-                    connectToURI(console, uri, webSocketContainer);
-                } else if (line.startsWith("close")) {
-                    if (session != null) {
-                        session.close();
-                    }
-                    session = null;
+                    if (line.length() == 0) {
+                        // Do nothing
+                    } else if (line.startsWith("open ")) {
+                        final String uri = line.substring(5).trim();
+                        connectToURI(console, uri, webSocketContainer);
+                    } else if (line.startsWith("close")) {
+                        if (session != null) {
+                            session.close();
+                        }
+                        session = null;
 
-                    ClientCli.print(console, null, String.format("Session closed"), false);
-                } else if (line.startsWith("send ")) {
-                    final String message = line.substring(5);
+                        ClientCli.print(console, null, String.format("Session closed"), false);
+                    } else if (line.startsWith("send ")) {
+                        final String message = line.substring(5);
 
-                    if (session != null) {
-                        session.getBasicRemote().sendText(message);
+                        if (session != null) {
+                            session.getBasicRemote().sendText(message);
+                        }
+                        // Multiline send, complets on the full stop
+                    } else if (line.startsWith("send")) {
+
+                        ClientCli.printSynchronous(console, null, String.format("End multiline message with . on own line"));
+                        console.restoreLine("", 0);
+
+                        StringBuilder sb = new StringBuilder();
+                        String subLine;
+                        while (!".".equals((subLine = console.readLine()))) {
+                            sb.append(subLine);
+                            sb.append('\n');
+                        }
+
+                        if (session != null) {
+                            session.getBasicRemote().sendText(sb.toString());
+                        }
+
+                        // Put the prompt back
+                        console.resetPromptLine(getPrompt(), "", 0);
+                    } else if (line.startsWith("ping")) {
+                        if (session != null) {
+                            session.getBasicRemote().sendPing(ByteBuffer.wrap("tyrus-client-ping".getBytes()));
+                        }
+                    } else if (line.startsWith("exit") || line.startsWith("quit")) {
+                        break mainLoop;
+                    } else if (line.startsWith("help")) {
+
+                        String help = ""
+                                + "\n\topen uri : open a connection to the web socket uri"
+                                + "\n\tclose : close a currently open web socket session"
+                                + "\n\tsend message : send a text message"
+                                + "\n\tsend : send a multiline text message teminated with a ."
+                                + "\n\tping : send a ping message"
+                                + "\n\tquit | exit : exit this tool"
+                                + "\n\thelp : display this message"
+                                + "\n\t";
+
+                        ClientCli.print(console, null, help, false);
+
+                    } else {
+                        ClientCli.print(console, null, "Unable to parse given command.", false);
                     }
-                } else if (line.startsWith("ping")) {
-                    if (session != null) {
-                        session.getBasicRemote().sendPing(ByteBuffer.wrap("tyrus-client-ping".getBytes()));
-                    }
-                } else if (line.startsWith("exit") || line.startsWith("quit")) {
-                    break mainLoop;
-                } else {
-                    ClientCli.print(console, null, "Unable to parse given command.", false);
+
+                } catch (IOException e) {
+                    ClientCli.print(console, null, String.format("IOException: %s", e.getMessage()), false);
                 }
             }
 
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
         } finally {
             try {
                 TerminalFactory.get().restore();
@@ -198,7 +238,7 @@ public class ClientCli {
     }
 
 
-    protected static void connectToURI(final ConsoleReader console, final String uri, final WebSocketContainer webSocketContainer) throws IOException, URISyntaxException {
+    protected static void connectToURI(final ConsoleReader console, final String uri, final WebSocketContainer webSocketContainer) throws IOException {
 
         // Use a local copy so that we don't get odd race conditions
         //
@@ -209,10 +249,13 @@ public class ClientCli {
         }
         ClientCli.printSynchronous(console, null, String.format("Connecting to %s...", uri));
         try {
+            // TODO support sub protocols
             localCopy = webSocketContainer.connectToServer(new ClientEndpoint(console), new URI(uri));
             session = localCopy;
 
             ClientCli.print(console, null, String.format("Connected in session %s", localCopy.getId()), false);
+        } catch (URISyntaxException ex) {
+            ClientCli.print(console, null, String.format("Problem parsing uri %s beause of %s", uri, ex.getMessage()), false);
         } catch (DeploymentException ex) {
             ClientCli.print(console, null, String.format("Failed to connect to %s due to %s", uri, ex.getMessage()), false);
         }
