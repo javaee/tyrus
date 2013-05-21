@@ -48,6 +48,7 @@ import javax.websocket.CloseReason;
 import javax.websocket.ContainerProvider;
 import javax.websocket.DeploymentException;
 import javax.websocket.OnClose;
+import javax.websocket.OnError;
 import javax.websocket.OnMessage;
 import javax.websocket.PongMessage;
 import javax.websocket.Session;
@@ -64,7 +65,10 @@ import jline.console.completer.StringsCompleter;
  */
 public class ClientCli {
 
-    public static final String CONSOLE_PREFIX = "tyrus-client> ";
+    public static final String CONSOLE_PREFIX_NO_CONN = "tyrus-client> ";
+    public static final String CONSOLE_PREFIX_CONN = "session %s> ";
+
+    private static volatile Session session = null;
 
     /**
      * Client side endpoint, prints everything into given console.
@@ -79,17 +83,39 @@ public class ClientCli {
 
         @OnMessage
         public void onMessage(String s) throws IOException {
-            print("message", s);
+            print("text-message", s);
+        }
+
+        @OnMessage
+        public void onMessage(byte[] buffer) throws IOException {
+
+            // Covert into octets, must be a better way to do this
+            //
+            //
+            StringBuilder sb = new StringBuilder();
+            for (byte b : buffer) {
+                sb.append("0x");
+                sb.append(Integer.toHexString(b));
+                sb.append(' ');
+            }
+
+            print("binary-message", sb.toString());
+        }
+
+        @OnError
+        public void onError(Throwable th) throws IOException {
+            print("error", th.getMessage());
         }
 
         @OnClose
         public void onClose(CloseReason closeReason) throws IOException {
+            session = null;
             print("closed", closeReason.toString());
         }
 
         @OnMessage
         public void onMessage(PongMessage pongMessage) throws IOException {
-            print(null, "pong");
+            print(null, "pong-message");
         }
 
         private void print(String prefix, String message) throws IOException {
@@ -104,23 +130,43 @@ public class ClientCli {
 
         try {
             final ConsoleReader console = new ConsoleReader();
-            console.addCompleter(new StringsCompleter("open", "close", "send", "ping"));
-            console.setPrompt(CONSOLE_PREFIX);
+
+            //
+
+            console.addCompleter(new StringsCompleter("open", "close", "send", "ping", "exit", "quit"));
+            console.setPrompt(getPrompt());
+
+            // If we have one parameter assume it to be a URI
+            //
+
+            if (args.length == 1) {
+                connectToURI(console, args[0], webSocketContainer);
+                console.getHistory().add("open " + args[0]);
+            } else if (args.length > 1) {
+                ClientCli.printSynchronous(console, null, String.format("Invalid argument count, usage cmd [ws uri]"));
+                return;
+            }
+
             String line;
-            Session session = null;
+            mainLoop:
             while ((line = console.readLine()) != null) {
-                if (line.startsWith("open ")) {
+
+                // Get ride of extranious white space
+                //
+                line = line.trim();
+
+                if (line.length() == 0) {
+                    // Do nothing
+                } else if (line.startsWith("open ")) {
                     final String uri = line.substring(5);
-                    if (session != null) {
-                        session.close();
-                    }
-                    ClientCli.print(console, null, String.format("Connecting to %s...", uri));
-                    session = webSocketContainer.connectToServer(new ClientEndpoint(console), new URI(uri));
+                    connectToURI(console, uri, webSocketContainer);
                 } else if (line.startsWith("close")) {
                     if (session != null) {
                         session.close();
                     }
                     session = null;
+
+                    ClientCli.print(console, null, String.format("Session closed"), false);
                 } else if (line.startsWith("send ")) {
                     final String message = line.substring(5);
 
@@ -131,8 +177,10 @@ public class ClientCli {
                     if (session != null) {
                         session.getBasicRemote().sendPing(ByteBuffer.wrap("tyrus-client-ping".getBytes()));
                     }
+                } else if (line.startsWith("exit") || line.startsWith("quit")) {
+                    break mainLoop;
                 } else {
-                    ClientCli.print(console, null, "unable to parse given command.", false);
+                    ClientCli.print(console, null, "Unable to parse given command.", false);
                 }
             }
 
@@ -146,6 +194,46 @@ public class ClientCli {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        }
+    }
+
+
+    protected static void connectToURI(final ConsoleReader console, final String uri, final WebSocketContainer webSocketContainer) throws IOException, URISyntaxException {
+
+        // Use a local copy so that we don't get odd race conditions
+        //
+        Session localCopy = session;
+        if (localCopy != null) {
+            ClientCli.printSynchronous(console, null, String.format("Closing session %s", localCopy.getId()));
+            localCopy.close();
+        }
+        ClientCli.printSynchronous(console, null, String.format("Connecting to %s...", uri));
+        try {
+            localCopy = webSocketContainer.connectToServer(new ClientEndpoint(console), new URI(uri));
+            session = localCopy;
+
+            ClientCli.print(console, null, String.format("Connected in session %s", localCopy.getId()), false);
+        } catch (DeploymentException ex) {
+            ClientCli.print(console, null, String.format("Failed to connect to %s due to %s", uri, ex.getMessage()), false);
+        }
+    }
+
+
+    /**
+     * Derive the prompt from the session id.
+     *
+     * @return prompt string.
+     */
+    private static String getPrompt() {
+        // Hendge against current updates
+        Session currentSession = session;
+        if (session != null) {
+            String id = currentSession.getId();
+            String shortId = id.substring(0, 4) + "..."
+                    + id.substring(id.length() - 4);
+            return String.format(CONSOLE_PREFIX_CONN, shortId);
+        } else {
+            return CONSOLE_PREFIX_NO_CONN;
         }
     }
 
@@ -175,7 +263,28 @@ public class ClientCli {
      * @throws IOException when there is some issue with printing to a console.
      */
     private static void print(ConsoleReader console, String prefix, String message, boolean restore) throws IOException {
+        printSynchronous(console, prefix, message);
+
+        if (restore) {
+            console.restoreLine(getPrompt(), 0);
+        } else {
+            console.resetPromptLine(getPrompt(), "", 0);
+        }
+    }
+
+    /**
+     * Console printer for when the console doesn't have control.
+     * <p/>
+     * Format: # prefix: message.
+     *
+     * @param console console to be used for printing.
+     * @param prefix  message prefix. Ignored when {@code null} or empty string.
+     * @param message message data. Ignored when {@code null} or empty string.
+     * @throws IOException when there is some issue with printing to a console.
+     */
+    private static void printSynchronous(ConsoleReader console, String prefix, String message) throws IOException {
         console.restoreLine("", 0);
+
         String m = (message == null ? "" : message);
 
         if (prefix != null && !prefix.isEmpty()) {
@@ -184,10 +293,6 @@ public class ClientCli {
             console.println(String.format("# %s", m));
         }
 
-        if(restore) {
-            console.restoreLine(CONSOLE_PREFIX, 0);
-        } else {
-            console.resetPromptLine(CONSOLE_PREFIX, "", 0);
-        }
+        console.restoreLine("", 0);
     }
 }

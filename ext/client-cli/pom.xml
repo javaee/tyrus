@@ -68,9 +68,9 @@
             <scope>test</scope>
         </dependency>
         <dependency>
-          <groupId>jline</groupId>
-          <artifactId>jline</artifactId>
-          <version>2.10</version>
+            <groupId>jline</groupId>
+            <artifactId>jline</artifactId>
+            <version>2.10</version>
         </dependency>
     </dependencies>
 
@@ -110,7 +110,7 @@
                                 <transformer
                                         implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <manifestEntries>
-                                        <Main-Class>org.glassfish.tyrus.extensions.client.cli.ClientCli</Main-Class>
+                                        <Main-Class>${client.main.class}</Main-Class>
                                     </manifestEntries>
                                 </transformer>
                             </transformers>
@@ -118,6 +118,18 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.2.1</version>
+                <configuration>
+                    <mainClass>${client.main.class}</mainClass>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
+
+    <properties>
+        <client.main.class>org.glassfish.tyrus.extensions.client.cli.ClientCli</client.main.class>
+    </properties>
 </project>
