@@ -58,6 +58,7 @@ import javax.websocket.WebSocketContainer;
 
 import jline.TerminalFactory;
 import jline.console.ConsoleReader;
+import jline.console.CursorBuffer;
 import jline.console.completer.StringsCompleter;
 
 /**
@@ -87,7 +88,7 @@ public class ClientCli {
 
         @OnMessage
         public void onMessage(String s) throws IOException {
-            print("text-message", s);
+            print("text-message", s.replace("\n", "\n# "));
         }
 
         @OnMessage
@@ -97,10 +98,14 @@ public class ClientCli {
             //
             //
             StringBuilder sb = new StringBuilder();
-            for (byte b : buffer) {
+            for (int i = 0; i < buffer.length && i < 1024; i++) {
                 sb.append("0x");
-                sb.append(Integer.toHexString(b));
+                sb.append(Integer.toHexString(buffer[i]));
                 sb.append(' ');
+            }
+
+            if (buffer.length >= 1024) {
+                sb.append(" ...");
             }
 
             print("binary-message", sb.toString());
@@ -137,19 +142,16 @@ public class ClientCli {
                     NAME,
                     new FileInputStream(FileDescriptor.in), System.out, null);
 
-            //
-
             console.addCompleter(new StringsCompleter("open", "close", "send", "ping", "exit", "quit", "help"));
             console.setPrompt(getPrompt());
 
             // If we have one parameter assume it to be a URI
-            //
-
             if (args.length == 1) {
                 connectToURI(console, args[0], webSocketContainer);
                 console.getHistory().add("open " + args[0]);
+                console.setPrompt(getPrompt());
             } else if (args.length > 1) {
-                ClientCli.printSynchronous(console, null, String.format("Invalid argument count, usage cmd [ws uri]"));
+                ClientCli.print(console, null, String.format("Invalid argument count, usage cmd [ws uri]"), false);
                 return;
             }
 
@@ -158,8 +160,7 @@ public class ClientCli {
             while ((line = console.readLine()) != null) {
 
                 try {
-                    // Get ride of extranious white space
-                    //
+                    // Get rid of extranious white space
                     line = line.trim();
 
                     if (line.length() == 0) {
@@ -183,8 +184,10 @@ public class ClientCli {
                         // Multiline send, complets on the full stop
                     } else if (line.startsWith("send")) {
 
-                        ClientCli.printSynchronous(console, null, String.format("End multiline message with . on own line"));
-                        console.restoreLine("", 0);
+                        ClientCli.print(console, null, String.format("End multiline message with . on own line"), false);
+
+                        String temporaryPrompt = "send...> ";
+                        console.setPrompt(temporaryPrompt);
 
                         StringBuilder sb = new StringBuilder();
                         String subLine;
@@ -193,12 +196,11 @@ public class ClientCli {
                             sb.append('\n');
                         }
 
+                        // Send message
                         if (session != null) {
                             session.getBasicRemote().sendText(sb.toString());
                         }
 
-                        // Put the prompt back
-                        console.resetPromptLine(getPrompt(), "", 0);
                     } else if (line.startsWith("ping")) {
                         if (session != null) {
                             session.getBasicRemote().sendPing(ByteBuffer.wrap("tyrus-client-ping".getBytes()));
@@ -226,6 +228,9 @@ public class ClientCli {
                 } catch (IOException e) {
                     ClientCli.print(console, null, String.format("IOException: %s", e.getMessage()), false);
                 }
+
+                // Restore prompt
+                console.setPrompt(getPrompt());
             }
 
         } finally {
@@ -244,10 +249,10 @@ public class ClientCli {
         //
         Session localCopy = session;
         if (localCopy != null) {
-            ClientCli.printSynchronous(console, null, String.format("Closing session %s", localCopy.getId()));
+            ClientCli.print(console, null, String.format("Closing session %s", localCopy.getId()), false);
             localCopy.close();
         }
-        ClientCli.printSynchronous(console, null, String.format("Connecting to %s...", uri));
+        ClientCli.print(console, null, String.format("Connecting to %s...", uri), false);
         try {
             // TODO support sub protocols
             localCopy = webSocketContainer.connectToServer(new ClientEndpoint(console), new URI(uri));
@@ -305,27 +310,15 @@ public class ClientCli {
      * @param restore restore command line prefix.
      * @throws IOException when there is some issue with printing to a console.
      */
-    private static void print(ConsoleReader console, String prefix, String message, boolean restore) throws IOException {
-        printSynchronous(console, prefix, message);
+    private static synchronized void print(ConsoleReader console, String prefix, String message, boolean restore) throws IOException {
 
-        if (restore) {
-            console.restoreLine(getPrompt(), 0);
-        } else {
-            console.resetPromptLine(getPrompt(), "", 0);
-        }
-    }
+        // Store the buffer information so we can restore it 
+        // after the message has been sent
+        CursorBuffer cursorBuffer = console.getCursorBuffer().copy();
+        String buffer = cursorBuffer.buffer.toString();
+        int cursor = cursorBuffer.cursor;
+        String prompt = console.getPrompt();
 
-    /**
-     * Console printer for when the console doesn't have control.
-     * <p/>
-     * Format: # prefix: message.
-     *
-     * @param console console to be used for printing.
-     * @param prefix  message prefix. Ignored when {@code null} or empty string.
-     * @param message message data. Ignored when {@code null} or empty string.
-     * @throws IOException when there is some issue with printing to a console.
-     */
-    private static void printSynchronous(ConsoleReader console, String prefix, String message) throws IOException {
         console.restoreLine("", 0);
 
         String m = (message == null ? "" : message);
@@ -336,6 +329,11 @@ public class ClientCli {
             console.println(String.format("# %s", m));
         }
 
-        console.restoreLine("", 0);
+        if (restore) {
+            console.resetPromptLine(prompt, buffer, cursor);
+        } else {
+            console.restoreLine("", 0);
+        }
+
     }
 }
