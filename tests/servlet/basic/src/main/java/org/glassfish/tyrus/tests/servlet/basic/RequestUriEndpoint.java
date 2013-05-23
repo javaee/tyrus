@@ -40,18 +40,17 @@
 package org.glassfish.tyrus.tests.servlet.basic;
 
 import javax.websocket.OnMessage;
+import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
 /**
- * Echo endpoint for string messages.
- *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-@ServerEndpoint(value = "/plainEcho")
-public class PlainEcho {
+@ServerEndpoint(value = "/uriEcho")
+public class RequestUriEndpoint {
 
     @OnMessage
-    public String onMessage(String s) {
-        return s;
+    public String onMessage(Session session, String message) {
+        return session.getRequestURI().toString();
     }
 }

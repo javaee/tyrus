@@ -62,6 +62,7 @@ import org.glassfish.tyrus.server.Server;
 import org.junit.Ignore;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Primarily meant to test servlet integration, might be someday used for simple stress testing.
@@ -75,7 +76,8 @@ public class ServletTest {
     private final int DEFAULT_PORT = 8025;
 
     private final Set<Class<?>> endpointClasses = new HashSet<Class<?>>() {{
-        add(PlainEcho.class);
+        add(PlainEchoEndpoint.class);
+        add(RequestUriEndpoint.class);
     }};
 
     /**
@@ -154,7 +156,7 @@ public class ServletTest {
                         // do nothing
                     }
                 }
-            }, ClientEndpointConfig.Builder.create().build(), getURI(PlainEcho.class.getAnnotation(ServerEndpoint.class).value()));
+            }, ClientEndpointConfig.Builder.create().build(), getURI(PlainEchoEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
 
             messageLatch.await(1, TimeUnit.SECONDS);
             assertEquals(0, messageLatch.getCount());
@@ -191,7 +193,7 @@ public class ServletTest {
                         // do nothing
                     }
                 }
-            }, ClientEndpointConfig.Builder.create().build(), getURI(PlainEcho.class.getAnnotation(ServerEndpoint.class).value()));
+            }, ClientEndpointConfig.Builder.create().build(), getURI(PlainEchoEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
 
 
             messageLatch.await(20, TimeUnit.SECONDS);
@@ -227,7 +229,7 @@ public class ServletTest {
                             // do nothing
                         }
                     }
-                }, ClientEndpointConfig.Builder.create().build(), getURI(PlainEcho.class.getAnnotation(ServerEndpoint.class).value()));
+                }, ClientEndpointConfig.Builder.create().build(), getURI(PlainEchoEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
 
                 // TODO - remove when possible.
                 Thread.sleep(100);
@@ -280,7 +282,7 @@ public class ServletTest {
                         // do nothing
                     }
                 }
-            }, ClientEndpointConfig.Builder.create().build(), getURI(PlainEcho.class.getAnnotation(ServerEndpoint.class).value()));
+            }, ClientEndpointConfig.Builder.create().build(), getURI(PlainEchoEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
 
             messageLatch.await(1, TimeUnit.SECONDS);
             assertEquals(0, messageLatch.getCount());
@@ -316,7 +318,7 @@ public class ServletTest {
                         // do nothing
                     }
                 }
-            }, ClientEndpointConfig.Builder.create().build(), getURI(PlainEcho.class.getAnnotation(ServerEndpoint.class).value()));
+            }, ClientEndpointConfig.Builder.create().build(), getURI(PlainEchoEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
 
             messageLatch.await(10, TimeUnit.SECONDS);
             assertEquals(0, messageLatch.getCount());
@@ -351,13 +353,51 @@ public class ServletTest {
                             // do nothing
                         }
                     }
-                }, ClientEndpointConfig.Builder.create().build(), getURI(PlainEcho.class.getAnnotation(ServerEndpoint.class).value()));
+                }, ClientEndpointConfig.Builder.create().build(), getURI(PlainEchoEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
 
                 // TODO - remove when possible.
                 Thread.sleep(300);
             }
 
             messageLatch.await(10, TimeUnit.SECONDS);
+            assertEquals(0, messageLatch.getCount());
+        } finally {
+            stopServer(server);
+        }
+    }
+
+    @Test
+    public void testGetRequestURI() throws DeploymentException, InterruptedException, IOException {
+        final Server server = startServer();
+
+        final CountDownLatch messageLatch = new CountDownLatch(1);
+
+        try {
+            final ClientManager client = ClientManager.createClient();
+
+            URI uri = getURI(RequestUriEndpoint.class.getAnnotation(ServerEndpoint.class).value());
+            uri = URI.create(uri.toString() + "?test=1;aaa");
+
+            client.connectToServer(new Endpoint() {
+                @Override
+                public void onOpen(Session session, EndpointConfig EndpointConfig) {
+                    try {
+                        session.addMessageHandler(new MessageHandler.Whole<String>() {
+                            @Override
+                            public void onMessage(String message) {
+                                assertTrue(message.endsWith("?test=1;aaa"));
+                                messageLatch.countDown();
+                            }
+                        });
+
+                        session.getBasicRemote().sendText("test");
+                    } catch (IOException e) {
+                        // do nothing
+                    }
+                }
+            }, ClientEndpointConfig.Builder.create().build(), uri);
+
+            messageLatch.await(1, TimeUnit.SECONDS);
             assertEquals(0, messageLatch.getCount());
         } finally {
             stopServer(server);

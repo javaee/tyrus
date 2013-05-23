@@ -408,7 +408,7 @@ public class EndpointWrapper extends SPIEndpoint {
     public Session createSessionForRemoteEndpoint(SPIRemoteEndpoint re, String subprotocol, List<Extension> extensions) {
         synchronized (remoteEndpointToSession) {
             final SessionImpl session = new SessionImpl(container, re, this, subprotocol, extensions, isSecure,
-                    uri == null ? null : URI.create(uri), queryString, templateValues, principal);
+                    getURI(), queryString, templateValues, principal);
             remoteEndpointToSession.put(re, session);
             return session;
         }
@@ -432,7 +432,7 @@ public class EndpointWrapper extends SPIEndpoint {
             if (session == null) {
                 // create a new session
                 session = new SessionImpl(container, gs, this, subprotocol, extensions, isSecure,
-                        uri == null ? null : URI.create(uri), queryString, templateValues, principal);
+                        getURI(), queryString, templateValues, principal);
                 remoteEndpointToSession.put(gs, session);
             }
             // Session was already created in WebSocketContainer#connectToServer call
@@ -762,6 +762,14 @@ public class EndpointWrapper extends SPIEndpoint {
             return ReflectionHelper.getClassType(decoderClass, Decoder.TextStream.class);
         } else {
             return null;
+        }
+    }
+
+    private URI getURI() {
+        if (queryString != null && !queryString.isEmpty()) {
+            return URI.create(String.format("%s?%s", uri, queryString));
+        } else {
+            return URI.create(this.uri);
         }
     }
 
