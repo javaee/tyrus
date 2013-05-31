@@ -41,6 +41,7 @@ package org.glassfish.tyrus.servlet;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.Collections;
 import java.util.Set;
 
 import javax.websocket.ClientEndpointConfig;
@@ -146,7 +147,8 @@ public class TyrusServletServerContainer implements ServerContainer {
 
     @Override
     public Set<Extension> getInstalledExtensions() {
-        throw new UnsupportedOperationException();
+        // Tyrus doesn't support any extensions yet
+        return Collections.emptySet();
     }
 
     void doneDeployment() {
