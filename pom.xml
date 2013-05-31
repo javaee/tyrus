@@ -123,13 +123,13 @@
     </developers>
 
     <properties>
-        <websocket-api.version>1.0-rc5</websocket-api.version>
+        <websocket-api.version>1.0</websocket-api.version>
         <websocket.api.build_number>18</websocket.api.build_number>
 
-        <servlet.api.version>3.1-b09</servlet.api.version>
+        <servlet.api.version>3.1.0</servlet.api.version>
         <grizzly.version>2.3.1</grizzly.version>
-        <javax.ejb-api.version>3.2-b01</javax.ejb-api.version>
-        <cdi-api.version>1.1-PRD</cdi-api.version>
+        <javax.ejb-api.version>3.2</javax.ejb-api.version>
+        <cdi-api.version>1.1</cdi-api.version>
 
         <api_package>javax.websocket</api_package>
         <impl_namespace>org.glassfish</impl_namespace>
@@ -145,7 +145,7 @@
         <packages.private>org.glassfish.*</packages.private>
 
         <!-- Non Final properties for impl jar -->
-        <apijar.bundle.version>${spec_version}.99.b${websocket.api.build_number}</apijar.bundle.version>
+        <apijar.bundle.version>${websocket-api.version}</apijar.bundle.version>
         <impljar.bundle.specversion>${spec_version}.99.b${build_number}</impljar.bundle.specversion>
         <impljar.maven.version>${new_impl_version}-b${build_number}</impljar.maven.version>
         <impljar.bundle.version>${spec_version}.99.b${build_number}</impljar.bundle.version>

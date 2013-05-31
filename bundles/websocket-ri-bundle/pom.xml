@@ -215,14 +215,11 @@
                     <instructions>
                         <Bundle-Name>${project.artifactId}</Bundle-Name>
                         <Bundle-SymbolicName>${project.groupId}.${project.artifactId}</Bundle-SymbolicName>
-                        <Bundle-SpecVersion>${websocket-api.version}.99.${parsedVersion.qualifier}
-                        </Bundle-SpecVersion>
-                        <Bundle-Version>${project.version}.99.${parsedVersion.qualifier}</Bundle-Version>
-                        <Specification-Version>
-                            ${websocket-api.version}.99.${parsedVersion.qualifier}
-                        </Specification-Version>
+                        <Bundle-SpecVersion>${websocket-api.version}</Bundle-SpecVersion>
+                        <Bundle-Version>${project.version}</Bundle-Version>
+                        <Specification-Version>${websocket-api.version}</Specification-Version>
                         <Implementation-Version>
-                            ${parsedVersion.majorVersion}.${parsedVersion.minorVersion}.99.${parsedVersion.qualifier}
+                            ${parsedVersion.majorVersion}.${parsedVersion.minorVersion}
                         </Implementation-Version>
                         <Extension-Name>${project.artifactId}</Extension-Name>
                         <Export-Package>
