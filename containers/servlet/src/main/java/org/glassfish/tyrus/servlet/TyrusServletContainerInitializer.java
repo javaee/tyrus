@@ -41,7 +41,6 @@
 package org.glassfish.tyrus.servlet;
 
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Set;
 import java.util.logging.Logger;
 
@@ -66,7 +65,8 @@ import javax.servlet.annotation.HandlesTypes;
  */
 @HandlesTypes({ServerEndpoint.class, ServerApplicationConfig.class, Endpoint.class})
 public class TyrusServletContainerInitializer implements ServletContainerInitializer {
-    static final Logger LOGGER = Logger.getLogger(TyrusServletContainerInitializer.class.getName());
+    private static final Logger LOGGER =
+            Logger.getLogger(TyrusServletContainerInitializer.class.getName());
 
     /**
      * Tyrus classes scanned by container will be filtered.
@@ -85,14 +85,7 @@ public class TyrusServletContainerInitializer implements ServletContainerInitial
             return;
         }
 
-        for (Iterator<Class<?>> it = classes.iterator(); it.hasNext(); ) {
-            Class<?> cls = it.next();
-
-            if (FILTERED_CLASSES.contains(cls)) {
-                it.remove();
-            }
-        }
-
+        classes.removeAll(FILTERED_CLASSES);
         TyrusServletFilter filter = ctx.createFilter(TyrusServletFilter.class);
         filter.setClasses(classes);
         final FilterRegistration.Dynamic reg = ctx.addFilter("WebSocket filter", filter);
