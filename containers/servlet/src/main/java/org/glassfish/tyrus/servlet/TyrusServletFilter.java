@@ -121,7 +121,7 @@ public class TyrusServletFilter implements Filter {
             final FilterRegistration.Dynamic reg = servletContext.addFilter("WebSocket filter", this);
             reg.setAsyncSupported(true);
             reg.addMappingForUrlPatterns(null, true, "/*");
-            TyrusServletContainerInitializer.LOGGER.info("Registering WebSocket filter for url pattern /*");
+            LOGGER.info("Registering WebSocket filter for url pattern /*");
         }
     }
 
