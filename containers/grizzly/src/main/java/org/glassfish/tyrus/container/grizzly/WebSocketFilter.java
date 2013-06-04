@@ -75,6 +75,8 @@ import org.glassfish.grizzly.http.HttpResponsePacket;
 import org.glassfish.grizzly.http.HttpServerFilter;
 import org.glassfish.grizzly.http.Method;
 import org.glassfish.grizzly.http.Protocol;
+import org.glassfish.grizzly.http.util.Header;
+import org.glassfish.grizzly.http.util.HttpStatus;
 import org.glassfish.grizzly.memory.Buffers;
 import org.glassfish.grizzly.utils.IdleTimeoutFilter;
 
@@ -90,32 +92,37 @@ import org.glassfish.grizzly.utils.IdleTimeoutFilter;
 class WebSocketFilter extends BaseFilter {
 
     private static final Logger logger = Grizzly.logger(WebSocketFilter.class);
-    private static final long DEFAULT_WS_IDLE_TIMEOUT_IN_SECONDS = 15 * 60;
     private final long wsTimeoutMS;
+    private final boolean proxy;
+
+    static final long DEFAULT_WS_IDLE_TIMEOUT_IN_SECONDS = 15 * 60;
+
+    private WebSocketRequest webSocketRequest;
 
     // ------------------------------------------------------------ Constructors
 
-
     /**
-     * Constructs a new <code>WebSocketFilter</code> with a default idle connection
-     * timeout of 15 minutes;
+     * Constructs a new {@link WebSocketFilter} with a default idle connection
+     * timeout of 15 minutes and with proxy turned off.
      */
     public WebSocketFilter() {
-        this(DEFAULT_WS_IDLE_TIMEOUT_IN_SECONDS);
+        this(DEFAULT_WS_IDLE_TIMEOUT_IN_SECONDS, false);
     }
 
     /**
-     * Constructs a new <code>WebSocketFilter</code> with a default idle connection
-     * timeout of 15 minutes;
+     * Constructs a new {@link WebSocketFilter}.
      *
      * @param wsTimeoutInSeconds TODO
+     * @param proxy              true when client initiated connection has proxy in the way.
      */
-    private WebSocketFilter(final long wsTimeoutInSeconds) {
+    public WebSocketFilter(final long wsTimeoutInSeconds, boolean proxy) {
         if (wsTimeoutInSeconds <= 0) {
             this.wsTimeoutMS = IdleTimeoutFilter.FOREVER;
         } else {
             this.wsTimeoutMS = wsTimeoutInSeconds * 1000;
         }
+
+        this.proxy = proxy;
     }
 
     // ----------------------------------------------------- Methods from Filter
@@ -144,21 +151,24 @@ class WebSocketFilter extends BaseFilter {
         }
 
         WebSocketHolder webSocketHolder = WebSocketEngine.getEngine().getWebSocketHolder(webSocketConnection);
-        WebSocketRequest webSocketRequest = webSocketHolder.handshake.initiate();
+        webSocketRequest = webSocketHolder.handshake.initiate();
 
         HttpRequestPacket.Builder builder = HttpRequestPacket.builder();
 
-        builder = builder.protocol(Protocol.HTTP_1_1);
-        builder = builder.method(Method.GET);
-        builder = builder.uri(webSocketRequest.getRequestPath());
-
-        for (String key : webSocketRequest.getHeaders().keySet()) {
-            builder.header(key, webSocketRequest.getFirstHeaderValue(key));
+        if (proxy) {
+            builder = builder.uri(webSocketRequest.getRequestURI().toString());
+            builder = builder.protocol(Protocol.HTTP_1_1);
+            builder = builder.method(Method.CONNECT);
+            builder = builder.header(Header.Host, webSocketRequest.getRequestURI().getHost());
+            builder = builder.header(Header.ProxyConnection, "keep-alive");
+            builder = builder.header(Header.Connection, "keep-alive");
+            ctx.write(HttpContent.builder(builder.build()).build());
+            ctx.flush(null);
+        } else {
+            ctx.write(getHttpContent(webSocketRequest));
+            ctx.flush(null);
         }
 
-        HttpContent httpContent1 = HttpContent.builder(builder.build()).build();
-        ctx.write(httpContent1);
-        ctx.flush(null);
         // call the next filter in the chain
         return ctx.getInvokeAction();
     }
@@ -219,7 +229,25 @@ class WebSocketFilter extends BaseFilter {
             logger.log(Level.FINE, "handleRead websocket: {0} content-size={1} headers=\n{2}",
                     new Object[]{ws, message.getContent().remaining(), header});
         }
+
         if (ws == null || !ws.isConnected()) {
+            if(!message.getHttpHeader().isRequest()) {
+                final HttpStatus httpStatus = ((HttpResponsePacket) message.getHttpHeader()).getHttpStatus();
+
+                if (proxy && (httpStatus.getStatusCode() != 101)) {
+                    if (httpStatus == HttpStatus.OK_200) {
+                        ctx.write(getHttpContent(webSocketRequest));
+                        ctx.flush(null);
+
+                    } else {
+                        throw new HandshakeException(String.format("Proxy error. %s: %s", httpStatus.getStatusCode(),
+                                new String(httpStatus.getReasonPhraseBytes())));
+                    }
+
+                    return ctx.getInvokeAction();
+                }
+            }
+
             // If websocket is null - it means either non-websocket Connection, or websocket with incomplete handshake
             if (!webSocketInProgress(connection) &&
                     !WebSocketEngine.WEBSOCKET.equalsIgnoreCase(header.getUpgrade())) {
@@ -416,6 +444,23 @@ class WebSocketFilter extends BaseFilter {
             IdleTimeoutFilter.setCustomTimeout(ctx.getConnection(),
                     wsTimeoutMS, TimeUnit.MILLISECONDS);
         }
+    }
+
+    /**
+     * Create HttpContent (Grizzly request representation) from {@link WebSocketRequest}.
+     *
+     * @param request original request.
+     * @return Grizzly representation of provided request.
+     */
+    private HttpContent getHttpContent(WebSocketRequest request) {
+        HttpRequestPacket.Builder builder = HttpRequestPacket.builder();
+        builder = builder.protocol(Protocol.HTTP_1_1);
+        builder = builder.method(Method.GET);
+        builder = builder.uri(request.getRequestPath());
+        for (String key : request.getHeaders().keySet()) {
+            builder.header(key, request.getFirstHeaderValue(key));
+        }
+        return HttpContent.builder(builder.build()).build();
     }
 
     private static org.glassfish.tyrus.websockets.Connection getWebSocketConnection(final FilterChainContext ctx, final HttpContent httpContent) {

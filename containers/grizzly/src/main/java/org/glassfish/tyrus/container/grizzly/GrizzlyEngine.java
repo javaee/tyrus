@@ -119,7 +119,8 @@ public class GrizzlyEngine implements TyrusContainer {
         }
 
         GrizzlyClientSocket clientSocket = new GrizzlyClientSocket(endpoint, uri, cec, CLIENT_SOCKET_TIMEOUT, listener,
-                properties == null ? null : (SSLEngineConfigurator) properties.get(SSL_ENGINE_CONFIGURATOR));
+                properties == null ? null : (SSLEngineConfigurator) properties.get(SSL_ENGINE_CONFIGURATOR),
+                properties == null ? null : (String) properties.get(GrizzlyClientSocket.PROXY_URI));
         clientSocket.connect();
         return clientSocket;
     }

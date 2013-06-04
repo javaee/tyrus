@@ -42,6 +42,7 @@ package org.glassfish.tyrus.container.grizzly;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -95,6 +96,23 @@ import org.glassfish.grizzly.ssl.SSLFilter;
  */
 public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
 
+    /**
+     * Can be used as client-side user property to set proxy.
+     *
+     * Value is expected to be {@link String} and represent proxy URI. Protocol part is currently ignored
+     * but must be present ({@link URI#URI(String)} is used for parsing).
+     *
+     * <pre>
+     *     client.getProperties().put(GrizzlyClientSocket.PROXY_URI, "http://www-proxy.us.oracle.com:80");
+     *     client.connectToServer(...);
+     * </pre>
+     *
+     * @see javax.websocket.ClientEndpointConfig#getUserProperties()
+     */
+    public static final String PROXY_URI = "org.glassfish.tyrus.client.proxy";
+
+    public static final Logger LOGGER = Logger.getLogger(GrizzlyClientSocket.class.getName());
+
     private final URI uri;
     private final ProtocolHandler protocolHandler;
     private final SPIEndpoint endpoint;
@@ -106,6 +124,7 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
     private final ClientEndpointConfig configuration;
     private final SPIHandshakeListener listener;
     private final SSLEngineConfigurator clientSSLEngineConfigurator;
+    private final String proxyUri;
     private Session session = null;
 
     private final CountDownLatch onConnectLatch = new CountDownLatch(1);
@@ -125,8 +144,10 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
      * @param listener                    listener called when response is received.
      * @param clientSSLEngineConfigurator ssl engine configurator
      */
-    public GrizzlyClientSocket(SPIEndpoint endpoint, URI uri, ClientEndpointConfig configuration, long timeoutMs, SPIHandshakeListener listener,
-                               SSLEngineConfigurator clientSSLEngineConfigurator) {
+    public GrizzlyClientSocket(SPIEndpoint endpoint, URI uri, ClientEndpointConfig configuration, long timeoutMs,
+                               SPIHandshakeListener listener,
+                               SSLEngineConfigurator clientSSLEngineConfigurator,
+                               String proxyUri) {
         this.endpoint = endpoint;
         this.uri = uri;
         this.configuration = configuration;
@@ -136,6 +157,7 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
         this.timeoutMs = timeoutMs;
         this.listener = listener;
         this.clientSSLEngineConfigurator = clientSSLEngineConfigurator;
+        this.proxyUri = proxyUri;
         if (session == null) {
             session = endpoint.createSessionForRemoteEndpoint(remoteEndpoint, null, null);
         }
@@ -165,7 +187,16 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
                 }
             };
 
-            connectorHandler.setProcessor(createFilterChain(null, clientSSLEngineConfigurator));
+            URI proxy = null;
+            try {
+                if(proxyUri != null) {
+                    proxy = new URI(proxyUri);
+                }
+            } catch (URISyntaxException e) {
+                LOGGER.log(Level.WARNING, String.format("Invalid proxy '%s'.", proxyUri), e);
+            }
+
+            connectorHandler.setProcessor(createFilterChain(null, clientSSLEngineConfigurator, proxy != null));
             int port = uri.getPort();
             if (port == -1) {
                 String scheme = uri.getScheme();
@@ -176,7 +207,12 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
                     port = 443;
                 }
             }
-            connectorHandler.connect(new InetSocketAddress(uri.getHost(), port));
+
+            if(proxy != null) {
+                connectorHandler.connect(new InetSocketAddress(proxy.getHost(), proxy.getPort()));
+            } else {
+                connectorHandler.connect(new InetSocketAddress(uri.getHost(), port));
+            }
             connectorHandler.setSyncConnectTimeout(timeoutMs, TimeUnit.MILLISECONDS);
         } catch (Exception e) {
             e.printStackTrace();
@@ -391,14 +427,15 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
     }
 
     private static Processor createFilterChain(SSLEngineConfigurator serverSSLEngineConfigurator,
-                                               SSLEngineConfigurator clientSSLEngineConfigurator) {
+                                               SSLEngineConfigurator clientSSLEngineConfigurator,
+                                               boolean proxy) {
         FilterChainBuilder clientFilterChainBuilder = FilterChainBuilder.stateless();
         clientFilterChainBuilder.add(new TransportFilter());
         if (serverSSLEngineConfigurator != null || clientSSLEngineConfigurator != null) {
             clientFilterChainBuilder.add(new SSLFilter(serverSSLEngineConfigurator, clientSSLEngineConfigurator));
         }
         clientFilterChainBuilder.add(new HttpClientFilter());
-        clientFilterChainBuilder.add(new WebSocketFilter());
+        clientFilterChainBuilder.add(new WebSocketFilter(WebSocketFilter.DEFAULT_WS_IDLE_TIMEOUT_IN_SECONDS, proxy));
         return clientFilterChainBuilder.build();
     }
 
