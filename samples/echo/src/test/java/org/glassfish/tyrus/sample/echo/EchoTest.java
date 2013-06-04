@@ -56,7 +56,6 @@ import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 
 import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.container.grizzly.GrizzlyClientSocket;
 import org.glassfish.tyrus.server.Server;
 
 import org.junit.Test;
@@ -133,8 +132,7 @@ public class EchoTest {
         final CountDownLatch messageLatch = new CountDownLatch(1);
         final CountDownLatch onOpenLatch = new CountDownLatch(1);
 
-        ClientManager client = ClientManager.createClient();
-        client.getProperties().put(GrizzlyClientSocket.PROXY_URI, "http://my.proxy.org:80");
+        final ClientManager client = ClientManager.createClient();
         client.connectToServer(new Endpoint() {
             @Override
             public void onOpen(Session session, EndpointConfig EndpointConfig) {
