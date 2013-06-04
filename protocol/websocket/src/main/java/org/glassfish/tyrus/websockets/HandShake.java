@@ -89,7 +89,6 @@ public abstract class HandShake {
         port = uri.getPort();
         origin = appendPort(new StringBuilder(uri.getHost())).toString();
         buildLocation();
-        prepareRequest();
     }
 
     protected HandShake(WebSocketRequest request) {
@@ -587,7 +586,7 @@ public abstract class HandShake {
 
 
     public WebSocketRequest initiate(/*FilterChainContext ctx*/) {
-        return getRequest();
+        return request;
     }
 
     private StringBuilder appendPort(StringBuilder builder) {

@@ -67,8 +67,8 @@ public class HandShake17 extends HandShake08 {
     }
 
     @Override
-    public WebSocketRequest getRequest() {
-        WebSocketRequest request = super.getRequest();
+    public WebSocketRequest prepareRequest() {
+        WebSocketRequest request = super.prepareRequest();
         final String headerValue = request.getFirstHeaderValue(WebSocketEngine.SEC_WS_ORIGIN_HEADER);
         request.getHeaders().remove(WebSocketEngine.SEC_WS_ORIGIN_HEADER);
         request.putSingleHeader(WebSocketEngine.ORIGIN_HEADER, headerValue);

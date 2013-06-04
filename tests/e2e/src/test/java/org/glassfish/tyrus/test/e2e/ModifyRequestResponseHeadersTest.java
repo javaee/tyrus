@@ -93,6 +93,7 @@ public class ModifyRequestResponseHeadersTest {
         public void modifyHandshake(ServerEndpointConfig sec, HandshakeRequest request, HandshakeResponse response) {
             final List<String> list = request.getHeaders().get(HEADER_NAME);
             response.getHeaders().put(HEADER_NAME, list);
+            response.getHeaders().put("Origin", request.getHeaders().get("Origin"));
         }
     }
 
@@ -103,6 +104,7 @@ public class ModifyRequestResponseHeadersTest {
         public void beforeRequest(Map<String, List<String>> headers) {
             called = true;
             headers.put(HEADER_NAME, Arrays.asList(HEADER_VALUE));
+            headers.put("Origin", Arrays.asList("myOrigin"));
         }
 
         @Override
@@ -110,6 +112,7 @@ public class ModifyRequestResponseHeadersTest {
             final Map<String, List<String>> headers = handshakeResponse.getHeaders();
 
             assertEquals(HEADER_VALUE, headers.get(HEADER_NAME).get(0));
+            assertEquals("myOrigin", headers.get("origin").get(0));
         }
     }
 
