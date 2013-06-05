@@ -47,7 +47,7 @@ import java.util.Map;
 import javax.websocket.ClientEndpointConfig;
 import javax.websocket.DeploymentException;
 
-import org.glassfish.tyrus.server.TyrusEndpoint;
+import org.glassfish.tyrus.core.TyrusEndpoint;
 import org.glassfish.tyrus.spi.SPIEndpoint;
 import org.glassfish.tyrus.spi.SPIHandshakeListener;
 import org.glassfish.tyrus.spi.SPIRegisteredEndpoint;

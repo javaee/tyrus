@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.server;
+package org.glassfish.tyrus.core;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -59,8 +59,6 @@ import javax.websocket.Session;
 import javax.websocket.server.HandshakeRequest;
 import javax.websocket.server.ServerEndpointConfig;
 
-import org.glassfish.tyrus.core.RequestContext;
-import org.glassfish.tyrus.core.TyrusExtension;
 import org.glassfish.tyrus.spi.SPIEndpoint;
 import org.glassfish.tyrus.spi.SPIRegisteredEndpoint;
 import org.glassfish.tyrus.websockets.DefaultWebSocket;

@@ -50,8 +50,6 @@
     </parent>
 
     <packaging>jar</packaging>
-    <url>http://maven.apache.org</url>
-    <groupId>org.glassfish.tyrus</groupId>
     <artifactId>tyrus-container-grizzly</artifactId>
 
     <name>Tyrus Grizzly Container</name>
@@ -67,7 +65,7 @@
         </dependency>
         <dependency>
             <groupId>org.glassfish.tyrus</groupId>
-            <artifactId>tyrus-server</artifactId>
+            <artifactId>tyrus-core</artifactId>
         </dependency>
     </dependencies>
     <build>

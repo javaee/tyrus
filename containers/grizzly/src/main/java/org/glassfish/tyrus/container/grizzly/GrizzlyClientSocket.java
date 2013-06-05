@@ -61,7 +61,7 @@ import javax.websocket.Session;
 
 import org.glassfish.tyrus.core.RequestContext;
 import org.glassfish.tyrus.core.TyrusExtension;
-import org.glassfish.tyrus.server.TyrusRemoteEndpoint;
+import org.glassfish.tyrus.core.TyrusRemoteEndpoint;
 import org.glassfish.tyrus.spi.SPIEndpoint;
 import org.glassfish.tyrus.spi.SPIHandshakeListener;
 import org.glassfish.tyrus.spi.TyrusClientSocket;
