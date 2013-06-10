@@ -168,7 +168,12 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
      */
     public void connect() {
         try {
-            transport = TCPNIOTransportBuilder.newInstance().build();
+            // TYRUS-188: lots of threads were created for every single client instance.
+            final TCPNIOTransportBuilder transportBuilder = TCPNIOTransportBuilder.newInstance();
+            transportBuilder.getWorkerThreadPoolConfig().setMaxPoolSize(1).setCorePoolSize(1);
+            transportBuilder.getSelectorThreadPoolConfig().setMaxPoolSize(1).setCorePoolSize(1);
+
+            transport = transportBuilder.build();
 
             transport.start();
 
