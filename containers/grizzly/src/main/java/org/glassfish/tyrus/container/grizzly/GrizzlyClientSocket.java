@@ -219,6 +219,7 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
                 connectorHandler.connect(new InetSocketAddress(uri.getHost(), port));
             }
             connectorHandler.setSyncConnectTimeout(timeoutMs, TimeUnit.MILLISECONDS);
+            awaitOnConnect();
         } catch (Exception e) {
             e.printStackTrace();
             throw new HandshakeException(e.getMessage());
@@ -375,7 +376,7 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
 
     @Override
     public void onClose(ClosingFrame dataFrame) {
-        awaitOnConnect();
+        onConnectLatch.countDown();
 
         if (state.get() == State.CLOSED) {
             return;
@@ -425,7 +426,7 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
     // return boolean, check return value
     private void awaitOnConnect() {
         try {
-            onConnectLatch.await();
+            onConnectLatch.await(timeoutMs, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             // do nothing.
         }

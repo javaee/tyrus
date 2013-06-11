@@ -242,6 +242,40 @@ public class ServletTest {
         }
     }
 
+    @Test
+    public void testPlainEchoShort10SequenceReturnedSession() throws DeploymentException, InterruptedException, IOException {
+        final Server server = startServer();
+
+        final CountDownLatch messageLatch = new CountDownLatch(10);
+
+        try {
+            for (int i = 0; i < 10; i++) {
+                final ClientManager client = ClientManager.createClient();
+                Session session = client.connectToServer(new Endpoint() {
+                    @Override
+                    public void onOpen(Session session, EndpointConfig EndpointConfig) {
+                        session.addMessageHandler(new MessageHandler.Whole<String>() {
+                            @Override
+                            public void onMessage(String message) {
+                                assertEquals(message, "Do or do not, there is no try.");
+                                messageLatch.countDown();
+                            }
+                        });
+                    }
+                }, ClientEndpointConfig.Builder.create().build(), getURI(PlainEchoEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
+
+                session.getBasicRemote().sendText("Do or do not, there is no try.");
+                // TODO - remove when possible.
+                Thread.sleep(100);
+            }
+
+            messageLatch.await(5, TimeUnit.SECONDS);
+            assertEquals(0, messageLatch.getCount());
+        } finally {
+            stopServer(server);
+        }
+    }
+
     /**
      * 10x10x10 bytes.
      */
