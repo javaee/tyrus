@@ -138,7 +138,6 @@ public class WebSocketEngine {
         for (Match m : Match.getAllMatches(requestPath, applications)) {
             final WebSocketApplication webSocketApplication = m.getWebSocketApplication();
 
-            request.getParameterMap().clear();
             for (String name : m.getParameterNames()) {
                 request.getParameterMap().put(name, Arrays.asList(m.getParameterValue(name)));
             }

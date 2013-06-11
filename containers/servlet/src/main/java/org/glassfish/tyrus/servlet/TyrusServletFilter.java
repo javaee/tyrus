@@ -215,6 +215,7 @@ public class TyrusServletFilter implements Filter {
                             return httpServletRequest.isUserInRole(role);
                         }
                     })
+                    .parameterMap(httpServletRequest.getParameterMap())
                     .build();
 
             Enumeration<String> headerNames = httpServletRequest.getHeaderNames();

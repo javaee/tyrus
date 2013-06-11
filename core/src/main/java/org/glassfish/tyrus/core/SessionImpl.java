@@ -90,6 +90,7 @@ public class SessionImpl implements Session {
     private final String queryString;
     private final Map<String, String> pathParameters;
     private final Principal userPrincipal;
+    private final Map<String, List<String>> requestParameterMap;
     private int maxBinaryMessageBufferSize = Integer.MAX_VALUE;
     private int maxTextMessageBufferSize = Integer.MAX_VALUE;
     private long maxIdleTimeout = 0;
@@ -140,7 +141,8 @@ public class SessionImpl implements Session {
 
     SessionImpl(WebSocketContainer container, SPIRemoteEndpoint remoteEndpoint, EndpointWrapper endpointWrapper,
                 String subprotocol, List<Extension> extensions, boolean isSecure,
-                URI uri, String queryString, Map<String, String> pathParameters, Principal principal) {
+                URI uri, String queryString, Map<String, String> pathParameters, Principal principal,
+                Map<String, List<String>> requestParameterMap) {
         this.container = container;
         this.endpoint = endpointWrapper;
         this.negotiatedSubprotocol = subprotocol;
@@ -153,6 +155,7 @@ public class SessionImpl implements Session {
         this.asyncRemote = new RemoteEndpointWrapper.Async(this, remoteEndpoint, endpointWrapper);
         this.handlerManager = MessageHandlerManager.fromDecoderInstances(endpointWrapper.getDecoders());
         this.userPrincipal = principal;
+        this.requestParameterMap = requestParameterMap == null ? Collections.<String, List<String>>emptyMap() : Collections.unmodifiableMap(requestParameterMap);
 
         if (container != null) {
             maxTextMessageBufferSize = container.getDefaultMaxTextMessageBufferSize();
@@ -295,8 +298,7 @@ public class SessionImpl implements Session {
     // TODO: this method should be deleted?
     @Override
     public Map<String, List<String>> getRequestParameterMap() {
-        checkConnectionState(State.CLOSED);
-        return Collections.emptyMap();
+        return requestParameterMap;
     }
 
     @Override

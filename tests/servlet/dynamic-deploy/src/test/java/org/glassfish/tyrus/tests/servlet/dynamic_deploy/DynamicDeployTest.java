@@ -119,7 +119,7 @@ public class DynamicDeployTest {
     }
 
     @Test
-    public void testEcho() throws DeploymentException, InterruptedException, IOException {
+    public void testEcho() throws DeploymentException, InterruptedException, IOException, URISyntaxException {
         if(System.getProperty("tyrus.test.host") == null) {
             return;
         }
@@ -128,11 +128,16 @@ public class DynamicDeployTest {
 
         final CountDownLatch messageLatch = new CountDownLatch(1);
 
+        URI uri = getURI(EchoEndpoint.class.getAnnotation(ServerEndpoint.class).value());
+        // Test for TYRUS-187; works only in servlet case, thus test is here.
+        uri = new URI(uri.toString() + "?myParam=myValue");
+
         try {
             final ClientManager client = ClientManager.createClient();
             client.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig EndpointConfig) {
+
                     try {
                         session.addMessageHandler(new MessageHandler.Whole<String>() {
                             @Override
@@ -147,7 +152,7 @@ public class DynamicDeployTest {
                         // do nothing
                     }
                 }
-            }, ClientEndpointConfig.Builder.create().build(), getURI(EchoEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
+            }, ClientEndpointConfig.Builder.create().build(), uri);
 
             messageLatch.await(1, TimeUnit.SECONDS);
             assertEquals(0, messageLatch.getCount());

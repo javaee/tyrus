@@ -43,6 +43,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.nio.ByteBuffer;
+import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.Future;
 
 import javax.websocket.CloseReason;
@@ -56,7 +58,10 @@ import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
 import org.glassfish.tyrus.websockets.DataFrame;
 
 import org.junit.Test;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
@@ -441,7 +446,7 @@ public class SessionImplTest {
     }
 
     private SessionImpl createSession(EndpointWrapper endpointWrapper) {
-        return new SessionImpl(null, new TestRemoteEndpoint(), endpointWrapper, null, null, false, null, null, null, null);
+        return new SessionImpl(null, new TestRemoteEndpoint(), endpointWrapper, null, null, false, null, null, null, null, new HashMap<String, List<String>>());
     }
 
     private static class TestRemoteEndpoint extends SPIRemoteEndpoint{

@@ -40,6 +40,7 @@
 package org.glassfish.tyrus.tests.servlet.dynamic_deploy;
 
 import javax.websocket.OnMessage;
+import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
 /**
@@ -49,7 +50,13 @@ import javax.websocket.server.ServerEndpoint;
 public class EchoEndpoint {
 
     @OnMessage
-    public String onMessage(String message) {
+    public String onMessage(Session session, String message) {
+
+        // TYRUS-187
+        if(!session.getRequestParameterMap().get("myParam").get(0).equals("myValue")) {
+            throw new RuntimeException("TYRUS-187");
+        }
+
         return message;
     }
 }

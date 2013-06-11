@@ -78,12 +78,11 @@ public final class RequestContext implements HandshakeRequest, SPIHandshakeReque
         }
     });
 
-    private final Map<String, List<String>> parameterMap = new HashMap<String, List<String>>();
-
+    private final Map<String, List<String>> parameterMap;
 
     private RequestContext(URI requestURI, String requestPath, String queryString, Connection connection,
                            Object httpSession, boolean secure, Principal userPrincipal,
-                           Builder.IsUserInRoleDelegate IsUserInRoleDelegate) {
+                           Builder.IsUserInRoleDelegate IsUserInRoleDelegate, Map<String, List<String>> parameterMap) {
         this.requestURI = requestURI;
         this.requestPath = requestPath;
         this.queryString = queryString;
@@ -92,6 +91,7 @@ public final class RequestContext implements HandshakeRequest, SPIHandshakeReque
         this.secure = secure;
         this.userPrincipal = userPrincipal;
         this.isUserInRoleDelegate = IsUserInRoleDelegate;
+        this.parameterMap = parameterMap;
     }
 
     /**
@@ -201,6 +201,7 @@ public final class RequestContext implements HandshakeRequest, SPIHandshakeReque
         private boolean secure;
         private Principal userPrincipal;
         private Builder.IsUserInRoleDelegate isUserInRoleDelegate;
+        private Map<String, List<String>> parameterMap;
 
 
         /**
@@ -301,6 +302,25 @@ public final class RequestContext implements HandshakeRequest, SPIHandshakeReque
             return this;
         }
 
+        /**
+         * Set parameter map.
+         *
+         * @param parameterMap parameter map. Takes map returned from ServletRequest#getParameterMap.
+         * @return updated {@link RequestContext.Builder} instance.
+         */
+        public Builder parameterMap(Map<String, String[]> parameterMap) {
+            if(parameterMap != null) {
+                this.parameterMap = new HashMap<String, List<String>>();
+                for(Map.Entry<String, String[]> entry : parameterMap.entrySet()) {
+                    this.parameterMap.put(entry.getKey(), Arrays.asList(entry.getValue()));
+                }
+            } else {
+                this.parameterMap = null;
+            }
+
+            return this;
+        }
+
 
         /**
          * Build {@link RequestContext} from given properties.
@@ -309,7 +329,8 @@ public final class RequestContext implements HandshakeRequest, SPIHandshakeReque
          */
         public RequestContext build() {
             return new RequestContext(requestURI, requestPath, queryString, connection, httpSession, secure,
-                    userPrincipal, isUserInRoleDelegate);
+                    userPrincipal, isUserInRoleDelegate,
+                    parameterMap != null ? parameterMap : new HashMap<String, List<String>>());
         }
 
         /**

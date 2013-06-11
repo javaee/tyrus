@@ -116,6 +116,7 @@ public class EndpointWrapper extends SPIEndpoint {
     private final Map<String, String> templateValues = new HashMap<String, String>();
     private boolean isSecure;
     private String queryString;
+    private Map<String, List<String>> requestParameterMap;
 
     /**
      * Create {@link EndpointWrapper} for class that extends {@link Endpoint}.
@@ -222,6 +223,7 @@ public class EndpointWrapper extends SPIEndpoint {
         queryString = hr.getQueryString();
         isSecure = hr.isSecure();
         principal = hr.getUserPrincipal();
+        requestParameterMap = hr.getParameterMap();
 
         for (Map.Entry<String, List<String>> entry : hr.getParameterMap().entrySet()) {
             this.templateValues.put(entry.getKey(), entry.getValue().get(0));
@@ -408,7 +410,7 @@ public class EndpointWrapper extends SPIEndpoint {
     public Session createSessionForRemoteEndpoint(SPIRemoteEndpoint re, String subprotocol, List<Extension> extensions) {
         synchronized (remoteEndpointToSession) {
             final SessionImpl session = new SessionImpl(container, re, this, subprotocol, extensions, isSecure,
-                    getURI(), queryString, templateValues, principal);
+                    getURI(), queryString, templateValues, principal, requestParameterMap);
             remoteEndpointToSession.put(re, session);
             return session;
         }
@@ -432,7 +434,7 @@ public class EndpointWrapper extends SPIEndpoint {
             if (session == null) {
                 // create a new session
                 session = new SessionImpl(container, gs, this, subprotocol, extensions, isSecure,
-                        getURI(), queryString, templateValues, principal);
+                        getURI(), queryString, templateValues, principal, requestParameterMap);
                 remoteEndpointToSession.put(gs, session);
             }
             // Session was already created in WebSocketContainer#connectToServer call

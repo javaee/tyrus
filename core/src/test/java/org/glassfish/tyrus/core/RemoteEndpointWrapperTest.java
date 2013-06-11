@@ -48,6 +48,8 @@ import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Future;
 
@@ -81,7 +83,7 @@ public class RemoteEndpointWrapperTest {
     public void testGetSendStream() throws IOException {
 
         TestRemoteEndpoint tre = new TestRemoteEndpoint();
-        SessionImpl testSession = new SessionImpl(null, tre, ew, null, null, true, null, null, Collections.<String, String>emptyMap(), null);
+        SessionImpl testSession = new SessionImpl(null, tre, ew, null, null, true, null, null, Collections.<String, String>emptyMap(), null, new HashMap<String, List<String>>());
         RemoteEndpointWrapper.Basic rew = new RemoteEndpointWrapper.Basic(testSession, tre, ew);
         OutputStream stream = rew.getSendStream();
 
@@ -106,7 +108,7 @@ public class RemoteEndpointWrapperTest {
 
         char[] toSend = sentString.toCharArray();
         TestRemoteEndpoint tre = new TestRemoteEndpoint();
-        SessionImpl testSession = new SessionImpl(null, tre, ew, null, null, true, null, null, Collections.<String, String>emptyMap(), null);
+        SessionImpl testSession = new SessionImpl(null, tre, ew, null, null, true, null, null, Collections.<String, String>emptyMap(), null, new HashMap<String, List<String>>());
         RemoteEndpointWrapper.Basic rew = new RemoteEndpointWrapper.Basic(testSession, tre, ew);
         Writer writer = rew.getSendWriter();
 
