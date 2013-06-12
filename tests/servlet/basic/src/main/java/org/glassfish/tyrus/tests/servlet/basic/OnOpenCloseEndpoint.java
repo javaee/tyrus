@@ -39,19 +39,21 @@
  */
 package org.glassfish.tyrus.tests.servlet.basic;
 
-import javax.websocket.OnMessage;
+import java.io.IOException;
+
+import javax.websocket.OnOpen;
+import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
 /**
- * Echo endpoint for string messages.
+ * Close the session withing {@link OnOpen} annotated method invocation.
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-@ServerEndpoint("/plainEcho")
-public class PlainEchoEndpoint {
-
-    @OnMessage
-    public String onMessage(String s) {
-        return s;
+@ServerEndpoint("/onOpenClose")
+public class OnOpenCloseEndpoint {
+    @OnOpen
+    public void onOpen(Session session) throws IOException {
+        session.close();
     }
 }

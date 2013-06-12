@@ -101,7 +101,6 @@ public class DefaultWebSocket implements WebSocket {
     }
 
     public void onClose(final ClosingFrame frame) {
-        awaitOnConnect();
         WebSocketListener listener;
         while ((listener = listeners.poll()) != null) {
             listener.onClose(this, frame);

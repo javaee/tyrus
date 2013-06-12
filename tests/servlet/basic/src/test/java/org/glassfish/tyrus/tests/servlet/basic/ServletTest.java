@@ -49,6 +49,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfig;
+import javax.websocket.CloseReason;
 import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfig;
@@ -78,6 +79,7 @@ public class ServletTest {
     private final Set<Class<?>> endpointClasses = new HashSet<Class<?>>() {{
         add(PlainEchoEndpoint.class);
         add(RequestUriEndpoint.class);
+        add(OnOpenCloseEndpoint.class);
     }};
 
     /**
@@ -433,6 +435,36 @@ public class ServletTest {
 
             messageLatch.await(1, TimeUnit.SECONDS);
             assertEquals(0, messageLatch.getCount());
+        } finally {
+            stopServer(server);
+        }
+    }
+
+    @Test
+    public void testOnOpenClose() throws DeploymentException, InterruptedException, IOException {
+        final Server server = startServer();
+
+        final CountDownLatch latch = new CountDownLatch(2);
+
+        try {
+            final ClientManager client = ClientManager.createClient();
+
+            URI uri = getURI(OnOpenCloseEndpoint.class.getAnnotation(ServerEndpoint.class).value());
+
+            client.connectToServer(new Endpoint() {
+                @Override
+                public void onOpen(Session session, EndpointConfig EndpointConfig) {
+                    latch.countDown();
+                }
+
+                @Override
+                public void onClose(Session session, CloseReason closeReason) {
+                    latch.countDown();
+                }
+            }, ClientEndpointConfig.Builder.create().build(), uri);
+
+            latch.await(3, TimeUnit.SECONDS);
+            assertEquals(0, latch.getCount());
         } finally {
             stopServer(server);
         }

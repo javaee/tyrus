@@ -46,7 +46,7 @@ import javax.websocket.server.ServerEndpoint;
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-@ServerEndpoint(value = "/uriEcho")
+@ServerEndpoint("/uriEcho")
 public class RequestUriEndpoint {
 
     @OnMessage
