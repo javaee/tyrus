@@ -62,4 +62,9 @@ public class DefaultComponentProvider extends ComponentProvider {
             return null;
         }
     }
+
+    @Override
+    public boolean destroyInstance(Object o) {
+        return false;
+    }
 }

@@ -203,8 +203,15 @@ public class ComponentProviderService {
                 } else if (o instanceof Decoder) {
                     ((Decoder) o).destroy();
                 }
+
+                for (ComponentProvider componentProvider : providers) {
+                    if(componentProvider.destroyInstance(o)){
+                        break;
+                    }
+                }
             }
         }
+
         sessionToObject.remove(session);
     }
 

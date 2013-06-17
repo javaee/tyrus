@@ -40,11 +40,14 @@
 
 package org.glassfish.tyrus.gf.cdi;
 
-import java.util.Set;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
 
-import javax.enterprise.inject.spi.Bean;
+import javax.enterprise.context.spi.CreationalContext;
+import javax.enterprise.inject.spi.AnnotatedType;
 import javax.enterprise.inject.spi.BeanManager;
+import javax.enterprise.inject.spi.InjectionTarget;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
@@ -63,6 +66,8 @@ public class CdiComponentProvider extends ComponentProvider {
 
     private final boolean managerRetrieved;
 
+    private final Map<Object, CdiInjectionContext> cdiBeanToContext;
+
     /**
      * Constructor.
      * </p>
@@ -71,6 +76,7 @@ public class CdiComponentProvider extends ComponentProvider {
      * @throws javax.naming.NamingException
      */
     public CdiComponentProvider() throws NamingException {
+        cdiBeanToContext = new ConcurrentHashMap<Object, CdiInjectionContext>();
         InitialContext ic = new InitialContext();
         BeanManager manager = null;
 
@@ -89,20 +95,53 @@ public class CdiComponentProvider extends ComponentProvider {
         return managerRetrieved;
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public <T> T provideInstance(Class<T> c) {
         if (managerRetrieved) {
             synchronized (beanManager) {
-                final Set<Bean<?>> beans = beanManager.getBeans(c);
+                T managedObject = null;
+                AnnotatedType annotatedType = beanManager.createAnnotatedType(c);
+                InjectionTarget it = beanManager.createInjectionTarget(annotatedType);
+                CreationalContext cc = beanManager.createCreationalContext(null);
+                managedObject = (T) it.produce(cc);
+                it.inject(managedObject, cc);
+                it.postConstruct(managedObject);
+                cdiBeanToContext.put(managedObject, new CdiInjectionContext(it,cc));
 
-                if (beans.size() > 0) {
-                    return (T) beanManager.getReference(beans.iterator().next(), c, beanManager.createCreationalContext(null));
-                } else {
-                    return null;
-                }
+                return managedObject;
             }
         } else {
             return null;
+        }
+    }
+
+    @Override
+    public boolean destroyInstance(Object o) {
+        //if the object is not in map, nothing happens
+        if(cdiBeanToContext.containsKey(o)) {
+            cdiBeanToContext.get(o).cleanup(o);
+            cdiBeanToContext.remove(o);
+            return true;
+        }
+
+        return false;
+    }
+
+    private static class CdiInjectionContext {
+        InjectionTarget it;
+        CreationalContext cc;
+
+        CdiInjectionContext(InjectionTarget it, CreationalContext cc) {
+            this.it = it;
+            this.cc = cc;
+        }
+
+        @SuppressWarnings("unchecked")
+        public void cleanup(Object instance) {
+            it.preDestroy(instance);
+            it.dispose(instance);
+            cc.release();
         }
     }
 }

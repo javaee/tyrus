@@ -66,4 +66,12 @@ public abstract class ComponentProvider {
      * @return instance, iff found, {@code null} otherwise.
      */
     public abstract <T> T provideInstance(Class<T> c);
+
+    /**
+     * Destroys the given managed instance.
+     *
+     * @param o instance to be destroyed.
+     * @return <code>true</code> iff the instance was coupled to this {@link ComponentProvider}, false otherwise.
+     */
+    public abstract boolean destroyInstance(Object o);
 }
