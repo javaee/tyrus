@@ -42,6 +42,7 @@ package org.glassfish.tyrus.core;
 
 import java.io.Reader;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -64,8 +65,8 @@ class ReaderBuffer {
     private final Object lock;
     private int bufferSize;
     private int currentlyBuffered;
-    private boolean buffering;
-    private static final Logger LOGGER = Logger.getLogger(InputStreamBuffer.class.getName());
+    private AtomicBoolean buffering;
+    private static final Logger LOGGER = Logger.getLogger(ReaderBuffer.class.getName());
 
     /**
      * Constructor.
@@ -73,7 +74,7 @@ class ReaderBuffer {
     public ReaderBuffer() {
         this.lock = new Object();
         currentlyBuffered = 0;
-        buffering = true;
+        buffering = new AtomicBoolean(true);
     }
 
     /**
@@ -102,14 +103,16 @@ class ReaderBuffer {
      * @return next received chars.
      */
     public char[] getNextChars(int number) {
-        if (this.queue.isEmpty()) {
-            if (receivedLast) {
-                this.reader = null;
-                this.currentlyBuffered = 0;
-                buffering = true;
-                return null;
-            } else { // there's more to come...so wait here...
-                blockOnReaderThread();
+        synchronized(lock){
+            if (this.queue.isEmpty()) {
+                if (receivedLast) {
+                    this.reader = null;
+                    this.currentlyBuffered = 0;
+                    buffering.set(true);
+                    return null;
+                } else { // there's more to come...so wait here...
+                    blockOnReaderThread();
+                }
             }
         }
 
@@ -147,8 +150,8 @@ class ReaderBuffer {
 
                 }
             } else {
-                if (buffering) {
-                    buffering = false;
+                if (buffering.get()) {
+                    buffering.set(false);
                     final MessageTooBigException messageTooBigException = new MessageTooBigException("Partial message could not be delivered due to buffer overflow.");
                     LOGGER.log(Level.FINE, "Partial message could not be delivered due to buffer overflow.", messageTooBigException);
                     receivedLast = true;
@@ -178,7 +181,7 @@ class ReaderBuffer {
     public void resetBuffer(int bufferSize) {
         this.bufferSize = bufferSize;
         currentlyBuffered = 0;
-        buffering = true;
+        buffering.set(true);
         queue.clear();
     }
 }
