@@ -87,6 +87,7 @@ import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransportBuilder;
 import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
 import org.glassfish.grizzly.ssl.SSLFilter;
+import org.glassfish.grizzly.threadpool.ThreadPoolConfig;
 
 /**
  * Implementation of the WebSocket interface.
@@ -103,13 +104,27 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
      * but must be present ({@link URI#URI(String)} is used for parsing).
      *
      * <pre>
-     *     client.getProperties().put(GrizzlyClientSocket.PROXY_URI, "http://www-proxy.us.oracle.com:80");
+     *     client.getProperties().put(GrizzlyClientSocket.PROXY_URI, "http://my.proxy.com:80");
      *     client.connectToServer(...);
      * </pre>
      *
      * @see javax.websocket.ClientEndpointConfig#getUserProperties()
      */
     public static final String PROXY_URI = "org.glassfish.tyrus.client.proxy";
+
+    /**
+     * Client-side property to set custom worker {@link ThreadPoolConfig}.
+     *
+     * Value is expected to be instance of {@link ThreadPoolConfig}, can be {@code null} (it won't be used).
+     */
+    public static final String WORKER_THREAD_POOL_CONFIG = "org.glassfish.tyrus.client.grizzly.workerThreadPoolConfig";
+
+    /**
+     * Client-side property to set custom selector {@link ThreadPoolConfig}.
+     *
+     * Value is expected to be instance of {@link ThreadPoolConfig}, can be {@code null} (it won't be used).
+     */
+    public static final String SELECTOR_THREAD_POOL_CONFIG = "org.glassfish.tyrus.client.grizzly.selectorThreadPoolConfig";
 
     public static final Logger LOGGER = Logger.getLogger(GrizzlyClientSocket.class.getName());
 
@@ -125,6 +140,9 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
     private final SPIHandshakeListener listener;
     private final SSLEngineConfigurator clientSSLEngineConfigurator;
     private final String proxyUri;
+    private final ThreadPoolConfig workerThreadPoolConfig;
+    private final ThreadPoolConfig selectorThreadPoolConfig;
+
     private Session session = null;
 
     private final CountDownLatch onConnectLatch = new CountDownLatch(1);
@@ -144,10 +162,12 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
      * @param listener                    listener called when response is received.
      * @param clientSSLEngineConfigurator ssl engine configurator
      */
-    public GrizzlyClientSocket(SPIEndpoint endpoint, URI uri, ClientEndpointConfig configuration, long timeoutMs,
+    GrizzlyClientSocket(SPIEndpoint endpoint, URI uri, ClientEndpointConfig configuration, long timeoutMs,
                                SPIHandshakeListener listener,
                                SSLEngineConfigurator clientSSLEngineConfigurator,
-                               String proxyUri) {
+                               String proxyUri,
+                               ThreadPoolConfig workerThreadPoolConfig,
+                               ThreadPoolConfig selectorThreadPoolConfig) {
         this.endpoint = endpoint;
         this.uri = uri;
         this.configuration = configuration;
@@ -158,6 +178,8 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
         this.listener = listener;
         this.clientSSLEngineConfigurator = clientSSLEngineConfigurator;
         this.proxyUri = proxyUri;
+        this.workerThreadPoolConfig = workerThreadPoolConfig;
+        this.selectorThreadPoolConfig = selectorThreadPoolConfig;
         if (session == null) {
             session = endpoint.createSessionForRemoteEndpoint(remoteEndpoint, null, null);
         }
@@ -170,8 +192,18 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
         try {
             // TYRUS-188: lots of threads were created for every single client instance.
             final TCPNIOTransportBuilder transportBuilder = TCPNIOTransportBuilder.newInstance();
-            transportBuilder.getWorkerThreadPoolConfig().setMaxPoolSize(1).setCorePoolSize(1);
-            transportBuilder.getSelectorThreadPoolConfig().setMaxPoolSize(1).setCorePoolSize(1);
+
+            if(workerThreadPoolConfig == null) {
+                transportBuilder.getWorkerThreadPoolConfig().setMaxPoolSize(1).setCorePoolSize(1);
+            } else {
+                transportBuilder.setWorkerThreadPoolConfig(workerThreadPoolConfig);
+            }
+
+            if(selectorThreadPoolConfig == null) {
+                transportBuilder.getSelectorThreadPoolConfig().setMaxPoolSize(1).setCorePoolSize(1);
+            } else {
+                transportBuilder.setSelectorThreadPoolConfig(selectorThreadPoolConfig);
+            }
 
             transport = transportBuilder.build();
 

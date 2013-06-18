@@ -58,6 +58,7 @@ import org.glassfish.tyrus.websockets.WebSocketEngine;
 
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
+import org.glassfish.grizzly.threadpool.ThreadPoolConfig;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)
@@ -120,7 +121,9 @@ public class GrizzlyEngine implements TyrusContainer {
 
         GrizzlyClientSocket clientSocket = new GrizzlyClientSocket(endpoint, uri, cec, CLIENT_SOCKET_TIMEOUT, listener,
                 properties == null ? null : (SSLEngineConfigurator) properties.get(SSL_ENGINE_CONFIGURATOR),
-                properties == null ? null : (String) properties.get(GrizzlyClientSocket.PROXY_URI));
+                properties == null ? null : (String) properties.get(GrizzlyClientSocket.PROXY_URI),
+                properties == null ? null : (ThreadPoolConfig) properties.get(GrizzlyClientSocket.WORKER_THREAD_POOL_CONFIG),
+                properties == null ? null : (ThreadPoolConfig) properties.get(GrizzlyClientSocket.SELECTOR_THREAD_POOL_CONFIG));
         clientSocket.connect();
         return clientSocket;
     }

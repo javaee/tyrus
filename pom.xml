@@ -85,7 +85,8 @@
             <id>jitu</id>
             <name>Jitendra Kotamraju</name>
             <url>http://weblogs.java.net/blog/jitu</url>
-            <organization>Oracle</organization>
+            <organization>Oracle Corporation</organization>
+            <organizationUrl>http://www.oracle.com</organizationUrl>
             <roles>
                 <role>developer</role>
             </roles>
@@ -93,7 +94,8 @@
         <developer>
             <id>danny</id>
             <name>Danny Coward</name>
-            <organization>Oracle</organization>
+            <organization>Oracle Corporation</organization>
+            <organizationUrl>http://www.oracle.com</organizationUrl>
             <roles>
                 <role>developer</role>
             </roles>
@@ -101,26 +103,30 @@
         <developer>
             <id>stepan</id>
             <name>Stepan Kopriva</name>
-            <organization>Oracle</organization>
+            <organization>Oracle Corporation</organization>
+            <organizationUrl>http://www.oracle.com</organizationUrl>
             <roles>
                 <role>developer</role>
             </roles>
         </developer>
         <developer>
-            <id>mmatula</id>
-            <name>Martin Matula</name>
-            <url>http://blog.alutam.com</url>
-        </developer>
-        <developer>
             <id>pavel_bucek</id>
             <name>Pavel Bucek</name>
-            <organization>Oracle</organization>
+            <organization>Oracle Corporation</organization>
+            <organizationUrl>http://www.oracle.com</organizationUrl>
             <url>https://blogs.oracle.com/PavelBucek/</url>
             <roles>
                 <role>developer</role>
             </roles>
         </developer>
     </developers>
+
+    <contributors>
+        <contributor>
+            <name>Martin Matula</name>
+            <url>http://blog.alutam.com</url>
+        </contributor>
+    </contributors>
 
     <properties>
         <websocket-api.version>1.0</websocket-api.version>
