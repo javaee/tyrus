@@ -44,6 +44,7 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -67,11 +68,13 @@ class InputStreamBuffer {
     private int bufferSize;
     private int currentlyBuffered;
     private static final Logger LOGGER = Logger.getLogger(InputStreamBuffer.class.getName());
+    private final ExecutorService executorService;
 
     /**
      * Constructor.
      */
-    public InputStreamBuffer() {
+    public InputStreamBuffer(ExecutorService executorService) {
+        this.executorService = executorService;
         this.lock = new Object();
         currentlyBuffered = 0;
     }
@@ -144,12 +147,12 @@ class InputStreamBuffer {
 
         if (this.inputStream == null) {
             this.inputStream = new BufferedInputStream(this);
-            Thread t = new Thread() {
+            executorService.execute( new Runnable() {
+                @Override
                 public void run() {
                     messageHandler.onMessage(inputStream);
                 }
-            };
-            t.start();
+            });
         }
     }
 

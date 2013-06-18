@@ -41,7 +41,7 @@
 package org.glassfish.tyrus.core;
 
 import java.io.Reader;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -51,14 +51,14 @@ import javax.websocket.MessageHandler;
 /**
  * Buffer used for the case when partial messages are received by the {@link MessageHandler.Whole}.
  * </p>
- * For the first received message {@link MessageHandler.Whole#onMessage(Object)} is called in a new {@link Thread} to allow blocking reading of passed {@link Reader}.
+ * For the first received message {@link MessageHandler.Whole#onMessage(Object)} is called within a new executor to allow blocking reading of passed {@link Reader}.
  *
  * @author Danny Coward (danny.coward at oracle.com)
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 class ReaderBuffer {
 
-    private LinkedBlockingQueue<Character> queue = new LinkedBlockingQueue<Character>();
+    private StringBuffer buffer;
     private boolean receivedLast = false;
     private BufferedStringReader reader = null;
     private MessageHandler.Whole<Reader> messageHandler;
@@ -66,34 +66,25 @@ class ReaderBuffer {
     private int bufferSize;
     private int currentlyBuffered;
     private AtomicBoolean buffering;
+    private final ExecutorService executorService;
     private static final Logger LOGGER = Logger.getLogger(ReaderBuffer.class.getName());
 
     /**
      * Constructor.
      */
-    public ReaderBuffer() {
+    public ReaderBuffer(ExecutorService executorService) {
+        this.buffer = new StringBuffer();
+        this.executorService = executorService;
         this.lock = new Object();
-        currentlyBuffered = 0;
         buffering = new AtomicBoolean(true);
+        currentlyBuffered = 0;
     }
-
-    /**
-     * Set the {@link MessageHandler} that will consume the constructed {@link Reader}.
-     *
-     * @param messageHandler {@link MessageHandler} that will consume the constructed {@link Reader}.
-     */
-    public void setMessageHandler(MessageHandler.Whole<Reader> messageHandler) {
-        this.messageHandler = messageHandler;
-    }
-
 
     private void blockOnReaderThread() {
-        synchronized (lock) {
-            try {
-                this.lock.wait();
-            } catch (InterruptedException e) {
-                // thread unblocked
-            }
+        try {
+            this.lock.wait();
+        } catch (InterruptedException e) {
+            // thread unblocked
         }
     }
 
@@ -103,33 +94,34 @@ class ReaderBuffer {
      * @return next received chars.
      */
     public char[] getNextChars(int number) {
-        synchronized(lock){
-            if (this.queue.isEmpty()) {
+        synchronized (lock) {
+            if (buffer.length() == 0) {
                 if (receivedLast) {
                     this.reader = null;
-                    this.currentlyBuffered = 0;
                     buffering.set(true);
+                    this.currentlyBuffered = 0;
                     return null;
                 } else { // there's more to come...so wait here...
                     blockOnReaderThread();
                 }
             }
-        }
 
-        char[] chrs = new char[number > queue.size() ? queue.size() : number];
-        for (int i = 0; i < chrs.length; i++) {
-            chrs[i] = queue.poll();
+            int size = number > buffer.length() ? buffer.length() : number;
+
+            char[] result = new char[size];
+            buffer.getChars(0, size, result,0);
+            buffer.delete(0, size);
+
+            return result;
         }
-        return chrs;
     }
-
 
     /**
      * Finish reading of the buffer.
      */
     public void finishReading() {
-        this.queue = new LinkedBlockingQueue<Character>();
-        this.reader = null;
+        buffer = new StringBuffer();
+        reader = null;
     }
 
     /**
@@ -140,15 +132,9 @@ class ReaderBuffer {
      */
     public void appendMessagePart(String message, boolean last) {
         synchronized (lock) {
-            this.receivedLast = last;
-
             currentlyBuffered += message.length();
             if (currentlyBuffered <= bufferSize) {
-                char[] chars = message.toCharArray();
-                for (char c : chars) {
-                    queue.add(c);
-
-                }
+                buffer.append(message);
             } else {
                 if (buffering.get()) {
                     buffering.set(false);
@@ -159,18 +145,28 @@ class ReaderBuffer {
                 }
             }
 
+            this.receivedLast = last;
             this.lock.notifyAll();
         }
 
-        if (reader == null) {
-            reader = new BufferedStringReader(this);
-            Thread t = new Thread() {
+        if (this.reader == null) {
+            this.reader = new BufferedStringReader(this);
+            executorService.execute( new Runnable() {
+                @Override
                 public void run() {
                     messageHandler.onMessage(reader);
                 }
-            };
-            t.start();
+            });
         }
+    }
+
+    /**
+     * Set the {@link MessageHandler} that will consume the constructed {@link java.io.InputStream}.
+     *
+     * @param messageHandler {@link MessageHandler} that will consume the constructed {@link java.io.InputStream}.
+     */
+    public void setMessageHandler(MessageHandler.Whole<Reader> messageHandler) {
+        this.messageHandler = messageHandler;
     }
 
     /**
@@ -180,8 +176,8 @@ class ReaderBuffer {
      */
     public void resetBuffer(int bufferSize) {
         this.bufferSize = bufferSize;
-        currentlyBuffered = 0;
         buffering.set(true);
-        queue.clear();
+        currentlyBuffered = 0;
+        buffer.delete(0,buffer.length());
     }
 }

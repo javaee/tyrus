@@ -525,7 +525,7 @@ public class EndpointWrapper extends SPIEndpoint {
                 switch (session.getState()) {
                     case RUNNING:
                         if (buffer == null) {
-                            buffer = new ReaderBuffer();
+                            buffer = new ReaderBuffer(container.getExecutorService());
                             session.setReaderBuffer(buffer);
                         }
                         buffer.resetBuffer(session.getMaxTextMessageBufferSize());
@@ -588,7 +588,7 @@ public class EndpointWrapper extends SPIEndpoint {
                 switch (session.getState()) {
                     case RUNNING:
                         if (buffer == null) {
-                            buffer = new InputStreamBuffer();
+                            buffer = new InputStreamBuffer(container.getExecutorService());
                             session.setInputStreamBuffer(buffer);
                         }
                         buffer.resetBuffer(session.getMaxBinaryMessageBufferSize());
