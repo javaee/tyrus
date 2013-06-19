@@ -156,10 +156,13 @@ class WebSocketFilter extends BaseFilter {
         HttpRequestPacket.Builder builder = HttpRequestPacket.builder();
 
         if (proxy) {
-            builder = builder.uri(webSocketRequest.getRequestURI().toString());
+            final URI requestURI = webSocketRequest.getRequestURI();
+            final int requestPort = requestURI.getPort() == -1 ? (requestURI.getScheme().equals("wss") ? 443 : 80) : requestURI.getPort();
+
+            builder = builder.uri(String.format("%s:%d", requestURI.getHost(), requestPort));
             builder = builder.protocol(Protocol.HTTP_1_1);
             builder = builder.method(Method.CONNECT);
-            builder = builder.header(Header.Host, webSocketRequest.getRequestURI().getHost());
+            builder = builder.header(Header.Host, requestURI.getHost());
             builder = builder.header(Header.ProxyConnection, "keep-alive");
             builder = builder.header(Header.Connection, "keep-alive");
             ctx.write(HttpContent.builder(builder.build()).build());
