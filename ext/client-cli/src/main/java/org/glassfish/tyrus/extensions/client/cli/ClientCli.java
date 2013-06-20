@@ -47,7 +47,6 @@ import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 
 import javax.websocket.CloseReason;
-import javax.websocket.ContainerProvider;
 import javax.websocket.DeploymentException;
 import javax.websocket.OnClose;
 import javax.websocket.OnError;
@@ -55,6 +54,9 @@ import javax.websocket.OnMessage;
 import javax.websocket.PongMessage;
 import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
+
+import org.glassfish.tyrus.client.ClientManager;
+import org.glassfish.tyrus.container.grizzly.GrizzlyClientSocket;
 
 import jline.TerminalFactory;
 import jline.console.ConsoleReader;
@@ -134,8 +136,7 @@ public class ClientCli {
 
     public static void main(String[] args) throws IOException, DeploymentException, InterruptedException {
 
-
-        final WebSocketContainer webSocketContainer = ContainerProvider.getWebSocketContainer();
+        final ClientManager clientManager = new ClientManager();
 
         try {
             final ConsoleReader console = new ConsoleReader(
@@ -145,14 +146,53 @@ public class ClientCli {
             console.addCompleter(new StringsCompleter("open", "close", "send", "ping", "exit", "quit", "help"));
             console.setPrompt(getPrompt());
 
-            // If we have one parameter assume it to be a URI
-            if (args.length == 1) {
-                connectToURI(console, args[0], webSocketContainer);
-                console.getHistory().add("open " + args[0]);
-                console.setPrompt(getPrompt());
-            } else if (args.length > 1) {
-                ClientCli.print(console, null, String.format("Invalid argument count, usage cmd [ws uri]"), false);
-                return;
+            if (args.length > 0) {
+
+                int i = 0;
+                String arg;
+
+                while (i < args.length && args[i].startsWith("--")) {
+                    arg = args[i++];
+
+                    if (arg.equals("--proxy")) {
+                        if (i < args.length) {
+                            final String proxyUrl = args[i++];
+                            clientManager.getProperties().put(GrizzlyClientSocket.PROXY_URI, proxyUrl);
+                        } else {
+                            ClientCli.print(console, null, String.format("--proxy requires an argument (url)"), false);
+                        }
+                    }
+
+                    if (arg.equals("--help")) {
+
+                        String help = "\n"
+                                + "\nUsage: cmd [--proxy proxyUrl] [ws uri]"
+                                + "\n"
+                                + "\nruntime commands:"
+                                + "\n\topen uri : open a connection to the web socket uri"
+                                + "\n\tclose : close a currently open web socket session"
+                                + "\n\tsend message : send a text message"
+                                + "\n\tsend : send a multiline text message teminated with a ."
+                                + "\n\tping : send a ping message"
+                                + "\n\tquit | exit : exit this tool"
+                                + "\n\thelp : display this message";
+
+                        ClientCli.print(console, null, help, false);
+                        return;
+                    }
+                }
+
+                if (i == (args.length - 1)) {
+                    connectToURI(console, args[i], clientManager);
+                    console.getHistory().add("open " + args[i]);
+                    console.setPrompt(getPrompt());
+                    i++;
+                }
+
+                if (i != args.length) {
+                    ClientCli.print(console, null, String.format("Invalid argument count, usage cmd [--proxy proxyUrl] [ws uri]"), false);
+                    return;
+                }
             }
 
             String line;
@@ -167,7 +207,7 @@ public class ClientCli {
                         // Do nothing
                     } else if (line.startsWith("open ")) {
                         final String uri = line.substring(5).trim();
-                        connectToURI(console, uri, webSocketContainer);
+                        connectToURI(console, uri, clientManager);
                     } else if (line.startsWith("close")) {
                         if (session != null) {
                             session.close();
@@ -334,6 +374,5 @@ public class ClientCli {
         } else {
             console.restoreLine("", 0);
         }
-
     }
 }

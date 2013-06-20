@@ -168,6 +168,7 @@
         <module>containers</module>
         <module>core</module>
         <module>docs</module>
+        <module>ext</module>
         <module>protocol</module>
         <module>samples</module>
         <module>server</module>

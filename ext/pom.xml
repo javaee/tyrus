@@ -48,7 +48,7 @@
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.glassfish.tyrus.extensions</groupId>
+    <groupId>org.glassfish.tyrus.ext</groupId>
     <artifactId>tyrus-extensions-project</artifactId>
     <packaging>pom</packaging>
     <name>Tyrus Extension Modules</name>

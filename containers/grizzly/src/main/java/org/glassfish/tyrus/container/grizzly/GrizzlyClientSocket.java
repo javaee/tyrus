@@ -228,6 +228,10 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
             try {
                 if(proxyUri != null) {
                     proxy = new URI(proxyUri);
+                    if(proxy.getHost() == null) {
+                        LOGGER.log(Level.WARNING, String.format("Invalid proxy '%s'.", proxyUri));
+                        proxy = null;
+                    }
                 }
             } catch (URISyntaxException e) {
                 LOGGER.log(Level.WARNING, String.format("Invalid proxy '%s'.", proxyUri), e);
@@ -246,7 +250,8 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
             }
 
             if(proxy != null) {
-                connectorHandler.connect(new InetSocketAddress(proxy.getHost(), proxy.getPort()));
+                final int proxyPort = proxy.getPort() == -1 ? 80 : proxy.getPort();
+                connectorHandler.connect(new InetSocketAddress(proxy.getHost(), proxyPort));
             } else {
                 connectorHandler.connect(new InetSocketAddress(uri.getHost(), port));
             }
