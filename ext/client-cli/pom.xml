@@ -89,7 +89,7 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
-                        <Export-Package>org.glassfish.tyrus.extensions.client.cli;version=${project.version}</Export-Package>
+                        <Export-Package>org.glassfish.tyrus.ext.client.cli;version=${project.version}</Export-Package>
                         <Import-Package>javax.websocket;version=${apijar.bundle.version},*</Import-Package>
                     </instructions>
                     <unpackBundle>true</unpackBundle>
@@ -130,6 +130,6 @@
     </build>
 
     <properties>
-        <client.main.class>org.glassfish.tyrus.extensions.client.cli.ClientCli</client.main.class>
+        <client.main.class>org.glassfish.tyrus.ext.client.cli.ClientCli</client.main.class>
     </properties>
 </project>
