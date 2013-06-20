@@ -42,6 +42,7 @@ package org.glassfish.tyrus.core;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
 
@@ -63,6 +64,24 @@ public class OutputStreamToAsyncBinaryAdapter extends OutputStream {
         byte[] b = new byte[1];
         b[0] = (byte) buffer;
         re.sendBinary(ByteBuffer.wrap(b), last);
+    }
+
+    @Override
+    public void write(byte b[], int off, int len) throws IOException {
+        if (b == null) {
+            throw new NullPointerException();
+        } else if ((off < 0) || (off > b.length) || (len < 0) ||
+                ((off + len) > b.length) || ((off + len) < 0)) {
+            throw new IndexOutOfBoundsException();
+        } else if (len == 0) {
+            return;
+        }
+
+        ByteBuffer result = buffer == -1 ? ByteBuffer.allocate(len - 1) : ByteBuffer.allocate(len).put((byte) buffer);
+        result.put(Arrays.copyOfRange(b,off,len-1));
+        buffer = b[off+len-1];
+
+        re.sendBinary(result, false);
     }
 
     @Override

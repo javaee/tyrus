@@ -101,6 +101,40 @@ public class RemoteEndpointWrapperTest {
         Assert.assertArrayEquals("Writing byte[] to stream and flushing.", sentBytesComplete, tre.getBytesAndClearBuffer());
     }
 
+    @Test
+    public void testGetSendStreamWriteArrayWhole() throws IOException {
+
+        TestRemoteEndpoint tre = new TestRemoteEndpoint();
+        SessionImpl testSession = new SessionImpl(null, tre, ew, null, null, true, null, null, Collections.<String, String>emptyMap(), null, new HashMap<String, List<String>>());
+        RemoteEndpointWrapper.Basic rew = new RemoteEndpointWrapper.Basic(testSession, tre, ew);
+        OutputStream stream = rew.getSendStream();
+
+        stream.write(sentBytesComplete);
+        Assert.assertEquals(5, tre.getLastSentMessageSize());
+        stream.close();
+        Assert.assertEquals(1, tre.getLastSentMessageSize());
+
+        Assert.assertArrayEquals("Writing byte[] to stream and flushing.", sentBytesComplete, tre.getBytesAndClearBuffer());
+    }
+
+    @Test
+    public void testGetSendStreamWriteArrayPerPartes() throws IOException {
+
+        TestRemoteEndpoint tre = new TestRemoteEndpoint();
+        SessionImpl testSession = new SessionImpl(null, tre, ew, null, null, true, null, null, Collections.<String, String>emptyMap(), null, new HashMap<String, List<String>>());
+        RemoteEndpointWrapper.Basic rew = new RemoteEndpointWrapper.Basic(testSession, tre, ew);
+        OutputStream stream = rew.getSendStream();
+
+        stream.write(sentBytes);
+        Assert.assertEquals(2, tre.getLastSentMessageSize());
+        stream.write(sentBytes);
+        Assert.assertEquals(3, tre.getLastSentMessageSize());
+        stream.close();
+        Assert.assertEquals(1, tre.getLastSentMessageSize());
+
+        Assert.assertArrayEquals("Writing byte[] to stream and flushing.", sentBytesComplete, tre.getBytesAndClearBuffer());
+    }
+
 
     @Test
     public void testGetSendWriter() throws IOException {
@@ -130,6 +164,7 @@ public class RemoteEndpointWrapperTest {
 
         private final ArrayList<Byte> bytesToSend = new ArrayList<Byte>();
         StringBuilder builder = new StringBuilder();
+        private int lastSentMessageSize;
 
         @Override
         public Future<DataFrame> sendText(String text) throws IOException {
@@ -150,6 +185,7 @@ public class RemoteEndpointWrapperTest {
         @Override
         public Future<DataFrame> sendBinary(ByteBuffer partialByte, boolean isLast) throws IOException {
             byte[] bytes = partialByte.array();
+            lastSentMessageSize = bytes.length;
             for (byte b : bytes) {
                 bytesToSend.add(b);
             }
@@ -191,6 +227,10 @@ public class RemoteEndpointWrapperTest {
         @Override
         public void setWriteTimeout(long timeoutMs) {
 
+        }
+
+        private int getLastSentMessageSize() {
+            return lastSentMessageSize;
         }
     }
 
