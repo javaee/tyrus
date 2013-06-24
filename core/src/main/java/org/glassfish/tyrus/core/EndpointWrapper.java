@@ -225,6 +225,7 @@ public class EndpointWrapper extends SPIEndpoint {
         principal = hr.getUserPrincipal();
         requestParameterMap = hr.getParameterMap();
 
+        this.templateValues.clear();
         for (Map.Entry<String, List<String>> entry : hr.getParameterMap().entrySet()) {
             this.templateValues.put(entry.getKey(), entry.getValue().get(0));
         }
@@ -410,7 +411,7 @@ public class EndpointWrapper extends SPIEndpoint {
     public Session createSessionForRemoteEndpoint(SPIRemoteEndpoint re, String subprotocol, List<Extension> extensions) {
         synchronized (remoteEndpointToSession) {
             final SessionImpl session = new SessionImpl(container, re, this, subprotocol, extensions, isSecure,
-                    getURI(), queryString, templateValues, principal, requestParameterMap);
+                    getURI(uri, queryString), queryString, templateValues, principal, requestParameterMap);
             remoteEndpointToSession.put(re, session);
             return session;
         }
@@ -434,7 +435,7 @@ public class EndpointWrapper extends SPIEndpoint {
             if (session == null) {
                 // create a new session
                 session = new SessionImpl(container, gs, this, subprotocol, extensions, isSecure,
-                        getURI(), queryString, templateValues, principal, requestParameterMap);
+                        getURI(uri, queryString), queryString, templateValues, principal, requestParameterMap);
                 remoteEndpointToSession.put(gs, session);
             }
             // Session was already created in WebSocketContainer#connectToServer call
@@ -767,11 +768,11 @@ public class EndpointWrapper extends SPIEndpoint {
         }
     }
 
-    private URI getURI() {
+    private static URI getURI(String uri, String queryString) {
         if (queryString != null && !queryString.isEmpty()) {
             return URI.create(String.format("%s?%s", uri, queryString));
         } else {
-            return URI.create(this.uri);
+            return URI.create(uri);
         }
     }
 

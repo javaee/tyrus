@@ -150,12 +150,12 @@ public class SessionImpl implements Session {
         this.isSecure = isSecure;
         this.uri = uri;
         this.queryString = queryString;
-        this.pathParameters = pathParameters == null ? Collections.<String, String>emptyMap() : Collections.unmodifiableMap(pathParameters);
+        this.pathParameters = pathParameters == null ? Collections.<String, String>emptyMap() : Collections.unmodifiableMap(new HashMap<String, String>(pathParameters));
         this.basicRemote = new RemoteEndpointWrapper.Basic(this, remoteEndpoint, endpointWrapper);
         this.asyncRemote = new RemoteEndpointWrapper.Async(this, remoteEndpoint, endpointWrapper);
         this.handlerManager = MessageHandlerManager.fromDecoderInstances(endpointWrapper.getDecoders());
         this.userPrincipal = principal;
-        this.requestParameterMap = requestParameterMap == null ? Collections.<String, List<String>>emptyMap() : Collections.unmodifiableMap(requestParameterMap);
+        this.requestParameterMap = requestParameterMap == null ? Collections.<String, List<String>>emptyMap() : Collections.unmodifiableMap(new HashMap<String, List<String>>(requestParameterMap));
 
         if (container != null) {
             maxTextMessageBufferSize = container.getDefaultMaxTextMessageBufferSize();
