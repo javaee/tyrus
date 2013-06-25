@@ -60,14 +60,14 @@ public class TyrusServerEndpointConfigurator extends ServerEndpointConfig.Config
 
     public TyrusServerEndpointConfigurator() {
         this.componentProviderService = ComponentProviderService.create();
-        }
+    }
 
     @Override
     public String getNegotiatedSubprotocol(List<String> supported, List<String> requested) {
         if (requested != null) {
-            for (String serverProtocol : supported) {
-                if (requested.contains(serverProtocol)) {
-                    return serverProtocol;
+            for (String clientProtocol : requested) {
+                if (supported.contains(clientProtocol)) {
+                    return clientProtocol;
                 }
             }
         }
