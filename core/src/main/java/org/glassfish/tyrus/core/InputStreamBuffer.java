@@ -104,6 +104,12 @@ class InputStreamBuffer {
                 }
             }
 
+            if (bufferedFragments.size() == 1 && !bufferedFragments.get(0).hasRemaining() && receivedLast){
+                this.inputStream = null;
+                this.currentlyBuffered = 0;
+                return -1;
+            }
+
             ByteBuffer firstBuffer = bufferedFragments.get(0);
             byte result = firstBuffer.get();
 

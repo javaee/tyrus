@@ -54,16 +54,9 @@ import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
  */
 public class OutputStreamToAsyncBinaryAdapter extends OutputStream {
     private final SPIRemoteEndpoint re;
-    private int buffer = -1;
 
     public OutputStreamToAsyncBinaryAdapter(SPIRemoteEndpoint re) {
         this.re = re;
-    }
-
-    private void sendBuffer(boolean last) throws IOException {
-        byte[] b = new byte[1];
-        b[0] = (byte) buffer;
-        re.sendBinary(ByteBuffer.wrap(b), last);
     }
 
     @Override
@@ -77,19 +70,14 @@ public class OutputStreamToAsyncBinaryAdapter extends OutputStream {
             return;
         }
 
-        ByteBuffer result = buffer == -1 ? ByteBuffer.allocate(len - 1) : ByteBuffer.allocate(len).put((byte) buffer);
-        result.put(Arrays.copyOfRange(b,off,len-1));
-        buffer = b[off+len-1];
-
+        ByteBuffer result = ByteBuffer.allocate(len);
+        result.put(Arrays.copyOfRange(b,off,len));
         re.sendBinary(result, false);
     }
 
     @Override
     public void write(int i) throws IOException {
-        if (buffer != -1) {
-            this.sendBuffer(false);
-        }
-        buffer = i;
+        re.sendBinary(ByteBuffer.wrap(new byte[]{(byte) i}), false);
     }
 
     @Override
@@ -99,6 +87,6 @@ public class OutputStreamToAsyncBinaryAdapter extends OutputStream {
 
     @Override
     public void close() throws IOException {
-        this.sendBuffer(true);
+        re.sendBinary(ByteBuffer.wrap(new byte[]{}), true);
     }
 }

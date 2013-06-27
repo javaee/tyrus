@@ -110,9 +110,9 @@ public class RemoteEndpointWrapperTest {
         OutputStream stream = rew.getSendStream();
 
         stream.write(sentBytesComplete);
-        Assert.assertEquals(5, tre.getLastSentMessageSize());
+        Assert.assertEquals(6, tre.getLastSentMessageSize());
         stream.close();
-        Assert.assertEquals(1, tre.getLastSentMessageSize());
+        Assert.assertEquals(0, tre.getLastSentMessageSize());
 
         Assert.assertArrayEquals("Writing byte[] to stream and flushing.", sentBytesComplete, tre.getBytesAndClearBuffer());
     }
@@ -126,11 +126,11 @@ public class RemoteEndpointWrapperTest {
         OutputStream stream = rew.getSendStream();
 
         stream.write(sentBytes);
-        Assert.assertEquals(2, tre.getLastSentMessageSize());
+        Assert.assertEquals(3, tre.getLastSentMessageSize());
         stream.write(sentBytes);
         Assert.assertEquals(3, tre.getLastSentMessageSize());
         stream.close();
-        Assert.assertEquals(1, tre.getLastSentMessageSize());
+        Assert.assertEquals(0, tre.getLastSentMessageSize());
 
         Assert.assertArrayEquals("Writing byte[] to stream and flushing.", sentBytesComplete, tre.getBytesAndClearBuffer());
     }
