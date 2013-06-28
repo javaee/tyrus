@@ -1,0 +1,14 @@
+{
+   "options": {"failByDrop": false},
+   "outdir": "./reports/gf",
+
+   "servers": [
+                {"agent": "tyrus-gf",
+                 "url": "ws://localhost:8080/autobahn/echo",
+                 "options": {"version": 18}}
+              ],
+
+   "cases": ["*"],
+   "exclude-cases": [],
+   "exclude-agent-cases": {}
+}
