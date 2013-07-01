@@ -67,6 +67,7 @@ public class CdiTest {
 
     private static final String CONTEXT_PATH = "/sample-cdi";
     private static final String SENT_MESSAGE = "Do or do not, there is no try.";
+    private static int result;
 
     private String getHost() {
         return System.getProperty("tyrus.test.host");
@@ -131,73 +132,82 @@ public class CdiTest {
         final ClientManager client = ClientManager.createClient();
         client.connectToServer(new Endpoint() {
             boolean first = true;
+            int firstMessage;
+            int secondMessage;
 
             @Override
             public void onOpen(final Session session, EndpointConfig EndpointConfig) {
                 try {
                     session.addMessageHandler(new MessageHandler.Whole<String>() {
+
                         @Override
                         public void onMessage(String message) {
-                            if (first) {
-                                assertEquals("First message was wrong", String.format("%s%s1", SENT_MESSAGE, InjectToStatefulEndpoint.TEXT), message);
-                                messageLatch.countDown();
-                                try {
-                                    session.getBasicRemote().sendText(SENT_MESSAGE);
-                                } catch (IOException e) {
-                                    e.printStackTrace();
+                            try{
+                                if (first) {
+                                    firstMessage = Integer.parseInt(message.split(":")[1]);
+                                    messageLatch.countDown();
+                                    try {
+                                        session.getBasicRemote().sendText(SENT_MESSAGE);
+                                    } catch (IOException e) {
+                                        e.printStackTrace();
+                                    }
+                                    first = false;
+                                } else {
+                                    secondMessage = Integer.parseInt(message.split(":")[1]);
+                                    assertEquals("secondMessage - firstMessage != 1",1,secondMessage - firstMessage);
+                                    messageLatch.countDown();
                                 }
-                                first = false;
-                            } else {
-                                assertEquals("Second message was wrong", String.format("%s%s2", SENT_MESSAGE, InjectToStatefulEndpoint.TEXT), message);
-                                messageLatch.countDown();
+                            }catch(Exception e){
+                                e.printStackTrace();
                             }
                         }
                     });
-
                     session.getBasicRemote().sendText("Do or do not, there is no try.");
                 } catch (IOException e) {
-                    //do nothing
+                    e.printStackTrace();
                 }
             }
         }, ClientEndpointConfig.Builder.create().build(), getURI("/injectingstateful"));
 
-        messageLatch.await(1, TimeUnit.SECONDS);
+        messageLatch.await(2, TimeUnit.SECONDS);
         assertEquals("Number of received messages is not 0.", 0, messageLatch.getCount());
 
     }
 
     @Test
     public void testInjectedStatefulTwoMessagesFromTwoClients() throws InterruptedException, DeploymentException, IOException {
-        testFromTwoClients("/injectingstateful", String.format("%s%s1", SENT_MESSAGE, InjectToStatefulEndpoint.TEXT), String.format("%s%s1", SENT_MESSAGE, InjectToStatefulEndpoint.TEXT));
+        testFromTwoClients("/injectingstateful", 0);
     }
 
     @Test
     public void testInjectedSingletonTwoMessagesFromTwoClients() throws InterruptedException, DeploymentException, IOException {
-        testFromTwoClients("/injectingsingleton", String.format("%s%s1", SENT_MESSAGE, InjectToSingletonEndpoint.TEXT), String.format("%s%s2", SENT_MESSAGE, InjectToStatefulEndpoint.TEXT));
+        testFromTwoClients("/injectingsingleton", 1);
     }
 
     @Test
     public void testStatefulTwoMessagesFromTwoClients() throws InterruptedException, DeploymentException, IOException {
-        testFromTwoClients("/stateful", String.format("%s0", SENT_MESSAGE), String.format("%s0", SENT_MESSAGE));
+        testFromTwoClients("/stateful", 0);
     }
 
     @Test
     public void testSingletonTwoMessagesFromTwoClients() throws InterruptedException, DeploymentException, IOException {
-        testFromTwoClients("/singleton", String.format("%s0", SENT_MESSAGE), String.format("%s1", SENT_MESSAGE));
+        testFromTwoClients("/singleton", 1);
     }
 
-    public void testFromTwoClients(String path, final String expected1, final String expected2) throws DeploymentException, InterruptedException, IOException {
-        ClientManager client = ClientManager.createClient();
-
-        testOneClient(client, path, expected1);
-        testOneClient(client, path, expected2);
-    }
-
-    public void testOneClient(ClientManager client, String path, final String expected) throws InterruptedException, DeploymentException, IOException {
+    public void testFromTwoClients(String path, int diff) throws DeploymentException, InterruptedException, IOException {
         final String host = System.getProperty("tyrus.test.host");
         if (host == null) {
             return;
         }
+        ClientManager client = ClientManager.createClient();
+
+        int value1 = testOneClient(client, path);
+        int value2 = testOneClient(client, path);
+
+        assertEquals("The difference is not as expected", diff, value2 - value1);
+    }
+
+    public int testOneClient(ClientManager client, String path) throws InterruptedException, DeploymentException, IOException {
 
         final CountDownLatch messageLatch = new CountDownLatch(1);
         client.connectToServer(new Endpoint() {
@@ -208,7 +218,8 @@ public class CdiTest {
                     session.addMessageHandler(new MessageHandler.Whole<String>() {
                         @Override
                         public void onMessage(String message) {
-                            assertEquals("Unexpected message.", message, expected);
+
+                            result = Integer.parseInt(message.split(":")[1]);
                             messageLatch.countDown();
                         }
                     });
@@ -226,6 +237,8 @@ public class CdiTest {
 
         messageLatch.await(2, TimeUnit.SECONDS);
         assertEquals("Number of received messages is not 0.", 0, messageLatch.getCount());
+
+        return result;
     }
 
     @Test

@@ -59,7 +59,7 @@ public class StatefulEndpoint {
 
     @OnMessage
     public String echo(String message) {
-        return postConstructCalled ? String.format("%s%s", message, counter++) : "PostConstruct not called.";
+        return postConstructCalled ? String.format("%s:%s", message, counter++) : "PostConstruct not called.";
     }
 
     @PostConstruct

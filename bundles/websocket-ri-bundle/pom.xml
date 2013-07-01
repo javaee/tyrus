@@ -67,7 +67,11 @@
             <scope>provided</scope>
             <version>${cdi-api.version}</version>
         </dependency>
-
+        <dependency>
+            <groupId>javax.ejb</groupId>
+            <artifactId>javax.ejb-api</artifactId>
+            <version>${javax.ejb-api.version}</version>
+        </dependency>
         <dependency>
             <groupId>org.glassfish.grizzly</groupId>
             <artifactId>grizzly-framework</artifactId>
@@ -138,7 +142,6 @@
                                     <overWrite>false</overWrite>
                                     <outputDirectory>${gen-src-dir}</outputDirectory>
                                 </artifactItem>
-
                                 <artifactItem>
                                     <groupId>org.glassfish.tyrus</groupId>
                                     <artifactId>tyrus-websocket-core</artifactId>
@@ -174,6 +177,14 @@
                                 <artifactItem>
                                     <groupId>org.glassfish.tyrus</groupId>
                                     <artifactId>tyrus-container-glassfish-cdi</artifactId>
+                                    <version>${project.version}</version>
+                                    <classifier>sources</classifier>
+                                    <overWrite>false</overWrite>
+                                    <outputDirectory>${gen-src-dir}</outputDirectory>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>org.glassfish.tyrus</groupId>
+                                    <artifactId>tyrus-container-glassfish-ejb</artifactId>
                                     <version>${project.version}</version>
                                     <classifier>sources</classifier>
                                     <overWrite>false</overWrite>

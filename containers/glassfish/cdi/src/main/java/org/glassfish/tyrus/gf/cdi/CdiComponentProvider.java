@@ -48,6 +48,8 @@ import javax.enterprise.context.spi.CreationalContext;
 import javax.enterprise.inject.spi.AnnotatedType;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.InjectionTarget;
+import javax.ejb.Singleton;
+import javax.ejb.Stateful;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
@@ -92,7 +94,7 @@ public class CdiComponentProvider extends ComponentProvider {
 
     @Override
     public boolean isApplicable(Class<?> c) {
-        return managerRetrieved;
+        return !(c.isAnnotationPresent(Singleton.class) || c.isAnnotationPresent(Stateful.class)) && managerRetrieved;
     }
 
     @SuppressWarnings("unchecked")

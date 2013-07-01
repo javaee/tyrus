@@ -56,7 +56,7 @@ import javax.inject.Inject;
 @ServerEndpoint(value = "/injectingsingleton")
 public class InjectToSingletonEndpoint {
 
-    public static final String TEXT = " Inner counter is: ";
+    public static final String TEXT = " Inner counter is:";
     private boolean postConstructCalled = false;
 
     @Inject

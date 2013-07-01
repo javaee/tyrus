@@ -62,7 +62,7 @@ public class SingletonEndpoint {
 
     @OnMessage
     public String echo(String message) {
-        return (postConstructCalled && interceptorCalled) ? String.format("%s%s", message, counter++) : "PostConstruct not called.";
+        return (postConstructCalled && interceptorCalled) ? String.format("%s:%s", message, counter++) : "PostConstruct not called.";
     }
 
     @PostConstruct
