@@ -42,6 +42,7 @@ package org.glassfish.tyrus.core;
 import java.net.URI;
 import java.security.Principal;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -71,7 +72,7 @@ public final class RequestContext implements HandshakeRequest, SPIHandshakeReque
 
     private String requestPath;
 
-    private final Map<String, List<String>> headers = new TreeMap<String, List<String>>(new Comparator<String>() {
+    private Map<String, List<String>> headers = new TreeMap<String, List<String>>(new Comparator<String>() {
         @Override
         public int compare(String o1, String o2) {
             return o1.toLowerCase().compareTo(o2.toLowerCase());
@@ -122,6 +123,13 @@ public final class RequestContext implements HandshakeRequest, SPIHandshakeReque
      */
     public String getFirstHeaderValue(String name) {
         return getHeader(name);
+    }
+
+    /**
+     * Make headers read-only.
+     */
+    public void lockHeaders() {
+        this.headers = Collections.unmodifiableMap(headers);
     }
 
     @Override

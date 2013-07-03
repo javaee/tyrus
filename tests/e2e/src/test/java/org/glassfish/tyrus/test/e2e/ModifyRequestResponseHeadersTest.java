@@ -92,6 +92,15 @@ public class ModifyRequestResponseHeadersTest {
         @Override
         public void modifyHandshake(ServerEndpointConfig sec, HandshakeRequest request, HandshakeResponse response) {
             final List<String> list = request.getHeaders().get(HEADER_NAME);
+
+            try {
+                // TYRUS-208: HandshakeRequest.getHeaders() should return read-only map.
+                request.getHeaders().put("test", Arrays.asList("TYRUS-208"));
+                return;
+            } catch (UnsupportedOperationException e) {
+                // expected.
+            }
+
             response.getHeaders().put(HEADER_NAME, list);
             response.getHeaders().put("Origin", request.getHeaders().get("Origin"));
         }
