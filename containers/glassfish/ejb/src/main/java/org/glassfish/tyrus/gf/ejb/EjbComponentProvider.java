@@ -45,6 +45,7 @@ import java.util.logging.Logger;
 
 import javax.ejb.Singleton;
 import javax.ejb.Stateful;
+import javax.ejb.Stateless;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
@@ -83,7 +84,8 @@ public class EjbComponentProvider extends ComponentProvider {
     @Override
     public boolean isApplicable(Class<?> c){
         return (c.isAnnotationPresent(Singleton.class) ||
-                c.isAnnotationPresent(Stateful.class));
+                c.isAnnotationPresent(Stateful.class) ||
+                c.isAnnotationPresent(Stateless.class));
     }
 
     @Override
@@ -98,6 +100,8 @@ public class EjbComponentProvider extends ComponentProvider {
             name = c.getAnnotation(Singleton.class).name();
         } else if (c.isAnnotationPresent(Stateful.class)) {
             name = c.getAnnotation(Stateful.class).name();
+        } else if (c.isAnnotationPresent(Stateless.class)) {
+            name = c.getAnnotation(Stateless.class).name();
         } else {
             return null;
         }
@@ -126,7 +130,7 @@ public class EjbComponentProvider extends ComponentProvider {
     }
 
     private Object lookupFullyQualfiedForm(InitialContext ic, Class<?> c, String name) throws NamingException {
-        String jndiName =  "java:module/" + name + "!" + c.getName();
+        String jndiName = "java:module/" + name + "!" + c.getName();
         return ic.lookup(jndiName);
     }
 

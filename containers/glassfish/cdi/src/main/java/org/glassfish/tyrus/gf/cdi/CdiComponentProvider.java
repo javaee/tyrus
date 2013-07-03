@@ -40,6 +40,7 @@
 
 package org.glassfish.tyrus.gf.cdi;
 
+import java.lang.annotation.Annotation;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Logger;
@@ -48,8 +49,6 @@ import javax.enterprise.context.spi.CreationalContext;
 import javax.enterprise.inject.spi.AnnotatedType;
 import javax.enterprise.inject.spi.BeanManager;
 import javax.enterprise.inject.spi.InjectionTarget;
-import javax.ejb.Singleton;
-import javax.ejb.Stateful;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
@@ -94,7 +93,18 @@ public class CdiComponentProvider extends ComponentProvider {
 
     @Override
     public boolean isApplicable(Class<?> c) {
-        return !(c.isAnnotationPresent(Singleton.class) || c.isAnnotationPresent(Stateful.class)) && managerRetrieved;
+        Annotation[] annotations = c.getAnnotations();
+
+        for (Annotation annotation : annotations) {
+            String annotationClassName = annotation.annotationType().getCanonicalName();
+            if (annotationClassName.equals("javax.ejb.Singleton") ||
+                    annotationClassName.equals("javax.ejb.Stateful") ||
+                    annotationClassName.equals("javax.ejb.Stateless")) {
+                return false;
+            }
+        }
+
+        return managerRetrieved;
     }
 
     @SuppressWarnings("unchecked")
