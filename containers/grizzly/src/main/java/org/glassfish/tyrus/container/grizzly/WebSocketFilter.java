@@ -43,11 +43,14 @@ package org.glassfish.tyrus.container.grizzly;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.glassfish.tyrus.core.RequestContext;
+import org.glassfish.tyrus.core.Utils;
 import org.glassfish.tyrus.websockets.DataFrame;
 import org.glassfish.tyrus.websockets.FramingException;
 import org.glassfish.tyrus.websockets.HandshakeException;
@@ -460,8 +463,17 @@ class WebSocketFilter extends BaseFilter {
         builder = builder.protocol(Protocol.HTTP_1_1);
         builder = builder.method(Method.GET);
         builder = builder.uri(request.getRequestPath());
-        for (String key : request.getHeaders().keySet()) {
-            builder.header(key, request.getFirstHeaderValue(key));
+        for (Map.Entry<String, List<String>> headerEntry : request.getHeaders().entrySet()) {
+            StringBuilder finalHeaderValue = new StringBuilder();
+
+            for(String headerValue : headerEntry.getValue()) {
+                if(finalHeaderValue.length() != 0) {
+                    finalHeaderValue.append(", ");
+                }
+                finalHeaderValue.append(Utils.checkHeaderValue(headerValue));
+            }
+
+            builder.header(headerEntry.getKey(), finalHeaderValue.toString());
         }
         return HttpContent.builder(builder.build()).build();
     }
@@ -482,7 +494,12 @@ class WebSocketFilter extends BaseFilter {
                 .build();
 
         for (String name : requestPacket.getHeaders().names()) {
-            requestContext.putSingleHeader(name, requestPacket.getHeader(name));
+            final List<String> values = requestContext.getHeaders().get(name);
+            if(values == null) {
+                requestContext.getHeaders().put(name, Utils.parseHeaderValue(requestPacket.getHeader(name).trim()));
+            } else {
+                values.addAll(Utils.parseHeaderValue(requestPacket.getHeader(name).trim()));
+            }
         }
 
         return requestContext;

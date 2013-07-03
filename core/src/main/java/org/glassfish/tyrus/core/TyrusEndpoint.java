@@ -108,7 +108,7 @@ public class TyrusEndpoint extends WebSocketApplication implements SPIRegistered
     @Override
     public boolean isApplicationRequest(WebSocketRequest webSocketRequest) {
         // TODO - proper header parsing
-        String protocols = webSocketRequest.getFirstHeaderValue(WebSocketEngine.SEC_WS_PROTOCOL_HEADER);
+        String protocols = webSocketRequest.getHeader(WebSocketEngine.SEC_WS_PROTOCOL_HEADER);
         List<String> protocolsList;
         if(protocols == null) {
             protocolsList = Collections.emptyList();
@@ -264,10 +264,17 @@ public class TyrusEndpoint extends WebSocketApplication implements SPIRegistered
             serverEndpointConfig.getConfigurator().modifyHandshake(serverEndpointConfig, createHandshakeRequest(request),
                     handshakeResponse);
 
-            for (Map.Entry<String, List<String>> entry : handshakeResponse.getHeaders().entrySet()) {
-                if (entry.getValue() != null) {
-                    response.getHeaders().put(entry.getKey(), entry.getValue().get(0));
+            for (Map.Entry<String, List<String>> headerEntry : handshakeResponse.getHeaders().entrySet()) {
+                StringBuilder finalHeaderValue = new StringBuilder();
+
+                for(String headerValue : headerEntry.getValue()) {
+                    if(finalHeaderValue.length() != 0) {
+                        finalHeaderValue.append(", ");
+                    }
+                    finalHeaderValue.append(Utils.checkHeaderValue(headerValue));
                 }
+
+                response.getHeaders().put(headerEntry.getKey(), finalHeaderValue.toString());
             }
         }
     }

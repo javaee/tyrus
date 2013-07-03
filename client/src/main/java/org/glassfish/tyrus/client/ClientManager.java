@@ -42,7 +42,6 @@ package org.glassfish.tyrus.client;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -70,6 +69,7 @@ import org.glassfish.tyrus.core.EndpointWrapper;
 import org.glassfish.tyrus.core.ErrorCollector;
 import org.glassfish.tyrus.core.ReflectionHelper;
 import org.glassfish.tyrus.core.TyrusContainerProvider;
+import org.glassfish.tyrus.core.Utils;
 import org.glassfish.tyrus.spi.SPIHandshakeListener;
 import org.glassfish.tyrus.spi.TyrusClientSocket;
 import org.glassfish.tyrus.spi.TyrusContainer;
@@ -244,7 +244,12 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                                 });
 
                         for (Map.Entry<String, String> entry : originalHeaders.entrySet()) {
-                            headers.put(entry.getKey(), Arrays.asList(entry.getValue()));
+                            final List<String> values = headers.get(entry.getKey());
+                            if(values == null) {
+                                headers.put(entry.getKey(), Utils.parseHeaderValue(entry.getValue().trim()));
+                            } else {
+                                values.addAll(Utils.parseHeaderValue(entry.getValue().trim()));
+                            }
                         }
 
                         finalConfig.getConfigurator().afterResponse(new HandshakeResponse() {

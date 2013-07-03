@@ -76,7 +76,7 @@ public class ModifyRequestResponseHeadersTest {
 
     private static final String SENT_MESSAGE = "Always pass on what you have learned.";
     private static final String HEADER_NAME = "myHeader";
-    private static final String HEADER_VALUE = "Always two there are, a master and an apprentice.";
+    private static final String[] HEADER_VALUE = {"Always two there are, a master and an apprentice.", "b", "c"};
 
     @ServerEndpoint(value = "/echo", configurator = MyServerConfigurator.class)
     public static class TestEndpoint {
@@ -111,7 +111,9 @@ public class ModifyRequestResponseHeadersTest {
         public void afterResponse(HandshakeResponse handshakeResponse) {
             final Map<String, List<String>> headers = handshakeResponse.getHeaders();
 
-            assertEquals(HEADER_VALUE, headers.get(HEADER_NAME).get(0));
+            assertEquals(HEADER_VALUE[0], headers.get(HEADER_NAME).get(0));
+            assertEquals(HEADER_VALUE[1], headers.get(HEADER_NAME).get(1));
+            assertEquals(HEADER_VALUE[2], headers.get(HEADER_NAME).get(2));
             assertEquals("myOrigin", headers.get("origin").get(0));
         }
     }
