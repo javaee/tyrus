@@ -89,7 +89,7 @@ public class TyrusEndpoint extends WebSocketApplication implements SPIRegistered
     /**
      * Used to store negotiated extensions between the call of isApplicationRequest method and getSupportedExtensions.
      */
-    private List<Extension> temporaryNegotiatedExtensions;
+    private List<Extension> temporaryNegotiatedExtensions = Collections.emptyList();
 
     /**
      * Used to store negotiated protocol between the call of isApplicationRequest method and getSupportedProtocols.
