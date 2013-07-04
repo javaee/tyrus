@@ -43,6 +43,7 @@ import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.websocket.ClientEndpointConfig;
 import javax.websocket.ContainerProvider;
@@ -50,6 +51,8 @@ import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
 import javax.websocket.OnMessage;
+import javax.websocket.SendHandler;
+import javax.websocket.SendResult;
 import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
 import javax.websocket.server.ServerEndpoint;
@@ -63,49 +66,54 @@ import org.junit.Test;
  * Basic test for RemoteEndpoint.Async.sendText()
  *
  * @author Jitendra Kotamraju
+ * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 public class AsyncTextTest {
+
+    private static final int MESSAGE_NO = 100;
 
     @Test
     public void testTextFuture() throws Exception {
 
-        Server server = new Server(AsncEchoServer.class);
+        Server server = new Server(AsyncEchoFutureServer.class);
         try {
             server.start();
 
-            CountDownLatch messageLatch = new CountDownLatch(100);
+            CountDownLatch messageLatch = new CountDownLatch(MESSAGE_NO);
             WebSocketContainer container = ContainerProvider.getWebSocketContainer();
             container.connectToServer(
-                    new AsyncClient(messageLatch),
+                    new AsyncFutureClient(messageLatch),
                     ClientEndpointConfig.Builder.create().build(),
-                    new URI("ws://localhost:8025/websockets/tests/async-basic-echo-text"));
+                    new URI("ws://localhost:8025/websockets/tests/async-basic-echo-text-future"));
             messageLatch.await(5, TimeUnit.SECONDS);
 
             // Check the number of received messages
-            Assert.assertEquals(0, messageLatch.getCount());
+            Assert.assertEquals("Didn't receive all the messages. ", 0, messageLatch.getCount());
+            Assert.assertEquals("All messages were not sent from server", MESSAGE_NO,AsyncEchoFutureServer.counter.get());
         } finally {
             server.stop();
         }
     }
 
     // Server endpoint that just echos messages asynchronously
-    @ServerEndpoint(value = "/async-basic-echo-text")
-    public static class AsncEchoServer {
+    @ServerEndpoint(value = "/async-basic-echo-text-future")
+    public static class AsyncEchoFutureServer {
+
+        private static AtomicInteger counter = new AtomicInteger(0);
 
         @OnMessage
         public void echo(String message, Session session) throws Exception {
             Future<Void> f = session.getAsyncRemote().sendText(message);
             f.get();
+            counter.incrementAndGet();
         }
-
     }
 
-    // Client endpoint that sends messages asynchronously
-    public static class AsyncClient extends Endpoint {
+    public static class AsyncFutureClient extends Endpoint {
         private final CountDownLatch messageLatch;
         private final long noMessages;
 
-        public AsyncClient(CountDownLatch messageLatch) {
+        public AsyncFutureClient(CountDownLatch messageLatch) {
             noMessages = messageLatch.getCount();
             this.messageLatch = messageLatch;
         }
@@ -113,13 +121,13 @@ public class AsyncTextTest {
         public void onOpen(Session session, EndpointConfig EndpointConfig) {
             try {
                 session.addMessageHandler(new MessageHandler.Whole<String>() {
-                    public void onMessage(String text) {
+                    public void onMessage(String message) {
                         messageLatch.countDown();
                     }
                 });
 
                 for(int i=0; i < noMessages; i++) {
-                    session.getAsyncRemote().sendText("Hello World "+i);
+                    session.getAsyncRemote().sendText("Message");
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -127,4 +135,75 @@ public class AsyncTextTest {
         }
     }
 
+    @Test
+    public void testTextHandler() throws Exception {
+
+        Server server = new Server(AsyncEchoHandlerServer.class);
+        try {
+            server.start();
+
+            CountDownLatch messageLatch = new CountDownLatch(MESSAGE_NO);
+            WebSocketContainer container = ContainerProvider.getWebSocketContainer();
+            container.connectToServer(
+                    new AsyncHandlerClient(messageLatch),
+                    ClientEndpointConfig.Builder.create().build(),
+                    new URI("ws://localhost:8025/websockets/tests/async-basic-echo-text-handler"));
+            messageLatch.await(5, TimeUnit.SECONDS);
+
+            // Check the number of received messages
+            Assert.assertEquals("Didn't receive all the messages. ", 0, messageLatch.getCount());
+            Assert.assertEquals("All messages were not sent from server", MESSAGE_NO, AsyncEchoHandlerServer.counter.get());
+        } finally {
+            server.stop();
+        }
+    }
+
+    // Server endpoint that just echos messages asynchronously
+    @ServerEndpoint(value = "/async-basic-echo-text-handler")
+    public static class AsyncEchoHandlerServer {
+
+        private static AtomicInteger counter = new AtomicInteger(0);
+
+        @OnMessage
+        public void echo(String message, Session session) throws Exception {
+            session.getAsyncRemote().sendText(message, new SendHandler() {
+                @Override
+                public void onResult(SendResult result) {
+                    counter.incrementAndGet();
+                }
+            });
+        }
+    }
+
+    // Client endpoint that sends messages asynchronously
+    public static class AsyncHandlerClient extends Endpoint {
+        private final CountDownLatch messageLatch;
+        private final long noMessages;
+
+        public AsyncHandlerClient(CountDownLatch messageLatch) {
+            noMessages = messageLatch.getCount();
+            this.messageLatch = messageLatch;
+        }
+
+        public void onOpen(Session session, EndpointConfig EndpointConfig) {
+            try {
+                session.addMessageHandler(new MessageHandler.Whole<String>() {
+                    public void onMessage(String message) {
+                        messageLatch.countDown();
+                    }
+                });
+
+                for(int i=0; i < noMessages; i++) {
+                    session.getAsyncRemote().sendText("Message", new SendHandler() {
+                        @Override
+                        public void onResult(SendResult result) {
+
+                        }
+                    });
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
 }

@@ -44,6 +44,7 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.websocket.ClientEndpointConfig;
 import javax.websocket.ContainerProvider;
@@ -51,6 +52,8 @@ import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
 import javax.websocket.OnMessage;
+import javax.websocket.SendHandler;
+import javax.websocket.SendResult;
 import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
 import javax.websocket.server.ServerEndpoint;
@@ -61,52 +64,58 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
- * Basic test for RemoteEndpoint.Async.sendBinary()
+ * Basic test for RemoteEndpoint.Async.sendBinary().
  *
  * @author Jitendra Kotamraju
+ * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 public class AsyncBinaryTest {
 
-    @Test
-    public void testTextFuture() throws Exception {
+    private static final int MESSAGE_NO = 100;
 
-        Server server = new Server(AsncEchoServer.class);
+    @Test
+    public void testBinaryFuture() throws Exception {
+
+        Server server = new Server(AsyncEchoFutureServer.class);
         try {
             server.start();
 
-            CountDownLatch messageLatch = new CountDownLatch(100);
+            CountDownLatch messageLatch = new CountDownLatch(MESSAGE_NO);
             WebSocketContainer container = ContainerProvider.getWebSocketContainer();
             container.connectToServer(
-                    new AsyncClient(messageLatch),
+                    new AsyncFutureClient(messageLatch),
                     ClientEndpointConfig.Builder.create().build(),
-                    new URI("ws://localhost:8025/websockets/tests/async-basic-echo-binary"));
+                    new URI("ws://localhost:8025/websockets/tests/async-basic-echo-binary-future"));
             messageLatch.await(5, TimeUnit.SECONDS);
 
             // Check the number of received messages
             Assert.assertEquals("Didn't receive all the messages. ", 0, messageLatch.getCount());
+            Assert.assertEquals("All messages were not sent from server", MESSAGE_NO,AsyncEchoFutureServer.counter.get());
         } finally {
             server.stop();
         }
     }
 
     // Server endpoint that just echos messages asynchronously
-    @ServerEndpoint(value = "/async-basic-echo-binary")
-    public static class AsncEchoServer {
+    @ServerEndpoint(value = "/async-basic-echo-binary-future")
+    public static class AsyncEchoFutureServer {
+
+        private static AtomicInteger counter = new AtomicInteger(0);
 
         @OnMessage
         public void echo(ByteBuffer buf, Session session) throws Exception {
             Future<Void> f = session.getAsyncRemote().sendBinary(buf);
             f.get();
+            counter.incrementAndGet();
         }
-
     }
 
     // Client endpoint that sends messages asynchronously
-    public static class AsyncClient extends Endpoint {
+    public static class AsyncFutureClient extends Endpoint {
         private final CountDownLatch messageLatch;
         private final long noMessages;
 
-        public AsyncClient(CountDownLatch messageLatch) {
+        public AsyncFutureClient(CountDownLatch messageLatch) {
             noMessages = messageLatch.getCount();
             this.messageLatch = messageLatch;
         }
@@ -128,4 +137,75 @@ public class AsyncBinaryTest {
         }
     }
 
+    @Test
+    public void testBinaryHandler() throws Exception {
+
+        Server server = new Server(AsyncEchoHandlerServer.class);
+        try {
+            server.start();
+
+            CountDownLatch messageLatch = new CountDownLatch(MESSAGE_NO);
+            WebSocketContainer container = ContainerProvider.getWebSocketContainer();
+            container.connectToServer(
+                    new AsyncHandlerClient(messageLatch),
+                    ClientEndpointConfig.Builder.create().build(),
+                    new URI("ws://localhost:8025/websockets/tests/async-basic-echo-binary-handler"));
+            messageLatch.await(5, TimeUnit.SECONDS);
+
+            // Check the number of received messages
+            Assert.assertEquals("Didn't receive all the messages. ", 0, messageLatch.getCount());
+            Assert.assertEquals("All messages were not sent from server", MESSAGE_NO,AsyncEchoHandlerServer.counter.get());
+        } finally {
+            server.stop();
+        }
+    }
+
+    // Server endpoint that just echos messages asynchronously
+    @ServerEndpoint(value = "/async-basic-echo-binary-handler")
+    public static class AsyncEchoHandlerServer {
+
+        private static AtomicInteger counter = new AtomicInteger(0);
+
+        @OnMessage
+        public void echo(ByteBuffer buf, Session session) throws Exception {
+            session.getAsyncRemote().sendBinary(buf,new SendHandler() {
+                @Override
+                public void onResult(SendResult result) {
+                    counter.incrementAndGet();
+                }
+            });
+        }
+    }
+
+    // Client endpoint that sends messages asynchronously
+    public static class AsyncHandlerClient extends Endpoint {
+        private final CountDownLatch messageLatch;
+        private final long noMessages;
+
+        public AsyncHandlerClient(CountDownLatch messageLatch) {
+            noMessages = messageLatch.getCount();
+            this.messageLatch = messageLatch;
+        }
+
+        public void onOpen(Session session, EndpointConfig EndpointConfig) {
+            try {
+                session.addMessageHandler(new MessageHandler.Whole<ByteBuffer>() {
+                    public void onMessage(ByteBuffer buf) {
+                        messageLatch.countDown();
+                    }
+                });
+
+                for(int i=0; i < noMessages; i++) {
+                    session.getAsyncRemote().sendBinary(ByteBuffer.wrap(new byte[]{(byte) i}), new SendHandler() {
+                        @Override
+                        public void onResult(SendResult result) {
+
+                        }
+                    });
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
 }
