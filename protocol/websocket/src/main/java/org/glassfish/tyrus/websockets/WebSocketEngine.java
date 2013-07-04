@@ -41,6 +41,7 @@
 package org.glassfish.tyrus.websockets;
 
 import java.io.IOException;
+import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -126,6 +127,22 @@ public class WebSocketEngine {
             list.add(Integer.toHexString(bytes[i] & 0xFF).toUpperCase(Locale.US));
         }
         return list;
+    }
+
+    // TODO check for request parameters ??
+    public WebSocketApplication getApplication(URI request) {
+        if (applications.isEmpty()) {
+            return null;
+        }
+
+        final String requestPath = request.toString();
+
+        List<Match> matches = Match.getAllMatches(requestPath, applications);
+        if (!matches.isEmpty()) {
+            return matches.get(matches.size()-1).getWebSocketApplication();
+        }
+
+        return null;
     }
 
     WebSocketApplication getApplication(WebSocketRequest request) {
