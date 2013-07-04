@@ -60,6 +60,7 @@ import javax.websocket.server.ServerEndpoint;
 import org.glassfish.tyrus.server.Server;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -72,6 +73,7 @@ public class AsyncObjectTest {
 
     private static final int MESSAGE_NO = 100;
 
+    @Ignore
     @Test
     public void testObjectFuture() throws Exception {
 
@@ -135,6 +137,7 @@ public class AsyncObjectTest {
         }
     }
 
+    @Ignore
     @Test
     public void testObjectHandler() throws Exception {
 

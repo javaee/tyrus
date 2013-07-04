@@ -61,6 +61,7 @@ import javax.websocket.server.ServerEndpoint;
 import org.glassfish.tyrus.server.Server;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -73,6 +74,7 @@ public class AsyncBinaryTest {
 
     private static final int MESSAGE_NO = 100;
 
+    @Ignore
     @Test
     public void testBinaryFuture() throws Exception {
 
@@ -137,6 +139,7 @@ public class AsyncBinaryTest {
         }
     }
 
+    @Ignore
     @Test
     public void testBinaryHandler() throws Exception {
 
