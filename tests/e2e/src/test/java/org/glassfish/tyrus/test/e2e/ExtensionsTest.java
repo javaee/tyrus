@@ -55,12 +55,12 @@ import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
+import javax.websocket.server.ServerEndpointConfig;
 
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.core.TyrusExtension;
 import org.glassfish.tyrus.server.Server;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
@@ -72,7 +72,7 @@ public class ExtensionsTest {
     private static final CountDownLatch messageLatch = new CountDownLatch(4);
     private static final String SENT_MESSAGE = "Always pass on what you have learned.";
 
-    @ServerEndpoint(value = "/echo")
+    @ServerEndpoint(value = "/echo", configurator = MyServerConfigurator.class)
     public static class TestEndpoint {
         @OnOpen
         public void onOpen(Session s) {
@@ -89,8 +89,14 @@ public class ExtensionsTest {
         }
     }
 
+    public static class MyServerConfigurator extends ServerEndpointConfig.Configurator {
+        @Override
+        public List<Extension> getNegotiatedExtensions(List<Extension> installed, List<Extension> requested) {
+            return requested;
+        }
+    }
+
     @Test
-    @Ignore
     public void testExtensions() {
         Server server = new Server(TestEndpoint.class);
 

@@ -271,7 +271,13 @@ public class TyrusEndpoint extends WebSocketApplication implements SPIRegistered
                     if(finalHeaderValue.length() != 0) {
                         finalHeaderValue.append(", ");
                     }
-                    finalHeaderValue.append(Utils.checkHeaderValue(headerValue));
+
+                    // hotfix/workaround for extensions
+                    if(headerEntry.getKey().equalsIgnoreCase(HandshakeRequest.SEC_WEBSOCKET_EXTENSIONS)) {
+                        finalHeaderValue.append(headerValue);
+                    } else {
+                        finalHeaderValue.append(Utils.checkHeaderValue(headerValue));
+                    }
                 }
 
                 response.getHeaders().put(headerEntry.getKey(), finalHeaderValue.toString());
