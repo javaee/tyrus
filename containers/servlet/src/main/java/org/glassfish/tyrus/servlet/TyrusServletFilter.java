@@ -245,6 +245,7 @@ public class TyrusServletFilter implements Filter {
 
             } catch (HandshakeException e) {
                 LOGGER.log(Level.CONFIG, e.getMessage(), e);
+                httpServletResponse.sendError(e.getCode(), e.getMessage());
             }
 
             // Servlet bug ?? Not sure why we need to flush the headers

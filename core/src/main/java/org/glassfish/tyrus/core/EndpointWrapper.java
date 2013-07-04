@@ -78,6 +78,7 @@ import javax.websocket.server.ServerEndpointConfig;
 import org.glassfish.tyrus.spi.SPIEndpoint;
 import org.glassfish.tyrus.spi.SPIHandshakeRequest;
 import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
+import org.glassfish.tyrus.websockets.HandshakeException;
 
 /**
  * Wraps the registered application class.
@@ -230,7 +231,11 @@ public class EndpointWrapper extends SPIEndpoint {
             this.templateValues.put(entry.getKey(), entry.getValue().get(0));
         }
 
-        return configurator.checkOrigin(hr.getHeader("Origin"));
+        if(configurator.checkOrigin(hr.getHeader("Origin"))) {
+            return true;
+        } else {
+            throw new HandshakeException(403, "Origin not verified.");
+        }
     }
 
     static List<Class<? extends Decoder>> getDefaultDecoders() {

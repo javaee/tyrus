@@ -293,6 +293,7 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
             @Override
             public void onError(HandshakeException exception) {
                 listener.onError(exception);
+                onConnectLatch.countDown();
             }
         });
 

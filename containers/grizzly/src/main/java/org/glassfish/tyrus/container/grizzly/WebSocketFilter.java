@@ -373,6 +373,8 @@ class WebSocketFilter extends BaseFilter {
             holder.webSocket.onConnect();
         } catch (HandshakeException e) {
             holder.handshake.getResponseListener().onError(e);
+            content.getContent().clear();
+            return ctx.getStopAction();
         }
 
         if (content.getContent().hasRemaining()) {
