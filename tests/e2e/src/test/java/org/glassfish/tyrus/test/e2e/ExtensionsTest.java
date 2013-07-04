@@ -143,17 +143,15 @@ public class ExtensionsTest {
         @Override
         public void onOpen(final Session session, EndpointConfig EndpointConfig) {
             try {
-                System.out.println("client conf: " + EndpointConfig);
-
                 session.addMessageHandler(new MessageHandler.Whole<String>() {
                     @Override
                     public void onMessage(String message) {
+                        receivedMessage = message;
                         for (Extension extension : session.getNegotiatedExtensions()) {
                             if (extension.getName().equals("ext1") || extension.getName().equals("ext2")) {
                                 messageLatch.countDown();
                             }
                         }
-                        receivedMessage = message;
                     }
                 });
 
