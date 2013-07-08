@@ -273,7 +273,7 @@ public class EndpointWrapper extends SPIEndpoint {
         return coder;
     }
 
-    public Object decodeCompleteMessage(Session session, Object message, Class<?> type) {
+    Object decodeCompleteMessage(Session session, Object message, Class<?> type) {
         for (CoderWrapper<Decoder> dec : decoders) {
             try {
                 final Class<? extends Decoder> decoderClass = dec.getCoderClass();
