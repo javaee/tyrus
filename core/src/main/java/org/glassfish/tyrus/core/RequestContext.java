@@ -79,7 +79,7 @@ public final class RequestContext implements HandshakeRequest, SPIHandshakeReque
         }
     });
 
-    private final Map<String, List<String>> parameterMap;
+    private Map<String, List<String>> parameterMap;
 
     private RequestContext(URI requestURI, String requestPath, String queryString, Connection connection,
                            Object httpSession, boolean secure, Principal userPrincipal,
@@ -126,10 +126,11 @@ public final class RequestContext implements HandshakeRequest, SPIHandshakeReque
     }
 
     /**
-     * Make headers read-only.
+     * Make headers and parameter map read-only.
      */
-    public void lockHeaders() {
+    public void lock() {
         this.headers = Collections.unmodifiableMap(headers);
+        this.parameterMap = Collections.unmodifiableMap(parameterMap);
     }
 
     @Override
@@ -159,7 +160,7 @@ public final class RequestContext implements HandshakeRequest, SPIHandshakeReque
 
     @Override
     public boolean isUserInRole(String role) {
-        if(isUserInRoleDelegate != null) {
+        if (isUserInRoleDelegate != null) {
             return isUserInRoleDelegate.isUserInRole(role);
         }
 
@@ -317,9 +318,9 @@ public final class RequestContext implements HandshakeRequest, SPIHandshakeReque
          * @return updated {@link RequestContext.Builder} instance.
          */
         public Builder parameterMap(Map<String, String[]> parameterMap) {
-            if(parameterMap != null) {
+            if (parameterMap != null) {
                 this.parameterMap = new HashMap<String, List<String>>();
-                for(Map.Entry<String, String[]> entry : parameterMap.entrySet()) {
+                for (Map.Entry<String, String[]> entry : parameterMap.entrySet()) {
                     this.parameterMap.put(entry.getKey(), Arrays.asList(entry.getValue()));
                 }
             } else {
@@ -356,7 +357,7 @@ public final class RequestContext implements HandshakeRequest, SPIHandshakeReque
              *
              * @param role a String specifying the name of the role.
              * @return a boolean indicating whether the user making this request belongs to a given role; false if the
-             * user has not been authenticated.
+             *         user has not been authenticated.
              */
             public boolean isUserInRole(String role);
         }

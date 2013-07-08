@@ -288,8 +288,9 @@ public class TyrusEndpoint extends WebSocketApplication implements SPIRegistered
     private HandshakeRequest createHandshakeRequest(final WebSocketRequest webSocketRequest) {
         if(webSocketRequest instanceof RequestContext) {
             final RequestContext requestContext = (RequestContext) webSocketRequest;
-            // TYRUS-208; spec required headers to be read only when passed to ServerEndpointConfig.Configurator#modifyHandshake.
-            requestContext.lockHeaders();
+            // TYRUS-208; spec requests headers to be read only when passed to ServerEndpointConfig.Configurator#modifyHandshake.
+            // TYRUS-211; spec requests parameterMap to be read only when passed to ServerEndpointConfig.Configurator#modifyHandshake.
+            requestContext.lock();
             return requestContext;
         }
 

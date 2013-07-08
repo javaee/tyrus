@@ -101,6 +101,14 @@ public class ModifyRequestResponseHeadersTest {
                 // expected.
             }
 
+            try {
+                // TYRUS-211: HandshakeRequest.getHeaders() should return read-only map.
+                request.getParameterMap().put("test", Arrays.asList("TYRUS-211"));
+                return;
+            } catch (UnsupportedOperationException e) {
+                // expected.
+            }
+
             response.getHeaders().put(HEADER_NAME, list);
             response.getHeaders().put("Origin", request.getHeaders().get("Origin"));
         }
