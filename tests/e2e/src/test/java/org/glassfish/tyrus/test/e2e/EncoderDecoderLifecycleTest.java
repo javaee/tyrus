@@ -46,6 +46,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.websocket.ClientEndpointConfig;
 import javax.websocket.ContainerProvider;
@@ -58,6 +59,7 @@ import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
 import javax.websocket.OnError;
 import javax.websocket.OnMessage;
+import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
 import javax.websocket.server.ServerApplicationConfig;
@@ -127,12 +129,14 @@ public class EncoderDecoderLifecycleTest {
 
     public static class MyDecoder implements Decoder.Text<MyType> {
         public static final Set<MyDecoder> instances = new HashSet<MyDecoder>();
+        public static final AtomicInteger counter = new AtomicInteger(0);
 
         public boolean initialized = false;
         public boolean destroyed = false;
 
         @Override
         public boolean willDecode(String s) {
+            counter.incrementAndGet();
             return true;
         }
 
@@ -163,8 +167,20 @@ public class EncoderDecoderLifecycleTest {
             decoders = {EncoderDecoderLifecycleTest.MyDecoder.class})
     public static class MyEndpointAnnotated {
 
+        private int lastValue;
+
+        @OnOpen
+        public void onOpen() {
+            lastValue = MyDecoder.counter.get();
+        }
+
         @OnMessage
         public MyType onMessage(MyType message) {
+            final int i = MyDecoder.counter.get();
+            // TYRUS-210
+            assertEquals((i - 1), lastValue);
+            lastValue = i;
+
             System.out.println("### MyEndpoint onMessage()");
             return message;
         }
@@ -289,6 +305,7 @@ public class EncoderDecoderLifecycleTest {
     public static class MyEndpointProgrammatic extends Endpoint implements MessageHandler.Whole<MyType> {
 
         private Session session;
+        private int lastValue;
 
         @Override
         public void onOpen(Session session, EndpointConfig config) {
@@ -296,10 +313,17 @@ public class EncoderDecoderLifecycleTest {
 
             this.session = session;
             session.addMessageHandler(this);
+
+            lastValue = MyDecoder.counter.get();
         }
 
         @Override
         public void onMessage(MyType message) {
+            final int i = MyDecoder.counter.get();
+            // TYRUS-210
+            assertEquals((i - 1), lastValue);
+            lastValue = i;
+
             System.out.println("### MyEndpointProgrammatic onMessage() " + session);
 
             try {

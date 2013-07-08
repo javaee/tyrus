@@ -231,7 +231,7 @@ public class EndpointWrapper extends SPIEndpoint {
             this.templateValues.put(entry.getKey(), entry.getValue().get(0));
         }
 
-        if(configurator.checkOrigin(hr.getHeader("Origin"))) {
+        if (configurator.checkOrigin(hr.getHeader("Origin"))) {
             return true;
         } else {
             throw new HandshakeException(403, "Origin not verified.");
@@ -282,17 +282,15 @@ public class EndpointWrapper extends SPIEndpoint {
                     if (type != null && type.isAssignableFrom(dec.getType())) {
                         final Decoder.Text decoder = (Decoder.Text) getCoderInstance(session, dec);
 
-                        if (decoder.willDecode((String) message)) {
-                            return decoder.decode((String) message);
-                        }
+                        // TYRUS-210: willDecode was already called
+                        return decoder.decode((String) message);
                     }
                 } else if (Decoder.Binary.class.isAssignableFrom(decoderClass)) {
                     if (type != null && type.isAssignableFrom(dec.getType())) {
                         final Decoder.Binary decoder = (Decoder.Binary) getCoderInstance(session, dec);
 
-                        if (decoder.willDecode((ByteBuffer) message)) {
-                            return decoder.decode((ByteBuffer) message);
-                        }
+                        // TYRUS-210: willDecode was already called
+                        return decoder.decode((ByteBuffer) message);
                     }
                 } else if (Decoder.TextStream.class.isAssignableFrom(decoderClass)) {
                     if (type != null && type.isAssignableFrom(dec.getType())) {
