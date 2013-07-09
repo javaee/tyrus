@@ -69,7 +69,7 @@ public class SendCompletionAdapter {
         this.state = state;
     }
 
-    public Future<Void> send(Object msg,final SendHandler completion) {
+    public Future<Void> send(Object msg,final SendHandler handler) {
         final Object message = msg;
         final FutureSendResult fsr = new FutureSendResult();
 
@@ -103,8 +103,8 @@ public class SendCompletionAdapter {
                     if(sr == null){
                         sr = new SendResult();
                     }
-                    if (completion != null) {
-                        completion.onResult(sr);
+                    if (handler != null) {
+                        handler.onResult(sr);
                     }
                     fsr.setDone();
                 }

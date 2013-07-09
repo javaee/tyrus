@@ -2,7 +2,7 @@
 
     DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
 
-    Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
+    Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
 
     The contents of this file are subject to the terms of either the GNU
     General Public License Version 2 only ("GPL") or the Common Development
@@ -44,28 +44,58 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.glassfish.tyrus.tests</groupId>
-        <artifactId>tyrus-tests-project</artifactId>
+        <groupId>org.glassfish.tyrus.tests.servlet</groupId>
+        <artifactId>tyrus-tests-servlet-project</artifactId>
         <version>1.2-SNAPSHOT</version>
     </parent>
 
-    <groupId>org.glassfish.tyrus.tests.servlet</groupId>
-    <artifactId>tyrus-tests-servlet-project</artifactId>
-    <packaging>pom</packaging>
-    <name>Tyrus Server Integration Tests</name>
+    <packaging>war</packaging>
+    <artifactId>tyrus-tests-servlet-async</artifactId>
 
-    <modules>
-        <module>async</module>
-        <module>autobahn-server</module>
-        <module>basic</module>
-        <module>dynamic-deploy</module>
-        <module>noappconfig</module>
-        <module>oneappconfig</module>
-        <module>remote-endpoint-timeout</module>
-        <module>session</module>
-        <module>twoappconfig</module>
-    </modules>
+    <name>Tyrus Servlet Async Tests</name>
 
     <dependencies>
+        <dependency>
+            <groupId>org.glassfish.tyrus</groupId>
+            <artifactId>tyrus-container-servlet</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>javax.websocket</groupId>
+            <artifactId>javax.websocket-api</artifactId>
+            <version>${websocket-api.version}</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.glassfish.tyrus</groupId>
+            <artifactId>tyrus-container-grizzly</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.tyrus</groupId>
+            <artifactId>tyrus-client</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-war-plugin</artifactId>
+                <configuration>
+                    <failOnMissingWebXml>false</failOnMissingWebXml>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>
