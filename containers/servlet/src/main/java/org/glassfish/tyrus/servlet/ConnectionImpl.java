@@ -84,8 +84,10 @@ class ConnectionImpl extends Connection {
             final ServletOutputStream outputStream = tyrusHttpUpgradeHandler.getWebConnection().getOutputStream();
             final byte[] bytes = WebSocketEngine.getEngine().getWebSocketHolder(this).handler.frame(frame);
 
-            outputStream.write(bytes);
-            outputStream.flush();
+            synchronized (outputStream) {
+                outputStream.write(bytes);
+                outputStream.flush();
+            }
 
             if (completionHandler != null) {
                 completionHandler.completed(frame);
