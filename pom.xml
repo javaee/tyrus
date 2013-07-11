@@ -403,6 +403,45 @@
             </build>
         </profile>
     </profiles>
+
+    <reporting>
+        <excludeDefaults>true</excludeDefaults>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>findbugs-maven-plugin</artifactId>
+                <version>2.5.2</version>
+                <reportSets>
+                    <reportSet>
+                        <configuration>
+                            <skip>${findbugs.skip}</skip>
+                            <threshold>${findbugs.threshold}</threshold>
+                            <excludeFilterFile>${findbugs.exclude}</excludeFilterFile>
+                        </configuration>
+                        <reports>
+                            <report>findbugs</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>2.10</version>
+                <configuration>
+                    <configLocation>etc/config/checkstyle.xml</configLocation>
+                </configuration>
+                <reportSets>
+                    <reportSet>
+                        <reports>
+                            <report>checkstyle</report>
+                        </reports>
+                    </reportSet>
+                </reportSets>
+            </plugin>
+        </plugins>
+    </reporting>
+
     <dependencyManagement>
         <dependencies>
             <dependency>
