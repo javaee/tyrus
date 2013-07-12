@@ -43,6 +43,7 @@ package org.glassfish.tyrus.core;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -357,7 +358,7 @@ public class SessionImpl implements Session {
 
     private void checkMessageSize(Object message, long maxMessageSize) {
         if (maxMessageSize != -1) {
-            final long messageSize = (message instanceof String ? ((String) message).getBytes().length :
+            final long messageSize = (message instanceof String ? ((String) message).getBytes(Charset.defaultCharset()).length :
                     ((ByteBuffer) message).remaining());
 
             if (messageSize > maxMessageSize) {

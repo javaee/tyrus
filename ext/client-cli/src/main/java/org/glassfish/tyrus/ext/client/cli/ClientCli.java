@@ -243,7 +243,7 @@ public class ClientCli {
 
                     } else if (line.startsWith("ping")) {
                         if (session != null) {
-                            session.getBasicRemote().sendPing(ByteBuffer.wrap("tyrus-client-ping".getBytes()));
+                            session.getBasicRemote().sendPing(ByteBuffer.wrap("tyrus-client-ping".getBytes("UTF-8")));
                         }
                     } else if (line.startsWith("exit") || line.startsWith("quit")) {
                         break mainLoop;

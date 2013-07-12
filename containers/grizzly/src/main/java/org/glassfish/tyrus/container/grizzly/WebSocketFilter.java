@@ -247,7 +247,7 @@ class WebSocketFilter extends BaseFilter {
 
                     } else {
                         throw new HandshakeException(String.format("Proxy error. %s: %s", httpStatus.getStatusCode(),
-                                new String(httpStatus.getReasonPhraseBytes())));
+                                new String(httpStatus.getReasonPhraseBytes(), "UTF-8")));
                     }
 
                     return ctx.getInvokeAction();

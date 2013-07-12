@@ -40,6 +40,7 @@
 
 package org.glassfish.tyrus.websockets;
 
+import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
@@ -92,7 +93,7 @@ public class SecKey {
         final MessageDigest instance;
         try {
             instance = MessageDigest.getInstance("SHA-1");
-            instance.update(key.getBytes());
+            instance.update(key.getBytes("UTF-8"));
             final byte[] digest = instance.digest();
             if (digest.length != 20) {
                 throw new HandshakeException("Invalid key length.  Should be 20: " + digest.length);
@@ -100,6 +101,8 @@ public class SecKey {
 
             return new SecKey(Base64Utils.encodeToString(digest, false));
         } catch (NoSuchAlgorithmException e) {
+            throw new HandshakeException(e.getMessage());
+        } catch (UnsupportedEncodingException e) {
             throw new HandshakeException(e.getMessage());
         }
     }
