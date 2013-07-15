@@ -45,6 +45,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -284,7 +285,7 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
 
                 String value = originalHeaders.get(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER);
                 if (value != null) {
-                    responseExtensions.addAll(TyrusExtension.fromString(value));
+                    responseExtensions.addAll(TyrusExtension.fromString(Arrays.asList(value)));
                 }
 
                 listener.onResponseHeaders(originalHeaders);

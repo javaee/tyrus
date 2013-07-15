@@ -40,7 +40,6 @@
 
 package org.glassfish.tyrus.websockets.draft06;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -62,9 +61,9 @@ public class HandShake06 extends HandShake {
 
     public HandShake06(WebSocketRequest request) {
         super(request);
-        String value = request.getFirstHeaderValue(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER);
+        List<String> value = request.getHeaders().get(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER);
         if (value != null) {
-            setExtensions(HandShake.fromHeaders(Arrays.asList(value)));
+            setExtensions(HandShake.fromHeaders(value));
         }
         secKey = SecKey.generateServerKey(new SecKey(request.getFirstHeaderValue(WebSocketEngine.SEC_WS_KEY_HEADER)));
     }

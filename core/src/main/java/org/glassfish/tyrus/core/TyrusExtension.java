@@ -40,7 +40,6 @@
 package org.glassfish.tyrus.core;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.logging.Logger;
@@ -125,11 +124,11 @@ public class TyrusExtension implements Extension {
     /**
      * Parsing of one {@link Extension}.
      *
-     * @param s {@link String} containing {@link Extension}.
-     * @return extension represented as {@link TyrusExtension}.
+     * @param s {@link List} of {@link String} containing {@link Extension Extensions}.
+     * @return List of extensions represented as {@link TyrusExtension}.
      */
-    public static List<Extension> fromString(String s) {
-        return fromHeaders(Arrays.asList(s));
+    public static List<Extension> fromString(List<String> s) {
+        return fromHeaders(s);
     }
 
     private enum ParserState {
@@ -152,6 +151,9 @@ public class TyrusExtension implements Extension {
      */
     public static List<Extension> fromHeaders(List<String> extensionHeaders) {
         List<Extension> extensions = new ArrayList<Extension>();
+        if(extensionHeaders == null) {
+            return extensions;
+        }
 
         for (String singleHeader : extensionHeaders) {
             if (singleHeader == null) {
