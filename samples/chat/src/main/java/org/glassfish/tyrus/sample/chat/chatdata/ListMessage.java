@@ -79,11 +79,14 @@ abstract class ListMessage extends ChatMessage {
     }
 
     public String asString() {
-        String dataString = "";
+        StringBuilder builder = new StringBuilder(type);
+
         for (Iterator itr = dataList.iterator(); itr.hasNext(); ) {
-            dataString = dataString + SEP + itr.next();
+            builder.append(SEP);
+            builder.append(itr.next());
         }
-        return type + dataString;
+
+        return builder.toString();
     }
 
     List getData() {

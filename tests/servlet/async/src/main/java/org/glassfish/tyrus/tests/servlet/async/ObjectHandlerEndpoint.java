@@ -54,7 +54,7 @@ import javax.websocket.server.ServerEndpoint;
 @ServerEndpoint(value = "/object-handler")
 public class ObjectHandlerEndpoint {
 
-    public static AtomicInteger counter = new AtomicInteger(100);
+    public static final AtomicInteger counter = new AtomicInteger(100);
 
     @OnMessage
     public void echo(int message, Session session) throws Exception {

@@ -53,12 +53,12 @@ import javax.websocket.server.ServerEndpoint;
  */
 @ServerEndpoint(value = "/closeserver")
 public class CloseServerEndpoint {
-    public static boolean addMessageHandlerExceptionThrown = false;
-    public static boolean removeMessageHandlerExceptionThrown = false;
-    public static boolean getAsyncRemoteExceptionThrown = false;
-    public static boolean getBasicRemoteExceptionThrown = false;
-    public static boolean inCloseSendTextExceptionThrown = false;
-    public static boolean inCloseGetTimeoutExceptionThrown = false;
+    static boolean addMessageHandlerExceptionThrown = false;
+    static boolean removeMessageHandlerExceptionThrown = false;
+    static boolean getAsyncRemoteExceptionThrown = false;
+    static boolean getBasicRemoteExceptionThrown = false;
+    static boolean inCloseSendTextExceptionThrown = false;
+    static boolean inCloseGetTimeoutExceptionThrown = false;
 
     @OnMessage
     public void message(String message, Session session) {

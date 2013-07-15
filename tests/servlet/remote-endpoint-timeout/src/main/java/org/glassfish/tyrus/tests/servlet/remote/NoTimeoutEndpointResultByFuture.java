@@ -53,7 +53,7 @@ import javax.websocket.server.ServerEndpoint;
 @ServerEndpoint(value = "/nobyfuture")
 public class NoTimeoutEndpointResultByFuture {
 
-    public static boolean timeoutRaised = false;
+    static boolean timeoutRaised = false;
 
     @OnMessage
     public void onMessage(String s, Session session) {

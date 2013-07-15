@@ -58,7 +58,7 @@ public class SingletonEndpoint {
 
     int counter = 0;
     private boolean postConstructCalled = false;
-    public static boolean interceptorCalled = false;
+    static boolean interceptorCalled = false;
 
     @OnMessage
     public String echo(String message) {

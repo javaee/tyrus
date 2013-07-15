@@ -55,7 +55,7 @@ import javax.websocket.server.ServerEndpoint;
 public class TimeoutEndpointResultByFuture {
 
     private byte[] longMessage = new byte[1000000];
-    public static boolean timeoutRaised = false;
+    static boolean timeoutRaised = false;
 
     @OnMessage
     public void onMessage(String s, Session session) {

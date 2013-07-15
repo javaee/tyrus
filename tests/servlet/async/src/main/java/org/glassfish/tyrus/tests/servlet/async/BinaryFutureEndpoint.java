@@ -54,7 +54,7 @@ import javax.websocket.server.ServerEndpoint;
 @ServerEndpoint(value = "/binary-future")
 public class BinaryFutureEndpoint {
 
-    public static AtomicInteger counter = new AtomicInteger(100);
+    public static final AtomicInteger counter = new AtomicInteger(100);
 
     @OnMessage
     public void echo(ByteBuffer buf, Session session) throws Exception {

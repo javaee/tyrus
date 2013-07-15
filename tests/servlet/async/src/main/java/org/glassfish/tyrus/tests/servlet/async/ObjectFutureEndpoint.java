@@ -53,7 +53,7 @@ import javax.websocket.server.ServerEndpoint;
 @ServerEndpoint(value = "/object-future")
 public class ObjectFutureEndpoint {
 
-    public static AtomicInteger counter = new AtomicInteger(100);
+    public static final AtomicInteger counter = new AtomicInteger(100);
 
     @OnMessage
     public void echo(int message, Session session) throws Exception {

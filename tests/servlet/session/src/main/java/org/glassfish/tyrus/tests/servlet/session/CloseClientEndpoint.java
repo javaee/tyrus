@@ -52,7 +52,7 @@ import javax.websocket.server.ServerEndpoint;
 @ServerEndpoint(value = "/closeclt")
 public class CloseClientEndpoint {
 
-    public static boolean inCloseSendTextExceptionThrown = false;
+    static boolean inCloseSendTextExceptionThrown = false;
 
     @OnClose
     public void onClose(Session session) {
