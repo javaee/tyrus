@@ -273,38 +273,36 @@ public class EndpointWrapper extends SPIEndpoint {
         return coder;
     }
 
-    Object decodeCompleteMessage(Session session, Object message, Class<?> type) {
-        for (CoderWrapper<Decoder> dec : decoders) {
-            try {
-                final Class<? extends Decoder> decoderClass = dec.getCoderClass();
+    Object decodeCompleteMessage(Session session, Object message, Class<?> type, CoderWrapper<Decoder> selectedDecoder) {
+        try {
+            final Class<? extends Decoder> decoderClass = selectedDecoder.getCoderClass();
 
-                if (Decoder.Text.class.isAssignableFrom(decoderClass)) {
-                    if (type != null && type.isAssignableFrom(dec.getType())) {
-                        final Decoder.Text decoder = (Decoder.Text) getCoderInstance(session, dec);
+            if (Decoder.Text.class.isAssignableFrom(decoderClass)) {
+                if (type != null && type.isAssignableFrom(selectedDecoder.getType())) {
+                    final Decoder.Text decoder = (Decoder.Text) getCoderInstance(session, selectedDecoder);
 
-                        // TYRUS-210: willDecode was already called
-                        return decoder.decode((String) message);
-                    }
-                } else if (Decoder.Binary.class.isAssignableFrom(decoderClass)) {
-                    if (type != null && type.isAssignableFrom(dec.getType())) {
-                        final Decoder.Binary decoder = (Decoder.Binary) getCoderInstance(session, dec);
-
-                        // TYRUS-210: willDecode was already called
-                        return decoder.decode((ByteBuffer) message);
-                    }
-                } else if (Decoder.TextStream.class.isAssignableFrom(decoderClass)) {
-                    if (type != null && type.isAssignableFrom(dec.getType())) {
-                        return ((Decoder.TextStream) getCoderInstance(session, dec)).decode(new StringReader((String) message));
-                    }
-                } else if (Decoder.BinaryStream.class.isAssignableFrom(decoderClass)) {
-                    if (type != null && type.isAssignableFrom(dec.getType())) {
-                        byte[] array = ((ByteBuffer) message).array();
-                        return ((Decoder.BinaryStream) getCoderInstance(session, dec)).decode(new ByteArrayInputStream(array));
-                    }
+                    // TYRUS-210: willDecode was already called
+                    return decoder.decode((String) message);
                 }
-            } catch (Exception e) {
-                collector.addException(e);
+            } else if (Decoder.Binary.class.isAssignableFrom(decoderClass)) {
+                if (type != null && type.isAssignableFrom(selectedDecoder.getType())) {
+                    final Decoder.Binary decoder = (Decoder.Binary) getCoderInstance(session, selectedDecoder);
+
+                    // TYRUS-210: willDecode was already called
+                    return decoder.decode((ByteBuffer) message);
+                }
+            } else if (Decoder.TextStream.class.isAssignableFrom(decoderClass)) {
+                if (type != null && type.isAssignableFrom(selectedDecoder.getType())) {
+                    return ((Decoder.TextStream) getCoderInstance(session, selectedDecoder)).decode(new StringReader((String) message));
+                }
+            } else if (Decoder.BinaryStream.class.isAssignableFrom(decoderClass)) {
+                if (type != null && type.isAssignableFrom(selectedDecoder.getType())) {
+                    byte[] array = ((ByteBuffer) message).array();
+                    return ((Decoder.BinaryStream) getCoderInstance(session, selectedDecoder)).decode(new ByteArrayInputStream(array));
+                }
             }
+        } catch (Exception e) {
+            collector.addException(e);
         }
         return null;
     }

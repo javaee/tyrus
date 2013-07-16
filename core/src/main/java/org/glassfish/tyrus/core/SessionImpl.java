@@ -386,7 +386,7 @@ public class SessionImpl implements Session {
                         checkMessageSize(message, ((BasicMessageHandler) mh).getMaxMessageSize());
                     }
 
-                    Object object = endpoint.decodeCompleteMessage(this, message, type);
+                    Object object = endpoint.decodeCompleteMessage(this, message, type, decoder);
                     if (object != null) {
                         //noinspection unchecked
                         ((MessageHandler.Whole) mh).onMessage(object);

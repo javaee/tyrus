@@ -127,6 +127,28 @@ public class EncoderDecoderLifecycleTest {
         }
     }
 
+    public static class MyDecoderNotToBeCalled implements Decoder.Text<MyType> {
+        @Override
+        public boolean willDecode(String s) {
+            System.out.println("### MyDecoder111 willDecode(" + s + ")");
+            return false;
+        }
+
+        @Override
+        public MyType decode(String s) throws DecodeException {
+            System.out.println("### MyDecoder111 decode(" + s + ")");
+            return new MyType(s);
+        }
+
+        @Override
+        public void init(EndpointConfig config) {
+        }
+
+        @Override
+        public void destroy() {
+        }
+    }
+
     public static class MyDecoder implements Decoder.Text<MyType> {
         public static final Set<MyDecoder> instances = new HashSet<MyDecoder>();
         public static final AtomicInteger counter = new AtomicInteger(0);
@@ -164,7 +186,7 @@ public class EncoderDecoderLifecycleTest {
 
     @ServerEndpoint(value = "/myEndpoint",
             encoders = {EncoderDecoderLifecycleTest.MyEncoder.class},
-            decoders = {EncoderDecoderLifecycleTest.MyDecoder.class})
+            decoders = {MyDecoderNotToBeCalled.class, EncoderDecoderLifecycleTest.MyDecoder.class})
     public static class MyEndpointAnnotated {
 
         private int lastValue;
@@ -345,7 +367,7 @@ public class EncoderDecoderLifecycleTest {
         public Set<ServerEndpointConfig> getEndpointConfigs(Set<Class<? extends Endpoint>> scanned) {
             return new HashSet<ServerEndpointConfig>() {{
                 add(ServerEndpointConfig.Builder.create(MyEndpointProgrammatic.class, "/myEndpoint").
-                        decoders(Arrays.<Class<? extends Decoder>>asList(MyDecoder.class)).
+                        decoders(Arrays.<Class<? extends Decoder>>asList(MyDecoderNotToBeCalled.class, MyDecoder.class)).
                         encoders(Arrays.<Class<? extends Encoder>>asList(MyEncoder.class)).build());
             }};
         }
