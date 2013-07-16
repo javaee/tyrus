@@ -72,6 +72,7 @@ public class OutputStreamToAsyncBinaryAdapter extends OutputStream {
 
         ByteBuffer result = ByteBuffer.allocate(len);
         result.put(Arrays.copyOfRange(b,off,len));
+        result.flip();
         re.sendBinary(result, false);
     }
 

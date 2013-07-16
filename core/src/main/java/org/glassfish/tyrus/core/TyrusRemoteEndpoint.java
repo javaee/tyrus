@@ -103,7 +103,7 @@ public class TyrusRemoteEndpoint extends SPIRemoteEndpoint {
 
     @Override
     public Future<DataFrame> sendBinary(ByteBuffer byteBuffer) throws IOException {
-        return this.socket.send(byteBuffer.array());
+        return this.socket.send(Utils.getRemainingArray(byteBuffer));
     }
 
     @Override
@@ -113,18 +113,18 @@ public class TyrusRemoteEndpoint extends SPIRemoteEndpoint {
 
     @Override
     public Future<DataFrame> sendBinary(ByteBuffer byteBuffer, boolean b) throws IOException {
-        byte[] bytes = byteBuffer.array();
+        byte[] bytes = Utils.getRemainingArray(byteBuffer);
         return this.socket.stream(b, bytes, 0, bytes.length);
     }
 
     @Override
     public Future<DataFrame> sendPing(ByteBuffer byteBuffer) {
-        return this.socket.sendPing(byteBuffer.array());
+        return this.socket.sendPing(Utils.getRemainingArray(byteBuffer));
     }
 
     @Override
     public Future<DataFrame> sendPong(ByteBuffer byteBuffer) {
-        return this.socket.sendPong(byteBuffer.array());
+        return this.socket.sendPong(Utils.getRemainingArray(byteBuffer));
     }
 
     @Override

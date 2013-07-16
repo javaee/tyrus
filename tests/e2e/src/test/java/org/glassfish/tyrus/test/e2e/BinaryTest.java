@@ -42,6 +42,7 @@ package org.glassfish.tyrus.test.e2e;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -70,6 +71,7 @@ public class BinaryTest {
 
 
     private static final byte[] BINARY_MESSAGE = new byte[]{1, 2, 3, 4};
+    private static final String TEXT_MESSAGE = "Always pass on what you have learned.";
 
 
     private ByteBuffer receivedMessageBuffer;
@@ -127,6 +129,46 @@ public class BinaryTest {
         }
     }
 
+    @Test
+    public void testDirectByteBuffer() {
+        Server server = new Server(BinaryByteBufferEndpoint.class);
+        final Charset UTF8 = Charset.forName("UTF-8");
+
+        try {
+            server.start();
+            messageLatch = new CountDownLatch(1);
+
+            ClientManager client = ClientManager.createClient();
+            client.connectToServer(new Endpoint() {
+                @Override
+                public void onOpen(Session session, EndpointConfig EndpointConfig) {
+                    try {
+                        ByteBuffer buffer = ByteBuffer.allocateDirect(100);
+                        buffer.put(TEXT_MESSAGE.getBytes(UTF8));
+                        buffer.flip();
+                        session.getBasicRemote().sendBinary(buffer);
+                        session.addMessageHandler(new MessageHandler.Whole<ByteBuffer>() {
+                            @Override
+                            public void onMessage(ByteBuffer data) {
+                                receivedMessageBuffer = data;
+                                messageLatch.countDown();
+                            }
+                        });
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }, cec, new URI("ws://localhost:8025/websockets/tests/binary"));
+            messageLatch.await(5, TimeUnit.SECONDS);
+            Assert.assertArrayEquals("The received message is the same as the sent one", TEXT_MESSAGE.getBytes(UTF8), receivedMessageBuffer.array());
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            server.stop();
+        }
+    }
+
     @ServerEndpoint(value = "/binary")
     public static class BinaryByteArrayEndpoint {
 
@@ -149,7 +191,8 @@ public class BinaryTest {
                 @Override
                 public void onOpen(Session session, EndpointConfig EndpointConfig) {
                     try {
-                        session.getBasicRemote().sendBinary(ByteBuffer.wrap(BINARY_MESSAGE));
+                        ByteBuffer buffer = ByteBuffer.wrap(BINARY_MESSAGE);
+                        session.getBasicRemote().sendBinary(buffer);
                         session.addMessageHandler(new MessageHandler.Whole<byte[]>() {
                             @Override
                             public void onMessage(byte[] data) {

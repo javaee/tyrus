@@ -39,6 +39,7 @@
  */
 package org.glassfish.tyrus.core;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -137,5 +138,24 @@ public class Utils {
         }
 
         return values;
+    }
+
+    /**
+     * Creates the array of bytes containing the bytes from the position to the limit of the {@link ByteBuffer}.
+     *
+     * @param buffer where the bytes are taken from.
+     * @return array of bytes containing the bytes from the position to the limit of the {@link ByteBuffer}.
+     */
+    public static byte[] getRemainingArray(ByteBuffer buffer) {
+        byte[] ret = new byte[buffer.remaining()];
+
+        if (buffer.hasArray()) {
+            byte[] array = buffer.array();
+            System.arraycopy(array, buffer.arrayOffset() + buffer.position(), ret, 0, ret.length);
+        } else {
+            buffer.get(ret);
+        }
+
+        return ret;
     }
 }
