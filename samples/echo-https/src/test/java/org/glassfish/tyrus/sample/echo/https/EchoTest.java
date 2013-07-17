@@ -147,7 +147,6 @@ public class EchoTest {
                     // do nothing
                 }
             }
-//        }, ClientEndpointConfig.Builder.create().build(), getURI());
         }, ClientEndpointConfig.Builder.create().build(), getURI());
 
         messageLatch.await(1, TimeUnit.SECONDS);
