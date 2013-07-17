@@ -121,7 +121,7 @@ public class HelloTest {
                         messageLatch.countDown();
                     }
                 }
-            }, cec, new URI("wss://localhost:8025/websockets/tests/echo"));
+            }, cec, new URI("ws://localhost:8025/websockets/tests/echo"));
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertEquals(0L, messageLatch.getCount());
             Assert.assertEquals(SENT_MESSAGE, receivedMessage);
@@ -166,7 +166,7 @@ public class HelloTest {
                     receivedMessage = message;
                     messageLatch.countDown();
                 }
-            }, cec, new URI("wss://localhost:8025/websockets/tests/echo404"));
+            }, cec, new URI("ws://localhost:8025/websockets/tests/echo404"));
             fail();
         } catch (Exception e) {
             assertNotNull(e);
@@ -192,7 +192,7 @@ public class HelloTest {
             messageLatchEndpoint = new CountDownLatch(1);
 
             WebSocketContainer client = ContainerProvider.getWebSocketContainer();
-            client.connectToServer(MyEndpoint.class, cec, new URI("wss://localhost:8025/websockets/tests/echo"));
+            client.connectToServer(MyEndpoint.class, cec, new URI("ws://localhost:8025/websockets/tests/echo"));
             messageLatchEndpoint.await(5, TimeUnit.SECONDS);
             Assert.assertEquals(0L, messageLatchEndpoint.getCount());
             Assert.assertEquals(SENT_MESSAGE, receivedMessageEndpoint);

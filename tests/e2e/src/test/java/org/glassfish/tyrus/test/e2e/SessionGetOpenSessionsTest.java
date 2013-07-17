@@ -127,7 +127,7 @@ public class SessionGetOpenSessionsTest {
                     @Override
                     public void onMessage(String s) {
                     }
-                }, cec, new URI("wss://localhost:8025/websockets/tests/customremote/hello"));
+                }, cec, new URI("ws://localhost:8025/websockets/tests/customremote/hello"));
             }
 
             messageLatch.await(1, TimeUnit.SECONDS);

@@ -128,7 +128,7 @@ public class PathParamTest {
                     receivedMessage = message;
                     messageLatch.countDown();
                 }
-            }, cec, new URI("wss://localhost:8025/websockets/tests/pathparam/first/second/third"));
+            }, cec, new URI("ws://localhost:8025/websockets/tests/pathparam/first/second/third"));
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertEquals(SENT_MESSAGE + "first" + "second" + "third", receivedMessage);
         } catch (Exception e) {
@@ -198,7 +198,7 @@ public class PathParamTest {
                     receivedMessage = message;
                     messageLatch.countDown();
                 }
-            }, cec, new URI("wss://localhost:8025/websockets/tests/pathparam/first/second/"));
+            }, cec, new URI("ws://localhost:8025/websockets/tests/pathparam/first/second/"));
             messageLatch.await(1, TimeUnit.SECONDS);
             assertTrue(PathParamTestBeanError.onErrorCalled);
             assertNotNull(PathParamTestBeanError.onErrorThrowable);
@@ -342,7 +342,7 @@ public class PathParamTest {
                     messageLatch.countDown();
                     System.out.println("Received message: " + message);
                 }
-            }, cec, new URI("wss://localhost:8025/websockets/tests/pathparam/first/2/true/4/5/6/c/0"));
+            }, cec, new URI("ws://localhost:8025/websockets/tests/pathparam/first/2/true/4/5/6/c/0"));
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertEquals(SENT_MESSAGE + "first" + "2" + "true" + "4" + "5.0" + "6.0" + "c" + "0", receivedMessage);
         } catch (Exception e) {

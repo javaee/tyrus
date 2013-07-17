@@ -43,6 +43,7 @@ package org.glassfish.tyrus.spi;
 import java.util.Map;
 
 import javax.websocket.ClientEndpointConfig;
+import javax.websocket.DeploymentException;
 
 /**
  * The TyrusContainer is the starting point of the provider SPI. The provider must implement this
@@ -75,5 +76,5 @@ public interface TyrusContainer {
      * @return representation of incoming socket.
      */
     public TyrusClientSocket openClientSocket(String url, ClientEndpointConfig cec, SPIEndpoint endpoint,
-                                              SPIHandshakeListener handshakeListener, Map<String, Object> properties);
+                                              SPIHandshakeListener handshakeListener, Map<String, Object> properties) throws DeploymentException;
 }

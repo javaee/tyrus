@@ -239,6 +239,7 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
             }
 
             connectorHandler.setProcessor(createFilterChain(null, clientSSLEngineConfigurator, proxy != null));
+
             int port = uri.getPort();
             if (port == -1) {
                 String scheme = uri.getScheme();

@@ -118,7 +118,7 @@ public class GrizzlyClientThreadPoolConfigsTest {
                         fail();
                     }
                 }
-            }, cec, new URI("wss://localhost:8025/websockets/tests/echo"));
+            }, cec, new URI("ws://localhost:8025/websockets/tests/echo"));
 
             messageLatch.await(5, TimeUnit.SECONDS);
 

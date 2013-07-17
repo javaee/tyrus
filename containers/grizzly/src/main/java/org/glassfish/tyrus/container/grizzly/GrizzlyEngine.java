@@ -57,6 +57,7 @@ import org.glassfish.tyrus.spi.TyrusServer;
 import org.glassfish.tyrus.websockets.WebSocketEngine;
 
 import org.glassfish.grizzly.http.server.HttpServer;
+import org.glassfish.grizzly.ssl.SSLContextConfigurator;
 import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
 import org.glassfish.grizzly.threadpool.ThreadPoolConfig;
 
@@ -109,18 +110,26 @@ public class GrizzlyEngine implements TyrusContainer {
 
     @Override
     public TyrusClientSocket openClientSocket(String url, ClientEndpointConfig cec, SPIEndpoint endpoint,
-                                              SPIHandshakeListener listener, Map<String, Object> properties) {
+                                              SPIHandshakeListener listener, Map<String, Object> properties) throws DeploymentException {
         URI uri;
 
         try {
             uri = new URI(url);
         } catch (URISyntaxException e) {
-            // TODO - report error
-            return null;
+            throw new DeploymentException("Invalid URI.", e);
+        }
+
+        SSLEngineConfigurator sslEngineConfigurator = (properties == null ? null : (SSLEngineConfigurator) properties.get(SSL_ENGINE_CONFIGURATOR));
+        // if we are trying to access "wss" scheme and we don't have sslEngineConfigurator instance
+        // we should try to create ssl connection using JVM properties.
+        if(uri.getScheme().equalsIgnoreCase("wss") && sslEngineConfigurator == null) {
+            SSLContextConfigurator defaultConfig = new SSLContextConfigurator();
+            defaultConfig.retrieve(System.getProperties());
+            sslEngineConfigurator = new SSLEngineConfigurator(defaultConfig, true, false, false);
         }
 
         GrizzlyClientSocket clientSocket = new GrizzlyClientSocket(endpoint, uri, cec, CLIENT_SOCKET_TIMEOUT, listener,
-                properties == null ? null : (SSLEngineConfigurator) properties.get(SSL_ENGINE_CONFIGURATOR),
+                properties == null ? null : sslEngineConfigurator,
                 properties == null ? null : (String) properties.get(GrizzlyClientSocket.PROXY_URI),
                 properties == null ? null : (ThreadPoolConfig) properties.get(GrizzlyClientSocket.WORKER_THREAD_POOL_CONFIG),
                 properties == null ? null : (ThreadPoolConfig) properties.get(GrizzlyClientSocket.SELECTOR_THREAD_POOL_CONFIG));
