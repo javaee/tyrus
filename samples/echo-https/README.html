@@ -40,16 +40,17 @@
     holder.
 
 -->
-<html><head><title>Echo Sample</title></head>
+<html><head><title>Secure Echo Sample</title></head>
 
 
 <body>
-<h1>Echo Sample</h1>
+<h1>Secure Echo Sample</h1>
 
-<p>This application presents Echo sample. The user sends a text message, server concatenates text " (from your server)" to the message and sends it back.</p>
+<p>This application presents Echo sample. The user sends a text message, server concatenates text " (from your server)" to the message and sends it back. All data is
+secured with ssl.</p>
 
 <h2>Contents</h2>
-<p>The application utilizes endpoint <code>org.glassfish.tyrus.sample.echo.EchoEndpoint</code> to receive messages, add the text and send it back.</p>
+<p>The application utilizes endpoint <code>org.glassfish.tyrus.sample.echo.https.EchoEndpoint</code> to receive messages, add the text and send it back.</p>
 
 <h2>Running the Example</h2>
 <p>Run the example as follows:
@@ -58,7 +59,15 @@
 <blockquote><code>$AS_MAIN/bin/asadmin deploy --force ./target/*war</code></blockquote>
 
 <p>From a web browser, visit:</p>
-<blockquote><code><a href="http://localhost:8080/sample-echo">http://localhost:8080/sample-echo</a></code></blockquote>
+<blockquote><code><a href="https://localhost:8181/sample-echo-https">https://localhost:8181/sample-echo-https</a></code></blockquote>
+
+<p>Executing test via maven:</p>
+<blockquote><p><code>mvn clean test -Djavax.net.ssl.trustStore=$AS_MAIN/domains/domain1/config/cacerts.jks -Djavax.net.sskeyStore=$AS_MAIN/domains/domain1/config/keystore.jks -Djavax.net.ssl.trustStorePassword=changeit -Djavax.net.ssl.keyStorePassword=changeit -Dtyrus.test.host=localhost -DskipTests=false</code><br /><br />
+    <i># Note: you can add <code>-Djavax.net.debug=all</code> for SSL related debug info.</i></p>
+    <p>Java client SSL properties can be configured separately to JVM configuration, see <a href="https://java.net/jira/browse/TYRUS-146">TYRUS-146</a>. SSL Configuration
+    is Tyrus proprietary API and might be changed in the future (current version directly depends on <a href="https://grizzly.java.net">Grizzly</a> API).</p>
+</blockquote>
+
 
 </body>
 </html>

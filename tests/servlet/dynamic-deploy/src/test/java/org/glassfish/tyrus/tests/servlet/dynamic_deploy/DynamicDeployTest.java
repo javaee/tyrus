@@ -73,14 +73,8 @@ public class DynamicDeployTest {
      * @return new {@link org.glassfish.tyrus.server.Server} instance or {@code null} if "tyrus.test.host" system property is set.
      */
     private Server startServer() throws DeploymentException {
-        final String host = System.getProperty("tyrus.test.host");
-        if (host == null) {
-            final Server server = null;
-            server.start();
-            return server;
-        } else {
-            return null;
-        }
+        // glassfish only sample
+        return null;
     }
 
     private String getHost() {

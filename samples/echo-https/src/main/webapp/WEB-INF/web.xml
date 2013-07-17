@@ -1,4 +1,4 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
 
     DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
@@ -40,25 +40,18 @@
     holder.
 
 -->
-<html><head><title>Echo Sample</title></head>
+<web-app version="2.5" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>Protected resource</web-resource-name>
+            <url-pattern>/*</url-pattern>
+            <http-method>GET</http-method>
+        </web-resource-collection>
 
-
-<body>
-<h1>Echo Sample</h1>
-
-<p>This application presents Echo sample. The user sends a text message, server concatenates text " (from your server)" to the message and sends it back.</p>
-
-<h2>Contents</h2>
-<p>The application utilizes endpoint <code>org.glassfish.tyrus.sample.echo.EchoEndpoint</code> to receive messages, add the text and send it back.</p>
-
-<h2>Running the Example</h2>
-<p>Run the example as follows:
-    deploy:
-<blockquote><code>$AS_MAIN/bin/asadmin start-domain</code></blockquote>
-<blockquote><code>$AS_MAIN/bin/asadmin deploy --force ./target/*war</code></blockquote>
-
-<p>From a web browser, visit:</p>
-<blockquote><code><a href="http://localhost:8080/sample-echo">http://localhost:8080/sample-echo</a></code></blockquote>
-
-</body>
-</html>
+        <!-- https -->
+        <user-data-constraint>
+            <transport-guarantee>CONFIDENTIAL</transport-guarantee>
+        </user-data-constraint>
+    </security-constraint>
+</web-app>

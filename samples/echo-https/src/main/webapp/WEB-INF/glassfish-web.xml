@@ -1,4 +1,4 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
 
     DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
@@ -40,25 +40,14 @@
     holder.
 
 -->
-<html><head><title>Echo Sample</title></head>
 
-
-<body>
-<h1>Echo Sample</h1>
-
-<p>This application presents Echo sample. The user sends a text message, server concatenates text " (from your server)" to the message and sends it back.</p>
-
-<h2>Contents</h2>
-<p>The application utilizes endpoint <code>org.glassfish.tyrus.sample.echo.EchoEndpoint</code> to receive messages, add the text and send it back.</p>
-
-<h2>Running the Example</h2>
-<p>Run the example as follows:
-    deploy:
-<blockquote><code>$AS_MAIN/bin/asadmin start-domain</code></blockquote>
-<blockquote><code>$AS_MAIN/bin/asadmin deploy --force ./target/*war</code></blockquote>
-
-<p>From a web browser, visit:</p>
-<blockquote><code><a href="http://localhost:8080/sample-echo">http://localhost:8080/sample-echo</a></code></blockquote>
-
-</body>
-</html>
+<!DOCTYPE glassfish-web-app PUBLIC "-//GlassFish.org//DTD GlassFish Application Server 3.1 Servlet 3.0//EN" "http://glassfish.org/dtds/glassfish-web-app_3_0-1.dtd">
+<glassfish-web-app error-url="">
+  <context-root>/sample-echo-https</context-root>
+  <class-loader delegate="true"/>
+  <jsp-config>
+    <property name="keepgenerated" value="true">
+      <description>Keep a copy of the generated servlet class' java code.</description>
+    </property>
+  </jsp-config>
+</glassfish-web-app>
