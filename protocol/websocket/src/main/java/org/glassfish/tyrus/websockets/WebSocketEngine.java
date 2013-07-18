@@ -129,22 +129,6 @@ public class WebSocketEngine {
         return list;
     }
 
-    // TODO check for request parameters ??
-    public WebSocketApplication getApplication(URI request) {
-        if (applications.isEmpty()) {
-            return null;
-        }
-
-        final String requestPath = request.toString();
-
-        List<Match> matches = Match.getAllMatches(requestPath, applications);
-        if (!matches.isEmpty()) {
-            return matches.get(matches.size()-1).getWebSocketApplication();
-        }
-
-        return null;
-    }
-
     WebSocketApplication getApplication(WebSocketRequest request) {
         if (applications.isEmpty()) {
             return null;
@@ -216,7 +200,7 @@ public class WebSocketEngine {
                     return false;
                 }
                 protocolHandler.setConnection(connection);
-                socket = app.createSocket(protocolHandler, request, app);
+                socket = app.createSocket(protocolHandler, app);
                 WebSocketHolder holder =
                         WebSocketEngine.getEngine().setWebSocketHolder(connection, protocolHandler, null, socket, app);
                 protocolHandler.handshake(connection, app, request);

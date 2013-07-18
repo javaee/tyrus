@@ -47,8 +47,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
 
-import javax.websocket.WebSocketContainer;
-
 import org.glassfish.tyrus.websockets.draft06.ClosingFrame;
 import org.glassfish.tyrus.websockets.frametypes.PingFrameType;
 import org.glassfish.tyrus.websockets.frametypes.PongFrameType;
@@ -56,8 +54,6 @@ import org.glassfish.tyrus.websockets.frametypes.PongFrameType;
 public class DefaultWebSocket implements WebSocket {
     private final Queue<WebSocketListener> listeners = new ConcurrentLinkedQueue<WebSocketListener>();
     private final ProtocolHandler protocolHandler;
-    private final WebSocketRequest request;
-    private WebSocketContainer container = null;
 
     private final CountDownLatch onConnectLatch = new CountDownLatch(1);
 
@@ -69,10 +65,8 @@ public class DefaultWebSocket implements WebSocket {
     private final AtomicReference<State> state = new AtomicReference<State>(State.NEW);
 
     public DefaultWebSocket(final ProtocolHandler protocolHandler,
-                            final WebSocketRequest request,
                             final WebSocketListener... listeners) {
         this.protocolHandler = protocolHandler;
-        this.request = request;
         for (WebSocketListener listener : listeners) {
             add(listener);
         }

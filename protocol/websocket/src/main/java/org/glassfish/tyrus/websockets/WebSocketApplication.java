@@ -42,7 +42,6 @@ package org.glassfish.tyrus.websockets;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.glassfish.tyrus.websockets.draft06.ClosingFrame;
@@ -71,16 +70,13 @@ public abstract class WebSocketApplication implements WebSocketListener {
      *
      * @param handler       the {@link ProtocolHandler} to use with the newly created
      *                      {@link WebSocket}.
-     * @param requestPacket the {@link WebSocketRequest} that triggered the
-     *                      creation of the {@link WebSocket} connection.
      * @param listeners     the {@link WebSocketListener}s to associate with the new
      *                      {@link WebSocket}.
      * @return TODO
      */
     public WebSocket createSocket(final ProtocolHandler handler,
-                                  final WebSocketRequest requestPacket,
                                   final WebSocketListener... listeners) {
-        return new DefaultWebSocket(handler, requestPacket, listeners);
+        return new DefaultWebSocket(handler, listeners);
 
     }
 
@@ -207,16 +203,6 @@ public abstract class WebSocketApplication implements WebSocketListener {
      */
     public List<String> getSupportedProtocols(List<String> subProtocol) {
         return supportedProtocols;
-    }
-
-    /**
-     * Returns a set of {@link WebSocket}s, registered with the application.
-     * The returned set is unmodifiable, the possible modifications may cause exceptions.
-     *
-     * @return a set of {@link WebSocket}s, registered with the application.
-     */
-    protected Set<WebSocket> getWebSockets() {
-        return sockets.keySet();
     }
 
     /**
