@@ -93,7 +93,6 @@ public class TyrusServletFilter implements Filter {
     private final Set<ServerEndpointConfig> dynamicallyDeployedServerEndpointConfigs = new HashSet<ServerEndpointConfig>();
 
     public TyrusServletFilter() {
-
     }
 
     void addClass(Class<?> clazz) {
@@ -178,6 +177,11 @@ public class TyrusServletFilter implements Filter {
         }
 
         @Override
+        public void setIncomingBufferSize(int incomingBufferSize) {
+            handler.setIncomingBufferSize(incomingBufferSize);
+        }
+
+        @Override
         WebConnection getWebConnection() {
             return handler.getWebConnection();
         }
@@ -233,6 +237,10 @@ public class TyrusServletFilter implements Filter {
                         LOGGER.fine("Upgrading Servlet request");
                         try {
                             handler.setHandler(httpServletRequest.upgrade(TyrusHttpUpgradeHandler.class));
+                            final String frameBufferSize = request.getServletContext().getInitParameter(TyrusHttpUpgradeHandler.FRAME_BUFFER_SIZE);
+                            if (frameBufferSize != null) {
+                                handler.setIncomingBufferSize(Integer.parseInt(frameBufferSize));
+                            }
                         } catch (Exception e) {
                             throw new HandshakeException(500, "Handshake error.", e);
                         }

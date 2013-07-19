@@ -62,6 +62,9 @@ import org.glassfish.tyrus.websockets.draft06.ClosingFrame;
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener {
+
+    public static final String FRAME_BUFFER_SIZE = "org.glassfish.tyrus.servlet.incomingBufferSize";
+
     private ServletInputStream is;
     private ServletOutputStream os;
     private WebConnection wc;
@@ -69,6 +72,7 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
 
     private volatile boolean closed = false;
     private boolean initiated = false;
+    private int incomingBufferSize = 4194315; // 4M (payload) + 11 (frame overhead)
 
     private static final Logger LOGGER = Logger.getLogger(TyrusHttpUpgradeHandler.class.getName());
 
@@ -101,17 +105,30 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
     @Override
     public void onDataAvailable() {
         try {
-            fillBuf(is.available());
+            int available = is.available();
+            while (available > 0) {
+                int toRead = (buf == null ?
+                        (available > incomingBufferSize ? incomingBufferSize : available) :
+                        buf.remaining() + available > incomingBufferSize ? incomingBufferSize - buf.remaining() : buf.remaining() + available
+                );
 
-            LOGGER.finest(String.format("Remaining Data = %d", buf.remaining()));
+                if (toRead == 0) {
+                    throw new IOException(String.format("Tyrus input buffer exceeded. Current buffer size is %s bytes.",
+                            incomingBufferSize));
+                }
 
-            if (buf.hasRemaining()) {
-                while (buf.remaining() > 0) {
-                    final DataFrame result = webSocketHolder.handler.unframe(buf);
-                    if (result != null) {
-                        result.respond(webSocketHolder.webSocket);
-                    } else {
-                        break;
+                available -= fillBuf(toRead);
+
+                LOGGER.finest(String.format("Remaining Data = %d", buf.remaining()));
+
+                if (buf.hasRemaining()) {
+                    while (buf.remaining() > 0) {
+                        final DataFrame result = webSocketHolder.handler.unframe(buf);
+                        if (result != null) {
+                            result.respond(webSocketHolder.webSocket);
+                        } else {
+                            break;
+                        }
                     }
                 }
             }
@@ -130,13 +147,13 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
         } finally {
             if (!closed && is.isReady()) {
                 LOGGER.log(Level.SEVERE, "This shouldn't happen. ServletInputStream.isReady() returned true after reading all available() data.");
-            } else {
-                // everything is ok, all data consumed, waiting for next onDataAvailable call from web-core
             }
+
+            // everything is ok, all data consumed, waiting for next onDataAvailable call from web-core
         }
     }
 
-    private void fillBuf(int length) throws IOException {
+    private int fillBuf(int length) throws IOException {
         byte[] data = new byte[length];
         int len = is.read(data);
         if (len == 0) {
@@ -176,6 +193,8 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
                 buf.limit(remaining + len);
             }
         }
+
+        return len;
     }
 
     @Override
@@ -195,7 +214,7 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
 
     @Override
     public String toString() {
-        final StringBuffer sb = new StringBuffer("TyrusHttpUpgradeHandler{");
+        final StringBuilder sb = new StringBuilder("TyrusHttpUpgradeHandler{");
         sb.append("is=").append(is);
         sb.append(", os=").append(os);
         sb.append(", wc=").append(wc);
@@ -210,6 +229,10 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
         if (initiated) {
             webSocketHolder.webSocket.onConnect();
         }
+    }
+
+    public void setIncomingBufferSize(int incomingBufferSize) {
+        this.incomingBufferSize = incomingBufferSize;
     }
 
     private void close(ClosingFrame closingFrame) {

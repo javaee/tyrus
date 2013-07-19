@@ -228,7 +228,7 @@ public class TyrusEndpoint extends WebSocketApplication implements SPIRegistered
 
     @Override
     public boolean onError(WebSocket webSocket, Throwable t) {
-        Logger.getLogger(TyrusEndpoint.class.getName()).log(Level.WARNING, "onError!", t);
+        Logger.getLogger(TyrusEndpoint.class.getName()).log(Level.WARNING, "Unexpected error, closing connection.", t);
         return true;
     }
 
