@@ -52,6 +52,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Future;
+import java.util.concurrent.ScheduledExecutorService;
 
 import javax.websocket.ClientEndpointConfig;
 import javax.websocket.CloseReason;
@@ -307,6 +308,11 @@ public class RemoteEndpointWrapperTest {
 
         @Override
         public Set<Extension> getInstalledExtensions() {
+            return null;
+        }
+
+        @Override
+        public ScheduledExecutorService getScheduledExecutorService() {
             return null;
         }
     }

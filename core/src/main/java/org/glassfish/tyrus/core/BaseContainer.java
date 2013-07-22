@@ -41,10 +41,13 @@ package org.glassfish.tyrus.core;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.websocket.WebSocketContainer;
+
+import javax.naming.InitialContext;
 
 import org.glassfish.tyrus.websockets.ExecutorServiceProvider;
 
@@ -57,9 +60,12 @@ import org.glassfish.tyrus.websockets.ExecutorServiceProvider;
  */
 public abstract class BaseContainer extends ExecutorServiceProvider implements WebSocketContainer{
     private final ExecutorService executorService;
+    private final ScheduledExecutorService scheduledExecutorService;
+    private ThreadFactory threadFactory = null;
 
     public BaseContainer() {
         this.executorService = newExecutorService();
+        this.scheduledExecutorService = newScheduledExecutorService();
     }
 
     @Override
@@ -67,21 +73,51 @@ public abstract class BaseContainer extends ExecutorServiceProvider implements W
         return executorService;
     }
 
-    private static ExecutorService newExecutorService() {
+    @Override
+    public ScheduledExecutorService getScheduledExecutorService() {
+        return scheduledExecutorService;
+    }
+
+    private ExecutorService newExecutorService() {
         ExecutorService es = null;
 
-        // Get the default MangedExecutorService, if available
-// Commenting out the following since the ManagedExecutorService is not working
-//        try {
-//            InitialContext ic = new InitialContext();
-//            es = (ExecutorService) ic.lookup("java:comp/DefaultManagedExecutorService");
-//        } catch (Exception e) {
-//            // ignore
-//        }
-        if (es == null) {
-            es = Executors.newCachedThreadPool(new DaemonThreadFactory());
+        // Get the default ManagedExecutorService, if available
+        try {
+            InitialContext ic = new InitialContext();
+            es = (ExecutorService) ic.lookup("java:comp/DefaultManagedExecutorService");
+        } catch (Exception e) {
+            // ignore
         }
+
+        if (es == null) {
+            if(threadFactory == null){
+                threadFactory = new DaemonThreadFactory();
+            }
+            es = Executors.newCachedThreadPool(threadFactory);
+        }
+
         return es;
+    }
+
+    private ScheduledExecutorService newScheduledExecutorService() {
+        ScheduledExecutorService service = null;
+
+        try {
+            InitialContext ic = new InitialContext();
+            service = (ScheduledExecutorService) ic.lookup("java:comp/DefaultManagedScheduledExecutorService");
+        } catch (Exception e) {
+            // ignore
+        }
+
+        if (service == null) {
+            if(threadFactory == null){
+                threadFactory = new DaemonThreadFactory();
+            }
+
+            service =  Executors.newScheduledThreadPool(10, threadFactory);
+        }
+
+        return service;
     }
 
     private static class DaemonThreadFactory implements ThreadFactory {

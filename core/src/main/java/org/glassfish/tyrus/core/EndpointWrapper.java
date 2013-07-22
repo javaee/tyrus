@@ -463,7 +463,7 @@ public class EndpointWrapper extends SPIEndpoint {
         SessionImpl session = getSession(gs);
 
         try {
-            session.restartTimer();
+            session.restartIdleTimeoutExecutor();
             session.setState(SessionImpl.State.RUNNING);
             if (session.isWholeBinaryHandlerPresent()) {
                 session.notifyMessageHandlers(messageBytes, findApplicableDecoders(session, messageBytes, false));
@@ -493,7 +493,7 @@ public class EndpointWrapper extends SPIEndpoint {
         }
 
         try {
-            session.restartTimer();
+            session.restartIdleTimeoutExecutor();
             session.setState(SessionImpl.State.RUNNING);
             if (session.isWholeTextHandlerPresent()) {
                 session.notifyMessageHandlers(messageString, findApplicableDecoders(session, messageString, true));
@@ -518,7 +518,7 @@ public class EndpointWrapper extends SPIEndpoint {
         SessionImpl session = getSession(gs);
 
         try {
-            session.restartTimer();
+            session.restartIdleTimeoutExecutor();
             if (session.isPartialTextHandlerPresent()) {
                 session.notifyMessageHandlers(partialString, last);
                 session.setState(SessionImpl.State.RUNNING);
@@ -581,7 +581,7 @@ public class EndpointWrapper extends SPIEndpoint {
         SessionImpl session = getSession(gs);
 
         try {
-            session.restartTimer();
+            session.restartIdleTimeoutExecutor();
             if (session.isPartialBinaryHandlerPresent()) {
                 session.notifyMessageHandlers(partialBytes, last);
                 session.setState(SessionImpl.State.RUNNING);

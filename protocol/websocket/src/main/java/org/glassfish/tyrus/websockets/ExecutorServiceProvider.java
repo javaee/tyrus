@@ -41,6 +41,7 @@
 package org.glassfish.tyrus.websockets;
 
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
@@ -53,4 +54,11 @@ public abstract class ExecutorServiceProvider {
      * @return executor service.
      */
     public abstract ExecutorService getExecutorService();
+
+    /**
+     * Get the {@link ScheduledExecutorService}.
+     *
+     * @return scheduled executor service.
+     */
+    public abstract ScheduledExecutorService getScheduledExecutorService();
 }

@@ -52,9 +52,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.UUID;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -69,6 +69,7 @@ import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
 
 import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
+import org.glassfish.tyrus.websockets.ExecutorServiceProvider;
 
 /**
  * Implementation of the {@link Session}.
@@ -95,7 +96,7 @@ public class SessionImpl implements Session {
     private int maxBinaryMessageBufferSize = Integer.MAX_VALUE;
     private int maxTextMessageBufferSize = Integer.MAX_VALUE;
     private long maxIdleTimeout = 0;
-    private Timer timer;
+    private ScheduledExecutorService service;
 
     private final String id = UUID.randomUUID().toString();
     private static final Logger LOGGER = Logger.getLogger(SessionImpl.class.getName());
@@ -254,7 +255,7 @@ public class SessionImpl implements Session {
     public void setMaxIdleTimeout(long maxIdleTimeout) {
         checkConnectionState(State.CLOSED);
         this.maxIdleTimeout = maxIdleTimeout;
-        restartTimer();
+        restartIdleTimeoutExecutor();
     }
 
     @Override
@@ -327,17 +328,17 @@ public class SessionImpl implements Session {
         return userPrincipal;
     }
 
-    void restartTimer() {
-        if (timer != null) {
-            timer.cancel();
+    void restartIdleTimeoutExecutor() {
+        if (service != null) {
+            service.shutdownNow();
         }
 
         if (this.getMaxIdleTimeout() < 1) {
             return;
         }
 
-        timer = new Timer();
-        timer.schedule(new SessionTimerTask(), this.getMaxIdleTimeout());
+        service =((ExecutorServiceProvider) container).getScheduledExecutorService();
+        service.schedule(new IdleTimeoutCommand(), this.getMaxIdleTimeout(), TimeUnit.MILLISECONDS);
     }
 
     private void checkConnectionState(State... states) {
@@ -561,7 +562,7 @@ public class SessionImpl implements Session {
         return sb.toString();
     }
 
-    private class SessionTimerTask extends TimerTask {
+    private class IdleTimeoutCommand implements Runnable {
 
         @Override
         public void run() {
