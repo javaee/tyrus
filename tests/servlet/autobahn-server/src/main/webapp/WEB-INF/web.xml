@@ -44,7 +44,7 @@
          xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
 
     <context-param>
-        <param-name>org.glassfish.tyrus.servlet.incomingBufferSize</param-name>
+        <param-name>org.glassfish.tyrus.servlet.incoming-buffer-size</param-name>
         <param-value>17000000</param-value>
     </context-param>
 </web-app>

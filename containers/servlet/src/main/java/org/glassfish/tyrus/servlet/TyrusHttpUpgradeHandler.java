@@ -63,7 +63,7 @@ import org.glassfish.tyrus.websockets.draft06.ClosingFrame;
  */
 public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener {
 
-    public static final String FRAME_BUFFER_SIZE = "org.glassfish.tyrus.servlet.incomingBufferSize";
+    public static final String FRAME_BUFFER_SIZE = "org.glassfish.tyrus.servlet.incoming-buffer-size";
 
     private ServletInputStream is;
     private ServletOutputStream os;
