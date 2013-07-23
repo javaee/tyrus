@@ -42,8 +42,6 @@ package org.glassfish.tyrus.core;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 /**
  * Utility methods shared among Tyrus modules.
@@ -51,25 +49,6 @@ import java.util.regex.Pattern;
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 public class Utils {
-    /**
-     * RegExp patter for {@link #checkHeaderValue(String)} method.
-     */
-    private static final Pattern whiteSpace = Pattern.compile("[\\s].*");
-
-    /**
-     * Decides whether there is a need to encapsulate header value with
-     * quotation marks and performs it.
-     *
-     * @param headerValue original header value.
-     * @return quoted header value, if original contains whitespaces.
-     */
-    public static String checkHeaderValue(String headerValue) {
-        Matcher m = whiteSpace.matcher(headerValue);
-        if(m.find()) {
-            return String.format("\"%s\"", headerValue);
-        }
-        return headerValue;
-    }
 
     /**
      * Parse header value - splits multiple values (quoted, unquoted) separated by
@@ -97,6 +76,7 @@ public class Utils {
                     }
                     if(c == '\"') {
                         state = 2;
+                        sb.append(c);
                         break;
                     }
                     sb.append(c);
@@ -115,6 +95,7 @@ public class Utils {
                     if(c != '\"') {
                         sb.append(c);
                     } else {
+                        sb.append(c);
                         values.add(sb.toString());
                         sb = new StringBuilder();
                         state = 3;

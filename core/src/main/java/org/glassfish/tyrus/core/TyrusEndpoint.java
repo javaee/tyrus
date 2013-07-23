@@ -107,19 +107,8 @@ public class TyrusEndpoint extends WebSocketApplication implements SPIRegistered
 
     @Override
     public boolean isApplicationRequest(WebSocketRequest webSocketRequest) {
-        // TODO - proper header parsing
-        String protocols = webSocketRequest.getHeader(WebSocketEngine.SEC_WS_PROTOCOL_HEADER);
-        List<String> protocolsList;
-        if(protocols == null) {
-            protocolsList = Collections.emptyList();
-        } else {
-            protocolsList = new ArrayList<String>();
-            for(String s : Arrays.asList(protocols.split(","))) {
-                protocolsList.add(s.trim());
-            }
-        }
-
-        temporaryNegotiatedProtocol = endpoint.getNegotiatedProtocol(protocolsList);
+        final List<String> protocols = webSocketRequest.getHeaders().get(WebSocketEngine.SEC_WS_PROTOCOL_HEADER);
+        temporaryNegotiatedProtocol = endpoint.getNegotiatedProtocol(protocols);
 
         final List<Extension> extensions = TyrusExtension.fromString(webSocketRequest.getHeaders().get(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER));
         temporaryNegotiatedExtensions = endpoint.getNegotiatedExtensions(extensions);
@@ -272,12 +261,7 @@ public class TyrusEndpoint extends WebSocketApplication implements SPIRegistered
                         finalHeaderValue.append(", ");
                     }
 
-                    // workaround for extensions
-                    if(headerEntry.getKey().equalsIgnoreCase(HandshakeRequest.SEC_WEBSOCKET_EXTENSIONS)) {
-                        finalHeaderValue.append(headerValue);
-                    } else {
-                        finalHeaderValue.append(Utils.checkHeaderValue(headerValue));
-                    }
+                    finalHeaderValue.append(headerValue);
                 }
 
                 response.getHeaders().put(headerEntry.getKey(), finalHeaderValue.toString());
@@ -317,5 +301,4 @@ public class TyrusEndpoint extends WebSocketApplication implements SPIRegistered
             }
         };
     }
-
 }

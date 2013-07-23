@@ -49,8 +49,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.websocket.server.HandshakeRequest;
-
 import org.glassfish.tyrus.core.RequestContext;
 import org.glassfish.tyrus.core.Utils;
 import org.glassfish.tyrus.websockets.DataFrame;
@@ -475,12 +473,7 @@ class WebSocketFilter extends BaseFilter {
                     finalHeaderValue.append(", ");
                 }
 
-                // workaround for extensions
-                if(headerEntry.getKey().equalsIgnoreCase(HandshakeRequest.SEC_WEBSOCKET_EXTENSIONS)) {
-                    finalHeaderValue.append(headerValue);
-                } else {
-                    finalHeaderValue.append(Utils.checkHeaderValue(headerValue));
-                }
+                finalHeaderValue.append(headerValue);
             }
 
             builder.header(headerEntry.getKey(), finalHeaderValue.toString());

@@ -76,7 +76,7 @@ public class ModifyRequestResponseHeadersTest {
 
     private static final String SENT_MESSAGE = "Always pass on what you have learned.";
     private static final String HEADER_NAME = "myHeader";
-    private static final String[] HEADER_VALUE = {"Always two there are, a master and an apprentice.", "b", "c"};
+    private static final String[] HEADER_VALUE = {"\"Always two there are, a master and an apprentice.\"", "b", "c"};
 
     @ServerEndpoint(value = "/echo", configurator = MyServerConfigurator.class)
     public static class TestEndpoint {
