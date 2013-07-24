@@ -74,7 +74,7 @@ class ConnectionImpl extends Connection implements WriteListener {
     private ServletOutputStream servletOutputStream = null;
     private volatile boolean isReady = false;
 
-    class QueuedFrame {
+    private static class QueuedFrame {
         public final WriteFuture<DataFrame> dataFrameFuture;
         public final CompletionHandler<DataFrame> completionHandler;
         public final DataFrame dataFrame;

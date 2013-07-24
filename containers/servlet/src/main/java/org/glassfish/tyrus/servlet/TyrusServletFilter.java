@@ -143,7 +143,7 @@ public class TyrusServletFilter implements Filter {
         }
     }
 
-    private class TyrusHttpUpgradeHandlerProxy extends TyrusHttpUpgradeHandler {
+    private static class TyrusHttpUpgradeHandlerProxy extends TyrusHttpUpgradeHandler {
 
         private TyrusHttpUpgradeHandler handler;
 
