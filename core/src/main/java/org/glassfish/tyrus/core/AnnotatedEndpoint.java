@@ -330,7 +330,7 @@ public class AnnotatedEndpoint extends Endpoint {
     }
 
     private ParameterExtractor[] getOnCloseParameterExtractors(final Method method, Map<Integer, Class<?>> unknownParams) {
-        return getParameterExtractors(method, unknownParams, new HashSet<Class<?>>(Arrays.asList(CloseReason.class)));
+        return getParameterExtractors(method, unknownParams, new HashSet<Class<?>>(Arrays.asList((Class<?>) CloseReason.class)));
     }
 
     private ParameterExtractor[] getParameterExtractors(final Method method, Map<Integer, Class<?>> unknownParams) {
@@ -417,31 +417,33 @@ public class AnnotatedEndpoint extends Endpoint {
     }
 
     private Object callMethod(Method method, ParameterExtractor[] extractors, Session session, boolean callOnError, Object... params) {
-        if (method != null) {
             Object[] paramValues = new Object[extractors.length];
 
-            final Object endpoint = annotatedInstance != null ? annotatedInstance :
-                    componentProvider.getInstance(annotatedClass, session, collector);
+        final Object endpoint = annotatedInstance != null ? annotatedInstance :
+                componentProvider.getInstance(annotatedClass, session, collector);
 
-            try {
-                for (int i = 0; i < paramValues.length; i++) {
-                    paramValues[i] = extractors[i].value(session, params);
-                }
+        try {
+            for (int i = 0; i < paramValues.length; i++) {
+                paramValues[i] = extractors[i].value(session, params);
+            }
 
-                return method.invoke(endpoint, paramValues);
-            } catch (Exception e) {
-                if (callOnError) {
-                    onError(session, (e instanceof InvocationTargetException ? e.getCause() : e));
-                } else {
-                    LOGGER.log(Level.INFO, String.format("Exception thrown from onError method '%s'", method), e);
-                }
+            return method.invoke(endpoint, paramValues);
+        } catch (Exception e) {
+            if (callOnError) {
+                onError(session, (e instanceof InvocationTargetException ? e.getCause() : e));
+            } else {
+                LOGGER.log(Level.INFO, String.format("Exception thrown from onError method '%s'", method), e);
             }
         }
+
         return null;
     }
 
     void onClose(CloseReason closeReason, Session session) {
-        callMethod(onCloseMethod, onCloseParameters, session, true, closeReason);
+        if(onCloseMethod != null){
+            callMethod(onCloseMethod, onCloseParameters, session, true, closeReason);
+        }
+
         componentProvider.removeSession(session);
     }
 
@@ -452,7 +454,11 @@ public class AnnotatedEndpoint extends Endpoint {
 
     @Override
     public void onError(Session session, Throwable thr) {
-        callMethod(onErrorMethod, onErrorParameters, session, false, thr);
+        if (onErrorMethod != null) {
+            callMethod(onErrorMethod, onErrorParameters, session, false, thr);
+        } else {
+            LOGGER.log(Level.INFO, "Exception thrown: ", thr);
+        }
     }
 
     //    @Override
@@ -465,7 +471,10 @@ public class AnnotatedEndpoint extends Endpoint {
         for (MessageHandlerFactory f : messageHandlerFactories) {
             session.addMessageHandler(f.create(session));
         }
-        callMethod(onOpenMethod, onOpenParameters, session, true);
+
+        if (onOpenMethod != null) {
+            callMethod(onOpenMethod, onOpenParameters, session, true);
+        }
     }
 
     static interface ParameterExtractor {
@@ -496,10 +505,6 @@ public class AnnotatedEndpoint extends Endpoint {
             this.extractors = extractors;
             this.type = (PrimitivesToWrappers.getPrimitiveWrapper(type) == null) ? type : PrimitivesToWrappers.getPrimitiveWrapper(type);
             this.maxMessageSize = maxMessageSize;
-        }
-
-        public final long getMaxMessageSize() {
-            return maxMessageSize;
         }
 
         abstract MessageHandler create(Session session);
