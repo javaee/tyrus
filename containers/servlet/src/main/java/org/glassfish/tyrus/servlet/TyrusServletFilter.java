@@ -41,9 +41,9 @@ package org.glassfish.tyrus.servlet;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -64,6 +64,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.WebConnection;
 
 import org.glassfish.tyrus.core.RequestContext;
+import org.glassfish.tyrus.core.Utils;
 import org.glassfish.tyrus.server.ServerContainerFactory;
 import org.glassfish.tyrus.websockets.HandshakeException;
 import org.glassfish.tyrus.websockets.WebSocketEngine;
@@ -225,9 +226,14 @@ public class TyrusServletFilter implements Filter {
             Enumeration<String> headerNames = httpServletRequest.getHeaderNames();
 
             while (headerNames.hasMoreElements()) {
-                String key = headerNames.nextElement();
+                String name = headerNames.nextElement();
 
-                requestContext.getHeaders().put(key, Arrays.asList(httpServletRequest.getHeader(key)));
+                final List<String> values = requestContext.getHeaders().get(name);
+                if(values == null) {
+                    requestContext.getHeaders().put(name, Utils.parseHeaderValue(httpServletRequest.getHeader(name).trim()));
+                } else {
+                    values.addAll(Utils.parseHeaderValue(httpServletRequest.getHeader(name).trim()));
+                }
             }
 
             try {
