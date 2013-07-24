@@ -112,7 +112,7 @@ class ConnectionImpl extends Connection implements WriteListener {
 
     @Override
     public void onError(Throwable t) {
-        // TODO: Implement.
+        LOGGER.log(Level.WARNING, "WriteListener.onError", t);
     }
 
     @Override
