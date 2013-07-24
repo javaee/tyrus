@@ -457,7 +457,7 @@ public class AnnotatedEndpoint extends Endpoint {
         if (onErrorMethod != null) {
             callMethod(onErrorMethod, onErrorParameters, session, false, thr);
         } else {
-            LOGGER.log(Level.INFO, "Exception thrown: ", thr);
+            LOGGER.log(Level.INFO, String.format("Unhandled exception in endpoint %s:", annotatedClass.getCanonicalName()), thr);
         }
     }
 
