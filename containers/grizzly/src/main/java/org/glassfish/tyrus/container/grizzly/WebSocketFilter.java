@@ -289,12 +289,9 @@ class WebSocketFilter extends BaseFilter {
             try {
                 while (webSocketBuffer != null && webSocketBuffer.hasRemaining()) {
                     if (holder.buffer != null) {
-                        // TODO
-                        buffer = BufferHelper.appendBuffers(
-                                /*ctx.getMemoryManager(), */holder.buffer, buffer);
-
-                        holder.buffer = null;
+                        webSocketBuffer = BufferHelper.appendBuffers(holder.buffer, webSocketBuffer);
                     }
+
                     final DataFrame result = holder.handler.unframe(webSocketBuffer);
                     if (result == null) {
                         holder.buffer = webSocketBuffer;

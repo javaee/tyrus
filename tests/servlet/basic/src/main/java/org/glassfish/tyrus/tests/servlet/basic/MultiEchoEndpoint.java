@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -37,40 +37,34 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.container.grizzly;
+package org.glassfish.tyrus.tests.servlet.basic;
 
-import java.nio.ByteBuffer;
+import java.io.IOException;
 
-import org.glassfish.grizzly.Buffer;
+import javax.websocket.OnError;
+import javax.websocket.OnMessage;
+import javax.websocket.Session;
+import javax.websocket.server.ServerEndpoint;
 
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-class BufferHelper {
+@ServerEndpoint("/multiecho")
+public class MultiEchoEndpoint {
 
-    /**
-     * Concatenates two buffers into one new.
-     *
-     * @param buffer first buffer.
-     * @param buffer1 second buffer.
-     * @return concatenation.
-     */
-    public static ByteBuffer appendBuffers(ByteBuffer buffer, ByteBuffer buffer1) {
-        final ByteBuffer result = ByteBuffer.allocate(buffer.remaining() + buffer1.remaining());
-
-        result.put(buffer);
-        result.put(buffer1);
-        result.flip();
-        return result;
+    @OnMessage
+    public void onMessage(Session session, String message) {
+        for(int i = 0; i < 10; i++) {
+            try {
+                session.getBasicRemote().sendText(message);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
-    /**
-     * Converts {@link Buffer} to {@link ByteBuffer}.
-     *
-     * @param buffer buffer to be converted.
-     * @return converted buffer.
-     */
-    public static ByteBuffer convertBuffer(Buffer buffer) {
-        return buffer.toByteBuffer();
+    @OnError
+    public void onError(Throwable t) {
+        t.printStackTrace();
     }
 }

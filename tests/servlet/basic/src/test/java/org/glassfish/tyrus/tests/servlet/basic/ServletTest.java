@@ -43,6 +43,7 @@ package org.glassfish.tyrus.tests.servlet.basic;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
@@ -80,6 +81,7 @@ public class ServletTest {
         add(PlainEchoEndpoint.class);
         add(RequestUriEndpoint.class);
         add(OnOpenCloseEndpoint.class);
+        add(MultiEchoEndpoint.class);
     }};
 
     /**
@@ -465,6 +467,44 @@ public class ServletTest {
 
             latch.await(3, TimeUnit.SECONDS);
             assertEquals(0, latch.getCount());
+        } finally {
+            stopServer(server);
+        }
+    }
+
+    // "performance" test; 500 kB message is echoed 10 times.
+    @Test
+    public void testMultiEcho() throws IOException, DeploymentException, InterruptedException {
+
+        final int LENGTH = 587952;
+        byte[] b = new byte[LENGTH];
+        Arrays.fill(b, 0, LENGTH, (byte) 'a');
+
+        final String text = new String(b);
+
+        final Server server = startServer();
+
+        final CountDownLatch messageLatch = new CountDownLatch(10);
+
+        try {
+            final ClientManager client = ClientManager.createClient();
+            final Session session = client.connectToServer(new Endpoint() {
+                @Override
+                public void onOpen(Session session, EndpointConfig EndpointConfig) {
+                    session.addMessageHandler(new MessageHandler.Whole<String>() {
+                        @Override
+                        public void onMessage(String message) {
+                            assertEquals(LENGTH, message.length());
+                            messageLatch.countDown();
+                        }
+                    });
+                }
+            }, ClientEndpointConfig.Builder.create().build(), getURI(MultiEchoEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
+
+            session.getBasicRemote().sendText(text);
+
+            messageLatch.await(10, TimeUnit.SECONDS);
+            assertEquals(0, messageLatch.getCount());
         } finally {
             stopServer(server);
         }
