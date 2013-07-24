@@ -40,10 +40,15 @@
 package org.glassfish.tyrus.servlet;
 
 
+import java.io.IOException;
 import java.util.Map;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Future;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.servlet.ServletOutputStream;
+import javax.servlet.WriteListener;
 import javax.servlet.http.HttpServletResponse;
 
 import org.glassfish.tyrus.websockets.Connection;
@@ -58,10 +63,28 @@ import org.glassfish.tyrus.websockets.frametypes.ClosingFrameType;
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-class ConnectionImpl extends Connection {
+class ConnectionImpl extends Connection implements WriteListener {
 
     private final TyrusHttpUpgradeHandler tyrusHttpUpgradeHandler;
     private final HttpServletResponse httpServletResponse;
+    private final ArrayBlockingQueue<QueuedFrame> queue = new ArrayBlockingQueue<QueuedFrame>(32);
+
+    private static final Logger LOGGER = Logger.getLogger(ConnectionImpl.class.getName());
+
+    private ServletOutputStream servletOutputStream = null;
+    private volatile boolean isReady = false;
+
+    class QueuedFrame {
+        public final WriteFuture<DataFrame> dataFrameFuture;
+        public final CompletionHandler<DataFrame> completionHandler;
+        public final DataFrame dataFrame;
+
+        QueuedFrame(WriteFuture<DataFrame> dataFrameFuture, CompletionHandler<DataFrame> completionHandler, DataFrame dataFrame) {
+            this.dataFrameFuture = dataFrameFuture;
+            this.completionHandler = completionHandler;
+            this.dataFrame = dataFrame;
+        }
+    }
 
     /**
      * Constructor.
@@ -74,28 +97,80 @@ class ConnectionImpl extends Connection {
         this.httpServletResponse = httpServletResponse;
     }
 
+    @Override
+    public void onWritePossible() throws IOException {
+        LOGGER.log(Level.FINEST, "OnWritePossible called");
+
+        final QueuedFrame queuedFrame = queue.poll();
+        isReady = servletOutputStream.isReady();
+
+        while (queuedFrame != null && isReady) {
+            _write(queuedFrame.dataFrame, queuedFrame.completionHandler, queuedFrame.dataFrameFuture);
+            isReady = servletOutputStream.isReady();
+        }
+    }
+
+    @Override
+    public void onError(Throwable t) {
+        // TODO: Implement.
+    }
+
+    @Override
+    public Future<DataFrame> write(final DataFrame frame, Connection.CompletionHandler<DataFrame> completionHandler) {
+        final WriteFuture<DataFrame> dataFrameFuture = new WriteFuture<DataFrame>();
+
+        // first write
+        if (servletOutputStream == null) {
+            try {
+                servletOutputStream = tyrusHttpUpgradeHandler.getWebConnection().getOutputStream();
+            } catch (IOException e) {
+                LOGGER.log(Level.CONFIG, "ServletOutputStream cannot be obtained", e);
+                completionHandler.failed(e);
+                dataFrameFuture.setFailure(e);
+                return dataFrameFuture;
+            }
+            isReady = servletOutputStream.isReady();
+            servletOutputStream.setWriteListener(this);
+        } else {
+            isReady = servletOutputStream.isReady();
+        }
+
+        if (isReady) {
+            _write(frame, completionHandler, dataFrameFuture);
+            return dataFrameFuture;
+        } else {
+            final QueuedFrame queuedFrame = new QueuedFrame(dataFrameFuture, completionHandler, frame);
+            try {
+                queue.put(queuedFrame);
+                return dataFrameFuture;
+            } catch (InterruptedException e) {
+                LOGGER.log(Level.CONFIG, "Cannot enqueue frame", e);
+                completionHandler.failed(e);
+                dataFrameFuture.setFailure(e);
+                return dataFrameFuture;
+            }
+        }
+    }
+
     // TODO: change signature to
     // TODO: Future<DataFrame> write(byte[] frame, CompletionHandler completionHandler)?
-    @Override
-    public Future<DataFrame> write(final DataFrame frame, CompletionHandler<DataFrame> completionHandler) {
-        final WriteFuture<DataFrame> future = new WriteFuture<DataFrame>();
+    public void _write(final DataFrame frame, Connection.CompletionHandler<DataFrame> completionHandler, WriteFuture<DataFrame> dataFrameFuture) {
+
+        final byte[] bytes = WebSocketEngine.getEngine().getWebSocketHolder(this).handler.frame(frame);
 
         try {
-            final ServletOutputStream outputStream = tyrusHttpUpgradeHandler.getWebConnection().getOutputStream();
-            final byte[] bytes = WebSocketEngine.getEngine().getWebSocketHolder(this).handler.frame(frame);
-
-            synchronized (outputStream) {
-                outputStream.write(bytes);
-                outputStream.flush();
+            synchronized (servletOutputStream) {
+                servletOutputStream.write(bytes);
+                servletOutputStream.flush();
             }
 
             if (completionHandler != null) {
                 completionHandler.completed(frame);
             }
 
-            future.setResult(frame);
+            dataFrameFuture.setResult(frame);
 
-            if(frame.getType() instanceof ClosingFrameType) {
+            if (frame.getType() instanceof ClosingFrameType) {
                 tyrusHttpUpgradeHandler.getWebConnection().close();
             }
         } catch (Exception e) {
@@ -103,10 +178,8 @@ class ConnectionImpl extends Connection {
                 completionHandler.failed(e);
             }
 
-            future.setFailure(e);
+            dataFrameFuture.setFailure(e);
         }
-
-        return future;
     }
 
     @Override
@@ -119,6 +192,7 @@ class ConnectionImpl extends Connection {
 
     @Override
     public void addCloseListener(CloseListener closeListener) {
+
     }
 
     @Override
