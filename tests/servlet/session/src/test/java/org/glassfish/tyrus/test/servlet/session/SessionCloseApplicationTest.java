@@ -367,4 +367,39 @@ public class SessionCloseApplicationTest {
             stopServer(server);
         }
     }
+
+    @Test
+    public void testSessionTimeoutClient() throws DeploymentException {
+
+        final CountDownLatch clientLatch = new CountDownLatch(1);
+        final Server server = startServer();
+
+        try {
+            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
+
+            Session clientSession = ClientManager.createClient().connectToServer(new Endpoint() {
+                @Override
+                public void onOpen(final Session session, EndpointConfig endpointConfig) {
+                    session.addMessageHandler(new MessageHandler.Whole<String>() {
+
+                        @Override
+                        public void onMessage(String s) {}
+                    });
+                }
+
+                public void onError(javax.websocket.Session session, Throwable thr){
+                    thr.printStackTrace();
+                }
+            }, cec, getURI(CloseClientEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
+
+            clientSession.setMaxIdleTimeout(100);
+            Thread.sleep(200);
+            Assert.assertFalse("Session is not closed", clientSession.isOpen());
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            stopServer(server);
+        }
+    }
 }

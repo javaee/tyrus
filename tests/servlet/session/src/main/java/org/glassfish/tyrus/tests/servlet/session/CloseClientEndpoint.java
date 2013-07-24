@@ -69,7 +69,7 @@ public class CloseClientEndpoint {
     }
 
     @OnError
-    public void errorOccured(Session s, Throwable t){
+    public void errorOccurred(Session s, Throwable t){
         t.printStackTrace();
     }
 }

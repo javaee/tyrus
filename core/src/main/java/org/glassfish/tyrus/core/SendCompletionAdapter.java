@@ -107,6 +107,7 @@ public class SendCompletionAdapter {
                         handler.onResult(sr);
                     }
                     fsr.setDone();
+                    rew.session.restartIdleTimeoutExecutor();
                 }
             }
         });

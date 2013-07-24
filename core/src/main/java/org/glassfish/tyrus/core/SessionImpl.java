@@ -54,6 +54,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
@@ -97,6 +98,7 @@ public class SessionImpl implements Session {
     private int maxTextMessageBufferSize = Integer.MAX_VALUE;
     private long maxIdleTimeout = 0;
     private ScheduledExecutorService service;
+    private ScheduledFuture<?> idleTimeoutFuture = null;
 
     private final String id = UUID.randomUUID().toString();
     private static final Logger LOGGER = Logger.getLogger(SessionImpl.class.getName());
@@ -329,16 +331,19 @@ public class SessionImpl implements Session {
     }
 
     void restartIdleTimeoutExecutor() {
-        if (service != null) {
-            service.shutdownNow();
-        }
-
-        if (this.getMaxIdleTimeout() < 1) {
+        if(this.maxIdleTimeout < 1){
             return;
         }
 
-        service =((ExecutorServiceProvider) container).getScheduledExecutorService();
-        service.schedule(new IdleTimeoutCommand(), this.getMaxIdleTimeout(), TimeUnit.MILLISECONDS);
+        if(service == null){
+            service =((ExecutorServiceProvider) container).getScheduledExecutorService();
+        }
+
+        if(idleTimeoutFuture != null){
+            idleTimeoutFuture.cancel(false);
+        }
+
+        idleTimeoutFuture = service.schedule(new IdleTimeoutCommand(), this.getMaxIdleTimeout(), TimeUnit.MILLISECONDS);
     }
 
     private void checkConnectionState(State... states) {
