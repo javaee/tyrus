@@ -95,8 +95,8 @@ public class WriteFuture<T> implements Future<T> {
      */
     public void setResult(T result) {
         if (latch.getCount() == 1) {
-            latch.countDown();
             this.result = result;
+            latch.countDown();
         }
     }
 
