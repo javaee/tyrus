@@ -53,9 +53,9 @@ import java.util.concurrent.TimeoutException;
  */
 public class WriteFuture<T> implements Future<T> {
 
-    private T result;
-    private Throwable throwable = null;
-    private CountDownLatch latch = new CountDownLatch(1);
+    private volatile T result;
+    private volatile Throwable throwable = null;
+    private final CountDownLatch latch = new CountDownLatch(1);
 
     @Override
     public boolean cancel(boolean mayInterruptIfRunning) {

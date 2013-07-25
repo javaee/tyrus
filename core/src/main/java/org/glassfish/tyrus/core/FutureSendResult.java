@@ -56,7 +56,7 @@ import java.util.concurrent.TimeoutException;
 public class FutureSendResult implements Future<Void> {
 
     private final CountDownLatch latch = new CountDownLatch(1);
-    private Throwable throwable = null;
+    private volatile Throwable throwable = null;
 
     @Override
     public boolean cancel(boolean mayInterruptIfRunning) {

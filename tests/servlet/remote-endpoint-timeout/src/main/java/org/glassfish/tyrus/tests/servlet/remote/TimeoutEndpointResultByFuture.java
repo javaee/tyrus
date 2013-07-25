@@ -54,12 +54,13 @@ import javax.websocket.server.ServerEndpoint;
 @ServerEndpoint(value = "/byfuture")
 public class TimeoutEndpointResultByFuture {
 
-    private byte[] longMessage = new byte[1000000];
+    //TODO
+    private byte[] longMessage = new byte[10000000];
     static boolean timeoutRaised = false;
 
     @OnMessage
     public void onMessage(String s, Session session) {
-        for (int i : longMessage) {
+        for (byte i : longMessage) {
             longMessage[i] = 0;
         }
 

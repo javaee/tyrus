@@ -53,7 +53,6 @@ import javax.websocket.SendResult;
  * @author Danny Coward (danny.coward at oracle.com)
  */
 public class SendCompletionAdapter {
-    private final RemoteEndpointWrapper.Async rew;
 
     enum State {
         TEXT, // String
@@ -61,8 +60,8 @@ public class SendCompletionAdapter {
         OBJECT // OBJECT
     }
 
-    private SendCompletionAdapter.State state;
-
+    private final SendCompletionAdapter.State state;
+    private final RemoteEndpointWrapper.Async rew;
 
     public SendCompletionAdapter(RemoteEndpointWrapper.Async re, State state) {
         this.rew = re;
