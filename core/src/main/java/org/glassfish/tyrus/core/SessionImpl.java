@@ -96,9 +96,10 @@ public class SessionImpl implements Session {
     private final Map<String, List<String>> requestParameterMap;
     private int maxBinaryMessageBufferSize = Integer.MAX_VALUE;
     private int maxTextMessageBufferSize = Integer.MAX_VALUE;
-    private long maxIdleTimeout = 0;
+    private volatile long maxIdleTimeout = 0;
     private ScheduledExecutorService service;
     private ScheduledFuture<?> idleTimeoutFuture = null;
+    private final Object idleTimeoutLock = new Object();
 
     private final String id = UUID.randomUUID().toString();
     private static final Logger LOGGER = Logger.getLogger(SessionImpl.class.getName());
@@ -164,6 +165,7 @@ public class SessionImpl implements Session {
         if (container != null) {
             maxTextMessageBufferSize = container.getDefaultMaxTextMessageBufferSize();
             maxBinaryMessageBufferSize = container.getDefaultMaxBinaryMessageBufferSize();
+            service = ((ExecutorServiceProvider) container).getScheduledExecutorService();
         }
     }
 
@@ -331,19 +333,17 @@ public class SessionImpl implements Session {
     }
 
     void restartIdleTimeoutExecutor() {
-        if(this.maxIdleTimeout < 1){
+        if (this.maxIdleTimeout < 1) {
             return;
         }
 
-        if(service == null){
-            service =((ExecutorServiceProvider) container).getScheduledExecutorService();
-        }
+        synchronized (idleTimeoutLock) {
+            if (idleTimeoutFuture != null) {
+                idleTimeoutFuture.cancel(false);
+            }
 
-        if(idleTimeoutFuture != null){
-            idleTimeoutFuture.cancel(false);
+            idleTimeoutFuture = service.schedule(new IdleTimeoutCommand(), this.getMaxIdleTimeout(), TimeUnit.MILLISECONDS);
         }
-
-        idleTimeoutFuture = service.schedule(new IdleTimeoutCommand(), this.getMaxIdleTimeout(), TimeUnit.MILLISECONDS);
     }
 
     private void checkConnectionState(State... states) {
