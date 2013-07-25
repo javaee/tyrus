@@ -133,30 +133,35 @@ public abstract class RemoteEndpointWrapper implements RemoteEndpoint {
         @Override
         public void sendText(String text, SendHandler handler) {
             SendCompletionAdapter goesAway = new SendCompletionAdapter(this, SendCompletionAdapter.State.TEXT);
+            session.restartIdleTimeoutExecutor();
             goesAway.send(text, handler);
         }
 
         @Override
         public Future<Void> sendText(String text) {
             SendCompletionAdapter goesAway = new SendCompletionAdapter(this, SendCompletionAdapter.State.TEXT);
+            session.restartIdleTimeoutExecutor();
             return goesAway.send(text, null);
         }
 
         @Override
         public Future<Void> sendBinary(ByteBuffer data) {
             SendCompletionAdapter goesAway = new SendCompletionAdapter(this, SendCompletionAdapter.State.BINARY);
+            session.restartIdleTimeoutExecutor();
             return goesAway.send(data, null);
         }
 
         @Override
         public void sendBinary(ByteBuffer data, SendHandler completion) {
             SendCompletionAdapter goesAway = new SendCompletionAdapter(this, SendCompletionAdapter.State.BINARY);
+            session.restartIdleTimeoutExecutor();
             goesAway.send(data, completion);
         }
 
         @Override
         public void sendObject(Object data, SendHandler handler) {
             SendCompletionAdapter goesAway = new SendCompletionAdapter(this, SendCompletionAdapter.State.OBJECT);
+            session.restartIdleTimeoutExecutor();
             goesAway.send(data, handler);
         }
 
@@ -174,6 +179,7 @@ public abstract class RemoteEndpointWrapper implements RemoteEndpoint {
         @Override
         public Future<Void> sendObject(Object data) {
             SendCompletionAdapter goesAway = new SendCompletionAdapter(this, SendCompletionAdapter.State.OBJECT);
+            session.restartIdleTimeoutExecutor();
             return goesAway.send(data, null);
         }
     }
