@@ -283,7 +283,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
         if (clientSocket != null) {
             try {
                 // TODO - configurable timeout?
-                responseLatch.await(30, TimeUnit.SECONDS);
+                responseLatch.await(10, TimeUnit.SECONDS);
                 if (responseLatch.getCount() == 0) {
                     final Object exception = config.getUserProperties().get("org.glassfish.tyrus.client.exception");
                     if (exception != null) {
