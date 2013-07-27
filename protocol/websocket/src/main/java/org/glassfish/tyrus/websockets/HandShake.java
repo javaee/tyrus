@@ -94,7 +94,7 @@ public abstract class HandShake {
     protected HandShake(WebSocketRequest request) {
         this.incomingRequest = request;
         checkForHeader(request.getFirstHeaderValue(WebSocketEngine.UPGRADE), WebSocketEngine.UPGRADE, "WebSocket");
-        checkForHeader(request.getFirstHeaderValue(WebSocketEngine.CONNECTION), WebSocketEngine.CONNECTION, WebSocketEngine.UPGRADE);
+        checkForHeader(request.getHeader(WebSocketEngine.CONNECTION), WebSocketEngine.CONNECTION, WebSocketEngine.UPGRADE);
 
         origin = request.getFirstHeaderValue(WebSocketEngine.SEC_WS_ORIGIN_HEADER);
 

@@ -112,7 +112,22 @@ public final class RequestContext implements HandshakeRequest, SPIHandshakeReque
      */
     public String getHeader(String name) {
         final List<String> stringList = headers.get(name);
-        return stringList == null ? null : stringList.get(0);
+        if(stringList == null) {
+            return null;
+        } else {
+            StringBuilder sb = new StringBuilder();
+            boolean first = true;
+            for(String s : stringList) {
+                if(first) {
+                    first = false;
+                } else {
+                    sb.append(", ");
+                }
+                sb.append(s);
+            }
+
+            return sb.toString();
+        }
     }
 
     /**
@@ -122,7 +137,8 @@ public final class RequestContext implements HandshakeRequest, SPIHandshakeReque
      * @return {@link String} value iff it exists, {@code null} otherwise.
      */
     public String getFirstHeaderValue(String name) {
-        return getHeader(name);
+        final List<String> stringList = headers.get(name);
+        return stringList == null ? null : stringList.get(0);
     }
 
     /**
