@@ -52,7 +52,7 @@
 
     <groupId>org.glassfish.tyrus</groupId>
     <artifactId>tyrus-bom</artifactId>
-    <version>1.2.1</version>
+    <version>1.3-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>Tyrus BOM</name>
 
@@ -135,10 +135,4 @@
             </plugins>
         </pluginManagement>
     </build>
-
-  <scm>
-    <connection>scm:git:git@github.com:sonatype/jvnet-parent.git/tyrus-bom/tags/tyrus-project-1.2.1/tyrus-bom</connection>
-    <developerConnection>scm:git:git@github.com:sonatype/jvnet-parent.git/tyrus-bom/tags/tyrus-project-1.2.1/tyrus-bom</developerConnection>
-    <url>https://github.com/sonatype/jvnet-parent/tyrus-bom/tags/tyrus-project-1.2.1/tyrus-bom</url>
-  </scm>
 </project>
