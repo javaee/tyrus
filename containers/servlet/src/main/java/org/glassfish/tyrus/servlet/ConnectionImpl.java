@@ -101,12 +101,13 @@ class ConnectionImpl extends Connection implements WriteListener {
     public void onWritePossible() throws IOException {
         LOGGER.log(Level.FINEST, "OnWritePossible called");
 
-        final QueuedFrame queuedFrame = queue.poll();
+        QueuedFrame queuedFrame = queue.poll();
         isReady = servletOutputStream.isReady();
 
         while (queuedFrame != null && isReady) {
             _write(queuedFrame.dataFrame, queuedFrame.completionHandler, queuedFrame.dataFrameFuture);
             isReady = servletOutputStream.isReady();
+            queuedFrame = queue.poll();
         }
     }
 
