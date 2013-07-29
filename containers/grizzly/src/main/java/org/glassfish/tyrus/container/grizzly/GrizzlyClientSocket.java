@@ -80,7 +80,12 @@ import org.glassfish.tyrus.websockets.frametypes.PongFrameType;
 
 import org.glassfish.grizzly.Connection;
 import org.glassfish.grizzly.Processor;
+import org.glassfish.grizzly.filterchain.Filter;
+import org.glassfish.grizzly.filterchain.FilterChain;
 import org.glassfish.grizzly.filterchain.FilterChainBuilder;
+import org.glassfish.grizzly.filterchain.FilterChainContext;
+import org.glassfish.grizzly.filterchain.FilterChainEvent;
+import org.glassfish.grizzly.filterchain.NextAction;
 import org.glassfish.grizzly.filterchain.TransportFilter;
 import org.glassfish.grizzly.http.HttpClientFilter;
 import org.glassfish.grizzly.nio.transport.TCPNIOConnectorHandler;
@@ -100,10 +105,10 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
 
     /**
      * Can be used as client-side user property to set proxy.
-     *
+     * <p/>
      * Value is expected to be {@link String} and represent proxy URI. Protocol part is currently ignored
      * but must be present ({@link URI#URI(String)} is used for parsing).
-     *
+     * <p/>
      * <pre>
      *     client.getProperties().put(GrizzlyClientSocket.PROXY_URI, "http://my.proxy.com:80");
      *     client.connectToServer(...);
@@ -115,19 +120,19 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
 
     /**
      * Client-side property to set custom worker {@link ThreadPoolConfig}.
-     *
+     * <p/>
      * Value is expected to be instance of {@link ThreadPoolConfig}, can be {@code null} (it won't be used).
      */
     public static final String WORKER_THREAD_POOL_CONFIG = "org.glassfish.tyrus.client.grizzly.workerThreadPoolConfig";
 
     /**
      * Client-side property to set custom selector {@link ThreadPoolConfig}.
-     *
+     * <p/>
      * Value is expected to be instance of {@link ThreadPoolConfig}, can be {@code null} (it won't be used).
      */
     public static final String SELECTOR_THREAD_POOL_CONFIG = "org.glassfish.tyrus.client.grizzly.selectorThreadPoolConfig";
 
-    public static final Logger LOGGER = Logger.getLogger(GrizzlyClientSocket.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(GrizzlyClientSocket.class.getName());
 
     private final URI uri;
     private final ProtocolHandler protocolHandler;
@@ -164,11 +169,11 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
      * @param clientSSLEngineConfigurator ssl engine configurator
      */
     GrizzlyClientSocket(SPIEndpoint endpoint, URI uri, ClientEndpointConfig configuration, long timeoutMs,
-                               SPIHandshakeListener listener,
-                               SSLEngineConfigurator clientSSLEngineConfigurator,
-                               String proxyUri,
-                               ThreadPoolConfig workerThreadPoolConfig,
-                               ThreadPoolConfig selectorThreadPoolConfig) {
+                        SPIHandshakeListener listener,
+                        SSLEngineConfigurator clientSSLEngineConfigurator,
+                        String proxyUri,
+                        ThreadPoolConfig workerThreadPoolConfig,
+                        ThreadPoolConfig selectorThreadPoolConfig) {
         this.endpoint = endpoint;
         this.uri = uri;
         this.configuration = configuration;
@@ -194,13 +199,13 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
             // TYRUS-188: lots of threads were created for every single client instance.
             final TCPNIOTransportBuilder transportBuilder = TCPNIOTransportBuilder.newInstance();
 
-            if(workerThreadPoolConfig == null) {
+            if (workerThreadPoolConfig == null) {
                 transportBuilder.getWorkerThreadPoolConfig().setMaxPoolSize(1).setCorePoolSize(1);
             } else {
                 transportBuilder.setWorkerThreadPoolConfig(workerThreadPoolConfig);
             }
 
-            if(selectorThreadPoolConfig == null) {
+            if (selectorThreadPoolConfig == null) {
                 transportBuilder.getSelectorThreadPoolConfig().setMaxPoolSize(1).setCorePoolSize(1);
             } else {
                 transportBuilder.setSelectorThreadPoolConfig(selectorThreadPoolConfig);
@@ -227,9 +232,9 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
 
             URI proxy = null;
             try {
-                if(proxyUri != null) {
+                if (proxyUri != null) {
                     proxy = new URI(proxyUri);
-                    if(proxy.getHost() == null) {
+                    if (proxy.getHost() == null) {
                         LOGGER.log(Level.WARNING, String.format("Invalid proxy '%s'.", proxyUri));
                         proxy = null;
                     }
@@ -251,7 +256,7 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
                 }
             }
 
-            if(proxy != null) {
+            if (proxy != null) {
                 final int proxyPort = proxy.getPort() == -1 ? 80 : proxy.getPort();
                 connectorHandler.connect(new InetSocketAddress(proxy.getHost(), proxyPort));
             } else {
@@ -476,12 +481,18 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
                                                SSLEngineConfigurator clientSSLEngineConfigurator,
                                                boolean proxy) {
         FilterChainBuilder clientFilterChainBuilder = FilterChainBuilder.stateless();
+        Filter sslFilter = null;
+
         clientFilterChainBuilder.add(new TransportFilter());
         if (serverSSLEngineConfigurator != null || clientSSLEngineConfigurator != null) {
-            clientFilterChainBuilder.add(new SSLFilter(serverSSLEngineConfigurator, clientSSLEngineConfigurator));
+            sslFilter = new SSLFilter(serverSSLEngineConfigurator, clientSSLEngineConfigurator);
+            if (proxy) {
+                sslFilter = new FilterWrapper(sslFilter);
+            }
+            clientFilterChainBuilder.add(sslFilter);
         }
         clientFilterChainBuilder.add(new HttpClientFilter());
-        clientFilterChainBuilder.add(new WebSocketFilter(WebSocketFilter.DEFAULT_WS_IDLE_TIMEOUT_IN_SECONDS, proxy));
+        clientFilterChainBuilder.add(new WebSocketFilter(WebSocketFilter.DEFAULT_WS_IDLE_TIMEOUT_IN_SECONDS, proxy, sslFilter));
         return clientFilterChainBuilder.build();
     }
 
@@ -495,6 +506,94 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
                 transport.stop();
             } catch (IOException e) {
                 Logger.getLogger(GrizzlyClientSocket.class.getName()).log(Level.FINE, "Transport closing problem.");
+            }
+        }
+    }
+
+    /**
+     * {@link SSLFilter} wrapper used for proxied connections. SSL filter gets "enabled" after initial proxy communication,
+     * so after connection is established and SSL layer should start handling reading/writing messages.
+     */
+    static class FilterWrapper implements Filter {
+
+        private final Filter filter;
+        private boolean enabled = false;
+
+        FilterWrapper(Filter filter) {
+            this.filter = filter;
+        }
+
+        public void enable() {
+            this.enabled = true;
+        }
+
+        @Override
+        public void onAdded(FilterChain filterChain) {
+            filter.onAdded(filterChain);
+        }
+
+        @Override
+        public void onRemoved(FilterChain filterChain) {
+            filter.onRemoved(filterChain);
+        }
+
+        @Override
+        public void onFilterChainChanged(FilterChain filterChain) {
+            filter.onFilterChainChanged(filterChain);
+        }
+
+        @Override
+        public NextAction handleRead(FilterChainContext ctx) throws IOException {
+            if (enabled) {
+                return filter.handleRead(ctx);
+            } else {
+                return ctx.getInvokeAction();
+            }
+        }
+
+        @Override
+        public NextAction handleWrite(FilterChainContext ctx) throws IOException {
+            if (enabled) {
+                return filter.handleWrite(ctx);
+            } else {
+                return ctx.getInvokeAction();
+            }
+        }
+
+        @Override
+        public NextAction handleConnect(FilterChainContext ctx) throws IOException {
+            return ctx.getInvokeAction();
+        }
+
+        @Override
+        public NextAction handleAccept(FilterChainContext ctx) throws IOException {
+            return ctx.getInvokeAction();
+        }
+
+        @Override
+        public NextAction handleEvent(FilterChainContext ctx, FilterChainEvent event) throws IOException {
+            if (enabled) {
+                return filter.handleEvent(ctx, event);
+            } else {
+                return ctx.getInvokeAction();
+            }
+        }
+
+        @Override
+        public NextAction handleClose(FilterChainContext ctx) throws IOException {
+            if (enabled) {
+                return filter.handleClose(ctx);
+            } else {
+                return ctx.getInvokeAction();
+            }
+        }
+
+        @Override
+        public void exceptionOccurred(FilterChainContext ctx, Throwable error) {
+            if (enabled) {
+                filter.exceptionOccurred(ctx, error);
+            } else {
+                ctx.getInvokeAction();
             }
         }
     }

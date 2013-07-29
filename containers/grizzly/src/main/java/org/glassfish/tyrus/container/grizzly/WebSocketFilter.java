@@ -97,6 +97,7 @@ class WebSocketFilter extends BaseFilter {
     private static final Logger logger = Grizzly.logger(WebSocketFilter.class);
     private final long wsTimeoutMS;
     private final boolean proxy;
+    private final Filter sslFilter;
 
     static final long DEFAULT_WS_IDLE_TIMEOUT_IN_SECONDS = 15 * 60;
 
@@ -119,6 +120,17 @@ class WebSocketFilter extends BaseFilter {
      * @param proxy              true when client initiated connection has proxy in the way.
      */
     public WebSocketFilter(final long wsTimeoutInSeconds, boolean proxy) {
+        this(wsTimeoutInSeconds, proxy, null);
+    }
+
+    /**
+     * Constructs a new {@link WebSocketFilter}.
+     *
+     * @param wsTimeoutInSeconds TODO
+     * @param proxy              true when client initiated connection has proxy in the way.
+     * @param sslFilter          filter to be "enabled" in case connection is created via proxy.
+     */
+    public WebSocketFilter(final long wsTimeoutInSeconds, boolean proxy, Filter sslFilter) {
         if (wsTimeoutInSeconds <= 0) {
             this.wsTimeoutMS = IdleTimeoutFilter.FOREVER;
         } else {
@@ -126,6 +138,7 @@ class WebSocketFilter extends BaseFilter {
         }
 
         this.proxy = proxy;
+        this.sslFilter = sslFilter;
     }
 
     // ----------------------------------------------------- Methods from Filter
@@ -237,11 +250,18 @@ class WebSocketFilter extends BaseFilter {
         }
 
         if (ws == null || !ws.isConnected()) {
-            if(!message.getHttpHeader().isRequest()) {
+            if (!message.getHttpHeader().isRequest()) {
                 final HttpStatus httpStatus = ((HttpResponsePacket) message.getHttpHeader()).getHttpStatus();
 
                 if (proxy && (httpStatus.getStatusCode() != 101)) {
                     if (httpStatus == HttpStatus.OK_200) {
+
+                        // TYRUS-221: Proxy handshake is complete, we need to enable SSL layer for secure ("wss")
+                        // connections now.
+                        if (sslFilter != null) {
+                            ((GrizzlyClientSocket.FilterWrapper) sslFilter).enable();
+                        }
+
                         ctx.write(getHttpContent(webSocketRequest));
                         ctx.flush(null);
 
@@ -465,8 +485,8 @@ class WebSocketFilter extends BaseFilter {
         for (Map.Entry<String, List<String>> headerEntry : request.getHeaders().entrySet()) {
             StringBuilder finalHeaderValue = new StringBuilder();
 
-            for(String headerValue : headerEntry.getValue()) {
-                if(finalHeaderValue.length() != 0) {
+            for (String headerValue : headerEntry.getValue()) {
+                if (finalHeaderValue.length() != 0) {
                     finalHeaderValue.append(", ");
                 }
 
@@ -495,7 +515,7 @@ class WebSocketFilter extends BaseFilter {
 
         for (String name : requestPacket.getHeaders().names()) {
             final List<String> values = requestContext.getHeaders().get(name);
-            if(values == null) {
+            if (values == null) {
                 requestContext.getHeaders().put(name, Utils.parseHeaderValue(requestPacket.getHeader(name).trim()));
             } else {
                 values.addAll(Utils.parseHeaderValue(requestPacket.getHeader(name).trim()));
