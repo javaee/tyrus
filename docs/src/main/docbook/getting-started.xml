@@ -1,0 +1,261 @@
+<?xml version="1.0"?>
+<!--
+
+    DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+
+    Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+
+    The contents of this file are subject to the terms of either the GNU
+    General Public License Version 2 only ("GPL") or the Common Development
+    and Distribution License("CDDL") (collectively, the "License").  You
+    may not use this file except in compliance with the License.  You can
+    obtain a copy of the License at
+    http://glassfish.java.net/public/CDDL+GPL_1_1.html
+    or packager/legal/LICENSE.txt.  See the License for the specific
+    language governing permissions and limitations under the License.
+
+    When distributing the software, include this License Header Notice in each
+    file and include the License file at packager/legal/LICENSE.txt.
+
+    GPL Classpath Exception:
+    Oracle designates this particular file as subject to the "Classpath"
+    exception as provided by Oracle in the GPL Version 2 section of the License
+    file that accompanied this code.
+
+    Modifications:
+    If applicable, add the following below the License Header, with the fields
+    enclosed by brackets [] replaced by your own identifying information:
+    "Portions Copyright [year] [name of copyright owner]"
+
+    Contributor(s):
+    If you wish your version of this file to be governed by only the CDDL or
+    only the GPL Version 2, indicate your decision by adding "[Contributor]
+    elects to include this software in this distribution under the [CDDL or GPL
+    Version 2] license."  If you don't indicate a single choice of license, a
+    recipient has the option to distribute your version of this file under
+    either the CDDL, the GPL Version 2 or to extend the choice of license to
+    its licensees as provided above.  However, if you add GPL Version 2 code
+    and therefore, elected the GPL Version 2 license, then the option applies
+    only if the new code is made subject to such option by the copyright
+    holder.
+
+-->
+<!DOCTYPE chapter [<!ENTITY % ents SYSTEM "tyrus.ent" > %ents; ]>
+<chapter xmlns="http://docbook.org/ns/docbook"
+         version="5.0"
+         xml:lang="en"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns:xi="http://www.w3.org/2001/XInclude"
+         xmlns:xlink="http://www.w3.org/1999/xlink"
+         xsi:schemaLocation="http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd
+                             http://www.w3.org/1999/xlink http://www.w3.org/1999/xlink.xsd"
+         xml:id="getting-started">
+    <title>Getting Started</title>
+
+    <para>
+        This chapter provides a quick introduction on how to get started building
+        WebSocket services using &ja4w; and Tyrus. The example described here presents how to implement
+        simple websocket service as JavaEE web application that can be deployed on any servlet container
+        supporting Servlet 3.1 and higher. It also discusses starting Tyrus in standalone mode.
+    </para>
+    <section xml:id="getting-started-wsapi-artifact">
+        <title>WebSocket Services Using &ja4w;</title>
+            <para>
+                First, to use the &ja4w; in your project you need to depend on the following artifact:
+<programlisting language="xml" linenumbering="unnumbered">&lt;dependency&gt;
+    &lt;groupId&gt;javax.websocket&lt;/groupId&gt;
+    &lt;artifactId&gt;javax.websocket-api&lt;/artifactId&gt;
+    &lt;version&gt;&apiversion;&lt;/version&gt;
+&lt;/dependency&gt;
+</programlisting>
+            </para>
+            <section>
+                <title>Creating Annotated Server Endpoint</title>
+            <para>
+                In this section we will create a simple server side websocket endpoint which will echo the received
+                message back to the sender. We will deploy this endpoint on the container.
+            </para>
+             <para>
+                In &ja4w; and Tyrus, there are two basic approaches how to create an endpoint - either annotated endpoint,
+                or programmatic endpoint.
+                By annotated endpoint we mean endpoint constructed by using annotations (<code>javax.websocket.server.ServerEndpoint</code>
+                for server endpoint and <code>javax.websocket.ClientEndpoint</code> for client endpoint), like in
+                <link linkend="websocket-annotated-echo-endpoint">"Annotated Echo Endpoint"</link>.
+                <example xml:id="websocket-annotated-echo-endpoint">
+                    <title>Annotated Echo Endpoint</title>
+<programlisting language="java" linenumbering="numbered">@ServerEndpoint(value = "/echo")
+public class EchoEndpointAnnotated {
+    @OnMessage
+    public String onMessage(String message, Session session) {
+        return message;
+    }
+}
+</programlisting>
+                </example>
+            </para>
+        <para>
+            The functionality of the <code>EchoEndpointAnnotated</code> is fairly simple - to send the received message
+            back to the sender. To turn a POJO (Plain Old Java Object) to WebSocket server endpoint, the annotation
+            <code>@ServerEndpoint(value = "/echo")</code> needs to be put on the POJO - see line 1. The URI path of the endpoint
+            is <code>"/echo"</code>. The annotation <code>@OnMessage</code> - line 3 on the method <code>public String
+            onMessage(String message, Session session)</code> indicates that this method
+            will be called whenever text message is received. On line 5 in this method the message is sent back to
+            the user by returning it from the message.
+        </para>
+        <para>
+            The application containing only the <code>EchoEndpointAnnotated</code> class can be deployed to the container.
+        </para>
+            </section>
+        <section>
+            <title>Client Endpoint</title>
+                <para>
+                    Let's create the client part of the application. The client part may be written in JavaScript or any
+                    other technology supporting WebSockets. We will use &ja4w; and Tyrus to demonstrate how to develop
+                    programmatic client endpoint.
+                    The following code is used as a client part to communicate with the <code>EchoEndpoint</code> deployed on server
+                    using Tyrus and &ja4w;.
+                </para>
+                <para>
+                    The example <link linkend="websocket-client-endpoint">"Client Endpoint"</link> utilizes the concept
+                    of the programmatic endpoint. By programmatic endpoint we mean endpoint which is created by extending
+                    class <code>javax.websocket.Endpoint</code>.
+                    The example is standalone java application which needs to depend on some Tyrus artifacts to work
+                    correctly, see <link linkend="standalone-mode">"Tyrus Standalone Mode"</link>.
+                    In the example first the <code>CountDownLatch</code> is initialized. It is needed as a bocking data
+                    structure - on line 31 it either waits for 100 seconds, or until it gets counted down (line 22).
+                    On line 9 the <code>javax.websocket.ClientEndpointConfig</code> is created -  we will need it later
+                    to connect the endpoint to the server. On line 11 the <code>org.glassfish.tyrus.client.ClientManager</code>
+                    is created. it implements the <code>javax.websocket.WebSocketContainer</code> and is used to connect
+                    to server. This happens on next line. The client endpoint functionality is contained in the <code>
+                    javax.websocket.Endpoint</code> lazy instantiation. In the <code>onOpen</code> method new MessageHandler
+                    is registered (the received message is just printed on the console and the latch is counted down). After
+                    the registration the message is sent to tje servere (line 25).
+                    <example xml:id="websocket-client-endpoint">
+                        <title>Client Endpoint</title>
+                        <programlisting language="java" linenumbering="numbered">public class DocClient {
+    private CountDownLatch messageLatch;
+    private static final String SENT_MESSAGE = "Hello World";
+
+    public static void main(String [] args){
+        try {
+            messageLatch = new CountDownLatch(1);
+
+            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
+
+            ClientManager client = ClientManager.createClient();
+            client.connectToServer(new Endpoint() {
+
+                @Override
+                public void onOpen(Session session, EndpointConfig config) {
+                    try {
+                        session.addMessageHandler(new MessageHandler.Whole&lt;String&gt;() {
+
+                            @Override
+                            public void onMessage(String message) {
+                                System.out.println("Received message: "+message);
+                                messageLatch.countDown();
+                            }
+                        });
+                        session.getBasicRemote().sendText(SENT_MESSAGE);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }, cec, new URI("ws://localhost:8025/websockets/echo"));
+            messageLatch.await(100, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}</programlisting>
+                    </example>
+                </para>
+            </section>
+    <section xml:id="websocket-programmatic-endpoint">
+        <title>Creating Server Endpoint Programmatically</title>
+        <para>
+            Similarly to <link linkend="websocket-client-endpoint">"Client Endpoint"</link> the server registered endpoint
+            may also be the programmatic one:
+            <example xml:id="websocket-programmatic-echo-endpoint">
+                <title>Programmatic Echo Endpoint</title>
+<programlisting language="java" linenumbering="numbered">public class EchoEndpointProgrammatic extends Endpoint {
+    @Override
+    public void onOpen(final Session session, EndpointConfig config) {
+        session.addMessageHandler(new MessageHandler.Whole&lt;String&gt;() {
+            @Override
+            public void onMessage(String message) {
+                try {
+                    session.getBasicRemote().sendText(message);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+}</programlisting>
+            </example>
+        </para>
+        <para>
+            The functionality of the <code>EchoEndpointProgrammatic</code> is fairly simple - to send the received message back to the sender.
+            The programmatic server endpoint needs to extend <code>javax.websocket.Endpoint</code> - line 1.
+            Mehod <code>public void onOpen(final Session session, EndpointConfig config)</code> gets called once new
+            connection to this endpoin0t is opened. In this method the <code>MessageHandler</code> is registered to the
+            <code>javax.websocket.Session</code> instance, which opened the connection. Method <code>public void
+            onMessage(String message)</code> gets called once the message is received. On line 8 the message
+            is sent back to the sender.
+        </para>
+    </section>
+    <para>
+        To see how both annotated and programmatic endpoints may be deployed please check the section Deployment.
+        In short: you need to put the server endpoint classes into WAR, deploy on server and the endpoints will
+        be scanned by server and deployed.
+    </para>
+
+        <section xml:id="standalone-mode">
+            <title>Tyrus in Standalone Mode</title>
+            <para>
+
+            </para>
+            <para>
+                To use Tyrus in standalone mode it is necessary to depend on correct Tyrus artifacts.
+                The following artifacts need to be added to your pom to use Tyrus:
+<programlisting language="xml" linenumbering="unnumbered">&lt;dependency&gt;
+    &lt;groupId&gt;org.glassfish.tyrus&lt;/groupId&gt;
+    &lt;artifactId&gt;tyrus-server&lt;/artifactId&gt;
+    &lt;version&gt;&version;&lt;/version&gt;
+&lt;/dependency&gt;
+
+&lt;dependency&gt;
+    &lt;groupId&gt;org.glassfish.tyrus&lt;/groupId&gt;
+    &lt;artifactId&gt;tyrus-client&lt;/artifactId&gt;
+    &lt;version&gt;&version;&lt;/version&gt;
+&lt;/dependency&gt;
+
+&lt;dependency&gt;
+    &lt;groupId&gt;org.glassfish.tyrus&lt;/groupId&gt;
+    &lt;artifactId&gt;tyrus-container-grizzly&lt;/artifactId&gt;
+    &lt;version&gt;&version;&lt;/version&gt;
+&lt;/dependency&gt;</programlisting>
+            </para>
+            <para>
+                Let's use the very same example like for &ja4w; and deploy the <code>EchoEndpointAnnotated</code> on the
+                standalone Tyrus server on the hostname "localhost", port 8025 and path "/websocket", so the endpoint
+                will be available at address "ws://localhost:8025/websockets/echo".
+<programlisting language="java" linenumbering="unnumbered">public void runServer() {
+    Server server = new Server("localhost", 8025, "/websocket", EchoEndpoint.class);
+
+    try {
+        server.start();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
+        System.out.print("Please press a key to stop the server.");
+        reader.readLine();
+    } catch (Exception e) {
+        e.printStackTrace();
+    } finally {
+        server.stop();
+    }
+}</programlisting>
+            </para>
+        </section>
+    </section>
+</chapter>

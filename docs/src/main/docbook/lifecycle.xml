@@ -1,0 +1,228 @@
+<?xml version="1.0"?>
+<!--
+
+    DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+
+    Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+
+    The contents of this file are subject to the terms of either the GNU
+    General Public License Version 2 only ("GPL") or the Common Development
+    and Distribution License("CDDL") (collectively, the "License").  You
+    may not use this file except in compliance with the License.  You can
+    obtain a copy of the License at
+    http://glassfish.java.net/public/CDDL+GPL_1_1.html
+    or packager/legal/LICENSE.txt.  See the License for the specific
+    language governing permissions and limitations under the License.
+
+    When distributing the software, include this License Header Notice in each
+    file and include the License file at packager/legal/LICENSE.txt.
+
+    GPL Classpath Exception:
+    Oracle designates this particular file as subject to the "Classpath"
+    exception as provided by Oracle in the GPL Version 2 section of the License
+    file that accompanied this code.
+
+    Modifications:
+    If applicable, add the following below the License Header, with the fields
+    enclosed by brackets [] replaced by your own identifying information:
+    "Portions Copyright [year] [name of copyright owner]"
+
+    Contributor(s):
+    If you wish your version of this file to be governed by only the CDDL or
+    only the GPL Version 2, indicate your decision by adding "[Contributor]
+    elects to include this software in this distribution under the [CDDL or GPL
+    Version 2] license."  If you don't indicate a single choice of license, a
+    recipient has the option to distribute your version of this file under
+    either the CDDL, the GPL Version 2 or to extend the choice of license to
+    its licensees as provided above.  However, if you add GPL Version 2 code
+    and therefore, elected the GPL Version 2 license, then the option applies
+    only if the new code is made subject to such option by the copyright
+    holder.
+
+-->
+<!DOCTYPE chapter [<!ENTITY % ents SYSTEM "tyrus.ent" > %ents; ]>
+<chapter xmlns="http://docbook.org/ns/docbook"
+         version="5.0"
+         xml:lang="en"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns:xi="http://www.w3.org/2001/XInclude"
+         xmlns:xlink="http://www.w3.org/1999/xlink"
+         xsi:schemaLocation="http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd
+                             http://www.w3.org/1999/xlink http://www.w3.org/1999/xlink.xsd"
+         xml:id="lifecycle">
+    <title>Endpoint Lifecycle, Sessions, Sending Messages</title>
+    <section>
+        <title>Endpoint Lifecycle</title>
+            <para>
+                As mentioned before, the endpoint in &ja4w; is represented either by instance of <code>javax.websocket.Endpoint</code>,
+                or by class annotated with either <code>javax.websocket.server.ServerEndpoint</code> or
+                <code>javax.websocket.ClientEndpoint</code>. Unless otherwise defined by developer provided configurator
+                (defined in instance of <code>javax.websocket.server.ServerEndpointConfig</code> or
+                <code>javax.websocket.ClientEndpointConfig</code>, Tyrus uses one endpoint instance per VM per connected
+                peer. Therefore one endpoint instance typically handles connections from one peer.
+            </para>
+    </section>
+    <section>
+        <title><code>javax.websocket.Session</code></title>
+            <para>
+                The sequence of interactions between an endpoint instance and remote peer is in &ja4w; modelled by
+                <code>javax.websocket.Session</code> instance. This interaction starts by mandatory open notification,
+                continues by 0 - n websocket messages and is finished by mandatory closing notification.
+            </para>
+            <para>
+                The <code>javax.websocket.Session</code> instance is passed by Tyrus to the user in the following methods
+                for programmatic endpoints:
+                <itemizedlist mark='opencircle'>
+                    <listitem>
+                        <para>
+                            <code>public void onOpen(Session session, EndpointConfig config)</code>
+                        </para>
+                    </listitem>
+                    <listitem>
+                        <para>
+                            <code>public void onClose(Session session, CloseReason closeReason)</code>
+                        </para>
+                    </listitem>
+                    <listitem>
+                        <para>
+                            <code>public void onError(Session session, Throwable thr)</code>
+                        </para>
+                    </listitem>
+                </itemizedlist>
+            </para>
+            <para>
+                The <code>javax.websocket.Session</code> instance is passed by Tyrus to the user in the methods
+                annotated by following annotations for annotated endpoints:
+                <itemizedlist mark='opencircle'>
+                    <listitem>
+                        <para>
+                            method annotated with <code>javax.websocket.OnOpen</code>
+                        </para>
+                    </listitem>
+                    <listitem>
+                        <para>
+                            method annotated with <code>javax.websocket.OnMessage</code>
+                        </para>
+                    </listitem>
+                    <listitem>
+                        <para>
+                            method annotated with <code>javax.websocket.OnClose</code>
+                        </para>
+                    </listitem>
+                    <listitem>
+                        <para>
+                            method annotated with <code>javax.websocket.OnError</code>
+                        </para>
+                    </listitem>
+                </itemizedlist>
+                In each of the methods annotated with the preceeding annotations the user may use parameter of type
+                <code>javax.websocket.Session</code>. In the following example the developer wants to send a message in
+                the method annotated with <code>javax.websocket.OnOpen</code>. As we will demonstrate later, the developer
+                needs the session instance to do so. According to &ja4w; Session is one of the allowed parameters in
+                methods annotated with  <code>javax.websocket.OnOpen</code>. Once the annotated method gets called,
+                Tyrus passes in the correct instance of <code>javax.websocket.Session</code>.
+            </para>
+            <para>
+                <example xml:id="lifecycle-echo-sample">
+                    <title>Lifecycle echo sample</title>
+<programlisting language="java" linenumbering="numbered">@ServerEndpoint("/echo")
+public class EchoEndpoint {
+
+    @OnOpen
+    public void onOpen(Session session) throws IOException {
+        session.getBasicRemote().sendText("onOpen");
+    }
+
+    @OnMessage
+    public String echo(String message) {
+        return message;
+    }
+
+    @OnError
+    public void onError(Throwable t) {
+        t.printStackTrace();
+    }
+}</programlisting>
+                </example>
+            </para>
+    </section>
+    <section>
+        <title>Sending Messages</title>
+            <para>
+                Generally there are two ways how to send message to the peer endpoint. First one is usable for annotated
+                endpoints only. The user may send the message by returning the message content from the method annotated
+                with <code>javax.websocket.OnMessage</code>. In the following example the message m is sent back to the
+                remote endpoint.
+            </para>
+            <para>
+                <example xml:id="lifecycle-onmessage-sample">
+                    <title>Sending message in @OnMessage</title>
+<programlisting language="java" linenumbering="numbered">@OnMessage
+public String echo(String m) {
+    return m;                                                                                                                               
+}</programlisting>
+                </example>
+            </para>
+        <para>
+            The other option how to send a message is to obtain the <code>javax.websocket.RemoteEndpoint</code> instance
+            via the <code>javax.websocket.Session</code> instance. See the following example:
+        </para>
+        <para>
+            <example xml:id="lifecycle-remote-endpoint-sample">
+                <title>Sending message via RemoteEndpoint.Basic instance</title>
+<programlisting language="java" linenumbering="numbered">@OnMessage
+public void echo(String message, Session session) {
+    session.getBasicRemote().sendText(message);
+}</programlisting>
+            </example>
+        </para>
+    </section>
+    <section>
+        <title>RemoteEndpoint</title>
+        <para>
+            The interface <code>javax.websocket.RemoteEndpoint</code>, part of &ja4w;, is designed to represent the
+            other end of the communication (related to the endpoint), so the developer uses it to send the message.
+            There are two basic interfaces the user may use - <code>javax.websocket.RemoteEndpoint$Basic</code> and
+            <code>javax.websocket.RemoteEndpoint$Async</code>.
+        </para>
+        <section>
+            <title><code>javax.websocket.RemoteEndpoint.Basic</code></title>
+            <para>
+                is used to send synchronous messages The point of completion of the send is defined when all the supplied
+                data has been written to the underlying connection. The methods for sending messages on the
+                <code>javax.websocket.RemoteEndpoint$Basic</code> block until this point of completion is reached, except for
+                <code>javax.websocket.RemoteEndpoint$Basic#getSendStream()</code> and
+                <code>javax.websocket.RemoteEndpoint$Basic#getSendWriter()</code> which present traditional blocking I/O streams
+                to write messages. See the example
+                <link linkend="lifecycle-remote-endpoint-sample">"Sending message via RemoteEndpoint.Basic instance"</link>
+                to see how the whole text message is send. The following example demonstrates a method which sends the
+                partial text method to the peer:
+                <example xml:id="lifecycle-remote-endpoint-partial-sample">
+                    <title>Method for sending partial text message</title>
+<programlisting language="java" linenumbering="numbered">public void sendPartialTextMessage(String message, Boolean isLast, Session session){
+    try {
+        session.getBasicRemote().sendText(message, isLast);
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+}</programlisting>
+                </example>
+            </para>
+        </section>
+        <section>
+            <title><code>javax.websocket.RemoteEndpoint.Async</code></title>
+            <para>
+                This representation of the peer of a web socket conversation has the ability to send messages
+                asynchronously. The point of completion of the send is defined when all the supplied data has been
+                written to the underlying connection. The completion handlers for the asynchronous methods are always
+                called with a different thread from that which initiated the send.
+                <example xml:id="lifecycle-remote-endpoint-async-future">
+                    <title>Sending mesage the async way using Future</title>
+<programlisting language="java" linenumbering="numbered">public void sendWholeAsyncMessage(String message, Session session){
+    Future&lt;Void&gt; future = session.getAsyncRemote().sendText(message);
+}</programlisting>
+                </example>
+            </para>
+        </section>
+    </section>
+</chapter>

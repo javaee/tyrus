@@ -1,0 +1,593 @@
+<?xml version="1.0"?>
+<!--
+
+    DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+
+    Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+
+    The contents of this file are subject to the terms of either the GNU
+    General Public License Version 2 only ("GPL") or the Common Development
+    and Distribution License("CDDL") (collectively, the "License").  You
+    may not use this file except in compliance with the License.  You can
+    obtain a copy of the License at
+    http://glassfish.java.net/public/CDDL+GPL_1_1.html
+    or packager/legal/LICENSE.txt.  See the License for the specific
+    language governing permissions and limitations under the License.
+
+    When distributing the software, include this License Header Notice in each
+    file and include the License file at packager/legal/LICENSE.txt.
+
+    GPL Classpath Exception:
+    Oracle designates this particular file as subject to the "Classpath"
+    exception as provided by Oracle in the GPL Version 2 section of the License
+    file that accompanied this code.
+
+    Modifications:
+    If applicable, add the following below the License Header, with the fields
+    enclosed by brackets [] replaced by your own identifying information:
+    "Portions Copyright [year] [name of copyright owner]"
+
+    Contributor(s):
+    If you wish your version of this file to be governed by only the CDDL or
+    only the GPL Version 2, indicate your decision by adding "[Contributor]
+    elects to include this software in this distribution under the [CDDL or GPL
+    Version 2] license."  If you don't indicate a single choice of license, a
+    recipient has the option to distribute your version of this file under
+    either the CDDL, the GPL Version 2 or to extend the choice of license to
+    its licensees as provided above.  However, if you add GPL Version 2 code
+    and therefore, elected the GPL Version 2 license, then the option applies
+    only if the new code is made subject to such option by the copyright
+    holder.
+
+-->
+<!DOCTYPE chapter [<!ENTITY % ents SYSTEM "tyrus.ent" > %ents; ]>
+<chapter xmlns="http://docbook.org/ns/docbook"
+         version="5.0"
+         xml:lang="en"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns:xi="http://www.w3.org/2001/XInclude"
+         xmlns:xlink="http://www.w3.org/1999/xlink"
+         xsi:schemaLocation="http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd
+                             http://www.w3.org/1999/xlink http://www.w3.org/1999/xlink.xsd"
+         xml:id="websocket-api">
+    <title>WebSocket API Endpoints, Sessions and MessageHandlers</title>
+
+    <para>This chapter presents an overview of the core WebSocket API concepts - endpoints, configurations and message
+        handlers.</para>
+
+    <para>The JAVA API for WebSocket specification draft can be found online <link
+            xlink:href="http://jcp.org/aboutJava/communityprocess/pfd/jsr356/index.html">here</link>.
+    </para>
+
+    <section>
+        <title>Endpoint Classes</title>
+
+        <para>
+            <emphasis>Server endpoint classes</emphasis>
+            are POJOs (Plain Old Java Objects) that are annotated with <code>javax.websocket.server.ServerEndpoint</code>.
+            Similarly, <emphasis>client endpoint classes</emphasis> are POJOs annotated with javax.websocket.ClientEndpoint.
+            This section shows how to use Tyrus to annotate Java objects to create WebSocket web services.
+        </para>
+
+        <para>The following code example is a simple example of a WebSocket endpoint using annotations. The example
+            code shown here is from echo sample which ships with Tyrus.
+        </para>
+        <para>
+            <example xml:id="endpoints-echo-endpoint">
+                <title>Echo sample server endpoint.</title>
+<programlisting language="java" linenumbering="numbered">@ServerEndpoint("/echo")
+public class EchoEndpoint {
+
+    @OnOpen
+    public void onOpen(Session session) throws IOException {
+        session.getBasicRemote().sendText("onOpen");
+    }
+
+    @OnMessage
+    public String echo(String message) {
+        return message + " (from your server)";
+    }
+
+    @OnError
+    public void onError(Throwable t) {
+        t.printStackTrace();
+    }
+
+    @OnClose
+    public void onClose(Session session) {
+
+    }
+}</programlisting>
+            </example>
+            Let's explain the JAVA API for WebSocket annotations.
+        </para>
+
+        <section>
+            <title>javax.websocket.server.ServerEndpoint</title>
+            <para>javax.websocket.server.ServerEndpoint has got one mandatory field - <emphasis>value</emphasis> and four optional fields.
+                See the example below.</para>
+
+            <para>
+                <example xml:id="endpoints-serverendpoint-annotation">
+                    <title>javax.websocket.server.ServerEndpoint with all fields specified</title>
+<programlisting language="java" linenumbering="numbered">@ServerEndpoint(
+    value = "/sample",
+    decoders = ChatDecoder.class,
+    encoders = DisconnectResponseEncoder.class,
+    subprotocols = {"subprtotocol1", "subprotocol2"},
+    configurator = Configurator.class
+)
+public class SampleEndpoint {
+
+    @OnMessage
+    public SampleResponse receiveMessage(SampleType message, Session session) {
+        return new SampleResponse(message);
+    }
+}</programlisting>
+                </example>
+            </para>
+
+            <section>
+                <title>value</title>
+                <para>
+                 Denotes a relative URI path at which the server endpoint will be deployed. In the example
+                    <link linkend="endpoints-serverendpoint-annotation">"javax.websocket.server.ServerEndpoint with all fields specified"</link>, the
+                    Java class will be hosted at the URI path
+                    <literal>/sample</literal>. The field <emphasis>value</emphasis> must begin with a '/' and may or may
+                    not end in a '/', it makes no difference. Thus request URLs that end or do not end in a '/' will both
+                        be matched. WebSocket API for JAVA supports level 1 URI templates.
+                </para>
+                <para>
+                    <emphasis>URI path templates</emphasis>
+                    are URIs with variables embedded within the URI syntax. These variables are substituted at runtime in
+                    order for a resource to respond to a request based on the substituted URI. Variables are denoted by
+                    curly braces. For example, look at the following @ServerEndpoint annotation:
+
+                    <programlisting language="java" linenumbering="unnumbered">@ServerEndpoint("/users/{username}")</programlisting>
+
+                    In this type of example, a user will be prompted to enter their name, and then a Tyrus web
+                    service configured
+                    to respond to requests to this URI path template will respond. For example, if the user entered their
+                    username as "Galileo", the web service will respond to the following URL:
+                    <literal>http://example.com/users/Galileo</literal>
+                </para>
+
+                <para>To obtain the value of the username variable the <code>javax.websocket.server.PathParam</code> may be used on method parameter
+                    of methods annotated with one of @OnOpen, @OnMessage, @OnError, @OnClose.
+                    <example>
+                        <title>Specifying URI path parameter</title>
+<programlisting language="java" linenumbering="numbered">@ServerEndpoint("/users/{username}")
+public class UserEndpoint {
+
+    @OnMessage
+    public String getUser(String message, @PathParam("username") String userName) {
+        ...
+    }
+}</programlisting>
+                    </example>
+                </para>
+            </section>
+
+            <section>
+                <title>decoders</title>
+                <para>
+                    Contains list of classes that will be used decode incoming messages for the endpoint. By decoding
+                    we mean transforming from text / binary websocket message to some user defined type. Each decoder
+                    needs to implement the Decoder interface.
+                </para>
+                <para>
+                    <code>SampleDecoder</code> in the following example decodes String message and produces
+                    SampleType message - see decode method on line 4.
+                </para>
+                <para>
+                    <example>
+                        <title>SampleDecoder</title>
+<programlisting language="java" linenumbering="numbered">public class SampleDecoder implements Decoder.Text&lt;SampleType&gt; {
+
+    @Override
+    public SampleType decode(String s) {
+        return new SampleType(s);
+    }
+
+    @Override
+    public boolean willDecode(String s) {
+        return s.startsWith(SampleType.PREFIX);
+    }
+
+    @Override
+    public void init(EndpointConfig config) {
+        // do nothing.
+    }
+
+    @Override
+    public void destroy() {
+        // do nothing.
+    }
+}</programlisting>
+                    </example>
+                </para>
+            </section>
+            <section>
+                <title>encoders</title>
+                <para>
+                    Contains list of classes that will be used to encode outgoing messages. By encoding we mean
+                    transforming message from user defined type to text or binary type. Each encoder needs
+                    to implement the Encoder interface.
+                </para>
+                <para>
+                    <code>SampleEncoder</code> in the following example decodes String message and produces
+                    SampleType message - see decode method on line 4.
+                </para>
+                <para>
+                    <example>
+                        <title>SampleEncoder</title>
+<programlisting language="java" linenumbering="numbered">public class SampleEncoder implements Encoder.Text&lt;SampleType&gt; {
+
+    @Override
+    public String encode(SampleType message) {
+        return data.toString();
+    }
+
+    @Override
+    public void init(EndpointConfig config) {
+        // do nothing.
+    }
+
+    @Override
+    public void destroy() {
+        // do nothing.
+    }
+}</programlisting>
+                    </example>
+                </para>
+            </section>
+
+            <section>
+                <title>subprotocols</title>
+                <para>
+                    List of names (Strings) of supported sub-protocols. The first protocol in this list that matches
+                    with sub-protocols provided by the client side is used.
+                </para>
+            </section>
+
+            <section>
+                <title>configurator</title>
+                <para>
+                    Users may provide their own implementation of ServerEndpointConfiguration.Configurator. It allows
+                    them to control some algorithms used by Tyrus in the connection initialization phase:
+
+                    <itemizedlist mark='opencircle'>
+                        <listitem>
+                            <para>
+                                <code>public String getNegotiatedSubprotocol(List&lt;String&gt; supported, List&lt;String&gt; requested)</code>
+                                allows the user to provide their own algorithm for selection of used subprotocol.
+                            </para>
+                        </listitem>
+                        <listitem>
+                            <para>
+                                <code>public List&lt;Extension&gt; getNegotiatedExtensions(List&lt;Extension&gt; installed, List&lt;Extension&gt; requested)</code>
+                                allows the user to provide their own algorithm for selection of used Extensions.
+                            </para>
+                        </listitem>
+                        <listitem>
+                            <para>
+                                <code>public boolean checkOrigin(String originHeaderValue)</code>.
+                                allows the user to specify the origin checking algorithm.
+                            </para>
+                        </listitem>
+                        <listitem>
+                            <para>
+                                <code>public void modifyHandshake(ServerEndpointConfig sec, HandshakeRequest request, HandshakeResponse response) </code>.
+                                allows the user to modify the handshake response that will be sent back to the client.
+                            </para>
+                        </listitem>
+                        <listitem>
+                            <para>
+                                <code>public &lt;T&gt; T getEndpointInstance(Class&lt;T&gt; endpointClass) throws InstantiationException </code>.
+                                allows the user to provide the way how the instance of an Endpoint is created
+                            </para>
+                        </listitem>
+                    </itemizedlist>
+
+                </para>
+
+                <para>
+<programlisting language="java" linenumbering="numbered">public class ConfiguratorTest extends ServerEndpointConfig.Configurator{
+
+    public String getNegotiatedSubprotocol(List&lt;String&gt; supported, List&lt;String&gt; requested) {
+        // Plug your own algorithm here
+    }
+
+    public List&lt;Extension&gt; getNegotiatedExtensions(List&lt;Extension&gt; installed, List&lt;Extension&gt; requested) {
+        // Plug your own algorithm here
+    }
+
+    public boolean checkOrigin(String originHeaderValue) {
+        // Plug your own algorithm here
+    }
+
+    public void modifyHandshake(ServerEndpointConfig sec, HandshakeRequest request, HandshakeResponse response) {
+        // Plug your own algorithm here
+    }
+
+    public &lt;T&gt; T getEndpointInstance(Class&lt;T&gt; endpointClass) throws InstantiationException {
+        // Plug your own algorithm here
+    }
+}</programlisting>
+                </para>
+            </section>
+        </section>
+
+        <section>
+            <title>javax.websocket.ClientEndpoint</title>
+
+            <para>The @ClientEndpoint class-level annotation is used to turn a POJO into WebSocket client endpoint.
+                In the following sample the client sends text message "Hello!" and prints out each received message.
+                <example>
+                    <title>SampleClientEndpoint</title>
+<programlisting language="java" linenumbering="numbered">@ClientEndpoint(
+    decoders = SampleDecoder.class,
+    encoders = SampleEncoder.class,
+    subprotocols = {"subprtotocol1", "subprotocol2"},
+    configurator = ClientConfigurator.class)
+public class SampleClientEndpoint {
+
+    @OnOpen
+    public void onOpen(Session p) {
+        try {
+            p.getBasicRemote().sendText("Hello!");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @OnMessage
+    public void onMessage(String message) {
+        System.out.println(String.format("%s %s", "Received message: ", message));
+    }
+}
+</programlisting>
+                </example>
+            </para>
+            <section>
+                <title>decoders</title>
+                <para>
+                    Contains list of classes that will be used decode incoming messages for the endpoint. By decoding
+                    we mean transforming from text / binary websocket message to some user defined type. Each decoder
+                    needs to implement the Decoder interface.
+                </para>
+            </section>
+            <section>
+                <title>encoders</title>
+                <para>
+                    Contains list of classes that will be used to encode outgoing messages. By encoding we mean
+                    transforming message from user defined type to text or binary type. Each encoder needs
+                    to implement the Encoder interface.
+                </para>
+            </section>
+
+            <section>
+                <title>subprotocols</title>
+                <para>
+                    List of names (Strings) of supported sub-protocols.
+                </para>
+            </section>
+
+            <section>
+                <title>configurator</title>
+                <para>
+                    Users may provide their own implementation of ClientEndpointConfiguration.Configurator. It allows
+                    them to control some algorithms used by Tyrus in the connection initialization phase. Method
+                    <emphasis>beforeRequest</emphasis> allows the user to change the request headers constructed by
+                    Tyrus. Method <emphasis>afterResponse</emphasis> allows the user to process the handshake response.
+                </para>
+
+                <para>
+<programlisting language="java" linenumbering="numbered">public class Configurator {
+
+    public void beforeRequest(Map&lt;String, List&lt;String&gt;&gt; headers) {
+        //affect the headers before request is sent
+    }
+
+    public void afterResponse(HandshakeResponse hr) {
+        //process the handshake response
+    }
+}</programlisting>
+                </para>
+            </section>
+        </section>
+    </section>
+
+    <section>
+        <title>Endpoint method-level annotations</title>
+
+        <section>
+            <title>@OnOpen</title>
+
+            <para>This annotation may be used on certain methods of @ServerEndpoint or @ClientEndpoint, but only once
+                per endpoint. It is used to decorate a method which is called once new connection is established.
+                The connection is represented by the optional Session parameter. The other optional parameter
+                is EndpointConfig, which represents the passed configuration object. Note that the EndpointConfig
+                allows the user to access the user properties.
+            </para>
+
+            <para>
+                <example>
+                    <title>@OnOpen with Session and EndpointConfig parameters.</title>
+<programlisting language="java" linenumbering="numbered">@ServerEndpoint("/sample")
+public class EchoEndpoint {
+
+    private Map&lt;String, Object&gt; properties;
+
+    @OnOpen
+    public void onOpen(Session session, EndpointConfig config) throws IOException {
+        session.getBasicRemote().sendText("onOpen");
+        properties = config.getUserProperties();
+    }
+}</programlisting>
+                </example>
+            </para>
+        </section>
+
+        <section>
+            <title>@OnClose</title>
+
+            <para>This annotation may be used on any method of @ServerEndpoint or @ClientEndpoint, but only once
+                per endpoint. It is used to decorate a method which is called once the connection is being closed.
+                The method may have one Session parameter, one CloseReason parameter and parameters
+                annotated with @PathParam.
+            </para>
+
+            <para>
+                <example>
+                    <title>@OnClose with Session and CloseReason parameters.</title>
+<programlisting language="java" linenumbering="numbered">@ServerEndpoint("/sample")
+public class EchoEndpoint {
+
+    @OnClose
+    public void onClose(Session session, CloseReason reason) throws IOException {
+       //prepare the endpoint for closing.
+    }
+}</programlisting>
+                </example>
+            </para>
+        </section>
+
+        <section>
+            <title>@OnError</title>
+
+            <para>This annotation may be used on any method of @ServerEndpoint or @ClientEndpoint, but only once
+                per endpoint. It is used to decorate a method which is called once Exception is being thrown by
+                any method annotated with @OnOpen, @OnMessage and @OnClose.
+                The method may have optional Session parameter and Throwable parameters.
+            </para>
+
+            <para>
+                <example>
+                    <title>@OnError with Session and Throwable parameters.</title>
+<programlisting language="java" linenumbering="numbered">@ServerEndpoint("/sample")
+public class EchoEndpoint {
+
+    @OnError
+    public void onError(Session session, Throwable t) {
+        t.printStackTrace();
+    }
+}</programlisting>
+                </example>
+            </para>
+        </section>
+
+        <section>
+            <title>@OnMessage</title>
+
+            <para>This annotation may be used on certain methods of @ServerEndpoint or @ClientEndpoint, but
+                only once per endpoint. It is used to decorate a method which is called once new message is received.
+            </para>
+
+            <para>
+                <example>
+                    <title>@OnError with Session and Throwable parameters.</title>
+<programlisting language="java" linenumbering="numbered">@ServerEndpoint("/sample")
+public class EchoEndpoint {
+
+    @OnMessage
+    public void onMessage(Session session, Throwable t) {
+        t.printStackTrace();
+    }
+}</programlisting>
+                </example>
+            </para>
+        </section>
+    </section>
+
+    <section>
+        <title>MessageHandlers</title>
+        <para>
+            Implementing the <code>javax.websocket.MessageHandler</code> interface is one of the ways how to receive messages
+            on endpoints (both server and client). It is aimed primarily on programmatic endpoints, as the annotated ones
+            use the method level annotation <code>javax.websocket.OnMessage</code> to denote the method which
+            receives messages.
+        </para>
+        <para>
+            The MessageHandlers get registered on the Session instance:
+        <example>
+            <title>MessageHandler basic example</title>
+<programlisting language="java" linenumbering="numbered">public class MyEndpoint extends Endpoint {
+
+    @Override
+    public void onOpen(Session session, EndpointConfig EndpointConfig) {
+        session.addMessageHandler(new MessageHandler.Whole&lt;String&gt;() {
+            @Override
+            public void onMessage(String message) {
+                System.out.println("Received message: "+message);
+            }
+        });
+    }
+}</programlisting>
+        </example>
+        </para>
+        <para>
+            There are two orthogonal criterions which classify MessageHandlers.
+            According the &wsp; the message may be sent either complete, or in chunks. In &ja4w; this fact is reflected
+            by the interface which the handler implements. Whole messages are processed by handler which implements
+            <code>javax.websocket.MessageHandler.Whole</code> interface. Partial
+            messages are processed by handlers that implement <code>javax.websocket.MessageHandler.Partial</code>
+            interface. However, if user registers just the whole message handler, it doesn't mean that the handler will
+            process solely whole messages. If partial message is received, the parts are cached by Tyrus until the final
+            part is received. Then the whole message is passed to the handler. Similarly, if the user registers just the
+            partial message handler and whole message is received, it is passed directly to the handler.
+        </para>
+
+        <para>
+            The second criterion is the data type of the message. &wsp; defines four message data type - text message,
+            According to &ja4w; the text messages will be processed by MessageHandlers with the following types:
+
+            <itemizedlist mark='opencircle'>
+                <listitem>
+                    <para>
+                        <emphasis>java.lang.String</emphasis>
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        <emphasis>java.io.Reader</emphasis>
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        any developer object for which there is a corresponding <emphasis>javax.websocket.Decoder.Text</emphasis>
+                      or <emphasis>javax.websocket.Decoder.TextStream</emphasis>.
+                    </para>
+                </listitem>
+            </itemizedlist>
+
+            The binary messages will be processed by MessageHandlers with the following types:
+            <itemizedlist mark='opencircle'>
+                <listitem>
+                    <para>
+                        <emphasis>java.nio.ByteBuffer</emphasis>
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        <emphasis>java.io.InputStream</emphasis>
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        any developer object for which there is a corresponding <emphasis>javax.websocket.Decoder.Binary</emphasis>
+                        or <emphasis>javax.websocket.Decoder.BinaryStream</emphasis>.
+                    </para>
+                </listitem>
+            </itemizedlist>
+        </para>
+
+        <para>
+            The &ja4w; limits the registration of MessageHandlers per Session to be one MessageHandler per native
+            websocket message type. In other words, the developer can only register at most one MessageHandler for
+            incoming text messages, one MessageHandler for incoming binary messages, and one MessageHandler for
+            incoming pong messages. This rule holds for both whole and partial message handlers, i.e there may be one
+            text MessageHandler - either whole, or partial, not both.
+        </para>
+    </section>
+</chapter>

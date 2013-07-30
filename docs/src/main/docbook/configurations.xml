@@ -1,0 +1,165 @@
+<?xml version="1.0"?>
+<!--
+
+    DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+
+    Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+
+    The contents of this file are subject to the terms of either the GNU
+    General Public License Version 2 only ("GPL") or the Common Development
+    and Distribution License("CDDL") (collectively, the "License").  You
+    may not use this file except in compliance with the License.  You can
+    obtain a copy of the License at
+    http://glassfish.java.net/public/CDDL+GPL_1_1.html
+    or packager/legal/LICENSE.txt.  See the License for the specific
+    language governing permissions and limitations under the License.
+
+    When distributing the software, include this License Header Notice in each
+    file and include the License file at packager/legal/LICENSE.txt.
+
+    GPL Classpath Exception:
+    Oracle designates this particular file as subject to the "Classpath"
+    exception as provided by Oracle in the GPL Version 2 section of the License
+    file that accompanied this code.
+
+    Modifications:
+    If applicable, add the following below the License Header, with the fields
+    enclosed by brackets [] replaced by your own identifying information:
+    "Portions Copyright [year] [name of copyright owner]"
+
+    Contributor(s):
+    If you wish your version of this file to be governed by only the CDDL or
+    only the GPL Version 2, indicate your decision by adding "[Contributor]
+    elects to include this software in this distribution under the [CDDL or GPL
+    Version 2] license."  If you don't indicate a single choice of license, a
+    recipient has the option to distribute your version of this file under
+    either the CDDL, the GPL Version 2 or to extend the choice of license to
+    its licensees as provided above.  However, if you add GPL Version 2 code
+    and therefore, elected the GPL Version 2 license, then the option applies
+    only if the new code is made subject to such option by the copyright
+    holder.
+
+-->
+<!DOCTYPE chapter [<!ENTITY % ents SYSTEM "tyrus.ent" > %ents;]>
+<chapter xmlns="http://docbook.org/ns/docbook"
+         version="5.0"
+         xml:lang="en"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns:xi="http://www.w3.org/2001/XInclude"
+         xmlns:xlink="http://www.w3.org/1999/xlink"
+         xsi:schemaLocation="http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd
+                             http://www.w3.org/1999/xlink http://www.w3.org/1999/xlink.xsd"
+         xml:id="configurations">
+    <title>Configurations</title>
+    <para>
+        <code>javax.websocket.server.ServerEndpointConfig</code> and <code>javax.websocket.ClientEndpointConfig</code> objects
+        are used to provide the user the ability to configure websocket endpoints. Both server and client endpoints have some
+        part of configuration in common, namely encoders, decoders, and user properties. The user properties may developers
+        use to store the application specific data. For the developer's convenience the builders are provided for both
+        ServerEndpointConfig and ClientEndpointConfig.
+    </para>
+    <section>
+        <title><code>javax.websocket.server.ServerEndpointConfig</code></title>
+        <para>
+            The <code>javax.websocket.server.ServerEndpointConfig</code> is used when deploying the endpoint either via
+            implementing the <code>javax.websocket.server.ServerApplicationConfig</code>, or via registering the programmatic endpoint
+            at the <code>javax.websocket.server.ServerContainer</code> instance. It allows the user to create the configuration
+            programmatically.
+        </para>
+        <para>
+            The following example is used to deploy the EchoEndpoint programmatically. In the method
+            <code>getEndpointClass()</code> the user has to specify the class of the deployed endpoint. In
+            the example Tyrus will create an instance of <code>EchoEndpoint</code> and deploy it.
+            This is the way how to tie together endpoint and it's configuration. In the method
+            <code>getPath()</code> the user specifies that that the endpoint instance will be deployed at the
+            path "/echo". In the method <code>public List&lt;String&gt; getSubprotocols()</code> the user
+            specifies that the supported subprotocols are "echo1" and "echo2". The method <code>getExtensions()</code>
+            defines the extensions the endpoint supports. Similarly the example configuration does not use any configurator.
+            Method <code>public List&lt;Class&lt;? extends Encoder&gt;&gt; getEncoders()</code> defines the encoders
+            used by teh endpoint. The decoders and user properties map are defined in similar fashion.
+        </para>
+        <para>
+            If the endpoint class which is about to be deployed is an annotated endpoint, note that the endpoint configuration
+            will be taken from configuration object, not from the annotation on the endpoint class.
+        </para>
+        <example>
+            <title>Configuration for EchoEndpoint Deployment</title>
+<programlisting language="java" linenumbering="numbered">public class EchoEndpointConfig implements ServerEndpointConfig{
+
+    private final Map&lt;String, Object&gt; userProperties = new HashMap&lt;String, Object&gt;();
+
+    @Override
+    public Class&lt;?&gt; getEndpointClass() {
+        return EchoEndpoint.class;
+    }
+
+    @Override
+    public String getPath() {
+        return "/echo";
+    }
+
+    @Override
+    public List&lt;String&gt; getSubprotocols() {
+        return Arrays.asList("echo1","echo2");
+    }
+
+    @Override
+    public List&lt;Extension&gt; getExtensions() {
+        return null;
+    }
+
+    @Override
+    public Configurator getConfigurator() {
+        return null;
+    }
+
+    @Override
+    public List&lt;Class&lt;? extends Encoder&gt;&gt; getEncoders() {
+        return Arrays.asList(SampleEncoder.class);
+    }
+
+    @Override
+    public List&lt;Class&lt;? extends Decoder&gt;&gt; getDecoders() {
+        return Arrays.asList(SampleDecoder.class);
+    }
+
+    @Override
+    public Map&lt;String, Object&gt; getUserProperties() {
+        return userProperties;
+    }
+}</programlisting>
+        </example>
+        <para>
+            To make the development easy the <emphasis>javax.websocket.server.ServerEndpointConfig</emphasis> provides a builder to construct
+            the configuration object:
+            <example>
+                <title>ServerEndpointConfigu built using Builder</title>
+<programlisting language="java" linenumbering="numbered">ServerEndpointConfig config = ServerEndpointConfig.Builder.create(EchoEndpoint.class,"/echo").
+    decoders(Arrays.&lt;Class&lt;? extends Decoder&gt;&gt;asList(JsonDecoder.class)).
+    encoders(Arrays.&lt;Class&lt; extends Encoder&gt;&gt;asList(JsonEncoder.class)).build();</programlisting>
+            </example>
+        </para>
+    </section>
+    <section>
+        <title><code>javax.websocket.ClientEndpointConfig</code></title>
+        <para>
+            The <code>javax.websocket.ClientEndpointConfig</code> is used when deploying the programmatic client endpoint
+            via registering the programmatic endpoint at the <code>WebSocketContainer</code> instance. Some of
+            the configuration methods come from the <code>EndpointConfig</code>class, which is extended by both
+            <code>javax.websocket.server.ServerEndpointConfig</code> and <code>javax.websocket.ClientEndpointConfig</code>. Then there are methods
+            for configuring the preferred subprotocols the client endpoint wants to use and supported extensions. It is
+            also possible to use the ClientEndpointConfig.Configurator in order to be able to affect the endpoint behaviour
+            before and after request.
+        </para>
+        <para>
+            Similarly to the ServerEndpointConfig, there is a Builder provided to construct the configuration easily:
+        </para>
+        <example>
+            <title>ClientEndpointConfig built using Builder</title>
+<programlisting language="java" linenumbering="numbered">ClientEndpointConfig.Builder.create().
+    decoders(Arrays.&lt;Class&lt;? extends Decoder&gt;&gt;asList(JsonDecoder.class)).
+    encoders(Arrays.&lt;Class&lt;? extends Encoder&gt;&gt;asList(JsonEncoder.class)).
+    preferredSubprotocols(Arrays.asList("echo1", "echo2")).build();</programlisting>
+        </example>
+    </section>
+</chapter>

@@ -1,0 +1,331 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!--
+
+    DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+
+    Copyright (c) 2011-2012 Oracle and/or its affiliates. All rights reserved.
+
+    The contents of this file are subject to the terms of either the GNU
+    General Public License Version 2 only ("GPL") or the Common Development
+    and Distribution License("CDDL") (collectively, the "License").  You
+    may not use this file except in compliance with the License.  You can
+    obtain a copy of the License at
+    http://glassfish.java.net/public/CDDL+GPL_1_1.html
+    or packager/legal/LICENSE.txt.  See the License for the specific
+    language governing permissions and limitations under the License.
+
+    When distributing the software, include this License Header Notice in each
+    file and include the License file at packager/legal/LICENSE.txt.
+
+    GPL Classpath Exception:
+    Oracle designates this particular file as subject to the "Classpath"
+    exception as provided by Oracle in the GPL Version 2 section of the License
+    file that accompanied this code.
+
+    Modifications:
+    If applicable, add the following below the License Header, with the fields
+    enclosed by brackets [] replaced by your own identifying information:
+    "Portions Copyright [year] [name of copyright owner]"
+
+    Contributor(s):
+    If you wish your version of this file to be governed by only the CDDL or
+    only the GPL Version 2, indicate your decision by adding "[Contributor]
+    elects to include this software in this distribution under the [CDDL or GPL
+    Version 2] license."  If you don't indicate a single choice of license, a
+    recipient has the option to distribute your version of this file under
+    either the CDDL, the GPL Version 2 or to extend the choice of license to
+    its licensees as provided above.  However, if you add GPL Version 2 code
+    and therefore, elected the GPL Version 2 license, then the option applies
+    only if the new code is made subject to such option by the copyright
+    holder.
+
+-->
+<html>
+  <head>
+    <meta http-equiv="Context-Type" content="text/html;
+      charset=ISO-8859-1">
+    <meta http-equiv="content-type" content="text/html;
+      charset=ISO-8859-1">
+    <title>Web Socket JSR for Submission</title>
+  </head>
+  <body bgcolor="#FFFFFF" text="#000000">
+    ------------------- Java API for WebSocket 1.0 JSR
+    text--------------------<span style="font-size: 10pt; font-family:
+      &quot;Arial&quot;,&quot;sans-serif&quot;;"><br>
+    </span>
+    <p><font size="+2">Section 1. Identification</font> </p>
+    <p><b>Submitting Member:</b> Oracle </p>
+    <p><b>Name of Contact Person:</b> Danny Coward<br>
+    </p>
+    <p><b>E-Mail Address:</b> danny.coward<faketag>@</faketag>oracle.com</p>
+    <p><b>Telephone Number:</b>&nbsp; +1 415 350 1701<br>
+    </p>
+    <p><b>Fax Number:</b> +1 408 276 4185</p>
+    <p><b>Specification Lead:</b> Danny Coward<br>
+    </p>
+    <p><b>E-Mail Address:</b> danny.coward<faketag>@</faketag>oracle.com</p>
+    <p><b>Telephone Number:</b>&nbsp; +1 415 350 1701 </p>
+    <p><b>Fax Number:</b> -, +1 408 276 4185</p>
+    <p><b>Initial Expert Group Membership:</b>&nbsp; </p>
+    <p><b>Supporting this JSR:<br>
+      </b></p>
+    <p><b>IBM<br>
+        SAP<br>
+        RedHat<br>
+      </b> </p>
+    <p> <font size="+2">Section 2: Request</font></p>
+    <p> </p>
+    <h4>2.1 Please describe the proposed Specification:</h4>
+    <p>This JSR will define a standard API for creating WebSocket
+      applications.<br>
+    </p>
+    <p>There is a wide range of web applications that rely on timely
+      updates from a central server like stock tickers, live maps, chat
+      applications, collaborative online tools and multiplayer web-based
+      games. WebSocket offers solution to the problems of latency,
+      scalability and performance associated with HTTP based solutions
+      like polling, long-polling and HTTP-streaming. There is a lot of
+      interest in the Java developer community in creating web
+      applications for the Java platform that utilize WebSocket. Given
+      that the definition of WebSocket protocol is a proposed standard,
+      and that the major web browsers either support, or plan to support
+      it in their next major release, the time is right for a standard
+      Java API for WebSocket.<br>
+    </p>
+    <p>This JSR will provide support in the Java EE platform for:-<br>
+    </p>
+    <ul>
+      <li>Creating WebSocket Java components to handle bi-directional
+        WebSocket conversations</li>
+      <li>Initiating and intercepting WebSocket events</li>
+      <li>Creation and consumption of WebSocket text and binary messages</li>
+      <li>The abililty to define WebSocket protocols and content models
+        for an application<br>
+      </li>
+      <li>Configuration and management of WebSocket sessions, like
+        timeouts, retries, cookies, connection pooling<br>
+      </li>
+      <li>Specification of how WebSocket application will work within
+        the Java EE security model</li>
+    </ul>
+    This functionality will be a mix of APIs together with Java
+    annotations to make for a flexible and easy to use programming
+    model, as is found in other Java APIs in the Java EE platform.<br>
+    <br>
+    The primary scenario is for that applications created using this
+    technology be server based. That is to say, this technology will be
+    for Java EE developers creating WebSocket applications in
+    bi-directional commutation with browser clients. This is exemplified
+    by a chat application, consisting of a web page, executing a client
+    script that connects to a server application. The server application
+    accepts new chat participants using the web sockets handshake,
+    accepts incoming chat messages, broadcasts updates of the currently
+    participating users to all clients in session, mediates
+    client-to-client chat sessions.<br>
+    <br>
+    A secondary scenario, is that this API will aid Java-clients of
+    WebSocket applications residing on a server. This scenario is
+    illustrated by a Java-based chat client participating in the chat
+    example above. <br>
+    <br>
+    This JSR will explore a separable client-API for WebSocket that will
+    run standalone on Java SE (specifically including API support for
+    initiating WebSocket communication) as part of its first release, or
+    may defer this to a later release.<br>
+    <h4>2.2 What is the target Java platform? (i.e., desktop, server,
+      personal, embedded, card, etc.)</h4>
+    <p>This specification is targeted for Java EE. </p>
+    <h4>2.3 The Executive Committees would like to ensure JSR submitters
+      think about how their proposed technology relates to all of the
+      Java platform editions. Please provide details here for which
+      platform editions are being targeted by this JSR, and how this JSR
+      has considered the relationship with the other platform editions.</h4>
+    <p>This specification targets the Java EE 7 Platform. It will be
+      based on the corresponding release of the Java SE platform. </p>
+    <h4>2.4 Should this JSR be voted on by both Executive Committees?</h4>
+    <p>No. Just the SE/EE Executive Committee. </p>
+    <h4>2.5 What need of the Java community will be addressed by the
+      proposed specification?</h4>
+    <p>The Java community has already seen the need to use WebSocket
+      from Java applications, as can be seen from the list of projects
+      that already provide a way to do so. The Java community is best
+      served by one standard API for using WebSocket in an application.<br>
+    </p>
+    <h4>2.6 Why isn't this need met by existing specifications?</h4>
+    <p>Though WebSocket applications could be created by low level I/O
+      APIs in Java SE, this approach is cumbersome and difficult. There
+      is no standard Java API that is high enough level to make the
+      creation of WebSocket applications simple.<br>
+    </p>
+    <h4>2.7 Please give a short description of the underlying technology
+      or technologies:</h4>
+    <p>Since WebSocket is TCP based, and uses an HTTP 'handshake' to
+      initiate and terminate a WebSocket session, this project will
+      likely build on existing networking and HTTP-based APIs where
+      appropriate. This JSR will work closely with the Java Servlet 3.1
+      expert group who are exploring the integration of the intial
+      handshake into the Java Servlet model.<br>
+    </p>
+    <h4>2.8 Is there a proposed package name for the API Specification?
+      (i.e., <tt>javapi.something</tt>, <tt>org.something</tt>, etc.)</h4>
+    <p>Possibly: javax.websocket.* or under java.net.websocket.<br>
+    </p>
+    <h4>2.9 Does the proposed specification have any dependencies on
+      specific operating systems, CPUs, or I/O devices that you know of?</h4>
+    <p>No.</p>
+    <h4>2.10 Are there any security issues that cannot be addressed by
+      the current security model?</h4>
+    <p>No.</p>
+    <h4>2.11 Are there any internationalization or localization issues?</h4>
+    <p>This JSR will use the I18N support in Java SE. </p>
+    <h4>2.12 Are there any existing specifications that might be
+      rendered obsolete, deprecated, or in need of revision as a result
+      of this work?</h4>
+    <p>No. </p>
+    <h4>2.13 Please describe the anticipated schedule for the
+      development of this specification.</h4>
+    <p>We hope to deliver the final specification, reference
+      implementation, and TCK in the Q1 of 2013. A rough schedule would
+      be: </p>
+    <table>
+      <tbody>
+        <tr>
+          <td>Apr 2012</td>
+          <td>Expert group formed</td>
+        </tr>
+        <tr>
+          <td>Q3 2012</td>
+          <td>Early Draft review</td>
+        </tr>
+        <tr>
+          <td>Q4 2012</td>
+          <td>Public Review</td>
+        </tr>
+        <tr>
+          <td>Q1 2013</td>
+          <td>Final release</td>
+        </tr>
+      </tbody>
+    </table>
+    <h4>2.14 Please describe the anticipated working model for the
+      Expert Group working on developing this specification.</h4>
+    <p>The primary means of communication will be email, with conference
+      calls and face-to-face meetings scheduled as needed. We will
+      solicit feedback from the community and leverage the open source
+      development model. </p>
+    <h4>2.15 Provide detailed answers to the transparency checklist,
+      making sure to include URLs as appropriate:</h4>
+    <p>websocket-spec java.net project site will be used to track all
+      issues and disseminate information on the progress of the JSR. The
+      Expert Group will conduct business on a publicly readable alias. A
+      private alias will be used only for EG administrative matters, as
+      needed. </p>
+    <p>- Is the schedule for the JSR publicly available, current, and
+      updated regularly? </p>
+    <p>The schedule will be available on the project page for the JSR. </p>
+    <p>- Can the public read and/or write to a wiki for the JSR? </p>
+    <p>We'll use a public mailing list for comments. </p>
+    <p>- Is there a publicly accessible discussion board for the JSR
+      that you read and respond to regularly? </p>
+    <p>We'll track such discussions and respond to them on the public
+      comment mailing list. </p>
+    <p>- Have you spoken at conferences and events about the JSR
+      recently? </p>
+    <p>No </p>
+    <p>- Are you using open-source processes for the development of the
+      RI and/or the TCK? </p>
+    <p>Yes, the RI will be developed as a java.net project. </p>
+    <p>- What are the Terms of Use required to use the collaboration
+      tools you have prepared to use with the Expert Group, so that
+      prospective EG members can judge whether they are compatible with
+      the JSPA? </p>
+    <p>The terms will be available on the project page for the JSR. </p>
+    <p>- Does the Community tab for my JSR have links to and information
+      about all public communication mechanisms and sites for the
+      development of my JSR? </p>
+    <p>Yes, it will point to the project page for the JSR. </p>
+    <h4>2.16 Please describe how the RI and TCK will be delivered, i.e.
+      as part of a profile or platform edition, or stand-alone, or both.
+      Include version information for the profile or platform in your
+      answer. </h4>
+    <p>The RI will be delivered standalone and possibly bundled with
+      some future release of Glassfish. The TCK will be delivered both
+      standalone and as part of a suitable future release of the Java EE
+      TCK. See the business terms for details. </p>
+    <h4>2.17 Please state the rationale if previous versions are
+      available stand-alone and you are now proposing in 2.13 to only
+      deliver RI and TCK as part of a profile or platform edition (See
+      sections 1.1.5 and 1.1.6 of the JCP 2 document). </h4>
+    <p>N/A</p>
+    <h4>2.18 Please provide a description of the business terms for the
+      Specification, RI and TCK that will apply when this JSR is final.</h4>
+    <p>Provide the links for the attached licenses </p>
+    <h4>2.19 Please describe the communications channel you have
+      established for the public to observe Expert Group deliberations,
+      provide feedback, and view archives of all Expert Group
+      communications.</h4>
+    <p>The Expert Group will conduct business on
+      jsr356-experts@websocket-spec.java.net mailing list which is
+      publicly readable. </p>
+    <h4>2.20 What is the URL of the Issue Tracker that the public can
+      read, and how does the public log issues in the Issue Tracker?</h4>
+    <p>A JIRA issue tracker for websocket-spec java.net project will be
+      used for this purpose. The issue tracker URL is <a
+        href="http://java.net/jira/browse/WEBSOCKET_SPEC">http://java.net/jira/browse/WEBSOCKET_SPEC</a>
+    </p>
+    <h4>2.21 Please provide the location of the publicly accessible
+      document archive you have created for the Expert Group.</h4>
+    <p>Expert Group's publicly readable mailing list will be archived at
+      <a
+href="http://java.net/projects/websocket-spec/lists/jsr356-experts/archive">http://java.net/projects/websocket-spec/lists/jsr356-experts/archive</a>
+      <a moz-do-nort-send="true" name="3"></a> </p>
+    <p> <font size="+2">Section 3: Contributions</font></p>
+    <p> </p>
+    <h4>3.1 Please list any existing documents, specifications, or
+      implementations that describe the technology. Please include links
+      to the documents if they are publicly available.</h4>
+    <br>
+    <table style="text-align: left; width: 100%;" border="1"
+      cellpadding="2" cellspacing="2">
+      <tbody>
+        <tr>
+          <td style="vertical-align: top;">WebSocket Protocol Definition<br>
+          </td>
+          <td style="vertical-align: top;"><a moz-do-not-send="true"
+              href="http://tools.ietf.org/html/rfc6455">http://tools.ietf.org/html/rfc6455</a><br>
+          </td>
+        </tr>
+        <tr>
+          <td style="vertical-align: top;">Java Servlet 3.1</td>
+          <td style="vertical-align: top;"><a moz-do-not-send="true"
+              href="http://jcp.org/en/jsr/detail?id=340">http://jcp.org/en/jsr/detail?id=340</a><br>
+          </td>
+        </tr>
+        <tr>
+          <td style="vertical-align: top;">jWebSocket</td>
+          <td style="vertical-align: top;"><a moz-do-not-send="true"
+              href="http://jwebsocket.org/">http://jwebsocket.org/</a><br>
+          </td>
+        </tr>
+        <tr>
+          <td style="vertical-align: top;">Grizzly</td>
+          <td style="vertical-align: top;"><a moz-do-not-send="true"
+              href="http://grizzly.java.net/">http://grizzly.java.net/</a><br>
+          </td>
+        </tr>
+        <tr>
+          <td style="vertical-align: top;">Jetty</td>
+          <td style="vertical-align: top;"><a moz-do-not-send="true"
+href="http://download.eclipse.org/jetty/stable-7/apidocs/org/eclipse/jetty/websocket/package-frame.html">http://download.eclipse.org/jetty/stable-7/apidocs/org/eclipse/jetty/websocket/package-frame.html</a></td>
+        </tr>
+      </tbody>
+    </table>
+    <p><br>
+    </p>
+    <h4>3.2 Explanation of how these items might be used as a starting
+      point for the work.</h4>
+    <p><br>
+    </p>
+  </body>
+</html>
+<html><body></body></html>
