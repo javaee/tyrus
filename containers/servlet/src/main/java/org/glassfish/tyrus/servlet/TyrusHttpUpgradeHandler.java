@@ -153,6 +153,7 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
         }
     }
 
+    // fill the buf with some more websocket protcol data
     private int fillBuf(int length) throws IOException {
         byte[] data = new byte[length];
         int len = is.read(data);
