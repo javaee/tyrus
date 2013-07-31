@@ -41,6 +41,9 @@ package org.glassfish.tyrus.container.grizzly;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.Proxy;
+import java.net.ProxySelector;
+import java.net.SocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
@@ -58,6 +61,7 @@ import java.util.logging.Logger;
 
 import javax.websocket.ClientEndpointConfig;
 import javax.websocket.CloseReason;
+import javax.websocket.DeploymentException;
 import javax.websocket.Session;
 
 import org.glassfish.tyrus.core.RequestContext;
@@ -79,6 +83,7 @@ import org.glassfish.tyrus.websockets.frametypes.PingFrameType;
 import org.glassfish.tyrus.websockets.frametypes.PongFrameType;
 
 import org.glassfish.grizzly.Connection;
+import org.glassfish.grizzly.GrizzlyFuture;
 import org.glassfish.grizzly.Processor;
 import org.glassfish.grizzly.filterchain.Filter;
 import org.glassfish.grizzly.filterchain.FilterChain;
@@ -134,26 +139,27 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
 
     private static final Logger LOGGER = Logger.getLogger(GrizzlyClientSocket.class.getName());
 
+    private final EnumSet<State> connected = EnumSet.range(State.CONNECTED, State.CLOSING);
+    private final AtomicReference<State> state = new AtomicReference<State>(State.NEW);
+    private final List<Proxy> proxies = new ArrayList<Proxy>();
+    private final List<javax.websocket.Extension> responseExtensions = new ArrayList<javax.websocket.Extension>();
+    private final CountDownLatch onConnectLatch = new CountDownLatch(1);
+
     private final URI uri;
     private final ProtocolHandler protocolHandler;
     private final SPIEndpoint endpoint;
     private TCPNIOTransport transport;
-    private final EnumSet<State> connected = EnumSet.range(State.CONNECTED, State.CLOSING);
-    private final AtomicReference<State> state = new AtomicReference<State>(State.NEW);
     private final TyrusRemoteEndpoint remoteEndpoint;
     private final long timeoutMs;
     private final ClientEndpointConfig configuration;
     private final SPIHandshakeListener listener;
     private final SSLEngineConfigurator clientSSLEngineConfigurator;
-    private final String proxyUri;
     private final ThreadPoolConfig workerThreadPoolConfig;
     private final ThreadPoolConfig selectorThreadPoolConfig;
 
+    private SocketAddress socketAddress;
+
     private Session session = null;
-
-    private final CountDownLatch onConnectLatch = new CountDownLatch(1);
-
-    private final List<javax.websocket.Extension> responseExtensions = new ArrayList<javax.websocket.Extension>();
 
     enum State {
         NEW, CONNECTED, CLOSING, CLOSED
@@ -171,7 +177,7 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
     GrizzlyClientSocket(SPIEndpoint endpoint, URI uri, ClientEndpointConfig configuration, long timeoutMs,
                         SPIHandshakeListener listener,
                         SSLEngineConfigurator clientSSLEngineConfigurator,
-                        String proxyUri,
+                        String proxyString,
                         ThreadPoolConfig workerThreadPoolConfig,
                         ThreadPoolConfig selectorThreadPoolConfig) {
         this.endpoint = endpoint;
@@ -183,37 +189,27 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
         this.timeoutMs = timeoutMs;
         this.listener = listener;
         this.clientSSLEngineConfigurator = clientSSLEngineConfigurator;
-        this.proxyUri = proxyUri;
         this.workerThreadPoolConfig = workerThreadPoolConfig;
         this.selectorThreadPoolConfig = selectorThreadPoolConfig;
         if (session == null) {
             session = endpoint.createSessionForRemoteEndpoint(remoteEndpoint, null, null);
         }
+
+        setProxy(proxyString);
     }
 
     /**
      * Connects to the given {@link URI}.
      */
-    public void connect() {
-        try {
-            // TYRUS-188: lots of threads were created for every single client instance.
-            final TCPNIOTransportBuilder transportBuilder = TCPNIOTransportBuilder.newInstance();
-
-            if (workerThreadPoolConfig == null) {
-                transportBuilder.getWorkerThreadPoolConfig().setMaxPoolSize(1).setCorePoolSize(1);
-            } else {
-                transportBuilder.setWorkerThreadPoolConfig(workerThreadPoolConfig);
+    public void connect() throws DeploymentException {
+        for (Proxy proxy : proxies) {
+            try {
+                transport = createTransport(workerThreadPoolConfig, selectorThreadPoolConfig);
+                transport.start();
+            } catch (Exception e) {
+                LOGGER.log(Level.SEVERE, "Transport failed to start.", e);
+                throw new HandshakeException(e.getMessage());
             }
-
-            if (selectorThreadPoolConfig == null) {
-                transportBuilder.getSelectorThreadPoolConfig().setMaxPoolSize(1).setCorePoolSize(1);
-            } else {
-                transportBuilder.setSelectorThreadPoolConfig(selectorThreadPoolConfig);
-            }
-
-            transport = transportBuilder.build();
-
-            transport.start();
 
             final TCPNIOConnectorHandler connectorHandler = new TCPNIOConnectorHandler(transport) {
                 @Override
@@ -230,44 +226,81 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
                 }
             };
 
-            URI proxy = null;
-            try {
-                if (proxyUri != null) {
-                    proxy = new URI(proxyUri);
-                    if (proxy.getHost() == null) {
-                        LOGGER.log(Level.WARNING, String.format("Invalid proxy '%s'.", proxyUri));
-                        proxy = null;
-                    }
-                }
-            } catch (URISyntaxException e) {
-                LOGGER.log(Level.WARNING, String.format("Invalid proxy '%s'.", proxyUri), e);
-            }
-
-            connectorHandler.setProcessor(createFilterChain(null, clientSSLEngineConfigurator, proxy != null));
-
-            int port = uri.getPort();
-            if (port == -1) {
-                String scheme = uri.getScheme();
-                assert scheme != null && (scheme.equals("ws") || scheme.equals("wss"));
-                if (scheme.equals("ws")) {
-                    port = 80;
-                } else if (scheme.equals("wss")) {
-                    port = 443;
-                }
-            }
-
-            if (proxy != null) {
-                final int proxyPort = proxy.getPort() == -1 ? 80 : proxy.getPort();
-                connectorHandler.connect(new InetSocketAddress(proxy.getHost(), proxyPort));
-            } else {
-                connectorHandler.connect(new InetSocketAddress(uri.getHost(), port));
-            }
             connectorHandler.setSyncConnectTimeout(timeoutMs, TimeUnit.MILLISECONDS);
-            awaitOnConnect();
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new HandshakeException(e.getMessage());
+
+            GrizzlyFuture<Connection> connectionGrizzlyFuture;
+
+            switch (proxy.type()) {
+                case DIRECT:
+                    connectorHandler.setProcessor(createFilterChain(null, clientSSLEngineConfigurator, false));
+
+                    LOGGER.log(Level.CONFIG, String.format("Connecting to '%s' (no proxy).", uri));
+                    connectionGrizzlyFuture = connectorHandler.connect(socketAddress);
+                    break;
+                default:
+                    connectorHandler.setProcessor(createFilterChain(null, clientSSLEngineConfigurator, true));
+
+                    LOGGER.log(Level.CONFIG, String.format("Connecting to '%s' via proxy '%s'.", uri, proxy));
+
+                    // default ProxySelector always returns proxies with unresolved addresses.
+                    SocketAddress address = proxy.address();
+                    if (address instanceof InetSocketAddress) {
+                        InetSocketAddress inetSocketAddress = (InetSocketAddress) address;
+                        if (inetSocketAddress.isUnresolved()) {
+                            // resolves the address.
+                            address = new InetSocketAddress(inetSocketAddress.getHostName(), inetSocketAddress.getPort());
+                        }
+                    }
+
+                    connectionGrizzlyFuture = connectorHandler.connect(address);
+                    break;
+            }
+
+            try {
+                final Connection connection = connectionGrizzlyFuture.get(timeoutMs, TimeUnit.MILLISECONDS);
+
+                LOGGER.log(Level.CONFIG, String.format("Connected to '%s'.", connection.getPeerAddress()));
+                awaitOnConnect();
+                return;
+            } catch (Exception e) {
+                LOGGER.log(Level.CONFIG, String.format("Connection to '%s' failed.", uri), e);
+
+                final Throwable cause = e.getCause();
+                if (e instanceof IOException) {
+                    ProxySelector.getDefault().connectFailed(uri, socketAddress, (IOException) e);
+                } else if ((cause != null) && (cause instanceof IOException)) {
+                    ProxySelector.getDefault().connectFailed(uri, socketAddress, (IOException) cause);
+                }
+
+                try {
+                    transport.stop();
+                } catch (IOException e1) {
+                    LOGGER.log(Level.WARNING, "Transport failed to stop.", e);
+                }
+            }
         }
+
+        throw new HandshakeException("Connection failed.");
+    }
+
+    private TCPNIOTransport createTransport(ThreadPoolConfig workerThreadPoolConfig, ThreadPoolConfig selectorThreadPoolConfig) {
+
+        // TYRUS-188: lots of threads were created for every single client instance.
+        final TCPNIOTransportBuilder transportBuilder = TCPNIOTransportBuilder.newInstance();
+
+        if (workerThreadPoolConfig == null) {
+            transportBuilder.getWorkerThreadPoolConfig().setMaxPoolSize(1).setCorePoolSize(1);
+        } else {
+            transportBuilder.setWorkerThreadPoolConfig(workerThreadPoolConfig);
+        }
+
+        if (selectorThreadPoolConfig == null) {
+            transportBuilder.getSelectorThreadPoolConfig().setMaxPoolSize(1).setCorePoolSize(1);
+        } else {
+            transportBuilder.setSelectorThreadPoolConfig(selectorThreadPoolConfig);
+        }
+
+        return transportBuilder.build();
     }
 
     private void prepareHandshake(HandShake handshake) {
@@ -468,12 +501,86 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
         protocolHandler.setWriteTimeout(timeoutMs);
     }
 
-    // return boolean, check return value
-    private void awaitOnConnect() {
+    private void setProxy(String proxyString) {
+        URI proxyUri;
         try {
-            onConnectLatch.await(timeoutMs, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
-            // do nothing.
+            if (proxyString != null) {
+                proxyUri = new URI(proxyString);
+                if (proxyUri.getHost() == null) {
+                    LOGGER.log(Level.WARNING, String.format("Invalid proxy '%s'.", proxyString));
+                } else {
+                    // proxy set via properties
+                    int proxyPort = proxyUri.getPort() == -1 ? 80 : proxyUri.getPort();
+                    proxies.add(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyUri.getHost(), proxyPort)));
+                }
+            }
+        } catch (URISyntaxException e) {
+            LOGGER.log(Level.WARNING, String.format("Invalid proxy '%s'.", proxyString), e);
+        }
+
+        // ProxySelector
+        final ProxySelector proxySelector = ProxySelector.getDefault();
+
+        // see WebSocket Protocol RFC, chapter 4.1.3: http://tools.ietf.org/html/rfc6455#section-4.1
+        addProxies(proxySelector, uri, "socket", proxies);
+        addProxies(proxySelector, uri, "https", proxies);
+        addProxies(proxySelector, uri, "http", proxies);
+        proxies.add(Proxy.NO_PROXY);
+
+        // compute direct address in case no proxy is found
+        int port = uri.getPort();
+        if (port == -1) {
+            String scheme = uri.getScheme();
+            assert scheme != null && (scheme.equals("ws") || scheme.equals("wss"));
+            if (scheme.equals("ws")) {
+                port = 80;
+            } else if (scheme.equals("wss")) {
+                port = 443;
+            }
+        }
+        if (LOGGER.isLoggable(Level.FINE)) {
+            LOGGER.log(Level.FINE, String.format(String.format("Not using proxy for URI '%s'.", uri)));
+        }
+        socketAddress = new InetSocketAddress(uri.getHost(), port);
+    }
+
+    /**
+     * Add proxies to suplied list. Proxies will be obtained via supplied {@link ProxySelector} instance.
+     *
+     * @param proxySelector proxy selector.
+     * @param uri           original request {@link URI}.
+     * @param scheme        scheme used for proxy selection.
+     * @param proxies       list of proxies (found proxies will be added to this list).
+     */
+    private void addProxies(ProxySelector proxySelector, URI uri, String scheme, List<Proxy> proxies) {
+        for (Proxy p : proxySelector.select(getProxyUri(uri, scheme))) {
+            switch (p.type()) {
+                case HTTP:
+                    LOGGER.log(Level.FINE, String.format("Found proxy: '%s'", p));
+                    proxies.add(p);
+                    break;
+                case SOCKS:
+                    LOGGER.log(Level.INFO, String.format("Socks proxy is not supported, please file new issue at https://java.net/jira/browse/TYRUS. Proxy '%s' will be ignored.", p));
+                    break;
+            }
+        }
+    }
+
+
+    /**
+     * Since standard Java {@link ProxySelector} does not support "ws" and "wss" schemes in {@link URI URIs},
+     * we need to replace them by others ("socket", "https" or "http").
+     *
+     * @param wsUri  original {@link URI}.
+     * @param scheme new scheme.
+     * @return {@link URI} with updated scheme.
+     */
+    private URI getProxyUri(URI wsUri, String scheme) {
+        try {
+            return new URI(scheme, wsUri.getUserInfo(), wsUri.getHost(), wsUri.getPort(), wsUri.getPath(), wsUri.getQuery(), wsUri.getFragment());
+        } catch (URISyntaxException e) {
+            LOGGER.log(Level.WARNING, String.format("Exception during generating proxy URI '%s'", wsUri), e);
+            return wsUri;
         }
     }
 
@@ -507,6 +614,14 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
             } catch (IOException e) {
                 Logger.getLogger(GrizzlyClientSocket.class.getName()).log(Level.FINE, "Transport closing problem.");
             }
+        }
+    }
+
+    private void awaitOnConnect() {
+        try {
+            onConnectLatch.await();
+        } catch (InterruptedException e) {
+            // do nothing.
         }
     }
 
