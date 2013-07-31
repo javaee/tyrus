@@ -77,7 +77,6 @@ public class AsyncBinaryTest {
     private final String CONTEXT_PATH = "/servlet-test/async";
     private final String DEFAULT_HOST = "localhost";
     private final int DEFAULT_PORT = 8025;
-    private static int response = -1;
 
     private final Set<Class<?>> endpointClasses = new HashSet<Class<?>>() {{
         add(BinaryFutureEndpoint.class);
@@ -164,7 +163,7 @@ public class AsyncBinaryTest {
                     session.addMessageHandler(new MessageHandler.Whole<Integer>() {
                         @Override
                         public void onMessage(Integer message) {
-                            response = message.intValue();
+                            Assert.assertEquals("Server callback wasn't called at all cases.", 0, message.intValue());
                             serviceLatch.countDown();
                         }
                     });
@@ -177,7 +176,6 @@ public class AsyncBinaryTest {
             }, ClientEndpointConfig.Builder.create().build(), getURI(ServiceEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
 
             serviceLatch.await(5, TimeUnit.SECONDS);
-            Assert.assertEquals("Server callback wasn't called at all cases.", 0, response);
             Assert.assertEquals("Didn't receive all the messages. ", 0, receivedLatch.getCount());
         } finally {
             stopServer(server);
@@ -237,7 +235,6 @@ public class AsyncBinaryTest {
             Assert.assertEquals("Didn't send all the messages. ", 0, sentLatch.getCount());
             Assert.assertEquals("Didn't receive all the messages. ", 0, receivedLatch.getCount());
 
-            response = -1;
             final CountDownLatch serviceLatch = new CountDownLatch(1);
             client.connectToServer(new Endpoint() {
                 @Override
@@ -246,7 +243,6 @@ public class AsyncBinaryTest {
                         @Override
                         public void onMessage(Integer message) {
                             Assert.assertEquals("Server callback wasn't called at all cases.", 0, message.intValue());
-                            response = message.intValue();
                             serviceLatch.countDown();
                         }
                     });
@@ -260,7 +256,6 @@ public class AsyncBinaryTest {
                     getURI(ServiceEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
 
             serviceLatch.await(5, TimeUnit.SECONDS);
-            Assert.assertEquals("Server callback wasn't called at all cases.", 0, response);
             Assert.assertEquals("Didn't receive all the messages. ", 0, receivedLatch.getCount());
         } finally {
             stopServer(server);

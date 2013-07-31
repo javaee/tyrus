@@ -60,6 +60,7 @@ import javax.websocket.server.ServerEndpoint;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import junit.framework.Assert;
@@ -67,6 +68,7 @@ import junit.framework.Assert;
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
+@Ignore
 public class RemoteApplicationTest {
 
     private final String CONTEXT_PATH = "/remote-test";
