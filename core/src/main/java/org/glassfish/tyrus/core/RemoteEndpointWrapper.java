@@ -52,6 +52,7 @@ import javax.websocket.CloseReason;
 import javax.websocket.EncodeException;
 import javax.websocket.RemoteEndpoint;
 import javax.websocket.SendHandler;
+import javax.websocket.SendResult;
 
 import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
 
@@ -120,7 +121,6 @@ public abstract class RemoteEndpointWrapper implements RemoteEndpoint {
         public Writer getSendWriter() throws IOException {
             return new WriterToAsyncTextAdapter(remoteEndpoint);
         }
-
     }
 
     static class Async extends RemoteEndpointWrapper implements RemoteEndpoint.Async {
@@ -132,37 +132,32 @@ public abstract class RemoteEndpointWrapper implements RemoteEndpoint {
 
         @Override
         public void sendText(String text, SendHandler handler) {
-            SendCompletionAdapter goesAway = new SendCompletionAdapter(this, SendCompletionAdapter.State.TEXT);
             session.restartIdleTimeoutExecutor();
-            goesAway.send(text, handler);
+            sendAsync(text, handler, AsyncMessageType.TEXT);
         }
 
         @Override
         public Future<Void> sendText(String text) {
-            SendCompletionAdapter goesAway = new SendCompletionAdapter(this, SendCompletionAdapter.State.TEXT);
             session.restartIdleTimeoutExecutor();
-            return goesAway.send(text, null);
+            return sendAsync(text, null, AsyncMessageType.TEXT);
         }
 
         @Override
         public Future<Void> sendBinary(ByteBuffer data) {
-            SendCompletionAdapter goesAway = new SendCompletionAdapter(this, SendCompletionAdapter.State.BINARY);
             session.restartIdleTimeoutExecutor();
-            return goesAway.send(data, null);
+            return sendAsync(data, null, AsyncMessageType.BINARY);
         }
 
         @Override
-        public void sendBinary(ByteBuffer data, SendHandler completion) {
-            SendCompletionAdapter goesAway = new SendCompletionAdapter(this, SendCompletionAdapter.State.BINARY);
+        public void sendBinary(ByteBuffer data, SendHandler handler) {
             session.restartIdleTimeoutExecutor();
-            goesAway.send(data, completion);
+            sendAsync(data, handler, AsyncMessageType.BINARY);
         }
 
         @Override
         public void sendObject(Object data, SendHandler handler) {
-            SendCompletionAdapter goesAway = new SendCompletionAdapter(this, SendCompletionAdapter.State.OBJECT);
             session.restartIdleTimeoutExecutor();
-            goesAway.send(data, handler);
+            sendAsync(data, handler, AsyncMessageType.OBJECT);
         }
 
         @Override
@@ -178,9 +173,58 @@ public abstract class RemoteEndpointWrapper implements RemoteEndpoint {
 
         @Override
         public Future<Void> sendObject(Object data) {
-            SendCompletionAdapter goesAway = new SendCompletionAdapter(this, SendCompletionAdapter.State.OBJECT);
             session.restartIdleTimeoutExecutor();
-            return goesAway.send(data, null);
+            return sendAsync(data, null, AsyncMessageType.OBJECT);
+        }
+
+        private Future<Void> sendAsync(final Object message, final SendHandler handler, final AsyncMessageType type) {
+            final FutureSendResult fsr = new FutureSendResult();
+
+            endpointWrapper.container.getExecutorService().execute(new Runnable() {
+
+                @Override
+                public void run() {
+                    Future<?> result = null;
+                    SendResult sr = null;
+
+                    try {
+                        switch (type) {
+                            case TEXT:
+                                result = sendSyncText((String) message);
+                                break;
+
+                            case BINARY:
+                                result = sendSyncBinary((ByteBuffer) message);
+                                break;
+
+                            case OBJECT:
+                                result = sendSyncObject(message);
+                                break;
+                        }
+
+                        result.get();
+                    } catch (Throwable thw) {
+                        sr = new SendResult(thw);
+                        fsr.setFailure(thw);
+                    } finally {
+                        if(sr == null){
+                            sr = new SendResult();
+                        }
+                        if (handler != null) {
+                            handler.onResult(sr);
+                        }
+                        fsr.setDone();
+                    }
+                }
+            });
+
+            return fsr;
+        }
+
+        private static enum AsyncMessageType {
+            TEXT, // String
+            BINARY,  // ByteBuffer
+            OBJECT // OBJECT
         }
     }
 

@@ -41,12 +41,10 @@ package org.glassfish.tyrus.container.grizzly;
 
 import java.io.IOException;
 import java.util.Map;
-import java.util.concurrent.Future;
 
 import org.glassfish.tyrus.websockets.Connection;
 import org.glassfish.tyrus.websockets.DataFrame;
 import org.glassfish.tyrus.websockets.WebSocketResponse;
-import org.glassfish.tyrus.websockets.WriteFuture;
 
 import org.glassfish.grizzly.Closeable;
 import org.glassfish.grizzly.EmptyCompletionHandler;
@@ -80,21 +78,24 @@ class ConnectionImpl extends Connection {
 
     @Override
     @SuppressWarnings({"unchecked"})
-    public Future<DataFrame> write(final DataFrame frame, final CompletionHandler completionHandler) {
+    public void write(final DataFrame frame, final CompletionHandler completionHandler) {
         if (!connection.isOpen()) {
-            return null;
+            return;
         }
 
-        final WriteFuture<DataFrame> future = new WriteFuture<DataFrame>();
         connection.write(frame, new EmptyCompletionHandler() {
+            @Override
+            public void cancelled() {
+                if (completionHandler != null) {
+                    completionHandler.cancelled();
+                }
+            }
 
             @Override
             public void completed(Object result) {
                 if (completionHandler != null) {
                     completionHandler.completed(frame);
                 }
-
-                future.setResult(frame);
             }
 
             @Override
@@ -102,12 +103,8 @@ class ConnectionImpl extends Connection {
                 if (completionHandler != null) {
                     completionHandler.failed(throwable);
                 }
-
-                future.setFailure(throwable);
             }
         });
-
-        return future;
     }
 
     @Override
