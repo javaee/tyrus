@@ -142,8 +142,6 @@ class ConnectionImpl extends Connection implements WriteListener {
         }
     }
 
-    // TODO: change signature to
-    // TODO: Future<DataFrame> write(byte[] frame, CompletionHandler completionHandler)?
     public void _write(final DataFrame frame, Connection.CompletionHandler<DataFrame> completionHandler) {
 
         final byte[] bytes = WebSocketEngine.getEngine().getWebSocketHolder(this).handler.frame(frame);

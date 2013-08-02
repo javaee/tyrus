@@ -177,6 +177,14 @@ public abstract class RemoteEndpointWrapper implements RemoteEndpoint {
             return sendAsync(data, null, AsyncMessageType.OBJECT);
         }
 
+        /**
+         * Sends the message asynchronously (from separate {@link Thread}).
+         *
+         * @param message message to be sent
+         * @param handler message sending callback handler
+         * @param type message type
+         * @return message sending callback {@link Future}
+         */
         private Future<Void> sendAsync(final Object message, final SendHandler handler, final AsyncMessageType type) {
             final FutureSendResult fsr = new FutureSendResult();
 

@@ -367,7 +367,7 @@ public abstract class ProtocolHandler {
     /**
      * Handler passed to the {@link Connection}.
      */
-    public static class DefaultCompletionHandler extends Connection.CompletionHandler<DataFrame> {
+    private static class DefaultCompletionHandler extends Connection.CompletionHandler<DataFrame> {
 
         private final WriteFuture<DataFrame> future;
 
