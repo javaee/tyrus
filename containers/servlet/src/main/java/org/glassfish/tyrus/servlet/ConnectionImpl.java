@@ -100,10 +100,12 @@ class ConnectionImpl extends Connection implements WriteListener {
         QueuedFrame queuedFrame = queue.poll();
         isReady = servletOutputStream.isReady();
 
-        while (queuedFrame != null && isReady) {
+        while (isReady && queuedFrame != null) {
             _write(queuedFrame.dataFrame, queuedFrame.completionHandler);
             isReady = servletOutputStream.isReady();
-            queuedFrame = queue.poll();
+            if (isReady) {
+                queuedFrame = queue.poll();
+            }
         }
     }
 
