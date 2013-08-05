@@ -45,6 +45,8 @@ import java.nio.ByteBuffer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.websocket.CloseReason;
+
 import javax.servlet.ReadListener;
 import javax.servlet.ServletInputStream;
 import javax.servlet.ServletOutputStream;
@@ -52,6 +54,7 @@ import javax.servlet.http.HttpUpgradeHandler;
 import javax.servlet.http.WebConnection;
 
 import org.glassfish.tyrus.websockets.DataFrame;
+import org.glassfish.tyrus.websockets.DefaultWebSocket;
 import org.glassfish.tyrus.websockets.FramingException;
 import org.glassfish.tyrus.websockets.WebSocket;
 import org.glassfish.tyrus.websockets.WebSocketEngine;
@@ -77,6 +80,7 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
     private static final Logger LOGGER = Logger.getLogger(TyrusHttpUpgradeHandler.class.getName());
 
     private WebSocketEngine.WebSocketHolder webSocketHolder;
+    private boolean authenticated = false;
 
     @Override
     public void init(WebConnection wc) {
@@ -213,6 +217,22 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
         close(new ClosingFrame(WebSocket.ABNORMAL_CLOSE, "No reason given."));
     }
 
+    /**
+     * Called when related {@link javax.servlet.http.HttpSession} is destroyed or invalidated.
+     *
+     * Implementation is required to call onClose() on server-side with corresponding close code (1006 or 1008, see
+     * WebSocket spec 7.2 and 2.1.5).
+     */
+    public void sessionDestroyed() {
+        if(authenticated) {
+            // websocket spec 7.2 [WSC-7.2-3]
+            httpSessionForcedClose(new ClosingFrame(CloseReason.CloseCodes.VIOLATED_POLICY.getCode(), "No reason given."));
+        } else {
+            // websocket spec 2.1.5
+            httpSessionForcedClose(new ClosingFrame(WebSocket.ABNORMAL_CLOSE, "No reason given."));
+        }
+    }
+
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder("TyrusHttpUpgradeHandler{");
@@ -232,16 +252,33 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
         }
     }
 
+    public void setAuthenticated(boolean authenticated) {
+        this.authenticated = authenticated;
+    }
+
     public void setIncomingBufferSize(int incomingBufferSize) {
         this.incomingBufferSize = incomingBufferSize;
+    }
+
+    private void httpSessionForcedClose(ClosingFrame closingFrame) {
+        if (!closed) {
+            try {
+                ((DefaultWebSocket)webSocketHolder.webSocket).setClosed();
+                webSocketHolder.webSocket.onClose(closingFrame);
+                closed = true;
+                wc.close();
+            } catch (Exception e) {
+                LOGGER.log(Level.CONFIG, e.getMessage(), e);
+            }
+        }
     }
 
     private void close(ClosingFrame closingFrame) {
         if (!closed) {
             try {
                 webSocketHolder.webSocket.onClose(closingFrame);
-                wc.close();
                 closed = true;
+                wc.close();
             } catch (Exception e) {
                 LOGGER.log(Level.CONFIG, e.getMessage(), e);
             }

@@ -88,6 +88,11 @@ public class TyrusServletContainerInitializer implements ServletContainerInitial
         classes.removeAll(FILTERED_CLASSES);
         TyrusServletFilter filter = ctx.createFilter(TyrusServletFilter.class);
         filter.setClasses(classes);
+
+        // HttpSessionListener registration
+        ctx.addListener(filter);
+
+        // Filter registration
         final FilterRegistration.Dynamic reg = ctx.addFilter("WebSocket filter", filter);
         reg.setAsyncSupported(true);
         reg.addMappingForUrlPatterns(null, true, "/*");

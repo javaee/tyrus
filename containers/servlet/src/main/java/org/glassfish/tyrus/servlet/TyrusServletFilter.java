@@ -44,7 +44,9 @@ import java.net.URI;
 import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -61,6 +63,9 @@ import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+import javax.servlet.http.HttpSessionEvent;
+import javax.servlet.http.HttpSessionListener;
 import javax.servlet.http.WebConnection;
 
 import org.glassfish.tyrus.core.RequestContext;
@@ -78,7 +83,7 @@ import org.glassfish.tyrus.websockets.WebSocketEngine;
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class TyrusServletFilter implements Filter {
+public class TyrusServletFilter implements Filter, HttpSessionListener {
 
     private static final int INFORMATIONAL_FIXED_PORT = 8080;
     private final static Logger LOGGER = Logger.getLogger(TyrusServletFilter.class.getName());
@@ -92,6 +97,14 @@ public class TyrusServletFilter implements Filter {
     private ServletContext servletContext = null;
     private final Set<Class<?>> dynamicallyDeployedClasses = new HashSet<Class<?>>();
     private final Set<ServerEndpointConfig> dynamicallyDeployedServerEndpointConfigs = new HashSet<ServerEndpointConfig>();
+
+    // I don't like this map, but it seems like it is necessary. I am forced to handle subscriptions
+    // for HttpSessionListener because the listener itself must be registered *before* ServletContext
+    // initialization.
+    // I could create List of listeners and send a create something like sessionDestroyed(HttpSession s)
+    // but that would take more time (statistically higher number of comparisons).
+    private final Map<HttpSession, TyrusHttpUpgradeHandler> sessionToHandler =
+            new ConcurrentHashMap<HttpSession, TyrusHttpUpgradeHandler>();
 
     public TyrusServletFilter() {
     }
@@ -143,6 +156,20 @@ public class TyrusServletFilter implements Filter {
         }
     }
 
+    @Override
+    public void sessionCreated(HttpSessionEvent se) {
+        // do nothing.
+    }
+
+    @Override
+    public void sessionDestroyed(HttpSessionEvent se) {
+        final TyrusHttpUpgradeHandler upgradeHandler = sessionToHandler.get(se.getSession());
+        if(upgradeHandler != null) {
+            sessionToHandler.remove(se.getSession());
+            upgradeHandler.sessionDestroyed();
+        }
+    }
+
     private static class TyrusHttpUpgradeHandlerProxy extends TyrusHttpUpgradeHandler {
 
         private TyrusHttpUpgradeHandler handler;
@@ -173,8 +200,18 @@ public class TyrusServletFilter implements Filter {
         }
 
         @Override
+        public void sessionDestroyed() {
+            handler.sessionDestroyed();
+        }
+
+        @Override
         public void setWebSocketHolder(WebSocketEngine.WebSocketHolder webSocketHolder) {
             handler.setWebSocketHolder(webSocketHolder);
+        }
+
+        @Override
+        public void setAuthenticated(boolean authenticated) {
+            handler.setAuthenticated(authenticated);
         }
 
         @Override
@@ -229,7 +266,7 @@ public class TyrusServletFilter implements Filter {
                 String name = headerNames.nextElement();
 
                 final List<String> values = requestContext.getHeaders().get(name);
-                if(values == null) {
+                if (values == null) {
                     requestContext.getHeaders().put(name, Utils.parseHeaderValue(httpServletRequest.getHeader(name).trim()));
                 } else {
                     values.addAll(Utils.parseHeaderValue(httpServletRequest.getHeader(name).trim()));
@@ -251,6 +288,8 @@ public class TyrusServletFilter implements Filter {
                             throw new HandshakeException(500, "Handshake error.", e);
                         }
                         handler.setWebSocketHolder(engine.getWebSocketHolder(webSocketConnection));
+                        handler.setAuthenticated(httpServletRequest.getUserPrincipal() != null);
+                        sessionToHandler.put(httpServletRequest.getSession(), handler);
                     }
                 })) {
                     filterChain.doFilter(request, response);
