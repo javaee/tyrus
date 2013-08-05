@@ -41,7 +41,6 @@
 package org.glassfish.tyrus.websockets;
 
 import java.io.IOException;
-import java.util.concurrent.Future;
 
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
@@ -92,7 +91,7 @@ public abstract class Connection {
         }
     }
 
-    public abstract Future<DataFrame> write(DataFrame frame, CompletionHandler<DataFrame> completionHandler);
+    public abstract void write(DataFrame frame, CompletionHandler<DataFrame> completionHandler);
 
     public abstract void write(WebSocketResponse response);
 

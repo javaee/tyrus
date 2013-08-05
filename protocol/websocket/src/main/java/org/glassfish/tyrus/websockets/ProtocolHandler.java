@@ -45,11 +45,13 @@ import java.nio.CharBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CoderResult;
+import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.websocket.WebSocketContainer;
 
@@ -62,6 +64,7 @@ public abstract class ProtocolHandler {
     private final Charset utf8 = new StrictUtf8();
     private final CharsetDecoder currentDecoder = utf8.newDecoder();
     private WebSocket webSocket;
+    private final AtomicBoolean onClosedCalled = new AtomicBoolean(false);
     private byte outFragmentedType;
     private ByteBuffer remainder;
     private long writeTimeoutMs = -1;
@@ -80,19 +83,6 @@ public abstract class ProtocolHandler {
         final HandShake handshake = createHandShake(request);
         handshake.respond(connection, app/*, ((WebSocketRequest) request.getHttpHeader()).getResponse()*/);
         return handshake;
-    }
-
-    public final Future<DataFrame> send(DataFrame frame, boolean useTimeout) {
-        return send(frame, null, useTimeout);
-    }
-
-    public final Future<DataFrame> send(DataFrame frame) {
-        return send(frame, null, true);
-    }
-
-    public Future<DataFrame> send(DataFrame frame,
-                                  Connection.CompletionHandler<DataFrame> completionHandler, Boolean useTimeout) {
-        return write(frame, completionHandler, useTimeout);
     }
 
     public Connection getConnection() {
@@ -133,8 +123,21 @@ public abstract class ProtocolHandler {
      */
     public abstract HandShake createClientHandShake(WebSocketRequest webSocketRequest, boolean client);
 
+    public final Future<DataFrame> send(DataFrame frame, boolean useTimeout) {
+        return send(frame, null, useTimeout);
+    }
+
+    public final Future<DataFrame> send(DataFrame frame) {
+        return send(frame, null, true);
+    }
+
+    public Future<DataFrame> send(DataFrame frame,
+                                  Connection.CompletionHandler<DataFrame> completionHandler, Boolean useTimeout) {
+        return write(frame, completionHandler, useTimeout);
+    }
+
     public Future<DataFrame> send(byte[] data) {
-        return send(new DataFrame(new BinaryFrameType(), data));
+        return send(new DataFrame(new BinaryFrameType(), data), null, true);
     }
 
     public Future<DataFrame> send(String data) {
@@ -142,7 +145,7 @@ public abstract class ProtocolHandler {
     }
 
     public Future<DataFrame> stream(boolean last, byte[] bytes, int off, int len) {
-        return send(new DataFrame(new BinaryFrameType(), bytes, last));
+        return send(new DataFrame(new BinaryFrameType(), Arrays.copyOfRange(bytes, off, off + len), last));
     }
 
     public Future<DataFrame> stream(boolean last, String fragment) {
@@ -152,28 +155,33 @@ public abstract class ProtocolHandler {
     public Future<DataFrame> close(int code, String reason) {
         final ClosingFrame closingFrame = new ClosingFrame(code, reason);
 
-        return send(closingFrame,
-                new Connection.CompletionHandler<DataFrame>() {
+        return send(closingFrame, new Connection.CompletionHandler<DataFrame>() {
 
-                    @Override
-                    public void failed(final Throwable throwable) {
-                        if (webSocket != null) {
-                            webSocket.onClose(closingFrame);
-                        }
-                    }
+            @Override
+            public void cancelled() {
+                if (webSocket != null && !onClosedCalled.getAndSet(true)) {
+                    webSocket.onClose(closingFrame);
+                }
+            }
 
-                    @Override
-                    public void completed(DataFrame result) {
-                        if (!maskData && (webSocket != null)) {
-                            webSocket.onClose(closingFrame);
-                        }
-                    }
-                }, false);
+            @Override
+            public void failed(final Throwable throwable) {
+                if (webSocket != null && !onClosedCalled.getAndSet(true)) {
+                    webSocket.onClose(closingFrame);
+                }
+            }
+
+            @Override
+            public void completed(DataFrame result) {
+                if (!maskData && (webSocket != null) && !onClosedCalled.getAndSet(true)) {
+                    webSocket.onClose(closingFrame);
+                }
+            }
+        }, false);
     }
 
     @SuppressWarnings({"unchecked"})
-    private Future<DataFrame> write(final DataFrame frame,
-                                    final Connection.CompletionHandler<DataFrame> completionHandler, boolean useTimeout) {
+    private Future<DataFrame> write(final DataFrame frame, final Connection.CompletionHandler<DataFrame> completionHandler, boolean useTimeout) {
         final Connection localConnection = connection;
         final WriteFuture<DataFrame> future = new WriteFuture<DataFrame>();
 
@@ -182,22 +190,14 @@ public abstract class ProtocolHandler {
         }
 
 
-        if (writeTimeoutMs > 0 && container instanceof ExecutorServiceProvider) {
+        if (useTimeout && writeTimeoutMs > 0 && container instanceof ExecutorServiceProvider) {
             ExecutorService executor = ((ExecutorServiceProvider) container).getExecutorService();
             try {
                 executor.submit(new Runnable() {
 
                     @Override
                     public void run() {
-                        Future<DataFrame> result = localConnection.write(frame, completionHandler);
-                        try {
-                            result.get();
-                        } catch (InterruptedException e) {
-                            future.setFailure(e);
-                        } catch (ExecutionException e) {
-                            future.setFailure(e);
-                        }
-                        future.setResult(frame);
+                        localConnection.write(frame, completionHandler == null ? new DefaultCompletionHandler(future) : completionHandler);
                     }
                 }).get(writeTimeoutMs, TimeUnit.MILLISECONDS);
             } catch (InterruptedException e) {
@@ -207,11 +207,11 @@ public abstract class ProtocolHandler {
             } catch (TimeoutException e) {
                 future.setFailure(e);
             }
-
-            return future;
         } else {
-            return localConnection.write(frame, completionHandler);
+            localConnection.write(frame, completionHandler == null ? new DefaultCompletionHandler(future) : completionHandler);
         }
+
+        return future;
     }
 
     public DataFrame unframe(ByteBuffer buffer) {
@@ -364,23 +364,27 @@ public abstract class ProtocolHandler {
         this.container = container;
     }
 
-//    public static class WriteConnectionHandler<DataFrame> extends Connection.CompletionHandler<DataFrame> {
-//
-//        WriteFuture<DataFrame> future;
-//
-//        public WriteConnectionHandler(WriteFuture<DataFrame> future) {
-//            this.future = future;
-//        }
-//
-//        @Override
-//        public void completed(DataFrame result) {
-//            future.setResult(result);
-//        }
-//
-//        @Override
-//        public void failed(Throwable throwable) {
-//            future.setFailure(throwable);
-//        }
-//    }
+    /**
+     * Handler passed to the {@link Connection}.
+     */
+    private static class DefaultCompletionHandler extends Connection.CompletionHandler<DataFrame> {
 
+        private final WriteFuture<DataFrame> future;
+
+        public DefaultCompletionHandler(WriteFuture<DataFrame> future) {
+            this.future = future;
+        }
+
+        public void cancelled() {
+            future.setFailure(new RuntimeException("Frame writing was canceled."));
+        }
+
+        public void failed(Throwable throwable) {
+            future.setFailure(throwable);
+        }
+
+        public void completed(DataFrame result) {
+            future.setResult(result);
+        }
+    }
 }
