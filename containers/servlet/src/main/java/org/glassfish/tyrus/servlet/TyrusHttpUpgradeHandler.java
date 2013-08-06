@@ -53,8 +53,8 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpUpgradeHandler;
 import javax.servlet.http.WebConnection;
 
+import org.glassfish.tyrus.core.TyrusWebSocket;
 import org.glassfish.tyrus.websockets.DataFrame;
-import org.glassfish.tyrus.websockets.DefaultWebSocket;
 import org.glassfish.tyrus.websockets.FramingException;
 import org.glassfish.tyrus.websockets.WebSocket;
 import org.glassfish.tyrus.websockets.WebSocketEngine;
@@ -263,7 +263,7 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
     private void httpSessionForcedClose(ClosingFrame closingFrame) {
         if (!closed) {
             try {
-                ((DefaultWebSocket)webSocketHolder.webSocket).setClosed();
+                ((TyrusWebSocket)webSocketHolder.webSocket).setClosed();
                 webSocketHolder.webSocket.onClose(closingFrame);
                 closed = true;
                 wc.close();

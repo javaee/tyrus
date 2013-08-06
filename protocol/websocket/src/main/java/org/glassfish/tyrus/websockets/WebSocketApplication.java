@@ -42,6 +42,7 @@ package org.glassfish.tyrus.websockets;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.glassfish.tyrus.websockets.draft06.ClosingFrame;
@@ -58,7 +59,7 @@ public abstract class WebSocketApplication implements WebSocketListener {
     /*
      * WebSockets registered with this application.
      */
-    private final ConcurrentHashMap<WebSocket, Boolean> sockets =
+    private final Map<WebSocket, Boolean> sockets =
             new ConcurrentHashMap<WebSocket, Boolean>();
 
     private final List<Extension> supportedExtensions = new ArrayList<Extension>();
@@ -74,11 +75,8 @@ public abstract class WebSocketApplication implements WebSocketListener {
      *                      {@link WebSocket}.
      * @return TODO
      */
-    public WebSocket createSocket(final ProtocolHandler handler,
-                                  final WebSocketListener... listeners) {
-        return new DefaultWebSocket(handler, listeners);
-
-    }
+    public abstract WebSocket createSocket(final ProtocolHandler handler,
+                                  final WebSocketListener... listeners);
 
     /**
      * When a {@link WebSocket#onClose(org.glassfish.tyrus.websockets.draft06.ClosingFrame)} is invoked, the {@link WebSocket}

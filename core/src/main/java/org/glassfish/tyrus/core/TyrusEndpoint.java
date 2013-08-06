@@ -61,7 +61,6 @@ import javax.websocket.server.ServerEndpointConfig;
 
 import org.glassfish.tyrus.spi.SPIEndpoint;
 import org.glassfish.tyrus.spi.SPIRegisteredEndpoint;
-import org.glassfish.tyrus.websockets.DefaultWebSocket;
 import org.glassfish.tyrus.websockets.ProtocolHandler;
 import org.glassfish.tyrus.websockets.WebSocket;
 import org.glassfish.tyrus.websockets.WebSocketApplication;
@@ -113,7 +112,7 @@ public class TyrusEndpoint extends WebSocketApplication implements SPIRegistered
         final List<Extension> extensions = TyrusExtension.fromString(webSocketRequest.getHeaders().get(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER));
         temporaryNegotiatedExtensions = endpoint.getNegotiatedExtensions(extensions);
 
-        return endpoint.checkHandshake(webSocketRequest instanceof RequestContext ? (RequestContext)webSocketRequest : null);
+        return endpoint.checkHandshake(webSocketRequest instanceof RequestContext ? (RequestContext) webSocketRequest : null);
     }
 
     @Override
@@ -124,20 +123,18 @@ public class TyrusEndpoint extends WebSocketApplication implements SPIRegistered
     @Override
     public WebSocket createSocket(final ProtocolHandler handler, final WebSocketListener... listeners) {
         handler.setContainer(endpoint.getWebSocketContainer());
-        return new DefaultWebSocket(handler, listeners);
+        return new TyrusWebSocket(handler, listeners);
     }
 
     @Override
     public void onConnect(WebSocket socket) {
-        TyrusRemoteEndpoint gs = TyrusRemoteEndpoint.get(socket);
-        this.endpoint.onConnect(gs, temporaryNegotiatedProtocol, temporaryNegotiatedExtensions);
+        this.endpoint.onConnect(new TyrusRemoteEndpoint(socket), temporaryNegotiatedProtocol, temporaryNegotiatedExtensions);
     }
 
     @Override
     public void onFragment(WebSocket socket, String fragment, boolean last) {
-        TyrusRemoteEndpoint gs = TyrusRemoteEndpoint.get(socket);
         try {
-            this.endpoint.onPartialMessage(gs, fragment, last);
+            this.endpoint.onPartialMessage(new TyrusRemoteEndpoint(socket), fragment, last);
         } catch (Throwable t) {
             Logger.getLogger(TyrusEndpoint.class.getName()).severe("Error !!!" + t);
             t.printStackTrace();
@@ -146,9 +143,8 @@ public class TyrusEndpoint extends WebSocketApplication implements SPIRegistered
 
     @Override
     public void onFragment(WebSocket socket, byte[] fragment, boolean last) {
-        TyrusRemoteEndpoint gs = TyrusRemoteEndpoint.get(socket);
         try {
-            this.endpoint.onPartialMessage(gs, ByteBuffer.wrap(fragment), last);
+            this.endpoint.onPartialMessage(new TyrusRemoteEndpoint(socket), ByteBuffer.wrap(fragment), last);
         } catch (Throwable t) {
             Logger.getLogger(TyrusEndpoint.class.getName()).severe("Error !!!" + t);
             t.printStackTrace();
@@ -157,33 +153,33 @@ public class TyrusEndpoint extends WebSocketApplication implements SPIRegistered
 
     @Override
     public void onMessage(WebSocket socket, String messageString) {
-        TyrusRemoteEndpoint gs = TyrusRemoteEndpoint.get(socket);
-        this.endpoint.onMessage(gs, messageString);
+        this.endpoint.onMessage(new TyrusRemoteEndpoint(socket), messageString);
     }
 
     @Override
     public void onMessage(WebSocket socket, byte[] bytes) {
-        TyrusRemoteEndpoint gs = TyrusRemoteEndpoint.get(socket);
-        this.endpoint.onMessage(gs, ByteBuffer.wrap(bytes));
+        this.endpoint.onMessage(new TyrusRemoteEndpoint(socket), ByteBuffer.wrap(bytes));
     }
 
     @Override
     public void onClose(WebSocket socket, ClosingFrame frame) {
-        TyrusRemoteEndpoint gs = TyrusRemoteEndpoint.get(socket);
         CloseReason closeReason = null;
 
         if (frame != null) {
             closeReason = new CloseReason(CloseReason.CloseCodes.getCloseCode(frame.getCode()), frame.getReason() == null ? "" : frame.getReason());
         }
 
-        this.endpoint.onClose(gs, closeReason);
-        TyrusRemoteEndpoint.remove(socket);
+        this.endpoint.onClose(new TyrusRemoteEndpoint(socket), closeReason);
+    }
+
+    @Override
+    public void onPing(WebSocket socket, byte[] bytes) {
+        this.endpoint.onPing(new TyrusRemoteEndpoint(socket), ByteBuffer.wrap(bytes));
     }
 
     @Override
     public void onPong(WebSocket socket, byte[] bytes) {
-        TyrusRemoteEndpoint gs = TyrusRemoteEndpoint.get(socket);
-        this.endpoint.onPong(gs, ByteBuffer.wrap(bytes));
+        this.endpoint.onPong(new TyrusRemoteEndpoint(socket), ByteBuffer.wrap(bytes));
     }
 
     @Override
@@ -236,12 +232,6 @@ public class TyrusEndpoint extends WebSocketApplication implements SPIRegistered
     }
 
     @Override
-    public void onPing(WebSocket socket, byte[] bytes) {
-        TyrusRemoteEndpoint gs = TyrusRemoteEndpoint.get(socket);
-        this.endpoint.onPing(gs, ByteBuffer.wrap(bytes));
-    }
-
-    @Override
     public void onHandShakeResponse(WebSocketRequest request, WebSocketResponse response) {
         final EndpointConfig configuration = this.endpoint.getEndpointConfig();
 
@@ -256,8 +246,8 @@ public class TyrusEndpoint extends WebSocketApplication implements SPIRegistered
             for (Map.Entry<String, List<String>> headerEntry : handshakeResponse.getHeaders().entrySet()) {
                 StringBuilder finalHeaderValue = new StringBuilder();
 
-                for(String headerValue : headerEntry.getValue()) {
-                    if(finalHeaderValue.length() != 0) {
+                for (String headerValue : headerEntry.getValue()) {
+                    if (finalHeaderValue.length() != 0) {
                         finalHeaderValue.append(", ");
                     }
 
@@ -270,7 +260,7 @@ public class TyrusEndpoint extends WebSocketApplication implements SPIRegistered
     }
 
     private HandshakeRequest createHandshakeRequest(final WebSocketRequest webSocketRequest) {
-        if(webSocketRequest instanceof RequestContext) {
+        if (webSocketRequest instanceof RequestContext) {
             final RequestContext requestContext = (RequestContext) webSocketRequest;
             // TYRUS-208; spec requests headers to be read only when passed to ServerEndpointConfig.Configurator#modifyHandshake.
             // TYRUS-211; spec requests parameterMap to be read only when passed to ServerEndpointConfig.Configurator#modifyHandshake.

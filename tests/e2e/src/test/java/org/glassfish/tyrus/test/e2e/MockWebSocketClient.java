@@ -155,9 +155,6 @@ class MockWebSocketClient implements WebSocket {
     }
 
     @Override
-    public void setWriteTimeout(long timeoutMs) {}
-
-    public void connect() {
-        listener.onConnect(this);
+    public void setWriteTimeout(long timeoutMs) {
     }
 }

@@ -38,7 +38,7 @@
  * holder.
  */
 
-package org.glassfish.tyrus.websockets;
+package org.glassfish.tyrus.core;
 
 import java.util.EnumSet;
 import java.util.Queue;
@@ -47,11 +47,20 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.glassfish.tyrus.websockets.DataFrame;
+import org.glassfish.tyrus.websockets.ProtocolHandler;
+import org.glassfish.tyrus.websockets.WebSocket;
+import org.glassfish.tyrus.websockets.WebSocketListener;
 import org.glassfish.tyrus.websockets.draft06.ClosingFrame;
 import org.glassfish.tyrus.websockets.frametypes.PingFrameType;
 import org.glassfish.tyrus.websockets.frametypes.PongFrameType;
 
-public class DefaultWebSocket implements WebSocket {
+/**
+ * Tyrus implementation of {@link WebSocket}.
+ *
+ * Instance of this class represents one bi-directional websocket connection.
+ */
+public class TyrusWebSocket implements WebSocket {
     private final Queue<WebSocketListener> listeners = new ConcurrentLinkedQueue<WebSocketListener>();
     private final ProtocolHandler protocolHandler;
 
@@ -64,8 +73,14 @@ public class DefaultWebSocket implements WebSocket {
     private final EnumSet<State> connected = EnumSet.range(State.CONNECTED, State.CLOSING);
     private final AtomicReference<State> state = new AtomicReference<State>(State.NEW);
 
-    public DefaultWebSocket(final ProtocolHandler protocolHandler,
-                            final WebSocketListener... listeners) {
+    /**
+     * TODO.
+     *
+     * @param protocolHandler
+     * @param listeners
+     */
+    public TyrusWebSocket(final ProtocolHandler protocolHandler,
+                          final WebSocketListener... listeners) {
         this.protocolHandler = protocolHandler;
         for (WebSocketListener listener : listeners) {
             add(listener);
@@ -239,5 +254,4 @@ public class DefaultWebSocket implements WebSocket {
             throw new RuntimeException("Socket is not connected.");
         }
     }
-
 }

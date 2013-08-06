@@ -305,5 +305,4 @@ public interface WebSocket {
      * @param timeoutMs timeout in milliseconds.
      */
     public abstract void setWriteTimeout(long timeoutMs);
-
 }

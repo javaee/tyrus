@@ -41,7 +41,6 @@ package org.glassfish.tyrus.core;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
 
 import javax.websocket.CloseReason;
@@ -54,46 +53,19 @@ import org.glassfish.tyrus.websockets.WebSocket;
  * {@link SPIRemoteEndpoint} implementation.
  *
  * @author Danny Coward (danny.coward at oracle.com)
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 public class TyrusRemoteEndpoint extends SPIRemoteEndpoint {
+
     private final WebSocket socket;
-    private final static ConcurrentHashMap<WebSocket, TyrusRemoteEndpoint> sockets = new ConcurrentHashMap<WebSocket, TyrusRemoteEndpoint>();
 
     /**
-     * Create remote endpoint. Used directly on client side to represent server endpoint.
+     * Create remote endpoint.
      *
      * @param socket to be used for sending messages.
      */
     public TyrusRemoteEndpoint(WebSocket socket) {
         this.socket = socket;
-    }
-
-    /**
-     * Get {@link TyrusRemoteEndpoint} instance. Used on server side for managing multiple connected clients.
-     *
-     * @param socket {@link WebSocket} instance used for lookup.
-     * @return Corresponding {@link TyrusRemoteEndpoint}.
-     */
-    public static TyrusRemoteEndpoint get(WebSocket socket) {
-        synchronized (sockets) {
-            TyrusRemoteEndpoint s = sockets.get(socket);
-            if (s == null) {
-                s = new TyrusRemoteEndpoint(socket);
-                sockets.put(socket, s);
-            }
-            return s;
-        }
-    }
-
-    /**
-     * Remove socket.
-     *
-     * @param socket socket instance to be removed.
-     */
-    public static void remove(WebSocket socket) {
-        synchronized (sockets) {
-            sockets.remove(socket);
-        }
     }
 
     @Override
@@ -135,5 +107,22 @@ public class TyrusRemoteEndpoint extends SPIRemoteEndpoint {
     @Override
     public void setWriteTimeout(long timeoutMs) {
         socket.setWriteTimeout(timeoutMs);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof TyrusRemoteEndpoint)) return false;
+
+        TyrusRemoteEndpoint that = (TyrusRemoteEndpoint) o;
+
+        if (!socket.equals(that.socket)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return socket.hashCode();
     }
 }

@@ -39,8 +39,10 @@
  */
 package org.glassfish.tyrus.websockets.uri;
 
+import org.glassfish.tyrus.websockets.ProtocolHandler;
 import org.glassfish.tyrus.websockets.WebSocket;
 import org.glassfish.tyrus.websockets.WebSocketApplication;
+import org.glassfish.tyrus.websockets.WebSocketListener;
 import org.glassfish.tyrus.websockets.WebSocketRequest;
 import org.glassfish.tyrus.websockets.WebSocketResponse;
 
@@ -62,6 +64,11 @@ public class TestWebSocketApplication extends WebSocketApplication {
     @Override
     protected boolean isApplicationRequest(WebSocketRequest request) {
         return false;
+    }
+
+    @Override
+    public WebSocket createSocket(ProtocolHandler handler, WebSocketListener... listeners) {
+        return null;
     }
 
     @Override
