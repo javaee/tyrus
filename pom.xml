@@ -255,7 +255,7 @@
                     <configuration>
                         <excludeFile>etc/config/copyright-exclude</excludeFile>
                         <!--svn|mercurial|git - defaults to svn-->
-                        <scm>svn</scm>
+                        <scm>git</scm>
                         <!-- turn on/off debugging -->
                         <debug>off</debug>
                         <!-- skip files not under SCM-->
