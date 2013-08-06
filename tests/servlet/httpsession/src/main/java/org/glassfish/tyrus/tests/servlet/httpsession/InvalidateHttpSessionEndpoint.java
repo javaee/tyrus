@@ -58,7 +58,7 @@ import javax.servlet.http.HttpSession;
 @ServerEndpoint(value = "/invalidateHttpSession", configurator = InvalidateHttpSessionEndpoint.Configurator.class)
 public class InvalidateHttpSessionEndpoint {
 
-    protected static HandshakeRequest request;
+    private static HandshakeRequest request;
     private static CloseReason closeReason = null;
 
     public static class Configurator extends ServerEndpointConfig.Configurator {

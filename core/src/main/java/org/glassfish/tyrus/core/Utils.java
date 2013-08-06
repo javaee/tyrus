@@ -111,6 +111,9 @@ public class Utils {
 
                     // error - ignore for now.
                     break;
+                default:
+                    // should not happen
+                    break;
             }
         }
 

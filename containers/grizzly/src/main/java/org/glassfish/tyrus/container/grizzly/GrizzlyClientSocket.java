@@ -545,7 +545,7 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
     }
 
     /**
-     * Add proxies to suplied list. Proxies will be obtained via supplied {@link ProxySelector} instance.
+     * Add proxies to supplied list. Proxies will be obtained via supplied {@link ProxySelector} instance.
      *
      * @param proxySelector proxy selector.
      * @param uri           original request {@link URI}.
@@ -561,6 +561,8 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
                     break;
                 case SOCKS:
                     LOGGER.log(Level.INFO, String.format("Socks proxy is not supported, please file new issue at https://java.net/jira/browse/TYRUS. Proxy '%s' will be ignored.", p));
+                    break;
+                default:
                     break;
             }
         }

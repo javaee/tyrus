@@ -210,7 +210,9 @@ public abstract class RemoteEndpointWrapper implements RemoteEndpoint {
                                 break;
                         }
 
-                        result.get();
+                        if(result != null) {
+                            result.get();
+                        }
                     } catch (Throwable thw) {
                         sr = new SendResult(thw);
                         fsr.setFailure(thw);

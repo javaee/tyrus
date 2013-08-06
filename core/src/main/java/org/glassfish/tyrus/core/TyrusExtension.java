@@ -304,6 +304,8 @@ public class TyrusExtension implements Extension {
                             case ';':
                                 next = ParserState.PARAM_NAME;
                                 break;
+                            default:
+                                break;
                         }
 
                         break;

@@ -162,14 +162,14 @@ public class Match {
     }
 
     private String paramsToString() {
-        String s = "";
+        StringBuilder sb = new StringBuilder();
         for (String nextName : this.parameterNames) {
-            s = s + nextName + "=" + this.getParameterValue(nextName);
+            sb.append(nextName).append("=").append(this.getParameterValue(nextName));
             if (this.parameterNames.indexOf(nextName) != this.parameterNames.size() - 1) {
-                s = s + ",";
+                sb.append(",");
             }
         }
-        return s;
+        return sb.toString();
     }
 
     /**

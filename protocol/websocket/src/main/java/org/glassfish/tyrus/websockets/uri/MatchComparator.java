@@ -39,6 +39,7 @@
  */
 package org.glassfish.tyrus.websockets.uri;
 
+import java.io.Serializable;
 import java.util.Comparator;
 import java.util.List;
 
@@ -47,8 +48,8 @@ import java.util.List;
  *
  * @author dannycoward
  */
-class MatchComparator implements Comparator<Match> {
-    private final boolean noisy = false;
+class MatchComparator implements Comparator<Match>, Serializable {
+    private final static boolean noisy = false;
 
     private void debug(String message) {
         if (noisy) System.out.println(message);

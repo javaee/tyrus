@@ -41,6 +41,7 @@ package org.glassfish.tyrus.core;
 
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
@@ -492,7 +493,7 @@ public class SessionImpl implements Session {
         return result;
     }
 
-    private class MessageHandlerComparator implements Comparator<MessageHandler> {
+    private static class MessageHandlerComparator implements Comparator<MessageHandler>, Serializable {
 
         @Override
         public int compare(MessageHandler o1, MessageHandler o2) {

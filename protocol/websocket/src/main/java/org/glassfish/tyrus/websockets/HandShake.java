@@ -560,6 +560,8 @@ public abstract class HandShake {
                             case ';':
                                 next = ParserState.PARAM_NAME;
                                 break;
+                            default:
+                                break;
                         }
 
                         break;

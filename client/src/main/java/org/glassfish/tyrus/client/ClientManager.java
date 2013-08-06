@@ -140,6 +140,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
             engineProviderClazz = ReflectionHelper.classForNameWithException(engineProviderClassname);
         } catch (ClassNotFoundException e) {
             collector.addException(e);
+            throw new RuntimeException(collector.composeComprehensiveException());
         }
         LOGGER.config(String.format("Provider class loaded: %s", engineProviderClassname));
         this.engine = (TyrusContainer) ReflectionHelper.getInstance(engineProviderClazz, collector);
@@ -283,8 +284,8 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
         if (clientSocket != null) {
             try {
                 // TODO - configurable timeout?
-                responseLatch.await(10, TimeUnit.SECONDS);
-                if (responseLatch.getCount() == 0) {
+                final boolean countedDown = responseLatch.await(10, TimeUnit.SECONDS);
+                if (countedDown) {
                     final Object exception = config.getUserProperties().get("org.glassfish.tyrus.client.exception");
                     if (exception != null) {
                         throw new DeploymentException("Handshake error.", (Throwable) exception);
