@@ -40,6 +40,7 @@
 
 package org.glassfish.tyrus.websockets;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -345,7 +346,7 @@ public class TyrusWebSocketEngine implements org.glassfish.tyrus.spi.WebSocketEn
         for (WebSocketApplication webSocketApplication : applications) {
             if (Match.isEquivalent(app.getPath(), webSocketApplication.getPath())) {
                 throw new DeploymentException(String.format(
-                        "Found Equivalent paths. Added path: '%s' is equivalent with '%s'.", app.getPath(),
+                        "Found equivalent paths. Added path: '%s' is equivalent with '%s'.", app.getPath(),
                         webSocketApplication.getPath()));
             }
         }

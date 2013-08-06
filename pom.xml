@@ -198,6 +198,7 @@
         <module>samples</module>
         <module>server</module>
         <module>spi</module>
+        <module>test-utilities</module>
         <module>tests</module>
     </modules>
 
@@ -550,6 +551,11 @@
                 <version>${project.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.glassfish.tyrus</groupId>
+                <artifactId>tyrus-test-utilities</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.osgi</groupId>
                 <artifactId>org.osgi.core</artifactId>
                 <version>4.2.0</version>
@@ -559,7 +565,6 @@
                 <groupId>junit</groupId>
                 <artifactId>junit</artifactId>
                 <version>4.10</version>
-                <scope>test</scope>
             </dependency>
             <dependency>
                 <groupId>org.glassfish.main.extras</groupId>

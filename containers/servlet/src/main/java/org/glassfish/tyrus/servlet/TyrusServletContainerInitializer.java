@@ -76,6 +76,7 @@ public class TyrusServletContainerInitializer implements ServletContainerInitial
 
     @Override
     public void onStartup(Set<Class<?>> classes, ServletContext ctx) throws ServletException {
+        System.out.println("Classes: "+classes);
         if (classes == null || classes.isEmpty()) {
             return;
         }
