@@ -223,17 +223,16 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
     /**
      * Called when related {@link javax.servlet.http.HttpSession} is destroyed or invalidated.
      * <p/>
-     * Implementation is required to call onClose() on server-side with corresponding close code (1006 or 1008, see
-     * WebSocket spec 7.2 and 2.1.5).
+     * Implementation is required to call onClose() on server-side with corresponding close code (1008, see
+     * WebSocket spec 7.2) - only when there is an authorized user for this session.
      */
     public void sessionDestroyed() {
         if (authenticated) {
             // websocket spec 7.2 [WSC-7.2-3]
             httpSessionForcedClose(new ClosingFrame(CloseReason.CloseCodes.VIOLATED_POLICY.getCode(), "No reason given."));
-        } else {
-            // websocket spec 2.1.5
-            httpSessionForcedClose(new ClosingFrame(WebSocket.ABNORMAL_CLOSE, "No reason given."));
         }
+
+        // else do nothing.
     }
 
     @Override
