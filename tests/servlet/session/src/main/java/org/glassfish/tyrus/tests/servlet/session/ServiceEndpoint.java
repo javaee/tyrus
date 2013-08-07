@@ -49,6 +49,9 @@ import javax.websocket.server.ServerEndpoint;
  */
 @ServerEndpoint(value = "/service")
 public class ServiceEndpoint {
+    private static final String POSITIVE = "1";
+    private static final String NEGATIVE = "0";
+
     @OnMessage
     public String message(String message, Session session) {
 
@@ -59,16 +62,25 @@ public class ServiceEndpoint {
                     CloseServerEndpoint.getAsyncRemoteExceptionThrown &&
                     CloseServerEndpoint.inCloseSendTextExceptionThrown &&
                     !CloseServerEndpoint.inCloseGetTimeoutExceptionThrown) {
-                return "1";
+                return POSITIVE;
             } else {
-                return "0";
+                return NEGATIVE;
             }
+        } else if (message.equals("client")) {
+            return CloseClientEndpoint.inCloseSendTextExceptionThrown ? POSITIVE : NEGATIVE;
+        } else if (message.equals("idleTimeoutReceiving")) {
+            return IdleTimeoutReceivingEndpoint.onCloseCalled ? POSITIVE : NEGATIVE;
+        } else if (message.equals("idleTimeoutSending")) {
+            return IdleTimeoutSendingEndpoint.onCloseCalled ? POSITIVE : NEGATIVE;
+        } else if (message.equals("idleTimeoutSendingPing")) {
+            return IdleTimeoutSendingPingEndpoint.onCloseCalled ? POSITIVE : NEGATIVE;
+        } else if (message.equals("reset")) {
+            IdleTimeoutReceivingEndpoint.onCloseCalled = false;
+            IdleTimeoutSendingEndpoint.onCloseCalled = false;
+            IdleTimeoutSendingPingEndpoint.onCloseCalled = false;
+            return "-1";
         } else {
-            if (CloseClientEndpoint.inCloseSendTextExceptionThrown) {
-                return "1";
-            } else {
-                return "0";
-            }
+            return "-1";
         }
     }
 }

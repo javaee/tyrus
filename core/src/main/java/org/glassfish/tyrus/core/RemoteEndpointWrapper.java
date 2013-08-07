@@ -289,6 +289,7 @@ public abstract class RemoteEndpointWrapper implements RemoteEndpoint {
         if(applicationData != null && applicationData.remaining() > 125) {
             throw new IllegalArgumentException("Ping applicationData exceeded the maximum allowed payload of 125 bytes.");
         }
+        session.restartIdleTimeoutExecutor();
         remoteEndpoint.sendPing(applicationData);
     }
 
@@ -297,6 +298,7 @@ public abstract class RemoteEndpointWrapper implements RemoteEndpoint {
         if(applicationData != null && applicationData.remaining() > 125) {
             throw new IllegalArgumentException("Pong applicationData exceeded the maximum allowed payload of 125 bytes.");
         }
+        session.restartIdleTimeoutExecutor();
         remoteEndpoint.sendPong(applicationData);
     }
 

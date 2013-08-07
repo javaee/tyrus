@@ -83,6 +83,11 @@ public class SessionTimeoutTest {
             onOpenLatch.countDown();
         }
 
+        @OnMessage
+        public void onMessage(String message, Session session){
+
+        }
+
         @OnClose
         public void onClose(Session session) {
             assertTrue(System.currentTimeMillis() - timeoutSetTime - TIMEOUT < 20);
@@ -138,6 +143,11 @@ public class SessionTimeoutTest {
         public void onOpen(Session session) {
             session.setMaxIdleTimeout(TIMEOUT);
             onOpenLatch.countDown();
+        }
+
+        @OnMessage
+        public void onMessage(String message, Session session){
+
         }
 
         @OnClose
@@ -275,6 +285,11 @@ public class SessionTimeoutTest {
         public void onOpen(Session session) {
         }
 
+        @OnMessage
+        public void onMessage(String message, Session session){
+
+        }
+
         @OnClose
         public void onClose(Session session) {
         }
@@ -364,4 +379,6 @@ public class SessionTimeoutTest {
             server.stop();
         }
     }
+
+
 }

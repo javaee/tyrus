@@ -667,6 +667,7 @@ public class EndpointWrapper extends SPIEndpoint {
     @Override
     public void onPong(SPIRemoteEndpoint gs, final ByteBuffer bytes) {
         SessionImpl session = getSession(gs);
+        session.restartIdleTimeoutExecutor();
 
         if (session.isPongHandlerPreset()) {
             session.notifyPongHandler(new PongMessage() {
@@ -685,7 +686,7 @@ public class EndpointWrapper extends SPIEndpoint {
     @Override
     public void onPing(SPIRemoteEndpoint gs, ByteBuffer bytes) {
         SessionImpl session = getSession(gs);
-
+        session.restartIdleTimeoutExecutor();
         try {
             session.getBasicRemote().sendPong(bytes);
         } catch (IOException e) {
