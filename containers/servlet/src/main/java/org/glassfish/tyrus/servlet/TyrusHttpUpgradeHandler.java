@@ -61,6 +61,11 @@ import org.glassfish.tyrus.websockets.WebSocketEngine;
 import org.glassfish.tyrus.websockets.draft06.ClosingFrame;
 
 /**
+ * {@link HttpUpgradeHandler} and {@link ReadListener} implementation.
+ * <p/>
+ * Reads data from {@link ServletInputStream} and passes it further to the
+ * Tyrus runtime.
+ *
  * @author Jitendra Kotamraju
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
@@ -108,56 +113,54 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
 
     @Override
     public void onDataAvailable() {
-        try {
-            int available = is.available();
-            while (available > 0) {
-                int toRead = (buf == null ?
-                        (available > incomingBufferSize ? incomingBufferSize : available) :
-                        buf.remaining() + available > incomingBufferSize ? incomingBufferSize - buf.remaining() : buf.remaining() + available
-                );
+        do {
+            try {
+                int available = is.available();
+                while (available > 0) {
+                    int toRead = (buf == null ?
+                            (available > incomingBufferSize ? incomingBufferSize : available) :
+                            buf.remaining() + available > incomingBufferSize ? incomingBufferSize - buf.remaining() : buf.remaining() + available
+                    );
 
-                if (toRead == 0) {
-                    throw new IOException(String.format("Tyrus input buffer exceeded. Current buffer size is %s bytes.",
-                            incomingBufferSize));
-                }
+                    if (toRead == 0) {
+                        throw new IOException(String.format("Tyrus input buffer exceeded. Current buffer size is %s bytes.",
+                                incomingBufferSize));
+                    }
 
-                available -= fillBuf(toRead);
+                    available -= fillBuf(toRead);
 
-                LOGGER.finest(String.format("Remaining Data = %d", buf.remaining()));
+                    LOGGER.finest(String.format("Remaining Data = %d", buf.remaining()));
 
-                if (buf.hasRemaining()) {
-                    while (buf.remaining() > 0) {
-                        final DataFrame result = webSocketHolder.handler.unframe(buf);
-                        if (result != null) {
-                            result.respond(webSocketHolder.webSocket);
-                        } else {
-                            break;
+                    if (buf.hasRemaining()) {
+                        while (buf.remaining() > 0) {
+                            final DataFrame result = webSocketHolder.handler.unframe(buf);
+                            if (result != null) {
+                                result.respond(webSocketHolder.webSocket);
+                            } else {
+                                break;
+                            }
                         }
                     }
                 }
+            } catch (FramingException e) {
+                final String message = e.getMessage();
+                close(new ClosingFrame(e.getClosingCode(), message == null ? "No reason given." : message));
+            } catch (Exception wse) {
+                if (webSocketHolder.application.onError(webSocketHolder.webSocket, wse)) {
+                    final String message = wse.getMessage();
+                    close(new ClosingFrame(1011, message == null ? "No reason given." : message));
+                }
             }
-        } catch (FramingException e) {
-            final String message = e.getMessage();
-            close(new ClosingFrame(e.getClosingCode(), message == null ? "No reason given." : message));
-        } catch (Exception wse) {
-            if (webSocketHolder.application.onError(webSocketHolder.webSocket, wse)) {
-                final String message = wse.getMessage();
-                close(new ClosingFrame(1011, message == null ? "No reason given." : message));
-            }
-        } catch (Throwable e) {
-            // TODO servlet container is swallowing, just print it for now
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        } finally {
-            if (!closed && is.isReady()) {
-                LOGGER.log(Level.SEVERE, "This shouldn't happen. ServletInputStream.isReady() returned true after reading all available() data.");
-            }
-
-            // everything is ok, all data consumed, waiting for next onDataAvailable call from web-core
-        }
+        } while (!closed && is.isReady());
     }
 
-    // fill the buf with some more websocket protcol data
+    /**
+     * Fill the buf with some more websocket protocol data.
+     *
+     * @param length length of data available to read.
+     * @return legth of actually read data.
+     * @throws IOException if some other I/O error occurs.
+     */
     private int fillBuf(int length) throws IOException {
         byte[] data = new byte[length];
         int len = is.read(data);
@@ -219,12 +222,12 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
 
     /**
      * Called when related {@link javax.servlet.http.HttpSession} is destroyed or invalidated.
-     *
+     * <p/>
      * Implementation is required to call onClose() on server-side with corresponding close code (1006 or 1008, see
      * WebSocket spec 7.2 and 2.1.5).
      */
     public void sessionDestroyed() {
-        if(authenticated) {
+        if (authenticated) {
             // websocket spec 7.2 [WSC-7.2-3]
             httpSessionForcedClose(new ClosingFrame(CloseReason.CloseCodes.VIOLATED_POLICY.getCode(), "No reason given."));
         } else {
@@ -263,7 +266,7 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
     private void httpSessionForcedClose(ClosingFrame closingFrame) {
         if (!closed) {
             try {
-                ((TyrusWebSocket)webSocketHolder.webSocket).setClosed();
+                ((TyrusWebSocket) webSocketHolder.webSocket).setClosed();
                 webSocketHolder.webSocket.onClose(closingFrame);
                 closed = true;
                 wc.close();
