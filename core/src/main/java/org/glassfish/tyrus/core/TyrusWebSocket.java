@@ -74,10 +74,10 @@ public class TyrusWebSocket implements WebSocket {
     private final AtomicReference<State> state = new AtomicReference<State>(State.NEW);
 
     /**
-     * TODO.
+     * Create new instance, set {@link ProtocolHandler} and register {@link WebSocketListener WebSocketListeners}.
      *
-     * @param protocolHandler
-     * @param listeners
+     * @param protocolHandler used for writing data (sending).
+     * @param listeners notifies registered endpoints about incoming events.
      */
     public TyrusWebSocket(final ProtocolHandler protocolHandler,
                           final WebSocketListener... listeners) {
