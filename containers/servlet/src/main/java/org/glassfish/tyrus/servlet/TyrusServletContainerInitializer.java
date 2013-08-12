@@ -77,11 +77,6 @@ public class TyrusServletContainerInitializer implements ServletContainerInitial
 
     public void onStartup(Set<Class<?>> classes, ServletContext ctx) throws ServletException {
         if (classes == null || classes.isEmpty()) {
-            // prepare for possible programmatic deployment
-            TyrusServletFilter filter = ctx.createFilter(TyrusServletFilter.class);
-            filter.setServletContext(ctx);
-            ServerContainer serverContainer = new TyrusServletServerContainer(filter);
-            ctx.setAttribute(TyrusServletServerContainer.SERVER_CONTAINER_ATTRIBUTE, serverContainer);
             return;
         }
 
