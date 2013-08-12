@@ -92,7 +92,7 @@ public class UriTemplateParser {
      *
      * @param template the template.
      * @throws IllegalArgumentException if the template is null, an empty string
-     *         or does not conform to a JAX-RS URI template.
+     *                                  or does not conform to a JAX-RS URI template.
      */
     public UriTemplateParser(final String template) throws IllegalArgumentException {
         if (template == null || template.length() == 0) {
@@ -130,7 +130,7 @@ public class UriTemplateParser {
 
     /**
      * Get the normalized template.
-     * <p>
+     * <p/>
      * A normalized template is a template without any explicit regular
      * expressions.
      *
@@ -169,7 +169,7 @@ public class UriTemplateParser {
 
     /**
      * Get the group indexes to capturing groups.
-     * <p>
+     * <p/>
      * Any nested capturing groups will be ignored and the
      * the group index will refer to the top-level capturing
      * groups associated with the templates variables.

@@ -40,8 +40,6 @@
 
 package org.glassfish.tyrus.websockets;
 
-import java.io.IOException;
-
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
@@ -49,7 +47,7 @@ public abstract class Connection {
 
     public interface CloseListener {
         // add param for remote/local close indication?
-        void onClose(Connection connection) throws IOException;
+        void onClose(Connection connection);
     }
 
     /**

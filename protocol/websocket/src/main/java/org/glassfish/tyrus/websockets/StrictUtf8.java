@@ -74,10 +74,12 @@ public class StrictUtf8 extends Charset {
         super("StrictUtf8", new String[]{});
     }
 
+    @Override
     public CharsetDecoder newDecoder() {
         return new Decoder(this);
     }
 
+    @Override
     public CharsetEncoder newEncoder() {
         return new Encoder(this);
     }
@@ -96,7 +98,7 @@ public class StrictUtf8 extends Charset {
                 + (Character.MIN_HIGH_SURROGATE - (Character.MIN_SUPPLEMENTARY_CODE_POINT >>> 10)));
     }
 
-    public static char lowSurrogate(int codePoint) {
+    private static char lowSurrogate(int codePoint) {
         return (char) ((codePoint & 0x3ff) + Character.MIN_LOW_SURROGATE);
     }
 
@@ -112,8 +114,7 @@ public class StrictUtf8 extends Charset {
         dst.position(dp - dst.arrayOffset());
     }
 
-    private static class Decoder extends CharsetDecoder
-            implements ArrayDecoder {
+    private static class Decoder extends CharsetDecoder {
         private Decoder(Charset cs) {
             super(cs, 1.0f, 1.0f);
         }
@@ -419,6 +420,7 @@ public class StrictUtf8 extends Charset {
             return xflow(src, mark, 0);
         }
 
+        @Override
         protected CoderResult decodeLoop(ByteBuffer src,
                                          CharBuffer dst) {
             if (src.hasArray() && dst.hasArray())
@@ -562,17 +564,18 @@ public class StrictUtf8 extends Charset {
         }
     }
 
-    protected static final class Encoder extends CharsetEncoder
-            implements ArrayEncoder {
+    static final class Encoder extends CharsetEncoder {
 
         private Encoder(Charset cs) {
             super(cs, 1.1f, 3.0f);
         }
 
+        @Override
         public boolean canEncode(char c) {
             return !isSurrogate(c);
         }
 
+        @Override
         public boolean isLegalReplacement(byte[] repl) {
             return ((repl.length == 1 && repl[0] >= 0) ||
                     super.isLegalReplacement(repl));
@@ -694,6 +697,7 @@ public class StrictUtf8 extends Charset {
             return CoderResult.UNDERFLOW;
         }
 
+        @Override
         protected final CoderResult encodeLoop(CharBuffer src,
                                                ByteBuffer dst) {
             if (src.hasArray() && dst.hasArray())
@@ -773,7 +777,7 @@ public class StrictUtf8 extends Charset {
          * @param c  The first character
          * @param in The source buffer, from which one more character
          *           will be consumed if c is a high surrogate
-         * @returns Either a parsed UCS-4 character, in which case the isPair()
+         * @return Either a parsed UCS-4 character, in which case the isPair()
          * and increment() methods will return meaningful values, or
          * -1, in which case error() will return a descriptive result
          * object
@@ -811,7 +815,7 @@ public class StrictUtf8 extends Charset {
          *           will be consumed if c is a high surrogate
          * @param ip The input index
          * @param il The input limit
-         * @returns Either a parsed UCS-4 character, in which case the isPair()
+         * @return Either a parsed UCS-4 character, in which case the isPair()
          * and increment() methods will return meaningful values, or
          * -1, in which case error() will return a descriptive result
          * object

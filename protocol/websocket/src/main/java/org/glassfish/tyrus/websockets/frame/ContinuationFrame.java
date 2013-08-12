@@ -38,22 +38,22 @@
  * holder.
  */
 
-package org.glassfish.tyrus.websockets.frametypes;
+package org.glassfish.tyrus.websockets.frame;
 
-import org.glassfish.tyrus.websockets.BaseFrameType;
 import org.glassfish.tyrus.websockets.DataFrame;
-import org.glassfish.tyrus.websockets.FrameType;
 import org.glassfish.tyrus.websockets.WebSocket;
 
-public class ContinuationFrameType extends BaseFrameType {
-    private boolean text;
-    private FrameType wrappedType;
+public class ContinuationFrame extends BaseFrame {
 
-    public ContinuationFrameType(boolean text) {
+    private final boolean text;
+    private final Frame wrappedType;
+
+    public ContinuationFrame(boolean text) {
         this.text = text;
-        wrappedType = text ? new TextFrameType() : new BinaryFrameType();
+        wrappedType = text ? new TextFrame() : new BinaryFrame();
     }
 
+    @Override
     public void respond(WebSocket socket, DataFrame frame) {
         if (text) {
             socket.onFragment(frame.isLast(), frame.getTextPayload());

@@ -78,9 +78,9 @@ import org.glassfish.tyrus.websockets.ProtocolHandler;
 import org.glassfish.tyrus.websockets.WebSocket;
 import org.glassfish.tyrus.websockets.WebSocketEngine;
 import org.glassfish.tyrus.websockets.WebSocketListener;
-import org.glassfish.tyrus.websockets.draft06.ClosingFrame;
-import org.glassfish.tyrus.websockets.frametypes.PingFrameType;
-import org.glassfish.tyrus.websockets.frametypes.PongFrameType;
+import org.glassfish.tyrus.websockets.ClosingFrame;
+import org.glassfish.tyrus.websockets.frame.PingFrame;
+import org.glassfish.tyrus.websockets.frame.PongFrame;
 
 import org.glassfish.grizzly.Connection;
 import org.glassfish.grizzly.GrizzlyFuture;
@@ -361,13 +361,13 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
 
     @Override
     public Future<DataFrame> sendPing(byte[] bytes) {
-        DataFrame df = new DataFrame(new PingFrameType(), bytes);
+        DataFrame df = new DataFrame(new PingFrame(), bytes);
         return this.protocolHandler.send(df, false);
     }
 
     @Override
     public Future<DataFrame> sendPong(byte[] bytes) {
-        DataFrame df = new DataFrame(new PongFrameType(), bytes);
+        DataFrame df = new DataFrame(new PongFrame(), bytes);
         return this.protocolHandler.send(df, false);
     }
 
@@ -399,11 +399,6 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
     @Override
     public Session getSession() {
         return session;
-    }
-
-    @Override
-    public void close(int i) {
-        close(i, null);
     }
 
     @Override
@@ -488,11 +483,6 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
 
     @Override
     public boolean add(WebSocketListener webSocketListener) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public boolean remove(WebSocketListener webSocketListener) {
         throw new UnsupportedOperationException();
     }
 

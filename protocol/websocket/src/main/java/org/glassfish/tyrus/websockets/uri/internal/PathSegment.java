@@ -57,7 +57,7 @@ public interface PathSegment {
 
     /**
      * Get the path segment.
-     * <p>
+     * <p/>
      *
      * @return the path segment
      */

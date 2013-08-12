@@ -44,12 +44,13 @@ import java.nio.ByteBuffer;
 
 /**
  * {@link DataFrame} parse result.
- *
+ * <p/>
  * TODO: cache (see original grizzly impl)?
  *
  * @author Alexey Stashok
  */
 public class ParseResult /*implements Cacheable*/ {
+
     private boolean isComplete;
     // remainder buffer (might not be null only if parsing was completed).
     private ByteBuffer remainder;

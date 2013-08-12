@@ -56,7 +56,6 @@ public final class Extension {
 
     // ------------------------------------------------------------ Constructors
 
-
     /**
      * Constructs a new Extension with the specified name.
      *
@@ -68,7 +67,6 @@ public final class Extension {
 
 
     // ---------------------------------------------------------- Public Methods
-
 
     /**
      * @return the extension name.
@@ -118,14 +116,13 @@ public final class Extension {
 
     // ---------------------------------------------------------- Nested Classes
 
-
     /**
      * Representation of extension parameters.
      */
     public static final class Parameter {
 
         private final String name;
-        private String value;
+        private final String value;
 
 
         // -------------------------------------------------------- Constructors
@@ -143,32 +140,6 @@ public final class Extension {
                 throw new IllegalArgumentException("Parameter name may not be null");
             }
             this.name = name;
-            this.value = value;
-        }
-
-
-        // ------------------------------------------------------ Public Methods
-
-        /**
-         * @return the parameter name.
-         */
-        public String getName() {
-            return name;
-        }
-
-        /**
-         * @return the parameter value; may be <code>null</code>.
-         */
-        public String getValue() {
-            return value;
-        }
-
-        /**
-         * Set the value of this parameter.
-         *
-         * @param value the value of this parameter.
-         */
-        public void setValue(String value) {
             this.value = value;
         }
 
@@ -203,5 +174,4 @@ public final class Extension {
             return sb.toString();
         }
     } // END Parameter
-
 }

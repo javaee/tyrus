@@ -45,7 +45,7 @@ import java.util.concurrent.Future;
 import org.glassfish.tyrus.websockets.DataFrame;
 import org.glassfish.tyrus.websockets.WebSocket;
 import org.glassfish.tyrus.websockets.WebSocketListener;
-import org.glassfish.tyrus.websockets.draft06.ClosingFrame;
+import org.glassfish.tyrus.websockets.ClosingFrame;
 
 import org.glassfish.grizzly.GrizzlyFuture;
 
@@ -100,10 +100,6 @@ class MockWebSocketClient implements WebSocket {
     }
 
     @Override
-    public void close(int i) {
-    }
-
-    @Override
     public void close(int i, String s) {
     }
 
@@ -146,11 +142,6 @@ class MockWebSocketClient implements WebSocket {
 
     @Override
     public boolean add(WebSocketListener webSocketListener) {
-        return false;
-    }
-
-    @Override
-    public boolean remove(WebSocketListener webSocketListener) {
         return false;
     }
 

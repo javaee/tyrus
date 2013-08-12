@@ -59,7 +59,7 @@ import org.glassfish.tyrus.websockets.WebSocketEngine;
 import org.glassfish.tyrus.websockets.WebSocketEngine.WebSocketHolder;
 import org.glassfish.tyrus.websockets.WebSocketRequest;
 import org.glassfish.tyrus.websockets.WebSocketResponse;
-import org.glassfish.tyrus.websockets.draft06.ClosingFrame;
+import org.glassfish.tyrus.websockets.ClosingFrame;
 
 import org.glassfish.grizzly.Buffer;
 import org.glassfish.grizzly.Connection;
@@ -195,7 +195,7 @@ class WebSocketFilter extends BaseFilter {
     /**
      * Method handles Grizzly {@link Connection} close phase. Check if the {@link Connection} is a {@link org.glassfish.tyrus.websockets.WebSocket}, if
      * yes - tries to close the websocket gracefully (sending close frame) and calls {@link
-     * org.glassfish.tyrus.websockets.WebSocket#onClose(org.glassfish.tyrus.websockets.draft06.ClosingFrame)}. If the Grizzly {@link Connection} is not websocket - passes processing to the next
+     * org.glassfish.tyrus.websockets.WebSocket#onClose(org.glassfish.tyrus.websockets.ClosingFrame)}. If the Grizzly {@link Connection} is not websocket - passes processing to the next
      * filter in the chain.
      *
      * @param ctx {@link FilterChainContext}

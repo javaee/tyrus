@@ -42,16 +42,8 @@ package org.glassfish.tyrus.websockets;
 
 public abstract class FramingException extends WebSocketException {
 
-    public FramingException(String s) {
+    FramingException(String s) {
         super(s);
-    }
-
-    public FramingException(String s, Throwable throwable) {
-        super(s, throwable);
-    }
-
-    public FramingException(Throwable throwable) {
-        super(throwable);
     }
 
     public abstract int getClosingCode();

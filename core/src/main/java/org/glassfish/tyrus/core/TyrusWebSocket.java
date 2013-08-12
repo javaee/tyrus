@@ -51,13 +51,13 @@ import org.glassfish.tyrus.websockets.DataFrame;
 import org.glassfish.tyrus.websockets.ProtocolHandler;
 import org.glassfish.tyrus.websockets.WebSocket;
 import org.glassfish.tyrus.websockets.WebSocketListener;
-import org.glassfish.tyrus.websockets.draft06.ClosingFrame;
-import org.glassfish.tyrus.websockets.frametypes.PingFrameType;
-import org.glassfish.tyrus.websockets.frametypes.PongFrameType;
+import org.glassfish.tyrus.websockets.ClosingFrame;
+import org.glassfish.tyrus.websockets.frame.PingFrame;
+import org.glassfish.tyrus.websockets.frame.PongFrame;
 
 /**
  * Tyrus implementation of {@link WebSocket}.
- *
+ * <p/>
  * Instance of this class represents one bi-directional websocket connection.
  */
 public class TyrusWebSocket implements WebSocket {
@@ -77,7 +77,7 @@ public class TyrusWebSocket implements WebSocket {
      * Create new instance, set {@link ProtocolHandler} and register {@link WebSocketListener WebSocketListeners}.
      *
      * @param protocolHandler used for writing data (sending).
-     * @param listeners notifies registered endpoints about incoming events.
+     * @param listeners       notifies registered endpoints about incoming events.
      */
     public TyrusWebSocket(final ProtocolHandler protocolHandler,
                           final WebSocketListener... listeners) {
@@ -88,12 +88,9 @@ public class TyrusWebSocket implements WebSocket {
         protocolHandler.setWebSocket(this);
     }
 
+    @Override
     public final boolean add(WebSocketListener listener) {
         return listeners.add(listener);
-    }
-
-    public final boolean remove(WebSocketListener listener) {
-        return listeners.remove(listener);
     }
 
     @Override
@@ -101,6 +98,7 @@ public class TyrusWebSocket implements WebSocket {
         protocolHandler.setWriteTimeout(timeoutMs);
     }
 
+    @Override
     public boolean isConnected() {
         return connected.contains(state.get());
     }
@@ -109,6 +107,7 @@ public class TyrusWebSocket implements WebSocket {
         state.set(State.CLOSED);
     }
 
+    @Override
     public void onClose(final ClosingFrame frame) {
         WebSocketListener listener;
         while ((listener = listeners.poll()) != null) {
@@ -123,6 +122,7 @@ public class TyrusWebSocket implements WebSocket {
         }
     }
 
+    @Override
     public void onConnect() {
         state.set(State.CONNECTED);
 
@@ -165,6 +165,7 @@ public class TyrusWebSocket implements WebSocket {
         }
     }
 
+    @Override
     public void onPing(DataFrame frame) {
         awaitOnConnect();
         for (WebSocketListener listener : listeners) {
@@ -180,14 +181,12 @@ public class TyrusWebSocket implements WebSocket {
         }
     }
 
+    @Override
     public void close() {
         close(NORMAL_CLOSURE, null);
     }
 
-    public void close(int code) {
-        close(code, null);
-    }
-
+    @Override
     public void close(int code, String reason) {
         if (state.compareAndSet(State.CONNECTED, State.CLOSING)) {
             protocolHandler.close(code, reason);
@@ -214,12 +213,12 @@ public class TyrusWebSocket implements WebSocket {
 
     @Override
     public Future<DataFrame> sendPing(byte[] data) {
-        return send(new DataFrame(new PingFrameType(), data));
+        return send(new DataFrame(new PingFrame(), data));
     }
 
     @Override
     public Future<DataFrame> sendPong(byte[] data) {
-        return send(new DataFrame(new PongFrameType(), data));
+        return send(new DataFrame(new PongFrame(), data));
     }
 
     // return boolean, check return value
@@ -239,6 +238,7 @@ public class TyrusWebSocket implements WebSocket {
         }
     }
 
+    @Override
     public Future<DataFrame> stream(boolean last, String fragment) {
         if (isConnected()) {
             return protocolHandler.stream(last, fragment);
@@ -247,6 +247,7 @@ public class TyrusWebSocket implements WebSocket {
         }
     }
 
+    @Override
     public Future<DataFrame> stream(boolean last, byte[] bytes, int off, int len) {
         if (isConnected()) {
             return protocolHandler.stream(last, bytes, off, len);

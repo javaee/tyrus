@@ -42,7 +42,6 @@ package org.glassfish.tyrus.websockets;
 
 /**
  * TODO
- *
  */
 public class Utf8DecodingError extends FramingException {
 
@@ -53,25 +52,6 @@ public class Utf8DecodingError extends FramingException {
      */
     public Utf8DecodingError(String s) {
         super(s);
-    }
-
-    /**
-     * TODO
-     *
-     * @param s TODO
-     * @param throwable TODO
-     */
-    public Utf8DecodingError(String s, Throwable throwable) {
-        super(s, throwable);
-    }
-
-    /**
-     * TODO
-     *
-     * @param throwable TODO
-     */
-    public Utf8DecodingError(Throwable throwable) {
-        super(throwable);
     }
 
     @Override

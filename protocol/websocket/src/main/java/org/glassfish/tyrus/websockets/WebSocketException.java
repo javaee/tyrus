@@ -45,11 +45,11 @@ class WebSocketException extends RuntimeException {
         super(message);
     }
 
-    public WebSocketException(String message, Throwable throwable) {
+    WebSocketException(String message, Throwable throwable) {
         super(message, throwable);
     }
 
-    public WebSocketException(Throwable throwable) {
+    WebSocketException(Throwable throwable) {
         super(throwable);
     }
 }

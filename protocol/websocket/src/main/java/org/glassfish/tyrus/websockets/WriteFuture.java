@@ -51,7 +51,7 @@ import java.util.concurrent.TimeoutException;
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class WriteFuture<T> implements Future<T> {
+class WriteFuture<T> implements Future<T> {
 
     private volatile T result;
     private volatile Throwable throwable = null;
@@ -76,7 +76,7 @@ public class WriteFuture<T> implements Future<T> {
     public T get() throws InterruptedException, ExecutionException {
         latch.await();
 
-        if(throwable != null){
+        if (throwable != null) {
             throw new ExecutionException(throwable);
         }
 

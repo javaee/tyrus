@@ -38,7 +38,7 @@
  * holder.
  */
 
-package org.glassfish.tyrus.websockets.draft06;
+package org.glassfish.tyrus.websockets;
 
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
@@ -46,25 +46,14 @@ import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CoderResult;
 
-import org.glassfish.tyrus.websockets.DataFrame;
-import org.glassfish.tyrus.websockets.ProtocolError;
-import org.glassfish.tyrus.websockets.StrictUtf8;
-import org.glassfish.tyrus.websockets.Utf8DecodingError;
-import org.glassfish.tyrus.websockets.WebSocket;
-import org.glassfish.tyrus.websockets.WebSocketEngine;
-import org.glassfish.tyrus.websockets.frametypes.ClosingFrameType;
-
 public class ClosingFrame extends DataFrame {
+
     private static final byte[] EMPTY_BYTES = new byte[0];
     private int code = WebSocket.NORMAL_CLOSURE;
     private String reason;
 
-    public ClosingFrame() {
-        super(new ClosingFrameType());
-    }
-
     public ClosingFrame(int code, String reason) {
-        super(new ClosingFrameType());
+        super(new org.glassfish.tyrus.websockets.frame.ClosingFrame());
         if (code > 0) {
             this.code = code;
         }
@@ -72,7 +61,7 @@ public class ClosingFrame extends DataFrame {
     }
 
     public ClosingFrame(byte[] data) {
-        super(new ClosingFrameType());
+        super(new org.glassfish.tyrus.websockets.frame.ClosingFrame());
         setPayload(data);
     }
 
@@ -153,6 +142,5 @@ public class ClosingFrame extends DataFrame {
                 throw new Utf8DecodingError("Illegal UTF-8 Sequence");
             }
         }
-
     }
 }

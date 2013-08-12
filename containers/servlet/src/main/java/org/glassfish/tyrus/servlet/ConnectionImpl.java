@@ -54,7 +54,7 @@ import org.glassfish.tyrus.websockets.Connection;
 import org.glassfish.tyrus.websockets.DataFrame;
 import org.glassfish.tyrus.websockets.WebSocketEngine;
 import org.glassfish.tyrus.websockets.WebSocketResponse;
-import org.glassfish.tyrus.websockets.frametypes.ClosingFrameType;
+import org.glassfish.tyrus.websockets.frame.ClosingFrame;
 
 /**
  * {@link Connection} implementation used in Servlet integration.
@@ -158,7 +158,7 @@ class ConnectionImpl extends Connection implements WriteListener {
                 completionHandler.completed(frame);
             }
 
-            if (frame.getType() instanceof ClosingFrameType) {
+            if (frame.getType() instanceof ClosingFrame) {
                 tyrusHttpUpgradeHandler.getWebConnection().close();
             }
         } catch (Exception e) {

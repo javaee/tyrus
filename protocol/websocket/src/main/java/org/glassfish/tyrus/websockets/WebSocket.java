@@ -42,8 +42,6 @@ package org.glassfish.tyrus.websockets;
 
 import java.util.concurrent.Future;
 
-import org.glassfish.tyrus.websockets.draft06.ClosingFrame;
-
 /**
  * General WebSocket unit interface.
  *
@@ -167,15 +165,6 @@ public interface WebSocket {
 
     /**
      * <p>
-     * Closes this {@link WebSocket} using the specified status code.
-     * </p>
-     *
-     * @param code the closing status code.
-     */
-    void close(int code);
-
-    /**
-     * <p>
      * Closes this {@link WebSocket} using the specified status code and
      * reason.
      * </p>
@@ -287,17 +276,6 @@ public interface WebSocket {
      * @see WebSocketListener
      */
     boolean add(WebSocketListener listener);
-
-    /**
-     * Removes the specified {@link WebSocketListener} as a target of event
-     * notification.
-     *
-     * @param listener the {@link WebSocketListener} to remote.
-     * @return <code>true</code> if the listener was removed, otherwise
-     *         <code>false</code>
-     * @see WebSocketListener
-     */
-    boolean remove(WebSocketListener listener);
 
     /**
      * Sets the timeout for the writing operation.

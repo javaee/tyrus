@@ -68,7 +68,7 @@ import org.glassfish.tyrus.websockets.WebSocketEngine;
 import org.glassfish.tyrus.websockets.WebSocketListener;
 import org.glassfish.tyrus.websockets.WebSocketRequest;
 import org.glassfish.tyrus.websockets.WebSocketResponse;
-import org.glassfish.tyrus.websockets.draft06.ClosingFrame;
+import org.glassfish.tyrus.websockets.ClosingFrame;
 
 /**
  * Implementation of {@link SPIRegisteredEndpoint}.

@@ -43,7 +43,7 @@ package org.glassfish.tyrus.websockets;
 import java.nio.ByteBuffer;
 import java.security.SecureRandom;
 
-public class Masker {
+class Masker {
     private volatile ByteBuffer buffer;
     private byte[] mask;
     private int index = 0;
@@ -56,19 +56,14 @@ public class Masker {
         generateMask();
     }
 
-    public byte get() {
+    byte get() {
         return buffer.get();
     }
 
-    public byte[] get(final int size) {
+    byte[] get(final int size) {
         byte[] bytes = new byte[size];
         buffer.get(bytes);
         return bytes;
-    }
-
-    public byte unmask() {
-        final byte b = get();
-        return mask == null ? b : (byte) (b ^ mask[index++ % WebSocketEngine.MASK_SIZE]);
     }
 
     public byte[] unmask(int count) {
@@ -82,13 +77,9 @@ public class Masker {
         return bytes;
     }
 
-    public void generateMask() {
+    void generateMask() {
         mask = new byte[WebSocketEngine.MASK_SIZE];
         new SecureRandom().nextBytes(mask);
-    }
-
-    public void mask(byte[] bytes, int location, byte b) {
-        bytes[location] = mask == null ? b : (byte) (b ^ mask[index++ % WebSocketEngine.MASK_SIZE]);
     }
 
     public void mask(byte[] target, int location, byte[] bytes) {
@@ -101,17 +92,9 @@ public class Masker {
         }
     }
 
-    public byte[] maskAndPrepend(byte[] packet) {
-        byte[] masked = new byte[packet.length + WebSocketEngine.MASK_SIZE];
-        System.arraycopy(getMask(), 0, masked, 0, WebSocketEngine.MASK_SIZE);
-        mask(masked, WebSocketEngine.MASK_SIZE, packet);
-        return masked;
-    }
-
     public void setBuffer(ByteBuffer buffer) {
         this.buffer = buffer;
     }
-
 
     public byte[] getMask() {
         return mask;

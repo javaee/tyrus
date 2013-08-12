@@ -45,7 +45,7 @@ import java.util.List;
 /**
  * An implementation of {@link MultivaluedMap} where keys and values are
  * instances of String.
- * <p />
+ * <p/>
  * This map has an additional ability to instantiate classes using the
  * individual string values as a constructor parameters.
  *

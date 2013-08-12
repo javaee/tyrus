@@ -53,18 +53,16 @@ import java.util.logging.Logger;
  * @author Justin Lee
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public abstract class HandShake {
+public final class HandShake {
 
     private static final String HEADER_SEPARATOR = ", ";
-
     private static final Logger LOGGER = Logger.getLogger(HandShake.class.getName());
-
+    private final List<String> enabledExtensions = Collections.emptyList();
     private boolean secure;
     private String origin;
     private String serverHostName;
     private int port = 80;
     private String resourcePath;
-    private String location;
     //private final Map<String, String[]> queryParams = new TreeMap<String, String[]>();
     private List<String> subProtocols = new ArrayList<String>();
     private List<Extension> extensions = new ArrayList<Extension>(); // client extensions
@@ -72,49 +70,59 @@ public abstract class HandShake {
     private WebSocketRequest request;
     private HandShakeResponseListener responseListener;
     private WebSocketRequest incomingRequest;
+    private SecKey secKey;
 
-    protected HandShake(WebSocketRequest webSocketRequest, boolean client) {
-        this.request = webSocketRequest;
 
-        final URI uri = webSocketRequest.getRequestURI();
-        resourcePath = uri.getPath();
-        if ("".equals(resourcePath)) {
-            resourcePath = "/";
-        }
-        if (uri.getQuery() != null) {
-            resourcePath += "?" + uri.getQuery();
-        }
-        serverHostName = uri.getHost();
-        secure = request.isSecure();
-        port = uri.getPort();
-        origin = appendPort(new StringBuilder(uri.getHost())).toString();
-        buildLocation();
+    private HandShake() {
     }
 
-    protected HandShake(WebSocketRequest request) {
-        this.incomingRequest = request;
+    static HandShake createClientHandShake(WebSocketRequest webSocketRequest) {
+        final HandShake handShake = new HandShake();
+        handShake.request = webSocketRequest;
+
+        final URI uri = webSocketRequest.getRequestURI();
+        handShake.resourcePath = uri.getPath();
+        if ("".equals(handShake.resourcePath)) {
+            handShake.resourcePath = "/";
+        }
+        if (uri.getQuery() != null) {
+            handShake.resourcePath += "?" + uri.getQuery();
+        }
+        handShake.serverHostName = uri.getHost();
+        handShake.secure = webSocketRequest.isSecure();
+        handShake.port = uri.getPort();
+        handShake.origin = appendPort(new StringBuilder(uri.getHost()), handShake.port, handShake.secure).toString();
+        handShake.secKey = new SecKey();
+
+        return handShake;
+    }
+
+    static HandShake createServerHandShake(WebSocketRequest request) {
+        final HandShake handShake = new HandShake();
+
+        handShake.incomingRequest = request;
         checkForHeader(request.getFirstHeaderValue(WebSocketEngine.UPGRADE), WebSocketEngine.UPGRADE, "WebSocket");
         checkForHeader(request.getHeader(WebSocketEngine.CONNECTION), WebSocketEngine.CONNECTION, WebSocketEngine.UPGRADE);
 
-        origin = request.getFirstHeaderValue(WebSocketEngine.SEC_WS_ORIGIN_HEADER);
+        handShake.origin = request.getFirstHeaderValue(WebSocketEngine.SEC_WS_ORIGIN_HEADER);
 
-        if (origin == null) {
-            origin = request.getFirstHeaderValue(WebSocketEngine.ORIGIN_HEADER);
+        if (handShake.origin == null) {
+            handShake.origin = request.getFirstHeaderValue(WebSocketEngine.ORIGIN_HEADER);
         }
-        determineHostAndPort(request);
+        HandShake.determineHostAndPort(handShake, request);
 
         // TODO - trim?
         final String protocolHeader = request.getFirstHeaderValue(WebSocketEngine.SEC_WS_PROTOCOL_HEADER);
-        subProtocols = (protocolHeader == null ? Collections.<String>emptyList() : Arrays.asList(protocolHeader.split(",")));
+        handShake.subProtocols = (protocolHeader == null ? Collections.<String>emptyList() : Arrays.asList(protocolHeader.split(",")));
 
-        if (serverHostName == null) {
+        if (handShake.serverHostName == null) {
             throw new HandshakeException("Missing required headers for WebSocket negotiation");
         }
-        resourcePath = request.getRequestURI().toString();
+        handShake.resourcePath = request.getRequestURI().toString();
         final String queryString = request.getQueryString();
         if (queryString != null) {
             if (!queryString.isEmpty()) {
-                resourcePath += "?" + queryString;
+                handShake.resourcePath += "?" + queryString;
             }
 //            Parameters queryParameters = new Parameters();
 //            queryParameters.processParameters(queryString);
@@ -123,130 +131,21 @@ public abstract class HandShake {
 //                queryParams.put(name, queryParameters.getParameterValues(name));
 //            }
         }
-        buildLocation();
-    }
 
-    final void buildLocation() {
-        StringBuilder builder = new StringBuilder((isSecure() ? "wss" : "ws") + "://" + serverHostName);
-        appendPort(builder);
-        if (resourcePath == null || !resourcePath.startsWith("/") && !"".equals(resourcePath)) {
-            builder.append("/");
+        List<String> value = request.getHeaders().get(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER);
+        if (value != null) {
+            handShake.extensions = HandShake.fromHeaders(value);
         }
-        builder.append(resourcePath);
-        location = builder.toString();
+        handShake.secKey = SecKey.generateServerKey(new SecKey(request.getFirstHeaderValue(WebSocketEngine.SEC_WS_KEY_HEADER)));
+
+        return handShake;
     }
 
-    public String getLocation() {
-        return location;
-    }
-
-    public void setLocation(String location) {
-        this.location = location;
-    }
-
-    protected String getOrigin() {
-        return origin;
-    }
-
-    public void setOrigin(String origin) {
-        this.origin = origin;
-    }
-
-    int getPort() {
-        return port;
-    }
-
-    void setPort(int port) {
-        this.port = port;
-    }
-
-    public void setResourcePath(String resourcePath) {
-        this.resourcePath = resourcePath;
-    }
-
-    String getResourcePath() {
-        return resourcePath;
-    }
-
-    boolean isSecure() {
-        return secure;
-    }
-
-    public void setSecure(boolean secure) {
-        this.secure = secure;
-    }
-
-    String getServerHostName() {
-        return serverHostName;
-    }
-
-    void setServerHostName(String serverHostName) {
-        this.serverHostName = serverHostName;
-    }
-
-    protected List<String> getSubProtocols() {
-        return subProtocols;
-    }
-
-    protected <T> String getHeaderFromList(List<T> list) {
-        StringBuilder sb = new StringBuilder();
-        Iterator<T> it = list.iterator();
-        while (it.hasNext()) {
-            sb.append(it.next());
-            if (it.hasNext()) {
-                sb.append(", ");
-            }
-        }
-        return sb.toString();
-    }
-
-    public void setSubProtocols(List<String> subProtocols) {
-        this.subProtocols = subProtocols;
-    }
-
-    private void sanitize(List<String> strings) {
-        if (strings != null) {
-            for (int i = 0; i < strings.size(); i++) {
-                strings.set(i, strings.get(i) == null ? null : strings.get(i).trim());
-            }
-        }
-    }
-
-    protected List<Extension> getExtensions() {
-        return extensions;
-    }
-
-    public void setExtensions(List<Extension> extensions) {
-        this.extensions = extensions;
-    }
-
-    protected final String joinExtensions(List<Extension> extensions) {
-        StringBuilder sb = new StringBuilder();
-        for (Extension e : extensions) {
-            if (sb.length() != 0) {
-                sb.append(HEADER_SEPARATOR);
-            }
-            sb.append(e.toString());
-        }
-        return sb.toString();
-    }
-
-    protected String join(List<String> values) {
-        StringBuilder builder = new StringBuilder();
-        for (String s : values) {
-            if (builder.length() != 0) {
-                builder.append(HEADER_SEPARATOR);
-            }
-            builder.append(s);
-        }
-        return builder.toString();
-    }
-
-    private void checkForHeader(String currentValue, String header, String validValue) {
+    private static void checkForHeader(String currentValue, String header, String validValue) {
         validate(header, validValue, currentValue);
     }
 
-    private void validate(String header, String validValue, String value) {
+    private static void validate(String header, String validValue, String value) {
         // http://java.net/jira/browse/TYRUS-55
         // Firefox workaround (it sends "Connections: keep-alive, upgrade").
         if (header.equalsIgnoreCase(WebSocketEngine.CONNECTION)) {
@@ -260,144 +159,17 @@ public abstract class HandShake {
         }
     }
 
-    private void determineHostAndPort(WebSocketRequest request) {
+    private static void determineHostAndPort(HandShake handShake, WebSocketRequest request) {
         String header = request.getFirstHeaderValue(WebSocketEngine.HOST);
 
         final int i = header == null ? -1 : header.indexOf(":");
         if (i == -1) {
-            setServerHostName(header);
-            setPort(80);
+            handShake.serverHostName = header;
+            handShake.port = 80;
         } else {
-            setServerHostName(header.substring(0, i));
-            setPort(Integer.valueOf(header.substring(i + 1)));
+            handShake.serverHostName = header.substring(0, i);
+            handShake.port = Integer.valueOf(header.substring(i + 1));
         }
-    }
-
-    /**
-     * Gets the {@link WebSocketRequest}.
-     *
-     * @return {@link WebSocketRequest} created on this HandShake.
-     */
-    public WebSocketRequest getRequest() {
-        return request;
-    }
-
-    /**
-     * Compose the {@link WebSocketRequest} and store it for further use.
-     *
-     * @return composed {@link WebSocketRequest}.
-     */
-    public WebSocketRequest prepareRequest() {
-        String host = getServerHostName();
-        if (port != -1 && port != 80 && port != 443) {
-            host += ":" + getPort();
-        }
-
-        request.setRequestPath(getResourcePath());
-        request.putSingleHeader(WebSocketEngine.HOST, host);
-        request.putSingleHeader(WebSocketEngine.CONNECTION, WebSocketEngine.UPGRADE);
-        request.putSingleHeader(WebSocketEngine.UPGRADE, WebSocketEngine.WEBSOCKET);
-
-        if (!getSubProtocols().isEmpty()) {
-            request.putSingleHeader(WebSocketEngine.SEC_WS_PROTOCOL_HEADER, getHeaderFromList(subProtocols));
-        }
-
-        if (!getExtensions().isEmpty()) {
-            request.putSingleHeader(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER, getHeaderFromList(extensions));
-        }
-
-        return request;
-    }
-
-    public void validateServerResponse(WebSocketResponse response) {
-        if (WebSocketEngine.RESPONSE_CODE_VALUE != response.getStatus()) {
-            throw new HandshakeException(String.format("Response code was not %s: %s",
-                    WebSocketEngine.RESPONSE_CODE_VALUE, response.getStatus()));
-        }
-
-        checkForHeader(response.getHeaders().get(WebSocketEngine.UPGRADE), WebSocketEngine.UPGRADE, WebSocketEngine.WEBSOCKET);
-        checkForHeader(response.getHeaders().get(WebSocketEngine.CONNECTION), WebSocketEngine.CONNECTION, WebSocketEngine.UPGRADE);
-
-//        if (!getSubProtocols().isEmpty()) {
-//            checkForHeader(response.getHeaders(), WebSocketEngine.SEC_WS_PROTOCOL_HEADER, WebSocketEngine.SEC_WS_PROTOCOL_HEADER);
-//        }
-    }
-
-    void respond(Connection connection, WebSocketApplication application/*, WebSocketResponse response*/) {
-        WebSocketResponse response = new WebSocketResponse();
-        response.setStatus(101);
-
-        response.getHeaders().put(WebSocketEngine.UPGRADE, WebSocketEngine.WEBSOCKET);
-        response.getHeaders().put(WebSocketEngine.CONNECTION, WebSocketEngine.UPGRADE);
-        setHeaders(response);
-
-        if (subProtocols != null && !subProtocols.isEmpty()) {
-            List<String> appProtocols = application.getSupportedProtocols(subProtocols);
-            if (!appProtocols.isEmpty()) {
-                response.getHeaders().put(WebSocketEngine.SEC_WS_PROTOCOL_HEADER, getHeaderFromList(appProtocols));
-            }
-        }
-        if (!application.getSupportedExtensions().isEmpty() && !getExtensions().isEmpty()) {
-            List<Extension> intersection =
-                    intersection(getExtensions(),
-                            application.getSupportedExtensions());
-            if (!intersection.isEmpty()) {
-                application.onExtensionNegotiation(intersection);
-                response.getHeaders().put(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER, getHeaderFromList(intersection));
-            }
-        }
-
-        application.onHandShakeResponse(incomingRequest, response);
-
-        connection.write(response);
-    }
-
-
-    protected abstract void setHeaders(WebSocketResponse response);
-
-    protected final List<String> split(final String header) {
-        if (header == null) {
-            return Collections.emptyList();
-        } else {
-            final List<String> list = Arrays.asList(header.split(","));
-            sanitize(list);
-            return list;
-        }
-    }
-
-    List<Extension> intersection(List<Extension> requested, List<Extension> supported) {
-        List<Extension> intersection = new ArrayList<Extension>(supported.size());
-        for (Extension e : requested) {
-            for (Extension s : supported) {
-                if (e.getName().equals(s.getName())) {
-                    intersection.add(e);
-                    break;
-                }
-            }
-        }
-        return intersection;
-    }
-
-    /**
-     * Parsing of one {@link Extension}.
-     *
-     * @param s {@link String} containing {@link Extension}.
-     * @return extension represented as {@link Extension}.
-     */
-    public static List<Extension> fromString(String s) {
-        return fromHeaders(Arrays.asList(s));
-    }
-
-    private enum ParserState {
-        NAME_START,
-        NAME,
-        PARAM_NAME,
-        PARAM_VALUE,
-        PARAM_VALUE_QUOTED,
-        PARAM_VALUE_QUOTED_POST,
-        // quoted-pair - '\' escaped character
-        PARAM_VALUE_QUOTED_QP,
-        ERROR
     }
 
     /**
@@ -406,7 +178,7 @@ public abstract class HandShake {
      * @param extensionHeaders Http Extension headers.
      * @return list of parsed {@link Extension Extensions}.
      */
-    protected static List<Extension> fromHeaders(List<String> extensionHeaders) {
+    private static List<Extension> fromHeaders(List<String> extensionHeaders) {
         List<Extension> extensions = new ArrayList<Extension>();
 
         for (String singleHeader : extensionHeaders) {
@@ -586,13 +358,8 @@ public abstract class HandShake {
         return extensions;
     }
 
-
-    public WebSocketRequest initiate(/*FilterChainContext ctx*/) {
-        return request;
-    }
-
-    private StringBuilder appendPort(StringBuilder builder) {
-        if (isSecure()) {
+    private static StringBuilder appendPort(StringBuilder builder, int port, boolean secure) {
+        if (secure) {
             if (port != 443 && port != -1) {
                 builder.append(':').append(port);
             }
@@ -602,6 +369,178 @@ public abstract class HandShake {
             }
         }
         return builder;
+    }
+
+    String getOrigin() {
+        return origin;
+    }
+
+    int getPort() {
+        return port;
+    }
+
+    void setPort(int port) {
+        this.port = port;
+    }
+
+    String getResourcePath() {
+        return resourcePath;
+    }
+
+    String getServerHostName() {
+        return serverHostName;
+    }
+
+    List<String> getSubProtocols() {
+        return subProtocols;
+    }
+
+    public void setSubProtocols(List<String> subProtocols) {
+        this.subProtocols = subProtocols;
+    }
+
+    <T> String getHeaderFromList(List<T> list) {
+        StringBuilder sb = new StringBuilder();
+        Iterator<T> it = list.iterator();
+        while (it.hasNext()) {
+            sb.append(it.next());
+            if (it.hasNext()) {
+                sb.append(", ");
+            }
+        }
+        return sb.toString();
+    }
+
+    List<Extension> getExtensions() {
+        return extensions;
+    }
+
+    public void setExtensions(List<Extension> extensions) {
+        this.extensions = extensions;
+    }
+
+    /**
+     * Gets the {@link WebSocketRequest}.
+     *
+     * @return {@link WebSocketRequest} created on this HandShake.
+     */
+    public WebSocketRequest getRequest() {
+        return request;
+    }
+
+    /**
+     * Compose the {@link WebSocketRequest} and store it for further use.
+     *
+     * @return composed {@link WebSocketRequest}.
+     */
+    public WebSocketRequest prepareRequest() {
+        String host = getServerHostName();
+        if (port != -1 && port != 80 && port != 443) {
+            host += ":" + getPort();
+        }
+
+        request.setRequestPath(getResourcePath());
+        request.putSingleHeader(WebSocketEngine.HOST, host);
+        request.putSingleHeader(WebSocketEngine.CONNECTION, WebSocketEngine.UPGRADE);
+        request.putSingleHeader(WebSocketEngine.UPGRADE, WebSocketEngine.WEBSOCKET);
+
+        if (!getSubProtocols().isEmpty()) {
+            request.putSingleHeader(WebSocketEngine.SEC_WS_PROTOCOL_HEADER, getHeaderFromList(subProtocols));
+        }
+
+        if (!getExtensions().isEmpty()) {
+            request.putSingleHeader(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER, getHeaderFromList(extensions));
+        }
+
+        request.putSingleHeader(WebSocketEngine.SEC_WS_KEY_HEADER, secKey.toString());
+        request.putSingleHeader(WebSocketEngine.SEC_WS_ORIGIN_HEADER, getOrigin());
+        request.putSingleHeader(WebSocketEngine.SEC_WS_VERSION, getVersion() + "");
+        if (!getExtensions().isEmpty()) {
+            request.putSingleHeader(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER, getHeaderFromList(getExtensions()));
+        }
+        final String headerValue = request.getFirstHeaderValue(WebSocketEngine.SEC_WS_ORIGIN_HEADER);
+        request.getHeaders().remove(WebSocketEngine.SEC_WS_ORIGIN_HEADER);
+        request.putSingleHeader(WebSocketEngine.ORIGIN_HEADER, headerValue);
+        return request;
+    }
+
+    public void validateServerResponse(WebSocketResponse response) {
+        if (WebSocketEngine.RESPONSE_CODE_VALUE != response.getStatus()) {
+            throw new HandshakeException(String.format("Response code was not %s: %s",
+                    WebSocketEngine.RESPONSE_CODE_VALUE, response.getStatus()));
+        }
+
+        checkForHeader(response.getHeaders().get(WebSocketEngine.UPGRADE), WebSocketEngine.UPGRADE, WebSocketEngine.WEBSOCKET);
+        checkForHeader(response.getHeaders().get(WebSocketEngine.CONNECTION), WebSocketEngine.CONNECTION, WebSocketEngine.UPGRADE);
+
+//        if (!getSubProtocols().isEmpty()) {
+//            checkForHeader(response.getHeaders(), WebSocketEngine.SEC_WS_PROTOCOL_HEADER, WebSocketEngine.SEC_WS_PROTOCOL_HEADER);
+//        }
+
+        secKey.validateServerKey(response.getHeaders().get(WebSocketEngine.SEC_WS_ACCEPT));
+    }
+
+    void respond(Connection connection, WebSocketApplication application/*, WebSocketResponse response*/) {
+        WebSocketResponse response = new WebSocketResponse();
+        response.setStatus(101);
+
+        response.getHeaders().put(WebSocketEngine.UPGRADE, WebSocketEngine.WEBSOCKET);
+        response.getHeaders().put(WebSocketEngine.CONNECTION, WebSocketEngine.UPGRADE);
+        setHeaders(response);
+
+        if (subProtocols != null && !subProtocols.isEmpty()) {
+            List<String> appProtocols = application.getSupportedProtocols(subProtocols);
+            if (!appProtocols.isEmpty()) {
+                response.getHeaders().put(WebSocketEngine.SEC_WS_PROTOCOL_HEADER, getHeaderFromList(appProtocols));
+            }
+        }
+        if (!application.getSupportedExtensions().isEmpty() && !getExtensions().isEmpty()) {
+            List<Extension> intersection =
+                    intersection(getExtensions(),
+                            application.getSupportedExtensions());
+            if (!intersection.isEmpty()) {
+                application.onExtensionNegotiation(intersection);
+                response.getHeaders().put(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER, getHeaderFromList(intersection));
+            }
+        }
+
+        application.onHandShakeResponse(incomingRequest, response);
+
+        connection.write(response);
+    }
+
+    void setHeaders(WebSocketResponse response) {
+        response.setReasonPhrase(WebSocketEngine.RESPONSE_CODE_MESSAGE);
+        response.getHeaders().put(WebSocketEngine.SEC_WS_ACCEPT, secKey.getSecKey());
+        if (!getEnabledExtensions().isEmpty()) {
+            response.getHeaders().put(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER, getHeaderFromList(getSubProtocols()));
+        }
+    }
+
+    List<Extension> intersection(List<Extension> requested, List<Extension> supported) {
+        List<Extension> intersection = new ArrayList<Extension>(supported.size());
+        for (Extension e : requested) {
+            for (Extension s : supported) {
+                if (e.getName().equals(s.getName())) {
+                    intersection.add(e);
+                    break;
+                }
+            }
+        }
+        return intersection;
+    }
+
+    public WebSocketRequest initiate(/*FilterChainContext ctx*/) {
+        return request;
+    }
+
+    /**
+     * Get response listener
+     *
+     * @return registered response listener.
+     */
+    public HandShakeResponseListener getResponseListener() {
+        return responseListener;
     }
 
     /**
@@ -614,13 +553,24 @@ public abstract class HandShake {
         this.responseListener = responseListener;
     }
 
-    /**
-     * Get response listener
-     *
-     * @return registered response listener.
-     */
-    public HandShakeResponseListener getResponseListener() {
-        return responseListener;
+    List<String> getEnabledExtensions() {
+        return enabledExtensions;
+    }
+
+    int getVersion() {
+        return 13;
+    }
+
+    private enum ParserState {
+        NAME_START,
+        NAME,
+        PARAM_NAME,
+        PARAM_VALUE,
+        PARAM_VALUE_QUOTED,
+        PARAM_VALUE_QUOTED_POST,
+        // quoted-pair - '\' escaped character
+        PARAM_VALUE_QUOTED_QP,
+        ERROR
     }
 
     /**
@@ -636,7 +586,6 @@ public abstract class HandShake {
          * @param headers of the handshake response.
          */
         public void onResponseHeaders(Map<String, String> headers);
-
 
         /**
          * Called when an error is found in handshake response.

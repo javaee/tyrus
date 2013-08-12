@@ -38,15 +38,34 @@
  * holder.
  */
 
-package org.glassfish.tyrus.websockets.frametypes;
+package org.glassfish.tyrus.websockets.frame;
 
-import org.glassfish.tyrus.websockets.BaseFrameType;
 import org.glassfish.tyrus.websockets.DataFrame;
+import org.glassfish.tyrus.websockets.StrictUtf8;
+import org.glassfish.tyrus.websockets.Utf8Utils;
 import org.glassfish.tyrus.websockets.WebSocket;
 
-public class PongFrameType extends BaseFrameType {
-    public void respond(WebSocket socket, DataFrame frame) {
-        socket.onPong(frame);
+public class TextFrame extends BaseFrame {
+    @Override
+    public void setPayload(DataFrame frame, byte[] data) {
+        frame.setPayload(data);
     }
 
+    @Override
+    public byte[] getBytes(DataFrame dataFrame) {
+        final byte[] bytes = dataFrame.getBytes();
+        if (bytes == null) {
+            setPayload(dataFrame, Utf8Utils.encode(new StrictUtf8(), dataFrame.getTextPayload()));
+        }
+        return dataFrame.getBytes();
+    }
+
+    @Override
+    public void respond(WebSocket socket, DataFrame frame) {
+        if (frame.isLast()) {
+            socket.onMessage(frame.getTextPayload());
+        } else {
+            socket.onFragment(frame.isLast(), frame.getTextPayload());
+        }
+    }
 }

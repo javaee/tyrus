@@ -46,6 +46,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CoderResult;
 import java.util.Arrays;
+import java.util.Locale;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -55,27 +56,31 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.websocket.WebSocketContainer;
 
-import org.glassfish.tyrus.websockets.draft06.ClosingFrame;
-import org.glassfish.tyrus.websockets.frametypes.BinaryFrameType;
-import org.glassfish.tyrus.websockets.frametypes.TextFrameType;
+import org.glassfish.tyrus.websockets.frame.BinaryFrame;
+import org.glassfish.tyrus.websockets.frame.ClosingFrame;
+import org.glassfish.tyrus.websockets.frame.ContinuationFrame;
+import org.glassfish.tyrus.websockets.frame.Frame;
+import org.glassfish.tyrus.websockets.frame.PingFrame;
+import org.glassfish.tyrus.websockets.frame.PongFrame;
+import org.glassfish.tyrus.websockets.frame.TextFrame;
 
-public abstract class ProtocolHandler {
+public final class ProtocolHandler {
 
     private final Charset utf8 = new StrictUtf8();
     private final CharsetDecoder currentDecoder = utf8.newDecoder();
-    private WebSocket webSocket;
     private final AtomicBoolean onClosedCalled = new AtomicBoolean(false);
+    private final boolean maskData;
+    private final ParsingState state = new ParsingState();
+    private WebSocket webSocket;
     private byte outFragmentedType;
     private ByteBuffer remainder;
     private long writeTimeoutMs = -1;
     private WebSocketContainer container;
+    private Connection connection;
+    private byte inFragmentedType;
+    private boolean processingFragment;
 
-    protected final boolean maskData;
-    protected Connection connection;
-    protected byte inFragmentedType;
-    protected boolean processingFragment;
-
-    protected ProtocolHandler(boolean maskData) {
+    ProtocolHandler(boolean maskData) {
         this.maskData = maskData;
     }
 
@@ -85,27 +90,13 @@ public abstract class ProtocolHandler {
         return handshake;
     }
 
-    public Connection getConnection() {
-        return connection;
-    }
-
     public void setConnection(Connection handler) {
         this.connection = handler;
-    }
-
-    public WebSocket getWebSocket() {
-        return webSocket;
     }
 
     public void setWebSocket(WebSocket webSocket) {
         this.webSocket = webSocket;
     }
-
-    public boolean isMaskData() {
-        return maskData;
-    }
-
-    public abstract byte[] frame(DataFrame frame);
 
     /**
      * Create {@link HandShake} on server side.
@@ -113,7 +104,9 @@ public abstract class ProtocolHandler {
      * @param webSocketRequest representation of received initial HTTP request.
      * @return new {@link HandShake} instance.
      */
-    protected abstract HandShake createHandShake(WebSocketRequest webSocketRequest);
+    HandShake createHandShake(WebSocketRequest webSocketRequest) {
+        return HandShake.createServerHandShake(webSocketRequest);
+    }
 
     /**
      * Create {@link HandShake} on client side.
@@ -121,7 +114,9 @@ public abstract class ProtocolHandler {
      * @param webSocketRequest representation of HTTP request to be sent.
      * @return new {@link HandShake} instance.
      */
-    public abstract HandShake createClientHandShake(WebSocketRequest webSocketRequest, boolean client);
+    public HandShake createClientHandShake(WebSocketRequest webSocketRequest) {
+        return HandShake.createClientHandShake(webSocketRequest);
+    }
 
     public final Future<DataFrame> send(DataFrame frame, boolean useTimeout) {
         return send(frame, null, useTimeout);
@@ -131,29 +126,29 @@ public abstract class ProtocolHandler {
         return send(frame, null, true);
     }
 
-    public Future<DataFrame> send(DataFrame frame,
-                                  Connection.CompletionHandler<DataFrame> completionHandler, Boolean useTimeout) {
+    Future<DataFrame> send(DataFrame frame,
+                           Connection.CompletionHandler<DataFrame> completionHandler, Boolean useTimeout) {
         return write(frame, completionHandler, useTimeout);
     }
 
     public Future<DataFrame> send(byte[] data) {
-        return send(new DataFrame(new BinaryFrameType(), data), null, true);
+        return send(new DataFrame(new BinaryFrame(), data), null, true);
     }
 
     public Future<DataFrame> send(String data) {
-        return send(new DataFrame(new TextFrameType(), data));
+        return send(new DataFrame(new TextFrame(), data));
     }
 
     public Future<DataFrame> stream(boolean last, byte[] bytes, int off, int len) {
-        return send(new DataFrame(new BinaryFrameType(), Arrays.copyOfRange(bytes, off, off + len), last));
+        return send(new DataFrame(new BinaryFrame(), Arrays.copyOfRange(bytes, off, off + len), last));
     }
 
     public Future<DataFrame> stream(boolean last, String fragment) {
-        return send(new DataFrame(new TextFrameType(), fragment, last));
+        return send(new DataFrame(new TextFrame(), fragment, last));
     }
 
     public Future<DataFrame> close(int code, String reason) {
-        final ClosingFrame closingFrame = new ClosingFrame(code, reason);
+        final org.glassfish.tyrus.websockets.ClosingFrame closingFrame = new org.glassfish.tyrus.websockets.ClosingFrame(code, reason);
 
         return send(closingFrame, new Connection.CompletionHandler<DataFrame>() {
 
@@ -218,15 +213,13 @@ public abstract class ProtocolHandler {
         return parse(buffer);
     }
 
-    protected abstract DataFrame parse(ByteBuffer buffer);
-
     /**
      * Convert a byte[] to a long. Used for rebuilding payload length.
      *
      * @param bytes byte array to be converted.
      * @return converted byte array.
      */
-    protected long decodeLength(byte[] bytes) {
+    long decodeLength(byte[] bytes) {
         return WebSocketEngine.toLong(bytes, 0, bytes.length);
     }
 
@@ -239,7 +232,7 @@ public abstract class ProtocolHandler {
      * @param length the payload size
      * @return the array
      */
-    protected byte[] encodeLength(final long length) {
+    byte[] encodeLength(final long length) {
         byte[] lengthBytes;
         if (length <= 125) {
             lengthBytes = new byte[1];
@@ -265,9 +258,7 @@ public abstract class ProtocolHandler {
         }
     }
 
-    protected abstract boolean isControlFrame(byte opcode);
-
-    protected byte checkForLastFrame(DataFrame frame, byte opcode) {
+    byte checkForLastFrame(DataFrame frame, byte opcode) {
         byte local = opcode;
         if (!frame.isLast()) {
             validate(outFragmentedType, local);
@@ -295,7 +286,7 @@ public abstract class ProtocolHandler {
         localConnection.closeSilently();
     }
 
-    protected void utf8Decode(boolean finalFragment, byte[] data, DataFrame dataFrame) {
+    void utf8Decode(boolean finalFragment, byte[] data, DataFrame dataFrame) {
         final ByteBuffer b = getByteBuffer(data);
         int n = (int) (b.remaining() * currentDecoder.averageCharsPerByte());
         CharBuffer cb = CharBuffer.allocate(n);
@@ -364,6 +355,202 @@ public abstract class ProtocolHandler {
         this.container = container;
     }
 
+    public byte[] frame(DataFrame frame) {
+        byte opcode = checkForLastFrame(frame, getOpcode(frame.getType()));
+        final byte[] bytes = frame.getType().getBytes(frame);
+        final byte[] lengthBytes = encodeLength(bytes.length);
+
+        int length = 1 + lengthBytes.length + bytes.length + (maskData ? WebSocketEngine.MASK_SIZE : 0);
+        int payloadStart = 1 + lengthBytes.length + (maskData ? WebSocketEngine.MASK_SIZE : 0);
+        final byte[] packet = new byte[length];
+        packet[0] = opcode;
+        System.arraycopy(lengthBytes, 0, packet, 1, lengthBytes.length);
+        if (maskData) {
+            Masker masker = new Masker();
+            packet[1] |= 0x80;
+            masker.mask(packet, payloadStart, bytes);
+            System.arraycopy(masker.getMask(), 0, packet, payloadStart - WebSocketEngine.MASK_SIZE,
+                    WebSocketEngine.MASK_SIZE);
+        } else {
+            System.arraycopy(bytes, 0, packet, payloadStart, bytes.length);
+        }
+        return packet;
+    }
+
+    DataFrame parse(ByteBuffer buffer) {
+        DataFrame dataFrame;
+
+        try {
+            switch (state.state) {
+                case 0:
+                    if (buffer.remaining() < 2) {
+                        // Don't have enough bytes to read opcode and lengthCode
+                        return null;
+                    }
+
+                    byte opcode = buffer.get();
+                    boolean rsvBitSet = isBitSet(opcode, 6)
+                            || isBitSet(opcode, 5)
+                            || isBitSet(opcode, 4);
+                    if (rsvBitSet) {
+                        throw new ProtocolError("RSV bit(s) incorrectly set.");
+                    }
+                    state.finalFragment = isBitSet(opcode, 7);
+                    state.controlFrame = isControlFrame(opcode);
+                    state.opcode = (byte) (opcode & 0x7f);
+                    state.frame = valueOf(inFragmentedType, state.opcode);
+                    if (!state.finalFragment && state.controlFrame) {
+                        throw new ProtocolError("Fragmented control frame");
+                    }
+
+                    if (!state.controlFrame) {
+                        if (isContinuationFrame(state.opcode) && !processingFragment) {
+                            throw new ProtocolError("End fragment sent, but wasn't processing any previous fragments");
+                        }
+                        if (processingFragment && !isContinuationFrame(state.opcode)) {
+                            throw new ProtocolError("Fragment sent but opcode was not 0");
+                        }
+                        if (!state.finalFragment && !isContinuationFrame(state.opcode)) {
+                            processingFragment = true;
+                        }
+                        if (!state.finalFragment) {
+                            if (inFragmentedType == 0) {
+                                inFragmentedType = state.opcode;
+                            }
+                        }
+                    }
+                    byte lengthCode = buffer.get();
+
+                    state.masked = (lengthCode & 0x80) == 0x80;
+                    state.masker = new Masker(buffer);
+                    if (state.masked) {
+                        lengthCode ^= 0x80;
+                    }
+                    state.lengthCode = lengthCode;
+
+                    state.state++;
+
+                case 1:
+                    if (state.lengthCode <= 125) {
+                        state.length = state.lengthCode;
+                    } else {
+                        if (state.controlFrame) {
+                            throw new ProtocolError("Control frame payloads must be no greater than 125 bytes.");
+                        }
+
+                        final int lengthBytes = state.lengthCode == 126 ? 2 : 8;
+                        if (buffer.remaining() < lengthBytes) {
+                            // Don't have enought bytes to read length
+                            return null;
+                        }
+                        state.masker.setBuffer(buffer);
+                        state.length = decodeLength(state.masker.unmask(lengthBytes));
+                    }
+                    state.state++;
+                case 2:
+                    if (state.masked) {
+                        if (buffer.remaining() < WebSocketEngine.MASK_SIZE) {
+                            // Don't have enough bytes to read mask
+                            return null;
+                        }
+                        state.masker.setBuffer(buffer);
+                        state.masker.readMask();
+                    }
+                    state.state++;
+                case 3:
+                    if (buffer.remaining() < state.length) {
+                        return null;
+                    }
+
+                    state.masker.setBuffer(buffer);
+                    final byte[] data = state.masker.unmask((int) state.length);
+                    if (data.length != state.length) {
+                        throw new ProtocolError(String.format("Data read (%s) is not the expected" +
+                                " size (%s)", data.length, state.length));
+                    }
+                    dataFrame = state.frame.create(state.finalFragment, data);
+
+                    if (!state.controlFrame && (isTextFrame(state.opcode) || inFragmentedType == 1)) {
+                        utf8Decode(state.finalFragment, data, dataFrame);
+                    }
+
+                    if (!state.controlFrame && state.finalFragment) {
+                        inFragmentedType = 0;
+                        processingFragment = false;
+                    }
+                    state.recycle();
+
+                    break;
+                default:
+                    // Should never get here
+                    throw new IllegalStateException("Unexpected state: " + state.state);
+            }
+        } catch (Exception e) {
+            state.recycle();
+            if (e instanceof RuntimeException) {
+                throw (RuntimeException) e;
+            } else {
+                throw new RuntimeException(e);
+            }
+        }
+
+        return dataFrame;
+
+    }
+
+    boolean isControlFrame(byte opcode) {
+        return (opcode & 0x08) == 0x08;
+    }
+
+    private boolean isBitSet(final byte b, int bit) {
+        return ((b >> bit & 1) != 0);
+    }
+
+    private boolean isContinuationFrame(byte opcode) {
+        return opcode == 0;
+    }
+
+    private boolean isTextFrame(byte opcode) {
+        return opcode == 1;
+    }
+
+    private byte getOpcode(Frame type) {
+        if (type instanceof TextFrame) {
+            return 0x01;
+        } else if (type instanceof BinaryFrame) {
+            return 0x02;
+        } else if (type instanceof ClosingFrame) {
+            return 0x08;
+        } else if (type instanceof PingFrame) {
+            return 0x09;
+        } else if (type instanceof PongFrame) {
+            return 0x0A;
+        }
+
+        throw new ProtocolError("Unknown frame type: " + type.getClass().getName());
+    }
+
+    private Frame valueOf(byte fragmentType, byte value) {
+        final int opcode = value & 0xF;
+        switch (opcode) {
+            case 0x00:
+                return new ContinuationFrame((fragmentType & 0x01) == 0x01);
+            case 0x01:
+                return new TextFrame();
+            case 0x02:
+                return new BinaryFrame();
+            case 0x08:
+                return new ClosingFrame();
+            case 0x09:
+                return new PingFrame();
+            case 0x0A:
+                return new PongFrame();
+            default:
+                throw new ProtocolError(String.format("Unknown frame type: %s, %s",
+                        Integer.toHexString(opcode & 0xFF).toUpperCase(Locale.US), connection));
+        }
+    }
+
     /**
      * Handler passed to the {@link Connection}.
      */
@@ -375,16 +562,43 @@ public abstract class ProtocolHandler {
             this.future = future;
         }
 
+        @Override
         public void cancelled() {
             future.setFailure(new RuntimeException("Frame writing was canceled."));
         }
 
+        @Override
         public void failed(Throwable throwable) {
             future.setFailure(throwable);
         }
 
+        @Override
         public void completed(DataFrame result) {
             future.setResult(result);
+        }
+    }
+
+    private static class ParsingState {
+        int state = 0;
+        byte opcode = (byte) -1;
+        long length = -1;
+        Frame frame;
+        boolean masked;
+        Masker masker;
+        boolean finalFragment;
+        boolean controlFrame;
+        private byte lengthCode = -1;
+
+        void recycle() {
+            state = 0;
+            opcode = (byte) -1;
+            length = -1;
+            lengthCode = -1;
+            masked = false;
+            masker = null;
+            finalFragment = false;
+            controlFrame = false;
+            frame = null;
         }
     }
 }

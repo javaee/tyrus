@@ -48,7 +48,7 @@ import java.util.NoSuchElementException;
  */
 final class CharacterIterator {
     private int pos;
-    private String s;
+    private final String s;
 
     /**
      * Creates a new iterator initialized with the given input string.

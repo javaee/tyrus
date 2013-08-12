@@ -45,8 +45,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.glassfish.tyrus.websockets.draft06.ClosingFrame;
-
 /**
  * Abstract server-side {@link WebSocket} application, which will handle
  * application {@link WebSocket}s events.
@@ -69,17 +67,17 @@ public abstract class WebSocketApplication implements WebSocketListener {
      * Factory method to create new {@link WebSocket} instances.  Developers may
      * wish to override this to return customized {@link WebSocket} implementations.
      *
-     * @param handler       the {@link ProtocolHandler} to use with the newly created
-     *                      {@link WebSocket}.
-     * @param listeners     the {@link WebSocketListener}s to associate with the new
-     *                      {@link WebSocket}.
+     * @param handler   the {@link ProtocolHandler} to use with the newly created
+     *                  {@link WebSocket}.
+     * @param listeners the {@link WebSocketListener}s to associate with the new
+     *                  {@link WebSocket}.
      * @return TODO
      */
     public abstract WebSocket createSocket(final ProtocolHandler handler,
-                                  final WebSocketListener... listeners);
+                                           final WebSocketListener... listeners);
 
     /**
-     * When a {@link WebSocket#onClose(org.glassfish.tyrus.websockets.draft06.ClosingFrame)} is invoked, the {@link WebSocket}
+     * When a {@link WebSocket#onClose(ClosingFrame)} is invoked, the {@link WebSocket}
      * will be unassociated with this application and closed.
      *
      * @param socket the {@link WebSocket} being closed.
@@ -225,14 +223,14 @@ public abstract class WebSocketApplication implements WebSocketListener {
         return sockets.remove(socket) != null;
     }
 
-    /**
-     * This method will be called, when initial {@link WebSocket} handshake
-     * process has been completed, but allows the application to perform further
-     * negotiation/validation.
-     *
-     * @param handshake TODO
-     * @throws HandshakeException error occurred during the handshake.
-     */
-    protected void handshake(HandShake handshake) throws HandshakeException {
-    }
+//    /**
+//     * This method will be called, when initial {@link WebSocket} handshake
+//     * process has been completed, but allows the application to perform further
+//     * negotiation/validation.
+//     *
+//     * @param handshake TODO
+//     * @throws HandshakeException error occurred during the handshake.
+//     */
+//    protected void handshake(HandShake handshake) throws HandshakeException {
+//    }
 }

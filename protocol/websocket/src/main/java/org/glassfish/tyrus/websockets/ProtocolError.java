@@ -42,20 +42,11 @@ package org.glassfish.tyrus.websockets;
 
 /**
  * TODO
- *
  */
 public class ProtocolError extends FramingException {
 
     public ProtocolError(String s) {
         super(s);
-    }
-
-    public ProtocolError(String s, Throwable throwable) {
-        super(s, throwable);
-    }
-
-    public ProtocolError(Throwable throwable) {
-        super(throwable);
     }
 
     @Override

@@ -201,13 +201,13 @@ public class UriTemplate {
 
     /**
      * Construct a new URI template.
-     * <p>
+     * <p/>
      * The template will be parsed to extract template variables.
-     * <p>
+     * <p/>
      * A specific regular expression will be generated from the template
      * to match URIs according to the template and map template variables to
      * template values.
-     * <p>
+     * <p/>
      *
      * @param templateParser the parser to parse the template.
      * @throws PatternSyntaxException   if the specified
@@ -330,11 +330,11 @@ public class UriTemplate {
 
     /**
      * Match a URI against the template.
-     * <p>
+     * <p/>
      * If the URI matches against the pattern then the template variable to value
      * map will be filled with template variables as keys and template values as
      * values.
-     * <p>
+     * <p/>
      *
      * @param uri                     the uri to match against the template.
      * @param templateVariableToValue the map where to put template variables (as keys)
@@ -355,10 +355,10 @@ public class UriTemplate {
 
     /**
      * Match a URI against the template.
-     * <p>
+     * <p/>
      * If the URI matches against the pattern the capturing group values (if any)
      * will be added to a list passed in as parameter.
-     * <p>
+     * <p/>
      *
      * @param uri         the uri to match against the template.
      * @param groupValues the list to store the values of a pattern's
@@ -380,7 +380,7 @@ public class UriTemplate {
     /**
      * Create a URI by substituting any template variables
      * for corresponding template values.
-     * <p>
+     * <p/>
      * A URI template variable without a value will be substituted by the
      * empty string.
      *
@@ -407,7 +407,7 @@ public class UriTemplate {
     /**
      * Create a URI by substituting any template variables
      * for corresponding template values.
-     * <p>
+     * <p/>
      * A URI template varibale without a value will be substituted by the
      * empty string.
      *
@@ -422,7 +422,7 @@ public class UriTemplate {
     /**
      * Create a URI by substituting any template variables
      * for corresponding template values.
-     * <p>
+     * <p/>
      * A URI template variable without a value will be substituted by the
      * empty string.
      *
@@ -774,9 +774,9 @@ public class UriTemplate {
      * Resolves template variables in the given {@code template} from {@code _mapValues}. Resolves only these variables which are
      * defined in the {@code _mapValues} leaving other variables unchanged.
      *
-     * @param type Type of the {@code template} (port, path, query, ...).
-     * @param template Input uri component to resolve.
-     * @param encode True if template values from {@code _mapValues} should be percent encoded.
+     * @param type       Type of the {@code template} (port, path, query, ...).
+     * @param template   Input uri component to resolve.
+     * @param encode     True if template values from {@code _mapValues} should be percent encoded.
      * @param _mapValues Map with template variables as keys and template values as values. None of them should be null.
      * @return String with resolved template variables.
      * @throws IllegalArgumentException when {@code _mapValues} value is null.

@@ -50,8 +50,8 @@ import org.glassfish.tyrus.websockets.WebSocketApplication;
  */
 public class TestBestMatch {
     private URI uri;
-    private Set<WebSocketApplication> eps = new HashSet<WebSocketApplication>();
-    private String title;
+    private final Set<WebSocketApplication> eps = new HashSet<WebSocketApplication>();
+    private final String title;
 
     public TestBestMatch(String title) {
         this.title = title;

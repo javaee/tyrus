@@ -58,7 +58,7 @@ import org.glassfish.tyrus.websockets.DataFrame;
 import org.glassfish.tyrus.websockets.FramingException;
 import org.glassfish.tyrus.websockets.WebSocket;
 import org.glassfish.tyrus.websockets.WebSocketEngine;
-import org.glassfish.tyrus.websockets.draft06.ClosingFrame;
+import org.glassfish.tyrus.websockets.ClosingFrame;
 
 /**
  * {@link HttpUpgradeHandler} and {@link ReadListener} implementation.

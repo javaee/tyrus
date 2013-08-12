@@ -49,6 +49,7 @@ public final class PathTemplate extends UriTemplate {
 
     /**
      * Internal parser of this PathTemplate.
+     *
      * @see #PathTemplate(String)
      */
     private static final class PathTemplateParser extends UriTemplateParser {

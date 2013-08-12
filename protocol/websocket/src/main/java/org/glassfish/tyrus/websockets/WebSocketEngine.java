@@ -40,8 +40,6 @@
 
 package org.glassfish.tyrus.websockets;
 
-import java.io.IOException;
-import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -56,7 +54,6 @@ import java.util.logging.Logger;
 
 import javax.websocket.DeploymentException;
 
-import org.glassfish.tyrus.websockets.draft06.ClosingFrame;
 import org.glassfish.tyrus.websockets.uri.Match;
 
 /**
@@ -172,9 +169,8 @@ public class WebSocketEngine {
      * @param connection connection.
      * @param request    request.
      * @return {@code true} if upgrade is performed, {@code false} otherwise.
-     * @throws IOException if an I/O error occurred during the upgrade.
      */
-    public boolean upgrade(Connection connection, WebSocketRequest request) throws IOException {
+    public boolean upgrade(Connection connection, WebSocketRequest request) {
         return upgrade(connection, request, null);
     }
 
@@ -206,7 +202,7 @@ public class WebSocketEngine {
                 protocolHandler.handshake(connection, app, request);
                 request.getConnection().addCloseListener(new Connection.CloseListener() {
                     @Override
-                    public void onClose(final Connection connection/*, final CloseType type*/) throws IOException {
+                    public void onClose(final Connection connection/*, final CloseType type*/) {
 
                         final WebSocket webSocket = getWebSocket(connection);
                         if (webSocket != null) {
@@ -274,13 +270,13 @@ public class WebSocketEngine {
         applications.remove(app);
     }
 
-    /**
-     * Un-registers all {@link WebSocketApplication} instances with the
-     * {@link WebSocketEngine}.
-     */
-    public void unregisterAll() {
-        applications.clear();
-    }
+//    /**
+//     * Un-registers all {@link WebSocketApplication} instances with the
+//     * {@link WebSocketEngine}.
+//     */
+//    public void unregisterAll() {
+//        applications.clear();
+//    }
 
     /**
      * Returns <tt>true</tt> if passed Grizzly {@link Connection} is associated with a {@link WebSocket}, or
@@ -312,7 +308,7 @@ public class WebSocketEngine {
     }
 
     public WebSocketHolder setWebSocketHolder(final Connection connection, ProtocolHandler handler, WebSocketRequest request, WebSocket socket, WebSocketApplication application) {
-        final WebSocketHolder holder = new WebSocketHolder(handler, socket, (request == null ? null : handler.createClientHandShake(request, true)), application);
+        final WebSocketHolder holder = new WebSocketHolder(handler, socket, (request == null ? null : handler.createClientHandShake(request)), application);
 
         webSocketHolderMap.put(connection, holder);
         return holder;

@@ -42,42 +42,46 @@ package org.glassfish.tyrus.websockets;
 
 import java.util.Arrays;
 
+import org.glassfish.tyrus.websockets.frame.Frame;
+
 /**
  * In memory representation of a websocket frame.
  *
  * @see <a href="http://tools.ietf.org/html/draft-ietf-hybi-thewebsocketprotocol-05#section-4.3">Frame Definition</a>
  */
 public class DataFrame {
+
     private String payload;
     private byte[] bytes;
-    private final FrameType type;
-    private boolean last = true;
+    private final Frame type;
+    private final boolean last;
 
-    public DataFrame(FrameType type) {
+    DataFrame(Frame type) {
         this.type = type;
+        last = true;
     }
 
-    public DataFrame(FrameType type, String data) {
+    public DataFrame(Frame type, String data) {
         this(type, data, true);
     }
 
-    public DataFrame(FrameType type, String data, boolean fin) {
+    public DataFrame(Frame type, String data, boolean fin) {
         this.type = type;
         setPayload(data);
         last = fin;
     }
 
-    public DataFrame(FrameType type, byte[] data) {
+    public DataFrame(Frame type, byte[] data) {
         this(type, data, true);
     }
 
-    public DataFrame(FrameType type, byte[] data, boolean fin) {
+    public DataFrame(Frame type, byte[] data, boolean fin) {
         this.type = type;
         type.setPayload(this, data);
         last = fin;
     }
 
-    public FrameType getType() {
+    public Frame getType() {
         return type;
     }
 
@@ -97,7 +101,7 @@ public class DataFrame {
         if (payload != null) {
             bytes = Utf8Utils.encode(new StrictUtf8(), payload);
         }
-        return bytes;
+        return Arrays.copyOf(bytes, bytes.length);
     }
 
     public void respond(WebSocket socket) {
@@ -118,9 +122,5 @@ public class DataFrame {
 
     public boolean isLast() {
         return last;
-    }
-
-    public void setLast(boolean last) {
-        this.last = last;
     }
 }

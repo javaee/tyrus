@@ -40,8 +40,6 @@
 
 package org.glassfish.tyrus.websockets;
 
-import org.glassfish.tyrus.websockets.draft06.ClosingFrame;
-
 /**
  * Interface to allow notification of events occurring on specific
  * {@link WebSocket} instances.
@@ -53,7 +51,7 @@ public interface WebSocketListener {
 
     /**
      * <p/>
-     * Invoked when {@link WebSocket#onClose(org.glassfish.tyrus.websockets.draft06.ClosingFrame)} has been called on a
+     * Invoked when {@link WebSocket#onClose(ClosingFrame)} has been called on a
      * particular {@link WebSocket} instance.
      * <p/>
      *

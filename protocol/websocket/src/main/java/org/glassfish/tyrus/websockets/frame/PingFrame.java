@@ -38,13 +38,14 @@
  * holder.
  */
 
-package org.glassfish.tyrus.websockets.frametypes;
+package org.glassfish.tyrus.websockets.frame;
 
-import org.glassfish.tyrus.websockets.BaseFrameType;
 import org.glassfish.tyrus.websockets.DataFrame;
 import org.glassfish.tyrus.websockets.WebSocket;
 
-public class PingFrameType extends BaseFrameType {
+public class PingFrame extends BaseFrame {
+
+    @Override
     public void respond(WebSocket socket, DataFrame frame) {
         socket.onPing(frame);
     }

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -38,40 +38,19 @@
  * holder.
  */
 
-package org.glassfish.tyrus.websockets.draft17;
+package org.glassfish.tyrus.websockets.frame;
 
-import org.glassfish.tyrus.websockets.WebSocketEngine;
-import org.glassfish.tyrus.websockets.WebSocketRequest;
-import org.glassfish.tyrus.websockets.draft08.HandShake08;
+import org.glassfish.tyrus.websockets.DataFrame;
+import org.glassfish.tyrus.websockets.WebSocket;
 
-public class HandShake17 extends HandShake08 {
-
-
-    // ------------------------------------------------------------ Constructors
-
-
-    public HandShake17(WebSocketRequest webSocketRequest, boolean client) {
-        super(webSocketRequest, client);
-    }
-
-    public HandShake17(WebSocketRequest request) {
-        super(request);
-    }
-
-
-    // -------------------------------------------------- Methods from HandShake
+public class BinaryFrame extends BaseFrame {
 
     @Override
-    protected int getVersion() {
-        return 13;
-    }
-
-    @Override
-    public WebSocketRequest prepareRequest() {
-        WebSocketRequest request = super.prepareRequest();
-        final String headerValue = request.getFirstHeaderValue(WebSocketEngine.SEC_WS_ORIGIN_HEADER);
-        request.getHeaders().remove(WebSocketEngine.SEC_WS_ORIGIN_HEADER);
-        request.putSingleHeader(WebSocketEngine.ORIGIN_HEADER, headerValue);
-        return request;
+    public void respond(WebSocket socket, DataFrame frame) {
+        if (!frame.isLast()) {
+            socket.onFragment(frame.isLast(), frame.getBytes());
+        } else {
+            socket.onMessage(frame.getBytes());
+        }
     }
 }

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -38,22 +38,24 @@
  * holder.
  */
 
-package org.glassfish.tyrus.websockets.draft07;
+package org.glassfish.tyrus.websockets.frame;
 
-import org.glassfish.tyrus.websockets.WebSocketRequest;
-import org.glassfish.tyrus.websockets.draft06.HandShake06;
+import org.glassfish.tyrus.websockets.DataFrame;
 
-public class HandShake07 extends HandShake06 {
-    public HandShake07(WebSocketRequest webSocketRequest, boolean client) {
-        super(webSocketRequest, client);
-    }
+public abstract class BaseFrame implements Frame {
 
-    public HandShake07(WebSocketRequest request) {
-        super(request);
+    @Override
+    public void setPayload(DataFrame frame, byte[] data) {
+        frame.setPayload(data);
     }
 
     @Override
-    protected int getVersion() {
-        return 7;
+    public byte[] getBytes(DataFrame dataFrame) {
+        return dataFrame.getBytes();
+    }
+
+    @Override
+    public DataFrame create(boolean fin, byte[] data) {
+        return new DataFrame(this, data, fin);
     }
 }

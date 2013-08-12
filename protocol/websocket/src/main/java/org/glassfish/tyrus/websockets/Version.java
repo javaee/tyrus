@@ -40,11 +40,6 @@
 
 package org.glassfish.tyrus.websockets;
 
-import org.glassfish.tyrus.websockets.draft06.Draft06Handler;
-import org.glassfish.tyrus.websockets.draft07.Draft07Handler;
-import org.glassfish.tyrus.websockets.draft08.Draft08Handler;
-import org.glassfish.tyrus.websockets.draft17.Draft17Handler;
-
 /**
  * TODO
  */
@@ -53,48 +48,12 @@ public enum Version {
     DRAFT17("13") {
         @Override
         public ProtocolHandler createHandler(boolean mask) {
-            return new Draft17Handler(mask);
+            return new ProtocolHandler(mask);
         }
 
         @Override
         public boolean validate(WebSocketRequest request) {
             return this.wireProtocolVersion.equals(request.getFirstHeaderValue(WebSocketEngine.SEC_WS_VERSION));
-        }
-    },
-
-    DRAFT08("8") {
-        @Override
-        public ProtocolHandler createHandler(boolean mask) {
-            return new Draft08Handler(mask);
-        }
-
-        @Override
-        public boolean validate(WebSocketRequest request) {
-            return wireProtocolVersion.equals(request.getFirstHeaderValue(WebSocketEngine.SEC_WS_VERSION));
-        }
-    },
-
-    DRAFT07("7") {
-        @Override
-        public ProtocolHandler createHandler(boolean mask) {
-            return new Draft07Handler(mask);
-        }
-
-        @Override
-        public boolean validate(WebSocketRequest request) {
-            return wireProtocolVersion.equals(request.getFirstHeaderValue(WebSocketEngine.SEC_WS_VERSION));
-        }
-    },
-
-    DRAFT06("6") {
-        @Override
-        public ProtocolHandler createHandler(boolean mask) {
-            return new Draft06Handler(mask);
-        }
-
-        @Override
-        public boolean validate(WebSocketRequest request) {
-            return wireProtocolVersion.equals(request.getFirstHeaderValue(WebSocketEngine.SEC_WS_VERSION));
         }
     };
 
