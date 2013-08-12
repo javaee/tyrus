@@ -322,7 +322,7 @@ public class WebSocketEngine {
     private static void handleUnsupportedVersion(final Connection connection,
                                                  final WebSocketRequest request) {
         WebSocketResponse response = new WebSocketResponse();
-        response.setStatus(400);
+        response.setStatus(426);
         response.getHeaders().put(WebSocketEngine.SEC_WS_VERSION, Version.getSupportedWireProtocolVersions());
         connection.write(response);
     }
