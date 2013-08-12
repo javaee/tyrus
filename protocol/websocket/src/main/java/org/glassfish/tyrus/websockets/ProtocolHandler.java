@@ -148,28 +148,28 @@ public final class ProtocolHandler {
     }
 
     public Future<DataFrame> close(int code, String reason) {
-        final org.glassfish.tyrus.websockets.ClosingFrame closingFrame = new org.glassfish.tyrus.websockets.ClosingFrame(code, reason);
+        final ClosingDataFrame closingDataFrame = new ClosingDataFrame(code, reason);
 
-        return send(closingFrame, new Connection.CompletionHandler<DataFrame>() {
+        return send(closingDataFrame, new Connection.CompletionHandler<DataFrame>() {
 
             @Override
             public void cancelled() {
                 if (webSocket != null && !onClosedCalled.getAndSet(true)) {
-                    webSocket.onClose(closingFrame);
+                    webSocket.onClose(closingDataFrame);
                 }
             }
 
             @Override
             public void failed(final Throwable throwable) {
                 if (webSocket != null && !onClosedCalled.getAndSet(true)) {
-                    webSocket.onClose(closingFrame);
+                    webSocket.onClose(closingDataFrame);
                 }
             }
 
             @Override
             public void completed(DataFrame result) {
                 if (!maskData && (webSocket != null) && !onClosedCalled.getAndSet(true)) {
-                    webSocket.onClose(closingFrame);
+                    webSocket.onClose(closingDataFrame);
                 }
             }
         }, false);

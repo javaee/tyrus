@@ -42,10 +42,10 @@ package org.glassfish.tyrus.test.e2e;
 
 import java.util.concurrent.Future;
 
+import org.glassfish.tyrus.websockets.ClosingDataFrame;
 import org.glassfish.tyrus.websockets.DataFrame;
 import org.glassfish.tyrus.websockets.WebSocket;
 import org.glassfish.tyrus.websockets.WebSocketListener;
-import org.glassfish.tyrus.websockets.ClosingFrame;
 
 import org.glassfish.grizzly.GrizzlyFuture;
 
@@ -129,7 +129,7 @@ class MockWebSocketClient implements WebSocket {
     }
 
     @Override
-    public void onClose(ClosingFrame dataFrame) {
+    public void onClose(ClosingDataFrame dataFrame) {
     }
 
     @Override

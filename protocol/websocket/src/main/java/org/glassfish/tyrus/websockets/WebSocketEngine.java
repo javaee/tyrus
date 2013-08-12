@@ -207,7 +207,7 @@ public class WebSocketEngine {
                         final WebSocket webSocket = getWebSocket(connection);
                         if (webSocket != null) {
                             webSocket.close();
-                            webSocket.onClose(new ClosingFrame(WebSocket.END_POINT_GOING_DOWN,
+                            webSocket.onClose(new ClosingDataFrame(WebSocket.END_POINT_GOING_DOWN,
                                     "Close detected on connection"));
                         }
                     }

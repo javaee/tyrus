@@ -61,6 +61,7 @@ import javax.websocket.server.ServerEndpointConfig;
 
 import org.glassfish.tyrus.spi.SPIEndpoint;
 import org.glassfish.tyrus.spi.SPIRegisteredEndpoint;
+import org.glassfish.tyrus.websockets.ClosingDataFrame;
 import org.glassfish.tyrus.websockets.ProtocolHandler;
 import org.glassfish.tyrus.websockets.WebSocket;
 import org.glassfish.tyrus.websockets.WebSocketApplication;
@@ -68,7 +69,6 @@ import org.glassfish.tyrus.websockets.WebSocketEngine;
 import org.glassfish.tyrus.websockets.WebSocketListener;
 import org.glassfish.tyrus.websockets.WebSocketRequest;
 import org.glassfish.tyrus.websockets.WebSocketResponse;
-import org.glassfish.tyrus.websockets.ClosingFrame;
 
 /**
  * Implementation of {@link SPIRegisteredEndpoint}.
@@ -162,7 +162,7 @@ public class TyrusEndpoint extends WebSocketApplication implements SPIRegistered
     }
 
     @Override
-    public void onClose(WebSocket socket, ClosingFrame frame) {
+    public void onClose(WebSocket socket, ClosingDataFrame frame) {
         CloseReason closeReason = null;
 
         if (frame != null) {

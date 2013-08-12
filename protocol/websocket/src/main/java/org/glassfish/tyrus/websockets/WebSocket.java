@@ -243,7 +243,7 @@ public interface WebSocket {
      * @param frame the close frame from the remote end-point.
      * @see DataFrame
      */
-    void onClose(ClosingFrame frame);
+    void onClose(ClosingDataFrame frame);
 
     /**
      * <p>

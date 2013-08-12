@@ -70,6 +70,7 @@ import org.glassfish.tyrus.core.TyrusRemoteEndpoint;
 import org.glassfish.tyrus.spi.SPIEndpoint;
 import org.glassfish.tyrus.spi.SPIHandshakeListener;
 import org.glassfish.tyrus.spi.TyrusClientSocket;
+import org.glassfish.tyrus.websockets.ClosingDataFrame;
 import org.glassfish.tyrus.websockets.DataFrame;
 import org.glassfish.tyrus.websockets.Extension;
 import org.glassfish.tyrus.websockets.HandShake;
@@ -78,7 +79,6 @@ import org.glassfish.tyrus.websockets.ProtocolHandler;
 import org.glassfish.tyrus.websockets.WebSocket;
 import org.glassfish.tyrus.websockets.WebSocketEngine;
 import org.glassfish.tyrus.websockets.WebSocketListener;
-import org.glassfish.tyrus.websockets.ClosingFrame;
 import org.glassfish.tyrus.websockets.frame.PingFrame;
 import org.glassfish.tyrus.websockets.frame.PongFrame;
 
@@ -408,7 +408,7 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
             closeTransport();
         }
 
-        this.onClose(new ClosingFrame(i, s));
+        this.onClose(new ClosingDataFrame(i, s));
     }
 
     @Override
@@ -448,7 +448,7 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
     }
 
     @Override
-    public void onClose(ClosingFrame dataFrame) {
+    public void onClose(ClosingDataFrame dataFrame) {
         onConnectLatch.countDown();
 
         if (state.get() == State.CLOSED) {

@@ -47,11 +47,11 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
 
+import org.glassfish.tyrus.websockets.ClosingDataFrame;
 import org.glassfish.tyrus.websockets.DataFrame;
 import org.glassfish.tyrus.websockets.ProtocolHandler;
 import org.glassfish.tyrus.websockets.WebSocket;
 import org.glassfish.tyrus.websockets.WebSocketListener;
-import org.glassfish.tyrus.websockets.ClosingFrame;
 import org.glassfish.tyrus.websockets.frame.PingFrame;
 import org.glassfish.tyrus.websockets.frame.PongFrame;
 
@@ -108,7 +108,7 @@ public class TyrusWebSocket implements WebSocket {
     }
 
     @Override
-    public void onClose(final ClosingFrame frame) {
+    public void onClose(final ClosingDataFrame frame) {
         WebSocketListener listener;
         while ((listener = listeners.poll()) != null) {
             listener.onClose(this, frame);

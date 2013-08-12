@@ -51,14 +51,14 @@ public interface WebSocketListener {
 
     /**
      * <p/>
-     * Invoked when {@link WebSocket#onClose(ClosingFrame)} has been called on a
+     * Invoked when {@link WebSocket#onClose(ClosingDataFrame)} has been called on a
      * particular {@link WebSocket} instance.
      * <p/>
      *
      * @param socket the {@link WebSocket} being closed.
      * @param frame  the closing {@link DataFrame} sent by the remote end-point.
      */
-    void onClose(WebSocket socket, ClosingFrame frame);
+    void onClose(WebSocket socket, ClosingDataFrame frame);
 
     /**
      * <p>

@@ -54,11 +54,11 @@ import javax.servlet.http.HttpUpgradeHandler;
 import javax.servlet.http.WebConnection;
 
 import org.glassfish.tyrus.core.TyrusWebSocket;
+import org.glassfish.tyrus.websockets.ClosingDataFrame;
 import org.glassfish.tyrus.websockets.DataFrame;
 import org.glassfish.tyrus.websockets.FramingException;
 import org.glassfish.tyrus.websockets.WebSocket;
 import org.glassfish.tyrus.websockets.WebSocketEngine;
-import org.glassfish.tyrus.websockets.ClosingFrame;
 
 /**
  * {@link HttpUpgradeHandler} and {@link ReadListener} implementation.
@@ -144,11 +144,11 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
                 }
             } catch (FramingException e) {
                 final String message = e.getMessage();
-                close(new ClosingFrame(e.getClosingCode(), message == null ? "No reason given." : message));
+                close(new ClosingDataFrame(e.getClosingCode(), message == null ? "No reason given." : message));
             } catch (Exception wse) {
                 if (webSocketHolder.application.onError(webSocketHolder.webSocket, wse)) {
                     final String message = wse.getMessage();
-                    close(new ClosingFrame(1011, message == null ? "No reason given." : message));
+                    close(new ClosingDataFrame(1011, message == null ? "No reason given." : message));
                 }
             }
         } while (!closed && is.isReady());
@@ -207,17 +207,17 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
 
     @Override
     public void onAllDataRead() {
-        close(new ClosingFrame(WebSocket.NORMAL_CLOSURE, null));
+        close(new ClosingDataFrame(WebSocket.NORMAL_CLOSURE, null));
     }
 
     @Override
     public void onError(Throwable t) {
-        close(new ClosingFrame(WebSocket.ABNORMAL_CLOSE, t.getMessage() == null ? "No reason given." : t.getMessage()));
+        close(new ClosingDataFrame(WebSocket.ABNORMAL_CLOSE, t.getMessage() == null ? "No reason given." : t.getMessage()));
     }
 
     @Override
     public void destroy() {
-        close(new ClosingFrame(WebSocket.ABNORMAL_CLOSE, "No reason given."));
+        close(new ClosingDataFrame(WebSocket.ABNORMAL_CLOSE, "No reason given."));
     }
 
     /**
@@ -229,7 +229,7 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
     public void sessionDestroyed() {
         if (authenticated) {
             // websocket spec 7.2 [WSC-7.2-3]
-            httpSessionForcedClose(new ClosingFrame(CloseReason.CloseCodes.VIOLATED_POLICY.getCode(), "No reason given."));
+            httpSessionForcedClose(new ClosingDataFrame(CloseReason.CloseCodes.VIOLATED_POLICY.getCode(), "No reason given."));
         }
 
         // else do nothing.
@@ -262,11 +262,11 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
         this.incomingBufferSize = incomingBufferSize;
     }
 
-    private void httpSessionForcedClose(ClosingFrame closingFrame) {
+    private void httpSessionForcedClose(ClosingDataFrame closingDataFrame) {
         if (!closed) {
             try {
                 ((TyrusWebSocket) webSocketHolder.webSocket).setClosed();
-                webSocketHolder.webSocket.onClose(closingFrame);
+                webSocketHolder.webSocket.onClose(closingDataFrame);
                 closed = true;
                 wc.close();
             } catch (Exception e) {
@@ -275,10 +275,10 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
         }
     }
 
-    private void close(ClosingFrame closingFrame) {
+    private void close(ClosingDataFrame closingDataFrame) {
         if (!closed) {
             try {
-                webSocketHolder.webSocket.onClose(closingFrame);
+                webSocketHolder.webSocket.onClose(closingDataFrame);
                 closed = true;
                 wc.close();
             } catch (Exception e) {

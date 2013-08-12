@@ -51,6 +51,7 @@ import java.util.logging.Logger;
 
 import org.glassfish.tyrus.core.RequestContext;
 import org.glassfish.tyrus.core.Utils;
+import org.glassfish.tyrus.websockets.ClosingDataFrame;
 import org.glassfish.tyrus.websockets.DataFrame;
 import org.glassfish.tyrus.websockets.FramingException;
 import org.glassfish.tyrus.websockets.HandshakeException;
@@ -59,7 +60,6 @@ import org.glassfish.tyrus.websockets.WebSocketEngine;
 import org.glassfish.tyrus.websockets.WebSocketEngine.WebSocketHolder;
 import org.glassfish.tyrus.websockets.WebSocketRequest;
 import org.glassfish.tyrus.websockets.WebSocketResponse;
-import org.glassfish.tyrus.websockets.ClosingFrame;
 
 import org.glassfish.grizzly.Buffer;
 import org.glassfish.grizzly.Connection;
@@ -195,7 +195,7 @@ class WebSocketFilter extends BaseFilter {
     /**
      * Method handles Grizzly {@link Connection} close phase. Check if the {@link Connection} is a {@link org.glassfish.tyrus.websockets.WebSocket}, if
      * yes - tries to close the websocket gracefully (sending close frame) and calls {@link
-     * org.glassfish.tyrus.websockets.WebSocket#onClose(org.glassfish.tyrus.websockets.ClosingFrame)}. If the Grizzly {@link Connection} is not websocket - passes processing to the next
+     * org.glassfish.tyrus.websockets.WebSocket#onClose(org.glassfish.tyrus.websockets.ClosingDataFrame)}. If the Grizzly {@link Connection} is not websocket - passes processing to the next
      * filter in the chain.
      *
      * @param ctx {@link FilterChainContext}
@@ -321,10 +321,10 @@ class WebSocketFilter extends BaseFilter {
                     }
                 }
             } catch (FramingException e) {
-                holder.webSocket.onClose(new ClosingFrame(e.getClosingCode(), e.getMessage()));
+                holder.webSocket.onClose(new ClosingDataFrame(e.getClosingCode(), e.getMessage()));
             } catch (Exception wse) {
                 if (holder.application.onError(holder.webSocket, wse)) {
-                    holder.webSocket.onClose(new ClosingFrame(1011, wse.getMessage()));
+                    holder.webSocket.onClose(new ClosingDataFrame(1011, wse.getMessage()));
                 }
             }
         }

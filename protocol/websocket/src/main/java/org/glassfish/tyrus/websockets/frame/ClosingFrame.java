@@ -40,6 +40,7 @@
 
 package org.glassfish.tyrus.websockets.frame;
 
+import org.glassfish.tyrus.websockets.ClosingDataFrame;
 import org.glassfish.tyrus.websockets.DataFrame;
 import org.glassfish.tyrus.websockets.WebSocket;
 
@@ -47,12 +48,12 @@ public class ClosingFrame extends BaseFrame {
 
     @Override
     public DataFrame create(boolean fin, byte[] data) {
-        return new org.glassfish.tyrus.websockets.ClosingFrame(data);
+        return new ClosingDataFrame(data);
     }
 
     @Override
     public void respond(WebSocket socket, DataFrame frame) {
-        socket.onClose((org.glassfish.tyrus.websockets.ClosingFrame) frame);
+        socket.onClose((ClosingDataFrame) frame);
         socket.close();
     }
 }

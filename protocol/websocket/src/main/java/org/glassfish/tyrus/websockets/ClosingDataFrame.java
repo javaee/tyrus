@@ -46,13 +46,13 @@ import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CoderResult;
 
-public class ClosingFrame extends DataFrame {
+public class ClosingDataFrame extends DataFrame {
 
     private static final byte[] EMPTY_BYTES = new byte[0];
     private int code = WebSocket.NORMAL_CLOSURE;
     private String reason;
 
-    public ClosingFrame(int code, String reason) {
+    public ClosingDataFrame(int code, String reason) {
         super(new org.glassfish.tyrus.websockets.frame.ClosingFrame());
         if (code > 0) {
             this.code = code;
@@ -60,7 +60,7 @@ public class ClosingFrame extends DataFrame {
         this.reason = reason;
     }
 
-    public ClosingFrame(byte[] data) {
+    public ClosingDataFrame(byte[] data) {
         super(new org.glassfish.tyrus.websockets.frame.ClosingFrame());
         setPayload(data);
     }

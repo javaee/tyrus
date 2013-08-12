@@ -77,14 +77,14 @@ public abstract class WebSocketApplication implements WebSocketListener {
                                            final WebSocketListener... listeners);
 
     /**
-     * When a {@link WebSocket#onClose(ClosingFrame)} is invoked, the {@link WebSocket}
+     * When a {@link WebSocket#onClose(ClosingDataFrame)} is invoked, the {@link WebSocket}
      * will be unassociated with this application and closed.
      *
      * @param socket the {@link WebSocket} being closed.
      * @param frame  the closing frame.
      */
     @Override
-    public void onClose(WebSocket socket, ClosingFrame frame) {
+    public void onClose(WebSocket socket, ClosingDataFrame frame) {
         remove(socket);
         socket.close();
     }
