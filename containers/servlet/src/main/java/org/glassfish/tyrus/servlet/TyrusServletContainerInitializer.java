@@ -46,7 +46,6 @@ import java.util.logging.Logger;
 
 import javax.websocket.Endpoint;
 import javax.websocket.server.ServerApplicationConfig;
-import javax.websocket.server.ServerContainer;
 import javax.websocket.server.ServerEndpoint;
 
 import javax.servlet.FilterRegistration;
