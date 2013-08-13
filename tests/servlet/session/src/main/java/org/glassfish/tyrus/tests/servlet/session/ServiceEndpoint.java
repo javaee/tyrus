@@ -41,11 +41,11 @@
 package org.glassfish.tyrus.tests.servlet.session;
 
 import javax.websocket.OnMessage;
-import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 @ServerEndpoint(value = "/service")
 public class ServiceEndpoint {
@@ -53,31 +53,45 @@ public class ServiceEndpoint {
     private static final String NEGATIVE = "0";
 
     @OnMessage
-    public String message(String message, Session session) {
+    public String onMessage(String message) {
 
         if (message.equals("server")) {
-            if (CloseServerEndpoint.addMessageHandlerExceptionThrown &&
-                    CloseServerEndpoint.removeMessageHandlerExceptionThrown &&
-                    CloseServerEndpoint.getBasicRemoteExceptionThrown &&
-                    CloseServerEndpoint.getAsyncRemoteExceptionThrown &&
-                    CloseServerEndpoint.inCloseSendTextExceptionThrown &&
-                    !CloseServerEndpoint.inCloseGetTimeoutExceptionThrown) {
+            final CloseServerEndpoint closeServerEndpoint = SingletonConfigurator.getEndpoint(CloseServerEndpoint.class);
+
+            if (closeServerEndpoint.isAddMessageHandlerExceptionThrown() &&
+                    closeServerEndpoint.isRemoveMessageHandlerExceptionThrown() &&
+                    closeServerEndpoint.isGetBasicRemoteExceptionThrown() &&
+                    closeServerEndpoint.isGetAsyncRemoteExceptionThrown() &&
+                    closeServerEndpoint.isInCloseSendTextExceptionThrown() &&
+                    !closeServerEndpoint.isInCloseGetTimeoutExceptionThrown()) {
                 return POSITIVE;
             } else {
                 return NEGATIVE;
             }
         } else if (message.equals("client")) {
-            return CloseClientEndpoint.inCloseSendTextExceptionThrown ? POSITIVE : NEGATIVE;
+            final CloseClientEndpoint closeClientEndpoint = SingletonConfigurator.getEndpoint(CloseClientEndpoint.class);
+
+            return closeClientEndpoint.isInCloseSendTextExceptionThrown() ? POSITIVE : NEGATIVE;
         } else if (message.equals("idleTimeoutReceiving")) {
-            return IdleTimeoutReceivingEndpoint.onCloseCalled ? POSITIVE : NEGATIVE;
+            final IdleTimeoutReceivingEndpoint idleTimeoutReceivingEndpoint = SingletonConfigurator.getEndpoint(IdleTimeoutReceivingEndpoint.class);
+
+            return idleTimeoutReceivingEndpoint.isOnCloseCalled() ? POSITIVE : NEGATIVE;
         } else if (message.equals("idleTimeoutSending")) {
-            return IdleTimeoutSendingEndpoint.onCloseCalled ? POSITIVE : NEGATIVE;
+            final IdleTimeoutSendingEndpoint idleTimeoutSendingEndpoint = SingletonConfigurator.getEndpoint(IdleTimeoutSendingEndpoint.class);
+
+            return idleTimeoutSendingEndpoint.isOnCloseCalled() ? POSITIVE : NEGATIVE;
         } else if (message.equals("idleTimeoutSendingPing")) {
-            return IdleTimeoutSendingPingEndpoint.onCloseCalled ? POSITIVE : NEGATIVE;
+            final IdleTimeoutSendingPingEndpoint idleTimeoutSendingPingEndpoint = SingletonConfigurator.getEndpoint(IdleTimeoutSendingPingEndpoint.class);
+
+            return idleTimeoutSendingPingEndpoint.isOnCloseCalled() ? POSITIVE : NEGATIVE;
         } else if (message.equals("reset")) {
-            IdleTimeoutReceivingEndpoint.onCloseCalled = false;
-            IdleTimeoutSendingEndpoint.onCloseCalled = false;
-            IdleTimeoutSendingPingEndpoint.onCloseCalled = false;
+            final IdleTimeoutReceivingEndpoint idleTimeoutReceivingEndpoint = SingletonConfigurator.getEndpoint(IdleTimeoutReceivingEndpoint.class);
+            final IdleTimeoutSendingEndpoint idleTimeoutSendingEndpoint = SingletonConfigurator.getEndpoint(IdleTimeoutSendingEndpoint.class);
+            final IdleTimeoutSendingPingEndpoint idleTimeoutSendingPingEndpoint = SingletonConfigurator.getEndpoint(IdleTimeoutSendingPingEndpoint.class);
+
+            idleTimeoutReceivingEndpoint.setOnCloseCalled(false);
+            idleTimeoutSendingEndpoint.setOnCloseCalled(false);
+            idleTimeoutSendingPingEndpoint.setOnCloseCalled(false);
             return "-1";
         } else {
             return "-1";

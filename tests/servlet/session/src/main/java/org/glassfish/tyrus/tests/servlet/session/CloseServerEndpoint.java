@@ -50,18 +50,19 @@ import javax.websocket.server.ServerEndpoint;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-@ServerEndpoint(value = "/closeserver")
+@ServerEndpoint(value = "/closeserver", configurator = SingletonConfigurator.class)
 public class CloseServerEndpoint {
-    static boolean addMessageHandlerExceptionThrown = false;
-    static boolean removeMessageHandlerExceptionThrown = false;
-    static boolean getAsyncRemoteExceptionThrown = false;
-    static boolean getBasicRemoteExceptionThrown = false;
-    static boolean inCloseSendTextExceptionThrown = false;
-    static boolean inCloseGetTimeoutExceptionThrown = false;
+    private volatile boolean addMessageHandlerExceptionThrown = false;
+    private volatile boolean removeMessageHandlerExceptionThrown = false;
+    private volatile boolean getAsyncRemoteExceptionThrown = false;
+    private volatile boolean getBasicRemoteExceptionThrown = false;
+    private volatile boolean inCloseSendTextExceptionThrown = false;
+    private volatile boolean inCloseGetTimeoutExceptionThrown = false;
 
     @OnMessage
-    public void message(String message, Session session) {
+    public void onMessage(String message, Session session) {
         try {
             session.close();
         } catch (IOException e) {
@@ -110,7 +111,31 @@ public class CloseServerEndpoint {
     }
 
     @OnError
-    public void errorOccured(Session s, Throwable t){
+    public void onError(Throwable t) {
         t.printStackTrace();
+    }
+
+    boolean isAddMessageHandlerExceptionThrown() {
+        return addMessageHandlerExceptionThrown;
+    }
+
+    boolean isRemoveMessageHandlerExceptionThrown() {
+        return removeMessageHandlerExceptionThrown;
+    }
+
+    boolean isGetAsyncRemoteExceptionThrown() {
+        return getAsyncRemoteExceptionThrown;
+    }
+
+    boolean isGetBasicRemoteExceptionThrown() {
+        return getBasicRemoteExceptionThrown;
+    }
+
+    boolean isInCloseSendTextExceptionThrown() {
+        return inCloseSendTextExceptionThrown;
+    }
+
+    boolean isInCloseGetTimeoutExceptionThrown() {
+        return inCloseGetTimeoutExceptionThrown;
     }
 }

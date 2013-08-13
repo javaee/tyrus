@@ -41,11 +41,11 @@
 package org.glassfish.tyrus.tests.servlet.remote;
 
 import javax.websocket.OnMessage;
-import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 @ServerEndpoint(value = "/service")
 public class ServiceEndpoint {
@@ -54,31 +54,31 @@ public class ServiceEndpoint {
     private static final String NEGATIVE = "0";
 
     @OnMessage
-    public String message(String message, Session session) {
-        if(message.equals("handler")) {
-                if (TimeoutEndpointResultByHandler.timeoutRaised) {
-                    return POSITIVE;
-                } else {
-                    return NEGATIVE;
-                }
-        }else if (message.equals("future")){
-                if (TimeoutEndpointResultByFuture.timeoutRaised) {
-                    return POSITIVE;
-                } else {
-                    return NEGATIVE;
-                }
-        } else if (message.equals("nohandler")){
-                if (NoTimeoutEndpointResultByHandler.timeoutRaised) {
-                    return NEGATIVE;
-                } else {
-                    return POSITIVE;
-                }
-        } else if(message.equals("nofuture")){
-                if (NoTimeoutEndpointResultByFuture.timeoutRaised) {
-                    return NEGATIVE;
-                } else {
-                    return POSITIVE;
-                }
+    public String onMessage(String message) {
+        if (message.equals("handler")) {
+            if (SingletonConfigurator.getEndpoint(TimeoutEndpointResultByHandler.class).isTimeoutRaised()) {
+                return POSITIVE;
+            } else {
+                return NEGATIVE;
+            }
+        } else if (message.equals("future")) {
+            if (SingletonConfigurator.getEndpoint(TimeoutEndpointResultByFuture.class).isTimeoutRaised()) {
+                return POSITIVE;
+            } else {
+                return NEGATIVE;
+            }
+        } else if (message.equals("nohandler")) {
+            if (SingletonConfigurator.getEndpoint(NoTimeoutEndpointResultByHandler.class).isTimeoutRaised()) {
+                return NEGATIVE;
+            } else {
+                return POSITIVE;
+            }
+        } else if (message.equals("nofuture")) {
+            if (SingletonConfigurator.getEndpoint(NoTimeoutEndpointResultByFuture.class).isTimeoutRaised()) {
+                return NEGATIVE;
+            } else {
+                return POSITIVE;
+            }
         }
 
         return null;

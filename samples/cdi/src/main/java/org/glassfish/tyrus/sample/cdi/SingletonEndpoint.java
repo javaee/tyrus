@@ -40,6 +40,8 @@
 
 package org.glassfish.tyrus.sample.cdi;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import javax.websocket.OnMessage;
 import javax.websocket.server.ServerEndpoint;
 
@@ -56,17 +58,22 @@ import javax.interceptor.Interceptors;
 @Interceptors(LoggingInterceptor.class)
 public class SingletonEndpoint {
 
-    int counter = 0;
-    private boolean postConstructCalled = false;
-    static boolean interceptorCalled = false;
+    private final AtomicInteger counter = new AtomicInteger(0);
+
+    private volatile boolean postConstructCalled = false;
+    private volatile boolean interceptorCalled = false;
 
     @OnMessage
     public String echo(String message) {
-        return (postConstructCalled && interceptorCalled) ? String.format("%s:%s", message, counter++) : "PostConstruct not called.";
+        return (postConstructCalled && interceptorCalled) ? String.format("%s:%s", message, counter.incrementAndGet()) : "PostConstruct not called.";
     }
 
     @PostConstruct
-    public void postConstruct(){
+    public void postConstruct() {
         postConstructCalled = true;
+    }
+
+    public void onInterceptorCalled() {
+        interceptorCalled = true;
     }
 }

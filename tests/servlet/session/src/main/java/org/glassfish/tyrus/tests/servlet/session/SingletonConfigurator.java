@@ -37,50 +37,38 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+package org.glassfish.tyrus.tests.servlet.session;
 
-package org.glassfish.tyrus.tests.servlet.remote;
+import java.util.HashMap;
+import java.util.Map;
 
-import java.nio.ByteBuffer;
-import java.util.concurrent.Future;
-
-import javax.websocket.OnError;
-import javax.websocket.OnMessage;
-import javax.websocket.Session;
-import javax.websocket.server.ServerEndpoint;
+import javax.websocket.server.ServerEndpointConfig;
 
 /**
- * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-@ServerEndpoint(value = "/byfuture", configurator = SingletonConfigurator.class)
-public class TimeoutEndpointResultByFuture {
+public class SingletonConfigurator extends ServerEndpointConfig.Configurator {
 
-    //TODO
-    private byte[] longMessage = new byte[10000000];
+    private static final CloseClientEndpoint CLOSE_CLIENT_ENDPOINT = new CloseClientEndpoint();
+    private static final CloseServerEndpoint CLOSE_SERVER_ENDPOINT = new CloseServerEndpoint();
+    private static final IdleTimeoutReceivingEndpoint IDLE_TIMEOUT_RECEIVING_ENDPOINT = new IdleTimeoutReceivingEndpoint();
+    private static final IdleTimeoutSendingEndpoint IDLE_TIMEOUT_SENDING_ENDPOINT = new IdleTimeoutSendingEndpoint();
+    private static final IdleTimeoutSendingPingEndpoint IDLE_TIMEOUT_SENDING_PING_ENDPOINT = new IdleTimeoutSendingPingEndpoint();
 
-    private volatile boolean timeoutRaised = false;
+    private static final Map<Class<?>, Object> instanceMap = new HashMap<Class<?>, Object>() {{
+        put(CloseClientEndpoint.class, CLOSE_CLIENT_ENDPOINT);
+        put(CloseServerEndpoint.class, CLOSE_SERVER_ENDPOINT);
+        put(IdleTimeoutReceivingEndpoint.class, IDLE_TIMEOUT_RECEIVING_ENDPOINT);
+        put(IdleTimeoutSendingEndpoint.class, IDLE_TIMEOUT_SENDING_ENDPOINT);
+        put(IdleTimeoutSendingPingEndpoint.class, IDLE_TIMEOUT_SENDING_PING_ENDPOINT);
+    }};
 
-    @OnMessage
-    public void onMessage(String s, Session session) {
-        for (byte i : longMessage) {
-            longMessage[i] = 0;
-        }
-
-        session.getAsyncRemote().setSendTimeout(1);
-        Future<Void> future = session.getAsyncRemote().sendBinary((ByteBuffer.wrap(longMessage)));
-        try {
-            future.get();
-        } catch (Exception e) {
-            timeoutRaised = true;
-        }
+    @Override
+    public <T> T getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
+        return SingletonConfigurator.getEndpoint(endpointClass);
     }
 
-    @OnError
-    public void error(Session s, Throwable t) {
-        t.printStackTrace();
-    }
-
-    boolean isTimeoutRaised() {
-        return timeoutRaised;
+    public static <T> T getEndpoint(Class<T> endpointClass) {
+        return (T) instanceMap.get(endpointClass);
     }
 }

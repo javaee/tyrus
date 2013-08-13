@@ -158,6 +158,7 @@ public class SessionIdleTimeoutTest {
 
                 }
 
+                @Override
                 public void onError(javax.websocket.Session session, Throwable thr) {
                     thr.printStackTrace();
                 }
@@ -184,6 +185,7 @@ public class SessionIdleTimeoutTest {
                     }
                 }
 
+                @Override
                 public void onError(javax.websocket.Session session, Throwable thr) {
                     thr.printStackTrace();
                 }
@@ -212,7 +214,7 @@ public class SessionIdleTimeoutTest {
         try {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
-            Session clientSession = ClientManager.createClient().connectToServer(new Endpoint() {
+            ClientManager.createClient().connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(final Session session, EndpointConfig endpointConfig) {
                     timer.schedule(new TimerTask() {
@@ -232,11 +234,12 @@ public class SessionIdleTimeoutTest {
                     timer.cancel();
                 }
 
+                @Override
                 public void onError(javax.websocket.Session session, Throwable thr) {
                     thr.printStackTrace();
                 }
             }, cec, getURI(IdleTimeoutReceivingEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
-            clientLatch.await(IdleTimeoutReceivingEndpoint.TIMEOUT * 3 , TimeUnit.MILLISECONDS);
+            clientLatch.await(IdleTimeoutReceivingEndpoint.TIMEOUT * 3, TimeUnit.MILLISECONDS);
 
             final CountDownLatch messageLatch = new CountDownLatch(1);
 
@@ -247,7 +250,7 @@ public class SessionIdleTimeoutTest {
 
                         @Override
                         public void onMessage(String s) {
-                            System.out.println("Received message: "+s);
+                            System.out.println("Received message: " + s);
                             messageReceived = s;
                             messageLatch.countDown();
                         }
@@ -259,6 +262,7 @@ public class SessionIdleTimeoutTest {
                     }
                 }
 
+                @Override
                 public void onError(javax.websocket.Session session, Throwable thr) {
                     thr.printStackTrace();
                 }
@@ -288,7 +292,7 @@ public class SessionIdleTimeoutTest {
         try {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
-            Session clientSession = ClientManager.createClient().connectToServer(new Endpoint() {
+            ClientManager.createClient().connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(final Session session, EndpointConfig endpointConfig) {
                     timer.schedule(new TimerTask() {
@@ -308,11 +312,12 @@ public class SessionIdleTimeoutTest {
                     timer.cancel();
                 }
 
+                @Override
                 public void onError(javax.websocket.Session session, Throwable thr) {
                     thr.printStackTrace();
                 }
             }, cec, getURI(IdleTimeoutReceivingEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
-            clientLatch.await(IdleTimeoutReceivingEndpoint.TIMEOUT * 3 , TimeUnit.MILLISECONDS);
+            clientLatch.await(IdleTimeoutReceivingEndpoint.TIMEOUT * 3, TimeUnit.MILLISECONDS);
 
             final CountDownLatch messageLatch = new CountDownLatch(1);
 
@@ -323,7 +328,7 @@ public class SessionIdleTimeoutTest {
 
                         @Override
                         public void onMessage(String s) {
-                            System.out.println("Received message: "+s);
+                            System.out.println("Received message: " + s);
                             messageReceived = s;
                             messageLatch.countDown();
                         }
@@ -335,6 +340,7 @@ public class SessionIdleTimeoutTest {
                     }
                 }
 
+                @Override
                 public void onError(javax.websocket.Session session, Throwable thr) {
                     thr.printStackTrace();
                 }
@@ -378,6 +384,7 @@ public class SessionIdleTimeoutTest {
                 public void onClose(javax.websocket.Session session, javax.websocket.CloseReason closeReason) {
 
                 }
+
                 @Override
                 public void onError(javax.websocket.Session session, Throwable thr) {
                     thr.printStackTrace();
@@ -406,6 +413,7 @@ public class SessionIdleTimeoutTest {
                     }
                 }
 
+                @Override
                 public void onError(javax.websocket.Session session, Throwable thr) {
                     thr.printStackTrace();
                 }
@@ -449,6 +457,7 @@ public class SessionIdleTimeoutTest {
                 public void onClose(javax.websocket.Session session, javax.websocket.CloseReason closeReason) {
 
                 }
+
                 @Override
                 public void onError(javax.websocket.Session session, Throwable thr) {
                     thr.printStackTrace();
@@ -477,6 +486,7 @@ public class SessionIdleTimeoutTest {
                     }
                 }
 
+                @Override
                 public void onError(javax.websocket.Session session, Throwable thr) {
                     thr.printStackTrace();
                 }
@@ -515,6 +525,7 @@ public class SessionIdleTimeoutTest {
                     }
                 }
 
+                @Override
                 public void onError(Session session, Throwable thr) {
                     thr.printStackTrace();
                 }

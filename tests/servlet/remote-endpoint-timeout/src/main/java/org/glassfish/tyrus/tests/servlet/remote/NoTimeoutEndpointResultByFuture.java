@@ -49,26 +49,31 @@ import javax.websocket.server.ServerEndpoint;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-@ServerEndpoint(value = "/nobyfuture")
+@ServerEndpoint(value = "/nobyfuture", configurator = SingletonConfigurator.class)
 public class NoTimeoutEndpointResultByFuture {
 
-    static boolean timeoutRaised = false;
+    private volatile boolean timeoutRaised = false;
 
     @OnMessage
     public void onMessage(String s, Session session) {
         session.getAsyncRemote().setSendTimeout(1000000);
         Future<Void> future = session.getAsyncRemote().sendText(s);
-        try{
+        try {
             future.get();
-        } catch(Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             timeoutRaised = true;
         }
     }
 
     @OnError
-    public void error(Session s, Throwable t){
+    public void onError(Throwable t) {
         t.printStackTrace();
+    }
+
+    boolean isTimeoutRaised() {
+        return timeoutRaised;
     }
 }

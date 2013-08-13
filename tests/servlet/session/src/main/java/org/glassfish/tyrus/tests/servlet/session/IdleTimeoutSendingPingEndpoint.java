@@ -53,10 +53,13 @@ import javax.websocket.server.ServerEndpoint;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-@ServerEndpoint(value = "/idletimeoutping")
+@ServerEndpoint(value = "/idletimeoutping", configurator = SingletonConfigurator.class)
 public class IdleTimeoutSendingPingEndpoint {
-    public static boolean onCloseCalled = false;
+
+    private volatile boolean onCloseCalled = false;
+
     public static final long TIMEOUT = 500;
     final byte[] data = new byte[]{1, 2, 3};
 
@@ -76,12 +79,20 @@ public class IdleTimeoutSendingPingEndpoint {
     }
 
     @OnMessage
-    public void onMessage(String message){
-
+    public void onMessage(String message) {
+        // do nothing.
     }
 
     @OnClose
     public void onClose(Session session) {
         onCloseCalled = true;
+    }
+
+    boolean isOnCloseCalled() {
+        return onCloseCalled;
+    }
+
+    void setOnCloseCalled(boolean onCloseCalled) {
+        this.onCloseCalled = onCloseCalled;
     }
 }

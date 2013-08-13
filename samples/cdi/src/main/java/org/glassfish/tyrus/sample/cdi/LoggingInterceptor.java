@@ -46,13 +46,16 @@ import javax.interceptor.AroundInvoke;
 import javax.interceptor.InvocationContext;
 
 /**
+ * Registered only for {@link SingletonEndpoint}.
+ *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 public class LoggingInterceptor {
 
     @AroundInvoke
     public Object manageTransaction(InvocationContext ctx) throws Exception {
-        SingletonEndpoint.interceptorCalled = true;
+        ((SingletonEndpoint) ctx.getTarget()).onInterceptorCalled();
+
         Logger.getLogger(getClass().getName()).info("LOGGING.");
         return ctx.proceed();
     }

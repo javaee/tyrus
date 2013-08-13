@@ -42,6 +42,7 @@ package org.glassfish.tyrus.tests.servlet.twoappconfig;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.websocket.Endpoint;
 import javax.websocket.server.ServerApplicationConfig;
@@ -49,10 +50,11 @@ import javax.websocket.server.ServerEndpointConfig;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 public class SecondServerApplicationConfig implements ServerApplicationConfig {
 
-    private static boolean annotatedGetterCalled = false;
+    private static AtomicBoolean annotatedGetterCalled = new AtomicBoolean(false);
 
     @Override
     public Set<ServerEndpointConfig> getEndpointConfigs(Set<Class<? extends Endpoint>> endpointClasses) {
@@ -61,7 +63,7 @@ public class SecondServerApplicationConfig implements ServerApplicationConfig {
 
     @Override
     public Set<Class<?>> getAnnotatedEndpointClasses(Set<Class<?>> scanned) {
-        annotatedGetterCalled = true;
+        annotatedGetterCalled.set(true);
         HashSet<Class<?>> toReturn = new HashSet<Class<?>>();
             toReturn.add(ConfigurationChecker.class);
 
@@ -69,6 +71,6 @@ public class SecondServerApplicationConfig implements ServerApplicationConfig {
     }
 
     public static boolean isAnnotatedGetterCalled() {
-        return annotatedGetterCalled;
+        return annotatedGetterCalled.get();
     }
 }

@@ -52,10 +52,13 @@ import javax.websocket.server.ServerEndpoint;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-@ServerEndpoint(value = "/idletimeoutsending")
+@ServerEndpoint(value = "/idletimeoutsending", configurator = SingletonConfigurator.class)
 public class IdleTimeoutSendingEndpoint {
-    public static boolean onCloseCalled = false;
+
+    private volatile boolean onCloseCalled = false;
+
     public static final long TIMEOUT = 500;
     private Timer timer = null;
 
@@ -76,15 +79,23 @@ public class IdleTimeoutSendingEndpoint {
     }
 
     @OnMessage
-    public void onMessage(String message){
-
+    public void onMessage(String message) {
+        // do nothing.
     }
 
     @OnClose
     public void onClose(Session session) {
         onCloseCalled = true;
-        if(timer != null){
+        if (timer != null) {
             timer.cancel();
         }
+    }
+
+    boolean isOnCloseCalled() {
+        return onCloseCalled;
+    }
+
+    void setOnCloseCalled(boolean onCloseCalled) {
+        this.onCloseCalled = onCloseCalled;
     }
 }

@@ -174,6 +174,7 @@ public class SessionCloseApplicationTest {
                     }
                 }
 
+                @Override
                 public void onError(javax.websocket.Session session, Throwable thr){
                     thr.printStackTrace();
                 }
@@ -232,6 +233,7 @@ public class SessionCloseApplicationTest {
 
                 }
 
+                @Override
                 public void onError(javax.websocket.Session session, Throwable thr){
                     thr.printStackTrace();
                 }
@@ -294,6 +296,7 @@ public class SessionCloseApplicationTest {
                     }
                 }
 
+                @Override
                 public void onError(javax.websocket.Session session, Throwable thr){
                     thr.printStackTrace();
                 }
@@ -352,6 +355,7 @@ public class SessionCloseApplicationTest {
 
                 }
 
+                @Override
                 public void onError(javax.websocket.Session session, Throwable thr){
                     thr.printStackTrace();
                 }
@@ -387,6 +391,7 @@ public class SessionCloseApplicationTest {
                     });
                 }
 
+                @Override
                 public void onError(javax.websocket.Session session, Throwable thr){
                     thr.printStackTrace();
                 }

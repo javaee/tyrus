@@ -48,11 +48,12 @@ import javax.websocket.server.ServerEndpoint;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-@ServerEndpoint(value = "/closeclt")
+@ServerEndpoint(value = "/closeclt", configurator = SingletonConfigurator.class)
 public class CloseClientEndpoint {
 
-    static boolean inCloseSendTextExceptionThrown = false;
+    private volatile boolean inCloseSendTextExceptionThrown = false;
 
     @OnClose
     public void onClose(Session session) {
@@ -64,12 +65,16 @@ public class CloseClientEndpoint {
     }
 
     @OnMessage
-    public String message(String message, Session session) {
+    public String onMessage(String message) {
         return message;
     }
 
     @OnError
-    public void errorOccurred(Session s, Throwable t){
+    public void onError(Throwable t){
         t.printStackTrace();
+    }
+
+    boolean isInCloseSendTextExceptionThrown() {
+        return inCloseSendTextExceptionThrown;
     }
 }

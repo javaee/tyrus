@@ -52,8 +52,6 @@ import javax.websocket.server.ServerEndpointConfig;
  */
 public class TestServerApplicationConfig implements ServerApplicationConfig {
 
-    private static boolean annotatedGetterCalled = false;
-
     @Override
     public Set<ServerEndpointConfig> getEndpointConfigs(Set<Class<? extends Endpoint>> endpointClasses) {
         return null;
@@ -61,15 +59,10 @@ public class TestServerApplicationConfig implements ServerApplicationConfig {
 
     @Override
     public Set<Class<?>> getAnnotatedEndpointClasses(Set<Class<?>> scanned) {
-        annotatedGetterCalled = true;
         HashSet<Class<?>> toReturn = new HashSet<Class<?>>();
             toReturn.add(PlainEcho.class);
             toReturn.add(PlainOne.class);
 
         return toReturn;
-    }
-
-    public static boolean isAnnotatedGetterCalled() {
-        return annotatedGetterCalled;
     }
 }

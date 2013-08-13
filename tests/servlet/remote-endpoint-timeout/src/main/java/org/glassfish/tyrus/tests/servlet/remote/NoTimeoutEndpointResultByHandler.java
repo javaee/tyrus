@@ -52,32 +52,35 @@ import javax.websocket.server.ServerEndpoint;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-@ServerEndpoint(value = "/nobyhandler")
+@ServerEndpoint(value = "/nobyhandler", configurator = SingletonConfigurator.class)
 public class NoTimeoutEndpointResultByHandler {
 
-    static boolean timeoutRaised = false;
+    private volatile boolean timeoutRaised = false;
 
     @OnMessage
     public void onMessage(String s, Session session) {
-        MySendHandler handler = new MySendHandler();
+        SendHandler sendHandler = new SendHandler() {
+            @Override
+            public void onResult(SendResult sendResult) {
+                if (!sendResult.isOK()) {
+                    Logger.getLogger(NoTimeoutEndpointResultByHandler.class.getName()).log(Level.SEVERE, "Result is not OK.");
+                    timeoutRaised = true;
+                }
+            }
+        };
+
         session.getAsyncRemote().setSendTimeout(1000);
-        session.getAsyncRemote().sendText(s, handler);
+        session.getAsyncRemote().sendText(s, sendHandler);
     }
 
     @OnError
-    public void error(Session s, Throwable t){
+    public void onError(Throwable t) {
         t.printStackTrace();
     }
 
-    public static class MySendHandler implements SendHandler {
-
-        @Override
-        public void onResult(SendResult sendResult) {
-            if(!sendResult.isOK()){
-                Logger.getLogger(NoTimeoutEndpointResultByHandler.class.getName()).log(Level.SEVERE, "Result is not OK.");
-                timeoutRaised = true;
-            }
-        }
+    boolean isTimeoutRaised() {
+        return timeoutRaised;
     }
 }
