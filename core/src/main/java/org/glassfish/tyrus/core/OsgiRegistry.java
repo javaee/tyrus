@@ -299,9 +299,10 @@ public final class OsgiRegistry implements SynchronousBundleListener {
             final Enumeration<URL> jars = bundle.findEntries("/", "*.jar", true);
             if (jars != null) {
                 while (jars.hasMoreElements()) {
+                    JarInputStream jarInputStream = null;
                     try {
                         final InputStream inputStream = classLoader.getResourceAsStream(jars.nextElement().getPath());
-                        final JarInputStream jarInputStream = new JarInputStream(inputStream);
+                        jarInputStream = new JarInputStream(inputStream);
 
                         JarEntry jarEntry;
                         while ((jarEntry = jarInputStream.getNextJarEntry()) != null) {
@@ -314,6 +315,14 @@ public final class OsgiRegistry implements SynchronousBundleListener {
                         }
                     } catch (Exception e) {
                         // Ignore.
+                    } finally {
+                        if (jarInputStream != null) {
+                            try {
+                                jarInputStream.close();
+                            } catch (IOException ioe) {
+                                // ignore
+                            }
+                        }
                     }
                 }
             }

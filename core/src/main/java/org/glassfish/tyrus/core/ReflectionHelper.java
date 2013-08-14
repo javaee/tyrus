@@ -391,7 +391,7 @@ public class ReflectionHelper {
                 return null;
             }
             return m;
-        } catch (Exception e) {
+        } catch (NoSuchMethodException e) {
             return null;
         }
     }
@@ -410,7 +410,7 @@ public class ReflectionHelper {
                 return null;
             }
             return m;
-        } catch (Exception e) {
+        } catch (NoSuchMethodException e) {
             return null;
         }
     }
