@@ -241,7 +241,7 @@ public class TyrusServletFilter implements Filter, HttpSessionListener {
 
             final TyrusHttpUpgradeHandlerProxy handler = new TyrusHttpUpgradeHandlerProxy();
 
-            final ConnectionImpl webSocketConnection = new ConnectionImpl(handler, httpServletResponse);
+            final TyrusServletWriter webSocketConnection = new TyrusServletWriter(handler, httpServletResponse);
 
             final RequestContext requestContext = RequestContext.Builder.create()
                     .requestURI(URI.create(httpServletRequest.getRequestURI()))

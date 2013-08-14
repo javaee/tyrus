@@ -79,6 +79,7 @@ import org.glassfish.tyrus.websockets.ProtocolHandler;
 import org.glassfish.tyrus.websockets.WebSocket;
 import org.glassfish.tyrus.websockets.WebSocketEngine;
 import org.glassfish.tyrus.websockets.WebSocketListener;
+import org.glassfish.tyrus.spi.Writer;
 import org.glassfish.tyrus.websockets.frame.PingFrame;
 import org.glassfish.tyrus.websockets.frame.PongFrame;
 
@@ -216,11 +217,11 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
                 protected void preConfigure(Connection conn) {
                     super.preConfigure(conn);
 
-                    final org.glassfish.tyrus.websockets.Connection connection = getConnection(conn);
+                    final Writer writer = getConnection(conn);
 
-                    protocolHandler.setConnection(connection);
+                    protocolHandler.setWriter(writer);
                     WebSocketEngine.WebSocketHolder holder = WebSocketEngine.getEngine()
-                            .setWebSocketHolder(connection, protocolHandler, RequestContext.Builder.create().requestURI(uri).build(), GrizzlyClientSocket.this, null);
+                            .setWebSocketHolder(writer, protocolHandler, RequestContext.Builder.create().requestURI(uri).build(), GrizzlyClientSocket.this, null);
 
                     prepareHandshake(holder.handshake);
                 }
@@ -595,8 +596,8 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
         return clientFilterChainBuilder.build();
     }
 
-    private static org.glassfish.tyrus.websockets.Connection getConnection(final Connection connection) {
-        return new ConnectionImpl(connection);
+    private static Writer getConnection(final Connection connection) {
+        return new GrizzlyWriter(connection);
     }
 
     private void closeTransport() {

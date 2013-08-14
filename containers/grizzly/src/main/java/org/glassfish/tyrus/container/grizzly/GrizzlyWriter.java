@@ -42,9 +42,8 @@ package org.glassfish.tyrus.container.grizzly;
 import java.io.IOException;
 import java.util.Map;
 
-import org.glassfish.tyrus.websockets.Connection;
-import org.glassfish.tyrus.websockets.DataFrame;
-import org.glassfish.tyrus.websockets.WebSocketResponse;
+import org.glassfish.tyrus.spi.SPIHandshakeResponse;
+import org.glassfish.tyrus.spi.Writer;
 
 import org.glassfish.grizzly.Closeable;
 import org.glassfish.grizzly.EmptyCompletionHandler;
@@ -58,32 +57,31 @@ import org.glassfish.grizzly.http.Protocol;
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-class ConnectionImpl extends Connection {
+class GrizzlyWriter extends Writer {
 
     private final FilterChainContext ctx;
     private final HttpContent httpContent;
     private final org.glassfish.grizzly.Connection connection;
 
-    public ConnectionImpl(final FilterChainContext ctx, final HttpContent httpContent) {
+    public GrizzlyWriter(final FilterChainContext ctx, final HttpContent httpContent) {
         this.ctx = ctx;
         this.connection = ctx.getConnection();
         this.httpContent = httpContent;
     }
 
-    public ConnectionImpl(final org.glassfish.grizzly.Connection connection) {
+    public GrizzlyWriter(final org.glassfish.grizzly.Connection connection) {
         this.connection = connection;
         this.ctx = null;
         this.httpContent = null;
     }
 
     @Override
-    @SuppressWarnings({"unchecked"})
-    public void write(final DataFrame frame, final CompletionHandler completionHandler) {
+    public void write(final byte[] bytes, final CompletionHandler<byte[]> completionHandler) {
         if (!connection.isOpen()) {
             return;
         }
 
-        connection.write(frame, new EmptyCompletionHandler() {
+        connection.write(bytes, new EmptyCompletionHandler() {
             @Override
             public void cancelled() {
                 if (completionHandler != null) {
@@ -94,7 +92,7 @@ class ConnectionImpl extends Connection {
             @Override
             public void completed(Object result) {
                 if (completionHandler != null) {
-                    completionHandler.completed(frame);
+                    completionHandler.completed(bytes);
                 }
             }
 
@@ -108,7 +106,7 @@ class ConnectionImpl extends Connection {
     }
 
     @Override
-    public void write(WebSocketResponse response) {
+    public void write(SPIHandshakeResponse response) {
         if (ctx == null) {
             throw new UnsupportedOperationException("not supported on client side");
         }
@@ -127,12 +125,12 @@ class ConnectionImpl extends Connection {
     @Override
     public void addCloseListener(final CloseListener closeListener) {
 
-        final org.glassfish.tyrus.websockets.Connection webSocketConnection = this;
+        final Writer webSocketWriter = this;
 
         connection.addCloseListener(new org.glassfish.grizzly.CloseListener() {
             @Override
             public void onClosed(Closeable closeable, ICloseType iCloseType) throws IOException {
-                closeListener.onClose(webSocketConnection);
+                closeListener.onClose(webSocketWriter);
             }
         });
     }
@@ -149,7 +147,7 @@ class ConnectionImpl extends Connection {
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof Connection && connection.equals(((Connection) obj).getUnderlyingConnection());
+        return obj instanceof Writer && connection.equals(((Writer) obj).getUnderlyingConnection());
     }
 
     @Override

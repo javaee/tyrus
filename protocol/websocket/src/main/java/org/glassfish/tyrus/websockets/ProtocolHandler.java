@@ -56,6 +56,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.websocket.WebSocketContainer;
 
+import org.glassfish.tyrus.spi.Writer;
 import org.glassfish.tyrus.websockets.frame.BinaryFrame;
 import org.glassfish.tyrus.websockets.frame.ClosingFrame;
 import org.glassfish.tyrus.websockets.frame.ContinuationFrame;
@@ -76,7 +77,7 @@ public final class ProtocolHandler {
     private ByteBuffer remainder;
     private long writeTimeoutMs = -1;
     private WebSocketContainer container;
-    private Connection connection;
+    private Writer writer;
     private byte inFragmentedType;
     private boolean processingFragment;
 
@@ -84,14 +85,14 @@ public final class ProtocolHandler {
         this.maskData = maskData;
     }
 
-    public HandShake handshake(Connection connection, WebSocketApplication app, WebSocketRequest request) {
+    public HandShake handshake(Writer writer, WebSocketApplication app, WebSocketRequest request) {
         final HandShake handshake = createHandShake(request);
-        handshake.respond(connection, app/*, ((WebSocketRequest) request.getHttpHeader()).getResponse()*/);
+        handshake.respond(writer, app/*, ((WebSocketRequest) request.getHttpHeader()).getResponse()*/);
         return handshake;
     }
 
-    public void setConnection(Connection handler) {
-        this.connection = handler;
+    public void setWriter(Writer handler) {
+        this.writer = handler;
     }
 
     public void setWebSocket(WebSocket webSocket) {
@@ -127,7 +128,7 @@ public final class ProtocolHandler {
     }
 
     Future<DataFrame> send(DataFrame frame,
-                           Connection.CompletionHandler<DataFrame> completionHandler, Boolean useTimeout) {
+                           Writer.CompletionHandler<DataFrame> completionHandler, Boolean useTimeout) {
         return write(frame, completionHandler, useTimeout);
     }
 
@@ -150,7 +151,7 @@ public final class ProtocolHandler {
     public Future<DataFrame> close(int code, String reason) {
         final ClosingDataFrame closingDataFrame = new ClosingDataFrame(code, reason);
 
-        return send(closingDataFrame, new Connection.CompletionHandler<DataFrame>() {
+        return send(closingDataFrame, new Writer.CompletionHandler<DataFrame>() {
 
             @Override
             public void cancelled() {
@@ -176,11 +177,11 @@ public final class ProtocolHandler {
     }
 
     @SuppressWarnings({"unchecked"})
-    private Future<DataFrame> write(final DataFrame frame, final Connection.CompletionHandler<DataFrame> completionHandler, boolean useTimeout) {
-        final Connection localConnection = connection;
+    private Future<DataFrame> write(final DataFrame frame, final Writer.CompletionHandler<DataFrame> completionHandler, boolean useTimeout) {
+        final Writer localWriter = writer;
         final WriteFuture<DataFrame> future = new WriteFuture<DataFrame>();
 
-        if (localConnection == null) {
+        if (localWriter == null) {
             throw new IllegalStateException("Connection is null");
         }
 
@@ -192,7 +193,8 @@ public final class ProtocolHandler {
 
                     @Override
                     public void run() {
-                        localConnection.write(frame, completionHandler == null ? new DefaultCompletionHandler(future) : completionHandler);
+                        final byte[] bytes = frame(frame);
+                        localWriter.<byte[]>write(bytes, new CompletionHandlerWrapper(completionHandler, future, frame));
                     }
                 }).get(writeTimeoutMs, TimeUnit.MILLISECONDS);
             } catch (InterruptedException e) {
@@ -203,7 +205,8 @@ public final class ProtocolHandler {
                 future.setFailure(e);
             }
         } else {
-            localConnection.write(frame, completionHandler == null ? new DefaultCompletionHandler(future) : completionHandler);
+            final byte[] bytes = frame(frame);
+            localWriter.write(bytes, new CompletionHandlerWrapper(completionHandler, future, frame));
         }
 
         return future;
@@ -278,12 +281,12 @@ public final class ProtocolHandler {
     }
 
     public void doClose() {
-        final Connection localConnection = connection;
-        if (localConnection == null) {
+        final Writer localWriter = writer;
+        if (localWriter == null) {
             throw new IllegalStateException("Connection is null");
         }
 
-        localConnection.closeSilently();
+        localWriter.closeSilently();
     }
 
     void utf8Decode(boolean finalFragment, byte[] data, DataFrame dataFrame) {
@@ -547,34 +550,63 @@ public final class ProtocolHandler {
                 return new PongFrame();
             default:
                 throw new ProtocolError(String.format("Unknown frame type: %s, %s",
-                        Integer.toHexString(opcode & 0xFF).toUpperCase(Locale.US), connection));
+                        Integer.toHexString(opcode & 0xFF).toUpperCase(Locale.US), writer));
         }
     }
 
     /**
-     * Handler passed to the {@link Connection}.
+     * Handler passed to the {@link Writer}.
      */
-    private static class DefaultCompletionHandler extends Connection.CompletionHandler<DataFrame> {
+    private static class CompletionHandlerWrapper extends Writer.CompletionHandler<byte[]> {
 
+        private final Writer.CompletionHandler<DataFrame> frameCompletionHandler;
         private final WriteFuture<DataFrame> future;
+        private final DataFrame frame;
 
-        public DefaultCompletionHandler(WriteFuture<DataFrame> future) {
+        private CompletionHandlerWrapper(Writer.CompletionHandler<DataFrame> frameCompletionHandler, WriteFuture<DataFrame> future, DataFrame frame) {
+            this.frameCompletionHandler = frameCompletionHandler;
             this.future = future;
+            this.frame = frame;
         }
 
         @Override
         public void cancelled() {
-            future.setFailure(new RuntimeException("Frame writing was canceled."));
+            if (frameCompletionHandler != null) {
+                frameCompletionHandler.cancelled();
+            }
+
+            if (future != null) {
+                future.setFailure(new RuntimeException("Frame writing was canceled."));
+            }
         }
 
         @Override
         public void failed(Throwable throwable) {
-            future.setFailure(throwable);
+            if (frameCompletionHandler != null) {
+                frameCompletionHandler.failed(throwable);
+            }
+
+            if (future != null) {
+                future.setFailure(throwable);
+            }
         }
 
         @Override
-        public void completed(DataFrame result) {
-            future.setResult(result);
+        public void completed(byte[] result) {
+            if (frameCompletionHandler != null) {
+                frameCompletionHandler.completed(frame);
+            }
+
+            if (future != null) {
+                future.setResult(frame);
+            }
+        }
+
+        @Override
+        public void updated(byte[] result) {
+            if (frameCompletionHandler != null) {
+                frameCompletionHandler.updated(frame);
+            }
         }
     }
 

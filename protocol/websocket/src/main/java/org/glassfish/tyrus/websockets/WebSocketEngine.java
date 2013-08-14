@@ -54,6 +54,7 @@ import java.util.logging.Logger;
 
 import javax.websocket.DeploymentException;
 
+import org.glassfish.tyrus.spi.Writer;
 import org.glassfish.tyrus.websockets.uri.Match;
 
 /**
@@ -80,13 +81,14 @@ public class WebSocketEngine {
     public static final String CONNECTION = "Connection";
     public static final String HOST = "Host";
     public static final Version DEFAULT_VERSION = Version.DRAFT17;
-    private static final WebSocketEngine engine = new WebSocketEngine();
-    private static final Logger LOGGER = Logger.getLogger(WebSocketEngine.WEBSOCKET);
     public static final String SERVER_KEY_HASH = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
     public static final int MASK_SIZE = 4;
-    private final Set<WebSocketApplication> applications = Collections.newSetFromMap(new ConcurrentHashMap<WebSocketApplication, Boolean>());
 
-    private final Map<Connection, WebSocketHolder> webSocketHolderMap = new ConcurrentHashMap<Connection, WebSocketHolder>();
+    private static final WebSocketEngine engine = new WebSocketEngine();
+    private static final Logger LOGGER = Logger.getLogger(WebSocketEngine.WEBSOCKET);
+
+    private final Set<WebSocketApplication> applications = Collections.newSetFromMap(new ConcurrentHashMap<WebSocketApplication, Boolean>());
+    private final Map<Writer, WebSocketHolder> webSocketHolderMap = new ConcurrentHashMap<Writer, WebSocketHolder>();
 
     private WebSocketEngine() {
     }
@@ -126,6 +128,23 @@ public class WebSocketEngine {
         return list;
     }
 
+    private static ProtocolHandler loadHandler(WebSocketRequest request) {
+        for (Version version : Version.values()) {
+            if (version.validate(request)) {
+                return version.createHandler(false);
+            }
+        }
+        return null;
+    }
+
+    private static void handleUnsupportedVersion(final Writer writer,
+                                                 final WebSocketRequest request) {
+        WebSocketResponse response = new WebSocketResponse();
+        response.setStatus(426);
+        response.getHeaders().put(WebSocketEngine.SEC_WS_VERSION, Version.getSupportedWireProtocolVersions());
+        writer.write(response);
+    }
+
     WebSocketApplication getApplication(WebSocketRequest request) {
         if (applications.isEmpty()) {
             return null;
@@ -149,35 +168,20 @@ public class WebSocketEngine {
     }
 
     /**
-     * {@link WebSocketHolder} listener.
-     */
-    public static abstract class WebSocketHolderListener {
-        /**
-         * Called when request is ready to upgrade. The responsibility for making {@link org.glassfish.tyrus.websockets.WebSocket#onConnect()}
-         * call is on listener when it is used.
-         *
-         * @param webSocketHolder holder instance.
-         * @throws HandshakeException if an error occurred during the upgrade process.
-         * @see WebSocketHolder#webSocket
-         */
-        public abstract void onWebSocketHolder(WebSocketHolder webSocketHolder) throws HandshakeException;
-    }
-
-    /**
      * Evaluate whether connection/request is suitable for upgrade and perform it.
      *
-     * @param connection connection.
+     * @param writer connection.
      * @param request    request.
      * @return {@code true} if upgrade is performed, {@code false} otherwise.
      */
-    public boolean upgrade(Connection connection, WebSocketRequest request) {
-        return upgrade(connection, request, null);
+    public static boolean upgrade(Writer writer, WebSocketRequest request) {
+        return upgrade(writer, request, null);
     }
 
     /**
      * Evaluate whether connection/request is suitable for upgrade and perform it.
      *
-     * @param connection              connection.
+     * @param writer              connection.
      * @param request                 request.
      * @param webSocketHolderListener called when upgrade is going to be performed. Additinally, leaves
      *                                {@link org.glassfish.tyrus.websockets.WebSocket#onConnect()} call
@@ -185,26 +189,28 @@ public class WebSocketEngine {
      * @return {@code true} if upgrade is performed, {@code false} otherwise.
      * @throws HandshakeException if an error occurred during the upgrade.
      */
-    public boolean upgrade(Connection connection, WebSocketRequest request, WebSocketHolderListener webSocketHolderListener) throws HandshakeException {
-        final WebSocketApplication app = WebSocketEngine.getEngine().getApplication(request);
+    public static boolean upgrade(Writer writer, WebSocketRequest request, WebSocketHolderListener webSocketHolderListener) throws HandshakeException {
+        final WebSocketEngine webSocketEngine = WebSocketEngine.getEngine();
+        final WebSocketApplication app = webSocketEngine.getApplication(request);
+
         WebSocket socket = null;
         try {
             if (app != null) {
                 final ProtocolHandler protocolHandler = loadHandler(request);
                 if (protocolHandler == null) {
-                    handleUnsupportedVersion(connection, request);
+                    handleUnsupportedVersion(writer, request);
                     return false;
                 }
-                protocolHandler.setConnection(connection);
+                protocolHandler.setWriter(writer);
                 socket = app.createSocket(protocolHandler, app);
                 WebSocketHolder holder =
-                        WebSocketEngine.getEngine().setWebSocketHolder(connection, protocolHandler, null, socket, app);
-                protocolHandler.handshake(connection, app, request);
-                request.getConnection().addCloseListener(new Connection.CloseListener() {
+                        webSocketEngine.setWebSocketHolder(writer, protocolHandler, null, socket, app);
+                protocolHandler.handshake(writer, app, request);
+                request.getWriter().addCloseListener(new Writer.CloseListener() {
                     @Override
-                    public void onClose(final Connection connection/*, final CloseType type*/) {
+                    public void onClose(final Writer writer/*, final CloseType type*/) {
 
-                        final WebSocket webSocket = getWebSocket(connection);
+                        final WebSocket webSocket = webSocketEngine.getWebSocket(writer);
                         if (webSocket != null) {
                             webSocket.close();
                             webSocket.onClose(new ClosingDataFrame(WebSocket.END_POINT_GOING_DOWN,
@@ -227,15 +233,6 @@ public class WebSocketEngine {
             }
         }
         return false;
-    }
-
-    private static ProtocolHandler loadHandler(WebSocketRequest request) {
-        for (Version version : Version.values()) {
-            if (version.validate(request)) {
-                return version.createHandler(false);
-            }
-        }
-        return null;
     }
 
     /**
@@ -279,56 +276,62 @@ public class WebSocketEngine {
 //    }
 
     /**
-     * Returns <tt>true</tt> if passed Grizzly {@link Connection} is associated with a {@link WebSocket}, or
+     * Returns <tt>true</tt> if passed Grizzly {@link Writer} is associated with a {@link WebSocket}, or
      * <tt>false</tt> otherwise.
      *
-     * @param connection Grizzly {@link Connection}.
-     * @return <tt>true</tt> if passed Grizzly {@link Connection} is associated with a {@link WebSocket}, or
+     * @param writer Grizzly {@link Writer}.
+     * @return <tt>true</tt> if passed Grizzly {@link Writer} is associated with a {@link WebSocket}, or
      *         <tt>false</tt> otherwise.
      */
-    public boolean webSocketInProgress(Connection connection) {
-        return webSocketHolderMap.get(connection) != null;
+    public boolean webSocketInProgress(Writer writer) {
+        return webSocketHolderMap.get(writer) != null;
     }
 
     /**
-     * Get the {@link WebSocket} associated with the Grizzly {@link Connection}, or <tt>null</tt>, if there none is
+     * Get the {@link WebSocket} associated with the Grizzly {@link Writer}, or <tt>null</tt>, if there none is
      * associated.
      *
-     * @param connection Grizzly {@link Connection}.
-     * @return the {@link WebSocket} associated with the Grizzly {@link Connection}, or <tt>null</tt>, if there none is
+     * @param writer Grizzly {@link Writer}.
+     * @return the {@link WebSocket} associated with the Grizzly {@link Writer}, or <tt>null</tt>, if there none is
      *         associated.
      */
-    public WebSocket getWebSocket(Connection connection) {
-        final WebSocketHolder holder = getWebSocketHolder(connection);
+    public WebSocket getWebSocket(Writer writer) {
+        final WebSocketHolder holder = getWebSocketHolder(writer);
         return holder == null ? null : holder.webSocket;
     }
 
-    public WebSocketHolder getWebSocketHolder(final Connection connection) {
-        return webSocketHolderMap.get(connection);
+    public WebSocketHolder getWebSocketHolder(final Writer writer) {
+        return webSocketHolderMap.get(writer);
     }
 
-    public WebSocketHolder setWebSocketHolder(final Connection connection, ProtocolHandler handler, WebSocketRequest request, WebSocket socket, WebSocketApplication application) {
+    public WebSocketHolder setWebSocketHolder(final Writer writer, ProtocolHandler handler, WebSocketRequest request, WebSocket socket, WebSocketApplication application) {
         final WebSocketHolder holder = new WebSocketHolder(handler, socket, (request == null ? null : handler.createClientHandShake(request)), application);
 
-        webSocketHolderMap.put(connection, holder);
+        webSocketHolderMap.put(writer, holder);
         return holder;
     }
 
-    public void removeConnection(Connection connection) {
-        WebSocketEngine.getEngine().webSocketHolderMap.remove(connection);
-    }
-
-
-    private static void handleUnsupportedVersion(final Connection connection,
-                                                 final WebSocketRequest request) {
-        WebSocketResponse response = new WebSocketResponse();
-        response.setStatus(426);
-        response.getHeaders().put(WebSocketEngine.SEC_WS_VERSION, Version.getSupportedWireProtocolVersions());
-        connection.write(response);
+    public void removeConnection(Writer writer) {
+        WebSocketEngine.getEngine().webSocketHolderMap.remove(writer);
     }
 
     /**
-     * WebSocketHolder object, which gets associated with the Grizzly {@link Connection}.
+     * {@link WebSocketHolder} listener.
+     */
+    public static abstract class WebSocketHolderListener {
+        /**
+         * Called when request is ready to upgrade. The responsibility for making {@link org.glassfish.tyrus.websockets.WebSocket#onConnect()}
+         * call is on listener when it is used.
+         *
+         * @param webSocketHolder holder instance.
+         * @throws HandshakeException if an error occurred during the upgrade process.
+         * @see WebSocketHolder#webSocket
+         */
+        public abstract void onWebSocketHolder(WebSocketHolder webSocketHolder) throws HandshakeException;
+    }
+
+    /**
+     * WebSocketHolder object, which gets associated with the Grizzly {@link Writer}.
      */
     public final static class WebSocketHolder {
         public final WebSocket webSocket;

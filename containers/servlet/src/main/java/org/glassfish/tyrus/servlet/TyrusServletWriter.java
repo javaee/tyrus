@@ -50,33 +50,33 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.WriteListener;
 import javax.servlet.http.HttpServletResponse;
 
-import org.glassfish.tyrus.websockets.Connection;
-import org.glassfish.tyrus.websockets.DataFrame;
-import org.glassfish.tyrus.websockets.WebSocketEngine;
-import org.glassfish.tyrus.websockets.WebSocketResponse;
-import org.glassfish.tyrus.websockets.frame.ClosingFrame;
+import org.glassfish.tyrus.spi.SPIHandshakeResponse;
+import org.glassfish.tyrus.spi.Writer;
 
 /**
- * {@link Connection} implementation used in Servlet integration.
+ * {@link org.glassfish.tyrus.spi.Writer} implementation used in Servlet integration.
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-class ConnectionImpl extends Connection implements WriteListener {
+class TyrusServletWriter extends Writer implements WriteListener {
 
     private final TyrusHttpUpgradeHandler tyrusHttpUpgradeHandler;
     private final HttpServletResponse httpServletResponse;
     private final ArrayBlockingQueue<QueuedFrame> queue = new ArrayBlockingQueue<QueuedFrame>(32);
 
-    private static final Logger LOGGER = Logger.getLogger(ConnectionImpl.class.getName());
+    private final Object outputStreamLock = new Object();
 
+    private static final Logger LOGGER = Logger.getLogger(TyrusServletWriter.class.getName());
+
+    // servlet output stream is not thread safe, we need to ensure it is not accessed from multiple threads at once.
     private ServletOutputStream servletOutputStream = null;
     private volatile boolean isReady = false;
 
     private static class QueuedFrame {
-        public final CompletionHandler<DataFrame> completionHandler;
-        public final DataFrame dataFrame;
+        public final CompletionHandler<byte[]> completionHandler;
+        public final byte[] dataFrame;
 
-        QueuedFrame(CompletionHandler<DataFrame> completionHandler, DataFrame dataFrame) {
+        QueuedFrame(CompletionHandler<byte[]> completionHandler, byte[] dataFrame) {
             this.completionHandler = completionHandler;
             this.dataFrame = dataFrame;
         }
@@ -88,7 +88,7 @@ class ConnectionImpl extends Connection implements WriteListener {
      * @param tyrusHttpUpgradeHandler encapsulated {@link TyrusHttpUpgradeHandler} instance.
      * @param httpServletResponse     response instance - upgrade process should set proper headers and status (101 or 5xx).
      */
-    public ConnectionImpl(TyrusHttpUpgradeHandler tyrusHttpUpgradeHandler, HttpServletResponse httpServletResponse) {
+    public TyrusServletWriter(TyrusHttpUpgradeHandler tyrusHttpUpgradeHandler, HttpServletResponse httpServletResponse) {
         this.tyrusHttpUpgradeHandler = tyrusHttpUpgradeHandler;
         this.httpServletResponse = httpServletResponse;
     }
@@ -115,26 +115,29 @@ class ConnectionImpl extends Connection implements WriteListener {
     }
 
     @Override
-    public void write(final DataFrame frame, Connection.CompletionHandler<DataFrame> completionHandler) {
+    public void write(final byte[] bytes, Writer.CompletionHandler<byte[]> completionHandler) {
 
         // first write
-        if (servletOutputStream == null) {
-            try {
-                servletOutputStream = tyrusHttpUpgradeHandler.getWebConnection().getOutputStream();
-            } catch (IOException e) {
-                LOGGER.log(Level.CONFIG, "ServletOutputStream cannot be obtained", e);
-                completionHandler.failed(e);
+        synchronized (outputStreamLock) {
+            if (servletOutputStream == null) {
+                try {
+                    servletOutputStream = tyrusHttpUpgradeHandler.getWebConnection().getOutputStream();
+                } catch (IOException e) {
+                    LOGGER.log(Level.CONFIG, "ServletOutputStream cannot be obtained", e);
+                    completionHandler.failed(e);
+                    return;
+                }
+                isReady = servletOutputStream.isReady();
+                servletOutputStream.setWriteListener(this);
+            } else {
+                isReady = servletOutputStream.isReady();
             }
-            isReady = servletOutputStream.isReady();
-            servletOutputStream.setWriteListener(this);
-        } else {
-            isReady = servletOutputStream.isReady();
         }
 
         if (isReady) {
-            _write(frame, completionHandler);
+            _write(bytes, completionHandler);
         } else {
-            final QueuedFrame queuedFrame = new QueuedFrame(completionHandler, frame);
+            final QueuedFrame queuedFrame = new QueuedFrame(completionHandler, bytes);
             try {
                 queue.put(queuedFrame);
             } catch (InterruptedException e) {
@@ -144,23 +147,22 @@ class ConnectionImpl extends Connection implements WriteListener {
         }
     }
 
-    public void _write(final DataFrame frame, Connection.CompletionHandler<DataFrame> completionHandler) {
-
-        final byte[] bytes = WebSocketEngine.getEngine().getWebSocketHolder(this).handler.frame(frame);
+    public void _write(final byte[] bytes, Writer.CompletionHandler<byte[]> completionHandler) {
 
         try {
-            synchronized (servletOutputStream) {
+            synchronized (outputStreamLock) {
                 servletOutputStream.write(bytes);
                 servletOutputStream.flush();
             }
 
             if (completionHandler != null) {
-                completionHandler.completed(frame);
+                completionHandler.completed(bytes);
             }
 
-            if (frame.getType() instanceof ClosingFrame) {
-                tyrusHttpUpgradeHandler.getWebConnection().close();
-            }
+            // TODO TODO TODO TODO TODO
+//            if (frame.getType() instanceof ClosingFrame) {
+//                tyrusHttpUpgradeHandler.getWebConnection().close();
+//            }
         } catch (Exception e) {
             if (completionHandler != null) {
                 completionHandler.failed(e);
@@ -169,7 +171,7 @@ class ConnectionImpl extends Connection implements WriteListener {
     }
 
     @Override
-    public void write(WebSocketResponse response) {
+    public void write(SPIHandshakeResponse response) {
         httpServletResponse.setStatus(response.getStatus());
         for (Map.Entry<String, String> entry : response.getHeaders().entrySet()) {
             httpServletResponse.addHeader(entry.getKey(), entry.getValue());

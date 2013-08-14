@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -37,65 +37,22 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+package org.glassfish.tyrus.spi;
 
-package org.glassfish.tyrus.websockets;
+import java.util.Map;
 
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public abstract class Connection {
-
-    public interface CloseListener {
-        // add param for remote/local close indication?
-        void onClose(Connection connection);
-    }
+public interface SPIHandshakeResponse {
 
     /**
-     * Interface, which will be used by Grizzly to notify about asynchronous I/O
-     * operations status updates.
-     *
-     * @author Alexey Stashok
+     * @return TODO
      */
-    public static class CompletionHandler<E> {
-        /**
-         * The operation was cancelled.
-         */
-        public void cancelled() {
-        }
+    public int getStatus();
 
-        /**
-         * The operation was failed.
-         *
-         * @param throwable error, which occurred during operation execution
-         */
-        public void failed(Throwable throwable) {
-        }
-
-        /**
-         * The operation was completed.
-         *
-         * @param result the operation result
-         */
-        public void completed(E result) {
-        }
-
-        /**
-         * The callback method may be called, when there is some progress in
-         * operation execution, but it is still not completed
-         *
-         * @param result the current result
-         */
-        public void updated(E result) {
-        }
-    }
-
-    public abstract void write(DataFrame frame, CompletionHandler<DataFrame> completionHandler);
-
-    public abstract void write(WebSocketResponse response);
-
-    public abstract void addCloseListener(CloseListener closeListener);
-
-    public abstract void closeSilently();
-
-    public abstract Object getUnderlyingConnection();
+    /**
+     * @return TODO
+     */
+    public Map<String, String> getHeaders();
 }

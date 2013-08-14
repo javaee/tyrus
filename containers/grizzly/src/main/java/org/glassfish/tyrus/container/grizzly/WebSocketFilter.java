@@ -51,6 +51,7 @@ import java.util.logging.Logger;
 
 import org.glassfish.tyrus.core.RequestContext;
 import org.glassfish.tyrus.core.Utils;
+import org.glassfish.tyrus.spi.SPIHandshakeResponse;
 import org.glassfish.tyrus.websockets.ClosingDataFrame;
 import org.glassfish.tyrus.websockets.DataFrame;
 import org.glassfish.tyrus.websockets.FramingException;
@@ -60,6 +61,7 @@ import org.glassfish.tyrus.websockets.WebSocketEngine;
 import org.glassfish.tyrus.websockets.WebSocketEngine.WebSocketHolder;
 import org.glassfish.tyrus.websockets.WebSocketRequest;
 import org.glassfish.tyrus.websockets.WebSocketResponse;
+import org.glassfish.tyrus.spi.Writer;
 
 import org.glassfish.grizzly.Buffer;
 import org.glassfish.grizzly.Connection;
@@ -157,16 +159,16 @@ class WebSocketFilter extends BaseFilter {
         logger.log(Level.FINEST, "handleConnect");
 
         // Get connection
-        final org.glassfish.tyrus.websockets.Connection webSocketConnection =
+        final Writer webSocketWriter =
                 getWebSocketConnection(ctx, HttpContent.builder(HttpRequestPacket.builder().build()).build());
 
         // check if it's websocket connection
-        if (!webSocketInProgress(webSocketConnection)) {
+        if (!webSocketInProgress(webSocketWriter)) {
             // if not - pass processing to a next filter
             return ctx.getInvokeAction();
         }
 
-        WebSocketHolder webSocketHolder = WebSocketEngine.getEngine().getWebSocketHolder(webSocketConnection);
+        WebSocketHolder webSocketHolder = WebSocketEngine.getEngine().getWebSocketHolder(webSocketWriter);
         webSocketRequest = webSocketHolder.handshake.initiate();
 
         HttpRequestPacket.Builder builder = HttpRequestPacket.builder();
@@ -205,17 +207,17 @@ class WebSocketFilter extends BaseFilter {
     @Override
     public NextAction handleClose(FilterChainContext ctx) throws IOException {
         // Get the Connection
-        final org.glassfish.tyrus.websockets.Connection connection = getWebSocketConnection(ctx, HttpContent.builder(HttpRequestPacket.builder().build()).build());
+        final Writer writer = getWebSocketConnection(ctx, HttpContent.builder(HttpRequestPacket.builder().build()).build());
 
         // check if Connection has associated WebSocket (is websocket)
-        if (webSocketInProgress(connection)) {
+        if (webSocketInProgress(writer)) {
             // if yes - get websocket
-            final WebSocket ws = getWebSocket(connection);
+            final WebSocket ws = getWebSocket(writer);
             if (ws != null) {
                 // if there is associated websocket object (which means handshake was passed)
                 // close it gracefully
                 ws.close();
-                WebSocketEngine.getEngine().removeConnection(connection);
+                WebSocketEngine.getEngine().removeConnection(writer);
             }
         }
         return ctx.getInvokeAction();
@@ -238,12 +240,12 @@ class WebSocketFilter extends BaseFilter {
         // Get the parsed HttpContent (we assume prev. filter was HTTP)
         final HttpContent message = ctx.getMessage();
         // Get the Grizzly Connection
-        final org.glassfish.tyrus.websockets.Connection connection = getWebSocketConnection(ctx, message);
+        final Writer writer = getWebSocketConnection(ctx, message);
         // Get the HTTP header
         final HttpHeader header = message.getHttpHeader();
         // Try to obtain associated WebSocket
-        final WebSocketHolder holder = WebSocketEngine.getEngine().getWebSocketHolder(connection);
-        WebSocket ws = getWebSocket(connection);
+        final WebSocketHolder holder = WebSocketEngine.getEngine().getWebSocketHolder(writer);
+        WebSocket ws = getWebSocket(writer);
         if (logger.isLoggable(Level.FINE)) {
             logger.log(Level.FINE, "handleRead websocket: {0} content-size={1} headers=\n{2}",
                     new Object[]{ws, message.getContent().remaining(), header});
@@ -275,7 +277,7 @@ class WebSocketFilter extends BaseFilter {
             }
 
             // If websocket is null - it means either non-websocket Connection, or websocket with incomplete handshake
-            if (!webSocketInProgress(connection) &&
+            if (!webSocketInProgress(writer) &&
                     !WebSocketEngine.WEBSOCKET.equalsIgnoreCase(header.getUpgrade())) {
                 // if it's not a websocket connection - pass the processing to the next filter
                 return ctx.getInvokeAction();
@@ -343,12 +345,12 @@ class WebSocketFilter extends BaseFilter {
     @Override
     public NextAction handleWrite(FilterChainContext ctx) throws IOException {
         // get the associated websocket
-        org.glassfish.tyrus.websockets.Connection connection = getWebSocketConnection(ctx, null);
-        final WebSocket websocket = getWebSocket(connection);
+        Writer writer = getWebSocketConnection(ctx, null);
+        final WebSocket websocket = getWebSocket(writer);
         // if there is one
         if (websocket != null) {
             final DataFrame frame = ctx.getMessage();
-            final WebSocketHolder holder = WebSocketEngine.getEngine().getWebSocketHolder(connection);
+            final WebSocketHolder holder = WebSocketEngine.getEngine().getWebSocketHolder(writer);
             final Buffer wrap = Buffers.wrap(ctx.getMemoryManager(), holder.handler.frame(frame));
             ctx.setMessage(wrap);
             ctx.flush(null);
@@ -384,7 +386,7 @@ class WebSocketFilter extends BaseFilter {
         }
 
         try {
-            final WebSocketResponse webSocketResponse = getWebSocketResponse((HttpResponsePacket) content.getHttpHeader());
+            final SPIHandshakeResponse webSocketResponse = getWebSocketResponse((HttpResponsePacket) content.getHttpHeader());
             holder.handshake.validateServerResponse(webSocketResponse);
             holder.handshake.getResponseListener().onResponseHeaders(webSocketResponse.getHeaders());
             holder.webSocket.onConnect();
@@ -428,10 +430,10 @@ class WebSocketFilter extends BaseFilter {
 
         // get HTTP request headers
         final HttpRequestPacket request = (HttpRequestPacket) requestContent.getHttpHeader();
-        final org.glassfish.tyrus.websockets.Connection webSocketConnection = getWebSocketConnection(ctx, requestContent);
+        final Writer webSocketWriter = getWebSocketConnection(ctx, requestContent);
         try {
             if (!WebSocketEngine.getEngine().upgrade(
-                    webSocketConnection,
+                    webSocketWriter,
                     createWebSocketRequest(ctx, requestContent))) {
                 return ctx.getInvokeAction(); // not a WS request, pass to the next filter.
             }
@@ -447,12 +449,12 @@ class WebSocketFilter extends BaseFilter {
 
     }
 
-    private static WebSocket getWebSocket(final org.glassfish.tyrus.websockets.Connection connection) {
-        return WebSocketEngine.getEngine().getWebSocket(connection);
+    private static WebSocket getWebSocket(final Writer writer) {
+        return WebSocketEngine.getEngine().getWebSocket(writer);
     }
 
-    private static boolean webSocketInProgress(final org.glassfish.tyrus.websockets.Connection connection) {
-        return WebSocketEngine.getEngine().webSocketInProgress(connection);
+    private static boolean webSocketInProgress(final Writer writer) {
+        return WebSocketEngine.getEngine().webSocketInProgress(writer);
     }
 
     private static HttpResponsePacket composeHandshakeError(final HttpRequestPacket request,
@@ -498,8 +500,8 @@ class WebSocketFilter extends BaseFilter {
         return HttpContent.builder(builder.build()).build();
     }
 
-    private static org.glassfish.tyrus.websockets.Connection getWebSocketConnection(final FilterChainContext ctx, final HttpContent httpContent) {
-        return new ConnectionImpl(ctx, httpContent);
+    private static Writer getWebSocketConnection(final FilterChainContext ctx, final HttpContent httpContent) {
+        return new GrizzlyWriter(ctx, httpContent);
     }
 
     private static WebSocketRequest createWebSocketRequest(final FilterChainContext ctx, final HttpContent requestContent) {

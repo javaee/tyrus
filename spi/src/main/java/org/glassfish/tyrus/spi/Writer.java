@@ -38,55 +38,64 @@
  * holder.
  */
 
-package org.glassfish.tyrus.websockets;
-
-import java.util.Comparator;
-import java.util.Map;
-import java.util.TreeMap;
-
-import org.glassfish.tyrus.spi.SPIHandshakeResponse;
+package org.glassfish.tyrus.spi;
 
 /**
- * TODO
- *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class WebSocketResponse implements SPIHandshakeResponse {
+public abstract class Writer {
 
-    private final Map<String, String> headers = new TreeMap<String, String>(new Comparator<String>() {
-        @Override
-        public int compare(String o1, String o2) {
-            return o1.toLowerCase().compareTo(o2.toLowerCase());
+    public interface CloseListener {
+        // add param for remote/local close indication?
+        void onClose(Writer writer);
+    }
+
+    /**
+     * Interface, which will be used by Grizzly to notify about asynchronous I/O
+     * operations status updates.
+     *
+     * @author Alexey Stashok
+     */
+    public static class CompletionHandler<E> {
+        /**
+         * The operation was cancelled.
+         */
+        public void cancelled() {
         }
-    });
 
-    private int status;
+        /**
+         * The operation was failed.
+         *
+         * @param throwable error, which occurred during operation execution
+         */
+        public void failed(Throwable throwable) {
+        }
 
-    /**
-     * @return TODO
-     */
-    public int getStatus() {
-        return status;
+        /**
+         * The operation was completed.
+         *
+         * @param result the operation result
+         */
+        public void completed(E result) {
+        }
+
+        /**
+         * The callback method may be called, when there is some progress in
+         * operation execution, but it is still not completed
+         *
+         * @param result the current result
+         */
+        public void updated(E result) {
+        }
     }
 
-    /**
-     * @return TODO
-     */
-    public Map<String, String> getHeaders() {
-        return headers;
-    }
+    public abstract void write(byte[] bytes, CompletionHandler<byte[]> completionHandler);
 
-    /**
-     * @param statusCode TODO
-     */
-    public void setStatus(int statusCode) {
-        status = statusCode;
-    }
+    public abstract void write(SPIHandshakeResponse response);
 
-    /**
-     * @param statusCodeMessage TODO
-     */
-    public void setReasonPhrase(String statusCodeMessage) {
-        // TODO: Implement.
-    }
+    public abstract void addCloseListener(CloseListener closeListener);
+
+    public abstract void closeSilently();
+
+    public abstract Object getUnderlyingConnection();
 }

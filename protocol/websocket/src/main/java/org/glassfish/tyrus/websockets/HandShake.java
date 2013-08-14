@@ -49,6 +49,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import org.glassfish.tyrus.spi.SPIHandshakeResponse;
+import org.glassfish.tyrus.spi.Writer;
+
 /**
  * @author Justin Lee
  * @author Pavel Bucek (pavel.bucek at oracle.com)
@@ -464,7 +467,7 @@ public final class HandShake {
         return request;
     }
 
-    public void validateServerResponse(WebSocketResponse response) {
+    public void validateServerResponse(SPIHandshakeResponse response) {
         if (WebSocketEngine.RESPONSE_CODE_VALUE != response.getStatus()) {
             throw new HandshakeException(String.format("Response code was not %s: %s",
                     WebSocketEngine.RESPONSE_CODE_VALUE, response.getStatus()));
@@ -480,7 +483,7 @@ public final class HandShake {
         secKey.validateServerKey(response.getHeaders().get(WebSocketEngine.SEC_WS_ACCEPT));
     }
 
-    void respond(Connection connection, WebSocketApplication application/*, WebSocketResponse response*/) {
+    void respond(Writer writer, WebSocketApplication application/*, WebSocketResponse response*/) {
         WebSocketResponse response = new WebSocketResponse();
         response.setStatus(101);
 
@@ -506,7 +509,7 @@ public final class HandShake {
 
         application.onHandShakeResponse(incomingRequest, response);
 
-        connection.write(response);
+        writer.write(response);
     }
 
     void setHeaders(WebSocketResponse response) {

@@ -52,7 +52,7 @@ import java.util.TreeMap;
 import javax.websocket.server.HandshakeRequest;
 
 import org.glassfish.tyrus.spi.SPIHandshakeRequest;
-import org.glassfish.tyrus.websockets.Connection;
+import org.glassfish.tyrus.spi.Writer;
 import org.glassfish.tyrus.websockets.WebSocketRequest;
 
 /**
@@ -64,7 +64,7 @@ public final class RequestContext implements HandshakeRequest, SPIHandshakeReque
 
     private final URI requestURI;
     private final String queryString;
-    private final Connection connection;
+    private final Writer writer;
     private final Object httpSession;
     private final boolean secure;
     private final Principal userPrincipal;
@@ -81,13 +81,13 @@ public final class RequestContext implements HandshakeRequest, SPIHandshakeReque
 
     private Map<String, List<String>> parameterMap;
 
-    private RequestContext(URI requestURI, String requestPath, String queryString, Connection connection,
+    private RequestContext(URI requestURI, String requestPath, String queryString, Writer writer,
                            Object httpSession, boolean secure, Principal userPrincipal,
                            Builder.IsUserInRoleDelegate IsUserInRoleDelegate, Map<String, List<String>> parameterMap) {
         this.requestURI = requestURI;
         this.requestPath = requestPath;
         this.queryString = queryString;
-        this.connection = connection;
+        this.writer = writer;
         this.httpSession = httpSession;
         this.secure = secure;
         this.userPrincipal = userPrincipal;
@@ -209,8 +209,8 @@ public final class RequestContext implements HandshakeRequest, SPIHandshakeReque
     }
 
     @Override
-    public Connection getConnection() {
-        return connection;
+    public Writer getWriter() {
+        return writer;
     }
 
     /**
@@ -221,7 +221,7 @@ public final class RequestContext implements HandshakeRequest, SPIHandshakeReque
         private URI requestURI;
         private String requestPath;
         private String queryString;
-        private Connection connection;
+        private Writer writer;
         private Object httpSession;
         private boolean secure;
         private Principal userPrincipal;
@@ -263,11 +263,11 @@ public final class RequestContext implements HandshakeRequest, SPIHandshakeReque
         /**
          * Set connection.
          *
-         * @param connection connection to be set.
+         * @param writer connection to be set.
          * @return updated {@link RequestContext.Builder} instance.
          */
-        public Builder connection(Connection connection) {
-            this.connection = connection;
+        public Builder connection(Writer writer) {
+            this.writer = writer;
             return this;
         }
 
@@ -353,7 +353,7 @@ public final class RequestContext implements HandshakeRequest, SPIHandshakeReque
          * @return created {@link RequestContext}.
          */
         public RequestContext build() {
-            return new RequestContext(requestURI, requestPath, queryString, connection, httpSession, secure,
+            return new RequestContext(requestURI, requestPath, queryString, writer, httpSession, secure,
                     userPrincipal, isUserInRoleDelegate,
                     parameterMap != null ? parameterMap : new HashMap<String, List<String>>());
         }

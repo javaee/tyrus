@@ -157,7 +157,7 @@ public class EchoTest {
             }
         }, ClientEndpointConfig.Builder.create().build(), getURI());
 
-        messageLatch.await(1, TimeUnit.SECONDS);
+        messageLatch.await(10000, TimeUnit.SECONDS);
         if (messageLatch.getCount() != 0 || onOpenLatch.getCount() != 0) {
             fail();
         }
