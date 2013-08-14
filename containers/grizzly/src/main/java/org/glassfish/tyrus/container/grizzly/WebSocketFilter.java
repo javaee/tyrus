@@ -160,7 +160,7 @@ class WebSocketFilter extends BaseFilter {
 
         // Get connection
         final Writer webSocketWriter =
-                getWebSocketConnection(ctx, HttpContent.builder(HttpRequestPacket.builder().build()).build());
+                WebSocketFilter.getWebSocketConnection(ctx, HttpContent.builder(HttpRequestPacket.builder().build()).build());
 
         // check if it's websocket connection
         if (!webSocketInProgress(webSocketWriter)) {
@@ -349,9 +349,8 @@ class WebSocketFilter extends BaseFilter {
         final WebSocket websocket = getWebSocket(writer);
         // if there is one
         if (websocket != null) {
-            final DataFrame frame = ctx.getMessage();
-            final WebSocketHolder holder = WebSocketEngine.getEngine().getWebSocketHolder(writer);
-            final Buffer wrap = Buffers.wrap(ctx.getMemoryManager(), holder.handler.frame(frame));
+            final byte[] bytes = ctx.getMessage();
+            final Buffer wrap = Buffers.wrap(ctx.getMemoryManager(), bytes);
             ctx.setMessage(wrap);
             ctx.flush(null);
         }

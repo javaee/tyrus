@@ -81,6 +81,7 @@ class GrizzlyWriter extends Writer {
             return;
         }
 
+        //noinspection unchecked
         connection.write(bytes, new EmptyCompletionHandler() {
             @Override
             public void cancelled() {
