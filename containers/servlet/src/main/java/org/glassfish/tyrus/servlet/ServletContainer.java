@@ -58,9 +58,15 @@ import org.glassfish.tyrus.websockets.WebSocketEngine;
  * Servlet container.
  */
 public class ServletContainer implements SPIContainer {
+
+    private final WebSocketEngine engine;
+
+    public ServletContainer(WebSocketEngine engine) {
+        this.engine = engine;
+    }
+
     @Override
     public SPIServer createServer(String rootPath, int port) {
-        final WebSocketEngine engine = new WebSocketEngine();
         return new SPIServer() {
             @Override
             public void start() throws IOException {
@@ -86,7 +92,7 @@ public class ServletContainer implements SPIContainer {
 
     @Override
     public SPIClientSocket openClientSocket(String url, ClientEndpointConfig cec, SPIEndpoint endpoint,
-                                              SPIClientHandshakeListener listener, Map<String, Object> properties) {
+                                            SPIClientHandshakeListener listener, Map<String, Object> properties) {
         return null;
     }
 }

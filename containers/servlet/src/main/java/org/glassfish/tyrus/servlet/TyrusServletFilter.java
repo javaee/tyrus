@@ -87,7 +87,7 @@ public class TyrusServletFilter implements Filter, HttpSessionListener {
 
     private static final int INFORMATIONAL_FIXED_PORT = 8080;
     private final static Logger LOGGER = Logger.getLogger(TyrusServletFilter.class.getName());
-    private final SPIWebSocketEngine engine = new WebSocketEngine();
+    private final WebSocketEngine engine = new WebSocketEngine();
     private org.glassfish.tyrus.server.TyrusServerContainer serverContainer = null;
 
     // @ServerEndpoint annotated classes and classes extending ServerApplicationConfig
@@ -123,7 +123,7 @@ public class TyrusServletFilter implements Filter, HttpSessionListener {
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
         String contextRoot = filterConfig.getServletContext().getContextPath();
-        this.serverContainer = ServerContainerFactory.create(ServletContainer.class, contextRoot, INFORMATIONAL_FIXED_PORT, classes, dynamicallyDeployedClasses, dynamicallyDeployedServerEndpointConfigs);
+        this.serverContainer = ServerContainerFactory.create(new ServletContainer(engine), contextRoot, INFORMATIONAL_FIXED_PORT, classes, dynamicallyDeployedClasses, dynamicallyDeployedServerEndpointConfigs);
         try {
             serverContainer.start();
         } catch (Exception e) {

@@ -125,6 +125,26 @@ public class ServerContainerFactory {
         } catch (Exception e) {
             throw new RuntimeException("Failed to instantiate provider class: " + providerClass.getName(), e);
         }
+        return create(containerProvider, contextPath, port, configuration, dynamicallyAddedClasses, dynamicallyAddedEndpointConfigs);
+    }
+
+    /**
+     * Creates a new server container based on the supplied container provider.
+     *
+     * @param containerProvider       Container provider instance.
+     * @param contextPath             URI path at which the websocket server should be exposed at.
+     * @param port                    Port at which the server should listen.
+     * @param configuration           Server configuration.
+     * @param dynamicallyAddedClasses dynamically deployed classes. See {@link javax.websocket.server.ServerContainer#addEndpoint(Class)}.
+     * @param dynamicallyAddedEndpointConfigs
+     *                                dynamically deployed {@link ServerEndpointConfig ServerEndpointConfigs}. See
+     *                                {@link javax.websocket.server.ServerContainer#addEndpoint(ServerEndpointConfig)}.
+     * @return New instance of {@link TyrusServerContainer}.
+     */
+    public static TyrusServerContainer create(SPIContainer containerProvider, String contextPath, int port,
+                                              Set<Class<?>> configuration, Set<Class<?>> dynamicallyAddedClasses,
+                                              Set<ServerEndpointConfig> dynamicallyAddedEndpointConfigs) {
+
         return new TyrusServerContainer(containerProvider.createServer(contextPath, port), contextPath, configuration,
                 dynamicallyAddedClasses, dynamicallyAddedEndpointConfigs);
     }
