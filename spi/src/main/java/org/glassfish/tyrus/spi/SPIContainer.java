@@ -37,56 +37,44 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.servlet;
+package org.glassfish.tyrus.spi;
 
-import java.io.IOException;
+
 import java.util.Map;
 
 import javax.websocket.ClientEndpointConfig;
 import javax.websocket.DeploymentException;
 
-import org.glassfish.tyrus.core.TyrusEndpoint;
-import org.glassfish.tyrus.spi.SPIClientHandshakeListener;
-import org.glassfish.tyrus.spi.SPIClientSocket;
-import org.glassfish.tyrus.spi.SPIContainer;
-import org.glassfish.tyrus.spi.SPIEndpoint;
-import org.glassfish.tyrus.spi.SPIRegisteredEndpoint;
-import org.glassfish.tyrus.spi.SPIServer;
-import org.glassfish.tyrus.websockets.WebSocketEngine;
-
 /**
- * Servlet container.
+ * The TyrusContainer is the starting point of the provider SPI. The provider must implement this
+ * class with a public no args constructor. The new provider can be configured
+ * in the web.xml of the web application requesting the new provider by specifying a servlet context
+ * initialization parameter of key org.glassfish.websocket.provider.class and value the fully qualified classname
+ * of the provider class.
+ *
+ * @author Danny Coward (danny.coward at oracle.com)
  */
-public class ServletContainer implements SPIContainer {
-    @Override
-    public SPIServer createServer(String rootPath, int port) {
-        final WebSocketEngine engine = new WebSocketEngine();
-        return new SPIServer() {
-            @Override
-            public void start() throws IOException {
-            }
+public interface SPIContainer {
+    /**
+     * Creates a new embedded HTTP server (if supported) listening to incoming connections at a given root path
+     * and port.
+     *
+     * @param rootPath context root
+     * @param port     TCP port
+     * @return server that can be started and stopped
+     */
+    public SPIServer createServer(String rootPath, int port);
 
-            @Override
-            public void stop() {
-            }
-
-            @Override
-            public SPIRegisteredEndpoint register(SPIEndpoint endpoint) throws DeploymentException {
-                TyrusEndpoint ge = new TyrusEndpoint(endpoint);
-                engine.register(ge);
-                return ge;
-            }
-
-            @Override
-            public void unregister(SPIRegisteredEndpoint ge) {
-                engine.unregister((TyrusEndpoint) ge);
-            }
-        };
-    }
-
-    @Override
+    /**
+     * Open client socket - connect to endpoint specified with {@code url} parameter.
+     *
+     * @param url               address where remote service is deployed.
+     * @param cec               endpoint configuration.
+     * @param endpoint          endpoint instance.
+     * @param handshakeListener handshake listener.
+     * @param properties        properties map.
+     * @return representation of incoming socket.
+     */
     public SPIClientSocket openClientSocket(String url, ClientEndpointConfig cec, SPIEndpoint endpoint,
-                                              SPIClientHandshakeListener listener, Map<String, Object> properties) {
-        return null;
-    }
+                                              SPIClientHandshakeListener handshakeListener, Map<String, Object> properties) throws DeploymentException;
 }

@@ -63,7 +63,7 @@ import org.glassfish.tyrus.core.ComponentProviderService;
 import org.glassfish.tyrus.core.EndpointWrapper;
 import org.glassfish.tyrus.core.ErrorCollector;
 import org.glassfish.tyrus.spi.SPIRegisteredEndpoint;
-import org.glassfish.tyrus.spi.TyrusServer;
+import org.glassfish.tyrus.spi.SPIServer;
 
 /**
  * Server Container Implementation.
@@ -73,7 +73,7 @@ import org.glassfish.tyrus.spi.TyrusServer;
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 public class TyrusServerContainer extends BaseContainer implements WebSocketContainer {
-    private final TyrusServer server;
+    private final SPIServer server;
     private final String contextPath;
     private final ServerApplicationConfig configuration;
     private final Set<SPIRegisteredEndpoint> endpoints = new HashSet<SPIRegisteredEndpoint>();
@@ -97,7 +97,7 @@ public class TyrusServerContainer extends BaseContainer implements WebSocketCont
      *                                dynamically deployed {@link ServerEndpointConfig ServerEndpointConfigs}. See
      *                                {@link javax.websocket.server.ServerContainer#addEndpoint(ServerEndpointConfig)}.
      */
-    public TyrusServerContainer(final TyrusServer server, final String contextPath,
+    public TyrusServerContainer(final SPIServer server, final String contextPath,
                                 final Set<Class<?>> classes, final Set<Class<?>> dynamicallyAddedClasses,
                                 final Set<ServerEndpointConfig> dynamicallyAddedEndpointConfigs) {
         this.collector = new ErrorCollector();
@@ -111,7 +111,7 @@ public class TyrusServerContainer extends BaseContainer implements WebSocketCont
     /**
      * Start container.
      *
-     * @throws IOException         when any IO related issues emerge during {@link org.glassfish.tyrus.spi.TyrusServer#start()}.
+     * @throws IOException         when any IO related issues emerge during {@link org.glassfish.tyrus.spi.SPIServer#start()}.
      * @throws DeploymentException when any deployment related error is found; should contain list of all found issues.
      */
     public void start() throws IOException, DeploymentException {
@@ -151,7 +151,7 @@ public class TyrusServerContainer extends BaseContainer implements WebSocketCont
     }
 
     /**
-     * Undeploy all endpoints and stop underlying {@link TyrusServer}.
+     * Undeploy all endpoints and stop underlying {@link org.glassfish.tyrus.spi.SPIServer}.
      */
     public void stop() {
         for (SPIRegisteredEndpoint wsa : this.endpoints) {

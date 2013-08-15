@@ -49,8 +49,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Logger;
 
+import org.glassfish.tyrus.spi.SPIHandshakeRequest;
 import org.glassfish.tyrus.spi.SPIHandshakeResponse;
-import org.glassfish.tyrus.spi.Writer;
+import org.glassfish.tyrus.spi.SPIWriter;
 
 /**
  * @author Justin Lee
@@ -72,7 +73,7 @@ public final class HandShake {
     // client side request!
     private WebSocketRequest request;
     private HandShakeResponseListener responseListener;
-    private WebSocketRequest incomingRequest;
+    private SPIHandshakeRequest incomingRequest;
     private SecKey secKey;
 
 
@@ -100,7 +101,7 @@ public final class HandShake {
         return handShake;
     }
 
-    static HandShake createServerHandShake(WebSocketRequest request) {
+    static HandShake createServerHandShake(SPIHandshakeRequest request) {
         final HandShake handShake = new HandShake();
 
         handShake.incomingRequest = request;
@@ -121,7 +122,7 @@ public final class HandShake {
         if (handShake.serverHostName == null) {
             throw new HandshakeException("Missing required headers for WebSocket negotiation");
         }
-        handShake.resourcePath = request.getRequestURI().toString();
+        handShake.resourcePath = request.getRequestUri();
         final String queryString = request.getQueryString();
         if (queryString != null) {
             if (!queryString.isEmpty()) {
@@ -162,7 +163,7 @@ public final class HandShake {
         }
     }
 
-    private static void determineHostAndPort(HandShake handShake, WebSocketRequest request) {
+    private static void determineHostAndPort(HandShake handShake, SPIHandshakeRequest request) {
         String header = request.getFirstHeaderValue(WebSocketEngine.HOST);
 
         final int i = header == null ? -1 : header.indexOf(":");
@@ -483,7 +484,7 @@ public final class HandShake {
         secKey.validateServerKey(response.getHeaders().get(WebSocketEngine.SEC_WS_ACCEPT));
     }
 
-    void respond(Writer writer, WebSocketApplication application/*, WebSocketResponse response*/) {
+    void respond(SPIWriter writer, WebSocketApplication application/*, WebSocketResponse response*/) {
         WebSocketResponse response = new WebSocketResponse();
         response.setStatus(101);
 
@@ -533,8 +534,8 @@ public final class HandShake {
         return intersection;
     }
 
-    public WebSocketRequest initiate(/*FilterChainContext ctx*/) {
-        return request;
+    public SPIHandshakeRequest initiate(/*FilterChainContext ctx*/) {
+        return (SPIHandshakeRequest) request;
     }
 
     /**

@@ -60,6 +60,7 @@ import javax.websocket.server.HandshakeRequest;
 import javax.websocket.server.ServerEndpointConfig;
 
 import org.glassfish.tyrus.spi.SPIEndpoint;
+import org.glassfish.tyrus.spi.SPIHandshakeRequest;
 import org.glassfish.tyrus.spi.SPIRegisteredEndpoint;
 import org.glassfish.tyrus.websockets.ClosingDataFrame;
 import org.glassfish.tyrus.websockets.ProtocolHandler;
@@ -67,7 +68,6 @@ import org.glassfish.tyrus.websockets.WebSocket;
 import org.glassfish.tyrus.websockets.WebSocketApplication;
 import org.glassfish.tyrus.websockets.WebSocketEngine;
 import org.glassfish.tyrus.websockets.WebSocketListener;
-import org.glassfish.tyrus.websockets.WebSocketRequest;
 import org.glassfish.tyrus.websockets.WebSocketResponse;
 
 /**
@@ -105,7 +105,7 @@ public class TyrusEndpoint extends WebSocketApplication implements SPIRegistered
     }
 
     @Override
-    public boolean isApplicationRequest(WebSocketRequest webSocketRequest) {
+    public boolean isApplicationRequest(SPIHandshakeRequest webSocketRequest) {
         final List<String> protocols = webSocketRequest.getHeaders().get(WebSocketEngine.SEC_WS_PROTOCOL_HEADER);
         temporaryNegotiatedProtocol = endpoint.getNegotiatedProtocol(protocols);
 
@@ -232,7 +232,7 @@ public class TyrusEndpoint extends WebSocketApplication implements SPIRegistered
     }
 
     @Override
-    public void onHandShakeResponse(WebSocketRequest request, WebSocketResponse response) {
+    public void onHandShakeResponse(SPIHandshakeRequest request, WebSocketResponse response) {
         final EndpointConfig configuration = this.endpoint.getEndpointConfig();
 
         if (configuration instanceof ServerEndpointConfig) {
@@ -259,7 +259,7 @@ public class TyrusEndpoint extends WebSocketApplication implements SPIRegistered
         }
     }
 
-    private HandshakeRequest createHandshakeRequest(final WebSocketRequest webSocketRequest) {
+    private HandshakeRequest createHandshakeRequest(final SPIHandshakeRequest webSocketRequest) {
         if (webSocketRequest instanceof RequestContext) {
             final RequestContext requestContext = (RequestContext) webSocketRequest;
             // TYRUS-208; spec requests headers to be read only when passed to ServerEndpointConfig.Configurator#modifyHandshake.

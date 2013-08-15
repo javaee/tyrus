@@ -44,7 +44,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.Map;
 
-import org.glassfish.tyrus.spi.Writer;
+import org.glassfish.tyrus.spi.SPIWriter;
 
 /**
  * Request representation.
@@ -113,11 +113,11 @@ public interface WebSocketRequest {
     public String getQueryString();
 
     /**
-     * Get {@link org.glassfish.tyrus.spi.Writer}.
+     * Get {@link org.glassfish.tyrus.spi.SPIWriter}.
      *
      * @return underlying connection.
      */
-    public Writer getWriter();
+    public SPIWriter getWriter();
 
     /**
      * Get information about connection secure state.

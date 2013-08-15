@@ -49,7 +49,7 @@ import java.util.Map;
  *
  * @author Danny Coward (danny.coward at oracle.com)
  */
-public interface SPIHandshakeRequest {
+public abstract class SPIHandshakeRequest {
 
     /**
      * Get the Http Header value for the given header name
@@ -58,40 +58,65 @@ public interface SPIHandshakeRequest {
      * @param name the name of the header.
      * @return the header value.
      */
-    public String getHeader(String name);
+    public abstract String getHeader(String name);
+
+    /**
+     * Get headers.
+     *
+     * @return headers map. List items are corresponding to header declaration in HTTP request.
+     */
+    public abstract Map<String, List<String>> getHeaders();
 
     /**
      * Get the Http request uri underlying Http handshake request.
      *
      * @return request uri.
      */
-    public String getRequestUri();
+    public abstract String getRequestUri();
 
     /**
      * Get information about underlying connection.
      *
      * @return {@code true} when connection is secuded, {@code false} otherwise.
      */
-    public boolean isSecure();
+    public abstract boolean isSecure();
 
     /**
      * Get query string.
      *
      * @return query string.
      */
-    public String getQueryString();
+    public abstract String getQueryString();
+
+    /**
+     * Get request path.
+     *
+     * @return request path.
+     */
+    public abstract String getRequestPath();
 
     /**
      * Get user {@link Principal}.
      *
      * @return user principal.
      */
-    public Principal getUserPrincipal();
+    public abstract Principal getUserPrincipal();
 
     /**
      * Return the request parameters associated with the request.
      *
      * @return the unmodifiable map of the request parameters.
      */
-    public Map<String, List<String>> getParameterMap();
+    public abstract Map<String, List<String>> getParameterMap();
+
+    /**
+     * Gets the first header value from the {@link List} of header values corresponding to the name.
+     *
+     * @param name header name.
+     * @return {@link String} value iff it exists, {@code null} otherwise.
+     */
+    public String getFirstHeaderValue(String name) {
+        final List<String> stringList = getHeaders().get(name);
+        return stringList == null ? null : stringList.get(0);
+    }
 }

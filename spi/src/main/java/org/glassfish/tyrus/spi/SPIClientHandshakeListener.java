@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -39,43 +39,27 @@
  */
 package org.glassfish.tyrus.spi;
 
-import java.io.IOException;
-
-import javax.websocket.DeploymentException;
+import java.util.Map;
 
 /**
- * HTTP server abstraction.
+ * Called when response is received from the server.
  *
- * @author Martin Matula (martin.matula at oracle.com)
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public interface TyrusServer {
-    /**
-     * Starts the server.
-     *
-     * @throws IOException if something goes wrong.
-     */
-    void start() throws IOException;
+public interface SPIClientHandshakeListener {
 
     /**
-     * Stops the server.
+     * Called when correct handshake response is received.
+     *
+     * @param headers of the handshake response.
      */
-    void stop();
+    public void onResponseHeaders(Map<String, String> headers);
+
 
     /**
-     * The register method is called by the SDK when it
-     * has created a web socket endpoint it wishes to be managed.
+     * Called when an error is found in handshake response.
      *
-     * @param endpoint SPIEndpoint to be registered.
-     * @return SPIRegisteredEndpoint.
-     * @throws DeploymentException when endpoint cannot be registered.
+     * @param exception error found during handshake response check.
      */
-    public SPIRegisteredEndpoint register(SPIEndpoint endpoint) throws DeploymentException;
-
-    /**
-     * The SDK calls unregister when it no longer wishes the endpoint to be
-     * in service.
-     *
-     * @param ge the endpoint which is going to be unregistered.
-     */
-    public void unregister(SPIRegisteredEndpoint ge);
+    public void onError(Throwable exception);
 }

@@ -45,6 +45,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.glassfish.tyrus.spi.SPIHandshakeRequest;
+
 /**
  * Abstract server-side {@link WebSocket} application, which will handle
  * application {@link WebSocket}s events.
@@ -132,7 +134,7 @@ public abstract class WebSocketApplication implements WebSocketListener {
      * @return <code>true</code> if the request should be upgraded to a
      *         WebSocket connection
      */
-    public final boolean upgrade(WebSocketRequest request) {
+    public final boolean upgrade(SPIHandshakeRequest request) {
         final String upgradeHeader = request.getHeader(WebSocketEngine.UPGRADE);
         return request.getHeaders().get(WebSocketEngine.UPGRADE) != null &&
                 // RFC 6455, paragraph 4.2.1.3
@@ -162,7 +164,7 @@ public abstract class WebSocketApplication implements WebSocketListener {
      * @param request  original request which caused this handshake.
      * @param response response to be send.
      */
-    public abstract void onHandShakeResponse(WebSocketRequest request, WebSocketResponse response);
+    public abstract void onHandShakeResponse(SPIHandshakeRequest request, WebSocketResponse response);
 
     /**
      * Checks application specific criteria to determine if this application can
@@ -171,7 +173,7 @@ public abstract class WebSocketApplication implements WebSocketListener {
      * @param request the incoming HTTP request.
      * @return <code>true</code> if this application can service this request
      */
-    protected abstract boolean isApplicationRequest(WebSocketRequest request);
+    protected abstract boolean isApplicationRequest(SPIHandshakeRequest request);
 
     /**
      * Return path for which is current {@link WebSocketApplication} registered.

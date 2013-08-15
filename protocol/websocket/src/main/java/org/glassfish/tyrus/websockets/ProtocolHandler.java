@@ -56,7 +56,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.websocket.WebSocketContainer;
 
-import org.glassfish.tyrus.spi.Writer;
+import org.glassfish.tyrus.spi.SPIHandshakeRequest;
+import org.glassfish.tyrus.spi.SPIWriter;
 import org.glassfish.tyrus.websockets.frame.BinaryFrame;
 import org.glassfish.tyrus.websockets.frame.ClosingFrame;
 import org.glassfish.tyrus.websockets.frame.ContinuationFrame;
@@ -77,7 +78,7 @@ public final class ProtocolHandler {
     private ByteBuffer remainder;
     private long writeTimeoutMs = -1;
     private WebSocketContainer container;
-    private Writer writer;
+    private SPIWriter writer;
     private byte inFragmentedType;
     private boolean processingFragment;
 
@@ -85,13 +86,13 @@ public final class ProtocolHandler {
         this.maskData = maskData;
     }
 
-    public HandShake handshake(Writer writer, WebSocketApplication app, WebSocketRequest request) {
+    public HandShake handshake(SPIWriter writer, WebSocketApplication app, SPIHandshakeRequest request) {
         final HandShake handshake = createHandShake(request);
         handshake.respond(writer, app/*, ((WebSocketRequest) request.getHttpHeader()).getResponse()*/);
         return handshake;
     }
 
-    public void setWriter(Writer handler) {
+    public void setWriter(SPIWriter handler) {
         this.writer = handler;
     }
 
@@ -105,7 +106,7 @@ public final class ProtocolHandler {
      * @param webSocketRequest representation of received initial HTTP request.
      * @return new {@link HandShake} instance.
      */
-    HandShake createHandShake(WebSocketRequest webSocketRequest) {
+    HandShake createHandShake(SPIHandshakeRequest webSocketRequest) {
         return HandShake.createServerHandShake(webSocketRequest);
     }
 
@@ -128,7 +129,7 @@ public final class ProtocolHandler {
     }
 
     Future<DataFrame> send(DataFrame frame,
-                           Writer.CompletionHandler<DataFrame> completionHandler, Boolean useTimeout) {
+                           SPIWriter.CompletionHandler<DataFrame> completionHandler, Boolean useTimeout) {
         return write(frame, completionHandler, useTimeout);
     }
 
@@ -151,7 +152,7 @@ public final class ProtocolHandler {
     public Future<DataFrame> close(int code, String reason) {
         final ClosingDataFrame closingDataFrame = new ClosingDataFrame(code, reason);
 
-        return send(closingDataFrame, new Writer.CompletionHandler<DataFrame>() {
+        return send(closingDataFrame, new SPIWriter.CompletionHandler<DataFrame>() {
 
             @Override
             public void cancelled() {
@@ -177,8 +178,8 @@ public final class ProtocolHandler {
     }
 
     @SuppressWarnings({"unchecked"})
-    private Future<DataFrame> write(final DataFrame frame, final Writer.CompletionHandler<DataFrame> completionHandler, boolean useTimeout) {
-        final Writer localWriter = writer;
+    private Future<DataFrame> write(final DataFrame frame, final SPIWriter.CompletionHandler<DataFrame> completionHandler, boolean useTimeout) {
+        final SPIWriter localWriter = writer;
         final WriteFuture<DataFrame> future = new WriteFuture<DataFrame>();
 
         if (localWriter == null) {
@@ -281,7 +282,7 @@ public final class ProtocolHandler {
     }
 
     public void doClose() {
-        final Writer localWriter = writer;
+        final SPIWriter localWriter = writer;
         if (localWriter == null) {
             throw new IllegalStateException("Connection is null");
         }
@@ -555,15 +556,15 @@ public final class ProtocolHandler {
     }
 
     /**
-     * Handler passed to the {@link Writer}.
+     * Handler passed to the {@link org.glassfish.tyrus.spi.SPIWriter}.
      */
-    private static class CompletionHandlerWrapper extends Writer.CompletionHandler<byte[]> {
+    private static class CompletionHandlerWrapper extends SPIWriter.CompletionHandler<byte[]> {
 
-        private final Writer.CompletionHandler<DataFrame> frameCompletionHandler;
+        private final SPIWriter.CompletionHandler<DataFrame> frameCompletionHandler;
         private final WriteFuture<DataFrame> future;
         private final DataFrame frame;
 
-        private CompletionHandlerWrapper(Writer.CompletionHandler<DataFrame> frameCompletionHandler, WriteFuture<DataFrame> future, DataFrame frame) {
+        private CompletionHandlerWrapper(SPIWriter.CompletionHandler<DataFrame> frameCompletionHandler, WriteFuture<DataFrame> future, DataFrame frame) {
             this.frameCompletionHandler = frameCompletionHandler;
             this.future = future;
             this.frame = frame;

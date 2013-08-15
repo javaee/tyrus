@@ -48,12 +48,12 @@ import javax.websocket.ClientEndpointConfig;
 import javax.websocket.DeploymentException;
 
 import org.glassfish.tyrus.core.TyrusEndpoint;
+import org.glassfish.tyrus.spi.SPIClientHandshakeListener;
+import org.glassfish.tyrus.spi.SPIClientSocket;
+import org.glassfish.tyrus.spi.SPIContainer;
 import org.glassfish.tyrus.spi.SPIEndpoint;
-import org.glassfish.tyrus.spi.SPIHandshakeListener;
 import org.glassfish.tyrus.spi.SPIRegisteredEndpoint;
-import org.glassfish.tyrus.spi.TyrusClientSocket;
-import org.glassfish.tyrus.spi.TyrusContainer;
-import org.glassfish.tyrus.spi.TyrusServer;
+import org.glassfish.tyrus.spi.SPIServer;
 import org.glassfish.tyrus.websockets.WebSocketEngine;
 
 import org.glassfish.grizzly.http.server.HttpServer;
@@ -64,7 +64,7 @@ import org.glassfish.grizzly.threadpool.ThreadPoolConfig;
 /**
  * @author Danny Coward (danny.coward at oracle.com)
  */
-public class GrizzlyEngine implements TyrusContainer {
+public class GrizzlyEngine implements SPIContainer {
 
     public static final String SSL_ENGINE_CONFIGURATOR = "org.glassfish.tyrus.client.sslEngineConfigurator";
 
@@ -76,14 +76,14 @@ public class GrizzlyEngine implements TyrusContainer {
      * Creates Grizzly engine.
      */
     public GrizzlyEngine() {
-        engine = WebSocketEngine.getEngine();
+        engine = new WebSocketEngine();
     }
 
     @Override
-    public TyrusServer createServer(String rootPath, int port) {
+    public SPIServer createServer(String rootPath, int port) {
         final HttpServer server = HttpServer.createSimpleServer(rootPath, port);
-        server.getListener("grizzly").registerAddOn(new WebSocketAddOn());
-        return new TyrusServer() {
+        server.getListener("grizzly").registerAddOn(new WebSocketAddOn(engine));
+        return new SPIServer() {
             @Override
             public void start() throws IOException {
                 server.start();
@@ -109,8 +109,8 @@ public class GrizzlyEngine implements TyrusContainer {
     }
 
     @Override
-    public TyrusClientSocket openClientSocket(String url, ClientEndpointConfig cec, SPIEndpoint endpoint,
-                                              SPIHandshakeListener listener, Map<String, Object> properties) throws DeploymentException {
+    public SPIClientSocket openClientSocket(String url, ClientEndpointConfig cec, SPIEndpoint endpoint,
+                                              SPIClientHandshakeListener listener, Map<String, Object> properties) throws DeploymentException {
         URI uri;
 
         try {
@@ -128,7 +128,7 @@ public class GrizzlyEngine implements TyrusContainer {
             sslEngineConfigurator = new SSLEngineConfigurator(defaultConfig, true, false, false);
         }
 
-        GrizzlyClientSocket clientSocket = new GrizzlyClientSocket(endpoint, uri, cec, CLIENT_SOCKET_TIMEOUT, listener,
+        GrizzlyClientSocket clientSocket = new GrizzlyClientSocket(endpoint, uri, cec, CLIENT_SOCKET_TIMEOUT, listener, engine,
                 properties == null ? null : sslEngineConfigurator,
                 properties == null ? null : (String) properties.get(GrizzlyClientSocket.PROXY_URI),
                 properties == null ? null : (ThreadPoolConfig) properties.get(GrizzlyClientSocket.WORKER_THREAD_POOL_CONFIG),

@@ -52,7 +52,7 @@ import java.util.TreeMap;
 import javax.websocket.server.HandshakeRequest;
 
 import org.glassfish.tyrus.spi.SPIHandshakeRequest;
-import org.glassfish.tyrus.spi.Writer;
+import org.glassfish.tyrus.spi.SPIWriter;
 import org.glassfish.tyrus.websockets.WebSocketRequest;
 
 /**
@@ -60,11 +60,11 @@ import org.glassfish.tyrus.websockets.WebSocketRequest;
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public final class RequestContext implements HandshakeRequest, SPIHandshakeRequest, WebSocketRequest {
+public final class RequestContext extends SPIHandshakeRequest implements HandshakeRequest, WebSocketRequest {
 
     private final URI requestURI;
     private final String queryString;
-    private final Writer writer;
+    private final SPIWriter writer;
     private final Object httpSession;
     private final boolean secure;
     private final Principal userPrincipal;
@@ -81,7 +81,7 @@ public final class RequestContext implements HandshakeRequest, SPIHandshakeReque
 
     private Map<String, List<String>> parameterMap;
 
-    private RequestContext(URI requestURI, String requestPath, String queryString, Writer writer,
+    private RequestContext(URI requestURI, String requestPath, String queryString, SPIWriter writer,
                            Object httpSession, boolean secure, Principal userPrincipal,
                            Builder.IsUserInRoleDelegate IsUserInRoleDelegate, Map<String, List<String>> parameterMap) {
         this.requestURI = requestURI;
@@ -128,17 +128,6 @@ public final class RequestContext implements HandshakeRequest, SPIHandshakeReque
 
             return sb.toString();
         }
-    }
-
-    /**
-     * Gets the first header value from the {@link List} of header values corresponding to the name.
-     *
-     * @param name header name.
-     * @return {@link String} value iff it exists, {@code null} otherwise.
-     */
-    public String getFirstHeaderValue(String name) {
-        final List<String> stringList = headers.get(name);
-        return stringList == null ? null : stringList.get(0);
     }
 
     /**
@@ -209,7 +198,7 @@ public final class RequestContext implements HandshakeRequest, SPIHandshakeReque
     }
 
     @Override
-    public Writer getWriter() {
+    public SPIWriter getWriter() {
         return writer;
     }
 
@@ -221,7 +210,7 @@ public final class RequestContext implements HandshakeRequest, SPIHandshakeReque
         private URI requestURI;
         private String requestPath;
         private String queryString;
-        private Writer writer;
+        private SPIWriter writer;
         private Object httpSession;
         private boolean secure;
         private Principal userPrincipal;
@@ -266,7 +255,7 @@ public final class RequestContext implements HandshakeRequest, SPIHandshakeReque
          * @param writer connection to be set.
          * @return updated {@link RequestContext.Builder} instance.
          */
-        public Builder connection(Writer writer) {
+        public Builder connection(SPIWriter writer) {
             this.writer = writer;
             return this;
         }

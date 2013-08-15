@@ -51,7 +51,9 @@ import java.util.logging.Logger;
 
 import org.glassfish.tyrus.core.RequestContext;
 import org.glassfish.tyrus.core.Utils;
+import org.glassfish.tyrus.spi.SPIHandshakeRequest;
 import org.glassfish.tyrus.spi.SPIHandshakeResponse;
+import org.glassfish.tyrus.spi.SPIWriter;
 import org.glassfish.tyrus.websockets.ClosingDataFrame;
 import org.glassfish.tyrus.websockets.DataFrame;
 import org.glassfish.tyrus.websockets.FramingException;
@@ -61,7 +63,6 @@ import org.glassfish.tyrus.websockets.WebSocketEngine;
 import org.glassfish.tyrus.websockets.WebSocketEngine.WebSocketHolder;
 import org.glassfish.tyrus.websockets.WebSocketRequest;
 import org.glassfish.tyrus.websockets.WebSocketResponse;
-import org.glassfish.tyrus.spi.Writer;
 
 import org.glassfish.grizzly.Buffer;
 import org.glassfish.grizzly.Connection;
@@ -97,13 +98,15 @@ import org.glassfish.grizzly.utils.IdleTimeoutFilter;
 class WebSocketFilter extends BaseFilter {
 
     private static final Logger logger = Grizzly.logger(WebSocketFilter.class);
-    private final long wsTimeoutMS;
-    private final boolean proxy;
-    private final Filter sslFilter;
 
     static final long DEFAULT_WS_IDLE_TIMEOUT_IN_SECONDS = 15 * 60;
 
-    private WebSocketRequest webSocketRequest;
+    private final long wsTimeoutMS;
+    private final boolean proxy;
+    private final Filter sslFilter;
+    private final WebSocketEngine engine;
+
+    private SPIHandshakeRequest webSocketRequest;
 
     // ------------------------------------------------------------ Constructors
 
@@ -111,8 +114,8 @@ class WebSocketFilter extends BaseFilter {
      * Constructs a new {@link WebSocketFilter} with a default idle connection
      * timeout of 15 minutes and with proxy turned off.
      */
-    public WebSocketFilter() {
-        this(DEFAULT_WS_IDLE_TIMEOUT_IN_SECONDS, false);
+    public WebSocketFilter(WebSocketEngine engine) {
+        this(engine, DEFAULT_WS_IDLE_TIMEOUT_IN_SECONDS, false);
     }
 
     /**
@@ -121,8 +124,8 @@ class WebSocketFilter extends BaseFilter {
      * @param wsTimeoutInSeconds TODO
      * @param proxy              true when client initiated connection has proxy in the way.
      */
-    public WebSocketFilter(final long wsTimeoutInSeconds, boolean proxy) {
-        this(wsTimeoutInSeconds, proxy, null);
+    public WebSocketFilter(WebSocketEngine engine, final long wsTimeoutInSeconds, boolean proxy) {
+        this(engine, wsTimeoutInSeconds, proxy, null);
     }
 
     /**
@@ -132,13 +135,14 @@ class WebSocketFilter extends BaseFilter {
      * @param proxy              true when client initiated connection has proxy in the way.
      * @param sslFilter          filter to be "enabled" in case connection is created via proxy.
      */
-    public WebSocketFilter(final long wsTimeoutInSeconds, boolean proxy, Filter sslFilter) {
+    public WebSocketFilter(WebSocketEngine engine, final long wsTimeoutInSeconds, boolean proxy, Filter sslFilter) {
         if (wsTimeoutInSeconds <= 0) {
             this.wsTimeoutMS = IdleTimeoutFilter.FOREVER;
         } else {
             this.wsTimeoutMS = wsTimeoutInSeconds * 1000;
         }
 
+        this.engine = engine;
         this.proxy = proxy;
         this.sslFilter = sslFilter;
     }
@@ -159,7 +163,7 @@ class WebSocketFilter extends BaseFilter {
         logger.log(Level.FINEST, "handleConnect");
 
         // Get connection
-        final Writer webSocketWriter =
+        final SPIWriter webSocketWriter =
                 WebSocketFilter.getWebSocketConnection(ctx, HttpContent.builder(HttpRequestPacket.builder().build()).build());
 
         // check if it's websocket connection
@@ -168,13 +172,13 @@ class WebSocketFilter extends BaseFilter {
             return ctx.getInvokeAction();
         }
 
-        WebSocketHolder webSocketHolder = WebSocketEngine.getEngine().getWebSocketHolder(webSocketWriter);
+        WebSocketHolder webSocketHolder = engine.getWebSocketHolder(webSocketWriter);
         webSocketRequest = webSocketHolder.handshake.initiate();
 
         HttpRequestPacket.Builder builder = HttpRequestPacket.builder();
 
         if (proxy) {
-            final URI requestURI = webSocketRequest.getRequestURI();
+            final URI requestURI = URI.create(webSocketRequest.getRequestUri());
             final int requestPort = requestURI.getPort() == -1 ? (requestURI.getScheme().equals("wss") ? 443 : 80) : requestURI.getPort();
 
             builder = builder.uri(String.format("%s:%d", requestURI.getHost(), requestPort));
@@ -207,7 +211,7 @@ class WebSocketFilter extends BaseFilter {
     @Override
     public NextAction handleClose(FilterChainContext ctx) throws IOException {
         // Get the Connection
-        final Writer writer = getWebSocketConnection(ctx, HttpContent.builder(HttpRequestPacket.builder().build()).build());
+        final SPIWriter writer = getWebSocketConnection(ctx, HttpContent.builder(HttpRequestPacket.builder().build()).build());
 
         // check if Connection has associated WebSocket (is websocket)
         if (webSocketInProgress(writer)) {
@@ -217,7 +221,7 @@ class WebSocketFilter extends BaseFilter {
                 // if there is associated websocket object (which means handshake was passed)
                 // close it gracefully
                 ws.close();
-                WebSocketEngine.getEngine().removeConnection(writer);
+                engine.removeConnection(writer);
             }
         }
         return ctx.getInvokeAction();
@@ -240,11 +244,11 @@ class WebSocketFilter extends BaseFilter {
         // Get the parsed HttpContent (we assume prev. filter was HTTP)
         final HttpContent message = ctx.getMessage();
         // Get the Grizzly Connection
-        final Writer writer = getWebSocketConnection(ctx, message);
+        final SPIWriter writer = getWebSocketConnection(ctx, message);
         // Get the HTTP header
         final HttpHeader header = message.getHttpHeader();
         // Try to obtain associated WebSocket
-        final WebSocketHolder holder = WebSocketEngine.getEngine().getWebSocketHolder(writer);
+        final WebSocketHolder holder = engine.getWebSocketHolder(writer);
         WebSocket ws = getWebSocket(writer);
         if (logger.isLoggable(Level.FINE)) {
             logger.log(Level.FINE, "handleRead websocket: {0} content-size={1} headers=\n{2}",
@@ -345,7 +349,7 @@ class WebSocketFilter extends BaseFilter {
     @Override
     public NextAction handleWrite(FilterChainContext ctx) throws IOException {
         // get the associated websocket
-        Writer writer = getWebSocketConnection(ctx, null);
+        SPIWriter writer = getWebSocketConnection(ctx, null);
         final WebSocket websocket = getWebSocket(writer);
         // if there is one
         if (websocket != null) {
@@ -377,7 +381,7 @@ class WebSocketFilter extends BaseFilter {
     }
 
     private NextAction handleClientHandShake(FilterChainContext ctx, HttpContent content) {
-        final WebSocketHolder holder = WebSocketEngine.getEngine().getWebSocketHolder(getWebSocketConnection(ctx, content));
+        final WebSocketHolder holder = engine.getWebSocketHolder(getWebSocketConnection(ctx, content));
 
         if (holder == null) {
             content.recycle();
@@ -429,9 +433,9 @@ class WebSocketFilter extends BaseFilter {
 
         // get HTTP request headers
         final HttpRequestPacket request = (HttpRequestPacket) requestContent.getHttpHeader();
-        final Writer webSocketWriter = getWebSocketConnection(ctx, requestContent);
+        final SPIWriter webSocketWriter = getWebSocketConnection(ctx, requestContent);
         try {
-            if (!WebSocketEngine.getEngine().upgrade(
+            if (!engine.upgrade(
                     webSocketWriter,
                     createWebSocketRequest(ctx, requestContent))) {
                 return ctx.getInvokeAction(); // not a WS request, pass to the next filter.
@@ -445,15 +449,14 @@ class WebSocketFilter extends BaseFilter {
         requestContent.recycle();
 
         return ctx.getStopAction();
-
     }
 
-    private static WebSocket getWebSocket(final Writer writer) {
-        return WebSocketEngine.getEngine().getWebSocket(writer);
+    private WebSocket getWebSocket(final SPIWriter writer) {
+        return engine.getWebSocket(writer);
     }
 
-    private static boolean webSocketInProgress(final Writer writer) {
-        return WebSocketEngine.getEngine().webSocketInProgress(writer);
+    private boolean webSocketInProgress(final SPIWriter writer) {
+        return engine.webSocketInProgress(writer);
     }
 
     private static HttpResponsePacket composeHandshakeError(final HttpRequestPacket request,
@@ -478,7 +481,7 @@ class WebSocketFilter extends BaseFilter {
      * @param request original request.
      * @return Grizzly representation of provided request.
      */
-    private HttpContent getHttpContent(WebSocketRequest request) {
+    private HttpContent getHttpContent(SPIHandshakeRequest request) {
         HttpRequestPacket.Builder builder = HttpRequestPacket.builder();
         builder = builder.protocol(Protocol.HTTP_1_1);
         builder = builder.method(Method.GET);
@@ -499,11 +502,11 @@ class WebSocketFilter extends BaseFilter {
         return HttpContent.builder(builder.build()).build();
     }
 
-    private static Writer getWebSocketConnection(final FilterChainContext ctx, final HttpContent httpContent) {
+    private static SPIWriter getWebSocketConnection(final FilterChainContext ctx, final HttpContent httpContent) {
         return new GrizzlyWriter(ctx, httpContent);
     }
 
-    private static WebSocketRequest createWebSocketRequest(final FilterChainContext ctx, final HttpContent requestContent) {
+    private static SPIHandshakeRequest createWebSocketRequest(final FilterChainContext ctx, final HttpContent requestContent) {
 
         final HttpRequestPacket requestPacket = (HttpRequestPacket) requestContent.getHttpHeader();
 

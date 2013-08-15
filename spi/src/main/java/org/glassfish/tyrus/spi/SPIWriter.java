@@ -43,11 +43,11 @@ package org.glassfish.tyrus.spi;
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public abstract class Writer {
+public abstract class SPIWriter {
 
     public interface CloseListener {
         // add param for remote/local close indication?
-        void onClose(Writer writer);
+        void onClose(SPIWriter writer);
     }
 
     /**

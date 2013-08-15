@@ -54,7 +54,9 @@ import java.util.logging.Logger;
 
 import javax.websocket.DeploymentException;
 
-import org.glassfish.tyrus.spi.Writer;
+import org.glassfish.tyrus.spi.SPIHandshakeRequest;
+import org.glassfish.tyrus.spi.SPIWebSocketEngine;
+import org.glassfish.tyrus.spi.SPIWriter;
 import org.glassfish.tyrus.websockets.uri.Match;
 
 /**
@@ -65,7 +67,7 @@ import org.glassfish.tyrus.websockets.uri.Match;
  * @see WebSocket
  * @see WebSocketApplication
  */
-public class WebSocketEngine {
+public class WebSocketEngine implements SPIWebSocketEngine {
 
     public static final String SEC_WS_ACCEPT = "Sec-WebSocket-Accept";
     public static final String SEC_WS_KEY_HEADER = "Sec-WebSocket-Key";
@@ -84,18 +86,18 @@ public class WebSocketEngine {
     public static final String SERVER_KEY_HASH = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
     public static final int MASK_SIZE = 4;
 
-    private static final WebSocketEngine engine = new WebSocketEngine();
+//    private static final WebSocketEngine engine = new WebSocketEngine();
     private static final Logger LOGGER = Logger.getLogger(WebSocketEngine.WEBSOCKET);
 
     private final Set<WebSocketApplication> applications = Collections.newSetFromMap(new ConcurrentHashMap<WebSocketApplication, Boolean>());
-    private final Map<Writer, WebSocketHolder> webSocketHolderMap = new ConcurrentHashMap<Writer, WebSocketHolder>();
+    private final Map<SPIWriter, WebSocketHolder> webSocketHolderMap = new ConcurrentHashMap<SPIWriter, WebSocketHolder>();
 
-    private WebSocketEngine() {
+    public WebSocketEngine() {
     }
 
-    public static synchronized WebSocketEngine getEngine() {
-        return engine;
-    }
+//    public static synchronized WebSocketEngine getEngine() {
+//        return engine;
+//    }
 
     public static byte[] toArray(long length) {
         long value = length;
@@ -128,7 +130,7 @@ public class WebSocketEngine {
         return list;
     }
 
-    private static ProtocolHandler loadHandler(WebSocketRequest request) {
+    private static ProtocolHandler loadHandler(SPIHandshakeRequest request) {
         for (Version version : Version.values()) {
             if (version.validate(request)) {
                 return version.createHandler(false);
@@ -137,20 +139,20 @@ public class WebSocketEngine {
         return null;
     }
 
-    private static void handleUnsupportedVersion(final Writer writer,
-                                                 final WebSocketRequest request) {
+    private static void handleUnsupportedVersion(final SPIWriter writer,
+                                                 final SPIHandshakeRequest request) {
         WebSocketResponse response = new WebSocketResponse();
         response.setStatus(426);
         response.getHeaders().put(WebSocketEngine.SEC_WS_VERSION, Version.getSupportedWireProtocolVersions());
         writer.write(response);
     }
 
-    WebSocketApplication getApplication(WebSocketRequest request) {
+    WebSocketApplication getApplication(SPIHandshakeRequest request) {
         if (applications.isEmpty()) {
             return null;
         }
 
-        final String requestPath = request.getRequestURI().toString();
+        final String requestPath = request.getRequestUri();
 
         for (Match m : Match.getAllMatches(requestPath, applications)) {
             final WebSocketApplication webSocketApplication = m.getWebSocketApplication();
@@ -170,18 +172,18 @@ public class WebSocketEngine {
     /**
      * Evaluate whether connection/request is suitable for upgrade and perform it.
      *
-     * @param writer connection.
-     * @param request    request.
+     * @param writer  connection.
+     * @param request request.
      * @return {@code true} if upgrade is performed, {@code false} otherwise.
      */
-    public static boolean upgrade(Writer writer, WebSocketRequest request) {
+    public boolean upgrade(SPIWriter writer, SPIHandshakeRequest request) {
         return upgrade(writer, request, null);
     }
 
     /**
      * Evaluate whether connection/request is suitable for upgrade and perform it.
      *
-     * @param writer              connection.
+     * @param writer                  connection.
      * @param request                 request.
      * @param webSocketHolderListener called when upgrade is going to be performed. Additinally, leaves
      *                                {@link org.glassfish.tyrus.websockets.WebSocket#onConnect()} call
@@ -189,9 +191,8 @@ public class WebSocketEngine {
      * @return {@code true} if upgrade is performed, {@code false} otherwise.
      * @throws HandshakeException if an error occurred during the upgrade.
      */
-    public static boolean upgrade(Writer writer, WebSocketRequest request, WebSocketHolderListener webSocketHolderListener) throws HandshakeException {
-        final WebSocketEngine webSocketEngine = WebSocketEngine.getEngine();
-        final WebSocketApplication app = webSocketEngine.getApplication(request);
+    public boolean upgrade(SPIWriter writer, SPIHandshakeRequest request, WebSocketHolderListener webSocketHolderListener) throws HandshakeException {
+        final WebSocketApplication app = getApplication(request);
 
         WebSocket socket = null;
         try {
@@ -204,13 +205,13 @@ public class WebSocketEngine {
                 protocolHandler.setWriter(writer);
                 socket = app.createSocket(protocolHandler, app);
                 WebSocketHolder holder =
-                        webSocketEngine.setWebSocketHolder(writer, protocolHandler, null, socket, app);
+                        setWebSocketHolder(writer, protocolHandler, null, socket, app);
                 protocolHandler.handshake(writer, app, request);
-                request.getWriter().addCloseListener(new Writer.CloseListener() {
+                writer.addCloseListener(new SPIWriter.CloseListener() {
                     @Override
-                    public void onClose(final Writer writer/*, final CloseType type*/) {
+                    public void onClose(final SPIWriter writer/*, final CloseType type*/) {
 
-                        final WebSocket webSocket = webSocketEngine.getWebSocket(writer);
+                        final WebSocket webSocket = getWebSocket(writer);
                         if (webSocket != null) {
                             webSocket.close();
                             webSocket.onClose(new ClosingDataFrame(WebSocket.END_POINT_GOING_DOWN,
@@ -276,43 +277,43 @@ public class WebSocketEngine {
 //    }
 
     /**
-     * Returns <tt>true</tt> if passed Grizzly {@link Writer} is associated with a {@link WebSocket}, or
+     * Returns <tt>true</tt> if passed Grizzly {@link org.glassfish.tyrus.spi.SPIWriter} is associated with a {@link WebSocket}, or
      * <tt>false</tt> otherwise.
      *
-     * @param writer Grizzly {@link Writer}.
-     * @return <tt>true</tt> if passed Grizzly {@link Writer} is associated with a {@link WebSocket}, or
+     * @param writer Grizzly {@link org.glassfish.tyrus.spi.SPIWriter}.
+     * @return <tt>true</tt> if passed Grizzly {@link org.glassfish.tyrus.spi.SPIWriter} is associated with a {@link WebSocket}, or
      *         <tt>false</tt> otherwise.
      */
-    public boolean webSocketInProgress(Writer writer) {
+    public boolean webSocketInProgress(SPIWriter writer) {
         return webSocketHolderMap.get(writer) != null;
     }
 
     /**
-     * Get the {@link WebSocket} associated with the Grizzly {@link Writer}, or <tt>null</tt>, if there none is
+     * Get the {@link WebSocket} associated with the Grizzly {@link org.glassfish.tyrus.spi.SPIWriter}, or <tt>null</tt>, if there none is
      * associated.
      *
-     * @param writer Grizzly {@link Writer}.
-     * @return the {@link WebSocket} associated with the Grizzly {@link Writer}, or <tt>null</tt>, if there none is
+     * @param writer Grizzly {@link org.glassfish.tyrus.spi.SPIWriter}.
+     * @return the {@link WebSocket} associated with the Grizzly {@link org.glassfish.tyrus.spi.SPIWriter}, or <tt>null</tt>, if there none is
      *         associated.
      */
-    public WebSocket getWebSocket(Writer writer) {
+    public WebSocket getWebSocket(SPIWriter writer) {
         final WebSocketHolder holder = getWebSocketHolder(writer);
         return holder == null ? null : holder.webSocket;
     }
 
-    public WebSocketHolder getWebSocketHolder(final Writer writer) {
+    public WebSocketHolder getWebSocketHolder(final SPIWriter writer) {
         return webSocketHolderMap.get(writer);
     }
 
-    public WebSocketHolder setWebSocketHolder(final Writer writer, ProtocolHandler handler, WebSocketRequest request, WebSocket socket, WebSocketApplication application) {
+    public WebSocketHolder setWebSocketHolder(final SPIWriter writer, ProtocolHandler handler, WebSocketRequest request, WebSocket socket, WebSocketApplication application) {
         final WebSocketHolder holder = new WebSocketHolder(handler, socket, (request == null ? null : handler.createClientHandShake(request)), application);
 
         webSocketHolderMap.put(writer, holder);
         return holder;
     }
 
-    public void removeConnection(Writer writer) {
-        WebSocketEngine.getEngine().webSocketHolderMap.remove(writer);
+    public void removeConnection(SPIWriter writer) {
+        webSocketHolderMap.remove(writer);
     }
 
     /**
@@ -331,7 +332,7 @@ public class WebSocketEngine {
     }
 
     /**
-     * WebSocketHolder object, which gets associated with the Grizzly {@link Writer}.
+     * WebSocketHolder object, which gets associated with the Grizzly {@link org.glassfish.tyrus.spi.SPIWriter}.
      */
     public final static class WebSocketHolder {
         public final WebSocket webSocket;

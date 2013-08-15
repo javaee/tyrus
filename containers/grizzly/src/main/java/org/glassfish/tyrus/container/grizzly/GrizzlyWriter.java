@@ -43,7 +43,7 @@ import java.io.IOException;
 import java.util.Map;
 
 import org.glassfish.tyrus.spi.SPIHandshakeResponse;
-import org.glassfish.tyrus.spi.Writer;
+import org.glassfish.tyrus.spi.SPIWriter;
 
 import org.glassfish.grizzly.Closeable;
 import org.glassfish.grizzly.EmptyCompletionHandler;
@@ -57,7 +57,7 @@ import org.glassfish.grizzly.http.Protocol;
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-class GrizzlyWriter extends Writer {
+class GrizzlyWriter extends SPIWriter {
 
     private final FilterChainContext ctx;
     private final HttpContent httpContent;
@@ -126,7 +126,7 @@ class GrizzlyWriter extends Writer {
     @Override
     public void addCloseListener(final CloseListener closeListener) {
 
-        final Writer webSocketWriter = this;
+        final SPIWriter webSocketWriter = this;
 
         connection.addCloseListener(new org.glassfish.grizzly.CloseListener() {
             @Override
@@ -148,7 +148,7 @@ class GrizzlyWriter extends Writer {
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof Writer && connection.equals(((Writer) obj).getUnderlyingConnection());
+        return obj instanceof SPIWriter && connection.equals(((SPIWriter) obj).getUnderlyingConnection());
     }
 
     @Override

@@ -70,9 +70,9 @@ import org.glassfish.tyrus.core.ErrorCollector;
 import org.glassfish.tyrus.core.ReflectionHelper;
 import org.glassfish.tyrus.core.TyrusContainerProvider;
 import org.glassfish.tyrus.core.Utils;
-import org.glassfish.tyrus.spi.SPIHandshakeListener;
-import org.glassfish.tyrus.spi.TyrusClientSocket;
-import org.glassfish.tyrus.spi.TyrusContainer;
+import org.glassfish.tyrus.spi.SPIClientHandshakeListener;
+import org.glassfish.tyrus.spi.SPIClientSocket;
+import org.glassfish.tyrus.spi.SPIContainer;
 
 /**
  * ClientManager implementation.
@@ -83,13 +83,13 @@ import org.glassfish.tyrus.spi.TyrusContainer;
 public class ClientManager extends BaseContainer implements WebSocketContainer {
 
     /**
-     * Default {@link TyrusContainer} class name.
+     * Default {@link org.glassfish.tyrus.spi.SPIContainer} class name.
      * <p/>
      * Uses Grizzly as transport implementation.
      */
     private static final String ENGINE_PROVIDER_CLASSNAME = "org.glassfish.tyrus.container.grizzly.GrizzlyEngine";
     private static final Logger LOGGER = Logger.getLogger(ClientManager.class.getName());
-    private final TyrusContainer engine;
+    private final SPIContainer engine;
     private final ComponentProviderService componentProvider;
     private final ErrorCollector collector;
     private final Map<String, Object> properties = new HashMap<String, Object>();
@@ -143,7 +143,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
             throw new RuntimeException(collector.composeComprehensiveException());
         }
         LOGGER.config(String.format("Provider class loaded: %s", engineProviderClassname));
-        this.engine = (TyrusContainer) ReflectionHelper.getInstance(engineProviderClazz, collector);
+        this.engine = (SPIContainer) ReflectionHelper.getInstance(engineProviderClazz, collector);
         TyrusContainerProvider.getContainerProvider().setContainer(this);
         if (!collector.isEmpty()) {
             throw new RuntimeException(collector.composeComprehensiveException());
@@ -190,7 +190,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
         // TODO use maxSessionIdleTimeout, maxBinaryMessageBufferSize and maxTextMessageBufferSize
         ClientEndpointConfig config = null;
         Endpoint endpoint;
-        TyrusClientSocket clientSocket = null;
+        SPIClientSocket clientSocket = null;
 
         try {
             URI uri = new URI(url);
@@ -230,7 +230,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
 
             if (endpoint != null) {
                 EndpointWrapper clientEndpoint = new EndpointWrapper(endpoint, config, componentProvider, this, url, collector, null);
-                SPIHandshakeListener listener = new SPIHandshakeListener() {
+                SPIClientHandshakeListener listener = new SPIClientHandshakeListener() {
 
                     @Override
                     public void onResponseHeaders(final Map<String, String> originalHeaders) {

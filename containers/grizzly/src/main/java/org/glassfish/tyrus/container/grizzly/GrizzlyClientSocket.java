@@ -67,9 +67,10 @@ import javax.websocket.Session;
 import org.glassfish.tyrus.core.RequestContext;
 import org.glassfish.tyrus.core.TyrusExtension;
 import org.glassfish.tyrus.core.TyrusRemoteEndpoint;
+import org.glassfish.tyrus.spi.SPIClientHandshakeListener;
+import org.glassfish.tyrus.spi.SPIClientSocket;
 import org.glassfish.tyrus.spi.SPIEndpoint;
-import org.glassfish.tyrus.spi.SPIHandshakeListener;
-import org.glassfish.tyrus.spi.TyrusClientSocket;
+import org.glassfish.tyrus.spi.SPIWriter;
 import org.glassfish.tyrus.websockets.ClosingDataFrame;
 import org.glassfish.tyrus.websockets.DataFrame;
 import org.glassfish.tyrus.websockets.Extension;
@@ -79,7 +80,6 @@ import org.glassfish.tyrus.websockets.ProtocolHandler;
 import org.glassfish.tyrus.websockets.WebSocket;
 import org.glassfish.tyrus.websockets.WebSocketEngine;
 import org.glassfish.tyrus.websockets.WebSocketListener;
-import org.glassfish.tyrus.spi.Writer;
 import org.glassfish.tyrus.websockets.frame.PingFrame;
 import org.glassfish.tyrus.websockets.frame.PongFrame;
 
@@ -107,7 +107,7 @@ import org.glassfish.grizzly.threadpool.ThreadPoolConfig;
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
+public class GrizzlyClientSocket implements WebSocket, SPIClientSocket {
 
     /**
      * Can be used as client-side user property to set proxy.
@@ -153,10 +153,11 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
     private final TyrusRemoteEndpoint remoteEndpoint;
     private final long timeoutMs;
     private final ClientEndpointConfig configuration;
-    private final SPIHandshakeListener listener;
+    private final SPIClientHandshakeListener listener;
     private final SSLEngineConfigurator clientSSLEngineConfigurator;
     private final ThreadPoolConfig workerThreadPoolConfig;
     private final ThreadPoolConfig selectorThreadPoolConfig;
+    private final WebSocketEngine engine;
 
     private SocketAddress socketAddress;
 
@@ -173,10 +174,11 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
      * @param configuration               client endpoint configuration.
      * @param timeoutMs                   TODO
      * @param listener                    listener called when response is received.
+     * @param engine
      * @param clientSSLEngineConfigurator ssl engine configurator
      */
     GrizzlyClientSocket(SPIEndpoint endpoint, URI uri, ClientEndpointConfig configuration, long timeoutMs,
-                        SPIHandshakeListener listener,
+                        SPIClientHandshakeListener listener, WebSocketEngine engine,
                         SSLEngineConfigurator clientSSLEngineConfigurator,
                         String proxyString,
                         ThreadPoolConfig workerThreadPoolConfig,
@@ -195,6 +197,7 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
         if (session == null) {
             session = endpoint.createSessionForRemoteEndpoint(remoteEndpoint, null, null);
         }
+        this.engine = engine;
 
         setProxy(proxyString);
     }
@@ -217,11 +220,11 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
                 protected void preConfigure(Connection conn) {
                     super.preConfigure(conn);
 
-                    final Writer writer = getConnection(conn);
+                    final SPIWriter writer = getConnection(conn);
 
                     protocolHandler.setWriter(writer);
-                    WebSocketEngine.WebSocketHolder holder = WebSocketEngine.getEngine()
-                            .setWebSocketHolder(writer, protocolHandler, RequestContext.Builder.create().requestURI(uri).build(), GrizzlyClientSocket.this, null);
+                    WebSocketEngine.WebSocketHolder holder =
+                            engine.setWebSocketHolder(writer, protocolHandler, RequestContext.Builder.create().requestURI(uri).build(), GrizzlyClientSocket.this, null);
 
                     prepareHandshake(holder.handshake);
                 }
@@ -233,13 +236,13 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
 
             switch (proxy.type()) {
                 case DIRECT:
-                    connectorHandler.setProcessor(createFilterChain(null, clientSSLEngineConfigurator, false));
+                    connectorHandler.setProcessor(createFilterChain(engine, null, clientSSLEngineConfigurator, false));
 
                     LOGGER.log(Level.CONFIG, String.format("Connecting to '%s' (no proxy).", uri));
                     connectionGrizzlyFuture = connectorHandler.connect(socketAddress);
                     break;
                 default:
-                    connectorHandler.setProcessor(createFilterChain(null, clientSSLEngineConfigurator, true));
+                    connectorHandler.setProcessor(createFilterChain(engine, null, clientSSLEngineConfigurator, true));
 
                     LOGGER.log(Level.CONFIG, String.format("Connecting to '%s' via proxy '%s'.", uri, proxy));
 
@@ -577,7 +580,8 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
         }
     }
 
-    private static Processor createFilterChain(SSLEngineConfigurator serverSSLEngineConfigurator,
+    private static Processor createFilterChain(WebSocketEngine engine,
+                                               SSLEngineConfigurator serverSSLEngineConfigurator,
                                                SSLEngineConfigurator clientSSLEngineConfigurator,
                                                boolean proxy) {
         FilterChainBuilder clientFilterChainBuilder = FilterChainBuilder.stateless();
@@ -592,11 +596,11 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
             clientFilterChainBuilder.add(sslFilter);
         }
         clientFilterChainBuilder.add(new HttpClientFilter());
-        clientFilterChainBuilder.add(new WebSocketFilter(WebSocketFilter.DEFAULT_WS_IDLE_TIMEOUT_IN_SECONDS, proxy, sslFilter));
+        clientFilterChainBuilder.add(new WebSocketFilter(engine, WebSocketFilter.DEFAULT_WS_IDLE_TIMEOUT_IN_SECONDS, proxy, sslFilter));
         return clientFilterChainBuilder.build();
     }
 
-    private static Writer getConnection(final Connection connection) {
+    private static SPIWriter getConnection(final Connection connection) {
         return new GrizzlyWriter(connection);
     }
 

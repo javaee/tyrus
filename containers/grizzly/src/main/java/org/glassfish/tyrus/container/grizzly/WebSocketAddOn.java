@@ -40,6 +40,8 @@
 
 package org.glassfish.tyrus.container.grizzly;
 
+import org.glassfish.tyrus.websockets.WebSocketEngine;
+
 import org.glassfish.grizzly.filterchain.FilterChainBuilder;
 import org.glassfish.grizzly.http.server.AddOn;
 import org.glassfish.grizzly.http.server.HttpServer;
@@ -53,6 +55,12 @@ import org.glassfish.grizzly.http.server.NetworkListener;
  */
 class WebSocketAddOn implements AddOn {
 
+    private final WebSocketEngine engine;
+
+    WebSocketAddOn(WebSocketEngine engine) {
+        this.engine = engine;
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -63,7 +71,7 @@ class WebSocketAddOn implements AddOn {
 
         if (httpServerFilterIdx >= 0) {
             // Insert the WebSocketFilter right before HttpServerFilter
-            builder.add(httpServerFilterIdx, new WebSocketFilter());
+            builder.add(httpServerFilterIdx, new WebSocketFilter(engine));
         }
     }
 }

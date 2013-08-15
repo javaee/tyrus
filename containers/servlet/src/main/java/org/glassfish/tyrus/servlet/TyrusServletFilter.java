@@ -87,7 +87,7 @@ public class TyrusServletFilter implements Filter, HttpSessionListener {
 
     private static final int INFORMATIONAL_FIXED_PORT = 8080;
     private final static Logger LOGGER = Logger.getLogger(TyrusServletFilter.class.getName());
-    private final WebSocketEngine engine = WebSocketEngine.getEngine();
+    private final WebSocketEngine engine = new WebSocketEngine();
     private org.glassfish.tyrus.server.TyrusServerContainer serverContainer = null;
 
     private boolean registered = false;
@@ -164,7 +164,7 @@ public class TyrusServletFilter implements Filter, HttpSessionListener {
     @Override
     public void sessionDestroyed(HttpSessionEvent se) {
         final TyrusHttpUpgradeHandler upgradeHandler = sessionToHandler.get(se.getSession());
-        if(upgradeHandler != null) {
+        if (upgradeHandler != null) {
             sessionToHandler.remove(se.getSession());
             upgradeHandler.sessionDestroyed();
         }

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -39,42 +39,10 @@
  */
 package org.glassfish.tyrus.spi;
 
-
-import java.util.Map;
-
-import javax.websocket.ClientEndpointConfig;
-import javax.websocket.DeploymentException;
-
 /**
- * The TyrusContainer is the starting point of the provider SPI. The provider must implement this
- * class with a public no args constructor. The new provider can be configured
- * in the web.xml of the web application requesting the new provider by specifying a servlet context
- * initialization parameter of key org.glassfish.websocket.provider.class and value the fully qualified classname
- * of the provider class.
- *
- * @author Danny Coward (danny.coward at oracle.com)
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public interface TyrusContainer {
-    /**
-     * Creates a new embedded HTTP server (if supported) listening to incoming connections at a given root path
-     * and port.
-     *
-     * @param rootPath context root
-     * @param port     TCP port
-     * @return server that can be started and stopped
-     */
-    public TyrusServer createServer(String rootPath, int port);
+public interface SPIWebSocketEngine {
 
-    /**
-     * Open client socket - connect to endpoint specified with {@code url} parameter.
-     *
-     * @param url               address where remote service is deployed.
-     * @param cec               endpoint configuration.
-     * @param endpoint          endpoint instance.
-     * @param handshakeListener handshake listener.
-     * @param properties        properties map.
-     * @return representation of incoming socket.
-     */
-    public TyrusClientSocket openClientSocket(String url, ClientEndpointConfig cec, SPIEndpoint endpoint,
-                                              SPIHandshakeListener handshakeListener, Map<String, Object> properties) throws DeploymentException;
+    boolean upgrade(SPIWriter writer, SPIHandshakeRequest request);
 }

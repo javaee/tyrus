@@ -44,7 +44,7 @@ import javax.websocket.Session;
 /**
  * @author Martin Matula (martin.matula at oracle.com)
  */
-public interface TyrusClientSocket {
+public interface SPIClientSocket {
 
     /**
      * Close the socket.

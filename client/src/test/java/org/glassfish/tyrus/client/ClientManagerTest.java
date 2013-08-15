@@ -43,11 +43,11 @@ import java.util.Map;
 
 import javax.websocket.ClientEndpointConfig;
 
+import org.glassfish.tyrus.spi.SPIClientHandshakeListener;
+import org.glassfish.tyrus.spi.SPIClientSocket;
+import org.glassfish.tyrus.spi.SPIContainer;
 import org.glassfish.tyrus.spi.SPIEndpoint;
-import org.glassfish.tyrus.spi.SPIHandshakeListener;
-import org.glassfish.tyrus.spi.TyrusClientSocket;
-import org.glassfish.tyrus.spi.TyrusContainer;
-import org.glassfish.tyrus.spi.TyrusServer;
+import org.glassfish.tyrus.spi.SPIServer;
 
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
@@ -83,18 +83,18 @@ public class ClientManagerTest {
     }
 
     private ClientManager createClientManager() {
-        return ClientManager.createClient(NoopTyrusContainer.class.getName());
+        return ClientManager.createClient(NoopSPIContainer.class.getName());
     }
 
-    public static class NoopTyrusContainer implements TyrusContainer {
+    public static class NoopSPIContainer implements SPIContainer {
         @Override
-        public TyrusServer createServer(String rootPath, int port) {
+        public SPIServer createServer(String rootPath, int port) {
             return null;
         }
 
         @Override
-        public TyrusClientSocket openClientSocket(String url, ClientEndpointConfig cec, SPIEndpoint endpoint,
-                                                  SPIHandshakeListener listener, Map<String, Object> properties) {
+        public SPIClientSocket openClientSocket(String url, ClientEndpointConfig cec, SPIEndpoint endpoint,
+                                                  SPIClientHandshakeListener listener, Map<String, Object> properties) {
             return null;
         }
     }

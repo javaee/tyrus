@@ -51,14 +51,14 @@ import javax.servlet.WriteListener;
 import javax.servlet.http.HttpServletResponse;
 
 import org.glassfish.tyrus.spi.SPIHandshakeResponse;
-import org.glassfish.tyrus.spi.Writer;
+import org.glassfish.tyrus.spi.SPIWriter;
 
 /**
- * {@link org.glassfish.tyrus.spi.Writer} implementation used in Servlet integration.
+ * {@link org.glassfish.tyrus.spi.SPIWriter} implementation used in Servlet integration.
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-class TyrusServletWriter extends Writer implements WriteListener {
+class TyrusServletWriter extends SPIWriter implements WriteListener {
 
     private final TyrusHttpUpgradeHandler tyrusHttpUpgradeHandler;
     private final HttpServletResponse httpServletResponse;
@@ -115,7 +115,7 @@ class TyrusServletWriter extends Writer implements WriteListener {
     }
 
     @Override
-    public void write(final byte[] bytes, Writer.CompletionHandler<byte[]> completionHandler) {
+    public void write(final byte[] bytes, SPIWriter.CompletionHandler<byte[]> completionHandler) {
 
         // first write
         synchronized (outputStreamLock) {
@@ -147,7 +147,7 @@ class TyrusServletWriter extends Writer implements WriteListener {
         }
     }
 
-    public void _write(final byte[] bytes, Writer.CompletionHandler<byte[]> completionHandler) {
+    public void _write(final byte[] bytes, SPIWriter.CompletionHandler<byte[]> completionHandler) {
 
         try {
             synchronized (outputStreamLock) {
