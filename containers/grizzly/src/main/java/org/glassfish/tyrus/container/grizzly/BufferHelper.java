@@ -49,22 +49,6 @@ import org.glassfish.grizzly.Buffer;
 class BufferHelper {
 
     /**
-     * Concatenates two buffers into one new.
-     *
-     * @param buffer first buffer.
-     * @param buffer1 second buffer.
-     * @return concatenation.
-     */
-    public static ByteBuffer appendBuffers(ByteBuffer buffer, ByteBuffer buffer1) {
-        final ByteBuffer result = ByteBuffer.allocate(buffer.remaining() + buffer1.remaining());
-
-        result.put(buffer);
-        result.put(buffer1);
-        result.flip();
-        return result;
-    }
-
-    /**
      * Converts {@link Buffer} to {@link ByteBuffer}.
      *
      * @param buffer buffer to be converted.

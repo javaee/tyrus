@@ -56,8 +56,6 @@ import javax.websocket.server.ServerEndpointConfig;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
-import javax.servlet.FilterRegistration;
-import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
@@ -71,6 +69,8 @@ import javax.servlet.http.WebConnection;
 import org.glassfish.tyrus.core.RequestContext;
 import org.glassfish.tyrus.core.Utils;
 import org.glassfish.tyrus.server.ServerContainerFactory;
+import org.glassfish.tyrus.spi.SPIWebSocketEngine;
+import org.glassfish.tyrus.spi.SPIWriter;
 import org.glassfish.tyrus.websockets.HandshakeException;
 import org.glassfish.tyrus.websockets.WebSocketEngine;
 
@@ -87,14 +87,11 @@ public class TyrusServletFilter implements Filter, HttpSessionListener {
 
     private static final int INFORMATIONAL_FIXED_PORT = 8080;
     private final static Logger LOGGER = Logger.getLogger(TyrusServletFilter.class.getName());
-    private final WebSocketEngine engine = new WebSocketEngine();
+    private final SPIWebSocketEngine engine = new WebSocketEngine();
     private org.glassfish.tyrus.server.TyrusServerContainer serverContainer = null;
-
-    private boolean registered = false;
 
     // @ServerEndpoint annotated classes and classes extending ServerApplicationConfig
     private Set<Class<?>> classes = null;
-    private ServletContext servletContext = null;
     private final Set<Class<?>> dynamicallyDeployedClasses = new HashSet<Class<?>>();
     private final Set<ServerEndpointConfig> dynamicallyDeployedServerEndpointConfigs = new HashSet<ServerEndpointConfig>();
 
@@ -114,8 +111,6 @@ public class TyrusServletFilter implements Filter, HttpSessionListener {
             throw new IllegalStateException("Filter already initiated.");
         }
         this.dynamicallyDeployedClasses.add(clazz);
-
-        checkFilterRegistration();
     }
 
     void addServerEndpointConfig(ServerEndpointConfig serverEndpointConfig) {
@@ -123,19 +118,6 @@ public class TyrusServletFilter implements Filter, HttpSessionListener {
             throw new IllegalStateException("Filter already initiated.");
         }
         this.dynamicallyDeployedServerEndpointConfigs.add(serverEndpointConfig);
-
-        checkFilterRegistration();
-    }
-
-    private void checkFilterRegistration() {
-        if (servletContext != null && !registered) {
-            registered = true;
-
-            final FilterRegistration.Dynamic reg = servletContext.addFilter("WebSocket filter", this);
-            reg.setAsyncSupported(true);
-            reg.addMappingForUrlPatterns(null, true, "/*");
-            LOGGER.info("Registering WebSocket filter for url pattern /*");
-        }
     }
 
     @Override
@@ -205,13 +187,8 @@ public class TyrusServletFilter implements Filter, HttpSessionListener {
         }
 
         @Override
-        public void setWebSocketHolder(WebSocketEngine.WebSocketHolder webSocketHolder) {
-            handler.setWebSocketHolder(webSocketHolder);
-        }
-
-        @Override
-        public void setAuthenticated(boolean authenticated) {
-            handler.setAuthenticated(authenticated);
+        public void postInit(SPIWebSocketEngine engine, SPIWriter writer, boolean authenticated) {
+            handler.postInit(engine, writer, authenticated);
         }
 
         @Override
@@ -274,9 +251,9 @@ public class TyrusServletFilter implements Filter, HttpSessionListener {
             }
 
             try {
-                if (!engine.upgrade(webSocketConnection, requestContext, new WebSocketEngine.WebSocketHolderListener() {
+                if (!engine.upgrade(webSocketConnection, requestContext, new SPIWebSocketEngine.UpgradeListener() {
                     @Override
-                    public void onWebSocketHolder(WebSocketEngine.WebSocketHolder webSocketHolder) throws HandshakeException {
+                    public void onUpgradeFinished() throws HandshakeException {
                         LOGGER.fine("Upgrading Servlet request");
                         try {
                             handler.setHandler(httpServletRequest.upgrade(TyrusHttpUpgradeHandler.class));
@@ -287,8 +264,9 @@ public class TyrusServletFilter implements Filter, HttpSessionListener {
                         } catch (Exception e) {
                             throw new HandshakeException(500, "Handshake error.", e);
                         }
-                        handler.setWebSocketHolder(engine.getWebSocketHolder(webSocketConnection));
-                        handler.setAuthenticated(httpServletRequest.getUserPrincipal() != null);
+
+                        // calls engine.onConnect(writer)
+                        handler.postInit(engine, webSocketConnection, httpServletRequest.getUserPrincipal() != null);
                         sessionToHandler.put(httpServletRequest.getSession(), handler);
                     }
                 })) {
@@ -312,15 +290,6 @@ public class TyrusServletFilter implements Filter, HttpSessionListener {
     @Override
     public void destroy() {
         serverContainer.stop();
-    }
-
-    /**
-     * Set the {@link ServletContext}.
-     *
-     * @param servletContext to be set.
-     */
-    public void setServletContext(ServletContext servletContext) {
-        this.servletContext = servletContext;
     }
 
     /**

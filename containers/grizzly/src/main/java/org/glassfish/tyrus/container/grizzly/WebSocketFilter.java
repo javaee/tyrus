@@ -54,9 +54,7 @@ import org.glassfish.tyrus.core.Utils;
 import org.glassfish.tyrus.spi.SPIHandshakeRequest;
 import org.glassfish.tyrus.spi.SPIHandshakeResponse;
 import org.glassfish.tyrus.spi.SPIWriter;
-import org.glassfish.tyrus.websockets.ClosingDataFrame;
 import org.glassfish.tyrus.websockets.DataFrame;
-import org.glassfish.tyrus.websockets.FramingException;
 import org.glassfish.tyrus.websockets.HandshakeException;
 import org.glassfish.tyrus.websockets.WebSocket;
 import org.glassfish.tyrus.websockets.WebSocketEngine;
@@ -247,8 +245,7 @@ class WebSocketFilter extends BaseFilter {
         final SPIWriter writer = getWebSocketConnection(ctx, message);
         // Get the HTTP header
         final HttpHeader header = message.getHttpHeader();
-        // Try to obtain associated WebSocket
-        final WebSocketHolder holder = engine.getWebSocketHolder(writer);
+
         WebSocket ws = getWebSocket(writer);
         if (logger.isLoggable(Level.FINE)) {
             logger.log(Level.FINE, "handleRead websocket: {0} content-size={1} headers=\n{2}",
@@ -312,27 +309,7 @@ class WebSocketFilter extends BaseFilter {
             ByteBuffer webSocketBuffer = BufferHelper.convertBuffer(buffer);
             // check if we're currently parsing a frame
 
-            try {
-                while (webSocketBuffer != null && webSocketBuffer.hasRemaining()) {
-                    if (holder.buffer != null) {
-                        webSocketBuffer = BufferHelper.appendBuffers(holder.buffer, webSocketBuffer);
-                    }
-
-                    final DataFrame result = holder.handler.unframe(webSocketBuffer);
-                    if (result == null) {
-                        holder.buffer = webSocketBuffer;
-                        break;
-                    } else {
-                        result.respond(holder.webSocket);
-                    }
-                }
-            } catch (FramingException e) {
-                holder.webSocket.onClose(new ClosingDataFrame(e.getClosingCode(), e.getMessage()));
-            } catch (Exception wse) {
-                if (holder.application.onError(holder.webSocket, wse)) {
-                    holder.webSocket.onClose(new ClosingDataFrame(1011, wse.getMessage()));
-                }
-            }
+            engine.process(writer, webSocketBuffer);
         }
         return ctx.getStopAction();
     }

@@ -86,7 +86,6 @@ public class WebSocketEngine implements SPIWebSocketEngine {
     public static final String SERVER_KEY_HASH = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
     public static final int MASK_SIZE = 4;
 
-//    private static final WebSocketEngine engine = new WebSocketEngine();
     private static final Logger LOGGER = Logger.getLogger(WebSocketEngine.WEBSOCKET);
 
     private final Set<WebSocketApplication> applications = Collections.newSetFromMap(new ConcurrentHashMap<WebSocketApplication, Boolean>());
@@ -94,10 +93,6 @@ public class WebSocketEngine implements SPIWebSocketEngine {
 
     public WebSocketEngine() {
     }
-
-//    public static synchronized WebSocketEngine getEngine() {
-//        return engine;
-//    }
 
     public static byte[] toArray(long length) {
         long value = length;
@@ -176,6 +171,7 @@ public class WebSocketEngine implements SPIWebSocketEngine {
      * @param request request.
      * @return {@code true} if upgrade is performed, {@code false} otherwise.
      */
+    @Override
     public boolean upgrade(SPIWriter writer, SPIHandshakeRequest request) {
         return upgrade(writer, request, null);
     }
@@ -183,15 +179,16 @@ public class WebSocketEngine implements SPIWebSocketEngine {
     /**
      * Evaluate whether connection/request is suitable for upgrade and perform it.
      *
-     * @param writer                  connection.
-     * @param request                 request.
-     * @param webSocketHolderListener called when upgrade is going to be performed. Additinally, leaves
-     *                                {@link org.glassfish.tyrus.websockets.WebSocket#onConnect()} call
-     *                                responsibility to {@link WebSocketHolderListener} instance.
+     * @param writer          connection.
+     * @param request         request.
+     * @param upgradeListener called when upgrade is going to be performed. Additinally, leaves
+     *                        {@link org.glassfish.tyrus.websockets.WebSocket#onConnect()} call
+     *                        responsibility to {@link org.glassfish.tyrus.spi.SPIWebSocketEngine.UpgradeListener} instance.
      * @return {@code true} if upgrade is performed, {@code false} otherwise.
      * @throws HandshakeException if an error occurred during the upgrade.
      */
-    public boolean upgrade(SPIWriter writer, SPIHandshakeRequest request, WebSocketHolderListener webSocketHolderListener) throws HandshakeException {
+    @Override
+    public boolean upgrade(SPIWriter writer, SPIHandshakeRequest request, UpgradeListener upgradeListener) throws HandshakeException {
         final WebSocketApplication app = getApplication(request);
 
         WebSocket socket = null;
@@ -204,8 +201,7 @@ public class WebSocketEngine implements SPIWebSocketEngine {
                 }
                 protocolHandler.setWriter(writer);
                 socket = app.createSocket(protocolHandler, app);
-                WebSocketHolder holder =
-                        setWebSocketHolder(writer, protocolHandler, null, socket, app);
+                setWebSocketHolder(writer, protocolHandler, null, socket, app);
                 protocolHandler.handshake(writer, app, request);
                 writer.addCloseListener(new SPIWriter.CloseListener() {
                     @Override
@@ -220,8 +216,8 @@ public class WebSocketEngine implements SPIWebSocketEngine {
                     }
                 });
 
-                if (webSocketHolderListener != null) {
-                    webSocketHolderListener.onWebSocketHolder(holder);
+                if (upgradeListener != null) {
+                    upgradeListener.onUpgradeFinished();
                 } else {
                     socket.onConnect();
                 }
@@ -234,6 +230,59 @@ public class WebSocketEngine implements SPIWebSocketEngine {
             }
         }
         return false;
+    }
+
+    @Override
+    public void process(SPIWriter writer, ByteBuffer data) {
+        final WebSocketHolder holder = getWebSocketHolder(writer);
+        try {
+            while (data != null && data.hasRemaining()) {
+
+                if (holder.buffer != null) {
+                    data = appendBuffers(holder.buffer, data);
+                }
+
+                final DataFrame result = holder.handler.unframe(data);
+                if (result == null) {
+                    holder.buffer = data;
+                    break;
+                } else {
+                    result.respond(holder.webSocket);
+                }
+            }
+        } catch (FramingException e) {
+            holder.webSocket.onClose(new ClosingDataFrame(e.getClosingCode(), e.getMessage()));
+        } catch (Exception wse) {
+            if (holder.application.onError(holder.webSocket, wse)) {
+                holder.webSocket.onClose(new ClosingDataFrame(1011, wse.getMessage()));
+            }
+        }
+    }
+
+    @Override
+    public void onConnect(SPIWriter writer) {
+        getWebSocketHolder(writer).webSocket.onConnect();
+    }
+
+    @Override
+    public void close(SPIWriter writer, int closeCode, String closeReason) {
+        getWebSocketHolder(writer).webSocket.onClose(new ClosingDataFrame(closeCode, closeReason));
+    }
+
+    /**
+     * Concatenates two buffers into one new.
+     *
+     * @param buffer  first buffer.
+     * @param buffer1 second buffer.
+     * @return concatenation.
+     */
+    public static ByteBuffer appendBuffers(ByteBuffer buffer, ByteBuffer buffer1) {
+        final ByteBuffer result = ByteBuffer.allocate(buffer.remaining() + buffer1.remaining());
+
+        result.put(buffer);
+        result.put(buffer1);
+        result.flip();
+        return result;
     }
 
     /**
@@ -314,21 +363,6 @@ public class WebSocketEngine implements SPIWebSocketEngine {
 
     public void removeConnection(SPIWriter writer) {
         webSocketHolderMap.remove(writer);
-    }
-
-    /**
-     * {@link WebSocketHolder} listener.
-     */
-    public static abstract class WebSocketHolderListener {
-        /**
-         * Called when request is ready to upgrade. The responsibility for making {@link org.glassfish.tyrus.websockets.WebSocket#onConnect()}
-         * call is on listener when it is used.
-         *
-         * @param webSocketHolder holder instance.
-         * @throws HandshakeException if an error occurred during the upgrade process.
-         * @see WebSocketHolder#webSocket
-         */
-        public abstract void onWebSocketHolder(WebSocketHolder webSocketHolder) throws HandshakeException;
     }
 
     /**

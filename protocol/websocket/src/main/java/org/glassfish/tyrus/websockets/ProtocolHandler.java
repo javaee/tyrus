@@ -195,7 +195,7 @@ public final class ProtocolHandler {
                     @Override
                     public void run() {
                         final byte[] bytes = frame(frame);
-                        localWriter.<byte[]>write(bytes, new CompletionHandlerWrapper(completionHandler, future, frame));
+                        localWriter.write(bytes, new CompletionHandlerWrapper(completionHandler, future, frame));
                     }
                 }).get(writeTimeoutMs, TimeUnit.MILLISECONDS);
             } catch (InterruptedException e) {

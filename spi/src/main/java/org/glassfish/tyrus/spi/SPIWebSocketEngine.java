@@ -39,10 +39,32 @@
  */
 package org.glassfish.tyrus.spi;
 
+import java.nio.ByteBuffer;
+
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 public interface SPIWebSocketEngine {
 
     boolean upgrade(SPIWriter writer, SPIHandshakeRequest request);
+
+    boolean upgrade(SPIWriter writer, SPIHandshakeRequest request, UpgradeListener upgradeListener);
+
+    void process(SPIWriter writer, ByteBuffer data);
+
+    void onConnect(SPIWriter writer);
+
+    void close(SPIWriter writer, int closeCode, String closeReason);
+
+    /**
+     * HTTP Upgrade listener.
+     */
+    interface UpgradeListener {
+
+        /**
+         * Called when request is upgraded. The responsibility for making {@link #onConnect(SPIWriter)}
+         * call is on listener when it is used.
+         */
+        void onUpgradeFinished();
+    }
 }
