@@ -127,7 +127,7 @@ public abstract class WebSocketApplication implements WebSocketListener {
      * <p/>
      * The default implementation will check for the presence of the
      * <code>Upgrade</code> header with a value of <code>WebSocket</code>.
-     * If present, {@link #isApplicationRequest(WebSocketRequest)}
+     * If present, {@link #isApplicationRequest(org.glassfish.tyrus.spi.SPIHandshakeRequest)}
      * will be invoked to determine if the request is a valid websocket request.
      *
      * @param request TODO
@@ -224,15 +224,4 @@ public abstract class WebSocketApplication implements WebSocketListener {
     boolean remove(WebSocket socket) {
         return sockets.remove(socket) != null;
     }
-
-//    /**
-//     * This method will be called, when initial {@link WebSocket} handshake
-//     * process has been completed, but allows the application to perform further
-//     * negotiation/validation.
-//     *
-//     * @param handshake TODO
-//     * @throws HandshakeException error occurred during the handshake.
-//     */
-//    protected void handshake(HandShake handshake) throws HandshakeException {
-//    }
 }
