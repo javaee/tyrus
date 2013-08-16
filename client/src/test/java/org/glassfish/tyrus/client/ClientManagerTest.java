@@ -43,11 +43,11 @@ import java.util.Map;
 
 import javax.websocket.ClientEndpointConfig;
 
-import org.glassfish.tyrus.spi.SPIClientHandshakeListener;
 import org.glassfish.tyrus.spi.SPIClientSocket;
 import org.glassfish.tyrus.spi.SPIContainer;
 import org.glassfish.tyrus.spi.SPIEndpoint;
 import org.glassfish.tyrus.spi.SPIServer;
+import org.glassfish.tyrus.spi.SPIWebSocketEngine;
 
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
@@ -94,7 +94,7 @@ public class ClientManagerTest {
 
         @Override
         public SPIClientSocket openClientSocket(String url, ClientEndpointConfig cec, SPIEndpoint endpoint,
-                                                  SPIClientHandshakeListener listener, Map<String, Object> properties) {
+                                                SPIWebSocketEngine.SPIClientHandshakeListener listener, Map<String, Object> properties) {
             return null;
         }
     }

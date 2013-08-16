@@ -48,12 +48,12 @@ import javax.websocket.ClientEndpointConfig;
 import javax.websocket.DeploymentException;
 
 import org.glassfish.tyrus.core.TyrusEndpoint;
-import org.glassfish.tyrus.spi.SPIClientHandshakeListener;
 import org.glassfish.tyrus.spi.SPIClientSocket;
 import org.glassfish.tyrus.spi.SPIContainer;
 import org.glassfish.tyrus.spi.SPIEndpoint;
 import org.glassfish.tyrus.spi.SPIRegisteredEndpoint;
 import org.glassfish.tyrus.spi.SPIServer;
+import org.glassfish.tyrus.spi.SPIWebSocketEngine;
 import org.glassfish.tyrus.websockets.WebSocketEngine;
 
 import org.glassfish.grizzly.http.server.HttpServer;
@@ -91,7 +91,7 @@ public class GrizzlyEngine implements SPIContainer {
 
             @Override
             public void stop() {
-                server.stop();
+                server.shutdownNow();
             }
 
             @Override
@@ -110,7 +110,7 @@ public class GrizzlyEngine implements SPIContainer {
 
     @Override
     public SPIClientSocket openClientSocket(String url, ClientEndpointConfig cec, SPIEndpoint endpoint,
-                                              SPIClientHandshakeListener listener, Map<String, Object> properties) throws DeploymentException {
+                                            SPIWebSocketEngine.SPIClientHandshakeListener listener, Map<String, Object> properties) throws DeploymentException {
         URI uri;
 
         try {
@@ -122,7 +122,7 @@ public class GrizzlyEngine implements SPIContainer {
         SSLEngineConfigurator sslEngineConfigurator = (properties == null ? null : (SSLEngineConfigurator) properties.get(SSL_ENGINE_CONFIGURATOR));
         // if we are trying to access "wss" scheme and we don't have sslEngineConfigurator instance
         // we should try to create ssl connection using JVM properties.
-        if(uri.getScheme().equalsIgnoreCase("wss") && sslEngineConfigurator == null) {
+        if (uri.getScheme().equalsIgnoreCase("wss") && sslEngineConfigurator == null) {
             SSLContextConfigurator defaultConfig = new SSLContextConfigurator();
             defaultConfig.retrieve(System.getProperties());
             sslEngineConfigurator = new SSLEngineConfigurator(defaultConfig, true, false, false);

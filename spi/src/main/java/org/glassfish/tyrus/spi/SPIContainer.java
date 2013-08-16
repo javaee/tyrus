@@ -76,5 +76,5 @@ public interface SPIContainer {
      * @return representation of incoming socket.
      */
     public SPIClientSocket openClientSocket(String url, ClientEndpointConfig cec, SPIEndpoint endpoint,
-                                              SPIClientHandshakeListener handshakeListener, Map<String, Object> properties) throws DeploymentException;
+                                            SPIWebSocketEngine.SPIClientHandshakeListener handshakeListener, Map<String, Object> properties) throws DeploymentException;
 }

@@ -134,7 +134,7 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
                     LOGGER.finest(String.format("Remaining Data = %d", buf.remaining()));
 
                     if (buf.hasRemaining()) {
-                        engine.process(writer, buf);
+                        engine.processData(writer, buf);
                     }
                 }
             } catch (IOException e) {

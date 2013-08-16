@@ -70,9 +70,9 @@ import org.glassfish.tyrus.core.ErrorCollector;
 import org.glassfish.tyrus.core.ReflectionHelper;
 import org.glassfish.tyrus.core.TyrusContainerProvider;
 import org.glassfish.tyrus.core.Utils;
-import org.glassfish.tyrus.spi.SPIClientHandshakeListener;
 import org.glassfish.tyrus.spi.SPIClientSocket;
 import org.glassfish.tyrus.spi.SPIContainer;
+import org.glassfish.tyrus.spi.SPIWebSocketEngine;
 
 /**
  * ClientManager implementation.
@@ -89,7 +89,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
      */
     private static final String ENGINE_PROVIDER_CLASSNAME = "org.glassfish.tyrus.container.grizzly.GrizzlyEngine";
     private static final Logger LOGGER = Logger.getLogger(ClientManager.class.getName());
-    private final SPIContainer engine;
+    private final SPIContainer container;
     private final ComponentProviderService componentProvider;
     private final ErrorCollector collector;
     private final Map<String, Object> properties = new HashMap<String, Object>();
@@ -135,7 +135,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
     private ClientManager(String engineProviderClassname) {
         collector = new ErrorCollector();
         componentProvider = ComponentProviderService.create();
-        Class engineProviderClazz = null;
+        Class engineProviderClazz;
         try {
             engineProviderClazz = ReflectionHelper.classForNameWithException(engineProviderClassname);
         } catch (ClassNotFoundException e) {
@@ -143,7 +143,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
             throw new RuntimeException(collector.composeComprehensiveException());
         }
         LOGGER.config(String.format("Provider class loaded: %s", engineProviderClassname));
-        this.engine = (SPIContainer) ReflectionHelper.getInstance(engineProviderClazz, collector);
+        this.container = (SPIContainer) ReflectionHelper.getInstance(engineProviderClazz, collector);
         TyrusContainerProvider.getContainerProvider().setContainer(this);
         if (!collector.isEmpty()) {
             throw new RuntimeException(collector.composeComprehensiveException());
@@ -169,6 +169,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
         return connectToServer(endpointInstance, cec, path.toString());
     }
 
+    @Override
     public Session connectToServer(Object obj, URI path) throws DeploymentException {
         return connectToServer(obj, null, path.toString());
     }
@@ -230,7 +231,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
 
             if (endpoint != null) {
                 EndpointWrapper clientEndpoint = new EndpointWrapper(endpoint, config, componentProvider, this, url, collector, null);
-                SPIClientHandshakeListener listener = new SPIClientHandshakeListener() {
+                SPIWebSocketEngine.SPIClientHandshakeListener listener = new SPIWebSocketEngine.SPIClientHandshakeListener() {
 
                     @Override
                     public void onResponseHeaders(final Map<String, String> originalHeaders) {
@@ -246,7 +247,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
 
                         for (Map.Entry<String, String> entry : originalHeaders.entrySet()) {
                             final List<String> values = headers.get(entry.getKey());
-                            if(values == null) {
+                            if (values == null) {
                                 headers.put(entry.getKey(), Utils.parseHeaderValue(entry.getValue().trim()));
                             } else {
                                 values.addAll(Utils.parseHeaderValue(entry.getValue().trim()));
@@ -270,7 +271,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                         responseLatch.countDown();
                     }
                 };
-                clientSocket = engine.openClientSocket(url, config, clientEndpoint, listener, properties);
+                clientSocket = container.openClientSocket(url, config, clientEndpoint, listener, properties);
             }
 
         } catch (Exception e) {
@@ -292,7 +293,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                     }
 
                     final Session session = clientSocket.getSession();
-                    if(session.isOpen()) {
+                    if (session.isOpen()) {
                         session.setMaxBinaryMessageBufferSize(maxBinaryMessageBufferSize);
                         session.setMaxTextMessageBufferSize(maxTextMessageBufferSize);
                         session.setMaxIdleTimeout(defaultMaxSessionIdleTimeout);

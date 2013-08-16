@@ -42,17 +42,19 @@ package org.glassfish.tyrus.spi;
 import java.util.Map;
 
 /**
+ * Handshake response.
+ *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 public interface SPIHandshakeResponse {
 
     /**
-     * @return TODO
+     * @return HTTP status.
      */
     public int getStatus();
 
     /**
-     * @return TODO
+     * @return Handshake response HTTP headers.
      */
     public Map<String, String> getHeaders();
 }

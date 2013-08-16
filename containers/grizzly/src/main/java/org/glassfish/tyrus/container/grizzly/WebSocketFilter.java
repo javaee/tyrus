@@ -309,7 +309,7 @@ class WebSocketFilter extends BaseFilter {
             ByteBuffer webSocketBuffer = BufferHelper.convertBuffer(buffer);
             // check if we're currently parsing a frame
 
-            engine.process(writer, webSocketBuffer);
+            engine.processData(writer, webSocketBuffer);
         }
         return ctx.getStopAction();
     }

@@ -58,7 +58,7 @@ import org.glassfish.tyrus.spi.SPIWriter;
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-class TyrusServletWriter extends SPIWriter implements WriteListener {
+class TyrusServletWriter implements SPIWriter, WriteListener {
 
     private final TyrusHttpUpgradeHandler tyrusHttpUpgradeHandler;
     private final HttpServletResponse httpServletResponse;
@@ -190,10 +190,5 @@ class TyrusServletWriter extends SPIWriter implements WriteListener {
         } catch (Exception e) {
             // do nothing.
         }
-    }
-
-    @Override
-    public Object getUnderlyingConnection() {
-        return null;
     }
 }

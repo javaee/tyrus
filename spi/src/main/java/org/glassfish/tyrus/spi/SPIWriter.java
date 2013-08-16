@@ -41,13 +41,24 @@
 package org.glassfish.tyrus.spi;
 
 /**
+ * Writer is responsible for writing all data to open sockets, includind with handshake response and all
+ * other communication.
+ *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public abstract class SPIWriter {
+public interface SPIWriter {
 
+    /**
+     * Close listener.
+     *
+     * @see SPIWriter#addCloseListener(org.glassfish.tyrus.spi.SPIWriter.CloseListener)
+     */
     public interface CloseListener {
-        // add param for remote/local close indication?
-        void onClose(SPIWriter writer);
+
+        /**
+         * Invoked when closed connection is detected.
+         */
+        void onClose();
     }
 
     /**
@@ -56,7 +67,7 @@ public abstract class SPIWriter {
      *
      * @author Alexey Stashok
      */
-    public static class CompletionHandler<E> {
+    public abstract class CompletionHandler<E> {
         /**
          * The operation was cancelled.
          */
@@ -89,13 +100,32 @@ public abstract class SPIWriter {
         }
     }
 
-    public abstract void write(byte[] bytes, CompletionHandler<byte[]> completionHandler);
+    /**
+     * Write bytes to underlying connection.
+     *
+     * @param bytes             bytes to write.
+     * @param completionHandler completion handler in case there is a need to track progress.
+     */
+    public void write(byte[] bytes, CompletionHandler<byte[]> completionHandler);
 
-    public abstract void write(SPIHandshakeResponse response);
+    /**
+     * Write {@link SPIHandshakeResponse} to underlying connection.
+     *
+     * @param response response to be written.
+     */
+    public void write(SPIHandshakeResponse response);
 
-    public abstract void addCloseListener(CloseListener closeListener);
+    /**
+     * Supported only on Grizzly container.
+     * <p/>
+     * TODO to be removed?
+     *
+     * @param closeListener listener.
+     */
+    public void addCloseListener(CloseListener closeListener);
 
-    public abstract void closeSilently();
-
-    public abstract Object getUnderlyingConnection();
+    /**
+     * Close the connection (without sending close frame).
+     */
+    public void closeSilently();
 }

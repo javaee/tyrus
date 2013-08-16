@@ -188,7 +188,7 @@ public class WebSocketEngine implements SPIWebSocketEngine {
      * @throws HandshakeException if an error occurred during the upgrade.
      */
     @Override
-    public boolean upgrade(SPIWriter writer, SPIHandshakeRequest request, UpgradeListener upgradeListener) throws HandshakeException {
+    public boolean upgrade(final SPIWriter writer, SPIHandshakeRequest request, UpgradeListener upgradeListener) throws HandshakeException {
         final WebSocketApplication app = getApplication(request);
 
         WebSocket socket = null;
@@ -205,7 +205,7 @@ public class WebSocketEngine implements SPIWebSocketEngine {
                 protocolHandler.handshake(writer, app, request);
                 writer.addCloseListener(new SPIWriter.CloseListener() {
                     @Override
-                    public void onClose(final SPIWriter writer/*, final CloseType type*/) {
+                    public void onClose() {
 
                         final WebSocket webSocket = getWebSocket(writer);
                         if (webSocket != null) {
@@ -233,7 +233,7 @@ public class WebSocketEngine implements SPIWebSocketEngine {
     }
 
     @Override
-    public void process(SPIWriter writer, ByteBuffer data) {
+    public void processData(SPIWriter writer, ByteBuffer data) {
         final WebSocketHolder holder = getWebSocketHolder(writer);
         try {
             while (data != null && data.hasRemaining()) {

@@ -57,7 +57,7 @@ import org.glassfish.grizzly.http.Protocol;
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-class GrizzlyWriter extends SPIWriter {
+class GrizzlyWriter implements SPIWriter {
 
     private final FilterChainContext ctx;
     private final HttpContent httpContent;
@@ -125,13 +125,10 @@ class GrizzlyWriter extends SPIWriter {
 
     @Override
     public void addCloseListener(final CloseListener closeListener) {
-
-        final SPIWriter webSocketWriter = this;
-
         connection.addCloseListener(new org.glassfish.grizzly.CloseListener() {
             @Override
             public void onClosed(Closeable closeable, ICloseType iCloseType) throws IOException {
-                closeListener.onClose(webSocketWriter);
+                closeListener.onClose();
             }
         });
     }
@@ -148,12 +145,7 @@ class GrizzlyWriter extends SPIWriter {
 
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof SPIWriter && connection.equals(((SPIWriter) obj).getUnderlyingConnection());
-    }
-
-    @Override
-    public Object getUnderlyingConnection() {
-        return connection;
+        return obj instanceof GrizzlyWriter && connection.equals(((GrizzlyWriter) obj).connection);
     }
 
     public String toString() {

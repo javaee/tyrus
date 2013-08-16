@@ -40,20 +40,66 @@
 package org.glassfish.tyrus.spi;
 
 import java.nio.ByteBuffer;
+import java.util.Map;
 
 /**
+ * Web Socket engine is the main entry-point to WebSocket implementation.
+ *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 public interface SPIWebSocketEngine {
 
+    /**
+     * Handles upgrade process, response is written using {@link SPIWriter#write(SPIHandshakeResponse)}.
+     *
+     * @param writer  used to write HTTP response.
+     * @param request representation of HTTP request.
+     * @return {@code true} if upgrade was successful, {@code false} otherwise.
+     */
     boolean upgrade(SPIWriter writer, SPIHandshakeRequest request);
 
+    /**
+     * Handles upgrade process, response is written using {@link SPIWriter#write(SPIHandshakeResponse)}.
+     *
+     * @param writer          used to write HTTP response.
+     * @param request         representation of HTTP request.
+     * @param upgradeListener {@link org.glassfish.tyrus.spi.SPIWebSocketEngine.UpgradeListener#onUpgradeFinished()}
+     *                        is invoked after handshake response is sent. Registering this listener transfer
+     *                        responsibility for calling {@link #onConnect(SPIWriter)} to this listener. This might be
+     *                        useful especially when you need to wait for some other initialization (like Servlet update
+     *                        mechanism); invoking {@link #onConnect(SPIWriter)} means that {@link javax.websocket.OnOpen}
+     *                        annotated method will be invoked which allows sending messages, so underlying connection
+     *                        needs to be ready.
+     * @return {@code true} if upgrade was successful, {@code false} otherwise.
+     */
     boolean upgrade(SPIWriter writer, SPIHandshakeRequest request, UpgradeListener upgradeListener);
 
-    void process(SPIWriter writer, ByteBuffer data);
+    /**
+     * Processes incoming data, including sending a response (if any).
+     *
+     * @param writer TODO
+     * @param data   incoming data.
+     */
+    void processData(SPIWriter writer, ByteBuffer data);
 
+    /**
+     * Causes invocation if {@link javax.websocket.OnOpen} annotated method. Can be invoked only when
+     * {@link #upgrade(SPIWriter, SPIHandshakeRequest, org.glassfish.tyrus.spi.SPIWebSocketEngine.UpgradeListener)} is used.
+     *
+     * @param writer TODO
+     */
     void onConnect(SPIWriter writer);
 
+    /**
+     * Close the corresponding WebSocket with a close reason.
+     * <p/>
+     * This method is used for indicating that underlying connection was closed and/or other condition requires
+     * closing socket.
+     *
+     * @param writer      TODO
+     * @param closeCode   close code.
+     * @param closeReason close reason.
+     */
     void close(SPIWriter writer, int closeCode, String closeReason);
 
     /**
@@ -66,5 +112,26 @@ public interface SPIWebSocketEngine {
          * call is on listener when it is used.
          */
         void onUpgradeFinished();
+    }
+
+    /**
+     * Called when response is received from the server.
+     */
+    interface SPIClientHandshakeListener {
+
+        /**
+         * Called when correct handshake response is received.
+         *
+         * @param headers of the handshake response.
+         */
+        public void onResponseHeaders(Map<String, String> headers);
+
+
+        /**
+         * Called when an error is found in handshake response.
+         *
+         * @param exception error found during handshake response check.
+         */
+        public void onError(Throwable exception);
     }
 }

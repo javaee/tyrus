@@ -265,7 +265,7 @@ public class TyrusServletFilter implements Filter, HttpSessionListener {
                             throw new HandshakeException(500, "Handshake error.", e);
                         }
 
-                        // calls engine.onConnect(writer)
+                        // calls engine.onConnect()
                         handler.postInit(engine, webSocketConnection, httpServletRequest.getUserPrincipal() != null);
                         sessionToHandler.put(httpServletRequest.getSession(), handler);
                     }
