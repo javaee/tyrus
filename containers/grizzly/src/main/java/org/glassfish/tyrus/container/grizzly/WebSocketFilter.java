@@ -63,8 +63,11 @@ import org.glassfish.tyrus.websockets.WebSocketRequest;
 import org.glassfish.tyrus.websockets.WebSocketResponse;
 
 import org.glassfish.grizzly.Buffer;
+import org.glassfish.grizzly.CloseListener;
+import org.glassfish.grizzly.Closeable;
 import org.glassfish.grizzly.Connection;
 import org.glassfish.grizzly.Grizzly;
+import org.glassfish.grizzly.ICloseType;
 import org.glassfish.grizzly.attributes.AttributeHolder;
 import org.glassfish.grizzly.filterchain.BaseFilter;
 import org.glassfish.grizzly.filterchain.Filter;
@@ -410,11 +413,18 @@ class WebSocketFilter extends BaseFilter {
 
         // get HTTP request headers
         final HttpRequestPacket request = (HttpRequestPacket) requestContent.getHttpHeader();
-        final SPIWriter webSocketWriter = getWebSocketConnection(ctx, requestContent);
+        final GrizzlyWriter webSocketWriter = getWebSocketConnection(ctx, requestContent);
+        ctx.getConnection().addCloseListener(new CloseListener() {
+            @Override
+            public void onClosed(Closeable closeable, ICloseType type) throws IOException {
+                engine.close(webSocketWriter, WebSocket.END_POINT_GOING_DOWN, "Close detected on connection");
+            }
+        });
         try {
             if (!engine.upgrade(
                     webSocketWriter,
-                    createWebSocketRequest(ctx, requestContent))) {
+                    createWebSocketRequest(ctx, requestContent),
+                    webSocketWriter)) {
                 return ctx.getInvokeAction(); // not a WS request, pass to the next filter.
             }
             setIdleTimeout(ctx);
@@ -479,7 +489,7 @@ class WebSocketFilter extends BaseFilter {
         return HttpContent.builder(builder.build()).build();
     }
 
-    private static SPIWriter getWebSocketConnection(final FilterChainContext ctx, final HttpContent httpContent) {
+    private static GrizzlyWriter getWebSocketConnection(final FilterChainContext ctx, final HttpContent httpContent) {
         return new GrizzlyWriter(ctx, httpContent);
     }
 

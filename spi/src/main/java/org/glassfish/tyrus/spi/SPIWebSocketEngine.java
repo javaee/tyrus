@@ -40,7 +40,6 @@
 package org.glassfish.tyrus.spi;
 
 import java.nio.ByteBuffer;
-import java.util.Map;
 
 /**
  * Web Socket engine is the main entry-point to WebSocket implementation.
@@ -50,16 +49,16 @@ import java.util.Map;
 public interface SPIWebSocketEngine {
 
     /**
-     * Handles upgrade process, response is written using {@link SPIWriter#write(SPIHandshakeResponse)}.
+     * Handles upgrade process, response is written using {@link ResponseWriter#write(SPIHandshakeResponse)}.
      *
      * @param writer  used to write HTTP response.
      * @param request representation of HTTP request.
      * @return {@code true} if upgrade was successful, {@code false} otherwise.
      */
-    boolean upgrade(SPIWriter writer, SPIHandshakeRequest request);
+    boolean upgrade(SPIWriter writer, SPIHandshakeRequest request, ResponseWriter responseWriter);
 
     /**
-     * Handles upgrade process, response is written using {@link SPIWriter#write(SPIHandshakeResponse)}.
+     * Handles upgrade process, response is written using {@link ResponseWriter#write(SPIHandshakeResponse)}.
      *
      * @param writer          used to write HTTP response.
      * @param request         representation of HTTP request.
@@ -72,7 +71,7 @@ public interface SPIWebSocketEngine {
      *                        needs to be ready.
      * @return {@code true} if upgrade was successful, {@code false} otherwise.
      */
-    boolean upgrade(SPIWriter writer, SPIHandshakeRequest request, UpgradeListener upgradeListener);
+    boolean upgrade(SPIWriter writer, SPIHandshakeRequest request, ResponseWriter responseWriter, UpgradeListener upgradeListener);
 
     /**
      * Processes incoming data, including sending a response (if any).
@@ -84,7 +83,7 @@ public interface SPIWebSocketEngine {
 
     /**
      * Causes invocation if {@link javax.websocket.OnOpen} annotated method. Can be invoked only when
-     * {@link #upgrade(SPIWriter, SPIHandshakeRequest, org.glassfish.tyrus.spi.SPIWebSocketEngine.UpgradeListener)} is used.
+     * {@link #upgrade(SPIWriter, SPIHandshakeRequest, ResponseWriter, org.glassfish.tyrus.spi.SPIWebSocketEngine.UpgradeListener)} is used.
      *
      * @param writer TODO
      */
@@ -115,23 +114,14 @@ public interface SPIWebSocketEngine {
     }
 
     /**
-     * Called when response is received from the server.
+     * Responsible for writing HTTP response to underlying connection or container.
      */
-    interface SPIClientHandshakeListener {
-
+    interface ResponseWriter {
         /**
-         * Called when correct handshake response is received.
+         * Write {@link SPIHandshakeResponse} to underlying connection.
          *
-         * @param headers of the handshake response.
+         * @param response response to be written.
          */
-        public void onResponseHeaders(Map<String, String> headers);
-
-
-        /**
-         * Called when an error is found in handshake response.
-         *
-         * @param exception error found during handshake response check.
-         */
-        public void onError(Throwable exception);
+        public void write(SPIHandshakeResponse response);
     }
 }

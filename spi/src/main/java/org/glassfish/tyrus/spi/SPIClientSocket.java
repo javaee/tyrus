@@ -42,7 +42,10 @@ package org.glassfish.tyrus.spi;
 import javax.websocket.Session;
 
 /**
+ * Client socket representation.
+ *
  * @author Martin Matula (martin.matula at oracle.com)
+ * @see SPIClientContainer#openClientSocket(String, javax.websocket.ClientEndpointConfig, SPIEndpoint, org.glassfish.tyrus.spi.SPIClientContainer.ClientHandshakeListener, java.util.Map)
  */
 public interface SPIClientSocket {
 

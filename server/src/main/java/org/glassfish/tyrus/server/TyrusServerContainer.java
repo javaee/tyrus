@@ -62,7 +62,7 @@ import org.glassfish.tyrus.core.BaseContainer;
 import org.glassfish.tyrus.core.ComponentProviderService;
 import org.glassfish.tyrus.core.EndpointWrapper;
 import org.glassfish.tyrus.core.ErrorCollector;
-import org.glassfish.tyrus.spi.SPIRegisteredEndpoint;
+import org.glassfish.tyrus.spi.SPIEndpoint;
 import org.glassfish.tyrus.spi.SPIServer;
 
 /**
@@ -76,7 +76,7 @@ public class TyrusServerContainer extends BaseContainer implements WebSocketCont
     private final SPIServer server;
     private final String contextPath;
     private final ServerApplicationConfig configuration;
-    private final Set<SPIRegisteredEndpoint> endpoints = new HashSet<SPIRegisteredEndpoint>();
+    private final Set<SPIEndpoint> endpoints = new HashSet<SPIEndpoint>();
     private final ErrorCollector collector;
     private final ComponentProviderService componentProvider;
 
@@ -146,16 +146,15 @@ public class TyrusServerContainer extends BaseContainer implements WebSocketCont
     }
 
     private void deploy(EndpointWrapper wrapper) throws DeploymentException {
-        SPIRegisteredEndpoint ge = server.register(wrapper);
-        endpoints.add(ge);
+        server.register(wrapper);
+        endpoints.add(wrapper);
     }
 
     /**
      * Undeploy all endpoints and stop underlying {@link org.glassfish.tyrus.spi.SPIServer}.
      */
     public void stop() {
-        for (SPIRegisteredEndpoint wsa : this.endpoints) {
-            wsa.remove();
+        for (SPIEndpoint wsa : this.endpoints) {
             this.server.unregister(wsa);
             Logger.getLogger(getClass().getName()).fine("Closing down : " + wsa);
         }

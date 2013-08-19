@@ -49,6 +49,7 @@ import javax.websocket.DeploymentException;
  * @author Martin Matula (martin.matula at oracle.com)
  */
 public interface SPIServer {
+
     /**
      * Starts the server.
      *
@@ -66,16 +67,15 @@ public interface SPIServer {
      * has created a web socket endpoint it wishes to be managed.
      *
      * @param endpoint SPIEndpoint to be registered.
-     * @return SPIRegisteredEndpoint.
      * @throws DeploymentException when endpoint cannot be registered.
      */
-    public SPIRegisteredEndpoint register(SPIEndpoint endpoint) throws DeploymentException;
+    public void register(SPIEndpoint endpoint) throws DeploymentException;
 
     /**
      * The SDK calls unregister when it no longer wishes the endpoint to be
      * in service.
      *
-     * @param ge the endpoint which is going to be unregistered.
+     * @param endpoint the endpoint which is going to be unregistered.
      */
-    public void unregister(SPIRegisteredEndpoint ge);
+    public void unregister(SPIEndpoint endpoint);
 }

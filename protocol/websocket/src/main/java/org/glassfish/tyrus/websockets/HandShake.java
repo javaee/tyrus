@@ -51,7 +51,7 @@ import java.util.logging.Logger;
 
 import org.glassfish.tyrus.spi.SPIHandshakeRequest;
 import org.glassfish.tyrus.spi.SPIHandshakeResponse;
-import org.glassfish.tyrus.spi.SPIWriter;
+import org.glassfish.tyrus.spi.SPIWebSocketEngine;
 
 /**
  * @author Justin Lee
@@ -383,10 +383,6 @@ public final class HandShake {
         return port;
     }
 
-    void setPort(int port) {
-        this.port = port;
-    }
-
     String getResourcePath() {
         return resourcePath;
     }
@@ -484,7 +480,7 @@ public final class HandShake {
         secKey.validateServerKey(response.getHeaders().get(WebSocketEngine.SEC_WS_ACCEPT));
     }
 
-    void respond(SPIWriter writer, WebSocketApplication application/*, WebSocketResponse response*/) {
+    void respond(SPIWebSocketEngine.ResponseWriter writer, WebSocketApplication application/*, WebSocketResponse response*/) {
         WebSocketResponse response = new WebSocketResponse();
         response.setStatus(101);
 

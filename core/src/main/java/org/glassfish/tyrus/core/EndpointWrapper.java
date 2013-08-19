@@ -418,11 +418,6 @@ public class EndpointWrapper extends SPIEndpoint {
         }
     }
 
-    @Override
-    public void remove() {
-        // TODO: disconnect the endpoint?
-    }
-
     private SessionImpl getSession(SPIRemoteEndpoint gs) {
         synchronized (remoteEndpointToSession) {
             return remoteEndpointToSession.get(gs);

@@ -60,7 +60,7 @@ public class Server {
     private final int port;
     private final String rootPath;
 
-    private static final String ENGINE_PROVIDER_CLASSNAME = "org.glassfish.tyrus.container.grizzly.GrizzlyEngine";
+    private static final String ENGINE_PROVIDER_CLASSNAME = "org.glassfish.tyrus.container.grizzly.GrizzlyContainer";
     private static final Logger LOGGER = Logger.getLogger(Server.class.getClass().getName());
     private static final int DEFAULT_PORT = 8025;
     private static final String DEFAULT_HOST_NAME = "localhost";
@@ -70,7 +70,7 @@ public class Server {
      * Create new server instance.
      *
      * @param configuration to be registered with the server. Classes annotated with
-     * {@link javax.websocket.server.ServerEndpoint},
+     *                      {@link javax.websocket.server.ServerEndpoint},
      *                      implementing {@link javax.websocket.server.ServerApplicationConfig}
      *                      or extending {@link javax.websocket.server.ServerEndpointConfig} are supported.
      */
@@ -81,11 +81,11 @@ public class Server {
     /**
      * Construct new server.
      *
-     * @param hostName hostName of the server.
-     * @param port     port of the server.
-     * @param rootPath root path to the server App.
+     * @param hostName      hostName of the server.
+     * @param port          port of the server.
+     * @param rootPath      root path to the server App.
      * @param configuration to be registered with the server. Classes annotated with
-     * {@link javax.websocket.server.ServerEndpoint},
+     *                      {@link javax.websocket.server.ServerEndpoint},
      *                      implementing {@link javax.websocket.server.ServerApplicationConfig}
      *                      or extending {@link javax.websocket.server.ServerEndpointConfig} are supported.
      */
@@ -100,7 +100,7 @@ public class Server {
      * @param port          port of the server.
      * @param rootPath      root path to the server App.
      * @param configuration to be registered with the server. Classes annotated with
-     * {@link javax.websocket.server.ServerEndpoint},
+     *                      {@link javax.websocket.server.ServerEndpoint},
      *                      implementing {@link javax.websocket.server.ServerApplicationConfig}
      *                      or extending {@link javax.websocket.server.ServerEndpointConfig} are supported.
      */

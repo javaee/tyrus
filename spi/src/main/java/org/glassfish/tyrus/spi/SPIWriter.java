@@ -40,26 +40,15 @@
 
 package org.glassfish.tyrus.spi;
 
+import java.io.Closeable;
+
 /**
  * Writer is responsible for writing all data to open sockets, includind with handshake response and all
  * other communication.
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public interface SPIWriter {
-
-    /**
-     * Close listener.
-     *
-     * @see SPIWriter#addCloseListener(org.glassfish.tyrus.spi.SPIWriter.CloseListener)
-     */
-    public interface CloseListener {
-
-        /**
-         * Invoked when closed connection is detected.
-         */
-        void onClose();
-    }
+public interface SPIWriter extends Closeable {
 
     /**
      * Interface, which will be used by Grizzly to notify about asynchronous I/O
@@ -107,25 +96,4 @@ public interface SPIWriter {
      * @param completionHandler completion handler in case there is a need to track progress.
      */
     public void write(byte[] bytes, CompletionHandler<byte[]> completionHandler);
-
-    /**
-     * Write {@link SPIHandshakeResponse} to underlying connection.
-     *
-     * @param response response to be written.
-     */
-    public void write(SPIHandshakeResponse response);
-
-    /**
-     * Supported only on Grizzly container.
-     * <p/>
-     * TODO to be removed?
-     *
-     * @param closeListener listener.
-     */
-    public void addCloseListener(CloseListener closeListener);
-
-    /**
-     * Close the connection (without sending close frame).
-     */
-    public void closeSilently();
 }

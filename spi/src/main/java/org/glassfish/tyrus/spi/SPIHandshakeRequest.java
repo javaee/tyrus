@@ -43,13 +43,16 @@ import java.security.Principal;
 import java.util.List;
 import java.util.Map;
 
+import javax.websocket.server.HandshakeRequest;
+
 /**
  * The provider passes the handshake request to
  * the SDK created endpoint
  *
  * @author Danny Coward (danny.coward at oracle.com)
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public abstract class SPIHandshakeRequest {
+public abstract class SPIHandshakeRequest implements HandshakeRequest {
 
     /**
      * Get the Http Header value for the given header name
@@ -65,6 +68,7 @@ public abstract class SPIHandshakeRequest {
      *
      * @return headers map. List items are corresponding to header declaration in HTTP request.
      */
+    @Override
     public abstract Map<String, List<String>> getHeaders();
 
     /**
@@ -86,6 +90,7 @@ public abstract class SPIHandshakeRequest {
      *
      * @return query string.
      */
+    @Override
     public abstract String getQueryString();
 
     /**
@@ -100,6 +105,7 @@ public abstract class SPIHandshakeRequest {
      *
      * @return user principal.
      */
+    @Override
     public abstract Principal getUserPrincipal();
 
     /**
@@ -107,6 +113,7 @@ public abstract class SPIHandshakeRequest {
      *
      * @return the unmodifiable map of the request parameters.
      */
+    @Override
     public abstract Map<String, List<String>> getParameterMap();
 
     /**

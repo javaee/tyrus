@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -37,30 +37,49 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.spi;
+package org.glassfish.tyrus.servlet;
 
-import java.util.Set;
+import java.io.IOException;
 
-import javax.websocket.Session;
+import javax.websocket.DeploymentException;
+
+import org.glassfish.tyrus.core.TyrusEndpoint;
+import org.glassfish.tyrus.spi.SPIEndpoint;
+import org.glassfish.tyrus.spi.SPIServer;
+import org.glassfish.tyrus.spi.SPIServerFactory;
+import org.glassfish.tyrus.websockets.WebSocketEngine;
 
 /**
- * The provider implements this interface in order to
- * provide the web socket SDK a handle to the deployed
- * endpoint that it may use later to un-register.
- *
- * @author Danny Coward (danny.coward at oracle.com)
+ * Servlet container.
  */
-public interface SPIRegisteredEndpoint {
+public class ServletServerFactory implements SPIServerFactory {
 
-    /**
-     * Called by the SDK when it is cleaning up or needs to shut down.
-     */
-    public void remove();
+    private final WebSocketEngine engine;
 
-    /**
-     * Get the endpoint's open {@link Session}s.
-     *
-     * @return open sessions.
-     */
-    public Set<Session> getOpenSessions();
+    public ServletServerFactory(WebSocketEngine engine) {
+        this.engine = engine;
+    }
+
+    @Override
+    public SPIServer createServer(String rootPath, int port) {
+        return new SPIServer() {
+            @Override
+            public void start() throws IOException {
+            }
+
+            @Override
+            public void stop() {
+            }
+
+            @Override
+            public void register(SPIEndpoint endpoint) throws DeploymentException {
+                engine.register(new TyrusEndpoint(endpoint));
+            }
+
+            @Override
+            public void unregister(SPIEndpoint endpoint) {
+                engine.unregister(new TyrusEndpoint(endpoint));
+            }
+        };
+    }
 }

@@ -48,7 +48,7 @@ import javax.websocket.server.ServerEndpointConfig;
 import org.glassfish.tyrus.core.OsgiRegistry;
 import org.glassfish.tyrus.core.ReflectionHelper;
 import org.glassfish.tyrus.core.TyrusContainerProvider;
-import org.glassfish.tyrus.spi.SPIContainer;
+import org.glassfish.tyrus.spi.SPIServerFactory;
 
 /**
  * Factory for creating server containers.
@@ -81,17 +81,17 @@ public class ServerContainerFactory {
      */
     public static TyrusServerContainer create(String providerClassName, String contextPath, int port,
                                               Set<Class<?>> classes) {
-        Class<? extends SPIContainer> providerClass;
+        Class<? extends SPIServerFactory> providerClass;
 
         initOsgiRegistry();
 
         try {
             if (osgiRegistry != null) {
                 //noinspection unchecked
-                providerClass = (Class<SPIContainer>) osgiRegistry.classForNameWithException(providerClassName);
+                providerClass = (Class<SPIServerFactory>) osgiRegistry.classForNameWithException(providerClassName);
             } else {
                 //noinspection unchecked
-                providerClass = (Class<SPIContainer>) Class.forName(providerClassName);
+                providerClass = (Class<SPIServerFactory>) Class.forName(providerClassName);
             }
         } catch (Exception e) {
             throw new RuntimeException("Failed to load container provider class: " + providerClassName, e);
@@ -116,10 +116,10 @@ public class ServerContainerFactory {
      *                                {@link javax.websocket.server.ServerContainer#addEndpoint(ServerEndpointConfig)}.
      * @return New instance of {@link TyrusServerContainer}.
      */
-    public static TyrusServerContainer create(Class<? extends SPIContainer> providerClass, String contextPath, int port,
+    public static TyrusServerContainer create(Class<? extends SPIServerFactory> providerClass, String contextPath, int port,
                                               Set<Class<?>> configuration, Set<Class<?>> dynamicallyAddedClasses,
                                               Set<ServerEndpointConfig> dynamicallyAddedEndpointConfigs) {
-        SPIContainer containerProvider;
+        SPIServerFactory containerProvider;
         try {
             containerProvider = ReflectionHelper.getInstance(providerClass);
         } catch (Exception e) {
@@ -141,7 +141,7 @@ public class ServerContainerFactory {
      *                                {@link javax.websocket.server.ServerContainer#addEndpoint(ServerEndpointConfig)}.
      * @return New instance of {@link TyrusServerContainer}.
      */
-    public static TyrusServerContainer create(SPIContainer containerProvider, String contextPath, int port,
+    public static TyrusServerContainer create(SPIServerFactory containerProvider, String contextPath, int port,
                                               Set<Class<?>> configuration, Set<Class<?>> dynamicallyAddedClasses,
                                               Set<ServerEndpointConfig> dynamicallyAddedEndpointConfigs) {
 

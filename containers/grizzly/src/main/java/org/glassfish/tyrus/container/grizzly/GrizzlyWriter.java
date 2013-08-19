@@ -39,15 +39,13 @@
  */
 package org.glassfish.tyrus.container.grizzly;
 
-import java.io.IOException;
 import java.util.Map;
 
 import org.glassfish.tyrus.spi.SPIHandshakeResponse;
+import org.glassfish.tyrus.spi.SPIWebSocketEngine;
 import org.glassfish.tyrus.spi.SPIWriter;
 
-import org.glassfish.grizzly.Closeable;
 import org.glassfish.grizzly.EmptyCompletionHandler;
-import org.glassfish.grizzly.ICloseType;
 import org.glassfish.grizzly.filterchain.FilterChainContext;
 import org.glassfish.grizzly.http.HttpContent;
 import org.glassfish.grizzly.http.HttpRequestPacket;
@@ -57,7 +55,7 @@ import org.glassfish.grizzly.http.Protocol;
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-class GrizzlyWriter implements SPIWriter {
+class GrizzlyWriter implements SPIWriter, SPIWebSocketEngine.ResponseWriter {
 
     private final FilterChainContext ctx;
     private final HttpContent httpContent;
@@ -124,17 +122,7 @@ class GrizzlyWriter implements SPIWriter {
     }
 
     @Override
-    public void addCloseListener(final CloseListener closeListener) {
-        connection.addCloseListener(new org.glassfish.grizzly.CloseListener() {
-            @Override
-            public void onClosed(Closeable closeable, ICloseType iCloseType) throws IOException {
-                closeListener.onClose();
-            }
-        });
-    }
-
-    @Override
-    public void closeSilently() {
+    public void close() {
         connection.closeSilently();
     }
 

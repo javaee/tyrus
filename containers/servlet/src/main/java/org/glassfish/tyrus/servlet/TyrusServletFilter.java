@@ -123,7 +123,7 @@ public class TyrusServletFilter implements Filter, HttpSessionListener {
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
         String contextRoot = filterConfig.getServletContext().getContextPath();
-        this.serverContainer = ServerContainerFactory.create(new ServletContainer(engine), contextRoot, INFORMATIONAL_FIXED_PORT, classes, dynamicallyDeployedClasses, dynamicallyDeployedServerEndpointConfigs);
+        this.serverContainer = ServerContainerFactory.create(new ServletServerFactory(engine), contextRoot, INFORMATIONAL_FIXED_PORT, classes, dynamicallyDeployedClasses, dynamicallyDeployedServerEndpointConfigs);
         try {
             serverContainer.start();
         } catch (Exception e) {
@@ -251,7 +251,7 @@ public class TyrusServletFilter implements Filter, HttpSessionListener {
             }
 
             try {
-                if (!engine.upgrade(webSocketConnection, requestContext, new SPIWebSocketEngine.UpgradeListener() {
+                final SPIWebSocketEngine.UpgradeListener upgradeListener = new SPIWebSocketEngine.UpgradeListener() {
                     @Override
                     public void onUpgradeFinished() throws HandshakeException {
                         LOGGER.fine("Upgrading Servlet request");
@@ -269,7 +269,9 @@ public class TyrusServletFilter implements Filter, HttpSessionListener {
                         handler.postInit(engine, webSocketConnection, httpServletRequest.getUserPrincipal() != null);
                         sessionToHandler.put(httpServletRequest.getSession(), handler);
                     }
-                })) {
+                };
+
+                if (!engine.upgrade(webSocketConnection, requestContext, webSocketConnection, upgradeListener)) {
                     filterChain.doFilter(request, response);
                     return;
                 }

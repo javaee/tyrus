@@ -46,7 +46,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -55,13 +54,11 @@ import javax.websocket.CloseReason;
 import javax.websocket.EndpointConfig;
 import javax.websocket.Extension;
 import javax.websocket.HandshakeResponse;
-import javax.websocket.Session;
 import javax.websocket.server.HandshakeRequest;
 import javax.websocket.server.ServerEndpointConfig;
 
 import org.glassfish.tyrus.spi.SPIEndpoint;
 import org.glassfish.tyrus.spi.SPIHandshakeRequest;
-import org.glassfish.tyrus.spi.SPIRegisteredEndpoint;
 import org.glassfish.tyrus.websockets.ClosingDataFrame;
 import org.glassfish.tyrus.websockets.ProtocolHandler;
 import org.glassfish.tyrus.websockets.WebSocket;
@@ -71,7 +68,7 @@ import org.glassfish.tyrus.websockets.WebSocketListener;
 import org.glassfish.tyrus.websockets.WebSocketResponse;
 
 /**
- * Implementation of {@link SPIRegisteredEndpoint}.
+ * Implementation of {@link org.glassfish.tyrus.websockets.WebSocketApplication}.
  * <p/>
  * Please note that for one connection to WebSocketApplication it is guaranteed that the methods:
  * isApplicationRequest, createSocket, getSupportedProtocols, getSupportedExtensions are called in this order.
@@ -81,7 +78,7 @@ import org.glassfish.tyrus.websockets.WebSocketResponse;
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class TyrusEndpoint extends WebSocketApplication implements SPIRegisteredEndpoint {
+public class TyrusEndpoint extends WebSocketApplication {
 
     private final SPIEndpoint endpoint;
 
@@ -182,15 +179,15 @@ public class TyrusEndpoint extends WebSocketApplication implements SPIRegistered
         this.endpoint.onPong(new TyrusRemoteEndpoint(socket), ByteBuffer.wrap(bytes));
     }
 
-    @Override
-    public void remove() {
-        this.endpoint.remove();
-    }
-
-    @Override
-    public Set<Session> getOpenSessions() {
-        return endpoint.getOpenSessions();
-    }
+//    @Override
+//    public void remove() {
+//        this.endpoint.remove();
+//    }
+//
+//    @Override
+//    public Set<Session> getOpenSessions() {
+//        return endpoint.getOpenSessions();
+//    }
 
     @Override
     public void onExtensionNegotiation(List<org.glassfish.tyrus.websockets.Extension> extensions) {
@@ -290,5 +287,22 @@ public class TyrusEndpoint extends WebSocketApplication implements SPIRegistered
                 return headers;
             }
         };
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        TyrusEndpoint that = (TyrusEndpoint) o;
+
+        if (!endpoint.equals(that.endpoint)) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return endpoint.hashCode();
     }
 }

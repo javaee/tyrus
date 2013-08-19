@@ -70,9 +70,8 @@ import org.glassfish.tyrus.core.ErrorCollector;
 import org.glassfish.tyrus.core.ReflectionHelper;
 import org.glassfish.tyrus.core.TyrusContainerProvider;
 import org.glassfish.tyrus.core.Utils;
+import org.glassfish.tyrus.spi.SPIClientContainer;
 import org.glassfish.tyrus.spi.SPIClientSocket;
-import org.glassfish.tyrus.spi.SPIContainer;
-import org.glassfish.tyrus.spi.SPIWebSocketEngine;
 
 /**
  * ClientManager implementation.
@@ -83,13 +82,13 @@ import org.glassfish.tyrus.spi.SPIWebSocketEngine;
 public class ClientManager extends BaseContainer implements WebSocketContainer {
 
     /**
-     * Default {@link org.glassfish.tyrus.spi.SPIContainer} class name.
+     * Default {@link org.glassfish.tyrus.spi.SPIServerFactory} class name.
      * <p/>
      * Uses Grizzly as transport implementation.
      */
-    private static final String ENGINE_PROVIDER_CLASSNAME = "org.glassfish.tyrus.container.grizzly.GrizzlyEngine";
+    private static final String ENGINE_PROVIDER_CLASSNAME = "org.glassfish.tyrus.container.grizzly.GrizzlyContainer";
     private static final Logger LOGGER = Logger.getLogger(ClientManager.class.getName());
-    private final SPIContainer container;
+    private final SPIClientContainer container;
     private final ComponentProviderService componentProvider;
     private final ErrorCollector collector;
     private final Map<String, Object> properties = new HashMap<String, Object>();
@@ -143,7 +142,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
             throw new RuntimeException(collector.composeComprehensiveException());
         }
         LOGGER.config(String.format("Provider class loaded: %s", engineProviderClassname));
-        this.container = (SPIContainer) ReflectionHelper.getInstance(engineProviderClazz, collector);
+        this.container = (SPIClientContainer) ReflectionHelper.getInstance(engineProviderClazz, collector);
         TyrusContainerProvider.getContainerProvider().setContainer(this);
         if (!collector.isEmpty()) {
             throw new RuntimeException(collector.composeComprehensiveException());
@@ -231,7 +230,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
 
             if (endpoint != null) {
                 EndpointWrapper clientEndpoint = new EndpointWrapper(endpoint, config, componentProvider, this, url, collector, null);
-                SPIWebSocketEngine.SPIClientHandshakeListener listener = new SPIWebSocketEngine.SPIClientHandshakeListener() {
+                SPIClientContainer.ClientHandshakeListener listener = new SPIClientContainer.ClientHandshakeListener() {
 
                     @Override
                     public void onResponseHeaders(final Map<String, String> originalHeaders) {

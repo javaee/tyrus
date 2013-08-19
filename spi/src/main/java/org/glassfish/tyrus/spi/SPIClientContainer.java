@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -39,31 +39,36 @@
  */
 package org.glassfish.tyrus.spi;
 
-
 import java.util.Map;
 
 import javax.websocket.ClientEndpointConfig;
 import javax.websocket.DeploymentException;
 
 /**
- * The TyrusContainer is the starting point of the provider SPI. The provider must implement this
- * class with a public no args constructor. The new provider can be configured
- * in the web.xml of the web application requesting the new provider by specifying a servlet context
- * initialization parameter of key org.glassfish.websocket.provider.class and value the fully qualified classname
- * of the provider class.
- *
- * @author Danny Coward (danny.coward at oracle.com)
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public interface SPIContainer {
+public interface SPIClientContainer {
+
     /**
-     * Creates a new embedded HTTP server (if supported) listening to incoming connections at a given root path
-     * and port.
-     *
-     * @param rootPath context root
-     * @param port     TCP port
-     * @return server that can be started and stopped
+     * Called when response is received from the server.
      */
-    public SPIServer createServer(String rootPath, int port);
+    public static interface ClientHandshakeListener {
+
+        /**
+         * Called when correct handshake response is received.
+         *
+         * @param headers of the handshake response.
+         */
+        public void onResponseHeaders(Map<String, String> headers);
+
+
+        /**
+         * Called when an error is found in handshake response.
+         *
+         * @param exception error found during handshake response check.
+         */
+        public void onError(Throwable exception);
+    }
 
     /**
      * Open client socket - connect to endpoint specified with {@code url} parameter.
@@ -76,5 +81,5 @@ public interface SPIContainer {
      * @return representation of incoming socket.
      */
     public SPIClientSocket openClientSocket(String url, ClientEndpointConfig cec, SPIEndpoint endpoint,
-                                            SPIWebSocketEngine.SPIClientHandshakeListener handshakeListener, Map<String, Object> properties) throws DeploymentException;
+                                            SPIClientContainer.ClientHandshakeListener handshakeListener, Map<String, Object> properties) throws DeploymentException;
 }

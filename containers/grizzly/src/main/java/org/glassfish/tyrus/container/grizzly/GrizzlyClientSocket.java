@@ -67,9 +67,9 @@ import javax.websocket.Session;
 import org.glassfish.tyrus.core.RequestContext;
 import org.glassfish.tyrus.core.TyrusExtension;
 import org.glassfish.tyrus.core.TyrusRemoteEndpoint;
+import org.glassfish.tyrus.spi.SPIClientContainer;
 import org.glassfish.tyrus.spi.SPIClientSocket;
 import org.glassfish.tyrus.spi.SPIEndpoint;
-import org.glassfish.tyrus.spi.SPIWebSocketEngine;
 import org.glassfish.tyrus.spi.SPIWriter;
 import org.glassfish.tyrus.websockets.ClosingDataFrame;
 import org.glassfish.tyrus.websockets.DataFrame;
@@ -153,7 +153,7 @@ public class GrizzlyClientSocket implements WebSocket, SPIClientSocket {
     private final TyrusRemoteEndpoint remoteEndpoint;
     private final long timeoutMs;
     private final ClientEndpointConfig configuration;
-    private final SPIWebSocketEngine.SPIClientHandshakeListener listener;
+    private final SPIClientContainer.ClientHandshakeListener listener;
     private final SSLEngineConfigurator clientSSLEngineConfigurator;
     private final ThreadPoolConfig workerThreadPoolConfig;
     private final ThreadPoolConfig selectorThreadPoolConfig;
@@ -178,7 +178,7 @@ public class GrizzlyClientSocket implements WebSocket, SPIClientSocket {
      * @param clientSSLEngineConfigurator ssl engine configurator
      */
     GrizzlyClientSocket(SPIEndpoint endpoint, URI uri, ClientEndpointConfig configuration, long timeoutMs,
-                        SPIWebSocketEngine.SPIClientHandshakeListener listener, WebSocketEngine engine,
+                        SPIClientContainer.ClientHandshakeListener listener, WebSocketEngine engine,
                         SSLEngineConfigurator clientSSLEngineConfigurator,
                         String proxyString,
                         ThreadPoolConfig workerThreadPoolConfig,

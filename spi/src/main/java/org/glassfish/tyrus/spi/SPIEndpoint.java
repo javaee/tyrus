@@ -50,7 +50,7 @@ import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
 
 /**
- * The WebSocket SDK implements SPIEndpoint with its representation of
+ * The WebSocket SDK implements {@link SPIEndpoint} with its representation of
  * a websocket endpoint mapped to a base URI that wishes to handle incoming
  * messages.
  *
@@ -111,9 +111,9 @@ public abstract class SPIEndpoint {
      * does not support streaming, it will need to reconstruct the message here and pass the whole
      * thing along.
      *
-     * @param gs            <code>SPIRemoteEndpoint</code> who sent the message.
-     * @param partialBytes  the piece of the binary message.
-     * @param last          to indicate if this is the last partial byte buffer in the sequence
+     * @param gs           <code>SPIRemoteEndpoint</code> who sent the message.
+     * @param partialBytes the piece of the binary message.
+     * @param last         to indicate if this is the last partial byte buffer in the sequence
      */
     public abstract void onPartialMessage(SPIRemoteEndpoint gs, ByteBuffer partialBytes, boolean last);
 
@@ -153,12 +153,6 @@ public abstract class SPIEndpoint {
     public abstract void onClose(SPIRemoteEndpoint gs, CloseReason closeReason);
 
     /**
-     * Called by the provider after all connections have been closed to
-     * this endpoint, and after the endpoint has been removed from service.
-     */
-    public abstract void remove();
-
-    /**
      * Get the negotiated extensions' names based on the extensions supported by client.
      *
      * @param clientExtensions names of the extensions' supported by client.
@@ -184,9 +178,9 @@ public abstract class SPIEndpoint {
     /**
      * Creates a Session based on the {@link SPIRemoteEndpoint}, subprotocols and extensions.
      *
-     * @param re the other end of the connection.
+     * @param re          the other end of the connection.
      * @param subprotocol used.
-     * @param extensions extensions used.
+     * @param extensions  extensions used.
      * @return {@link Session} representing the connection.
      */
     public abstract Session createSessionForRemoteEndpoint(SPIRemoteEndpoint re, String subprotocol, List<Extension> extensions);

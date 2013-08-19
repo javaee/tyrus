@@ -134,7 +134,7 @@ public class WebSocketEngine implements SPIWebSocketEngine {
         return null;
     }
 
-    private static void handleUnsupportedVersion(final SPIWriter writer,
+    private static void handleUnsupportedVersion(final ResponseWriter writer,
                                                  final SPIHandshakeRequest request) {
         WebSocketResponse response = new WebSocketResponse();
         response.setStatus(426);
@@ -172,8 +172,8 @@ public class WebSocketEngine implements SPIWebSocketEngine {
      * @return {@code true} if upgrade is performed, {@code false} otherwise.
      */
     @Override
-    public boolean upgrade(SPIWriter writer, SPIHandshakeRequest request) {
-        return upgrade(writer, request, null);
+    public boolean upgrade(SPIWriter writer, SPIHandshakeRequest request, ResponseWriter responseWriter) {
+        return upgrade(writer, request, responseWriter, null);
     }
 
     /**
@@ -181,14 +181,15 @@ public class WebSocketEngine implements SPIWebSocketEngine {
      *
      * @param writer          connection.
      * @param request         request.
-     * @param upgradeListener called when upgrade is going to be performed. Additinally, leaves
+     * @param upgradeListener called when upgrade is going to be performed. Additionally, leaves
      *                        {@link org.glassfish.tyrus.websockets.WebSocket#onConnect()} call
      *                        responsibility to {@link org.glassfish.tyrus.spi.SPIWebSocketEngine.UpgradeListener} instance.
      * @return {@code true} if upgrade is performed, {@code false} otherwise.
      * @throws HandshakeException if an error occurred during the upgrade.
      */
     @Override
-    public boolean upgrade(final SPIWriter writer, SPIHandshakeRequest request, UpgradeListener upgradeListener) throws HandshakeException {
+    public boolean upgrade(final SPIWriter writer, SPIHandshakeRequest request,
+                           ResponseWriter responseWriter, UpgradeListener upgradeListener) throws HandshakeException {
         final WebSocketApplication app = getApplication(request);
 
         WebSocket socket = null;
@@ -196,25 +197,13 @@ public class WebSocketEngine implements SPIWebSocketEngine {
             if (app != null) {
                 final ProtocolHandler protocolHandler = loadHandler(request);
                 if (protocolHandler == null) {
-                    handleUnsupportedVersion(writer, request);
+                    handleUnsupportedVersion(responseWriter, request);
                     return false;
                 }
                 protocolHandler.setWriter(writer);
                 socket = app.createSocket(protocolHandler, app);
                 setWebSocketHolder(writer, protocolHandler, null, socket, app);
-                protocolHandler.handshake(writer, app, request);
-                writer.addCloseListener(new SPIWriter.CloseListener() {
-                    @Override
-                    public void onClose() {
-
-                        final WebSocket webSocket = getWebSocket(writer);
-                        if (webSocket != null) {
-                            webSocket.close();
-                            webSocket.onClose(new ClosingDataFrame(WebSocket.END_POINT_GOING_DOWN,
-                                    "Close detected on connection"));
-                        }
-                    }
-                });
+                protocolHandler.handshake(responseWriter, app, request);
 
                 if (upgradeListener != null) {
                     upgradeListener.onUpgradeFinished();
@@ -266,7 +255,10 @@ public class WebSocketEngine implements SPIWebSocketEngine {
 
     @Override
     public void close(SPIWriter writer, int closeCode, String closeReason) {
-        getWebSocketHolder(writer).webSocket.onClose(new ClosingDataFrame(closeCode, closeReason));
+        final WebSocketHolder holder = getWebSocketHolder(writer);
+        if (holder != null) {
+            holder.webSocket.onClose(new ClosingDataFrame(closeCode, closeReason));
+        }
     }
 
     /**

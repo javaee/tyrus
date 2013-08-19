@@ -40,6 +40,7 @@
 
 package org.glassfish.tyrus.websockets;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.Charset;
@@ -57,6 +58,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.websocket.WebSocketContainer;
 
 import org.glassfish.tyrus.spi.SPIHandshakeRequest;
+import org.glassfish.tyrus.spi.SPIWebSocketEngine;
 import org.glassfish.tyrus.spi.SPIWriter;
 import org.glassfish.tyrus.websockets.frame.BinaryFrame;
 import org.glassfish.tyrus.websockets.frame.ClosingFrame;
@@ -86,7 +88,7 @@ public final class ProtocolHandler {
         this.maskData = maskData;
     }
 
-    public HandShake handshake(SPIWriter writer, WebSocketApplication app, SPIHandshakeRequest request) {
+    public HandShake handshake(SPIWebSocketEngine.ResponseWriter writer, WebSocketApplication app, SPIHandshakeRequest request) {
         final HandShake handshake = createHandShake(request);
         handshake.respond(writer, app/*, ((WebSocketRequest) request.getHttpHeader()).getResponse()*/);
         return handshake;
@@ -287,7 +289,11 @@ public final class ProtocolHandler {
             throw new IllegalStateException("Connection is null");
         }
 
-        localWriter.closeSilently();
+        try {
+            localWriter.close();
+        } catch (IOException e) {
+            throw new IllegalStateException("IOException thrown when closing connection", e);
+        }
     }
 
     void utf8Decode(boolean finalFragment, byte[] data, DataFrame dataFrame) {

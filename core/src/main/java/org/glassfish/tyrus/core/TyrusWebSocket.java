@@ -56,7 +56,7 @@ import org.glassfish.tyrus.websockets.frame.PingFrame;
 import org.glassfish.tyrus.websockets.frame.PongFrame;
 
 /**
- * Tyrus implementation of {@link WebSocket}.
+ * Tyrus implementation of {@link org.glassfish.tyrus.websockets.WebSocket}.
  * <p/>
  * Instance of this class represents one bi-directional websocket connection.
  */

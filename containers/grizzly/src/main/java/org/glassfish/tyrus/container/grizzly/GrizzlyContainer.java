@@ -48,12 +48,11 @@ import javax.websocket.ClientEndpointConfig;
 import javax.websocket.DeploymentException;
 
 import org.glassfish.tyrus.core.TyrusEndpoint;
+import org.glassfish.tyrus.spi.SPIClientContainer;
 import org.glassfish.tyrus.spi.SPIClientSocket;
-import org.glassfish.tyrus.spi.SPIContainer;
 import org.glassfish.tyrus.spi.SPIEndpoint;
-import org.glassfish.tyrus.spi.SPIRegisteredEndpoint;
 import org.glassfish.tyrus.spi.SPIServer;
-import org.glassfish.tyrus.spi.SPIWebSocketEngine;
+import org.glassfish.tyrus.spi.SPIServerFactory;
 import org.glassfish.tyrus.websockets.WebSocketEngine;
 
 import org.glassfish.grizzly.http.server.HttpServer;
@@ -64,7 +63,7 @@ import org.glassfish.grizzly.threadpool.ThreadPoolConfig;
 /**
  * @author Danny Coward (danny.coward at oracle.com)
  */
-public class GrizzlyEngine implements SPIContainer {
+public class GrizzlyContainer implements SPIServerFactory, SPIClientContainer {
 
     public static final String SSL_ENGINE_CONFIGURATOR = "org.glassfish.tyrus.client.sslEngineConfigurator";
 
@@ -75,7 +74,7 @@ public class GrizzlyEngine implements SPIContainer {
     /**
      * Creates Grizzly engine.
      */
-    public GrizzlyEngine() {
+    public GrizzlyContainer() {
         engine = new WebSocketEngine();
     }
 
@@ -95,22 +94,20 @@ public class GrizzlyEngine implements SPIContainer {
             }
 
             @Override
-            public SPIRegisteredEndpoint register(SPIEndpoint endpoint) throws DeploymentException {
-                TyrusEndpoint ge = new TyrusEndpoint(endpoint);
-                engine.register(ge);
-                return ge;
+            public void register(SPIEndpoint endpoint) throws DeploymentException {
+                engine.register(new TyrusEndpoint(endpoint));
             }
 
             @Override
-            public void unregister(SPIRegisteredEndpoint ge) {
-                engine.unregister((TyrusEndpoint) ge);
+            public void unregister(SPIEndpoint endpoint) {
+                engine.unregister(new TyrusEndpoint(endpoint));
             }
         };
     }
 
     @Override
     public SPIClientSocket openClientSocket(String url, ClientEndpointConfig cec, SPIEndpoint endpoint,
-                                            SPIWebSocketEngine.SPIClientHandshakeListener listener, Map<String, Object> properties) throws DeploymentException {
+                                            SPIClientContainer.ClientHandshakeListener listener, Map<String, Object> properties) throws DeploymentException {
         URI uri;
 
         try {

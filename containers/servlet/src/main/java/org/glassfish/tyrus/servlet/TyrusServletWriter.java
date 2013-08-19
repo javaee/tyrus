@@ -51,6 +51,7 @@ import javax.servlet.WriteListener;
 import javax.servlet.http.HttpServletResponse;
 
 import org.glassfish.tyrus.spi.SPIHandshakeResponse;
+import org.glassfish.tyrus.spi.SPIWebSocketEngine;
 import org.glassfish.tyrus.spi.SPIWriter;
 
 /**
@@ -58,7 +59,7 @@ import org.glassfish.tyrus.spi.SPIWriter;
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-class TyrusServletWriter implements SPIWriter, WriteListener {
+class TyrusServletWriter implements SPIWriter, WriteListener, SPIWebSocketEngine.ResponseWriter {
 
     private final TyrusHttpUpgradeHandler tyrusHttpUpgradeHandler;
     private final HttpServletResponse httpServletResponse;
@@ -117,8 +118,8 @@ class TyrusServletWriter implements SPIWriter, WriteListener {
     @Override
     public void write(final byte[] bytes, SPIWriter.CompletionHandler<byte[]> completionHandler) {
 
-        // first write
         synchronized (outputStreamLock) {
+            // first write
             if (servletOutputStream == null) {
                 try {
                     servletOutputStream = tyrusHttpUpgradeHandler.getWebConnection().getOutputStream();
@@ -158,11 +159,6 @@ class TyrusServletWriter implements SPIWriter, WriteListener {
             if (completionHandler != null) {
                 completionHandler.completed(bytes);
             }
-
-            // TODO TODO TODO TODO TODO
-//            if (frame.getType() instanceof ClosingFrame) {
-//                tyrusHttpUpgradeHandler.getWebConnection().close();
-//            }
         } catch (Exception e) {
             if (completionHandler != null) {
                 completionHandler.failed(e);
@@ -179,12 +175,7 @@ class TyrusServletWriter implements SPIWriter, WriteListener {
     }
 
     @Override
-    public void addCloseListener(CloseListener closeListener) {
-
-    }
-
-    @Override
-    public void closeSilently() {
+    public void close() {
         try {
             tyrusHttpUpgradeHandler.getWebConnection().close();
         } catch (Exception e) {
