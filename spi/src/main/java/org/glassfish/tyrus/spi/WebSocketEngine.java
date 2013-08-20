@@ -46,48 +46,48 @@ import java.nio.ByteBuffer;
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public interface SPIWebSocketEngine {
+public interface WebSocketEngine {
 
     /**
-     * Handles upgrade process, response is written using {@link ResponseWriter#write(SPIHandshakeResponse)}.
+     * Handles upgrade process, response is written using {@link ResponseWriter#write(HandshakeResponse)}.
      *
      * @param writer  used to write HTTP response.
      * @param request representation of HTTP request.
      * @return {@code true} if upgrade was successful, {@code false} otherwise.
      */
-    boolean upgrade(SPIWriter writer, SPIHandshakeRequest request, ResponseWriter responseWriter);
+    boolean upgrade(Writer writer, HandshakeRequest request, ResponseWriter responseWriter);
 
     /**
-     * Handles upgrade process, response is written using {@link ResponseWriter#write(SPIHandshakeResponse)}.
+     * Handles upgrade process, response is written using {@link ResponseWriter#write(HandshakeResponse)}.
      *
      * @param writer          used to write HTTP response.
      * @param request         representation of HTTP request.
-     * @param upgradeListener {@link org.glassfish.tyrus.spi.SPIWebSocketEngine.UpgradeListener#onUpgradeFinished()}
+     * @param upgradeListener {@link WebSocketEngine.UpgradeListener#onUpgradeFinished()}
      *                        is invoked after handshake response is sent. Registering this listener transfer
-     *                        responsibility for calling {@link #onConnect(SPIWriter)} to this listener. This might be
+     *                        responsibility for calling {@link #onConnect(Writer)} to this listener. This might be
      *                        useful especially when you need to wait for some other initialization (like Servlet update
-     *                        mechanism); invoking {@link #onConnect(SPIWriter)} means that {@link javax.websocket.OnOpen}
+     *                        mechanism); invoking {@link #onConnect(Writer)} means that {@link javax.websocket.OnOpen}
      *                        annotated method will be invoked which allows sending messages, so underlying connection
      *                        needs to be ready.
      * @return {@code true} if upgrade was successful, {@code false} otherwise.
      */
-    boolean upgrade(SPIWriter writer, SPIHandshakeRequest request, ResponseWriter responseWriter, UpgradeListener upgradeListener);
+    boolean upgrade(Writer writer, HandshakeRequest request, ResponseWriter responseWriter, UpgradeListener upgradeListener);
 
     /**
      * Processes incoming data, including sending a response (if any).
      *
-     * @param writer TODO
+     * @param writer related writer instance (representing underlying connection).
      * @param data   incoming data.
      */
-    void processData(SPIWriter writer, ByteBuffer data);
+    void processData(Writer writer, ByteBuffer data);
 
     /**
      * Causes invocation if {@link javax.websocket.OnOpen} annotated method. Can be invoked only when
-     * {@link #upgrade(SPIWriter, SPIHandshakeRequest, ResponseWriter, org.glassfish.tyrus.spi.SPIWebSocketEngine.UpgradeListener)} is used.
+     * {@link #upgrade(Writer, HandshakeRequest, ResponseWriter, WebSocketEngine.UpgradeListener)} is used.
      *
-     * @param writer TODO
+     * @param writer related writer instance (representing underlying connection).
      */
-    void onConnect(SPIWriter writer);
+    void onConnect(Writer writer);
 
     /**
      * Close the corresponding WebSocket with a close reason.
@@ -95,11 +95,11 @@ public interface SPIWebSocketEngine {
      * This method is used for indicating that underlying connection was closed and/or other condition requires
      * closing socket.
      *
-     * @param writer      TODO
+     * @param writer      related writer instance (representing underlying connection).
      * @param closeCode   close code.
      * @param closeReason close reason.
      */
-    void close(SPIWriter writer, int closeCode, String closeReason);
+    void close(Writer writer, int closeCode, String closeReason);
 
     /**
      * HTTP Upgrade listener.
@@ -107,7 +107,7 @@ public interface SPIWebSocketEngine {
     interface UpgradeListener {
 
         /**
-         * Called when request is upgraded. The responsibility for making {@link #onConnect(SPIWriter)}
+         * Called when request is upgraded. The responsibility for making {@link #onConnect(Writer)}
          * call is on listener when it is used.
          */
         void onUpgradeFinished();
@@ -118,10 +118,10 @@ public interface SPIWebSocketEngine {
      */
     interface ResponseWriter {
         /**
-         * Write {@link SPIHandshakeResponse} to underlying connection.
+         * Write {@link HandshakeResponse} to underlying connection.
          *
          * @param response response to be written.
          */
-        public void write(SPIHandshakeResponse response);
+        public void write(HandshakeResponse response);
     }
 }

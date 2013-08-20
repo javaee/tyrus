@@ -41,6 +41,7 @@ package org.glassfish.tyrus.core;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -67,14 +68,14 @@ public class Utils {
         int state = 0;
         StringBuilder sb = new StringBuilder();
 
-        for(char c : headerValue.toCharArray()) {
+        for (char c : headerValue.toCharArray()) {
             switch (state) {
                 case 0:
                     // ignore trailing whitespace
-                    if(Character.isWhitespace(c)) {
+                    if (Character.isWhitespace(c)) {
                         break;
                     }
-                    if(c == '\"') {
+                    if (c == '\"') {
                         state = 2;
                         sb.append(c);
                         break;
@@ -83,7 +84,7 @@ public class Utils {
                     state = 1;
                     break;
                 case 1:
-                    if(c != ',') {
+                    if (c != ',') {
                         sb.append(c);
                     } else {
                         values.add(sb.toString());
@@ -92,7 +93,7 @@ public class Utils {
                     }
                     break;
                 case 2:
-                    if(c != '\"') {
+                    if (c != '\"') {
                         sb.append(c);
                     } else {
                         sb.append(c);
@@ -102,10 +103,10 @@ public class Utils {
                     }
                     break;
                 case 3:
-                    if(Character.isWhitespace(c)) {
+                    if (Character.isWhitespace(c)) {
                         break;
                     }
-                    if(c == ',') {
+                    if (c == ',') {
                         state = 0;
                     }
 
@@ -117,7 +118,7 @@ public class Utils {
             }
         }
 
-        if(sb.length() > 0) {
+        if (sb.length() > 0) {
             values.add(sb.toString());
         }
 
@@ -141,5 +142,25 @@ public class Utils {
         }
 
         return ret;
+    }
+
+    /**
+     * Creates single {@link String} value from provided List by calling {@link Object#toString()} on each item
+     * and separating existing ones with {@code ", "}.
+     *
+     * @param list to be serialized.
+     * @param <T>  item type.
+     * @return single {@link String} containing all items from provided list.
+     */
+    public static <T> String getHeaderFromList(List<T> list) {
+        StringBuilder sb = new StringBuilder();
+        Iterator<T> it = list.iterator();
+        while (it.hasNext()) {
+            sb.append(it.next());
+            if (it.hasNext()) {
+                sb.append(", ");
+            }
+        }
+        return sb.toString();
     }
 }

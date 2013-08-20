@@ -45,17 +45,17 @@ import java.util.concurrent.Future;
 
 import javax.websocket.CloseReason;
 
-import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
+import org.glassfish.tyrus.spi.RemoteEndpoint;
 import org.glassfish.tyrus.websockets.DataFrame;
 import org.glassfish.tyrus.websockets.WebSocket;
 
 /**
- * {@link SPIRemoteEndpoint} implementation.
+ * {@link org.glassfish.tyrus.spi.RemoteEndpoint} implementation.
  *
  * @author Danny Coward (danny.coward at oracle.com)
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class TyrusRemoteEndpoint extends SPIRemoteEndpoint {
+public class TyrusRemoteEndpoint extends RemoteEndpoint {
 
     private final WebSocket socket;
 
@@ -116,9 +116,7 @@ public class TyrusRemoteEndpoint extends SPIRemoteEndpoint {
 
         TyrusRemoteEndpoint that = (TyrusRemoteEndpoint) o;
 
-        if (!socket.equals(that.socket)) return false;
-
-        return true;
+        return socket.equals(that.socket);
     }
 
     @Override

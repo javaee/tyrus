@@ -41,6 +41,7 @@ package org.glassfish.tyrus.servlet;
 
 
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.logging.Level;
@@ -50,16 +51,17 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.WriteListener;
 import javax.servlet.http.HttpServletResponse;
 
-import org.glassfish.tyrus.spi.SPIHandshakeResponse;
-import org.glassfish.tyrus.spi.SPIWebSocketEngine;
-import org.glassfish.tyrus.spi.SPIWriter;
+import org.glassfish.tyrus.core.Utils;
+import org.glassfish.tyrus.spi.HandshakeResponse;
+import org.glassfish.tyrus.spi.WebSocketEngine;
+import org.glassfish.tyrus.spi.Writer;
 
 /**
- * {@link org.glassfish.tyrus.spi.SPIWriter} implementation used in Servlet integration.
+ * {@link org.glassfish.tyrus.spi.Writer} implementation used in Servlet integration.
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-class TyrusServletWriter implements SPIWriter, WriteListener, SPIWebSocketEngine.ResponseWriter {
+class TyrusServletWriter implements Writer, WriteListener, WebSocketEngine.ResponseWriter {
 
     private final TyrusHttpUpgradeHandler tyrusHttpUpgradeHandler;
     private final HttpServletResponse httpServletResponse;
@@ -116,7 +118,7 @@ class TyrusServletWriter implements SPIWriter, WriteListener, SPIWebSocketEngine
     }
 
     @Override
-    public void write(final byte[] bytes, SPIWriter.CompletionHandler<byte[]> completionHandler) {
+    public void write(final byte[] bytes, Writer.CompletionHandler<byte[]> completionHandler) {
 
         synchronized (outputStreamLock) {
             // first write
@@ -148,7 +150,7 @@ class TyrusServletWriter implements SPIWriter, WriteListener, SPIWebSocketEngine
         }
     }
 
-    public void _write(final byte[] bytes, SPIWriter.CompletionHandler<byte[]> completionHandler) {
+    public void _write(final byte[] bytes, Writer.CompletionHandler<byte[]> completionHandler) {
 
         try {
             synchronized (outputStreamLock) {
@@ -167,10 +169,10 @@ class TyrusServletWriter implements SPIWriter, WriteListener, SPIWebSocketEngine
     }
 
     @Override
-    public void write(SPIHandshakeResponse response) {
+    public void write(HandshakeResponse response) {
         httpServletResponse.setStatus(response.getStatus());
-        for (Map.Entry<String, String> entry : response.getHeaders().entrySet()) {
-            httpServletResponse.addHeader(entry.getKey(), entry.getValue());
+        for (Map.Entry<String, List<String>> entry : response.getHeaders().entrySet()) {
+            httpServletResponse.addHeader(entry.getKey(), Utils.getHeaderFromList(entry.getValue()));
         }
     }
 

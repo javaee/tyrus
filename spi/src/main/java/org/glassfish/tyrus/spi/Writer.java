@@ -43,12 +43,11 @@ package org.glassfish.tyrus.spi;
 import java.io.Closeable;
 
 /**
- * Writer is responsible for writing all data to open sockets, includind with handshake response and all
- * other communication.
+ * Class responsible for writing data.
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public interface SPIWriter extends Closeable {
+public interface Writer extends Closeable {
 
     /**
      * Interface, which will be used by Grizzly to notify about asynchronous I/O

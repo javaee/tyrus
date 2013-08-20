@@ -48,10 +48,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -67,14 +65,15 @@ import javax.websocket.Session;
 import org.glassfish.tyrus.core.RequestContext;
 import org.glassfish.tyrus.core.TyrusExtension;
 import org.glassfish.tyrus.core.TyrusRemoteEndpoint;
-import org.glassfish.tyrus.spi.SPIClientContainer;
-import org.glassfish.tyrus.spi.SPIClientSocket;
-import org.glassfish.tyrus.spi.SPIEndpoint;
-import org.glassfish.tyrus.spi.SPIWriter;
+import org.glassfish.tyrus.spi.ClientContainer;
+import org.glassfish.tyrus.spi.ClientSocket;
+import org.glassfish.tyrus.spi.EndpointWrapper;
+import org.glassfish.tyrus.spi.HandshakeResponse;
+import org.glassfish.tyrus.spi.Writer;
 import org.glassfish.tyrus.websockets.ClosingDataFrame;
 import org.glassfish.tyrus.websockets.DataFrame;
 import org.glassfish.tyrus.websockets.Extension;
-import org.glassfish.tyrus.websockets.HandShake;
+import org.glassfish.tyrus.websockets.Handshake;
 import org.glassfish.tyrus.websockets.HandshakeException;
 import org.glassfish.tyrus.websockets.ProtocolHandler;
 import org.glassfish.tyrus.websockets.WebSocket;
@@ -107,7 +106,7 @@ import org.glassfish.grizzly.threadpool.ThreadPoolConfig;
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class GrizzlyClientSocket implements WebSocket, SPIClientSocket {
+public class GrizzlyClientSocket implements WebSocket, ClientSocket {
 
     /**
      * Can be used as client-side user property to set proxy.
@@ -148,12 +147,12 @@ public class GrizzlyClientSocket implements WebSocket, SPIClientSocket {
 
     private final URI uri;
     private final ProtocolHandler protocolHandler;
-    private final SPIEndpoint endpoint;
+    private final EndpointWrapper endpoint;
     private TCPNIOTransport transport;
     private final TyrusRemoteEndpoint remoteEndpoint;
     private final long timeoutMs;
     private final ClientEndpointConfig configuration;
-    private final SPIClientContainer.ClientHandshakeListener listener;
+    private final ClientContainer.ClientHandshakeListener listener;
     private final SSLEngineConfigurator clientSSLEngineConfigurator;
     private final ThreadPoolConfig workerThreadPoolConfig;
     private final ThreadPoolConfig selectorThreadPoolConfig;
@@ -177,8 +176,8 @@ public class GrizzlyClientSocket implements WebSocket, SPIClientSocket {
      * @param engine                      engine used for this websocket communication
      * @param clientSSLEngineConfigurator ssl engine configurator
      */
-    GrizzlyClientSocket(SPIEndpoint endpoint, URI uri, ClientEndpointConfig configuration, long timeoutMs,
-                        SPIClientContainer.ClientHandshakeListener listener, WebSocketEngine engine,
+    GrizzlyClientSocket(EndpointWrapper endpoint, URI uri, ClientEndpointConfig configuration, long timeoutMs,
+                        ClientContainer.ClientHandshakeListener listener, WebSocketEngine engine,
                         SSLEngineConfigurator clientSSLEngineConfigurator,
                         String proxyString,
                         ThreadPoolConfig workerThreadPoolConfig,
@@ -220,7 +219,7 @@ public class GrizzlyClientSocket implements WebSocket, SPIClientSocket {
                 protected void preConfigure(Connection conn) {
                     super.preConfigure(conn);
 
-                    final SPIWriter writer = getConnection(conn);
+                    final Writer writer = getConnection(conn);
 
                     protocolHandler.setWriter(writer);
                     WebSocketEngine.WebSocketHolder holder =
@@ -307,7 +306,7 @@ public class GrizzlyClientSocket implements WebSocket, SPIClientSocket {
         return transportBuilder.build();
     }
 
-    private void prepareHandshake(HandShake handshake) {
+    private void prepareHandshake(Handshake handshake) {
         List<Extension> grizzlyExtensions = new ArrayList<Extension>();
 
         for (javax.websocket.Extension e : configuration.getExtensions()) {
@@ -322,16 +321,16 @@ public class GrizzlyClientSocket implements WebSocket, SPIClientSocket {
         handshake.setExtensions(grizzlyExtensions);
         handshake.setSubProtocols(configuration.getPreferredSubprotocols());
 
-        handshake.setResponseListener(new HandShake.HandShakeResponseListener() {
-            @Override
-            public void onResponseHeaders(final Map<String, String> originalHeaders) {
+        handshake.setResponseListener(new Handshake.HandshakeResponseListener() {
 
-                String value = originalHeaders.get(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER);
-                if (value != null) {
-                    responseExtensions.addAll(TyrusExtension.fromString(Arrays.asList(value)));
+            @Override
+            public void onHandShakeResponse(HandshakeResponse response) {
+                List<String> values = response.getHeaders().get(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER);
+                if (values != null) {
+                    responseExtensions.addAll(TyrusExtension.fromString(values));
                 }
 
-                listener.onResponseHeaders(originalHeaders);
+                listener.onHandshakeResponse(response);
             }
 
             @Override
@@ -600,7 +599,7 @@ public class GrizzlyClientSocket implements WebSocket, SPIClientSocket {
         return clientFilterChainBuilder.build();
     }
 
-    private static SPIWriter getConnection(final Connection connection) {
+    private static Writer getConnection(final Connection connection) {
         return new GrizzlyWriter(connection);
     }
 

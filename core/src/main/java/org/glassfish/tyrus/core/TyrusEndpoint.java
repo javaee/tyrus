@@ -41,24 +41,18 @@ package org.glassfish.tyrus.core;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.websocket.CloseReason;
 import javax.websocket.EndpointConfig;
 import javax.websocket.Extension;
-import javax.websocket.HandshakeResponse;
-import javax.websocket.server.HandshakeRequest;
 import javax.websocket.server.ServerEndpointConfig;
 
-import org.glassfish.tyrus.spi.SPIEndpoint;
-import org.glassfish.tyrus.spi.SPIHandshakeRequest;
+import org.glassfish.tyrus.spi.EndpointWrapper;
+import org.glassfish.tyrus.spi.HandshakeRequest;
 import org.glassfish.tyrus.websockets.ClosingDataFrame;
 import org.glassfish.tyrus.websockets.ProtocolHandler;
 import org.glassfish.tyrus.websockets.WebSocket;
@@ -80,7 +74,7 @@ import org.glassfish.tyrus.websockets.WebSocketResponse;
  */
 public class TyrusEndpoint extends WebSocketApplication {
 
-    private final SPIEndpoint endpoint;
+    private final EndpointWrapper endpoint;
 
     /**
      * Used to store negotiated extensions between the call of isApplicationRequest method and getSupportedExtensions.
@@ -93,16 +87,16 @@ public class TyrusEndpoint extends WebSocketApplication {
     private String temporaryNegotiatedProtocol;
 
     /**
-     * Create {@link TyrusEndpoint} which represents given {@link SPIEndpoint}.
+     * Create {@link TyrusEndpoint} which represents given {@link org.glassfish.tyrus.spi.EndpointWrapper}.
      *
      * @param endpoint endpoint to be wrapped.
      */
-    public TyrusEndpoint(SPIEndpoint endpoint) {
+    public TyrusEndpoint(EndpointWrapper endpoint) {
         this.endpoint = endpoint;
     }
 
     @Override
-    public boolean isApplicationRequest(SPIHandshakeRequest webSocketRequest) {
+    public boolean isApplicationRequest(HandshakeRequest webSocketRequest) {
         final List<String> protocols = webSocketRequest.getHeaders().get(WebSocketEngine.SEC_WS_PROTOCOL_HEADER);
         temporaryNegotiatedProtocol = endpoint.getNegotiatedProtocol(protocols);
 
@@ -229,34 +223,19 @@ public class TyrusEndpoint extends WebSocketApplication {
     }
 
     @Override
-    public void onHandShakeResponse(SPIHandshakeRequest request, WebSocketResponse response) {
+    public void onHandShakeResponse(HandshakeRequest request, WebSocketResponse response) {
         final EndpointConfig configuration = this.endpoint.getEndpointConfig();
 
         if (configuration instanceof ServerEndpointConfig) {
-            final HandshakeResponse handshakeResponse = createHandshakeResponse(response);
 
             // http://java.net/jira/browse/TYRUS-62
             final ServerEndpointConfig serverEndpointConfig = (ServerEndpointConfig) configuration;
             serverEndpointConfig.getConfigurator().modifyHandshake(serverEndpointConfig, createHandshakeRequest(request),
-                    handshakeResponse);
-
-            for (Map.Entry<String, List<String>> headerEntry : handshakeResponse.getHeaders().entrySet()) {
-                StringBuilder finalHeaderValue = new StringBuilder();
-
-                for (String headerValue : headerEntry.getValue()) {
-                    if (finalHeaderValue.length() != 0) {
-                        finalHeaderValue.append(", ");
-                    }
-
-                    finalHeaderValue.append(headerValue);
-                }
-
-                response.getHeaders().put(headerEntry.getKey(), finalHeaderValue.toString());
-            }
+                    response);
         }
     }
 
-    private HandshakeRequest createHandshakeRequest(final SPIHandshakeRequest webSocketRequest) {
+    private javax.websocket.server.HandshakeRequest createHandshakeRequest(final HandshakeRequest webSocketRequest) {
         if (webSocketRequest instanceof RequestContext) {
             final RequestContext requestContext = (RequestContext) webSocketRequest;
             // TYRUS-208; spec requests headers to be read only when passed to ServerEndpointConfig.Configurator#modifyHandshake.
@@ -266,27 +245,6 @@ public class TyrusEndpoint extends WebSocketApplication {
         }
 
         return null;
-    }
-
-    private HandshakeResponse createHandshakeResponse(final WebSocketResponse webSocketResponse) {
-
-        final Map<String, List<String>> headers = new TreeMap<String, List<String>>(new Comparator<String>() {
-            @Override
-            public int compare(String o1, String o2) {
-                return o1.toLowerCase().compareTo(o2.toLowerCase());
-            }
-        });
-
-        for (Map.Entry<String, String> entry : webSocketResponse.getHeaders().entrySet()) {
-            headers.put(entry.getKey(), Arrays.asList(entry.getValue()));
-        }
-
-        return new HandshakeResponse() {
-            @Override
-            public Map<String, List<String>> getHeaders() {
-                return headers;
-            }
-        };
     }
 
     @Override

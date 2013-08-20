@@ -54,7 +54,7 @@ import javax.websocket.PongMessage;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
-import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
+import org.glassfish.tyrus.spi.RemoteEndpoint;
 import org.glassfish.tyrus.websockets.DataFrame;
 
 import org.junit.Test;
@@ -67,8 +67,8 @@ import static org.junit.Assert.assertTrue;
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class SessionImplTest {
-    EndpointWrapper ew = new EndpointWrapper(EchoEndpoint.class, null, null, null, null, null, null);
+public class TyrusSessionTest {
+    TyrusEndpointWrapper ew = new TyrusEndpointWrapper(EchoEndpoint.class, null, null, null, null, null, null);
 
     @Test
     public void simpleTest() {
@@ -200,15 +200,15 @@ public class SessionImplTest {
     public void multipleBasicDecodable() {
         Session session = createSession(ew);
 
-        session.addMessageHandler(new MessageHandler.Whole<SessionImplTest>() {
+        session.addMessageHandler(new MessageHandler.Whole<TyrusSessionTest>() {
             @Override
-            public void onMessage(SessionImplTest message) {
+            public void onMessage(TyrusSessionTest message) {
             }
         });
 
-        session.addMessageHandler(new MessageHandler.Whole<SessionImplTest>() {
+        session.addMessageHandler(new MessageHandler.Whole<TyrusSessionTest>() {
             @Override
-            public void onMessage(SessionImplTest message) {
+            public void onMessage(TyrusSessionTest message) {
             }
         });
     }
@@ -322,15 +322,15 @@ public class SessionImplTest {
         Session session = createSession(ew);
 
 
-        session.addMessageHandler(new MessageHandler.Partial<SessionImplTest>() {
+        session.addMessageHandler(new MessageHandler.Partial<TyrusSessionTest>() {
             @Override
-            public void onMessage(SessionImplTest message, boolean last) {
+            public void onMessage(TyrusSessionTest message, boolean last) {
             }
         });
 
-        session.addMessageHandler(new MessageHandler.Partial<SessionImplTest>() {
+        session.addMessageHandler(new MessageHandler.Partial<TyrusSessionTest>() {
             @Override
-            public void onMessage(SessionImplTest message, boolean last) {
+            public void onMessage(TyrusSessionTest message, boolean last) {
             }
         });
     }
@@ -445,11 +445,11 @@ public class SessionImplTest {
         assertNotNull(session2.getUserProperties().get(test2));
     }
 
-    private SessionImpl createSession(EndpointWrapper endpointWrapper) {
-        return new SessionImpl(null, new TestRemoteEndpoint(), endpointWrapper, null, null, false, null, null, null, null, new HashMap<String, List<String>>());
+    private TyrusSession createSession(TyrusEndpointWrapper tyrusEndpointWrapper) {
+        return new TyrusSession(null, new TestRemoteEndpoint(), tyrusEndpointWrapper, null, null, false, null, null, null, null, new HashMap<String, List<String>>());
     }
 
-    private static class TestRemoteEndpoint extends SPIRemoteEndpoint{
+    private static class TestRemoteEndpoint extends RemoteEndpoint {
 
 
         @Override

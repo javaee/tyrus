@@ -41,19 +41,20 @@
 package org.glassfish.tyrus.websockets;
 
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.glassfish.tyrus.spi.SPIHandshakeResponse;
+import org.glassfish.tyrus.spi.HandshakeResponse;
 
 /**
- * TODO
+ * HTTP response representation.
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class WebSocketResponse implements SPIHandshakeResponse {
+public class WebSocketResponse extends HandshakeResponse {
 
-    private final Map<String, String> headers = new TreeMap<String, String>(new Comparator<String>() {
+    private final Map<String, List<String>> headers = new TreeMap<String, List<String>>(new Comparator<String>() {
         @Override
         public int compare(String o1, String o2) {
             return o1.toLowerCase().compareTo(o2.toLowerCase());
@@ -61,32 +62,53 @@ public class WebSocketResponse implements SPIHandshakeResponse {
     });
 
     private int status;
+    private String reasonPhrase;
 
     /**
-     * @return TODO
+     * Get HTTP status.
+     *
+     * @return HTTP status.
      */
+    @Override
     public int getStatus() {
         return status;
     }
 
     /**
-     * @return TODO
+     * Get HTTP reason phrase.
+     *
+     * @return reason phrase.
      */
-    public Map<String, String> getHeaders() {
+    @Override
+    public String getReasonPhrase() {
+        return reasonPhrase;
+    }
+
+    /**
+     * Get HTTP headers.
+     *
+     * @return HTTP headers.
+     */
+    @Override
+    public Map<String, List<String>> getHeaders() {
         return headers;
     }
 
     /**
-     * @param statusCode TODO
+     * Set HTTP status.
+     *
+     * @param statusCode status code to be set.
      */
     public void setStatus(int statusCode) {
         status = statusCode;
     }
 
     /**
-     * @param statusCodeMessage TODO
+     * Set HTTP reason phrase.
+     *
+     * @param reasonPhrase reason phrase to be set.
      */
-    public void setReasonPhrase(String statusCodeMessage) {
-        // TODO: Implement.
+    public void setReasonPhrase(String reasonPhrase) {
+        this.reasonPhrase = reasonPhrase;
     }
 }

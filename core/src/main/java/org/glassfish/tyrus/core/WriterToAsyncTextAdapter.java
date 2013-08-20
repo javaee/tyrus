@@ -42,7 +42,7 @@ package org.glassfish.tyrus.core;
 import java.io.IOException;
 import java.io.Writer;
 
-import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
+import org.glassfish.tyrus.spi.RemoteEndpoint;
 
 /**
  * Simple Writer that writes its data to
@@ -51,10 +51,10 @@ import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
  * @author Danny Coward (danny.coward at oracle.com)
  */
 public class WriterToAsyncTextAdapter extends Writer {
-    private final SPIRemoteEndpoint re;
+    private final RemoteEndpoint re;
     private String buffer = null;
 
-    public WriterToAsyncTextAdapter(SPIRemoteEndpoint re) {
+    public WriterToAsyncTextAdapter(RemoteEndpoint re) {
         this.re = re;
     }
 

@@ -44,7 +44,7 @@ import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
+import org.glassfish.tyrus.spi.RemoteEndpoint;
 
 /**
  * Simple Writer that writes its data to
@@ -53,9 +53,9 @@ import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
  * @author Danny Coward (danny.coward at oracle.com)
  */
 public class OutputStreamToAsyncBinaryAdapter extends OutputStream {
-    private final SPIRemoteEndpoint re;
+    private final RemoteEndpoint re;
 
-    public OutputStreamToAsyncBinaryAdapter(SPIRemoteEndpoint re) {
+    public OutputStreamToAsyncBinaryAdapter(RemoteEndpoint re) {
         this.re = re;
     }
 
@@ -71,7 +71,7 @@ public class OutputStreamToAsyncBinaryAdapter extends OutputStream {
         }
 
         ByteBuffer result = ByteBuffer.allocate(len);
-        result.put(Arrays.copyOfRange(b,off,len));
+        result.put(Arrays.copyOfRange(b, off, len));
         result.flip();
         re.sendBinary(result, false);
     }

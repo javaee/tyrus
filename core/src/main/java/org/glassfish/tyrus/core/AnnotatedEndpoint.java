@@ -133,7 +133,7 @@ public class AnnotatedEndpoint extends Endpoint {
         this.componentProvider = isServerEndpoint ? new ComponentProviderService(componentProvider) {
             @Override
             public <T> T getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
-                return ((ServerEndpointConfig)configuration).getConfigurator().getEndpointInstance(endpointClass);
+                return ((ServerEndpointConfig) configuration).getConfigurator().getEndpointInstance(endpointClass);
             }
         } : componentProvider;
 
@@ -256,7 +256,7 @@ public class AnnotatedEndpoint extends Endpoint {
             decoderClasses.addAll(Arrays.asList(wseAnnotation.decoders()));
             subProtocols = wseAnnotation.subprotocols();
 
-            decoderClasses.addAll(EndpointWrapper.getDefaultDecoders());
+            decoderClasses.addAll(TyrusEndpointWrapper.getDefaultDecoders());
 
             ServerEndpointConfig.Builder builder = ServerEndpointConfig.Builder.create(annotatedClass, wseAnnotation.value()).
                     encoders(encoderClasses).decoders(decoderClasses).subprotocols(Arrays.asList(subProtocols));
@@ -284,7 +284,7 @@ public class AnnotatedEndpoint extends Endpoint {
             decoderClasses.addAll(Arrays.asList(wscAnnotation.decoders()));
             subProtocols = wscAnnotation.subprotocols();
 
-            decoderClasses.addAll(EndpointWrapper.getDefaultDecoders());
+            decoderClasses.addAll(TyrusEndpointWrapper.getDefaultDecoders());
 
             ClientEndpointConfig.Configurator configurator = ReflectionHelper.getInstance(wscAnnotation.configurator(), collector);
 
@@ -417,7 +417,7 @@ public class AnnotatedEndpoint extends Endpoint {
     }
 
     private Object callMethod(Method method, ParameterExtractor[] extractors, Session session, boolean callOnError, Object... params) {
-            Object[] paramValues = new Object[extractors.length];
+        Object[] paramValues = new Object[extractors.length];
 
         final Object endpoint = annotatedInstance != null ? annotatedInstance :
                 componentProvider.getInstance(annotatedClass, session, collector);
@@ -440,7 +440,7 @@ public class AnnotatedEndpoint extends Endpoint {
     }
 
     void onClose(CloseReason closeReason, Session session) {
-        if(onCloseMethod != null){
+        if (onCloseMethod != null) {
             callMethod(onCloseMethod, onCloseParameters, session, true, closeReason);
         }
 

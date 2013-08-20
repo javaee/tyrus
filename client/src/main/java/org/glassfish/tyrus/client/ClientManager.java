@@ -43,12 +43,9 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
@@ -58,19 +55,17 @@ import javax.websocket.ClientEndpointConfig;
 import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
 import javax.websocket.Extension;
-import javax.websocket.HandshakeResponse;
 import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
 
 import org.glassfish.tyrus.core.AnnotatedEndpoint;
 import org.glassfish.tyrus.core.BaseContainer;
 import org.glassfish.tyrus.core.ComponentProviderService;
-import org.glassfish.tyrus.core.EndpointWrapper;
 import org.glassfish.tyrus.core.ErrorCollector;
 import org.glassfish.tyrus.core.ReflectionHelper;
-import org.glassfish.tyrus.core.Utils;
-import org.glassfish.tyrus.spi.SPIClientContainer;
-import org.glassfish.tyrus.spi.SPIClientSocket;
+import org.glassfish.tyrus.core.TyrusEndpointWrapper;
+import org.glassfish.tyrus.spi.ClientContainer;
+import org.glassfish.tyrus.spi.ClientSocket;
 
 /**
  * ClientManager implementation.
@@ -81,13 +76,13 @@ import org.glassfish.tyrus.spi.SPIClientSocket;
 public class ClientManager extends BaseContainer implements WebSocketContainer {
 
     /**
-     * Default {@link org.glassfish.tyrus.spi.SPIServerFactory} class name.
+     * Default {@link org.glassfish.tyrus.spi.ServerContainerFactory} class name.
      * <p/>
      * Uses Grizzly as transport implementation.
      */
     private static final String ENGINE_PROVIDER_CLASSNAME = "org.glassfish.tyrus.container.grizzly.GrizzlyContainer";
     private static final Logger LOGGER = Logger.getLogger(ClientManager.class.getName());
-    private final SPIClientContainer container;
+    private final ClientContainer container;
     private final ComponentProviderService componentProvider;
     private final ErrorCollector collector;
     private final Map<String, Object> properties = new HashMap<String, Object>();
@@ -141,7 +136,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
             throw new RuntimeException(collector.composeComprehensiveException());
         }
         LOGGER.config(String.format("Provider class loaded: %s", engineProviderClassname));
-        this.container = (SPIClientContainer) ReflectionHelper.getInstance(engineProviderClazz, collector);
+        this.container = (ClientContainer) ReflectionHelper.getInstance(engineProviderClazz, collector);
         if (!collector.isEmpty()) {
             throw new RuntimeException(collector.composeComprehensiveException());
         }
@@ -188,7 +183,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
         // TODO use maxSessionIdleTimeout, maxBinaryMessageBufferSize and maxTextMessageBufferSize
         ClientEndpointConfig config = null;
         Endpoint endpoint;
-        SPIClientSocket clientSocket = null;
+        ClientSocket clientSocket = null;
 
         try {
             URI uri = new URI(url);
@@ -227,38 +222,12 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
             final ClientEndpointConfig finalConfig = config;
 
             if (endpoint != null) {
-                EndpointWrapper clientEndpoint = new EndpointWrapper(endpoint, config, componentProvider, this, url, collector, null);
-                SPIClientContainer.ClientHandshakeListener listener = new SPIClientContainer.ClientHandshakeListener() {
+                TyrusEndpointWrapper clientEndpoint = new TyrusEndpointWrapper(endpoint, config, componentProvider, this, url, collector, null);
+                ClientContainer.ClientHandshakeListener listener = new ClientContainer.ClientHandshakeListener() {
 
                     @Override
-                    public void onResponseHeaders(final Map<String, String> originalHeaders) {
-
-                        final Map<String, List<String>> headers =
-                                new TreeMap<String, List<String>>(new Comparator<String>() {
-
-                                    @Override
-                                    public int compare(String o1, String o2) {
-                                        return o1.toLowerCase().compareTo(o2.toLowerCase());
-                                    }
-                                });
-
-                        for (Map.Entry<String, String> entry : originalHeaders.entrySet()) {
-                            final List<String> values = headers.get(entry.getKey());
-                            if (values == null) {
-                                headers.put(entry.getKey(), Utils.parseHeaderValue(entry.getValue().trim()));
-                            } else {
-                                values.addAll(Utils.parseHeaderValue(entry.getValue().trim()));
-                            }
-                        }
-
-                        finalConfig.getConfigurator().afterResponse(new HandshakeResponse() {
-
-                            @Override
-                            public Map<String, List<String>> getHeaders() {
-                                return headers;
-                            }
-                        });
-
+                    public void onHandshakeResponse(org.glassfish.tyrus.spi.HandshakeResponse handshakeResponse) {
+                        finalConfig.getConfigurator().afterResponse(handshakeResponse);
                         responseLatch.countDown();
                     }
 

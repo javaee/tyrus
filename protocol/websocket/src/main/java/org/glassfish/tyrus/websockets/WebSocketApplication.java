@@ -45,7 +45,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import org.glassfish.tyrus.spi.SPIHandshakeRequest;
+import org.glassfish.tyrus.spi.HandshakeRequest;
 
 /**
  * Abstract server-side {@link WebSocket} application, which will handle
@@ -127,14 +127,14 @@ public abstract class WebSocketApplication implements WebSocketListener {
      * <p/>
      * The default implementation will check for the presence of the
      * <code>Upgrade</code> header with a value of <code>WebSocket</code>.
-     * If present, {@link #isApplicationRequest(org.glassfish.tyrus.spi.SPIHandshakeRequest)}
+     * If present, {@link #isApplicationRequest(org.glassfish.tyrus.spi.HandshakeRequest)}
      * will be invoked to determine if the request is a valid websocket request.
      *
      * @param request TODO
      * @return <code>true</code> if the request should be upgraded to a
      *         WebSocket connection
      */
-    public final boolean upgrade(SPIHandshakeRequest request) {
+    public final boolean upgrade(HandshakeRequest request) {
         final String upgradeHeader = request.getHeader(WebSocketEngine.UPGRADE);
         return request.getHeaders().get(WebSocketEngine.UPGRADE) != null &&
                 // RFC 6455, paragraph 4.2.1.3
@@ -164,7 +164,7 @@ public abstract class WebSocketApplication implements WebSocketListener {
      * @param request  original request which caused this handshake.
      * @param response response to be send.
      */
-    public abstract void onHandShakeResponse(SPIHandshakeRequest request, WebSocketResponse response);
+    public abstract void onHandShakeResponse(HandshakeRequest request, WebSocketResponse response);
 
     /**
      * Checks application specific criteria to determine if this application can
@@ -173,7 +173,7 @@ public abstract class WebSocketApplication implements WebSocketListener {
      * @param request the incoming HTTP request.
      * @return <code>true</code> if this application can service this request
      */
-    protected abstract boolean isApplicationRequest(SPIHandshakeRequest request);
+    protected abstract boolean isApplicationRequest(HandshakeRequest request);
 
     /**
      * Return path for which is current {@link WebSocketApplication} registered.

@@ -60,10 +60,10 @@ import javax.websocket.server.ServerEndpointConfig;
 import org.glassfish.tyrus.core.AnnotatedEndpoint;
 import org.glassfish.tyrus.core.BaseContainer;
 import org.glassfish.tyrus.core.ComponentProviderService;
-import org.glassfish.tyrus.core.EndpointWrapper;
 import org.glassfish.tyrus.core.ErrorCollector;
-import org.glassfish.tyrus.spi.SPIEndpoint;
-import org.glassfish.tyrus.spi.SPIServer;
+import org.glassfish.tyrus.core.TyrusEndpointWrapper;
+import org.glassfish.tyrus.spi.EndpointWrapper;
+import org.glassfish.tyrus.spi.ServerContainer;
 
 /**
  * Server Container Implementation.
@@ -73,10 +73,10 @@ import org.glassfish.tyrus.spi.SPIServer;
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 public class TyrusServerContainer extends BaseContainer implements WebSocketContainer {
-    private final SPIServer server;
+    private final ServerContainer server;
     private final String contextPath;
     private final ServerApplicationConfig configuration;
-    private final Set<SPIEndpoint> endpoints = new HashSet<SPIEndpoint>();
+    private final Set<EndpointWrapper> endpoints = new HashSet<EndpointWrapper>();
     private final ErrorCollector collector;
     private final ComponentProviderService componentProvider;
 
@@ -97,7 +97,7 @@ public class TyrusServerContainer extends BaseContainer implements WebSocketCont
      *                                dynamically deployed {@link ServerEndpointConfig ServerEndpointConfigs}. See
      *                                {@link javax.websocket.server.ServerContainer#addEndpoint(ServerEndpointConfig)}.
      */
-    public TyrusServerContainer(final SPIServer server, final String contextPath,
+    public TyrusServerContainer(final ServerContainer server, final String contextPath,
                                 final Set<Class<?>> classes, final Set<Class<?>> dynamicallyAddedClasses,
                                 final Set<ServerEndpointConfig> dynamicallyAddedEndpointConfigs) {
         this.collector = new ErrorCollector();
@@ -111,7 +111,7 @@ public class TyrusServerContainer extends BaseContainer implements WebSocketCont
     /**
      * Start container.
      *
-     * @throws IOException         when any IO related issues emerge during {@link org.glassfish.tyrus.spi.SPIServer#start()}.
+     * @throws IOException         when any IO related issues emerge during {@link org.glassfish.tyrus.spi.ServerContainer#start()}.
      * @throws DeploymentException when any deployment related error is found; should contain list of all found issues.
      */
     public void start() throws IOException, DeploymentException {
@@ -122,7 +122,7 @@ public class TyrusServerContainer extends BaseContainer implements WebSocketCont
             for (Class<?> endpointClass : configuration.getAnnotatedEndpointClasses(null)) {
                 AnnotatedEndpoint endpoint = AnnotatedEndpoint.fromClass(endpointClass, componentProvider, true, collector);
                 EndpointConfig config = endpoint.getEndpointConfig();
-                EndpointWrapper ew = new EndpointWrapper(endpoint, config, componentProvider, this, contextPath, collector,
+                TyrusEndpointWrapper ew = new TyrusEndpointWrapper(endpoint, config, componentProvider, this, contextPath, collector,
                         config instanceof ServerEndpointConfig ? ((ServerEndpointConfig) config).getConfigurator() : null);
                 deploy(ew);
             }
@@ -130,7 +130,7 @@ public class TyrusServerContainer extends BaseContainer implements WebSocketCont
             // deploy all the programmatic endpoints
             for (ServerEndpointConfig serverEndpointConfiguration : configuration.getEndpointConfigs(null)) {
                 if (serverEndpointConfiguration != null) {
-                    EndpointWrapper ew = new EndpointWrapper(serverEndpointConfiguration.getEndpointClass(),
+                    TyrusEndpointWrapper ew = new TyrusEndpointWrapper(serverEndpointConfiguration.getEndpointClass(),
                             serverEndpointConfiguration, componentProvider, this, contextPath, collector, serverEndpointConfiguration.getConfigurator());
                     deploy(ew);
                 }
@@ -145,16 +145,16 @@ public class TyrusServerContainer extends BaseContainer implements WebSocketCont
         }
     }
 
-    private void deploy(EndpointWrapper wrapper) throws DeploymentException {
+    private void deploy(TyrusEndpointWrapper wrapper) throws DeploymentException {
         server.register(wrapper);
         endpoints.add(wrapper);
     }
 
     /**
-     * Undeploy all endpoints and stop underlying {@link org.glassfish.tyrus.spi.SPIServer}.
+     * Undeploy all endpoints and stop underlying {@link org.glassfish.tyrus.spi.ServerContainer}.
      */
     public void stop() {
-        for (SPIEndpoint wsa : this.endpoints) {
+        for (EndpointWrapper wsa : this.endpoints) {
             this.server.unregister(wsa);
             Logger.getLogger(getClass().getName()).fine("Closing down : " + wsa);
         }

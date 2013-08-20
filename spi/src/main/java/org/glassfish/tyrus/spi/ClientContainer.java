@@ -45,9 +45,11 @@ import javax.websocket.ClientEndpointConfig;
 import javax.websocket.DeploymentException;
 
 /**
+ * Entry point for client implementation.
+ *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public interface SPIClientContainer {
+public interface ClientContainer {
 
     /**
      * Called when response is received from the server.
@@ -57,9 +59,9 @@ public interface SPIClientContainer {
         /**
          * Called when correct handshake response is received.
          *
-         * @param headers of the handshake response.
+         * @param handshakeResponse received response.
          */
-        public void onResponseHeaders(Map<String, String> headers);
+        public void onHandshakeResponse(HandshakeResponse handshakeResponse);
 
 
         /**
@@ -80,6 +82,7 @@ public interface SPIClientContainer {
      * @param properties        properties map.
      * @return representation of incoming socket.
      */
-    public SPIClientSocket openClientSocket(String url, ClientEndpointConfig cec, SPIEndpoint endpoint,
-                                            SPIClientContainer.ClientHandshakeListener handshakeListener, Map<String, Object> properties) throws DeploymentException;
+    public ClientSocket openClientSocket(String url, ClientEndpointConfig cec, EndpointWrapper endpoint,
+                                         ClientContainer.ClientHandshakeListener handshakeListener,
+                                         Map<String, Object> properties) throws DeploymentException;
 }

@@ -46,21 +46,19 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Logger;
 
-import org.glassfish.tyrus.spi.SPIHandshakeRequest;
-import org.glassfish.tyrus.spi.SPIHandshakeResponse;
-import org.glassfish.tyrus.spi.SPIWebSocketEngine;
+import org.glassfish.tyrus.spi.HandshakeRequest;
+import org.glassfish.tyrus.spi.HandshakeResponse;
 
 /**
  * @author Justin Lee
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public final class HandShake {
+public final class Handshake {
 
     private static final String HEADER_SEPARATOR = ", ";
-    private static final Logger LOGGER = Logger.getLogger(HandShake.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(Handshake.class.getName());
     private final List<String> enabledExtensions = Collections.emptyList();
     private boolean secure;
     private String origin;
@@ -72,61 +70,61 @@ public final class HandShake {
     private List<Extension> extensions = new ArrayList<Extension>(); // client extensions
     // client side request!
     private WebSocketRequest request;
-    private HandShakeResponseListener responseListener;
-    private SPIHandshakeRequest incomingRequest;
+    private HandshakeResponseListener responseListener;
+    private HandshakeRequest incomingRequest;
     private SecKey secKey;
 
 
-    private HandShake() {
+    private Handshake() {
     }
 
-    static HandShake createClientHandShake(WebSocketRequest webSocketRequest) {
-        final HandShake handShake = new HandShake();
-        handShake.request = webSocketRequest;
+    static Handshake createClientHandShake(WebSocketRequest webSocketRequest) {
+        final Handshake handshake = new Handshake();
+        handshake.request = webSocketRequest;
 
         final URI uri = webSocketRequest.getRequestURI();
-        handShake.resourcePath = uri.getPath();
-        if ("".equals(handShake.resourcePath)) {
-            handShake.resourcePath = "/";
+        handshake.resourcePath = uri.getPath();
+        if ("".equals(handshake.resourcePath)) {
+            handshake.resourcePath = "/";
         }
         if (uri.getQuery() != null) {
-            handShake.resourcePath += "?" + uri.getQuery();
+            handshake.resourcePath += "?" + uri.getQuery();
         }
-        handShake.serverHostName = uri.getHost();
-        handShake.secure = webSocketRequest.isSecure();
-        handShake.port = uri.getPort();
-        handShake.origin = appendPort(new StringBuilder(uri.getHost()), handShake.port, handShake.secure).toString();
-        handShake.secKey = new SecKey();
+        handshake.serverHostName = uri.getHost();
+        handshake.secure = webSocketRequest.isSecure();
+        handshake.port = uri.getPort();
+        handshake.origin = appendPort(new StringBuilder(uri.getHost()), handshake.port, handshake.secure).toString();
+        handshake.secKey = new SecKey();
 
-        return handShake;
+        return handshake;
     }
 
-    static HandShake createServerHandShake(SPIHandshakeRequest request) {
-        final HandShake handShake = new HandShake();
+    static Handshake createServerHandShake(HandshakeRequest request) {
+        final Handshake handshake = new Handshake();
 
-        handShake.incomingRequest = request;
-        checkForHeader(request.getFirstHeaderValue(WebSocketEngine.UPGRADE), WebSocketEngine.UPGRADE, "WebSocket");
-        checkForHeader(request.getHeader(WebSocketEngine.CONNECTION), WebSocketEngine.CONNECTION, WebSocketEngine.UPGRADE);
+        handshake.incomingRequest = request;
+        checkForHeader(request.getFirstHeaderValue(org.glassfish.tyrus.websockets.WebSocketEngine.UPGRADE), org.glassfish.tyrus.websockets.WebSocketEngine.UPGRADE, "WebSocket");
+        checkForHeader(request.getHeader(org.glassfish.tyrus.websockets.WebSocketEngine.CONNECTION), org.glassfish.tyrus.websockets.WebSocketEngine.CONNECTION, org.glassfish.tyrus.websockets.WebSocketEngine.UPGRADE);
 
-        handShake.origin = request.getFirstHeaderValue(WebSocketEngine.SEC_WS_ORIGIN_HEADER);
+        handshake.origin = request.getFirstHeaderValue(org.glassfish.tyrus.websockets.WebSocketEngine.SEC_WS_ORIGIN_HEADER);
 
-        if (handShake.origin == null) {
-            handShake.origin = request.getFirstHeaderValue(WebSocketEngine.ORIGIN_HEADER);
+        if (handshake.origin == null) {
+            handshake.origin = request.getFirstHeaderValue(org.glassfish.tyrus.websockets.WebSocketEngine.ORIGIN_HEADER);
         }
-        HandShake.determineHostAndPort(handShake, request);
+        Handshake.determineHostAndPort(handshake, request);
 
         // TODO - trim?
-        final String protocolHeader = request.getFirstHeaderValue(WebSocketEngine.SEC_WS_PROTOCOL_HEADER);
-        handShake.subProtocols = (protocolHeader == null ? Collections.<String>emptyList() : Arrays.asList(protocolHeader.split(",")));
+        final String protocolHeader = request.getFirstHeaderValue(org.glassfish.tyrus.websockets.WebSocketEngine.SEC_WS_PROTOCOL_HEADER);
+        handshake.subProtocols = (protocolHeader == null ? Collections.<String>emptyList() : Arrays.asList(protocolHeader.split(",")));
 
-        if (handShake.serverHostName == null) {
+        if (handshake.serverHostName == null) {
             throw new HandshakeException("Missing required headers for WebSocket negotiation");
         }
-        handShake.resourcePath = request.getRequestUri();
+        handshake.resourcePath = request.getRequestUri();
         final String queryString = request.getQueryString();
         if (queryString != null) {
             if (!queryString.isEmpty()) {
-                handShake.resourcePath += "?" + queryString;
+                handshake.resourcePath += "?" + queryString;
             }
 //            Parameters queryParameters = new Parameters();
 //            queryParameters.processParameters(queryString);
@@ -136,13 +134,13 @@ public final class HandShake {
 //            }
         }
 
-        List<String> value = request.getHeaders().get(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER);
+        List<String> value = request.getHeaders().get(org.glassfish.tyrus.websockets.WebSocketEngine.SEC_WS_EXTENSIONS_HEADER);
         if (value != null) {
-            handShake.extensions = HandShake.fromHeaders(value);
+            handshake.extensions = Handshake.fromHeaders(value);
         }
-        handShake.secKey = SecKey.generateServerKey(new SecKey(request.getFirstHeaderValue(WebSocketEngine.SEC_WS_KEY_HEADER)));
+        handshake.secKey = SecKey.generateServerKey(new SecKey(request.getFirstHeaderValue(org.glassfish.tyrus.websockets.WebSocketEngine.SEC_WS_KEY_HEADER)));
 
-        return handShake;
+        return handshake;
     }
 
     private static void checkForHeader(String currentValue, String header, String validValue) {
@@ -152,7 +150,7 @@ public final class HandShake {
     private static void validate(String header, String validValue, String value) {
         // http://java.net/jira/browse/TYRUS-55
         // Firefox workaround (it sends "Connections: keep-alive, upgrade").
-        if (header.equalsIgnoreCase(WebSocketEngine.CONNECTION)) {
+        if (header.equalsIgnoreCase(org.glassfish.tyrus.websockets.WebSocketEngine.CONNECTION)) {
             if (!value.toLowerCase().contains(validValue.toLowerCase())) {
                 throw new HandshakeException(String.format("Invalid %s header returned: '%s'", header, value));
             }
@@ -163,16 +161,16 @@ public final class HandShake {
         }
     }
 
-    private static void determineHostAndPort(HandShake handShake, SPIHandshakeRequest request) {
-        String header = request.getFirstHeaderValue(WebSocketEngine.HOST);
+    private static void determineHostAndPort(Handshake handshake, HandshakeRequest request) {
+        String header = request.getFirstHeaderValue(org.glassfish.tyrus.websockets.WebSocketEngine.HOST);
 
         final int i = header == null ? -1 : header.indexOf(":");
         if (i == -1) {
-            handShake.serverHostName = header;
-            handShake.port = 80;
+            handshake.serverHostName = header;
+            handshake.port = 80;
         } else {
-            handShake.serverHostName = header.substring(0, i);
-            handShake.port = Integer.valueOf(header.substring(i + 1));
+            handshake.serverHostName = header.substring(0, i);
+            handshake.port = Integer.valueOf(header.substring(i + 1));
         }
     }
 
@@ -411,6 +409,14 @@ public final class HandShake {
         return sb.toString();
     }
 
+    <T> List<String> getStringList(List<T> list) {
+        List<String> result = new ArrayList<String>();
+        for (T item : list) {
+            result.add(item.toString());
+        }
+        return result;
+    }
+
     List<Extension> getExtensions() {
         return extensions;
     }
@@ -440,58 +446,62 @@ public final class HandShake {
         }
 
         request.setRequestPath(getResourcePath());
-        request.putSingleHeader(WebSocketEngine.HOST, host);
-        request.putSingleHeader(WebSocketEngine.CONNECTION, WebSocketEngine.UPGRADE);
-        request.putSingleHeader(WebSocketEngine.UPGRADE, WebSocketEngine.WEBSOCKET);
+        request.putSingleHeader(org.glassfish.tyrus.websockets.WebSocketEngine.HOST, host);
+        request.putSingleHeader(org.glassfish.tyrus.websockets.WebSocketEngine.CONNECTION, org.glassfish.tyrus.websockets.WebSocketEngine.UPGRADE);
+        request.putSingleHeader(org.glassfish.tyrus.websockets.WebSocketEngine.UPGRADE, org.glassfish.tyrus.websockets.WebSocketEngine.WEBSOCKET);
 
         if (!getSubProtocols().isEmpty()) {
-            request.putSingleHeader(WebSocketEngine.SEC_WS_PROTOCOL_HEADER, getHeaderFromList(subProtocols));
+            request.putSingleHeader(org.glassfish.tyrus.websockets.WebSocketEngine.SEC_WS_PROTOCOL_HEADER, getHeaderFromList(subProtocols));
         }
 
         if (!getExtensions().isEmpty()) {
-            request.putSingleHeader(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER, getHeaderFromList(extensions));
+            request.putSingleHeader(org.glassfish.tyrus.websockets.WebSocketEngine.SEC_WS_EXTENSIONS_HEADER, getHeaderFromList(extensions));
         }
 
-        request.putSingleHeader(WebSocketEngine.SEC_WS_KEY_HEADER, secKey.toString());
-        request.putSingleHeader(WebSocketEngine.SEC_WS_ORIGIN_HEADER, getOrigin());
-        request.putSingleHeader(WebSocketEngine.SEC_WS_VERSION, getVersion() + "");
+        request.putSingleHeader(org.glassfish.tyrus.websockets.WebSocketEngine.SEC_WS_KEY_HEADER, secKey.toString());
+        request.putSingleHeader(org.glassfish.tyrus.websockets.WebSocketEngine.SEC_WS_ORIGIN_HEADER, getOrigin());
+        request.putSingleHeader(org.glassfish.tyrus.websockets.WebSocketEngine.SEC_WS_VERSION, getVersion() + "");
         if (!getExtensions().isEmpty()) {
-            request.putSingleHeader(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER, getHeaderFromList(getExtensions()));
+            request.putSingleHeader(org.glassfish.tyrus.websockets.WebSocketEngine.SEC_WS_EXTENSIONS_HEADER, getHeaderFromList(getExtensions()));
         }
-        final String headerValue = request.getFirstHeaderValue(WebSocketEngine.SEC_WS_ORIGIN_HEADER);
-        request.getHeaders().remove(WebSocketEngine.SEC_WS_ORIGIN_HEADER);
-        request.putSingleHeader(WebSocketEngine.ORIGIN_HEADER, headerValue);
+        final String headerValue = request.getFirstHeaderValue(org.glassfish.tyrus.websockets.WebSocketEngine.SEC_WS_ORIGIN_HEADER);
+        request.getHeaders().remove(org.glassfish.tyrus.websockets.WebSocketEngine.SEC_WS_ORIGIN_HEADER);
+        request.putSingleHeader(org.glassfish.tyrus.websockets.WebSocketEngine.ORIGIN_HEADER, headerValue);
         return request;
     }
 
-    public void validateServerResponse(SPIHandshakeResponse response) {
-        if (WebSocketEngine.RESPONSE_CODE_VALUE != response.getStatus()) {
+    public void validateServerResponse(HandshakeResponse response) {
+        if (org.glassfish.tyrus.websockets.WebSocketEngine.RESPONSE_CODE_VALUE != response.getStatus()) {
             throw new HandshakeException(String.format("Response code was not %s: %s",
-                    WebSocketEngine.RESPONSE_CODE_VALUE, response.getStatus()));
+                    org.glassfish.tyrus.websockets.WebSocketEngine.RESPONSE_CODE_VALUE, response.getStatus()));
         }
 
-        checkForHeader(response.getHeaders().get(WebSocketEngine.UPGRADE), WebSocketEngine.UPGRADE, WebSocketEngine.WEBSOCKET);
-        checkForHeader(response.getHeaders().get(WebSocketEngine.CONNECTION), WebSocketEngine.CONNECTION, WebSocketEngine.UPGRADE);
+        checkForHeader(response.getFirstHeaderValue(org.glassfish.tyrus.websockets.WebSocketEngine.UPGRADE), org.glassfish.tyrus.websockets.WebSocketEngine.UPGRADE, org.glassfish.tyrus.websockets.WebSocketEngine.WEBSOCKET);
+        checkForHeader(response.getFirstHeaderValue(org.glassfish.tyrus.websockets.WebSocketEngine.CONNECTION), org.glassfish.tyrus.websockets.WebSocketEngine.CONNECTION, org.glassfish.tyrus.websockets.WebSocketEngine.UPGRADE);
 
 //        if (!getSubProtocols().isEmpty()) {
 //            checkForHeader(response.getHeaders(), WebSocketEngine.SEC_WS_PROTOCOL_HEADER, WebSocketEngine.SEC_WS_PROTOCOL_HEADER);
 //        }
 
-        secKey.validateServerKey(response.getHeaders().get(WebSocketEngine.SEC_WS_ACCEPT));
+        secKey.validateServerKey(response.getFirstHeaderValue(org.glassfish.tyrus.websockets.WebSocketEngine.SEC_WS_ACCEPT));
     }
 
-    void respond(SPIWebSocketEngine.ResponseWriter writer, WebSocketApplication application/*, WebSocketResponse response*/) {
+    void respond(org.glassfish.tyrus.spi.WebSocketEngine.ResponseWriter writer, WebSocketApplication application/*, WebSocketResponse response*/) {
         WebSocketResponse response = new WebSocketResponse();
         response.setStatus(101);
 
-        response.getHeaders().put(WebSocketEngine.UPGRADE, WebSocketEngine.WEBSOCKET);
-        response.getHeaders().put(WebSocketEngine.CONNECTION, WebSocketEngine.UPGRADE);
-        setHeaders(response);
+        response.getHeaders().put(org.glassfish.tyrus.websockets.WebSocketEngine.UPGRADE, Arrays.asList(org.glassfish.tyrus.websockets.WebSocketEngine.WEBSOCKET));
+        response.getHeaders().put(org.glassfish.tyrus.websockets.WebSocketEngine.CONNECTION, Arrays.asList(org.glassfish.tyrus.websockets.WebSocketEngine.UPGRADE));
+        response.setReasonPhrase(org.glassfish.tyrus.websockets.WebSocketEngine.RESPONSE_CODE_MESSAGE);
+        response.getHeaders().put(org.glassfish.tyrus.websockets.WebSocketEngine.SEC_WS_ACCEPT, Arrays.asList(secKey.getSecKey()));
+        if (!getEnabledExtensions().isEmpty()) {
+            response.getHeaders().put(org.glassfish.tyrus.websockets.WebSocketEngine.SEC_WS_EXTENSIONS_HEADER, getSubProtocols());
+        }
 
         if (subProtocols != null && !subProtocols.isEmpty()) {
             List<String> appProtocols = application.getSupportedProtocols(subProtocols);
             if (!appProtocols.isEmpty()) {
-                response.getHeaders().put(WebSocketEngine.SEC_WS_PROTOCOL_HEADER, getHeaderFromList(appProtocols));
+                response.getHeaders().put(org.glassfish.tyrus.websockets.WebSocketEngine.SEC_WS_PROTOCOL_HEADER, getStringList(appProtocols));
             }
         }
         if (!application.getSupportedExtensions().isEmpty() && !getExtensions().isEmpty()) {
@@ -500,21 +510,13 @@ public final class HandShake {
                             application.getSupportedExtensions());
             if (!intersection.isEmpty()) {
                 application.onExtensionNegotiation(intersection);
-                response.getHeaders().put(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER, getHeaderFromList(intersection));
+                response.getHeaders().put(org.glassfish.tyrus.websockets.WebSocketEngine.SEC_WS_EXTENSIONS_HEADER, getStringList(intersection));
             }
         }
 
         application.onHandShakeResponse(incomingRequest, response);
 
         writer.write(response);
-    }
-
-    void setHeaders(WebSocketResponse response) {
-        response.setReasonPhrase(WebSocketEngine.RESPONSE_CODE_MESSAGE);
-        response.getHeaders().put(WebSocketEngine.SEC_WS_ACCEPT, secKey.getSecKey());
-        if (!getEnabledExtensions().isEmpty()) {
-            response.getHeaders().put(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER, getHeaderFromList(getSubProtocols()));
-        }
     }
 
     List<Extension> intersection(List<Extension> requested, List<Extension> supported) {
@@ -530,8 +532,8 @@ public final class HandShake {
         return intersection;
     }
 
-    public SPIHandshakeRequest initiate(/*FilterChainContext ctx*/) {
-        return (SPIHandshakeRequest) request;
+    public HandshakeRequest initiate(/*FilterChainContext ctx*/) {
+        return request;
     }
 
     /**
@@ -539,17 +541,17 @@ public final class HandShake {
      *
      * @return registered response listener.
      */
-    public HandShakeResponseListener getResponseListener() {
+    public HandshakeResponseListener getResponseListener() {
         return responseListener;
     }
 
     /**
      * Set response listener.
      *
-     * @param responseListener {@link HandShakeResponseListener#onResponseHeaders(java.util.Map)} will be called when
-     *                         response is ready and validated.
+     * @param responseListener {@link org.glassfish.tyrus.websockets.Handshake.HandshakeResponseListener#onHandShakeResponse(org.glassfish.tyrus.spi.HandshakeResponse)}
+     *                         will be called when response is ready and validated.
      */
-    public void setResponseListener(HandShakeResponseListener responseListener) {
+    public void setResponseListener(HandshakeResponseListener responseListener) {
         this.responseListener = responseListener;
     }
 
@@ -574,18 +576,18 @@ public final class HandShake {
     }
 
     /**
-     * Used to register with {@link HandShake}. If the handshake response is received, this listener is called.
+     * Used to register with {@link Handshake}. If the handshake response is received, this listener is called.
      *
      * @author Stepan Kopriva (stepan.kopriva at oracle.com)
      */
-    public interface HandShakeResponseListener {
+    public interface HandshakeResponseListener {
 
         /**
-         * Called when correct handshake response is received in {@link HandShake}.
+         * Called when correct handshake response is received in {@link Handshake}.
          *
-         * @param headers of the handshake response.
+         * @param response received response.
          */
-        public void onResponseHeaders(Map<String, String> headers);
+        public void onHandShakeResponse(HandshakeResponse response);
 
         /**
          * Called when an error is found in handshake response.

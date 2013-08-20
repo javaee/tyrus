@@ -69,15 +69,14 @@ import javax.servlet.http.WebConnection;
 import org.glassfish.tyrus.core.RequestContext;
 import org.glassfish.tyrus.core.Utils;
 import org.glassfish.tyrus.server.ServerContainerFactory;
-import org.glassfish.tyrus.spi.SPIWebSocketEngine;
-import org.glassfish.tyrus.spi.SPIWriter;
+import org.glassfish.tyrus.spi.WebSocketEngine;
+import org.glassfish.tyrus.spi.Writer;
 import org.glassfish.tyrus.websockets.HandshakeException;
-import org.glassfish.tyrus.websockets.WebSocketEngine;
 
 /**
  * Filter used for Servlet integration.
  * <p/>
- * Consumes only requests with {@link WebSocketEngine#SEC_WS_KEY_HEADER} headers present, all others are
+ * Consumes only requests with {@link org.glassfish.tyrus.websockets.WebSocketEngine#SEC_WS_KEY_HEADER} headers present, all others are
  * passed back to {@link FilterChain}.
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
@@ -87,7 +86,7 @@ public class TyrusServletFilter implements Filter, HttpSessionListener {
 
     private static final int INFORMATIONAL_FIXED_PORT = 8080;
     private final static Logger LOGGER = Logger.getLogger(TyrusServletFilter.class.getName());
-    private final WebSocketEngine engine = new WebSocketEngine();
+    private final org.glassfish.tyrus.websockets.WebSocketEngine engine = new org.glassfish.tyrus.websockets.WebSocketEngine();
     private org.glassfish.tyrus.server.TyrusServerContainer serverContainer = null;
 
     // @ServerEndpoint annotated classes and classes extending ServerApplicationConfig
@@ -187,7 +186,7 @@ public class TyrusServletFilter implements Filter, HttpSessionListener {
         }
 
         @Override
-        public void postInit(SPIWebSocketEngine engine, SPIWriter writer, boolean authenticated) {
+        public void postInit(WebSocketEngine engine, Writer writer, boolean authenticated) {
             handler.postInit(engine, writer, authenticated);
         }
 
@@ -212,7 +211,7 @@ public class TyrusServletFilter implements Filter, HttpSessionListener {
         HttpServletResponse httpServletResponse = (HttpServletResponse) response;
 
         // check for mandatory websocket header
-        final String header = httpServletRequest.getHeader(WebSocketEngine.SEC_WS_KEY_HEADER);
+        final String header = httpServletRequest.getHeader(org.glassfish.tyrus.websockets.WebSocketEngine.SEC_WS_KEY_HEADER);
         if (header != null) {
             LOGGER.fine("Setting up WebSocket protocol handler");
 
@@ -223,7 +222,6 @@ public class TyrusServletFilter implements Filter, HttpSessionListener {
             final RequestContext requestContext = RequestContext.Builder.create()
                     .requestURI(URI.create(httpServletRequest.getRequestURI()))
                     .queryString(httpServletRequest.getQueryString())
-                    .connection(webSocketConnection)
                     .requestPath(httpServletRequest.getServletPath())
                     .httpSession(httpServletRequest.getSession())
                     .secure(httpServletRequest.isSecure())
@@ -251,7 +249,7 @@ public class TyrusServletFilter implements Filter, HttpSessionListener {
             }
 
             try {
-                final SPIWebSocketEngine.UpgradeListener upgradeListener = new SPIWebSocketEngine.UpgradeListener() {
+                final WebSocketEngine.UpgradeListener upgradeListener = new WebSocketEngine.UpgradeListener() {
                     @Override
                     public void onUpgradeFinished() throws HandshakeException {
                         LOGGER.fine("Upgrading Servlet request");

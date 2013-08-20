@@ -50,36 +50,35 @@ import java.util.logging.Logger;
 
 import javax.websocket.CloseReason;
 import javax.websocket.EncodeException;
-import javax.websocket.RemoteEndpoint;
 import javax.websocket.SendHandler;
 import javax.websocket.SendResult;
 
-import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
+import org.glassfish.tyrus.spi.RemoteEndpoint;
 
 /**
- * Wraps the {@link RemoteEndpoint} and represents the other side of the websocket connection.
+ * Wraps the {@link javax.websocket.RemoteEndpoint} and represents the other side of the websocket connection.
  *
  * @author Danny Coward (danny.coward at oracle.com)
  * @author Martin Matula (martin.matula at oracle.com)
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public abstract class RemoteEndpointWrapper implements RemoteEndpoint {
+public abstract class RemoteEndpointWrapper implements javax.websocket.RemoteEndpoint {
 
-    protected final SPIRemoteEndpoint remoteEndpoint;
-    protected final SessionImpl session;
-    protected final EndpointWrapper endpointWrapper;
+    protected final RemoteEndpoint remoteEndpoint;
+    protected final TyrusSession session;
+    protected final TyrusEndpointWrapper tyrusEndpointWrapper;
 
-    private RemoteEndpointWrapper(SessionImpl session, SPIRemoteEndpoint remoteEndpoint, EndpointWrapper endpointWrapper) {
+    private RemoteEndpointWrapper(TyrusSession session, RemoteEndpoint remoteEndpoint, TyrusEndpointWrapper tyrusEndpointWrapper) {
         this.remoteEndpoint = remoteEndpoint;
-        this.endpointWrapper = endpointWrapper;
+        this.tyrusEndpointWrapper = tyrusEndpointWrapper;
         this.session = session;
     }
 
-    static class Basic extends RemoteEndpointWrapper implements RemoteEndpoint.Basic {
+    static class Basic extends RemoteEndpointWrapper implements javax.websocket.RemoteEndpoint.Basic {
 
-        Basic(SessionImpl session, SPIRemoteEndpoint remoteEndpoint, EndpointWrapper endpointWrapper) {
-            super(session, remoteEndpoint, endpointWrapper);
+        Basic(TyrusSession session, RemoteEndpoint remoteEndpoint, TyrusEndpointWrapper tyrusEndpointWrapper) {
+            super(session, remoteEndpoint, tyrusEndpointWrapper);
         }
 
         @Override
@@ -123,11 +122,11 @@ public abstract class RemoteEndpointWrapper implements RemoteEndpoint {
         }
     }
 
-    static class Async extends RemoteEndpointWrapper implements RemoteEndpoint.Async {
+    static class Async extends RemoteEndpointWrapper implements javax.websocket.RemoteEndpoint.Async {
         private long sendTimeout;
 
-        Async(SessionImpl session, SPIRemoteEndpoint remoteEndpoint, EndpointWrapper endpointWrapper) {
-            super(session, remoteEndpoint, endpointWrapper);
+        Async(TyrusSession session, RemoteEndpoint remoteEndpoint, TyrusEndpointWrapper tyrusEndpointWrapper) {
+            super(session, remoteEndpoint, tyrusEndpointWrapper);
         }
 
         @Override
@@ -182,13 +181,13 @@ public abstract class RemoteEndpointWrapper implements RemoteEndpoint {
          *
          * @param message message to be sent
          * @param handler message sending callback handler
-         * @param type message type
+         * @param type    message type
          * @return message sending callback {@link Future}
          */
         private Future<Void> sendAsync(final Object message, final SendHandler handler, final AsyncMessageType type) {
             final FutureSendResult fsr = new FutureSendResult();
 
-            endpointWrapper.container.getExecutorService().execute(new Runnable() {
+            tyrusEndpointWrapper.container.getExecutorService().execute(new Runnable() {
 
                 @Override
                 public void run() {
@@ -210,14 +209,14 @@ public abstract class RemoteEndpointWrapper implements RemoteEndpoint {
                                 break;
                         }
 
-                        if(result != null) {
+                        if (result != null) {
                             result.get();
                         }
                     } catch (Throwable thw) {
                         sr = new SendResult(thw);
                         fsr.setFailure(thw);
                     } finally {
-                        if(sr == null){
+                        if (sr == null) {
                             sr = new SendResult();
                         }
                         if (handler != null) {
@@ -253,7 +252,7 @@ public abstract class RemoteEndpointWrapper implements RemoteEndpoint {
         } else if (isPrimitiveData(o)) {
             return remoteEndpoint.sendText(o.toString());
         } else {
-            Object toSend = endpointWrapper.doEncode(session, o);
+            Object toSend = tyrusEndpointWrapper.doEncode(session, o);
             if (toSend instanceof String) {
                 return remoteEndpoint.sendText((String) toSend);
             } else if (toSend instanceof ByteBuffer) {
@@ -286,7 +285,7 @@ public abstract class RemoteEndpointWrapper implements RemoteEndpoint {
 
     @Override
     public void sendPing(ByteBuffer applicationData) throws IOException {
-        if(applicationData != null && applicationData.remaining() > 125) {
+        if (applicationData != null && applicationData.remaining() > 125) {
             throw new IllegalArgumentException("Ping applicationData exceeded the maximum allowed payload of 125 bytes.");
         }
         session.restartIdleTimeoutExecutor();
@@ -295,7 +294,7 @@ public abstract class RemoteEndpointWrapper implements RemoteEndpoint {
 
     @Override
     public void sendPong(ByteBuffer applicationData) throws IOException {
-        if(applicationData != null && applicationData.remaining() > 125) {
+        if (applicationData != null && applicationData.remaining() > 125) {
             throw new IllegalArgumentException("Pong applicationData exceeded the maximum allowed payload of 125 bytes.");
         }
         session.restartIdleTimeoutExecutor();

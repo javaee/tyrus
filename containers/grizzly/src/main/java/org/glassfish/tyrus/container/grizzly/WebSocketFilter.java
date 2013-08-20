@@ -51,9 +51,9 @@ import java.util.logging.Logger;
 
 import org.glassfish.tyrus.core.RequestContext;
 import org.glassfish.tyrus.core.Utils;
-import org.glassfish.tyrus.spi.SPIHandshakeRequest;
-import org.glassfish.tyrus.spi.SPIHandshakeResponse;
-import org.glassfish.tyrus.spi.SPIWriter;
+import org.glassfish.tyrus.spi.HandshakeRequest;
+import org.glassfish.tyrus.spi.HandshakeResponse;
+import org.glassfish.tyrus.spi.Writer;
 import org.glassfish.tyrus.websockets.DataFrame;
 import org.glassfish.tyrus.websockets.HandshakeException;
 import org.glassfish.tyrus.websockets.WebSocket;
@@ -107,7 +107,7 @@ class WebSocketFilter extends BaseFilter {
     private final Filter sslFilter;
     private final WebSocketEngine engine;
 
-    private SPIHandshakeRequest webSocketRequest;
+    private HandshakeRequest webSocketRequest;
 
     // ------------------------------------------------------------ Constructors
 
@@ -164,7 +164,7 @@ class WebSocketFilter extends BaseFilter {
         logger.log(Level.FINEST, "handleConnect");
 
         // Get connection
-        final SPIWriter webSocketWriter =
+        final Writer webSocketWriter =
                 WebSocketFilter.getWebSocketConnection(ctx, HttpContent.builder(HttpRequestPacket.builder().build()).build());
 
         // check if it's websocket connection
@@ -212,7 +212,7 @@ class WebSocketFilter extends BaseFilter {
     @Override
     public NextAction handleClose(FilterChainContext ctx) throws IOException {
         // Get the Connection
-        final SPIWriter writer = getWebSocketConnection(ctx, HttpContent.builder(HttpRequestPacket.builder().build()).build());
+        final Writer writer = getWebSocketConnection(ctx, HttpContent.builder(HttpRequestPacket.builder().build()).build());
 
         // check if Connection has associated WebSocket (is websocket)
         if (webSocketInProgress(writer)) {
@@ -245,7 +245,7 @@ class WebSocketFilter extends BaseFilter {
         // Get the parsed HttpContent (we assume prev. filter was HTTP)
         final HttpContent message = ctx.getMessage();
         // Get the Grizzly Connection
-        final SPIWriter writer = getWebSocketConnection(ctx, message);
+        final Writer writer = getWebSocketConnection(ctx, message);
         // Get the HTTP header
         final HttpHeader header = message.getHttpHeader();
 
@@ -329,7 +329,7 @@ class WebSocketFilter extends BaseFilter {
     @Override
     public NextAction handleWrite(FilterChainContext ctx) throws IOException {
         // get the associated websocket
-        SPIWriter writer = getWebSocketConnection(ctx, null);
+        Writer writer = getWebSocketConnection(ctx, null);
         final WebSocket websocket = getWebSocket(writer);
         // if there is one
         if (websocket != null) {
@@ -369,9 +369,9 @@ class WebSocketFilter extends BaseFilter {
         }
 
         try {
-            final SPIHandshakeResponse webSocketResponse = getWebSocketResponse((HttpResponsePacket) content.getHttpHeader());
-            holder.handshake.validateServerResponse(webSocketResponse);
-            holder.handshake.getResponseListener().onResponseHeaders(webSocketResponse.getHeaders());
+            final HandshakeResponse handshakeResponse = getWebSocketResponse((HttpResponsePacket) content.getHttpHeader());
+            holder.handshake.validateServerResponse(handshakeResponse);
+            holder.handshake.getResponseListener().onHandShakeResponse(handshakeResponse);
             holder.webSocket.onConnect();
         } catch (HandshakeException e) {
             holder.handshake.getResponseListener().onError(e);
@@ -391,7 +391,12 @@ class WebSocketFilter extends BaseFilter {
         WebSocketResponse webSocketResponse = new WebSocketResponse();
 
         for (String name : httpResponsePacket.getHeaders().names()) {
-            webSocketResponse.getHeaders().put(name, httpResponsePacket.getHeader(name));
+            final List<String> values = webSocketResponse.getHeaders().get(name);
+            if (values == null) {
+                webSocketResponse.getHeaders().put(name, Utils.parseHeaderValue(httpResponsePacket.getHeader(name)));
+            } else {
+                values.addAll(Utils.parseHeaderValue(httpResponsePacket.getHeader(name)));
+            }
         }
 
         webSocketResponse.setStatus(httpResponsePacket.getStatus());
@@ -438,11 +443,11 @@ class WebSocketFilter extends BaseFilter {
         return ctx.getStopAction();
     }
 
-    private WebSocket getWebSocket(final SPIWriter writer) {
+    private WebSocket getWebSocket(final Writer writer) {
         return engine.getWebSocket(writer);
     }
 
-    private boolean webSocketInProgress(final SPIWriter writer) {
+    private boolean webSocketInProgress(final Writer writer) {
         return engine.webSocketInProgress(writer);
     }
 
@@ -468,7 +473,7 @@ class WebSocketFilter extends BaseFilter {
      * @param request original request.
      * @return Grizzly representation of provided request.
      */
-    private HttpContent getHttpContent(SPIHandshakeRequest request) {
+    private HttpContent getHttpContent(HandshakeRequest request) {
         HttpRequestPacket.Builder builder = HttpRequestPacket.builder();
         builder = builder.protocol(Protocol.HTTP_1_1);
         builder = builder.method(Method.GET);
@@ -493,14 +498,13 @@ class WebSocketFilter extends BaseFilter {
         return new GrizzlyWriter(ctx, httpContent);
     }
 
-    private static SPIHandshakeRequest createWebSocketRequest(final FilterChainContext ctx, final HttpContent requestContent) {
+    private static HandshakeRequest createWebSocketRequest(final FilterChainContext ctx, final HttpContent requestContent) {
 
         final HttpRequestPacket requestPacket = (HttpRequestPacket) requestContent.getHttpHeader();
 
         final RequestContext requestContext = RequestContext.Builder.create()
                 .requestURI(URI.create(requestPacket.getRequestURI()))
                 .queryString(requestPacket.getQueryString())
-                .connection(getWebSocketConnection(ctx, requestContent))
                 .secure(requestPacket.isSecure())
                 .build();
 

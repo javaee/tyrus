@@ -48,11 +48,11 @@ import javax.websocket.ClientEndpointConfig;
 import javax.websocket.DeploymentException;
 
 import org.glassfish.tyrus.core.TyrusEndpoint;
-import org.glassfish.tyrus.spi.SPIClientContainer;
-import org.glassfish.tyrus.spi.SPIClientSocket;
-import org.glassfish.tyrus.spi.SPIEndpoint;
-import org.glassfish.tyrus.spi.SPIServer;
-import org.glassfish.tyrus.spi.SPIServerFactory;
+import org.glassfish.tyrus.spi.ClientContainer;
+import org.glassfish.tyrus.spi.ClientSocket;
+import org.glassfish.tyrus.spi.EndpointWrapper;
+import org.glassfish.tyrus.spi.ServerContainer;
+import org.glassfish.tyrus.spi.ServerContainerFactory;
 import org.glassfish.tyrus.websockets.WebSocketEngine;
 
 import org.glassfish.grizzly.http.server.HttpServer;
@@ -63,7 +63,7 @@ import org.glassfish.grizzly.threadpool.ThreadPoolConfig;
 /**
  * @author Danny Coward (danny.coward at oracle.com)
  */
-public class GrizzlyContainer implements SPIServerFactory, SPIClientContainer {
+public class GrizzlyContainer implements ServerContainerFactory, ClientContainer {
 
     public static final String SSL_ENGINE_CONFIGURATOR = "org.glassfish.tyrus.client.sslEngineConfigurator";
 
@@ -79,10 +79,10 @@ public class GrizzlyContainer implements SPIServerFactory, SPIClientContainer {
     }
 
     @Override
-    public SPIServer createServer(String rootPath, int port) {
+    public ServerContainer createServerContainer(String rootPath, int port) {
         final HttpServer server = HttpServer.createSimpleServer(rootPath, port);
         server.getListener("grizzly").registerAddOn(new WebSocketAddOn(engine));
-        return new SPIServer() {
+        return new ServerContainer() {
             @Override
             public void start() throws IOException {
                 server.start();
@@ -94,20 +94,20 @@ public class GrizzlyContainer implements SPIServerFactory, SPIClientContainer {
             }
 
             @Override
-            public void register(SPIEndpoint endpoint) throws DeploymentException {
+            public void register(EndpointWrapper endpoint) throws DeploymentException {
                 engine.register(new TyrusEndpoint(endpoint));
             }
 
             @Override
-            public void unregister(SPIEndpoint endpoint) {
+            public void unregister(EndpointWrapper endpoint) {
                 engine.unregister(new TyrusEndpoint(endpoint));
             }
         };
     }
 
     @Override
-    public SPIClientSocket openClientSocket(String url, ClientEndpointConfig cec, SPIEndpoint endpoint,
-                                            SPIClientContainer.ClientHandshakeListener listener, Map<String, Object> properties) throws DeploymentException {
+    public ClientSocket openClientSocket(String url, ClientEndpointConfig cec, EndpointWrapper endpoint,
+                                         ClientContainer.ClientHandshakeListener listener, Map<String, Object> properties) throws DeploymentException {
         URI uri;
 
         try {

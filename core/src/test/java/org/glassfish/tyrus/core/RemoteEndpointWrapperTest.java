@@ -63,7 +63,7 @@ import javax.websocket.OnMessage;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
-import org.glassfish.tyrus.spi.SPIRemoteEndpoint;
+import org.glassfish.tyrus.spi.RemoteEndpoint;
 import org.glassfish.tyrus.websockets.DataFrame;
 
 import org.junit.Assert;
@@ -78,13 +78,13 @@ public class RemoteEndpointWrapperTest {
 
     private final byte[] sentBytes = {'a', 'b', 'c'};
     private final byte[] sentBytesComplete = {'a', 'b', 'c', 'a', 'b', 'c'};
-    private final EndpointWrapper ew = new EndpointWrapper(EchoEndpoint.class, null,null, new TestContainer() ,null, null, null);
+    private final TyrusEndpointWrapper ew = new TyrusEndpointWrapper(EchoEndpoint.class, null, null, new TestContainer(), null, null, null);
 
     @Test
     public void testGetSendStream() throws IOException {
 
         TestRemoteEndpoint tre = new TestRemoteEndpoint();
-        SessionImpl testSession = new SessionImpl(null, tre, ew, null, null, true, null, null, Collections.<String, String>emptyMap(), null, new HashMap<String, List<String>>());
+        TyrusSession testSession = new TyrusSession(null, tre, ew, null, null, true, null, null, Collections.<String, String>emptyMap(), null, new HashMap<String, List<String>>());
         RemoteEndpointWrapper.Basic rew = new RemoteEndpointWrapper.Basic(testSession, tre, ew);
         OutputStream stream = rew.getSendStream();
 
@@ -106,7 +106,7 @@ public class RemoteEndpointWrapperTest {
     public void testGetSendStreamWriteArrayWhole() throws IOException {
 
         TestRemoteEndpoint tre = new TestRemoteEndpoint();
-        SessionImpl testSession = new SessionImpl(null, tre, ew, null, null, true, null, null, Collections.<String, String>emptyMap(), null, new HashMap<String, List<String>>());
+        TyrusSession testSession = new TyrusSession(null, tre, ew, null, null, true, null, null, Collections.<String, String>emptyMap(), null, new HashMap<String, List<String>>());
         RemoteEndpointWrapper.Basic rew = new RemoteEndpointWrapper.Basic(testSession, tre, ew);
         OutputStream stream = rew.getSendStream();
 
@@ -122,7 +122,7 @@ public class RemoteEndpointWrapperTest {
     public void testGetSendStreamWriteArrayPerPartes() throws IOException {
 
         TestRemoteEndpoint tre = new TestRemoteEndpoint();
-        SessionImpl testSession = new SessionImpl(null, tre, ew, null, null, true, null, null, Collections.<String, String>emptyMap(), null, new HashMap<String, List<String>>());
+        TyrusSession testSession = new TyrusSession(null, tre, ew, null, null, true, null, null, Collections.<String, String>emptyMap(), null, new HashMap<String, List<String>>());
         RemoteEndpointWrapper.Basic rew = new RemoteEndpointWrapper.Basic(testSession, tre, ew);
         OutputStream stream = rew.getSendStream();
 
@@ -143,7 +143,7 @@ public class RemoteEndpointWrapperTest {
 
         char[] toSend = sentString.toCharArray();
         TestRemoteEndpoint tre = new TestRemoteEndpoint();
-        SessionImpl testSession = new SessionImpl(null, tre, ew, null, null, true, null, null, Collections.<String, String>emptyMap(), null, new HashMap<String, List<String>>());
+        TyrusSession testSession = new TyrusSession(null, tre, ew, null, null, true, null, null, Collections.<String, String>emptyMap(), null, new HashMap<String, List<String>>());
         RemoteEndpointWrapper.Basic rew = new RemoteEndpointWrapper.Basic(testSession, tre, ew);
         Writer writer = rew.getSendWriter();
 
@@ -161,7 +161,7 @@ public class RemoteEndpointWrapperTest {
     }
 
 
-    private class TestRemoteEndpoint extends SPIRemoteEndpoint {
+    private class TestRemoteEndpoint extends RemoteEndpoint {
 
         private final ArrayList<Byte> bytesToSend = new ArrayList<Byte>();
         StringBuilder builder = new StringBuilder();
@@ -244,7 +244,7 @@ public class RemoteEndpointWrapperTest {
         }
     }
 
-    private static class TestContainer extends BaseContainer{
+    private static class TestContainer extends BaseContainer {
 
         @Override
         public long getDefaultAsyncSendTimeout() {

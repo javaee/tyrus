@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -39,25 +39,46 @@
  */
 package org.glassfish.tyrus.spi;
 
+import java.util.List;
+import java.util.Map;
 
 /**
- * The TyrusContainer is the starting point of the provider SPI. The provider must implement this
- * class with a public no args constructor. The new provider can be configured
- * in the web.xml of the web application requesting the new provider by specifying a servlet context
- * initialization parameter of key org.glassfish.websocket.provider.class and value the fully qualified classname
- * of the provider class.
+ * Handshake response.
  *
- * @author Danny Coward (danny.coward at oracle.com)
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public interface SPIServerFactory {
+public abstract class HandshakeResponse implements javax.websocket.HandshakeResponse {
 
     /**
-     * Creates a new embedded HTTP server (if supported) listening to incoming connections at a given root path
-     * and port.
+     * Get HTTP status.
      *
-     * @param rootPath context root
-     * @param port     TCP port
-     * @return server that can be started and stopped
+     * @return HTTP status.
      */
-    public SPIServer createServer(String rootPath, int port);
+    public abstract int getStatus();
+
+    /**
+     * Get HTTP reason phrase.
+     *
+     * @return reason phrase.
+     */
+    public abstract String getReasonPhrase();
+
+    /**
+     * Get response headers.
+     *
+     * @return Handshake response HTTP headers.
+     */
+    @Override
+    public abstract Map<String, List<String>> getHeaders();
+
+    /**
+     * Gets the first header value from the {@link List} of header values corresponding to the name.
+     *
+     * @param name header name.
+     * @return {@link String} value iff it exists, {@code null} otherwise.
+     */
+    public String getFirstHeaderValue(String name) {
+        final List<String> stringList = getHeaders().get(name);
+        return stringList == null ? null : stringList.get(0);
+    }
 }

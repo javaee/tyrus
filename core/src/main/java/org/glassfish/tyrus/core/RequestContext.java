@@ -49,22 +49,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import javax.websocket.server.HandshakeRequest;
-
-import org.glassfish.tyrus.spi.SPIHandshakeRequest;
-import org.glassfish.tyrus.spi.SPIWriter;
 import org.glassfish.tyrus.websockets.WebSocketRequest;
 
 /**
- * Implementation of all possible request interfaces. Should be only point of truth.
+ * Implementation of all possible request interfaces. Should be the only point of truth.
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public final class RequestContext extends SPIHandshakeRequest implements HandshakeRequest, WebSocketRequest {
+public final class RequestContext extends WebSocketRequest implements javax.websocket.server.HandshakeRequest {
 
     private final URI requestURI;
     private final String queryString;
-    private final SPIWriter writer;
     private final Object httpSession;
     private final boolean secure;
     private final Principal userPrincipal;
@@ -81,13 +76,12 @@ public final class RequestContext extends SPIHandshakeRequest implements Handsha
 
     private Map<String, List<String>> parameterMap;
 
-    private RequestContext(URI requestURI, String requestPath, String queryString, SPIWriter writer,
+    private RequestContext(URI requestURI, String requestPath, String queryString,
                            Object httpSession, boolean secure, Principal userPrincipal,
                            Builder.IsUserInRoleDelegate IsUserInRoleDelegate, Map<String, List<String>> parameterMap) {
         this.requestURI = requestURI;
         this.requestPath = requestPath;
         this.queryString = queryString;
-        this.writer = writer;
         this.httpSession = httpSession;
         this.secure = secure;
         this.userPrincipal = userPrincipal;
@@ -100,6 +94,7 @@ public final class RequestContext extends SPIHandshakeRequest implements Handsha
      *
      * @return headers map. List items are corresponding to header declaration in HTTP request.
      */
+    @Override
     public Map<String, List<String>> getHeaders() {
         return headers;
     }
@@ -110,15 +105,16 @@ public final class RequestContext extends SPIHandshakeRequest implements Handsha
      * @param name header name.
      * @return {@link List} of header values iff found, {@code null} otherwise.
      */
+    @Override
     public String getHeader(String name) {
         final List<String> stringList = headers.get(name);
-        if(stringList == null) {
+        if (stringList == null) {
             return null;
         } else {
             StringBuilder sb = new StringBuilder();
             boolean first = true;
-            for(String s : stringList) {
-                if(first) {
+            for (String s : stringList) {
+                if (first) {
                     first = false;
                 } else {
                     sb.append(", ");
@@ -197,11 +193,6 @@ public final class RequestContext extends SPIHandshakeRequest implements Handsha
         return secure;
     }
 
-    @Override
-    public SPIWriter getWriter() {
-        return writer;
-    }
-
     /**
      * {@link RequestContext} builder.
      */
@@ -210,13 +201,11 @@ public final class RequestContext extends SPIHandshakeRequest implements Handsha
         private URI requestURI;
         private String requestPath;
         private String queryString;
-        private SPIWriter writer;
         private Object httpSession;
         private boolean secure;
         private Principal userPrincipal;
         private Builder.IsUserInRoleDelegate isUserInRoleDelegate;
         private Map<String, List<String>> parameterMap;
-
 
         /**
          * Create empty builder.
@@ -246,17 +235,6 @@ public final class RequestContext extends SPIHandshakeRequest implements Handsha
          */
         public Builder queryString(String queryString) {
             this.queryString = queryString;
-            return this;
-        }
-
-        /**
-         * Set connection.
-         *
-         * @param writer connection to be set.
-         * @return updated {@link RequestContext.Builder} instance.
-         */
-        public Builder connection(SPIWriter writer) {
-            this.writer = writer;
             return this;
         }
 
@@ -342,7 +320,7 @@ public final class RequestContext extends SPIHandshakeRequest implements Handsha
          * @return created {@link RequestContext}.
          */
         public RequestContext build() {
-            return new RequestContext(requestURI, requestPath, queryString, writer, httpSession, secure,
+            return new RequestContext(requestURI, requestPath, queryString, httpSession, secure,
                     userPrincipal, isUserInRoleDelegate,
                     parameterMap != null ? parameterMap : new HashMap<String, List<String>>());
         }

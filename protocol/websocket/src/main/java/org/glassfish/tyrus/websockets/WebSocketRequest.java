@@ -40,41 +40,14 @@
 
 package org.glassfish.tyrus.websockets;
 
-import java.net.URI;
-import java.util.List;
-import java.util.Map;
-
-import org.glassfish.tyrus.spi.SPIWriter;
+import org.glassfish.tyrus.spi.HandshakeRequest;
 
 /**
  * Request representation.
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public interface WebSocketRequest {
-
-    /**
-     * Get request headers.
-     *
-     * @return request headers. List items represent headers from HTTP request.
-     */
-    public Map<String, List<String>> getHeaders();
-
-    /**
-     * Return the header values corresponding to the name.
-     *
-     * @param name header name.
-     * @return {@link List} of header values iff found, {@code null} otherwise.
-     */
-    public String getHeader(String name);
-
-    /**
-     * Get the first header value from the {@link List} of header values corresponding to the name.
-     *
-     * @param name header name.
-     * @return {@link String} value iff it exists, {@code null} otherwise.
-     */
-    public String getFirstHeaderValue(String name);
+public abstract class WebSocketRequest extends HandshakeRequest {
 
     /**
      * Put single header value into headers map.
@@ -82,54 +55,20 @@ public interface WebSocketRequest {
      * @param headerName  header name.
      * @param headerValue header value.
      */
-    public void putSingleHeader(String headerName, String headerValue);
+    public abstract void putSingleHeader(String headerName, String headerValue);
 
     /**
      * Get request path.
      *
      * @return request path.
      */
-    public String getRequestPath();
+    @Override
+    public abstract String getRequestPath();
 
     /**
      * Set request path.
      *
      * @param requestPath request path to be set.
      */
-    public void setRequestPath(String requestPath);
-
-    /**
-     * Get request URI.
-     *
-     * @return request URI.
-     */
-    public URI getRequestURI();
-
-    /**
-     * Get query string.
-     *
-     * @return unparsed query string.
-     */
-    public String getQueryString();
-
-    /**
-     * Get {@link org.glassfish.tyrus.spi.SPIWriter}.
-     *
-     * @return underlying connection.
-     */
-    public SPIWriter getWriter();
-
-    /**
-     * Get information about connection secure state.
-     *
-     * @return {@code true} if connection is secure, {@code false} otherwise.
-     */
-    public boolean isSecure();
-
-    /**
-     * Return the request parameters associated with the request.
-     *
-     * @return the unmodifiable map of the request parameters.
-     */
-    public Map<String, List<String>> getParameterMap();
+    public abstract void setRequestPath(String requestPath);
 }

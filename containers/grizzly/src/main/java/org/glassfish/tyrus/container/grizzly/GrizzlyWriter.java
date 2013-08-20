@@ -39,11 +39,13 @@
  */
 package org.glassfish.tyrus.container.grizzly;
 
+import java.util.List;
 import java.util.Map;
 
-import org.glassfish.tyrus.spi.SPIHandshakeResponse;
-import org.glassfish.tyrus.spi.SPIWebSocketEngine;
-import org.glassfish.tyrus.spi.SPIWriter;
+import org.glassfish.tyrus.core.Utils;
+import org.glassfish.tyrus.spi.HandshakeResponse;
+import org.glassfish.tyrus.spi.WebSocketEngine;
+import org.glassfish.tyrus.spi.Writer;
 
 import org.glassfish.grizzly.EmptyCompletionHandler;
 import org.glassfish.grizzly.filterchain.FilterChainContext;
@@ -55,7 +57,7 @@ import org.glassfish.grizzly.http.Protocol;
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-class GrizzlyWriter implements SPIWriter, SPIWebSocketEngine.ResponseWriter {
+class GrizzlyWriter implements Writer, WebSocketEngine.ResponseWriter {
 
     private final FilterChainContext ctx;
     private final HttpContent httpContent;
@@ -105,7 +107,7 @@ class GrizzlyWriter implements SPIWriter, SPIWebSocketEngine.ResponseWriter {
     }
 
     @Override
-    public void write(SPIHandshakeResponse response) {
+    public void write(HandshakeResponse response) {
         if (ctx == null) {
             throw new UnsupportedOperationException("not supported on client side");
         }
@@ -113,9 +115,10 @@ class GrizzlyWriter implements SPIWriter, SPIWebSocketEngine.ResponseWriter {
         final HttpResponsePacket responsePacket = ((HttpRequestPacket) httpContent.getHttpHeader()).getResponse();
         responsePacket.setProtocol(Protocol.HTTP_1_1);
         responsePacket.setStatus(response.getStatus());
+        responsePacket.setReasonPhrase(response.getReasonPhrase());
 
-        for (Map.Entry<String, String> entry : response.getHeaders().entrySet()) {
-            responsePacket.setHeader(entry.getKey(), entry.getValue());
+        for (Map.Entry<String, List<String>> entry : response.getHeaders().entrySet()) {
+            responsePacket.setHeader(entry.getKey(), Utils.getHeaderFromList(entry.getValue()));
         }
 
         ctx.write(HttpContent.builder(responsePacket).build());

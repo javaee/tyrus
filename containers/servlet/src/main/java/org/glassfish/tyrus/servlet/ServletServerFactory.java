@@ -44,15 +44,15 @@ import java.io.IOException;
 import javax.websocket.DeploymentException;
 
 import org.glassfish.tyrus.core.TyrusEndpoint;
-import org.glassfish.tyrus.spi.SPIEndpoint;
-import org.glassfish.tyrus.spi.SPIServer;
-import org.glassfish.tyrus.spi.SPIServerFactory;
+import org.glassfish.tyrus.spi.EndpointWrapper;
+import org.glassfish.tyrus.spi.ServerContainer;
+import org.glassfish.tyrus.spi.ServerContainerFactory;
 import org.glassfish.tyrus.websockets.WebSocketEngine;
 
 /**
  * Servlet container.
  */
-public class ServletServerFactory implements SPIServerFactory {
+public class ServletServerFactory implements ServerContainerFactory {
 
     private final WebSocketEngine engine;
 
@@ -61,8 +61,8 @@ public class ServletServerFactory implements SPIServerFactory {
     }
 
     @Override
-    public SPIServer createServer(String rootPath, int port) {
-        return new SPIServer() {
+    public ServerContainer createServerContainer(String rootPath, int port) {
+        return new ServerContainer() {
             @Override
             public void start() throws IOException {
             }
@@ -72,12 +72,12 @@ public class ServletServerFactory implements SPIServerFactory {
             }
 
             @Override
-            public void register(SPIEndpoint endpoint) throws DeploymentException {
+            public void register(EndpointWrapper endpoint) throws DeploymentException {
                 engine.register(new TyrusEndpoint(endpoint));
             }
 
             @Override
-            public void unregister(SPIEndpoint endpoint) {
+            public void unregister(EndpointWrapper endpoint) {
                 engine.unregister(new TyrusEndpoint(endpoint));
             }
         };

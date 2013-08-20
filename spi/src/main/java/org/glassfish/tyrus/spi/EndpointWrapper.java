@@ -50,7 +50,7 @@ import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
 
 /**
- * The WebSocket SDK implements {@link SPIEndpoint} with its representation of
+ * The WebSocket SDK implements {@link EndpointWrapper} with its representation of
  * a websocket endpoint mapped to a base URI that wishes to handle incoming
  * messages.
  *
@@ -58,7 +58,7 @@ import javax.websocket.WebSocketContainer;
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public abstract class SPIEndpoint {
+public abstract class EndpointWrapper {
 
     /**
      * This method must be called by the provider during
@@ -71,7 +71,7 @@ public abstract class SPIEndpoint {
      * @param hr <code>SPIHandshakeRequest</code> that is going to be checked.
      * @return <code>true</code> if handshake is successful <code>false</code> otherwise.
      */
-    public abstract boolean checkHandshake(SPIHandshakeRequest hr);
+    public abstract boolean checkHandshake(HandshakeRequest hr);
 
     /**
      * Called by the provider when the web socket connection
@@ -79,7 +79,7 @@ public abstract class SPIEndpoint {
      *
      * @param gs SPIRemoteEndpoint who has just connected to this web socket endpoint.
      */
-    public abstract void onConnect(SPIRemoteEndpoint gs, String subprotocol, List<Extension> extensions);
+    public abstract void onConnect(RemoteEndpoint gs, String subprotocol, List<Extension> extensions);
 
     /**
      * Called by the provider when the web socket connection
@@ -88,7 +88,7 @@ public abstract class SPIEndpoint {
      * @param gs            <code>SPIRemoteEndpoint</code> who sent the message.
      * @param messageString the String message.
      */
-    public abstract void onMessage(SPIRemoteEndpoint gs, String messageString);
+    public abstract void onMessage(RemoteEndpoint gs, String messageString);
 
 
     /**
@@ -102,7 +102,7 @@ public abstract class SPIEndpoint {
      * @param partialString the String message.
      * @param last          to indicate if this is the last partial string in the sequence
      */
-    public abstract void onPartialMessage(SPIRemoteEndpoint gs, String partialString, boolean last);
+    public abstract void onPartialMessage(RemoteEndpoint gs, String partialString, boolean last);
 
     /**
      * Called by the provider when the web socket connection
@@ -115,7 +115,7 @@ public abstract class SPIEndpoint {
      * @param partialBytes the piece of the binary message.
      * @param last         to indicate if this is the last partial byte buffer in the sequence
      */
-    public abstract void onPartialMessage(SPIRemoteEndpoint gs, ByteBuffer partialBytes, boolean last);
+    public abstract void onPartialMessage(RemoteEndpoint gs, ByteBuffer partialBytes, boolean last);
 
     /**
      * Called by the provider when the web socket connection
@@ -124,7 +124,7 @@ public abstract class SPIEndpoint {
      * @param gs    <code>SPIRemoteEndpoint</code> who sent the message.
      * @param bytes the message.
      */
-    public abstract void onMessage(SPIRemoteEndpoint gs, ByteBuffer bytes);
+    public abstract void onMessage(RemoteEndpoint gs, ByteBuffer bytes);
 
     /**
      * Called by the provider when the web socket connection
@@ -133,7 +133,7 @@ public abstract class SPIEndpoint {
      * @param gs    <code>SPIRemoteEndpoint</code> who sent the message.
      * @param bytes the message.
      */
-    public abstract void onPong(SPIRemoteEndpoint gs, ByteBuffer bytes);
+    public abstract void onPong(RemoteEndpoint gs, ByteBuffer bytes);
 
     /**
      * Called by the provider when the web socket connection
@@ -142,7 +142,7 @@ public abstract class SPIEndpoint {
      * @param gs    <code>SPIRemoteEndpoint</code> who sent the message.
      * @param bytes the message.
      */
-    public abstract void onPing(SPIRemoteEndpoint gs, ByteBuffer bytes);
+    public abstract void onPing(RemoteEndpoint gs, ByteBuffer bytes);
 
     /**
      * Called by the provider when the web socket connection
@@ -150,7 +150,7 @@ public abstract class SPIEndpoint {
      *
      * @param gs SPIRemoteEndpoint who has just closed the connection.
      */
-    public abstract void onClose(SPIRemoteEndpoint gs, CloseReason closeReason);
+    public abstract void onClose(RemoteEndpoint gs, CloseReason closeReason);
 
     /**
      * Get the negotiated extensions' names based on the extensions supported by client.
@@ -176,14 +176,14 @@ public abstract class SPIEndpoint {
     public abstract Set<Session> getOpenSessions();
 
     /**
-     * Creates a Session based on the {@link SPIRemoteEndpoint}, subprotocols and extensions.
+     * Creates a Session based on the {@link RemoteEndpoint}, subprotocols and extensions.
      *
      * @param re          the other end of the connection.
      * @param subprotocol used.
      * @param extensions  extensions used.
      * @return {@link Session} representing the connection.
      */
-    public abstract Session createSessionForRemoteEndpoint(SPIRemoteEndpoint re, String subprotocol, List<Extension> extensions);
+    public abstract Session createSessionForRemoteEndpoint(RemoteEndpoint re, String subprotocol, List<Extension> extensions);
 
     /**
      * Get Endpoint configuration.
@@ -199,5 +199,10 @@ public abstract class SPIEndpoint {
      */
     public abstract String getEndpointPath();
 
+    /**
+     * Get {@link WebSocketContainer}.
+     *
+     * @return WebSocketContainer associated with this endpoint.
+     */
     public abstract WebSocketContainer getWebSocketContainer();
 }

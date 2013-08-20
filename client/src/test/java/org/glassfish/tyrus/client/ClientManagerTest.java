@@ -43,9 +43,9 @@ import java.util.Map;
 
 import javax.websocket.ClientEndpointConfig;
 
-import org.glassfish.tyrus.spi.SPIClientContainer;
-import org.glassfish.tyrus.spi.SPIClientSocket;
-import org.glassfish.tyrus.spi.SPIEndpoint;
+import org.glassfish.tyrus.spi.ClientContainer;
+import org.glassfish.tyrus.spi.ClientSocket;
+import org.glassfish.tyrus.spi.EndpointWrapper;
 
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
@@ -81,14 +81,14 @@ public class ClientManagerTest {
     }
 
     private ClientManager createClientManager() {
-        return ClientManager.createClient(NoopSPIContainer.class.getName());
+        return ClientManager.createClient(NoopContainer.class.getName());
     }
 
-    public static class NoopSPIContainer implements SPIClientContainer {
+    public static class NoopContainer implements ClientContainer {
 
         @Override
-        public SPIClientSocket openClientSocket(String url, ClientEndpointConfig cec, SPIEndpoint endpoint,
-                                                SPIClientContainer.ClientHandshakeListener listener, Map<String, Object> properties) {
+        public ClientSocket openClientSocket(String url, ClientEndpointConfig cec, EndpointWrapper endpoint,
+                                             ClientContainer.ClientHandshakeListener listener, Map<String, Object> properties) {
             return null;
         }
     }

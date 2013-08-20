@@ -51,7 +51,7 @@ import javax.websocket.CloseReason;
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public abstract class SPIRemoteEndpoint {
+public abstract class RemoteEndpoint {
 
     /**
      * Send a text message, blocking until all of the message has been transmitted.
