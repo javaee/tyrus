@@ -47,7 +47,6 @@ import javax.websocket.server.ServerEndpointConfig;
 
 import org.glassfish.tyrus.core.OsgiRegistry;
 import org.glassfish.tyrus.core.ReflectionHelper;
-import org.glassfish.tyrus.core.TyrusContainerProvider;
 import org.glassfish.tyrus.spi.SPIServerFactory;
 
 /**
@@ -97,10 +96,8 @@ public class ServerContainerFactory {
             throw new RuntimeException("Failed to load container provider class: " + providerClassName, e);
         }
         Logger.getLogger(ServerContainerFactory.class.getName()).info("Provider class loaded: " + providerClassName);
-        TyrusServerContainer container = create(providerClass, contextPath, port, classes, Collections.<Class<?>>emptySet(),
+        return create(providerClass, contextPath, port, classes, Collections.<Class<?>>emptySet(),
                 Collections.<ServerEndpointConfig>emptySet());
-        TyrusContainerProvider.getContainerProvider().setContainer(container);
-        return container;
     }
 
     /**

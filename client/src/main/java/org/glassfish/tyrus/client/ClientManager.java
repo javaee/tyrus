@@ -68,7 +68,6 @@ import org.glassfish.tyrus.core.ComponentProviderService;
 import org.glassfish.tyrus.core.EndpointWrapper;
 import org.glassfish.tyrus.core.ErrorCollector;
 import org.glassfish.tyrus.core.ReflectionHelper;
-import org.glassfish.tyrus.core.TyrusContainerProvider;
 import org.glassfish.tyrus.core.Utils;
 import org.glassfish.tyrus.spi.SPIClientContainer;
 import org.glassfish.tyrus.spi.SPIClientSocket;
@@ -143,7 +142,6 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
         }
         LOGGER.config(String.format("Provider class loaded: %s", engineProviderClassname));
         this.container = (SPIClientContainer) ReflectionHelper.getInstance(engineProviderClazz, collector);
-        TyrusContainerProvider.getContainerProvider().setContainer(this);
         if (!collector.isEmpty()) {
             throw new RuntimeException(collector.composeComprehensiveException());
         }
