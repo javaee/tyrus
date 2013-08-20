@@ -548,7 +548,7 @@ public final class Handshake {
     /**
      * Set response listener.
      *
-     * @param responseListener {@link org.glassfish.tyrus.websockets.Handshake.HandshakeResponseListener#onHandShakeResponse(org.glassfish.tyrus.spi.HandshakeResponse)}
+     * @param responseListener {@link Handshake.HandshakeResponseListener#onHandShakeResponse(org.glassfish.tyrus.spi.HandshakeResponse)}
      *                         will be called when response is ready and validated.
      */
     public void setResponseListener(HandshakeResponseListener responseListener) {
