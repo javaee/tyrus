@@ -52,8 +52,6 @@ import javax.websocket.Encoder;
 import javax.websocket.EndpointConfig;
 import javax.websocket.Session;
 
-import org.glassfish.tyrus.spi.ComponentProvider;
-
 /**
  * Provides an instance of component. Searches for registered {@link ComponentProvider}s which are used to provide instances.
  *

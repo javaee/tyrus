@@ -57,7 +57,7 @@
     <dependencies>
         <dependency>
             <groupId>org.glassfish.tyrus</groupId>
-            <artifactId>tyrus-spi</artifactId>
+            <artifactId>tyrus-core</artifactId>
         </dependency>
         <dependency>
             <groupId>javax.enterprise</groupId>

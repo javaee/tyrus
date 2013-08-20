@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -41,28 +41,37 @@
 package org.glassfish.tyrus.core;
 
 /**
- * Provides instances using reflection.
+ * Provides an instance.
+ * </p>
+ *
+ * Method {@link #isApplicable(Class)} is called first to check whether the provider is able to provide the given {@link Class}.
+ * </p>
+ * Method {@link #provideInstance(Class)} is called to get the instance.
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
+ * @author Martin Matula (martin.matula at oracle.com)
  */
-public class DefaultComponentProvider extends ComponentProvider {
+public abstract class ComponentProvider {
+    /**
+     * Checks whether this component provider is able to provide an instance of given {@link Class}.
+     *
+     * @param c {@link Class} to be checked.
+     * @return {@code true} iff this {@link ComponentProvider} is able to create an instance of the given {@link Class}.
+     */
+    public abstract boolean isApplicable(Class<?> c);
 
-    @Override
-    public boolean isApplicable(Class<?> c) {
-        return true;
-    }
+    /**
+     * Create new instance.
+     * @param c {@link Class} to be created.
+     * @return instance, iff found, {@code null} otherwise.
+     */
+    public abstract <T> T provideInstance(Class<T> c);
 
-    @Override
-    public <T> T provideInstance(Class<T> toLoad) {
-        try{
-            return ReflectionHelper.getInstance(toLoad);
-        } catch (Exception e){
-            return null;
-        }
-    }
-
-    @Override
-    public boolean destroyInstance(Object o) {
-        return false;
-    }
+    /**
+     * Destroys the given managed instance.
+     *
+     * @param o instance to be destroyed.
+     * @return <code>true</code> iff the instance was coupled to this {@link ComponentProvider}, false otherwise.
+     */
+    public abstract boolean destroyInstance(Object o);
 }

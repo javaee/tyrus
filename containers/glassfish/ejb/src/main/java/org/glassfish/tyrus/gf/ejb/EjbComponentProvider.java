@@ -49,7 +49,7 @@ import javax.ejb.Stateless;
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
 
-import org.glassfish.tyrus.spi.ComponentProvider;
+import org.glassfish.tyrus.core.ComponentProvider;
 
 /**
  * Provides the instance for the supported EJB classes.
