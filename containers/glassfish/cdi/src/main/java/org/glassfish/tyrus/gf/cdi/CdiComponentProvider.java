@@ -112,7 +112,7 @@ public class CdiComponentProvider extends ComponentProvider {
     public <T> T provideInstance(Class<T> c) {
         if (managerRetrieved) {
             synchronized (beanManager) {
-                T managedObject = null;
+                T managedObject;
                 AnnotatedType annotatedType = beanManager.createAnnotatedType(c);
                 InjectionTarget it = beanManager.createInjectionTarget(annotatedType);
                 CreationalContext cc = beanManager.createCreationalContext(null);
@@ -141,8 +141,8 @@ public class CdiComponentProvider extends ComponentProvider {
     }
 
     private static class CdiInjectionContext {
-        InjectionTarget it;
-        CreationalContext cc;
+        final InjectionTarget it;
+        final CreationalContext cc;
 
         CdiInjectionContext(InjectionTarget it, CreationalContext cc) {
             this.it = it;

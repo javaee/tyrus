@@ -61,6 +61,7 @@ class BufferedInputStream extends InputStream {
         this.buffer = buffer;
     }
 
+    @Override
     public int read() throws IOException {
         return buffer.getNextByte();
     }

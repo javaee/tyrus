@@ -250,6 +250,7 @@ public class ReflectionHelper {
     public static ClassLoader getContextClassLoader() {
         return AccessController.doPrivileged(
                 new PrivilegedAction<ClassLoader>() {
+                    @Override
                     public ClassLoader run() {
                         ClassLoader cl = null;
                         try {
@@ -271,6 +272,7 @@ public class ReflectionHelper {
             return;
 
         AccessController.doPrivileged(new PrivilegedAction<Object>() {
+            @Override
             public Object run() {
                 if (!m.isAccessible()) {
                     m.setAccessible(true);

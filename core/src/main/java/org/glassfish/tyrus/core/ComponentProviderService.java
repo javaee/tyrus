@@ -61,7 +61,7 @@ import javax.websocket.Session;
  */
 public class ComponentProviderService {
 
-    private volatile Map<Session, Map<Class<?>, Object>> sessionToObject;
+    private final Map<Session, Map<Class<?>, Object>> sessionToObject;
     private final List<ComponentProvider> providers;
 
     /**

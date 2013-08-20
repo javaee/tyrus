@@ -62,6 +62,7 @@ public class UserListUpdateMessage extends ListMessage {
         return super.dataList;
     }
 
+    @Override
     public void fromString(String s) {
         super.parseDataString(s.substring(USERLIST_UPDATE.length()));
     }

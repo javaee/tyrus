@@ -268,7 +268,7 @@ public class WebSocketEngine implements org.glassfish.tyrus.spi.WebSocketEngine 
      * @param buffer1 second buffer.
      * @return concatenation.
      */
-    public static ByteBuffer appendBuffers(ByteBuffer buffer, ByteBuffer buffer1) {
+    private static ByteBuffer appendBuffers(ByteBuffer buffer, ByteBuffer buffer1) {
         final ByteBuffer result = ByteBuffer.allocate(buffer.remaining() + buffer1.remaining());
 
         result.put(buffer);

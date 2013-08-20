@@ -78,6 +78,7 @@ abstract class ListMessage extends ChatMessage {
         dataList.add(elt2);
     }
 
+    @Override
     public String asString() {
         StringBuilder builder = new StringBuilder(type);
 
@@ -89,6 +90,7 @@ abstract class ListMessage extends ChatMessage {
         return builder.toString();
     }
 
+    @Override
     List getData() {
         return dataList;
     }

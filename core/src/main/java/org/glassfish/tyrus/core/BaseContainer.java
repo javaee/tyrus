@@ -58,7 +58,7 @@ import org.glassfish.tyrus.websockets.ExecutorServiceProvider;
  *
  * @author Jitendra Kotamraju
  */
-public abstract class BaseContainer extends ExecutorServiceProvider implements WebSocketContainer{
+public abstract class BaseContainer extends ExecutorServiceProvider implements WebSocketContainer {
     private final ExecutorService executorService;
     private final ScheduledExecutorService scheduledExecutorService;
     private ThreadFactory threadFactory = null;
@@ -90,7 +90,7 @@ public abstract class BaseContainer extends ExecutorServiceProvider implements W
         }
 
         if (es == null) {
-            if(threadFactory == null){
+            if (threadFactory == null) {
                 threadFactory = new DaemonThreadFactory();
             }
             es = Executors.newCachedThreadPool(threadFactory);
@@ -110,11 +110,11 @@ public abstract class BaseContainer extends ExecutorServiceProvider implements W
         }
 
         if (service == null) {
-            if(threadFactory == null){
+            if (threadFactory == null) {
                 threadFactory = new DaemonThreadFactory();
             }
 
-            service =  Executors.newScheduledThreadPool(10, threadFactory);
+            service = Executors.newScheduledThreadPool(10, threadFactory);
         }
 
         return service;

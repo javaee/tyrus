@@ -57,6 +57,7 @@ public class ChatTranscriptUpdateMessage extends ListMessage {
         return (String) super.getData().get(0);
     }
 
+    @Override
     public void fromString(String s) {
         super.parseDataString(s.substring(CHATTRANSCRIPT_UPDATE.length()));
     }

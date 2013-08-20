@@ -48,10 +48,12 @@ import javax.websocket.EndpointConfig;
  */
 public class ChatDecoder implements Decoder.Text<ChatMessage> {
 
+    @Override
     public ChatMessage decode(String s) {
         return ChatMessage.parseMessage(s);
     }
 
+    @Override
     public boolean willDecode(String s) {
         return s.startsWith(DisconnectRequestMessage.DISCONNECT_REQUEST) ||
                 s.startsWith(DisconnectRequestMessage.LOGIN_REQUEST) ||

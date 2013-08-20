@@ -74,6 +74,7 @@ public class TyrusServletContainerInitializer implements ServletContainerInitial
         add(org.glassfish.tyrus.server.TyrusServerConfiguration.class);
     }};
 
+    @Override
     public void onStartup(Set<Class<?>> classes, ServletContext ctx) throws ServletException {
         if (classes == null || classes.isEmpty()) {
             return;

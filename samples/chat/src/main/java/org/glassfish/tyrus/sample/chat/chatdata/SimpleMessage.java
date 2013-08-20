@@ -49,14 +49,17 @@ abstract class SimpleMessage extends ChatMessage {
         this.dataString = dataString;
     }
 
+    @Override
     public String asString() {
         return type + dataString;
     }
 
+    @Override
     public void fromString(String s) {
         dataString = s.substring(type.length());
     }
 
+    @Override
     String getData() {
         return dataString;
     }

@@ -82,6 +82,5 @@ public enum Version {
             }
         }
         return sb.substring(0, sb.length() - 2);
-
     }
 }
