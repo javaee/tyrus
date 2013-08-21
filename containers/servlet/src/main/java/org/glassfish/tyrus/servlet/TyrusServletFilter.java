@@ -121,6 +121,11 @@ public class TyrusServletFilter implements Filter, HttpSessionListener {
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
+        final String frameBufferSize = filterConfig.getServletContext().getInitParameter(TyrusHttpUpgradeHandler.FRAME_BUFFER_SIZE);
+        if (frameBufferSize != null) {
+            engine.setIncomingBufferSize(Integer.parseInt(frameBufferSize));
+        }
+
         String contextRoot = filterConfig.getServletContext().getContextPath();
         this.serverContainer = ServerContainerFactory.create(new ServletServerFactory(engine), contextRoot, INFORMATIONAL_FIXED_PORT, classes, dynamicallyDeployedClasses, dynamicallyDeployedServerEndpointConfigs);
         try {

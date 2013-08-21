@@ -137,7 +137,7 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
                     }
                 }
             } catch (IOException e) {
-                // TODO TODO TODO TODO TODO
+                engine.close(writer, WebSocket.INVALID_DATA, null);
             }
         } while (!closed && is.isReady());
     }

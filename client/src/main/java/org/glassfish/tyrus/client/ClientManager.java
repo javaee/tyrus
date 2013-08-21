@@ -80,7 +80,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
      * <p/>
      * Uses Grizzly as transport implementation.
      */
-    private static final String ENGINE_PROVIDER_CLASSNAME = "org.glassfish.tyrus.container.grizzly.GrizzlyContainer";
+    private static final String CONTAINER_PROVIDER_CLASSNAME = "org.glassfish.tyrus.container.grizzly.GrizzlyContainer";
     private static final Logger LOGGER = Logger.getLogger(ClientManager.class.getName());
     private final ClientContainer container;
     private final ComponentProviderService componentProvider;
@@ -95,13 +95,13 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
     /**
      * Create new {@link ClientManager} instance.
      * <p/>
-     * Uses {@link ClientManager#ENGINE_PROVIDER_CLASSNAME} as container implementation, thus relevant module needs to
+     * Uses {@link ClientManager#CONTAINER_PROVIDER_CLASSNAME} as container implementation, thus relevant module needs to
      * be on classpath. Setting different container is possible via {@link ClientManager#createClient(String)}.
      *
      * @see ClientManager#createClient(String)
      */
     public static ClientManager createClient() {
-        return createClient(ENGINE_PROVIDER_CLASSNAME);
+        return createClient(CONTAINER_PROVIDER_CLASSNAME);
     }
 
     /**
@@ -109,33 +109,33 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
      *
      * @return new ClientManager instance.
      */
-    public static ClientManager createClient(String engineProviderClassname) {
-        return new ClientManager(engineProviderClassname);
+    public static ClientManager createClient(String containerProviderClassName) {
+        return new ClientManager(containerProviderClassName);
     }
 
     /**
      * Create new {@link ClientManager} instance.
      * <p/>
-     * Uses {@link ClientManager#ENGINE_PROVIDER_CLASSNAME} as container implementation, thus relevant module needs to
+     * Uses {@link ClientManager#CONTAINER_PROVIDER_CLASSNAME} as container implementation, thus relevant module needs to
      * be on classpath. Setting different container is possible via {@link ClientManager#createClient(String)}}.
      *
      * @see ClientManager#createClient(String)
      */
     public ClientManager() {
-        this(ENGINE_PROVIDER_CLASSNAME);
+        this(CONTAINER_PROVIDER_CLASSNAME);
     }
 
-    private ClientManager(String engineProviderClassname) {
+    private ClientManager(String containerProviderClassName) {
         collector = new ErrorCollector();
         componentProvider = ComponentProviderService.create();
         Class engineProviderClazz;
         try {
-            engineProviderClazz = ReflectionHelper.classForNameWithException(engineProviderClassname);
+            engineProviderClazz = ReflectionHelper.classForNameWithException(containerProviderClassName);
         } catch (ClassNotFoundException e) {
             collector.addException(e);
             throw new RuntimeException(collector.composeComprehensiveException());
         }
-        LOGGER.config(String.format("Provider class loaded: %s", engineProviderClassname));
+        LOGGER.config(String.format("Provider class loaded: %s", containerProviderClassName));
         this.container = (ClientContainer) ReflectionHelper.getInstance(engineProviderClazz, collector);
         if (!collector.isEmpty()) {
             throw new RuntimeException(collector.composeComprehensiveException());

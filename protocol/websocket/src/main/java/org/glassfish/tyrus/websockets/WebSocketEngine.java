@@ -90,6 +90,8 @@ public class WebSocketEngine implements org.glassfish.tyrus.spi.WebSocketEngine 
     private final Set<WebSocketApplication> applications = Collections.newSetFromMap(new ConcurrentHashMap<WebSocketApplication, Boolean>());
     private final Map<Writer, WebSocketHolder> webSocketHolderMap = new ConcurrentHashMap<Writer, WebSocketHolder>();
 
+    private int incomingBufferSize = 4194315; // 4M (payload) + 11 (frame overhead)
+
     public WebSocketEngine() {
     }
 
@@ -259,6 +261,10 @@ public class WebSocketEngine implements org.glassfish.tyrus.spi.WebSocketEngine 
         if (holder != null) {
             holder.webSocket.onClose(new ClosingDataFrame(closeCode, closeReason));
         }
+    }
+
+    public void setIncomingBufferSize(int incomingBufferSize) {
+        this.incomingBufferSize = incomingBufferSize;
     }
 
     /**
