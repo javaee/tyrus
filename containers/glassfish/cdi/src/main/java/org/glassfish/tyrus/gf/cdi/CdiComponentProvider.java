@@ -109,7 +109,7 @@ public class CdiComponentProvider extends ComponentProvider {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> T provideInstance(Class<T> c) {
+    public <T> T create(Class<T> c) {
         if (managerRetrieved) {
             synchronized (beanManager) {
                 T managedObject;
@@ -129,7 +129,7 @@ public class CdiComponentProvider extends ComponentProvider {
     }
 
     @Override
-    public boolean destroyInstance(Object o) {
+    public boolean destroy(Object o) {
         //if the object is not in map, nothing happens
         if(cdiBeanToContext.containsKey(o)) {
             cdiBeanToContext.get(o).cleanup(o);

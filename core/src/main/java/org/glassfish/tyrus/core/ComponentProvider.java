@@ -46,7 +46,7 @@ package org.glassfish.tyrus.core;
  *
  * Method {@link #isApplicable(Class)} is called first to check whether the provider is able to provide the given {@link Class}.
  * </p>
- * Method {@link #provideInstance(Class)} is called to get the instance.
+ * Method {@link #create(Class)} is called to get the instance.
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  * @author Martin Matula (martin.matula at oracle.com)
@@ -65,7 +65,7 @@ public abstract class ComponentProvider {
      * @param c {@link Class} to be created.
      * @return instance, iff found, {@code null} otherwise.
      */
-    public abstract <T> T provideInstance(Class<T> c);
+    public abstract <T> T create(Class<T> c);
 
     /**
      * Destroys the given managed instance.
@@ -73,5 +73,5 @@ public abstract class ComponentProvider {
      * @param o instance to be destroyed.
      * @return <code>true</code> iff the instance was coupled to this {@link ComponentProvider}, false otherwise.
      */
-    public abstract boolean destroyInstance(Object o);
+    public abstract boolean destroy(Object o);
 }

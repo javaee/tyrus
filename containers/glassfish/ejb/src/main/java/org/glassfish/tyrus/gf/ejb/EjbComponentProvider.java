@@ -62,7 +62,7 @@ public class EjbComponentProvider extends ComponentProvider {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> T provideInstance(Class<T> c) {
+    public <T> T create(Class<T> c) {
         String name = getName(c);
         T result = null;
         if (name == null) {
@@ -89,7 +89,7 @@ public class EjbComponentProvider extends ComponentProvider {
     }
 
     @Override
-    public boolean destroyInstance(Object o) {
+    public boolean destroy(Object o) {
         return false;
     }
 

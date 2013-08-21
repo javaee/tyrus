@@ -163,7 +163,7 @@ public class ComponentProviderService {
             for (ComponentProvider componentProvider : providers) {
                 if (componentProvider.isApplicable(c)) {
                     try {
-                        loaded = componentProvider.provideInstance(c);
+                        loaded = componentProvider.create(c);
                         if (loaded != null) {
                             if (loaded instanceof Encoder) {
                                 ((Encoder) loaded).init(endpointConfig);
@@ -203,7 +203,7 @@ public class ComponentProviderService {
                 }
 
                 for (ComponentProvider componentProvider : providers) {
-                    if(componentProvider.destroyInstance(o)){
+                    if(componentProvider.destroy(o)){
                         break;
                     }
                 }
@@ -238,7 +238,7 @@ public class ComponentProviderService {
     public <T> T getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
         for (ComponentProvider componentProvider : providers) {
             if (componentProvider.isApplicable(endpointClass)) {
-                final T t = componentProvider.provideInstance(endpointClass);
+                final T t = componentProvider.create(endpointClass);
                 if (t != null) {
                     return t;
                 }

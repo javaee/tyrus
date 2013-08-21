@@ -39,6 +39,8 @@
  */
 package org.glassfish.tyrus.spi;
 
+import java.io.Closeable;
+
 import javax.websocket.Session;
 
 /**
@@ -47,12 +49,7 @@ import javax.websocket.Session;
  * @author Martin Matula (martin.matula at oracle.com)
  * @see ClientContainer#openClientSocket(String, javax.websocket.ClientEndpointConfig, EndpointWrapper, ClientContainer.ClientHandshakeListener, java.util.Map)
  */
-public interface ClientSocket {
-
-    /**
-     * Close the socket.
-     */
-    public void close();
+public interface ClientSocket extends Closeable {
 
     /**
      * {@link Session} representing the connection with server.

@@ -53,7 +53,7 @@ public class DefaultComponentProvider extends ComponentProvider {
     }
 
     @Override
-    public <T> T provideInstance(Class<T> toLoad) {
+    public <T> T create(Class<T> toLoad) {
         try{
             return ReflectionHelper.getInstance(toLoad);
         } catch (Exception e){
@@ -62,7 +62,7 @@ public class DefaultComponentProvider extends ComponentProvider {
     }
 
     @Override
-    public boolean destroyInstance(Object o) {
+    public boolean destroy(Object o) {
         return false;
     }
 }
