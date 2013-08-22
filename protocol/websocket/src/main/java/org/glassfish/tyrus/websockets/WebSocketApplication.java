@@ -135,10 +135,10 @@ public abstract class WebSocketApplication implements WebSocketListener {
      *         WebSocket connection
      */
     public final boolean upgrade(HandshakeRequest request) {
-        final String upgradeHeader = request.getHeader(WebSocketEngine.UPGRADE);
-        return request.getHeaders().get(WebSocketEngine.UPGRADE) != null &&
+        final String upgradeHeader = request.getHeader(TyrusWebSocketEngine.UPGRADE);
+        return request.getHeaders().get(TyrusWebSocketEngine.UPGRADE) != null &&
                 // RFC 6455, paragraph 4.2.1.3
-                WebSocketEngine.WEBSOCKET.equalsIgnoreCase(upgradeHeader) && isApplicationRequest(request);
+                TyrusWebSocketEngine.WEBSOCKET.equalsIgnoreCase(upgradeHeader) && isApplicationRequest(request);
     }
 
     /**

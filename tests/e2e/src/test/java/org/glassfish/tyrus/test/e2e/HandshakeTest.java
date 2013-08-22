@@ -56,7 +56,7 @@ import javax.websocket.Session;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.e2e.bean.TestEndpoint;
-import org.glassfish.tyrus.websockets.WebSocketEngine;
+import org.glassfish.tyrus.websockets.TyrusWebSocketEngine;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -132,7 +132,7 @@ public class HandshakeTest {
 
             Map<String, List<String>> headers = myClientEndpointConfigurator.hr.getHeaders();
 
-            String supportedSubprotocol = headers.get(WebSocketEngine.SEC_WS_PROTOCOL_HEADER).get(0);
+            String supportedSubprotocol = headers.get(TyrusWebSocketEngine.SEC_WS_PROTOCOL_HEADER).get(0);
             Assert.assertEquals("asd", supportedSubprotocol);
         } catch (Exception e) {
             e.printStackTrace();

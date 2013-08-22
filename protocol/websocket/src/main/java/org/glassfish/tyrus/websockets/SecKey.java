@@ -86,7 +86,7 @@ class SecKey {
      * @return server key.
      */
     public static SecKey generateServerKey(SecKey clientKey) throws HandshakeException {
-        String key = clientKey.getSecKey() + WebSocketEngine.SERVER_KEY_HASH;
+        String key = clientKey.getSecKey() + TyrusWebSocketEngine.SERVER_KEY_HASH;
         final MessageDigest instance;
         try {
             instance = MessageDigest.getInstance("SHA-1");

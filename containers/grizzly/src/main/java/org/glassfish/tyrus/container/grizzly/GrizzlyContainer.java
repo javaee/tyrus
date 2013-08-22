@@ -53,7 +53,7 @@ import org.glassfish.tyrus.spi.ClientSocket;
 import org.glassfish.tyrus.spi.EndpointWrapper;
 import org.glassfish.tyrus.spi.ServerContainer;
 import org.glassfish.tyrus.spi.ServerContainerFactory;
-import org.glassfish.tyrus.websockets.WebSocketEngine;
+import org.glassfish.tyrus.websockets.TyrusWebSocketEngine;
 
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.grizzly.ssl.SSLContextConfigurator;
@@ -69,13 +69,13 @@ public class GrizzlyContainer implements ServerContainerFactory, ClientContainer
 
     //The same value Grizzly is using for socket timeout.
     private static final long CLIENT_SOCKET_TIMEOUT = 30000;
-    private final WebSocketEngine engine;
+    private final TyrusWebSocketEngine engine;
 
     /**
      * Creates Grizzly engine.
      */
     public GrizzlyContainer() {
-        engine = new WebSocketEngine();
+        engine = new TyrusWebSocketEngine();
     }
 
     @Override

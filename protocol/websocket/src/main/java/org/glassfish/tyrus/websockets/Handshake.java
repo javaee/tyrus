@@ -103,18 +103,18 @@ public final class Handshake {
         final Handshake handshake = new Handshake();
 
         handshake.incomingRequest = request;
-        checkForHeader(request.getFirstHeaderValue(org.glassfish.tyrus.websockets.WebSocketEngine.UPGRADE), org.glassfish.tyrus.websockets.WebSocketEngine.UPGRADE, "WebSocket");
-        checkForHeader(request.getHeader(org.glassfish.tyrus.websockets.WebSocketEngine.CONNECTION), org.glassfish.tyrus.websockets.WebSocketEngine.CONNECTION, org.glassfish.tyrus.websockets.WebSocketEngine.UPGRADE);
+        checkForHeader(request.getFirstHeaderValue(TyrusWebSocketEngine.UPGRADE), TyrusWebSocketEngine.UPGRADE, "WebSocket");
+        checkForHeader(request.getHeader(TyrusWebSocketEngine.CONNECTION), TyrusWebSocketEngine.CONNECTION, TyrusWebSocketEngine.UPGRADE);
 
-        handshake.origin = request.getFirstHeaderValue(org.glassfish.tyrus.websockets.WebSocketEngine.SEC_WS_ORIGIN_HEADER);
+        handshake.origin = request.getFirstHeaderValue(TyrusWebSocketEngine.SEC_WS_ORIGIN_HEADER);
 
         if (handshake.origin == null) {
-            handshake.origin = request.getFirstHeaderValue(org.glassfish.tyrus.websockets.WebSocketEngine.ORIGIN_HEADER);
+            handshake.origin = request.getFirstHeaderValue(TyrusWebSocketEngine.ORIGIN_HEADER);
         }
         Handshake.determineHostAndPort(handshake, request);
 
         // TODO - trim?
-        final String protocolHeader = request.getFirstHeaderValue(org.glassfish.tyrus.websockets.WebSocketEngine.SEC_WS_PROTOCOL_HEADER);
+        final String protocolHeader = request.getFirstHeaderValue(TyrusWebSocketEngine.SEC_WS_PROTOCOL_HEADER);
         handshake.subProtocols = (protocolHeader == null ? Collections.<String>emptyList() : Arrays.asList(protocolHeader.split(",")));
 
         if (handshake.serverHostName == null) {
@@ -134,11 +134,11 @@ public final class Handshake {
 //            }
         }
 
-        List<String> value = request.getHeaders().get(org.glassfish.tyrus.websockets.WebSocketEngine.SEC_WS_EXTENSIONS_HEADER);
+        List<String> value = request.getHeaders().get(TyrusWebSocketEngine.SEC_WS_EXTENSIONS_HEADER);
         if (value != null) {
             handshake.extensions = Handshake.fromHeaders(value);
         }
-        handshake.secKey = SecKey.generateServerKey(new SecKey(request.getFirstHeaderValue(org.glassfish.tyrus.websockets.WebSocketEngine.SEC_WS_KEY_HEADER)));
+        handshake.secKey = SecKey.generateServerKey(new SecKey(request.getFirstHeaderValue(TyrusWebSocketEngine.SEC_WS_KEY_HEADER)));
 
         return handshake;
     }
@@ -150,7 +150,7 @@ public final class Handshake {
     private static void validate(String header, String validValue, String value) {
         // http://java.net/jira/browse/TYRUS-55
         // Firefox workaround (it sends "Connections: keep-alive, upgrade").
-        if (header.equalsIgnoreCase(org.glassfish.tyrus.websockets.WebSocketEngine.CONNECTION)) {
+        if (header.equalsIgnoreCase(TyrusWebSocketEngine.CONNECTION)) {
             if (!value.toLowerCase().contains(validValue.toLowerCase())) {
                 throw new HandshakeException(String.format("Invalid %s header returned: '%s'", header, value));
             }
@@ -162,7 +162,7 @@ public final class Handshake {
     }
 
     private static void determineHostAndPort(Handshake handshake, HandshakeRequest request) {
-        String header = request.getFirstHeaderValue(org.glassfish.tyrus.websockets.WebSocketEngine.HOST);
+        String header = request.getFirstHeaderValue(TyrusWebSocketEngine.HOST);
 
         final int i = header == null ? -1 : header.indexOf(":");
         if (i == -1) {
@@ -446,62 +446,62 @@ public final class Handshake {
         }
 
         request.setRequestPath(getResourcePath());
-        request.putSingleHeader(org.glassfish.tyrus.websockets.WebSocketEngine.HOST, host);
-        request.putSingleHeader(org.glassfish.tyrus.websockets.WebSocketEngine.CONNECTION, org.glassfish.tyrus.websockets.WebSocketEngine.UPGRADE);
-        request.putSingleHeader(org.glassfish.tyrus.websockets.WebSocketEngine.UPGRADE, org.glassfish.tyrus.websockets.WebSocketEngine.WEBSOCKET);
+        request.putSingleHeader(TyrusWebSocketEngine.HOST, host);
+        request.putSingleHeader(TyrusWebSocketEngine.CONNECTION, TyrusWebSocketEngine.UPGRADE);
+        request.putSingleHeader(TyrusWebSocketEngine.UPGRADE, TyrusWebSocketEngine.WEBSOCKET);
 
         if (!getSubProtocols().isEmpty()) {
-            request.putSingleHeader(org.glassfish.tyrus.websockets.WebSocketEngine.SEC_WS_PROTOCOL_HEADER, getHeaderFromList(subProtocols));
+            request.putSingleHeader(TyrusWebSocketEngine.SEC_WS_PROTOCOL_HEADER, getHeaderFromList(subProtocols));
         }
 
         if (!getExtensions().isEmpty()) {
-            request.putSingleHeader(org.glassfish.tyrus.websockets.WebSocketEngine.SEC_WS_EXTENSIONS_HEADER, getHeaderFromList(extensions));
+            request.putSingleHeader(TyrusWebSocketEngine.SEC_WS_EXTENSIONS_HEADER, getHeaderFromList(extensions));
         }
 
-        request.putSingleHeader(org.glassfish.tyrus.websockets.WebSocketEngine.SEC_WS_KEY_HEADER, secKey.toString());
-        request.putSingleHeader(org.glassfish.tyrus.websockets.WebSocketEngine.SEC_WS_ORIGIN_HEADER, getOrigin());
-        request.putSingleHeader(org.glassfish.tyrus.websockets.WebSocketEngine.SEC_WS_VERSION, getVersion() + "");
+        request.putSingleHeader(TyrusWebSocketEngine.SEC_WS_KEY_HEADER, secKey.toString());
+        request.putSingleHeader(TyrusWebSocketEngine.SEC_WS_ORIGIN_HEADER, getOrigin());
+        request.putSingleHeader(TyrusWebSocketEngine.SEC_WS_VERSION, getVersion() + "");
         if (!getExtensions().isEmpty()) {
-            request.putSingleHeader(org.glassfish.tyrus.websockets.WebSocketEngine.SEC_WS_EXTENSIONS_HEADER, getHeaderFromList(getExtensions()));
+            request.putSingleHeader(TyrusWebSocketEngine.SEC_WS_EXTENSIONS_HEADER, getHeaderFromList(getExtensions()));
         }
-        final String headerValue = request.getFirstHeaderValue(org.glassfish.tyrus.websockets.WebSocketEngine.SEC_WS_ORIGIN_HEADER);
-        request.getHeaders().remove(org.glassfish.tyrus.websockets.WebSocketEngine.SEC_WS_ORIGIN_HEADER);
-        request.putSingleHeader(org.glassfish.tyrus.websockets.WebSocketEngine.ORIGIN_HEADER, headerValue);
+        final String headerValue = request.getFirstHeaderValue(TyrusWebSocketEngine.SEC_WS_ORIGIN_HEADER);
+        request.getHeaders().remove(TyrusWebSocketEngine.SEC_WS_ORIGIN_HEADER);
+        request.putSingleHeader(TyrusWebSocketEngine.ORIGIN_HEADER, headerValue);
         return request;
     }
 
     public void validateServerResponse(HandshakeResponse response) {
-        if (org.glassfish.tyrus.websockets.WebSocketEngine.RESPONSE_CODE_VALUE != response.getStatus()) {
+        if (TyrusWebSocketEngine.RESPONSE_CODE_VALUE != response.getStatus()) {
             throw new HandshakeException(String.format("Response code was not %s: %s",
-                    org.glassfish.tyrus.websockets.WebSocketEngine.RESPONSE_CODE_VALUE, response.getStatus()));
+                    TyrusWebSocketEngine.RESPONSE_CODE_VALUE, response.getStatus()));
         }
 
-        checkForHeader(response.getFirstHeaderValue(org.glassfish.tyrus.websockets.WebSocketEngine.UPGRADE), org.glassfish.tyrus.websockets.WebSocketEngine.UPGRADE, org.glassfish.tyrus.websockets.WebSocketEngine.WEBSOCKET);
-        checkForHeader(response.getFirstHeaderValue(org.glassfish.tyrus.websockets.WebSocketEngine.CONNECTION), org.glassfish.tyrus.websockets.WebSocketEngine.CONNECTION, org.glassfish.tyrus.websockets.WebSocketEngine.UPGRADE);
+        checkForHeader(response.getFirstHeaderValue(TyrusWebSocketEngine.UPGRADE), TyrusWebSocketEngine.UPGRADE, TyrusWebSocketEngine.WEBSOCKET);
+        checkForHeader(response.getFirstHeaderValue(TyrusWebSocketEngine.CONNECTION), TyrusWebSocketEngine.CONNECTION, TyrusWebSocketEngine.UPGRADE);
 
 //        if (!getSubProtocols().isEmpty()) {
 //            checkForHeader(response.getHeaders(), WebSocketEngine.SEC_WS_PROTOCOL_HEADER, WebSocketEngine.SEC_WS_PROTOCOL_HEADER);
 //        }
 
-        secKey.validateServerKey(response.getFirstHeaderValue(org.glassfish.tyrus.websockets.WebSocketEngine.SEC_WS_ACCEPT));
+        secKey.validateServerKey(response.getFirstHeaderValue(TyrusWebSocketEngine.SEC_WS_ACCEPT));
     }
 
     void respond(org.glassfish.tyrus.spi.WebSocketEngine.ResponseWriter writer, WebSocketApplication application/*, WebSocketResponse response*/) {
         WebSocketResponse response = new WebSocketResponse();
         response.setStatus(101);
 
-        response.getHeaders().put(org.glassfish.tyrus.websockets.WebSocketEngine.UPGRADE, Arrays.asList(org.glassfish.tyrus.websockets.WebSocketEngine.WEBSOCKET));
-        response.getHeaders().put(org.glassfish.tyrus.websockets.WebSocketEngine.CONNECTION, Arrays.asList(org.glassfish.tyrus.websockets.WebSocketEngine.UPGRADE));
-        response.setReasonPhrase(org.glassfish.tyrus.websockets.WebSocketEngine.RESPONSE_CODE_MESSAGE);
-        response.getHeaders().put(org.glassfish.tyrus.websockets.WebSocketEngine.SEC_WS_ACCEPT, Arrays.asList(secKey.getSecKey()));
+        response.getHeaders().put(TyrusWebSocketEngine.UPGRADE, Arrays.asList(TyrusWebSocketEngine.WEBSOCKET));
+        response.getHeaders().put(TyrusWebSocketEngine.CONNECTION, Arrays.asList(TyrusWebSocketEngine.UPGRADE));
+        response.setReasonPhrase(TyrusWebSocketEngine.RESPONSE_CODE_MESSAGE);
+        response.getHeaders().put(TyrusWebSocketEngine.SEC_WS_ACCEPT, Arrays.asList(secKey.getSecKey()));
         if (!getEnabledExtensions().isEmpty()) {
-            response.getHeaders().put(org.glassfish.tyrus.websockets.WebSocketEngine.SEC_WS_EXTENSIONS_HEADER, getSubProtocols());
+            response.getHeaders().put(TyrusWebSocketEngine.SEC_WS_EXTENSIONS_HEADER, getSubProtocols());
         }
 
         if (subProtocols != null && !subProtocols.isEmpty()) {
             List<String> appProtocols = application.getSupportedProtocols(subProtocols);
             if (!appProtocols.isEmpty()) {
-                response.getHeaders().put(org.glassfish.tyrus.websockets.WebSocketEngine.SEC_WS_PROTOCOL_HEADER, getStringList(appProtocols));
+                response.getHeaders().put(TyrusWebSocketEngine.SEC_WS_PROTOCOL_HEADER, getStringList(appProtocols));
             }
         }
         if (!application.getSupportedExtensions().isEmpty() && !getExtensions().isEmpty()) {
@@ -510,7 +510,7 @@ public final class Handshake {
                             application.getSupportedExtensions());
             if (!intersection.isEmpty()) {
                 application.onExtensionNegotiation(intersection);
-                response.getHeaders().put(org.glassfish.tyrus.websockets.WebSocketEngine.SEC_WS_EXTENSIONS_HEADER, getStringList(intersection));
+                response.getHeaders().put(TyrusWebSocketEngine.SEC_WS_EXTENSIONS_HEADER, getStringList(intersection));
             }
         }
 

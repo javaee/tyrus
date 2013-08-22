@@ -72,11 +72,12 @@ import org.glassfish.tyrus.server.ServerContainerFactory;
 import org.glassfish.tyrus.spi.WebSocketEngine;
 import org.glassfish.tyrus.spi.Writer;
 import org.glassfish.tyrus.websockets.HandshakeException;
+import org.glassfish.tyrus.websockets.TyrusWebSocketEngine;
 
 /**
  * Filter used for Servlet integration.
  * <p/>
- * Consumes only requests with {@link org.glassfish.tyrus.websockets.WebSocketEngine#SEC_WS_KEY_HEADER} headers present, all others are
+ * Consumes only requests with {@link org.glassfish.tyrus.websockets.TyrusWebSocketEngine#SEC_WS_KEY_HEADER} headers present, all others are
  * passed back to {@link FilterChain}.
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
@@ -86,7 +87,7 @@ public class TyrusServletFilter implements Filter, HttpSessionListener {
 
     private static final int INFORMATIONAL_FIXED_PORT = 8080;
     private final static Logger LOGGER = Logger.getLogger(TyrusServletFilter.class.getName());
-    private final org.glassfish.tyrus.websockets.WebSocketEngine engine = new org.glassfish.tyrus.websockets.WebSocketEngine();
+    private final TyrusWebSocketEngine engine = new TyrusWebSocketEngine();
     private org.glassfish.tyrus.server.TyrusServerContainer serverContainer = null;
 
     // @ServerEndpoint annotated classes and classes extending ServerApplicationConfig
@@ -216,7 +217,7 @@ public class TyrusServletFilter implements Filter, HttpSessionListener {
         HttpServletResponse httpServletResponse = (HttpServletResponse) response;
 
         // check for mandatory websocket header
-        final String header = httpServletRequest.getHeader(org.glassfish.tyrus.websockets.WebSocketEngine.SEC_WS_KEY_HEADER);
+        final String header = httpServletRequest.getHeader(TyrusWebSocketEngine.SEC_WS_KEY_HEADER);
         if (header != null) {
             LOGGER.fine("Setting up WebSocket protocol handler");
 

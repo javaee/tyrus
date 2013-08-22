@@ -56,6 +56,7 @@ import javax.servlet.http.WebConnection;
 import org.glassfish.tyrus.core.TyrusWebSocket;
 import org.glassfish.tyrus.spi.WebSocketEngine;
 import org.glassfish.tyrus.spi.Writer;
+import org.glassfish.tyrus.websockets.TyrusWebSocketEngine;
 import org.glassfish.tyrus.websockets.WebSocket;
 
 /**
@@ -255,7 +256,7 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
                 // TODO
                 // initiates connection close without sending close frame to the client - session is already invalidated
                 // so we should not send anything.
-                ((TyrusWebSocket) ((org.glassfish.tyrus.websockets.WebSocketEngine) engine).getWebSocketHolder(writer).webSocket).setClosed();
+                ((TyrusWebSocket) ((TyrusWebSocketEngine) engine).getWebSocketHolder(writer).webSocket).setClosed();
                 engine.close(writer, closeCode, closeReason);
                 closed = true;
                 wc.close();

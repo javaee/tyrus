@@ -56,9 +56,9 @@ import org.glassfish.tyrus.spi.HandshakeResponse;
 import org.glassfish.tyrus.spi.Writer;
 import org.glassfish.tyrus.websockets.DataFrame;
 import org.glassfish.tyrus.websockets.HandshakeException;
+import org.glassfish.tyrus.websockets.TyrusWebSocketEngine;
 import org.glassfish.tyrus.websockets.WebSocket;
-import org.glassfish.tyrus.websockets.WebSocketEngine;
-import org.glassfish.tyrus.websockets.WebSocketEngine.WebSocketHolder;
+import org.glassfish.tyrus.websockets.TyrusWebSocketEngine.WebSocketHolder;
 import org.glassfish.tyrus.websockets.WebSocketRequest;
 import org.glassfish.tyrus.websockets.WebSocketResponse;
 
@@ -105,7 +105,7 @@ class WebSocketFilter extends BaseFilter {
     private final long wsTimeoutMS;
     private final boolean proxy;
     private final Filter sslFilter;
-    private final WebSocketEngine engine;
+    private final TyrusWebSocketEngine engine;
 
     private HandshakeRequest webSocketRequest;
 
@@ -115,7 +115,7 @@ class WebSocketFilter extends BaseFilter {
      * Constructs a new {@link WebSocketFilter} with a default idle connection
      * timeout of 15 minutes and with proxy turned off.
      */
-    public WebSocketFilter(WebSocketEngine engine) {
+    public WebSocketFilter(TyrusWebSocketEngine engine) {
         this(engine, DEFAULT_WS_IDLE_TIMEOUT_IN_SECONDS, false);
     }
 
@@ -125,7 +125,7 @@ class WebSocketFilter extends BaseFilter {
      * @param wsTimeoutInSeconds TODO
      * @param proxy              true when client initiated connection has proxy in the way.
      */
-    public WebSocketFilter(WebSocketEngine engine, final long wsTimeoutInSeconds, boolean proxy) {
+    public WebSocketFilter(TyrusWebSocketEngine engine, final long wsTimeoutInSeconds, boolean proxy) {
         this(engine, wsTimeoutInSeconds, proxy, null);
     }
 
@@ -136,7 +136,7 @@ class WebSocketFilter extends BaseFilter {
      * @param proxy              true when client initiated connection has proxy in the way.
      * @param sslFilter          filter to be "enabled" in case connection is created via proxy.
      */
-    public WebSocketFilter(WebSocketEngine engine, final long wsTimeoutInSeconds, boolean proxy, Filter sslFilter) {
+    public WebSocketFilter(TyrusWebSocketEngine engine, final long wsTimeoutInSeconds, boolean proxy, Filter sslFilter) {
         if (wsTimeoutInSeconds <= 0) {
             this.wsTimeoutMS = IdleTimeoutFilter.FOREVER;
         } else {
@@ -282,7 +282,7 @@ class WebSocketFilter extends BaseFilter {
 
             // If websocket is null - it means either non-websocket Connection, or websocket with incomplete handshake
             if (!webSocketInProgress(writer) &&
-                    !WebSocketEngine.WEBSOCKET.equalsIgnoreCase(header.getUpgrade())) {
+                    !TyrusWebSocketEngine.WEBSOCKET.equalsIgnoreCase(header.getUpgrade())) {
                 // if it's not a websocket connection - pass the processing to the next filter
                 return ctx.getInvokeAction();
             }

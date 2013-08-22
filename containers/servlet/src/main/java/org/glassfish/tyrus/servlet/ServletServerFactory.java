@@ -47,16 +47,16 @@ import org.glassfish.tyrus.core.TyrusEndpoint;
 import org.glassfish.tyrus.spi.EndpointWrapper;
 import org.glassfish.tyrus.spi.ServerContainer;
 import org.glassfish.tyrus.spi.ServerContainerFactory;
-import org.glassfish.tyrus.websockets.WebSocketEngine;
+import org.glassfish.tyrus.websockets.TyrusWebSocketEngine;
 
 /**
  * Servlet container.
  */
 public class ServletServerFactory implements ServerContainerFactory {
 
-    private final WebSocketEngine engine;
+    private final TyrusWebSocketEngine engine;
 
-    public ServletServerFactory(WebSocketEngine engine) {
+    public ServletServerFactory(TyrusWebSocketEngine engine) {
         this.engine = engine;
     }
 

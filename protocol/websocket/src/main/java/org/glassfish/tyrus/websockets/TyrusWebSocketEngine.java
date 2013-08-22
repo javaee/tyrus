@@ -66,7 +66,7 @@ import org.glassfish.tyrus.websockets.uri.Match;
  * @see WebSocket
  * @see WebSocketApplication
  */
-public class WebSocketEngine implements org.glassfish.tyrus.spi.WebSocketEngine {
+public class TyrusWebSocketEngine implements org.glassfish.tyrus.spi.WebSocketEngine {
 
     public static final String SEC_WS_ACCEPT = "Sec-WebSocket-Accept";
     public static final String SEC_WS_KEY_HEADER = "Sec-WebSocket-Key";
@@ -85,14 +85,14 @@ public class WebSocketEngine implements org.glassfish.tyrus.spi.WebSocketEngine 
     public static final String SERVER_KEY_HASH = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
     public static final int MASK_SIZE = 4;
 
-    private static final Logger LOGGER = Logger.getLogger(org.glassfish.tyrus.websockets.WebSocketEngine.WEBSOCKET);
+    private static final Logger LOGGER = Logger.getLogger(TyrusWebSocketEngine.WEBSOCKET);
 
     private final Set<WebSocketApplication> applications = Collections.newSetFromMap(new ConcurrentHashMap<WebSocketApplication, Boolean>());
     private final Map<Writer, WebSocketHolder> webSocketHolderMap = new ConcurrentHashMap<Writer, WebSocketHolder>();
 
     private int incomingBufferSize = 4194315; // 4M (payload) + 11 (frame overhead)
 
-    public WebSocketEngine() {
+    public TyrusWebSocketEngine() {
     }
 
     public static byte[] toArray(long length) {
@@ -139,7 +139,7 @@ public class WebSocketEngine implements org.glassfish.tyrus.spi.WebSocketEngine 
                                                  final HandshakeRequest request) {
         WebSocketResponse response = new WebSocketResponse();
         response.setStatus(426);
-        response.getHeaders().put(org.glassfish.tyrus.websockets.WebSocketEngine.SEC_WS_VERSION,
+        response.getHeaders().put(TyrusWebSocketEngine.SEC_WS_VERSION,
                 Arrays.asList(Version.getSupportedWireProtocolVersions()));
         writer.write(response);
     }

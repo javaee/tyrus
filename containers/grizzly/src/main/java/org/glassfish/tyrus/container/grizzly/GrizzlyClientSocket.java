@@ -76,8 +76,8 @@ import org.glassfish.tyrus.websockets.Extension;
 import org.glassfish.tyrus.websockets.Handshake;
 import org.glassfish.tyrus.websockets.HandshakeException;
 import org.glassfish.tyrus.websockets.ProtocolHandler;
+import org.glassfish.tyrus.websockets.TyrusWebSocketEngine;
 import org.glassfish.tyrus.websockets.WebSocket;
-import org.glassfish.tyrus.websockets.WebSocketEngine;
 import org.glassfish.tyrus.websockets.WebSocketListener;
 import org.glassfish.tyrus.websockets.frame.PingFrame;
 import org.glassfish.tyrus.websockets.frame.PongFrame;
@@ -156,7 +156,7 @@ public class GrizzlyClientSocket implements WebSocket, ClientSocket {
     private final SSLEngineConfigurator clientSSLEngineConfigurator;
     private final ThreadPoolConfig workerThreadPoolConfig;
     private final ThreadPoolConfig selectorThreadPoolConfig;
-    private final WebSocketEngine engine;
+    private final TyrusWebSocketEngine engine;
 
     private SocketAddress socketAddress;
 
@@ -177,7 +177,7 @@ public class GrizzlyClientSocket implements WebSocket, ClientSocket {
      * @param clientSSLEngineConfigurator ssl engine configurator
      */
     GrizzlyClientSocket(EndpointWrapper endpoint, URI uri, ClientEndpointConfig configuration, long timeoutMs,
-                        ClientContainer.ClientHandshakeListener listener, WebSocketEngine engine,
+                        ClientContainer.ClientHandshakeListener listener, TyrusWebSocketEngine engine,
                         SSLEngineConfigurator clientSSLEngineConfigurator,
                         String proxyString,
                         ThreadPoolConfig workerThreadPoolConfig,
@@ -185,7 +185,7 @@ public class GrizzlyClientSocket implements WebSocket, ClientSocket {
         this.endpoint = endpoint;
         this.uri = uri;
         this.configuration = configuration;
-        protocolHandler = WebSocketEngine.DEFAULT_VERSION.createHandler(true);
+        protocolHandler = TyrusWebSocketEngine.DEFAULT_VERSION.createHandler(true);
         protocolHandler.setContainer(endpoint.getWebSocketContainer());
         remoteEndpoint = new TyrusRemoteEndpoint(this);
         this.timeoutMs = timeoutMs;
@@ -222,7 +222,7 @@ public class GrizzlyClientSocket implements WebSocket, ClientSocket {
                     final Writer writer = getConnection(conn);
 
                     protocolHandler.setWriter(writer);
-                    WebSocketEngine.WebSocketHolder holder =
+                    TyrusWebSocketEngine.WebSocketHolder holder =
                             engine.setWebSocketHolder(writer, protocolHandler, RequestContext.Builder.create().requestURI(uri).build(), GrizzlyClientSocket.this, null);
 
                     prepareHandshake(holder.handshake);
@@ -325,7 +325,7 @@ public class GrizzlyClientSocket implements WebSocket, ClientSocket {
 
             @Override
             public void onHandShakeResponse(HandshakeResponse response) {
-                List<String> values = response.getHeaders().get(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER);
+                List<String> values = response.getHeaders().get(TyrusWebSocketEngine.SEC_WS_EXTENSIONS_HEADER);
                 if (values != null) {
                     responseExtensions.addAll(TyrusExtension.fromString(values));
                 }
@@ -579,7 +579,7 @@ public class GrizzlyClientSocket implements WebSocket, ClientSocket {
         }
     }
 
-    private static Processor createFilterChain(WebSocketEngine engine,
+    private static Processor createFilterChain(TyrusWebSocketEngine engine,
                                                SSLEngineConfigurator serverSSLEngineConfigurator,
                                                SSLEngineConfigurator clientSSLEngineConfigurator,
                                                boolean proxy) {

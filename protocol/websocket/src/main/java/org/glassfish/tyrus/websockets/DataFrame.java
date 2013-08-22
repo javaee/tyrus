@@ -115,7 +115,7 @@ public class DataFrame {
                 .append("last=").append(last)
                 .append(", type=").append(type.getClass().getSimpleName())
                 .append(", payload='").append(getTextPayload()).append('\'')
-                .append(", bytes=").append(WebSocketEngine.toString(bytes))
+                .append(", bytes=").append(TyrusWebSocketEngine.toString(bytes))
                 .append('}')
                 .toString();
     }

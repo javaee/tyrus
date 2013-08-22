@@ -55,9 +55,9 @@ import org.glassfish.tyrus.spi.EndpointWrapper;
 import org.glassfish.tyrus.spi.HandshakeRequest;
 import org.glassfish.tyrus.websockets.ClosingDataFrame;
 import org.glassfish.tyrus.websockets.ProtocolHandler;
+import org.glassfish.tyrus.websockets.TyrusWebSocketEngine;
 import org.glassfish.tyrus.websockets.WebSocket;
 import org.glassfish.tyrus.websockets.WebSocketApplication;
-import org.glassfish.tyrus.websockets.WebSocketEngine;
 import org.glassfish.tyrus.websockets.WebSocketListener;
 import org.glassfish.tyrus.websockets.WebSocketResponse;
 
@@ -97,10 +97,10 @@ public class TyrusEndpoint extends WebSocketApplication {
 
     @Override
     public boolean isApplicationRequest(HandshakeRequest webSocketRequest) {
-        final List<String> protocols = webSocketRequest.getHeaders().get(WebSocketEngine.SEC_WS_PROTOCOL_HEADER);
+        final List<String> protocols = webSocketRequest.getHeaders().get(TyrusWebSocketEngine.SEC_WS_PROTOCOL_HEADER);
         temporaryNegotiatedProtocol = endpoint.getNegotiatedProtocol(protocols);
 
-        final List<Extension> extensions = TyrusExtension.fromString(webSocketRequest.getHeaders().get(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER));
+        final List<Extension> extensions = TyrusExtension.fromString(webSocketRequest.getHeaders().get(TyrusWebSocketEngine.SEC_WS_EXTENSIONS_HEADER));
         temporaryNegotiatedExtensions = endpoint.getNegotiatedExtensions(extensions);
 
         return endpoint.checkHandshake(webSocketRequest instanceof RequestContext ? (RequestContext) webSocketRequest : null);

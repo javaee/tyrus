@@ -55,7 +55,7 @@ public enum Version {
 
         @Override
         public boolean validate(HandshakeRequest request) {
-            return this.wireProtocolVersion.equals(request.getFirstHeaderValue(WebSocketEngine.SEC_WS_VERSION));
+            return this.wireProtocolVersion.equals(request.getFirstHeaderValue(TyrusWebSocketEngine.SEC_WS_VERSION));
         }
     };
 

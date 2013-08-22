@@ -225,7 +225,7 @@ public final class ProtocolHandler {
      * @return converted byte array.
      */
     long decodeLength(byte[] bytes) {
-        return org.glassfish.tyrus.websockets.WebSocketEngine.toLong(bytes, 0, bytes.length);
+        return TyrusWebSocketEngine.toLong(bytes, 0, bytes.length);
     }
 
     /**
@@ -243,7 +243,7 @@ public final class ProtocolHandler {
             lengthBytes = new byte[1];
             lengthBytes[0] = (byte) length;
         } else {
-            byte[] b = org.glassfish.tyrus.websockets.WebSocketEngine.toArray(length);
+            byte[] b = TyrusWebSocketEngine.toArray(length);
             if (length <= 0xFFFF) {
                 lengthBytes = new byte[3];
                 lengthBytes[0] = 126;
@@ -369,8 +369,8 @@ public final class ProtocolHandler {
         final byte[] bytes = frame.getType().getBytes(frame);
         final byte[] lengthBytes = encodeLength(bytes.length);
 
-        int length = 1 + lengthBytes.length + bytes.length + (maskData ? org.glassfish.tyrus.websockets.WebSocketEngine.MASK_SIZE : 0);
-        int payloadStart = 1 + lengthBytes.length + (maskData ? org.glassfish.tyrus.websockets.WebSocketEngine.MASK_SIZE : 0);
+        int length = 1 + lengthBytes.length + bytes.length + (maskData ? TyrusWebSocketEngine.MASK_SIZE : 0);
+        int payloadStart = 1 + lengthBytes.length + (maskData ? TyrusWebSocketEngine.MASK_SIZE : 0);
         final byte[] packet = new byte[length];
         packet[0] = opcode;
         System.arraycopy(lengthBytes, 0, packet, 1, lengthBytes.length);
@@ -378,8 +378,8 @@ public final class ProtocolHandler {
             Masker masker = new Masker();
             packet[1] |= 0x80;
             masker.mask(packet, payloadStart, bytes);
-            System.arraycopy(masker.getMask(), 0, packet, payloadStart - org.glassfish.tyrus.websockets.WebSocketEngine.MASK_SIZE,
-                    org.glassfish.tyrus.websockets.WebSocketEngine.MASK_SIZE);
+            System.arraycopy(masker.getMask(), 0, packet, payloadStart - TyrusWebSocketEngine.MASK_SIZE,
+                    TyrusWebSocketEngine.MASK_SIZE);
         } else {
             System.arraycopy(bytes, 0, packet, payloadStart, bytes.length);
         }
@@ -458,7 +458,7 @@ public final class ProtocolHandler {
                     state.state++;
                 case 2:
                     if (state.masked) {
-                        if (buffer.remaining() < org.glassfish.tyrus.websockets.WebSocketEngine.MASK_SIZE) {
+                        if (buffer.remaining() < TyrusWebSocketEngine.MASK_SIZE) {
                             // Don't have enough bytes to read mask
                             return null;
                         }
