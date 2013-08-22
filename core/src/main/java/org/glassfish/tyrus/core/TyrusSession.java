@@ -82,67 +82,35 @@ import org.glassfish.tyrus.websockets.ExecutorServiceProvider;
  */
 public class TyrusSession implements Session {
 
+    private static final Logger LOGGER = Logger.getLogger(TyrusSession.class.getName());
+    private static final String SESSION_CLOSED = "The connection has been closed.";
     private final WebSocketContainer container;
     private final TyrusEndpointWrapper endpoint;
     private final RemoteEndpointWrapper.Basic basicRemote;
     private final RemoteEndpointWrapper.Async asyncRemote;
-    private String negotiatedSubprotocol;
-    private List<Extension> negotiatedExtensions;
     private final boolean isSecure;
     private final URI uri;
     private final String queryString;
     private final Map<String, String> pathParameters;
     private final Principal userPrincipal;
     private final Map<String, List<String>> requestParameterMap;
+    private final Object idleTimeoutLock = new Object();
+    private final String id = UUID.randomUUID().toString();
+    private final Map<String, Object> userProperties = new HashMap<String, Object>();
+    private final MessageHandlerManager handlerManager;
+    private final AtomicReference<State> state = new AtomicReference<State>(State.RUNNING);
+    private final TextBuffer textBuffer = new TextBuffer();
+    private final BinaryBuffer binaryBuffer = new BinaryBuffer();
+
+    private String negotiatedSubprotocol;
+    private List<Extension> negotiatedExtensions;
     private int maxBinaryMessageBufferSize = Integer.MAX_VALUE;
     private int maxTextMessageBufferSize = Integer.MAX_VALUE;
     private volatile long maxIdleTimeout = 0;
     private ScheduledExecutorService service;
     private ScheduledFuture<?> idleTimeoutFuture = null;
-    private final Object idleTimeoutLock = new Object();
-
-    private final String id = UUID.randomUUID().toString();
-    private static final Logger LOGGER = Logger.getLogger(TyrusSession.class.getName());
-    private final Map<String, Object> userProperties = new HashMap<String, Object>();
-    private final MessageHandlerManager handlerManager;
-    private static final String SESSION_CLOSED = "The connection has been closed.";
-    private final AtomicReference<State> state = new AtomicReference<State>(State.RUNNING);
-
-    private final TextBuffer textBuffer = new TextBuffer();
-    private final BinaryBuffer binaryBuffer = new BinaryBuffer();
     private ReaderBuffer readerBuffer;
     private InputStreamBuffer inputStreamBuffer;
-
-    /**
-     * Session state.
-     */
-    public enum State {
-
-        /**
-         * {@link Session} is running and is not receiving partial messages on registered {@link MessageHandler.Whole}.
-         */
-        RUNNING,
-
-        /**
-         * {@link Session} is currently receiving text partial message on registered {@link MessageHandler.Whole}.
-         */
-        RECEIVING_TEXT,
-
-        /**
-         * {@link Session} is currently receiving binary partial message on registered {@link MessageHandler.Whole}.
-         */
-        RECEIVING_BINARY,
-
-        /**
-         * {@link Session} is being closed.
-         */
-        CLOSING,
-
-        /**
-         * {@link Session} has been already closed.
-         */
-        CLOSED
-    }
 
     TyrusSession(WebSocketContainer container, RemoteEndpoint remoteEndpoint, TyrusEndpointWrapper tyrusEndpointWrapper,
                  String subprotocol, List<Extension> extensions, boolean isSecure,
@@ -182,6 +150,10 @@ public class TyrusSession implements Session {
     @Override
     public String getNegotiatedSubprotocol() {
         return negotiatedSubprotocol;
+    }
+
+    void setNegotiatedSubprotocol(String negotiatedSubprotocol) {
+        this.negotiatedSubprotocol = negotiatedSubprotocol == null ? "" : negotiatedSubprotocol;
     }
 
     @Override
@@ -250,6 +222,10 @@ public class TyrusSession implements Session {
         return negotiatedExtensions;
     }
 
+    void setNegotiatedExtensions(List<Extension> negotiatedExtensions) {
+        this.negotiatedExtensions = Collections.unmodifiableList(new ArrayList<Extension>(negotiatedExtensions));
+    }
+
     @Override
     public long getMaxIdleTimeout() {
         return maxIdleTimeout;
@@ -271,7 +247,6 @@ public class TyrusSession implements Session {
     public WebSocketContainer getContainer() {
         return this.container;
     }
-
 
     @Override
     public void addMessageHandler(MessageHandler handler) {
@@ -352,14 +327,6 @@ public class TyrusSession implements Session {
                 throw new IllegalStateException(SESSION_CLOSED);
             }
         }
-    }
-
-    void setNegotiatedSubprotocol(String negotiatedSubprotocol) {
-        this.negotiatedSubprotocol = negotiatedSubprotocol == null ? "" : negotiatedSubprotocol;
-    }
-
-    void setNegotiatedExtensions(List<Extension> negotiatedExtensions) {
-        this.negotiatedExtensions = Collections.unmodifiableList(new ArrayList<Extension>(negotiatedExtensions));
     }
 
     private void checkMessageSize(Object message, long maxMessageSize) {
@@ -492,6 +459,92 @@ public class TyrusSession implements Session {
         return result;
     }
 
+    State getState() {
+        return state.get();
+    }
+
+    /**
+     * Set the state of the {@link Session}.
+     *
+     * @param state the newly set state.
+     */
+    public void setState(State state) {
+        checkConnectionState(State.CLOSED);
+        this.state.set(state);
+    }
+
+    TextBuffer getTextBuffer() {
+        return textBuffer;
+    }
+
+    BinaryBuffer getBinaryBuffer() {
+        return binaryBuffer;
+    }
+
+    ReaderBuffer getReaderBuffer() {
+        return readerBuffer;
+    }
+
+    void setReaderBuffer(ReaderBuffer readerBuffer) {
+        this.readerBuffer = readerBuffer;
+    }
+
+    InputStreamBuffer getInputStreamBuffer() {
+        return inputStreamBuffer;
+    }
+
+    void setInputStreamBuffer(InputStreamBuffer inputStreamBuffer) {
+        this.inputStreamBuffer = inputStreamBuffer;
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder();
+        sb.append("SessionImpl");
+        sb.append("{uri=").append(uri);
+        sb.append(", id='").append(id).append('\'');
+        sb.append(", endpoint=").append(endpoint);
+        sb.append('}');
+        return sb.toString();
+    }
+
+    private void changeStateToClosing() {
+        state.compareAndSet(State.RUNNING, State.CLOSING);
+        state.compareAndSet(State.RECEIVING_BINARY, State.CLOSING);
+        state.compareAndSet(State.RECEIVING_TEXT, State.CLOSING);
+    }
+
+    /**
+     * Session state.
+     */
+    public enum State {
+
+        /**
+         * {@link Session} is running and is not receiving partial messages on registered {@link MessageHandler.Whole}.
+         */
+        RUNNING,
+
+        /**
+         * {@link Session} is currently receiving text partial message on registered {@link MessageHandler.Whole}.
+         */
+        RECEIVING_TEXT,
+
+        /**
+         * {@link Session} is currently receiving binary partial message on registered {@link MessageHandler.Whole}.
+         */
+        RECEIVING_BINARY,
+
+        /**
+         * {@link Session} is being closed.
+         */
+        CLOSING,
+
+        /**
+         * {@link Session} has been already closed.
+         */
+        CLOSED
+    }
+
     private static class MessageHandlerComparator implements Comparator<MessageHandler>, Serializable {
 
         @Override
@@ -518,55 +571,6 @@ public class TyrusSession implements Session {
         }
     }
 
-    State getState() {
-        return state.get();
-    }
-
-    TextBuffer getTextBuffer() {
-        return textBuffer;
-    }
-
-    BinaryBuffer getBinaryBuffer() {
-        return binaryBuffer;
-    }
-
-    /**
-     * Set the state of the {@link Session}.
-     *
-     * @param state the newly set state.
-     */
-    public void setState(State state) {
-        checkConnectionState(State.CLOSED);
-        this.state.set(state);
-    }
-
-    ReaderBuffer getReaderBuffer() {
-        return readerBuffer;
-    }
-
-    InputStreamBuffer getInputStreamBuffer() {
-        return inputStreamBuffer;
-    }
-
-    void setReaderBuffer(ReaderBuffer readerBuffer) {
-        this.readerBuffer = readerBuffer;
-    }
-
-    void setInputStreamBuffer(InputStreamBuffer inputStreamBuffer) {
-        this.inputStreamBuffer = inputStreamBuffer;
-    }
-
-    @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder();
-        sb.append("SessionImpl");
-        sb.append("{uri=").append(uri);
-        sb.append(", id='").append(id).append('\'');
-        sb.append(", endpoint=").append(endpoint);
-        sb.append('}');
-        return sb.toString();
-    }
-
     private class IdleTimeoutCommand implements Runnable {
 
         @Override
@@ -580,11 +584,5 @@ public class TyrusSession implements Session {
                 LOGGER.log(Level.FINE, "Session could not been closed. " + e.getMessage());
             }
         }
-    }
-
-    private void changeStateToClosing() {
-        state.compareAndSet(State.RUNNING, State.CLOSING);
-        state.compareAndSet(State.RECEIVING_BINARY, State.CLOSING);
-        state.compareAndSet(State.RECEIVING_TEXT, State.CLOSING);
     }
 }

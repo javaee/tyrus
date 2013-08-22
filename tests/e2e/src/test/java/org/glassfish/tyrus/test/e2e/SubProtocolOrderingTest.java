@@ -85,11 +85,12 @@ public class SubProtocolOrderingTest {
                     preferredSubprotocols(Arrays.asList("MBWS.huawei.com", "soap", "v10.stomp")).build();
             ContainerProvider.getWebSocketContainer().connectToServer(new javax.websocket.Endpoint() {
                 @Override
-                public void onOpen(Session session, EndpointConfig config) {
+                public void onOpen(final Session session, EndpointConfig config) {
                     session.addMessageHandler(new MessageHandler.Whole<String>() {
                         @Override
                         public void onMessage(String message) {
-                            if (message.equals("soap")) {
+
+                            if (message.equals("soap") && session.getNegotiatedSubprotocol().equals("soap")) {
                                 messageLatch.countDown();
                             }
                         }

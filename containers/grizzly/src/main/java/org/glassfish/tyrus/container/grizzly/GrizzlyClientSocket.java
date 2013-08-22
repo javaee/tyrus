@@ -143,12 +143,12 @@ public class GrizzlyClientSocket implements WebSocket, ClientSocket {
     private final AtomicReference<State> state = new AtomicReference<State>(State.NEW);
     private final List<Proxy> proxies = new ArrayList<Proxy>();
     private final List<javax.websocket.Extension> responseExtensions = new ArrayList<javax.websocket.Extension>();
+    private final List<String> responseSubprotocol = new ArrayList<String>(1);
     private final CountDownLatch onConnectLatch = new CountDownLatch(1);
 
     private final URI uri;
     private final ProtocolHandler protocolHandler;
     private final EndpointWrapper endpoint;
-    private TCPNIOTransport transport;
     private final TyrusRemoteEndpoint remoteEndpoint;
     private final long timeoutMs;
     private final ClientEndpointConfig configuration;
@@ -160,6 +160,7 @@ public class GrizzlyClientSocket implements WebSocket, ClientSocket {
 
     private SocketAddress socketAddress;
 
+    private TCPNIOTransport transport;
     private Session session = null;
 
     enum State {
@@ -330,6 +331,8 @@ public class GrizzlyClientSocket implements WebSocket, ClientSocket {
                     responseExtensions.addAll(TyrusExtension.fromString(values));
                 }
 
+                responseSubprotocol.add(response.getFirstHeaderValue(TyrusWebSocketEngine.SEC_WS_PROTOCOL_HEADER));
+
                 listener.onHandshakeResponse(response);
             }
 
@@ -422,7 +425,7 @@ public class GrizzlyClientSocket implements WebSocket, ClientSocket {
     @Override
     public void onConnect() {
         state.set(State.CONNECTED);
-        endpoint.onConnect(remoteEndpoint, null, responseExtensions);
+        endpoint.onConnect(remoteEndpoint, responseSubprotocol.get(0), responseExtensions);
         onConnectLatch.countDown();
     }
 
