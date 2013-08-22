@@ -71,9 +71,9 @@ import static org.junit.Assert.assertEquals;
  */
 public class BufferSizeTest {
 
-    private CountDownLatch messageLatch;
-    private String receivedTextMessage;
-    private byte[] receivedBinaryMessage;
+    private volatile CountDownLatch messageLatch;
+    private volatile String receivedTextMessage;
+    private volatile byte[] receivedBinaryMessage;
 
     @ServerEndpoint(value = "/endpoint1")
     public static class StringEndpoint {
