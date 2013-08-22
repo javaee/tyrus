@@ -51,7 +51,7 @@
 
     <groupId>org.glassfish.tyrus</groupId>
     <artifactId>tyrus-project</artifactId>
-    <version>1.2.1</version>
+    <version>1.2.2-SNAPSHOT</version>
     <packaging>pom</packaging>
     <name>tyrus</name>
     <description>Tyrus is the reference implementation of Java API for WebSocket (JSR-356).</description>
@@ -65,9 +65,10 @@
     <inceptionYear>2012</inceptionYear>
 
     <scm>
-        <connection>scm:svn:https://svn.java.net/svn/tyrus~source-code-repository/tags/tyrus-project-1.2.1</connection>
-        <developerConnection>scm:svn:https://svn.java.net/svn/tyrus~source-code-repository/tags/tyrus-project-1.2.1</developerConnection>
-        <url>http://java.net/projects/tyrus/sources/source-code-repository/show/tags/tyrus-project-1.2.1</url>
+        <connection>scm:git:git://java.net/tyrus~code</connection>
+        <developerConnection>scm:git:ssh://git.java.net/tyrus~code</developerConnection>
+        <url>http://java.net/projects/tyrus/sources/code/show</url>
+        <tag>1.2.2-SNAPSHOT</tag>
     </scm>
 
     <licenses>

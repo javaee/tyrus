@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+
+    DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+
+    Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+
+    The contents of this file are subject to the terms of either the GNU
+    General Public License Version 2 only ("GPL") or the Common Development
+    and Distribution License("CDDL") (collectively, the "License").  You
+    may not use this file except in compliance with the License.  You can
+    obtain a copy of the License at
+    http://glassfish.java.net/public/CDDL+GPL_1_1.html
+    or packager/legal/LICENSE.txt.  See the License for the specific
+    language governing permissions and limitations under the License.
+
+    When distributing the software, include this License Header Notice in each
+    file and include the License file at packager/legal/LICENSE.txt.
+
+    GPL Classpath Exception:
+    Oracle designates this particular file as subject to the "Classpath"
+    exception as provided by Oracle in the GPL Version 2 section of the License
+    file that accompanied this code.
+
+    Modifications:
+    If applicable, add the following below the License Header, with the fields
+    enclosed by brackets [] replaced by your own identifying information:
+    "Portions Copyright [year] [name of copyright owner]"
+
+    Contributor(s):
+    If you wish your version of this file to be governed by only the CDDL or
+    only the GPL Version 2, indicate your decision by adding "[Contributor]
+    elects to include this software in this distribution under the [CDDL or GPL
+    Version 2] license."  If you don't indicate a single choice of license, a
+    recipient has the option to distribute your version of this file under
+    either the CDDL, the GPL Version 2 or to extend the choice of license to
+    its licensees as provided above.  However, if you add GPL Version 2 code
+    and therefore, elected the GPL Version 2 license, then the option applies
+    only if the new code is made subject to such option by the copyright
+    holder.
+
+-->
+<!DOCTYPE chapter [<!ENTITY % ents SYSTEM "tyrus.ent"> %ents;]>
+<chapter xmlns="http://docbook.org/ns/docbook"
+         version="5.0"
+         xml:lang="en"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns:xi="http://www.w3.org/2001/XInclude"
+         xmlns:xlink="http://www.w3.org/1999/xlink"
+         xsi:schemaLocation="http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd
+                             http://www.w3.org/1999/xlink http://www.w3.org/1999/xlink.xsd"
+         xml:id="modules-and-dependencies">
+    <title>Tyrus Modules and Dependencies</title>
+
+    <para>
+        Tyrus is built, assembled and installed using Maven. Tyrus is deployed to maven.org maven repository
+        at the following location:<link xlink:href="http://search.maven.org/">http://search.maven.org/</link>.
+        Jars, jar sources, jar javadoc and samples are all available on the java.net maven repository.
+    </para>
+
+    <para>
+        All Tyrus components are built using Java SE 7 compiler. It means, you will also need at least Java SE 7
+        to be able to compile and run your application. Developers using maven are likely to find it easier to include
+        and
+        manage dependencies of their applications than developers using ant or other build technologies. The following
+        table provides an overview of all Tyrus modules and their dependencies with links to the respective binaries.
+    </para>
+
+    <table frame='all' xml:id="dependencies-table-modules">
+        <title>Tyrus core modules</title>
+        <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+            <colspec colname='c1' colwidth="2*"/>
+            <colspec colname='c2' colwidth="5*"/>
+            <colspec colname='c3' colwidth="7*"/>
+            <thead>
+                <row>
+                    <entry>Module</entry>
+                    <entry>Dependencies</entry>
+                    <entry>Description</entry>
+                </row>
+            </thead>
+            <tbody>
+                <row>
+                    <entry>
+                        <link xlink:href="http://search.maven.org/#artifactdetails|org.glassfish.tyrus|tyrus-server|&version;|jar">
+                            tyrus-server
+                        </link>
+                    </entry>
+                    <entry>tyrus-core, tyrus-spi, tyrus-websocket-core</entry>
+                    <entry>Basic server functionality</entry>
+                </row>
+                <row>
+                    <entry>
+                        <link xlink:href="http://search.maven.org/#artifactdetails|org.glassfish.tyrus|tyrus-core|&version;|jar">
+                            tyrus-core
+                        </link>
+                    </entry>
+                    <entry>tyrus-spi, tyrus-websocket-core</entry>
+                    <entry>Core Tyrus functionality</entry>
+                </row>
+                <row>
+                    <entry>
+                        <link xlink:href="http://search.maven.org/#artifactdetails|org.glassfish.tyrus|tyrus-client|&version;|jar">
+                            tyrus-client
+                        </link>
+                    </entry>
+                    <entry>tyrus-core, tyrus-spi, tyrus-websocket-core</entry>
+                    <entry>Basic client functionality</entry>
+                </row>
+                <row>
+                    <entry>
+                        <link xlink:href="http://search.maven.org/#artifactdetails|org.glassfish.tyrus|tyrus-documentation|&version;|jar">
+                            tyrus-documentation
+                        </link>
+                    </entry>
+                    <entry>[nothing]</entry>
+                    <entry>Project documentation</entry>
+                </row>
+                <row>
+                    <entry>
+                        <link xlink:href="http://search.maven.org/#artifactdetails|org.glassfish.tyrus|tyrus-websocket-core|&version;|jar">
+                            tyrus-websocket-core
+                        </link>
+                    </entry>
+                    <entry>[nothing]</entry>
+                    <entry>The WebSocket protocol</entry>
+                </row>
+                <row>
+                    <entry>
+                        <link xlink:href="http://search.maven.org/remotecontent?filepath=org/glassfish/tyrus/bundles/tyrus-samples/&version;/tyrus-samples-&version;-all.zip">
+                            tyrus-samples
+                        </link>
+                    </entry>
+                    <entry>tyrus-server, tyrus-client, tyrus-container-grizzly, tyrus-core, tyrus-spi,
+                        tyrus-websocket-core
+                    </entry>
+                    <entry>Samples of using &ja4w; and Tyrus</entry>
+                </row>
+                <row>
+                    <entry>
+                        <link xlink:href="http://search.maven.org/#artifactdetails|org.glassfish.tyrus|tyrus-spi|&version;|jar">
+                            tyrus-spi
+                        </link>
+                    </entry>
+                    <entry>[nothing]</entry>
+                    <entry>SPI</entry>
+                </row>
+            </tbody>
+        </tgroup>
+    </table>
+
+    <table frame='all' xml:id="dependencies-table-containers">
+        <title>Tyrus containers</title>
+        <tgroup cols='3' align='left' colsep='1' rowsep='1'>
+            <colspec colname='c1' colwidth="2*"/>
+            <colspec colname='c2' colwidth="5*"/>
+            <colspec colname='c3' colwidth="7*"/>
+            <thead>
+                <row>
+                    <entry>Module</entry>
+                    <entry>Dependencies</entry>
+                    <entry>Description</entry>
+                </row>
+            </thead>
+            <tbody>
+                <row>
+                    <entry>
+                        <link xlink:href="http://search.maven.org/#artifactdetails|org.glassfish.tyrus|tyrus-container-glassfish-cdi|&version;|jar">
+                            tyrus-container-glassfish-cdi
+                        </link>
+                    </entry>
+                    <entry>tyrus-spi</entry>
+                    <entry>CDI support</entry>
+                </row>
+                <row>
+                    <entry>
+                        <link xlink:href="http://search.maven.org/#artifactdetails|org.glassfish.tyrus|tyrus-container-glassfish-ejb|&version;|jar">
+                            tyrus-container-glassfish-ejb
+                        </link>
+                    </entry>
+                    <entry>tyrus-spi</entry>
+                    <entry>EJB support</entry>
+                </row>
+                <row>
+                    <entry>
+                        <link xlink:href="http://search.maven.org/#artifactdetails|org.glassfish.tyrus|tyrus-container-grizzly|&version;|jar">
+                            tyrus-container-grizzly
+                        </link>
+                    </entry>
+                    <entry>tyrus-core, tyrus-spi, tyrus-websocket-core</entry>
+                    <entry>Grizzly integration for Tyrus client and standalone server usage</entry>
+                </row>
+                <row>
+                    <entry>
+                        <link xlink:href="http://search.maven.org/#artifactdetails|org.glassfish.tyrus|tyrus-container-servlet|&version;|bundle">
+                            tyrus-container-servlet
+                        </link>
+                    </entry>
+                    <entry>tyrus-server, tyrus-core, tyrus-spi, tyrus-websocket-core</entry>
+                    <entry>Servlet support for integration into web containers</entry>
+                </row>
+            </tbody>
+        </tgroup>
+    </table>
+</chapter>

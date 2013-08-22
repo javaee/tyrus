@@ -1,0 +1,112 @@
+<?xml version="1.0"?>
+<!--
+
+    DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+
+    Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+
+    The contents of this file are subject to the terms of either the GNU
+    General Public License Version 2 only ("GPL") or the Common Development
+    and Distribution License("CDDL") (collectively, the "License").  You
+    may not use this file except in compliance with the License.  You can
+    obtain a copy of the License at
+    http://glassfish.java.net/public/CDDL+GPL_1_1.html
+    or packager/legal/LICENSE.txt.  See the License for the specific
+    language governing permissions and limitations under the License.
+
+    When distributing the software, include this License Header Notice in each
+    file and include the License file at packager/legal/LICENSE.txt.
+
+    GPL Classpath Exception:
+    Oracle designates this particular file as subject to the "Classpath"
+    exception as provided by Oracle in the GPL Version 2 section of the License
+    file that accompanied this code.
+
+    Modifications:
+    If applicable, add the following below the License Header, with the fields
+    enclosed by brackets [] replaced by your own identifying information:
+    "Portions Copyright [year] [name of copyright owner]"
+
+    Contributor(s):
+    If you wish your version of this file to be governed by only the CDDL or
+    only the GPL Version 2, indicate your decision by adding "[Contributor]
+    elects to include this software in this distribution under the [CDDL or GPL
+    Version 2] license."  If you don't indicate a single choice of license, a
+    recipient has the option to distribute your version of this file under
+    either the CDDL, the GPL Version 2 or to extend the choice of license to
+    its licensees as provided above.  However, if you add GPL Version 2 code
+    and therefore, elected the GPL Version 2 license, then the option applies
+    only if the new code is made subject to such option by the copyright
+    holder.
+
+-->
+<!DOCTYPE chapter [<!ENTITY % ents SYSTEM "tyrus.ent" > %ents;]>
+<chapter xmlns="http://docbook.org/ns/docbook"
+         version="5.0"
+         xml:lang="en"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns:xi="http://www.w3.org/2001/XInclude"
+         xmlns:xlink="http://www.w3.org/1999/xlink"
+         xsi:schemaLocation="http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd
+                             http://www.w3.org/1999/xlink http://www.w3.org/1999/xlink.xsd"
+         xml:id="tyrus-proprietary-config">
+    <title>Tyrus proprietary configuration</title>
+
+    <para>Following settings do have influence on Tyrus behaviour and are <emphasis>NOT</emphasis> part of WebSocket
+    specification. If you are using following configurable options, your application might not be easily transferable to
+    other WebSocket API implementation.</para>
+
+    <section>
+        <title>Client-side SSL configuration</title>
+
+        <para>When accessing "wss" URLs, Tyrus client will pick up whatever keystore and truststore is actually set for current JVM instance, but
+            that might not be always convenient. WebSocket API does not have this feature (yet, see<link xlink:href="https://java.net/jira/browse/WEBSOCKET_SPEC-210">WEBSOCKET_SPEC-210</link>),
+            so Tyrus exposed <link xlink:href="https://grizzly.java.net/docs/2.3/apidocs/org/glassfish/grizzly/ssl/SSLEngineConfigurator.html">SSLEngineConfigurator</link> class from Grizzly which can be used for specifying all SSL parameters
+            to be used with current client instance. Additionally, WebSocket API does not have anything like a client,
+            only WebSocketContainer and it does not have any properties, so you need to use Tyrus specific class -
+            <link xlink:href="https://tyrus.java.net/apidocs/&version;/org/glassfish/tyrus/client/ClientManager.html">ClientManager</link>.</para>
+
+        <programlisting language="java" linenumbering="numbered">final ClientManager client = ClientManager.createClient();
+
+System.getProperties().put("javax.net.debug", "all");
+System.getProperties().put(SSLContextConfigurator.KEY_STORE_FILE, "...");
+System.getProperties().put(SSLContextConfigurator.TRUST_STORE_FILE, "...");
+System.getProperties().put(SSLContextConfigurator.KEY_STORE_PASSWORD, "...");
+System.getProperties().put(SSLContextConfigurator.TRUST_STORE_PASSWORD, "...");
+final SSLContextConfigurator defaultConfig = new SSLContextConfigurator();
+
+defaultConfig.retrieve(System.getProperties());
+    // or setup SSLContextConfigurator using its API.
+
+SSLEngineConfigurator sslEngineConfigurator =
+    new SSLEngineConfigurator(defaultConfig, true, false, false);
+client.getProperties().put(GrizzlyEngine.SSL_ENGINE_CONFIGURATOR,
+    sslEngineConfigurator);
+client.connectToServer(... , ClientEndpointConfig.Builder.create().build(),
+    new URI("wss://localhost:8181/sample-echo/echo"));
+}</programlisting>
+    </section>
+
+    <section>
+        <title>Servlet container incoming buffer size</title>
+
+        <para>Sevlet container buffers incoming WebSocket frames and there must a size limit to precede OutOfMemory
+        Exception and potentially DDoS attacks.</para>
+
+        <para>Configuration property is named <code>"org.glassfish.tyrus.servlet.incoming-buffer-size"</code> and you can
+        set it in web.xml (this particular snipped sets the buffer size to 17000000 bytes (~16M payload):</para>
+
+        <programlisting language="xml" linenumbering="numbered">&lt;web-app version="2.5" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"&gt;
+
+  &lt;context-param&gt;
+    &lt;param-name&gt;org.glassfish.tyrus.servlet.incoming-buffer-size&lt;/param-name&gt;
+    &lt;param-value&gt;17000000&lt;/param-value&gt;
+  &lt;/context-param&gt;
+&lt;/web-app&gt;</programlisting>
+
+        <para>Default value is 4194315, which correspond to 4M plus few bytes to frame headers, so you should be able to
+        receive up to 4M long message without the need to care about this property.</para>
+    </section>
+
+</chapter>
