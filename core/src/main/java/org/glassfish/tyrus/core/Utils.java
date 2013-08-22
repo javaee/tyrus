@@ -163,4 +163,17 @@ public class Utils {
         }
         return sb.toString();
     }
+
+    /**
+     * Check for null. Throws {@link IllegalArgumentException} if provided value is null.
+     *
+     * @param reference    object to check.
+     * @param errorMessage message to be set to thrown {@link IllegalArgumentException}.
+     * @param <T>          object type.
+     */
+    public static <T> void checkNotNull(T reference, String errorMessage) {
+        if (reference == null) {
+            throw new IllegalArgumentException(errorMessage);
+        }
+    }
 }

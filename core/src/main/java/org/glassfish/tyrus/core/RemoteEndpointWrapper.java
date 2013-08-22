@@ -54,6 +54,7 @@ import javax.websocket.SendHandler;
 import javax.websocket.SendResult;
 
 import org.glassfish.tyrus.spi.RemoteEndpoint;
+import static org.glassfish.tyrus.core.Utils.checkNotNull;
 
 /**
  * Wraps the {@link javax.websocket.RemoteEndpoint} and represents the other side of the websocket connection.
@@ -83,30 +84,35 @@ public abstract class RemoteEndpointWrapper implements javax.websocket.RemoteEnd
 
         @Override
         public void sendText(String text) throws IOException {
+            checkNotNull(text, "Argument 'text' cannot be null.");
             super.sendSyncText(text);
             session.restartIdleTimeoutExecutor();
         }
 
         @Override
         public void sendBinary(ByteBuffer data) throws IOException {
+            checkNotNull(data, "Argument 'data' cannot be null.");
             super.sendSyncBinary(data);
             session.restartIdleTimeoutExecutor();
         }
 
         @Override
         public void sendText(String partialMessage, boolean isLast) throws IOException {
+            checkNotNull(partialMessage, "Argument 'partialMessage' cannot be null.");
             remoteEndpoint.sendText(partialMessage, isLast);
             session.restartIdleTimeoutExecutor();
         }
 
         @Override
         public void sendBinary(ByteBuffer partialByte, boolean isLast) throws IOException {
+            checkNotNull(partialByte, "Argument 'partialByte' cannot be null.");
             remoteEndpoint.sendBinary(partialByte, isLast);
             session.restartIdleTimeoutExecutor();
         }
 
         @Override
         public void sendObject(Object data) throws IOException, EncodeException {
+            checkNotNull(data, "Argument 'data' cannot be null.");
             super.sendSyncObject(data);
             session.restartIdleTimeoutExecutor();
         }
@@ -131,32 +137,47 @@ public abstract class RemoteEndpointWrapper implements javax.websocket.RemoteEnd
 
         @Override
         public void sendText(String text, SendHandler handler) {
+            checkNotNull(text, "Argument 'text' cannot be null.");
+            checkNotNull(handler, "Argument 'handler' cannot be null.");
             session.restartIdleTimeoutExecutor();
             sendAsync(text, handler, AsyncMessageType.TEXT);
         }
 
         @Override
         public Future<Void> sendText(String text) {
+            checkNotNull(text, "Argument 'text' cannot be null.");
             session.restartIdleTimeoutExecutor();
             return sendAsync(text, null, AsyncMessageType.TEXT);
         }
 
         @Override
         public Future<Void> sendBinary(ByteBuffer data) {
+            checkNotNull(data, "Argument 'data' cannot be null.");
             session.restartIdleTimeoutExecutor();
             return sendAsync(data, null, AsyncMessageType.BINARY);
         }
 
         @Override
         public void sendBinary(ByteBuffer data, SendHandler handler) {
+            checkNotNull(data, "Argument 'data' cannot be null.");
+            checkNotNull(handler, "Argument 'handler' cannot be null.");
             session.restartIdleTimeoutExecutor();
             sendAsync(data, handler, AsyncMessageType.BINARY);
         }
 
         @Override
         public void sendObject(Object data, SendHandler handler) {
+            checkNotNull(data, "Argument 'data' cannot be null.");
+            checkNotNull(handler, "Argument 'handler' cannot be null.");
             session.restartIdleTimeoutExecutor();
             sendAsync(data, handler, AsyncMessageType.OBJECT);
+        }
+
+        @Override
+        public Future<Void> sendObject(Object data) {
+            checkNotNull(data, "Argument 'data' cannot be null.");
+            session.restartIdleTimeoutExecutor();
+            return sendAsync(data, null, AsyncMessageType.OBJECT);
         }
 
         @Override
@@ -168,12 +189,6 @@ public abstract class RemoteEndpointWrapper implements javax.websocket.RemoteEnd
         public void setSendTimeout(long timeoutmillis) {
             sendTimeout = timeoutmillis;
             remoteEndpoint.setWriteTimeout(timeoutmillis);
-        }
-
-        @Override
-        public Future<Void> sendObject(Object data) {
-            session.restartIdleTimeoutExecutor();
-            return sendAsync(data, null, AsyncMessageType.OBJECT);
         }
 
         /**
