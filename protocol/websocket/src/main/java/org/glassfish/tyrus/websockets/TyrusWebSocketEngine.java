@@ -273,6 +273,7 @@ public class TyrusWebSocketEngine implements org.glassfish.tyrus.spi.WebSocketEn
         final WebSocketHolder holder = getWebSocketHolder(writer);
         if (holder != null) {
             holder.webSocket.onClose(new ClosingDataFrame(closeCode, closeReason));
+            removeConnection(writer);
         }
     }
 
