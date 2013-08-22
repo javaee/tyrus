@@ -100,10 +100,10 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
 
     /**
      * Can be used as client-side user property to set proxy.
-     *
+     * <p/>
      * Value is expected to be {@link String} and represent proxy URI. Protocol part is currently ignored
      * but must be present ({@link URI#URI(String)} is used for parsing).
-     *
+     * <p/>
      * <pre>
      *     client.getProperties().put(GrizzlyClientSocket.PROXY_URI, "http://my.proxy.com:80");
      *     client.connectToServer(...);
@@ -115,14 +115,14 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
 
     /**
      * Client-side property to set custom worker {@link ThreadPoolConfig}.
-     *
+     * <p/>
      * Value is expected to be instance of {@link ThreadPoolConfig}, can be {@code null} (it won't be used).
      */
     public static final String WORKER_THREAD_POOL_CONFIG = "org.glassfish.tyrus.client.grizzly.workerThreadPoolConfig";
 
     /**
      * Client-side property to set custom selector {@link ThreadPoolConfig}.
-     *
+     * <p/>
      * Value is expected to be instance of {@link ThreadPoolConfig}, can be {@code null} (it won't be used).
      */
     public static final String SELECTOR_THREAD_POOL_CONFIG = "org.glassfish.tyrus.client.grizzly.selectorThreadPoolConfig";
@@ -149,6 +149,7 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
     private final CountDownLatch onConnectLatch = new CountDownLatch(1);
 
     private final List<javax.websocket.Extension> responseExtensions = new ArrayList<javax.websocket.Extension>();
+    private final List<String> responseSubprotocol = new ArrayList<String>(1);
 
     enum State {
         NEW, CONNECTED, CLOSING, CLOSED
@@ -164,11 +165,11 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
      * @param clientSSLEngineConfigurator ssl engine configurator
      */
     GrizzlyClientSocket(SPIEndpoint endpoint, URI uri, ClientEndpointConfig configuration, long timeoutMs,
-                               SPIHandshakeListener listener,
-                               SSLEngineConfigurator clientSSLEngineConfigurator,
-                               String proxyUri,
-                               ThreadPoolConfig workerThreadPoolConfig,
-                               ThreadPoolConfig selectorThreadPoolConfig) {
+                        SPIHandshakeListener listener,
+                        SSLEngineConfigurator clientSSLEngineConfigurator,
+                        String proxyUri,
+                        ThreadPoolConfig workerThreadPoolConfig,
+                        ThreadPoolConfig selectorThreadPoolConfig) {
         this.endpoint = endpoint;
         this.uri = uri;
         this.configuration = configuration;
@@ -194,13 +195,13 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
             // TYRUS-188: lots of threads were created for every single client instance.
             final TCPNIOTransportBuilder transportBuilder = TCPNIOTransportBuilder.newInstance();
 
-            if(workerThreadPoolConfig == null) {
+            if (workerThreadPoolConfig == null) {
                 transportBuilder.getWorkerThreadPoolConfig().setMaxPoolSize(1).setCorePoolSize(1);
             } else {
                 transportBuilder.setWorkerThreadPoolConfig(workerThreadPoolConfig);
             }
 
-            if(selectorThreadPoolConfig == null) {
+            if (selectorThreadPoolConfig == null) {
                 transportBuilder.getSelectorThreadPoolConfig().setMaxPoolSize(1).setCorePoolSize(1);
             } else {
                 transportBuilder.setSelectorThreadPoolConfig(selectorThreadPoolConfig);
@@ -227,9 +228,9 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
 
             URI proxy = null;
             try {
-                if(proxyUri != null) {
+                if (proxyUri != null) {
                     proxy = new URI(proxyUri);
-                    if(proxy.getHost() == null) {
+                    if (proxy.getHost() == null) {
                         LOGGER.log(Level.WARNING, String.format("Invalid proxy '%s'.", proxyUri));
                         proxy = null;
                     }
@@ -251,7 +252,7 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
                 }
             }
 
-            if(proxy != null) {
+            if (proxy != null) {
                 final int proxyPort = proxy.getPort() == -1 ? 80 : proxy.getPort();
                 connectorHandler.connect(new InetSocketAddress(proxy.getHost(), proxyPort));
             } else {
@@ -288,6 +289,8 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
                 if (value != null) {
                     responseExtensions.addAll(TyrusExtension.fromString(Arrays.asList(value)));
                 }
+
+                responseSubprotocol.add(originalHeaders.get(WebSocketEngine.SEC_WS_PROTOCOL_HEADER));
 
                 listener.onResponseHeaders(originalHeaders);
             }
@@ -386,7 +389,7 @@ public class GrizzlyClientSocket implements WebSocket, TyrusClientSocket {
     @Override
     public void onConnect() {
         state.set(State.CONNECTED);
-        endpoint.onConnect(remoteEndpoint, null, responseExtensions);
+        endpoint.onConnect(remoteEndpoint, responseSubprotocol.get(0), responseExtensions);
         onConnectLatch.countDown();
     }
 
