@@ -43,16 +43,11 @@ package org.glassfish.tyrus.testing;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.ByteBuffer;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpoint;
-import javax.websocket.ClientEndpointConfig;
 import javax.websocket.DeploymentException;
-import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfig;
-import javax.websocket.MessageHandler;
 import javax.websocket.OnMessage;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
@@ -60,7 +55,7 @@ import javax.websocket.server.ServerEndpoint;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
-import org.junit.Assert;
+import static junit.framework.Assert.assertEquals;
 
 /**
  * Utilities for creating automated tests easily.
@@ -92,6 +87,11 @@ public class TestUtilities {
         }
     }
 
+    /**
+     * Stop the server.
+     *
+     * @param server to be stopped.
+     */
     protected void stopServer(Server server) {
         if (server != null) {
             server.stop();
@@ -118,6 +118,12 @@ public class TestUtilities {
         return defaultPort;
     }
 
+    /**
+     * Get the {@link URI} for the {@link ServerEndpoint} annotated class.
+     *
+     * @param serverClass the annotated class the {@link URI} is computed for.
+     * @return {@link URI} which is used to connect to the given endpoint.
+     */
     protected URI getURI(Class<?> serverClass) {
         try {
             String endpointPath = serverClass.getAnnotation(ServerEndpoint.class).value();
@@ -128,6 +134,12 @@ public class TestUtilities {
         }
     }
 
+    /**
+     * Get the {@link URI} for the given {@link String} path.
+     *
+     * @param endpointPath the path the {@link URI} is computed for.
+     * @return {@link URI} which is used to connect to the given path.
+     */
     protected URI getURI(String endpointPath) {
         try {
             return new URI("ws", null, getHost(), getPort(), contextPath + endpointPath, null, null);
@@ -135,6 +147,16 @@ public class TestUtilities {
             e.printStackTrace();
             return null;
         }
+    }
+
+    protected void testViaServiceEndpoint(ClientManager client, Class<?> serviceEndpoint, String expectedResult, String message) throws DeploymentException, IOException, InterruptedException {
+        final Session serviceSession = client.connectToServer(MyServiceClientEndpoint.class, getURI(serviceEndpoint));
+        MyServiceClientEndpoint.latch = new CountDownLatch(1);
+        MyServiceClientEndpoint.receivedMessage = null;
+        serviceSession.getBasicRemote().sendText(message);
+        MyServiceClientEndpoint.latch.await(1, TimeUnit.SECONDS);
+        assertEquals(0, MyServiceClientEndpoint.latch.getCount());
+        assertEquals(expectedResult, MyServiceClientEndpoint.receivedMessage);
     }
 
     /**
@@ -164,124 +186,6 @@ public class TestUtilities {
         this.defaultPort = defaultPort;
     }
 
-    public void testEndpointString(Class<?> serverEndpoint, final TextSimplificator simplificator, Class<?>... endpointClasses) throws DeploymentException, InterruptedException, IOException {
-        final Server server = startServer(endpointClasses);
-
-        final CountDownLatch messageLatch = new CountDownLatch(1);
-
-        try {
-            final ClientManager client = ClientManager.createClient();
-            client.connectToServer(new Endpoint() {
-                @Override
-                public void onOpen(final Session session, EndpointConfig EndpointConfig) {
-                    try {
-                        session.addMessageHandler(new MessageHandler.Whole<String>() {
-                            @Override
-                            public void onMessage(String message) {
-                                simplificator.onMessage(message, session);
-                                messageLatch.countDown();
-                            }
-                        });
-
-                        session.getBasicRemote().sendText(simplificator.getMessageToSend());
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }, ClientEndpointConfig.Builder.create().build(), getURI(serverEndpoint));
-
-            messageLatch.await(5, TimeUnit.SECONDS);
-            Assert.assertEquals(0, messageLatch.getCount());
-            simplificator.assertion();
-        } finally {
-            stopServer(server);
-        }
-    }
-
-    public void testEndpointBinary(Class<?> serverEndpoint, final BinarySimplificator simplificator, Class<?>... endpointClasses) throws DeploymentException, InterruptedException, IOException {
-        final Server server = startServer(endpointClasses);
-
-        final CountDownLatch messageLatch = new CountDownLatch(1);
-
-        try {
-            final ClientManager client = ClientManager.createClient();
-            client.connectToServer(new Endpoint() {
-                @Override
-                public void onOpen(final Session session, EndpointConfig EndpointConfig) {
-                    try {
-                        session.addMessageHandler(new MessageHandler.Whole<ByteBuffer>() {
-                            @Override
-                            public void onMessage(ByteBuffer message) {
-                                simplificator.onMessage(message, session);
-                                messageLatch.countDown();
-                            }
-                        });
-
-                        session.getBasicRemote().sendBinary(simplificator.getMessageToSend());
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }, ClientEndpointConfig.Builder.create().build(), getURI(serverEndpoint));
-
-            messageLatch.await(5, TimeUnit.SECONDS);
-            Assert.assertEquals(0, messageLatch.getCount());
-            simplificator.assertion();
-        } finally {
-            stopServer(server);
-        }
-    }
-
-//    public void testEndpoint(Class<?> serverEndpoint, Class<?> clientEndpoint, final Simplificator simplificator, Class<?>... endpointClasses) throws DeploymentException, InterruptedException, IOException {
-//        final Server server = startServer(endpointClasses);
-//
-//        final CountDownLatch messageLatch = new CountDownLatch(1);
-//
-//        try {
-//            final ClientManager client = ClientManager.createClient();
-//            client.connectToServer(clientEndpoint, ClientEndpointConfig.Builder.create().build(), getURI(serverEndpoint.getAnnotation(ServerEndpoint.class).value()));
-//            messageLatch.await(1, TimeUnit.SECONDS);
-//            Assert.assertEquals(0, messageLatch.getCount());
-//            simplificator.assertion();
-//        } finally {
-//            stopServer(server);
-//        }
-//    }
-
-
-    public static abstract class Simplificator {
-
-        public abstract void assertion();
-    }
-
-    public static abstract class TextSimplificator extends Simplificator{
-        private final String messageToSend;
-
-        public TextSimplificator(String messageToSend) {
-            this.messageToSend = messageToSend;
-        }
-
-        String getMessageToSend() {
-            return messageToSend;
-        }
-
-        public abstract void onMessage(String message, Session session);
-    }
-
-
-    public static abstract class BinarySimplificator extends Simplificator{
-        private final ByteBuffer messageToSend;
-
-        public BinarySimplificator(ByteBuffer messageToSend) {
-            this.messageToSend = messageToSend;
-        }
-
-        ByteBuffer getMessageToSend() {
-            return messageToSend;
-        }
-
-        public abstract void onMessage(ByteBuffer message, Session session);
-    }
 
     @ClientEndpoint
     public static class MyServiceClientEndpoint {

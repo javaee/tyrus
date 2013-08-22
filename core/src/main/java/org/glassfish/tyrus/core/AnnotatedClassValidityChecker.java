@@ -94,8 +94,7 @@ class AnnotatedClassValidityChecker {
         try {
             handlerManager.addMessageHandler(handler);
         } catch (IllegalStateException ise) {
-            collector.addException(new DeploymentException("Class: "+annotatedClass.getCanonicalName()+". "+ise.getMessage(), ise.getCause()));
-
+            collector.addException(new DeploymentException(String.format("Class: %s. %s", annotatedClass.getCanonicalName(), ise.getMessage()), ise.getCause()));
         }
 
         checkOnMessageReturnType(method);

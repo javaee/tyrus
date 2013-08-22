@@ -72,7 +72,6 @@ import org.glassfish.tyrus.server.TyrusServerConfiguration;
 import org.glassfish.tyrus.testing.TestUtilities;
 
 import org.junit.Test;
-import static org.junit.Assert.*;
 
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
@@ -317,13 +316,8 @@ public class EncoderDecoderLifecycleTest extends TestUtilities {
         try {
             messageLatch = new CountDownLatch(1);
 
-            final Session serviceSession = ClientManager.createClient().connectToServer(MyServiceClientEndpoint.class, getURI(ServiceEndpoint.class));
-            MyServiceClientEndpoint.latch = new CountDownLatch(1);
-            MyServiceClientEndpoint.receivedMessage = null;
-            serviceSession.getBasicRemote().sendText("Cleanup");
-            MyServiceClientEndpoint.latch.await(2, TimeUnit.SECONDS);
-            assertEquals(0, MyServiceClientEndpoint.latch.getCount());
-            assertEquals(POSITIVE, MyServiceClientEndpoint.receivedMessage);
+            ClientManager serviceClient = ClientManager.createClient();
+            testViaServiceEndpoint(serviceClient, ServiceEndpoint.class, POSITIVE, "Cleanup");
 
             WebSocketContainer client = ContainerProvider.getWebSocketContainer();
             Session session = client.connectToServer(ClientEndpoint.class, ClientEndpointConfig.Builder.create().build(),
@@ -331,53 +325,28 @@ public class EncoderDecoderLifecycleTest extends TestUtilities {
 
             messageLatch.await(5, TimeUnit.SECONDS);
 
-            MyServiceClientEndpoint.latch = new CountDownLatch(1);
-            MyServiceClientEndpoint.receivedMessage = null;
-            serviceSession.getBasicRemote().sendText("FirstClient");
-            MyServiceClientEndpoint.latch.await(2, TimeUnit.SECONDS);
-            assertEquals(0, MyServiceClientEndpoint.latch.getCount());
-            assertEquals(POSITIVE, MyServiceClientEndpoint.receivedMessage);
+            testViaServiceEndpoint(serviceClient, ServiceEndpoint.class, POSITIVE, "FirstClient");
 
             messageLatch = new CountDownLatch(1);
             session.getBasicRemote().sendText("test");
             messageLatch.await(5, TimeUnit.SECONDS);
 
-            MyServiceClientEndpoint.latch = new CountDownLatch(1);
-            MyServiceClientEndpoint.receivedMessage = null;
-            serviceSession.getBasicRemote().sendText("FirstClient");
-            MyServiceClientEndpoint.latch.await(2, TimeUnit.SECONDS);
-            assertEquals(0, MyServiceClientEndpoint.latch.getCount());
-            assertEquals(POSITIVE, MyServiceClientEndpoint.receivedMessage);
+            testViaServiceEndpoint(serviceClient, ServiceEndpoint.class, POSITIVE, "FirstClient");
 
             session.close();
 
-            MyServiceClientEndpoint.latch = new CountDownLatch(1);
-            MyServiceClientEndpoint.receivedMessage = null;
-            serviceSession.getBasicRemote().sendText("FirstClientClosed");
-            MyServiceClientEndpoint.latch.await(2, TimeUnit.SECONDS);
-            assertEquals(0, MyServiceClientEndpoint.latch.getCount());
-            assertEquals(POSITIVE, MyServiceClientEndpoint.receivedMessage);
+            testViaServiceEndpoint(serviceClient, ServiceEndpoint.class, POSITIVE, "FirstClientClosed");
 
             messageLatch = new CountDownLatch(1);
             session = client.connectToServer(ClientEndpoint.class, ClientEndpointConfig.Builder.create().build(),
                     getURI("/myEndpointAnnotated"));
             messageLatch.await(5, TimeUnit.SECONDS);
 
-            MyServiceClientEndpoint.latch = new CountDownLatch(1);
-            MyServiceClientEndpoint.receivedMessage = null;
-            serviceSession.getBasicRemote().sendText("SecondClient");
-            MyServiceClientEndpoint.latch.await(2, TimeUnit.SECONDS);
-            assertEquals(0, MyServiceClientEndpoint.latch.getCount());
-            assertEquals(POSITIVE, MyServiceClientEndpoint.receivedMessage);
+            testViaServiceEndpoint(serviceClient, ServiceEndpoint.class, POSITIVE, "SecondClient");
 
             session.close();
 
-            MyServiceClientEndpoint.latch = new CountDownLatch(1);
-            MyServiceClientEndpoint.receivedMessage = null;
-            serviceSession.getBasicRemote().sendText("SecondClientClosed");
-            MyServiceClientEndpoint.latch.await(2, TimeUnit.SECONDS);
-            assertEquals(0, MyServiceClientEndpoint.latch.getCount());
-            assertEquals(POSITIVE, MyServiceClientEndpoint.receivedMessage);
+            testViaServiceEndpoint(serviceClient, ServiceEndpoint.class, POSITIVE, "SecondClientClosed");
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e);
@@ -449,14 +418,9 @@ public class EncoderDecoderLifecycleTest extends TestUtilities {
         try {
             messageLatch = new CountDownLatch(1);
 
-            final Session serviceSession = ClientManager.createClient().connectToServer(MyServiceClientEndpoint.class, getURI(ServiceEndpoint.class));
-            MyServiceClientEndpoint.latch = new CountDownLatch(1);
-            MyServiceClientEndpoint.receivedMessage = null;
-            serviceSession.getBasicRemote().sendText("Cleanup");
-            MyServiceClientEndpoint.latch.await(2, TimeUnit.SECONDS);
-            assertEquals(0, MyServiceClientEndpoint.latch.getCount());
-            assertEquals(POSITIVE, MyServiceClientEndpoint.receivedMessage);
+            ClientManager serviceClient = ClientManager.createClient();
 
+            testViaServiceEndpoint(serviceClient, ServiceEndpoint.class, POSITIVE, "Cleanup");
 
             WebSocketContainer client = ContainerProvider.getWebSocketContainer();
             Session session = client.connectToServer(ClientEndpoint.class, ClientEndpointConfig.Builder.create().build(),
@@ -464,53 +428,28 @@ public class EncoderDecoderLifecycleTest extends TestUtilities {
 
             messageLatch.await(5, TimeUnit.SECONDS);
 
-            MyServiceClientEndpoint.latch = new CountDownLatch(1);
-            MyServiceClientEndpoint.receivedMessage = null;
-            serviceSession.getBasicRemote().sendText("FirstClient");
-            MyServiceClientEndpoint.latch.await(2, TimeUnit.SECONDS);
-            assertEquals(0, MyServiceClientEndpoint.latch.getCount());
-            assertEquals(POSITIVE, MyServiceClientEndpoint.receivedMessage);
+            testViaServiceEndpoint(serviceClient, ServiceEndpoint.class, POSITIVE, "FirstClient");
 
             messageLatch = new CountDownLatch(1);
             session.getBasicRemote().sendText("test");
             messageLatch.await(5, TimeUnit.SECONDS);
 
-            MyServiceClientEndpoint.latch = new CountDownLatch(1);
-            MyServiceClientEndpoint.receivedMessage = null;
-            serviceSession.getBasicRemote().sendText("FirstClient");
-            MyServiceClientEndpoint.latch.await(2, TimeUnit.SECONDS);
-            assertEquals(0, MyServiceClientEndpoint.latch.getCount());
-            assertEquals(POSITIVE, MyServiceClientEndpoint.receivedMessage);
+            testViaServiceEndpoint(serviceClient, ServiceEndpoint.class, POSITIVE, "FirstClient");
 
             session.close();
 
-            MyServiceClientEndpoint.latch = new CountDownLatch(1);
-            MyServiceClientEndpoint.receivedMessage = null;
-            serviceSession.getBasicRemote().sendText("FirstClientClosed");
-            MyServiceClientEndpoint.latch.await(2, TimeUnit.SECONDS);
-            assertEquals(0, MyServiceClientEndpoint.latch.getCount());
-            assertEquals(POSITIVE, MyServiceClientEndpoint.receivedMessage);
+            testViaServiceEndpoint(serviceClient, ServiceEndpoint.class, POSITIVE, "FirstClientClosed");
 
             messageLatch = new CountDownLatch(1);
             session = client.connectToServer(ClientEndpoint.class, ClientEndpointConfig.Builder.create().build(),
                     getURI("/myEndpoint"));
             messageLatch.await(5, TimeUnit.SECONDS);
 
-            MyServiceClientEndpoint.latch = new CountDownLatch(1);
-            MyServiceClientEndpoint.receivedMessage = null;
-            serviceSession.getBasicRemote().sendText("SecondClient");
-            MyServiceClientEndpoint.latch.await(2, TimeUnit.SECONDS);
-            assertEquals(0, MyServiceClientEndpoint.latch.getCount());
-            assertEquals(POSITIVE, MyServiceClientEndpoint.receivedMessage);
+            testViaServiceEndpoint(serviceClient, ServiceEndpoint.class, POSITIVE, "SecondClient");
 
             session.close();
 
-            MyServiceClientEndpoint.latch = new CountDownLatch(1);
-            MyServiceClientEndpoint.receivedMessage = null;
-            serviceSession.getBasicRemote().sendText("SecondClientClosed");
-            MyServiceClientEndpoint.latch.await(2, TimeUnit.SECONDS);
-            assertEquals(0, MyServiceClientEndpoint.latch.getCount());
-            assertEquals(POSITIVE, MyServiceClientEndpoint.receivedMessage);
+            testViaServiceEndpoint(serviceClient, ServiceEndpoint.class, POSITIVE, "SecondClientClosed");
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e);

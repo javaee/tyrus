@@ -69,7 +69,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class GetEndpointInstanceTest extends TestUtilities{
+public class GetEndpointInstanceTest extends TestUtilities {
     private String receivedMessage;
 
     private static final String SENT_MESSAGE = "Always pass on what you have learned.";

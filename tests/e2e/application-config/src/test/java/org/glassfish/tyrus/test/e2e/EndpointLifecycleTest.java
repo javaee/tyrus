@@ -44,8 +44,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.websocket.ClientEndpointConfig;
@@ -66,7 +64,6 @@ import org.glassfish.tyrus.server.TyrusServerConfiguration;
 import org.glassfish.tyrus.testing.TestUtilities;
 
 import org.junit.Test;
-import static org.junit.Assert.assertEquals;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
@@ -113,6 +110,7 @@ public class EndpointLifecycleTest extends TestUtilities {
         final AtomicInteger msgNumber = new AtomicInteger(0);
         Server server = startServer(ProgrammaticEndpointApplicationConfiguration.class, ServerDeployApplicationConfig.class);
 
+        final ClientManager client = ClientManager.createClient();
         try {
             for (int i = 0; i < iterations; i++) {
                 try {
@@ -121,7 +119,7 @@ public class EndpointLifecycleTest extends TestUtilities {
                     final String message = SENT_MESSAGE + msgNumber.incrementAndGet();
                     // replace ClientManager with MockClientEndpoint to confirm the test passes if the backend
                     // does not have issues
-                    final ClientManager client = ClientManager.createClient();
+
                     client.connectToServer(new Endpoint() {
                         @Override
                         public void onOpen(Session session, EndpointConfig config) {
@@ -143,13 +141,7 @@ public class EndpointLifecycleTest extends TestUtilities {
                 }
             }
 
-            final Session serviceSession = ClientManager.createClient().connectToServer(MyServiceClientEndpoint.class, getURI(ServiceEndpoint.class));
-            MyServiceClientEndpoint.latch = new CountDownLatch(1);
-            MyServiceClientEndpoint.receivedMessage = null;
-            serviceSession.getBasicRemote().sendText("Programmatic");
-            MyServiceClientEndpoint.latch.await(1000, TimeUnit.SECONDS);
-            assertEquals(0, MyServiceClientEndpoint.latch.getCount());
-            assertEquals(POSITIVE, MyServiceClientEndpoint.receivedMessage);
+            testViaServiceEndpoint(client, ServiceEndpoint.class, POSITIVE, "Programmatic");
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
@@ -164,6 +156,7 @@ public class EndpointLifecycleTest extends TestUtilities {
         final AtomicInteger msgNumber = new AtomicInteger(0);
         Server server = startServer(Annotated.class, ServiceEndpoint.class);
 
+        final ClientManager client = ClientManager.createClient();
         try {
             for (int i = 0; i < iterations; i++) {
                 try {
@@ -172,7 +165,7 @@ public class EndpointLifecycleTest extends TestUtilities {
                     final String message = SENT_MESSAGE + msgNumber.incrementAndGet();
                     // replace ClientManager with MockClientEndpoint to confirm the test passes if the backend
                     // does not have issues
-                    final ClientManager client = ClientManager.createClient();
+
                     client.connectToServer(new Endpoint() {
 
                         @Override
@@ -195,13 +188,8 @@ public class EndpointLifecycleTest extends TestUtilities {
                 }
             }
 
-            final Session serviceSession = ClientManager.createClient().connectToServer(MyServiceClientEndpoint.class, getURI(ServiceEndpoint.class));
-            MyServiceClientEndpoint.latch = new CountDownLatch(1);
-            MyServiceClientEndpoint.receivedMessage = null;
-            serviceSession.getBasicRemote().sendText("Annotated");
-            MyServiceClientEndpoint.latch.await(1000, TimeUnit.SECONDS);
-            assertEquals(0, MyServiceClientEndpoint.latch.getCount());
-            assertEquals(POSITIVE, MyServiceClientEndpoint.receivedMessage);
+            testViaServiceEndpoint(client, ServiceEndpoint.class, POSITIVE, "Annotated");
+
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);

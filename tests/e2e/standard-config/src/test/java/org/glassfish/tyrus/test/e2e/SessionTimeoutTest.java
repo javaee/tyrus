@@ -118,13 +118,7 @@ public class SessionTimeoutTest extends TestUtilities {
 
             latch.await(2, TimeUnit.SECONDS);
 
-            final Session serviceSession = client.connectToServer(MyServiceClientEndpoint.class, getURI(ServiceEndpoint.class));
-            MyServiceClientEndpoint.latch = new CountDownLatch(1);
-            MyServiceClientEndpoint.receivedMessage = null;
-            serviceSession.getBasicRemote().sendText("SessionTimeoutEndpoint");
-            MyServiceClientEndpoint.latch.await(2, TimeUnit.SECONDS);
-            assertEquals(0, MyServiceClientEndpoint.latch.getCount());
-            assertEquals(POSITIVE, MyServiceClientEndpoint.receivedMessage);
+            testViaServiceEndpoint(client, ServiceEndpoint.class, POSITIVE, "SessionTimeoutEndpoint");
 
         } catch (Exception e) {
             e.printStackTrace();

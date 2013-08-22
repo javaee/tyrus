@@ -46,20 +46,23 @@ import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfig;
 import javax.websocket.DeploymentException;
+import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfig;
+import javax.websocket.MessageHandler;
 import javax.websocket.OnError;
 import javax.websocket.OnMessage;
 import javax.websocket.Session;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 
-import org.glassfish.tyrus.testing.TestUtilities;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
+import org.glassfish.tyrus.testing.TestUtilities;
 
 import org.junit.Assert;
 import org.junit.Test;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
@@ -101,27 +104,22 @@ public class PathParamTest extends TestUtilities {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
             ClientManager client = ClientManager.createClient();
-            client.connectToServer(new TestEndpointAdapter() {
+            client.connectToServer(new Endpoint(){
                 @Override
-                public EndpointConfig getEndpointConfig() {
-                    return null;
-                }
-
-                @Override
-                public void onOpen(Session session) {
+                public void onOpen(Session session, EndpointConfig config) {
                     try {
-                        session.addMessageHandler(new TestTextMessageHandler(this));
+                        session.addMessageHandler(new MessageHandler.Whole<String>() {
+                            @Override
+                            public void onMessage(String message) {
+                                receivedMessage = message;
+                                messageLatch.countDown();
+                            }
+                        });
                         session.getBasicRemote().sendText(SENT_MESSAGE);
                         System.out.println("Hello message sent.");
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                }
-
-                @Override
-                public void onMessage(String message) {
-                    receivedMessage = message;
-                    messageLatch.countDown();
                 }
             }, cec, getURI("/pathparam1/first/second/third"));
             messageLatch.await(5, TimeUnit.SECONDS);
@@ -185,38 +183,29 @@ public class PathParamTest extends TestUtilities {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
             ClientManager client = ClientManager.createClient();
-            client.connectToServer(new TestEndpointAdapter() {
-                @Override
-                public EndpointConfig getEndpointConfig() {
-                    return null;
-                }
+            client.connectToServer(new Endpoint() {
 
                 @Override
-                public void onOpen(Session session) {
+                public void onOpen(Session session, EndpointConfig config) {
                     try {
-                        session.addMessageHandler(new TestTextMessageHandler(this));
+                        session.addMessageHandler(new MessageHandler.Whole<String>() {
+                            @Override
+                            public void onMessage(String message) {
+                                receivedMessage = message;
+                                messageLatch.countDown();
+                            }
+                        });
                         session.getBasicRemote().sendText(SENT_MESSAGE);
                         System.out.println("Hello message sent.");
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                }
 
-                @Override
-                public void onMessage(String message) {
-                    receivedMessage = message;
-                    messageLatch.countDown();
                 }
             }, cec, getURI("/pathparam2/first/second/"));
             messageLatch.await(1, TimeUnit.SECONDS);
-            final Session serviceSession = client.connectToServer(MyServiceClientEndpoint.class, getURI(ServiceEndpoint.class));
+            testViaServiceEndpoint(client, ServiceEndpoint.class, POSITIVE, "PathParamTestBeanError");
 
-            MyServiceClientEndpoint.latch = new CountDownLatch(1);
-            MyServiceClientEndpoint.receivedMessage = null;
-            serviceSession.getBasicRemote().sendText("PathParamTestBeanError");
-            MyServiceClientEndpoint.latch.await(1, TimeUnit.SECONDS);
-            assertEquals(0, MyServiceClientEndpoint.latch.getCount());
-            assertEquals(POSITIVE, MyServiceClientEndpoint.receivedMessage);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
@@ -225,32 +214,33 @@ public class PathParamTest extends TestUtilities {
         }
     }
 
-//    @ServerEndpoint(value = "/pathparam3/{first}/{second}/")
-//    public static class PathParamTestBeanErrorNotPrimitive {
-//
-//        @OnMessage
-//        public String doThat3(@PathParam("first") String first,
-//                             @PathParam("second") PathParamTest second,
-//                             String message, Session peer) {
-//
-//            return message + first + second;
-//        }
-//    }
-//
-//    @Test
-//    public void testPathParamErrorNotPrimitive() {
-//        Server server = new Server(PathParamTestBeanErrorNotPrimitive.class);
-//        boolean exceptionThrown = false;
-//
-//        try {
-//            server.start();
-//        } catch (Exception e) {
-//            exceptionThrown = true;
-//        } finally {
-//            server.stop();
-//            assertEquals(true, exceptionThrown);
-//        }
-//    }
+    @ServerEndpoint(value = "/pathparam3/{first}/{second}/")
+    public static class PathParamTestBeanErrorNotPrimitive {
+
+        @OnMessage
+        public String doThat3(@PathParam("first") String first,
+                             @PathParam("second") PathParamTest second,
+                             String message, Session peer) {
+
+            return message + first + second;
+        }
+    }
+
+    @Test
+    public void testPathParamErrorNotPrimitive() throws DeploymentException {
+        boolean exceptionThrown = false;
+        Server server = null;
+
+        try {
+            server = startServer(PathParamTestBeanErrorNotPrimitive.class);
+
+        } catch (Exception e) {
+            exceptionThrown = true;
+        } finally {
+            stopServer(server);
+            assertEquals(true, exceptionThrown);
+        }
+    }
 
 
     @ServerEndpoint(value = "/pathparam4/{one}/{second}/{third}/{fourth}/{fifth}/{sixth}/{seventh}/{eighth}")
@@ -320,28 +310,23 @@ public class PathParamTest extends TestUtilities {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
             ClientManager client = ClientManager.createClient();
-            client.connectToServer(new TestEndpointAdapter() {
+            client.connectToServer(new Endpoint() {
                 @Override
-                public EndpointConfig getEndpointConfig() {
-                    return null;
-                }
-
-                @Override
-                public void onOpen(Session session) {
+                public void onOpen(Session session, EndpointConfig config) {
                     try {
-                        session.addMessageHandler(new TestTextMessageHandler(this));
+                        session.addMessageHandler(new MessageHandler.Whole<String>() {
+                            @Override
+                            public void onMessage(String message) {
+                                receivedMessage = message;
+                                messageLatch.countDown();
+
+                            }
+                        });
                         session.getBasicRemote().sendText(SENT_MESSAGE);
                         System.out.println("Hello message sent.");
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                }
-
-                @Override
-                public void onMessage(String message) {
-                    receivedMessage = message;
-                    messageLatch.countDown();
-                    System.out.println("Received message: " + message);
                 }
             }, cec, uri);
             messageLatch.await(5, TimeUnit.SECONDS);

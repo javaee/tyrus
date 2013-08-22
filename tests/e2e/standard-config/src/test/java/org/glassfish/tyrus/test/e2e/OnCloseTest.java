@@ -478,11 +478,11 @@ public class OnCloseTest extends TestUtilities {
         Server server = startServer(DoubleCloseEndpoint.class, ServiceEndpoint.class);
 
         final CountDownLatch messageLatch = new CountDownLatch(1);
+        ClientManager client = ClientManager.createClient();
 
         try {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
-            ClientManager client = ClientManager.createClient();
             client.connectToServer(new Endpoint() {
 
                 @Override
@@ -503,16 +503,7 @@ public class OnCloseTest extends TestUtilities {
             messageLatch.await(2, TimeUnit.SECONDS);
             assertEquals(0, messageLatch.getCount());
 
-            Session serviceSession = client.connectToServer(MyServiceClientEndpoint.class, getURI(ServiceEndpoint.class));
-            MyServiceClientEndpoint.latch = new CountDownLatch(1);
-            MyServiceClientEndpoint.receivedMessage = null;
-            serviceSession.getBasicRemote().sendText("DoubleCloseEndpoint");
-            MyServiceClientEndpoint.latch.await(1, TimeUnit.SECONDS);
-            assertEquals(0, MyServiceClientEndpoint.latch.getCount());
-            assertEquals(POSITIVE, MyServiceClientEndpoint.receivedMessage);
-
-
-
+            testViaServiceEndpoint(client, ServiceEndpoint.class, POSITIVE, "DoubleCloseEndpoint");
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
@@ -740,8 +731,8 @@ public class OnCloseTest extends TestUtilities {
 
         try {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
-
             ClientManager client = ClientManager.createClient();
+
             client.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig config) {
@@ -761,13 +752,7 @@ public class OnCloseTest extends TestUtilities {
             messageLatch.await(2, TimeUnit.SECONDS);
             assertEquals(0L, messageLatch.getCount());
 
-            Session serviceSession = client.connectToServer(MyServiceClientEndpoint.class, getURI(ServiceEndpoint.class));
-            MyServiceClientEndpoint.latch = new CountDownLatch(1);
-            MyServiceClientEndpoint.receivedMessage = null;
-            serviceSession.getBasicRemote().sendText("SessionTestAllMethodsAfterCloseEndpoint");
-            MyServiceClientEndpoint.latch.await(1, TimeUnit.SECONDS);
-            assertEquals(0, MyServiceClientEndpoint.latch.getCount());
-            assertEquals(POSITIVE, MyServiceClientEndpoint.receivedMessage);
+            testViaServiceEndpoint(client, ServiceEndpoint.class, POSITIVE, "SessionTestAllMethodsAfterCloseEndpoint");
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);

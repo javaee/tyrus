@@ -185,29 +185,7 @@ public class MaxMessageSizeTest extends TestUtilities {
             closedLatch.await(5, TimeUnit.SECONDS);
 
 
-            messageLatch = new CountDownLatch(1);
-            client.connectToServer(new Endpoint() {
-                @Override
-                public void onOpen(Session session, EndpointConfig EndpointConfig) {
-                    try {
-                        session.addMessageHandler(new MessageHandler.Whole<String>() {
-                            @Override
-                            public void onMessage(String message) {
-                                receivedMessage = message;
-                                messageLatch.countDown();
-                            }
-                        });
-                        session.getBasicRemote().sendText("THROWABLE");
-                    } catch (IOException e) {
-                        // do nothing.
-                    }
-                }
-            }, clientConfiguration, getURI(ServiceEndpoint.class));
-
-            messageLatch.await(5, TimeUnit.SECONDS);
-            assertEquals(0, messageLatch.getCount());
-            assertEquals(0, closedLatch.getCount());
-            assertEquals(POSITIVE, receivedMessage);
+            testViaServiceEndpoint(client, ServiceEndpoint.class, POSITIVE, "THROWABLE");
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
@@ -307,9 +285,6 @@ public class MaxMessageSizeTest extends TestUtilities {
         Server server = startServer(Endpoint1.class, ServiceEndpoint.class);
 
         try {
-            messageLatch = new CountDownLatch(1);
-            Endpoint1.closeReason = null;
-
             ClientManager client = ClientManager.createClient();
 
             final Session session = client.connectToServer(MyClientEndpoint.class, getURI(Endpoint1.class));
