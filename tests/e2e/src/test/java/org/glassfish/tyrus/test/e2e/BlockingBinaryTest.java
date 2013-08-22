@@ -146,7 +146,7 @@ public class BlockingBinaryTest {
      * @author Danny Coward (danny.coward at oracle.com)
      */
     public static class BlockingBinaryClient extends Endpoint {
-        boolean gotTheSameThingBack = false;
+        volatile boolean gotTheSameThingBack = false;
         private final CountDownLatch messageLatch;
         private Session session;
         static String MESSAGE_0 = "here ";
