@@ -47,7 +47,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
+ * Save received partial messages to a list and concatenate them.
+ *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 class BinaryBuffer {
     private final List<ByteBuffer> list = new ArrayList<ByteBuffer>();
@@ -55,6 +58,13 @@ class BinaryBuffer {
     private int currentlyBuffered = 0;
     private static final Logger LOGGER = Logger.getLogger(BinaryBuffer.class.getName());
 
+    /**
+     * Append buffer.
+     * <p/>
+     * Actual implementation just stores the buffer instance in list.
+     *
+     * @param message to be buffered.
+     */
     void appendMessagePart(ByteBuffer message) {
 
         if ((currentlyBuffered + message.remaining()) <= bufferSize) {
@@ -67,39 +77,32 @@ class BinaryBuffer {
         }
     }
 
+    /**
+     * Return concatenated list of buffers and reset internal state.
+     *
+     * @return concatenated buffer.
+     */
     ByteBuffer getBufferedContent() {
-        ByteBuffer b = null;
+        ByteBuffer b = ByteBuffer.allocate(currentlyBuffered);
 
         for (ByteBuffer buffered : list) {
-            if (b == null) {
-                b = buffered;
-            } else {
-                b = joinBuffers(b, buffered);
-            }
+            b.put(buffered);
         }
 
+        b.flip();
+        resetBuffer(0);
         return b;
     }
 
+    /**
+     * Reset buffer with setting maximal buffer size.
+     *
+     * @param bufferSize max buffer size.
+     */
     void resetBuffer(int bufferSize) {
         this.bufferSize = bufferSize;
         this.list.clear();
         currentlyBuffered = 0;
-    }
-
-    private ByteBuffer joinBuffers(ByteBuffer bb1, ByteBuffer bb2) {
-
-        final int remaining1 = bb1.remaining();
-        final int remaining2 = bb2.remaining();
-        byte[] array = new byte[remaining1 + remaining2];
-        bb1.get(array, 0, remaining1);
-        System.arraycopy(bb2.array(), 0, array, remaining1, remaining2);
-
-
-        ByteBuffer buf = ByteBuffer.wrap(array);
-        buf.limit(remaining1 + remaining2);
-
-        return buf;
     }
 }
 

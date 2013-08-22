@@ -142,7 +142,7 @@ public class EchoTest {
                         public void onMessage(String message) {
                             System.out.println("### Received: " + message);
 
-                            if(message.equals("Do or do not, there is no try. (from your server)")) {
+                            if (message.equals("Do or do not, there is no try. (from your server)")) {
                                 messageLatch.countDown();
                             } else if (message.equals("onOpen")) {
                                 onOpenLatch.countDown();
