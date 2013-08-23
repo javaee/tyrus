@@ -87,6 +87,8 @@ public abstract class BaseContainer extends ExecutorServiceProvider implements W
             es = (ExecutorService) ic.lookup("java:comp/DefaultManagedExecutorService");
         } catch (Exception e) {
             // ignore
+        } catch (LinkageError error) {
+            // ignore - JDK8 compact2 profile - http://openjdk.java.net/jeps/161
         }
 
         if (es == null) {
@@ -107,6 +109,8 @@ public abstract class BaseContainer extends ExecutorServiceProvider implements W
             service = (ScheduledExecutorService) ic.lookup("java:comp/DefaultManagedScheduledExecutorService");
         } catch (Exception e) {
             // ignore
+        } catch (LinkageError error) {
+            // ignore - JDK8 compact2 profile - http://openjdk.java.net/jeps/161
         }
 
         if (service == null) {
