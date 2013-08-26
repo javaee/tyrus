@@ -108,4 +108,40 @@ public class SubProtocolOrderingTest extends TestContainer {
             stopServer(server);
         }
     }
+
+    @Test
+    public void testNoIntersection() throws DeploymentException {
+        Server server = startServer(Endpoint.class);
+
+        try {
+            server.start();
+            final CountDownLatch messageLatch = new CountDownLatch(1);
+
+            final ClientEndpointConfig clientEndpointConfig = ClientEndpointConfig.Builder.create().
+                    preferredSubprotocols(Arrays.asList("a", "b", "c")).build();
+            ContainerProvider.getWebSocketContainer().connectToServer(new javax.websocket.Endpoint() {
+                @Override
+                public void onOpen(final Session session, EndpointConfig config) {
+                    session.addMessageHandler(new MessageHandler.Whole<String>() {
+                        @Override
+                        public void onMessage(String message) {
+
+                            if (message.equals("") && session.getNegotiatedSubprotocol().equals("")) {
+                                messageLatch.countDown();
+                            }
+                        }
+                    });
+                }
+            }, clientEndpointConfig, getURI(Endpoint.class));
+
+            messageLatch.await(1, TimeUnit.SECONDS);
+            assertEquals(0, messageLatch.getCount());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            stopServer(server);
+        }
+    }
 }

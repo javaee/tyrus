@@ -118,7 +118,6 @@ public class TyrusSession implements Session {
                  Map<String, List<String>> requestParameterMap) {
         this.container = container;
         this.endpoint = tyrusEndpointWrapper;
-        this.negotiatedSubprotocol = subprotocol;
         this.negotiatedExtensions = extensions == null ? Collections.<Extension>emptyList() : Collections.unmodifiableList(extensions);
         this.isSecure = isSecure;
         this.uri = uri;
@@ -135,6 +134,8 @@ public class TyrusSession implements Session {
             maxBinaryMessageBufferSize = container.getDefaultMaxBinaryMessageBufferSize();
             service = ((ExecutorServiceProvider) container).getScheduledExecutorService();
         }
+
+        setNegotiatedSubprotocol(subprotocol);
     }
 
     /**

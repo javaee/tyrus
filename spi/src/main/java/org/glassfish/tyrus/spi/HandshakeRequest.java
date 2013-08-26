@@ -122,6 +122,6 @@ public abstract class HandshakeRequest implements javax.websocket.server.Handsha
      */
     public String getFirstHeaderValue(String name) {
         final List<String> stringList = getHeaders().get(name);
-        return stringList == null ? null : stringList.get(0);
+        return stringList == null ? null : (stringList.size() > 0 ? stringList.get(0) : null);
     }
 }

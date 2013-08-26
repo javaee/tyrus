@@ -79,6 +79,6 @@ public abstract class HandshakeResponse implements javax.websocket.HandshakeResp
      */
     public String getFirstHeaderValue(String name) {
         final List<String> stringList = getHeaders().get(name);
-        return stringList == null ? null : stringList.get(0);
+        return stringList == null ? null : (stringList.size() > 0 ? stringList.get(0) : null);
     }
 }
