@@ -286,7 +286,6 @@ public class SessionTimeoutTest extends TestContainer {
                 }
             }, cec, getURI(SessionTimeoutChangedEndpoint.class));
 
-//            SessionNoTimeoutEndpoint.latch.await(3, TimeUnit.SECONDS);
             assertTrue(SessionNoTimeoutEndpoint.onClosedCalled.get());
         } catch (Exception e) {
             e.printStackTrace();

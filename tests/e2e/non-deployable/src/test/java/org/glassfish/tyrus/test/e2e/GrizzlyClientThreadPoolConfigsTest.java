@@ -63,14 +63,12 @@ import org.glassfish.tyrus.test.tools.TestContainer;
 import org.glassfish.grizzly.threadpool.ThreadPoolConfig;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 import static org.junit.Assert.fail;
 
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-@Ignore
 public class GrizzlyClientThreadPoolConfigsTest extends TestContainer {
 
     @Test

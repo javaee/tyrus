@@ -37,76 +37,89 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+
 package org.glassfish.tyrus.test.e2e;
 
+import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfig;
 import javax.websocket.DeploymentException;
+import javax.websocket.Endpoint;
+import javax.websocket.EndpointConfig;
+import javax.websocket.MessageHandler;
 import javax.websocket.OnMessage;
-import javax.websocket.server.PathParam;
+import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
-import org.glassfish.tyrus.test.tools.TestContainer;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
+import org.glassfish.tyrus.test.tools.TestContainer;
+import org.glassfish.tyrus.websockets.HandshakeException;
 
+import org.junit.Assert;
 import org.junit.Test;
-import static org.junit.Assert.assertEquals;
 
 /**
- * @author Pavel Bucek (pavel.bucek at oracle.com)
+ * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class ServerEndpointPathTest extends TestContainer {
+public class TestHello404 extends TestContainer {
 
-    @ServerEndpoint("/{a}")
-    public static class WSL1ParamServer {
+    private static final String SENT_MESSAGE = "Hello World";
 
-        @OnMessage
-        public String echo(@PathParam("a") String param, String echo) {
-            return echo + param + getClass().getName();
-        }
-    }
-
-    @ServerEndpoint("/a")
-    public static class WSL1ExactServer {
-
-        @OnMessage
-        public String echo(String echo) {
-            return echo + getClass().getName();
-        }
-    }
+    private volatile String receivedMessage;
 
     @Test
-    public void testExactMatching() throws DeploymentException {
-        final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
-        Server server = startServer(WSL1ExactServer.class, WSL1ParamServer.class);
+    public void testHello404() throws DeploymentException {
+        Server server = startServer(EchoEndpoint.class);
 
         try {
-            CountDownLatch messageLatch = new CountDownLatch(1);
+            final CountDownLatch messageLatch = new CountDownLatch(1);
 
-            HelloTextClient htc = new HelloTextClient(messageLatch);
+            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
+
             ClientManager client = ClientManager.createClient();
-            client.connectToServer(htc, cec, getURI("/a"));
-
-            messageLatch.await(5, TimeUnit.SECONDS);
-            assertEquals("Client says hello" + WSL1ExactServer.class.getName(), htc.message);
+            client.connectToServer(new Endpoint() {
+                @Override
+                public void onOpen(Session session, EndpointConfig config) {
+                    try {
+                        session.addMessageHandler(new MessageHandler.Whole<String>() {
+                            @Override
+                            public void onMessage(String message) {
+                                receivedMessage = message;
+                                messageLatch.countDown();
+                            }
+                        });
+                        session.getBasicRemote().sendText(SENT_MESSAGE);
+                        System.out.println("Hello message sent.");
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }, cec, getURI("ws://localhost:8025/websockets/tests/echo404"));
+            Assert.fail();
         } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException(e.getMessage(), e);
+            Assert.assertNotNull(e);
+            Assert.assertTrue(e instanceof DeploymentException);
+            Assert.assertTrue(e.getCause() instanceof HandshakeException);
         } finally {
             stopServer(server);
         }
     }
 
-//    @ServerEndpoint("/{samePath}")
-//    public static class AEndpoint {
-//    }
-//
-//    @Test(expected = DeploymentException.class)
-//    public void testEquivalentPaths() throws DeploymentException {
-//        Server server = new Server(WSL1ParamServer.class, AEndpoint.class);
-//        server.start();
-//    }
+    @ServerEndpoint(value = "/echoendpoint")
+    public static class EchoEndpoint {
+
+        @OnMessage
+        public String doThat(String message, Session session) {
+
+            // TYRUS-141
+            if (session.getNegotiatedSubprotocol() != null) {
+                return message;
+            }
+
+            return null;
+        }
+    }
+
 }

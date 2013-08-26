@@ -152,10 +152,10 @@ public class TestContainer {
     /**
      * Send message to the service endpoint and compare the received result with the specified one.
      *
-     * @param client client used to send the message.
+     * @param client          client used to send the message.
      * @param serviceEndpoint endpoint to which the message will be sent.
-     * @param expectedResult expected reply.
-     * @param message message to be sent.
+     * @param expectedResult  expected reply.
+     * @param message         message to be sent.
      * @throws DeploymentException
      * @throws IOException
      * @throws InterruptedException

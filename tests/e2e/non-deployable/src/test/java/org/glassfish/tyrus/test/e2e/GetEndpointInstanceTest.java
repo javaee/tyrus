@@ -62,7 +62,6 @@ import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.tools.TestContainer;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
@@ -179,7 +178,6 @@ public class GetEndpointInstanceTest extends TestContainer {
         }
     }
 
-    @Ignore
     @Test
     public void testProgrammatic() {
         Server server = new Server(MyApplication.class);

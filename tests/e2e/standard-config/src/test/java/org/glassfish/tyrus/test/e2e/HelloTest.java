@@ -129,48 +129,7 @@ public class HelloTest extends TestContainer {
         }
     }
 
-//    @Test
-//    public void testHello404() throws DeploymentException {
-//        Server server = startServer(EchoEndpoint.class);
-//
-//        try {
-//            messageLatch = new CountDownLatch(1);
-//
-//            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
-//
-//            ClientManager client = ClientManager.createClient();
-//            client.connectToServer(new TestEndpointAdapter() {
-//                @Override
-//                public EndpointConfig getEndpointConfig() {
-//                    return cec;
-//                }
-//
-//                @Override
-//                public void onOpen(Session session) {
-//                    try {
-//                        session.addMessageHandler(new TestTextMessageHandler(this));
-//                        session.getBasicRemote().sendText(SENT_MESSAGE);
-//                        System.out.println("Hello message sent.");
-//                    } catch (IOException e) {
-//                        e.printStackTrace();
-//                    }
-//                }
-//
-//                @Override
-//                public void onMessage(String message) {
-//                    receivedMessage = message;
-//                    messageLatch.countDown();
-//                }
-//            }, cec, new URI("ws://localhost:8025/websockets/tests/echo404"));
-//            fail();
-//        } catch (Exception e) {
-//            assertNotNull(e);
-//            assertTrue(e instanceof DeploymentException);
-//            assertTrue(e.getCause() instanceof HandshakeException);
-//        } finally {
-//            stopServer(server);
-//        }
-//    }
+
 
     public static CountDownLatch messageLatchEndpoint;
     public static volatile String receivedMessageEndpoint;
