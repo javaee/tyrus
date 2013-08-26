@@ -114,7 +114,6 @@ public class SubProtocolOrderingTest extends TestContainer {
         Server server = startServer(Endpoint.class);
 
         try {
-            server.start();
             final CountDownLatch messageLatch = new CountDownLatch(1);
 
             final ClientEndpointConfig clientEndpointConfig = ClientEndpointConfig.Builder.create().

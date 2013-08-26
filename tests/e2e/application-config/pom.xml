@@ -100,19 +100,43 @@
                 <artifactId>maven-war-plugin</artifactId>
                 <configuration>
                     <failOnMissingWebXml>false</failOnMissingWebXml>
-                    <webResources>
-                        <resource>
-                            <directory>${basedir}/target/test-classes</directory>
-                            <targetPath>WEB-INF/classes</targetPath>
-                        </resource>
-                        <resource>
-                            <directory>${basedir}/../../tools/target/classes/org/glassfish/tyrus/test/tools</directory>
-                            <targetPath>WEB-INF/classes/org/glassfish/tyrus/test/tools</targetPath>
-                        </resource>
-                    </webResources>
-                    <packagingExcludes>WEB-INF/lib/*.jar</packagingExcludes>
                 </configuration>
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>gf-tests</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-war-plugin</artifactId>
+                        <configuration>
+                            <failOnMissingWebXml>false</failOnMissingWebXml>
+                            <webResources>
+                                <resource>
+                                    <directory>${basedir}/target/test-classes</directory>
+                                    <targetPath>WEB-INF/classes</targetPath>
+                                </resource>
+                                <resource>
+                                    <directory>${basedir}/../../tools/target/classes/org/glassfish/tyrus/test/tools</directory>
+                                    <targetPath>WEB-INF/classes/org/glassfish/tyrus/test/tools</targetPath>
+                                </resource>
+                            </webResources>
+                            <packagingExcludes>WEB-INF/lib/*.jar</packagingExcludes>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
