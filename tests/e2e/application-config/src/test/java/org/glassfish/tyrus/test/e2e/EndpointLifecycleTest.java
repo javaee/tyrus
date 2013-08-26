@@ -61,20 +61,24 @@ import javax.websocket.server.ServerEndpointConfig;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.server.TyrusServerConfiguration;
-import org.glassfish.tyrus.testing.TestUtilities;
+import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.junit.Test;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class EndpointLifecycleTest extends TestUtilities {
+public class EndpointLifecycleTest extends TestContainer {
 
     private static final String SENT_MESSAGE = "Hello World";
 
     private static final String PATH = "/EndpointLifecycleTest1";
 
     final static int iterations = 3;
+
+    public EndpointLifecycleTest() {
+        this.setContextPath("/servlet-test-appconfig");
+    }
 
     public static class ServerDeployApplicationConfig extends TyrusServerConfiguration {
         public ServerDeployApplicationConfig() {

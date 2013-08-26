@@ -58,7 +58,7 @@ import javax.websocket.server.ServerEndpoint;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.container.grizzly.GrizzlyClientSocket;
 import org.glassfish.tyrus.server.Server;
-import org.glassfish.tyrus.testing.TestUtilities;
+import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.glassfish.grizzly.threadpool.ThreadPoolConfig;
 
@@ -71,7 +71,7 @@ import static org.junit.Assert.fail;
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 @Ignore
-public class GrizzlyClientThreadPoolConfigsTest extends TestUtilities{
+public class GrizzlyClientThreadPoolConfigsTest extends TestContainer {
 
     @Test
     public void testCustomThreadFactories() throws DeploymentException {

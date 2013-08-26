@@ -56,7 +56,7 @@ import javax.websocket.server.ServerEndpoint;
 
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
-import org.glassfish.tyrus.testing.TestUtilities;
+import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
@@ -64,7 +64,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class OnCloseTest extends TestUtilities {
+public class OnCloseTest extends TestContainer {
 
     @ServerEndpoint(value = "/close2")
     public static class OnCloseEndpoint {
@@ -361,7 +361,7 @@ public class OnCloseTest extends TestUtilities {
     @ServerEndpoint(value = "/close4")
     public static class OnCloseAllSupportedReasonsClientInitEndpoint {
 
-        public static CloseReason closeReason;
+        public static volatile CloseReason closeReason;
 
         @OnMessage
         public String message(final Integer message, Session session) {

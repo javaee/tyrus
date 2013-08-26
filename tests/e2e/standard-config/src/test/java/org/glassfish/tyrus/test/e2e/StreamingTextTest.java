@@ -52,7 +52,7 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
-import org.glassfish.tyrus.testing.TestUtilities;
+import org.glassfish.tyrus.test.tools.TestContainer;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
@@ -65,7 +65,7 @@ import org.junit.Test;
  * @author Danny Coward (danny.coward at oracle.com)
  * @author Martin Matula (martin.matula at oracle.com)
  */
-public class StreamingTextTest extends TestUtilities{
+public class StreamingTextTest extends TestContainer {
 
     @Test
     public void testClient() throws DeploymentException {

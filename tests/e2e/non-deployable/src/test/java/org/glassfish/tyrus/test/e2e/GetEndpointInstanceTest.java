@@ -60,7 +60,7 @@ import javax.websocket.server.ServerEndpointConfig;
 
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
-import org.glassfish.tyrus.testing.TestUtilities;
+import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.junit.Ignore;
 import org.junit.Test;
@@ -69,7 +69,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class GetEndpointInstanceTest extends TestUtilities {
+public class GetEndpointInstanceTest extends TestContainer {
     private String receivedMessage;
 
     private static final String SENT_MESSAGE = "Always pass on what you have learned.";

@@ -49,7 +49,7 @@ import javax.websocket.DeploymentException;
 import javax.websocket.EndpointConfig;
 import javax.websocket.Session;
 
-import org.glassfish.tyrus.testing.TestUtilities;
+import org.glassfish.tyrus.test.tools.TestContainer;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.e2e.bean.TestEndpoint;
@@ -62,7 +62,7 @@ import org.junit.Test;
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class ClientManagerTest extends TestUtilities {
+public class ClientManagerTest extends TestContainer {
 
     private String receivedMessage;
 

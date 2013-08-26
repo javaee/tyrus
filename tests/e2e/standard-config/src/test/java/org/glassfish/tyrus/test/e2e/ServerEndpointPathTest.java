@@ -48,7 +48,7 @@ import javax.websocket.OnMessage;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 
-import org.glassfish.tyrus.testing.TestUtilities;
+import org.glassfish.tyrus.test.tools.TestContainer;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
@@ -58,7 +58,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class ServerEndpointPathTest extends TestUtilities {
+public class ServerEndpointPathTest extends TestContainer {
 
     @ServerEndpoint("/{a}")
     public static class WSL1ParamServer {

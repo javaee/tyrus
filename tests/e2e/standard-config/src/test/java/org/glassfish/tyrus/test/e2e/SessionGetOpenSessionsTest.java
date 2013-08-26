@@ -55,7 +55,7 @@ import javax.websocket.server.ServerEndpoint;
 
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
-import org.glassfish.tyrus.testing.TestUtilities;
+import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
@@ -65,7 +65,7 @@ import static org.junit.Assert.assertEquals;
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class SessionGetOpenSessionsTest extends TestUtilities{
+public class SessionGetOpenSessionsTest extends TestContainer {
 
     @ServerEndpoint(value = "/customremote/hello1")
     public static class SessionTestEndpoint {

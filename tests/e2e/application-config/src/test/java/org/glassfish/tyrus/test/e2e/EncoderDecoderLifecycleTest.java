@@ -45,6 +45,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.websocket.ClientEndpointConfig;
@@ -69,14 +70,18 @@ import javax.websocket.server.ServerEndpointConfig;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.server.TyrusServerConfiguration;
-import org.glassfish.tyrus.testing.TestUtilities;
+import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.junit.Test;
 
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class EncoderDecoderLifecycleTest extends TestUtilities {
+public class EncoderDecoderLifecycleTest extends TestContainer {
+
+    public EncoderDecoderLifecycleTest() {
+        this.setContextPath("/servlet-test-appconfig");
+    }
 
     public static class ServerDeployApplicationConfig extends TyrusServerConfiguration {
         public ServerDeployApplicationConfig() {
@@ -100,21 +105,21 @@ public class EncoderDecoderLifecycleTest extends TestUtilities {
             int codersCount = decCount + encCount;
 
             for (MyEncoder enc : MyEncoder.instances) {
-                if (enc.initialized) {
+                if (enc.initialized.get()) {
                     initialized++;
                 }
 
-                if (enc.destroyed) {
+                if (enc.destroyed.get()) {
                     destroyed++;
                 }
             }
 
             for (MyDecoder dec : MyDecoder.instances) {
-                if (dec.initialized) {
+                if (dec.initialized.get()) {
                     initialized++;
                 }
 
-                if (dec.destroyed) {
+                if (dec.destroyed.get()) {
                     destroyed++;
                 }
             }
@@ -170,8 +175,8 @@ public class EncoderDecoderLifecycleTest extends TestUtilities {
     public static class MyEncoder implements Encoder.Text<MyType> {
         public static final Set<MyEncoder> instances = new HashSet<MyEncoder>();
 
-        public boolean initialized = false;
-        public boolean destroyed = false;
+        public final AtomicBoolean initialized = new AtomicBoolean(false);
+        public final AtomicBoolean destroyed = new AtomicBoolean(false);
 
         @Override
         public String encode(MyType object) throws EncodeException {
@@ -184,13 +189,13 @@ public class EncoderDecoderLifecycleTest extends TestUtilities {
         @Override
         public void init(EndpointConfig config) {
             if (config != null) {
-                initialized = true;
+                initialized.set(true);
             }
         }
 
         @Override
         public void destroy() {
-            destroyed = true;
+            destroyed.set(true);
         }
     }
 
@@ -220,8 +225,8 @@ public class EncoderDecoderLifecycleTest extends TestUtilities {
         public static final Set<MyDecoder> instances = new HashSet<MyDecoder>();
         public static final AtomicInteger counter = new AtomicInteger(0);
 
-        public boolean initialized = false;
-        public boolean destroyed = false;
+        public final AtomicBoolean initialized = new AtomicBoolean(false);
+        public final AtomicBoolean destroyed = new AtomicBoolean(false);
 
         @Override
         public boolean willDecode(String s) {
@@ -240,13 +245,13 @@ public class EncoderDecoderLifecycleTest extends TestUtilities {
         @Override
         public void init(EndpointConfig config) {
             if (config != null) {
-                initialized = true;
+                initialized.set(true);
             }
         }
 
         @Override
         public void destroy() {
-            destroyed = true;
+            destroyed.set(true);
         }
     }
 
@@ -265,8 +270,11 @@ public class EncoderDecoderLifecycleTest extends TestUtilities {
         @OnMessage
         public MyType onMessage(MyType message) {
             final int i = MyDecoder.counter.get();
+
             // TYRUS-210
-//            assertEquals((i - 1), lastValue);
+            if (lastValue != (i - 1)) {
+                throw new RuntimeException();
+            }
             lastValue = i;
 
             System.out.println("### MyEndpoint onMessage()");
@@ -374,7 +382,9 @@ public class EncoderDecoderLifecycleTest extends TestUtilities {
         public void onMessage(MyType message) {
             final int i = MyDecoder.counter.get();
             // TYRUS-210
-//            assertEquals((i - 1), lastValue);
+            if (lastValue != (i - 1)) {
+                throw new RuntimeException();
+            }
             lastValue = i;
 
             System.out.println("### MyEndpointProgrammatic onMessage() " + session);

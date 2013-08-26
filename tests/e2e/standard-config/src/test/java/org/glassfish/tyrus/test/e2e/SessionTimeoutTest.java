@@ -43,6 +43,7 @@ package org.glassfish.tyrus.test.e2e;
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.websocket.ClientEndpointConfig;
@@ -57,7 +58,7 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
-import org.glassfish.tyrus.testing.TestUtilities;
+import org.glassfish.tyrus.test.tools.TestContainer;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
@@ -68,11 +69,11 @@ import static org.junit.Assert.*;
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class SessionTimeoutTest extends TestUtilities {
+public class SessionTimeoutTest extends TestContainer {
 
     @ServerEndpoint(value = "/timeout3")
     public static class SessionTimeoutEndpoint {
-        private static boolean onClosedCalled = false;
+        private final static AtomicBoolean onClosedCalled = new AtomicBoolean(false);
         private long timeoutSetTime;
         private static final long TIMEOUT = 300;
 
@@ -90,7 +91,7 @@ public class SessionTimeoutTest extends TestUtilities {
         @OnClose
         public void onClose(Session session) {
             if(System.currentTimeMillis() - timeoutSetTime - TIMEOUT < 20){
-                onClosedCalled = true;
+                onClosedCalled.set(true);
             }
         }
     }
@@ -134,11 +135,11 @@ public class SessionTimeoutTest extends TestUtilities {
         @OnMessage
         public String onMessage(String message) {
             if (message.equals("SessionTimeoutEndpoint")){
-               if(SessionTimeoutEndpoint.onClosedCalled){
+               if(SessionTimeoutEndpoint.onClosedCalled.get()){
                    return POSITIVE;
                }
             } else if(message.equals("SessionNoTimeoutEndpoint")){
-                if(SessionNoTimeoutEndpoint.onClosedCalled = false){
+                if(SessionNoTimeoutEndpoint.onClosedCalled.get() == false){
                     return POSITIVE;
                 }
             }
@@ -149,7 +150,7 @@ public class SessionTimeoutTest extends TestUtilities {
 
     @ServerEndpoint(value = "/timeout2")
     public static class SessionNoTimeoutEndpoint {
-        private static boolean onClosedCalled = false;
+        public static final AtomicBoolean onClosedCalled = new AtomicBoolean(false);
         private static final long TIMEOUT = 400;
         private AtomicInteger counter = new AtomicInteger(0);
 
@@ -163,7 +164,7 @@ public class SessionTimeoutTest extends TestUtilities {
             System.out.println("Message received: "+message);
             if(counter.incrementAndGet() == 3){
                 try {
-                    if(!onClosedCalled){
+                    if(!onClosedCalled.get()){
                         session.getBasicRemote().sendText(POSITIVE);
                     } else{
                         session.getBasicRemote().sendText(NEGATIVE);
@@ -176,8 +177,7 @@ public class SessionTimeoutTest extends TestUtilities {
 
         @OnClose
         public void onClose(Session session, CloseReason closeReason) {
-            System.out.println("###################### onClose called.");
-            onClosedCalled = true;
+            onClosedCalled.set(true);
         }
     }
 
@@ -287,7 +287,7 @@ public class SessionTimeoutTest extends TestUtilities {
             }, cec, getURI(SessionTimeoutChangedEndpoint.class));
 
 //            SessionNoTimeoutEndpoint.latch.await(3, TimeUnit.SECONDS);
-            assertTrue(SessionNoTimeoutEndpoint.onClosedCalled);
+            assertTrue(SessionNoTimeoutEndpoint.onClosedCalled.get());
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
@@ -298,7 +298,7 @@ public class SessionTimeoutTest extends TestUtilities {
 
     @ServerEndpoint(value = "/timeout1")
     public static class SessionClientTimeoutEndpoint {
-        public static boolean clientOnCloseCalled = false;
+        public static final AtomicBoolean clientOnCloseCalled = new AtomicBoolean(false);
 
         @OnOpen
         public void onOpen(Session session) {
@@ -318,7 +318,7 @@ public class SessionTimeoutTest extends TestUtilities {
     public void testSessionClientTimeoutSession() throws DeploymentException {
         Server server = startServer(SessionClientTimeoutEndpoint.class);
         final CountDownLatch onCloseLatch = new CountDownLatch(1);
-        SessionClientTimeoutEndpoint.clientOnCloseCalled = false;
+        SessionClientTimeoutEndpoint.clientOnCloseCalled.set(false);
 
         try {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
@@ -339,14 +339,14 @@ public class SessionTimeoutTest extends TestUtilities {
 
                 @Override
                 public void onClose(Session session, CloseReason closeReason) {
-                    SessionClientTimeoutEndpoint.clientOnCloseCalled = true;
+                    SessionClientTimeoutEndpoint.clientOnCloseCalled.set(true);
                     onCloseLatch.countDown();
                 }
             }, cec, getURI(SessionClientTimeoutEndpoint.class));
             session.setMaxIdleTimeout(200);
 
             onCloseLatch.await(2, TimeUnit.SECONDS);
-            assertTrue(SessionClientTimeoutEndpoint.clientOnCloseCalled);
+            assertTrue(SessionClientTimeoutEndpoint.clientOnCloseCalled.get());
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
@@ -359,7 +359,7 @@ public class SessionTimeoutTest extends TestUtilities {
     public void testSessionClientTimeoutContainer() throws DeploymentException {
         Server server = startServer(SessionClientTimeoutEndpoint.class);
         final CountDownLatch onCloseLatch = new CountDownLatch(1);
-        SessionClientTimeoutEndpoint.clientOnCloseCalled = false;
+        SessionClientTimeoutEndpoint.clientOnCloseCalled.set(false);
 
         try {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
@@ -382,13 +382,13 @@ public class SessionTimeoutTest extends TestUtilities {
 
                 @Override
                 public void onClose(Session session, CloseReason closeReason) {
-                    SessionClientTimeoutEndpoint.clientOnCloseCalled = true;
+                    SessionClientTimeoutEndpoint.clientOnCloseCalled.set(true);
                     onCloseLatch.countDown();
                 }
             }, cec, getURI(SessionClientTimeoutEndpoint.class));
 
             onCloseLatch.await(2, TimeUnit.SECONDS);
-            assertTrue(SessionClientTimeoutEndpoint.clientOnCloseCalled);
+            assertTrue(SessionClientTimeoutEndpoint.clientOnCloseCalled.get());
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);

@@ -57,7 +57,7 @@ import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 import javax.websocket.server.ServerEndpointConfig;
 
-import org.glassfish.tyrus.testing.TestUtilities;
+import org.glassfish.tyrus.test.tools.TestContainer;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.core.TyrusExtension;
 import org.glassfish.tyrus.server.Server;
@@ -68,7 +68,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class ExtensionsTest extends TestUtilities {
+public class ExtensionsTest extends TestContainer {
 
     private static final CountDownLatch messageLatch = new CountDownLatch(4);
     private static final String SENT_MESSAGE = "Always pass on what you have learned.";

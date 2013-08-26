@@ -54,7 +54,7 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
-import org.glassfish.tyrus.testing.TestUtilities;
+import org.glassfish.tyrus.test.tools.TestContainer;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.core.CoderAdapter;
 import org.glassfish.tyrus.server.Server;
@@ -68,7 +68,7 @@ import org.junit.Test;
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class EncodedObjectTest extends TestUtilities {
+public class EncodedObjectTest extends TestContainer {
 
     private CountDownLatch messageLatch;
 

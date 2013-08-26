@@ -57,7 +57,7 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
-import org.glassfish.tyrus.testing.TestUtilities;
+import org.glassfish.tyrus.test.tools.TestContainer;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
@@ -67,7 +67,7 @@ import static org.junit.Assert.*;
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class MaxMessageSizeTest extends TestUtilities {
+public class MaxMessageSizeTest extends TestContainer {
 
     private CountDownLatch messageLatch;
     private String receivedMessage;
@@ -288,7 +288,6 @@ public class MaxMessageSizeTest extends TestUtilities {
             ClientManager client = ClientManager.createClient();
 
             final Session session = client.connectToServer(MyClientEndpoint.class, getURI(Endpoint1.class));
-            final Session serviceSession = client.connectToServer(MyServiceClientEndpoint.class, getURI(ServiceEndpoint.class));
 
             Thread.sleep(1000);
 
@@ -297,57 +296,28 @@ public class MaxMessageSizeTest extends TestUtilities {
             MyClientEndpoint.latch.await(1, TimeUnit.SECONDS);
             assertEquals(0, MyClientEndpoint.latch.getCount());
 
-            MyServiceClientEndpoint.latch = new CountDownLatch(1);
-            MyServiceClientEndpoint.receivedMessage = null;
-            serviceSession.getBasicRemote().sendText("TWO");
-            MyServiceClientEndpoint.latch.await(1, TimeUnit.SECONDS);
-            assertEquals(0, MyServiceClientEndpoint.latch.getCount());
-            assertEquals(NEGATIVE, MyServiceClientEndpoint.receivedMessage);
-
-
+            testViaServiceEndpoint(client, ServiceEndpoint.class, NEGATIVE, "TWO");
 
             MyClientEndpoint.latch = new CountDownLatch(1);
             session.getBasicRemote().sendText("te");
             MyClientEndpoint.latch.await(1, TimeUnit.SECONDS);
             assertEquals(0, MyClientEndpoint.latch.getCount());
 
-            MyServiceClientEndpoint.latch = new CountDownLatch(1);
-            MyServiceClientEndpoint.receivedMessage = null;
-            serviceSession.getBasicRemote().sendText("TWO");
-            MyServiceClientEndpoint.latch.await(1, TimeUnit.SECONDS);
-            assertEquals(0, MyServiceClientEndpoint.latch.getCount());
-            assertEquals(NEGATIVE, MyServiceClientEndpoint.receivedMessage);
-
-
+            testViaServiceEndpoint(client, ServiceEndpoint.class, NEGATIVE, "TWO");
 
             MyClientEndpoint.latch = new CountDownLatch(1);
             session.getBasicRemote().sendText("tes");
             MyClientEndpoint.latch.await(1, TimeUnit.SECONDS);
             assertEquals(0, MyClientEndpoint.latch.getCount());
 
-            MyServiceClientEndpoint.latch = new CountDownLatch(1);
-            MyServiceClientEndpoint.receivedMessage = null;
-            serviceSession.getBasicRemote().sendText("TWO");
-            MyServiceClientEndpoint.latch.await(1, TimeUnit.SECONDS);
-            assertEquals(0, MyServiceClientEndpoint.latch.getCount());
-            assertEquals(NEGATIVE, MyServiceClientEndpoint.receivedMessage);
-
-
+            testViaServiceEndpoint(client, ServiceEndpoint.class, NEGATIVE, "TWO");
 
             MyClientEndpoint.latch = new CountDownLatch(1);
             session.getBasicRemote().sendText("test");
             MyClientEndpoint.latch.await(1, TimeUnit.SECONDS);
             assertEquals(1, MyClientEndpoint.latch.getCount());
 
-            MyServiceClientEndpoint.latch = new CountDownLatch(1);
-            MyServiceClientEndpoint.receivedMessage = null;
-            serviceSession.getBasicRemote().sendText("TWO");
-            MyServiceClientEndpoint.latch.await(2, TimeUnit.SECONDS);
-            assertEquals(0, MyServiceClientEndpoint.latch.getCount());
-            assertEquals(POSITIVE, MyServiceClientEndpoint.receivedMessage);
-            assertNotNull(MyClientEndpoint.throwable);
-
-
+            testViaServiceEndpoint(client, ServiceEndpoint.class, POSITIVE, "TWO");
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);

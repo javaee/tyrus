@@ -53,7 +53,7 @@ import javax.websocket.server.ServerEndpoint;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.e2e.bean.EchoEndpoint;
-import org.glassfish.tyrus.testing.TestUtilities;
+import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -64,7 +64,7 @@ import org.junit.Test;
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 
-public class MessageParamOrderTest extends TestUtilities {
+public class MessageParamOrderTest extends TestContainer {
 
     private CountDownLatch messageLatch;
 

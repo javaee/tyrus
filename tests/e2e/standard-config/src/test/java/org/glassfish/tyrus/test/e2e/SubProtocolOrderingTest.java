@@ -53,7 +53,7 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
-import org.glassfish.tyrus.testing.TestUtilities;
+import org.glassfish.tyrus.test.tools.TestContainer;
 import org.glassfish.tyrus.server.Server;
 
 import org.junit.Test;
@@ -64,7 +64,7 @@ import static org.junit.Assert.assertEquals;
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class SubProtocolOrderingTest extends TestUtilities {
+public class SubProtocolOrderingTest extends TestContainer {
 
     @ServerEndpoint(value = "/subProtocolTest", subprotocols = {"MBLWS.huawei.com", "wamp", "v11.stomp", "v10.stomp", "soap"})
     public static class Endpoint {

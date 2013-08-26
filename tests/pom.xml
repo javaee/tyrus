@@ -57,6 +57,7 @@
     <modules>
         <module>e2e</module>
         <module>servlet</module>
+        <module>tools</module>
     </modules>
 
     <dependencies>

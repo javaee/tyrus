@@ -59,7 +59,7 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
-import org.glassfish.tyrus.testing.TestUtilities;
+import org.glassfish.tyrus.test.tools.TestContainer;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
@@ -70,7 +70,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class BufferSizeTest extends TestUtilities{
+public class BufferSizeTest extends TestContainer {
 
     private volatile CountDownLatch messageLatch;
     private volatile String receivedTextMessage;

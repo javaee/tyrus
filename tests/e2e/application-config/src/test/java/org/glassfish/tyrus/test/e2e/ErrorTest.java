@@ -61,7 +61,7 @@ import javax.websocket.server.ServerEndpointConfig;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.server.TyrusServerConfiguration;
-import org.glassfish.tyrus.testing.TestUtilities;
+import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
@@ -72,7 +72,11 @@ import static org.junit.Assert.assertEquals;
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class ErrorTest extends TestUtilities {
+public class ErrorTest extends TestContainer {
+
+    public ErrorTest() {
+        this.setContextPath("/servlet-test-appconfig");
+    }
 
     public static class ServerDeployApplicationConfig extends TyrusServerConfiguration {
         public ServerDeployApplicationConfig() {
@@ -91,8 +95,8 @@ public class ErrorTest extends TestUtilities {
      */
     @ServerEndpoint("/openserver")
     public static class OnOpenErrorTestEndpoint {
-        public static Throwable throwable;
-        public static Session session;
+        public static volatile Throwable throwable;
+        public static volatile Session session;
 
         @OnOpen
         public void open() {
@@ -154,8 +158,8 @@ public class ErrorTest extends TestUtilities {
      */
     @ServerEndpoint("/close")
     public static class OnCloseErrorTestEndpoint {
-        public static Throwable throwable;
-        public static Session session;
+        public static volatile Throwable throwable;
+        public static volatile Session session;
 
         @OnClose
         public void close() {
@@ -243,8 +247,8 @@ public class ErrorTest extends TestUtilities {
 
     public static class OnOpenExceptionEndpoint extends Endpoint {
 
-        public static Throwable throwable;
-        public static Session session;
+        public static volatile Throwable throwable;
+        public static volatile Session session;
 
         @Override
         public void onOpen(Session session, EndpointConfig config) {
@@ -303,8 +307,8 @@ public class ErrorTest extends TestUtilities {
 
     public static class OnMessageExceptionEndpoint extends Endpoint implements MessageHandler.Whole<String> {
 
-        public static Throwable throwable;
-        public static Session session;
+        public static volatile Throwable throwable;
+        public static volatile Session session;
 
         @Override
         public void onOpen(Session session, EndpointConfig config) {

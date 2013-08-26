@@ -54,7 +54,7 @@ import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 
-import org.glassfish.tyrus.testing.TestUtilities;
+import org.glassfish.tyrus.test.tools.TestContainer;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.e2e.bean.SimpleRemoteTestEndpoint;
@@ -70,7 +70,7 @@ import static org.junit.Assert.assertTrue;
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  * @author Martin Matula (martin.matula at oracle.com)
  */
-public class SimpleRemoteTest extends TestUtilities{
+public class SimpleRemoteTest extends TestContainer {
     private String receivedMessage;
     private static final String SENT_MESSAGE = "Hello World";
     private static  final Logger LOGGER = Logger.getLogger(SimpleRemoteTest.class.getName());

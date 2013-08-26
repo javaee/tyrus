@@ -52,7 +52,7 @@ import javax.websocket.server.ServerEndpoint;
 
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
-import org.glassfish.tyrus.testing.TestUtilities;
+import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -60,7 +60,7 @@ import org.junit.Test;
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class ParameterizedHelloTest extends TestUtilities {
+public class ParameterizedHelloTest extends TestContainer {
 
     private CountDownLatch messageLatch;
 

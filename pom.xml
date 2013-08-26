@@ -198,7 +198,6 @@
         <module>samples</module>
         <module>server</module>
         <module>spi</module>
-        <module>test-utilities</module>
         <module>tests</module>
     </modules>
 
@@ -551,8 +550,8 @@
                 <version>${project.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.glassfish.tyrus</groupId>
-                <artifactId>tyrus-test-utilities</artifactId>
+                <groupId>org.glassfish.tyrus.tests</groupId>
+                <artifactId>tyrus-test-tools</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>

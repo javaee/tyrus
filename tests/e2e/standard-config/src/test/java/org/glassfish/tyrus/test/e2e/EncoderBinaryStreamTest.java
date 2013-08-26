@@ -56,7 +56,7 @@ import javax.websocket.OnMessage;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
-import org.glassfish.tyrus.testing.TestUtilities;
+import org.glassfish.tyrus.test.tools.TestContainer;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.core.CoderAdapter;
 import org.glassfish.tyrus.server.Server;
@@ -67,7 +67,7 @@ import static org.junit.Assert.assertEquals;
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class EncoderBinaryStreamTest extends TestUtilities {
+public class EncoderBinaryStreamTest extends TestContainer {
 
     private CountDownLatch messageLatch;
 

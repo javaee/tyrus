@@ -43,6 +43,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.websocket.ClientEndpointConfig;
 import javax.websocket.DeploymentException;
@@ -57,7 +58,7 @@ import javax.websocket.server.ServerEndpoint;
 
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
-import org.glassfish.tyrus.testing.TestUtilities;
+import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -68,7 +69,7 @@ import static org.junit.Assert.assertNotNull;
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class PathParamTest extends TestUtilities {
+public class PathParamTest extends TestContainer {
 
     private CountDownLatch messageLatch;
 
@@ -138,7 +139,7 @@ public class PathParamTest extends TestUtilities {
         @OnMessage
         public String onMessage(String message) {
             if (message.equals("PathParamTestBeanError")){
-                if(PathParamTestBeanError.onErrorCalled && PathParamTestBeanError.onErrorThrowable != null){
+                if(PathParamTestBeanError.onErrorCalled.get() && PathParamTestBeanError.onErrorThrowable != null){
                     return POSITIVE;
                 }
             }
@@ -150,8 +151,8 @@ public class PathParamTest extends TestUtilities {
     @ServerEndpoint(value = "/pathparam2/{one}/{two}/")
     public static class PathParamTestBeanError {
 
-        public static boolean onErrorCalled = false;
-        public static Throwable onErrorThrowable = null;
+        public static AtomicBoolean onErrorCalled = new AtomicBoolean(false);
+        public static volatile Throwable onErrorThrowable = null;
 
         @OnMessage
         public String doThat2(@PathParam("one") String one,
@@ -168,7 +169,7 @@ public class PathParamTest extends TestUtilities {
 
         @OnError
         public void onError(Throwable t) {
-            onErrorCalled = true;
+            onErrorCalled.set(true);
             onErrorThrowable = t;
         }
     }
@@ -233,7 +234,6 @@ public class PathParamTest extends TestUtilities {
 
         try {
             server = startServer(PathParamTestBeanErrorNotPrimitive.class);
-
         } catch (Exception e) {
             exceptionThrown = true;
         } finally {

@@ -53,7 +53,7 @@ import javax.websocket.SendResult;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
-import org.glassfish.tyrus.testing.TestUtilities;
+import org.glassfish.tyrus.test.tools.TestContainer;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
@@ -67,7 +67,7 @@ import org.junit.Test;
  * @author Danny Coward (danny.coward at oracle.com)
  */
 @Ignore
-public class TextFutureCompletionHandlerTest extends TestUtilities {
+public class TextFutureCompletionHandlerTest extends TestContainer {
 
     private final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 

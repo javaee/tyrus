@@ -68,10 +68,6 @@
             <artifactId>tyrus-client</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.glassfish.tyrus</groupId>
-            <artifactId>tyrus-test-utilities</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
         </dependency>
@@ -86,6 +82,10 @@
         <dependency>
             <groupId>org.glassfish.tyrus</groupId>
             <artifactId>tyrus-server</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.tyrus.tests</groupId>
+            <artifactId>tyrus-test-tools</artifactId>
         </dependency>
     </dependencies>
     <build>
@@ -105,8 +105,8 @@
                             <targetPath>WEB-INF/classes</targetPath>
                         </resource>
                         <resource>
-                            <directory>${basedir}/../../../test-utilities/target/classes/org/glassfish/tyrus/testing</directory>
-                            <targetPath>WEB-INF/classes/org/glassfish/tyrus/testing</targetPath>
+                            <directory>${basedir}/../../tools/target/classes/org/glassfish/tyrus/test/tools</directory>
+                            <targetPath>WEB-INF/classes/org/glassfish/tyrus/test/tools</targetPath>
                         </resource>
                     </webResources>
                     <packagingExcludes>WEB-INF/lib/*.jar</packagingExcludes>

@@ -55,7 +55,7 @@ import javax.websocket.PongMessage;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
-import org.glassfish.tyrus.testing.TestUtilities;
+import org.glassfish.tyrus.test.tools.TestContainer;
 import org.glassfish.tyrus.server.Server;
 
 import org.junit.Test;
@@ -68,7 +68,7 @@ import static org.junit.Assert.fail;
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class PingPongTest extends TestUtilities {
+public class PingPongTest extends TestContainer {
 
     private static final String PONG_RECEIVED = "PONG RECEIVED";
 

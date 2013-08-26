@@ -145,7 +145,7 @@ public class BroadcasterTest {
     @ServerEndpoint(value = "/broadcast")
     public static class BroadcasterTestEndpoint {
 
-        private Set<Session> connections = new HashSet<Session>();
+        private final Set<Session> connections = new HashSet<Session>();
 
         @OnOpen
         public void onOpen(Session session) {

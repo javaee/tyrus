@@ -53,7 +53,7 @@ import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
 
-import org.glassfish.tyrus.testing.TestUtilities;
+import org.glassfish.tyrus.test.tools.TestContainer;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.e2e.bean.EchoEndpoint;
@@ -66,7 +66,7 @@ import org.junit.Test;
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class HelloTest extends TestUtilities{
+public class HelloTest extends TestContainer {
 
     private CountDownLatch messageLatch;
 
@@ -118,7 +118,7 @@ public class HelloTest extends TestUtilities{
                     }
                 }
             }, cec, getURI(EchoEndpoint.class));
-            messageLatch.await(1000, TimeUnit.SECONDS);
+            messageLatch.await(1, TimeUnit.SECONDS);
             Assert.assertEquals(0L, messageLatch.getCount());
             Assert.assertEquals(SENT_MESSAGE, receivedMessage);
         } catch (Exception e) {
