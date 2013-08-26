@@ -263,7 +263,7 @@ public class MaxMessageSizeTest extends TestContainer {
     @ClientEndpoint
     public static class MyClientEndpoint {
 
-        public static CountDownLatch latch;
+        public static volatile CountDownLatch latch;
         public static volatile Throwable throwable = null;
 
         @OnMessage(maxMessageSize = 3)
@@ -288,8 +288,6 @@ public class MaxMessageSizeTest extends TestContainer {
             ClientManager client = ClientManager.createClient();
 
             final Session session = client.connectToServer(MyClientEndpoint.class, getURI(Endpoint1.class));
-
-            Thread.sleep(1000);
 
             MyClientEndpoint.latch = new CountDownLatch(1);
             session.getBasicRemote().sendText("t");
