@@ -42,16 +42,13 @@ package org.glassfish.tyrus.servlet;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Enumeration;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.websocket.server.ServerContainer;
-import javax.websocket.server.ServerEndpointConfig;
 
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
@@ -68,7 +65,6 @@ import javax.servlet.http.WebConnection;
 
 import org.glassfish.tyrus.core.RequestContext;
 import org.glassfish.tyrus.core.Utils;
-import org.glassfish.tyrus.server.ServerContainerFactory;
 import org.glassfish.tyrus.spi.WebSocketEngine;
 import org.glassfish.tyrus.spi.Writer;
 import org.glassfish.tyrus.websockets.HandshakeException;
@@ -83,17 +79,12 @@ import org.glassfish.tyrus.websockets.TyrusWebSocketEngine;
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class TyrusServletFilter implements Filter, HttpSessionListener {
+class TyrusServletFilter implements Filter, HttpSessionListener {
 
-    private static final int INFORMATIONAL_FIXED_PORT = 8080;
     private final static Logger LOGGER = Logger.getLogger(TyrusServletFilter.class.getName());
-    private final TyrusWebSocketEngine engine = new TyrusWebSocketEngine();
-    private org.glassfish.tyrus.server.TyrusServerContainer serverContainer = null;
+    private final TyrusWebSocketEngine engine;
 
-    // @ServerEndpoint annotated classes and classes extending ServerApplicationConfig
-    private Set<Class<?>> classes = null;
-    private final Set<Class<?>> dynamicallyDeployedClasses = new HashSet<Class<?>>();
-    private final Set<ServerEndpointConfig> dynamicallyDeployedServerEndpointConfigs = new HashSet<ServerEndpointConfig>();
+    private org.glassfish.tyrus.server.TyrusServerContainer serverContainer = null;
 
     // I don't like this map, but it seems like it is necessary. I am forced to handle subscriptions
     // for HttpSessionListener because the listener itself must be registered *before* ServletContext
@@ -103,21 +94,8 @@ public class TyrusServletFilter implements Filter, HttpSessionListener {
     private final Map<HttpSession, TyrusHttpUpgradeHandler> sessionToHandler =
             new ConcurrentHashMap<HttpSession, TyrusHttpUpgradeHandler>();
 
-    public TyrusServletFilter() {
-    }
-
-    void addClass(Class<?> clazz) {
-        if (this.serverContainer != null) {
-            throw new IllegalStateException("Filter already initiated.");
-        }
-        this.dynamicallyDeployedClasses.add(clazz);
-    }
-
-    void addServerEndpointConfig(ServerEndpointConfig serverEndpointConfig) {
-        if (this.serverContainer != null) {
-            throw new IllegalStateException("Filter already initiated.");
-        }
-        this.dynamicallyDeployedServerEndpointConfigs.add(serverEndpointConfig);
+    TyrusServletFilter(TyrusWebSocketEngine engine) {
+        this.engine = engine;
     }
 
     @Override
@@ -127,19 +105,14 @@ public class TyrusServletFilter implements Filter, HttpSessionListener {
             engine.setIncomingBufferSize(Integer.parseInt(frameBufferSize));
         }
 
-        String contextRoot = filterConfig.getServletContext().getContextPath();
-        this.serverContainer = ServerContainerFactory.create(new ServletServerFactory(engine), contextRoot, INFORMATIONAL_FIXED_PORT, classes, dynamicallyDeployedClasses, dynamicallyDeployedServerEndpointConfigs);
+        this.serverContainer = (org.glassfish.tyrus.server.TyrusServerContainer)filterConfig.getServletContext().getAttribute(ServerContainer.class.getName());
+
         try {
             serverContainer.start();
         } catch (Exception e) {
             throw new ServletException("Web socket server initialization failed.", e);
         } finally {
-
-            // remove reference to filter.
-            final ServerContainer container = (ServerContainer) filterConfig.getServletContext().getAttribute(TyrusServletServerContainer.SERVER_CONTAINER_ATTRIBUTE);
-            if (container instanceof TyrusServletServerContainer) {
-                ((TyrusServletServerContainer) container).doneDeployment();
-            }
+            serverContainer.doneDeployment();
         }
     }
 
@@ -296,14 +269,5 @@ public class TyrusServletFilter implements Filter, HttpSessionListener {
     @Override
     public void destroy() {
         serverContainer.stop();
-    }
-
-    /**
-     * Set the scanned classes.
-     *
-     * @param classes scanned classes.
-     */
-    public void setClasses(Set<Class<?>> classes) {
-        this.classes = classes;
     }
 }

@@ -53,7 +53,6 @@ import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfig;
 import javax.websocket.Extension;
 import javax.websocket.Session;
-import javax.websocket.WebSocketContainer;
 import javax.websocket.server.ServerApplicationConfig;
 import javax.websocket.server.ServerEndpointConfig;
 
@@ -72,14 +71,18 @@ import org.glassfish.tyrus.spi.ServerContainer;
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class TyrusServerContainer extends BaseContainer implements WebSocketContainer {
+public class TyrusServerContainer extends BaseContainer implements javax.websocket.server.ServerContainer {
     private final ServerContainer server;
     private final String contextPath;
-    private final ServerApplicationConfig configuration;
     private final Set<EndpointWrapper> endpoints = new HashSet<EndpointWrapper>();
     private final ErrorCollector collector;
     private final ComponentProviderService componentProvider;
 
+    private final Set<Class<?>> dynamicallyAddedClasses;
+    private final Set<ServerEndpointConfig> dynamicallyAddedEndpointConfigs;
+    private final Set<Class<?>> classes;
+
+    private boolean canDeploy = true;
     private long defaultMaxSessionIdleTimeout = 0;
     private long defaultAsyncSendTimeout = 0;
     private int maxTextMessageBufferSize = Integer.MAX_VALUE;
@@ -103,9 +106,10 @@ public class TyrusServerContainer extends BaseContainer implements WebSocketCont
         this.collector = new ErrorCollector();
         this.server = server;
         this.contextPath = contextPath;
-        this.configuration = new TyrusServerConfiguration((classes == null ? Collections.<Class<?>>emptySet() : classes),
-                dynamicallyAddedClasses, dynamicallyAddedEndpointConfigs, this.collector);
         this.componentProvider = ComponentProviderService.create();
+        this.classes = classes;
+        this.dynamicallyAddedClasses = dynamicallyAddedClasses;
+        this.dynamicallyAddedEndpointConfigs = dynamicallyAddedEndpointConfigs;
     }
 
     /**
@@ -115,6 +119,9 @@ public class TyrusServerContainer extends BaseContainer implements WebSocketCont
      * @throws DeploymentException when any deployment related error is found; should contain list of all found issues.
      */
     public void start() throws IOException, DeploymentException {
+        ServerApplicationConfig configuration = new TyrusServerConfiguration((classes == null ? Collections.<Class<?>>emptySet() : classes),
+                dynamicallyAddedClasses, dynamicallyAddedEndpointConfigs, this.collector);
+
         // start the underlying server
         server.start();
         try {
@@ -159,6 +166,24 @@ public class TyrusServerContainer extends BaseContainer implements WebSocketCont
             Logger.getLogger(getClass().getName()).fine("Closing down : " + wsa);
         }
         server.stop();
+    }
+
+    @Override
+    public void addEndpoint(Class<?> endpointClass) throws DeploymentException {
+        if (canDeploy) {
+            dynamicallyAddedClasses.add(endpointClass);
+        } else {
+            throw new IllegalStateException("Not in 'deploy' scope.");
+        }
+    }
+
+    @Override
+    public void addEndpoint(ServerEndpointConfig serverEndpointConfig) throws DeploymentException {
+        if (canDeploy) {
+            dynamicallyAddedEndpointConfigs.add(serverEndpointConfig);
+        } else {
+            throw new IllegalStateException("Not in 'deploy' scope.");
+        }
     }
 
     @Override
@@ -227,5 +252,13 @@ public class TyrusServerContainer extends BaseContainer implements WebSocketCont
     @Override
     public void setDefaultMaxSessionIdleTimeout(long defaultMaxSessionIdleTimeout) {
         this.defaultMaxSessionIdleTimeout = defaultMaxSessionIdleTimeout;
+    }
+
+    /**
+     * Container is no longer required to accept {@link #addEndpoint(javax.websocket.server.ServerEndpointConfig)} and
+     * {@link #addEndpoint(Class)} calls.
+     */
+    public void doneDeployment() {
+        canDeploy = false;
     }
 }
