@@ -152,7 +152,7 @@ public class SessionTimeoutTest extends TestContainer {
     public static class SessionNoTimeoutEndpoint {
         public static final AtomicBoolean onClosedCalled = new AtomicBoolean(false);
         private static final long TIMEOUT = 400;
-        private AtomicInteger counter = new AtomicInteger(0);
+        private final AtomicInteger counter = new AtomicInteger(0);
 
         @OnOpen
         public void onOpen(Session session) {
