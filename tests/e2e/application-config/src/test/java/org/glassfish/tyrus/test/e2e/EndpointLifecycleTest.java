@@ -77,7 +77,7 @@ public class EndpointLifecycleTest extends TestContainer {
     final static int iterations = 3;
 
     public EndpointLifecycleTest() {
-        this.setContextPath("/servlet-test-appconfig");
+        this.setContextPath("/e2e-test-appconfig");
     }
 
     public static class ServerDeployApplicationConfig extends TyrusServerConfiguration {

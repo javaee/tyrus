@@ -75,7 +75,7 @@ import static org.junit.Assert.assertEquals;
 public class ErrorTest extends TestContainer {
 
     public ErrorTest() {
-        this.setContextPath("/servlet-test-appconfig");
+        this.setContextPath("/e2e-test-appconfig");
     }
 
     public static class ServerDeployApplicationConfig extends TyrusServerConfiguration {

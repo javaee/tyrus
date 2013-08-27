@@ -64,7 +64,7 @@ import static junit.framework.Assert.assertEquals;
  */
 public class TestContainer {
 
-    private String contextPath = "/servlet-test";
+    private String contextPath = "/e2e-test";
     private String defaultHost = "localhost";
     private int defaultPort = 8025;
 

@@ -73,7 +73,7 @@ import static org.junit.Assert.fail;
 public class InputStreamTest extends TestContainer {
 
     public InputStreamTest() {
-        this.setContextPath("/servlet-test-appconfig");
+        this.setContextPath("/e2e-test-appconfig");
     }
 
     public static class ServerDeployApplicationConfig extends TyrusServerConfiguration {

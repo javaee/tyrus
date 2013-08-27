@@ -80,7 +80,7 @@ import org.junit.Test;
 public class EncoderDecoderLifecycleTest extends TestContainer {
 
     public EncoderDecoderLifecycleTest() {
-        this.setContextPath("/servlet-test-appconfig");
+        this.setContextPath("/e2e-test-appconfig");
     }
 
     public static class ServerDeployApplicationConfig extends TyrusServerConfiguration {
