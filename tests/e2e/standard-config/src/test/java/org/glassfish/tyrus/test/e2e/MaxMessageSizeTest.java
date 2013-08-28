@@ -69,8 +69,8 @@ import static org.junit.Assert.*;
  */
 public class MaxMessageSizeTest extends TestContainer {
 
-    private CountDownLatch messageLatch;
-    private String receivedMessage;
+    private volatile CountDownLatch messageLatch;
+    private volatile String receivedMessage;
 
     @ServerEndpoint(value = "/endpoint1")
     public static class Endpoint1 {
