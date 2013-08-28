@@ -71,6 +71,15 @@ public interface WebSocket {
 
     /**
      * <p>
+     * Send a frame to the remote endpoint.
+     * </p>
+     *
+     * @return {@link Future} which could be used to control/check the sending completion state.
+     */
+    Future<DataFrame> sendRawFrame(byte[] data);
+
+    /**
+     * <p>
      * Sends a <code>ping</code> frame with the specified payload (if any).
      * </p>
      *

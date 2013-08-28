@@ -213,6 +213,15 @@ public class TyrusWebSocket implements WebSocket {
     }
 
     @Override
+    public Future<DataFrame> sendRawFrame(byte[] data) {
+        if (isConnected()) {
+            return protocolHandler.sendRawFrame(data);
+        } else {
+            throw new RuntimeException("Socket is not connected.");
+        }
+    }
+
+    @Override
     public Future<DataFrame> sendPing(byte[] data) {
         return send(new DataFrame(new PingFrame(), data));
     }
@@ -255,5 +264,9 @@ public class TyrusWebSocket implements WebSocket {
         } else {
             throw new RuntimeException("Socket is not connected.");
         }
+    }
+
+    ProtocolHandler getProtocolHandler() {
+        return protocolHandler;
     }
 }

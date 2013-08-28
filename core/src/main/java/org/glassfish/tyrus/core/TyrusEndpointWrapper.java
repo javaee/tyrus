@@ -59,6 +59,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -78,7 +79,9 @@ import javax.websocket.server.ServerEndpointConfig;
 import org.glassfish.tyrus.spi.EndpointWrapper;
 import org.glassfish.tyrus.spi.HandshakeRequest;
 import org.glassfish.tyrus.spi.RemoteEndpoint;
+import org.glassfish.tyrus.websockets.DataFrame;
 import org.glassfish.tyrus.websockets.HandshakeException;
+import org.glassfish.tyrus.websockets.frame.TextFrame;
 
 /**
  * Wraps the registered application class.
@@ -635,6 +638,7 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
         }
     }
 
+
     /**
      * Check {@link Throwable} produced during {@link javax.websocket.OnMessage} annotated method call.
      *
@@ -725,9 +729,27 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
         return configuration;
     }
 
-    // TODO: remove?
-    boolean isOpen(TyrusSession session) {
-        return remoteEndpointToSession.values().contains(session);
+    public void broadcast(String message) {
+
+        byte[] frame = null;
+
+        for (Map.Entry<RemoteEndpoint, TyrusSession> e : remoteEndpointToSession.entrySet()) {
+            if (e.getValue().isOpen()) {
+                try {
+
+                    final TyrusRemoteEndpoint remoteEndpoint = (TyrusRemoteEndpoint) e.getKey();
+
+                    if (frame == null) {
+                        final DataFrame dataFrame = new DataFrame(new TextFrame(), message);
+                        frame = ((TyrusWebSocket) remoteEndpoint.getSocket()).getProtocolHandler().frame(dataFrame);
+                    }
+
+                    final Future<DataFrame> frameFuture = remoteEndpoint.sendRawFrame(frame);
+                } catch (IOException e1) {
+                    //
+                }
+            }
+        }
     }
 
     /**

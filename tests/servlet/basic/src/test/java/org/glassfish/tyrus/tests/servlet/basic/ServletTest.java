@@ -43,8 +43,10 @@ package org.glassfish.tyrus.tests.servlet.basic;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -82,6 +84,8 @@ public class ServletTest {
         add(RequestUriEndpoint.class);
         add(OnOpenCloseEndpoint.class);
         add(MultiEchoEndpoint.class);
+        add(TyrusBroadcastEndpoint.class);
+        add(WebSocketBroadcastEndpoint.class);
     }};
 
     /**
@@ -505,6 +509,104 @@ public class ServletTest {
 
             messageLatch.await(10, TimeUnit.SECONDS);
             assertEquals(0, messageLatch.getCount());
+        } finally {
+            stopServer(server);
+        }
+    }
+
+    // "performance" test; 20 clients, endpoint broadcasts.
+    @Test
+    public void testTyrusBroadcast() throws IOException, DeploymentException, InterruptedException {
+
+        final int LENGTH = 587952;
+        byte[] b = new byte[LENGTH];
+        Arrays.fill(b, 0, LENGTH, (byte) 'a');
+
+        final String text = new String(b);
+
+        final Server server = startServer();
+
+        final CountDownLatch messageLatch = new CountDownLatch(400);
+        final List<Session> sessions = new ArrayList<Session>(20);
+
+        try {
+            for (int i = 0; i < 20; i++) {
+                final ClientManager client = ClientManager.createClient();
+                final Session session = client.connectToServer(new Endpoint() {
+                    @Override
+                    public void onOpen(Session session, EndpointConfig EndpointConfig) {
+                        session.addMessageHandler(new MessageHandler.Whole<String>() {
+                            @Override
+                            public void onMessage(String message) {
+                                assertEquals(LENGTH, message.length());
+                                messageLatch.countDown();
+                            }
+                        });
+                    }
+                }, ClientEndpointConfig.Builder.create().build(), getURI(TyrusBroadcastEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
+                System.out.println("Client " + i + " connected.");
+                sessions.add(session);
+            }
+
+            final long l = System.currentTimeMillis();
+            for (Session s : sessions) {
+                s.getBasicRemote().sendText(text);
+                s.getBasicRemote().sendText(text);
+            }
+
+            messageLatch.await(100, TimeUnit.SECONDS);
+            assertEquals(0, messageLatch.getCount());
+            System.out.println("***** Tyrus broadcast ***** " + (System.currentTimeMillis() - l));
+        } finally {
+            stopServer(server);
+        }
+    }
+
+    // "performance" test; 20 clients, endpoint broadcasts.
+    @Test
+    public void testWebSocketBroadcast() throws IOException, DeploymentException, InterruptedException {
+
+        final int LENGTH = 587952;
+        byte[] b = new byte[LENGTH];
+        Arrays.fill(b, 0, LENGTH, (byte) 'a');
+
+        final String text = new String(b);
+
+        final Server server = startServer();
+
+        final CountDownLatch messageLatch = new CountDownLatch(400);
+        final List<Session> sessions = new ArrayList<Session>(20);
+
+        try {
+            for (int i = 0; i < 20; i++) {
+                final ClientManager client = ClientManager.createClient();
+                final Session session = client.connectToServer(new Endpoint() {
+                    @Override
+                    public void onOpen(Session session, EndpointConfig EndpointConfig) {
+                        session.addMessageHandler(new MessageHandler.Whole<String>() {
+                            @Override
+                            public void onMessage(String message) {
+                                assertEquals(LENGTH, message.length());
+                                messageLatch.countDown();
+                            }
+                        });
+                    }
+                }, ClientEndpointConfig.Builder.create().build(), getURI(WebSocketBroadcastEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
+                System.out.println("Client " + i + " connected.");
+                sessions.add(session);
+            }
+
+            final long l = System.currentTimeMillis();
+            for (Session s : sessions) {
+                s.getBasicRemote().sendText(text);
+                s.getBasicRemote().sendText(text);
+            }
+
+            messageLatch.await(100, TimeUnit.SECONDS);
+            assertEquals(0, messageLatch.getCount());
+
+            System.out.println("***** WebSocket broadcast ***** " + (System.currentTimeMillis() - l));
+
         } finally {
             stopServer(server);
         }

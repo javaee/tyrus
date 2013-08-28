@@ -135,12 +135,21 @@ public final class ProtocolHandler {
         return write(frame, completionHandler, useTimeout);
     }
 
+    Future<DataFrame> send(byte[] frame,
+                           Writer.CompletionHandler<DataFrame> completionHandler, Boolean useTimeout) {
+        return write(frame, completionHandler, useTimeout);
+    }
+
     public Future<DataFrame> send(byte[] data) {
         return send(new DataFrame(new BinaryFrame(), data), null, true);
     }
 
     public Future<DataFrame> send(String data) {
         return send(new DataFrame(new TextFrame(), data));
+    }
+
+    public Future<DataFrame> sendRawFrame(byte[] data) {
+        return send(data, null, true);
     }
 
     public Future<DataFrame> stream(boolean last, byte[] bytes, int off, int len) {
@@ -151,7 +160,7 @@ public final class ProtocolHandler {
         return send(new DataFrame(new TextFrame(), fragment, last));
     }
 
-    public Future<DataFrame> close(final int code,final String reason) {
+    public Future<DataFrame> close(final int code, final String reason) {
         final ClosingDataFrame outgoingClosingFrame;
         final CloseReason closeReason = new CloseReason(CloseReason.CloseCodes.getCloseCode(code), reason);
 
@@ -218,6 +227,40 @@ public final class ProtocolHandler {
         } else {
             final byte[] bytes = frame(frame);
             localWriter.write(bytes, new CompletionHandlerWrapper(completionHandler, future, frame));
+        }
+
+        return future;
+    }
+
+    @SuppressWarnings({"unchecked"})
+    private Future<DataFrame> write(final byte[] frame, final Writer.CompletionHandler<DataFrame> completionHandler, boolean useTimeout) {
+        final Writer localWriter = writer;
+        final WriteFuture<DataFrame> future = new WriteFuture<DataFrame>();
+
+        if (localWriter == null) {
+            throw new IllegalStateException("Connection is null");
+        }
+
+
+        if (useTimeout && writeTimeoutMs > 0 && container instanceof ExecutorServiceProvider) {
+            ExecutorService executor = ((ExecutorServiceProvider) container).getExecutorService();
+            try {
+                executor.submit(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        localWriter.write(frame, new CompletionHandlerWrapper(completionHandler, future, null));
+                    }
+                }).get(writeTimeoutMs, TimeUnit.MILLISECONDS);
+            } catch (InterruptedException e) {
+                future.setFailure(e);
+            } catch (ExecutionException e) {
+                future.setFailure(e);
+            } catch (TimeoutException e) {
+                future.setFailure(e);
+            }
+        } else {
+            localWriter.write(frame, new CompletionHandlerWrapper(completionHandler, future, null));
         }
 
         return future;

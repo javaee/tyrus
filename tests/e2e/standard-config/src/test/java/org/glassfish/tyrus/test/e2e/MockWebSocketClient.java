@@ -76,6 +76,11 @@ class MockWebSocketClient implements WebSocket {
     }
 
     @Override
+    public Future<DataFrame> sendRawFrame(byte[] data) {
+        return null;
+    }
+
+    @Override
     public GrizzlyFuture<DataFrame> sendPing(byte[] bytes) {
         return null;
     }

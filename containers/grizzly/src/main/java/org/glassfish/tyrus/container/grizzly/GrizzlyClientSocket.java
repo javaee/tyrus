@@ -366,6 +366,15 @@ public class GrizzlyClientSocket implements WebSocket, ClientSocket {
     }
 
     @Override
+    public Future<DataFrame> sendRawFrame(byte[] data) {
+        if (isConnected()) {
+            return protocolHandler.sendRawFrame(data);
+        } else {
+            throw new RuntimeException("Socket is not connected.");
+        }
+    }
+
+    @Override
     public Future<DataFrame> sendPing(byte[] bytes) {
         DataFrame df = new DataFrame(new PingFrame(), bytes);
         return this.protocolHandler.send(df, false);

@@ -308,6 +308,10 @@ public class TyrusSession implements Session {
         return userPrincipal;
     }
 
+    public void broadcast(String message) {
+        this.endpoint.broadcast(message);
+    }
+
     void restartIdleTimeoutExecutor() {
         if (this.maxIdleTimeout < 1) {
             return;
@@ -351,7 +355,7 @@ public class TyrusSession implements Session {
         }
 
         for (CoderWrapper<Decoder> decoder : availableDecoders) {
-            for (MessageHandler mh : this.getOrderedMessageHandlers()) {
+            for (MessageHandler mh : getOrderedMessageHandlers()) {
                 Class<?> type;
                 if ((mh instanceof MessageHandler.Whole)
                         && (type = MessageHandlerManager.getHandlerType(mh)).isAssignableFrom(decoder.getType())) {
@@ -389,7 +393,7 @@ public class TyrusSession implements Session {
         checkConnectionState(State.CLOSED);
         boolean handled = false;
 
-        for (MessageHandler handler : this.getMessageHandlers()) {
+        for (MessageHandler handler : getMessageHandlers()) {
             if ((handler instanceof MessageHandler.Partial) &&
                     MessageHandlerManager.getHandlerType(handler).isAssignableFrom(message.getClass())) {
 
@@ -414,7 +418,7 @@ public class TyrusSession implements Session {
     }
 
     void notifyPongHandler(PongMessage pongMessage) {
-        final Set<MessageHandler> messageHandlers = this.getMessageHandlers();
+        final Set<MessageHandler> messageHandlers = getMessageHandlers();
         for (MessageHandler handler : messageHandlers) {
             if (MessageHandlerManager.getHandlerType(handler).equals(PongMessage.class)) {
                 ((MessageHandler.Whole<PongMessage>) handler).onMessage(pongMessage);
@@ -469,7 +473,7 @@ public class TyrusSession implements Session {
      *
      * @param state the newly set state.
      */
-    public void setState(State state) {
+    void setState(State state) {
         checkConnectionState(State.CLOSED);
         this.state.set(state);
     }
