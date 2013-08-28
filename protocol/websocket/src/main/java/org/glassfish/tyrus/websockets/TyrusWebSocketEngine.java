@@ -52,6 +52,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.websocket.CloseReason;
 import javax.websocket.DeploymentException;
 
 import org.glassfish.tyrus.spi.HandshakeRequest;
@@ -255,10 +256,10 @@ public class TyrusWebSocketEngine implements org.glassfish.tyrus.spi.WebSocketEn
                 } while (true);
             }
         } catch (FramingException e) {
-            holder.webSocket.onClose(new ClosingDataFrame(e.getClosingCode(), e.getMessage()));
+            holder.webSocket.onClose(new CloseReason(CloseReason.CloseCodes.getCloseCode(e.getClosingCode()), e.getMessage()));
         } catch (Exception wse) {
             if (holder.application.onError(holder.webSocket, wse)) {
-                holder.webSocket.onClose(new ClosingDataFrame(1011, wse.getMessage()));
+                holder.webSocket.onClose(new CloseReason(CloseReason.CloseCodes.UNEXPECTED_CONDITION, wse.getMessage()));
             }
         }
     }
@@ -272,7 +273,7 @@ public class TyrusWebSocketEngine implements org.glassfish.tyrus.spi.WebSocketEn
     public void close(Writer writer, int closeCode, String closeReason) {
         final WebSocketHolder holder = getWebSocketHolder(writer);
         if (holder != null) {
-            holder.webSocket.onClose(new ClosingDataFrame(closeCode, closeReason));
+            holder.webSocket.onClose(new CloseReason(CloseReason.CloseCodes.getCloseCode(closeCode), closeReason));
             removeConnection(writer);
         }
     }

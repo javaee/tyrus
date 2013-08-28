@@ -40,6 +40,8 @@
 
 package org.glassfish.tyrus.websockets;
 
+import javax.websocket.CloseReason;
+
 /**
  * Interface to allow notification of events occurring on specific
  * {@link WebSocket} instances.
@@ -51,14 +53,14 @@ public interface WebSocketListener {
 
     /**
      * <p/>
-     * Invoked when {@link WebSocket#onClose(ClosingDataFrame)} has been called on a
+     * Invoked when {@link WebSocket#onClose(CloseReason)} has been called on a
      * particular {@link WebSocket} instance.
      * <p/>
      *
      * @param socket the {@link WebSocket} being closed.
-     * @param frame  the closing {@link DataFrame} sent by the remote end-point.
+     * @param closeReason  the {@link CloseReason} sent by the remote end-point.
      */
-    void onClose(WebSocket socket, ClosingDataFrame frame);
+    void onClose(WebSocket socket, CloseReason closeReason);
 
     /**
      * <p>

@@ -53,7 +53,6 @@ import javax.websocket.server.ServerEndpointConfig;
 
 import org.glassfish.tyrus.spi.EndpointWrapper;
 import org.glassfish.tyrus.spi.HandshakeRequest;
-import org.glassfish.tyrus.websockets.ClosingDataFrame;
 import org.glassfish.tyrus.websockets.ProtocolHandler;
 import org.glassfish.tyrus.websockets.TyrusWebSocketEngine;
 import org.glassfish.tyrus.websockets.WebSocket;
@@ -153,13 +152,7 @@ public class TyrusEndpoint extends WebSocketApplication {
     }
 
     @Override
-    public void onClose(WebSocket socket, ClosingDataFrame frame) {
-        CloseReason closeReason = null;
-
-        if (frame != null) {
-            closeReason = new CloseReason(CloseReason.CloseCodes.getCloseCode(frame.getCode()), frame.getReason() == null ? "" : frame.getReason());
-        }
-
+    public void onClose(WebSocket socket, CloseReason closeReason) {
         this.endpoint.onClose(new TyrusRemoteEndpoint(socket), closeReason);
     }
 
@@ -172,16 +165,6 @@ public class TyrusEndpoint extends WebSocketApplication {
     public void onPong(WebSocket socket, byte[] bytes) {
         this.endpoint.onPong(new TyrusRemoteEndpoint(socket), ByteBuffer.wrap(bytes));
     }
-
-//    @Override
-//    public void remove() {
-//        this.endpoint.remove();
-//    }
-//
-//    @Override
-//    public Set<Session> getOpenSessions() {
-//        return endpoint.getOpenSessions();
-//    }
 
     @Override
     public void onExtensionNegotiation(List<org.glassfish.tyrus.websockets.Extension> extensions) {

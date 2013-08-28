@@ -70,7 +70,6 @@ import org.glassfish.tyrus.spi.ClientSocket;
 import org.glassfish.tyrus.spi.EndpointWrapper;
 import org.glassfish.tyrus.spi.HandshakeResponse;
 import org.glassfish.tyrus.spi.Writer;
-import org.glassfish.tyrus.websockets.ClosingDataFrame;
 import org.glassfish.tyrus.websockets.DataFrame;
 import org.glassfish.tyrus.websockets.Extension;
 import org.glassfish.tyrus.websockets.Handshake;
@@ -414,7 +413,7 @@ public class GrizzlyClientSocket implements WebSocket, ClientSocket {
             closeTransport();
         }
 
-        this.onClose(new ClosingDataFrame(i, s));
+        this.onClose(new CloseReason(CloseReason.CloseCodes.getCloseCode(i), s));
     }
 
     @Override
@@ -454,7 +453,7 @@ public class GrizzlyClientSocket implements WebSocket, ClientSocket {
     }
 
     @Override
-    public void onClose(ClosingDataFrame dataFrame) {
+    public void onClose(CloseReason closeReason) {
         onConnectLatch.countDown();
 
         if (state.get() == State.CLOSED) {
@@ -467,11 +466,6 @@ public class GrizzlyClientSocket implements WebSocket, ClientSocket {
             closeTransport();
         }
 
-        CloseReason closeReason = null;
-
-        if (dataFrame != null) {
-            closeReason = new CloseReason(CloseReason.CloseCodes.getCloseCode(dataFrame.getCode()), dataFrame.getReason());
-        }
         endpoint.onClose(remoteEndpoint, closeReason);
     }
 

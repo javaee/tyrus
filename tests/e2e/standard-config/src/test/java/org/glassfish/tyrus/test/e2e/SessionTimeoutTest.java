@@ -66,6 +66,8 @@ import org.junit.Ignore;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
+import junit.framework.Assert;
+
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
@@ -84,13 +86,14 @@ public class SessionTimeoutTest extends TestContainer {
         }
 
         @OnMessage
-        public void onMessage(String message, Session session){
+        public void onMessage(String message, Session session) {
 
         }
 
         @OnClose
-        public void onClose(Session session) {
-            if(System.currentTimeMillis() - timeoutSetTime - TIMEOUT < 20){
+        public void onClose(Session session, CloseReason closeReason) {
+            //TYRUS-230
+            if(System.currentTimeMillis() - timeoutSetTime - TIMEOUT < 20 && closeReason.getCloseCode() == CloseReason.CloseCodes.CLOSED_ABNORMALLY){
                 onClosedCalled.set(true);
             }
         }
@@ -113,6 +116,8 @@ public class SessionTimeoutTest extends TestContainer {
 
                 @Override
                 public void onClose(Session session, CloseReason closeReason) {
+                    //TYRUS-230
+                    Assert.assertEquals(1000, closeReason.getCloseCode().getCode());
                     latch.countDown();
                 }
             }, cec, getURI(SessionTimeoutEndpoint.class));

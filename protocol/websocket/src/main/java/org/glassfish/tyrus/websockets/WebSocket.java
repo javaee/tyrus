@@ -42,6 +42,8 @@ package org.glassfish.tyrus.websockets;
 
 import java.util.concurrent.Future;
 
+import javax.websocket.CloseReason;
+
 /**
  * General WebSocket unit interface.
  *
@@ -240,10 +242,10 @@ public interface WebSocket {
      * frame.
      * </p>
      *
-     * @param frame the close frame from the remote end-point.
+     * @param closeReason the close reason from the remote end-point.
      * @see DataFrame
      */
-    void onClose(ClosingDataFrame frame);
+    void onClose(CloseReason closeReason);
 
     /**
      * <p>

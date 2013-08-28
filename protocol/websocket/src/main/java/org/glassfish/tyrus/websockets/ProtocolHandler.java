@@ -55,6 +55,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import javax.websocket.CloseReason;
 import javax.websocket.WebSocketContainer;
 
 import org.glassfish.tyrus.spi.HandshakeRequest;
@@ -150,29 +151,37 @@ public final class ProtocolHandler {
         return send(new DataFrame(new TextFrame(), fragment, last));
     }
 
-    public Future<DataFrame> close(int code, String reason) {
-        final ClosingDataFrame closingDataFrame = new ClosingDataFrame(code, reason);
+    public Future<DataFrame> close(final int code,final String reason) {
+        final ClosingDataFrame outgoingClosingFrame;
+        final CloseReason closeReason = new CloseReason(CloseReason.CloseCodes.getCloseCode(code), reason);
 
-        return send(closingDataFrame, new Writer.CompletionHandler<DataFrame>() {
+        if (code == CloseReason.CloseCodes.NO_STATUS_CODE.getCode() || code == CloseReason.CloseCodes.CLOSED_ABNORMALLY.getCode()
+                || code == CloseReason.CloseCodes.TLS_HANDSHAKE_FAILURE.getCode()) {
+            outgoingClosingFrame = new ClosingDataFrame(CloseReason.CloseCodes.NORMAL_CLOSURE.getCode(), reason);
+        } else {
+            outgoingClosingFrame = new ClosingDataFrame(code, reason);
+        }
+
+        return send(outgoingClosingFrame, new Writer.CompletionHandler<DataFrame>() {
 
             @Override
             public void cancelled() {
                 if (webSocket != null && !onClosedCalled.getAndSet(true)) {
-                    webSocket.onClose(closingDataFrame);
+                    webSocket.onClose(closeReason);
                 }
             }
 
             @Override
             public void failed(final Throwable throwable) {
                 if (webSocket != null && !onClosedCalled.getAndSet(true)) {
-                    webSocket.onClose(closingDataFrame);
+                    webSocket.onClose(closeReason);
                 }
             }
 
             @Override
             public void completed(DataFrame result) {
                 if (!maskData && (webSocket != null) && !onClosedCalled.getAndSet(true)) {
-                    webSocket.onClose(closingDataFrame);
+                    webSocket.onClose(closeReason);
                 }
             }
         }, false);

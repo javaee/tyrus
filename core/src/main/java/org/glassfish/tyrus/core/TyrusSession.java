@@ -579,7 +579,7 @@ public class TyrusSession implements Session {
             try {
                 TyrusSession session = TyrusSession.this;
                 if (session.isOpen()) {
-                    session.close(new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, "Session closed by the container because of the idle timeout."));
+                    session.close(new CloseReason(CloseReason.CloseCodes.CLOSED_ABNORMALLY, "Session closed by the container because of the idle timeout."));
                 }
             } catch (IOException e) {
                 LOGGER.log(Level.FINE, "Session could not been closed. " + e.getMessage());
