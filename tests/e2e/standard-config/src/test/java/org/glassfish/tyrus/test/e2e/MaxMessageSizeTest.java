@@ -275,24 +275,25 @@ public class MaxMessageSizeTest extends TestContainer {
         @OnError
         public void onError(Session s, Throwable t) {
             // onError needs to be called after session is closed.
-            if(latch.getCount() > 0){
-                latch.countDown();
-            }
-
             if (!s.isOpen()) {
                 throwable = t;
+            }
+
+            if (latch.getCount() > 0) {
+                latch.countDown();
             }
         }
     }
 
     @Test
-    public void testClient() throws DeploymentException {
+    public void testClientOne() throws DeploymentException {
         Server server = startServer(Endpoint1.class, ServiceEndpoint.class);
 
         try {
             ClientManager client = ClientManager.createClient();
 
             final Session session = client.connectToServer(MyClientEndpoint.class, getURI(Endpoint1.class));
+            testViaServiceEndpoint(client, ServiceEndpoint.class, POSITIVE, "CLEANUP");
 
             MyClientEndpoint.latch = new CountDownLatch(1);
             session.getBasicRemote().sendText("t");
@@ -300,6 +301,22 @@ public class MaxMessageSizeTest extends TestContainer {
             assertEquals(0, MyClientEndpoint.latch.getCount());
 
             testViaServiceEndpoint(client, ServiceEndpoint.class, NEGATIVE, "TWO");
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            stopServer(server);
+        }
+    }
+
+    @Test
+    public void testClientTwo() throws DeploymentException {
+        Server server = startServer(Endpoint1.class, ServiceEndpoint.class);
+
+        try {
+            ClientManager client = ClientManager.createClient();
+
+            final Session session = client.connectToServer(MyClientEndpoint.class, getURI(Endpoint1.class));
             testViaServiceEndpoint(client, ServiceEndpoint.class, POSITIVE, "CLEANUP");
 
             MyClientEndpoint.latch = new CountDownLatch(1);
@@ -308,6 +325,22 @@ public class MaxMessageSizeTest extends TestContainer {
             assertEquals(0, MyClientEndpoint.latch.getCount());
 
             testViaServiceEndpoint(client, ServiceEndpoint.class, NEGATIVE, "TWO");
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            stopServer(server);
+        }
+    }
+
+    @Test
+    public void testClientThree() throws DeploymentException {
+        Server server = startServer(Endpoint1.class, ServiceEndpoint.class);
+
+        try {
+            ClientManager client = ClientManager.createClient();
+
+            final Session session = client.connectToServer(MyClientEndpoint.class, getURI(Endpoint1.class));
             testViaServiceEndpoint(client, ServiceEndpoint.class, POSITIVE, "CLEANUP");
 
             MyClientEndpoint.latch = new CountDownLatch(1);
@@ -316,12 +349,29 @@ public class MaxMessageSizeTest extends TestContainer {
             assertEquals(0, MyClientEndpoint.latch.getCount());
 
             testViaServiceEndpoint(client, ServiceEndpoint.class, NEGATIVE, "TWO");
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            stopServer(server);
+        }
+    }
+
+    @Test
+    public void testClientFour() throws DeploymentException {
+        Server server = startServer(Endpoint1.class, ServiceEndpoint.class);
+
+        try {
+            ClientManager client = ClientManager.createClient();
+
+            final Session session = client.connectToServer(MyClientEndpoint.class, getURI(Endpoint1.class));
             testViaServiceEndpoint(client, ServiceEndpoint.class, POSITIVE, "CLEANUP");
 
             MyClientEndpoint.latch = new CountDownLatch(1);
             session.getBasicRemote().sendText("test");
             MyClientEndpoint.latch.await(1, TimeUnit.SECONDS);
             assertEquals(0, MyClientEndpoint.latch.getCount());
+            assertNotNull(MyClientEndpoint.throwable);
 
             testViaServiceEndpoint(client, ServiceEndpoint.class, POSITIVE, "TWO");
         } catch (Exception e) {

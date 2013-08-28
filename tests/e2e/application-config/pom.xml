@@ -128,7 +128,7 @@
                                     <targetPath>WEB-INF/classes</targetPath>
                                 </resource>
                             </webResources>
-                            <packagingExcludes>WEB-INF/lib/*.jar</packagingExcludes>
+                            <packagingExcludes>%regex[WEB-INF/lib/(?!tyrus-test-tools-1.3-SNAPSHOT.jar$).*]</packagingExcludes>
                         </configuration>
                     </plugin>
                 </plugins>
