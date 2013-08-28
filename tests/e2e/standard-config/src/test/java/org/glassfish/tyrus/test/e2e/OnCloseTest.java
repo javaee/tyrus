@@ -260,15 +260,7 @@ public class OnCloseTest extends TestContainer {
             messageLatch.await(5, TimeUnit.SECONDS);
             Thread.sleep(1000);
 
-            Session serviceSession = client.connectToServer(MyServiceClientEndpoint.class, getURI(ServiceEndpoint.class));
-            MyServiceClientEndpoint.latch = new CountDownLatch(1);
-            MyServiceClientEndpoint.receivedMessage = null;
-            serviceSession.getBasicRemote().sendText("OnCloseWithCustomReasonEndpoint");
-            MyServiceClientEndpoint.latch.await(1, TimeUnit.SECONDS);
-            assertEquals(0, MyServiceClientEndpoint.latch.getCount());
-            assertEquals(POSITIVE, MyServiceClientEndpoint.receivedMessage);
-
-
+            testViaServiceEndpoint(client, ServiceEndpoint.class, POSITIVE, "OnCloseWithCustomReasonEndpoint");
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
@@ -410,13 +402,7 @@ public class OnCloseTest extends TestContainer {
                     }
                 }, cec, getURI(OnCloseAllSupportedReasonsClientInitEndpoint.class));
 
-                Session serviceSession = client.connectToServer(MyServiceClientEndpoint.class, getURI(ServiceEndpoint.class));
-                MyServiceClientEndpoint.latch = new CountDownLatch(1);
-                MyServiceClientEndpoint.receivedMessage = null;
-                serviceSession.getBasicRemote().sendText(String.valueOf(i));
-                MyServiceClientEndpoint.latch.await(1, TimeUnit.SECONDS);
-                assertEquals(0, MyServiceClientEndpoint.latch.getCount());
-                assertEquals(POSITIVE, MyServiceClientEndpoint.receivedMessage);
+                testViaServiceEndpoint(client, ServiceEndpoint.class, POSITIVE, String.valueOf(i));
             } catch (Exception e) {
                 e.printStackTrace();
                 throw new RuntimeException(e.getMessage(), e);

@@ -197,12 +197,11 @@ public class TestContainer {
         this.defaultPort = defaultPort;
     }
 
-
     @ClientEndpoint
     public static class MyServiceClientEndpoint {
 
-        public static CountDownLatch latch;
-        public static String receivedMessage;
+        public volatile static CountDownLatch latch;
+        public volatile static String receivedMessage;
 
         @OnMessage
         public void onMessage(String message) {

@@ -80,7 +80,8 @@ public class MaxMessageSizeTest extends TestContainer {
 
 
         @OnOpen
-        public void onOpen(Session session){}
+        public void onOpen(Session session) {
+        }
 
         @OnMessage(maxMessageSize = 5)
         public String onMessage(String message) {
@@ -95,7 +96,7 @@ public class MaxMessageSizeTest extends TestContainer {
         @OnError
         public void onError(Session s, Throwable t) {
             // onError needs to be called after session is closed.
-            if(!s.isOpen()) {
+            if (!s.isOpen()) {
                 throwable = t;
             }
         }
@@ -106,14 +107,14 @@ public class MaxMessageSizeTest extends TestContainer {
 
         @OnMessage
         public String onMessage(String message) {
-            if (message.equals("THROWABLE")){
-                if(Endpoint1.throwable != null){
-                    return POSITIVE;
-                }
-            } else{
-                if(Endpoint1.closeReason != null && Endpoint1.closeReason.getCloseCode().equals(CloseReason.CloseCodes.TOO_BIG)){
-                    return POSITIVE;
-                }
+            if (message.equals("THROWABLE") && Endpoint1.throwable != null) {
+                return POSITIVE;
+            } else if(message.equals("CLEANUP")){
+                Endpoint1.closeReason = null;
+                Endpoint1.throwable = null;
+                return POSITIVE;
+            } else if (Endpoint1.closeReason != null && Endpoint1.closeReason.getCloseCode().equals(CloseReason.CloseCodes.TOO_BIG)) {
+                return POSITIVE;
             }
 
             return NEGATIVE;
@@ -177,7 +178,7 @@ public class MaxMessageSizeTest extends TestContainer {
 
                 @Override
                 public void onClose(Session session, CloseReason closeReason) {
-                    if(closeReason.getCloseCode().equals(CloseReason.CloseCodes.TOO_BIG)) {
+                    if (closeReason.getCloseCode().equals(CloseReason.CloseCodes.TOO_BIG)) {
                         closedLatch.countDown();
                     }
                 }
@@ -243,7 +244,7 @@ public class MaxMessageSizeTest extends TestContainer {
 
                 @Override
                 public void onClose(Session session, CloseReason closeReason) {
-                    if(closeReason.getCloseCode().equals(CloseReason.CloseCodes.TOO_BIG)) {
+                    if (closeReason.getCloseCode().equals(CloseReason.CloseCodes.TOO_BIG)) {
                         messageLatch.countDown();
                     }
                 }
@@ -274,7 +275,11 @@ public class MaxMessageSizeTest extends TestContainer {
         @OnError
         public void onError(Session s, Throwable t) {
             // onError needs to be called after session is closed.
-            if(!s.isOpen()) {
+            if(latch.getCount() > 0){
+                latch.countDown();
+            }
+
+            if (!s.isOpen()) {
                 throwable = t;
             }
         }
@@ -295,6 +300,7 @@ public class MaxMessageSizeTest extends TestContainer {
             assertEquals(0, MyClientEndpoint.latch.getCount());
 
             testViaServiceEndpoint(client, ServiceEndpoint.class, NEGATIVE, "TWO");
+            testViaServiceEndpoint(client, ServiceEndpoint.class, POSITIVE, "CLEANUP");
 
             MyClientEndpoint.latch = new CountDownLatch(1);
             session.getBasicRemote().sendText("te");
@@ -302,6 +308,7 @@ public class MaxMessageSizeTest extends TestContainer {
             assertEquals(0, MyClientEndpoint.latch.getCount());
 
             testViaServiceEndpoint(client, ServiceEndpoint.class, NEGATIVE, "TWO");
+            testViaServiceEndpoint(client, ServiceEndpoint.class, POSITIVE, "CLEANUP");
 
             MyClientEndpoint.latch = new CountDownLatch(1);
             session.getBasicRemote().sendText("tes");
@@ -309,11 +316,12 @@ public class MaxMessageSizeTest extends TestContainer {
             assertEquals(0, MyClientEndpoint.latch.getCount());
 
             testViaServiceEndpoint(client, ServiceEndpoint.class, NEGATIVE, "TWO");
+            testViaServiceEndpoint(client, ServiceEndpoint.class, POSITIVE, "CLEANUP");
 
             MyClientEndpoint.latch = new CountDownLatch(1);
             session.getBasicRemote().sendText("test");
             MyClientEndpoint.latch.await(1, TimeUnit.SECONDS);
-            assertEquals(1, MyClientEndpoint.latch.getCount());
+            assertEquals(0, MyClientEndpoint.latch.getCount());
 
             testViaServiceEndpoint(client, ServiceEndpoint.class, POSITIVE, "TWO");
         } catch (Exception e) {

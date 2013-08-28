@@ -127,10 +127,6 @@
                                     <directory>${basedir}/target/test-classes</directory>
                                     <targetPath>WEB-INF/classes</targetPath>
                                 </resource>
-                                <resource>
-                                    <directory>${basedir}/../../tools/target/classes/org/glassfish/tyrus/test/tools</directory>
-                                    <targetPath>WEB-INF/classes/org/glassfish/tyrus/test/tools</targetPath>
-                                </resource>
                             </webResources>
                             <packagingExcludes>WEB-INF/lib/*.jar</packagingExcludes>
                         </configuration>

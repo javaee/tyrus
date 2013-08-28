@@ -64,7 +64,6 @@ import org.glassfish.tyrus.server.TyrusServerConfiguration;
 import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.junit.Test;
-import static org.junit.Assert.assertEquals;
 
 /**
  * Tests the onError method of the WebSocket API.
@@ -136,13 +135,7 @@ public class ErrorTest extends TestContainer {
                 }
             }, cec, getURI(OnOpenErrorTestEndpoint.class));
 
-            final Session serviceSession = ClientManager.createClient().connectToServer(MyServiceClientEndpoint.class, getURI(ServiceEndpoint.class));
-            MyServiceClientEndpoint.latch = new CountDownLatch(1);
-            MyServiceClientEndpoint.receivedMessage = null;
-            serviceSession.getBasicRemote().sendText("OnOpenErrorTestEndpoint");
-            MyServiceClientEndpoint.latch.await(1000, TimeUnit.SECONDS);
-            assertEquals(0, MyServiceClientEndpoint.latch.getCount());
-            assertEquals(POSITIVE, MyServiceClientEndpoint.receivedMessage);
+            testViaServiceEndpoint(client, ServiceEndpoint.class, POSITIVE, "OnOpenErrorTestEndpoint");
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
@@ -195,13 +188,7 @@ public class ErrorTest extends TestContainer {
             }, cec, getURI(OnCloseErrorTestEndpoint.class));
             session.close();
 
-            final Session serviceSession = ClientManager.createClient().connectToServer(MyServiceClientEndpoint.class, getURI(ServiceEndpoint.class));
-            MyServiceClientEndpoint.latch = new CountDownLatch(1);
-            MyServiceClientEndpoint.receivedMessage = null;
-            serviceSession.getBasicRemote().sendText("OnCloseErrorTestEndpoint");
-            MyServiceClientEndpoint.latch.await(1, TimeUnit.SECONDS);
-            assertEquals(0, MyServiceClientEndpoint.latch.getCount());
-            assertEquals(POSITIVE, MyServiceClientEndpoint.receivedMessage);
+            testViaServiceEndpoint(client, ServiceEndpoint.class, POSITIVE, "OnCloseErrorTestEndpoint");
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
@@ -282,13 +269,7 @@ public class ErrorTest extends TestContainer {
                 }
             }, cec, getURI("/openprogrammatic"));
 
-            final Session serviceSession = ClientManager.createClient().connectToServer(MyServiceClientEndpoint.class, getURI(ServiceEndpoint.class));
-            MyServiceClientEndpoint.latch = new CountDownLatch(1);
-            MyServiceClientEndpoint.receivedMessage = null;
-            serviceSession.getBasicRemote().sendText("OnOpenExceptionEndpoint");
-            MyServiceClientEndpoint.latch.await(1, TimeUnit.SECONDS);
-            assertEquals(0, MyServiceClientEndpoint.latch.getCount());
-            assertEquals(POSITIVE, MyServiceClientEndpoint.receivedMessage);
+            testViaServiceEndpoint(client, ServiceEndpoint.class, POSITIVE, "OnOpenExceptionEndpoint");
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
@@ -355,13 +336,7 @@ public class ErrorTest extends TestContainer {
 
             messageLatch.await(1, TimeUnit.SECONDS);
 
-            final Session serviceSession = ClientManager.createClient().connectToServer(MyServiceClientEndpoint.class, getURI(ServiceEndpoint.class));
-            MyServiceClientEndpoint.latch = new CountDownLatch(1);
-            MyServiceClientEndpoint.receivedMessage = null;
-            serviceSession.getBasicRemote().sendText("OnMessageExceptionEndpoint");
-            MyServiceClientEndpoint.latch.await(1, TimeUnit.SECONDS);
-            assertEquals(0, MyServiceClientEndpoint.latch.getCount());
-            assertEquals(POSITIVE, MyServiceClientEndpoint.receivedMessage);
+            testViaServiceEndpoint(client, ServiceEndpoint.class, POSITIVE, "OnMessageExceptionEndpoint");
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
