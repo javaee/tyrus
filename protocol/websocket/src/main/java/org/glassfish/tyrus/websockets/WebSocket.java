@@ -50,39 +50,6 @@ import javax.websocket.CloseReason;
  * @author Alexey Stashok
  */
 public interface WebSocket {
-    /**
-     * Indicates a normal closure, meaning whatever purpose the connection was established for has been fulfilled.
-     */
-    int NORMAL_CLOSURE = 1000;
-    /**
-     * Indicates that an endpoint is "going away", such as a server going down, or a browser having navigated away from
-     * a page.
-     */
-    int END_POINT_GOING_DOWN = 1001;
-    /**
-     * Indicates that an endpoint is terminating the connection due to a protocol error.
-     */
-    int PROTOCOL_ERROR = 1002;
-    /**
-     * Indicates that an endpoint is terminating the connection because it has received a type of data it cannot accept
-     * (e.g. an endpoint that understands only text data may send this if it receives a binary message.)
-     */
-    int INVALID_DATA = 1003;
-    /**
-     * indicates that an endpoint is terminating the connection because it has received a message that is too large.
-     */
-    int MESSAGE_TOO_LARGE = 1004;
-    /**
-     * a reserved value and MUST NOT be set as a status code in a Close control frame by an endpoint.  It is designated
-     * for use in applications expecting a status code to indicate that no status code was actually present.
-     */
-    int NO_STATUS_CODE = 1005;
-    /**
-     * a reserved value and MUST NOT be set as a status code in a Close control frame by an endpoint.  It is designated
-     * for use in applications expecting a status code to indicate that the connection was closed abnormally, e.g.
-     * without sending or receiving a Close control frame.
-     */
-    int ABNORMAL_CLOSE = 1006;
 
     /**
      * <p/>

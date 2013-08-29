@@ -40,6 +40,8 @@
 
 package org.glassfish.tyrus.websockets;
 
+import javax.websocket.CloseReason;
+
 /**
  * TODO
  */
@@ -56,7 +58,7 @@ public class Utf8DecodingError extends FramingException {
 
     @Override
     public int getClosingCode() {
-        return 1007;
+        return CloseReason.CloseCodes.NOT_CONSISTENT.getCode();
     }
 
 }

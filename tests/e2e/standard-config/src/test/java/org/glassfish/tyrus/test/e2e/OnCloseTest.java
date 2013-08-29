@@ -109,7 +109,7 @@ public class OnCloseTest extends TestContainer {
 
                 @Override
                 public void onClose(Session session, CloseReason closeReason) {
-                    if (closeReason != null && closeReason.getCloseCode().getCode() == 1000) {
+                    if (closeReason != null && closeReason.getCloseCode().getCode() == CloseReason.CloseCodes.NORMAL_CLOSURE.getCode()) {
                         messageLatch.countDown();
                     }
                 }

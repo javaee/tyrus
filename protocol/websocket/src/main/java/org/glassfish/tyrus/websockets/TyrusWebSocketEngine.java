@@ -69,25 +69,12 @@ import org.glassfish.tyrus.websockets.uri.Match;
  */
 public class TyrusWebSocketEngine implements org.glassfish.tyrus.spi.WebSocketEngine {
 
-    public static final String SEC_WS_ACCEPT = "Sec-WebSocket-Accept";
-    public static final String SEC_WS_KEY_HEADER = "Sec-WebSocket-Key";
-    public static final String SEC_WS_ORIGIN_HEADER = "Sec-WebSocket-Origin";
-    public static final String ORIGIN_HEADER = "Origin";
-    public static final String SEC_WS_PROTOCOL_HEADER = "Sec-WebSocket-Protocol";
-    public static final String SEC_WS_EXTENSIONS_HEADER = "Sec-WebSocket-Extensions";
-    public static final String SEC_WS_VERSION = "Sec-WebSocket-Version";
-    public static final String WEBSOCKET = "websocket";
-    public static final String RESPONSE_CODE_MESSAGE = "Switching Protocols";
     public static final int RESPONSE_CODE_VALUE = 101;
-    public static final String UPGRADE = "Upgrade";
-    public static final String CONNECTION = "Connection";
-    public static final String HOST = "Host";
     public static final Version DEFAULT_VERSION = Version.DRAFT17;
-    public static final String SERVER_KEY_HASH = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
     public static final int MASK_SIZE = 4;
 
     private static int BUFFER_STEP_SIZE = 256;
-    private static final Logger LOGGER = Logger.getLogger(TyrusWebSocketEngine.WEBSOCKET);
+    private static final Logger LOGGER = Logger.getLogger(HandshakeRequest.WEBSOCKET);
 
     private final Set<WebSocketApplication> applications = Collections.newSetFromMap(new ConcurrentHashMap<WebSocketApplication, Boolean>());
     private final Map<Writer, WebSocketHolder> webSocketHolderMap = new ConcurrentHashMap<Writer, WebSocketHolder>();
@@ -141,7 +128,7 @@ public class TyrusWebSocketEngine implements org.glassfish.tyrus.spi.WebSocketEn
                                                  final HandshakeRequest request) {
         WebSocketResponse response = new WebSocketResponse();
         response.setStatus(426);
-        response.getHeaders().put(TyrusWebSocketEngine.SEC_WS_VERSION,
+        response.getHeaders().put(HandshakeRequest.SEC_WEBSOCKET_VERSION,
                 Arrays.asList(Version.getSupportedWireProtocolVersions()));
         writer.write(response);
     }
@@ -260,6 +247,7 @@ public class TyrusWebSocketEngine implements org.glassfish.tyrus.spi.WebSocketEn
         } catch (Exception wse) {
             if (holder.application.onError(holder.webSocket, wse)) {
                 holder.webSocket.onClose(new CloseReason(CloseReason.CloseCodes.UNEXPECTED_CONDITION, wse.getMessage()));
+
             }
         }
     }

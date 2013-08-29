@@ -52,6 +52,15 @@ import java.util.Map;
  */
 public abstract class HandshakeRequest implements javax.websocket.server.HandshakeRequest {
 
+    public static final String WEBSOCKET = "websocket";
+    public static final String RESPONSE_CODE_MESSAGE = "Switching Protocols";
+    public static final String UPGRADE = "Upgrade";
+    public static final String CONNECTION = "Connection";
+    public static final String HOST = "Host";
+    public static final String SERVER_KEY_HASH = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+    public static final String SEC_WS_ORIGIN_HEADER = "Sec-WebSocket-Origin";
+    public static final String ORIGIN_HEADER = "Origin";
+
     /**
      * Get the Http Header value for the given header name
      * in the underlying Http handshake request.

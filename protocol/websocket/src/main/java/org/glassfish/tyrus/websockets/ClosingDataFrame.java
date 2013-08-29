@@ -46,10 +46,12 @@ import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CoderResult;
 
+import javax.websocket.CloseReason;
+
 public class ClosingDataFrame extends DataFrame {
 
     private static final byte[] EMPTY_BYTES = new byte[0];
-    private int code = WebSocket.NORMAL_CLOSURE;
+    private int code = CloseReason.CloseCodes.NORMAL_CLOSURE.getCode();
     private String reason;
 
     public ClosingDataFrame(int code, String reason) {

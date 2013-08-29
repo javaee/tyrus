@@ -49,6 +49,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.websocket.CloseReason;
+
 import org.glassfish.tyrus.core.RequestContext;
 import org.glassfish.tyrus.core.Utils;
 import org.glassfish.tyrus.spi.HandshakeRequest;
@@ -282,7 +284,7 @@ class WebSocketFilter extends BaseFilter {
 
             // If websocket is null - it means either non-websocket Connection, or websocket with incomplete handshake
             if (!webSocketInProgress(writer) &&
-                    !TyrusWebSocketEngine.WEBSOCKET.equalsIgnoreCase(header.getUpgrade())) {
+                    !HandshakeRequest.WEBSOCKET.equalsIgnoreCase(header.getUpgrade())) {
                 // if it's not a websocket connection - pass the processing to the next filter
                 return ctx.getInvokeAction();
             }
@@ -422,7 +424,7 @@ class WebSocketFilter extends BaseFilter {
         ctx.getConnection().addCloseListener(new CloseListener() {
             @Override
             public void onClosed(Closeable closeable, ICloseType type) throws IOException {
-                engine.close(webSocketWriter, WebSocket.END_POINT_GOING_DOWN, "Close detected on connection");
+                engine.close(webSocketWriter, CloseReason.CloseCodes.GOING_AWAY.getCode(), "Close detected on connection");
             }
         });
         try {

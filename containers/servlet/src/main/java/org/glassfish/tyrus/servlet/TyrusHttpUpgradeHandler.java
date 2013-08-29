@@ -57,7 +57,6 @@ import org.glassfish.tyrus.core.TyrusWebSocket;
 import org.glassfish.tyrus.spi.WebSocketEngine;
 import org.glassfish.tyrus.spi.Writer;
 import org.glassfish.tyrus.websockets.TyrusWebSocketEngine;
-import org.glassfish.tyrus.websockets.WebSocket;
 
 /**
  * {@link HttpUpgradeHandler} and {@link ReadListener} implementation.
@@ -138,7 +137,7 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
                     }
                 }
             } catch (IOException e) {
-                engine.close(writer, WebSocket.INVALID_DATA, null);
+                engine.close(writer, CloseReason.CloseCodes.CANNOT_ACCEPT.getCode(), null);
             }
         } while (!closed && is.isReady());
     }
@@ -196,17 +195,17 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
 
     @Override
     public void onAllDataRead() {
-        close(WebSocket.NORMAL_CLOSURE, null);
+        close(CloseReason.CloseCodes.NORMAL_CLOSURE.getCode(), null);
     }
 
     @Override
     public void onError(Throwable t) {
-        close(WebSocket.ABNORMAL_CLOSE, t.getMessage() == null ? "No reason given." : t.getMessage());
+        close(CloseReason.CloseCodes.CLOSED_ABNORMALLY.getCode(), t.getMessage() == null ? "No reason given." : t.getMessage());
     }
 
     @Override
     public void destroy() {
-        close(WebSocket.ABNORMAL_CLOSE, "No reason given.");
+        close(CloseReason.CloseCodes.CLOSED_ABNORMALLY.getCode(), "No reason given.");
     }
 
     /**

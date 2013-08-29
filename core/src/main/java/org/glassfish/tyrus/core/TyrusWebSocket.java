@@ -184,7 +184,7 @@ public class TyrusWebSocket implements WebSocket {
 
     @Override
     public void close() {
-        close(NORMAL_CLOSURE, null);
+        close(CloseReason.CloseCodes.NORMAL_CLOSURE.getCode(), null);
     }
 
     @Override

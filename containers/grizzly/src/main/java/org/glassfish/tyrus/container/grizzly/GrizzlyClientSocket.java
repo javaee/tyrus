@@ -61,6 +61,7 @@ import javax.websocket.ClientEndpointConfig;
 import javax.websocket.CloseReason;
 import javax.websocket.DeploymentException;
 import javax.websocket.Session;
+import javax.websocket.server.HandshakeRequest;
 
 import org.glassfish.tyrus.core.RequestContext;
 import org.glassfish.tyrus.core.TyrusExtension;
@@ -325,12 +326,12 @@ public class GrizzlyClientSocket implements WebSocket, ClientSocket {
 
             @Override
             public void onHandShakeResponse(HandshakeResponse response) {
-                List<String> values = response.getHeaders().get(TyrusWebSocketEngine.SEC_WS_EXTENSIONS_HEADER);
+                List<String> values = response.getHeaders().get(HandshakeRequest.SEC_WEBSOCKET_EXTENSIONS);
                 if (values != null) {
                     responseExtensions.addAll(TyrusExtension.fromString(values));
                 }
 
-                responseSubprotocol.add(response.getFirstHeaderValue(TyrusWebSocketEngine.SEC_WS_PROTOCOL_HEADER));
+                responseSubprotocol.add(response.getFirstHeaderValue(HandshakeRequest.SEC_WEBSOCKET_PROTOCOL));
 
                 listener.onHandshakeResponse(response);
             }

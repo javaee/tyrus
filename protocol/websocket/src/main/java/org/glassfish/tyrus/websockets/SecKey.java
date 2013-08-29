@@ -46,6 +46,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Random;
 
+import org.glassfish.tyrus.spi.HandshakeRequest;
+
 /**
  * Class represents {@link WebSocket}'s security key, used during the handshake phase.
  *
@@ -86,7 +88,7 @@ class SecKey {
      * @return server key.
      */
     public static SecKey generateServerKey(SecKey clientKey) throws HandshakeException {
-        String key = clientKey.getSecKey() + TyrusWebSocketEngine.SERVER_KEY_HASH;
+        String key = clientKey.getSecKey() + HandshakeRequest.SERVER_KEY_HASH;
         final MessageDigest instance;
         try {
             instance = MessageDigest.getInstance("SHA-1");

@@ -40,6 +40,8 @@
 
 package org.glassfish.tyrus.websockets;
 
+import javax.websocket.CloseReason;
+
 /**
  * TODO
  */
@@ -51,6 +53,6 @@ public class ProtocolError extends FramingException {
 
     @Override
     public int getClosingCode() {
-        return WebSocket.PROTOCOL_ERROR;
+        return CloseReason.CloseCodes.PROTOCOL_ERROR.getCode();
     }
 }

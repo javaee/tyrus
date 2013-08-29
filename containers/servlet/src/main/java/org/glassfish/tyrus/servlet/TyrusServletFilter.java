@@ -48,6 +48,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.websocket.server.HandshakeRequest;
 import javax.websocket.server.ServerContainer;
 
 import javax.servlet.Filter;
@@ -73,7 +74,7 @@ import org.glassfish.tyrus.websockets.TyrusWebSocketEngine;
 /**
  * Filter used for Servlet integration.
  * <p/>
- * Consumes only requests with {@link org.glassfish.tyrus.websockets.TyrusWebSocketEngine#SEC_WS_KEY_HEADER} headers present, all others are
+ * Consumes only requests with {@link HandshakeRequest#SEC_WEBSOCKET_KEY} headers present, all others are
  * passed back to {@link FilterChain}.
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
@@ -190,7 +191,7 @@ class TyrusServletFilter implements Filter, HttpSessionListener {
         HttpServletResponse httpServletResponse = (HttpServletResponse) response;
 
         // check for mandatory websocket header
-        final String header = httpServletRequest.getHeader(TyrusWebSocketEngine.SEC_WS_KEY_HEADER);
+        final String header = httpServletRequest.getHeader(HandshakeRequest.SEC_WEBSOCKET_KEY);
         if (header != null) {
             LOGGER.fine("Setting up WebSocket protocol handler");
 

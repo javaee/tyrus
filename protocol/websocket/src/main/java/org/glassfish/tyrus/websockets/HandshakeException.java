@@ -40,6 +40,8 @@
 
 package org.glassfish.tyrus.websockets;
 
+import javax.websocket.CloseReason;
+
 /**
  * {@link Exception}, which describes the error, occurred during the {@link WebSocket}
  * handshake phase.
@@ -55,7 +57,7 @@ public class HandshakeException extends WebSocketException {
      * @param message error description
      */
     public HandshakeException(String message) {
-        this(WebSocket.PROTOCOL_ERROR, message);
+        this(CloseReason.CloseCodes.PROTOCOL_ERROR.getCode(), message);
     }
 
     /**
