@@ -67,12 +67,13 @@ class TyrusServletWriter implements Writer, WriteListener, WebSocketEngine.Respo
     private final HttpServletResponse httpServletResponse;
     private final ArrayBlockingQueue<QueuedFrame> queue = new ArrayBlockingQueue<QueuedFrame>(32);
 
-    private final Object outputStreamLock = new Object();
 
     private static final Logger LOGGER = Logger.getLogger(TyrusServletWriter.class.getName());
 
     // servlet output stream is not thread safe, we need to ensure it is not accessed from multiple threads at once.
+    private final Object outputStreamLock = new Object();
     private ServletOutputStream servletOutputStream = null;
+
     private volatile boolean isReady = false;
 
     private static class QueuedFrame {
@@ -101,11 +102,16 @@ class TyrusServletWriter implements Writer, WriteListener, WebSocketEngine.Respo
         LOGGER.log(Level.FINEST, "OnWritePossible called");
 
         QueuedFrame queuedFrame = queue.poll();
-        isReady = servletOutputStream.isReady();
+
+        synchronized (outputStreamLock) {
+            isReady = servletOutputStream.isReady();
+        }
 
         while (isReady && queuedFrame != null) {
             _write(queuedFrame.dataFrame, queuedFrame.completionHandler);
-            isReady = servletOutputStream.isReady();
+            synchronized (outputStreamLock) {
+                isReady = servletOutputStream.isReady();
+            }
             if (isReady) {
                 queuedFrame = queue.poll();
             }
