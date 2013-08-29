@@ -39,10 +39,7 @@
  */
 package org.glassfish.tyrus.tests.servlet.basic;
 
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
+import javax.websocket.OnError;
 import javax.websocket.OnMessage;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
@@ -56,11 +53,12 @@ public class WebSocketBroadcastEndpoint {
     @OnMessage
     public void onMessage(Session session, String message) {
         for (Session s : session.getOpenSessions()) {
-            try {
-                s.getBasicRemote().sendText(message);
-            } catch (IOException e) {
-                Logger.getLogger(WebSocketBroadcastEndpoint.class.getName()).log(Level.INFO, e.getMessage(), e);
-            }
+            s.getAsyncRemote().sendText(message);
         }
+    }
+
+    @OnError
+    public void onError(Throwable t) {
+        t.printStackTrace();
     }
 }

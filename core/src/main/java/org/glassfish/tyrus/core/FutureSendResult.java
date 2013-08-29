@@ -86,15 +86,23 @@ public class FutureSendResult implements Future<Void> {
 
     @Override
     public Void get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-        return get();
+        latch.await(timeout, unit);
+
+        if (throwable != null) {
+            throw new ExecutionException(throwable);
+        }
+
+        return null;
     }
 
     /**
      * Sets that the task is done.
      */
     public void setDone() {
-        if (latch.getCount() == 1) {
-            latch.countDown();
+        synchronized (latch) {
+            if (latch.getCount() == 1) {
+                latch.countDown();
+            }
         }
     }
 
@@ -104,9 +112,11 @@ public class FutureSendResult implements Future<Void> {
      * @param thr throwable.
      */
     public void setFailure(Throwable thr) {
-        if (latch.getCount() == 1) {
-            this.throwable = thr;
-            latch.countDown();
+        synchronized (latch) {
+            if (latch.getCount() == 1) {
+                this.throwable = thr;
+                latch.countDown();
+            }
         }
     }
 }

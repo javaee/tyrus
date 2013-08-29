@@ -85,7 +85,13 @@ class WriteFuture<T> implements Future<T> {
 
     @Override
     public T get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-        return get();
+        latch.await(timeout, unit);
+
+        if (throwable != null) {
+            throw new ExecutionException(throwable);
+        }
+
+        return result;
     }
 
     /**
@@ -94,9 +100,11 @@ class WriteFuture<T> implements Future<T> {
      * @param result result
      */
     public void setResult(T result) {
-        if (latch.getCount() == 1) {
-            this.result = result;
-            latch.countDown();
+        synchronized (latch) {
+            if (latch.getCount() == 1) {
+                this.result = result;
+                latch.countDown();
+            }
         }
     }
 
@@ -106,9 +114,11 @@ class WriteFuture<T> implements Future<T> {
      * @param throwable throwable.
      */
     public void setFailure(Throwable throwable) {
-        if (latch.getCount() == 1) {
-            this.throwable = throwable;
-            latch.countDown();
+        synchronized (latch) {
+            if (latch.getCount() == 1) {
+                this.throwable = throwable;
+                latch.countDown();
+            }
         }
     }
 }

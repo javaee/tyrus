@@ -78,6 +78,7 @@ class GrizzlyWriter implements Writer, WebSocketEngine.ResponseWriter {
     @Override
     public void write(final byte[] bytes, final CompletionHandler<byte[]> completionHandler) {
         if (!connection.isOpen()) {
+            completionHandler.failed(new IllegalStateException("Connection is not open."));
             return;
         }
 

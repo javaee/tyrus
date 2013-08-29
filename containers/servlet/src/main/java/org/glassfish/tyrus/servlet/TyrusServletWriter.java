@@ -103,8 +103,13 @@ class TyrusServletWriter implements Writer, WriteListener, WebSocketEngine.Respo
 
         QueuedFrame queuedFrame = queue.poll();
 
-        synchronized (outputStreamLock) {
-            isReady = servletOutputStream.isReady();
+        // this might seem weird but it cannot be another way, at least not without further synchronization logic.
+        // servletOutputStream cannot be touched without synchronizing access via outputStreamLock, but this method is
+        // also called from #write(...) when servletOutputStream.setWriteListener is invoked, but from different thread.
+        // Calling servletOutputStream.isReady() here would result in deadlock.
+        isReady = true;
+        if (queuedFrame == null) {
+            return;
         }
 
         while (isReady && queuedFrame != null) {
