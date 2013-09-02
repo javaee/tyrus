@@ -99,10 +99,8 @@ public class FutureSendResult implements Future<Void> {
      * Sets that the task is done.
      */
     public void setDone() {
-        synchronized (latch) {
-            if (latch.getCount() == 1) {
-                latch.countDown();
-            }
+        if (latch.getCount() == 1) {
+            latch.countDown();
         }
     }
 
@@ -112,11 +110,9 @@ public class FutureSendResult implements Future<Void> {
      * @param thr throwable.
      */
     public void setFailure(Throwable thr) {
-        synchronized (latch) {
-            if (latch.getCount() == 1) {
-                this.throwable = thr;
-                latch.countDown();
-            }
+        if (latch.getCount() == 1) {
+            this.throwable = thr;
+            latch.countDown();
         }
     }
 }

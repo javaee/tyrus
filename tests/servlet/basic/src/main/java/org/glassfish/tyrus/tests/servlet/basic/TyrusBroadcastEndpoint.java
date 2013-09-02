@@ -39,6 +39,8 @@
  */
 package org.glassfish.tyrus.tests.servlet.basic;
 
+import java.nio.ByteBuffer;
+
 import javax.websocket.OnMessage;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
@@ -55,4 +57,10 @@ public class TyrusBroadcastEndpoint {
     public void onMessage(Session session, String message) {
         ((TyrusSession) session).broadcast(message);
     }
+
+    @OnMessage
+    public void onMessage(Session session, ByteBuffer message) {
+        ((TyrusSession) session).broadcast(message);
+    }
+
 }

@@ -54,6 +54,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
@@ -308,9 +309,26 @@ public class TyrusSession implements Session {
         return userPrincipal;
     }
 
-    public void broadcast(String message) {
-        this.endpoint.broadcast(message);
+    /**
+     * Broadcasts text message to all connected clients.
+     *
+     * @param message message to be broadcasted.
+     * @return map of sessions and futures for user to get the information about status of the message.
+     */
+    public Map<Session, Future<?>> broadcast(String message) {
+        return endpoint.broadcast(message);
     }
+
+    /**
+     * Broadcasts binary message to all connected clients.
+     *
+     * @param message message to be broadcasted.
+     * @return map of sessions and futures for user to get the information about status of the message.
+     */
+    public Map<Session, Future<?>> broadcast(ByteBuffer message) {
+        return endpoint.broadcast(message);
+    }
+
 
     void restartIdleTimeoutExecutor() {
         if (this.maxIdleTimeout < 1) {

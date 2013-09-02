@@ -100,11 +100,9 @@ class WriteFuture<T> implements Future<T> {
      * @param result result
      */
     public void setResult(T result) {
-        synchronized (latch) {
-            if (latch.getCount() == 1) {
-                this.result = result;
-                latch.countDown();
-            }
+        if (latch.getCount() == 1) {
+            this.result = result;
+            latch.countDown();
         }
     }
 
@@ -114,11 +112,9 @@ class WriteFuture<T> implements Future<T> {
      * @param throwable throwable.
      */
     public void setFailure(Throwable throwable) {
-        synchronized (latch) {
-            if (latch.getCount() == 1) {
-                this.throwable = throwable;
-                latch.countDown();
-            }
+        if (latch.getCount() == 1) {
+            this.throwable = throwable;
+            latch.countDown();
         }
     }
 }

@@ -39,6 +39,8 @@
  */
 package org.glassfish.tyrus.tests.servlet.basic;
 
+import java.io.IOException;
+
 import javax.websocket.OnError;
 import javax.websocket.OnMessage;
 import javax.websocket.Session;
@@ -51,9 +53,10 @@ import javax.websocket.server.ServerEndpoint;
 public class WebSocketBroadcastEndpoint {
 
     @OnMessage
-    public void onMessage(Session session, String message) {
+    public void onMessage(Session session, String message) throws IOException {
         for (Session s : session.getOpenSessions()) {
-            s.getAsyncRemote().sendText(message);
+//            s.getAsyncRemote().sendText(message);
+            s.getBasicRemote().sendText(message);
         }
     }
 

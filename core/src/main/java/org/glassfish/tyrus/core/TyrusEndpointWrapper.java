@@ -81,6 +81,7 @@ import org.glassfish.tyrus.spi.HandshakeRequest;
 import org.glassfish.tyrus.spi.RemoteEndpoint;
 import org.glassfish.tyrus.websockets.DataFrame;
 import org.glassfish.tyrus.websockets.HandshakeException;
+import org.glassfish.tyrus.websockets.frame.BinaryFrame;
 import org.glassfish.tyrus.websockets.frame.TextFrame;
 
 /**
@@ -729,28 +730,75 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
         return configuration;
     }
 
-    public void broadcast(String message) {
+    /**
+     * Broadcasts text message to all connected clients.
+     *
+     * @param message message to be broadcasted.
+     * @return map of sessions and futures for user to get the information about status of the message.
+     */
+    public Map<Session, Future<?>> broadcast(final String message) {
 
+        final Map<Session, Future<?>> futures = new HashMap<Session, Future<?>>();
         byte[] frame = null;
 
         for (Map.Entry<RemoteEndpoint, TyrusSession> e : remoteEndpointToSession.entrySet()) {
             if (e.getValue().isOpen()) {
+
+                final TyrusRemoteEndpoint remoteEndpoint = (TyrusRemoteEndpoint) e.getKey();
+
+                if (frame == null) {
+                    final DataFrame dataFrame = new DataFrame(new TextFrame(), message);
+                    frame = ((TyrusWebSocket) remoteEndpoint.getSocket()).getProtocolHandler().frame(dataFrame);
+                }
+
                 try {
-
-                    final TyrusRemoteEndpoint remoteEndpoint = (TyrusRemoteEndpoint) e.getKey();
-
-                    if (frame == null) {
-                        final DataFrame dataFrame = new DataFrame(new TextFrame(), message);
-                        frame = ((TyrusWebSocket) remoteEndpoint.getSocket()).getProtocolHandler().frame(dataFrame);
-                    }
-
                     final Future<DataFrame> frameFuture = remoteEndpoint.sendRawFrame(frame);
+                    futures.put(e.getValue(), frameFuture);
                 } catch (IOException e1) {
-                    //
+                    LOGGER.log(Level.FINE, String.format("Cannot broadcast to session %s.", e.getValue().getId()), e1);
                 }
             }
         }
+
+        return futures;
     }
+
+    /**
+     * Broadcasts binary message to all connected clients.
+     *
+     * @param message message to be broadcasted.
+     * @return map of sessions and futures for user to get the information about status of the message.
+     */
+    public Map<Session, Future<?>> broadcast(final ByteBuffer message) {
+
+        final Map<Session, Future<?>> futures = new HashMap<Session, Future<?>>();
+        byte[] frame = null;
+
+        for (Map.Entry<RemoteEndpoint, TyrusSession> e : remoteEndpointToSession.entrySet()) {
+            if (e.getValue().isOpen()) {
+
+                final TyrusRemoteEndpoint remoteEndpoint = (TyrusRemoteEndpoint) e.getKey();
+
+                if (frame == null) {
+                    byte[] byteArrayMessage = new byte[message.remaining()];
+                    message.get(byteArrayMessage);
+
+                    final DataFrame dataFrame = new DataFrame(new BinaryFrame(), byteArrayMessage);
+                    frame = ((TyrusWebSocket) remoteEndpoint.getSocket()).getProtocolHandler().frame(dataFrame);
+                }
+
+                try {
+                    final Future<DataFrame> frameFuture = remoteEndpoint.sendRawFrame(frame);
+                    futures.put(e.getValue(), frameFuture);
+                } catch (IOException e1) {
+                    LOGGER.log(Level.FINE, String.format("Cannot broadcast to session %s.", e.getValue().getId()), e1);
+                }
+            }
+        }
+
+        return futures;
+    }
+
 
     /**
      * Registered {@link Decoder}s.

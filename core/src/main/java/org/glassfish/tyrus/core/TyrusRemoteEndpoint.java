@@ -125,11 +125,13 @@ public class TyrusRemoteEndpoint extends RemoteEndpoint {
     }
 
     /**
-     * TODO
+     * Write raw data to underlying connection.
+     * <p/>
+     * Use this only when you know what doing.
      *
-     * @param dataFrame TODO
-     * @return TODO
-     * @throws IOException TODO
+     * @param dataFrame bytes to be send.
+     * @return future can be used to get information about sent message.
+     * @throws IOException if an I/O error occurs.
      */
     public Future<DataFrame> sendRawFrame(byte[] dataFrame) throws IOException {
         return socket.sendRawFrame(dataFrame);
