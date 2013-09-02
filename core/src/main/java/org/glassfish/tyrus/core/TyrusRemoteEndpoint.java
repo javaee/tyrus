@@ -127,7 +127,7 @@ public class TyrusRemoteEndpoint extends RemoteEndpoint {
     /**
      * Write raw data to underlying connection.
      * <p/>
-     * Use this only when you know what doing.
+     * Use this only when you know what you are doing.
      *
      * @param dataFrame bytes to be send.
      * @return future can be used to get information about sent message.
