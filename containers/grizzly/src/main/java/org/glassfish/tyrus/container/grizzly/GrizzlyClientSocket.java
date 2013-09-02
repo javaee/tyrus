@@ -51,8 +51,10 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -205,14 +207,14 @@ public class GrizzlyClientSocket implements WebSocket, ClientSocket {
     /**
      * Connects to the given {@link URI}.
      */
-    public void connect() throws DeploymentException {
+    public void connect() throws DeploymentException, IOException {
         for (Proxy proxy : proxies) {
             try {
                 transport = createTransport(workerThreadPoolConfig, selectorThreadPoolConfig);
                 transport.start();
-            } catch (Exception e) {
+            } catch (IOException e) {
                 LOGGER.log(Level.SEVERE, "Transport failed to start.", e);
-                throw new HandshakeException(e.getMessage());
+                throw e;
             }
 
             final TCPNIOConnectorHandler connectorHandler = new TCPNIOConnectorHandler(transport) {
@@ -266,20 +268,27 @@ public class GrizzlyClientSocket implements WebSocket, ClientSocket {
                 LOGGER.log(Level.CONFIG, String.format("Connected to '%s'.", connection.getPeerAddress()));
                 awaitOnConnect();
                 return;
-            } catch (Exception e) {
-                LOGGER.log(Level.CONFIG, String.format("Connection to '%s' failed.", uri), e);
+            } catch (InterruptedException interruptedException) {
+                LOGGER.log(Level.CONFIG, String.format("Connection to '%s' failed.", uri), interruptedException);
+                closeTransport();
+            } catch (TimeoutException timeoutException) {
+                LOGGER.log(Level.CONFIG, String.format("Connection to '%s' failed.", uri), timeoutException);
+                closeTransport();
+            } catch (ExecutionException exectionException) {
+                LOGGER.log(Level.CONFIG, String.format("Connection to '%s' failed.", uri), exectionException);
 
-                final Throwable cause = e.getCause();
-                if (e instanceof IOException) {
-                    ProxySelector.getDefault().connectFailed(uri, socketAddress, (IOException) e);
-                } else if ((cause != null) && (cause instanceof IOException)) {
-                    ProxySelector.getDefault().connectFailed(uri, socketAddress, (IOException) cause);
+                IOException ioException = null;
+                final Throwable cause = exectionException.getCause();
+                if ((cause != null) && (cause instanceof IOException)) {
+                    ioException = (IOException) cause;
+                    ProxySelector.getDefault().connectFailed(uri, socketAddress, ioException);
+
                 }
 
-                try {
-                    transport.stop();
-                } catch (IOException e1) {
-                    LOGGER.log(Level.WARNING, "Transport failed to stop.", e);
+                closeTransport();
+
+                if (ioException != null) {
+                    throw ioException;
                 }
             }
         }

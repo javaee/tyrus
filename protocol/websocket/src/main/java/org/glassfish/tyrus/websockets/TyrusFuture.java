@@ -51,7 +51,7 @@ import java.util.concurrent.TimeoutException;
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-class WriteFuture<T> implements Future<T> {
+public class TyrusFuture<T> implements Future<T> {
 
     private volatile T result;
     private volatile Throwable throwable = null;

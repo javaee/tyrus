@@ -107,7 +107,7 @@ public class GrizzlyContainer implements ServerContainerFactory, ClientContainer
 
     @Override
     public ClientSocket openClientSocket(String url, ClientEndpointConfig cec, EndpointWrapper endpoint,
-                                         ClientContainer.ClientHandshakeListener listener, Map<String, Object> properties) throws DeploymentException {
+                                         ClientContainer.ClientHandshakeListener listener, Map<String, Object> properties) throws DeploymentException, IOException {
         URI uri;
 
         try {

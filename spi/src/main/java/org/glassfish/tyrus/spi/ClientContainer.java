@@ -39,6 +39,7 @@
  */
 package org.glassfish.tyrus.spi;
 
+import java.io.IOException;
 import java.util.Map;
 
 import javax.websocket.ClientEndpointConfig;
@@ -84,5 +85,5 @@ public interface ClientContainer {
      */
     public ClientSocket openClientSocket(String url, ClientEndpointConfig cec, EndpointWrapper endpoint,
                                          ClientContainer.ClientHandshakeListener handshakeListener,
-                                         Map<String, Object> properties) throws DeploymentException;
+                                         Map<String, Object> properties) throws DeploymentException, IOException;
 }

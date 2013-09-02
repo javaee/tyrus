@@ -53,12 +53,12 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
 
-import org.glassfish.tyrus.test.tools.TestContainer;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.e2e.bean.TestEndpoint;
 import org.glassfish.tyrus.test.e2e.decoder.TestDecoder;
 import org.glassfish.tyrus.test.e2e.message.TestMessage;
+import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -121,6 +121,49 @@ public class AnnotatedClientTest extends TestContainer {
     }
 
     @Test
+    public void testAnnotatedInstanceAsyncClient() throws DeploymentException {
+        Server server = startServer(TestEndpoint.class);
+        final ClientEndpointConfig configuration = ClientEndpointConfig.Builder.create().build();
+
+        messageLatch = new CountDownLatch(1);
+
+        try {
+            ClientManager client = ClientManager.createClient();
+
+
+            client.asyncConnectToServer(new TestEndpointAdapter() {
+                @Override
+                public EndpointConfig getEndpointConfig() {
+                    return configuration;
+                }
+
+                @Override
+                public void onOpen(Session session) {
+                    try {
+                        session.addMessageHandler(new TestTextMessageHandler(this));
+                        session.getBasicRemote().sendText("hello");
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                @Override
+                public void onMessage(String message) {
+                    receivedMessage = message;
+                    messageLatch.countDown();
+                }
+            }, configuration, getURI(TestEndpoint.class));
+            messageLatch.await(5, TimeUnit.SECONDS);
+            Assert.assertEquals("hello", receivedMessage);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            stopServer(server);
+        }
+    }
+
+    @Test
     public void testAnnotatedInstanceWithDecoding() throws DeploymentException {
         Server server = startServer(TestEndpoint.class);
         messageLatch = new CountDownLatch(1);
@@ -128,6 +171,24 @@ public class AnnotatedClientTest extends TestContainer {
         try {
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new ClientTestEndpoint(), getURI(TestEndpoint.class));
+            messageLatch.await(5, TimeUnit.SECONDS);
+            Assert.assertEquals("testHello", receivedTestMessage);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            stopServer(server);
+        }
+    }
+
+    @Test
+    public void testAnnotatedInstanceWithDecodingAsyncClient() throws DeploymentException {
+        Server server = startServer(TestEndpoint.class);
+        messageLatch = new CountDownLatch(1);
+
+        try {
+            ClientManager client = ClientManager.createClient();
+            client.asyncConnectToServer(new ClientTestEndpoint(), getURI(TestEndpoint.class));
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertEquals("testHello", receivedTestMessage);
         } catch (Exception e) {
@@ -158,11 +219,39 @@ public class AnnotatedClientTest extends TestContainer {
     }
 
     @Test
+    public void testAnnotatedClassAsyncClient() throws DeploymentException {
+        Server server = startServer(TestEndpoint.class);
+        messageLatch = new CountDownLatch(1);
+        receivedMessage = null;
+
+        try {
+            ClientManager client = ClientManager.createClient();
+            client.asyncConnectToServer(SimpleClientTestEndpoint.class, getURI(TestEndpoint.class));
+            messageLatch.await(5, TimeUnit.SECONDS);
+            Assert.assertEquals("hello", receivedMessage);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            stopServer(server);
+        }
+    }
+
+    @Test
     public void testNonAnnotatedClass() throws Exception {
         WebSocketContainer wc = ContainerProvider.getWebSocketContainer();
         try {
             wc.connectToServer(String.class, getURI(TestEndpoint.class));
-        } catch(DeploymentException de) {
+        } catch (DeploymentException de) {
+            // Expected exception, ignore
+        }
+    }
+
+    @Test
+    public void testNonAnnotatedClassAsyncClient() throws Exception {
+        try {
+            ClientManager.createClient().asyncConnectToServer(String.class, getURI(TestEndpoint.class));
+        } catch (DeploymentException de) {
             // Expected exception, ignore
         }
     }

@@ -53,10 +53,10 @@ import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
 
-import org.glassfish.tyrus.test.tools.TestContainer;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.e2e.bean.EchoEndpoint;
+import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -76,8 +76,6 @@ public class HelloTest extends TestContainer {
 
     @Test
     public void testHello() throws DeploymentException {
-//        Server server = new Server(EchoEndpoint.class);
-
         final Server server = startServer(EchoEndpoint.class);
         try {
             messageLatch = new CountDownLatch(1);
@@ -129,6 +127,59 @@ public class HelloTest extends TestContainer {
         }
     }
 
+    @Test
+    public void testHelloAsyncClient() throws DeploymentException {
+        final Server server = startServer(EchoEndpoint.class);
+        try {
+            messageLatch = new CountDownLatch(1);
+
+            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
+
+            ClientManager client = ClientManager.createClient();
+            client.asyncConnectToServer(new TestEndpointAdapter() {
+
+                private Session session;
+
+                @Override
+                public EndpointConfig getEndpointConfig() {
+                    return cec;
+                }
+
+                @Override
+                public void onOpen(Session session) {
+
+                    this.session = session;
+
+                    try {
+                        session.addMessageHandler(new TestTextMessageHandler(this));
+                        session.getBasicRemote().sendText(SENT_MESSAGE);
+                        System.out.println("Hello message sent.");
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                @Override
+                public void onMessage(String message) {
+                    receivedMessage = message;
+
+                    // TYRUS-141
+                    if (session.getNegotiatedSubprotocol() != null) {
+                        messageLatch.countDown();
+                    }
+                }
+            }, cec, getURI(EchoEndpoint.class));
+
+            messageLatch.await(3, TimeUnit.SECONDS);
+            Assert.assertEquals(0L, messageLatch.getCount());
+            Assert.assertEquals(SENT_MESSAGE, receivedMessage);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            stopServer(server);
+        }
+    }
 
 
     public static CountDownLatch messageLatchEndpoint;
@@ -146,6 +197,26 @@ public class HelloTest extends TestContainer {
 
             WebSocketContainer client = ContainerProvider.getWebSocketContainer();
             client.connectToServer(MyEndpoint.class, cec, getURI(EchoEndpoint.class));
+            messageLatchEndpoint.await(5, TimeUnit.SECONDS);
+            Assert.assertEquals(0L, messageLatchEndpoint.getCount());
+            Assert.assertEquals(SENT_MESSAGE, receivedMessageEndpoint);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            stopServer(server);
+        }
+    }
+
+    @Test
+    public void testHelloEndpointClassAsyncClient() throws DeploymentException {
+        final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
+        Server server = startServer(EchoEndpoint.class);
+
+        try {
+            messageLatchEndpoint = new CountDownLatch(1);
+
+            ClientManager.createClient().asyncConnectToServer(MyEndpoint.class, cec, getURI(EchoEndpoint.class));
             messageLatchEndpoint.await(5, TimeUnit.SECONDS);
             Assert.assertEquals(0L, messageLatchEndpoint.getCount());
             Assert.assertEquals(SENT_MESSAGE, receivedMessageEndpoint);

@@ -199,7 +199,7 @@ public final class ProtocolHandler {
     @SuppressWarnings({"unchecked"})
     private Future<DataFrame> write(final DataFrame frame, final Writer.CompletionHandler<DataFrame> completionHandler, boolean useTimeout) {
         final Writer localWriter = writer;
-        final WriteFuture<DataFrame> future = new WriteFuture<DataFrame>();
+        final TyrusFuture<DataFrame> future = new TyrusFuture<DataFrame>();
 
         if (localWriter == null) {
             throw new IllegalStateException("Connection is null");
@@ -235,7 +235,7 @@ public final class ProtocolHandler {
     @SuppressWarnings({"unchecked"})
     private Future<DataFrame> write(final byte[] frame, final Writer.CompletionHandler<DataFrame> completionHandler, boolean useTimeout) {
         final Writer localWriter = writer;
-        final WriteFuture<DataFrame> future = new WriteFuture<DataFrame>();
+        final TyrusFuture<DataFrame> future = new TyrusFuture<DataFrame>();
 
         if (localWriter == null) {
             throw new IllegalStateException("Connection is null");
@@ -618,10 +618,10 @@ public final class ProtocolHandler {
     private static class CompletionHandlerWrapper extends Writer.CompletionHandler<byte[]> {
 
         private final Writer.CompletionHandler<DataFrame> frameCompletionHandler;
-        private final WriteFuture<DataFrame> future;
+        private final TyrusFuture<DataFrame> future;
         private final DataFrame frame;
 
-        private CompletionHandlerWrapper(Writer.CompletionHandler<DataFrame> frameCompletionHandler, WriteFuture<DataFrame> future, DataFrame frame) {
+        private CompletionHandlerWrapper(Writer.CompletionHandler<DataFrame> frameCompletionHandler, TyrusFuture<DataFrame> future, DataFrame frame) {
             this.frameCompletionHandler = frameCompletionHandler;
             this.future = future;
             this.frame = frame;
