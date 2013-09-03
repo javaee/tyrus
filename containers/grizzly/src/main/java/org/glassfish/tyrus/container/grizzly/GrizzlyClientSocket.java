@@ -409,12 +409,15 @@ public class GrizzlyClientSocket implements WebSocket, ClientSocket {
 
     @Override
     public void close(int i, String s) {
+        CloseReason closeReason = new CloseReason(CloseReason.CloseCodes.getCloseCode(i), s);
+
         if (state.compareAndSet(State.CONNECTED, State.CLOSING)) {
+            endpoint.onClose(remoteEndpoint, closeReason);
             protocolHandler.close(i, s);
             closeTransport();
         }
 
-        this.onClose(new CloseReason(CloseReason.CloseCodes.getCloseCode(i), s));
+        this.onClose(closeReason);
     }
 
     @Override
@@ -462,12 +465,11 @@ public class GrizzlyClientSocket implements WebSocket, ClientSocket {
         }
 
         if (!state.compareAndSet(State.CLOSING, State.CLOSED)) {
+            endpoint.onClose(remoteEndpoint, closeReason);
             state.set(State.CLOSED);
             protocolHandler.doClose();
             closeTransport();
         }
-
-        endpoint.onClose(remoteEndpoint, closeReason);
     }
 
     @Override

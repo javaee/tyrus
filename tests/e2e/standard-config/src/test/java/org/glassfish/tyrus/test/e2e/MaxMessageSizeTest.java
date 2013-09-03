@@ -57,12 +57,13 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
-import org.glassfish.tyrus.test.tools.TestContainer;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
+import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.junit.Test;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
@@ -266,6 +267,7 @@ public class MaxMessageSizeTest extends TestContainer {
 
         public static volatile CountDownLatch latch;
         public static volatile Throwable throwable = null;
+        public static volatile CloseReason reason = null;
 
         @OnMessage(maxMessageSize = 3)
         public void onMessage(String message) {
@@ -283,6 +285,11 @@ public class MaxMessageSizeTest extends TestContainer {
                 latch.countDown();
             }
         }
+
+        @OnClose
+        public void onClose(Session session, CloseReason reason) {
+            MyClientEndpoint.reason = reason;
+        }
     }
 
     @Test
@@ -296,6 +303,8 @@ public class MaxMessageSizeTest extends TestContainer {
             testViaServiceEndpoint(client, ServiceEndpoint.class, POSITIVE, "CLEANUP");
 
             MyClientEndpoint.latch = new CountDownLatch(1);
+            MyClientEndpoint.throwable = null;
+            MyClientEndpoint.reason = null;
             session.getBasicRemote().sendText("t");
             MyClientEndpoint.latch.await(1, TimeUnit.SECONDS);
             assertEquals(0, MyClientEndpoint.latch.getCount());
@@ -320,6 +329,8 @@ public class MaxMessageSizeTest extends TestContainer {
             testViaServiceEndpoint(client, ServiceEndpoint.class, POSITIVE, "CLEANUP");
 
             MyClientEndpoint.latch = new CountDownLatch(1);
+            MyClientEndpoint.throwable = null;
+            MyClientEndpoint.reason = null;
             session.getBasicRemote().sendText("te");
             MyClientEndpoint.latch.await(1, TimeUnit.SECONDS);
             assertEquals(0, MyClientEndpoint.latch.getCount());
@@ -344,6 +355,8 @@ public class MaxMessageSizeTest extends TestContainer {
             testViaServiceEndpoint(client, ServiceEndpoint.class, POSITIVE, "CLEANUP");
 
             MyClientEndpoint.latch = new CountDownLatch(1);
+            MyClientEndpoint.throwable = null;
+            MyClientEndpoint.reason = null;
             session.getBasicRemote().sendText("tes");
             MyClientEndpoint.latch.await(1, TimeUnit.SECONDS);
             assertEquals(0, MyClientEndpoint.latch.getCount());
@@ -368,12 +381,15 @@ public class MaxMessageSizeTest extends TestContainer {
             testViaServiceEndpoint(client, ServiceEndpoint.class, POSITIVE, "CLEANUP");
 
             MyClientEndpoint.latch = new CountDownLatch(1);
+            MyClientEndpoint.throwable = null;
+            MyClientEndpoint.reason = null;
             session.getBasicRemote().sendText("test");
             MyClientEndpoint.latch.await(1, TimeUnit.SECONDS);
             assertEquals(0, MyClientEndpoint.latch.getCount());
             assertNotNull(MyClientEndpoint.throwable);
 
             testViaServiceEndpoint(client, ServiceEndpoint.class, POSITIVE, "TWO");
+            assertEquals("CloseReason on client is not: "+CloseReason.CloseCodes.TOO_BIG.getCode(), CloseReason.CloseCodes.TOO_BIG.getCode(), MyClientEndpoint.reason.getCloseCode().getCode());
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
