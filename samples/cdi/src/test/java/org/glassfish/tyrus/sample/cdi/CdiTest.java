@@ -41,8 +41,6 @@
 package org.glassfish.tyrus.sample.cdi;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -54,6 +52,7 @@ import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 
 import org.glassfish.tyrus.client.ClientManager;
+import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
@@ -63,28 +62,13 @@ import static org.junit.Assert.assertEquals;
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class CdiTest {
+public class CdiTest extends TestContainer {
 
-    private static final String CONTEXT_PATH = "/sample-cdi";
     private static final String SENT_MESSAGE = "Do or do not, there is no try.";
-    private static int result;
+    private static volatile int result;
 
-    private String getHost() {
-        return System.getProperty("tyrus.test.host");
-    }
-
-    private int getPort() {
-        final String port = System.getProperty("tyrus.test.port");
-        return Integer.parseInt(port);
-    }
-
-    private URI getURI(String path) {
-        try {
-            return new URI("ws", null, getHost(), getPort(), CONTEXT_PATH + path, null, null);
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-            return null;
-        }
+    public CdiTest() {
+        setContextPath("/sample-cdi");
     }
 
     @Test
@@ -218,7 +202,6 @@ public class CdiTest {
                     session.addMessageHandler(new MessageHandler.Whole<String>() {
                         @Override
                         public void onMessage(String message) {
-
                             result = Integer.parseInt(message.split(":")[1]);
                             messageLatch.countDown();
                         }

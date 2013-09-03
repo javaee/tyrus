@@ -41,10 +41,6 @@
 package org.glassfish.tyrus.sample.echo;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -57,6 +53,7 @@ import javax.websocket.Session;
 
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
+import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.junit.Test;
 import static org.junit.Assert.fail;
@@ -64,104 +61,54 @@ import static org.junit.Assert.fail;
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class EchoTest {
+public class EchoTest extends TestContainer {
 
-    private final String CONTEXT_PATH = "/sample-echo";
-    private final String DEFAULT_HOST = "localhost";
-    private final int DEFAULT_PORT = 8025;
-
-    private final Set<Class<?>> endpointClasses = new HashSet<Class<?>>() {{
-        add(EchoEndpoint.class);
-    }};
-
-    /**
-     * Start embedded server unless "tyrus.test.host" system property is specified.
-     *
-     * @return new {@link Server} instance or {@code null} if "tyrus.test.host" system property is set.
-     */
-    private Server startServer() throws DeploymentException {
-        final String host = System.getProperty("tyrus.test.host");
-        if (host == null) {
-            final Server server = new Server(DEFAULT_HOST, DEFAULT_PORT, CONTEXT_PATH, endpointClasses);
-            server.start();
-            return server;
-        } else {
-            return null;
-        }
-    }
-
-    private String getHost() {
-        final String host = System.getProperty("tyrus.test.host");
-        if (host != null) {
-            return host;
-        }
-        return DEFAULT_HOST;
-    }
-
-    private int getPort() {
-        final String port = System.getProperty("tyrus.test.port");
-        if (port != null) {
-            try {
-                return Integer.parseInt(port);
-            } catch (NumberFormatException nfe) {
-                // do nothing
-            }
-        }
-        return DEFAULT_PORT;
-    }
-
-    private URI getURI() {
-        try {
-            return new URI("ws", null, getHost(), getPort(), CONTEXT_PATH + "/echo", null, null);
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    private void stopServer(Server server) {
-        if (server != null) {
-            server.stop();
-        }
+    public EchoTest() {
+        setContextPath("/sample-echo");
     }
 
     @Test
     public void testEcho() throws DeploymentException, InterruptedException, IOException {
-        final Server server = startServer();
+        final Server server = startServer(EchoEndpoint.class);
 
         final CountDownLatch messageLatch = new CountDownLatch(1);
         final CountDownLatch onOpenLatch = new CountDownLatch(1);
 
-        final ClientManager client = ClientManager.createClient();
-        client.connectToServer(new Endpoint() {
-            @Override
-            public void onOpen(Session session, EndpointConfig EndpointConfig) {
-                try {
-                    session.addMessageHandler(new MessageHandler.Whole<String>() {
-                        @Override
-                        public void onMessage(String message) {
-                            System.out.println("### Received: " + message);
+        try {
+            final ClientManager client = ClientManager.createClient();
+            client.connectToServer(new Endpoint() {
+                @Override
+                public void onOpen(Session session, EndpointConfig EndpointConfig) {
+                    try {
+                        session.addMessageHandler(new MessageHandler.Whole<String>() {
+                            @Override
+                            public void onMessage(String message) {
+                                System.out.println("### Received: " + message);
 
-                            if (message.equals("Do or do not, there is no try. (from your server)")) {
-                                messageLatch.countDown();
-                            } else if (message.equals("onOpen")) {
-                                onOpenLatch.countDown();
+                                if (message.equals("Do or do not, there is no try. (from your server)")) {
+                                    messageLatch.countDown();
+                                } else if (message.equals("onOpen")) {
+                                    onOpenLatch.countDown();
+                                }
                             }
-                        }
-                    });
+                        });
 
-                    session.getBasicRemote().sendText("Do or do not, there is no try.");
-                } catch (IOException e) {
-                    // do nothing
+                        session.getBasicRemote().sendText("Do or do not, there is no try.");
+                    } catch (IOException e) {
+                        // do nothing
+                    }
                 }
+            }, ClientEndpointConfig.Builder.create().build(), getURI(EchoEndpoint.class));
+
+            messageLatch.await(1, TimeUnit.SECONDS);
+
+            if (messageLatch.getCount() != 0 || onOpenLatch.getCount() != 0) {
+                fail();
             }
-        }, ClientEndpointConfig.Builder.create().build(), getURI());
-
-        messageLatch.await(1, TimeUnit.SECONDS);
-        if (messageLatch.getCount() != 0 || onOpenLatch.getCount() != 0) {
-            fail();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            stopServer(server);
         }
-
-        stopServer(server);
     }
 }

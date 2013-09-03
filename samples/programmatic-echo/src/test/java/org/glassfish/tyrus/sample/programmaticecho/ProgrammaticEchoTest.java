@@ -40,8 +40,6 @@
 package org.glassfish.tyrus.sample.programmaticecho;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -54,6 +52,7 @@ import javax.websocket.Session;
 
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
+import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
@@ -62,20 +61,15 @@ import static org.junit.Assert.fail;
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class ProgrammaticEchoTest {
+public class ProgrammaticEchoTest extends TestContainer {
 
-    private URI getURI() {
-        try {
-            return new URI("ws://localhost:8025/sample-programmatic-echo/echo");
-        } catch (URISyntaxException e) {
-            return null;
-        }
+    public ProgrammaticEchoTest() {
+        setContextPath("/sample-programmatic-echo");
     }
 
     @Test
     public void testEcho() throws DeploymentException {
-        final Server server = new Server("localhost", 8025, "/sample-programmatic-echo", MyWsConfiguration.class);
-        server.start();
+        final Server server = startServer(MyWsConfiguration.class);
 
         try {
             final CountDownLatch messageLatch = new CountDownLatch(1);
@@ -98,19 +92,16 @@ public class ProgrammaticEchoTest {
                         // do nothing
                     }
                 }
-            }, ClientEndpointConfig.Builder.create().build(), getURI());
+            }, ClientEndpointConfig.Builder.create().build(), getURI("/echo"));
 
             messageLatch.await(1, TimeUnit.SECONDS);
+            assertEquals(0, messageLatch.getCount());
 
             System.out.println("###### " + session.getOpenSessions().size());
-
-            if (messageLatch.getCount() != 0) {
-                fail();
-            }
         } catch (Exception e) {
             fail(e.getMessage());
         } finally {
-            server.stop();
+            stopServer(server);
         }
     }
 }
