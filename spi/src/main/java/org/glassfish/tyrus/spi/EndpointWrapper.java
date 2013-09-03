@@ -71,7 +71,7 @@ public abstract class EndpointWrapper {
      * @param hr <code>SPIHandshakeRequest</code> that is going to be checked.
      * @return <code>true</code> if handshake is successful <code>false</code> otherwise.
      */
-    public abstract boolean checkHandshake(HandshakeRequest hr);
+    public abstract boolean checkHandshake(UpgradeRequest hr);
 
     /**
      * Called by the provider when the web socket connection

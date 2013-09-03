@@ -55,7 +55,7 @@ import java.util.logging.Logger;
 import javax.websocket.CloseReason;
 import javax.websocket.DeploymentException;
 
-import org.glassfish.tyrus.spi.HandshakeRequest;
+import org.glassfish.tyrus.spi.UpgradeRequest;
 import org.glassfish.tyrus.spi.Writer;
 import org.glassfish.tyrus.websockets.uri.Match;
 
@@ -74,7 +74,7 @@ public class TyrusWebSocketEngine implements org.glassfish.tyrus.spi.WebSocketEn
     public static final int MASK_SIZE = 4;
 
     private static int BUFFER_STEP_SIZE = 256;
-    private static final Logger LOGGER = Logger.getLogger(HandshakeRequest.WEBSOCKET);
+    private static final Logger LOGGER = Logger.getLogger(UpgradeRequest.WEBSOCKET);
 
     private final Set<WebSocketApplication> applications = Collections.newSetFromMap(new ConcurrentHashMap<WebSocketApplication, Boolean>());
     private final Map<Writer, WebSocketHolder> webSocketHolderMap = new ConcurrentHashMap<Writer, WebSocketHolder>();
@@ -115,7 +115,7 @@ public class TyrusWebSocketEngine implements org.glassfish.tyrus.spi.WebSocketEn
         return list;
     }
 
-    private static ProtocolHandler loadHandler(HandshakeRequest request) {
+    private static ProtocolHandler loadHandler(UpgradeRequest request) {
         for (Version version : Version.values()) {
             if (version.validate(request)) {
                 return version.createHandler(false);
@@ -125,15 +125,15 @@ public class TyrusWebSocketEngine implements org.glassfish.tyrus.spi.WebSocketEn
     }
 
     private static void handleUnsupportedVersion(final ResponseWriter writer,
-                                                 final HandshakeRequest request) {
+                                                 final UpgradeRequest request) {
         WebSocketResponse response = new WebSocketResponse();
         response.setStatus(426);
-        response.getHeaders().put(HandshakeRequest.SEC_WEBSOCKET_VERSION,
+        response.getHeaders().put(UpgradeRequest.SEC_WEBSOCKET_VERSION,
                 Arrays.asList(Version.getSupportedWireProtocolVersions()));
         writer.write(response);
     }
 
-    WebSocketApplication getApplication(HandshakeRequest request) {
+    WebSocketApplication getApplication(UpgradeRequest request) {
         if (applications.isEmpty()) {
             return null;
         }
@@ -163,7 +163,7 @@ public class TyrusWebSocketEngine implements org.glassfish.tyrus.spi.WebSocketEn
      * @return {@code true} if upgrade is performed, {@code false} otherwise.
      */
     @Override
-    public boolean upgrade(Writer writer, HandshakeRequest request, ResponseWriter responseWriter) {
+    public boolean upgrade(Writer writer, UpgradeRequest request, ResponseWriter responseWriter) {
         return upgrade(writer, request, responseWriter, null);
     }
 
@@ -179,7 +179,7 @@ public class TyrusWebSocketEngine implements org.glassfish.tyrus.spi.WebSocketEn
      * @throws HandshakeException if an error occurred during the upgrade.
      */
     @Override
-    public boolean upgrade(final Writer writer, HandshakeRequest request,
+    public boolean upgrade(final Writer writer, UpgradeRequest request,
                            ResponseWriter responseWriter, UpgradeListener upgradeListener) throws HandshakeException {
         final WebSocketApplication app = getApplication(request);
 

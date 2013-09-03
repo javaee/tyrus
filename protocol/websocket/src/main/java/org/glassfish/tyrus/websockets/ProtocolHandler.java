@@ -58,7 +58,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.websocket.CloseReason;
 import javax.websocket.WebSocketContainer;
 
-import org.glassfish.tyrus.spi.HandshakeRequest;
+import org.glassfish.tyrus.spi.UpgradeRequest;
 import org.glassfish.tyrus.spi.Writer;
 import org.glassfish.tyrus.websockets.frame.BinaryFrame;
 import org.glassfish.tyrus.websockets.frame.ClosingFrame;
@@ -88,7 +88,7 @@ public final class ProtocolHandler {
         this.maskData = maskData;
     }
 
-    public Handshake handshake(org.glassfish.tyrus.spi.WebSocketEngine.ResponseWriter writer, WebSocketApplication app, HandshakeRequest request) {
+    public Handshake handshake(org.glassfish.tyrus.spi.WebSocketEngine.ResponseWriter writer, WebSocketApplication app, UpgradeRequest request) {
         final Handshake handshake = createHandShake(request);
         handshake.respond(writer, app/*, ((WebSocketRequest) request.getHttpHeader()).getResponse()*/);
         return handshake;
@@ -108,7 +108,7 @@ public final class ProtocolHandler {
      * @param webSocketRequest representation of received initial HTTP request.
      * @return new {@link Handshake} instance.
      */
-    Handshake createHandShake(HandshakeRequest webSocketRequest) {
+    Handshake createHandShake(UpgradeRequest webSocketRequest) {
         return Handshake.createServerHandShake(webSocketRequest);
     }
 

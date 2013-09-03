@@ -55,8 +55,12 @@ public class ClosingFrame extends BaseFrame {
 
     @Override
     public void respond(WebSocket socket, DataFrame frame) {
-        final ClosingDataFrame closingFrame = (ClosingDataFrame) frame;
-        socket.onClose(new CloseReason(CloseReason.CloseCodes.getCloseCode(closingFrame.getCode()), closingFrame.getReason()));
-        socket.close();
+        if(frame instanceof ClosingDataFrame) {
+            final ClosingDataFrame closingFrame = (ClosingDataFrame) frame;
+            socket.onClose(new CloseReason(CloseReason.CloseCodes.getCloseCode(closingFrame.getCode()), closingFrame.getReason()));
+            socket.close();
+        } else {
+            throw new IllegalArgumentException();
+        }
     }
 }

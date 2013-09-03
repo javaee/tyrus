@@ -40,14 +40,13 @@
 package org.glassfish.tyrus.spi;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Handshake response.
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public abstract class HandshakeResponse implements javax.websocket.HandshakeResponse {
+public abstract class UpgradeResponse implements javax.websocket.HandshakeResponse {
 
     /**
      * Get HTTP status.
@@ -62,14 +61,6 @@ public abstract class HandshakeResponse implements javax.websocket.HandshakeResp
      * @return reason phrase.
      */
     public abstract String getReasonPhrase();
-
-    /**
-     * Get response headers.
-     *
-     * @return Handshake response HTTP headers.
-     */
-    @Override
-    public abstract Map<String, List<String>> getHeaders();
 
     /**
      * Gets the first header value from the {@link List} of header values corresponding to the name.

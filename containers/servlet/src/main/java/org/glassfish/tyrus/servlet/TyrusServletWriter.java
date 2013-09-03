@@ -52,7 +52,7 @@ import javax.servlet.WriteListener;
 import javax.servlet.http.HttpServletResponse;
 
 import org.glassfish.tyrus.core.Utils;
-import org.glassfish.tyrus.spi.HandshakeResponse;
+import org.glassfish.tyrus.spi.UpgradeResponse;
 import org.glassfish.tyrus.spi.WebSocketEngine;
 import org.glassfish.tyrus.spi.Writer;
 
@@ -180,7 +180,7 @@ class TyrusServletWriter implements Writer, WriteListener, WebSocketEngine.Respo
     }
 
     @Override
-    public void write(HandshakeResponse response) {
+    public void write(UpgradeResponse response) {
         httpServletResponse.setStatus(response.getStatus());
         for (Map.Entry<String, List<String>> entry : response.getHeaders().entrySet()) {
             httpServletResponse.addHeader(entry.getKey(), Utils.getHeaderFromList(entry.getValue()));

@@ -71,7 +71,7 @@ import org.glassfish.tyrus.core.TyrusRemoteEndpoint;
 import org.glassfish.tyrus.spi.ClientContainer;
 import org.glassfish.tyrus.spi.ClientSocket;
 import org.glassfish.tyrus.spi.EndpointWrapper;
-import org.glassfish.tyrus.spi.HandshakeResponse;
+import org.glassfish.tyrus.spi.UpgradeResponse;
 import org.glassfish.tyrus.spi.Writer;
 import org.glassfish.tyrus.websockets.DataFrame;
 import org.glassfish.tyrus.websockets.Extension;
@@ -334,7 +334,7 @@ public class GrizzlyClientSocket implements WebSocket, ClientSocket {
         handshake.setResponseListener(new Handshake.HandshakeResponseListener() {
 
             @Override
-            public void onHandShakeResponse(HandshakeResponse response) {
+            public void onHandShakeResponse(UpgradeResponse response) {
                 List<String> values = response.getHeaders().get(HandshakeRequest.SEC_WEBSOCKET_EXTENSIONS);
                 if (values != null) {
                     responseExtensions.addAll(TyrusExtension.fromString(values));

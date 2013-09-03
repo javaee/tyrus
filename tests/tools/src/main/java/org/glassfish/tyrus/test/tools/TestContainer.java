@@ -56,6 +56,7 @@ import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertTrue;
 
 /**
  * Utilities for creating automated tests easily.
@@ -160,14 +161,12 @@ public class TestContainer {
      * @throws IOException
      * @throws InterruptedException
      */
-    protected void testViaServiceEndpoint(ClientManager client, Class<?> serviceEndpoint, String expectedResult, String message) throws DeploymentException, IOException, InterruptedException {
-        final Session serviceSession = client.connectToServer(MyServiceClientEndpoint.class, getURI(serviceEndpoint));
-        MyServiceClientEndpoint.latch = new CountDownLatch(1);
-        MyServiceClientEndpoint.receivedMessage = null;
+    protected void testViaServiceEndpoint(ClientManager client, Class<?> serviceEndpoint, final String expectedResult, String message) throws DeploymentException, IOException, InterruptedException {
+        final MyServiceClientEndpoint myServiceClientEndpoint = new MyServiceClientEndpoint();
+        final Session serviceSession = client.connectToServer(myServiceClientEndpoint, getURI(serviceEndpoint));
         serviceSession.getBasicRemote().sendText(message);
-        MyServiceClientEndpoint.latch.await(1, TimeUnit.SECONDS);
-        assertEquals(0, MyServiceClientEndpoint.latch.getCount());
-        assertEquals(expectedResult, MyServiceClientEndpoint.receivedMessage);
+        assertTrue(myServiceClientEndpoint.latch.await(1, TimeUnit.SECONDS));
+        assertEquals(expectedResult, myServiceClientEndpoint.receivedMessage);
     }
 
     /**
@@ -200,8 +199,8 @@ public class TestContainer {
     @ClientEndpoint
     public static class MyServiceClientEndpoint {
 
-        public volatile static CountDownLatch latch;
-        public volatile static String receivedMessage;
+        public final CountDownLatch latch = new CountDownLatch(1);
+        public volatile String receivedMessage = null;
 
         @OnMessage
         public void onMessage(String message) {

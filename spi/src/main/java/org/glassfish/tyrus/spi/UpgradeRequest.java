@@ -39,9 +39,7 @@
  */
 package org.glassfish.tyrus.spi;
 
-import java.security.Principal;
 import java.util.List;
-import java.util.Map;
 
 /**
  * The provider passes the handshake request to
@@ -50,7 +48,7 @@ import java.util.Map;
  * @author Danny Coward (danny.coward at oracle.com)
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public abstract class HandshakeRequest implements javax.websocket.server.HandshakeRequest {
+public abstract class UpgradeRequest implements javax.websocket.server.HandshakeRequest {
 
     public static final String WEBSOCKET = "websocket";
     public static final String RESPONSE_CODE_MESSAGE = "Switching Protocols";
@@ -71,14 +69,6 @@ public abstract class HandshakeRequest implements javax.websocket.server.Handsha
     public abstract String getHeader(String name);
 
     /**
-     * Get request headers.
-     *
-     * @return request headers. List items represent headers from HTTP request.
-     */
-    @Override
-    public abstract Map<String, List<String>> getHeaders();
-
-    /**
      * Get the Http request uri underlying Http handshake request.
      *
      * @return request uri.
@@ -93,35 +83,11 @@ public abstract class HandshakeRequest implements javax.websocket.server.Handsha
     public abstract boolean isSecure();
 
     /**
-     * Get query string.
-     *
-     * @return query string.
-     */
-    @Override
-    public abstract String getQueryString();
-
-    /**
      * Get request path.
      *
      * @return request path.
      */
     public abstract String getRequestPath();
-
-    /**
-     * Get user {@link Principal}.
-     *
-     * @return user principal.
-     */
-    @Override
-    public abstract Principal getUserPrincipal();
-
-    /**
-     * Return the request parameters associated with the request.
-     *
-     * @return the unmodifiable map of the request parameters.
-     */
-    @Override
-    public abstract Map<String, List<String>> getParameterMap();
 
     /**
      * Get the first header value from the {@link List} of header values corresponding to the name.

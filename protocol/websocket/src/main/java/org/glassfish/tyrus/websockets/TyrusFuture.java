@@ -85,9 +85,7 @@ public class TyrusFuture<T> implements Future<T> {
 
     @Override
     public T get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-        latch.await(timeout, unit);
-
-        if (throwable != null) {
+        if (latch.await(timeout, unit) && throwable != null) {
             throw new ExecutionException(throwable);
         }
 

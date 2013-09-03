@@ -77,7 +77,7 @@ import javax.websocket.WebSocketContainer;
 import javax.websocket.server.ServerEndpointConfig;
 
 import org.glassfish.tyrus.spi.EndpointWrapper;
-import org.glassfish.tyrus.spi.HandshakeRequest;
+import org.glassfish.tyrus.spi.UpgradeRequest;
 import org.glassfish.tyrus.spi.RemoteEndpoint;
 import org.glassfish.tyrus.websockets.DataFrame;
 import org.glassfish.tyrus.websockets.HandshakeException;
@@ -219,7 +219,7 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
     }
 
     @Override
-    public boolean checkHandshake(HandshakeRequest hr) {
+    public boolean checkHandshake(UpgradeRequest hr) {
         if (!(configuration instanceof ServerEndpointConfig)) {
             return false;
         }

@@ -43,7 +43,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.glassfish.tyrus.core.Utils;
-import org.glassfish.tyrus.spi.HandshakeResponse;
+import org.glassfish.tyrus.spi.UpgradeResponse;
 import org.glassfish.tyrus.spi.WebSocketEngine;
 import org.glassfish.tyrus.spi.Writer;
 
@@ -108,7 +108,7 @@ class GrizzlyWriter implements Writer, WebSocketEngine.ResponseWriter {
     }
 
     @Override
-    public void write(HandshakeResponse response) {
+    public void write(UpgradeResponse response) {
         if (ctx == null) {
             throw new UnsupportedOperationException("not supported on client side");
         }

@@ -43,6 +43,8 @@ package org.glassfish.tyrus.core;
 import java.io.Reader;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -55,19 +57,23 @@ import javax.websocket.MessageHandler;
  *
  * @author Danny Coward (danny.coward at oracle.com)
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 class ReaderBuffer {
 
-    private StringBuffer buffer;
+    private final AtomicBoolean buffering = new AtomicBoolean(true);
+    private final ExecutorService executorService;
+    private final ReentrantLock lock = new ReentrantLock();
+    private final Condition condition = lock.newCondition();
+
+    private static final Logger LOGGER = Logger.getLogger(ReaderBuffer.class.getName());
+
     private boolean receivedLast = false;
-    private BufferedStringReader reader = null;
-    private MessageHandler.Whole<Reader> messageHandler;
-    private final Object lock;
     private int bufferSize;
     private int currentlyBuffered;
-    private AtomicBoolean buffering;
-    private final ExecutorService executorService;
-    private static final Logger LOGGER = Logger.getLogger(ReaderBuffer.class.getName());
+    private StringBuffer buffer;
+    private BufferedStringReader reader = null;
+    private MessageHandler.Whole<Reader> messageHandler;
 
     /**
      * Constructor.
@@ -75,17 +81,7 @@ class ReaderBuffer {
     public ReaderBuffer(ExecutorService executorService) {
         this.buffer = new StringBuffer();
         this.executorService = executorService;
-        this.lock = new Object();
-        buffering = new AtomicBoolean(true);
         currentlyBuffered = 0;
-    }
-
-    private void blockOnReaderThread() {
-        try {
-            this.lock.wait();
-        } catch (InterruptedException e) {
-            // thread unblocked
-        }
     }
 
     /**
@@ -94,7 +90,8 @@ class ReaderBuffer {
      * @return next received chars.
      */
     public char[] getNextChars(int number) {
-        synchronized (lock) {
+        lock.lock();
+        try {
             if (buffer.length() == 0) {
                 if (receivedLast) {
                     this.reader = null;
@@ -102,17 +99,27 @@ class ReaderBuffer {
                     this.currentlyBuffered = 0;
                     return null;
                 } else { // there's more to come...so wait here...
-                    blockOnReaderThread();
+                    boolean interrupted;
+                    do {
+                        interrupted = false;
+                        try {
+                            condition.await();
+                        } catch (InterruptedException e) {
+                            interrupted = true;
+                        }
+                    } while (interrupted);
                 }
             }
 
             int size = number > buffer.length() ? buffer.length() : number;
 
             char[] result = new char[size];
-            buffer.getChars(0, size, result,0);
+            buffer.getChars(0, size, result, 0);
             buffer.delete(0, size);
 
             return result;
+        } finally {
+            lock.unlock();
         }
     }
 
@@ -131,7 +138,8 @@ class ReaderBuffer {
      * @param last    should be {@code true} iff this is the last part of the message, {@code false} otherwise.
      */
     public void appendMessagePart(String message, boolean last) {
-        synchronized (lock) {
+        lock.lock();
+        try {
             currentlyBuffered += message.length();
             if (currentlyBuffered <= bufferSize) {
                 buffer.append(message);
@@ -146,12 +154,14 @@ class ReaderBuffer {
             }
 
             this.receivedLast = last;
-            this.lock.notifyAll();
+            condition.signalAll();
+        } finally {
+            lock.unlock();
         }
 
         if (this.reader == null) {
             this.reader = new BufferedStringReader(this);
-            executorService.execute( new Runnable() {
+            executorService.execute(new Runnable() {
                 @Override
                 public void run() {
                     messageHandler.onMessage(reader);
@@ -178,6 +188,6 @@ class ReaderBuffer {
         this.bufferSize = bufferSize;
         buffering.set(true);
         currentlyBuffered = 0;
-        buffer.delete(0,buffer.length());
+        buffer.delete(0, buffer.length());
     }
 }

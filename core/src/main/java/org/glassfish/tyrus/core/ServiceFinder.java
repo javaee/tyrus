@@ -301,7 +301,7 @@ public final class ServiceFinder<T> implements Iterable<T> {
         try {
             URL moduleVersionURL = new URL(manifestURL.toString().replace(MANIFEST, MODULE_VERSION));
 
-            reader = new BufferedReader(new InputStreamReader(moduleVersionURL.openStream()));
+            reader = new BufferedReader(new InputStreamReader(moduleVersionURL.openStream(), "UTF-8"));
             return reader.readLine();
         } catch (IOException ioe) {
             LOGGER.log(Level.FINE, "Error loading META-INF/jersey-module-version associated with " + ServiceFinder.class.getName(), ioe);

@@ -45,6 +45,8 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -57,34 +59,30 @@ import javax.websocket.MessageHandler;
  *
  * @author Danny Coward (danny.coward at oracle.com)
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 class InputStreamBuffer {
 
-    private List<ByteBuffer> bufferedFragments = new ArrayList<ByteBuffer>();
+    private final ReentrantLock lock = new ReentrantLock();
+    private final Condition condition = lock.newCondition();
+
+    private final List<ByteBuffer> bufferedFragments = new ArrayList<ByteBuffer>();
+    private final ExecutorService executorService;
+
+    private static final Logger LOGGER = Logger.getLogger(InputStreamBuffer.class.getName());
+
     private boolean receivedLast = false;
     private BufferedInputStream inputStream = null;
     private MessageHandler.Whole<InputStream> messageHandler;
-    private final Object lock;
     private int bufferSize;
     private int currentlyBuffered;
-    private static final Logger LOGGER = Logger.getLogger(InputStreamBuffer.class.getName());
-    private final ExecutorService executorService;
 
     /**
      * Constructor.
      */
     public InputStreamBuffer(ExecutorService executorService) {
         this.executorService = executorService;
-        this.lock = new Object();
         currentlyBuffered = 0;
-    }
-
-    private void blockOnReaderThread() {
-        try {
-            this.lock.wait();
-        } catch (InterruptedException e) {
-            // thread unblocked
-        }
     }
 
     /**
@@ -93,18 +91,27 @@ class InputStreamBuffer {
      * @return next received bytes.
      */
     public byte getNextByte() {
-        synchronized (lock) {
+        lock.lock();
+        try {
             if (this.bufferedFragments.isEmpty()) {
                 if (receivedLast) {
                     this.inputStream = null;
                     this.currentlyBuffered = 0;
                     return -1;
                 } else { // there's more to come...so wait here...
-                    blockOnReaderThread();
+                    boolean interrupted;
+                    do {
+                        interrupted = false;
+                        try {
+                            condition.await();
+                        } catch (InterruptedException e) {
+                            interrupted = true;
+                        }
+                    } while (interrupted);
                 }
             }
 
-            if (bufferedFragments.size() == 1 && !bufferedFragments.get(0).hasRemaining() && receivedLast){
+            if (bufferedFragments.size() == 1 && !bufferedFragments.get(0).hasRemaining() && receivedLast) {
                 this.inputStream = null;
                 this.currentlyBuffered = 0;
                 return -1;
@@ -118,6 +125,8 @@ class InputStreamBuffer {
             }
 
             return result;
+        } finally {
+            lock.unlock();
         }
     }
 
@@ -125,7 +134,7 @@ class InputStreamBuffer {
      * Finish reading of the buffer.
      */
     public void finishReading() {
-        this.bufferedFragments = new ArrayList<ByteBuffer>();
+        this.bufferedFragments.clear();
         this.inputStream = null;
     }
 
@@ -136,7 +145,8 @@ class InputStreamBuffer {
      * @param last    should be {@code true} iff this is the last part of the message, {@code false} otherwise.
      */
     public void appendMessagePart(ByteBuffer message, boolean last) {
-        synchronized (lock) {
+        lock.lock();
+        try {
             currentlyBuffered += message.remaining();
             if (currentlyBuffered <= bufferSize) {
                 bufferedFragments.add(message);
@@ -148,12 +158,14 @@ class InputStreamBuffer {
             }
 
             this.receivedLast = last;
-            this.lock.notifyAll();
+            condition.signalAll();
+        } finally {
+            lock.unlock();
         }
 
         if (this.inputStream == null) {
             this.inputStream = new BufferedInputStream(this);
-            executorService.execute( new Runnable() {
+            executorService.execute(new Runnable() {
                 @Override
                 public void run() {
                     messageHandler.onMessage(inputStream);

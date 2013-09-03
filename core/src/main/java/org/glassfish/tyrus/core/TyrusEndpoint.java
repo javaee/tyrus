@@ -52,7 +52,7 @@ import javax.websocket.Extension;
 import javax.websocket.server.ServerEndpointConfig;
 
 import org.glassfish.tyrus.spi.EndpointWrapper;
-import org.glassfish.tyrus.spi.HandshakeRequest;
+import org.glassfish.tyrus.spi.UpgradeRequest;
 import org.glassfish.tyrus.websockets.ProtocolHandler;
 import org.glassfish.tyrus.websockets.WebSocket;
 import org.glassfish.tyrus.websockets.WebSocketApplication;
@@ -94,11 +94,11 @@ public class TyrusEndpoint extends WebSocketApplication {
     }
 
     @Override
-    public boolean isApplicationRequest(HandshakeRequest webSocketRequest) {
-        final List<String> protocols = webSocketRequest.getHeaders().get(HandshakeRequest.SEC_WEBSOCKET_PROTOCOL);
+    public boolean isApplicationRequest(UpgradeRequest webSocketRequest) {
+        final List<String> protocols = webSocketRequest.getHeaders().get(UpgradeRequest.SEC_WEBSOCKET_PROTOCOL);
         temporaryNegotiatedProtocol = endpoint.getNegotiatedProtocol(protocols);
 
-        final List<Extension> extensions = TyrusExtension.fromString(webSocketRequest.getHeaders().get(HandshakeRequest.SEC_WEBSOCKET_EXTENSIONS));
+        final List<Extension> extensions = TyrusExtension.fromString(webSocketRequest.getHeaders().get(UpgradeRequest.SEC_WEBSOCKET_EXTENSIONS));
         temporaryNegotiatedExtensions = endpoint.getNegotiatedExtensions(extensions);
 
         return endpoint.checkHandshake(webSocketRequest instanceof RequestContext ? (RequestContext) webSocketRequest : null);
@@ -205,7 +205,7 @@ public class TyrusEndpoint extends WebSocketApplication {
     }
 
     @Override
-    public void onHandShakeResponse(HandshakeRequest request, WebSocketResponse response) {
+    public void onHandShakeResponse(UpgradeRequest request, WebSocketResponse response) {
         final EndpointConfig configuration = this.endpoint.getEndpointConfig();
 
         if (configuration instanceof ServerEndpointConfig) {
@@ -217,7 +217,7 @@ public class TyrusEndpoint extends WebSocketApplication {
         }
     }
 
-    private javax.websocket.server.HandshakeRequest createHandshakeRequest(final HandshakeRequest webSocketRequest) {
+    private javax.websocket.server.HandshakeRequest createHandshakeRequest(final UpgradeRequest webSocketRequest) {
         if (webSocketRequest instanceof RequestContext) {
             final RequestContext requestContext = (RequestContext) webSocketRequest;
             // TYRUS-208; spec requests headers to be read only when passed to ServerEndpointConfig.Configurator#modifyHandshake.

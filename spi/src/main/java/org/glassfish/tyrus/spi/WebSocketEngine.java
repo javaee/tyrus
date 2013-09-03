@@ -49,16 +49,16 @@ import java.nio.ByteBuffer;
 public interface WebSocketEngine {
 
     /**
-     * Handles upgrade process, response is written using {@link ResponseWriter#write(HandshakeResponse)}.
+     * Handles upgrade process, response is written using {@link ResponseWriter#write(UpgradeResponse)}.
      *
      * @param writer  used to write HTTP response.
      * @param request representation of HTTP request.
      * @return {@code true} if upgrade was successful, {@code false} otherwise.
      */
-    boolean upgrade(Writer writer, HandshakeRequest request, ResponseWriter responseWriter);
+    boolean upgrade(Writer writer, UpgradeRequest request, ResponseWriter responseWriter);
 
     /**
-     * Handles upgrade process, response is written using {@link ResponseWriter#write(HandshakeResponse)}.
+     * Handles upgrade process, response is written using {@link ResponseWriter#write(UpgradeResponse)}.
      *
      * @param writer          used to write HTTP response.
      * @param request         representation of HTTP request.
@@ -71,7 +71,7 @@ public interface WebSocketEngine {
      *                        needs to be ready.
      * @return {@code true} if upgrade was successful, {@code false} otherwise.
      */
-    boolean upgrade(Writer writer, HandshakeRequest request, ResponseWriter responseWriter, UpgradeListener upgradeListener);
+    boolean upgrade(Writer writer, UpgradeRequest request, ResponseWriter responseWriter, UpgradeListener upgradeListener);
 
     /**
      * Processes incoming data, including sending a response (if any).
@@ -83,7 +83,7 @@ public interface WebSocketEngine {
 
     /**
      * Causes invocation if {@link javax.websocket.OnOpen} annotated method. Can be invoked only when
-     * {@link #upgrade(Writer, HandshakeRequest, ResponseWriter, WebSocketEngine.UpgradeListener)} is used.
+     * {@link #upgrade(Writer, UpgradeRequest, ResponseWriter, WebSocketEngine.UpgradeListener)} is used.
      *
      * @param writer related writer instance (representing underlying connection).
      */
@@ -118,10 +118,10 @@ public interface WebSocketEngine {
      */
     interface ResponseWriter {
         /**
-         * Write {@link HandshakeResponse} to underlying connection.
+         * Write {@link UpgradeResponse} to underlying connection.
          *
          * @param response response to be written.
          */
-        public void write(HandshakeResponse response);
+        public void write(UpgradeResponse response);
     }
 }

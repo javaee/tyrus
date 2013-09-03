@@ -45,14 +45,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.glassfish.tyrus.spi.HandshakeResponse;
+import org.glassfish.tyrus.spi.UpgradeResponse;
 
 /**
  * HTTP response representation.
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class WebSocketResponse extends HandshakeResponse {
+public class WebSocketResponse extends UpgradeResponse {
 
     private final Map<String, List<String>> headers = new TreeMap<String, List<String>>(new Comparator<String>() {
         @Override

@@ -40,7 +40,7 @@
 
 package org.glassfish.tyrus.websockets;
 
-import org.glassfish.tyrus.spi.HandshakeRequest;
+import org.glassfish.tyrus.spi.UpgradeRequest;
 
 /**
  * TODO
@@ -54,14 +54,14 @@ public enum Version {
         }
 
         @Override
-        public boolean validate(HandshakeRequest request) {
-            return this.wireProtocolVersion.equals(request.getFirstHeaderValue(HandshakeRequest.SEC_WEBSOCKET_VERSION));
+        public boolean validate(UpgradeRequest request) {
+            return this.wireProtocolVersion.equals(request.getFirstHeaderValue(UpgradeRequest.SEC_WEBSOCKET_VERSION));
         }
     };
 
     public abstract ProtocolHandler createHandler(boolean mask);
 
-    public abstract boolean validate(HandshakeRequest request);
+    public abstract boolean validate(UpgradeRequest request);
 
     protected final String wireProtocolVersion;
 

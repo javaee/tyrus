@@ -40,14 +40,14 @@
 
 package org.glassfish.tyrus.websockets;
 
-import org.glassfish.tyrus.spi.HandshakeRequest;
+import org.glassfish.tyrus.spi.UpgradeRequest;
 
 /**
  * Request representation.
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public abstract class WebSocketRequest extends HandshakeRequest {
+public abstract class WebSocketRequest extends UpgradeRequest {
 
     /**
      * Put single header value into headers map.

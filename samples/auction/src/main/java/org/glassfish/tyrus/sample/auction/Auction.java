@@ -43,6 +43,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Timer;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -70,7 +71,7 @@ public class Auction {
     /*
      * Assigns id to newly created Auction object
      */
-    private static int idCounter = 0;
+    private static final AtomicInteger idCounter = new AtomicInteger(0);
 
     /*
      * Auction Item
@@ -109,9 +110,8 @@ public class Auction {
         this.item = item;
 
         this.state = AuctionState.PRE_AUCTION;
-        this.id = Integer.toString(Auction.idCounter);
+        this.id = Integer.toString(Auction.idCounter.getAndIncrement());
         bestBid = item.getPrice();
-        idCounter++;
     }
 
     synchronized void addArc(Session arc) {
@@ -140,15 +140,15 @@ public class Auction {
                     Logger.getLogger(Auction.class.getName()).log(Level.SEVERE, null, e);
                 }
 
-                if(state == AuctionState.PRE_AUCTION){
+                if (state == AuctionState.PRE_AUCTION) {
                     startAuctionTimeBroadcast();
                 }
             } else {
                 try {
                     arc.getBasicRemote().sendObject(new AuctionMessage.LoginResponseMessage(id, item));
-                    if(bestBidderName!= null && bestBidderName.equals(messsage.getData())){
+                    if (bestBidderName != null && bestBidderName.equals(messsage.getData())) {
                         arc.getBasicRemote().sendObject(new AuctionMessage.ResultMessage(id, String.format("Congratulations, You won the auction and will pay %.0f.", bestBid)));
-                    }else{
+                    } else {
                         arc.getBasicRemote().sendObject(new AuctionMessage.ResultMessage(id, String.format("You did not win the auction. The item was sold for %.0f.", bestBid)));
                     }
                 } catch (Exception e) {
@@ -161,7 +161,7 @@ public class Auction {
     public void handleBidRequest(AuctionMessage message, Session arc) {
         synchronized (id) {
             if (state == AuctionState.AUCTION_RUNNING) {
-                Double bid = Double.parseDouble((String)message.getData());
+                Double bid = Double.parseDouble((String) message.getData());
                 if (bid > bestBid) {
                     bestBid = bid;
 
@@ -196,15 +196,15 @@ public class Auction {
     private void sendAuctionResults() {
         Session bestBidder = null;
 
-        if(bestBidderName != null){
+        if (bestBidderName != null) {
             for (Session session : getRemoteClients()) {
-                if(session.getUserProperties().get("name").equals(bestBidderName)){
+                if (session.getUserProperties().get("name").equals(bestBidderName)) {
                     bestBidder = session;
                 }
             }
         }
 
-        if (bestBidder!= null) {
+        if (bestBidder != null) {
             AuctionMessage.ResultMessage winnerMessage = new AuctionMessage.ResultMessage(id, String.format("Congratulations, You won the auction and will pay %.0f.", bestBid));
             try {
                 bestBidder.getBasicRemote().sendObject(winnerMessage);

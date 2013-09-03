@@ -71,6 +71,7 @@ import org.glassfish.tyrus.core.ReflectionHelper;
 import org.glassfish.tyrus.core.TyrusEndpointWrapper;
 import org.glassfish.tyrus.spi.ClientContainer;
 import org.glassfish.tyrus.spi.ClientSocket;
+import org.glassfish.tyrus.spi.UpgradeResponse;
 import org.glassfish.tyrus.websockets.TyrusFuture;
 
 /**
@@ -362,7 +363,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                         ClientContainer.ClientHandshakeListener listener = new ClientContainer.ClientHandshakeListener() {
 
                             @Override
-                            public void onHandshakeResponse(org.glassfish.tyrus.spi.HandshakeResponse handshakeResponse) {
+                            public void onHandshakeResponse(UpgradeResponse handshakeResponse) {
                                 finalConfig.getConfigurator().afterResponse(handshakeResponse);
                                 responseLatch.countDown();
                             }
@@ -470,7 +471,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
     /**
      * Executor service which just executes provided {@link Runnable} in the very same thread.
      */
-    private class SameThreadExecutorService extends AbstractExecutorService {
+    private static class SameThreadExecutorService extends AbstractExecutorService {
         @Override
         public void shutdown() {
             // do nothing.

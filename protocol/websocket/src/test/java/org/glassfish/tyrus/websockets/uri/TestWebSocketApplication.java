@@ -39,7 +39,7 @@
  */
 package org.glassfish.tyrus.websockets.uri;
 
-import org.glassfish.tyrus.spi.HandshakeRequest;
+import org.glassfish.tyrus.spi.UpgradeRequest;
 import org.glassfish.tyrus.websockets.ProtocolHandler;
 import org.glassfish.tyrus.websockets.WebSocket;
 import org.glassfish.tyrus.websockets.WebSocketApplication;
@@ -58,11 +58,11 @@ public class TestWebSocketApplication extends WebSocketApplication {
     }
 
     @Override
-    public void onHandShakeResponse(HandshakeRequest request, WebSocketResponse response) {
+    public void onHandShakeResponse(UpgradeRequest request, WebSocketResponse response) {
     }
 
     @Override
-    protected boolean isApplicationRequest(HandshakeRequest request) {
+    protected boolean isApplicationRequest(UpgradeRequest request) {
         return false;
     }
 

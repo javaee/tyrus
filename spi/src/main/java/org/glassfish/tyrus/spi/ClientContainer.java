@@ -60,9 +60,9 @@ public interface ClientContainer {
         /**
          * Called when correct handshake response is received.
          *
-         * @param handshakeResponse received response.
+         * @param upgradeResponse received response.
          */
-        public void onHandshakeResponse(HandshakeResponse handshakeResponse);
+        public void onHandshakeResponse(UpgradeResponse upgradeResponse);
 
 
         /**

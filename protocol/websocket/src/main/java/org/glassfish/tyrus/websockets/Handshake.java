@@ -48,8 +48,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Logger;
 
-import org.glassfish.tyrus.spi.HandshakeRequest;
-import org.glassfish.tyrus.spi.HandshakeResponse;
+import org.glassfish.tyrus.spi.UpgradeRequest;
+import org.glassfish.tyrus.spi.UpgradeResponse;
 
 /**
  * @author Justin Lee
@@ -70,7 +70,7 @@ public final class Handshake {
     // client side request!
     private WebSocketRequest request;
     private HandshakeResponseListener responseListener;
-    private HandshakeRequest incomingRequest;
+    private UpgradeRequest incomingRequest;
     private SecKey secKey;
 
 
@@ -98,22 +98,22 @@ public final class Handshake {
         return handshake;
     }
 
-    static Handshake createServerHandShake(HandshakeRequest request) {
+    static Handshake createServerHandShake(UpgradeRequest request) {
         final Handshake handshake = new Handshake();
 
         handshake.incomingRequest = request;
-        checkForHeader(request.getFirstHeaderValue(HandshakeRequest.UPGRADE), HandshakeRequest.UPGRADE, "WebSocket");
-        checkForHeader(request.getHeader(HandshakeRequest.CONNECTION), HandshakeRequest.CONNECTION, HandshakeRequest.UPGRADE);
+        checkForHeader(request.getFirstHeaderValue(UpgradeRequest.UPGRADE), UpgradeRequest.UPGRADE, "WebSocket");
+        checkForHeader(request.getHeader(UpgradeRequest.CONNECTION), UpgradeRequest.CONNECTION, UpgradeRequest.UPGRADE);
 
-        handshake.origin = request.getFirstHeaderValue(HandshakeRequest.SEC_WS_ORIGIN_HEADER);
+        handshake.origin = request.getFirstHeaderValue(UpgradeRequest.SEC_WS_ORIGIN_HEADER);
 
         if (handshake.origin == null) {
-            handshake.origin = request.getFirstHeaderValue(HandshakeRequest.ORIGIN_HEADER);
+            handshake.origin = request.getFirstHeaderValue(UpgradeRequest.ORIGIN_HEADER);
         }
         Handshake.determineHostAndPort(handshake, request);
 
         // TODO - trim?
-        final String protocolHeader = request.getFirstHeaderValue(HandshakeRequest.SEC_WEBSOCKET_PROTOCOL);
+        final String protocolHeader = request.getFirstHeaderValue(UpgradeRequest.SEC_WEBSOCKET_PROTOCOL);
         handshake.subProtocols = (protocolHeader == null ? Collections.<String>emptyList() : Arrays.asList(protocolHeader.split(",")));
 
         if (handshake.serverHostName == null) {
@@ -133,11 +133,11 @@ public final class Handshake {
 //            }
         }
 
-        List<String> value = request.getHeaders().get(HandshakeRequest.SEC_WEBSOCKET_EXTENSIONS);
+        List<String> value = request.getHeaders().get(UpgradeRequest.SEC_WEBSOCKET_EXTENSIONS);
         if (value != null) {
             handshake.extensions = Handshake.fromHeaders(value);
         }
-        handshake.secKey = SecKey.generateServerKey(new SecKey(request.getFirstHeaderValue(HandshakeRequest.SEC_WEBSOCKET_KEY)));
+        handshake.secKey = SecKey.generateServerKey(new SecKey(request.getFirstHeaderValue(UpgradeRequest.SEC_WEBSOCKET_KEY)));
 
         return handshake;
     }
@@ -149,7 +149,7 @@ public final class Handshake {
     private static void validate(String header, String validValue, String value) {
         // http://java.net/jira/browse/TYRUS-55
         // Firefox workaround (it sends "Connections: keep-alive, upgrade").
-        if (header.equalsIgnoreCase(HandshakeRequest.CONNECTION)) {
+        if (header.equalsIgnoreCase(UpgradeRequest.CONNECTION)) {
             if (!value.toLowerCase().contains(validValue.toLowerCase())) {
                 throw new HandshakeException(String.format("Invalid %s header returned: '%s'", header, value));
             }
@@ -160,8 +160,8 @@ public final class Handshake {
         }
     }
 
-    private static void determineHostAndPort(Handshake handshake, HandshakeRequest request) {
-        String header = request.getFirstHeaderValue(HandshakeRequest.HOST);
+    private static void determineHostAndPort(Handshake handshake, UpgradeRequest request) {
+        String header = request.getFirstHeaderValue(UpgradeRequest.HOST);
 
         final int i = header == null ? -1 : header.indexOf(":");
         if (i == -1) {
@@ -445,62 +445,62 @@ public final class Handshake {
         }
 
         request.setRequestPath(getResourcePath());
-        request.putSingleHeader(HandshakeRequest.HOST, host);
-        request.putSingleHeader(HandshakeRequest.CONNECTION, HandshakeRequest.UPGRADE);
-        request.putSingleHeader(HandshakeRequest.UPGRADE, HandshakeRequest.WEBSOCKET);
+        request.putSingleHeader(UpgradeRequest.HOST, host);
+        request.putSingleHeader(UpgradeRequest.CONNECTION, UpgradeRequest.UPGRADE);
+        request.putSingleHeader(UpgradeRequest.UPGRADE, UpgradeRequest.WEBSOCKET);
 
         if (!getSubProtocols().isEmpty()) {
-            request.putSingleHeader(HandshakeRequest.SEC_WEBSOCKET_PROTOCOL, getHeaderFromList(subProtocols));
+            request.putSingleHeader(UpgradeRequest.SEC_WEBSOCKET_PROTOCOL, getHeaderFromList(subProtocols));
         }
 
         if (!getExtensions().isEmpty()) {
-            request.putSingleHeader(HandshakeRequest.SEC_WEBSOCKET_EXTENSIONS, getHeaderFromList(extensions));
+            request.putSingleHeader(UpgradeRequest.SEC_WEBSOCKET_EXTENSIONS, getHeaderFromList(extensions));
         }
 
-        request.putSingleHeader(HandshakeRequest.SEC_WEBSOCKET_KEY, secKey.toString());
-        request.putSingleHeader(HandshakeRequest.SEC_WS_ORIGIN_HEADER, getOrigin());
-        request.putSingleHeader(HandshakeRequest.SEC_WEBSOCKET_VERSION, getVersion() + "");
+        request.putSingleHeader(UpgradeRequest.SEC_WEBSOCKET_KEY, secKey.toString());
+        request.putSingleHeader(UpgradeRequest.SEC_WS_ORIGIN_HEADER, getOrigin());
+        request.putSingleHeader(UpgradeRequest.SEC_WEBSOCKET_VERSION, getVersion() + "");
         if (!getExtensions().isEmpty()) {
-            request.putSingleHeader(HandshakeRequest.SEC_WEBSOCKET_EXTENSIONS, getHeaderFromList(getExtensions()));
+            request.putSingleHeader(UpgradeRequest.SEC_WEBSOCKET_EXTENSIONS, getHeaderFromList(getExtensions()));
         }
-        final String headerValue = request.getFirstHeaderValue(HandshakeRequest.SEC_WS_ORIGIN_HEADER);
-        request.getHeaders().remove(HandshakeRequest.SEC_WS_ORIGIN_HEADER);
-        request.putSingleHeader(HandshakeRequest.ORIGIN_HEADER, headerValue);
+        final String headerValue = request.getFirstHeaderValue(UpgradeRequest.SEC_WS_ORIGIN_HEADER);
+        request.getHeaders().remove(UpgradeRequest.SEC_WS_ORIGIN_HEADER);
+        request.putSingleHeader(UpgradeRequest.ORIGIN_HEADER, headerValue);
         return request;
     }
 
-    public void validateServerResponse(HandshakeResponse response) {
+    public void validateServerResponse(UpgradeResponse response) {
         if (TyrusWebSocketEngine.RESPONSE_CODE_VALUE != response.getStatus()) {
             throw new HandshakeException(String.format("Response code was not %s: %s",
                     TyrusWebSocketEngine.RESPONSE_CODE_VALUE, response.getStatus()));
         }
 
-        checkForHeader(response.getFirstHeaderValue(HandshakeRequest.UPGRADE), HandshakeRequest.UPGRADE, HandshakeRequest.WEBSOCKET);
-        checkForHeader(response.getFirstHeaderValue(HandshakeRequest.CONNECTION), HandshakeRequest.CONNECTION, HandshakeRequest.UPGRADE);
+        checkForHeader(response.getFirstHeaderValue(UpgradeRequest.UPGRADE), UpgradeRequest.UPGRADE, UpgradeRequest.WEBSOCKET);
+        checkForHeader(response.getFirstHeaderValue(UpgradeRequest.CONNECTION), UpgradeRequest.CONNECTION, UpgradeRequest.UPGRADE);
 
 //        if (!getSubProtocols().isEmpty()) {
 //            checkForHeader(response.getHeaders(), WebSocketEngine.SEC_WS_PROTOCOL_HEADER, WebSocketEngine.SEC_WS_PROTOCOL_HEADER);
 //        }
 
-        secKey.validateServerKey(response.getFirstHeaderValue(HandshakeResponse.SEC_WEBSOCKET_ACCEPT));
+        secKey.validateServerKey(response.getFirstHeaderValue(UpgradeResponse.SEC_WEBSOCKET_ACCEPT));
     }
 
     void respond(org.glassfish.tyrus.spi.WebSocketEngine.ResponseWriter writer, WebSocketApplication application/*, WebSocketResponse response*/) {
         WebSocketResponse response = new WebSocketResponse();
         response.setStatus(101);
 
-        response.getHeaders().put(HandshakeRequest.UPGRADE, Arrays.asList(HandshakeRequest.WEBSOCKET));
-        response.getHeaders().put(HandshakeRequest.CONNECTION, Arrays.asList(HandshakeRequest.UPGRADE));
-        response.setReasonPhrase(HandshakeRequest.RESPONSE_CODE_MESSAGE);
-        response.getHeaders().put(HandshakeResponse.SEC_WEBSOCKET_ACCEPT, Arrays.asList(secKey.getSecKey()));
+        response.getHeaders().put(UpgradeRequest.UPGRADE, Arrays.asList(UpgradeRequest.WEBSOCKET));
+        response.getHeaders().put(UpgradeRequest.CONNECTION, Arrays.asList(UpgradeRequest.UPGRADE));
+        response.setReasonPhrase(UpgradeRequest.RESPONSE_CODE_MESSAGE);
+        response.getHeaders().put(UpgradeResponse.SEC_WEBSOCKET_ACCEPT, Arrays.asList(secKey.getSecKey()));
         if (!getEnabledExtensions().isEmpty()) {
-            response.getHeaders().put(HandshakeRequest.SEC_WEBSOCKET_EXTENSIONS, getSubProtocols());
+            response.getHeaders().put(UpgradeRequest.SEC_WEBSOCKET_EXTENSIONS, getSubProtocols());
         }
 
         if (subProtocols != null && !subProtocols.isEmpty()) {
             List<String> appProtocols = application.getSupportedProtocols(subProtocols);
             if (!appProtocols.isEmpty()) {
-                response.getHeaders().put(HandshakeRequest.SEC_WEBSOCKET_PROTOCOL, getStringList(appProtocols));
+                response.getHeaders().put(UpgradeRequest.SEC_WEBSOCKET_PROTOCOL, getStringList(appProtocols));
             }
         }
         if (!application.getSupportedExtensions().isEmpty() && !getExtensions().isEmpty()) {
@@ -509,7 +509,7 @@ public final class Handshake {
                             application.getSupportedExtensions());
             if (!intersection.isEmpty()) {
                 application.onExtensionNegotiation(intersection);
-                response.getHeaders().put(HandshakeRequest.SEC_WEBSOCKET_EXTENSIONS, getStringList(intersection));
+                response.getHeaders().put(UpgradeRequest.SEC_WEBSOCKET_EXTENSIONS, getStringList(intersection));
             }
         }
 
@@ -531,7 +531,7 @@ public final class Handshake {
         return intersection;
     }
 
-    public HandshakeRequest initiate(/*FilterChainContext ctx*/) {
+    public UpgradeRequest initiate(/*FilterChainContext ctx*/) {
         return request;
     }
 
@@ -547,7 +547,7 @@ public final class Handshake {
     /**
      * Set response listener.
      *
-     * @param responseListener {@link Handshake.HandshakeResponseListener#onHandShakeResponse(org.glassfish.tyrus.spi.HandshakeResponse)}
+     * @param responseListener {@link Handshake.HandshakeResponseListener#onHandShakeResponse(org.glassfish.tyrus.spi.UpgradeResponse)}
      *                         will be called when response is ready and validated.
      */
     public void setResponseListener(HandshakeResponseListener responseListener) {
@@ -586,7 +586,7 @@ public final class Handshake {
          *
          * @param response received response.
          */
-        public void onHandShakeResponse(HandshakeResponse response);
+        public void onHandShakeResponse(UpgradeResponse response);
 
         /**
          * Called when an error is found in handshake response.

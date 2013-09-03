@@ -53,8 +53,8 @@ import javax.websocket.CloseReason;
 
 import org.glassfish.tyrus.core.RequestContext;
 import org.glassfish.tyrus.core.Utils;
-import org.glassfish.tyrus.spi.HandshakeRequest;
-import org.glassfish.tyrus.spi.HandshakeResponse;
+import org.glassfish.tyrus.spi.UpgradeRequest;
+import org.glassfish.tyrus.spi.UpgradeResponse;
 import org.glassfish.tyrus.spi.Writer;
 import org.glassfish.tyrus.websockets.DataFrame;
 import org.glassfish.tyrus.websockets.HandshakeException;
@@ -109,7 +109,7 @@ class WebSocketFilter extends BaseFilter {
     private final Filter sslFilter;
     private final TyrusWebSocketEngine engine;
 
-    private HandshakeRequest webSocketRequest;
+    private UpgradeRequest webSocketRequest;
 
     // ------------------------------------------------------------ Constructors
 
@@ -284,7 +284,7 @@ class WebSocketFilter extends BaseFilter {
 
             // If websocket is null - it means either non-websocket Connection, or websocket with incomplete handshake
             if (!webSocketInProgress(writer) &&
-                    !HandshakeRequest.WEBSOCKET.equalsIgnoreCase(header.getUpgrade())) {
+                    !UpgradeRequest.WEBSOCKET.equalsIgnoreCase(header.getUpgrade())) {
                 // if it's not a websocket connection - pass the processing to the next filter
                 return ctx.getInvokeAction();
             }
@@ -371,9 +371,9 @@ class WebSocketFilter extends BaseFilter {
         }
 
         try {
-            final HandshakeResponse handshakeResponse = getWebSocketResponse((HttpResponsePacket) content.getHttpHeader());
-            holder.handshake.validateServerResponse(handshakeResponse);
-            holder.handshake.getResponseListener().onHandShakeResponse(handshakeResponse);
+            final UpgradeResponse upgradeResponse = getWebSocketResponse((HttpResponsePacket) content.getHttpHeader());
+            holder.handshake.validateServerResponse(upgradeResponse);
+            holder.handshake.getResponseListener().onHandShakeResponse(upgradeResponse);
             holder.webSocket.onConnect();
         } catch (HandshakeException e) {
             holder.handshake.getResponseListener().onError(e);
@@ -475,7 +475,7 @@ class WebSocketFilter extends BaseFilter {
      * @param request original request.
      * @return Grizzly representation of provided request.
      */
-    private HttpContent getHttpContent(HandshakeRequest request) {
+    private HttpContent getHttpContent(UpgradeRequest request) {
         HttpRequestPacket.Builder builder = HttpRequestPacket.builder();
         builder = builder.protocol(Protocol.HTTP_1_1);
         builder = builder.method(Method.GET);
@@ -500,7 +500,7 @@ class WebSocketFilter extends BaseFilter {
         return new GrizzlyWriter(ctx, httpContent);
     }
 
-    private static HandshakeRequest createWebSocketRequest(final FilterChainContext ctx, final HttpContent requestContent) {
+    private static UpgradeRequest createWebSocketRequest(final FilterChainContext ctx, final HttpContent requestContent) {
 
         final HttpRequestPacket requestPacket = (HttpRequestPacket) requestContent.getHttpHeader();
 
