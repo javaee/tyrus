@@ -126,14 +126,21 @@ public class TestContainer {
      * @return {@link URI} which is used to connect to the given endpoint.
      */
     protected URI getURI(Class<?> serverClass) {
-        try {
-            String endpointPath = serverClass.getAnnotation(ServerEndpoint.class).value();
-            return new URI("ws", null, getHost(), getPort(), contextPath + endpointPath, null, null);
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-            return null;
-        }
+        return getURI(serverClass, null);
     }
+
+    /**
+     * Get the {@link URI} for the {@link ServerEndpoint} annotated class.
+     *
+     * @param serverClass the annotated class the {@link URI} is computed for.
+     * @param scheme      scheme of newly created {@link URI}. If {@code null}, "ws" will be used.
+     * @return {@link URI} which is used to connect to the given endpoint.
+     */
+    protected URI getURI(Class<?> serverClass, String scheme) {
+        String endpointPath = serverClass.getAnnotation(ServerEndpoint.class).value();
+        return getURI(endpointPath, scheme);
+    }
+
 
     /**
      * Get the {@link URI} for the given {@link String} path.
@@ -142,13 +149,25 @@ public class TestContainer {
      * @return {@link URI} which is used to connect to the given path.
      */
     protected URI getURI(String endpointPath) {
+        return getURI(endpointPath, null);
+    }
+
+    /**
+     * Get the {@link URI} for the given {@link String} path.
+     *
+     * @param endpointPath the path the {@link URI} is computed for.
+     * @param scheme       scheme of newly created {@link URI}. If {@code null}, "ws" will be used.
+     * @return {@link URI} which is used to connect to the given path.
+     */
+    protected URI getURI(String endpointPath, String scheme) {
         try {
-            return new URI("ws", null, getHost(), getPort(), contextPath + endpointPath, null, null);
+            return new URI(scheme == null ? "ws" : scheme, null, getHost(), getPort(), contextPath + endpointPath, null, null);
         } catch (URISyntaxException e) {
             e.printStackTrace();
             return null;
         }
     }
+
 
     /**
      * Send message to the service endpoint and compare the received result with the specified one.

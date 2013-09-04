@@ -102,7 +102,7 @@ public class EchoTest extends TestContainer {
                         // do nothing
                     }
                 }
-            }, ClientEndpointConfig.Builder.create().build(), getURI(EchoEndpoint.class));
+            }, ClientEndpointConfig.Builder.create().build(), getURI(EchoEndpoint.class, "wss"));
 
             messageLatch.await(1, TimeUnit.SECONDS);
             if (messageLatch.getCount() != 0 || onOpenLatch.getCount() != 0) {
@@ -110,6 +110,7 @@ public class EchoTest extends TestContainer {
             }
         } catch (Exception e) {
             e.printStackTrace();
+            fail();
         } finally {
             stopServer(server);
         }
