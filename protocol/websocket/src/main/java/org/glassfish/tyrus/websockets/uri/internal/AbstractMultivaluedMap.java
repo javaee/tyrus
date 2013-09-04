@@ -40,6 +40,7 @@
 package org.glassfish.tyrus.websockets.uri.internal;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -59,6 +60,13 @@ public abstract class AbstractMultivaluedMap<K, V> implements MultivaluedMap<K, 
      * Backing store for the [key, multi-value] pairs.
      */
     protected final Map<K, List<V>> store;
+
+    /**
+     * Initialize map and use {@link HashMap} as a backing store.
+     */
+    public AbstractMultivaluedMap() {
+        this.store = new HashMap<K, List<V>>();
+    }
 
     /**
      * Initialize the backing store in the abstract parent multivalued map

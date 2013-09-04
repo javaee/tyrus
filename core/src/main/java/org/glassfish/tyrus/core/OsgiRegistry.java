@@ -43,6 +43,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -76,7 +78,7 @@ import org.osgi.framework.SynchronousBundleListener;
  * Taken from Jersey 2. Utility class to deal with OSGi runtime specific behavior.
  * This is mainly to handle META-INF/services lookup
  * and generic/application class lookup issue in OSGi.
- *
+ * <p/>
  * When OSGi runtime is detected by the {@link ServiceFinder} class,
  * an instance of OsgiRegistry is created and associated with given
  * OSGi BundleContext. META-INF/services entries are then being accessed
@@ -189,12 +191,12 @@ public final class OsgiRegistry implements SynchronousBundleListener {
     private static class BundleSpiProvidersLoader implements Callable<List<Class<?>>> {
 
         private final String spi;
-        private final URL spiRegistryUrl;
+        private final URI spiRegistryUri;
         private final Bundle bundle;
 
-        BundleSpiProvidersLoader(final String spi, final URL spiRegistryUrl, final Bundle bundle) {
+        BundleSpiProvidersLoader(final String spi, final URI spiRegistryUri, final Bundle bundle) {
             this.spi = spi;
-            this.spiRegistryUrl = spiRegistryUrl;
+            this.spiRegistryUri = spiRegistryUri;
             this.bundle = bundle;
         }
 
@@ -204,7 +206,7 @@ public final class OsgiRegistry implements SynchronousBundleListener {
                 if (LOGGER.isLoggable(Level.FINEST)) {
                     LOGGER.log(Level.FINEST, "Loading providers for SPI: {0}", spi);
                 }
-                final BufferedReader br = new BufferedReader(new InputStreamReader(spiRegistryUrl.openStream(), "UTF-8"));
+                final BufferedReader br = new BufferedReader(new InputStreamReader(spiRegistryUri.toURL().openStream(), "UTF-8"));
                 String providerClassName;
                 final List<Class<?>> providerClasses = new ArrayList<Class<?>>();
                 while ((providerClassName = br.readLine()) != null) {
@@ -229,18 +231,18 @@ public final class OsgiRegistry implements SynchronousBundleListener {
 
         @Override
         public String toString() {
-            return spiRegistryUrl.toString();
+            return spiRegistryUri.toString();
         }
 
         @Override
         public int hashCode() {
-            return spiRegistryUrl.hashCode();
+            return spiRegistryUri.hashCode();
         }
 
         @Override
         public boolean equals(Object obj) {
             if (obj instanceof BundleSpiProvidersLoader) {
-                return spiRegistryUrl.equals(((BundleSpiProvidersLoader) obj).spiRegistryUrl);
+                return spiRegistryUri.equals(((BundleSpiProvidersLoader) obj).spiRegistryUri);
             } else {
                 return false;
             }
@@ -278,7 +280,7 @@ public final class OsgiRegistry implements SynchronousBundleListener {
 
         for (Bundle bundle : bundleContext.getBundles()) {
             // Look for resources at the given <packagePath> and at WEB-INF/classes/<packagePath> in case a WAR is being examined.
-            for (String bundlePackagePath : new String[] {packagePath, "WEB-INF/classes/" + packagePath}) {
+            for (String bundlePackagePath : new String[]{packagePath, "WEB-INF/classes/" + packagePath}) {
                 final Enumeration<URL> enumeration = (Enumeration<URL>) bundle.findEntries(bundlePackagePath, "*", false);
 
                 if (enumeration != null) {
@@ -333,7 +335,7 @@ public final class OsgiRegistry implements SynchronousBundleListener {
 
     /**
      * Get the Class from the class name.
-     * <p>
+     * <p/>
      * The context class loader will be utilized if accessible and non-null.
      * Otherwise the defining class loader of this class will
      * be utilized.
@@ -365,7 +367,7 @@ public final class OsgiRegistry implements SynchronousBundleListener {
         for (Bundle bundle : bundleContext.getBundles()) {
             final Enumeration entries = bundle.findEntries(path, propertiesName, false);
             if (entries != null && entries.hasMoreElements()) {
-                final URL entryUrl = (URL)entries.nextElement();
+                final URL entryUrl = (URL) entries.nextElement();
                 try {
                     return new PropertyResourceBundle(entryUrl.openStream());
                 } catch (IOException ex) {
@@ -440,7 +442,11 @@ public final class OsgiRegistry implements SynchronousBundleListener {
                     continue;
                 }
                 final String factoryId = url.substring(url.lastIndexOf("/") + 1);
-                map.put(factoryId, new BundleSpiProvidersLoader(factoryId, u, bundle));
+                try {
+                    map.put(factoryId, new BundleSpiProvidersLoader(factoryId, u.toURI(), bundle));
+                } catch (URISyntaxException e1) {
+                    // ignore.
+                }
             }
         }
     }

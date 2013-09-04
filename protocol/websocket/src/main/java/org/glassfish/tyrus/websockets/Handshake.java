@@ -188,7 +188,7 @@ public final class Handshake {
             }
             final char[] chars = singleHeader.toCharArray();
             int i = 0;
-            ParserState next = ParserState.NAME_START;
+            ParserState next = ParserState.NAME;
             StringBuilder name = new StringBuilder();
             StringBuilder paramName = new StringBuilder();
             StringBuilder paramValue = new StringBuilder();
@@ -196,26 +196,24 @@ public final class Handshake {
 
             do {
                 switch (next) {
-                    case NAME_START:
-                        if (name.length() > 0) {
-                            final Extension extension = new Extension(name.toString().trim());
-                            extension.getParameters().addAll(params);
-                            extensions.add(extension);
-                            name = new StringBuilder();
-                            paramName = new StringBuilder();
-                            paramValue = new StringBuilder();
-                            params.clear();
-                        }
-
-                        next = ParserState.NAME;
-
                     case NAME:
+
                         switch (chars[i]) {
                             case ';':
                                 next = ParserState.PARAM_NAME;
                                 break;
                             case ',':
-                                next = ParserState.NAME_START;
+                                next = ParserState.NAME;
+                                if (name.length() > 0) {
+                                    final Extension extension = new Extension(name.toString().trim());
+                                    extension.getParameters().addAll(params);
+                                    extensions.add(extension);
+                                    name = new StringBuilder();
+                                    paramName = new StringBuilder();
+                                    paramValue = new StringBuilder();
+                                    params.clear();
+                                }
+
                                 break;
                             case '=':
                                 next = ParserState.ERROR;
@@ -258,10 +256,20 @@ public final class Handshake {
                                 paramValue = new StringBuilder();
                                 break;
                             case ',':
-                                next = ParserState.NAME_START;
+                                next = ParserState.NAME;
                                 params.add(new Extension.Parameter(paramName.toString().trim(), paramValue.toString().trim()));
                                 paramName = new StringBuilder();
                                 paramValue = new StringBuilder();
+                                if (name.length() > 0) {
+                                    final Extension extension = new Extension(name.toString().trim());
+                                    extension.getParameters().addAll(params);
+                                    extensions.add(extension);
+                                    name = new StringBuilder();
+                                    paramName = new StringBuilder();
+                                    paramValue = new StringBuilder();
+                                    params.clear();
+                                }
+
                                 break;
                             case '=':
                                 next = ParserState.ERROR;
@@ -303,7 +311,17 @@ public final class Handshake {
 
                         switch (chars[i]) {
                             case ',':
-                                next = ParserState.NAME_START;
+                                next = ParserState.NAME;
+                                if (name.length() > 0) {
+                                    final Extension extension = new Extension(name.toString().trim());
+                                    extension.getParameters().addAll(params);
+                                    extensions.add(extension);
+                                    name = new StringBuilder();
+                                    paramName = new StringBuilder();
+                                    paramValue = new StringBuilder();
+                                    params.clear();
+                                }
+
                                 break;
                             case ';':
                                 next = ParserState.PARAM_NAME;
@@ -328,7 +346,17 @@ public final class Handshake {
 
                         switch (chars[i]) {
                             case ',':
-                                next = ParserState.NAME_START;
+                                next = ParserState.NAME;
+                                if (name.length() > 0) {
+                                    final Extension extension = new Extension(name.toString().trim());
+                                    extension.getParameters().addAll(params);
+                                    extensions.add(extension);
+                                    name = new StringBuilder();
+                                    paramName = new StringBuilder();
+                                    paramValue = new StringBuilder();
+                                    params.clear();
+                                }
+
                                 break;
                             case ';':
                                 next = ParserState.PARAM_NAME;
@@ -563,7 +591,6 @@ public final class Handshake {
     }
 
     private enum ParserState {
-        NAME_START,
         NAME,
         PARAM_NAME,
         PARAM_VALUE,

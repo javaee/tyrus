@@ -64,7 +64,9 @@ public final class LocalizableMessage implements Localizable {
 
     @Override
     public Object[] getArguments() {
-        return _args;
+        final Object[] copy = new Object[_args.length];
+        System.arraycopy(_args, 0, copy, 0, _args.length);
+        return copy;
     }
 
     @Override

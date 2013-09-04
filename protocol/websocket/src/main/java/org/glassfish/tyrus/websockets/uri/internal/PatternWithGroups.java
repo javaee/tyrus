@@ -141,7 +141,19 @@ public class PatternWithGroups {
 
         this.regex = regexPattern.toString();
         this.regexPattern = regexPattern;
-        this.groupIndexes = groupIndexes;
+        this.groupIndexes = copy(groupIndexes);
+    }
+
+    /**
+     * Copy the source array.
+     *
+     * @param source source array.
+     * @return copied array.
+     */
+    int[] copy(int[] source) {
+        final int[] dest = new int[source.length];
+        System.arraycopy(source, 0, dest, 0, source.length);
+        return dest;
     }
 
     /**
@@ -159,7 +171,7 @@ public class PatternWithGroups {
      * @return the group indexes.
      */
     public final int[] getGroupIndexes() {
-        return groupIndexes;
+        return copy(groupIndexes);
     }
 
     private static final class EmptyStringMatchResult implements MatchResult {

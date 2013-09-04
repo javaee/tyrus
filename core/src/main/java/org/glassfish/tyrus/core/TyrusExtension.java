@@ -132,7 +132,6 @@ public class TyrusExtension implements Extension {
     }
 
     private enum ParserState {
-        NAME_START,
         NAME,
         PARAM_NAME,
         PARAM_VALUE,
@@ -151,7 +150,7 @@ public class TyrusExtension implements Extension {
      */
     public static List<Extension> fromHeaders(List<String> extensionHeaders) {
         List<Extension> extensions = new ArrayList<Extension>();
-        if(extensionHeaders == null) {
+        if (extensionHeaders == null) {
             return extensions;
         }
 
@@ -161,7 +160,7 @@ public class TyrusExtension implements Extension {
             }
             final char[] chars = singleHeader.toCharArray();
             int i = 0;
-            ParserState next = ParserState.NAME_START;
+            ParserState next = ParserState.NAME;
             StringBuilder name = new StringBuilder();
             StringBuilder paramName = new StringBuilder();
             StringBuilder paramValue = new StringBuilder();
@@ -169,16 +168,6 @@ public class TyrusExtension implements Extension {
 
             do {
                 switch (next) {
-                    case NAME_START:
-                        if (name.length() > 0) {
-                            extensions.add(new TyrusExtension(name.toString().trim(), params));
-                            name = new StringBuilder();
-                            paramName = new StringBuilder();
-                            paramValue = new StringBuilder();
-                            params.clear();
-                        }
-
-                        next = ParserState.NAME;
 
                     case NAME:
                         switch (chars[i]) {
@@ -186,7 +175,15 @@ public class TyrusExtension implements Extension {
                                 next = ParserState.PARAM_NAME;
                                 break;
                             case ',':
-                                next = ParserState.NAME_START;
+                                if (name.length() > 0) {
+                                    extensions.add(new TyrusExtension(name.toString().trim(), params));
+                                    name = new StringBuilder();
+                                    paramName = new StringBuilder();
+                                    paramValue = new StringBuilder();
+                                    params.clear();
+                                }
+
+                                next = ParserState.NAME;
                                 break;
                             case '=':
                                 next = ParserState.ERROR;
@@ -229,10 +226,18 @@ public class TyrusExtension implements Extension {
                                 paramValue = new StringBuilder();
                                 break;
                             case ',':
-                                next = ParserState.NAME_START;
+                                next = ParserState.NAME;
                                 params.add(new TyrusParameter(paramName.toString().trim(), paramValue.toString().trim()));
                                 paramName = new StringBuilder();
                                 paramValue = new StringBuilder();
+                                if (name.length() > 0) {
+                                    extensions.add(new TyrusExtension(name.toString().trim(), params));
+                                    name = new StringBuilder();
+                                    paramName = new StringBuilder();
+                                    paramValue = new StringBuilder();
+                                    params.clear();
+                                }
+
                                 break;
                             case '=':
                                 next = ParserState.ERROR;
@@ -274,7 +279,15 @@ public class TyrusExtension implements Extension {
 
                         switch (chars[i]) {
                             case ',':
-                                next = ParserState.NAME_START;
+                                next = ParserState.NAME;
+                                if (name.length() > 0) {
+                                    extensions.add(new TyrusExtension(name.toString().trim(), params));
+                                    name = new StringBuilder();
+                                    paramName = new StringBuilder();
+                                    paramValue = new StringBuilder();
+                                    params.clear();
+                                }
+
                                 break;
                             case ';':
                                 next = ParserState.PARAM_NAME;
@@ -299,7 +312,15 @@ public class TyrusExtension implements Extension {
 
                         switch (chars[i]) {
                             case ',':
-                                next = ParserState.NAME_START;
+                                next = ParserState.NAME;
+                                if (name.length() > 0) {
+                                    extensions.add(new TyrusExtension(name.toString().trim(), params));
+                                    name = new StringBuilder();
+                                    paramName = new StringBuilder();
+                                    paramValue = new StringBuilder();
+                                    params.clear();
+                                }
+
                                 break;
                             case ';':
                                 next = ParserState.PARAM_NAME;
