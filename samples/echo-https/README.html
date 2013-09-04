@@ -62,7 +62,7 @@ secured with ssl.</p>
 <blockquote><code><a href="https://localhost:8181/sample-echo-https">https://localhost:8181/sample-echo-https</a></code></blockquote>
 
 <p>Executing test via maven:</p>
-<blockquote><p><code>mvn clean test -Djavax.net.ssl.trustStore=$AS_MAIN/domains/domain1/config/cacerts.jks -Djavax.net.ssl.trustStorePassword=changeit -Dtyrus.test.host=localhost -DskipTests=false</code><br /><br />
+<blockquote><p><code>mvn clean test -Djavax.net.ssl.trustStore=$AS_MAIN/domains/domain1/config/cacerts.jks -Djavax.net.ssl.trustStorePassword=changeit -Dtyrus.test.host=localhost -DskipTests=false -Dtyrus.test.port=8181 -Djavax.net.debug=all</code><br /><br />
     <i># Note: you can add <code>-Djavax.net.debug=all</code> for SSL related debug info.</i></p>
     <p>Java client SSL properties can be configured separately to JVM configuration, see <a href="https://java.net/jira/browse/TYRUS-146">TYRUS-146</a>. SSL Configuration
     is Tyrus proprietary API and might be changed in the future (current version directly depends on <a href="https://grizzly.java.net">Grizzly</a> API).</p>
