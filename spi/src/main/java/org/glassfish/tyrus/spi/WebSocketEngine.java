@@ -48,6 +48,7 @@ import java.nio.ByteBuffer;
  */
 public interface WebSocketEngine {
 
+    // TODO return WebSocketConnection
     /**
      * Handles upgrade process, response is written using {@link ResponseWriter#write(UpgradeResponse)}.
      *
@@ -57,6 +58,7 @@ public interface WebSocketEngine {
      */
     boolean upgrade(Writer writer, UpgradeRequest request, ResponseWriter responseWriter);
 
+    // TODO return WebSocketConnection
     /**
      * Handles upgrade process, response is written using {@link ResponseWriter#write(UpgradeResponse)}.
      *
@@ -73,6 +75,7 @@ public interface WebSocketEngine {
      */
     boolean upgrade(Writer writer, UpgradeRequest request, ResponseWriter responseWriter, UpgradeListener upgradeListener);
 
+    // TODO remove. The incoming data is received using IncomingDataHandler
     /**
      * Processes incoming data, including sending a response (if any).
      *
