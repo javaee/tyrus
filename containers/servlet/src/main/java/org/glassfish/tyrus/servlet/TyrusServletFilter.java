@@ -65,11 +65,11 @@ import javax.servlet.http.HttpSessionListener;
 import javax.servlet.http.WebConnection;
 
 import org.glassfish.tyrus.core.RequestContext;
-import org.glassfish.tyrus.core.Utils;
 import org.glassfish.tyrus.spi.WebSocketEngine;
 import org.glassfish.tyrus.spi.Writer;
 import org.glassfish.tyrus.websockets.HandshakeException;
 import org.glassfish.tyrus.websockets.TyrusWebSocketEngine;
+import org.glassfish.tyrus.websockets.Utils;
 
 /**
  * Filter used for Servlet integration.
@@ -106,7 +106,7 @@ class TyrusServletFilter implements Filter, HttpSessionListener {
             engine.setIncomingBufferSize(Integer.parseInt(frameBufferSize));
         }
 
-        this.serverContainer = (org.glassfish.tyrus.server.TyrusServerContainer)filterConfig.getServletContext().getAttribute(ServerContainer.class.getName());
+        this.serverContainer = (org.glassfish.tyrus.server.TyrusServerContainer) filterConfig.getServletContext().getAttribute(ServerContainer.class.getName());
 
         try {
             serverContainer.start();

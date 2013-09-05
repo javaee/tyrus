@@ -52,15 +52,15 @@ import java.util.logging.Logger;
 import javax.websocket.CloseReason;
 
 import org.glassfish.tyrus.core.RequestContext;
-import org.glassfish.tyrus.core.Utils;
 import org.glassfish.tyrus.spi.UpgradeRequest;
 import org.glassfish.tyrus.spi.UpgradeResponse;
 import org.glassfish.tyrus.spi.Writer;
 import org.glassfish.tyrus.websockets.DataFrame;
 import org.glassfish.tyrus.websockets.HandshakeException;
 import org.glassfish.tyrus.websockets.TyrusWebSocketEngine;
-import org.glassfish.tyrus.websockets.WebSocket;
 import org.glassfish.tyrus.websockets.TyrusWebSocketEngine.WebSocketHolder;
+import org.glassfish.tyrus.websockets.Utils;
+import org.glassfish.tyrus.websockets.WebSocket;
 import org.glassfish.tyrus.websockets.WebSocketRequest;
 import org.glassfish.tyrus.websockets.WebSocketResponse;
 
@@ -204,7 +204,7 @@ class WebSocketFilter extends BaseFilter {
     /**
      * Method handles Grizzly {@link Connection} close phase. Check if the {@link Connection} is a {@link org.glassfish.tyrus.websockets.WebSocket}, if
      * yes - tries to close the websocket gracefully (sending close frame) and calls {@link
-     * org.glassfish.tyrus.websockets.WebSocket#onClose(org.glassfish.tyrus.websockets.ClosingDataFrame)}. If the Grizzly {@link Connection} is not websocket - passes processing to the next
+     * org.glassfish.tyrus.websockets.WebSocket#onClose(javax.websocket.CloseReason)}. If the Grizzly {@link Connection} is not websocket - passes processing to the next
      * filter in the chain.
      *
      * @param ctx {@link FilterChainContext}

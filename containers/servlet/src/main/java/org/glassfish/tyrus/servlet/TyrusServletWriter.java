@@ -51,10 +51,10 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.WriteListener;
 import javax.servlet.http.HttpServletResponse;
 
-import org.glassfish.tyrus.core.Utils;
 import org.glassfish.tyrus.spi.UpgradeResponse;
 import org.glassfish.tyrus.spi.WebSocketEngine;
 import org.glassfish.tyrus.spi.Writer;
+import org.glassfish.tyrus.websockets.Utils;
 
 /**
  * {@link org.glassfish.tyrus.spi.Writer} implementation used in Servlet integration.

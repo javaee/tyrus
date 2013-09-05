@@ -42,10 +42,10 @@ package org.glassfish.tyrus.container.grizzly;
 import java.util.List;
 import java.util.Map;
 
-import org.glassfish.tyrus.core.Utils;
 import org.glassfish.tyrus.spi.UpgradeResponse;
 import org.glassfish.tyrus.spi.WebSocketEngine;
 import org.glassfish.tyrus.spi.Writer;
+import org.glassfish.tyrus.websockets.Utils;
 
 import org.glassfish.grizzly.EmptyCompletionHandler;
 import org.glassfish.grizzly.filterchain.FilterChainContext;

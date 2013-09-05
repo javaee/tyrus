@@ -47,6 +47,7 @@ import javax.websocket.CloseReason;
 
 import org.glassfish.tyrus.spi.RemoteEndpoint;
 import org.glassfish.tyrus.websockets.DataFrame;
+import org.glassfish.tyrus.websockets.Utils;
 import org.glassfish.tyrus.websockets.WebSocket;
 
 /**

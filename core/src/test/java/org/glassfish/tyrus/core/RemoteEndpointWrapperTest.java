@@ -452,7 +452,7 @@ public class RemoteEndpointWrapperTest {
 
         @Override
         public Set<Extension> getInstalledExtensions() {
-            return null;
+            return Collections.emptySet();
         }
 
         @Override

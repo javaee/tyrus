@@ -39,6 +39,11 @@
  */
 package org.glassfish.tyrus.websockets.uri;
 
+import java.util.Collections;
+import java.util.List;
+
+import javax.websocket.Extension;
+
 import org.glassfish.tyrus.spi.UpgradeRequest;
 import org.glassfish.tyrus.websockets.ProtocolHandler;
 import org.glassfish.tyrus.websockets.WebSocket;
@@ -74,6 +79,11 @@ public class TestWebSocketApplication extends WebSocketApplication {
     @Override
     public String getPath() {
         return path;
+    }
+
+    @Override
+    public List<Extension> getSupportedExtensions() {
+        return Collections.emptyList();
     }
 
     @Override

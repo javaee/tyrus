@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.core;
+package org.glassfish.tyrus.websockets;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -98,10 +98,15 @@ public class TyrusExtension implements Extension {
 
     @Override
     public String toString() {
-        return "TyrusExtension{" +
-                "name='" + name + '\'' +
-                ", parameters=" + parameters +
-                '}';
+        final StringBuilder sb = new StringBuilder();
+        sb.append(name);
+        if (!parameters.isEmpty()) {
+            for (Extension.Parameter p : parameters) {
+                sb.append("; ");
+                sb.append(p.toString());
+            }
+        }
+        return sb.toString();
     }
 
     @Override
@@ -376,6 +381,16 @@ public class TyrusExtension implements Extension {
         @Override
         public String getValue() {
             return value;
+        }
+
+        @Override
+        public String toString() {
+            final StringBuilder sb = new StringBuilder();
+            sb.append(name);
+            if (value != null) {
+                sb.append('=').append(value);
+            }
+            return sb.toString();
         }
     }
 }

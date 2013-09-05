@@ -46,6 +46,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.websocket.CloseReason;
+import javax.websocket.Extension;
 
 import org.glassfish.tyrus.spi.UpgradeRequest;
 
@@ -64,7 +65,6 @@ public abstract class WebSocketApplication implements WebSocketListener {
     private final Map<WebSocket, Boolean> sockets =
             new ConcurrentHashMap<WebSocket, Boolean>();
 
-    private final List<Extension> supportedExtensions = new ArrayList<Extension>();
     private final List<String> supportedProtocols = new ArrayList<String>();
 
     /**
@@ -84,8 +84,8 @@ public abstract class WebSocketApplication implements WebSocketListener {
      * When a {@link WebSocket#onClose(javax.websocket.CloseReason)} is invoked, the {@link WebSocket}
      * will be unassociated with this application and closed.
      *
-     * @param socket the {@link WebSocket} being closed.
-     * @param closeReason  the {@link CloseReason}.
+     * @param socket      the {@link WebSocket} being closed.
+     * @param closeReason the {@link CloseReason}.
      */
     @Override
     public void onClose(WebSocket socket, CloseReason closeReason) {
@@ -102,26 +102,6 @@ public abstract class WebSocketApplication implements WebSocketListener {
     @Override
     public void onConnect(WebSocket socket) {
         add(socket);
-    }
-
-    /**
-     * Invoked during the handshake if the client has advertised extensions
-     * it may use and one or more extensions intersect with those returned
-     * by {@link #getSupportedExtensions()}.
-     * <p/>
-     * The {@link Extension}s passed to this method will include any extension
-     * parameters included by the client.  It's up to this method to re-order
-     * and or adjust any parameter values within the list.  This method must not
-     * add any extensions that weren't originally in the list, but it is acceptable
-     * to remove one or all extensions if for some reason they can't be supported.
-     * <p/>
-     * If not overridden, the List will be sent as-is back to the client.
-     *
-     * @param extensions the intersection of extensions between client and
-     *                   application.
-     * @since 2.3
-     */
-    public void onExtensionNegotiation(List<Extension> extensions) {
     }
 
     /**
@@ -193,9 +173,7 @@ public abstract class WebSocketApplication implements WebSocketListener {
      * @return the websocket extensions supported by this
      *         <code>WebSocketApplication</code>.
      */
-    public List<Extension> getSupportedExtensions() {
-        return supportedExtensions;
-    }
+    public abstract List<Extension> getSupportedExtensions();
 
     /**
      * @param subProtocol TODO

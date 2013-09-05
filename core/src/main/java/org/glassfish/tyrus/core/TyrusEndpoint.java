@@ -54,6 +54,7 @@ import javax.websocket.server.ServerEndpointConfig;
 import org.glassfish.tyrus.spi.EndpointWrapper;
 import org.glassfish.tyrus.spi.UpgradeRequest;
 import org.glassfish.tyrus.websockets.ProtocolHandler;
+import org.glassfish.tyrus.websockets.TyrusExtension;
 import org.glassfish.tyrus.websockets.WebSocket;
 import org.glassfish.tyrus.websockets.WebSocketApplication;
 import org.glassfish.tyrus.websockets.WebSocketListener;
@@ -166,22 +167,8 @@ public class TyrusEndpoint extends WebSocketApplication {
     }
 
     @Override
-    public void onExtensionNegotiation(List<org.glassfish.tyrus.websockets.Extension> extensions) {
-    }
-
-    @Override
-    public List<org.glassfish.tyrus.websockets.Extension> getSupportedExtensions() {
-        List<org.glassfish.tyrus.websockets.Extension> grizzlyExtensions = new ArrayList<org.glassfish.tyrus.websockets.Extension>();
-
-        for (Extension ext : temporaryNegotiatedExtensions) {
-            final org.glassfish.tyrus.websockets.Extension extension = new org.glassfish.tyrus.websockets.Extension(ext.getName());
-            for (Extension.Parameter p : ext.getParameters()) {
-                extension.getParameters().add(new org.glassfish.tyrus.websockets.Extension.Parameter(p.getName(), p.getValue()));
-            }
-            grizzlyExtensions.add(extension);
-        }
-
-        return grizzlyExtensions;
+    public List<Extension> getSupportedExtensions() {
+        return new ArrayList<Extension>(temporaryNegotiatedExtensions);
     }
 
     @Override

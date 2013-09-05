@@ -66,7 +66,6 @@ import javax.websocket.Session;
 import javax.websocket.server.HandshakeRequest;
 
 import org.glassfish.tyrus.core.RequestContext;
-import org.glassfish.tyrus.core.TyrusExtension;
 import org.glassfish.tyrus.core.TyrusRemoteEndpoint;
 import org.glassfish.tyrus.spi.ClientContainer;
 import org.glassfish.tyrus.spi.ClientSocket;
@@ -74,10 +73,10 @@ import org.glassfish.tyrus.spi.EndpointWrapper;
 import org.glassfish.tyrus.spi.UpgradeResponse;
 import org.glassfish.tyrus.spi.Writer;
 import org.glassfish.tyrus.websockets.DataFrame;
-import org.glassfish.tyrus.websockets.Extension;
 import org.glassfish.tyrus.websockets.Handshake;
 import org.glassfish.tyrus.websockets.HandshakeException;
 import org.glassfish.tyrus.websockets.ProtocolHandler;
+import org.glassfish.tyrus.websockets.TyrusExtension;
 import org.glassfish.tyrus.websockets.TyrusWebSocketEngine;
 import org.glassfish.tyrus.websockets.WebSocket;
 import org.glassfish.tyrus.websockets.WebSocketListener;
@@ -317,18 +316,7 @@ public class GrizzlyClientSocket implements WebSocket, ClientSocket {
     }
 
     private void prepareHandshake(Handshake handshake) {
-        List<Extension> grizzlyExtensions = new ArrayList<Extension>();
-
-        for (javax.websocket.Extension e : configuration.getExtensions()) {
-            final Extension grizzlyExtension = new Extension(e.getName());
-            for (javax.websocket.Extension.Parameter p : e.getParameters()) {
-                grizzlyExtension.getParameters().add(new Extension.Parameter(p.getName(), p.getValue()));
-            }
-
-            grizzlyExtensions.add(grizzlyExtension);
-        }
-
-        handshake.setExtensions(grizzlyExtensions);
+        handshake.setExtensions(configuration.getExtensions());
         handshake.setSubProtocols(configuration.getPreferredSubprotocols());
 
         handshake.setResponseListener(new Handshake.HandshakeResponseListener() {

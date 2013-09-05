@@ -37,15 +37,13 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.core;
+package org.glassfish.tyrus.websockets;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import javax.websocket.Extension;
-
-import org.glassfish.tyrus.core.TyrusExtension;
 
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
@@ -87,7 +85,7 @@ public class TyrusExtensionTest {
                     return "Mmm. Lost a planet, Master Obi-Wan has. How embarrassing. How embarrassing.";
                 }
             }
-);
+            );
         }};
         final TyrusExtension test = new TyrusExtension("test", parameters);
 
