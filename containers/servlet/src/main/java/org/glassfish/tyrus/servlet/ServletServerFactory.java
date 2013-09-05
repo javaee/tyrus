@@ -47,6 +47,7 @@ import org.glassfish.tyrus.core.TyrusEndpoint;
 import org.glassfish.tyrus.spi.EndpointWrapper;
 import org.glassfish.tyrus.spi.ServerContainer;
 import org.glassfish.tyrus.spi.ServerContainerFactory;
+import org.glassfish.tyrus.spi.WebSocketEngine;
 import org.glassfish.tyrus.websockets.TyrusWebSocketEngine;
 
 /**
@@ -79,6 +80,11 @@ public class ServletServerFactory implements ServerContainerFactory {
             @Override
             public void unregister(EndpointWrapper endpoint) {
                 engine.unregister(new TyrusEndpoint(endpoint));
+            }
+
+            @Override
+            public WebSocketEngine getWebSocketEngine() {
+                return engine;
             }
         };
     }

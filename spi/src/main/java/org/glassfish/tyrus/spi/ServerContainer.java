@@ -78,4 +78,12 @@ public interface ServerContainer {
      * @param endpoint the endpoint which is going to be unregistered.
      */
     public void unregister(EndpointWrapper endpoint);
+
+    /**
+     * Returns WebSocketEngine to upgrade requests and setting up the
+     * connection
+     *
+     * @return websocket engine
+     */
+    public WebSocketEngine getWebSocketEngine();
 }

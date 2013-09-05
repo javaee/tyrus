@@ -53,6 +53,7 @@ import org.glassfish.tyrus.spi.ClientSocket;
 import org.glassfish.tyrus.spi.EndpointWrapper;
 import org.glassfish.tyrus.spi.ServerContainer;
 import org.glassfish.tyrus.spi.ServerContainerFactory;
+import org.glassfish.tyrus.spi.WebSocketEngine;
 import org.glassfish.tyrus.websockets.TyrusWebSocketEngine;
 
 import org.glassfish.grizzly.http.server.HttpServer;
@@ -101,6 +102,11 @@ public class GrizzlyContainer implements ServerContainerFactory, ClientContainer
             @Override
             public void unregister(EndpointWrapper endpoint) {
                 engine.unregister(new TyrusEndpoint(endpoint));
+            }
+
+            @Override
+            public WebSocketEngine getWebSocketEngine() {
+                return engine;
             }
         };
     }
