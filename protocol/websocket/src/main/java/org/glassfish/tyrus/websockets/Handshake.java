@@ -208,11 +208,31 @@ public final class Handshake {
         this.subProtocols = subProtocols;
     }
 
-    <T> String getHeaderFromList(List<T> list) {
+    /**
+     * Define to {@link String} conversion for various types.
+     *
+     * @param <T> type for which is conversion defined.
+     */
+    static abstract class Stringifier<T> {
+
+        /**
+         * Convert object to {@link String}.
+         *
+         * @param t object to be converted.
+         * @return {@link String} representation of given object.
+         */
+        abstract String toString(T t);
+    }
+
+    <T> String getHeaderFromList(List<T> list, Stringifier<T> stringifier) {
         StringBuilder sb = new StringBuilder();
         Iterator<T> it = list.iterator();
         while (it.hasNext()) {
-            sb.append(it.next());
+            if (stringifier != null) {
+                sb.append(stringifier.toString(it.next()));
+            } else {
+                sb.append(it.next());
+            }
             if (it.hasNext()) {
                 sb.append(", ");
             }
@@ -220,10 +240,14 @@ public final class Handshake {
         return sb.toString();
     }
 
-    <T> List<String> getStringList(List<T> list) {
+    <T> List<String> getStringList(List<T> list, Stringifier<T> stringifier) {
         List<String> result = new ArrayList<String>();
         for (T item : list) {
-            result.add(item.toString());
+            if (stringifier != null) {
+                result.add(stringifier.toString(item));
+            } else {
+                result.add(item.toString());
+            }
         }
         return result;
     }
@@ -261,20 +285,23 @@ public final class Handshake {
         request.putSingleHeader(UpgradeRequest.CONNECTION, UpgradeRequest.UPGRADE);
         request.putSingleHeader(UpgradeRequest.UPGRADE, UpgradeRequest.WEBSOCKET);
 
-        if (!getSubProtocols().isEmpty()) {
-            request.putSingleHeader(UpgradeRequest.SEC_WEBSOCKET_PROTOCOL, getHeaderFromList(subProtocols));
-        }
-
-        if (!getExtensions().isEmpty()) {
-            request.putSingleHeader(UpgradeRequest.SEC_WEBSOCKET_EXTENSIONS, getHeaderFromList(extensions));
-        }
-
         request.putSingleHeader(UpgradeRequest.SEC_WEBSOCKET_KEY, secKey.toString());
         request.putSingleHeader(UpgradeRequest.SEC_WS_ORIGIN_HEADER, getOrigin());
         request.putSingleHeader(UpgradeRequest.SEC_WEBSOCKET_VERSION, getVersion() + "");
-        if (!getExtensions().isEmpty()) {
-            request.putSingleHeader(UpgradeRequest.SEC_WEBSOCKET_EXTENSIONS, getHeaderFromList(getExtensions()));
+
+        if (!getSubProtocols().isEmpty()) {
+            request.putSingleHeader(UpgradeRequest.SEC_WEBSOCKET_PROTOCOL, getHeaderFromList(subProtocols, null));
         }
+
+        if (!getExtensions().isEmpty()) {
+            request.putSingleHeader(UpgradeRequest.SEC_WEBSOCKET_EXTENSIONS, getHeaderFromList(getExtensions(), new Stringifier<Extension>() {
+                @Override
+                String toString(Extension extension) {
+                    return TyrusExtension.toString(extension);
+                }
+            }));
+        }
+
         final String headerValue = request.getFirstHeaderValue(UpgradeRequest.SEC_WS_ORIGIN_HEADER);
         request.getHeaders().remove(UpgradeRequest.SEC_WS_ORIGIN_HEADER);
         request.putSingleHeader(UpgradeRequest.ORIGIN_HEADER, headerValue);
@@ -309,12 +336,17 @@ public final class Handshake {
         if (subProtocols != null && !subProtocols.isEmpty()) {
             List<String> appProtocols = application.getSupportedProtocols(subProtocols);
             if (!appProtocols.isEmpty()) {
-                response.getHeaders().put(UpgradeRequest.SEC_WEBSOCKET_PROTOCOL, getStringList(appProtocols));
+                response.getHeaders().put(UpgradeRequest.SEC_WEBSOCKET_PROTOCOL, getStringList(appProtocols, null));
             }
         }
 
         if (!application.getSupportedExtensions().isEmpty()) {
-            response.getHeaders().put(UpgradeRequest.SEC_WEBSOCKET_EXTENSIONS, getStringList(application.getSupportedExtensions()));
+            response.getHeaders().put(UpgradeRequest.SEC_WEBSOCKET_EXTENSIONS, getStringList(application.getSupportedExtensions(), new Stringifier<Extension>() {
+                @Override
+                String toString(Extension extension) {
+                    return TyrusExtension.toString(extension);
+                }
+            }));
         }
 
         application.onHandShakeResponse(incomingRequest, response);

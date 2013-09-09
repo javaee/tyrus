@@ -98,14 +98,10 @@ public class TyrusExtension implements Extension {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder();
-        sb.append(name);
-        if (!parameters.isEmpty()) {
-            for (Extension.Parameter p : parameters) {
-                sb.append("; ");
-                sb.append(p.toString());
-            }
-        }
+        final StringBuilder sb = new StringBuilder("TyrusExtension{");
+        sb.append("name='").append(name).append('\'');
+        sb.append(", parameters=").append(parameters);
+        sb.append('}');
         return sb.toString();
     }
 
@@ -124,6 +120,24 @@ public class TyrusExtension implements Extension {
         int result = name.hashCode();
         result = 31 * result + parameters.hashCode();
         return result;
+    }
+
+    /**
+     * Returns defined representation for HTTP headers.
+     *
+     * @param extension {@link Extension} instance.
+     * @return String containing {@link Extension} representation as defined in RFC 6455.
+     */
+    static String toString(Extension extension) {
+        final StringBuilder sb = new StringBuilder();
+        sb.append(extension.getName());
+        if (!extension.getParameters().isEmpty()) {
+            for (Extension.Parameter p : extension.getParameters()) {
+                sb.append("; ");
+                sb.append(TyrusParameter.toString(p));
+            }
+        }
+        return sb.toString();
     }
 
     /**
@@ -385,8 +399,23 @@ public class TyrusExtension implements Extension {
 
         @Override
         public String toString() {
+            final StringBuilder sb = new StringBuilder("TyrusParameter{");
+            sb.append("name='").append(name).append('\'');
+            sb.append(", value='").append(value).append('\'');
+            sb.append('}');
+            return sb.toString();
+        }
+
+        /**
+         * Returns defined representation for HTTP headers.
+         *
+         * @param parameter {@link Parameter} instance.
+         * @return String containing {@link Parameter} representation as defined in RFC 6455.
+         */
+        static String toString(Parameter parameter) {
             final StringBuilder sb = new StringBuilder();
-            sb.append(name);
+            sb.append(parameter.getName());
+            final String value = parameter.getValue();
             if (value != null) {
                 sb.append('=').append(value);
             }

@@ -49,6 +49,7 @@ import java.util.logging.Logger;
 import javax.websocket.CloseReason;
 import javax.websocket.EndpointConfig;
 import javax.websocket.Extension;
+import javax.websocket.server.HandshakeRequest;
 import javax.websocket.server.ServerEndpointConfig;
 
 import org.glassfish.tyrus.spi.EndpointWrapper;
@@ -204,7 +205,7 @@ public class TyrusEndpoint extends WebSocketApplication {
         }
     }
 
-    private javax.websocket.server.HandshakeRequest createHandshakeRequest(final UpgradeRequest webSocketRequest) {
+    private HandshakeRequest createHandshakeRequest(final UpgradeRequest webSocketRequest) {
         if (webSocketRequest instanceof RequestContext) {
             final RequestContext requestContext = (RequestContext) webSocketRequest;
             // TYRUS-208; spec requests headers to be read only when passed to ServerEndpointConfig.Configurator#modifyHandshake.
@@ -223,9 +224,7 @@ public class TyrusEndpoint extends WebSocketApplication {
 
         TyrusEndpoint that = (TyrusEndpoint) o;
 
-        if (!endpoint.equals(that.endpoint)) return false;
-
-        return true;
+        return endpoint.equals(that.endpoint);
     }
 
     @Override
