@@ -91,7 +91,6 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
     private static final Logger LOGGER = Logger.getLogger(ClientManager.class.getName());
     private final ClientContainer container;
     private final ComponentProviderService componentProvider;
-    private final ErrorCollector collector;
     private final Map<String, Object> properties = new HashMap<String, Object>();
 
     private long defaultAsyncSendTimeout;
@@ -133,7 +132,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
     }
 
     private ClientManager(String containerProviderClassName) {
-        collector = new ErrorCollector();
+        final ErrorCollector collector = new ErrorCollector();
         componentProvider = ComponentProviderService.create();
         Class engineProviderClazz;
         try {
@@ -324,6 +323,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                 ClientEndpointConfig config = null;
                 Endpoint endpoint;
                 ClientSocket clientSocket = null;
+                final ErrorCollector collector = new ErrorCollector();
 
                 final CountDownLatch responseLatch = new CountDownLatch(1);
 
@@ -408,7 +408,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                             return;
                         }
                     } catch (InterruptedException e) {
-                        future.setFailure(new DeploymentException("Handshaker response not received.", e));
+                        future.setFailure(new DeploymentException("Handshake response not received.", e));
                     }
 
                     future.setFailure(new DeploymentException("Handshake response not received."));
