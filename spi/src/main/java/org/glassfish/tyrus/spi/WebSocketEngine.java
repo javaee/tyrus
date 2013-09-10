@@ -39,8 +39,6 @@
  */
 package org.glassfish.tyrus.spi;
 
-import java.nio.ByteBuffer;
-
 /**
  * Web Socket engine is the main entry-point to WebSocket implementation.
  *
@@ -48,83 +46,25 @@ import java.nio.ByteBuffer;
  */
 public interface WebSocketEngine {
 
-    // TODO return WebSocketConnection
-    /**
-     * Handles upgrade process, response is written using {@link ResponseWriter#write(UpgradeResponse)}.
-     *
-     * @param writer  used to write HTTP response.
-     * @param request representation of HTTP request.
-     * @return {@code true} if upgrade was successful, {@code false} otherwise.
-     */
-    boolean upgrade(Writer writer, UpgradeRequest request, ResponseWriter responseWriter);
+    // See if the request can be upgraded
+    UpgradeInfo upgrade(UpgradeRequest req, UpgradeResponse res);
 
-    // TODO return WebSocketConnection
-    /**
-     * Handles upgrade process, response is written using {@link ResponseWriter#write(UpgradeResponse)}.
-     *
-     * @param writer          used to write HTTP response.
-     * @param request         representation of HTTP request.
-     * @param upgradeListener {@link WebSocketEngine.UpgradeListener#onUpgradeFinished()}
-     *                        is invoked after handshake response is sent. Registering this listener transfer
-     *                        responsibility for calling {@link #onConnect(Writer)} to this listener. This might be
-     *                        useful especially when you need to wait for some other initialization (like Servlet update
-     *                        mechanism); invoking {@link #onConnect(Writer)} means that {@link javax.websocket.OnOpen}
-     *                        annotated method will be invoked which allows sending messages, so underlying connection
-     *                        needs to be ready.
-     * @return {@code true} if upgrade was successful, {@code false} otherwise.
-     */
-    boolean upgrade(Writer writer, UpgradeRequest request, ResponseWriter responseWriter, UpgradeListener upgradeListener);
+    interface UpgradeInfo {
+        // Status of the upgrade
+        UpgradeStatus getStatus();
 
-    // TODO remove. The incoming data is received using IncomingDataHandler
-    /**
-     * Processes incoming data, including sending a response (if any).
-     *
-     * @param writer related writer instance (representing underlying connection).
-     * @param data   incoming data.
-     */
-    void processData(Writer writer, ByteBuffer data);
-
-    /**
-     * Causes invocation if {@link javax.websocket.OnOpen} annotated method. Can be invoked only when
-     * {@link #upgrade(Writer, UpgradeRequest, ResponseWriter, WebSocketEngine.UpgradeListener)} is used.
-     *
-     * @param writer related writer instance (representing underlying connection).
-     */
-    void onConnect(Writer writer);
-
-    /**
-     * Close the corresponding WebSocket with a close reason.
-     * <p/>
-     * This method is used for indicating that underlying connection was closed and/or other condition requires
-     * closing socket.
-     *
-     * @param writer      related writer instance (representing underlying connection).
-     * @param closeCode   close code.
-     * @param closeReason close reason.
-     */
-    void close(Writer writer, int closeCode, String closeReason);
-
-    /**
-     * HTTP Upgrade listener.
-     */
-    interface UpgradeListener {
-
-        /**
-         * Called when request is upgraded. The responsibility for making {@link #onConnect(Writer)}
-         * call is on listener when it is used.
-         */
-        void onUpgradeFinished();
+        // If the status is SUCCESS, then return the connection
+        // Otherwise null
+        WebSocketConnection getConnection();
     }
 
-    /**
-     * Responsible for writing HTTP response to underlying connection or container.
-     */
-    interface ResponseWriter {
-        /**
-         * Write {@link UpgradeResponse} to underlying connection.
-         *
-         * @param response response to be written.
-         */
-        public void write(UpgradeResponse response);
+    enum UpgradeStatus {
+        // Not a WebSocketRequest or no mapping in the application
+        NOT_APPLICABLE,
+        // Failed handshake due to version, extensions, origin check etc
+        HANDSHAKE_FAILED,
+        // Upgrade is successful
+        SUCCESS
     }
+
 }

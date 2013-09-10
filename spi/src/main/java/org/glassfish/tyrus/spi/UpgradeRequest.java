@@ -39,6 +39,7 @@
  */
 package org.glassfish.tyrus.spi;
 
+import javax.websocket.server.HandshakeRequest;
 import java.util.List;
 
 /**
@@ -48,7 +49,7 @@ import java.util.List;
  * @author Danny Coward (danny.coward at oracle.com)
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public abstract class UpgradeRequest implements javax.websocket.server.HandshakeRequest {
+public abstract class UpgradeRequest implements HandshakeRequest {
 
     public static final String WEBSOCKET = "websocket";
     public static final String RESPONSE_CODE_MESSAGE = "Switching Protocols";

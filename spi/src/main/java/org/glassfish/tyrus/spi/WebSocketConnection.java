@@ -40,14 +40,31 @@
 
 package org.glassfish.tyrus.spi;
 
+import java.io.Closeable;
+
 // Tyrus creates WebSocketConnection implementation and connectors
 // call get ProtocolReader,  and set ProtocolWriter and Closeable impl
-public abstract class WebSocketConnection {
+public interface WebSocketConnection {
 
-    public abstract IncomingDataHandler getIncomingDataHandler();
+    IncomingDataHandler getIncomingDataHandler();
 
-    public abstract Writer getWriter();
+    void setWriter(Writer writer);
 
-    //public abstract void setCloseListener(Closeable cl);
+    // Tyrus notifies the the given Closeable that it is closing the
+    // connection.
+    void setCloseListener(Closeable cl);
+
+    // After setting writer and close listener, a transport connector
+    // calls this method
+    void initDone();
+
+    // Notify tyrus that underlying transport is closing the connection
+    void close(CloseReason reason);
+
+    enum CloseReason {
+        UNDEPLOY,
+        DISCONNECT,
+        AUTHENTICATED_SESSION_CLOSED
+    }
 
 }
