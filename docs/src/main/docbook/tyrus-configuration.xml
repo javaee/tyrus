@@ -88,6 +88,55 @@ client.connectToServer(... , ClientEndpointConfig.Builder.create().build(),
     </section>
 
     <section>
+        <title>Asynchronous connectToServer methods</title>
+        <para>WebSocketContainer.connectToServer(...) methods are by definition blocking - declared exceptions needs to
+        be thrown after connection attempt is made and it returns Session instance, which needs to be ready for sending
+        messages and invoking other methods, which require already estabilished connection.</para>
+        <para>Existing connectToServer methods are fine for lots of uses, but it might cause issue when you are designing
+        application with highly responsible user interface. Tyrus introduces asynchronous variants to each connectToServer
+        method (prefixed with "async"), which returns Future&lt;Session&gt;. These methods do only simple check for provided
+        URL and the rest is executed in separate thread. All exceptions thrown during this phase are reported as cause
+        of ExecutionException thrown when calling Future&lt;Session&gt;.get().</para>
+        <para>Asynchronous connect methods are declared on Tyrus implementation of WebSocketContainer called ClientManager.</para>
+
+<programlisting language="java" linenumbering="numbered">ClientManager client = ClientManager.createClient();
+  final Future&lt;Session&gt; future = client.asyncConnectToServer(ClientEndpoint.class, URI.create("..."));
+  try {
+    future.get();
+  } catch (...) {
+}</programlisting>
+
+        <para>ClientManager contains async alternative to each connectToServer method.</para>
+    </section>
+
+    <section>
+        <title>Optimized broadcast</title>
+        <para>One of the typical usecases we've seen so far for WebSocket server-side endpoints is broadcasting messages
+        to all connected clients, something like:</para>
+
+<programlisting language="java" linenumbering="numbered">@OnMessage
+public void onMessage(Session session, String message) throws IOException {
+  for (Session s : session.getOpenSessions()) {
+    s.getBasicRemote().sendText(message);
+  }
+}</programlisting>
+
+        <para>Executing this code might cause serious load increase on your application server. Tyrus provides optimized
+        broadcast implementation, which takes advantage of the fact, that we are sending exactly same message to all clients,
+        so dataframe can be created and serialized only once. Furthermore, Tyrus can iterate over set of opened connections
+        faster than Session.getOpenSession().</para>
+
+<programlisting language="java" linenumbering="numbered">@OnMessage
+public void onMessage(Session session, String message) {
+  ((TyrusSession) session).broadcast(message);
+}</programlisting>
+
+        <para>Unfortunately, WebSocket API forbids anything else than Session in @OnMessage annotated method parameter,
+        so you cannot use TyrusSession there directly and you might need to perform instanceof check.</para>
+
+    </section>
+
+    <section>
         <title>Servlet container incoming buffer size</title>
 
         <para>Sevlet container buffers incoming WebSocket frames and there must a size limit to precede OutOfMemory
