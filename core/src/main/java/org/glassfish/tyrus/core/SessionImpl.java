@@ -166,6 +166,7 @@ public class SessionImpl implements Session {
             maxTextMessageBufferSize = container.getDefaultMaxTextMessageBufferSize();
             maxBinaryMessageBufferSize = container.getDefaultMaxBinaryMessageBufferSize();
             service = ((ExecutorServiceProvider) container).getScheduledExecutorService();
+            setMaxIdleTimeout(container.getDefaultMaxSessionIdleTimeout());
         }
     }
 
