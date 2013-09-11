@@ -41,23 +41,18 @@ package org.glassfish.tyrus.servlet;
 
 import java.io.IOException;
 
-import javax.websocket.DeploymentException;
-
-import org.glassfish.tyrus.core.TyrusEndpoint;
-import org.glassfish.tyrus.spi.EndpointWrapper;
 import org.glassfish.tyrus.spi.ServerContainer;
 import org.glassfish.tyrus.spi.ServerContainerFactory;
 import org.glassfish.tyrus.spi.WebSocketEngine;
-import org.glassfish.tyrus.websockets.TyrusWebSocketEngine;
 
 /**
  * Servlet container.
  */
 public class ServletServerFactory implements ServerContainerFactory {
 
-    private final TyrusWebSocketEngine engine;
+    private final WebSocketEngine engine;
 
-    public ServletServerFactory(TyrusWebSocketEngine engine) {
+    public ServletServerFactory(WebSocketEngine engine) {
         this.engine = engine;
     }
 
@@ -65,21 +60,12 @@ public class ServletServerFactory implements ServerContainerFactory {
     public ServerContainer createServerContainer(String rootPath, int port) {
         return new ServerContainer() {
             @Override
-            public void start() throws IOException {
+            public void start(String rootPath, int port) throws IOException {
+                // TODO: Implement.
             }
 
             @Override
             public void stop() {
-            }
-
-            @Override
-            public void register(EndpointWrapper endpoint) throws DeploymentException {
-                engine.register(new TyrusEndpoint(endpoint));
-            }
-
-            @Override
-            public void unregister(EndpointWrapper endpoint) {
-                engine.unregister(new TyrusEndpoint(endpoint));
             }
 
             @Override

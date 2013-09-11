@@ -46,8 +46,8 @@ import java.util.Map;
 
 import javax.websocket.ClientEndpointConfig;
 import javax.websocket.DeploymentException;
+import javax.websocket.server.ServerEndpointConfig;
 
-import org.glassfish.tyrus.core.TyrusEndpoint;
 import org.glassfish.tyrus.spi.ClientContainer;
 import org.glassfish.tyrus.spi.ClientSocket;
 import org.glassfish.tyrus.spi.EndpointWrapper;
@@ -64,28 +64,32 @@ import org.glassfish.grizzly.threadpool.ThreadPoolConfig;
 /**
  * @author Danny Coward (danny.coward at oracle.com)
  */
-public class GrizzlyContainer implements ServerContainerFactory, ClientContainer {
+public class GrizzlyContainer extends ServerContainerFactory implements ClientContainer {
 
     public static final String SSL_ENGINE_CONFIGURATOR = "org.glassfish.tyrus.client.sslEngineConfigurator";
 
     //The same value Grizzly is using for socket timeout.
     private static final long CLIENT_SOCKET_TIMEOUT = 30000;
-    private final TyrusWebSocketEngine engine;
 
     /**
-     * Creates Grizzly engine.
+     *
      */
     public GrizzlyContainer() {
-        engine = new TyrusWebSocketEngine();
+
     }
 
     @Override
-    public ServerContainer createServerContainer(String rootPath, int port) {
-        final HttpServer server = HttpServer.createSimpleServer(rootPath, port);
-        server.getListener("grizzly").registerAddOn(new WebSocketAddOn(engine));
+    protected ServerContainer createContainer(Map<String, Object> config) {
+
         return new ServerContainer() {
+
+            private final WebSocketEngine engine = new TyrusWebSocketEngine();
+            private HttpServer server;
+
             @Override
-            public void start() throws IOException {
+            public void start(String rootPath, int port) throws IOException {
+                server = HttpServer.createSimpleServer(rootPath, port);
+                server.getListener("grizzly").registerAddOn(new WebSocketAddOn(engine));
                 server.start();
             }
 
@@ -95,13 +99,13 @@ public class GrizzlyContainer implements ServerContainerFactory, ClientContainer
             }
 
             @Override
-            public void register(EndpointWrapper endpoint) throws DeploymentException {
-                engine.register(new TyrusEndpoint(endpoint));
+            public void addEndpoint(Class<?> endpointClass) throws DeploymentException {
+                engine.register(endpointClass);
             }
 
             @Override
-            public void unregister(EndpointWrapper endpoint) {
-                engine.unregister(new TyrusEndpoint(endpoint));
+            public void addEndpoint(ServerEndpointConfig serverConfig) throws DeploymentException {
+                engine.register(serverConfig);
             }
 
             @Override
@@ -131,7 +135,8 @@ public class GrizzlyContainer implements ServerContainerFactory, ClientContainer
             sslEngineConfigurator = new SSLEngineConfigurator(defaultConfig, true, false, false);
         }
 
-        GrizzlyClientSocket clientSocket = new GrizzlyClientSocket(endpoint, uri, cec, CLIENT_SOCKET_TIMEOUT, listener, engine,
+        GrizzlyClientSocket clientSocket = new GrizzlyClientSocket(endpoint, uri, cec, CLIENT_SOCKET_TIMEOUT, listener,
+                new TyrusWebSocketEngine(),
                 properties == null ? null : sslEngineConfigurator,
                 properties == null ? null : (String) properties.get(GrizzlyClientSocket.PROXY_URI),
                 properties == null ? null : (ThreadPoolConfig) properties.get(GrizzlyClientSocket.WORKER_THREAD_POOL_CONFIG),

@@ -39,6 +39,8 @@
  */
 package org.glassfish.tyrus.spi;
 
+import javax.websocket.server.ServerEndpointConfig;
+
 import static org.glassfish.tyrus.spi.Connection.CloseListener;
 
 /**
@@ -50,6 +52,12 @@ public interface WebSocketEngine {
 
     // See if the request can be upgraded
     UpgradeInfo upgrade(UpgradeRequest req, UpgradeResponse res);
+
+    // TODO: constructor? / List<Class<?> / List<ServerEndpointConfig>\
+    // (one call instead of iteration).
+    void register(Class<?> endpointClass);
+
+    void register(ServerEndpointConfig serverConfig);
 
     interface UpgradeInfo {
         // Status of the upgrade

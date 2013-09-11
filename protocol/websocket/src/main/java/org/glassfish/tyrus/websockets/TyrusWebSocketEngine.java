@@ -54,8 +54,10 @@ import java.util.logging.Logger;
 
 import javax.websocket.CloseReason;
 import javax.websocket.DeploymentException;
+import javax.websocket.server.ServerEndpointConfig;
 
 import org.glassfish.tyrus.spi.UpgradeRequest;
+import org.glassfish.tyrus.spi.WebSocketEngine;
 import org.glassfish.tyrus.spi.Writer;
 import org.glassfish.tyrus.websockets.uri.Match;
 
@@ -67,7 +69,7 @@ import org.glassfish.tyrus.websockets.uri.Match;
  * @see WebSocket
  * @see WebSocketApplication
  */
-public class TyrusWebSocketEngine implements org.glassfish.tyrus.spi.WebSocketEngine {
+public class TyrusWebSocketEngine implements WebSocketEngine {
 
     public static final int RESPONSE_CODE_VALUE = 101;
     public static final Version DEFAULT_VERSION = Version.DRAFT17;
@@ -325,9 +327,35 @@ public class TyrusWebSocketEngine implements org.glassfish.tyrus.spi.WebSocketEn
      * @param app the {@link WebSocketApplication} to register.
      * @throws DeploymentException when added applications responds to same path as some already registered application.
      */
-    public void register(WebSocketApplication app) throws DeploymentException {
+    private void register(WebSocketApplication app) throws DeploymentException {
         checkPath(app);
         applications.add(app);
+    }
+
+    @Override
+    public void register(Class<?> endpointClass) {
+
+        // TODO: Implement.
+
+//        AnnotatedEndpoint endpoint = AnnotatedEndpoint.fromClass(endpointClass, componentProvider, true, collector);
+//        EndpointConfig config = endpoint.getEndpointConfig();
+//        TyrusEndpointWrapper ew = new TyrusEndpointWrapper(endpoint, config, componentProvider, this, contextPath, collector,
+//                config instanceof ServerEndpointConfig ? ((ServerEndpointConfig) config).getConfigurator() : null);
+
+//        register(ew);
+
+
+    }
+
+    @Override
+    public void register(ServerEndpointConfig serverConfig) {
+
+        //                    TyrusEndpointWrapper ew = new TyrusEndpointWrapper(serverEndpointConfiguration.getEndpointClass(),
+        //                            serverEndpointConfiguration, componentProvider, this, contextPath, collector, serverEndpointConfiguration.getConfigurator());
+
+        // register(ew)
+
+        // TODO: Implement.
     }
 
     private void checkPath(WebSocketApplication app) throws DeploymentException {

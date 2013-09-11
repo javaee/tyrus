@@ -54,12 +54,17 @@ import javax.websocket.CloseReason;
 import org.glassfish.tyrus.core.RequestContext;
 import org.glassfish.tyrus.spi.UpgradeRequest;
 import org.glassfish.tyrus.spi.UpgradeResponse;
+import org.glassfish.tyrus.spi.WebSocketEngine;
 import org.glassfish.tyrus.spi.Writer;
 import org.glassfish.tyrus.websockets.DataFrame;
 import org.glassfish.tyrus.websockets.HandshakeException;
+<<<<<<< HEAD
 import org.glassfish.tyrus.websockets.TyrusWebSocketEngine;
 import org.glassfish.tyrus.websockets.TyrusWebSocketEngine.WebSocketHolder;
 import org.glassfish.tyrus.websockets.Utils;
+=======
+import org.glassfish.tyrus.websockets.TyrusWebSocketEngine.WebSocketHolder;
+>>>>>>> First take on adapting Grizzly Container to new SPI
 import org.glassfish.tyrus.websockets.WebSocket;
 import org.glassfish.tyrus.websockets.WebSocketRequest;
 import org.glassfish.tyrus.websockets.WebSocketResponse;
@@ -102,12 +107,15 @@ class WebSocketFilter extends BaseFilter {
 
     private static final Logger logger = Grizzly.logger(WebSocketFilter.class);
 
+    private static final String TYRUS_CONNECTION = WebSocketFilter.class.getName() + ".Connection";
+
+
     static final long DEFAULT_WS_IDLE_TIMEOUT_IN_SECONDS = 15 * 60;
 
     private final long wsTimeoutMS;
     private final boolean proxy;
     private final Filter sslFilter;
-    private final TyrusWebSocketEngine engine;
+    private final WebSocketEngine engine;
 
     private UpgradeRequest webSocketRequest;
 
@@ -117,7 +125,7 @@ class WebSocketFilter extends BaseFilter {
      * Constructs a new {@link WebSocketFilter} with a default idle connection
      * timeout of 15 minutes and with proxy turned off.
      */
-    public WebSocketFilter(TyrusWebSocketEngine engine) {
+    public WebSocketFilter(WebSocketEngine engine) {
         this(engine, DEFAULT_WS_IDLE_TIMEOUT_IN_SECONDS, false);
     }
 
@@ -127,7 +135,7 @@ class WebSocketFilter extends BaseFilter {
      * @param wsTimeoutInSeconds TODO
      * @param proxy              true when client initiated connection has proxy in the way.
      */
-    public WebSocketFilter(TyrusWebSocketEngine engine, final long wsTimeoutInSeconds, boolean proxy) {
+    public WebSocketFilter(WebSocketEngine engine, final long wsTimeoutInSeconds, boolean proxy) {
         this(engine, wsTimeoutInSeconds, proxy, null);
     }
 
@@ -138,7 +146,7 @@ class WebSocketFilter extends BaseFilter {
      * @param proxy              true when client initiated connection has proxy in the way.
      * @param sslFilter          filter to be "enabled" in case connection is created via proxy.
      */
-    public WebSocketFilter(TyrusWebSocketEngine engine, final long wsTimeoutInSeconds, boolean proxy, Filter sslFilter) {
+    public WebSocketFilter(WebSocketEngine engine, final long wsTimeoutInSeconds, boolean proxy, Filter sslFilter) {
         if (wsTimeoutInSeconds <= 0) {
             this.wsTimeoutMS = IdleTimeoutFilter.FOREVER;
         } else {
@@ -213,19 +221,10 @@ class WebSocketFilter extends BaseFilter {
      */
     @Override
     public NextAction handleClose(FilterChainContext ctx) throws IOException {
-        // Get the Connection
-        final Writer writer = getWebSocketConnection(ctx, HttpContent.builder(HttpRequestPacket.builder().build()).build());
 
-        // check if Connection has associated WebSocket (is websocket)
-        if (webSocketInProgress(writer)) {
-            // if yes - get websocket
-            final WebSocket ws = getWebSocket(writer);
-            if (ws != null) {
-                // if there is associated websocket object (which means handshake was passed)
-                // close it gracefully
-                ws.close();
-                engine.removeConnection(writer);
-            }
+        final org.glassfish.tyrus.spi.Connection connection = getConnection(ctx);
+        if (connection != null) {
+            connection.close(new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, null));
         }
         return ctx.getInvokeAction();
     }
@@ -246,18 +245,22 @@ class WebSocketFilter extends BaseFilter {
     public NextAction handleRead(FilterChainContext ctx) throws IOException {
         // Get the parsed HttpContent (we assume prev. filter was HTTP)
         final HttpContent message = ctx.getMessage();
+
+
+        org.glassfish.tyrus.spi.Connection tyrusConnection = getConnection(ctx);
+
         // Get the Grizzly Connection
         final Writer writer = getWebSocketConnection(ctx, message);
         // Get the HTTP header
         final HttpHeader header = message.getHttpHeader();
 
-        WebSocket ws = getWebSocket(writer);
         if (logger.isLoggable(Level.FINE)) {
             logger.log(Level.FINE, "handleRead websocket: {0} content-size={1} headers=\n{2}",
-                    new Object[]{ws, message.getContent().remaining(), header});
+                    new Object[]{tyrusConnection, message.getContent().remaining(), header});
         }
 
-        if (ws == null || !ws.isConnected()) {
+        if (tyrusConnection == null) {
+            // client
             if (!message.getHttpHeader().isRequest()) {
                 final HttpStatus httpStatus = ((HttpResponsePacket) message.getHttpHeader()).getHttpStatus();
 
@@ -282,9 +285,8 @@ class WebSocketFilter extends BaseFilter {
                 }
             }
 
-            // If websocket is null - it means either non-websocket Connection, or websocket with incomplete handshake
-            if (!webSocketInProgress(writer) &&
-                    !UpgradeRequest.WEBSOCKET.equalsIgnoreCase(header.getUpgrade())) {
+            // If websocket is null - it means either non-websocket Connection
+            if (!UpgradeRequest.WEBSOCKET.equalsIgnoreCase(header.getUpgrade())) {
                 // if it's not a websocket connection - pass the processing to the next filter
                 return ctx.getInvokeAction();
             }
@@ -305,6 +307,7 @@ class WebSocketFilter extends BaseFilter {
             return handleHandshake(ctx, message);
         }
 
+        // tyrusConnection is not null
         // this is websocket with the completed handshake
         if (message.getContent().hasRemaining()) {
             // get the frame(s) content
@@ -314,9 +317,18 @@ class WebSocketFilter extends BaseFilter {
             ByteBuffer webSocketBuffer = BufferHelper.convertBuffer(buffer);
             // check if we're currently parsing a frame
 
-            engine.processData(writer, webSocketBuffer);
+            tyrusConnection.getReadHandler().handle(webSocketBuffer);
         }
         return ctx.getStopAction();
+    }
+
+    private org.glassfish.tyrus.spi.Connection getConnection(FilterChainContext ctx) {
+        final Object o = ctx.getAttributes().getAttribute(TYRUS_CONNECTION);
+        if (o != null && o instanceof org.glassfish.tyrus.spi.Connection) {
+            return (org.glassfish.tyrus.spi.Connection) o;
+        }
+
+        return null;
     }
 
     /**
@@ -332,9 +344,9 @@ class WebSocketFilter extends BaseFilter {
     public NextAction handleWrite(FilterChainContext ctx) throws IOException {
         // get the associated websocket
         Writer writer = getWebSocketConnection(ctx, null);
-        final WebSocket websocket = getWebSocket(writer);
+        final Object tyrusConnection = ctx.getAttributes().getAttribute(TYRUS_CONNECTION);
         // if there is one
-        if (websocket != null) {
+        if (tyrusConnection != null) {
             final byte[] bytes = ctx.getMessage();
             final Buffer wrap = Buffers.wrap(ctx.getMemoryManager(), bytes);
             ctx.setMessage(wrap);
@@ -418,49 +430,74 @@ class WebSocketFilter extends BaseFilter {
                                              final HttpContent requestContent)
             throws IOException {
 
-        // get HTTP request headers
-        final HttpRequestPacket request = (HttpRequestPacket) requestContent.getHttpHeader();
-        final GrizzlyWriter webSocketWriter = getWebSocketConnection(ctx, requestContent);
-        ctx.getConnection().addCloseListener(new CloseListener() {
-            @Override
-            public void onClosed(Closeable closeable, ICloseType type) throws IOException {
-                engine.close(webSocketWriter, CloseReason.CloseCodes.GOING_AWAY.getCode(), "Close detected on connection");
-            }
-        });
-        try {
-            if (!engine.upgrade(
-                    webSocketWriter,
-                    createWebSocketRequest(ctx, requestContent),
-                    webSocketWriter)) {
-                return ctx.getInvokeAction(); // not a WS request, pass to the next filter.
-            }
-            setIdleTimeout(ctx);
-        } catch (HandshakeException e) {
-            ctx.write(composeHandshakeError(request, e));
-        }
-        ctx.flush(null);
 
-        requestContent.recycle();
+        final UpgradeRequest upgradeRequest = createWebSocketRequest(ctx, requestContent);
+        // TODO: final UpgradeResponse upgradeResponse = GrizzlyUpgradeResponse(HttpResponsePacket)
+        final UpgradeResponse upgradeResponse = new WebSocketResponse();
+        final WebSocketEngine.UpgradeInfo upgradeInfo = engine.upgrade(upgradeRequest, upgradeResponse);
+
+        switch (upgradeInfo.getStatus()) {
+            case SUCCESS:
+
+                final org.glassfish.tyrus.spi.Connection connection = upgradeInfo.createConnection(new GrizzlyWriter(ctx.getConnection()), new org.glassfish.tyrus.spi.Connection.CloseListener() {
+                    @Override
+                    public void close(CloseReason reason) {
+                        ctx.getConnection().close();
+                    }
+                });
+
+                ctx.getConnection().addCloseListener(new CloseListener() {
+                    @Override
+                    public void onClosed(Closeable closeable, ICloseType type) throws IOException {
+                        connection.close(new CloseReason(CloseReason.CloseCodes.GOING_AWAY, "Close detected on connection"));
+                    }
+                });
+
+                write(ctx, upgradeRequest, upgradeResponse);
+                ctx.flush(null);
+                requestContent.recycle();
+
+                ctx.getAttributes().setAttribute(TYRUS_CONNECTION, connection);
+
+                return ctx.getStopAction();
+
+            case HANDSHAKE_FAILED:
+
+                write(ctx, upgradeRequest, upgradeResponse);
+                ctx.flush(null);
+                requestContent.recycle();
+
+                return ctx.getStopAction();
+
+            case NOT_APPLICABLE:
+
+                return ctx.getInvokeAction();
+        }
+
 
         return ctx.getStopAction();
     }
 
-    private WebSocket getWebSocket(final Writer writer) {
-        return engine.getWebSocket(writer);
+    private void write(FilterChainContext ctx, UpgradeRequest request, UpgradeResponse response) {
+        final HttpResponsePacket responsePacket = ((HttpRequestPacket) getHttpContent(request).getHttpHeader()).getResponse();
+        responsePacket.setProtocol(Protocol.HTTP_1_1);
+        responsePacket.setStatus(response.getStatus());
+
+        // TODO
+//        responsePacket.setReasonPhrase(response.getReasonPhrase());
+
+        for (Map.Entry<String, List<String>> entry : response.getHeaders().entrySet()) {
+            responsePacket.setHeader(entry.getKey(), Utils.getHeaderFromList(entry.getValue()));
+        }
+
+        ctx.write(HttpContent.builder(responsePacket).build());
     }
 
-    private boolean webSocketInProgress(final Writer writer) {
-        return engine.webSocketInProgress(writer);
-    }
-
-    private static HttpResponsePacket composeHandshakeError(final HttpRequestPacket request,
-                                                            final HandshakeException e) {
-        final HttpResponsePacket response = request.getResponse();
-        response.setStatus(e.getCode());
-        response.setReasonPhrase(e.getMessage());
-        return response;
-    }
-
+    /**
+     * TODO ? - remove?
+     *
+     * @param ctx
+     */
     private void setIdleTimeout(final FilterChainContext ctx) {
         final FilterChain filterChain = ctx.getFilterChain();
         if (filterChain.indexOfType(IdleTimeoutFilter.class) >= 0) {

@@ -71,6 +71,7 @@ import org.glassfish.tyrus.spi.ClientContainer;
 import org.glassfish.tyrus.spi.ClientSocket;
 import org.glassfish.tyrus.spi.EndpointWrapper;
 import org.glassfish.tyrus.spi.UpgradeResponse;
+import org.glassfish.tyrus.spi.WebSocketEngine;
 import org.glassfish.tyrus.spi.Writer;
 import org.glassfish.tyrus.websockets.DataFrame;
 import org.glassfish.tyrus.websockets.Handshake;
@@ -157,7 +158,7 @@ public class GrizzlyClientSocket implements WebSocket, ClientSocket {
     private final SSLEngineConfigurator clientSSLEngineConfigurator;
     private final ThreadPoolConfig workerThreadPoolConfig;
     private final ThreadPoolConfig selectorThreadPoolConfig;
-    private final TyrusWebSocketEngine engine;
+    private final WebSocketEngine engine;
 
     private SocketAddress socketAddress;
 
@@ -179,7 +180,7 @@ public class GrizzlyClientSocket implements WebSocket, ClientSocket {
      * @param clientSSLEngineConfigurator ssl engine configurator
      */
     GrizzlyClientSocket(EndpointWrapper endpoint, URI uri, ClientEndpointConfig configuration, long timeoutMs,
-                        ClientContainer.ClientHandshakeListener listener, TyrusWebSocketEngine engine,
+                        ClientContainer.ClientHandshakeListener listener, WebSocketEngine engine,
                         SSLEngineConfigurator clientSSLEngineConfigurator,
                         String proxyString,
                         ThreadPoolConfig workerThreadPoolConfig,
@@ -585,7 +586,7 @@ public class GrizzlyClientSocket implements WebSocket, ClientSocket {
         }
     }
 
-    private static Processor createFilterChain(TyrusWebSocketEngine engine,
+    private static Processor createFilterChain(WebSocketEngine engine,
                                                SSLEngineConfigurator serverSSLEngineConfigurator,
                                                SSLEngineConfigurator clientSSLEngineConfigurator,
                                                boolean proxy) {

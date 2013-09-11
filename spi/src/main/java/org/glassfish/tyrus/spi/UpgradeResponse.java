@@ -39,8 +39,9 @@
  */
 package org.glassfish.tyrus.spi;
 
-import javax.websocket.HandshakeResponse;
 import java.util.List;
+
+import javax.websocket.HandshakeResponse;
 
 /**
  * Handshake response.
@@ -75,10 +76,10 @@ public abstract class UpgradeResponse implements HandshakeResponse {
      * If the header had already been set, the new value overwrites the
      * previous one.
      *
-     * @param name the name of the header
-     * @param value	the header value  If it contains octet string,
-     *		it should be encoded according to RFC 2047
-     *		(http://www.ietf.org/rfc/rfc2047.txt)
+     * @param name  the name of the header
+     * @param value the header value  If it contains octet string,
+     *              it should be encoded according to RFC 2047
+     *              (http://www.ietf.org/rfc/rfc2047.txt)
      */
     public abstract void setHeader(String name, String value);
 

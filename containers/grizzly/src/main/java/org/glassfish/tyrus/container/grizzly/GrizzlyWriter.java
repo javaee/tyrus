@@ -39,25 +39,25 @@
  */
 package org.glassfish.tyrus.container.grizzly;
 
+<<<<<<< HEAD
 import java.util.List;
 import java.util.Map;
 
 import org.glassfish.tyrus.spi.UpgradeResponse;
 import org.glassfish.tyrus.spi.WebSocketEngine;
+=======
+>>>>>>> First take on adapting Grizzly Container to new SPI
 import org.glassfish.tyrus.spi.Writer;
 import org.glassfish.tyrus.websockets.Utils;
 
 import org.glassfish.grizzly.EmptyCompletionHandler;
 import org.glassfish.grizzly.filterchain.FilterChainContext;
 import org.glassfish.grizzly.http.HttpContent;
-import org.glassfish.grizzly.http.HttpRequestPacket;
-import org.glassfish.grizzly.http.HttpResponsePacket;
-import org.glassfish.grizzly.http.Protocol;
 
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-class GrizzlyWriter implements Writer, WebSocketEngine.ResponseWriter {
+class GrizzlyWriter implements Writer {
 
     private final FilterChainContext ctx;
     private final HttpContent httpContent;
@@ -105,24 +105,6 @@ class GrizzlyWriter implements Writer, WebSocketEngine.ResponseWriter {
                 }
             }
         });
-    }
-
-    @Override
-    public void write(UpgradeResponse response) {
-        if (ctx == null) {
-            throw new UnsupportedOperationException("not supported on client side");
-        }
-
-        final HttpResponsePacket responsePacket = ((HttpRequestPacket) httpContent.getHttpHeader()).getResponse();
-        responsePacket.setProtocol(Protocol.HTTP_1_1);
-        responsePacket.setStatus(response.getStatus());
-        responsePacket.setReasonPhrase(response.getReasonPhrase());
-
-        for (Map.Entry<String, List<String>> entry : response.getHeaders().entrySet()) {
-            responsePacket.setHeader(entry.getKey(), Utils.getHeaderFromList(entry.getValue()));
-        }
-
-        ctx.write(HttpContent.builder(responsePacket).build());
     }
 
     @Override

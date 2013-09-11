@@ -43,25 +43,19 @@ package org.glassfish.tyrus.server;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
-import java.util.logging.Logger;
 
 import javax.websocket.ClientEndpointConfig;
 import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfig;
 import javax.websocket.Extension;
 import javax.websocket.Session;
 import javax.websocket.server.ServerApplicationConfig;
 import javax.websocket.server.ServerEndpointConfig;
 
-import org.glassfish.tyrus.core.AnnotatedEndpoint;
 import org.glassfish.tyrus.core.BaseContainer;
 import org.glassfish.tyrus.core.ComponentProviderService;
 import org.glassfish.tyrus.core.ErrorCollector;
-import org.glassfish.tyrus.core.TyrusEndpointWrapper;
-import org.glassfish.tyrus.spi.EndpointWrapper;
 import org.glassfish.tyrus.spi.ServerContainer;
 
 /**
@@ -74,7 +68,7 @@ import org.glassfish.tyrus.spi.ServerContainer;
 public class TyrusServerContainer extends BaseContainer implements javax.websocket.server.ServerContainer {
     private final ServerContainer server;
     private final String contextPath;
-    private final Set<EndpointWrapper> endpoints = new HashSet<EndpointWrapper>();
+    //    private final Set<EndpointWrapper> endpoints = new HashSet<EndpointWrapper>();
     private final ErrorCollector collector;
     private final ComponentProviderService componentProvider;
 
@@ -127,19 +121,21 @@ public class TyrusServerContainer extends BaseContainer implements javax.websock
         try {
             // deploy all the annotated endpoints
             for (Class<?> endpointClass : configuration.getAnnotatedEndpointClasses(null)) {
-                AnnotatedEndpoint endpoint = AnnotatedEndpoint.fromClass(endpointClass, componentProvider, true, collector);
-                EndpointConfig config = endpoint.getEndpointConfig();
-                TyrusEndpointWrapper ew = new TyrusEndpointWrapper(endpoint, config, componentProvider, this, contextPath, collector,
-                        config instanceof ServerEndpointConfig ? ((ServerEndpointConfig) config).getConfigurator() : null);
-                deploy(ew);
+//                AnnotatedEndpoint endpoint = AnnotatedEndpoint.fromClass(endpointClass, componentProvider, true, collector);
+//                EndpointConfig config = endpoint.getEndpointConfig();
+//                TyrusEndpointWrapper ew = new TyrusEndpointWrapper(endpoint, config, componentProvider, this, contextPath, collector,
+//                        config instanceof ServerEndpointConfig ? ((ServerEndpointConfig) config).getConfigurator() : null);
+
+                server.addEndpoint(endpointClass);
             }
 
             // deploy all the programmatic endpoints
             for (ServerEndpointConfig serverEndpointConfiguration : configuration.getEndpointConfigs(null)) {
                 if (serverEndpointConfiguration != null) {
-                    TyrusEndpointWrapper ew = new TyrusEndpointWrapper(serverEndpointConfiguration.getEndpointClass(),
-                            serverEndpointConfiguration, componentProvider, this, contextPath, collector, serverEndpointConfiguration.getConfigurator());
-                    deploy(ew);
+//                    TyrusEndpointWrapper ew = new TyrusEndpointWrapper(serverEndpointConfiguration.getEndpointClass(),
+//                            serverEndpointConfiguration, componentProvider, this, contextPath, collector, serverEndpointConfiguration.getConfigurator());
+
+                    server.addEndpoint(serverEndpointConfiguration);
                 }
             }
         } catch (DeploymentException de) {
@@ -152,19 +148,14 @@ public class TyrusServerContainer extends BaseContainer implements javax.websock
         }
     }
 
-    private void deploy(TyrusEndpointWrapper wrapper) throws DeploymentException {
-        server.register(wrapper);
-        endpoints.add(wrapper);
-    }
-
     /**
      * Undeploy all endpoints and stop underlying {@link org.glassfish.tyrus.spi.ServerContainer}.
      */
     public void stop() {
-        for (EndpointWrapper wsa : this.endpoints) {
-            this.server.unregister(wsa);
-            Logger.getLogger(getClass().getName()).fine("Closing down : " + wsa);
-        }
+//        for (EndpointWrapper wsa : this.endpoints) {
+//            this.server.unregister(wsa);
+//            Logger.getLogger(getClass().getName()).fine("Closing down : " + wsa);
+//        }
         server.stop();
     }
 

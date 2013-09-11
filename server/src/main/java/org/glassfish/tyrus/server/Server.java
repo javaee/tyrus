@@ -182,8 +182,4 @@ public class Server {
         }
         return beanClasses;
     }
-
-    public TyrusServerContainer getServerContainer() {
-        return server;
-    }
 }

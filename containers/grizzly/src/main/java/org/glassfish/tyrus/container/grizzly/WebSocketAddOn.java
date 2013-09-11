@@ -40,7 +40,7 @@
 
 package org.glassfish.tyrus.container.grizzly;
 
-import org.glassfish.tyrus.websockets.TyrusWebSocketEngine;
+import org.glassfish.tyrus.spi.WebSocketEngine;
 
 import org.glassfish.grizzly.filterchain.FilterChainBuilder;
 import org.glassfish.grizzly.http.server.AddOn;
@@ -50,14 +50,14 @@ import org.glassfish.grizzly.http.server.NetworkListener;
 
 /**
  * WebSockets {@link AddOn} for the {@link HttpServer}.
- * 
+ *
  * @author Alexey Stashok
  */
 class WebSocketAddOn implements AddOn {
 
-    private final TyrusWebSocketEngine engine;
+    private final WebSocketEngine engine;
 
-    WebSocketAddOn(TyrusWebSocketEngine engine) {
+    WebSocketAddOn(WebSocketEngine engine) {
         this.engine = engine;
     }
 

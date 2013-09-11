@@ -79,9 +79,15 @@ public class WebSocketResponse extends UpgradeResponse {
      *
      * @return reason phrase.
      */
-    @Override
+//    @Override
     public String getReasonPhrase() {
         return reasonPhrase;
+    }
+
+    @Override
+    public void setHeader(String name, String value) {
+        // TODO: Implement.
+        throw new UnsupportedOperationException();
     }
 
     /**
