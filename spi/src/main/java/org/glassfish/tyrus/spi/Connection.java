@@ -40,8 +40,26 @@
 
 package org.glassfish.tyrus.spi;
 
-import java.nio.ByteBuffer;
+import javax.websocket.CloseReason;
+import java.io.Closeable;
 
-public abstract class IncomingDataHandler {
-    public abstract void handle(ByteBuffer data);
+// Tyrus creates Connection implementation and connectors
+// call get ProtocolReader,  and set ProtocolWriter and Closeable impl
+public interface Connection {
+
+    ReadHandler getReadHandler();
+
+    Writer getWriter();
+
+    // Tyrus notifies the the given Closeable that it is closing the
+    // connection.
+    CloseListener getCloseListener();
+
+    // Notify tyrus that underlying transport is closing the connection
+    void close(CloseReason reason);
+
+    interface CloseListener {
+        void close(CloseReason reason);
+    }
+
 }

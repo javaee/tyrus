@@ -39,21 +39,45 @@
  */
 package org.glassfish.tyrus.spi;
 
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.ServiceLoader;
 
-/**
- * The TyrusContainer is the starting point of the provider SPI.
- *
- * @author Danny Coward (danny.coward at oracle.com)
- */
-public interface ServerContainerFactory {
+public abstract class ServerContainerFactory {
 
-    /**
-     * Creates a new embedded HTTP server (if supported) listening to incoming connections at a given root path
-     * and port.
-     *
-     * @param rootPath context root
-     * @param port     TCP port
-     * @return server that can be started and stopped
-     */
-    public ServerContainer createServerContainer(String rootPath, int port);
+    private static final String CONTAINTER_CLASS =
+            "org.glassfish.tyrus.container.grizzly.GrizzlyContainer";
+
+    public static ServerContainer createServerContainer() {
+        return createServerContainer(Collections.<String, Object>emptyMap());
+    }
+
+    public static ServerContainer createServerContainer(Map<String, Object> config) {
+        ServerContainerFactory factory = null;
+
+        Iterator<ServerContainerFactory> it = ServiceLoader.load(ServerContainerFactory.class).iterator();
+        if (it.hasNext()) {
+            factory = it.next();
+        }
+        if (factory == null) {
+            try {
+                ClassLoader classLoader = Thread.currentThread().getContextClassLoader();
+                Class factoryClass = (classLoader == null)
+                        ? Class.forName(CONTAINTER_CLASS)
+                        : classLoader.loadClass(CONTAINTER_CLASS);
+                factory = (ServerContainerFactory)factoryClass.newInstance();
+            } catch (ClassNotFoundException ce) {
+                throw new RuntimeException(ce);
+            } catch (InstantiationException ie) {
+                throw new RuntimeException(ie);
+            } catch (IllegalAccessException ie) {
+                throw new RuntimeException(ie);
+            }
+        }
+        return factory.createContainer(config);
+    }
+
+    protected abstract ServerContainer createContainer(Map<String, Object> config);
+
 }

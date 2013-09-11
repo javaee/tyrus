@@ -71,6 +71,18 @@ public abstract class UpgradeResponse implements HandshakeResponse {
     public abstract void setReasonPhrase(String reason);
 
     /**
+     * Sets a response header with the given name and value.
+     * If the header had already been set, the new value overwrites the
+     * previous one.
+     *
+     * @param name the name of the header
+     * @param value	the header value  If it contains octet string,
+     *		it should be encoded according to RFC 2047
+     *		(http://www.ietf.org/rfc/rfc2047.txt)
+     */
+    public abstract void setHeader(String name, String value);
+
+    /**
      * Gets the first header value from the {@link List} of header values corresponding to the name.
      *
      * @param name header name.

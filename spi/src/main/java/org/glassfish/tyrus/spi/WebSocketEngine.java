@@ -39,6 +39,8 @@
  */
 package org.glassfish.tyrus.spi;
 
+import static org.glassfish.tyrus.spi.Connection.CloseListener;
+
 /**
  * Web Socket engine is the main entry-point to WebSocket implementation.
  *
@@ -55,7 +57,8 @@ public interface WebSocketEngine {
 
         // If the status is SUCCESS, then return the connection
         // Otherwise null
-        WebSocketConnection getConnection();
+        // Tyrus would call onConnect lifecycle method on the endpoint
+        Connection createConnection(Writer writer, CloseListener cl);
     }
 
     enum UpgradeStatus {

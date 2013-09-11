@@ -41,21 +41,25 @@ package org.glassfish.tyrus.spi;
 
 import java.io.IOException;
 
-import javax.websocket.DeploymentException;
 
 /**
  * HTTP server abstraction.
  *
  * @author Martin Matula (martin.matula at oracle.com)
  */
-public interface ServerContainer {
+public interface ServerContainer extends javax.websocket.server.ServerContainer {
 
     /**
      * Starts the server.
+     * Creates a new embedded HTTP server (if supported) listening to incoming connections at a given root path
+     * and port.
+     *
+     * @param rootPath context root
+     * @param port     TCP port
      *
      * @throws IOException if something goes wrong.
      */
-    void start() throws IOException;
+    void start(String rootPath, int port) throws IOException;
 
     /**
      * Stops the server.
@@ -63,27 +67,10 @@ public interface ServerContainer {
     void stop();
 
     /**
-     * The register method is called by the SDK when it
-     * has created a web socket endpoint it wishes to be managed.
-     *
-     * @param endpoint SPIEndpoint to be registered.
-     * @throws DeploymentException when endpoint cannot be registered.
-     */
-    public void register(EndpointWrapper endpoint) throws DeploymentException;
-
-    /**
-     * The SDK calls unregister when it no longer wishes the endpoint to be
-     * in service.
-     *
-     * @param endpoint the endpoint which is going to be unregistered.
-     */
-    public void unregister(EndpointWrapper endpoint);
-
-    /**
      * Returns WebSocketEngine to upgrade requests and setting up the
      * connection
      *
      * @return websocket engine
      */
-    public WebSocketEngine getWebSocketEngine();
+    WebSocketEngine getWebSocketEngine();
 }
