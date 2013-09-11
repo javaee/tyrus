@@ -134,6 +134,7 @@ public class TyrusSession implements Session {
             maxTextMessageBufferSize = container.getDefaultMaxTextMessageBufferSize();
             maxBinaryMessageBufferSize = container.getDefaultMaxBinaryMessageBufferSize();
             service = ((ExecutorServiceProvider) container).getScheduledExecutorService();
+            setMaxIdleTimeout(container.getDefaultMaxSessionIdleTimeout());
         }
 
         setNegotiatedSubprotocol(subprotocol);
