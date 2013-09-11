@@ -46,6 +46,8 @@ import java.io.IOException;
  * HTTP server abstraction.
  *
  * @author Martin Matula (martin.matula at oracle.com)
+ *
+ * TODO rename the class to avoid findbugs
  */
 public interface ServerContainer extends javax.websocket.server.ServerContainer {
 
