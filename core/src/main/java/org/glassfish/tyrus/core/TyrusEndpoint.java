@@ -113,7 +113,7 @@ public class TyrusEndpoint extends WebSocketApplication implements SPIRegistered
         final List<Extension> extensions = TyrusExtension.fromString(webSocketRequest.getHeaders().get(WebSocketEngine.SEC_WS_EXTENSIONS_HEADER));
         temporaryNegotiatedExtensions = endpoint.getNegotiatedExtensions(extensions);
 
-        return endpoint.checkHandshake(webSocketRequest instanceof RequestContext ? (RequestContext)webSocketRequest : null);
+        return endpoint.checkHandshake(webSocketRequest instanceof RequestContext ? (RequestContext) webSocketRequest : null);
     }
 
     @Override
@@ -225,7 +225,7 @@ public class TyrusEndpoint extends WebSocketApplication implements SPIRegistered
     public List<String> getSupportedProtocols(List<String> subProtocol) {
         List<String> result;
 
-        if (temporaryNegotiatedProtocol == null) {
+        if (temporaryNegotiatedProtocol == null || temporaryNegotiatedProtocol.isEmpty()) {
             result = Collections.emptyList();
         } else {
             result = new ArrayList<String>();

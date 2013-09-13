@@ -42,15 +42,19 @@ package org.glassfish.tyrus.test.e2e;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfig;
 import javax.websocket.ContainerProvider;
 import javax.websocket.EndpointConfig;
+import javax.websocket.HandshakeResponse;
 import javax.websocket.MessageHandler;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
+import javax.websocket.server.HandshakeRequest;
 import javax.websocket.server.ServerEndpoint;
 
 import org.glassfish.tyrus.server.Server;
@@ -58,12 +62,14 @@ import org.glassfish.tyrus.server.Server;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 
+import static junit.framework.Assert.assertNull;
+
 /**
  * See https://java.net/jira/browse/TYRUS-205.
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class SubProtocolOrderingTest {
+public class SubProtocolTest {
 
     @ServerEndpoint(value = "/subProtocolTest", subprotocols = {"MBLWS.huawei.com", "wamp", "v11.stomp", "v10.stomp", "soap"})
     public static class Endpoint {
@@ -74,7 +80,7 @@ public class SubProtocolOrderingTest {
     }
 
     @Test
-    public void test() {
+    public void orderingTest() {
         Server server = new Server(Endpoint.class);
 
         try {
@@ -90,6 +96,53 @@ public class SubProtocolOrderingTest {
                         @Override
                         public void onMessage(String message) {
                             if (message.equals("soap") && session.getNegotiatedSubprotocol().equals("soap")) {
+                                messageLatch.countDown();
+                            }
+                        }
+                    });
+                }
+            }, clientEndpointConfig, new URI("ws://localhost:8025/websockets/tests/subProtocolTest"));
+
+            messageLatch.await(1, TimeUnit.SECONDS);
+            assertEquals(0, messageLatch.getCount());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            server.stop();
+        }
+    }
+
+    @Test
+    public void testNoIntersection() {
+        Server server = new Server(Endpoint.class);
+
+        try {
+            server.start();
+
+            final CountDownLatch messageLatch = new CountDownLatch(1);
+
+            final ClientEndpointConfig clientEndpointConfig = ClientEndpointConfig.Builder.create().
+                    configurator(new ClientEndpointConfig.Configurator() {
+                        @Override
+                        public void afterResponse(HandshakeResponse hr) {
+                            final Map<String, List<String>> headers = hr.getHeaders();
+
+                            // TYRUS-250: SEC_WEBSOCKET_PROTOCOL cannot be present when there is no negotiated
+                            //            subprotocol.
+                            assertNull(headers.get(HandshakeRequest.SEC_WEBSOCKET_PROTOCOL));
+                        }
+                    }).
+                    preferredSubprotocols(Arrays.asList("a", "b", "c")).build();
+            ContainerProvider.getWebSocketContainer().connectToServer(new javax.websocket.Endpoint() {
+                @Override
+                public void onOpen(final Session session, EndpointConfig config) {
+                    session.addMessageHandler(new MessageHandler.Whole<String>() {
+                        @Override
+                        public void onMessage(String message) {
+
+                            if (message.equals("") && session.getNegotiatedSubprotocol().equals("")) {
                                 messageLatch.countDown();
                             }
                         }
