@@ -41,6 +41,8 @@ package org.glassfish.tyrus.test.e2e;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -48,23 +50,26 @@ import javax.websocket.ClientEndpointConfig;
 import javax.websocket.ContainerProvider;
 import javax.websocket.DeploymentException;
 import javax.websocket.EndpointConfig;
+import javax.websocket.HandshakeResponse;
 import javax.websocket.MessageHandler;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
+import org.glassfish.tyrus.spi.UpgradeRequest;
 import org.glassfish.tyrus.test.tools.TestContainer;
 import org.glassfish.tyrus.server.Server;
 
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 /**
  * See https://java.net/jira/browse/TYRUS-205.
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class SubProtocolOrderingTest extends TestContainer {
+public class SubProtocolTest extends TestContainer {
 
     @ServerEndpoint(value = "/subProtocolTest", subprotocols = {"MBLWS.huawei.com", "wamp", "v11.stomp", "v10.stomp", "soap"})
     public static class Endpoint {
@@ -75,7 +80,7 @@ public class SubProtocolOrderingTest extends TestContainer {
     }
 
     @Test
-    public void test() throws DeploymentException {
+    public void orderingTest() throws DeploymentException {
         Server server = startServer(Endpoint.class);
 
         try {
@@ -117,6 +122,16 @@ public class SubProtocolOrderingTest extends TestContainer {
             final CountDownLatch messageLatch = new CountDownLatch(1);
 
             final ClientEndpointConfig clientEndpointConfig = ClientEndpointConfig.Builder.create().
+                    configurator(new ClientEndpointConfig.Configurator() {
+                        @Override
+                        public void afterResponse(HandshakeResponse hr) {
+                            final Map<String,List<String>> headers = hr.getHeaders();
+
+                            // TYRUS-250: SEC_WEBSOCKET_PROTOCOL cannot be present when there is no negotiated
+                            //            subprotocol.
+                            assertNull(headers.get(UpgradeRequest.SEC_WEBSOCKET_PROTOCOL));
+                        }
+                    }).
                     preferredSubprotocols(Arrays.asList("a", "b", "c")).build();
             ContainerProvider.getWebSocketContainer().connectToServer(new javax.websocket.Endpoint() {
                 @Override

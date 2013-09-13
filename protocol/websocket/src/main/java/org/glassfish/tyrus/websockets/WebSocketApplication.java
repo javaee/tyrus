@@ -40,7 +40,6 @@
 
 package org.glassfish.tyrus.websockets;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -64,8 +63,6 @@ public abstract class WebSocketApplication implements WebSocketListener {
      */
     private final Map<WebSocket, Boolean> sockets =
             new ConcurrentHashMap<WebSocket, Boolean>();
-
-    private final List<String> supportedProtocols = new ArrayList<String>();
 
     /**
      * Factory method to create new {@link WebSocket} instances.  Developers may
@@ -179,9 +176,7 @@ public abstract class WebSocketApplication implements WebSocketListener {
      * @param subProtocol TODO
      * @return TODO
      */
-    public List<String> getSupportedProtocols(List<String> subProtocol) {
-        return supportedProtocols;
-    }
+    public abstract List<String> getSupportedProtocols(List<String> subProtocol);
 
     /**
      * Associates the specified {@link WebSocket} with this application.

@@ -87,6 +87,11 @@ public class TestWebSocketApplication extends WebSocketApplication {
     }
 
     @Override
+    public List<String> getSupportedProtocols(List<String> subProtocol) {
+        return Collections.emptyList();
+    }
+
+    @Override
     public void onMessage(WebSocket socket, String text) {
     }
 

@@ -182,7 +182,7 @@ public class TyrusEndpoint extends WebSocketApplication {
     public List<String> getSupportedProtocols(List<String> subProtocol) {
         List<String> result;
 
-        if (temporaryNegotiatedProtocol == null) {
+        if (temporaryNegotiatedProtocol == null || temporaryNegotiatedProtocol.isEmpty()) {
             result = Collections.emptyList();
         } else {
             result = new ArrayList<String>();
