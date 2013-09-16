@@ -59,9 +59,10 @@ import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.e2e.bean.TestEndpoint;
 import org.glassfish.tyrus.test.e2e.message.StringContainer;
 
-import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests the decoding and message handling of custom object.
@@ -78,9 +79,6 @@ public class DecodedObjectTest {
 
     private static final String SENT_MESSAGE = "hello";
 
-    private final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
-
-    @Ignore
     @Test
     public void testSimpleDecoded() {
 
@@ -96,11 +94,6 @@ public class DecodedObjectTest {
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new Endpoint() {
 
-//                @Override
-//                public EndpointConfig getEndpointConfig() {
-//                    return dcec;
-//                }
-
                 @Override
                 public void onOpen(Session session, EndpointConfig EndpointConfig) {
                     try {
@@ -113,9 +106,9 @@ public class DecodedObjectTest {
                 }
             }, cec, new URI("ws://localhost:8025/websockets/tests/echo"));
 
-            messageLatch.await(5, TimeUnit.SECONDS);
-            Assert.assertTrue("The received message is the same as the sent one", receivedMessage.equals(SENT_MESSAGE));
-            Assert.assertNull("The message was not received via the TextMessageHandler", receivedTextMessage);
+            assertTrue(messageLatch.await(5, TimeUnit.SECONDS));
+            assertTrue("The received message is the same as the sent one", receivedMessage.equals(SENT_MESSAGE));
+            assertNull("The message was not received via the TextMessageHandler", receivedTextMessage);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
@@ -123,6 +116,50 @@ public class DecodedObjectTest {
             server.stop();
         }
     }
+
+    @Test
+    public void testDecodeException() {
+
+        Server server = new Server(TestEndpoint.class);
+
+        try {
+            server.start();
+            messageLatch = new CountDownLatch(1);
+            ArrayList<Class<? extends Decoder>> decoders = new ArrayList<Class<? extends Decoder>>();
+            decoders.add(CustomDecoderThrowingDecodeException.class);
+            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().decoders(decoders).build();
+
+            ClientManager client = ClientManager.createClient();
+            client.connectToServer(new Endpoint() {
+
+                @Override
+                public void onOpen(Session session, EndpointConfig EndpointConfig) {
+                    try {
+                        session.addMessageHandler(new DecodedMessageHandler());
+                        session.getBasicRemote().sendText(SENT_MESSAGE);
+                        System.out.println("Sent message: " + SENT_MESSAGE);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                @Override
+                public void onError(Session session, Throwable thr) {
+                    if(thr instanceof DecodeException) {
+                        messageLatch.countDown();
+                    }
+                }
+            }, cec, new URI("ws://localhost:8025/websockets/tests/echo"));
+
+            assertTrue(messageLatch.await(5, TimeUnit.SECONDS));
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            server.stop();
+        }
+    }
+
 
     @Ignore
     @Test
@@ -158,8 +195,8 @@ public class DecodedObjectTest {
             }, cec, new URI("ws://localhost:8025/websockets/tests/echo"));
 
             messageLatch.await(5, TimeUnit.SECONDS);
-            Assert.assertTrue("The received message is the same as the sent one", receivedMessage.equals("Extended " + SENT_MESSAGE));
-            Assert.assertNull("The message was not received via the TextMessageHandler", receivedTextMessage);
+            assertTrue("The received message is the same as the sent one", receivedMessage.equals("Extended " + SENT_MESSAGE));
+            assertNull("The message was not received via the TextMessageHandler", receivedTextMessage);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
@@ -168,7 +205,7 @@ public class DecodedObjectTest {
         }
     }
 
-    class CustomDecoder extends CoderAdapter implements Decoder.Text<StringContainer> {
+    public static class CustomDecoder extends CoderAdapter implements Decoder.Text<StringContainer> {
 
         @Override
         public StringContainer decode(String s) throws DecodeException {
@@ -181,7 +218,20 @@ public class DecodedObjectTest {
         }
     }
 
-    class ExtendedDecoder extends CoderAdapter implements Decoder.Text<ExtendedStringContainer> {
+    public static class CustomDecoderThrowingDecodeException extends CoderAdapter implements Decoder.Text<StringContainer> {
+
+        @Override
+        public StringContainer decode(String s) throws DecodeException {
+            throw new DecodeException(s, s);
+        }
+
+        @Override
+        public boolean willDecode(String s) {
+            return true;
+        }
+    }
+
+    public static class ExtendedDecoder extends CoderAdapter implements Decoder.Text<ExtendedStringContainer> {
 
         @Override
         public ExtendedStringContainer decode(String s) throws DecodeException {
@@ -215,7 +265,7 @@ public class DecodedObjectTest {
         }
     }
 
-    class ExtendedStringContainer extends StringContainer {
+    public static class ExtendedStringContainer extends StringContainer {
         public ExtendedStringContainer(String string) {
             super("Extended " + string);
         }

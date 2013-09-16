@@ -63,6 +63,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.websocket.CloseReason;
+import javax.websocket.DecodeException;
 import javax.websocket.Decoder;
 import javax.websocket.DeploymentException;
 import javax.websocket.EncodeException;
@@ -249,6 +250,7 @@ public class EndpointWrapper extends SPIEndpoint {
         return classList;
     }
 
+    @Override
     public String getEndpointPath() {
         if (configuration instanceof ServerEndpointConfig) {
             String relativePath = ((ServerEndpointConfig) configuration).getPath();
@@ -273,37 +275,34 @@ public class EndpointWrapper extends SPIEndpoint {
         return coder;
     }
 
-    Object decodeCompleteMessage(Session session, Object message, Class<?> type, CoderWrapper<Decoder> selectedDecoder) {
-        try {
-            final Class<? extends Decoder> decoderClass = selectedDecoder.getCoderClass();
+    Object decodeCompleteMessage(Session session, Object message, Class<?> type, CoderWrapper<Decoder> selectedDecoder) throws DecodeException, IOException {
+        final Class<? extends Decoder> decoderClass = selectedDecoder.getCoderClass();
 
-            if (Decoder.Text.class.isAssignableFrom(decoderClass)) {
-                if (type != null && type.isAssignableFrom(selectedDecoder.getType())) {
-                    final Decoder.Text decoder = (Decoder.Text) getCoderInstance(session, selectedDecoder);
+        if (Decoder.Text.class.isAssignableFrom(decoderClass)) {
+            if (type != null && type.isAssignableFrom(selectedDecoder.getType())) {
+                final Decoder.Text decoder = (Decoder.Text) getCoderInstance(session, selectedDecoder);
 
-                    // TYRUS-210: willDecode was already called
-                    return decoder.decode((String) message);
-                }
-            } else if (Decoder.Binary.class.isAssignableFrom(decoderClass)) {
-                if (type != null && type.isAssignableFrom(selectedDecoder.getType())) {
-                    final Decoder.Binary decoder = (Decoder.Binary) getCoderInstance(session, selectedDecoder);
-
-                    // TYRUS-210: willDecode was already called
-                    return decoder.decode((ByteBuffer) message);
-                }
-            } else if (Decoder.TextStream.class.isAssignableFrom(decoderClass)) {
-                if (type != null && type.isAssignableFrom(selectedDecoder.getType())) {
-                    return ((Decoder.TextStream) getCoderInstance(session, selectedDecoder)).decode(new StringReader((String) message));
-                }
-            } else if (Decoder.BinaryStream.class.isAssignableFrom(decoderClass)) {
-                if (type != null && type.isAssignableFrom(selectedDecoder.getType())) {
-                    byte[] array = ((ByteBuffer) message).array();
-                    return ((Decoder.BinaryStream) getCoderInstance(session, selectedDecoder)).decode(new ByteArrayInputStream(array));
-                }
+                // TYRUS-210: willDecode was already called
+                return decoder.decode((String) message);
             }
-        } catch (Exception e) {
-            collector.addException(e);
+        } else if (Decoder.Binary.class.isAssignableFrom(decoderClass)) {
+            if (type != null && type.isAssignableFrom(selectedDecoder.getType())) {
+                final Decoder.Binary decoder = (Decoder.Binary) getCoderInstance(session, selectedDecoder);
+
+                // TYRUS-210: willDecode was already called
+                return decoder.decode((ByteBuffer) message);
+            }
+        } else if (Decoder.TextStream.class.isAssignableFrom(decoderClass)) {
+            if (type != null && type.isAssignableFrom(selectedDecoder.getType())) {
+                return ((Decoder.TextStream) getCoderInstance(session, selectedDecoder)).decode(new StringReader((String) message));
+            }
+        } else if (Decoder.BinaryStream.class.isAssignableFrom(decoderClass)) {
+            if (type != null && type.isAssignableFrom(selectedDecoder.getType())) {
+                byte[] array = ((ByteBuffer) message).array();
+                return ((Decoder.BinaryStream) getCoderInstance(session, selectedDecoder)).decode(new ByteArrayInputStream(array));
+            }
         }
+
         return null;
     }
 
@@ -333,44 +332,38 @@ public class EndpointWrapper extends SPIEndpoint {
         return result;
     }
 
-    Object doEncode(Session session, Object message) throws EncodeException {
+    Object doEncode(Session session, Object message) throws EncodeException, IOException {
         for (CoderWrapper<Encoder> enc : encoders) {
-            try {
-                final Class<? extends Encoder> encoderClass = enc.getCoderClass();
+            final Class<? extends Encoder> encoderClass = enc.getCoderClass();
 
-                if (Encoder.Binary.class.isAssignableFrom(encoderClass)) {
-                    if (enc.getType().isAssignableFrom(message.getClass())) {
-                        final Encoder.Binary encoder = (Encoder.Binary) getCoderInstance(session, enc);
+            if (Encoder.Binary.class.isAssignableFrom(encoderClass)) {
+                if (enc.getType().isAssignableFrom(message.getClass())) {
+                    final Encoder.Binary encoder = (Encoder.Binary) getCoderInstance(session, enc);
 
-                        return encoder.encode(message);
-                    }
-                } else if (Encoder.Text.class.isAssignableFrom(encoderClass)) {
-                    if (enc.getType().isAssignableFrom(message.getClass())) {
-                        final Encoder.Text encoder = (Encoder.Text) getCoderInstance(session, enc);
-
-                        return encoder.encode(message);
-                    }
-                } else if (Encoder.BinaryStream.class.isAssignableFrom(encoderClass)) {
-                    if (enc.getType().isAssignableFrom(message.getClass())) {
-                        final ByteArrayOutputStream stream = new ByteArrayOutputStream();
-                        final Encoder.BinaryStream encoder = (Encoder.BinaryStream) getCoderInstance(session, enc);
-
-                        encoder.encode(message, stream);
-                        return stream;
-                    }
-                } else if (Encoder.TextStream.class.isAssignableFrom(encoderClass)) {
-                    if (enc.getType().isAssignableFrom(message.getClass())) {
-                        final Writer writer = new StringWriter();
-                        final Encoder.TextStream encoder = (Encoder.TextStream) getCoderInstance(session, enc);
-
-                        encoder.encode(message, writer);
-                        return writer;
-                    }
+                    return encoder.encode(message);
                 }
-            } catch (EncodeException ee) {
-                throw ee;
-            } catch (Exception e) {
-                throw new RuntimeException(e);
+            } else if (Encoder.Text.class.isAssignableFrom(encoderClass)) {
+                if (enc.getType().isAssignableFrom(message.getClass())) {
+                    final Encoder.Text encoder = (Encoder.Text) getCoderInstance(session, enc);
+
+                    return encoder.encode(message);
+                }
+            } else if (Encoder.BinaryStream.class.isAssignableFrom(encoderClass)) {
+                if (enc.getType().isAssignableFrom(message.getClass())) {
+                    final ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                    final Encoder.BinaryStream encoder = (Encoder.BinaryStream) getCoderInstance(session, enc);
+
+                    encoder.encode(message, stream);
+                    return stream;
+                }
+            } else if (Encoder.TextStream.class.isAssignableFrom(encoderClass)) {
+                if (enc.getType().isAssignableFrom(message.getClass())) {
+                    final Writer writer = new StringWriter();
+                    final Encoder.TextStream encoder = (Encoder.TextStream) getCoderInstance(session, enc);
+
+                    encoder.encode(message, writer);
+                    return writer;
+                }
             }
         }
 
