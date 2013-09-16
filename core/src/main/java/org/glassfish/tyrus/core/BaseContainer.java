@@ -49,8 +49,6 @@ import javax.websocket.WebSocketContainer;
 
 import javax.naming.InitialContext;
 
-import org.glassfish.tyrus.websockets.ExecutorServiceProvider;
-
 /**
  * Base WebSocket container.
  * <p/>

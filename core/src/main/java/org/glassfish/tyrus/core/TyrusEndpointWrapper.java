@@ -79,11 +79,16 @@ import javax.websocket.server.ServerEndpointConfig;
 
 import org.glassfish.tyrus.spi.EndpointWrapper;
 import org.glassfish.tyrus.spi.RemoteEndpoint;
+<<<<<<< HEAD
 import org.glassfish.tyrus.spi.UpgradeRequest;
 import org.glassfish.tyrus.websockets.DataFrame;
 import org.glassfish.tyrus.websockets.HandshakeException;
 import org.glassfish.tyrus.websockets.frame.BinaryFrame;
 import org.glassfish.tyrus.websockets.frame.TextFrame;
+=======
+import org.glassfish.tyrus.core.frame.BinaryFrame;
+import org.glassfish.tyrus.core.frame.TextFrame;
+>>>>>>> Container SPI - compilable version
 
 /**
  * Wraps the registered application class.
@@ -101,7 +106,6 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
     /**
      * The container for this session.
      */
-    final BaseContainer container;
     private final String contextPath;
 
     private final List<CoderWrapper<Decoder>> decoders = new ArrayList<CoderWrapper<Decoder>>();
@@ -115,6 +119,8 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
     private final ErrorCollector collector;
     private final ComponentProviderService componentProvider;
     private final ServerEndpointConfig.Configurator configurator;
+
+    final WebSocketContainer container;
 
     // the following is set during the handshake
     private String uri;
@@ -131,13 +137,12 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
      * @param configuration     endpoint configuration.
      * @param componentProvider component provider.
      * @param container         container where the wrapper is running.
-     * @param contextPath       context path.
      * @param collector         error collector.
      */
     public TyrusEndpointWrapper(Class<?> endpointClass, EndpointConfig configuration,
-                                ComponentProviderService componentProvider, BaseContainer container,
-                                String contextPath, ErrorCollector collector, ServerEndpointConfig.Configurator configurator) {
-        this(null, endpointClass, configuration, componentProvider, container, contextPath, collector, configurator);
+                                ComponentProviderService componentProvider, WebSocketContainer container,
+                                ErrorCollector collector, ServerEndpointConfig.Configurator configurator) {
+        this(null, endpointClass, configuration, componentProvider, container, collector, configurator);
     }
 
     /**
@@ -147,25 +152,24 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
      * @param configuration     endpoint configuration.
      * @param componentProvider component provider.
      * @param container         container where the wrapper is running.
-     * @param contextPath       context path.
      * @param collector         error collector.
      */
-    public TyrusEndpointWrapper(Endpoint endpoint, EndpointConfig configuration, ComponentProviderService componentProvider, BaseContainer container,
-                                String contextPath, ErrorCollector collector, ServerEndpointConfig.Configurator configurator) {
-        this(endpoint, null, configuration, componentProvider, container, contextPath, collector, configurator);
+    public TyrusEndpointWrapper(Endpoint endpoint, EndpointConfig configuration, ComponentProviderService componentProvider, WebSocketContainer container,
+                                ErrorCollector collector, ServerEndpointConfig.Configurator configurator) {
+        this(endpoint, null, configuration, componentProvider, container, collector, configurator);
     }
 
     private TyrusEndpointWrapper(Endpoint endpoint, Class<?> endpointClass, EndpointConfig configuration,
-                                 ComponentProviderService componentProvider, BaseContainer container,
-                                 String contextPath, ErrorCollector collector, final ServerEndpointConfig.Configurator configurator) {
+                                 ComponentProviderService componentProvider, WebSocketContainer container,
+                                 ErrorCollector collector, final ServerEndpointConfig.Configurator configurator) {
         this.endpointClass = endpointClass;
         this.endpoint = endpoint;
         this.container = container;
-        this.contextPath = contextPath;
+        this.contextPath = configuration instanceof ServerEndpointConfig ? ((ServerEndpointConfig) configuration).getPath() : null;
         // Uri is re-set in checkHandshake method; this value will be used only in scenarios
         // when checkHandshake is not called, like using EndpointWrapper on the client side.
         // this.uri is then used for creating SessionImpl and used as a return value in Session.getRequestURI() method.
-        this.uri = contextPath;
+        this.uri = this.contextPath;
         this.collector = collector;
         this.configurator = configurator;
         this.componentProvider = configurator == null ? componentProvider : new ComponentProviderService(componentProvider) {
@@ -519,7 +523,8 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
                 switch (session.getState()) {
                     case RUNNING:
                         if (buffer == null) {
-                            buffer = new ReaderBuffer(container.getExecutorService());
+                            // TODO:
+                            buffer = new ReaderBuffer(((BaseContainer)container).getExecutorService());
                             session.setReaderBuffer(buffer);
                         }
                         buffer.resetBuffer(session.getMaxTextMessageBufferSize());
@@ -582,7 +587,8 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
                 switch (session.getState()) {
                     case RUNNING:
                         if (buffer == null) {
-                            buffer = new InputStreamBuffer(container.getExecutorService());
+                            // TODO
+                            buffer = new InputStreamBuffer(((BaseContainer)container).getExecutorService());
                             session.setInputStreamBuffer(buffer);
                         }
                         buffer.resetBuffer(session.getMaxBinaryMessageBufferSize());

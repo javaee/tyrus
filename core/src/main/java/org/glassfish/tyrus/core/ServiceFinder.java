@@ -66,7 +66,7 @@ import java.util.jar.Manifest;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.glassfish.tyrus.websockets.uri.internal.LocalizationMessages;
+import org.glassfish.tyrus.core.uri.internal.LocalizationMessages;
 
 /**
  * A simple service-provider lookup mechanism.  A <i>service</i> is a

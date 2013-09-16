@@ -55,7 +55,7 @@ import javax.websocket.server.ServerEndpoint;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.tools.TestContainer;
-import org.glassfish.tyrus.websockets.HandshakeException;
+import org.glassfish.tyrus.core.HandshakeException;
 
 import org.junit.Assert;
 import org.junit.Test;

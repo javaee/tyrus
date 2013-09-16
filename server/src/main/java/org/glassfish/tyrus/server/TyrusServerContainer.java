@@ -43,6 +43,7 @@ package org.glassfish.tyrus.server;
 import java.io.IOException;
 import java.net.URI;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 import javax.websocket.ClientEndpointConfig;
@@ -54,7 +55,6 @@ import javax.websocket.server.ServerApplicationConfig;
 import javax.websocket.server.ServerEndpointConfig;
 
 import org.glassfish.tyrus.core.BaseContainer;
-import org.glassfish.tyrus.core.ComponentProviderService;
 import org.glassfish.tyrus.core.ErrorCollector;
 import org.glassfish.tyrus.spi.ServerContainer;
 
@@ -65,12 +65,9 @@ import org.glassfish.tyrus.spi.ServerContainer;
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class TyrusServerContainer extends BaseContainer implements javax.websocket.server.ServerContainer {
-    private final ServerContainer server;
-    private final String contextPath;
+public abstract class TyrusServerContainer extends BaseContainer implements ServerContainer {
     //    private final Set<EndpointWrapper> endpoints = new HashSet<EndpointWrapper>();
     private final ErrorCollector collector;
-    private final ComponentProviderService componentProvider;
 
     private final Set<Class<?>> dynamicallyAddedClasses;
     private final Set<ServerEndpointConfig> dynamicallyAddedEndpointConfigs;
@@ -84,58 +81,43 @@ public class TyrusServerContainer extends BaseContainer implements javax.websock
 
     /**
      * Create new {@link TyrusServerContainer}.
-     *
-     * @param server                  underlying server.
-     * @param contextPath             context path of current application.
-     * @param classes                 classes to be included in this application instance. Can contain any combination of annotated
-     *                                endpoints (see {@link javax.websocket.server.ServerEndpoint}) or {@link javax.websocket.Endpoint} descendants.
-     * @param dynamicallyAddedClasses dynamically deployed classes. See {@link javax.websocket.server.ServerContainer#addEndpoint(Class)}.
-     * @param dynamicallyAddedEndpointConfigs
-     *                                dynamically deployed {@link ServerEndpointConfig ServerEndpointConfigs}. See
-     *                                {@link javax.websocket.server.ServerContainer#addEndpoint(ServerEndpointConfig)}.
+     * <p/>
+     * //     * @param classes                 classes to be included in this application instance. Can contain any combination of annotated
+     * //     *                                endpoints (see {@link javax.websocket.server.ServerEndpoint}) or {@link javax.websocket.Endpoint} descendants.
+     * //     * @param dynamicallyAddedClasses dynamically deployed classes. See {@link javax.websocket.server.ServerContainer#addEndpoint(Class)}.
+     * //     * @param dynamicallyAddedEndpointConfigs
+     * //     *                                dynamically deployed {@link ServerEndpointConfig ServerEndpointConfigs}. See
+     * //     *                                {@link javax.websocket.server.ServerContainer#addEndpoint(ServerEndpointConfig)}.
      */
-    public TyrusServerContainer(final ServerContainer server, final String contextPath,
-                                final Set<Class<?>> classes, final Set<Class<?>> dynamicallyAddedClasses,
-                                final Set<ServerEndpointConfig> dynamicallyAddedEndpointConfigs) {
+    public TyrusServerContainer() {
         this.collector = new ErrorCollector();
-        this.server = server;
-        this.contextPath = contextPath;
-        this.componentProvider = ComponentProviderService.create();
-        this.classes = classes;
-        this.dynamicallyAddedClasses = dynamicallyAddedClasses;
-        this.dynamicallyAddedEndpointConfigs = dynamicallyAddedEndpointConfigs;
+        this.classes = new HashSet<Class<?>>(); // TODO - no longer necessary?
+        this.dynamicallyAddedClasses = new HashSet<Class<?>>();
+        this.dynamicallyAddedEndpointConfigs = new HashSet<ServerEndpointConfig>();
     }
 
     /**
      * Start container.
      *
-     * @throws IOException         when any IO related issues emerge during {@link org.glassfish.tyrus.spi.ServerContainer#start()}.
+     * @throws IOException         when any IO related issues emerge during {@link org.glassfish.tyrus.spi.ServerContainer#start(String, int)}.
      * @throws DeploymentException when any deployment related error is found; should contain list of all found issues.
      */
-    public void start() throws IOException, DeploymentException {
+    @Override
+    public void start(String rootPath, int port) throws IOException, DeploymentException {
         ServerApplicationConfig configuration = new TyrusServerConfiguration((classes == null ? Collections.<Class<?>>emptySet() : classes),
                 dynamicallyAddedClasses, dynamicallyAddedEndpointConfigs, this.collector);
 
         // start the underlying server
-        server.start();
         try {
             // deploy all the annotated endpoints
             for (Class<?> endpointClass : configuration.getAnnotatedEndpointClasses(null)) {
-//                AnnotatedEndpoint endpoint = AnnotatedEndpoint.fromClass(endpointClass, componentProvider, true, collector);
-//                EndpointConfig config = endpoint.getEndpointConfig();
-//                TyrusEndpointWrapper ew = new TyrusEndpointWrapper(endpoint, config, componentProvider, this, contextPath, collector,
-//                        config instanceof ServerEndpointConfig ? ((ServerEndpointConfig) config).getConfigurator() : null);
-
-                server.addEndpoint(endpointClass);
+                register(endpointClass);
             }
 
             // deploy all the programmatic endpoints
             for (ServerEndpointConfig serverEndpointConfiguration : configuration.getEndpointConfigs(null)) {
                 if (serverEndpointConfiguration != null) {
-//                    TyrusEndpointWrapper ew = new TyrusEndpointWrapper(serverEndpointConfiguration.getEndpointClass(),
-//                            serverEndpointConfiguration, componentProvider, this, contextPath, collector, serverEndpointConfiguration.getConfigurator());
-
-                    server.addEndpoint(serverEndpointConfiguration);
+                    register(serverEndpointConfiguration);
                 }
             }
         } catch (DeploymentException de) {
@@ -156,8 +138,12 @@ public class TyrusServerContainer extends BaseContainer implements javax.websock
 //            this.server.unregister(wsa);
 //            Logger.getLogger(getClass().getName()).fine("Closing down : " + wsa);
 //        }
-        server.stop();
+//        server.stop();
     }
+
+    public abstract void register(Class<?> endpointClass) throws DeploymentException;
+
+    public abstract void register(ServerEndpointConfig serverEndpointConfig) throws DeploymentException;
 
     @Override
     public void addEndpoint(Class<?> endpointClass) throws DeploymentException {

@@ -65,7 +65,7 @@ import java.util.jar.JarInputStream;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.glassfish.tyrus.websockets.uri.internal.LocalizationMessages;
+import org.glassfish.tyrus.core.uri.internal.LocalizationMessages;
 
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;

@@ -67,7 +67,6 @@ import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
 import org.glassfish.tyrus.spi.RemoteEndpoint;
-import org.glassfish.tyrus.websockets.DataFrame;
 
 import org.junit.Assert;
 import org.junit.Test;

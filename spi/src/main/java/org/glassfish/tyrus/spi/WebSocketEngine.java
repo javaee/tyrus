@@ -39,6 +39,7 @@
  */
 package org.glassfish.tyrus.spi;
 
+import javax.websocket.DeploymentException;
 import javax.websocket.server.ServerEndpointConfig;
 
 import static org.glassfish.tyrus.spi.Connection.CloseListener;
@@ -51,13 +52,13 @@ import static org.glassfish.tyrus.spi.Connection.CloseListener;
 public interface WebSocketEngine {
 
     // See if the request can be upgraded
-    UpgradeInfo upgrade(UpgradeRequest req, UpgradeResponse res);
+    UpgradeInfo upgrade(UpgradeRequest request, UpgradeResponse response);
 
     // TODO: constructor? / List<Class<?> / List<ServerEndpointConfig>\
     // (one call instead of iteration).
-    void register(Class<?> endpointClass);
+    void register(Class<?> endpointClass) throws DeploymentException;
 
-    void register(ServerEndpointConfig serverConfig);
+    void register(ServerEndpointConfig serverConfig) throws DeploymentException;
 
     interface UpgradeInfo {
         // Status of the upgrade
@@ -66,7 +67,7 @@ public interface WebSocketEngine {
         // If the status is SUCCESS, then return the connection
         // Otherwise null
         // Tyrus would call onConnect lifecycle method on the endpoint
-        Connection createConnection(Writer writer, CloseListener cl);
+        Connection createConnection(Writer writer, CloseListener closeListener);
     }
 
     enum UpgradeStatus {

@@ -152,14 +152,6 @@
                                 </artifactItem>
                                 <artifactItem>
                                     <groupId>org.glassfish.tyrus</groupId>
-                                    <artifactId>tyrus-websocket-core</artifactId>
-                                    <version>${project.version}</version>
-                                    <classifier>sources</classifier>
-                                    <overWrite>false</overWrite>
-                                    <outputDirectory>${gen-src-dir}</outputDirectory>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>org.glassfish.tyrus</groupId>
                                     <artifactId>tyrus-core</artifactId>
                                     <version>${project.version}</version>
                                     <classifier>sources</classifier>

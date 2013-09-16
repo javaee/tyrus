@@ -41,6 +41,8 @@ package org.glassfish.tyrus.spi;
 
 import java.io.IOException;
 
+import javax.websocket.DeploymentException;
+
 
 /**
  * HTTP server abstraction.
@@ -61,7 +63,7 @@ public interface ServerContainer extends javax.websocket.server.ServerContainer 
      *
      * @throws IOException if something goes wrong.
      */
-    void start(String rootPath, int port) throws IOException;
+    void start(String rootPath, int port) throws IOException, DeploymentException;
 
     /**
      * Stops the server.

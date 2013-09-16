@@ -49,15 +49,11 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import javax.websocket.CloseReason;
 
-import org.glassfish.tyrus.websockets.DataFrame;
-import org.glassfish.tyrus.websockets.ProtocolHandler;
-import org.glassfish.tyrus.websockets.WebSocket;
-import org.glassfish.tyrus.websockets.WebSocketListener;
-import org.glassfish.tyrus.websockets.frame.PingFrame;
-import org.glassfish.tyrus.websockets.frame.PongFrame;
+import org.glassfish.tyrus.core.frame.PingFrame;
+import org.glassfish.tyrus.core.frame.PongFrame;
 
 /**
- * Tyrus implementation of {@link org.glassfish.tyrus.websockets.WebSocket}.
+ * Tyrus implementation of {@link WebSocket}.
  * <p/>
  * Instance of this class represents one bi-directional websocket connection.
  */

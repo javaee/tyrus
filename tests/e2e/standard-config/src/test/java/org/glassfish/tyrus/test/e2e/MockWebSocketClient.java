@@ -44,9 +44,9 @@ import java.util.concurrent.Future;
 
 import javax.websocket.CloseReason;
 
-import org.glassfish.tyrus.websockets.DataFrame;
-import org.glassfish.tyrus.websockets.WebSocket;
-import org.glassfish.tyrus.websockets.WebSocketListener;
+import org.glassfish.tyrus.core.DataFrame;
+import org.glassfish.tyrus.core.WebSocket;
+import org.glassfish.tyrus.core.WebSocketListener;
 
 import org.glassfish.grizzly.GrizzlyFuture;
 

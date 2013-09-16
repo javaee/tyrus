@@ -53,10 +53,8 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpUpgradeHandler;
 import javax.servlet.http.WebConnection;
 
-import org.glassfish.tyrus.core.TyrusWebSocket;
-import org.glassfish.tyrus.spi.WebSocketEngine;
+import org.glassfish.tyrus.spi.Connection;
 import org.glassfish.tyrus.spi.Writer;
-import org.glassfish.tyrus.websockets.TyrusWebSocketEngine;
 
 /**
  * {@link HttpUpgradeHandler} and {@link ReadListener} implementation.
@@ -82,7 +80,7 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
 
     private static final Logger LOGGER = Logger.getLogger(TyrusHttpUpgradeHandler.class.getName());
 
-    private WebSocketEngine engine;
+    private Connection connection;
     private Writer writer;
 
 
@@ -107,8 +105,9 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
 
         initiated = true;
 
-        if (engine != null && writer != null) {
-            engine.onConnect(writer);
+        if (connection != null && writer != null) {
+            // TODO
+//            engine.onConnect(writer);
         }
     }
 
@@ -133,11 +132,11 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
                     LOGGER.finest(String.format("Remaining Data = %d", buf.remaining()));
 
                     if (buf.hasRemaining()) {
-                        engine.processData(writer, buf);
+                        connection.getReadHandler().handle(buf);
                     }
                 }
             } catch (IOException e) {
-                engine.close(writer, CloseReason.CloseCodes.CANNOT_ACCEPT.getCode(), null);
+                connection.close(new CloseReason(CloseReason.CloseCodes.CANNOT_ACCEPT, null));
             }
         } while (!closed && is.isReady());
     }
@@ -235,13 +234,14 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
         return sb.toString();
     }
 
-    public void postInit(WebSocketEngine engine, Writer writer, boolean authenticated) {
-        this.engine = engine;
+    public void postInit(Connection connection, Writer writer, boolean authenticated) {
+        this.connection = connection;
         this.writer = writer;
         this.authenticated = authenticated;
 
         if (initiated) {
-            engine.onConnect(writer);
+            // TODO
+            // engine.onConnect(writer);
         }
     }
 
@@ -255,8 +255,8 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
                 // TODO
                 // initiates connection close without sending close frame to the client - session is already invalidated
                 // so we should not send anything.
-                ((TyrusWebSocket) ((TyrusWebSocketEngine) engine).getWebSocketHolder(writer).webSocket).setClosed();
-                engine.close(writer, closeCode, closeReason);
+                // ((TyrusWebSocket) ((TyrusWebSocketEngine) engine).getWebSocketHolder(writer).webSocket).setClosed();
+                connection.close(new CloseReason(CloseReason.CloseCodes.getCloseCode(closeCode), closeReason));
                 closed = true;
                 wc.close();
             } catch (Exception e) {
@@ -268,7 +268,7 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
     private void close(int closeCode, String closeReason) {
         if (!closed) {
             try {
-                engine.close(writer, closeCode, closeReason);
+                connection.close(new CloseReason(CloseReason.CloseCodes.getCloseCode(closeCode), closeReason));
                 closed = true;
                 wc.close();
             } catch (Exception e) {

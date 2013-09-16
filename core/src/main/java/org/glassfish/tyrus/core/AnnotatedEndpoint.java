@@ -107,7 +107,7 @@ public class AnnotatedEndpoint extends Endpoint {
      * @return new instance.
      * @throws DeploymentException TODO remove
      */
-    public static AnnotatedEndpoint fromClass(Class<?> annotatedClass, ComponentProviderService componentProvider, boolean isServerEndpoint, ErrorCollector collector) throws DeploymentException {
+    public static AnnotatedEndpoint fromClass(Class<?> annotatedClass, ComponentProviderService componentProvider, boolean isServerEndpoint, ErrorCollector collector) {
         return new AnnotatedEndpoint(annotatedClass, null, componentProvider, isServerEndpoint, collector);
     }
 
@@ -125,7 +125,7 @@ public class AnnotatedEndpoint extends Endpoint {
         return new AnnotatedEndpoint(annotatedInstance.getClass(), annotatedInstance, componentProvider, isServerEndpoint, collector);
     }
 
-    private AnnotatedEndpoint(Class<?> annotatedClass, Object instance, ComponentProviderService componentProvider, Boolean isServerEndpoint, ErrorCollector collector) throws DeploymentException {
+    private AnnotatedEndpoint(Class<?> annotatedClass, Object instance, ComponentProviderService componentProvider, Boolean isServerEndpoint, ErrorCollector collector) {
         this.collector = collector;
         this.configuration = createEndpointConfig(annotatedClass, isServerEndpoint);
         this.annotatedInstance = instance;
@@ -204,7 +204,11 @@ public class AnnotatedEndpoint extends Endpoint {
                         extractors[entry.getKey()] = new ParamValue(0);
                         handlerFactory = new WholeHandler(m, extractors, entry.getValue(), maxMessageSize);
                         messageHandlerFactories.add(handlerFactory);
-                        validityChecker.checkOnMessageParams(m, handlerFactory.create(null));
+                        try {
+                            validityChecker.checkOnMessageParams(m, handlerFactory.create(null));
+                        } catch (DeploymentException e) {
+                            collector.addException(e);
+                        }
                     } else if (unknownParams.size() == 2) {
                         Iterator<Map.Entry<Integer, Class<?>>> it = unknownParams.entrySet().iterator();
                         Map.Entry<Integer, Class<?>> message = it.next();
@@ -220,7 +224,11 @@ public class AnnotatedEndpoint extends Endpoint {
                         if (last.getValue() == boolean.class || last.getValue() == Boolean.class) {
                             handlerFactory = new PartialHandler(m, extractors, message.getValue(), maxMessageSize);
                             messageHandlerFactories.add(handlerFactory);
-                            validityChecker.checkOnMessageParams(m, handlerFactory.create(null));
+                            try {
+                                validityChecker.checkOnMessageParams(m, handlerFactory.create(null));
+                            } catch (DeploymentException e) {
+                                collector.addException(e);
+                            }
                         } else {
                             collector.addException(new DeploymentException(String.format("Method: %s.%s: has got wrong number of params.", annotatedClass.getName(), m.getName())));
                         }

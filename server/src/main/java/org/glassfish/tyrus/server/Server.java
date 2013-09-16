@@ -119,7 +119,7 @@ public class Server {
             if (server == null) {
                 server = ServerContainerFactory.create(ENGINE_PROVIDER_CLASSNAME, rootPath, port,
                         configuration);
-                server.start();
+                server.start(rootPath, port);
                 LOGGER.info("WebSocket Registered apps: URLs all start with ws://" + this.hostName + ":" + this.port);
                 LOGGER.info("WebSocket server started.");
             }

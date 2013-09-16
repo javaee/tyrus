@@ -73,6 +73,7 @@ import org.glassfish.tyrus.spi.EndpointWrapper;
 import org.glassfish.tyrus.spi.UpgradeResponse;
 import org.glassfish.tyrus.spi.WebSocketEngine;
 import org.glassfish.tyrus.spi.Writer;
+<<<<<<< HEAD
 import org.glassfish.tyrus.websockets.DataFrame;
 import org.glassfish.tyrus.websockets.Handshake;
 import org.glassfish.tyrus.websockets.HandshakeException;
@@ -83,6 +84,18 @@ import org.glassfish.tyrus.websockets.WebSocket;
 import org.glassfish.tyrus.websockets.WebSocketListener;
 import org.glassfish.tyrus.websockets.frame.PingFrame;
 import org.glassfish.tyrus.websockets.frame.PongFrame;
+=======
+import org.glassfish.tyrus.core.DataFrame;
+import org.glassfish.tyrus.core.Extension;
+import org.glassfish.tyrus.core.Handshake;
+import org.glassfish.tyrus.core.HandshakeException;
+import org.glassfish.tyrus.core.ProtocolHandler;
+import org.glassfish.tyrus.core.TyrusWebSocketEngine;
+import org.glassfish.tyrus.core.WebSocket;
+import org.glassfish.tyrus.core.WebSocketListener;
+import org.glassfish.tyrus.core.frame.PingFrame;
+import org.glassfish.tyrus.core.frame.PongFrame;
+>>>>>>> Container SPI - compilable version
 
 import org.glassfish.grizzly.Connection;
 import org.glassfish.grizzly.GrizzlyFuture;
@@ -226,7 +239,8 @@ public class GrizzlyClientSocket implements WebSocket, ClientSocket {
 
                     protocolHandler.setWriter(writer);
                     TyrusWebSocketEngine.WebSocketHolder holder =
-                            engine.setWebSocketHolder(writer, protocolHandler, RequestContext.Builder.create().requestURI(uri).build(), GrizzlyClientSocket.this, null);
+                            // TODO!
+                            ((TyrusWebSocketEngine)engine).setWebSocketHolder(writer, protocolHandler, RequestContext.Builder.create().requestURI(uri).build(), GrizzlyClientSocket.this, null);
 
                     prepareHandshake(holder.handshake);
                 }

@@ -49,8 +49,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import org.glassfish.tyrus.websockets.WebSocketRequest;
-
 /**
  * Implementation of all possible request interfaces. Should be the only point of truth.
  *

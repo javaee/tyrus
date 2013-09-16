@@ -72,7 +72,6 @@ import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
 
 import org.glassfish.tyrus.spi.RemoteEndpoint;
-import org.glassfish.tyrus.websockets.ExecutorServiceProvider;
 
 /**
  * Implementation of the {@link Session}.

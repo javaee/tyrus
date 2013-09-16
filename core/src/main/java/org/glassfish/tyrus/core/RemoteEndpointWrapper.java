@@ -206,7 +206,8 @@ public abstract class RemoteEndpointWrapper implements javax.websocket.RemoteEnd
         private Future<Void> sendAsync(final Object message, final SendHandler handler, final AsyncMessageType type) {
             final FutureSendResult fsr = new FutureSendResult();
 
-            tyrusEndpointWrapper.container.getExecutorService().execute(new Runnable() {
+            // TODO
+            ((BaseContainer)tyrusEndpointWrapper.container).getExecutorService().execute(new Runnable() {
 
                 @Override
                 public void run() {

@@ -43,10 +43,13 @@ import java.util.Collections;
 import java.util.Set;
 import java.util.logging.Logger;
 
+import javax.websocket.DeploymentException;
 import javax.websocket.server.ServerEndpointConfig;
 
 import org.glassfish.tyrus.core.OsgiRegistry;
 import org.glassfish.tyrus.core.ReflectionHelper;
+import org.glassfish.tyrus.core.TyrusWebSocketEngine;
+import org.glassfish.tyrus.spi.WebSocketEngine;
 
 /**
  * Factory for creating server containers.
@@ -137,11 +140,32 @@ public class ServerContainerFactory {
      *                                {@link javax.websocket.server.ServerContainer#addEndpoint(ServerEndpointConfig)}.
      * @return New instance of {@link TyrusServerContainer}.
      */
-    public static TyrusServerContainer create(org.glassfish.tyrus.spi.ServerContainerFactory containerProvider, String contextPath, int port,
+    public static TyrusServerContainer create(final org.glassfish.tyrus.spi.ServerContainerFactory containerProvider, String contextPath, int port,
                                               Set<Class<?>> configuration, Set<Class<?>> dynamicallyAddedClasses,
                                               Set<ServerEndpointConfig> dynamicallyAddedEndpointConfigs) {
 
-        return new TyrusServerContainer(containerProvider.createServerContainer(contextPath, port), contextPath, configuration,
-                dynamicallyAddedClasses, dynamicallyAddedEndpointConfigs);
+        return new TyrusServerContainer() {
+
+            final WebSocketEngine engine = new TyrusWebSocketEngine(this);
+
+            @Override
+            public void register(Class<?> endpointClass) throws DeploymentException {
+                engine.register(endpointClass);
+            }
+
+            @Override
+            public void register(ServerEndpointConfig serverEndpointConfig) throws DeploymentException {
+                engine.register(serverEndpointConfig);
+            }
+
+            @Override
+            public WebSocketEngine getWebSocketEngine() {
+                return engine;
+            }
+        };
+
+        // TODO
+//        return new TyrusServerContainer(containerProvider.createServerContainer(contextPath, port), contextPath, configuration,
+//                dynamicallyAddedClasses, dynamicallyAddedEndpointConfigs);
     }
 }

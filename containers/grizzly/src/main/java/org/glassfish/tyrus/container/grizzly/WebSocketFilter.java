@@ -52,10 +52,16 @@ import java.util.logging.Logger;
 import javax.websocket.CloseReason;
 
 import org.glassfish.tyrus.core.RequestContext;
+<<<<<<< HEAD
+=======
+import org.glassfish.tyrus.core.TyrusWebSocketEngine;
+import org.glassfish.tyrus.core.Utils;
+>>>>>>> Container SPI - compilable version
 import org.glassfish.tyrus.spi.UpgradeRequest;
 import org.glassfish.tyrus.spi.UpgradeResponse;
 import org.glassfish.tyrus.spi.WebSocketEngine;
 import org.glassfish.tyrus.spi.Writer;
+<<<<<<< HEAD
 import org.glassfish.tyrus.websockets.DataFrame;
 import org.glassfish.tyrus.websockets.HandshakeException;
 <<<<<<< HEAD
@@ -68,6 +74,14 @@ import org.glassfish.tyrus.websockets.TyrusWebSocketEngine.WebSocketHolder;
 import org.glassfish.tyrus.websockets.WebSocket;
 import org.glassfish.tyrus.websockets.WebSocketRequest;
 import org.glassfish.tyrus.websockets.WebSocketResponse;
+=======
+import org.glassfish.tyrus.core.DataFrame;
+import org.glassfish.tyrus.core.HandshakeException;
+import org.glassfish.tyrus.core.TyrusWebSocketEngine.WebSocketHolder;
+import org.glassfish.tyrus.core.WebSocket;
+import org.glassfish.tyrus.core.WebSocketRequest;
+import org.glassfish.tyrus.core.WebSocketResponse;
+>>>>>>> Container SPI - compilable version
 
 import org.glassfish.grizzly.Buffer;
 import org.glassfish.grizzly.CloseListener;
@@ -98,7 +112,7 @@ import org.glassfish.grizzly.utils.IdleTimeoutFilter;
  * WebSocket {@link Filter} implementation, which supposed to be placed into a {@link FilterChain} right after HTTP
  * Filter: {@link HttpServerFilter}, {@link HttpClientFilter}; depending whether it's server or client side. The
  * <tt>WebSocketFilter</tt> handles websocket connection, handshake phases and, when receives a websocket frame -
- * redirects it to appropriate connection ({@link org.glassfish.tyrus.websockets.WebSocketApplication}, {@link org.glassfish.tyrus.websockets.WebSocket}) for processing.
+ * redirects it to appropriate connection ({@link org.glassfish.tyrus.core.WebSocketApplication}, {@link org.glassfish.tyrus.core.WebSocket}) for processing.
  *
  * @author Alexey Stashok
  * @author Pavel Bucek (pavel.bucek at oracle.com)
@@ -162,7 +176,7 @@ class WebSocketFilter extends BaseFilter {
 
     /**
      * Method handles Grizzly {@link Connection} connect phase. Check if the {@link Connection} is a client-side {@link
-     * org.glassfish.tyrus.websockets.WebSocket}, if yes - creates websocket handshake packet and send it to a server. Otherwise, if it's not websocket
+     * org.glassfish.tyrus.core.WebSocket}, if yes - creates websocket handshake packet and send it to a server. Otherwise, if it's not websocket
      * connection - pass processing to the next {@link Filter} in a chain.
      *
      * @param ctx {@link FilterChainContext}
@@ -178,12 +192,13 @@ class WebSocketFilter extends BaseFilter {
                 WebSocketFilter.getWebSocketConnection(ctx, HttpContent.builder(HttpRequestPacket.builder().build()).build());
 
         // check if it's websocket connection
-        if (!webSocketInProgress(webSocketWriter)) {
+        if (webSocketWriter == null) {
             // if not - pass processing to a next filter
             return ctx.getInvokeAction();
         }
 
-        WebSocketHolder webSocketHolder = engine.getWebSocketHolder(webSocketWriter);
+        // TODO
+        WebSocketHolder webSocketHolder = ((TyrusWebSocketEngine)engine).getWebSocketHolder(webSocketWriter);
         webSocketRequest = webSocketHolder.handshake.initiate();
 
         HttpRequestPacket.Builder builder = HttpRequestPacket.builder();
@@ -210,9 +225,9 @@ class WebSocketFilter extends BaseFilter {
     }
 
     /**
-     * Method handles Grizzly {@link Connection} close phase. Check if the {@link Connection} is a {@link org.glassfish.tyrus.websockets.WebSocket}, if
+     * Method handles Grizzly {@link Connection} close phase. Check if the {@link Connection} is a {@link org.glassfish.tyrus.core.WebSocket}, if
      * yes - tries to close the websocket gracefully (sending close frame) and calls {@link
-     * org.glassfish.tyrus.websockets.WebSocket#onClose(javax.websocket.CloseReason)}. If the Grizzly {@link Connection} is not websocket - passes processing to the next
+     * org.glassfish.tyrus.core.WebSocket#onClose(javax.websocket.CloseReason)}. If the Grizzly {@link Connection} is not websocket - passes processing to the next
      * filter in the chain.
      *
      * @param ctx {@link FilterChainContext}
@@ -232,8 +247,8 @@ class WebSocketFilter extends BaseFilter {
     /**
      * Handle Grizzly {@link Connection} read phase. If the {@link Connection} has associated {@link WebSocket} object
      * (websocket connection), we check if websocket handshake has been completed for this connection, if not -
-     * initiate/validate handshake. If handshake has been completed - parse websocket {@link org.glassfish.tyrus.websockets.DataFrame}s one by one and
-     * pass processing to appropriate {@link WebSocket}: {@link org.glassfish.tyrus.websockets.WebSocketApplication} for server- and client- side
+     * initiate/validate handshake. If handshake has been completed - parse websocket {@link org.glassfish.tyrus.core.DataFrame}s one by one and
+     * pass processing to appropriate {@link WebSocket}: {@link org.glassfish.tyrus.core.WebSocketApplication} for server- and client- side
      * connections.
      *
      * @param ctx {@link FilterChainContext}
@@ -375,7 +390,8 @@ class WebSocketFilter extends BaseFilter {
     }
 
     private NextAction handleClientHandShake(FilterChainContext ctx, HttpContent content) {
-        final WebSocketHolder holder = engine.getWebSocketHolder(getWebSocketConnection(ctx, content));
+        // TODO
+        final WebSocketHolder holder = ((TyrusWebSocketEngine)engine).getWebSocketHolder(getWebSocketConnection(ctx, content));
 
         if (holder == null) {
             content.recycle();

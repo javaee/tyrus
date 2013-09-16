@@ -194,7 +194,6 @@
         <module>core</module>
         <module>docs</module>
         <module>ext</module>
-        <module>protocol</module>
         <module>samples</module>
         <module>server</module>
         <module>spi</module>
@@ -312,7 +311,7 @@
                                     </includes>
                                 </resources>
                                 <destDir>${project.build.directory}/generated-sources/rsrc-gen</destDir>
-                                <localizationUtilitiesPkgName>org.glassfish.tyrus.websockets.uri.internal.l10n
+                                <localizationUtilitiesPkgName>org.glassfish.tyrus.core.uri.internal.l10n
                                 </localizationUtilitiesPkgName>
                             </configuration>
                         </execution>

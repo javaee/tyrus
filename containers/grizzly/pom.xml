@@ -63,9 +63,10 @@
             <groupId>org.glassfish.grizzly</groupId>
             <artifactId>grizzly-http-server</artifactId>
         </dependency>
+        <!-- todo - separate to client/server container -->
         <dependency>
             <groupId>org.glassfish.tyrus</groupId>
-            <artifactId>tyrus-core</artifactId>
+            <artifactId>tyrus-server</artifactId>
         </dependency>
     </dependencies>
     <build>

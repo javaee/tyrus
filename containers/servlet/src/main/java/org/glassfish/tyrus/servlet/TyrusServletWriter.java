@@ -41,18 +41,18 @@ package org.glassfish.tyrus.servlet;
 
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.WriteListener;
-import javax.servlet.http.HttpServletResponse;
 
+<<<<<<< HEAD
 import org.glassfish.tyrus.spi.UpgradeResponse;
 import org.glassfish.tyrus.spi.WebSocketEngine;
+=======
+>>>>>>> Container SPI - compilable version
 import org.glassfish.tyrus.spi.Writer;
 import org.glassfish.tyrus.websockets.Utils;
 
@@ -61,12 +61,10 @@ import org.glassfish.tyrus.websockets.Utils;
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-class TyrusServletWriter implements Writer, WriteListener, WebSocketEngine.ResponseWriter {
+class TyrusServletWriter implements Writer, WriteListener {
 
     private final TyrusHttpUpgradeHandler tyrusHttpUpgradeHandler;
-    private final HttpServletResponse httpServletResponse;
     private final ArrayBlockingQueue<QueuedFrame> queue = new ArrayBlockingQueue<QueuedFrame>(32);
-
 
     private static final Logger LOGGER = Logger.getLogger(TyrusServletWriter.class.getName());
 
@@ -90,11 +88,9 @@ class TyrusServletWriter implements Writer, WriteListener, WebSocketEngine.Respo
      * Constructor.
      *
      * @param tyrusHttpUpgradeHandler encapsulated {@link TyrusHttpUpgradeHandler} instance.
-     * @param httpServletResponse     response instance - upgrade process should set proper headers and status (101 or 5xx).
      */
-    public TyrusServletWriter(TyrusHttpUpgradeHandler tyrusHttpUpgradeHandler, HttpServletResponse httpServletResponse) {
+    public TyrusServletWriter(TyrusHttpUpgradeHandler tyrusHttpUpgradeHandler) {
         this.tyrusHttpUpgradeHandler = tyrusHttpUpgradeHandler;
-        this.httpServletResponse = httpServletResponse;
     }
 
     @Override
@@ -176,14 +172,6 @@ class TyrusServletWriter implements Writer, WriteListener, WebSocketEngine.Respo
             if (completionHandler != null) {
                 completionHandler.failed(e);
             }
-        }
-    }
-
-    @Override
-    public void write(UpgradeResponse response) {
-        httpServletResponse.setStatus(response.getStatus());
-        for (Map.Entry<String, List<String>> entry : response.getHeaders().entrySet()) {
-            httpServletResponse.addHeader(entry.getKey(), Utils.getHeaderFromList(entry.getValue()));
         }
     }
 

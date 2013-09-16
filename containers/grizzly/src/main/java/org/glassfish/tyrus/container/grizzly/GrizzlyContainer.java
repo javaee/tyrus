@@ -48,13 +48,14 @@ import javax.websocket.ClientEndpointConfig;
 import javax.websocket.DeploymentException;
 import javax.websocket.server.ServerEndpointConfig;
 
+import org.glassfish.tyrus.core.TyrusWebSocketEngine;
+import org.glassfish.tyrus.server.TyrusServerContainer;
 import org.glassfish.tyrus.spi.ClientContainer;
 import org.glassfish.tyrus.spi.ClientSocket;
 import org.glassfish.tyrus.spi.EndpointWrapper;
 import org.glassfish.tyrus.spi.ServerContainer;
 import org.glassfish.tyrus.spi.ServerContainerFactory;
 import org.glassfish.tyrus.spi.WebSocketEngine;
-import org.glassfish.tyrus.websockets.TyrusWebSocketEngine;
 
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.grizzly.ssl.SSLContextConfigurator;
@@ -81,13 +82,30 @@ public class GrizzlyContainer extends ServerContainerFactory implements ClientCo
     @Override
     protected ServerContainer createContainer(Map<String, Object> config) {
 
-        return new ServerContainer() {
+        return new TyrusServerContainer() {
 
-            private final WebSocketEngine engine = new TyrusWebSocketEngine();
+            private final WebSocketEngine engine = new TyrusWebSocketEngine(this);
+
             private HttpServer server;
 
             @Override
-            public void start(String rootPath, int port) throws IOException {
+            public void register(Class<?> endpointClass) throws DeploymentException {
+                engine.register(endpointClass);
+            }
+
+            @Override
+            public void register(ServerEndpointConfig serverEndpointConfig) throws DeploymentException {
+                engine.register(serverEndpointConfig);
+            }
+
+            @Override
+            public WebSocketEngine getWebSocketEngine() {
+                return engine;
+            }
+
+            @Override
+            public void start(String rootPath, int port) throws IOException, DeploymentException {
+                super.start(rootPath, port);
                 server = HttpServer.createSimpleServer(rootPath, port);
                 server.getListener("grizzly").registerAddOn(new WebSocketAddOn(engine));
                 server.start();
@@ -95,22 +113,8 @@ public class GrizzlyContainer extends ServerContainerFactory implements ClientCo
 
             @Override
             public void stop() {
+                super.stop();
                 server.shutdownNow();
-            }
-
-            @Override
-            public void addEndpoint(Class<?> endpointClass) throws DeploymentException {
-                engine.register(endpointClass);
-            }
-
-            @Override
-            public void addEndpoint(ServerEndpointConfig serverConfig) throws DeploymentException {
-                engine.register(serverConfig);
-            }
-
-            @Override
-            public WebSocketEngine getWebSocketEngine() {
-                return engine;
             }
         };
     }
@@ -136,7 +140,7 @@ public class GrizzlyContainer extends ServerContainerFactory implements ClientCo
         }
 
         GrizzlyClientSocket clientSocket = new GrizzlyClientSocket(endpoint, uri, cec, CLIENT_SOCKET_TIMEOUT, listener,
-                new TyrusWebSocketEngine(),
+                new TyrusWebSocketEngine(endpoint.getWebSocketContainer()),
                 properties == null ? null : sslEngineConfigurator,
                 properties == null ? null : (String) properties.get(GrizzlyClientSocket.PROXY_URI),
                 properties == null ? null : (ThreadPoolConfig) properties.get(GrizzlyClientSocket.WORKER_THREAD_POOL_CONFIG),

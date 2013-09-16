@@ -48,6 +48,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.websocket.CloseReason;
 import javax.websocket.server.HandshakeRequest;
 import javax.websocket.server.ServerContainer;
 
@@ -65,11 +66,20 @@ import javax.servlet.http.HttpSessionListener;
 import javax.servlet.http.WebConnection;
 
 import org.glassfish.tyrus.core.RequestContext;
+<<<<<<< HEAD
 import org.glassfish.tyrus.spi.WebSocketEngine;
 import org.glassfish.tyrus.spi.Writer;
 import org.glassfish.tyrus.websockets.HandshakeException;
 import org.glassfish.tyrus.websockets.TyrusWebSocketEngine;
 import org.glassfish.tyrus.websockets.Utils;
+=======
+import org.glassfish.tyrus.core.TyrusWebSocketEngine;
+import org.glassfish.tyrus.core.Utils;
+import org.glassfish.tyrus.core.WebSocketResponse;
+import org.glassfish.tyrus.spi.Connection;
+import org.glassfish.tyrus.spi.WebSocketEngine;
+import org.glassfish.tyrus.spi.Writer;
+>>>>>>> Container SPI - compilable version
 
 /**
  * Filter used for Servlet integration.
@@ -109,7 +119,8 @@ class TyrusServletFilter implements Filter, HttpSessionListener {
         this.serverContainer = (org.glassfish.tyrus.server.TyrusServerContainer) filterConfig.getServletContext().getAttribute(ServerContainer.class.getName());
 
         try {
-            serverContainer.start();
+            // TODO? - port/contextPath .. is it really relevant here?
+            serverContainer.start(filterConfig.getServletContext().getContextPath(), 0);
         } catch (Exception e) {
             throw new ServletException("Web socket server initialization failed.", e);
         } finally {
@@ -166,8 +177,8 @@ class TyrusServletFilter implements Filter, HttpSessionListener {
         }
 
         @Override
-        public void postInit(WebSocketEngine engine, Writer writer, boolean authenticated) {
-            handler.postInit(engine, writer, authenticated);
+        public void postInit(Connection connection, Writer writer, boolean authenticated) {
+            handler.postInit(connection, writer, authenticated);
         }
 
         @Override
@@ -197,7 +208,7 @@ class TyrusServletFilter implements Filter, HttpSessionListener {
 
             final TyrusHttpUpgradeHandlerProxy handler = new TyrusHttpUpgradeHandlerProxy();
 
-            final TyrusServletWriter webSocketConnection = new TyrusServletWriter(handler, httpServletResponse);
+            final TyrusServletWriter webSocketConnection = new TyrusServletWriter(handler);
 
             final RequestContext requestContext = RequestContext.Builder.create()
                     .requestURI(URI.create(httpServletRequest.getRequestURI()))
@@ -228,42 +239,48 @@ class TyrusServletFilter implements Filter, HttpSessionListener {
                 }
             }
 
-            try {
-                final WebSocketEngine.UpgradeListener upgradeListener = new WebSocketEngine.UpgradeListener() {
-                    @Override
-                    public void onUpgradeFinished() throws HandshakeException {
-                        LOGGER.fine("Upgrading Servlet request");
-                        try {
-                            handler.setHandler(httpServletRequest.upgrade(TyrusHttpUpgradeHandler.class));
-                            final String frameBufferSize = request.getServletContext().getInitParameter(TyrusHttpUpgradeHandler.FRAME_BUFFER_SIZE);
-                            if (frameBufferSize != null) {
-                                handler.setIncomingBufferSize(Integer.parseInt(frameBufferSize));
-                            }
-                        } catch (Exception e) {
-                            throw new HandshakeException(500, "Handshake error.", e);
-                        }
-
-                        // calls engine.onConnect()
-                        handler.postInit(engine, webSocketConnection, httpServletRequest.getUserPrincipal() != null);
-                        sessionToHandler.put(httpServletRequest.getSession(), handler);
-                    }
-                };
-
-                if (!engine.upgrade(webSocketConnection, requestContext, webSocketConnection, upgradeListener)) {
+            final WebSocketResponse webSocketResponse = new WebSocketResponse();
+            final WebSocketEngine.UpgradeInfo upgradeInfo = engine.upgrade(requestContext, webSocketResponse);
+            switch (upgradeInfo.getStatus()) {
+                case HANDSHAKE_FAILED:
+                    httpServletResponse.sendError(((HttpServletResponse) response).getStatus());
+                    break;
+                case NOT_APPLICABLE:
                     filterChain.doFilter(request, response);
-                    return;
-                }
+                    break;
+                case SUCCESS:
+                    LOGGER.fine("Upgrading Servlet request");
 
-            } catch (HandshakeException e) {
-                LOGGER.log(Level.CONFIG, e.getMessage(), e);
-                httpServletResponse.sendError(e.getCode(), e.getMessage());
+                    handler.setHandler(httpServletRequest.upgrade(TyrusHttpUpgradeHandler.class));
+                    final String frameBufferSize = request.getServletContext().getInitParameter(TyrusHttpUpgradeHandler.FRAME_BUFFER_SIZE);
+                    if (frameBufferSize != null) {
+                        handler.setIncomingBufferSize(Integer.parseInt(frameBufferSize));
+                    }
+
+                    // calls engine.onConnect() TODO: no, it doesn't
+                    handler.postInit(upgradeInfo.createConnection(new TyrusServletWriter(handler), new Connection.CloseListener() {
+                        @Override
+                        public void close(CloseReason reason) {
+                            try {
+                                handler.getWebConnection().close();
+                            } catch (Exception e) {
+                                // TODO
+                                LOGGER.log(Level.FINE, e.getMessage(), e);
+                            }
+                        }
+                    }), webSocketConnection, httpServletRequest.getUserPrincipal() != null);
+                    sessionToHandler.put(httpServletRequest.getSession(), handler);
+
+                    // TODO
+                    httpServletResponse.setStatus(webSocketResponse.getStatus());
+                    for (Map.Entry<String, List<String>> entry : webSocketResponse.getHeaders().entrySet()) {
+                        httpServletResponse.addHeader(entry.getKey(), Utils.getHeaderFromList(entry.getValue()));
+                    }
+
+                    response.flushBuffer();
+                    LOGGER.fine("Handshake Complete");
+                    break;
             }
-
-            // Servlet bug ?? Not sure why we need to flush the headers
-            response.flushBuffer();
-            LOGGER.fine("Handshake Complete");
-        } else {
-            filterChain.doFilter(request, response);
         }
     }
 
