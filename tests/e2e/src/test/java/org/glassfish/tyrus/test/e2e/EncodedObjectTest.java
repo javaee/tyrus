@@ -46,6 +46,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfig;
+import javax.websocket.DeploymentException;
 import javax.websocket.EncodeException;
 import javax.websocket.Encoder;
 import javax.websocket.EndpointConfig;
@@ -61,6 +62,8 @@ import org.glassfish.tyrus.test.e2e.message.StringContainer;
 
 import org.junit.Assert;
 import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests encoding of custom objects.
@@ -71,7 +74,7 @@ public class EncodedObjectTest {
 
     private CountDownLatch messageLatch;
 
-    private String receivedMessage;
+    private volatile String receivedMessage;
 
     private static final String SENT_MESSAGE = "hello";
 
@@ -201,6 +204,69 @@ public class EncodedObjectTest {
         @Override
         public String encode(StringContainer object) throws EncodeException {
             return object.getString();
+        }
+    }
+
+    @Test
+    public void testCustomPrimitiveEncoder() throws DeploymentException {
+        final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
+
+        Server server = new Server(CustomPrimitiveEncoderEndpoint.class);
+
+        try {
+            server.start();
+            messageLatch = new CountDownLatch(1);
+
+            ClientManager client = ClientManager.createClient();
+            client.connectToServer(new TestEndpointAdapter() {
+                @Override
+                public void onMessage(String message) {
+                    receivedMessage = message;
+                    messageLatch.countDown();
+                    System.out.println("Received message = " + message);
+                }
+
+                @Override
+                public EndpointConfig getEndpointConfig() {
+                    return null;
+                }
+
+                @Override
+                public void onOpen(Session session) {
+                    try {
+                        session.addMessageHandler(new TestTextMessageHandler(this));
+                        session.getBasicRemote().sendText(SENT_MESSAGE);
+                        System.out.println("Sent message: " + SENT_MESSAGE);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }, cec, new URI("ws://localhost:8025/websockets/tests/echo-primitive-encoder"));
+
+            assertTrue(messageLatch.await(5, TimeUnit.SECONDS));
+            assertEquals("encoded5", receivedMessage);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            server.stop();
+        }
+    }
+
+    @ServerEndpoint(value = "/echo-primitive-encoder", encoders = {CustomIntEncoder.class})
+    public static class CustomPrimitiveEncoderEndpoint {
+
+        @OnMessage
+        public Integer onMessage(String message) {
+            return message.length();
+        }
+    }
+
+    public static class CustomIntEncoder extends CoderAdapter implements Encoder.Text<Integer> {
+
+        @Override
+        public String encode(Integer object) throws EncodeException {
+            return ("encoded" + object);
         }
     }
 }

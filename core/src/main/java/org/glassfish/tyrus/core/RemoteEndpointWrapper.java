@@ -196,8 +196,6 @@ public abstract class RemoteEndpointWrapper implements RemoteEndpoint {
     protected Future<?> sendSyncObject(Object o) throws IOException, EncodeException {
         if (o instanceof String) {
             return remoteEndpoint.sendText((String) o);
-        } else if (isPrimitiveData(o)) {
-            return remoteEndpoint.sendText(o.toString());
         } else {
             Object toSend = endpointWrapper.doEncode(session, o);
             if (toSend instanceof String) {
@@ -218,21 +216,9 @@ public abstract class RemoteEndpointWrapper implements RemoteEndpoint {
         return null;
     }
 
-    protected boolean isPrimitiveData(Object data) {
-        Class dataClass = data.getClass();
-        return (dataClass.equals(Integer.class) ||
-                dataClass.equals(Byte.class) ||
-                dataClass.equals(Short.class) ||
-                dataClass.equals(Long.class) ||
-                dataClass.equals(Float.class) ||
-                dataClass.equals(Double.class) ||
-                dataClass.equals(Boolean.class) ||
-                dataClass.equals(Character.class));
-    }
-
     @Override
     public void sendPing(ByteBuffer applicationData) throws IOException {
-        if(applicationData != null && applicationData.remaining() > 125) {
+        if (applicationData != null && applicationData.remaining() > 125) {
             throw new IllegalArgumentException("Ping applicationData exceeded the maximum allowed payload of 125 bytes.");
         }
         remoteEndpoint.sendPing(applicationData);
@@ -240,7 +226,7 @@ public abstract class RemoteEndpointWrapper implements RemoteEndpoint {
 
     @Override
     public void sendPong(ByteBuffer applicationData) throws IOException {
-        if(applicationData != null && applicationData.remaining() > 125) {
+        if (applicationData != null && applicationData.remaining() > 125) {
             throw new IllegalArgumentException("Pong applicationData exceeded the maximum allowed payload of 125 bytes.");
         }
         remoteEndpoint.sendPong(applicationData);
