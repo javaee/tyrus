@@ -63,6 +63,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.websocket.CloseReason;
+import javax.websocket.DecodeException;
 import javax.websocket.Decoder;
 import javax.websocket.Extension;
 import javax.websocket.MessageHandler;
@@ -364,7 +365,7 @@ public class TyrusSession implements Session {
         }
     }
 
-    void notifyMessageHandlers(Object message, List<CoderWrapper<Decoder>> availableDecoders) {
+    void notifyMessageHandlers(Object message, List<CoderWrapper<Decoder>> availableDecoders) throws DecodeException, IOException {
         checkConnectionState(State.CLOSED);
 
         boolean decoded = false;
