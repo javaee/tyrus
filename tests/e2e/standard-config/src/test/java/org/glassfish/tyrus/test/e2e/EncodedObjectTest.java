@@ -54,14 +54,15 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
-import org.glassfish.tyrus.test.tools.TestContainer;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.core.CoderAdapter;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.e2e.message.StringContainer;
+import org.glassfish.tyrus.test.tools.TestContainer;
 
-import org.junit.Assert;
 import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests encoding of custom objects.
@@ -111,7 +112,7 @@ public class EncodedObjectTest extends TestContainer {
             }, cec, getURI(TestEncodeEndpoint.class));
 
             messageLatch.await(5, TimeUnit.SECONDS);
-            Assert.assertEquals(SENT_MESSAGE, receivedMessage);
+            assertEquals(SENT_MESSAGE, receivedMessage);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
@@ -174,7 +175,7 @@ public class EncodedObjectTest extends TestContainer {
             }, cec, getURI(TestEncodeBeanMethodReturn.class));
 
             messageLatch.await(5, TimeUnit.SECONDS);
-            Assert.assertEquals(SENT_MESSAGE, receivedMessage);
+            assertEquals(SENT_MESSAGE, receivedMessage);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
@@ -202,5 +203,67 @@ public class EncodedObjectTest extends TestContainer {
             return object.getString();
         }
     }
+
+    @Test
+    public void testCustomPrimitiveEncoder() throws DeploymentException {
+        final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
+        Server server = startServer(CustomPrimitiveEncoderEndpoint.class);
+
+        try {
+            messageLatch = new CountDownLatch(1);
+
+            ClientManager client = ClientManager.createClient();
+            client.connectToServer(new TestEndpointAdapter() {
+                @Override
+                public void onMessage(String message) {
+                    receivedMessage = message;
+                    messageLatch.countDown();
+                    System.out.println("Received message = " + message);
+                }
+
+                @Override
+                public EndpointConfig getEndpointConfig() {
+                    return null;
+                }
+
+                @Override
+                public void onOpen(Session session) {
+                    try {
+                        session.addMessageHandler(new TestTextMessageHandler(this));
+                        session.getBasicRemote().sendText(SENT_MESSAGE);
+                        System.out.println("Sent message: " + SENT_MESSAGE);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }, cec, getURI(TestEncodeBeanMethodReturn.class));
+
+            assertTrue(messageLatch.await(5, TimeUnit.SECONDS));
+            assertEquals("encoded5", receivedMessage);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            stopServer(server);
+        }
+    }
+
+    @ServerEndpoint(value = "/echo2", encoders = {CustomIntEncoder.class})
+    public static class CustomPrimitiveEncoderEndpoint {
+
+        @OnMessage
+        public Integer onMessage(String message) {
+            return message.length();
+        }
+    }
+
+    public static class CustomIntEncoder extends CoderAdapter implements Encoder.Text<Integer> {
+
+        @Override
+        public String encode(Integer object) throws EncodeException {
+            return ("encoded" + object);
+        }
+    }
+
 }
 

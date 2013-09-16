@@ -371,7 +371,7 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
             }
         }
 
-        throw new EncodeException(message, "Unable to encode ");
+        throw new EncodeException(message, "Encoding failed.");
     }
 
     @Override

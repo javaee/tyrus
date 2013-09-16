@@ -264,10 +264,9 @@ public abstract class RemoteEndpointWrapper implements javax.websocket.RemoteEnd
     protected Future<?> sendSyncObject(Object o) throws IOException, EncodeException {
         if (o instanceof String) {
             return remoteEndpoint.sendText((String) o);
-        } else if (isPrimitiveData(o)) {
-            return remoteEndpoint.sendText(o.toString());
         } else {
             Object toSend = tyrusEndpointWrapper.doEncode(session, o);
+
             if (toSend instanceof String) {
                 return remoteEndpoint.sendText((String) toSend);
             } else if (toSend instanceof ByteBuffer) {
@@ -284,18 +283,6 @@ public abstract class RemoteEndpointWrapper implements javax.websocket.RemoteEnd
         }
 
         return null;
-    }
-
-    protected boolean isPrimitiveData(Object data) {
-        Class dataClass = data.getClass();
-        return (dataClass.equals(Integer.class) ||
-                dataClass.equals(Byte.class) ||
-                dataClass.equals(Short.class) ||
-                dataClass.equals(Long.class) ||
-                dataClass.equals(Float.class) ||
-                dataClass.equals(Double.class) ||
-                dataClass.equals(Boolean.class) ||
-                dataClass.equals(Character.class));
     }
 
     @Override
