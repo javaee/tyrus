@@ -236,7 +236,7 @@ public class EncodedObjectTest extends TestContainer {
                         e.printStackTrace();
                     }
                 }
-            }, cec, getURI(TestEncodeBeanMethodReturn.class));
+            }, cec, getURI(CustomPrimitiveEncoderEndpoint.class));
 
             assertTrue(messageLatch.await(5, TimeUnit.SECONDS));
             assertEquals("encoded5", receivedMessage);
@@ -248,7 +248,7 @@ public class EncodedObjectTest extends TestContainer {
         }
     }
 
-    @ServerEndpoint(value = "/echo2", encoders = {CustomIntEncoder.class})
+    @ServerEndpoint(value = "/echo-primitive-encoder", encoders = {CustomIntEncoder.class})
     public static class CustomPrimitiveEncoderEndpoint {
 
         @OnMessage
