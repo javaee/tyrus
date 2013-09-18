@@ -77,6 +77,7 @@ import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
 import javax.websocket.server.ServerEndpointConfig;
 
+<<<<<<< HEAD
 import org.glassfish.tyrus.spi.EndpointWrapper;
 import org.glassfish.tyrus.spi.RemoteEndpoint;
 <<<<<<< HEAD
@@ -89,6 +90,13 @@ import org.glassfish.tyrus.websockets.frame.TextFrame;
 import org.glassfish.tyrus.core.frame.BinaryFrame;
 import org.glassfish.tyrus.core.frame.TextFrame;
 >>>>>>> Container SPI - compilable version
+=======
+import org.glassfish.tyrus.core.frame.BinaryFrame;
+import org.glassfish.tyrus.core.frame.TextFrame;
+import org.glassfish.tyrus.spi.EndpointWrapper;
+import org.glassfish.tyrus.spi.RemoteEndpoint;
+import org.glassfish.tyrus.spi.UpgradeRequest;
+>>>>>>> Container SPI - EchoTest passes (hacky way)
 
 /**
  * Wraps the registered application class.
@@ -141,8 +149,9 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
      */
     public TyrusEndpointWrapper(Class<?> endpointClass, EndpointConfig configuration,
                                 ComponentProviderService componentProvider, WebSocketContainer container,
+                                String contextPath,
                                 ErrorCollector collector, ServerEndpointConfig.Configurator configurator) {
-        this(null, endpointClass, configuration, componentProvider, container, collector, configurator);
+        this(null, endpointClass, configuration, componentProvider, container, contextPath, collector, configurator);
     }
 
     /**
@@ -155,21 +164,21 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
      * @param collector         error collector.
      */
     public TyrusEndpointWrapper(Endpoint endpoint, EndpointConfig configuration, ComponentProviderService componentProvider, WebSocketContainer container,
-                                ErrorCollector collector, ServerEndpointConfig.Configurator configurator) {
-        this(endpoint, null, configuration, componentProvider, container, collector, configurator);
+                                String contextPath, ErrorCollector collector, ServerEndpointConfig.Configurator configurator) {
+        this(endpoint, null, configuration, componentProvider, container, contextPath, collector, configurator);
     }
 
     private TyrusEndpointWrapper(Endpoint endpoint, Class<?> endpointClass, EndpointConfig configuration,
                                  ComponentProviderService componentProvider, WebSocketContainer container,
-                                 ErrorCollector collector, final ServerEndpointConfig.Configurator configurator) {
+                                 String contextPath, ErrorCollector collector, final ServerEndpointConfig.Configurator configurator) {
         this.endpointClass = endpointClass;
         this.endpoint = endpoint;
         this.container = container;
-        this.contextPath = configuration instanceof ServerEndpointConfig ? ((ServerEndpointConfig) configuration).getPath() : null;
+        this.contextPath = contextPath;
         // Uri is re-set in checkHandshake method; this value will be used only in scenarios
         // when checkHandshake is not called, like using EndpointWrapper on the client side.
         // this.uri is then used for creating SessionImpl and used as a return value in Session.getRequestURI() method.
-        this.uri = this.contextPath;
+        this.uri = configuration instanceof ServerEndpointConfig ? ((ServerEndpointConfig) configuration).getPath() : null;
         this.collector = collector;
         this.configurator = configurator;
         this.componentProvider = configurator == null ? componentProvider : new ComponentProviderService(componentProvider) {

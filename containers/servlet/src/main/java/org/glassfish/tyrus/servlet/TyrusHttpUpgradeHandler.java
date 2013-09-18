@@ -106,6 +106,7 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
         initiated = true;
 
         if (connection != null && writer != null) {
+            connection.open();
             // TODO
 //            engine.onConnect(writer);
         }

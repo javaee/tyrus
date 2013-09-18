@@ -45,6 +45,7 @@ import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -135,6 +136,9 @@ class WebSocketFilter extends BaseFilter {
     private static final Logger logger = Grizzly.logger(WebSocketFilter.class);
 
     private static final String TYRUS_CONNECTION = WebSocketFilter.class.getName() + ".Connection";
+
+    private final Map<FilterChainContext, org.glassfish.tyrus.spi.Connection> connectionMap =
+            new ConcurrentHashMap<FilterChainContext, org.glassfish.tyrus.spi.Connection>();
 
 
     static final long DEFAULT_WS_IDLE_TIMEOUT_IN_SECONDS = 15 * 60;
@@ -254,6 +258,7 @@ class WebSocketFilter extends BaseFilter {
         if (connection != null) {
             connection.close(new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, null));
         }
+        connectionMap.remove(ctx);
         return ctx.getInvokeAction();
     }
 
@@ -351,7 +356,8 @@ class WebSocketFilter extends BaseFilter {
     }
 
     private org.glassfish.tyrus.spi.Connection getConnection(FilterChainContext ctx) {
-        final Object o = ctx.getAttributes().getAttribute(TYRUS_CONNECTION);
+//        final Object o = ctx.getAttributes().getAttribute(TYRUS_CONNECTION);
+        final Object o = connectionMap.get(ctx);
         if (o != null && o instanceof org.glassfish.tyrus.spi.Connection) {
             return (org.glassfish.tyrus.spi.Connection) o;
         }
@@ -422,7 +428,8 @@ class WebSocketFilter extends BaseFilter {
             return ctx.getStopAction();
         }
 
-        ctx.getAttributes().setAttribute(TYRUS_CONNECTION, new org.glassfish.tyrus.spi.Connection() {
+//        ctx.getAttributes().setAttribute(TYRUS_CONNECTION, new org.glassfish.tyrus.spi.Connection() {
+        connectionMap.put(ctx, new org.glassfish.tyrus.spi.Connection() {
 
             final GrizzlyWriter writer = WebSocketFilter.getWebSocketConnection(ctx, content);
 
@@ -444,6 +451,11 @@ class WebSocketFilter extends BaseFilter {
 
                     }
                 };
+            }
+
+            @Override
+            public void open() {
+                // TODO: Implement.
             }
 
             @Override
@@ -509,14 +521,19 @@ class WebSocketFilter extends BaseFilter {
                     @Override
                     public void onClosed(Closeable closeable, ICloseType type) throws IOException {
                         connection.close(new CloseReason(CloseReason.CloseCodes.GOING_AWAY, "Close detected on connection"));
+                        WebSocketFilter.this.connectionMap.remove(ctx);
                     }
                 });
 
+                connectionMap.put(ctx, connection);
+//                ctx.getAttributes().setAttribute(TYRUS_CONNECTION, connection);
+
                 write(ctx, upgradeRequest, upgradeResponse);
                 ctx.flush(null);
-                requestContent.recycle();
 
-                ctx.getAttributes().setAttribute(TYRUS_CONNECTION, connection);
+                connection.open();
+//                requestContent.recycle();
+
 
                 return ctx.getStopAction();
 
@@ -538,7 +555,7 @@ class WebSocketFilter extends BaseFilter {
     }
 
     private void write(FilterChainContext ctx, UpgradeRequest request, UpgradeResponse response) {
-        final HttpResponsePacket responsePacket = ((HttpRequestPacket) getHttpContent(request).getHttpHeader()).getResponse();
+        final HttpResponsePacket responsePacket = ((HttpRequestPacket)((HttpContent) ctx.getMessage()).getHttpHeader()).getResponse();
         responsePacket.setProtocol(Protocol.HTTP_1_1);
         responsePacket.setStatus(response.getStatus());
 

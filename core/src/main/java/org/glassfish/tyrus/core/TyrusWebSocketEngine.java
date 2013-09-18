@@ -199,14 +199,14 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
                     public Connection createConnection(final Writer writer, final Connection.CloseListener closeListener) {
 
                         protocolHandler.setWriter(writer);
-                        WebSocket socket = app.createSocket(protocolHandler, app);
+                        final WebSocket socket = app.createSocket(protocolHandler, app);
                         setWebSocketHolder(writer, protocolHandler, null, socket, app);
 
                         // TODO: servlet integration
 //                        if (upgradeListener != null) {
 //                            upgradeListener.onUpgradeFinished();
 //                        } else {
-                            socket.onConnect();
+//                            socket.onConnect();
 //                        }
 
 
@@ -224,6 +224,11 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
                             @Override
                             public CloseListener getCloseListener() {
                                 return closeListener;
+                            }
+
+                            @Override
+                            public void open() {
+                                socket.onConnect();
                             }
 
                             @Override
@@ -393,15 +398,15 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
     }
 
     @Override
-    public void register(Class<?> endpointClass) throws DeploymentException {
+    public void register(Class<?> endpointClass, String contextPath) throws DeploymentException {
 
         final ErrorCollector collector = new ErrorCollector();
 
         AnnotatedEndpoint endpoint = AnnotatedEndpoint.fromClass(endpointClass, componentProviderService, true, collector);
         EndpointConfig config = endpoint.getEndpointConfig();
 
-        TyrusEndpointWrapper ew = new TyrusEndpointWrapper(endpoint, config, componentProviderService, webSocketContainer, collector,
-                config instanceof ServerEndpointConfig ? ((ServerEndpointConfig) config).getConfigurator() : null);
+        TyrusEndpointWrapper ew = new TyrusEndpointWrapper(endpoint, config, componentProviderService, webSocketContainer,
+                contextPath, collector, config instanceof ServerEndpointConfig ? ((ServerEndpointConfig) config).getConfigurator() : null);
 
         if(collector.isEmpty()) {
             register(new TyrusEndpoint(ew));
@@ -411,12 +416,12 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
     }
 
     @Override
-    public void register(ServerEndpointConfig serverConfig) throws DeploymentException {
+    public void register(ServerEndpointConfig serverConfig, String contextPath) throws DeploymentException {
 
         final ErrorCollector collector = new ErrorCollector();
 
         TyrusEndpointWrapper ew = new TyrusEndpointWrapper(serverConfig.getEndpointClass(),
-                serverConfig, componentProviderService, webSocketContainer, collector, serverConfig.getConfigurator());
+                serverConfig, componentProviderService, webSocketContainer, contextPath, collector, serverConfig.getConfigurator());
 
         if(collector.isEmpty()) {
             register(new TyrusEndpoint(ew));

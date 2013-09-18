@@ -87,15 +87,16 @@ public class GrizzlyContainer extends ServerContainerFactory implements ClientCo
             private final WebSocketEngine engine = new TyrusWebSocketEngine(this);
 
             private HttpServer server;
+            private String contextPath;
 
             @Override
             public void register(Class<?> endpointClass) throws DeploymentException {
-                engine.register(endpointClass);
+                engine.register(endpointClass, contextPath);
             }
 
             @Override
             public void register(ServerEndpointConfig serverEndpointConfig) throws DeploymentException {
-                engine.register(serverEndpointConfig);
+                engine.register(serverEndpointConfig, contextPath);
             }
 
             @Override
@@ -105,10 +106,12 @@ public class GrizzlyContainer extends ServerContainerFactory implements ClientCo
 
             @Override
             public void start(String rootPath, int port) throws IOException, DeploymentException {
-                super.start(rootPath, port);
+                contextPath = rootPath;
                 server = HttpServer.createSimpleServer(rootPath, port);
                 server.getListener("grizzly").registerAddOn(new WebSocketAddOn(engine));
                 server.start();
+
+                super.start(rootPath, port);
             }
 
             @Override

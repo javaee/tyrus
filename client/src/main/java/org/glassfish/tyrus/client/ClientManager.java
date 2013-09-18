@@ -69,10 +69,10 @@ import org.glassfish.tyrus.core.ComponentProviderService;
 import org.glassfish.tyrus.core.ErrorCollector;
 import org.glassfish.tyrus.core.ReflectionHelper;
 import org.glassfish.tyrus.core.TyrusEndpointWrapper;
+import org.glassfish.tyrus.core.TyrusFuture;
 import org.glassfish.tyrus.spi.ClientContainer;
 import org.glassfish.tyrus.spi.ClientSocket;
 import org.glassfish.tyrus.spi.UpgradeResponse;
-import org.glassfish.tyrus.core.TyrusFuture;
 
 /**
  * ClientManager implementation.
@@ -352,7 +352,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                     final ClientEndpointConfig finalConfig = config;
 
                     if (endpoint != null) {
-                        TyrusEndpointWrapper clientEndpoint = new TyrusEndpointWrapper(endpoint, config, componentProvider, ClientManager.this, collector, null);
+                        TyrusEndpointWrapper clientEndpoint = new TyrusEndpointWrapper(endpoint, config, componentProvider, ClientManager.this, null, collector, null);
 
                         // fail fast when there is some issue with client endpoint.
                         if (!collector.isEmpty()) {

@@ -41,7 +41,6 @@
 package org.glassfish.tyrus.spi;
 
 import javax.websocket.CloseReason;
-import java.io.Closeable;
 
 // Tyrus creates Connection implementation and connectors
 // call get ProtocolReader,  and set ProtocolWriter and Closeable impl
@@ -61,5 +60,7 @@ public interface Connection {
     interface CloseListener {
         void close(CloseReason reason);
     }
+
+    void open();
 
 }

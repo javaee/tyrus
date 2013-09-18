@@ -82,7 +82,7 @@ public class TyrusServletContainerInitializer implements ServletContainerInitial
     }};
 
     @Override
-    public void onStartup(Set<Class<?>> classes, ServletContext ctx) throws ServletException {
+    public void onStartup(Set<Class<?>> classes, final ServletContext ctx) throws ServletException {
         if (classes == null || classes.isEmpty()) {
             return;
         }
@@ -95,12 +95,12 @@ public class TyrusServletContainerInitializer implements ServletContainerInitial
 
             @Override
             public void register(Class<?> endpointClass) throws DeploymentException {
-                engine.register(endpointClass);
+                engine.register(endpointClass, ctx.getContextPath());
             }
 
             @Override
             public void register(ServerEndpointConfig serverEndpointConfig) throws DeploymentException {
-                engine.register(serverEndpointConfig);
+                engine.register(serverEndpointConfig, ctx.getContextPath());
             }
 
             @Override

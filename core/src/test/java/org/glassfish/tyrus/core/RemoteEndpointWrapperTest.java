@@ -80,7 +80,7 @@ public class RemoteEndpointWrapperTest {
 
     private final byte[] sentBytes = {'a', 'b', 'c'};
     private final byte[] sentBytesComplete = {'a', 'b', 'c', 'a', 'b', 'c'};
-    private final TyrusEndpointWrapper ew = new TyrusEndpointWrapper(EchoEndpoint.class, null, null, new TestContainer(), null, null);
+    private final TyrusEndpointWrapper ew = new TyrusEndpointWrapper(EchoEndpoint.class, null, null, new TestContainer(), null, null, null);
 
     @Test
     public void testGetSendStream() throws IOException {

@@ -56,9 +56,9 @@ public interface WebSocketEngine {
 
     // TODO: constructor? / List<Class<?> / List<ServerEndpointConfig>\
     // (one call instead of iteration).
-    void register(Class<?> endpointClass) throws DeploymentException;
+    void register(Class<?> endpointClass, String contextPath) throws DeploymentException;
 
-    void register(ServerEndpointConfig serverConfig) throws DeploymentException;
+    void register(ServerEndpointConfig serverConfig, String contextPath) throws DeploymentException;
 
     interface UpgradeInfo {
         // Status of the upgrade

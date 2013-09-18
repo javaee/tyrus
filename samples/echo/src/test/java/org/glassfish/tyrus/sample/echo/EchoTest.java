@@ -98,9 +98,10 @@ public class EchoTest extends TestContainer {
                         // do nothing
                     }
                 }
+//            }, ClientEndpointConfig.Builder.create().build(), URI.create("ws://localhost:8080/sample-echo/echo"));
             }, ClientEndpointConfig.Builder.create().build(), getURI(EchoEndpoint.class));
 
-            messageLatch.await(1000, TimeUnit.SECONDS);
+            messageLatch.await(1, TimeUnit.SECONDS);
 
             if (messageLatch.getCount() != 0 || onOpenLatch.getCount() != 0) {
                 fail();
