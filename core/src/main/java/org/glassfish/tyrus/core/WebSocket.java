@@ -40,6 +40,7 @@
 
 package org.glassfish.tyrus.core;
 
+import java.nio.ByteBuffer;
 import java.util.concurrent.Future;
 
 import javax.websocket.CloseReason;
@@ -76,7 +77,7 @@ public interface WebSocket {
      *
      * @return {@link Future} which could be used to control/check the sending completion state.
      */
-    Future<DataFrame> sendRawFrame(byte[] data);
+    Future<DataFrame> sendRawFrame(ByteBuffer data);
 
     /**
      * <p>

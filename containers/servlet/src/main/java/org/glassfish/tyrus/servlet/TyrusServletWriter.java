@@ -41,6 +41,7 @@ package org.glassfish.tyrus.servlet;
 
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -75,10 +76,10 @@ class TyrusServletWriter implements Writer, WriteListener {
     private volatile boolean isReady = false;
 
     private static class QueuedFrame {
-        public final CompletionHandler<byte[]> completionHandler;
-        public final byte[] dataFrame;
+        public final CompletionHandler<ByteBuffer> completionHandler;
+        public final ByteBuffer dataFrame;
 
-        QueuedFrame(CompletionHandler<byte[]> completionHandler, byte[] dataFrame) {
+        QueuedFrame(CompletionHandler<ByteBuffer> completionHandler, ByteBuffer dataFrame) {
             this.completionHandler = completionHandler;
             this.dataFrame = dataFrame;
         }
@@ -125,7 +126,7 @@ class TyrusServletWriter implements Writer, WriteListener {
     }
 
     @Override
-    public void write(final byte[] bytes, Writer.CompletionHandler<byte[]> completionHandler) {
+    public void write(final ByteBuffer buffer, CompletionHandler<ByteBuffer> completionHandler) {
 
         synchronized (outputStreamLock) {
             // first write
@@ -145,9 +146,9 @@ class TyrusServletWriter implements Writer, WriteListener {
         }
 
         if (isReady) {
-            _write(bytes, completionHandler);
+            _write(buffer, completionHandler);
         } else {
-            final QueuedFrame queuedFrame = new QueuedFrame(completionHandler, bytes);
+            final QueuedFrame queuedFrame = new QueuedFrame(completionHandler, buffer);
             try {
                 queue.put(queuedFrame);
             } catch (InterruptedException e) {
@@ -157,16 +158,20 @@ class TyrusServletWriter implements Writer, WriteListener {
         }
     }
 
-    public void _write(final byte[] bytes, Writer.CompletionHandler<byte[]> completionHandler) {
+    public void _write(ByteBuffer buffer, Writer.CompletionHandler<ByteBuffer> completionHandler) {
 
         try {
+            final int remaining = buffer.remaining();
+            final byte[] array = new byte[remaining];
+            buffer.get(remaining);
+
             synchronized (outputStreamLock) {
-                servletOutputStream.write(bytes);
+                servletOutputStream.write(array);
                 servletOutputStream.flush();
             }
 
             if (completionHandler != null) {
-                completionHandler.completed(bytes);
+                completionHandler.completed(buffer);
             }
         } catch (Exception e) {
             if (completionHandler != null) {

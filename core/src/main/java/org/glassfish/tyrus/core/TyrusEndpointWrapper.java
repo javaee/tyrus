@@ -412,10 +412,15 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
     @Override
     public Session createSessionForRemoteEndpoint(RemoteEndpoint re, String subprotocol, List<Extension> extensions) {
         synchronized (remoteEndpointToSession) {
+            try {
             final TyrusSession session = new TyrusSession(container, re, this, subprotocol, extensions, isSecure,
                     getURI(uri, queryString), queryString, templateValues, principal, requestParameterMap);
             remoteEndpointToSession.put(re, session);
             return session;
+            } catch (Exception e) {
+                e.printStackTrace();
+                return null;
+            }
         }
     }
 
@@ -737,7 +742,7 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
     public Map<Session, Future<?>> broadcast(final String message) {
 
         final Map<Session, Future<?>> futures = new HashMap<Session, Future<?>>();
-        byte[] frame = null;
+        ByteBuffer frame = null;
 
         for (Map.Entry<RemoteEndpoint, TyrusSession> e : remoteEndpointToSession.entrySet()) {
             if (e.getValue().isOpen()) {
@@ -770,7 +775,7 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
     public Map<Session, Future<?>> broadcast(final ByteBuffer message) {
 
         final Map<Session, Future<?>> futures = new HashMap<Session, Future<?>>();
-        byte[] frame = null;
+        ByteBuffer frame = null;
 
         for (Map.Entry<RemoteEndpoint, TyrusSession> e : remoteEndpointToSession.entrySet()) {
             if (e.getValue().isOpen()) {
@@ -839,7 +844,11 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
         if (queryString != null && !queryString.isEmpty()) {
             return URI.create(String.format("%s?%s", uri, queryString));
         } else {
-            return URI.create(uri);
+            if(uri != null) {
+                return URI.create(uri);
+            } else {
+                return null;
+            }
         }
     }
 

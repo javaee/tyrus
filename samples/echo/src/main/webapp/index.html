@@ -51,8 +51,7 @@
     var wsUri = getRootUri() + "/sample-echo/echo";
 
     function getRootUri() {
-        return "ws://" + (document.location.hostname == "" ? "localhost" : document.location.hostname) + ":" +
-                (document.location.port == "" ? "8080" : document.location.port);
+        return "ws://localhost:8025/tests/sample-echo/echo";
     }
 
     function init() {

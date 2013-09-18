@@ -89,7 +89,7 @@ public class TyrusServletContainerInitializer implements ServletContainerInitial
 
         classes.removeAll(FILTERED_CLASSES);
 
-        final TyrusServerContainer serverContainer = new TyrusServerContainer() {
+        final TyrusServerContainer serverContainer = new TyrusServerContainer(classes) {
 
             private final WebSocketEngine engine = new TyrusWebSocketEngine(this);
 

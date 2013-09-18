@@ -48,13 +48,15 @@ import java.util.logging.Logger;
 
 import javax.websocket.DeploymentException;
 
+import org.glassfish.tyrus.spi.ServerContainer;
+
 /**
  * Implementation of the WebSocket Server.
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 public class Server {
-    private TyrusServerContainer server;
+    private ServerContainer server;
     private final Set<Class<?>> configuration;
     private final String hostName;
     private final int port;

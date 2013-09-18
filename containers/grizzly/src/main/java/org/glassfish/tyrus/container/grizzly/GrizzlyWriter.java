@@ -40,6 +40,7 @@
 package org.glassfish.tyrus.container.grizzly;
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 import java.util.List;
 import java.util.Map;
 
@@ -47,12 +48,16 @@ import org.glassfish.tyrus.spi.UpgradeResponse;
 import org.glassfish.tyrus.spi.WebSocketEngine;
 =======
 >>>>>>> First take on adapting Grizzly Container to new SPI
+=======
+import java.nio.ByteBuffer;
+
+>>>>>>> Container SPI - echo client works (hacky way)
 import org.glassfish.tyrus.spi.Writer;
 import org.glassfish.tyrus.websockets.Utils;
 
 import org.glassfish.grizzly.EmptyCompletionHandler;
 import org.glassfish.grizzly.filterchain.FilterChainContext;
-import org.glassfish.grizzly.http.HttpContent;
+import org.glassfish.grizzly.memory.ByteBufferWrapper;
 
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
@@ -60,30 +65,27 @@ import org.glassfish.grizzly.http.HttpContent;
 class GrizzlyWriter implements Writer {
 
     private final FilterChainContext ctx;
-    private final HttpContent httpContent;
     private final org.glassfish.grizzly.Connection connection;
 
-    public GrizzlyWriter(final FilterChainContext ctx, final HttpContent httpContent) {
+    public GrizzlyWriter(final FilterChainContext ctx) {
         this.ctx = ctx;
         this.connection = ctx.getConnection();
-        this.httpContent = httpContent;
     }
 
     public GrizzlyWriter(final org.glassfish.grizzly.Connection connection) {
         this.connection = connection;
         this.ctx = null;
-        this.httpContent = null;
     }
 
     @Override
-    public void write(final byte[] bytes, final CompletionHandler<byte[]> completionHandler) {
+    public void write(final ByteBuffer buffer, final CompletionHandler<ByteBuffer> completionHandler) {
         if (!connection.isOpen()) {
             completionHandler.failed(new IllegalStateException("Connection is not open."));
             return;
         }
 
         //noinspection unchecked
-        connection.write(bytes, new EmptyCompletionHandler() {
+        connection.write(new ByteBufferWrapper(buffer), new EmptyCompletionHandler() {
             @Override
             public void cancelled() {
                 if (completionHandler != null) {
@@ -94,7 +96,7 @@ class GrizzlyWriter implements Writer {
             @Override
             public void completed(Object result) {
                 if (completionHandler != null) {
-                    completionHandler.completed(bytes);
+                    completionHandler.completed(buffer);
                 }
             }
 

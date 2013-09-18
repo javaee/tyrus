@@ -81,6 +81,11 @@ public final class ProtocolHandler {
     private ByteBuffer remainder;
     private long writeTimeoutMs = -1;
     private WebSocketContainer container;
+
+    public Writer getWriter() {
+        return writer;
+    }
+
     private Writer writer;
     private byte inFragmentedType;
     private boolean processingFragment;
@@ -136,7 +141,7 @@ public final class ProtocolHandler {
         return write(frame, completionHandler, useTimeout);
     }
 
-    Future<DataFrame> send(byte[] frame,
+    Future<DataFrame> send(ByteBuffer frame,
                            Writer.CompletionHandler<DataFrame> completionHandler, Boolean useTimeout) {
         return write(frame, completionHandler, useTimeout);
     }
@@ -149,7 +154,7 @@ public final class ProtocolHandler {
         return send(new DataFrame(new TextFrame(), data));
     }
 
-    public Future<DataFrame> sendRawFrame(byte[] data) {
+    public Future<DataFrame> sendRawFrame(ByteBuffer data) {
         return send(data, null, true);
     }
 
@@ -207,6 +212,7 @@ public final class ProtocolHandler {
         }
 
 
+
         if (useTimeout && writeTimeoutMs > 0 && container instanceof ExecutorServiceProvider) {
             ExecutorService executor = ((ExecutorServiceProvider) container).getExecutorService();
             try {
@@ -214,8 +220,8 @@ public final class ProtocolHandler {
 
                     @Override
                     public void run() {
-                        final byte[] bytes = frame(frame);
-                        localWriter.write(bytes, new CompletionHandlerWrapper(completionHandler, future, frame));
+                        final ByteBuffer byteBuffer = frame(frame);
+                        localWriter.write(byteBuffer, new CompletionHandlerWrapper(completionHandler, future, frame));
                     }
                 }).get(writeTimeoutMs, TimeUnit.MILLISECONDS);
             } catch (InterruptedException e) {
@@ -226,15 +232,15 @@ public final class ProtocolHandler {
                 future.setFailure(e);
             }
         } else {
-            final byte[] bytes = frame(frame);
-            localWriter.write(bytes, new CompletionHandlerWrapper(completionHandler, future, frame));
+            final ByteBuffer byteBuffer = frame(frame);
+            localWriter.write(byteBuffer, new CompletionHandlerWrapper(completionHandler, future, frame));
         }
 
         return future;
     }
 
     @SuppressWarnings({"unchecked"})
-    private Future<DataFrame> write(final byte[] frame, final Writer.CompletionHandler<DataFrame> completionHandler, boolean useTimeout) {
+    private Future<DataFrame> write(final ByteBuffer frame, final Writer.CompletionHandler<DataFrame> completionHandler, boolean useTimeout) {
         final Writer localWriter = writer;
         final TyrusFuture<DataFrame> future = new TyrusFuture<DataFrame>();
 
@@ -417,7 +423,7 @@ public final class ProtocolHandler {
         this.container = container;
     }
 
-    public byte[] frame(DataFrame frame) {
+    public ByteBuffer frame(DataFrame frame) {
         byte opcode = checkForLastFrame(frame, getOpcode(frame.getType()));
         final byte[] bytes = frame.getType().getBytes(frame);
         final byte[] lengthBytes = encodeLength(bytes.length);
@@ -436,7 +442,7 @@ public final class ProtocolHandler {
         } else {
             System.arraycopy(bytes, 0, packet, payloadStart, bytes.length);
         }
-        return packet;
+        return ByteBuffer.wrap(packet);
     }
 
     DataFrame parse(ByteBuffer buffer) {
@@ -617,7 +623,7 @@ public final class ProtocolHandler {
     /**
      * Handler passed to the {@link org.glassfish.tyrus.spi.Writer}.
      */
-    private static class CompletionHandlerWrapper extends Writer.CompletionHandler<byte[]> {
+    private static class CompletionHandlerWrapper extends Writer.CompletionHandler<ByteBuffer> {
 
         private final Writer.CompletionHandler<DataFrame> frameCompletionHandler;
         private final TyrusFuture<DataFrame> future;
@@ -652,7 +658,7 @@ public final class ProtocolHandler {
         }
 
         @Override
-        public void completed(byte[] result) {
+        public void completed(ByteBuffer result) {
             if (frameCompletionHandler != null) {
                 frameCompletionHandler.completed(frame);
             }
@@ -663,7 +669,7 @@ public final class ProtocolHandler {
         }
 
         @Override
-        public void updated(byte[] result) {
+        public void updated(ByteBuffer result) {
             if (frameCompletionHandler != null) {
                 frameCompletionHandler.updated(frame);
             }

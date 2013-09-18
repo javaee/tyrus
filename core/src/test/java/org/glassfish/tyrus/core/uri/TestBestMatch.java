@@ -43,7 +43,7 @@ import java.net.URI;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.glassfish.tyrus.websockets.WebSocketApplication;
+import org.glassfish.tyrus.core.WebSocketApplication;
 
 /**
  * @author dannycoward

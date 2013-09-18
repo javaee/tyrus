@@ -39,17 +39,20 @@
  */
 package org.glassfish.tyrus.core.uri;
 
+<<<<<<< HEAD
 import java.util.Collections;
 import java.util.List;
 
 import javax.websocket.Extension;
 
+=======
+import org.glassfish.tyrus.core.ProtocolHandler;
+import org.glassfish.tyrus.core.WebSocket;
+import org.glassfish.tyrus.core.WebSocketApplication;
+import org.glassfish.tyrus.core.WebSocketListener;
+>>>>>>> Container SPI - echo client works (hacky way)
 import org.glassfish.tyrus.spi.UpgradeRequest;
-import org.glassfish.tyrus.websockets.ProtocolHandler;
-import org.glassfish.tyrus.websockets.WebSocket;
-import org.glassfish.tyrus.websockets.WebSocketApplication;
-import org.glassfish.tyrus.websockets.WebSocketListener;
-import org.glassfish.tyrus.websockets.WebSocketResponse;
+import org.glassfish.tyrus.spi.UpgradeResponse;
 
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
@@ -63,7 +66,7 @@ public class TestWebSocketApplication extends WebSocketApplication {
     }
 
     @Override
-    public void onHandShakeResponse(UpgradeRequest request, WebSocketResponse response) {
+    public void onHandShakeResponse(UpgradeRequest request, UpgradeResponse response) {
     }
 
     @Override

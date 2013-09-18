@@ -48,8 +48,7 @@ import javax.websocket.server.ServerEndpointConfig;
 
 import org.glassfish.tyrus.core.OsgiRegistry;
 import org.glassfish.tyrus.core.ReflectionHelper;
-import org.glassfish.tyrus.core.TyrusWebSocketEngine;
-import org.glassfish.tyrus.spi.WebSocketEngine;
+import org.glassfish.tyrus.spi.ServerContainer;
 
 /**
  * Factory for creating server containers.
@@ -80,8 +79,8 @@ public class ServerContainerFactory {
      * @param classes           Server configuration.
      * @return New instance of {@link TyrusServerContainer}.
      */
-    public static TyrusServerContainer create(String providerClassName, String contextPath, int port,
-                                              Set<Class<?>> classes) {
+    public static ServerContainer create(String providerClassName, String contextPath, int port,
+                                         Set<Class<?>> classes) {
         Class<? extends org.glassfish.tyrus.spi.ServerContainerFactory> providerClass;
 
         initOsgiRegistry();
@@ -115,9 +114,9 @@ public class ServerContainerFactory {
      *                                {@link javax.websocket.server.ServerContainer#addEndpoint(ServerEndpointConfig)}.
      * @return New instance of {@link TyrusServerContainer}.
      */
-    public static TyrusServerContainer create(Class<? extends org.glassfish.tyrus.spi.ServerContainerFactory> providerClass, String contextPath, int port,
-                                              Set<Class<?>> configuration, Set<Class<?>> dynamicallyAddedClasses,
-                                              Set<ServerEndpointConfig> dynamicallyAddedEndpointConfigs) {
+    public static ServerContainer create(Class<? extends org.glassfish.tyrus.spi.ServerContainerFactory> providerClass, String contextPath, int port,
+                                         Set<Class<?>> configuration, Set<Class<?>> dynamicallyAddedClasses,
+                                         Set<ServerEndpointConfig> dynamicallyAddedEndpointConfigs) {
         org.glassfish.tyrus.spi.ServerContainerFactory containerProvider;
         try {
             containerProvider = ReflectionHelper.getInstance(providerClass);
@@ -140,29 +139,22 @@ public class ServerContainerFactory {
      *                                {@link javax.websocket.server.ServerContainer#addEndpoint(ServerEndpointConfig)}.
      * @return New instance of {@link TyrusServerContainer}.
      */
-    public static TyrusServerContainer create(final org.glassfish.tyrus.spi.ServerContainerFactory containerProvider, String contextPath, int port,
-                                              Set<Class<?>> configuration, Set<Class<?>> dynamicallyAddedClasses,
-                                              Set<ServerEndpointConfig> dynamicallyAddedEndpointConfigs) {
+    public static ServerContainer create(final org.glassfish.tyrus.spi.ServerContainerFactory containerProvider, String contextPath, int port,
+                                         Set<Class<?>> configuration, Set<Class<?>> dynamicallyAddedClasses,
+                                         Set<ServerEndpointConfig> dynamicallyAddedEndpointConfigs) {
 
-        return new TyrusServerContainer() {
+        final ServerContainer container = containerProvider.createContainer(Collections.<String, Object>emptyMap());
 
-            final WebSocketEngine engine = new TyrusWebSocketEngine(this);
-
-            @Override
-            public void register(Class<?> endpointClass) throws DeploymentException {
-                engine.register(endpointClass);
+        for (Class<?> clazz : configuration) {
+            try {
+                container.addEndpoint(clazz);
+            } catch (DeploymentException e) {
+                // TODO
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
             }
+        }
 
-            @Override
-            public void register(ServerEndpointConfig serverEndpointConfig) throws DeploymentException {
-                engine.register(serverEndpointConfig);
-            }
-
-            @Override
-            public WebSocketEngine getWebSocketEngine() {
-                return engine;
-            }
-        };
+        return container;
 
         // TODO
 //        return new TyrusServerContainer(containerProvider.createServerContainer(contextPath, port), contextPath, configuration,

@@ -137,7 +137,7 @@ public class TyrusRemoteEndpoint extends RemoteEndpoint {
      * @return future can be used to get information about sent message.
      * @throws IOException if an I/O error occurs.
      */
-    public Future<DataFrame> sendRawFrame(byte[] dataFrame) throws IOException {
+    public Future<DataFrame> sendRawFrame(ByteBuffer dataFrame) throws IOException {
         return socket.sendRawFrame(dataFrame);
     }
 

@@ -51,16 +51,27 @@ import java.util.logging.Logger;
 
 import javax.websocket.CloseReason;
 
+import org.glassfish.tyrus.core.DataFrame;
+import org.glassfish.tyrus.core.HandshakeException;
 import org.glassfish.tyrus.core.RequestContext;
 <<<<<<< HEAD
 =======
 import org.glassfish.tyrus.core.TyrusWebSocketEngine;
+import org.glassfish.tyrus.core.TyrusWebSocketEngine.WebSocketHolder;
 import org.glassfish.tyrus.core.Utils;
+<<<<<<< HEAD
 >>>>>>> Container SPI - compilable version
+=======
+import org.glassfish.tyrus.core.WebSocket;
+import org.glassfish.tyrus.core.WebSocketRequest;
+import org.glassfish.tyrus.core.WebSocketResponse;
+import org.glassfish.tyrus.spi.ReadHandler;
+>>>>>>> Container SPI - echo client works (hacky way)
 import org.glassfish.tyrus.spi.UpgradeRequest;
 import org.glassfish.tyrus.spi.UpgradeResponse;
 import org.glassfish.tyrus.spi.WebSocketEngine;
 import org.glassfish.tyrus.spi.Writer;
+<<<<<<< HEAD
 <<<<<<< HEAD
 import org.glassfish.tyrus.websockets.DataFrame;
 import org.glassfish.tyrus.websockets.HandshakeException;
@@ -82,6 +93,8 @@ import org.glassfish.tyrus.core.WebSocket;
 import org.glassfish.tyrus.core.WebSocketRequest;
 import org.glassfish.tyrus.core.WebSocketResponse;
 >>>>>>> Container SPI - compilable version
+=======
+>>>>>>> Container SPI - echo client works (hacky way)
 
 import org.glassfish.grizzly.Buffer;
 import org.glassfish.grizzly.CloseListener;
@@ -389,7 +402,7 @@ class WebSocketFilter extends BaseFilter {
                 : handleClientHandShake(ctx, content);
     }
 
-    private NextAction handleClientHandShake(FilterChainContext ctx, HttpContent content) {
+    private NextAction handleClientHandShake(final FilterChainContext ctx, final HttpContent content) {
         // TODO
         final WebSocketHolder holder = ((TyrusWebSocketEngine)engine).getWebSocketHolder(getWebSocketConnection(ctx, content));
 
@@ -408,6 +421,36 @@ class WebSocketFilter extends BaseFilter {
             content.getContent().clear();
             return ctx.getStopAction();
         }
+
+        ctx.getAttributes().setAttribute(TYRUS_CONNECTION, new org.glassfish.tyrus.spi.Connection() {
+
+            final GrizzlyWriter writer = WebSocketFilter.getWebSocketConnection(ctx, content);
+
+            @Override
+            public ReadHandler getReadHandler() {
+                return ((TyrusWebSocketEngine)engine).getReadHandler(holder.handler.getWriter());
+            }
+
+            @Override
+            public Writer getWriter() {
+                return writer;
+            }
+
+            @Override
+            public CloseListener getCloseListener() {
+                return new CloseListener() {
+                    @Override
+                    public void close(CloseReason reason) {
+
+                    }
+                };
+            }
+
+            @Override
+            public void close(CloseReason reason) {
+                writer.close();
+            }
+        });
 
         if (content.getContent().hasRemaining()) {
             return ctx.getRerunFilterAction();
@@ -550,7 +593,7 @@ class WebSocketFilter extends BaseFilter {
     }
 
     private static GrizzlyWriter getWebSocketConnection(final FilterChainContext ctx, final HttpContent httpContent) {
-        return new GrizzlyWriter(ctx, httpContent);
+        return new GrizzlyWriter(ctx);
     }
 
     private static UpgradeRequest createWebSocketRequest(final FilterChainContext ctx, final HttpContent requestContent) {

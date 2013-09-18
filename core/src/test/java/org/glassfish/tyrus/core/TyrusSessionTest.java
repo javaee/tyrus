@@ -67,7 +67,7 @@ import static org.junit.Assert.assertTrue;
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 public class TyrusSessionTest {
-    TyrusEndpointWrapper ew = new TyrusEndpointWrapper(EchoEndpoint.class, null, null, null, null, null, null);
+    TyrusEndpointWrapper ew = new TyrusEndpointWrapper(EchoEndpoint.class, null, null, null, null, null);
 
     @Test
     public void simpleTest() {

@@ -267,7 +267,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
         };
     }
 
-    private ReadHandler getReadHandler(final Writer writer) {
+    public ReadHandler getReadHandler(final Writer writer) {
         return new ReadHandler() {
             @Override
             public void handle(ByteBuffer data) {

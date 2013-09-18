@@ -40,6 +40,7 @@
 
 package org.glassfish.tyrus.core;
 
+import java.nio.ByteBuffer;
 import java.util.EnumSet;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -209,7 +210,7 @@ public class TyrusWebSocket implements WebSocket {
     }
 
     @Override
-    public Future<DataFrame> sendRawFrame(byte[] data) {
+    public Future<DataFrame> sendRawFrame(ByteBuffer data) {
         if (isConnected()) {
             return protocolHandler.sendRawFrame(data);
         } else {

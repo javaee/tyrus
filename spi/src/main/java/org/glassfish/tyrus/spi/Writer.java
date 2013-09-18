@@ -41,6 +41,7 @@
 package org.glassfish.tyrus.spi;
 
 import java.io.Closeable;
+import java.nio.ByteBuffer;
 
 /**
  * Class responsible for writing data.
@@ -91,8 +92,8 @@ public interface Writer extends Closeable {
     /**
      * Write bytes to underlying connection.
      *
-     * @param bytes             bytes to write.
+     * @param buffer             bytes to write.
      * @param completionHandler completion handler in case there is a need to track progress.
      */
-    public void write(byte[] bytes, CompletionHandler<byte[]> completionHandler);
+    public void write(ByteBuffer buffer, CompletionHandler<ByteBuffer> completionHandler);
 }

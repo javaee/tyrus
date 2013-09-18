@@ -89,9 +89,9 @@ public abstract class TyrusServerContainer extends BaseContainer implements Serv
      * //     *                                dynamically deployed {@link ServerEndpointConfig ServerEndpointConfigs}. See
      * //     *                                {@link javax.websocket.server.ServerContainer#addEndpoint(ServerEndpointConfig)}.
      */
-    public TyrusServerContainer() {
+    public TyrusServerContainer(Set<Class<?>> classes) {
         this.collector = new ErrorCollector();
-        this.classes = new HashSet<Class<?>>(); // TODO - no longer necessary?
+        this.classes = classes == null ? Collections.<Class<?>>emptySet() : new HashSet<Class<?>>(classes);
         this.dynamicallyAddedClasses = new HashSet<Class<?>>();
         this.dynamicallyAddedEndpointConfigs = new HashSet<ServerEndpointConfig>();
     }

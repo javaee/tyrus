@@ -80,9 +80,9 @@ public class GrizzlyContainer extends ServerContainerFactory implements ClientCo
     }
 
     @Override
-    protected ServerContainer createContainer(Map<String, Object> config) {
+    public ServerContainer createContainer(Map<String, Object> config) {
 
-        return new TyrusServerContainer() {
+        return new TyrusServerContainer(null) {
 
             private final WebSocketEngine engine = new TyrusWebSocketEngine(this);
 

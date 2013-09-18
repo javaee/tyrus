@@ -78,6 +78,6 @@ public abstract class ServerContainerFactory {
         return factory.createContainer(config);
     }
 
-    protected abstract ServerContainer createContainer(Map<String, Object> config);
+    public abstract ServerContainer createContainer(Map<String, Object> config);
 
 }
