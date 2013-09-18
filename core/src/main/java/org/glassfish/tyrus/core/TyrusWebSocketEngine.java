@@ -166,10 +166,10 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
     @Override
     public UpgradeInfo upgrade(final UpgradeRequest request, final UpgradeResponse response) {
 
-        final WebSocketApplication app = getApplication(request);
-
         WebSocket socket = null;
+
         try {
+            final WebSocketApplication app = getApplication(request);
             if (app != null) {
                 final ProtocolHandler protocolHandler = loadHandler(request);
                 if (protocolHandler == null) {
@@ -246,6 +246,8 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
                 socket.close();
             }
 
+            response.setStatus(e.getCode());
+
             return new UpgradeInfo() {
                 @Override
                 public UpgradeStatus getStatus() {
@@ -258,6 +260,8 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
                 }
             };
         }
+
+        response.setStatus(500);
 
         return new UpgradeInfo() {
             @Override
@@ -320,7 +324,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
         }
     }
 
-//    @Override
+    //    @Override
     private void onConnect(Writer writer) {
         getWebSocketHolder(writer).webSocket.onConnect();
     }
@@ -408,7 +412,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
         TyrusEndpointWrapper ew = new TyrusEndpointWrapper(endpoint, config, componentProviderService, webSocketContainer,
                 contextPath, collector, config instanceof ServerEndpointConfig ? ((ServerEndpointConfig) config).getConfigurator() : null);
 
-        if(collector.isEmpty()) {
+        if (collector.isEmpty()) {
             register(new TyrusEndpoint(ew));
         } else {
             throw collector.composeComprehensiveException();
@@ -423,7 +427,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
         TyrusEndpointWrapper ew = new TyrusEndpointWrapper(serverConfig.getEndpointClass(),
                 serverConfig, componentProviderService, webSocketContainer, contextPath, collector, serverConfig.getConfigurator());
 
-        if(collector.isEmpty()) {
+        if (collector.isEmpty()) {
             register(new TyrusEndpoint(ew));
         } else {
             throw collector.composeComprehensiveException();

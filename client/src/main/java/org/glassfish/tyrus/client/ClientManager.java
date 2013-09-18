@@ -352,7 +352,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                     final ClientEndpointConfig finalConfig = config;
 
                     if (endpoint != null) {
-                        TyrusEndpointWrapper clientEndpoint = new TyrusEndpointWrapper(endpoint, config, componentProvider, ClientManager.this, null, collector, null);
+                        TyrusEndpointWrapper clientEndpoint = new TyrusEndpointWrapper(endpoint, config, componentProvider, ClientManager.this, url, collector, null);
 
                         // fail fast when there is some issue with client endpoint.
                         if (!collector.isEmpty()) {
@@ -364,7 +364,6 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
 
                             @Override
                             public void onHandshakeResponse(UpgradeResponse handshakeResponse) {
-                                System.out.println("#### after response");
                                 finalConfig.getConfigurator().afterResponse(handshakeResponse);
                                 responseLatch.countDown();
                             }

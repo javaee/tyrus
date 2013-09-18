@@ -178,7 +178,7 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
         // Uri is re-set in checkHandshake method; this value will be used only in scenarios
         // when checkHandshake is not called, like using EndpointWrapper on the client side.
         // this.uri is then used for creating SessionImpl and used as a return value in Session.getRequestURI() method.
-        this.uri = configuration instanceof ServerEndpointConfig ? ((ServerEndpointConfig) configuration).getPath() : null;
+        this.uri = configuration instanceof ServerEndpointConfig ? ((ServerEndpointConfig) configuration).getPath() : contextPath;
         this.collector = collector;
         this.configurator = configurator;
         this.componentProvider = configurator == null ? componentProvider : new ComponentProviderService(componentProvider) {
@@ -422,10 +422,10 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
     public Session createSessionForRemoteEndpoint(RemoteEndpoint re, String subprotocol, List<Extension> extensions) {
         synchronized (remoteEndpointToSession) {
             try {
-            final TyrusSession session = new TyrusSession(container, re, this, subprotocol, extensions, isSecure,
-                    getURI(uri, queryString), queryString, templateValues, principal, requestParameterMap);
-            remoteEndpointToSession.put(re, session);
-            return session;
+                final TyrusSession session = new TyrusSession(container, re, this, subprotocol, extensions, isSecure,
+                        getURI(uri, queryString), queryString, templateValues, principal, requestParameterMap);
+                remoteEndpointToSession.put(re, session);
+                return session;
             } catch (Exception e) {
                 e.printStackTrace();
                 return null;
@@ -538,7 +538,7 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
                     case RUNNING:
                         if (buffer == null) {
                             // TODO:
-                            buffer = new ReaderBuffer(((BaseContainer)container).getExecutorService());
+                            buffer = new ReaderBuffer(((BaseContainer) container).getExecutorService());
                             session.setReaderBuffer(buffer);
                         }
                         buffer.resetBuffer(session.getMaxTextMessageBufferSize());
@@ -602,7 +602,7 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
                     case RUNNING:
                         if (buffer == null) {
                             // TODO
-                            buffer = new InputStreamBuffer(((BaseContainer)container).getExecutorService());
+                            buffer = new InputStreamBuffer(((BaseContainer) container).getExecutorService());
                             session.setInputStreamBuffer(buffer);
                         }
                         buffer.resetBuffer(session.getMaxBinaryMessageBufferSize());
@@ -853,11 +853,7 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
         if (queryString != null && !queryString.isEmpty()) {
             return URI.create(String.format("%s?%s", uri, queryString));
         } else {
-            if(uri != null) {
-                return URI.create(uri);
-            } else {
-                return null;
-            }
+            return URI.create(uri);
         }
     }
 

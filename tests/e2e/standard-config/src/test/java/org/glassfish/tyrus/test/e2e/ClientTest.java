@@ -41,10 +41,12 @@ package org.glassfish.tyrus.test.e2e;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfig;
+import javax.websocket.DeploymentException;
 import javax.websocket.EndpointConfig;
 import javax.websocket.Session;
 
@@ -70,7 +72,7 @@ public class ClientTest {
     private static final String SENT_MESSAGE = "hello";
 
     @Test
-    public void testClient() {
+    public void testClient() throws URISyntaxException, InterruptedException, IOException, DeploymentException {
         final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
         Server server = new Server(TestEndpoint.class);
 
@@ -113,9 +115,6 @@ public class ClientTest {
 
             assertEquals(clientSession, ClientTest.session);
             assertEquals(SENT_MESSAGE, receivedMessage);
-        } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException(e.getMessage(), e);
         } finally {
             server.stop();
         }

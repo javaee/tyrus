@@ -296,7 +296,7 @@ class WebSocketFilter extends BaseFilter {
         if (!message.getHttpHeader().isRequest()) {
             final HttpStatus httpStatus = ((HttpResponsePacket) message.getHttpHeader()).getHttpStatus();
 
-            if (httpStatus.getStatusCode() != 101) {
+            if (httpStatus != HttpStatus.SWITCHING_PROTOCOLS_101) {
                 if (proxy) {
                     if (httpStatus == HttpStatus.OK_200) {
 
@@ -315,11 +315,6 @@ class WebSocketFilter extends BaseFilter {
                     }
 
                     return ctx.getInvokeAction();
-                } else {
-                    if(httpStatus != HttpStatus.SWITCHING_PROTOCOLS_101) {
-                        throw new HandshakeException("blablabla");
-
-                    }
                 }
             }
         }
@@ -327,7 +322,7 @@ class WebSocketFilter extends BaseFilter {
         if (tyrusConnection == null) {
 
             // If websocket is null - it means either non-websocket Connection
-            if (!UpgradeRequest.WEBSOCKET.equalsIgnoreCase(header.getUpgrade())) {
+            if (!UpgradeRequest.WEBSOCKET.equalsIgnoreCase(header.getUpgrade()) && message.getHttpHeader().isRequest()) {
                 // if it's not a websocket connection - pass the processing to the next filter
                 return ctx.getInvokeAction();
             }

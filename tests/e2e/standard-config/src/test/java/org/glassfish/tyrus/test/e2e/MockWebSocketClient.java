@@ -40,6 +40,7 @@
 
 package org.glassfish.tyrus.test.e2e;
 
+import java.nio.ByteBuffer;
 import java.util.concurrent.Future;
 
 import javax.websocket.CloseReason;
@@ -76,7 +77,7 @@ class MockWebSocketClient implements WebSocket {
     }
 
     @Override
-    public Future<DataFrame> sendRawFrame(byte[] data) {
+    public Future<DataFrame> sendRawFrame(ByteBuffer data) {
         return null;
     }
 
