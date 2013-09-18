@@ -54,16 +54,7 @@ import javax.websocket.server.ServerEndpointConfig;
 
 import org.glassfish.tyrus.spi.EndpointWrapper;
 import org.glassfish.tyrus.spi.UpgradeRequest;
-<<<<<<< HEAD
-import org.glassfish.tyrus.websockets.ProtocolHandler;
-import org.glassfish.tyrus.websockets.TyrusExtension;
-import org.glassfish.tyrus.websockets.WebSocket;
-import org.glassfish.tyrus.websockets.WebSocketApplication;
-import org.glassfish.tyrus.websockets.WebSocketListener;
-import org.glassfish.tyrus.websockets.WebSocketResponse;
-=======
 import org.glassfish.tyrus.spi.UpgradeResponse;
->>>>>>> Container SPI - compilable version
 
 /**
  * Implementation of {@link WebSocketApplication}.
@@ -172,27 +163,8 @@ public class TyrusEndpoint extends WebSocketApplication {
     }
 
     @Override
-<<<<<<< HEAD
     public List<Extension> getSupportedExtensions() {
         return new ArrayList<Extension>(temporaryNegotiatedExtensions);
-=======
-    public void onExtensionNegotiation(List<org.glassfish.tyrus.core.Extension> extensions) {
-    }
-
-    @Override
-    public List<org.glassfish.tyrus.core.Extension> getSupportedExtensions() {
-        List<org.glassfish.tyrus.core.Extension> grizzlyExtensions = new ArrayList<org.glassfish.tyrus.core.Extension>();
-
-        for (Extension ext : temporaryNegotiatedExtensions) {
-            final org.glassfish.tyrus.core.Extension extension = new org.glassfish.tyrus.core.Extension(ext.getName());
-            for (Extension.Parameter p : ext.getParameters()) {
-                extension.getParameters().add(new org.glassfish.tyrus.core.Extension.Parameter(p.getName(), p.getValue()));
-            }
-            grizzlyExtensions.add(extension);
-        }
-
-        return grizzlyExtensions;
->>>>>>> Container SPI - compilable version
     }
 
     @Override

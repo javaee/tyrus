@@ -58,9 +58,9 @@ import javax.websocket.server.ServerEndpoint;
 import javax.websocket.server.ServerEndpointConfig;
 
 import org.glassfish.tyrus.client.ClientManager;
+import org.glassfish.tyrus.core.TyrusExtension;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.tools.TestContainer;
-import org.glassfish.tyrus.websockets.TyrusExtension;
 
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;

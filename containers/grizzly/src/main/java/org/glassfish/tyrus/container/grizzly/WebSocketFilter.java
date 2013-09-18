@@ -55,47 +55,17 @@ import javax.websocket.CloseReason;
 import org.glassfish.tyrus.core.DataFrame;
 import org.glassfish.tyrus.core.HandshakeException;
 import org.glassfish.tyrus.core.RequestContext;
-<<<<<<< HEAD
-=======
 import org.glassfish.tyrus.core.TyrusWebSocketEngine;
 import org.glassfish.tyrus.core.TyrusWebSocketEngine.WebSocketHolder;
 import org.glassfish.tyrus.core.Utils;
-<<<<<<< HEAD
->>>>>>> Container SPI - compilable version
-=======
 import org.glassfish.tyrus.core.WebSocket;
 import org.glassfish.tyrus.core.WebSocketRequest;
 import org.glassfish.tyrus.core.WebSocketResponse;
 import org.glassfish.tyrus.spi.ReadHandler;
->>>>>>> Container SPI - echo client works (hacky way)
 import org.glassfish.tyrus.spi.UpgradeRequest;
 import org.glassfish.tyrus.spi.UpgradeResponse;
 import org.glassfish.tyrus.spi.WebSocketEngine;
 import org.glassfish.tyrus.spi.Writer;
-<<<<<<< HEAD
-<<<<<<< HEAD
-import org.glassfish.tyrus.websockets.DataFrame;
-import org.glassfish.tyrus.websockets.HandshakeException;
-<<<<<<< HEAD
-import org.glassfish.tyrus.websockets.TyrusWebSocketEngine;
-import org.glassfish.tyrus.websockets.TyrusWebSocketEngine.WebSocketHolder;
-import org.glassfish.tyrus.websockets.Utils;
-=======
-import org.glassfish.tyrus.websockets.TyrusWebSocketEngine.WebSocketHolder;
->>>>>>> First take on adapting Grizzly Container to new SPI
-import org.glassfish.tyrus.websockets.WebSocket;
-import org.glassfish.tyrus.websockets.WebSocketRequest;
-import org.glassfish.tyrus.websockets.WebSocketResponse;
-=======
-import org.glassfish.tyrus.core.DataFrame;
-import org.glassfish.tyrus.core.HandshakeException;
-import org.glassfish.tyrus.core.TyrusWebSocketEngine.WebSocketHolder;
-import org.glassfish.tyrus.core.WebSocket;
-import org.glassfish.tyrus.core.WebSocketRequest;
-import org.glassfish.tyrus.core.WebSocketResponse;
->>>>>>> Container SPI - compilable version
-=======
->>>>>>> Container SPI - echo client works (hacky way)
 
 import org.glassfish.grizzly.Buffer;
 import org.glassfish.grizzly.CloseListener;
@@ -205,8 +175,7 @@ class WebSocketFilter extends BaseFilter {
         logger.log(Level.FINEST, "handleConnect");
 
         // Get connection
-        final Writer webSocketWriter =
-                WebSocketFilter.getWebSocketConnection(ctx, HttpContent.builder(HttpRequestPacket.builder().build()).build());
+        final Writer webSocketWriter = WebSocketFilter.getWebSocketConnection(ctx);
 
         // check if it's websocket connection
         if (webSocketWriter == null) {
@@ -282,8 +251,6 @@ class WebSocketFilter extends BaseFilter {
 
         org.glassfish.tyrus.spi.Connection tyrusConnection = getConnection(ctx);
 
-        // Get the Grizzly Connection
-        final Writer writer = getWebSocketConnection(ctx, message);
         // Get the HTTP header
         final HttpHeader header = message.getHttpHeader();
 
@@ -380,7 +347,6 @@ class WebSocketFilter extends BaseFilter {
     @Override
     public NextAction handleWrite(FilterChainContext ctx) throws IOException {
         // get the associated websocket
-        Writer writer = getWebSocketConnection(ctx, null);
         final Object tyrusConnection = ctx.getAttributes().getAttribute(TYRUS_CONNECTION);
         // if there is one
         if (tyrusConnection != null) {
@@ -413,7 +379,7 @@ class WebSocketFilter extends BaseFilter {
 
     private NextAction handleClientHandShake(final FilterChainContext ctx, final HttpContent content) {
         // TODO
-        final WebSocketHolder holder = ((TyrusWebSocketEngine) engine).getWebSocketHolder(getWebSocketConnection(ctx, content));
+        final WebSocketHolder holder = ((TyrusWebSocketEngine) engine).getWebSocketHolder(getWebSocketConnection(ctx));
 
         if (holder == null) {
             content.recycle();
@@ -434,7 +400,7 @@ class WebSocketFilter extends BaseFilter {
 //        ctx.getAttributes().setAttribute(TYRUS_CONNECTION, new org.glassfish.tyrus.spi.Connection() {
         connectionMap.put(ctx, new org.glassfish.tyrus.spi.Connection() {
 
-            final GrizzlyWriter writer = WebSocketFilter.getWebSocketConnection(ctx, content);
+            final GrizzlyWriter writer = WebSocketFilter.getWebSocketConnection(ctx);
 
             @Override
             public ReadHandler getReadHandler() {
@@ -612,8 +578,8 @@ class WebSocketFilter extends BaseFilter {
         return HttpContent.builder(builder.build()).build();
     }
 
-    private static GrizzlyWriter getWebSocketConnection(final FilterChainContext ctx, final HttpContent httpContent) {
-        return new GrizzlyWriter(ctx);
+    private static GrizzlyWriter getWebSocketConnection(final FilterChainContext ctx) {
+        return new GrizzlyWriter(ctx.getConnection());
     }
 
     private static UpgradeRequest createWebSocketRequest(final FilterChainContext ctx, final HttpContent requestContent) {

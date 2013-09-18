@@ -49,13 +49,7 @@ import java.util.logging.Logger;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.WriteListener;
 
-<<<<<<< HEAD
-import org.glassfish.tyrus.spi.UpgradeResponse;
-import org.glassfish.tyrus.spi.WebSocketEngine;
-=======
->>>>>>> Container SPI - compilable version
 import org.glassfish.tyrus.spi.Writer;
-import org.glassfish.tyrus.websockets.Utils;
 
 /**
  * {@link org.glassfish.tyrus.spi.Writer} implementation used in Servlet integration.

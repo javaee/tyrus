@@ -77,26 +77,11 @@ import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
 import javax.websocket.server.ServerEndpointConfig;
 
-<<<<<<< HEAD
-import org.glassfish.tyrus.spi.EndpointWrapper;
-import org.glassfish.tyrus.spi.RemoteEndpoint;
-<<<<<<< HEAD
-import org.glassfish.tyrus.spi.UpgradeRequest;
-import org.glassfish.tyrus.websockets.DataFrame;
-import org.glassfish.tyrus.websockets.HandshakeException;
-import org.glassfish.tyrus.websockets.frame.BinaryFrame;
-import org.glassfish.tyrus.websockets.frame.TextFrame;
-=======
-import org.glassfish.tyrus.core.frame.BinaryFrame;
-import org.glassfish.tyrus.core.frame.TextFrame;
->>>>>>> Container SPI - compilable version
-=======
 import org.glassfish.tyrus.core.frame.BinaryFrame;
 import org.glassfish.tyrus.core.frame.TextFrame;
 import org.glassfish.tyrus.spi.EndpointWrapper;
 import org.glassfish.tyrus.spi.RemoteEndpoint;
 import org.glassfish.tyrus.spi.UpgradeRequest;
->>>>>>> Container SPI - EchoTest passes (hacky way)
 
 /**
  * Wraps the registered application class.

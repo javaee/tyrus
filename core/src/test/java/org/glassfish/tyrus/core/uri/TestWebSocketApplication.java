@@ -39,18 +39,16 @@
  */
 package org.glassfish.tyrus.core.uri;
 
-<<<<<<< HEAD
+
 import java.util.Collections;
 import java.util.List;
 
 import javax.websocket.Extension;
 
-=======
 import org.glassfish.tyrus.core.ProtocolHandler;
 import org.glassfish.tyrus.core.WebSocket;
 import org.glassfish.tyrus.core.WebSocketApplication;
 import org.glassfish.tyrus.core.WebSocketListener;
->>>>>>> Container SPI - echo client works (hacky way)
 import org.glassfish.tyrus.spi.UpgradeRequest;
 import org.glassfish.tyrus.spi.UpgradeResponse;
 

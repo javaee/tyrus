@@ -46,12 +46,6 @@ import java.util.concurrent.Future;
 import javax.websocket.CloseReason;
 
 import org.glassfish.tyrus.spi.RemoteEndpoint;
-<<<<<<< HEAD
-import org.glassfish.tyrus.websockets.DataFrame;
-import org.glassfish.tyrus.websockets.Utils;
-import org.glassfish.tyrus.websockets.WebSocket;
-=======
->>>>>>> Container SPI - compilable version
 
 /**
  * {@link org.glassfish.tyrus.spi.RemoteEndpoint} implementation.

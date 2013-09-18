@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.websockets;
+package org.glassfish.tyrus.core;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;

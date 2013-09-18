@@ -66,20 +66,12 @@ import javax.servlet.http.HttpSessionListener;
 import javax.servlet.http.WebConnection;
 
 import org.glassfish.tyrus.core.RequestContext;
-<<<<<<< HEAD
-import org.glassfish.tyrus.spi.WebSocketEngine;
-import org.glassfish.tyrus.spi.Writer;
-import org.glassfish.tyrus.websockets.HandshakeException;
-import org.glassfish.tyrus.websockets.TyrusWebSocketEngine;
-import org.glassfish.tyrus.websockets.Utils;
-=======
 import org.glassfish.tyrus.core.TyrusWebSocketEngine;
 import org.glassfish.tyrus.core.Utils;
 import org.glassfish.tyrus.core.WebSocketResponse;
 import org.glassfish.tyrus.spi.Connection;
 import org.glassfish.tyrus.spi.WebSocketEngine;
 import org.glassfish.tyrus.spi.Writer;
->>>>>>> Container SPI - compilable version
 
 /**
  * Filter used for Servlet integration.
