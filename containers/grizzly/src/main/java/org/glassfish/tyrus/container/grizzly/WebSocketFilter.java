@@ -215,7 +215,7 @@ class WebSocketFilter extends BaseFilter {
         }
 
         // TODO
-        WebSocketHolder webSocketHolder = ((TyrusWebSocketEngine)engine).getWebSocketHolder(webSocketWriter);
+        WebSocketHolder webSocketHolder = ((TyrusWebSocketEngine) engine).getWebSocketHolder(webSocketWriter);
         webSocketRequest = webSocketHolder.handshake.initiate();
 
         HttpRequestPacket.Builder builder = HttpRequestPacket.builder();
@@ -292,12 +292,12 @@ class WebSocketFilter extends BaseFilter {
                     new Object[]{tyrusConnection, message.getContent().remaining(), header});
         }
 
-        if (tyrusConnection == null) {
-            // client
-            if (!message.getHttpHeader().isRequest()) {
-                final HttpStatus httpStatus = ((HttpResponsePacket) message.getHttpHeader()).getHttpStatus();
+        // client
+        if (!message.getHttpHeader().isRequest()) {
+            final HttpStatus httpStatus = ((HttpResponsePacket) message.getHttpHeader()).getHttpStatus();
 
-                if (proxy && (httpStatus.getStatusCode() != 101)) {
+            if (httpStatus.getStatusCode() != 101) {
+                if (proxy) {
                     if (httpStatus == HttpStatus.OK_200) {
 
                         // TYRUS-221: Proxy handshake is complete, we need to enable SSL layer for secure ("wss")
@@ -315,8 +315,16 @@ class WebSocketFilter extends BaseFilter {
                     }
 
                     return ctx.getInvokeAction();
+                } else {
+                    if(httpStatus != HttpStatus.SWITCHING_PROTOCOLS_101) {
+                        throw new HandshakeException("blablabla");
+
+                    }
                 }
             }
+        }
+
+        if (tyrusConnection == null) {
 
             // If websocket is null - it means either non-websocket Connection
             if (!UpgradeRequest.WEBSOCKET.equalsIgnoreCase(header.getUpgrade())) {
@@ -410,7 +418,7 @@ class WebSocketFilter extends BaseFilter {
 
     private NextAction handleClientHandShake(final FilterChainContext ctx, final HttpContent content) {
         // TODO
-        final WebSocketHolder holder = ((TyrusWebSocketEngine)engine).getWebSocketHolder(getWebSocketConnection(ctx, content));
+        final WebSocketHolder holder = ((TyrusWebSocketEngine) engine).getWebSocketHolder(getWebSocketConnection(ctx, content));
 
         if (holder == null) {
             content.recycle();
@@ -435,7 +443,7 @@ class WebSocketFilter extends BaseFilter {
 
             @Override
             public ReadHandler getReadHandler() {
-                return ((TyrusWebSocketEngine)engine).getReadHandler(holder.handler.getWriter());
+                return ((TyrusWebSocketEngine) engine).getReadHandler(holder.handler.getWriter());
             }
 
             @Override
@@ -555,7 +563,7 @@ class WebSocketFilter extends BaseFilter {
     }
 
     private void write(FilterChainContext ctx, UpgradeRequest request, UpgradeResponse response) {
-        final HttpResponsePacket responsePacket = ((HttpRequestPacket)((HttpContent) ctx.getMessage()).getHttpHeader()).getResponse();
+        final HttpResponsePacket responsePacket = ((HttpRequestPacket) ((HttpContent) ctx.getMessage()).getHttpHeader()).getResponse();
         responsePacket.setProtocol(Protocol.HTTP_1_1);
         responsePacket.setStatus(response.getStatus());
 

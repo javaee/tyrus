@@ -364,6 +364,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
 
                             @Override
                             public void onHandshakeResponse(UpgradeResponse handshakeResponse) {
+                                System.out.println("#### after response");
                                 finalConfig.getConfigurator().afterResponse(handshakeResponse);
                                 responseLatch.countDown();
                             }
@@ -410,9 +411,8 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                     } catch (InterruptedException e) {
                         future.setFailure(new DeploymentException("Handshake response not received.", e));
                     }
-
-                    future.setFailure(new DeploymentException("Handshake response not received."));
                 }
+                future.setFailure(new DeploymentException("Handshake response not received."));
             }
         });
 

@@ -139,7 +139,11 @@ public class TyrusServerConfiguration implements ServerApplicationConfig {
             if (c.isAnnotationPresent(ServerEndpoint.class)) {
                 annotatedClasses.add(c);
 
-                // nothing else is expected/supported.
+            } else if(ServerApplicationConfig.class.isAssignableFrom(c)) {
+                ServerApplicationConfig config = (ServerApplicationConfig) ReflectionHelper.getInstance(c, errorCollector);
+                configurations.add(config);
+
+            // nothing else is expected/supported.
             } else {
                 errorCollector.addException(new DeploymentException(String.format("Class %s is not ServerApplicationConfig descendant nor has @ServerEndpoint annotation.", c.getName())));
             }

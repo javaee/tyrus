@@ -96,8 +96,6 @@ public class ProgrammaticEchoTest extends TestContainer {
 
             messageLatch.await(1, TimeUnit.SECONDS);
             assertEquals(0, messageLatch.getCount());
-
-            System.out.println("###### " + session.getOpenSessions().size());
         } catch (Exception e) {
             fail(e.getMessage());
         } finally {
