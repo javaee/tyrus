@@ -54,10 +54,10 @@ import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
 import javax.websocket.Session;
 
-import org.glassfish.tyrus.test.tools.TestContainer;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.e2e.bean.SimpleRemoteTestEndpoint;
+import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -73,7 +73,7 @@ import static org.junit.Assert.assertTrue;
 public class SimpleRemoteTest extends TestContainer {
     private String receivedMessage;
     private static final String SENT_MESSAGE = "Hello World";
-    private static  final Logger LOGGER = Logger.getLogger(SimpleRemoteTest.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(SimpleRemoteTest.class.getName());
 
     @Test
     public void testSimpleRemote() throws DeploymentException {
@@ -137,12 +137,12 @@ public class SimpleRemoteTest extends TestContainer {
                         // replace ClientManager with MockClientEndpoint to confirm the test passes if the backend
                         // does not have issues
                         final ClientManager client = ClientManager.createClient();
-                        client.connectToServer(new Endpoint()  {
+                        final Session session = client.connectToServer(new Endpoint() {
 
                             @Override
                             public void onOpen(Session session, EndpointConfig EndpointConfig) {
                                 try {
-                                    session.addMessageHandler(new MessageHandler.Whole<String>(){
+                                    session.addMessageHandler(new MessageHandler.Whole<String>() {
                                         @Override
                                         public void onMessage(String s) {
                                             perClientLatch.countDown();
@@ -166,6 +166,7 @@ public class SimpleRemoteTest extends TestContainer {
                             }
                         }, cec, getURI(SimpleRemoteTestEndpoint.class));
                         perClientLatch.await(5, TimeUnit.SECONDS);
+                        session.close();
                     } catch (Exception e) {
                         e.printStackTrace();
                     }

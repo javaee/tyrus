@@ -736,7 +736,7 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
     public Map<Session, Future<?>> broadcast(final String message) {
 
         final Map<Session, Future<?>> futures = new HashMap<Session, Future<?>>();
-        ByteBuffer frame = null;
+        byte[] frame = null;
 
         for (Map.Entry<RemoteEndpoint, TyrusSession> e : remoteEndpointToSession.entrySet()) {
             if (e.getValue().isOpen()) {
@@ -745,11 +745,13 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
 
                 if (frame == null) {
                     final DataFrame dataFrame = new DataFrame(new TextFrame(), message);
-                    frame = ((TyrusWebSocket) remoteEndpoint.getSocket()).getProtocolHandler().frame(dataFrame);
+                    final ByteBuffer byteBuffer = ((TyrusWebSocket) remoteEndpoint.getSocket()).getProtocolHandler().frame(dataFrame);
+                    frame = new byte[byteBuffer.remaining()];
+                    byteBuffer.get(frame);
                 }
 
                 try {
-                    final Future<DataFrame> frameFuture = remoteEndpoint.sendRawFrame(frame);
+                    final Future<DataFrame> frameFuture = remoteEndpoint.sendRawFrame(ByteBuffer.wrap(frame));
                     futures.put(e.getValue(), frameFuture);
                 } catch (IOException e1) {
                     LOGGER.log(Level.FINE, String.format("Cannot broadcast to session %s.", e.getValue().getId()), e1);
@@ -769,7 +771,7 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
     public Map<Session, Future<?>> broadcast(final ByteBuffer message) {
 
         final Map<Session, Future<?>> futures = new HashMap<Session, Future<?>>();
-        ByteBuffer frame = null;
+        byte[] frame = null;
 
         for (Map.Entry<RemoteEndpoint, TyrusSession> e : remoteEndpointToSession.entrySet()) {
             if (e.getValue().isOpen()) {
@@ -781,11 +783,13 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
                     message.get(byteArrayMessage);
 
                     final DataFrame dataFrame = new DataFrame(new BinaryFrame(), byteArrayMessage);
-                    frame = ((TyrusWebSocket) remoteEndpoint.getSocket()).getProtocolHandler().frame(dataFrame);
+                    final ByteBuffer byteBuffer = ((TyrusWebSocket) remoteEndpoint.getSocket()).getProtocolHandler().frame(dataFrame);
+                    frame = new byte[byteBuffer.remaining()];
+                    byteBuffer.get(frame);
                 }
 
                 try {
-                    final Future<DataFrame> frameFuture = remoteEndpoint.sendRawFrame(frame);
+                    final Future<DataFrame> frameFuture = remoteEndpoint.sendRawFrame(ByteBuffer.wrap(frame));
                     futures.put(e.getValue(), frameFuture);
                 } catch (IOException e1) {
                     LOGGER.log(Level.FINE, String.format("Cannot broadcast to session %s.", e.getValue().getId()), e1);
@@ -795,7 +799,6 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
 
         return futures;
     }
-
 
     /**
      * Registered {@link Decoder}s.

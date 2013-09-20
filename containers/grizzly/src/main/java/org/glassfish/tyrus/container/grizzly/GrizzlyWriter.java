@@ -64,8 +64,9 @@ class GrizzlyWriter implements Writer {
             return;
         }
 
+        final ByteBufferWrapper message = new ByteBufferWrapper(buffer);
         //noinspection unchecked
-        connection.write(new ByteBufferWrapper(buffer), new EmptyCompletionHandler() {
+        connection.write(message, new EmptyCompletionHandler() {
             @Override
             public void cancelled() {
                 if (completionHandler != null) {

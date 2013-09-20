@@ -107,8 +107,8 @@ class WebSocketFilter extends BaseFilter {
 
     private static final String TYRUS_CONNECTION = WebSocketFilter.class.getName() + ".Connection";
 
-    private final Map<FilterChainContext, org.glassfish.tyrus.spi.Connection> connectionMap =
-            new ConcurrentHashMap<FilterChainContext, org.glassfish.tyrus.spi.Connection>();
+    private final Map<Connection, org.glassfish.tyrus.spi.Connection> connectionMap =
+            new ConcurrentHashMap<Connection, org.glassfish.tyrus.spi.Connection>();
 
 
     static final long DEFAULT_WS_IDLE_TIMEOUT_IN_SECONDS = 15 * 60;
@@ -171,7 +171,7 @@ class WebSocketFilter extends BaseFilter {
      * @throws IOException TODO
      */
     @Override
-    public NextAction handleConnect(FilterChainContext ctx) throws IOException {
+    public NextAction handleConnect(final FilterChainContext ctx) throws IOException {
         logger.log(Level.FINEST, "handleConnect");
 
         // Get connection
@@ -184,7 +184,7 @@ class WebSocketFilter extends BaseFilter {
         }
 
         // TODO
-        WebSocketHolder webSocketHolder = ((TyrusWebSocketEngine) engine).getWebSocketHolder(webSocketWriter);
+        final WebSocketHolder webSocketHolder = ((TyrusWebSocketEngine) engine).getWebSocketHolder(webSocketWriter);
         webSocketRequest = webSocketHolder.handshake.initiate();
 
         HttpRequestPacket.Builder builder = HttpRequestPacket.builder();
@@ -226,9 +226,9 @@ class WebSocketFilter extends BaseFilter {
         final org.glassfish.tyrus.spi.Connection connection = getConnection(ctx);
         if (connection != null) {
             connection.close(new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, null));
+            connectionMap.remove(ctx.getConnection());
         }
-        connectionMap.remove(ctx);
-        return ctx.getInvokeAction();
+        return ctx.getStopAction();
     }
 
     /**
@@ -260,7 +260,7 @@ class WebSocketFilter extends BaseFilter {
         }
 
         // client
-        if (!message.getHttpHeader().isRequest()) {
+        if (tyrusConnection != null && !message.getHttpHeader().isRequest()) {
             final HttpStatus httpStatus = ((HttpResponsePacket) message.getHttpHeader()).getHttpStatus();
 
             if (httpStatus != HttpStatus.SWITCHING_PROTOCOLS_101) {
@@ -327,7 +327,7 @@ class WebSocketFilter extends BaseFilter {
 
     private org.glassfish.tyrus.spi.Connection getConnection(FilterChainContext ctx) {
 //        final Object o = ctx.getAttributes().getAttribute(TYRUS_CONNECTION);
-        final Object o = connectionMap.get(ctx);
+        final Object o = connectionMap.get(ctx.getConnection());
         if (o != null && o instanceof org.glassfish.tyrus.spi.Connection) {
             return (org.glassfish.tyrus.spi.Connection) o;
         }
@@ -398,7 +398,7 @@ class WebSocketFilter extends BaseFilter {
         }
 
 //        ctx.getAttributes().setAttribute(TYRUS_CONNECTION, new org.glassfish.tyrus.spi.Connection() {
-        connectionMap.put(ctx, new org.glassfish.tyrus.spi.Connection() {
+        connectionMap.put(ctx.getConnection(), new org.glassfish.tyrus.spi.Connection() {
 
             final GrizzlyWriter writer = WebSocketFilter.getWebSocketConnection(ctx);
 
@@ -490,19 +490,17 @@ class WebSocketFilter extends BaseFilter {
                     @Override
                     public void onClosed(Closeable closeable, ICloseType type) throws IOException {
                         connection.close(new CloseReason(CloseReason.CloseCodes.GOING_AWAY, "Close detected on connection"));
-                        WebSocketFilter.this.connectionMap.remove(ctx);
+                        WebSocketFilter.this.connectionMap.remove(ctx.getConnection());
                     }
                 });
 
-                connectionMap.put(ctx, connection);
+                connectionMap.put(ctx.getConnection(), connection);
 //                ctx.getAttributes().setAttribute(TYRUS_CONNECTION, connection);
 
                 write(ctx, upgradeRequest, upgradeResponse);
                 ctx.flush(null);
 
                 connection.open();
-//                requestContent.recycle();
-
 
                 return ctx.getStopAction();
 

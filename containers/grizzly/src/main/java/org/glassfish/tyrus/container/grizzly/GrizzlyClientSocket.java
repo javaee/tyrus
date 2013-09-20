@@ -623,7 +623,7 @@ public class GrizzlyClientSocket implements WebSocket, ClientSocket {
 
     private void awaitOnConnect() {
         try {
-            onConnectLatch.await();
+            onConnectLatch.await(timeoutMs, TimeUnit.MILLISECONDS);
         } catch (InterruptedException e) {
             // do nothing.
         }

@@ -41,7 +41,6 @@
 package org.glassfish.tyrus.test.e2e;
 
 import java.io.IOException;
-import java.util.concurrent.CountDownLatch;
 
 import javax.websocket.ClientEndpointConfig;
 import javax.websocket.DeploymentException;
@@ -53,9 +52,9 @@ import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
 import org.glassfish.tyrus.client.ClientManager;
+import org.glassfish.tyrus.core.HandshakeException;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.tools.TestContainer;
-import org.glassfish.tyrus.core.HandshakeException;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -67,15 +66,11 @@ public class TestHello404 extends TestContainer {
 
     private static final String SENT_MESSAGE = "Hello World";
 
-    private volatile String receivedMessage;
-
     @Test
     public void testHello404() throws DeploymentException {
         Server server = startServer(EchoEndpoint.class);
 
         try {
-            final CountDownLatch messageLatch = new CountDownLatch(1);
-
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
             ClientManager client = ClientManager.createClient();
@@ -86,8 +81,6 @@ public class TestHello404 extends TestContainer {
                         session.addMessageHandler(new MessageHandler.Whole<String>() {
                             @Override
                             public void onMessage(String message) {
-                                receivedMessage = message;
-                                messageLatch.countDown();
                             }
                         });
                         session.getBasicRemote().sendText(SENT_MESSAGE);

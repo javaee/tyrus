@@ -58,9 +58,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import javax.websocket.CloseReason;
 import javax.websocket.WebSocketContainer;
 
-import org.glassfish.tyrus.spi.UpgradeRequest;
-import org.glassfish.tyrus.spi.UpgradeResponse;
-import org.glassfish.tyrus.spi.Writer;
 import org.glassfish.tyrus.core.frame.BinaryFrame;
 import org.glassfish.tyrus.core.frame.ClosingFrame;
 import org.glassfish.tyrus.core.frame.ContinuationFrame;
@@ -68,6 +65,9 @@ import org.glassfish.tyrus.core.frame.Frame;
 import org.glassfish.tyrus.core.frame.PingFrame;
 import org.glassfish.tyrus.core.frame.PongFrame;
 import org.glassfish.tyrus.core.frame.TextFrame;
+import org.glassfish.tyrus.spi.UpgradeRequest;
+import org.glassfish.tyrus.spi.UpgradeResponse;
+import org.glassfish.tyrus.spi.Writer;
 
 public final class ProtocolHandler {
 
@@ -210,8 +210,6 @@ public final class ProtocolHandler {
         if (localWriter == null) {
             throw new IllegalStateException("Connection is null");
         }
-
-
 
         if (useTimeout && writeTimeoutMs > 0 && container instanceof ExecutorServiceProvider) {
             ExecutorService executor = ((ExecutorServiceProvider) container).getExecutorService();
