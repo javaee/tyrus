@@ -300,16 +300,16 @@ public class GrizzlyClientSocket implements WebSocket, ClientSocket {
     private TCPNIOTransport createTransport(ThreadPoolConfig workerThreadPoolConfig, ThreadPoolConfig selectorThreadPoolConfig) {
 
         // TYRUS-188: lots of threads were created for every single client instance.
-        final TCPNIOTransportBuilder transportBuilder = TCPNIOTransportBuilder.newInstance();
+        TCPNIOTransportBuilder transportBuilder = TCPNIOTransportBuilder.newInstance();
 
         if (workerThreadPoolConfig == null) {
-            transportBuilder.getWorkerThreadPoolConfig().setMaxPoolSize(1).setCorePoolSize(1);
+            transportBuilder.setWorkerThreadPoolConfig(ThreadPoolConfig.defaultConfig().setMaxPoolSize(1).setCorePoolSize(1));
         } else {
             transportBuilder.setWorkerThreadPoolConfig(workerThreadPoolConfig);
         }
 
         if (selectorThreadPoolConfig == null) {
-            transportBuilder.getSelectorThreadPoolConfig().setMaxPoolSize(1).setCorePoolSize(1);
+            transportBuilder.setSelectorThreadPoolConfig(ThreadPoolConfig.defaultConfig().setMaxPoolSize(1).setCorePoolSize(1));
         } else {
             transportBuilder.setSelectorThreadPoolConfig(selectorThreadPoolConfig);
         }
@@ -614,7 +614,7 @@ public class GrizzlyClientSocket implements WebSocket, ClientSocket {
     private void closeTransport() {
         if (transport != null) {
             try {
-                transport.stop();
+                transport.shutdownNow();
             } catch (IOException e) {
                 Logger.getLogger(GrizzlyClientSocket.class.getName()).log(Level.FINE, "Transport closing problem.");
             }

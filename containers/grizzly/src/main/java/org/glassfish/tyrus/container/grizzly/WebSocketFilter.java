@@ -479,10 +479,12 @@ class WebSocketFilter extends BaseFilter {
         switch (upgradeInfo.getStatus()) {
             case SUCCESS:
 
+                final Connection grizzlyConnection = ctx.getConnection();
+
                 final org.glassfish.tyrus.spi.Connection connection = upgradeInfo.createConnection(new GrizzlyWriter(ctx.getConnection()), new org.glassfish.tyrus.spi.Connection.CloseListener() {
                     @Override
                     public void close(CloseReason reason) {
-                        ctx.getConnection().close();
+                        grizzlyConnection.close();
                     }
                 });
 
@@ -490,11 +492,13 @@ class WebSocketFilter extends BaseFilter {
                     @Override
                     public void onClosed(Closeable closeable, ICloseType type) throws IOException {
                         connection.close(new CloseReason(CloseReason.CloseCodes.GOING_AWAY, "Close detected on connection"));
-                        WebSocketFilter.this.connectionMap.remove(ctx.getConnection());
+                        if (WebSocketFilter.this.connectionMap.containsKey(grizzlyConnection)) {
+                            WebSocketFilter.this.connectionMap.remove(grizzlyConnection);
+                        }
                     }
                 });
 
-                connectionMap.put(ctx.getConnection(), connection);
+                connectionMap.put(grizzlyConnection, connection);
 //                ctx.getAttributes().setAttribute(TYRUS_CONNECTION, connection);
 
                 write(ctx, upgradeRequest, upgradeResponse);
@@ -539,7 +543,7 @@ class WebSocketFilter extends BaseFilter {
     /**
      * TODO ? - remove?
      *
-     * @param ctx
+     * @param ctx TODO
      */
     private void setIdleTimeout(final FilterChainContext ctx) {
         final FilterChain filterChain = ctx.getFilterChain();

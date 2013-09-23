@@ -56,6 +56,7 @@ import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.junit.Test;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
@@ -98,16 +99,14 @@ public class EchoTest extends TestContainer {
                         // do nothing
                     }
                 }
-//            }, ClientEndpointConfig.Builder.create().build(), URI.create("ws://localhost:8080/sample-echo/echo"));
             }, ClientEndpointConfig.Builder.create().build(), getURI(EchoEndpoint.class));
 
-            messageLatch.await(1, TimeUnit.SECONDS);
+            assertTrue(messageLatch.await(1, TimeUnit.SECONDS));
+            assertTrue(onOpenLatch.await(1, TimeUnit.SECONDS));
 
-            if (messageLatch.getCount() != 0 || onOpenLatch.getCount() != 0) {
-                fail();
-            }
         } catch (Exception e) {
             e.printStackTrace();
+            fail();
         } finally {
             stopServer(server);
         }
