@@ -274,6 +274,8 @@ class TyrusServletFilter implements Filter, HttpSessionListener {
                     break;
             }
         }
+
+        filterChain.doFilter(request, response);
     }
 
     @Override

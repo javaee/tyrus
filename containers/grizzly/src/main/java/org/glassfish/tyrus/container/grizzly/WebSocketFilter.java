@@ -177,11 +177,12 @@ class WebSocketFilter extends BaseFilter {
         // Get connection
         final Writer webSocketWriter = WebSocketFilter.getWebSocketConnection(ctx);
 
+        // TODO - remove?
         // check if it's websocket connection
-        if (webSocketWriter == null) {
-            // if not - pass processing to a next filter
-            return ctx.getInvokeAction();
-        }
+//        if (webSocketWriter == null) {
+//            // if not - pass processing to a next filter
+//            return ctx.getInvokeAction();
+//        }
 
         // TODO
         final WebSocketHolder webSocketHolder = ((TyrusWebSocketEngine) engine).getWebSocketHolder(webSocketWriter);
@@ -326,13 +327,12 @@ class WebSocketFilter extends BaseFilter {
     }
 
     private org.glassfish.tyrus.spi.Connection getConnection(FilterChainContext ctx) {
+        // TODO - use attributes
 //        final Object o = ctx.getAttributes().getAttribute(TYRUS_CONNECTION);
-        final Object o = connectionMap.get(ctx.getConnection());
-        if (o != null && o instanceof org.glassfish.tyrus.spi.Connection) {
-            return (org.glassfish.tyrus.spi.Connection) o;
-        }
-
-        return null;
+//        if (o != null && o instanceof org.glassfish.tyrus.spi.Connection) {
+//            return (org.glassfish.tyrus.spi.Connection) o;
+//        }
+        return connectionMap.get(ctx.getConnection());
     }
 
     /**

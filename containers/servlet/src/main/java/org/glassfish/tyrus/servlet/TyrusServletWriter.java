@@ -157,7 +157,7 @@ class TyrusServletWriter implements Writer, WriteListener {
         try {
             final int remaining = buffer.remaining();
             final byte[] array = new byte[remaining];
-            buffer.get(remaining);
+            buffer.get(array);
 
             synchronized (outputStreamLock) {
                 servletOutputStream.write(array);
