@@ -92,7 +92,12 @@
             </dependency>
             <dependency>
                 <groupId>org.glassfish.tyrus</groupId>
-                <artifactId>tyrus-container-grizzly</artifactId>
+                <artifactId>tyrus-container-grizzly-client</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish.tyrus</groupId>
+                <artifactId>tyrus-container-grizzly-server</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
@@ -120,7 +125,7 @@
                         <!--svn|mercurial|git - defaults to svn-->
                         <scm>svn</scm>
                         <!-- turn on/off debugging -->
-                        <debug>off</debug>
+                        <debug>false</debug>
                         <!-- skip files not under SCM-->
                         <scmOnly>true</scmOnly>
                         <!-- turn off warnings -->

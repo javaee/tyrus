@@ -54,7 +54,8 @@
 
     <modules>
         <module>glassfish</module>
-        <module>grizzly</module>
+        <module>grizzly-client</module>
+        <module>grizzly-server</module>
     </modules>
 
     <profiles>

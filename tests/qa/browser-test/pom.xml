@@ -60,7 +60,7 @@
         </dependency>
         <dependency>
             <groupId>org.glassfish.tyrus</groupId>
-            <artifactId>tyrus-container-grizzly</artifactId>
+            <artifactId>tyrus-container-grizzly-server</artifactId>
         </dependency>
 
         <dependency>

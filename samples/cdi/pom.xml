@@ -77,7 +77,7 @@
         </dependency>
         <dependency>
             <groupId>org.glassfish.tyrus</groupId>
-            <artifactId>tyrus-container-grizzly</artifactId>
+            <artifactId>tyrus-container-grizzly-server</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

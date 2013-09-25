@@ -38,23 +38,19 @@
  * holder.
  */
 
-package org.glassfish.tyrus.container.grizzly;
+package org.glassfish.tyrus.container.grizzly.client;
 
 import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.websocket.CloseReason;
 
-import org.glassfish.tyrus.core.DataFrame;
 import org.glassfish.tyrus.core.HandshakeException;
-import org.glassfish.tyrus.core.RequestContext;
 import org.glassfish.tyrus.core.TyrusWebSocketEngine;
 import org.glassfish.tyrus.core.TyrusWebSocketEngine.WebSocketHolder;
 import org.glassfish.tyrus.core.Utils;
@@ -68,11 +64,9 @@ import org.glassfish.tyrus.spi.WebSocketEngine;
 import org.glassfish.tyrus.spi.Writer;
 
 import org.glassfish.grizzly.Buffer;
-import org.glassfish.grizzly.CloseListener;
-import org.glassfish.grizzly.Closeable;
 import org.glassfish.grizzly.Connection;
 import org.glassfish.grizzly.Grizzly;
-import org.glassfish.grizzly.ICloseType;
+import org.glassfish.grizzly.attributes.Attribute;
 import org.glassfish.grizzly.attributes.AttributeHolder;
 import org.glassfish.grizzly.filterchain.BaseFilter;
 import org.glassfish.grizzly.filterchain.Filter;
@@ -89,8 +83,6 @@ import org.glassfish.grizzly.http.Method;
 import org.glassfish.grizzly.http.Protocol;
 import org.glassfish.grizzly.http.util.Header;
 import org.glassfish.grizzly.http.util.HttpStatus;
-import org.glassfish.grizzly.memory.Buffers;
-import org.glassfish.grizzly.utils.IdleTimeoutFilter;
 
 /**
  * WebSocket {@link Filter} implementation, which supposed to be placed into a {@link FilterChain} right after HTTP
@@ -101,19 +93,13 @@ import org.glassfish.grizzly.utils.IdleTimeoutFilter;
  * @author Alexey Stashok
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-class WebSocketFilter extends BaseFilter {
+class GrizzlyClientFilter extends BaseFilter {
 
-    private static final Logger logger = Grizzly.logger(WebSocketFilter.class);
+    private static final Logger logger = Grizzly.logger(GrizzlyClientFilter.class);
 
-    private static final String TYRUS_CONNECTION = WebSocketFilter.class.getName() + ".Connection";
+    private static final Attribute<org.glassfish.tyrus.spi.Connection> TYRUS_CONNECTION = Grizzly.DEFAULT_ATTRIBUTE_BUILDER
+            .createAttribute(GrizzlyClientFilter.class.getName() + ".Connection");
 
-    private final Map<Connection, org.glassfish.tyrus.spi.Connection> connectionMap =
-            new ConcurrentHashMap<Connection, org.glassfish.tyrus.spi.Connection>();
-
-
-    static final long DEFAULT_WS_IDLE_TIMEOUT_IN_SECONDS = 15 * 60;
-
-    private final long wsTimeoutMS;
     private final boolean proxy;
     private final Filter sslFilter;
     private final WebSocketEngine engine;
@@ -123,37 +109,29 @@ class WebSocketFilter extends BaseFilter {
     // ------------------------------------------------------------ Constructors
 
     /**
-     * Constructs a new {@link WebSocketFilter} with a default idle connection
+     * Constructs a new {@link GrizzlyClientFilter} with a default idle connection
      * timeout of 15 minutes and with proxy turned off.
      */
-    public WebSocketFilter(WebSocketEngine engine) {
-        this(engine, DEFAULT_WS_IDLE_TIMEOUT_IN_SECONDS, false);
+    public GrizzlyClientFilter(WebSocketEngine engine) {
+        this(engine, false);
     }
 
     /**
-     * Constructs a new {@link WebSocketFilter}.
+     * Constructs a new {@link GrizzlyClientFilter}.
      *
-     * @param wsTimeoutInSeconds TODO
      * @param proxy              true when client initiated connection has proxy in the way.
      */
-    public WebSocketFilter(WebSocketEngine engine, final long wsTimeoutInSeconds, boolean proxy) {
-        this(engine, wsTimeoutInSeconds, proxy, null);
+    public GrizzlyClientFilter(WebSocketEngine engine, boolean proxy) {
+        this(engine, proxy, null);
     }
 
     /**
-     * Constructs a new {@link WebSocketFilter}.
+     * Constructs a new {@link GrizzlyClientFilter}.
      *
-     * @param wsTimeoutInSeconds TODO
      * @param proxy              true when client initiated connection has proxy in the way.
      * @param sslFilter          filter to be "enabled" in case connection is created via proxy.
      */
-    public WebSocketFilter(WebSocketEngine engine, final long wsTimeoutInSeconds, boolean proxy, Filter sslFilter) {
-        if (wsTimeoutInSeconds <= 0) {
-            this.wsTimeoutMS = IdleTimeoutFilter.FOREVER;
-        } else {
-            this.wsTimeoutMS = wsTimeoutInSeconds * 1000;
-        }
-
+    public GrizzlyClientFilter(WebSocketEngine engine, boolean proxy, Filter sslFilter) {
         this.engine = engine;
         this.proxy = proxy;
         this.sslFilter = sslFilter;
@@ -175,14 +153,7 @@ class WebSocketFilter extends BaseFilter {
         logger.log(Level.FINEST, "handleConnect");
 
         // Get connection
-        final Writer webSocketWriter = WebSocketFilter.getWebSocketConnection(ctx);
-
-        // TODO - remove?
-        // check if it's websocket connection
-//        if (webSocketWriter == null) {
-//            // if not - pass processing to a next filter
-//            return ctx.getInvokeAction();
-//        }
+        final Writer webSocketWriter = GrizzlyClientFilter.getWebSocketConnection(ctx);
 
         // TODO
         final WebSocketHolder webSocketHolder = ((TyrusWebSocketEngine) engine).getWebSocketHolder(webSocketWriter);
@@ -204,7 +175,6 @@ class WebSocketFilter extends BaseFilter {
             ctx.flush(null);
         } else {
             ctx.write(getHttpContent(webSocketRequest));
-            ctx.flush(null);
         }
 
         // call the next filter in the chain
@@ -227,7 +197,7 @@ class WebSocketFilter extends BaseFilter {
         final org.glassfish.tyrus.spi.Connection connection = getConnection(ctx);
         if (connection != null) {
             connection.close(new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, null));
-            connectionMap.remove(ctx.getConnection());
+            TYRUS_CONNECTION.remove(ctx.getConnection());
         }
         return ctx.getStopAction();
     }
@@ -249,7 +219,6 @@ class WebSocketFilter extends BaseFilter {
         // Get the parsed HttpContent (we assume prev. filter was HTTP)
         final HttpContent message = ctx.getMessage();
 
-
         org.glassfish.tyrus.spi.Connection tyrusConnection = getConnection(ctx);
 
         // Get the HTTP header
@@ -261,7 +230,7 @@ class WebSocketFilter extends BaseFilter {
         }
 
         // client
-        if (tyrusConnection != null && !message.getHttpHeader().isRequest()) {
+        if (tyrusConnection != null) {
             final HttpStatus httpStatus = ((HttpResponsePacket) message.getHttpHeader()).getHttpStatus();
 
             if (httpStatus != HttpStatus.SWITCHING_PROTOCOLS_101) {
@@ -275,8 +244,6 @@ class WebSocketFilter extends BaseFilter {
                         }
 
                         ctx.write(getHttpContent(webSocketRequest));
-                        ctx.flush(null);
-
                     } else {
                         throw new HandshakeException(String.format("Proxy error. %s: %s", httpStatus.getStatusCode(),
                                 new String(httpStatus.getReasonPhraseBytes(), "UTF-8")));
@@ -285,80 +252,47 @@ class WebSocketFilter extends BaseFilter {
                     return ctx.getInvokeAction();
                 }
             }
+
+            // this is websocket with completed handshake
+            if (message.getContent().hasRemaining()) {
+
+                // get the frame(s) content
+                Buffer buffer = message.getContent();
+                message.recycle();
+                ByteBuffer webSocketBuffer = buffer.toByteBuffer();
+
+                tyrusConnection.getReadHandler().handle(webSocketBuffer);
+            }
+            return ctx.getStopAction();
         }
 
-        if (tyrusConnection == null) {
+        // tyrusConnection == null
 
-            // If websocket is null - it means either non-websocket Connection
-            if (!UpgradeRequest.WEBSOCKET.equalsIgnoreCase(header.getUpgrade()) && message.getHttpHeader().isRequest()) {
-                // if it's not a websocket connection - pass the processing to the next filter
+        // If websocket is null - it means either non-websocket Connection
+        if (!UpgradeRequest.WEBSOCKET.equalsIgnoreCase(header.getUpgrade()) && message.getHttpHeader().isRequest()) {
+            // if it's not a websocket connection - pass the processing to the next filter
+            return ctx.getInvokeAction();
+        }
+
+        final String ATTR_NAME = "org.glassfish.tyrus.container.grizzly.WebSocketFilter.HANDSHAKE_PROCESSED";
+
+        final AttributeHolder attributeHolder = ctx.getAttributes();
+        if (attributeHolder != null) {
+            final Object attribute = attributeHolder.getAttribute(ATTR_NAME);
+            if (attribute != null) {
+                // handshake was already performed on this context.
                 return ctx.getInvokeAction();
+            } else {
+                attributeHolder.setAttribute(ATTR_NAME, true);
             }
-
-            final String ATTR_NAME = "org.glassfish.tyrus.container.grizzly.WebSocketFilter.HANDSHAKE_PROCESSED";
-
-            final AttributeHolder attributeHolder = ctx.getAttributes();
-            if (attributeHolder != null) {
-                final Object attribute = attributeHolder.getAttribute(ATTR_NAME);
-                if (attribute != null) {
-                    // handshake was already performed on this context.
-                    return ctx.getInvokeAction();
-                } else {
-                    attributeHolder.setAttribute(ATTR_NAME, true);
-                }
-            }
-            // Handle handshake
-            return handleHandshake(ctx, message);
         }
-
-        // tyrusConnection is not null
-        // this is websocket with the completed handshake
-        if (message.getContent().hasRemaining()) {
-            // get the frame(s) content
-
-            Buffer buffer = message.getContent();
-            message.recycle();
-            ByteBuffer webSocketBuffer = BufferHelper.convertBuffer(buffer);
-            // check if we're currently parsing a frame
-
-            tyrusConnection.getReadHandler().handle(webSocketBuffer);
-        }
-        return ctx.getStopAction();
+        // Handle handshake
+        return handleHandshake(ctx, message);
     }
 
     private org.glassfish.tyrus.spi.Connection getConnection(FilterChainContext ctx) {
-        // TODO - use attributes
-//        final Object o = ctx.getAttributes().getAttribute(TYRUS_CONNECTION);
-//        if (o != null && o instanceof org.glassfish.tyrus.spi.Connection) {
-//            return (org.glassfish.tyrus.spi.Connection) o;
-//        }
-        return connectionMap.get(ctx.getConnection());
+        return TYRUS_CONNECTION.get(ctx.getConnection());
     }
-
-    /**
-     * Handle Grizzly {@link Connection} write phase. If the {@link Connection} has associated {@link WebSocket} object
-     * (websocket connection), we assume that message is websocket {@link DataFrame} and serialize it into a {@link
-     * Buffer}.
-     *
-     * @param ctx {@link FilterChainContext}
-     * @return {@link NextAction} instruction for {@link FilterChain}, how it should continue the execution
-     * @throws IOException TODO
-     */
-    @Override
-    public NextAction handleWrite(FilterChainContext ctx) throws IOException {
-        // get the associated websocket
-        final Object tyrusConnection = ctx.getAttributes().getAttribute(TYRUS_CONNECTION);
-        // if there is one
-        if (tyrusConnection != null) {
-            final byte[] bytes = ctx.getMessage();
-            final Buffer wrap = Buffers.wrap(ctx.getMemoryManager(), bytes);
-            ctx.setMessage(wrap);
-            ctx.flush(null);
-        }
-        // invoke next filter in the chain
-        return ctx.getInvokeAction();
-    }
-
 
     // --------------------------------------------------------- Private Methods
 
@@ -371,15 +305,9 @@ class WebSocketFilter extends BaseFilter {
      * @throws IOException TODO
      */
     private NextAction handleHandshake(FilterChainContext ctx, HttpContent content) throws IOException {
-        // check if it's server or client side handshake
-        return content.getHttpHeader().isRequest()
-                ? handleServerHandshake(ctx, content)
-                : handleClientHandShake(ctx, content);
-    }
-
-    private NextAction handleClientHandShake(final FilterChainContext ctx, final HttpContent content) {
+        final GrizzlyWriter grizzlyWriter = getWebSocketConnection(ctx);
         // TODO
-        final WebSocketHolder holder = ((TyrusWebSocketEngine) engine).getWebSocketHolder(getWebSocketConnection(ctx));
+        final WebSocketHolder holder = ((TyrusWebSocketEngine) engine).getWebSocketHolder(grizzlyWriter);
 
         if (holder == null) {
             content.recycle();
@@ -398,9 +326,7 @@ class WebSocketFilter extends BaseFilter {
         }
 
 //        ctx.getAttributes().setAttribute(TYRUS_CONNECTION, new org.glassfish.tyrus.spi.Connection() {
-        connectionMap.put(ctx.getConnection(), new org.glassfish.tyrus.spi.Connection() {
-
-            final GrizzlyWriter writer = WebSocketFilter.getWebSocketConnection(ctx);
+        TYRUS_CONNECTION.set(ctx.getConnection(), new org.glassfish.tyrus.spi.Connection() {
 
             @Override
             public ReadHandler getReadHandler() {
@@ -409,7 +335,7 @@ class WebSocketFilter extends BaseFilter {
 
             @Override
             public Writer getWriter() {
-                return writer;
+                return grizzlyWriter;
             }
 
             @Override
@@ -429,7 +355,7 @@ class WebSocketFilter extends BaseFilter {
 
             @Override
             public void close(CloseReason reason) {
-                writer.close();
+                grizzlyWriter.close();
             }
         });
 
@@ -456,101 +382,6 @@ class WebSocketFilter extends BaseFilter {
         webSocketResponse.setStatus(httpResponsePacket.getStatus());
 
         return webSocketResponse;
-    }
-
-    /**
-     * Handle server-side websocket handshake
-     *
-     * @param ctx            {@link FilterChainContext}
-     * @param requestContent HTTP message
-     * @return TODO
-     * @throws IOException TODO
-     */
-    private NextAction handleServerHandshake(final FilterChainContext ctx,
-                                             final HttpContent requestContent)
-            throws IOException {
-
-
-        final UpgradeRequest upgradeRequest = createWebSocketRequest(ctx, requestContent);
-        // TODO: final UpgradeResponse upgradeResponse = GrizzlyUpgradeResponse(HttpResponsePacket)
-        final UpgradeResponse upgradeResponse = new WebSocketResponse();
-        final WebSocketEngine.UpgradeInfo upgradeInfo = engine.upgrade(upgradeRequest, upgradeResponse);
-
-        switch (upgradeInfo.getStatus()) {
-            case SUCCESS:
-
-                final Connection grizzlyConnection = ctx.getConnection();
-
-                final org.glassfish.tyrus.spi.Connection connection = upgradeInfo.createConnection(new GrizzlyWriter(ctx.getConnection()), new org.glassfish.tyrus.spi.Connection.CloseListener() {
-                    @Override
-                    public void close(CloseReason reason) {
-                        grizzlyConnection.close();
-                    }
-                });
-
-                ctx.getConnection().addCloseListener(new CloseListener() {
-                    @Override
-                    public void onClosed(Closeable closeable, ICloseType type) throws IOException {
-                        connection.close(new CloseReason(CloseReason.CloseCodes.GOING_AWAY, "Close detected on connection"));
-                        if (WebSocketFilter.this.connectionMap.containsKey(grizzlyConnection)) {
-                            WebSocketFilter.this.connectionMap.remove(grizzlyConnection);
-                        }
-                    }
-                });
-
-                connectionMap.put(grizzlyConnection, connection);
-//                ctx.getAttributes().setAttribute(TYRUS_CONNECTION, connection);
-
-                write(ctx, upgradeRequest, upgradeResponse);
-                ctx.flush(null);
-
-                connection.open();
-
-                return ctx.getStopAction();
-
-            case HANDSHAKE_FAILED:
-
-                write(ctx, upgradeRequest, upgradeResponse);
-                ctx.flush(null);
-                requestContent.recycle();
-
-                return ctx.getStopAction();
-
-            case NOT_APPLICABLE:
-
-                return ctx.getInvokeAction();
-        }
-
-
-        return ctx.getStopAction();
-    }
-
-    private void write(FilterChainContext ctx, UpgradeRequest request, UpgradeResponse response) {
-        final HttpResponsePacket responsePacket = ((HttpRequestPacket) ((HttpContent) ctx.getMessage()).getHttpHeader()).getResponse();
-        responsePacket.setProtocol(Protocol.HTTP_1_1);
-        responsePacket.setStatus(response.getStatus());
-
-        // TODO
-//        responsePacket.setReasonPhrase(response.getReasonPhrase());
-
-        for (Map.Entry<String, List<String>> entry : response.getHeaders().entrySet()) {
-            responsePacket.setHeader(entry.getKey(), Utils.getHeaderFromList(entry.getValue()));
-        }
-
-        ctx.write(HttpContent.builder(responsePacket).build());
-    }
-
-    /**
-     * TODO ? - remove?
-     *
-     * @param ctx TODO
-     */
-    private void setIdleTimeout(final FilterChainContext ctx) {
-        final FilterChain filterChain = ctx.getFilterChain();
-        if (filterChain.indexOfType(IdleTimeoutFilter.class) >= 0) {
-            IdleTimeoutFilter.setCustomTimeout(ctx.getConnection(),
-                    wsTimeoutMS, TimeUnit.MILLISECONDS);
-        }
     }
 
     /**
@@ -582,27 +413,5 @@ class WebSocketFilter extends BaseFilter {
 
     private static GrizzlyWriter getWebSocketConnection(final FilterChainContext ctx) {
         return new GrizzlyWriter(ctx.getConnection());
-    }
-
-    private static UpgradeRequest createWebSocketRequest(final FilterChainContext ctx, final HttpContent requestContent) {
-
-        final HttpRequestPacket requestPacket = (HttpRequestPacket) requestContent.getHttpHeader();
-
-        final RequestContext requestContext = RequestContext.Builder.create()
-                .requestURI(URI.create(requestPacket.getRequestURI()))
-                .queryString(requestPacket.getQueryString())
-                .secure(requestPacket.isSecure())
-                .build();
-
-        for (String name : requestPacket.getHeaders().names()) {
-            final List<String> values = requestContext.getHeaders().get(name);
-            if (values == null) {
-                requestContext.getHeaders().put(name, Utils.parseHeaderValue(requestPacket.getHeader(name).trim()));
-            } else {
-                values.addAll(Utils.parseHeaderValue(requestPacket.getHeader(name).trim()));
-            }
-        }
-
-        return requestContext;
     }
 }

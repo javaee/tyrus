@@ -56,7 +56,7 @@ import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
 import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.container.grizzly.GrizzlyClientSocket;
+import org.glassfish.tyrus.container.grizzly.client.GrizzlyClientSocket;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.tools.TestContainer;
 

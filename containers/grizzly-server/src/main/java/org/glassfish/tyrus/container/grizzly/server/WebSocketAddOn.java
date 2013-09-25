@@ -38,7 +38,7 @@
  * holder.
  */
 
-package org.glassfish.tyrus.container.grizzly;
+package org.glassfish.tyrus.container.grizzly.server;
 
 import org.glassfish.tyrus.spi.WebSocketEngine;
 
@@ -71,7 +71,7 @@ class WebSocketAddOn implements AddOn {
 
         if (httpServerFilterIdx >= 0) {
             // Insert the WebSocketFilter right before HttpServerFilter
-            builder.add(httpServerFilterIdx, new WebSocketFilter(engine));
+            builder.add(httpServerFilterIdx, new GrizzlyServerFilter(engine));
         }
     }
 }

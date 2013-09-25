@@ -37,68 +37,67 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.spi;
+package org.glassfish.tyrus.container.grizzly.server;
 
-import java.util.List;
+import java.io.IOException;
+import java.util.Map;
 
-import javax.websocket.server.HandshakeRequest;
+import javax.websocket.DeploymentException;
+import javax.websocket.server.ServerEndpointConfig;
+
+import org.glassfish.tyrus.core.TyrusWebSocketEngine;
+import org.glassfish.tyrus.server.TyrusServerContainer;
+import org.glassfish.tyrus.spi.ServerContainer;
+import org.glassfish.tyrus.spi.ServerContainerFactory;
+import org.glassfish.tyrus.spi.WebSocketEngine;
+
+import org.glassfish.grizzly.http.server.HttpServer;
 
 /**
- * The provider passes the handshake request to
- * the SDK created endpoint
- *
  * @author Danny Coward (danny.coward at oracle.com)
- * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public abstract class UpgradeRequest implements HandshakeRequest {
+public class GrizzlyServerContainer extends ServerContainerFactory {
 
-    public static final String WEBSOCKET = "websocket";
-    public static final String RESPONSE_CODE_MESSAGE = "Switching Protocols";
-    public static final String UPGRADE = "Upgrade";
-    public static final String CONNECTION = "Connection";
-    public static final String HOST = "Host";
-    public static final String SERVER_KEY_HASH = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
-    public static final String SEC_WS_ORIGIN_HEADER = "Sec-WebSocket-Origin";
-    public static final String ORIGIN_HEADER = "Origin";
+    @Override
+    public ServerContainer createContainer(Map<String, Object> config) {
 
-    /**
-     * Get the Http Header value for the given header name
-     * in the underlying Http handshake request.
-     *
-     * @param name the name of the header.
-     * @return the header value.
-     */
-    public abstract String getHeader(String name);
+        return new TyrusServerContainer(null) {
 
-    /**
-     * Get the Http request uri underlying Http handshake request.
-     *
-     * @return request uri.
-     */
-    public abstract String getRequestUri();
+            private final WebSocketEngine engine = new TyrusWebSocketEngine(this);
 
-    /**
-     * Get information about underlying connection.
-     *
-     * @return {@code true} when connection is secuded, {@code false} otherwise.
-     */
-    public abstract boolean isSecure();
+            private HttpServer server;
+            private String contextPath;
 
-    /**
-     * Get request path.
-     *
-     * @return request path.
-     */
-    public abstract String getRequestPath();
+            @Override
+            public void register(Class<?> endpointClass) throws DeploymentException {
+                engine.register(endpointClass, contextPath);
+            }
 
-    /**
-     * Get the first header value from the {@link List} of header values corresponding to the name.
-     *
-     * @param name header name.
-     * @return {@link String} value iff it exists, {@code null} otherwise.
-     */
-    public String getFirstHeaderValue(String name) {
-        final List<String> stringList = getHeaders().get(name);
-        return stringList == null ? null : (stringList.size() > 0 ? stringList.get(0) : null);
+            @Override
+            public void register(ServerEndpointConfig serverEndpointConfig) throws DeploymentException {
+                engine.register(serverEndpointConfig, contextPath);
+            }
+
+            @Override
+            public WebSocketEngine getWebSocketEngine() {
+                return engine;
+            }
+
+            @Override
+            public void start(String rootPath, int port) throws IOException, DeploymentException {
+                contextPath = rootPath;
+                server = HttpServer.createSimpleServer(rootPath, port);
+                server.getListener("grizzly").registerAddOn(new WebSocketAddOn(engine));
+                server.start();
+
+                super.start(rootPath, port);
+            }
+
+            @Override
+            public void stop() {
+                super.stop();
+                server.shutdownNow();
+            }
+        };
     }
 }

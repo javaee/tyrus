@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.container.grizzly;
+package org.glassfish.tyrus.container.grizzly.client;
 
 import java.nio.ByteBuffer;
 
@@ -49,7 +49,7 @@ import org.glassfish.grizzly.memory.ByteBufferWrapper;
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-class GrizzlyWriter implements Writer {
+public class GrizzlyWriter implements Writer {
 
     private final org.glassfish.grizzly.Connection connection;
 

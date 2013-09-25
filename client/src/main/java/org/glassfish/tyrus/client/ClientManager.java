@@ -87,7 +87,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
      * <p/>
      * Uses Grizzly as transport implementation.
      */
-    private static final String CONTAINER_PROVIDER_CLASSNAME = "org.glassfish.tyrus.container.grizzly.GrizzlyContainer";
+    private static final String CONTAINER_PROVIDER_CLASSNAME = "org.glassfish.tyrus.container.grizzly.client.GrizzlyClientContainer";
     private static final Logger LOGGER = Logger.getLogger(ClientManager.class.getName());
     private final ClientContainer container;
     private final ComponentProviderService componentProvider;

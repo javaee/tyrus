@@ -47,7 +47,7 @@ import java.util.ServiceLoader;
 public abstract class ServerContainerFactory {
 
     private static final String CONTAINTER_CLASS =
-            "org.glassfish.tyrus.container.grizzly.GrizzlyContainer";
+            "org.glassfish.tyrus.container.grizzly.server.GrizzlyServerContainer";
 
     public static ServerContainer createServerContainer() {
         return createServerContainer(Collections.<String, Object>emptyMap());

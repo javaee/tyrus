@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.container.grizzly;
+package org.glassfish.tyrus.container.grizzly.client;
 
 import java.io.IOException;
 import java.net.URI;
@@ -46,18 +46,12 @@ import java.util.Map;
 
 import javax.websocket.ClientEndpointConfig;
 import javax.websocket.DeploymentException;
-import javax.websocket.server.ServerEndpointConfig;
 
 import org.glassfish.tyrus.core.TyrusWebSocketEngine;
-import org.glassfish.tyrus.server.TyrusServerContainer;
 import org.glassfish.tyrus.spi.ClientContainer;
 import org.glassfish.tyrus.spi.ClientSocket;
 import org.glassfish.tyrus.spi.EndpointWrapper;
-import org.glassfish.tyrus.spi.ServerContainer;
-import org.glassfish.tyrus.spi.ServerContainerFactory;
-import org.glassfish.tyrus.spi.WebSocketEngine;
 
-import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.grizzly.ssl.SSLContextConfigurator;
 import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
 import org.glassfish.grizzly.threadpool.ThreadPoolConfig;
@@ -65,7 +59,7 @@ import org.glassfish.grizzly.threadpool.ThreadPoolConfig;
 /**
  * @author Danny Coward (danny.coward at oracle.com)
  */
-public class GrizzlyContainer extends ServerContainerFactory implements ClientContainer {
+public class GrizzlyClientContainer implements ClientContainer {
 
     public static final String SSL_ENGINE_CONFIGURATOR = "org.glassfish.tyrus.client.sslEngineConfigurator";
 
@@ -75,51 +69,8 @@ public class GrizzlyContainer extends ServerContainerFactory implements ClientCo
     /**
      *
      */
-    public GrizzlyContainer() {
+    public GrizzlyClientContainer() {
 
-    }
-
-    @Override
-    public ServerContainer createContainer(Map<String, Object> config) {
-
-        return new TyrusServerContainer(null) {
-
-            private final WebSocketEngine engine = new TyrusWebSocketEngine(this);
-
-            private HttpServer server;
-            private String contextPath;
-
-            @Override
-            public void register(Class<?> endpointClass) throws DeploymentException {
-                engine.register(endpointClass, contextPath);
-            }
-
-            @Override
-            public void register(ServerEndpointConfig serverEndpointConfig) throws DeploymentException {
-                engine.register(serverEndpointConfig, contextPath);
-            }
-
-            @Override
-            public WebSocketEngine getWebSocketEngine() {
-                return engine;
-            }
-
-            @Override
-            public void start(String rootPath, int port) throws IOException, DeploymentException {
-                contextPath = rootPath;
-                server = HttpServer.createSimpleServer(rootPath, port);
-                server.getListener("grizzly").registerAddOn(new WebSocketAddOn(engine));
-                server.start();
-
-                super.start(rootPath, port);
-            }
-
-            @Override
-            public void stop() {
-                super.stop();
-                server.shutdownNow();
-            }
-        };
     }
 
     @Override
