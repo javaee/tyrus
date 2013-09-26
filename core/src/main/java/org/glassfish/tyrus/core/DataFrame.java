@@ -94,7 +94,8 @@ public class DataFrame {
     }
 
     public void setPayload(byte[] bytes) {
-        this.bytes = Arrays.copyOf(bytes, bytes.length);
+        this.bytes = bytes;
+//        this.bytes = Arrays.copyOf(bytes, bytes.length);
     }
 
     public byte[] getBytes() {

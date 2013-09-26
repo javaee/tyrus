@@ -52,7 +52,7 @@
     <packaging>jar</packaging>
     <artifactId>tyrus-container-grizzly-server</artifactId>
 
-    <name>Tyrus Grizzly Container</name>
+    <name>Tyrus Grizzly Server Container</name>
 
     <dependencies>
         <dependency>

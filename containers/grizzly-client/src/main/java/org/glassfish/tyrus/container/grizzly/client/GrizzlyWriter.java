@@ -43,8 +43,9 @@ import java.nio.ByteBuffer;
 
 import org.glassfish.tyrus.spi.Writer;
 
+import org.glassfish.grizzly.Buffer;
 import org.glassfish.grizzly.EmptyCompletionHandler;
-import org.glassfish.grizzly.memory.ByteBufferWrapper;
+import org.glassfish.grizzly.memory.Buffers;
 
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
@@ -64,9 +65,9 @@ public class GrizzlyWriter implements Writer {
             return;
         }
 
-        final ByteBufferWrapper message = new ByteBufferWrapper(buffer);
-        //noinspection unchecked
-        connection.write(message, new EmptyCompletionHandler() {
+        final Buffer message = Buffers.wrap(connection.getTransport().getMemoryManager(), buffer);
+
+        final EmptyCompletionHandler emptyCompletionHandler = new EmptyCompletionHandler() {
             @Override
             public void cancelled() {
                 if (completionHandler != null) {
@@ -87,7 +88,10 @@ public class GrizzlyWriter implements Writer {
                     completionHandler.failed(throwable);
                 }
             }
-        });
+        };
+
+        //noinspection unchecked
+        connection.write(message, emptyCompletionHandler);
     }
 
     @Override

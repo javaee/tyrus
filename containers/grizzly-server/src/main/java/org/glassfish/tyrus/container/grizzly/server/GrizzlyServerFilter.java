@@ -127,6 +127,7 @@ class GrizzlyServerFilter extends BaseFilter {
         final org.glassfish.tyrus.spi.Connection connection = getConnection(ctx);
         if (connection != null) {
             connection.close(new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, null));
+            // might not be necessary, connection is going to be recycled/freed anyway
             TYRUS_CONNECTION.remove(ctx.getConnection());
         }
         return ctx.getStopAction();
@@ -233,6 +234,7 @@ class GrizzlyServerFilter extends BaseFilter {
                     @Override
                     public void onClosed(Closeable closeable, ICloseType type) throws IOException {
                         connection.close(new CloseReason(CloseReason.CloseCodes.GOING_AWAY, "Close detected on connection"));
+                        // might not be necessary, connection is going to be recycled/freed anyway
                         TYRUS_CONNECTION.remove(grizzlyConnection);
                     }
                 });

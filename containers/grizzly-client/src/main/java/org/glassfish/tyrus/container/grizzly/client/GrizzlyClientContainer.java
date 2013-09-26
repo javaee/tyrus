@@ -66,13 +66,6 @@ public class GrizzlyClientContainer implements ClientContainer {
     //The same value Grizzly is using for socket timeout.
     private static final long CLIENT_SOCKET_TIMEOUT = 30000;
 
-    /**
-     *
-     */
-    public GrizzlyClientContainer() {
-
-    }
-
     @Override
     public ClientSocket openClientSocket(String url, ClientEndpointConfig cec, EndpointWrapper endpoint,
                                          ClientContainer.ClientHandshakeListener listener, Map<String, Object> properties) throws DeploymentException, IOException {

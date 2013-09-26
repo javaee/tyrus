@@ -197,6 +197,7 @@ class GrizzlyClientFilter extends BaseFilter {
         final org.glassfish.tyrus.spi.Connection connection = getConnection(ctx);
         if (connection != null) {
             connection.close(new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, null));
+            // might not be necessary, connetion is going to be recycled/freed anyway
             TYRUS_CONNECTION.remove(ctx.getConnection());
         }
         return ctx.getStopAction();

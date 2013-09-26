@@ -346,8 +346,9 @@ public class TyrusSession implements Session {
     }
 
     private void checkConnectionState(State... states) {
+        final State sessionState = state.get();
         for (State s : states) {
-            if (state.get() == s) {
+            if (sessionState == s) {
                 throw new IllegalStateException(SESSION_CLOSED);
             }
         }

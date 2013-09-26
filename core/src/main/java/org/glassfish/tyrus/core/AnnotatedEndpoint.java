@@ -105,7 +105,6 @@ public class AnnotatedEndpoint extends Endpoint {
      * @param isServerEndpoint  {@code true} iff annotated endpoint is deployed on server side.
      * @param collector         error collector.
      * @return new instance.
-     * @throws DeploymentException TODO remove
      */
     public static AnnotatedEndpoint fromClass(Class<?> annotatedClass, ComponentProviderService componentProvider, boolean isServerEndpoint, ErrorCollector collector) {
         return new AnnotatedEndpoint(annotatedClass, null, componentProvider, isServerEndpoint, collector);
@@ -119,9 +118,8 @@ public class AnnotatedEndpoint extends Endpoint {
      * @param isServerEndpoint  {@code true} iff annotated endpoint is deployed on server side.
      * @param collector         error collector.
      * @return new instance.
-     * @throws DeploymentException TODO remove
      */
-    public static AnnotatedEndpoint fromInstance(Object annotatedInstance, ComponentProviderService componentProvider, boolean isServerEndpoint, ErrorCollector collector) throws DeploymentException {
+    public static AnnotatedEndpoint fromInstance(Object annotatedInstance, ComponentProviderService componentProvider, boolean isServerEndpoint, ErrorCollector collector) {
         return new AnnotatedEndpoint(annotatedInstance.getClass(), annotatedInstance, componentProvider, isServerEndpoint, collector);
     }
 

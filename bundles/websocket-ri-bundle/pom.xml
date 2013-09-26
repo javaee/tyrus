@@ -194,7 +194,15 @@
                                 </artifactItem>
                                 <artifactItem>
                                     <groupId>org.glassfish.tyrus</groupId>
-                                    <artifactId>tyrus-container-grizzly</artifactId>
+                                    <artifactId>tyrus-container-grizzly-client</artifactId>
+                                    <version>${project.version}</version>
+                                    <classifier>sources</classifier>
+                                    <overWrite>false</overWrite>
+                                    <outputDirectory>${gen-src-dir}</outputDirectory>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>org.glassfish.tyrus</groupId>
+                                    <artifactId>tyrus-container-grizzly-server</artifactId>
                                     <version>${project.version}</version>
                                     <classifier>sources</classifier>
                                     <overWrite>false</overWrite>

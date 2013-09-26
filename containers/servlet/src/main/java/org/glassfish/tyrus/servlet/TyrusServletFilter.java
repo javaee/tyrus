@@ -249,21 +249,18 @@ class TyrusServletFilter implements Filter, HttpSessionListener {
                         handler.setIncomingBufferSize(Integer.parseInt(frameBufferSize));
                     }
 
-                    // calls engine.onConnect() TODO: no, it doesn't
-                    handler.postInit(upgradeInfo.createConnection(new TyrusServletWriter(handler), new Connection.CloseListener() {
+                        handler.postInit(upgradeInfo.createConnection(new TyrusServletWriter(handler), new Connection.CloseListener() {
                         @Override
                         public void close(CloseReason reason) {
                             try {
                                 handler.getWebConnection().close();
                             } catch (Exception e) {
-                                // TODO
                                 LOGGER.log(Level.FINE, e.getMessage(), e);
                             }
                         }
                     }), webSocketConnection, httpServletRequest.getUserPrincipal() != null);
                     sessionToHandler.put(httpServletRequest.getSession(), handler);
 
-                    // TODO
                     httpServletResponse.setStatus(webSocketResponse.getStatus());
                     for (Map.Entry<String, List<String>> entry : webSocketResponse.getHeaders().entrySet()) {
                         httpServletResponse.addHeader(entry.getKey(), Utils.getHeaderFromList(entry.getValue()));
@@ -271,7 +268,7 @@ class TyrusServletFilter implements Filter, HttpSessionListener {
 
                     response.flushBuffer();
                     LOGGER.fine("Handshake Complete");
-                    break;
+                    return;
             }
         }
 

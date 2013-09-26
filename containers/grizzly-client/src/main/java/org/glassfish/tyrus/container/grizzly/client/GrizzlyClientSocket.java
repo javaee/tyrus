@@ -303,7 +303,7 @@ public class GrizzlyClientSocket implements WebSocket, ClientSocket {
         TCPNIOTransportBuilder transportBuilder = TCPNIOTransportBuilder.newInstance();
 
         if (workerThreadPoolConfig == null) {
-            transportBuilder.setWorkerThreadPoolConfig(ThreadPoolConfig.defaultConfig().setMaxPoolSize(1).setCorePoolSize(1));
+            transportBuilder.setWorkerThreadPoolConfig(ThreadPoolConfig.defaultConfig().setMaxPoolSize(2).setCorePoolSize(2));
         } else {
             transportBuilder.setWorkerThreadPoolConfig(workerThreadPoolConfig);
         }

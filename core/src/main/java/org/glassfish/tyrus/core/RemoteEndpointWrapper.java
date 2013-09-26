@@ -45,6 +45,7 @@ import java.io.OutputStream;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.nio.ByteBuffer;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.logging.Logger;
 
@@ -92,7 +93,14 @@ public abstract class RemoteEndpointWrapper implements javax.websocket.RemoteEnd
         @Override
         public void sendBinary(ByteBuffer data) throws IOException {
             checkNotNull(data, "Argument 'data' cannot be null.");
-            super.sendSyncBinary(data);
+            final Future<?> future = super.sendSyncBinary(data);
+            try {
+                future.get();
+            } catch (InterruptedException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            } catch (ExecutionException e) {
+                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+            }
             session.restartIdleTimeoutExecutor();
         }
 
@@ -106,7 +114,18 @@ public abstract class RemoteEndpointWrapper implements javax.websocket.RemoteEnd
         @Override
         public void sendBinary(ByteBuffer partialByte, boolean isLast) throws IOException {
             checkNotNull(partialByte, "Argument 'partialByte' cannot be null.");
-            remoteEndpoint.sendBinary(partialByte, isLast);
+            final Future<?> future = remoteEndpoint.sendBinary(partialByte, isLast);
+            try {
+                future.get();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } catch (ExecutionException e) {
+                if(e.getCause() instanceof IOException) {
+                    throw (IOException)e.getCause();
+                } else {
+                    throw new IOException(e.getCause());
+                }
+            }
             session.restartIdleTimeoutExecutor();
         }
 
