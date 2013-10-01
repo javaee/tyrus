@@ -211,11 +211,11 @@ public class TyrusWebSocket implements WebSocket {
 
     @Override
     public Future<DataFrame> sendRawFrame(ByteBuffer data) {
-        if (isConnected()) {
+//        if (isConnected()) {
             return protocolHandler.sendRawFrame(data);
-        } else {
-            throw new RuntimeException("Socket is not connected.");
-        }
+        // }  else {
+//            throw new RuntimeException("Socket is not connected.");
+        // }
     }
 
     @Override

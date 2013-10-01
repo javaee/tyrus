@@ -55,9 +55,9 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
-import org.glassfish.tyrus.test.tools.TestContainer;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
+import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.junit.Assert;
 import org.junit.Test;

@@ -90,7 +90,7 @@ class AnnotatedClassValidityChecker {
      * are checked in advance in {@link AnnotatedEndpoint}.
      */
 
-    public void checkOnMessageParams(Method method, MessageHandler handler) throws DeploymentException {
+    public void checkOnMessageParams(Method method, MessageHandler handler) {
         try {
             handlerManager.addMessageHandler(handler);
         } catch (IllegalStateException ise) {
@@ -104,7 +104,7 @@ class AnnotatedClassValidityChecker {
         Class<?> returnType = method.getReturnType();
 
         if (returnType != void.class && returnType != String.class && returnType != ByteBuffer.class &&
-                returnType != byte[].class && !returnType.isPrimitive() && !checkEncoders(returnType) && !PrimitivesToWrappers.isPrimitiveWrapper(returnType)) {
+                returnType != byte[].class && !returnType.isPrimitive() && checkEncoders(returnType) && !PrimitivesToWrappers.isPrimitiveWrapper(returnType)) {
             logDeploymentException(new DeploymentException(String.format("Method: %s.%s %s", annotatedClass.getName(), method.getName(), FORBIDDEN_RETURN_TYPE)));
         }
     }
@@ -169,11 +169,11 @@ class AnnotatedClassValidityChecker {
     private boolean checkEncoders(Class<?> requiredType) {
         for (Class<? extends Encoder> encoderClass : encoders) {
             if(AnnotatedEndpoint.getEncoderClassType(encoderClass).isAssignableFrom(requiredType)) {
-                return true;
+                return false;
             }
         }
 
-        return false;
+        return true;
     }
 
     private void logDeploymentException(DeploymentException de) {

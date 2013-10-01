@@ -750,12 +750,8 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
                     byteBuffer.get(frame);
                 }
 
-                try {
-                    final Future<DataFrame> frameFuture = remoteEndpoint.sendRawFrame(ByteBuffer.wrap(frame));
-                    futures.put(e.getValue(), frameFuture);
-                } catch (IOException e1) {
-                    LOGGER.log(Level.FINE, String.format("Cannot broadcast to session %s.", e.getValue().getId()), e1);
-                }
+                final Future<DataFrame> frameFuture = remoteEndpoint.sendRawFrame(ByteBuffer.wrap(frame));
+                futures.put(e.getValue(), frameFuture);
             }
         }
 
@@ -788,12 +784,8 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
                     byteBuffer.get(frame);
                 }
 
-                try {
-                    final Future<DataFrame> frameFuture = remoteEndpoint.sendRawFrame(ByteBuffer.wrap(frame));
-                    futures.put(e.getValue(), frameFuture);
-                } catch (IOException e1) {
-                    LOGGER.log(Level.FINE, String.format("Cannot broadcast to session %s.", e.getValue().getId()), e1);
-                }
+                final Future<DataFrame> frameFuture = remoteEndpoint.sendRawFrame(ByteBuffer.wrap(frame));
+                futures.put(e.getValue(), frameFuture);
             }
         }
 

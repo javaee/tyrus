@@ -49,7 +49,7 @@ package org.glassfish.tyrus.core;
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class MessageTooBigException extends RuntimeException {
+class MessageTooBigException extends RuntimeException {
 
     MessageTooBigException(String message) {
         super(message);

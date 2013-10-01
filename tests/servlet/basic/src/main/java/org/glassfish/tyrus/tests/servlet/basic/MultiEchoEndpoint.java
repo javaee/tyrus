@@ -53,8 +53,8 @@ import javax.websocket.server.ServerEndpoint;
 public class MultiEchoEndpoint {
 
     @OnMessage
-    public void onMessage(Session session, String message) {
-        for(int i = 0; i < 10; i++) {
+    public void onMessage(final Session session, final String message) {
+        for (int i = 0; i < 10; i++) {
             try {
                 session.getBasicRemote().sendText(message);
             } catch (IOException e) {

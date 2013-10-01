@@ -67,9 +67,9 @@ import static org.glassfish.tyrus.core.Utils.checkNotNull;
  */
 public abstract class RemoteEndpointWrapper implements javax.websocket.RemoteEndpoint {
 
-    protected final RemoteEndpoint remoteEndpoint;
-    protected final TyrusSession session;
-    protected final TyrusEndpointWrapper tyrusEndpointWrapper;
+    final RemoteEndpoint remoteEndpoint;
+    final TyrusSession session;
+    final TyrusEndpointWrapper tyrusEndpointWrapper;
 
     private RemoteEndpointWrapper(TyrusSession session, RemoteEndpoint remoteEndpoint, TyrusEndpointWrapper tyrusEndpointWrapper) {
         this.remoteEndpoint = remoteEndpoint;
@@ -86,7 +86,18 @@ public abstract class RemoteEndpointWrapper implements javax.websocket.RemoteEnd
         @Override
         public void sendText(String text) throws IOException {
             checkNotNull(text, "Argument 'text' cannot be null.");
-            super.sendSyncText(text);
+            final Future<?> future = super.sendSyncText(text);
+            try {
+                future.get();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } catch (ExecutionException e) {
+                if (e.getCause() instanceof IOException) {
+                    throw (IOException) e.getCause();
+                } else {
+                    throw new IOException(e.getCause());
+                }
+            }
             session.restartIdleTimeoutExecutor();
         }
 
@@ -97,9 +108,13 @@ public abstract class RemoteEndpointWrapper implements javax.websocket.RemoteEnd
             try {
                 future.get();
             } catch (InterruptedException e) {
-                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                Thread.currentThread().interrupt();
             } catch (ExecutionException e) {
-                e.printStackTrace();  //To change body of catch statement use File | Settings | File Templates.
+                if (e.getCause() instanceof IOException) {
+                    throw (IOException) e.getCause();
+                } else {
+                    throw new IOException(e.getCause());
+                }
             }
             session.restartIdleTimeoutExecutor();
         }
@@ -107,7 +122,18 @@ public abstract class RemoteEndpointWrapper implements javax.websocket.RemoteEnd
         @Override
         public void sendText(String partialMessage, boolean isLast) throws IOException {
             checkNotNull(partialMessage, "Argument 'partialMessage' cannot be null.");
-            remoteEndpoint.sendText(partialMessage, isLast);
+            final Future<?> future = remoteEndpoint.sendText(partialMessage, isLast);
+            try {
+                future.get();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } catch (ExecutionException e) {
+                if (e.getCause() instanceof IOException) {
+                    throw (IOException) e.getCause();
+                } else {
+                    throw new IOException(e.getCause());
+                }
+            }
             session.restartIdleTimeoutExecutor();
         }
 
@@ -120,8 +146,8 @@ public abstract class RemoteEndpointWrapper implements javax.websocket.RemoteEnd
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             } catch (ExecutionException e) {
-                if(e.getCause() instanceof IOException) {
-                    throw (IOException)e.getCause();
+                if (e.getCause() instanceof IOException) {
+                    throw (IOException) e.getCause();
                 } else {
                     throw new IOException(e.getCause());
                 }
@@ -226,7 +252,7 @@ public abstract class RemoteEndpointWrapper implements javax.websocket.RemoteEnd
             final FutureSendResult fsr = new FutureSendResult();
 
             // TODO
-            ((BaseContainer)tyrusEndpointWrapper.container).getExecutorService().execute(new Runnable() {
+            ((BaseContainer) tyrusEndpointWrapper.container).getExecutorService().execute(new Runnable() {
 
                 @Override
                 public void run() {
@@ -276,16 +302,16 @@ public abstract class RemoteEndpointWrapper implements javax.websocket.RemoteEnd
         }
     }
 
-    protected Future<?> sendSyncText(String data) throws IOException {
+    Future<?> sendSyncText(String data) throws IOException {
         return remoteEndpoint.sendText(data);
     }
 
-    protected Future<?> sendSyncBinary(ByteBuffer buf) throws IOException {
+    Future<?> sendSyncBinary(ByteBuffer buf) throws IOException {
         return remoteEndpoint.sendBinary(buf);
     }
 
     @SuppressWarnings("unchecked")
-    protected Future<?> sendSyncObject(Object o) throws IOException, EncodeException {
+    Future<?> sendSyncObject(Object o) throws IOException, EncodeException {
         if (o instanceof String) {
             return remoteEndpoint.sendText((String) o);
         } else {

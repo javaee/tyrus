@@ -43,13 +43,17 @@ package org.glassfish.tyrus.container.grizzly.client;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.util.Deque;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentLinkedDeque;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.websocket.CloseReason;
+import javax.websocket.WebSocketContainer;
 
+import org.glassfish.tyrus.core.BaseContainer;
 import org.glassfish.tyrus.core.HandshakeException;
 import org.glassfish.tyrus.core.TyrusWebSocketEngine;
 import org.glassfish.tyrus.core.TyrusWebSocketEngine.WebSocketHolder;
@@ -103,6 +107,9 @@ class GrizzlyClientFilter extends BaseFilter {
     private final boolean proxy;
     private final Filter sslFilter;
     private final WebSocketEngine engine;
+    private final WebSocketContainer webSocketContainer;
+
+    private final Deque<Task> taskDeque = new ConcurrentLinkedDeque<Task>();
 
     private UpgradeRequest webSocketRequest;
 
@@ -112,27 +119,28 @@ class GrizzlyClientFilter extends BaseFilter {
      * Constructs a new {@link GrizzlyClientFilter} with a default idle connection
      * timeout of 15 minutes and with proxy turned off.
      */
-    public GrizzlyClientFilter(WebSocketEngine engine) {
-        this(engine, false);
+    public GrizzlyClientFilter(WebSocketEngine engine, WebSocketContainer webSocketContainer) {
+        this(engine, webSocketContainer, false);
     }
 
     /**
      * Constructs a new {@link GrizzlyClientFilter}.
      *
-     * @param proxy              true when client initiated connection has proxy in the way.
+     * @param proxy true when client initiated connection has proxy in the way.
      */
-    public GrizzlyClientFilter(WebSocketEngine engine, boolean proxy) {
-        this(engine, proxy, null);
+    public GrizzlyClientFilter(WebSocketEngine engine, WebSocketContainer webSocketContainer, boolean proxy) {
+        this(engine, webSocketContainer, proxy, null);
     }
 
     /**
      * Constructs a new {@link GrizzlyClientFilter}.
      *
-     * @param proxy              true when client initiated connection has proxy in the way.
-     * @param sslFilter          filter to be "enabled" in case connection is created via proxy.
+     * @param proxy     true when client initiated connection has proxy in the way.
+     * @param sslFilter filter to be "enabled" in case connection is created via proxy.
      */
-    public GrizzlyClientFilter(WebSocketEngine engine, boolean proxy, Filter sslFilter) {
+    public GrizzlyClientFilter(WebSocketEngine engine, WebSocketContainer webSocketContainer, boolean proxy, Filter sslFilter) {
         this.engine = engine;
+        this.webSocketContainer = webSocketContainer;
         this.proxy = proxy;
         this.sslFilter = sslFilter;
     }
@@ -196,9 +204,8 @@ class GrizzlyClientFilter extends BaseFilter {
 
         final org.glassfish.tyrus.spi.Connection connection = getConnection(ctx);
         if (connection != null) {
-            connection.close(new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, null));
-            // might not be necessary, connetion is going to be recycled/freed anyway
-            TYRUS_CONNECTION.remove(ctx.getConnection());
+            taskDeque.addLast(new CloseTask(connection, new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, null), ctx.getConnection()));
+            processDeque(connection);
         }
         return ctx.getStopAction();
     }
@@ -220,7 +227,7 @@ class GrizzlyClientFilter extends BaseFilter {
         // Get the parsed HttpContent (we assume prev. filter was HTTP)
         final HttpContent message = ctx.getMessage();
 
-        org.glassfish.tyrus.spi.Connection tyrusConnection = getConnection(ctx);
+        final org.glassfish.tyrus.spi.Connection tyrusConnection = getConnection(ctx);
 
         // Get the HTTP header
         final HttpHeader header = message.getHttpHeader();
@@ -259,10 +266,13 @@ class GrizzlyClientFilter extends BaseFilter {
 
                 // get the frame(s) content
                 Buffer buffer = message.getContent();
+                final ByteBuffer webSocketBuffer = buffer.toByteBuffer();
                 message.recycle();
-                ByteBuffer webSocketBuffer = buffer.toByteBuffer();
+                final ReadHandler readHandler = tyrusConnection.getReadHandler();
 
-                tyrusConnection.getReadHandler().handle(webSocketBuffer);
+                taskDeque.addLast(new ProcessTask(webSocketBuffer, readHandler));
+
+                processDeque(tyrusConnection);
             }
             return ctx.getStopAction();
         }
@@ -329,9 +339,11 @@ class GrizzlyClientFilter extends BaseFilter {
 //        ctx.getAttributes().setAttribute(TYRUS_CONNECTION, new org.glassfish.tyrus.spi.Connection() {
         TYRUS_CONNECTION.set(ctx.getConnection(), new org.glassfish.tyrus.spi.Connection() {
 
+            private final ReadHandler readHandler = ((TyrusWebSocketEngine) engine).getReadHandler(holder.handler.getWriter());
+
             @Override
             public ReadHandler getReadHandler() {
-                return ((TyrusWebSocketEngine) engine).getReadHandler(holder.handler.getWriter());
+                return readHandler;
             }
 
             @Override
@@ -344,7 +356,6 @@ class GrizzlyClientFilter extends BaseFilter {
                 return new CloseListener() {
                     @Override
                     public void close(CloseReason reason) {
-
                     }
                 };
             }
@@ -414,5 +425,73 @@ class GrizzlyClientFilter extends BaseFilter {
 
     private static GrizzlyWriter getWebSocketConnection(final FilterChainContext ctx) {
         return new GrizzlyWriter(ctx.getConnection());
+    }
+
+    protected void processDeque(final org.glassfish.tyrus.spi.Connection connection) {
+        if (!taskDeque.isEmpty()) {
+
+            ((BaseContainer) webSocketContainer).getExecutorService().execute(new Runnable() {
+
+
+                @Override
+                public void run() {
+                    do {
+                        synchronized (connection) {
+                            final Task first = taskDeque.pollFirst();
+                            if (first == null) {
+                                continue;
+                            }
+
+                            first.execute();
+                        }
+                    } while (!taskDeque.isEmpty());
+                }
+
+
+//                    @Override
+//                    public void run() {
+//                        synchronized (tyrusConnection) {
+//                            readHandler.handle(webSocketBuffer);
+//                        }
+//                    }
+            });
+        }
+    }
+
+    private abstract class Task {
+        public abstract void execute();
+    }
+
+    private class ProcessTask extends Task {
+        private final ByteBuffer buffer;
+        private final ReadHandler readHandler;
+
+        private ProcessTask(ByteBuffer buffer, ReadHandler readHandler) {
+            this.buffer = buffer;
+            this.readHandler = readHandler;
+        }
+
+        @Override
+        public void execute() {
+            readHandler.handle(buffer);
+        }
+    }
+
+    private class CloseTask extends Task {
+        private final org.glassfish.tyrus.spi.Connection connection;
+        private final CloseReason closeReason;
+        private final Connection grizllyConnection;
+
+        private CloseTask(org.glassfish.tyrus.spi.Connection connection, CloseReason closeReason, Connection grizzlyConnection) {
+            this.connection = connection;
+            this.closeReason = closeReason;
+            this.grizllyConnection = grizzlyConnection;
+        }
+
+        @Override
+        public void execute() {
+            connection.close(closeReason);
+            TYRUS_CONNECTION.remove(grizllyConnection);
+        }
     }
 }

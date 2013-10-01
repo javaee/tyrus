@@ -63,6 +63,7 @@ import javax.websocket.ClientEndpointConfig;
 import javax.websocket.CloseReason;
 import javax.websocket.DeploymentException;
 import javax.websocket.Session;
+import javax.websocket.WebSocketContainer;
 import javax.websocket.server.HandshakeRequest;
 
 import org.glassfish.tyrus.core.DataFrame;
@@ -239,13 +240,13 @@ public class GrizzlyClientSocket implements WebSocket, ClientSocket {
 
             switch (proxy.type()) {
                 case DIRECT:
-                    connectorHandler.setProcessor(createFilterChain(engine, null, clientSSLEngineConfigurator, false));
+                    connectorHandler.setProcessor(createFilterChain(engine, endpoint.getWebSocketContainer(), null, clientSSLEngineConfigurator, false));
 
                     LOGGER.log(Level.CONFIG, String.format("Connecting to '%s' (no proxy).", uri));
                     connectionGrizzlyFuture = connectorHandler.connect(socketAddress);
                     break;
                 default:
-                    connectorHandler.setProcessor(createFilterChain(engine, null, clientSSLEngineConfigurator, true));
+                    connectorHandler.setProcessor(createFilterChain(engine, endpoint.getWebSocketContainer(), null, clientSSLEngineConfigurator, true));
 
                     LOGGER.log(Level.CONFIG, String.format("Connecting to '%s' via proxy '%s'.", uri, proxy));
 
@@ -588,6 +589,7 @@ public class GrizzlyClientSocket implements WebSocket, ClientSocket {
     }
 
     private static Processor createFilterChain(WebSocketEngine engine,
+                                               WebSocketContainer webSocketContainer,
                                                SSLEngineConfigurator serverSSLEngineConfigurator,
                                                SSLEngineConfigurator clientSSLEngineConfigurator,
                                                boolean proxy) {
@@ -603,7 +605,7 @@ public class GrizzlyClientSocket implements WebSocket, ClientSocket {
             clientFilterChainBuilder.add(sslFilter);
         }
         clientFilterChainBuilder.add(new HttpClientFilter());
-        clientFilterChainBuilder.add(new GrizzlyClientFilter(engine, proxy, sslFilter));
+        clientFilterChainBuilder.add(new GrizzlyClientFilter(engine, webSocketContainer, proxy, sslFilter));
         return clientFilterChainBuilder.build();
     }
 

@@ -80,7 +80,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
     public static final Version DEFAULT_VERSION = Version.DRAFT17;
     public static final int MASK_SIZE = 4;
 
-    private static int BUFFER_STEP_SIZE = 256;
+    private static final int BUFFER_STEP_SIZE = 256;
     private static final Logger LOGGER = Logger.getLogger(UpgradeRequest.WEBSOCKET);
 
     private final Set<WebSocketApplication> applications = Collections.newSetFromMap(new ConcurrentHashMap<WebSocketApplication, Boolean>());
@@ -202,18 +202,13 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
                         final WebSocket socket = app.createSocket(protocolHandler, app);
                         setWebSocketHolder(writer, protocolHandler, null, socket, app);
 
-                        // TODO: servlet integration
-//                        if (upgradeListener != null) {
-//                            upgradeListener.onUpgradeFinished();
-//                        } else {
-//                            socket.onConnect();
-//                        }
-
-
                         return new Connection() {
+
+                            private final ReadHandler readHandler = TyrusWebSocketEngine.this.getReadHandler(writer);
+
                             @Override
                             public ReadHandler getReadHandler() {
-                                return TyrusWebSocketEngine.this.getReadHandler(writer);
+                                return readHandler;
                             }
 
                             @Override
@@ -287,6 +282,12 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
 
     private void processData(Writer writer, ByteBuffer data) {
         final WebSocketHolder holder = getWebSocketHolder(writer);
+
+        if (holder == null) {
+            // TODO?
+            return;
+        }
+
         try {
             if (data != null && data.hasRemaining()) {
 
@@ -315,8 +316,10 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
                 } while (true);
             }
         } catch (FramingException e) {
+            e.printStackTrace();
             holder.webSocket.onClose(new CloseReason(CloseReason.CloseCodes.getCloseCode(e.getClosingCode()), e.getMessage()));
         } catch (Exception wse) {
+            wse.printStackTrace();
             if (holder.application.onError(holder.webSocket, wse)) {
                 holder.webSocket.onClose(new CloseReason(CloseReason.CloseCodes.UNEXPECTED_CONDITION, wse.getMessage()));
 
@@ -498,7 +501,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
         return holder;
     }
 
-    public void removeConnection(Writer writer) {
+    void removeConnection(Writer writer) {
         webSocketHolderMap.remove(writer);
     }
 

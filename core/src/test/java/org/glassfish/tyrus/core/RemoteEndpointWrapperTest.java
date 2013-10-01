@@ -51,8 +51,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import javax.websocket.ClientEndpointConfig;
 import javax.websocket.CloseReason;
@@ -323,7 +326,32 @@ public class RemoteEndpointWrapperTest {
         @Override
         public Future<DataFrame> sendText(String fragment, boolean isLast) throws IOException {
             builder.append(fragment);
-            return null;
+            return new Future<DataFrame>() {
+                @Override
+                public boolean cancel(boolean mayInterruptIfRunning) {
+                    return false;
+                }
+
+                @Override
+                public boolean isCancelled() {
+                    return false;
+                }
+
+                @Override
+                public boolean isDone() {
+                    return true;
+                }
+
+                @Override
+                public DataFrame get() throws InterruptedException, ExecutionException {
+                    return null;
+                }
+
+                @Override
+                public DataFrame get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+                    return null;
+                }
+            };
         }
 
         @Override
@@ -333,7 +361,32 @@ public class RemoteEndpointWrapperTest {
             for (byte b : bytes) {
                 bytesToSend.add(b);
             }
-            return null;
+            return new Future<DataFrame>() {
+                @Override
+                public boolean cancel(boolean mayInterruptIfRunning) {
+                    return false;
+                }
+
+                @Override
+                public boolean isCancelled() {
+                    return false;
+                }
+
+                @Override
+                public boolean isDone() {
+                    return true;
+                }
+
+                @Override
+                public DataFrame get() throws InterruptedException, ExecutionException {
+                    return null;
+                }
+
+                @Override
+                public DataFrame get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+                    return null;
+                }
+            };
         }
 
         @Override

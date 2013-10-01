@@ -480,14 +480,13 @@ public class ServletTest {
     // "performance" test; 500 kB message is echoed 10 times.
     @Test
     public void testMultiEcho() throws IOException, DeploymentException, InterruptedException {
+        final Server server = startServer();
 
         final int LENGTH = 587952;
         byte[] b = new byte[LENGTH];
         Arrays.fill(b, 0, LENGTH, (byte) 'a');
 
         final String text = new String(b);
-
-        final Server server = startServer();
 
         final CountDownLatch messageLatch = new CountDownLatch(10);
 
@@ -518,14 +517,13 @@ public class ServletTest {
     // "performance" test; 20 clients, endpoint broadcasts.
     @Test
     public void testTyrusBroadcastString() throws IOException, DeploymentException, InterruptedException {
+        final Server server = startServer();
 
         final int LENGTH = 587952;
         byte[] b = new byte[LENGTH];
         Arrays.fill(b, 0, LENGTH, (byte) 'a');
 
         final String text = new String(b);
-
-        final Server server = startServer();
 
         final CountDownLatch messageLatch = new CountDownLatch(800);
         final List<Session> sessions = new ArrayList<Session>(20);
@@ -567,14 +565,13 @@ public class ServletTest {
     // "performance" test; 20 clients, endpoint broadcasts.
     @Test
     public void testTyrusBroadcastBinary() throws IOException, DeploymentException, InterruptedException {
+        final Server server = startServer();
 
         final int LENGTH = 587952;
         byte[] b = new byte[LENGTH];
         Arrays.fill(b, 0, LENGTH, (byte) 'a');
 
         final String text = new String(b);
-
-        final Server server = startServer();
 
         final CountDownLatch messageLatch = new CountDownLatch(800);
         final List<Session> sessions = new ArrayList<Session>(20);
@@ -617,14 +614,13 @@ public class ServletTest {
     @Test
     @Ignore("TYRUS-246")
     public void testWebSocketBroadcast() throws IOException, DeploymentException, InterruptedException {
+        final Server server = startServer();
 
         final int LENGTH = 587952;
         byte[] b = new byte[LENGTH];
         Arrays.fill(b, 0, LENGTH, (byte) 'a');
 
         final String text = new String(b);
-
-        final Server server = startServer();
 
         final CountDownLatch messageLatch = new CountDownLatch(800);
         final List<Session> sessions = new ArrayList<Session>(20);

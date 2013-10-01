@@ -105,6 +105,7 @@ public class WebSocketResponse extends UpgradeResponse {
      *
      * @param statusCode status code to be set.
      */
+    @Override
     public void setStatus(int statusCode) {
         status = statusCode;
     }
@@ -114,6 +115,7 @@ public class WebSocketResponse extends UpgradeResponse {
      *
      * @param reasonPhrase reason phrase to be set.
      */
+    @Override
     public void setReasonPhrase(String reasonPhrase) {
         this.reasonPhrase = reasonPhrase;
     }

@@ -126,7 +126,7 @@ public class Server {
                 LOGGER.info("WebSocket server started.");
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new DeploymentException(e.getMessage(), e);
         }
     }
 

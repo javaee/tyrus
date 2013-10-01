@@ -87,7 +87,7 @@ public class GrizzlyServerContainer extends ServerContainerFactory {
             public void start(String rootPath, int port) throws IOException, DeploymentException {
                 contextPath = rootPath;
                 server = HttpServer.createSimpleServer(rootPath, port);
-                server.getListener("grizzly").registerAddOn(new WebSocketAddOn(engine));
+                server.getListener("grizzly").registerAddOn(new WebSocketAddOn(this));
                 server.start();
 
                 super.start(rootPath, port);

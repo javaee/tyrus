@@ -43,6 +43,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 import org.glassfish.tyrus.spi.RemoteEndpoint;
 
@@ -52,7 +54,7 @@ import org.glassfish.tyrus.spi.RemoteEndpoint;
  *
  * @author Danny Coward (danny.coward at oracle.com)
  */
-public class OutputStreamToAsyncBinaryAdapter extends OutputStream {
+class OutputStreamToAsyncBinaryAdapter extends OutputStream {
     private final RemoteEndpoint re;
 
     public OutputStreamToAsyncBinaryAdapter(RemoteEndpoint re) {
@@ -73,7 +75,18 @@ public class OutputStreamToAsyncBinaryAdapter extends OutputStream {
         ByteBuffer result = ByteBuffer.allocate(len);
         result.put(Arrays.copyOfRange(b, off, len));
         result.flip();
-        re.sendBinary(result, false);
+        final Future<?> future = re.sendBinary(result, false);
+        try {
+            future.get();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        } catch (ExecutionException e) {
+            if(e.getCause() instanceof IOException) {
+                throw (IOException)e.getCause();
+            } else {
+                throw new IOException(e.getCause());
+            }
+        }
     }
 
     @Override

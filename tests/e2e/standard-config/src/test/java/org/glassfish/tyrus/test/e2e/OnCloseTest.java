@@ -60,6 +60,7 @@ import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
@@ -384,7 +385,8 @@ public class OnCloseTest extends TestContainer {
             try {
                 final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
-                ClientManager client = ClientManager.createClient();
+                final ClientManager client = ClientManager.createClient();
+                final CountDownLatch onCloseLatch = new CountDownLatch(1);
                 client.connectToServer(new Endpoint() {
                     @Override
                     public void onOpen(Session session, EndpointConfig endpointConfig) {
@@ -400,7 +402,14 @@ public class OnCloseTest extends TestContainer {
                             // do nothing.
                         }
                     }
+
+                    @Override
+                    public void onClose(Session session, CloseReason closeReason) {
+                        onCloseLatch.countDown();
+                    }
                 }, cec, getURI(OnCloseAllSupportedReasonsClientInitEndpoint.class));
+
+                assertTrue(onCloseLatch.await(5, TimeUnit.SECONDS));
 
                 testViaServiceEndpoint(client, ServiceEndpoint.class, POSITIVE, String.valueOf(i));
             } catch (Exception e) {

@@ -202,11 +202,7 @@ public class AnnotatedEndpoint extends Endpoint {
                         extractors[entry.getKey()] = new ParamValue(0);
                         handlerFactory = new WholeHandler(m, extractors, entry.getValue(), maxMessageSize);
                         messageHandlerFactories.add(handlerFactory);
-                        try {
-                            validityChecker.checkOnMessageParams(m, handlerFactory.create(null));
-                        } catch (DeploymentException e) {
-                            collector.addException(e);
-                        }
+                        validityChecker.checkOnMessageParams(m, handlerFactory.create(null));
                     } else if (unknownParams.size() == 2) {
                         Iterator<Map.Entry<Integer, Class<?>>> it = unknownParams.entrySet().iterator();
                         Map.Entry<Integer, Class<?>> message = it.next();
@@ -222,11 +218,7 @@ public class AnnotatedEndpoint extends Endpoint {
                         if (last.getValue() == boolean.class || last.getValue() == Boolean.class) {
                             handlerFactory = new PartialHandler(m, extractors, message.getValue(), maxMessageSize);
                             messageHandlerFactories.add(handlerFactory);
-                            try {
-                                validityChecker.checkOnMessageParams(m, handlerFactory.create(null));
-                            } catch (DeploymentException e) {
-                                collector.addException(e);
-                            }
+                            validityChecker.checkOnMessageParams(m, handlerFactory.create(null));
                         } else {
                             collector.addException(new DeploymentException(String.format("Method: %s.%s: has got wrong number of params.", annotatedClass.getName(), m.getName())));
                         }

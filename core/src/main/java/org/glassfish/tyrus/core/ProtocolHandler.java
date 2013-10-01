@@ -486,6 +486,7 @@ public final class ProtocolHandler {
                                 }
                             }
                         }
+
                         byte lengthCode = buffer.get();
 
                         state.masked = (lengthCode & 0x80) == 0x80;
