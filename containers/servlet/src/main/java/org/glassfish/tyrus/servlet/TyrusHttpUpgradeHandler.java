@@ -54,6 +54,7 @@ import javax.servlet.http.HttpUpgradeHandler;
 import javax.servlet.http.WebConnection;
 
 import org.glassfish.tyrus.spi.Connection;
+import org.glassfish.tyrus.spi.WebSocketEngine;
 import org.glassfish.tyrus.spi.Writer;
 
 /**
@@ -75,12 +76,12 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
     private ByteBuffer buf;
 
     private volatile boolean closed = false;
-    private boolean initiated = false;
     private int incomingBufferSize = 4194315; // 4M (payload) + 11 (frame overhead)
 
     private static final Logger LOGGER = Logger.getLogger(TyrusHttpUpgradeHandler.class.getName());
 
     private Connection connection;
+    private WebSocketEngine.UpgradeInfo upgradeInfo;
     private Writer writer;
 
 
@@ -103,11 +104,23 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
             LOGGER.log(Level.WARNING, e.getMessage(), e);
         }
 
-        initiated = true;
+        connection = upgradeInfo.createConnection(writer, new Connection.CloseListener() {
+            @Override
+            public void close(CloseReason reason) {
+                try {
+                    TyrusHttpUpgradeHandler.this.getWebConnection().close();
+                } catch (Exception e) {
+                    LOGGER.log(Level.FINE, e.getMessage(), e);
+                }
+            }
+        });
 
-        if (connection != null && writer != null) {
-            connection.open();
-        }
+    }
+
+    public void preInit(WebSocketEngine.UpgradeInfo upgradeInfo, Writer writer, boolean authenticated) {
+        this.upgradeInfo = upgradeInfo;
+        this.writer = writer;
+        this.authenticated = authenticated;
     }
 
     @Override
@@ -228,20 +241,8 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
         sb.append(", os=").append(os);
         sb.append(", wc=").append(wc);
         sb.append(", closed=").append(closed);
-        sb.append(", initiated=").append(initiated);
         sb.append('}');
         return sb.toString();
-    }
-
-    public void postInit(Connection connection, Writer writer, boolean authenticated) {
-        this.connection = connection;
-        this.writer = writer;
-        this.authenticated = authenticated;
-
-        if (initiated) {
-            // TODO
-            // engine.onConnect(writer);
-        }
     }
 
     public void setIncomingBufferSize(int incomingBufferSize) {
@@ -277,7 +278,7 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
     }
 
     WebConnection getWebConnection() {
-        if (!initiated) {
+        if (wc == null) {
             throw new IllegalStateException();
         }
         return wc;

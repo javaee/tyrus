@@ -239,6 +239,7 @@ class GrizzlyServerFilter extends BaseFilter {
         switch (upgradeInfo.getStatus()) {
             case SUCCESS:
                 final Connection grizzlyConnection = ctx.getConnection();
+                write(ctx, upgradeRequest, upgradeResponse);
 
                 final org.glassfish.tyrus.spi.Connection connection = upgradeInfo.createConnection(new GrizzlyWriter(ctx.getConnection()), new org.glassfish.tyrus.spi.Connection.CloseListener() {
                     @Override
@@ -258,8 +259,6 @@ class GrizzlyServerFilter extends BaseFilter {
                     }
                 });
 
-                write(ctx, upgradeRequest, upgradeResponse);
-                connection.open();
                 return ctx.getStopAction();
 
             case HANDSHAKE_FAILED:

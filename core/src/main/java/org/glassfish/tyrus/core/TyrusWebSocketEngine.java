@@ -201,6 +201,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
                         protocolHandler.setWriter(writer);
                         final WebSocket socket = app.createSocket(protocolHandler, app);
                         setWebSocketHolder(writer, protocolHandler, null, socket, app);
+                        socket.onConnect();
 
                         return new Connection() {
 
@@ -219,11 +220,6 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
                             @Override
                             public CloseListener getCloseListener() {
                                 return closeListener;
-                            }
-
-                            @Override
-                            public void open() {
-                                socket.onConnect();
                             }
 
                             @Override

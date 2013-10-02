@@ -361,11 +361,6 @@ class GrizzlyClientFilter extends BaseFilter {
             }
 
             @Override
-            public void open() {
-                // TODO: Implement.
-            }
-
-            @Override
             public void close(CloseReason reason) {
                 grizzlyWriter.close();
             }

@@ -45,10 +45,8 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.websocket.CloseReason;
 import javax.websocket.server.HandshakeRequest;
 import javax.websocket.server.ServerContainer;
 
@@ -69,7 +67,6 @@ import org.glassfish.tyrus.core.RequestContext;
 import org.glassfish.tyrus.core.TyrusWebSocketEngine;
 import org.glassfish.tyrus.core.Utils;
 import org.glassfish.tyrus.core.WebSocketResponse;
-import org.glassfish.tyrus.spi.Connection;
 import org.glassfish.tyrus.spi.WebSocketEngine;
 import org.glassfish.tyrus.spi.Writer;
 
@@ -169,8 +166,8 @@ class TyrusServletFilter implements Filter, HttpSessionListener {
         }
 
         @Override
-        public void postInit(Connection connection, Writer writer, boolean authenticated) {
-            handler.postInit(connection, writer, authenticated);
+        public void preInit(WebSocketEngine.UpgradeInfo upgradeInfo, Writer writer, boolean authenticated) {
+            handler.preInit(upgradeInfo, writer, authenticated);
         }
 
         @Override
@@ -249,16 +246,8 @@ class TyrusServletFilter implements Filter, HttpSessionListener {
                         handler.setIncomingBufferSize(Integer.parseInt(frameBufferSize));
                     }
 
-                        handler.postInit(upgradeInfo.createConnection(new TyrusServletWriter(handler), new Connection.CloseListener() {
-                        @Override
-                        public void close(CloseReason reason) {
-                            try {
-                                handler.getWebConnection().close();
-                            } catch (Exception e) {
-                                LOGGER.log(Level.FINE, e.getMessage(), e);
-                            }
-                        }
-                    }), webSocketConnection, httpServletRequest.getUserPrincipal() != null);
+                    handler.preInit(upgradeInfo, webSocketConnection, httpServletRequest.getUserPrincipal() != null);
+
                     sessionToHandler.put(httpServletRequest.getSession(), handler);
 
                     httpServletResponse.setStatus(webSocketResponse.getStatus());

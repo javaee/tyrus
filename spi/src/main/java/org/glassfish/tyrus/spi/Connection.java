@@ -60,7 +60,4 @@ public interface Connection {
     interface CloseListener {
         void close(CloseReason reason);
     }
-
-    void open();
-
 }
