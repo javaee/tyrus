@@ -53,7 +53,6 @@ import java.util.logging.Logger;
 import javax.websocket.CloseReason;
 import javax.websocket.WebSocketContainer;
 
-import org.glassfish.tyrus.core.BaseContainer;
 import org.glassfish.tyrus.core.HandshakeException;
 import org.glassfish.tyrus.core.TyrusWebSocketEngine;
 import org.glassfish.tyrus.core.TyrusWebSocketEngine.WebSocketHolder;
@@ -103,6 +102,9 @@ class GrizzlyClientFilter extends BaseFilter {
 
     private static final Attribute<org.glassfish.tyrus.spi.Connection> TYRUS_CONNECTION = Grizzly.DEFAULT_ATTRIBUTE_BUILDER
             .createAttribute(GrizzlyClientFilter.class.getName() + ".Connection");
+
+    static final Attribute<WebSocketHolder> WEB_SOCKET_HOLDER = Grizzly.DEFAULT_ATTRIBUTE_BUILDER
+            .createAttribute(WebSocketHolder.class.getName());
 
     private final boolean proxy;
     private final Filter sslFilter;
@@ -160,11 +162,7 @@ class GrizzlyClientFilter extends BaseFilter {
     public NextAction handleConnect(final FilterChainContext ctx) throws IOException {
         logger.log(Level.FINEST, "handleConnect");
 
-        // Get connection
-        final Writer webSocketWriter = GrizzlyClientFilter.getWebSocketConnection(ctx);
-
-        // TODO
-        final WebSocketHolder webSocketHolder = ((TyrusWebSocketEngine) engine).getWebSocketHolder(webSocketWriter);
+        final WebSocketHolder webSocketHolder = WEB_SOCKET_HOLDER.get(ctx.getConnection());
         webSocketRequest = webSocketHolder.handshake.initiate();
 
         HttpRequestPacket.Builder builder = HttpRequestPacket.builder();
@@ -317,8 +315,9 @@ class GrizzlyClientFilter extends BaseFilter {
      */
     private NextAction handleHandshake(FilterChainContext ctx, HttpContent content) throws IOException {
         final GrizzlyWriter grizzlyWriter = getWebSocketConnection(ctx);
+
         // TODO
-        final WebSocketHolder holder = ((TyrusWebSocketEngine) engine).getWebSocketHolder(grizzlyWriter);
+        final WebSocketHolder holder = WEB_SOCKET_HOLDER.get(ctx.getConnection());
 
         if (holder == null) {
             content.recycle();
@@ -339,7 +338,7 @@ class GrizzlyClientFilter extends BaseFilter {
 //        ctx.getAttributes().setAttribute(TYRUS_CONNECTION, new org.glassfish.tyrus.spi.Connection() {
         TYRUS_CONNECTION.set(ctx.getConnection(), new org.glassfish.tyrus.spi.Connection() {
 
-            private final ReadHandler readHandler = ((TyrusWebSocketEngine) engine).getReadHandler(holder.handler.getWriter());
+            private final ReadHandler readHandler = ((TyrusWebSocketEngine) engine).getReadHandler(holder);
 
             @Override
             public ReadHandler getReadHandler() {
@@ -418,42 +417,35 @@ class GrizzlyClientFilter extends BaseFilter {
         return HttpContent.builder(builder.build()).build();
     }
 
-    private static GrizzlyWriter getWebSocketConnection(final FilterChainContext ctx) {
+    private GrizzlyWriter getWebSocketConnection(final FilterChainContext ctx) {
         return new GrizzlyWriter(ctx.getConnection());
     }
 
-    protected void processDeque(final org.glassfish.tyrus.spi.Connection connection) {
+    protected void processDeque(final Object lock) {
         if (!taskDeque.isEmpty()) {
 
-            ((BaseContainer) webSocketContainer).getExecutorService().execute(new Runnable() {
-
-
-                @Override
-                public void run() {
+//            ((BaseContainer) webSocketContainer).getExecutorService().execute(new Runnable() {
+//
+//
+//                @Override
+//                public void run() {
                     do {
-                        synchronized (connection) {
+//                        synchronized (lock) {
                             final Task first = taskDeque.pollFirst();
                             if (first == null) {
                                 continue;
                             }
 
                             first.execute();
-                        }
+//                        }
                     } while (!taskDeque.isEmpty());
                 }
 
-
-//                    @Override
-//                    public void run() {
-//                        synchronized (tyrusConnection) {
-//                            readHandler.handle(webSocketBuffer);
-//                        }
-//                    }
-            });
-        }
+//            });
+//        }
     }
 
-    private abstract class Task {
+    abstract static class Task {
         public abstract void execute();
     }
 

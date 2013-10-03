@@ -200,12 +200,13 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
 
                         protocolHandler.setWriter(writer);
                         final WebSocket socket = app.createSocket(protocolHandler, app);
-                        setWebSocketHolder(writer, protocolHandler, null, socket, app);
+                        final WebSocketHolder holder = new WebSocketHolder(protocolHandler, socket, null, app);
+
                         socket.onConnect();
 
                         return new Connection() {
 
-                            private final ReadHandler readHandler = TyrusWebSocketEngine.this.getReadHandler(writer);
+                            private final ReadHandler readHandler = TyrusWebSocketEngine.this.getReadHandler(holder);
 
                             @Override
                             public ReadHandler getReadHandler() {
@@ -224,8 +225,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
 
                             @Override
                             public void close(CloseReason reason) {
-                                // TODO!
-                                TyrusWebSocketEngine.this.close(writer, reason);
+                                socket.close(reason.getCloseCode().getCode(), reason.getReasonPhrase());
                             }
                         };
                     }
@@ -267,18 +267,17 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
         };
     }
 
-    public ReadHandler getReadHandler(final Writer writer) {
+    public ReadHandler getReadHandler(final WebSocketHolder webSocketHolder) {
+
         return new ReadHandler() {
             @Override
             public void handle(ByteBuffer data) {
-                TyrusWebSocketEngine.this.processData(writer, data);
+                TyrusWebSocketEngine.this.processData(webSocketHolder, data);
             }
         };
     }
 
-    private void processData(Writer writer, ByteBuffer data) {
-        final WebSocketHolder holder = getWebSocketHolder(writer);
-
+    private void processData(WebSocketHolder holder, ByteBuffer data) {
         if (holder == null) {
             // TODO?
             return;
@@ -320,19 +319,6 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
                 holder.webSocket.onClose(new CloseReason(CloseReason.CloseCodes.UNEXPECTED_CONDITION, wse.getMessage()));
 
             }
-        }
-    }
-
-    //    @Override
-    private void onConnect(Writer writer) {
-        getWebSocketHolder(writer).webSocket.onConnect();
-    }
-
-    private void close(Writer writer, CloseReason closeReason) {
-        final WebSocketHolder holder = getWebSocketHolder(writer);
-        if (holder != null) {
-            holder.webSocket.onClose(closeReason);
-            removeConnection(writer);
         }
     }
 
@@ -453,54 +439,6 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
         applications.remove(app);
     }
 
-//    /**
-//     * Un-registers all {@link WebSocketApplication} instances with the
-//     * {@link WebSocketEngine}.
-//     */
-//    public void unregisterAll() {
-//        applications.clear();
-//    }
-
-    /**
-     * Returns <tt>true</tt> if passed Grizzly {@link org.glassfish.tyrus.spi.Writer} is associated with a {@link WebSocket}, or
-     * <tt>false</tt> otherwise.
-     *
-     * @param writer Grizzly {@link org.glassfish.tyrus.spi.Writer}.
-     * @return <tt>true</tt> if passed Grizzly {@link org.glassfish.tyrus.spi.Writer} is associated with a {@link WebSocket}, or
-     *         <tt>false</tt> otherwise.
-     */
-    public boolean webSocketInProgress(Writer writer) {
-        return webSocketHolderMap.get(writer) != null;
-    }
-
-    /**
-     * Get the {@link WebSocket} associated with the Grizzly {@link org.glassfish.tyrus.spi.Writer}, or <tt>null</tt>, if there none is
-     * associated.
-     *
-     * @param writer Grizzly {@link org.glassfish.tyrus.spi.Writer}.
-     * @return the {@link WebSocket} associated with the Grizzly {@link org.glassfish.tyrus.spi.Writer}, or <tt>null</tt>, if there none is
-     *         associated.
-     */
-    public WebSocket getWebSocket(Writer writer) {
-        final WebSocketHolder holder = getWebSocketHolder(writer);
-        return holder == null ? null : holder.webSocket;
-    }
-
-    public WebSocketHolder getWebSocketHolder(final Writer writer) {
-        return webSocketHolderMap.get(writer);
-    }
-
-    public WebSocketHolder setWebSocketHolder(final Writer writer, ProtocolHandler handler, WebSocketRequest request, WebSocket socket, WebSocketApplication application) {
-        final WebSocketHolder holder = new WebSocketHolder(handler, socket, (request == null ? null : handler.createClientHandShake(request)), application);
-
-        webSocketHolderMap.put(writer, holder);
-        return holder;
-    }
-
-    void removeConnection(Writer writer) {
-        webSocketHolderMap.remove(writer);
-    }
-
     /**
      * WebSocketHolder object, which gets associated with the Grizzly {@link org.glassfish.tyrus.spi.Writer}.
      */
@@ -511,8 +449,8 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
         public final WebSocketApplication application;
         public volatile ByteBuffer buffer;
 
-        WebSocketHolder(final ProtocolHandler handler, final WebSocket socket, final Handshake handshake,
-                        final WebSocketApplication application) {
+        public WebSocketHolder(final ProtocolHandler handler, final WebSocket socket, final Handshake handshake,
+                               final WebSocketApplication application) {
             this.handler = handler;
             this.webSocket = socket;
             this.handshake = handshake;

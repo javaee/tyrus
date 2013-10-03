@@ -226,9 +226,10 @@ public class GrizzlyClientSocket implements WebSocket, ClientSocket {
                     final Writer writer = getConnection(conn);
 
                     protocolHandler.setWriter(writer);
-                    TyrusWebSocketEngine.WebSocketHolder holder =
-                            // TODO!
-                            ((TyrusWebSocketEngine) engine).setWebSocketHolder(writer, protocolHandler, RequestContext.Builder.create().requestURI(uri).build(), GrizzlyClientSocket.this, null);
+
+                    final TyrusWebSocketEngine.WebSocketHolder holder = new TyrusWebSocketEngine.WebSocketHolder(protocolHandler, GrizzlyClientSocket.this, protocolHandler.createClientHandShake(RequestContext.Builder.create().requestURI(uri).build()), null);
+                    GrizzlyClientFilter.WEB_SOCKET_HOLDER.set(conn,
+                            holder);
 
                     prepareHandshake(holder.handshake);
                 }
@@ -569,7 +570,6 @@ public class GrizzlyClientSocket implements WebSocket, ClientSocket {
             }
         }
     }
-
 
     /**
      * Since standard Java {@link ProxySelector} does not support "ws" and "wss" schemes in {@link URI URIs},

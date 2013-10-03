@@ -53,7 +53,6 @@ import java.util.logging.Logger;
 import javax.websocket.CloseReason;
 
 import org.glassfish.tyrus.container.grizzly.client.GrizzlyWriter;
-import org.glassfish.tyrus.core.BaseContainer;
 import org.glassfish.tyrus.core.RequestContext;
 import org.glassfish.tyrus.core.Utils;
 import org.glassfish.tyrus.core.WebSocket;
@@ -310,33 +309,25 @@ class GrizzlyServerFilter extends BaseFilter {
         return requestContext;
     }
 
-    protected void processDeque(final org.glassfish.tyrus.spi.Connection connection) {
+    protected void processDeque(final Object lock) {
         if (!taskDeque.isEmpty()) {
 
-            ((BaseContainer) serverContainer).getExecutorService().execute(new Runnable() {
-
-
-                @Override
-                public void run() {
+//            ((BaseContainer) serverContainer).getExecutorService().execute(new Runnable() {
+//
+//                @Override
+//                public void run() {
                     do {
-                        synchronized (connection) {
+//                        synchronized (lock) {
                             final Task first = taskDeque.pollFirst();
                             if (first == null) {
                                 continue;
                             }
 
                             first.execute();
-                        }
-                    } while (!taskDeque.isEmpty());
-                }
-
-//                    @Override
-//                    public void run() {
-//                        synchronized (tyrusConnection) {
-//                            readHandler.handle(webSocketBuffer);
 //                        }
-//                    }
-            });
+                    } while (!taskDeque.isEmpty());
+//                }
+//            });
         }
     }
 
