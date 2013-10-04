@@ -203,7 +203,7 @@ class GrizzlyServerFilter extends BaseFilter {
                 final ByteBufferArray byteBufferArray = buffer.toByteBufferArray();
                 final ByteBuffer[] array = byteBufferArray.getArray();
 
-                for(int i = 0; i < byteBufferArray.size(); i++) {
+                for (int i = 0; i < byteBufferArray.size(); i++) {
                     taskDeque.addLast(new ProcessTask(array[i], readHandler));
                 }
 
@@ -311,23 +311,14 @@ class GrizzlyServerFilter extends BaseFilter {
 
     protected void processDeque(final Object lock) {
         if (!taskDeque.isEmpty()) {
+            do {
+                final Task first = taskDeque.pollFirst();
+                if (first == null) {
+                    continue;
+                }
 
-//            ((BaseContainer) serverContainer).getExecutorService().execute(new Runnable() {
-//
-//                @Override
-//                public void run() {
-                    do {
-//                        synchronized (lock) {
-                            final Task first = taskDeque.pollFirst();
-                            if (first == null) {
-                                continue;
-                            }
-
-                            first.execute();
-//                        }
-                    } while (!taskDeque.isEmpty());
-//                }
-//            });
+                first.execute();
+            } while (!taskDeque.isEmpty());
         }
     }
 

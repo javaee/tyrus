@@ -423,26 +423,15 @@ class GrizzlyClientFilter extends BaseFilter {
 
     protected void processDeque(final Object lock) {
         if (!taskDeque.isEmpty()) {
-
-//            ((BaseContainer) webSocketContainer).getExecutorService().execute(new Runnable() {
-//
-//
-//                @Override
-//                public void run() {
-                    do {
-//                        synchronized (lock) {
-                            final Task first = taskDeque.pollFirst();
-                            if (first == null) {
-                                continue;
-                            }
-
-                            first.execute();
-//                        }
-                    } while (!taskDeque.isEmpty());
+            do {
+                final Task first = taskDeque.pollFirst();
+                if (first == null) {
+                    continue;
                 }
 
-//            });
-//        }
+                first.execute();
+            } while (!taskDeque.isEmpty());
+        }
     }
 
     abstract static class Task {

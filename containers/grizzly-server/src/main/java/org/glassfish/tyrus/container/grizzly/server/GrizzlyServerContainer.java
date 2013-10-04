@@ -52,6 +52,7 @@ import org.glassfish.tyrus.spi.ServerContainerFactory;
 import org.glassfish.tyrus.spi.WebSocketEngine;
 
 import org.glassfish.grizzly.http.server.HttpServer;
+import org.glassfish.grizzly.strategies.WorkerThreadIOStrategy;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)
@@ -87,6 +88,7 @@ public class GrizzlyServerContainer extends ServerContainerFactory {
             public void start(String rootPath, int port) throws IOException, DeploymentException {
                 contextPath = rootPath;
                 server = HttpServer.createSimpleServer(rootPath, port);
+                server.getListener("grizzly").getTransport().setIOStrategy(WorkerThreadIOStrategy.getInstance());
                 server.getListener("grizzly").registerAddOn(new WebSocketAddOn(this));
                 server.start();
 
