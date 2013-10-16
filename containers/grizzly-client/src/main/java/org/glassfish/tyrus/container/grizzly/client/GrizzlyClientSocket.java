@@ -62,6 +62,7 @@ import java.util.logging.Logger;
 import javax.websocket.ClientEndpointConfig;
 import javax.websocket.CloseReason;
 import javax.websocket.DeploymentException;
+import javax.websocket.SendHandler;
 import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
 import javax.websocket.server.HandshakeRequest;
@@ -358,9 +359,27 @@ public class GrizzlyClientSocket implements WebSocket, ClientSocket {
     }
 
     @Override
+    public void send(String data, SendHandler handler) {
+        if (isConnected()) {
+            protocolHandler.send(data, handler);
+        } else {
+            throw new RuntimeException("Socket is not connected.");
+        }
+    }
+
+    @Override
     public Future<DataFrame> send(byte[] bytes) {
         if (isConnected()) {
             return protocolHandler.send(bytes);
+        } else {
+            throw new RuntimeException("Socket is not connected.");
+        }
+    }
+
+    @Override
+    public void send(byte[] data, SendHandler handler) {
+        if (isConnected()) {
+            protocolHandler.send(data, handler);
         } else {
             throw new RuntimeException("Socket is not connected.");
         }
@@ -377,14 +396,22 @@ public class GrizzlyClientSocket implements WebSocket, ClientSocket {
 
     @Override
     public Future<DataFrame> sendPing(byte[] bytes) {
-        DataFrame df = new DataFrame(new PingFrame(), bytes);
-        return this.protocolHandler.send(df, false);
+        if (isConnected()) {
+            DataFrame df = new DataFrame(new PingFrame(), bytes);
+            return protocolHandler.send(df, false);
+        } else {
+            throw new RuntimeException("Socket is not connected.");
+        }
     }
 
     @Override
     public Future<DataFrame> sendPong(byte[] bytes) {
-        DataFrame df = new DataFrame(new PongFrame(), bytes);
-        return this.protocolHandler.send(df, false);
+        if (isConnected()) {
+            DataFrame df = new DataFrame(new PongFrame(), bytes);
+            return protocolHandler.send(df, false);
+        } else {
+            throw new RuntimeException("Socket is not connected.");
+        }
     }
 
     @Override
@@ -398,13 +425,11 @@ public class GrizzlyClientSocket implements WebSocket, ClientSocket {
 
     @Override
     public Future<DataFrame> stream(boolean b, byte[] bytes, int i, int i1) {
-
         if (isConnected()) {
             return protocolHandler.stream(b, bytes, i, i1);
         } else {
             throw new RuntimeException("Socket is not connected.");
         }
-
     }
 
     @Override

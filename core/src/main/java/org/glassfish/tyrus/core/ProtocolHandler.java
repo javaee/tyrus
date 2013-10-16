@@ -56,6 +56,8 @@ import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.websocket.CloseReason;
+import javax.websocket.SendHandler;
+import javax.websocket.SendResult;
 import javax.websocket.WebSocketContainer;
 
 import org.glassfish.tyrus.core.frame.BinaryFrame;
@@ -65,6 +67,7 @@ import org.glassfish.tyrus.core.frame.Frame;
 import org.glassfish.tyrus.core.frame.PingFrame;
 import org.glassfish.tyrus.core.frame.PongFrame;
 import org.glassfish.tyrus.core.frame.TextFrame;
+import org.glassfish.tyrus.spi.CompletionHandler;
 import org.glassfish.tyrus.spi.UpgradeRequest;
 import org.glassfish.tyrus.spi.UpgradeResponse;
 import org.glassfish.tyrus.spi.Writer;
@@ -137,12 +140,12 @@ public final class ProtocolHandler {
     }
 
     Future<DataFrame> send(DataFrame frame,
-                           Writer.CompletionHandler<DataFrame> completionHandler, Boolean useTimeout) {
+                           CompletionHandler<DataFrame> completionHandler, Boolean useTimeout) {
         return write(frame, completionHandler, useTimeout);
     }
 
     Future<DataFrame> send(ByteBuffer frame,
-                           Writer.CompletionHandler<DataFrame> completionHandler, Boolean useTimeout) {
+                           CompletionHandler<DataFrame> completionHandler, Boolean useTimeout) {
         return write(frame, completionHandler, useTimeout);
     }
 
@@ -150,8 +153,36 @@ public final class ProtocolHandler {
         return send(new DataFrame(new BinaryFrame(), data), null, true);
     }
 
+    public void send(final byte[] data, final SendHandler handler) {
+        send(new DataFrame(new BinaryFrame(), data), new CompletionHandler<DataFrame>() {
+            @Override
+            public void failed(Throwable throwable) {
+                handler.onResult(new SendResult(throwable));
+            }
+
+            @Override
+            public void completed(DataFrame result) {
+                handler.onResult(new SendResult());
+            }
+        }, true);
+    }
+
     public Future<DataFrame> send(String data) {
         return send(new DataFrame(new TextFrame(), data));
+    }
+
+    public void send(final String data, final SendHandler handler) {
+        send(new DataFrame(new TextFrame(), data), new CompletionHandler<DataFrame>() {
+            @Override
+            public void failed(Throwable throwable) {
+                handler.onResult(new SendResult(throwable));
+            }
+
+            @Override
+            public void completed(DataFrame result) {
+                handler.onResult(new SendResult());
+            }
+        }, true);
     }
 
     public Future<DataFrame> sendRawFrame(ByteBuffer data) {
@@ -177,7 +208,7 @@ public final class ProtocolHandler {
             outgoingClosingFrame = new ClosingDataFrame(code, reason);
         }
 
-        return send(outgoingClosingFrame, new Writer.CompletionHandler<DataFrame>() {
+        return send(outgoingClosingFrame, new CompletionHandler<DataFrame>() {
 
             @Override
             public void cancelled() {
@@ -203,7 +234,7 @@ public final class ProtocolHandler {
     }
 
     @SuppressWarnings({"unchecked"})
-    private Future<DataFrame> write(final DataFrame frame, final Writer.CompletionHandler<DataFrame> completionHandler, boolean useTimeout) {
+    private Future<DataFrame> write(final DataFrame frame, final CompletionHandler<DataFrame> completionHandler, boolean useTimeout) {
         final Writer localWriter = writer;
         final TyrusFuture<DataFrame> future = new TyrusFuture<DataFrame>();
 
@@ -211,34 +242,34 @@ public final class ProtocolHandler {
             throw new IllegalStateException("Connection is null");
         }
 
-        if (useTimeout && writeTimeoutMs > 0 && container instanceof ExecutorServiceProvider) {
-            ExecutorService executor = ((ExecutorServiceProvider) container).getExecutorService();
-            try {
-                executor.submit(new Runnable() {
-
-                    @Override
-                    public void run() {
-                        final ByteBuffer byteBuffer = frame(frame);
-                        localWriter.write(byteBuffer, new CompletionHandlerWrapper(completionHandler, future, frame));
-                    }
-                }).get(writeTimeoutMs, TimeUnit.MILLISECONDS);
-            } catch (InterruptedException e) {
-                future.setFailure(e);
-            } catch (ExecutionException e) {
-                future.setFailure(e);
-            } catch (TimeoutException e) {
-                future.setFailure(e);
-            }
-        } else {
-            final ByteBuffer byteBuffer = frame(frame);
-            localWriter.write(byteBuffer, new CompletionHandlerWrapper(completionHandler, future, frame));
-        }
+//        if (useTimeout && writeTimeoutMs > 0 && container instanceof ExecutorServiceProvider) {
+//            ExecutorService executor = ((ExecutorServiceProvider) container).getExecutorService();
+//            try {
+//                executor.submit(new Runnable() {
+//
+//                    @Override
+//                    public void run() {
+        final ByteBuffer byteBuffer = frame(frame);
+        localWriter.write(byteBuffer, new CompletionHandlerWrapper(completionHandler, future, frame));
+//                    }
+//                }).get(writeTimeoutMs, TimeUnit.MILLISECONDS);
+//            } catch (InterruptedException e) {
+//                future.setFailure(e);
+//            } catch (ExecutionException e) {
+//                future.setFailure(e);
+//            } catch (TimeoutException e) {
+//                future.setFailure(e);
+//            }
+//        } else {
+//            final ByteBuffer byteBuffer = frame(frame);
+//            localWriter.write(byteBuffer, new CompletionHandlerWrapper(completionHandler, future, frame));
+//        }
 
         return future;
     }
 
     @SuppressWarnings({"unchecked"})
-    private Future<DataFrame> write(final ByteBuffer frame, final Writer.CompletionHandler<DataFrame> completionHandler, boolean useTimeout) {
+    private Future<DataFrame> write(final ByteBuffer frame, final CompletionHandler<DataFrame> completionHandler, boolean useTimeout) {
         final Writer localWriter = writer;
         final TyrusFuture<DataFrame> future = new TyrusFuture<DataFrame>();
 
@@ -622,13 +653,13 @@ public final class ProtocolHandler {
     /**
      * Handler passed to the {@link org.glassfish.tyrus.spi.Writer}.
      */
-    private static class CompletionHandlerWrapper extends Writer.CompletionHandler<ByteBuffer> {
+    private static class CompletionHandlerWrapper extends CompletionHandler<ByteBuffer> {
 
-        private final Writer.CompletionHandler<DataFrame> frameCompletionHandler;
+        private final CompletionHandler<DataFrame> frameCompletionHandler;
         private final TyrusFuture<DataFrame> future;
         private final DataFrame frame;
 
-        private CompletionHandlerWrapper(Writer.CompletionHandler<DataFrame> frameCompletionHandler, TyrusFuture<DataFrame> future, DataFrame frame) {
+        private CompletionHandlerWrapper(CompletionHandler<DataFrame> frameCompletionHandler, TyrusFuture<DataFrame> future, DataFrame frame) {
             this.frameCompletionHandler = frameCompletionHandler;
             this.future = future;
             this.frame = frame;

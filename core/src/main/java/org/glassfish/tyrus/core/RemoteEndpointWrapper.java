@@ -47,6 +47,8 @@ import java.io.Writer;
 import java.nio.ByteBuffer;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Logger;
 
 import javax.websocket.CloseReason;
@@ -86,7 +88,7 @@ public abstract class RemoteEndpointWrapper implements javax.websocket.RemoteEnd
         @Override
         public void sendText(String text) throws IOException {
             checkNotNull(text, "Argument 'text' cannot be null.");
-            final Future<?> future = super.sendSyncText(text);
+            final Future<?> future = remoteEndpoint.sendText(text);
             try {
                 future.get();
             } catch (InterruptedException e) {
@@ -104,7 +106,7 @@ public abstract class RemoteEndpointWrapper implements javax.websocket.RemoteEnd
         @Override
         public void sendBinary(ByteBuffer data) throws IOException {
             checkNotNull(data, "Argument 'data' cannot be null.");
-            final Future<?> future = super.sendSyncBinary(data);
+            final Future<?> future = remoteEndpoint.sendBinary(data);
             try {
                 future.get();
             } catch (InterruptedException e) {
@@ -158,7 +160,20 @@ public abstract class RemoteEndpointWrapper implements javax.websocket.RemoteEnd
         @Override
         public void sendObject(Object data) throws IOException, EncodeException {
             checkNotNull(data, "Argument 'data' cannot be null.");
-            super.sendSyncObject(data);
+            final Future<?> future = sendSyncObject(data);
+            try {
+                future.get();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } catch (ExecutionException e) {
+                if (e.getCause() instanceof IOException) {
+                    throw (IOException) e.getCause();
+                } else if (e.getCause() instanceof EncodeException) {
+                    throw (EncodeException) e.getCause();
+                } else {
+                    throw new IOException(e.getCause());
+                }
+            }
             session.restartIdleTimeoutExecutor();
         }
 
@@ -179,7 +194,7 @@ public abstract class RemoteEndpointWrapper implements javax.websocket.RemoteEnd
         Async(TyrusSession session, RemoteEndpoint remoteEndpoint, TyrusEndpointWrapper tyrusEndpointWrapper) {
             super(session, remoteEndpoint, tyrusEndpointWrapper);
 
-            if(session.getContainer() != null) {
+            if (session.getContainer() != null) {
                 setSendTimeout(session.getContainer().getDefaultAsyncSendTimeout());
             }
         }
@@ -196,14 +211,14 @@ public abstract class RemoteEndpointWrapper implements javax.websocket.RemoteEnd
         public Future<Void> sendText(String text) {
             checkNotNull(text, "Argument 'text' cannot be null.");
             session.restartIdleTimeoutExecutor();
-            return sendAsync(text, null, AsyncMessageType.TEXT);
+            return sendAsync(text, AsyncMessageType.TEXT);
         }
 
         @Override
         public Future<Void> sendBinary(ByteBuffer data) {
             checkNotNull(data, "Argument 'data' cannot be null.");
             session.restartIdleTimeoutExecutor();
-            return sendAsync(data, null, AsyncMessageType.BINARY);
+            return sendAsync(data, AsyncMessageType.BINARY);
         }
 
         @Override
@@ -226,7 +241,7 @@ public abstract class RemoteEndpointWrapper implements javax.websocket.RemoteEnd
         public Future<Void> sendObject(Object data) {
             checkNotNull(data, "Argument 'data' cannot be null.");
             session.restartIdleTimeoutExecutor();
-            return sendAsync(data, null, AsyncMessageType.OBJECT);
+            return sendAsync(data, AsyncMessageType.OBJECT);
         }
 
         @Override
@@ -241,58 +256,88 @@ public abstract class RemoteEndpointWrapper implements javax.websocket.RemoteEnd
         }
 
         /**
-         * Sends the message asynchronously (from separate {@link Thread}).
+         * Sends the message asynchronously.
+         * <p/>
+         * IMPORTANT NOTE: There is no need to start new thread here. All writer are by default asynchronous, only
+         * difference between sync and async writer are that sync send should wait for future.get().
+         *
+         * @param message message to be sent
+         * @param type    message type
+         * @return message sending callback {@link Future}
+         */
+        private Future<Void> sendAsync(final Object message, final AsyncMessageType type) {
+            Future<?> result = null;
+
+            switch (type) {
+                case TEXT:
+                    result = remoteEndpoint.sendText((String) message);
+                    break;
+
+                case BINARY:
+                    result = remoteEndpoint.sendBinary((ByteBuffer) message);
+                    break;
+
+                case OBJECT:
+                    result = sendSyncObject(message);
+                    break;
+            }
+
+            final Future<?> finalResult = result;
+
+            return new Future<Void>() {
+                @Override
+                public boolean cancel(boolean mayInterruptIfRunning) {
+                    return finalResult.cancel(mayInterruptIfRunning);
+                }
+
+                @Override
+                public boolean isCancelled() {
+                    return finalResult.isCancelled();
+                }
+
+                @Override
+                public boolean isDone() {
+                    return finalResult.isDone();
+                }
+
+                @Override
+                public Void get() throws InterruptedException, ExecutionException {
+                    finalResult.get();
+                    return null;
+                }
+
+                @Override
+                public Void get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+                    finalResult.get(timeout, unit);
+                    return null;
+                }
+            };
+        }
+
+        /**
+         * Sends the message asynchronously.
+         * <p/>
+         * IMPORTANT NOTE: There is no need to start new thread here. All writer are by default asynchronous, only
+         * difference between sync and async writer are that sync send should wait for future.get().
          *
          * @param message message to be sent
          * @param handler message sending callback handler
          * @param type    message type
-         * @return message sending callback {@link Future}
          */
-        private Future<Void> sendAsync(final Object message, final SendHandler handler, final AsyncMessageType type) {
-            final FutureSendResult fsr = new FutureSendResult();
+        private void sendAsync(final Object message, final SendHandler handler, final AsyncMessageType type) {
+            switch (type) {
+                case TEXT:
+                    remoteEndpoint.sendText((String) message, handler);
+                    break;
 
-            // TODO
-            ((BaseContainer) tyrusEndpointWrapper.container).getExecutorService().execute(new Runnable() {
+                case BINARY:
+                    remoteEndpoint.sendBinary((ByteBuffer) message, handler);
+                    break;
 
-                @Override
-                public void run() {
-                    Future<?> result = null;
-                    SendResult sr = null;
-
-                    try {
-                        switch (type) {
-                            case TEXT:
-                                result = sendSyncText((String) message);
-                                break;
-
-                            case BINARY:
-                                result = sendSyncBinary((ByteBuffer) message);
-                                break;
-
-                            case OBJECT:
-                                result = sendSyncObject(message);
-                                break;
-                        }
-
-                        if (result != null) {
-                            result.get();
-                        }
-                    } catch (Throwable thw) {
-                        sr = new SendResult(thw);
-                        fsr.setFailure(thw);
-                    } finally {
-                        if (sr == null) {
-                            sr = new SendResult();
-                        }
-                        if (handler != null) {
-                            handler.onResult(sr);
-                        }
-                        fsr.setDone();
-                    }
-                }
-            });
-
-            return fsr;
+                case OBJECT:
+                    sendSyncObject(message, handler);
+                    break;
+            }
         }
 
         private static enum AsyncMessageType {
@@ -302,20 +347,42 @@ public abstract class RemoteEndpointWrapper implements javax.websocket.RemoteEnd
         }
     }
 
-    Future<?> sendSyncText(String data) throws IOException {
-        return remoteEndpoint.sendText(data);
-    }
-
-    Future<?> sendSyncBinary(ByteBuffer buf) throws IOException {
-        return remoteEndpoint.sendBinary(buf);
-    }
-
     @SuppressWarnings("unchecked")
-    Future<?> sendSyncObject(Object o) throws IOException, EncodeException {
+    Future<?> sendSyncObject(Object o) {
         if (o instanceof String) {
             return remoteEndpoint.sendText((String) o);
         } else {
-            Object toSend = tyrusEndpointWrapper.doEncode(session, o);
+            Object toSend;
+            try {
+                toSend = tyrusEndpointWrapper.doEncode(session, o);
+            } catch (final Exception e) {
+                return new Future<Object>() {
+                    @Override
+                    public boolean cancel(boolean mayInterruptIfRunning) {
+                        return false;
+                    }
+
+                    @Override
+                    public boolean isCancelled() {
+                        return false;
+                    }
+
+                    @Override
+                    public boolean isDone() {
+                        return true;
+                    }
+
+                    @Override
+                    public Object get() throws InterruptedException, ExecutionException {
+                        throw new ExecutionException(e);
+                    }
+
+                    @Override
+                    public Object get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+                        throw new ExecutionException(e);
+                    }
+                };
+            }
 
             if (toSend instanceof String) {
                 return remoteEndpoint.sendText((String) toSend);
@@ -333,6 +400,35 @@ public abstract class RemoteEndpointWrapper implements javax.websocket.RemoteEnd
         }
 
         return null;
+    }
+
+    // TODO: naming
+    @SuppressWarnings("unchecked")
+    void sendSyncObject(Object o, SendHandler handler) {
+        if (o instanceof String) {
+            remoteEndpoint.sendText((String) o, handler);
+        } else {
+            Object toSend = null;
+            try {
+                toSend = tyrusEndpointWrapper.doEncode(session, o);
+            } catch (final Exception e) {
+                handler.onResult(new SendResult(e));
+            }
+
+            if (toSend instanceof String) {
+                remoteEndpoint.sendText((String) toSend, handler);
+            } else if (toSend instanceof ByteBuffer) {
+                remoteEndpoint.sendBinary((ByteBuffer) toSend, handler);
+            } else if (toSend instanceof StringWriter) {
+                StringWriter writer = (StringWriter) toSend;
+                StringBuffer sb = writer.getBuffer();
+                remoteEndpoint.sendText(sb.toString(), handler);
+            } else if (toSend instanceof ByteArrayOutputStream) {
+                ByteArrayOutputStream baos = (ByteArrayOutputStream) toSend;
+                ByteBuffer buffer = ByteBuffer.wrap(baos.toByteArray());
+                remoteEndpoint.sendBinary(buffer, handler);
+            }
+        }
     }
 
     @Override

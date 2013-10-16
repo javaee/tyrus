@@ -314,17 +314,25 @@ public class RemoteEndpointWrapperTest {
         private int lastSentMessageSize;
 
         @Override
-        public Future<DataFrame> sendText(String text) throws IOException {
+        public Future<DataFrame> sendText(String text) {
             return null;
         }
 
         @Override
-        public Future<DataFrame> sendBinary(ByteBuffer data) throws IOException {
+        public Future<DataFrame> sendBinary(ByteBuffer data) {
             return null;
         }
 
         @Override
-        public Future<DataFrame> sendText(String fragment, boolean isLast) throws IOException {
+        public void sendText(String text, SendHandler handler) {
+        }
+
+        @Override
+        public void sendBinary(ByteBuffer data, SendHandler handler) {
+        }
+
+        @Override
+        public Future<DataFrame> sendText(String fragment, boolean isLast) {
             builder.append(fragment);
             return new Future<DataFrame>() {
                 @Override
@@ -355,7 +363,7 @@ public class RemoteEndpointWrapperTest {
         }
 
         @Override
-        public Future<DataFrame> sendBinary(ByteBuffer partialByte, boolean isLast) throws IOException {
+        public Future<DataFrame> sendBinary(ByteBuffer partialByte, boolean isLast) {
             byte[] bytes = partialByte.array();
             lastSentMessageSize = bytes.length;
             for (byte b : bytes) {

@@ -39,11 +39,11 @@
  */
 package org.glassfish.tyrus.core;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.Future;
 
 import javax.websocket.CloseReason;
+import javax.websocket.SendHandler;
 
 import org.glassfish.tyrus.spi.RemoteEndpoint;
 
@@ -67,22 +67,32 @@ public class TyrusRemoteEndpoint extends RemoteEndpoint {
     }
 
     @Override
-    public Future<DataFrame> sendText(String text) throws IOException {
+    public Future<DataFrame> sendText(String text) {
         return socket.send(text);
     }
 
     @Override
-    public Future<DataFrame> sendBinary(ByteBuffer byteBuffer) throws IOException {
+    public void sendText(String text, SendHandler handler) {
+        socket.send(text, handler);
+    }
+
+    @Override
+    public Future<DataFrame> sendBinary(ByteBuffer byteBuffer) {
         return socket.send(Utils.getRemainingArray(byteBuffer));
     }
 
     @Override
-    public Future<DataFrame> sendText(String fragment, boolean isLast) throws IOException {
+    public void sendBinary(ByteBuffer data, SendHandler handler) {
+        socket.send(Utils.getRemainingArray(data), handler);
+    }
+
+    @Override
+    public Future<DataFrame> sendText(String fragment, boolean isLast) {
         return socket.stream(isLast, fragment);
     }
 
     @Override
-    public Future<DataFrame> sendBinary(ByteBuffer byteBuffer, boolean b) throws IOException {
+    public Future<DataFrame> sendBinary(ByteBuffer byteBuffer, boolean b) {
         byte[] bytes = Utils.getRemainingArray(byteBuffer);
         return socket.stream(b, bytes, 0, bytes.length);
     }
@@ -129,7 +139,6 @@ public class TyrusRemoteEndpoint extends RemoteEndpoint {
      *
      * @param dataFrame bytes to be send.
      * @return future can be used to get information about sent message.
-     * @throws IOException if an I/O error occurs.
      */
     public Future<DataFrame> sendRawFrame(ByteBuffer dataFrame) {
         return socket.sendRawFrame(dataFrame);

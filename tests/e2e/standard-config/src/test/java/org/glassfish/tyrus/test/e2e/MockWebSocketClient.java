@@ -44,6 +44,8 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.Future;
 
 import javax.websocket.CloseReason;
+import javax.websocket.SendHandler;
+import javax.websocket.SendResult;
 
 import org.glassfish.tyrus.core.DataFrame;
 import org.glassfish.tyrus.core.WebSocket;
@@ -72,8 +74,19 @@ class MockWebSocketClient implements WebSocket {
     }
 
     @Override
+    public void send(String data, SendHandler handler) {
+        listener.onMessage(this, data);
+        handler.onResult(new SendResult());
+    }
+
+
+    @Override
     public Future<DataFrame> send(byte[] data) {
         return null;
+    }
+
+    @Override
+    public void send(byte[] data, SendHandler handler) {
     }
 
     @Override

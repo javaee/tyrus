@@ -51,6 +51,7 @@ import javax.websocket.CloseReason;
 import javax.websocket.MessageHandler;
 import javax.websocket.OnMessage;
 import javax.websocket.PongMessage;
+import javax.websocket.SendHandler;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
@@ -452,22 +453,30 @@ public class TyrusSessionTest {
 
 
         @Override
-        public Future<?> sendText(String text) throws IOException {
+        public Future<?> sendText(String text) {
             return null;
         }
 
         @Override
-        public Future<?> sendBinary(ByteBuffer data) throws IOException {
+        public Future<?> sendBinary(ByteBuffer data) {
             return null;
         }
 
         @Override
-        public Future<?> sendText(String fragment, boolean isLast) throws IOException {
+        public void sendText(String text, SendHandler handler) {
+        }
+
+        @Override
+        public void sendBinary(ByteBuffer data, SendHandler handler) {
+        }
+
+        @Override
+        public Future<?> sendText(String fragment, boolean isLast) {
             return null;
         }
 
         @Override
-        public Future<?> sendBinary(ByteBuffer partialByte, boolean isLast) throws IOException {
+        public Future<?> sendBinary(ByteBuffer partialByte, boolean isLast) {
             return null;
         }
 

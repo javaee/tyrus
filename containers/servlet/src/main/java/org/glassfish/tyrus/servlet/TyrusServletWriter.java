@@ -49,6 +49,7 @@ import java.util.logging.Logger;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.WriteListener;
 
+import org.glassfish.tyrus.spi.CompletionHandler;
 import org.glassfish.tyrus.spi.Writer;
 
 /**
@@ -152,7 +153,7 @@ class TyrusServletWriter implements Writer, WriteListener {
         }
     }
 
-    public void _write(ByteBuffer buffer, Writer.CompletionHandler<ByteBuffer> completionHandler) {
+    public void _write(ByteBuffer buffer, CompletionHandler<ByteBuffer> completionHandler) {
 
         try {
             final int remaining = buffer.remaining();

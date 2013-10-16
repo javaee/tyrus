@@ -49,6 +49,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
 
 import javax.websocket.CloseReason;
+import javax.websocket.SendHandler;
 
 import org.glassfish.tyrus.core.frame.PingFrame;
 import org.glassfish.tyrus.core.frame.PongFrame;
@@ -201,6 +202,15 @@ public class TyrusWebSocket implements WebSocket {
     }
 
     @Override
+    public void send(byte[] data, SendHandler handler) {
+        if (isConnected()) {
+            protocolHandler.send(data, handler);
+        } else {
+            throw new RuntimeException("Socket is not connected.");
+        }
+    }
+
+    @Override
     public Future<DataFrame> send(String data) {
         if (isConnected()) {
             return protocolHandler.send(data);
@@ -210,12 +220,21 @@ public class TyrusWebSocket implements WebSocket {
     }
 
     @Override
+    public void send(String data, SendHandler handler) {
+        if (isConnected()) {
+            protocolHandler.send(data, handler);
+        } else {
+            throw new RuntimeException("Socket is not connected");
+        }
+    }
+
+    @Override
     public Future<DataFrame> sendRawFrame(ByteBuffer data) {
-//        if (isConnected()) {
+        if (isConnected()) {
             return protocolHandler.sendRawFrame(data);
-        // }  else {
-//            throw new RuntimeException("Socket is not connected.");
-        // }
+        } else {
+            throw new RuntimeException("Socket is not connected.");
+        }
     }
 
     @Override

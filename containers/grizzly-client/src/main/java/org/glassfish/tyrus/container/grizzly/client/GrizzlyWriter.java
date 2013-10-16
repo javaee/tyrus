@@ -41,6 +41,7 @@ package org.glassfish.tyrus.container.grizzly.client;
 
 import java.nio.ByteBuffer;
 
+import org.glassfish.tyrus.spi.CompletionHandler;
 import org.glassfish.tyrus.spi.Writer;
 
 import org.glassfish.grizzly.Buffer;

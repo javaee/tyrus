@@ -44,6 +44,7 @@ import java.nio.ByteBuffer;
 import java.util.concurrent.Future;
 
 import javax.websocket.CloseReason;
+import javax.websocket.SendHandler;
 
 /**
  * Subset of {@link javax.websocket.RemoteEndpoint} interface which should be implemented
@@ -54,28 +55,48 @@ import javax.websocket.CloseReason;
 public abstract class RemoteEndpoint {
 
     /**
-     * Send a text message, blocking until all of the message has been transmitted.
+     * Send text message.
      *
      * @param text the message to be sent.
+     * @return {@link Future} related to send command.
      */
-    public abstract Future<?> sendText(String text) throws IOException;
+    public abstract Future<?> sendText(String text);
 
     /**
-     * Send a binary message, returning when all of the message has been transmitted.
+     * Send text message.
+     *
+     * @param text    the message to be sent.
+     * @param handler notification handler. {@link SendHandler#onResult(javax.websocket.SendResult)} is called when send
+     *                operation is completed.
+     */
+    public abstract void sendText(String text, SendHandler handler);
+
+    /**
+     * Send binary message.
      *
      * @param data the message to be sent.
+     * @return {@link Future} related to send command.
      */
-    public abstract Future<?> sendBinary(ByteBuffer data) throws IOException;
+    public abstract Future<?> sendBinary(ByteBuffer data);
 
     /**
-     * Send a text message in pieces, blocking until all of the message has been transmitted. The runtime
+     * Send binary message.
+     *
+     * @param data    the message to be sent.
+     * @param handler notification handler. {@link SendHandler#onResult(javax.websocket.SendResult)} is called when send
+     *                operation is completed.
+     */
+    public abstract void sendBinary(ByteBuffer data, SendHandler handler);
+
+    /**
+     * Send text message in pieces, blocking until all of the message has been transmitted. The runtime
      * reads the message in order. Non-final pieces are sent with isLast set to false. The final piece
      * must be sent with isLast set to true.
      *
      * @param fragment the piece of the message being sent.
      * @param isLast   Whether the fragment being sent is the last piece of the message.
      */
-    public abstract Future<?> sendText(String fragment, boolean isLast) throws IOException;
+    public abstract Future<?> sendText(String fragment, boolean isLast);
 
     /**
      * Send a binary message in pieces, blocking until all of the message has been transmitted. The runtime
@@ -85,7 +106,7 @@ public abstract class RemoteEndpoint {
      * @param partialByte the piece of the message being sent.
      * @param isLast      Whether the fragment being sent is the last piece of the message.
      */
-    public abstract Future<?> sendBinary(ByteBuffer partialByte, boolean isLast) throws IOException; // or Iterable<byte[]>
+    public abstract Future<?> sendBinary(ByteBuffer partialByte, boolean isLast); // or Iterable<byte[]>
 
     /**
      * Send a Ping message containing the given application data to the remote endpoint. The corresponding Pong message may be picked
