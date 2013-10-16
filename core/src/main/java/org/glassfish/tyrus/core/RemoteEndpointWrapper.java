@@ -128,6 +128,10 @@ public abstract class RemoteEndpointWrapper implements RemoteEndpoint {
 
         Async(SessionImpl session, SPIRemoteEndpoint remoteEndpoint, EndpointWrapper endpointWrapper) {
             super(session, remoteEndpoint, endpointWrapper);
+
+            if (session.getContainer() != null) {
+                setSendTimeout(session.getContainer().getDefaultAsyncSendTimeout());
+            }
         }
 
         @Override
