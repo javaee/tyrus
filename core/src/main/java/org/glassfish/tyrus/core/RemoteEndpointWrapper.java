@@ -133,6 +133,10 @@ public abstract class RemoteEndpointWrapper implements javax.websocket.RemoteEnd
 
         Async(TyrusSession session, RemoteEndpoint remoteEndpoint, TyrusEndpointWrapper tyrusEndpointWrapper) {
             super(session, remoteEndpoint, tyrusEndpointWrapper);
+
+            if(session.getContainer() != null) {
+                setSendTimeout(session.getContainer().getDefaultAsyncSendTimeout());
+            }
         }
 
         @Override
