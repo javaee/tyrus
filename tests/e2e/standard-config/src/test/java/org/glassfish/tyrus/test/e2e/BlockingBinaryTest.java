@@ -101,13 +101,14 @@ public class BlockingBinaryTest extends TestContainer {
         private Session session;
         private String message;
 
+        @Override
         @OnOpen
         public void onOpen(Session session, EndpointConfig EndpointConfig) {
             System.out.println("BLOCKINGBSERVER opened !");
             this.session = session;
 
             session.addMessageHandler(new MessageHandler.Whole<InputStream>() {
-                StringBuilder sb = new StringBuilder();
+                final StringBuilder sb = new StringBuilder();
 
                 @Override
                 public void onMessage(InputStream is) {
@@ -165,6 +166,7 @@ public class BlockingBinaryTest extends TestContainer {
             session.addMessageHandler(new MessageHandler.Whole<InputStream>() {
                 StringBuilder sb = new StringBuilder();
 
+                @Override
                 public void onMessage(InputStream is) {
                     int i;
 

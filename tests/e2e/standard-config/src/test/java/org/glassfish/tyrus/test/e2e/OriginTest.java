@@ -53,9 +53,9 @@ import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 import javax.websocket.server.ServerEndpointConfig;
 
-import org.glassfish.tyrus.test.tools.TestContainer;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
+import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.junit.Test;
 import static org.junit.Assert.assertTrue;
@@ -119,6 +119,7 @@ public class OriginTest extends TestContainer {
 
             fail("DeploymentException expected.");
         } catch (DeploymentException e) {
+            e.printStackTrace();
             assertTrue(e.getCause().getMessage().contains("403"));
         } finally {
             stopServer(server);

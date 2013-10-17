@@ -74,7 +74,7 @@ import org.junit.Test;
 public class AsyncBinaryTest {
 
     private static final int MESSAGE_NO = 100;
-    private final String CONTEXT_PATH = "/servlet-test/async";
+    private final String CONTEXT_PATH = "/servlet-test-async";
     private final String DEFAULT_HOST = "localhost";
     private final int DEFAULT_PORT = 8025;
 
@@ -195,9 +195,11 @@ public class AsyncBinaryTest {
             this.receivedLatch = receivedLatch;
         }
 
+        @Override
         public void onOpen(Session session, EndpointConfig EndpointConfig) {
             try {
                 session.addMessageHandler(new MessageHandler.Whole<ByteBuffer>() {
+                    @Override
                     public void onMessage(ByteBuffer buf) {
                         receivedLatch.countDown();
                     }
@@ -274,9 +276,11 @@ public class AsyncBinaryTest {
             this.receivedLatch = receivedLatch;
         }
 
+        @Override
         public void onOpen(Session session, EndpointConfig EndpointConfig) {
             try {
                 session.addMessageHandler(new MessageHandler.Whole<ByteBuffer>() {
+                    @Override
                     public void onMessage(ByteBuffer buf) {
                         receivedLatch.countDown();
                     }

@@ -58,13 +58,14 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
-import org.glassfish.tyrus.test.tools.TestContainer;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
+import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.junit.Ignore;
 import org.junit.Test;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import junit.framework.Assert;
 
@@ -93,7 +94,7 @@ public class SessionTimeoutTest extends TestContainer {
         @OnClose
         public void onClose(Session session, CloseReason closeReason) {
             //TYRUS-230
-            if(System.currentTimeMillis() - timeoutSetTime - TIMEOUT < 20 && closeReason.getCloseCode() == CloseReason.CloseCodes.CLOSED_ABNORMALLY){
+            if (System.currentTimeMillis() - timeoutSetTime - TIMEOUT < 20 && closeReason.getCloseCode() == CloseReason.CloseCodes.CLOSED_ABNORMALLY) {
                 onClosedCalled.set(true);
             }
         }
@@ -122,7 +123,7 @@ public class SessionTimeoutTest extends TestContainer {
                 }
             }, cec, getURI(SessionTimeoutEndpoint.class));
 
-            latch.await(2, TimeUnit.SECONDS);
+            latch.await(5, TimeUnit.SECONDS);
 
             testViaServiceEndpoint(client, ServiceEndpoint.class, POSITIVE, "SessionTimeoutEndpoint");
 
@@ -139,12 +140,12 @@ public class SessionTimeoutTest extends TestContainer {
 
         @OnMessage
         public String onMessage(String message) {
-            if (message.equals("SessionTimeoutEndpoint")){
-               if(SessionTimeoutEndpoint.onClosedCalled.get()){
-                   return POSITIVE;
-               }
-            } else if(message.equals("SessionNoTimeoutEndpoint")){
-                if(SessionNoTimeoutEndpoint.onClosedCalled.get() == false){
+            if (message.equals("SessionTimeoutEndpoint")) {
+                if (SessionTimeoutEndpoint.onClosedCalled.get()) {
+                    return POSITIVE;
+                }
+            } else if (message.equals("SessionNoTimeoutEndpoint")) {
+                if (SessionNoTimeoutEndpoint.onClosedCalled.get() == false) {
                     return POSITIVE;
                 }
             }
@@ -165,13 +166,13 @@ public class SessionTimeoutTest extends TestContainer {
         }
 
         @OnMessage
-        public void onMessage(String message, Session session){
-            System.out.println("Message received: "+message);
-            if(counter.incrementAndGet() == 3){
+        public void onMessage(String message, Session session) {
+            System.out.println("Message received: " + message);
+            if (counter.incrementAndGet() == 3) {
                 try {
-                    if(!onClosedCalled.get()){
+                    if (!onClosedCalled.get()) {
                         session.getBasicRemote().sendText(POSITIVE);
-                    } else{
+                    } else {
                         session.getBasicRemote().sendText(NEGATIVE);
                     }
                 } catch (IOException e) {
@@ -219,9 +220,7 @@ public class SessionTimeoutTest extends TestContainer {
                     }
                 }
             }, cec, getURI(SessionNoTimeoutEndpoint.class));
-            latch.await(2, TimeUnit.SECONDS);
-            assertEquals(0, latch.getCount());
-
+            assertTrue(latch.await(2, TimeUnit.SECONDS));
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
@@ -309,7 +308,7 @@ public class SessionTimeoutTest extends TestContainer {
         }
 
         @OnMessage
-        public void onMessage(String message, Session session){
+        public void onMessage(String message, Session session) {
 
         }
 

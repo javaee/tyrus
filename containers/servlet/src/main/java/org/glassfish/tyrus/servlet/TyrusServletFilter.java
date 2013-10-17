@@ -232,7 +232,7 @@ class TyrusServletFilter implements Filter, HttpSessionListener {
             final WebSocketEngine.UpgradeInfo upgradeInfo = engine.upgrade(requestContext, webSocketResponse);
             switch (upgradeInfo.getStatus()) {
                 case HANDSHAKE_FAILED:
-                    httpServletResponse.sendError(((HttpServletResponse) response).getStatus());
+                    httpServletResponse.sendError(webSocketResponse.getStatus());
                     break;
                 case NOT_APPLICABLE:
                     filterChain.doFilter(request, response);
@@ -257,11 +257,11 @@ class TyrusServletFilter implements Filter, HttpSessionListener {
 
                     response.flushBuffer();
                     LOGGER.fine("Handshake Complete");
-                    return;
+                    break;
             }
+        } else {
+            filterChain.doFilter(request, response);
         }
-
-        filterChain.doFilter(request, response);
     }
 
     @Override

@@ -73,7 +73,7 @@ import org.junit.Test;
 public class AsyncTextTest {
 
     private static final int MESSAGE_NO = 100;
-    private final String CONTEXT_PATH = "/servlet-test/async";
+    private final String CONTEXT_PATH = "/servlet-test-async";
     private final String DEFAULT_HOST = "localhost";
     private final int DEFAULT_PORT = 8025;
 
@@ -194,9 +194,11 @@ public class AsyncTextTest {
             this.receivedLatch = receivedLatch;
         }
 
+        @Override
         public void onOpen(Session session, EndpointConfig EndpointConfig) {
             try {
                 session.addMessageHandler(new MessageHandler.Whole<String>() {
+                    @Override
                     public void onMessage(String message) {
                         receivedLatch.countDown();
                     }
@@ -272,9 +274,11 @@ public class AsyncTextTest {
             this.receivedLatch = receivedLatch;
         }
 
+        @Override
         public void onOpen(Session session, EndpointConfig EndpointConfig) {
             try {
                 session.addMessageHandler(new MessageHandler.Whole<String>() {
+                    @Override
                     public void onMessage(String message) {
                         receivedLatch.countDown();
                     }
