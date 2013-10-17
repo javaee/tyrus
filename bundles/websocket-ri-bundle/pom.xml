@@ -103,6 +103,9 @@
                 <directory>${basedir}/target/src/main/resources</directory>
             </resource>
             <resource>
+                <directory>${basedir}/src/main/resources</directory>
+            </resource>
+            <resource>
                 <directory>${gen-src-dir}</directory>
                 <excludes>
                     <exclude>**/*.java</exclude>
@@ -186,6 +189,7 @@
                                     <classifier>sources</classifier>
                                     <overWrite>false</overWrite>
                                     <outputDirectory>${gen-src-dir}</outputDirectory>
+                                    <excludes>META-INF/services/org.glassfish.tyrus.core.ComponentProvider</excludes>
                                 </artifactItem>
                                 <artifactItem>
                                     <groupId>org.glassfish.tyrus</groupId>
@@ -194,6 +198,7 @@
                                     <classifier>sources</classifier>
                                     <overWrite>false</overWrite>
                                     <outputDirectory>${gen-src-dir}</outputDirectory>
+                                    <excludes>META-INF/services/org.glassfish.tyrus.core.ComponentProvider</excludes>
                                 </artifactItem>
                                 <artifactItem>
                                     <groupId>org.glassfish.tyrus</groupId>

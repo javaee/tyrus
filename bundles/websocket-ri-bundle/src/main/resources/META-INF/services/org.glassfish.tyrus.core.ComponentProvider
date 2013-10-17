@@ -1,0 +1,2 @@
+org.glassfish.tyrus.gf.ejb.EjbComponentProvider
+org.glassfish.tyrus.gf.cdi.CdiComponentProvider
