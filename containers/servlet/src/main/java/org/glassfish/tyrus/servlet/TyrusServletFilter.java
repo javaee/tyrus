@@ -203,7 +203,7 @@ class TyrusServletFilter implements Filter, HttpSessionListener {
                     .requestURI(URI.create(httpServletRequest.getRequestURI()))
                     .queryString(httpServletRequest.getQueryString())
                     .requestPath(httpServletRequest.getServletPath())
-                    .httpSession(httpServletRequest.getSession())
+                    .httpSession(httpServletRequest.getSession(false))
                     .secure(httpServletRequest.isSecure())
                     .userPrincipal(httpServletRequest.getUserPrincipal())
                     .isUserInRoleDelegate(new RequestContext.Builder.IsUserInRoleDelegate() {
