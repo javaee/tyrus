@@ -98,7 +98,7 @@ public class TyrusEndpoint extends WebSocketApplication {
         final List<Extension> extensions = TyrusExtension.fromString(webSocketRequest.getHeaders().get(UpgradeRequest.SEC_WEBSOCKET_EXTENSIONS));
         temporaryNegotiatedExtensions = endpoint.getNegotiatedExtensions(extensions);
 
-        return endpoint.checkHandshake(webSocketRequest instanceof RequestContext ? (RequestContext) webSocketRequest : null);
+        return endpoint.checkHandshake(webSocketRequest);
     }
 
     @Override
