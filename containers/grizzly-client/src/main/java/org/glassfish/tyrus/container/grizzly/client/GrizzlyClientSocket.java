@@ -102,6 +102,7 @@ import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransportBuilder;
 import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
 import org.glassfish.grizzly.ssl.SSLFilter;
+import org.glassfish.grizzly.strategies.WorkerThreadIOStrategy;
 import org.glassfish.grizzly.threadpool.ThreadPoolConfig;
 
 /**
@@ -316,6 +317,8 @@ public class GrizzlyClientSocket implements WebSocket, ClientSocket {
         } else {
             transportBuilder.setSelectorThreadPoolConfig(selectorThreadPoolConfig);
         }
+
+        transportBuilder.setIOStrategy(WorkerThreadIOStrategy.getInstance());
 
         return transportBuilder.build();
     }

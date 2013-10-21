@@ -134,6 +134,7 @@ public class BlockingBinaryTest extends TestContainer {
                 OutputStream os = session.getBasicRemote().getSendStream();
                 os.write(message.getBytes());
                 os.close();
+                System.out.println("BLOCKINGBSERVER replied");
             } catch (IOException ioe) {
                 ioe.printStackTrace();
             }
@@ -181,6 +182,10 @@ public class BlockingBinaryTest extends TestContainer {
 
 
                     gotTheSameThingBack = sb.toString().equals(MESSAGE_0 + MESSAGE_1 + MESSAGE_2 + MESSAGE_3);
+                    if (!gotTheSameThingBack) {
+                        System.out.println("### error: " + sb.toString());
+                        System.out.println("### error: " + MESSAGE_0 + MESSAGE_1 + MESSAGE_2 + MESSAGE_3);
+                    }
                     System.out.println("BLOCKINGBCLIENT received whole message:" + sb.toString());
                     sb = new StringBuilder();
                     messageLatch.countDown();
@@ -197,6 +202,8 @@ public class BlockingBinaryTest extends TestContainer {
                 os.write(MESSAGE_2.getBytes());
                 os.write(MESSAGE_3.getBytes());
                 os.close();
+
+                System.out.println("### BLOCKINGBCLIENT stream closed");
             } catch (Exception e) {
                 e.printStackTrace();
             }

@@ -111,6 +111,7 @@ public class HelloBinaryTest extends TestContainer {
                 System.out.println("HELLOBSERVER got  message: " + message);
                 try {
                     session.getBasicRemote().sendBinary(message);
+                    System.out.println("### HELLOBSERVER sent message: " + message);
                 } catch (Exception e) {
 
                 }
