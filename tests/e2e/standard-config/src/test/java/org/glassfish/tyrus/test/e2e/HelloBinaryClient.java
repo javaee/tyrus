@@ -80,5 +80,8 @@ public class HelloBinaryClient extends Endpoint {
         }
     }
 
-
+    @Override
+    public void onError(Session session, Throwable thr) {
+        thr.printStackTrace();
+    }
 }

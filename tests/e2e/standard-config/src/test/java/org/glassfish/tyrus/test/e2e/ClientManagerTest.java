@@ -49,13 +49,14 @@ import javax.websocket.DeploymentException;
 import javax.websocket.EndpointConfig;
 import javax.websocket.Session;
 
-import org.glassfish.tyrus.test.tools.TestContainer;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.e2e.bean.TestEndpoint;
+import org.glassfish.tyrus.test.tools.TestContainer;
 
-import org.junit.Assert;
 import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests the implementation of {@link javax.websocket.WebSocketContainer}.
@@ -64,7 +65,7 @@ import org.junit.Test;
  */
 public class ClientManagerTest extends TestContainer {
 
-    private String receivedMessage;
+    private volatile String receivedMessage;
 
     private static final String SENT_MESSAGE = "hello";
 
@@ -104,8 +105,8 @@ public class ClientManagerTest extends TestContainer {
                 }
             }, cec, getURI(TestEndpoint.class));
 
-            messageLatch.await(5, TimeUnit.SECONDS);
-            Assert.assertEquals(SENT_MESSAGE, receivedMessage);
+            assertTrue(messageLatch.await(5, TimeUnit.SECONDS));
+            assertEquals(SENT_MESSAGE, receivedMessage);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);

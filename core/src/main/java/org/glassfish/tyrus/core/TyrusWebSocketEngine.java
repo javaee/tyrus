@@ -46,7 +46,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
@@ -84,7 +83,6 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
     private static final Logger LOGGER = Logger.getLogger(UpgradeRequest.WEBSOCKET);
 
     private final Set<WebSocketApplication> applications = Collections.newSetFromMap(new ConcurrentHashMap<WebSocketApplication, Boolean>());
-    private final Map<Writer, WebSocketHolder> webSocketHolderMap = new ConcurrentHashMap<Writer, WebSocketHolder>();
     private final ComponentProviderService componentProviderService = ComponentProviderService.create();
     private final WebSocketContainer webSocketContainer;
 

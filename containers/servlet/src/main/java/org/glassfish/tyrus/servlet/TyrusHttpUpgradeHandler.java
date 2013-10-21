@@ -42,6 +42,7 @@ package org.glassfish.tyrus.servlet;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -69,6 +70,8 @@ import org.glassfish.tyrus.spi.Writer;
 public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener {
 
     public static final String FRAME_BUFFER_SIZE = "org.glassfish.tyrus.servlet.incoming-buffer-size";
+
+    private final CountDownLatch connectionLatch = new CountDownLatch(1);
 
     private ServletInputStream is;
     private ServletOutputStream os;
@@ -115,6 +118,7 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
             }
         });
 
+        connectionLatch.countDown();
     }
 
     public void preInit(WebSocketEngine.UpgradeInfo upgradeInfo, Writer writer, boolean authenticated) {
@@ -125,6 +129,12 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
 
     @Override
     public void onDataAvailable() {
+        try {
+            connectionLatch.await();
+        } catch (InterruptedException e) {
+            // do nothing.
+        }
+
         do {
             try {
                 int available = is.available();

@@ -57,6 +57,7 @@ public class GrizzlyWriter implements Writer {
 
     public GrizzlyWriter(final org.glassfish.grizzly.Connection connection) {
         this.connection = connection;
+        this.connection.configureBlocking(false);
     }
 
     @Override
