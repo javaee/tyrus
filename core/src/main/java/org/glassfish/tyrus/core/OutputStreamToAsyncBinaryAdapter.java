@@ -81,8 +81,8 @@ class OutputStreamToAsyncBinaryAdapter extends OutputStream {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         } catch (ExecutionException e) {
-            if(e.getCause() instanceof IOException) {
-                throw (IOException)e.getCause();
+            if (e.getCause() instanceof IOException) {
+                throw (IOException) e.getCause();
             } else {
                 throw new IOException(e.getCause());
             }
@@ -91,7 +91,9 @@ class OutputStreamToAsyncBinaryAdapter extends OutputStream {
 
     @Override
     public void write(int i) throws IOException {
-        re.sendBinary(ByteBuffer.wrap(new byte[]{(byte) i}), false);
+        byte[] byteArray = new byte[]{(byte) i};
+
+        write(byteArray, 0, byteArray.length);
     }
 
     @Override

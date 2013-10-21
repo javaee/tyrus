@@ -50,12 +50,12 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
-import org.glassfish.tyrus.test.tools.TestContainer;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
+import org.glassfish.tyrus.test.tools.TestContainer;
 
-import org.junit.Assert;
 import org.junit.Test;
+import static org.junit.Assert.assertTrue;
 
 /**
  * Tests the basic client behavior, sending and receiving message
@@ -76,8 +76,8 @@ public class HelloBinaryTest extends TestContainer {
             ClientManager client = ClientManager.createClient();
             client.connectToServer(htc, cec, getURI(HelloBinaryEndpoint.class));
 
-            messageLatch.await(5, TimeUnit.SECONDS);
-            Assert.assertTrue("The client got the same thing back", htc.echoWorked);
+            assertTrue(messageLatch.await(5, TimeUnit.SECONDS));
+            assertTrue("The client got the same thing back", htc.echoWorked);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
@@ -106,10 +106,12 @@ public class HelloBinaryTest extends TestContainer {
                 this.session = session;
             }
 
+            @Override
             public void onMessage(ByteBuffer message) {
                 System.out.println("HELLOBSERVER got  message: " + message);
                 try {
                     session.getBasicRemote().sendBinary(message);
+                    System.out.println("### HELLOBSERVER sent message: " + message);
                 } catch (Exception e) {
 
                 }

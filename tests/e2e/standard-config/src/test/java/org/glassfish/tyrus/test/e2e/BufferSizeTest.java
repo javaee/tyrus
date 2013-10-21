@@ -59,13 +59,14 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
-import org.glassfish.tyrus.test.tools.TestContainer;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
+import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.junit.Test;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
@@ -150,12 +151,13 @@ public class BufferSizeTest extends TestContainer {
                 public void onClose(Session session, CloseReason closeReason) {
                     if (closeReason.getCloseCode().equals(CloseReason.CloseCodes.TOO_BIG)) {
                         messageLatch.countDown();
+                    } else {
+                        System.err.println("Wrong close code: " + closeReason);
                     }
                 }
             }, clientConfiguration, getURI(StringEndpoint.class));
 
-            messageLatch.await(5, TimeUnit.SECONDS);
-            assertEquals(0, messageLatch.getCount());
+            assertTrue(messageLatch.await(5, TimeUnit.SECONDS));
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);

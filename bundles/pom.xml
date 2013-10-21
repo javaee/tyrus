@@ -61,6 +61,7 @@
         <module>samples</module>
         <module>websocket-ri-archive</module>
         <module>websocket-ri-bundle</module>
+        <module>client</module>
 <!--
         <module>websocket-risrc-licensee</module>
 -->

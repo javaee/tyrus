@@ -51,7 +51,7 @@ import javax.websocket.Session;
  * @author Danny Coward (danny.coward at oracle.com)
  */
 public class HelloBinaryClient extends Endpoint {
-    boolean echoWorked = false;
+    volatile boolean echoWorked = false;
     static String MESSAGE = "hello";
     private final CountDownLatch messageLatch;
 
@@ -59,10 +59,12 @@ public class HelloBinaryClient extends Endpoint {
         this.messageLatch = messageLatch;
     }
 
+    @Override
     public void onOpen(Session session, EndpointConfig EndpointConfig) {
         System.out.println("HELLOBCLIENT opened !!");
         try {
             session.addMessageHandler(new MessageHandler.Whole<ByteBuffer>() {
+                @Override
                 public void onMessage(ByteBuffer bb) {
                     System.out.println("HELLOBCLIENT received: " + new String(bb.array()));
                     echoWorked = (MESSAGE.equals(new String(bb.array())));
@@ -71,11 +73,15 @@ public class HelloBinaryClient extends Endpoint {
                 }
             });
             session.getBasicRemote().sendBinary(ByteBuffer.wrap(MESSAGE.getBytes()));
+            System.out.println("## HELLOBCLIENT - message sent");
 
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-
+    @Override
+    public void onError(Session session, Throwable thr) {
+        thr.printStackTrace();
+    }
 }

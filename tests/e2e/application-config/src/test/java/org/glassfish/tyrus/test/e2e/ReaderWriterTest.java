@@ -64,6 +64,7 @@ import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
@@ -79,7 +80,7 @@ public class ReaderWriterTest extends TestContainer {
         public ServerDeployApplicationConfig() {
             super(new HashSet<Class<?>>() {{
                 add(ReaderEndpoint.class);
-            }}, Collections.<ServerEndpointConfig> emptySet());
+            }}, Collections.<ServerEndpointConfig>emptySet());
         }
     }
 
@@ -169,10 +170,9 @@ public class ReaderWriterTest extends TestContainer {
     public void _testWriter(Class<?> endpoint, String path) throws DeploymentException {
         final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
         Server server = startServer(endpoint);
-        final CountDownLatch messageLatch;
+        final CountDownLatch messageLatch = new CountDownLatch(1);
 
         try {
-            messageLatch = new CountDownLatch(1);
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new Endpoint() {
 
@@ -184,6 +184,8 @@ public class ReaderWriterTest extends TestContainer {
                             public void onMessage(String message) {
                                 if (message.equals("Do or do not, there is no try.")) {
                                     messageLatch.countDown();
+                                } else {
+                                    System.err.println("Wrong message: " + message);
                                 }
                             }
                         });
@@ -196,8 +198,7 @@ public class ReaderWriterTest extends TestContainer {
                 }
             }, cec, getURI(path));
 
-            messageLatch.await(1, TimeUnit.SECONDS);
-            assertEquals(0, messageLatch.getCount());
+            assertTrue(messageLatch.await(5, TimeUnit.SECONDS));
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);

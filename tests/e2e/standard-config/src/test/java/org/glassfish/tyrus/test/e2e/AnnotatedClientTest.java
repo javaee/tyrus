@@ -71,11 +71,11 @@ import org.junit.Test;
  */
 public class AnnotatedClientTest extends TestContainer {
 
-    private static String receivedMessage;
+    private volatile static String receivedMessage;
 
-    private static String receivedTestMessage;
+    private volatile static String receivedTestMessage;
 
-    private static CountDownLatch messageLatch;
+    private volatile static CountDownLatch messageLatch;
 
     @Test
     public void testAnnotatedInstance() throws DeploymentException {
