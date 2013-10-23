@@ -75,6 +75,8 @@ import org.glassfish.tyrus.spi.Writer;
  */
 public class TyrusWebSocketEngine implements WebSocketEngine {
 
+    public static final String INCOMING_BUFFER_SIZE = "org.glassfish.tyrus.incomingBufferSize";
+
     public static final int RESPONSE_CODE_VALUE = 101;
     public static final Version DEFAULT_VERSION = Version.DRAFT17;
     public static final int MASK_SIZE = 4;
@@ -89,6 +91,13 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
     private int incomingBufferSize = 4194315; // 4M (payload) + 11 (frame overhead)
 
     public TyrusWebSocketEngine(WebSocketContainer webSocketContainer) {
+        this.webSocketContainer = webSocketContainer;
+    }
+
+    public TyrusWebSocketEngine(WebSocketContainer webSocketContainer, Integer incomingBufferSize) {
+        if (incomingBufferSize != null) {
+            this.incomingBufferSize = incomingBufferSize;
+        }
         this.webSocketContainer = webSocketContainer;
     }
 
@@ -164,8 +173,6 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
     @Override
     public UpgradeInfo upgrade(final UpgradeRequest request, final UpgradeResponse response) {
 
-        WebSocket socket = null;
-
         try {
             final WebSocketApplication app = getApplication(request);
             if (app != null) {
@@ -231,9 +238,6 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
             }
         } catch (HandshakeException e) {
             LOGGER.log(Level.SEVERE, e.getMessage(), e);
-            if (socket != null) {
-                socket.close();
-            }
 
             response.setStatus(e.getCode());
 
@@ -313,9 +317,13 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
             holder.webSocket.onClose(new CloseReason(CloseReason.CloseCodes.getCloseCode(e.getClosingCode()), e.getMessage()));
         } catch (Exception wse) {
             wse.printStackTrace();
-            if (holder.application.onError(holder.webSocket, wse)) {
-                holder.webSocket.onClose(new CloseReason(CloseReason.CloseCodes.UNEXPECTED_CONDITION, wse.getMessage()));
 
+            // client-side only
+            if (holder.application == null) {
+                holder.webSocket.onClose(new CloseReason(CloseReason.CloseCodes.UNEXPECTED_CONDITION, wse.getMessage()));
+                // server
+            } else if (holder.application.onError(holder.webSocket, wse)) {
+                holder.webSocket.onClose(new CloseReason(CloseReason.CloseCodes.UNEXPECTED_CONDITION, wse.getMessage()));
             }
         }
     }

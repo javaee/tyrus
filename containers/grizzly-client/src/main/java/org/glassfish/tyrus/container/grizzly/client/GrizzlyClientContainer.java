@@ -87,7 +87,7 @@ public class GrizzlyClientContainer implements ClientContainer {
         }
 
         GrizzlyClientSocket clientSocket = new GrizzlyClientSocket(endpoint, uri, cec, CLIENT_SOCKET_TIMEOUT, listener,
-                new TyrusWebSocketEngine(endpoint.getWebSocketContainer()),
+                new TyrusWebSocketEngine(endpoint.getWebSocketContainer(), properties == null ? null : (Integer) properties.get(TyrusWebSocketEngine.INCOMING_BUFFER_SIZE)),
                 properties == null ? null : sslEngineConfigurator,
                 properties == null ? null : (String) properties.get(GrizzlyClientSocket.PROXY_URI),
                 properties == null ? null : (ThreadPoolConfig) properties.get(GrizzlyClientSocket.WORKER_THREAD_POOL_CONFIG),

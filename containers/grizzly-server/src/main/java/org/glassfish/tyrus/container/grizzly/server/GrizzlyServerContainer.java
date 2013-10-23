@@ -60,7 +60,7 @@ import org.glassfish.grizzly.strategies.WorkerThreadIOStrategy;
 public class GrizzlyServerContainer extends ServerContainerFactory {
 
     @Override
-    public ServerContainer createContainer(Map<String, Object> config) {
+    public ServerContainer createContainer(final Map<String, Object> config) {
 
         return new TyrusServerContainer(null) {
 
