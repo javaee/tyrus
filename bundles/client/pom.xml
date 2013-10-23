@@ -49,9 +49,9 @@
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
-    <artifactId>tyrus-client-bundle</artifactId>
+    <artifactId>tyrus-standalone-client</artifactId>
     <packaging>jar</packaging>
-    <name>Tyrus Client Bundle</name>
+    <name>Tyrus Standalone Client</name>
 
     <dependencies>
         <dependency>
