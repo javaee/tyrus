@@ -67,10 +67,10 @@ import javax.websocket.PongMessage;
  */
 class MessageHandlerManager {
 
-    private static final List<Class<?>> WHOLE_TEXT_HANDLER_TYPES = Arrays.asList(String.class, Reader.class);
+    private static final List<Class<?>> WHOLE_TEXT_HANDLER_TYPES = Arrays.<Class<?>>asList(String.class, Reader.class);
     private static final Class<?> PARTIAL_TEXT_HANDLER_TYPE = String.class;
-    private static final List<Class<?>> WHOLE_BINARY_HANDLER_TYPES = Arrays.asList(ByteBuffer.class, InputStream.class, byte[].class);
-    private static final List<Class<?>> PARTIAL_BINARY_HANDLER_TYPES = Arrays.asList(ByteBuffer.class, byte[].class);
+    private static final List<Class<?>> WHOLE_BINARY_HANDLER_TYPES = Arrays.<Class<?>>asList(ByteBuffer.class, InputStream.class, byte[].class);
+    private static final List<Class<?>> PARTIAL_BINARY_HANDLER_TYPES = Arrays.<Class<?>>asList(ByteBuffer.class, byte[].class);
     private static final Class<?> PONG_HANDLER_TYPE = PongMessage.class;
 
     private boolean textHandlerPresent = false;
@@ -160,7 +160,7 @@ class MessageHandlerManager {
                     pongHandlerPresent = true;
                 }
             } else {
-                boolean decoderExists = false;
+                boolean viable = false;
 
                 if (checkTextDecoders(handlerClass)) {//decodable text
                     if (textHandlerPresent) {
@@ -168,36 +168,46 @@ class MessageHandlerManager {
                     } else {
                         textHandlerPresent = true;
                         textWholeHandlerPresent = true;
-                        decoderExists = true;
+                        viable = true;
                     }
-                } else if (checkBinaryDecoders(handlerClass)) {//decodable binary
+                }
+
+                if (checkBinaryDecoders(handlerClass)) {//decodable binary
                     if (binaryHandlerPresent) {
                         throwException("Binary MessageHandler already registered.");
                     } else {
                         binaryHandlerPresent = true;
                         binaryWholeHandlerPresent = true;
-                        decoderExists = true;
+                        viable = true;
                     }
                 }
 
-                if (!decoderExists) {
+                if (!viable) {
                     throwException(String.format("Decoder for type: %s has not been registered.", handlerClass));
                 }
             }
         } else { // PARTIAL MESSAGE HANDLER
+            boolean viable = false;
+
             if (PARTIAL_TEXT_HANDLER_TYPE.equals(handlerClass)) { // text
                 if (textHandlerPresent) {
                     throwException("Text MessageHandler already registered.");
                 } else {
                     textHandlerPresent = true;
+                    viable = true;
                 }
-            } else if (PARTIAL_BINARY_HANDLER_TYPES.contains(handlerClass)) { // binary
+            }
+
+            if (PARTIAL_BINARY_HANDLER_TYPES.contains(handlerClass)) { // binary
                 if (binaryHandlerPresent) {
                     throwException("Binary MessageHandler already registered.");
                 } else {
                     binaryHandlerPresent = true;
+                    viable = true;
                 }
-            } else {
+            }
+
+            if (!viable) {
                 throwException(String.format("Partial MessageHandler can't be of type: %s.", handlerClass));
             }
         }
@@ -278,7 +288,7 @@ class MessageHandlerManager {
      */
     public Set<MessageHandler> getMessageHandlers() {
         if (messageHandlerCache == null) {
-            messageHandlerCache = Collections.unmodifiableSet(new HashSet(registeredHandlers.values()));
+            messageHandlerCache = Collections.unmodifiableSet(new HashSet<MessageHandler>(registeredHandlers.values()));
         }
 
         return messageHandlerCache;

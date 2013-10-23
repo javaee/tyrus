@@ -148,7 +148,7 @@ public class MessageHandlerManagerTest {
         });
     }
 
-    public static class TestTextDecoder extends CoderAdapter implements Decoder.Text<MessageHandlerManagerTest>{
+    public static class TestTextDecoder extends CoderAdapter implements Decoder.Text<MessageHandlerManagerTest> {
 
         @Override
         public MessageHandlerManagerTest decode(String s) throws DecodeException {
