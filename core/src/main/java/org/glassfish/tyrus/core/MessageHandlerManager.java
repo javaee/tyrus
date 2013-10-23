@@ -172,7 +172,7 @@ class MessageHandlerManager {
                     }
                 } else if (checkBinaryDecoders(handlerClass)) {//decodable binary
                     if (binaryHandlerPresent) {
-                        throwException("Text MessageHandler already registered.");
+                        throwException("Binary MessageHandler already registered.");
                     } else {
                         binaryHandlerPresent = true;
                         binaryWholeHandlerPresent = true;
