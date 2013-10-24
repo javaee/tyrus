@@ -44,8 +44,9 @@ import java.util.List;
 import javax.websocket.server.HandshakeRequest;
 
 /**
- * The provider passes the handshake request to
- * the SDK created endpoint
+ * Abstraction for a HTTP upgrade request. A transport creates an implementation
+ * for this and uses {@link WebSocketEngine#upgrade} method to upgrade the
+ * request.
  *
  * @author Danny Coward (danny.coward at oracle.com)
  * @author Pavel Bucek (pavel.bucek at oracle.com)
@@ -62,25 +63,30 @@ public abstract class UpgradeRequest implements HandshakeRequest {
     public static final String ORIGIN_HEADER = "Origin";
 
     /**
-     * Get the Http Header value for the given header name
-     * in the underlying Http handshake request.
+     * Returns the value of the specified request header name. If there are
+     * multiple headers with the same name, this method returns the first
+     * header in the request. The header name is case insensitive.
      *
-     * @param name the name of the header.
-     * @return the header value.
+     * @param name a header name
+     * @return value of the specified header name
+     *         null if the request doesn't have a header of that name
      */
     public abstract String getHeader(String name);
 
     /**
-     * Get the Http request uri underlying Http handshake request.
+     * Get the undecoded request uri (up to the query string) of underlying
+     * HTTP handshake request.
      *
      * @return request uri.
      */
     public abstract String getRequestUri();
 
     /**
-     * Get information about underlying connection.
+     * Indicates whether this request was made using a secure channel
+     * (such as HTTPS).
      *
-     * @return {@code true} when connection is secuded, {@code false} otherwise.
+     * @return true if the request was made using secure channel,
+     *         false otherwise
      */
     public abstract boolean isSecure();
 
@@ -88,6 +94,8 @@ public abstract class UpgradeRequest implements HandshakeRequest {
      * Get request path.
      *
      * @return request path.
+     * TODO remove ?? same as getRequestUri(). It is quite different from
+     * TODO getServletPath()
      */
     public abstract String getRequestPath();
 
@@ -96,6 +104,8 @@ public abstract class UpgradeRequest implements HandshakeRequest {
      *
      * @param name header name.
      * @return {@link String} value iff it exists, {@code null} otherwise.
+     *
+     * TODO remove ?? same as getHeader(String name) method. Also it is expensive
      */
     public String getFirstHeaderValue(String name) {
         final List<String> stringList = getHeaders().get(name);
