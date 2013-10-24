@@ -116,21 +116,27 @@ public class ComponentProviderService {
 
         final Map<Class<?>, Object> classObjectMap = sessionToObject.get(session);
 
-        if (classObjectMap != null && classObjectMap.containsKey(c)) {
-            Object fromMap = classObjectMap.get(c);
-            loaded = c.isAssignableFrom(fromMap.getClass()) ? (T) fromMap : null;
-        } else {
-            try {
-                // returns not-null value
-                loaded = getEndpointInstance(c);
-                if (classObjectMap == null) {
-                    sessionToObject.put(session, new HashMap<Class<?>, Object>());
+        try {
+            if (classObjectMap != null) {
+                synchronized (classObjectMap) {
+                    if (classObjectMap.containsKey(c)) {
+                        final Object fromMap = classObjectMap.get(c);
+                        loaded = c.isAssignableFrom(fromMap.getClass()) ? (T) fromMap : null;
+                    } else {
+                        // returns not-null value
+                        loaded = getEndpointInstance(c);
+                        sessionToObject.get(session).put(c, loaded);
+                    }
                 }
-                sessionToObject.get(session).put(c, loaded);
-            } catch (Exception e) {
-                collector.addException(new DeploymentException(String.format("Component provider threw exception when providing instance of class %s",
-                        c.getName()), e));
+            } else {
+                loaded = getEndpointInstance(c);
+                final HashMap<Class<?>, Object> hashMap = new HashMap<Class<?>, Object>();
+                hashMap.put(c, loaded);
+                sessionToObject.put(session, hashMap);
             }
+        } catch (Exception e) {
+            collector.addException(new DeploymentException(String.format("Component provider threw exception when providing instance of class %s",
+                    c.getName()), e));
         }
 
         return loaded;
@@ -156,35 +162,56 @@ public class ComponentProviderService {
 
         final Map<Class<?>, Object> classObjectMap = sessionToObject.get(session);
 
-        if (classObjectMap != null && classObjectMap.containsKey(c)) {
-            Object fromMap = classObjectMap.get(c);
-            loaded = c.isAssignableFrom(fromMap.getClass()) ? (T) fromMap : null;
-        } else {
-            for (ComponentProvider componentProvider : providers) {
-                if (componentProvider.isApplicable(c)) {
-                    try {
-                        loaded = componentProvider.create(c);
+        try {
+            if (classObjectMap != null) {
+                synchronized (classObjectMap) {
+                    if (classObjectMap.containsKey(c)) {
+                        Object fromMap = classObjectMap.get(c);
+                        loaded = c.isAssignableFrom(fromMap.getClass()) ? (T) fromMap : null;
+                    } else {
+                        loaded = getInstance(c);
                         if (loaded != null) {
                             if (loaded instanceof Encoder) {
                                 ((Encoder) loaded).init(endpointConfig);
                             } else if (loaded instanceof Decoder) {
                                 ((Decoder) loaded).init(endpointConfig);
                             }
-                            if (classObjectMap == null) {
-                                sessionToObject.put(session, new HashMap<Class<?>, Object>());
-                            }
                             sessionToObject.get(session).put(c, loaded);
-                            break;
                         }
-                    } catch (Exception e) {
-                        collector.addException(new DeploymentException(String.format("Component provider %s threw exception when providing instance of class %s",
-                                componentProvider.getClass().getName(), c.getName()), e));
                     }
+                }
+            } else {
+                loaded = getInstance(c);
+                if (loaded != null) {
+                    if (loaded instanceof Encoder) {
+                        ((Encoder) loaded).init(endpointConfig);
+                    } else if (loaded instanceof Decoder) {
+                        ((Decoder) loaded).init(endpointConfig);
+                    }
+                    final HashMap<Class<?>, Object> hashMap = new HashMap<Class<?>, Object>();
+                    hashMap.put(c, loaded);
+
+                    sessionToObject.put(session, hashMap);
+                }
+            }
+        } catch (InstantiationException e) {
+            collector.addException(new DeploymentException(String.format("Exception thrown when providing instance of class %s", c.getName()), e));
+        }
+
+        return loaded;
+    }
+
+    private <T> T getInstance(Class<T> clazz) throws InstantiationException {
+        for (ComponentProvider componentProvider : providers) {
+            if (componentProvider.isApplicable(clazz)) {
+                final T t = componentProvider.create(clazz);
+                if (t != null) {
+                    return t;
                 }
             }
         }
 
-        return loaded;
+        throw new InstantiationException(String.format("Component provider for class %s not found.", clazz.getName()));
     }
 
     /**
@@ -195,16 +222,18 @@ public class ComponentProviderService {
     public void removeSession(Session session) {
         final Map<Class<?>, Object> classObjectMap = sessionToObject.get(session);
         if (classObjectMap != null) {
-            for (Object o : classObjectMap.values()) {
-                if (o instanceof Encoder) {
-                    ((Encoder) o).destroy();
-                } else if (o instanceof Decoder) {
-                    ((Decoder) o).destroy();
-                }
+            synchronized (classObjectMap) {
+                for (Object o : classObjectMap.values()) {
+                    if (o instanceof Encoder) {
+                        ((Encoder) o).destroy();
+                    } else if (o instanceof Decoder) {
+                        ((Decoder) o).destroy();
+                    }
 
-                for (ComponentProvider componentProvider : providers) {
-                    if(componentProvider.destroy(o)){
-                        break;
+                    for (ComponentProvider componentProvider : providers) {
+                        if (componentProvider.destroy(o)) {
+                            break;
+                        }
                     }
                 }
             }
@@ -236,15 +265,6 @@ public class ComponentProviderService {
      * @see javax.websocket.server.ServerEndpointConfig.Configurator#getEndpointInstance(Class)
      */
     public <T> T getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
-        for (ComponentProvider componentProvider : providers) {
-            if (componentProvider.isApplicable(endpointClass)) {
-                final T t = componentProvider.create(endpointClass);
-                if (t != null) {
-                    return t;
-                }
-            }
-        }
-
-        throw new InstantiationException(String.format("Component provider for class %s not found.", endpointClass.getName()));
+        return getInstance(endpointClass);
     }
 }
