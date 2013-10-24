@@ -45,37 +45,78 @@ import javax.websocket.server.ServerEndpointConfig;
 import static org.glassfish.tyrus.spi.Connection.CloseListener;
 
 /**
- * Web Socket engine is the main entry-point to WebSocket implementation.
+ * WebSocket engine is used for upgrading HTTP requests into
+ * websocket connections. A transport gets hold of the engine from the
+ * {@link ServerContainer} and upgrades HTTP handshake requests.
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 public interface WebSocketEngine {
 
-    // See if the request can be upgraded
+    /**
+     * A transport calls this method to upgrade a HTTP request.
+     *
+     * @return info about upgrade status and connection details
+     */
     UpgradeInfo upgrade(UpgradeRequest request, UpgradeResponse response);
 
     // TODO: constructor? / List<Class<?> / List<ServerEndpointConfig>\
     // (one call instead of iteration).
+    // TODO remove ??
     void register(Class<?> endpointClass, String contextPath) throws DeploymentException;
 
+    // TODO remove ??
     void register(ServerEndpointConfig serverConfig, String contextPath) throws DeploymentException;
 
+    /**
+     * Upgrade info that includes status for HTTP request upgrading and
+     * connection creation details
+     */
     interface UpgradeInfo {
-        // Status of the upgrade
+
+        /**
+         * Returns the status of HTTP request upgrade
+         *
+         * @return status of the upgrade
+         */
         UpgradeStatus getStatus();
 
-        // If the status is SUCCESS, then return the connection
-        // Otherwise null
-        // Tyrus would call onConnect lifecycle method on the endpoint
+        /**
+         * Creates a connection if the upgrade is successful. Tyrus would call
+         * onConnect lifecycle method on the endpoint during the invocation
+         * of this method.
+         *
+         * @param writer transport writer that actually writes tyrus websocket
+         *               data to underlying connection
+         * @param closeListener transport listener for receiving tyrus close
+         *                      notifications
+         * @return upgraded connection if the upgrade is successful
+         *         otherwise null
+         */
         Connection createConnection(Writer writer, CloseListener closeListener);
     }
 
+    /**
+     * Upgrade Status for HTTP request upgrading
+     */
     enum UpgradeStatus {
-        // Not a WebSocketRequest or no mapping in the application
+        /**
+         * Not a WebSocketRequest or no mapping in the application. This may
+         * mean that HTTP request processing should continue (in servlet
+         * container, the next filter may be called)
+         */
         NOT_APPLICABLE,
-        // Failed handshake due to version, extensions, origin check etc
+
+        /**
+         * Upgrade failed due to version, extensions, origin check etc. Tyrus
+         * would set an appropriate HTTP error status code in
+         * {@link UpgradeResponse}.
+         */
         HANDSHAKE_FAILED,
-        // Upgrade is successful
+
+        /**
+         * Upgrade is successful.
+         */
         SUCCESS
     }
 
