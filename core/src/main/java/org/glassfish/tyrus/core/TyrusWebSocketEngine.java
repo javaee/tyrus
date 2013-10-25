@@ -402,7 +402,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
         EndpointConfig config = endpoint.getEndpointConfig();
 
         TyrusEndpointWrapper ew = new TyrusEndpointWrapper(endpoint, config, componentProviderService, webSocketContainer,
-                contextPath, collector, config instanceof ServerEndpointConfig ? ((ServerEndpointConfig) config).getConfigurator() : null);
+                contextPath, config instanceof ServerEndpointConfig ? ((ServerEndpointConfig) config).getConfigurator() : null);
 
         if (collector.isEmpty()) {
             register(new TyrusEndpoint(ew));
@@ -413,8 +413,6 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
 
     @Override
     public void register(ServerEndpointConfig serverConfig, String contextPath) throws DeploymentException {
-
-        final ErrorCollector collector = new ErrorCollector();
 
         TyrusEndpointWrapper ew;
 
@@ -430,20 +428,22 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
 
         if (isEndpointClass) {
             ew = new TyrusEndpointWrapper(serverConfig.getEndpointClass(),
-                    serverConfig, componentProviderService, webSocketContainer, contextPath, collector, serverConfig.getConfigurator());
+                    serverConfig, componentProviderService, webSocketContainer, contextPath, serverConfig.getConfigurator());
         } else {
+            final ErrorCollector collector = new ErrorCollector();
+
             final AnnotatedEndpoint endpoint = AnnotatedEndpoint.fromClass(endpointClass, componentProviderService, true, collector);
             final EndpointConfig config = endpoint.getEndpointConfig();
 
             ew = new TyrusEndpointWrapper(endpoint, config, componentProviderService, webSocketContainer,
-                    contextPath, collector, config instanceof ServerEndpointConfig ? ((ServerEndpointConfig) config).getConfigurator() : null);
+                    contextPath, config instanceof ServerEndpointConfig ? ((ServerEndpointConfig) config).getConfigurator() : null);
+
+            if (!collector.isEmpty()) {
+                throw collector.composeComprehensiveException();
+            }
         }
 
-        if (collector.isEmpty()) {
-            register(new TyrusEndpoint(ew));
-        } else {
-            throw collector.composeComprehensiveException();
-        }
+        register(new TyrusEndpoint(ew));
     }
 
     private void checkPath(WebSocketApplication app) throws DeploymentException {

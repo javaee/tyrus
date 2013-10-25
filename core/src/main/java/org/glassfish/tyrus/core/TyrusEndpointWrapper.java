@@ -109,7 +109,6 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
     private final Endpoint endpoint;
     private final Map<RemoteEndpoint, TyrusSession> remoteEndpointToSession =
             new ConcurrentHashMap<RemoteEndpoint, TyrusSession>();
-    private final ErrorCollector collector;
     private final ComponentProviderService componentProvider;
     private final ServerEndpointConfig.Configurator configurator;
 
@@ -130,13 +129,11 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
      * @param configuration     endpoint configuration.
      * @param componentProvider component provider.
      * @param container         container where the wrapper is running.
-     * @param collector         error collector.
      */
     public TyrusEndpointWrapper(Class<?> endpointClass, EndpointConfig configuration,
                                 ComponentProviderService componentProvider, WebSocketContainer container,
-                                String contextPath,
-                                ErrorCollector collector, ServerEndpointConfig.Configurator configurator) {
-        this(null, endpointClass, configuration, componentProvider, container, contextPath, collector, configurator);
+                                String contextPath, ServerEndpointConfig.Configurator configurator) {
+        this(null, endpointClass, configuration, componentProvider, container, contextPath, configurator);
     }
 
     /**
@@ -146,16 +143,15 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
      * @param configuration     endpoint configuration.
      * @param componentProvider component provider.
      * @param container         container where the wrapper is running.
-     * @param collector         error collector.
      */
     public TyrusEndpointWrapper(Endpoint endpoint, EndpointConfig configuration, ComponentProviderService componentProvider, WebSocketContainer container,
-                                String contextPath, ErrorCollector collector, ServerEndpointConfig.Configurator configurator) {
-        this(endpoint, null, configuration, componentProvider, container, contextPath, collector, configurator);
+                                String contextPath, ServerEndpointConfig.Configurator configurator) {
+        this(endpoint, null, configuration, componentProvider, container, contextPath, configurator);
     }
 
     private TyrusEndpointWrapper(Endpoint endpoint, Class<?> endpointClass, EndpointConfig configuration,
                                  ComponentProviderService componentProvider, WebSocketContainer container,
-                                 String contextPath, ErrorCollector collector, final ServerEndpointConfig.Configurator configurator) {
+                                 String contextPath, final ServerEndpointConfig.Configurator configurator) {
         this.endpointClass = endpointClass;
         this.endpoint = endpoint;
         this.container = container;
@@ -164,7 +160,6 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
         // when checkHandshake is not called, like using EndpointWrapper on the client side.
         // this.uri is then used for creating SessionImpl and used as a return value in Session.getRequestURI() method.
         this.uri = configuration instanceof ServerEndpointConfig ? ((ServerEndpointConfig) configuration).getPath() : contextPath;
-        this.collector = collector;
         this.configurator = configurator;
         this.componentProvider = configurator == null ? componentProvider : new ComponentProviderService(componentProvider) {
             @Override
@@ -271,7 +266,15 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
     private <T> T getCoderInstance(Session session, CoderWrapper<T> wrapper) {
         final T coder = wrapper.getCoder();
         if (coder == null) {
-            return this.componentProvider.getCoderInstance(wrapper.getCoderClass(), session, getEndpointConfig(), collector);
+            ErrorCollector collector = new ErrorCollector();
+            final T coderInstance = this.componentProvider.getCoderInstance(wrapper.getCoderClass(), session, getEndpointConfig(), collector);
+            if (!collector.isEmpty()) {
+                final DeploymentException deploymentException = collector.composeComprehensiveException();
+                LOGGER.log(Level.WARNING, deploymentException.getMessage(), deploymentException);
+                return null;
+            }
+
+            return coderInstance;
         }
 
         return coder;
@@ -439,15 +442,21 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
             session.setNegotiatedExtensions(extensions);
             session.setNegotiatedSubprotocol(subprotocol);
 
+            ErrorCollector collector = new ErrorCollector();
+
             final Endpoint toCall = endpoint != null ? endpoint :
                     (Endpoint) componentProvider.getInstance(endpointClass, session, collector);
             try {
+                if (!collector.isEmpty()) {
+                    throw collector.composeComprehensiveException();
+                }
                 toCall.onOpen(session, configuration);
             } catch (Throwable t) {
                 if (toCall != null) {
                     toCall.onError(session, t);
                 } else {
-                    collector.addException(new DeploymentException(t.getMessage(), t));
+                    LOGGER.log(Level.WARNING, t.getMessage(), t);
+
                 }
             }
         }
@@ -469,10 +478,14 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
             }
         } catch (Throwable t) {
             if (!processThrowable(t, session)) {
+                ErrorCollector collector = new ErrorCollector();
                 final Endpoint toCall = endpoint != null ? endpoint :
                         (Endpoint) componentProvider.getInstance(endpointClass, session, collector);
                 if (toCall != null) {
                     toCall.onError(session, t);
+                } else if (!collector.isEmpty()) {
+                    final DeploymentException deploymentException = collector.composeComprehensiveException();
+                    LOGGER.log(Level.WARNING, deploymentException.getMessage(), deploymentException);
                 }
             }
         }
@@ -499,10 +512,14 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
             }
         } catch (Throwable t) {
             if (!processThrowable(t, session)) {
+                ErrorCollector collector = new ErrorCollector();
                 final Endpoint toCall = endpoint != null ? endpoint :
                         (Endpoint) componentProvider.getInstance(endpointClass, session, collector);
                 if (toCall != null) {
                     toCall.onError(session, t);
+                } else if (!collector.isEmpty()) {
+                    final DeploymentException deploymentException = collector.composeComprehensiveException();
+                    LOGGER.log(Level.WARNING, deploymentException.getMessage(), deploymentException);
                 }
             }
         }
@@ -563,10 +580,14 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
             }
         } catch (Throwable t) {
             if (!processThrowable(t, session)) {
+                ErrorCollector collector = new ErrorCollector();
                 final Endpoint toCall = endpoint != null ? endpoint :
                         (Endpoint) componentProvider.getInstance(endpointClass, session, collector);
                 if (toCall != null) {
                     toCall.onError(session, t);
+                } else if (!collector.isEmpty()) {
+                    final DeploymentException deploymentException = collector.composeComprehensiveException();
+                    LOGGER.log(Level.WARNING, deploymentException.getMessage(), deploymentException);
                 }
             }
         }
@@ -627,10 +648,14 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
             }
         } catch (Throwable t) {
             if (!processThrowable(t, session)) {
+                ErrorCollector collector = new ErrorCollector();
                 final Endpoint toCall = endpoint != null ? endpoint :
                         (Endpoint) componentProvider.getInstance(endpointClass, session, collector);
                 if (toCall != null) {
                     toCall.onError(session, t);
+                } else if (!collector.isEmpty()) {
+                    final DeploymentException deploymentException = collector.composeComprehensiveException();
+                    LOGGER.log(Level.WARNING, deploymentException.getMessage(), deploymentException);
                 }
             }
         }
@@ -702,17 +727,24 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
         }
 
         session.setState(TyrusSession.State.CLOSING);
+
+        ErrorCollector collector = new ErrorCollector();
+
         final Endpoint toCall = endpoint != null ? endpoint :
                 (Endpoint) componentProvider.getInstance(endpointClass, session, collector);
 
         try {
+            if (!collector.isEmpty()) {
+                throw collector.composeComprehensiveException();
+            }
+
             toCall.onClose(session, closeReason);
             session.setState(TyrusSession.State.CLOSED);
         } catch (Throwable t) {
             if (toCall != null) {
                 toCall.onError(session, t);
             } else {
-                collector.addException(new DeploymentException(t.getMessage(), t));
+                LOGGER.log(Level.WARNING, t.getMessage(), t);
             }
         }
 

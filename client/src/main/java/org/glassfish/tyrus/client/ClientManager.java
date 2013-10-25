@@ -352,7 +352,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                     final ClientEndpointConfig finalConfig = config;
 
                     if (endpoint != null) {
-                        TyrusEndpointWrapper clientEndpoint = new TyrusEndpointWrapper(endpoint, config, componentProvider, ClientManager.this, url, collector, null);
+                        TyrusEndpointWrapper clientEndpoint = new TyrusEndpointWrapper(endpoint, config, componentProvider, ClientManager.this, url, null);
 
                         // fail fast when there is some issue with client endpoint.
                         if (!collector.isEmpty()) {
