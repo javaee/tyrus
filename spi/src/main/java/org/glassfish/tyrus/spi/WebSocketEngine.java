@@ -56,7 +56,7 @@ public interface WebSocketEngine {
     /**
      * A transport calls this method to upgrade a HTTP request.
      *
-     * @return info about upgrade status and connection details
+     * @return info about upgrade status and connection details.
      */
     UpgradeInfo upgrade(UpgradeRequest request, UpgradeResponse response);
 
@@ -70,14 +70,14 @@ public interface WebSocketEngine {
 
     /**
      * Upgrade info that includes status for HTTP request upgrading and
-     * connection creation details
+     * connection creation details.
      */
     interface UpgradeInfo {
 
         /**
-         * Returns the status of HTTP request upgrade
+         * Returns the status of HTTP request upgrade.
          *
-         * @return status of the upgrade
+         * @return status of the upgrade.
          */
         UpgradeStatus getStatus();
 
@@ -86,12 +86,12 @@ public interface WebSocketEngine {
          * onConnect lifecycle method on the endpoint during the invocation
          * of this method.
          *
-         * @param writer transport writer that actually writes tyrus websocket
-         *               data to underlying connection
+         * @param writer        transport writer that actually writes tyrus websocket
+         *                      data to underlying connection.
          * @param closeListener transport listener for receiving tyrus close
-         *                      notifications
+         *                      notifications.
          * @return upgraded connection if the upgrade is successful
-         *         otherwise null
+         *         otherwise null.
          */
         Connection createConnection(Writer writer, CloseListener closeListener);
     }
@@ -103,7 +103,7 @@ public interface WebSocketEngine {
         /**
          * Not a WebSocketRequest or no mapping in the application. This may
          * mean that HTTP request processing should continue (in servlet
-         * container, the next filter may be called)
+         * container, the next filter may be called).
          */
         NOT_APPLICABLE,
 

@@ -65,9 +65,9 @@ public abstract class UpgradeRequest implements HandshakeRequest {
      * multiple headers with the same name, this method returns the first
      * header in the request. The header name is case insensitive.
      *
-     * @param name a header name
-     * @return value of the specified header name
-     *         null if the request doesn't have a header of that name
+     * @param name a header name.
+     * @return value of the specified header name,
+     *         null if the request doesn't have a header of that name.
      */
     public abstract String getHeader(String name);
 
@@ -84,7 +84,7 @@ public abstract class UpgradeRequest implements HandshakeRequest {
      * (such as HTTPS).
      *
      * @return true if the request was made using secure channel,
-     *         false otherwise
+     *         false otherwise.
      */
     public abstract boolean isSecure();
 }

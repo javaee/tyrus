@@ -54,7 +54,7 @@ public abstract class CompletionHandler<E> {
     /**
      * The operation was failed.
      *
-     * @param throwable error, which occurred during operation execution
+     * @param throwable error, which occurred during operation execution.
      */
     public void failed(Throwable throwable) {
     }
@@ -62,16 +62,16 @@ public abstract class CompletionHandler<E> {
     /**
      * The operation was completed.
      *
-     * @param result the operation result
+     * @param result the operation result.
      */
     public void completed(E result) {
     }
 
     /**
      * The callback method may be called, when there is some progress in
-     * operation execution, but it is still not completed
+     * operation execution, but it is still not completed.
      *
-     * @param result the current result
+     * @param result the current result.
      */
     public void updated(E result) {
     }

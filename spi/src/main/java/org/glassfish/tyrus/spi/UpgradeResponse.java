@@ -55,14 +55,14 @@ public abstract class UpgradeResponse implements HandshakeResponse {
     /**
      * Gets the current HTTP status code of this response.
      *
-     * @return the current HTTP status code
+     * @return the current HTTP status code.
      */
     public abstract int getStatus();
 
     /**
      * Sets HTTP status code for this response.
      *
-     * @param status HTTP status code for this response
+     * @param status HTTP status code for this response.
      */
     public abstract void setStatus(int status);
 
@@ -79,25 +79,25 @@ public abstract class UpgradeResponse implements HandshakeResponse {
      * If the header had already been set, the new value overwrites the
      * previous one.
      *
-     * @param name  the name of the header
+     * @param name  the name of the header.
      * @param value the header value  If it contains octet string,
      *              it should be encoded according to RFC 2047
-     *              (http://www.ietf.org/rfc/rfc2047.txt)
+     *              (http://www.ietf.org/rfc/rfc2047.txt).
      */
     public abstract void setHeader(String name, String value);
 
     /**
      * Gets the value of the response header with the given name.
-     *
+     * <p/>
      * <p>If a response header with the given name exists and contains
      * multiple values, the value that was added first will be returned.
      *
      * @param name header name.
      * @return the value of the response header with the given name,
      *         null if no header with the given name has been set
-     *         on this response
-     * TODO rename to getHeader(String name) ?? similar to
-     * TODO HttpServletResponse#getHeader(String)
+     *         on this response.
+     *         TODO rename to getHeader(String name) ?? similar to
+     *         TODO HttpServletResponse#getHeader(String)
      */
     public String getFirstHeaderValue(String name) {
         final List<String> stringList = getHeaders().get(name);

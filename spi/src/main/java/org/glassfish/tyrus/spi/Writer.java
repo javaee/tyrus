@@ -47,8 +47,7 @@ import java.nio.ByteBuffer;
  * Writer class that is used by tyrus runtime to pass outbound websocket data
  * for a connection to a transport. Then, the transport actually writes the
  * data eventually.
- *
- * <p>
+ * <p/>
  * A transport creates implementation of this class and registers the writer
  * object using {@link WebSocketEngine.UpgradeInfo#createConnection} after
  * a successful upgrade.
@@ -62,8 +61,8 @@ public abstract class Writer implements Closeable {
      * to the transport. The transport writes bytes to underlying connection.
      * Tyrus runtime must not use the buffer until the write is completed.
      *
-     * @param buffer bytes to write
-     * @param completionHandler completion handler to know the write status
+     * @param buffer            bytes to write.
+     * @param completionHandler completion handler to know the write status.
      */
     public abstract void write(ByteBuffer buffer, CompletionHandler<ByteBuffer> completionHandler);
 }

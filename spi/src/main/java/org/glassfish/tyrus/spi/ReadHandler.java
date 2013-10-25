@@ -46,8 +46,7 @@ import java.nio.ByteBuffer;
  * Read handler provides a way for a transport to pass websocket
  * connection data to tyrus runtime. A transport reads websocket data for an
  * connection and passes the data to tyrus runtime for invoking endpoint.
- *
- * <p>
+ * <p/>
  * An implementation of this interface is created by tyrus runtime. Once a
  * transport completes a successful upgrade for a connection, the transport
  * can get hold of the handler using {@link Connection#getReadHandler()}.
@@ -62,7 +61,7 @@ public interface ReadHandler {
      * more call (along with more data) in the same byte buffer or in a newer
      * byte buffer.
      *
-     * @param data websocket data of a connection
+     * @param data websocket data of a connection.
      */
     void handle(ByteBuffer data);
 }
