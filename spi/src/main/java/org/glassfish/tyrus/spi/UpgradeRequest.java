@@ -39,8 +39,6 @@
  */
 package org.glassfish.tyrus.spi;
 
-import java.util.List;
-
 import javax.websocket.server.HandshakeRequest;
 
 /**
@@ -89,26 +87,4 @@ public abstract class UpgradeRequest implements HandshakeRequest {
      *         false otherwise
      */
     public abstract boolean isSecure();
-
-    /**
-     * Get request path.
-     *
-     * @return request path.
-     * TODO remove ?? same as getRequestUri(). It is quite different from
-     * TODO getServletPath()
-     */
-    public abstract String getRequestPath();
-
-    /**
-     * Get the first header value from the {@link List} of header values corresponding to the name.
-     *
-     * @param name header name.
-     * @return {@link String} value iff it exists, {@code null} otherwise.
-     *
-     * TODO remove ?? same as getHeader(String name) method. Also it is expensive
-     */
-    public String getFirstHeaderValue(String name) {
-        final List<String> stringList = getHeaders().get(name);
-        return stringList == null ? null : (stringList.size() > 0 ? stringList.get(0) : null);
-    }
 }

@@ -58,7 +58,6 @@ import org.glassfish.tyrus.core.TyrusWebSocketEngine;
 import org.glassfish.tyrus.core.TyrusWebSocketEngine.WebSocketHolder;
 import org.glassfish.tyrus.core.Utils;
 import org.glassfish.tyrus.core.WebSocket;
-import org.glassfish.tyrus.core.WebSocketRequest;
 import org.glassfish.tyrus.core.WebSocketResponse;
 import org.glassfish.tyrus.spi.ReadHandler;
 import org.glassfish.tyrus.spi.UpgradeRequest;
@@ -391,7 +390,7 @@ class GrizzlyClientFilter extends BaseFilter {
     }
 
     /**
-     * Create HttpContent (Grizzly request representation) from {@link WebSocketRequest}.
+     * Create HttpContent (Grizzly request representation) from {@link UpgradeRequest}.
      *
      * @param request original request.
      * @return Grizzly representation of provided request.
@@ -400,7 +399,12 @@ class GrizzlyClientFilter extends BaseFilter {
         HttpRequestPacket.Builder builder = HttpRequestPacket.builder();
         builder = builder.protocol(Protocol.HTTP_1_1);
         builder = builder.method(Method.GET);
-        builder = builder.uri(request.getRequestPath());
+
+        StringBuilder sb = new StringBuilder();
+        final URI uri = URI.create(request.getRequestUri());
+        sb.append(uri.getPath()).append('?').append(uri.getQuery());
+
+        builder = builder.uri(sb.toString());
         for (Map.Entry<String, List<String>> headerEntry : request.getHeaders().entrySet()) {
             StringBuilder finalHeaderValue = new StringBuilder();
 

@@ -55,7 +55,7 @@ public enum Version {
 
         @Override
         public boolean validate(UpgradeRequest request) {
-            return this.wireProtocolVersion.equals(request.getFirstHeaderValue(UpgradeRequest.SEC_WEBSOCKET_VERSION));
+            return this.wireProtocolVersion.equals(request.getHeader(UpgradeRequest.SEC_WEBSOCKET_VERSION));
         }
     };
 

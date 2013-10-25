@@ -99,7 +99,7 @@ public final class ProtocolHandler {
 
     public Handshake handshake(WebSocketApplication app, UpgradeRequest request, UpgradeResponse response) {
         final Handshake handshake = createHandShake(request);
-        handshake.respond(response, app/*, ((WebSocketRequest) request.getHttpHeader()).getResponse()*/);
+        handshake.respond(response, app);
         return handshake;
     }
 
@@ -127,7 +127,7 @@ public final class ProtocolHandler {
      * @param webSocketRequest representation of HTTP request to be sent.
      * @return new {@link Handshake} instance.
      */
-    public Handshake createClientHandShake(WebSocketRequest webSocketRequest) {
+    public Handshake createClientHandShake(UpgradeRequest webSocketRequest) {
         return Handshake.createClientHandShake(webSocketRequest);
     }
 

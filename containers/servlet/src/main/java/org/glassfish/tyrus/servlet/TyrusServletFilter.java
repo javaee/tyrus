@@ -202,7 +202,6 @@ class TyrusServletFilter implements Filter, HttpSessionListener {
             final RequestContext requestContext = RequestContext.Builder.create()
                     .requestURI(URI.create(httpServletRequest.getRequestURI()))
                     .queryString(httpServletRequest.getQueryString())
-                    .requestPath(httpServletRequest.getServletPath())
                     .httpSession(httpServletRequest.getSession(false))
                     .secure(httpServletRequest.isSecure())
                     .userPrincipal(httpServletRequest.getUserPrincipal())

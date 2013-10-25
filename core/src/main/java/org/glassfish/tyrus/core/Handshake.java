@@ -66,7 +66,7 @@ public final class Handshake {
     private List<String> subProtocols = new ArrayList<String>();
     private List<Extension> extensions = new ArrayList<Extension>(); // client extensions
     // client side request!
-    private WebSocketRequest request;
+    private UpgradeRequest request;
     private HandshakeResponseListener responseListener;
     private UpgradeRequest incomingRequest;
     private SecKey secKey;
@@ -75,7 +75,7 @@ public final class Handshake {
     private Handshake() {
     }
 
-    static Handshake createClientHandShake(WebSocketRequest webSocketRequest) {
+    static Handshake createClientHandShake(UpgradeRequest webSocketRequest) {
         final Handshake handshake = new Handshake();
         handshake.request = webSocketRequest;
 
@@ -100,18 +100,18 @@ public final class Handshake {
         final Handshake handshake = new Handshake();
 
         handshake.incomingRequest = request;
-        checkForHeader(request.getFirstHeaderValue(UpgradeRequest.UPGRADE), UpgradeRequest.UPGRADE, "WebSocket");
+        checkForHeader(request.getHeader(UpgradeRequest.UPGRADE), UpgradeRequest.UPGRADE, "WebSocket");
         checkForHeader(request.getHeader(UpgradeRequest.CONNECTION), UpgradeRequest.CONNECTION, UpgradeRequest.UPGRADE);
 
-        handshake.origin = request.getFirstHeaderValue(UpgradeRequest.SEC_WS_ORIGIN_HEADER);
+        handshake.origin = request.getHeader(UpgradeRequest.SEC_WS_ORIGIN_HEADER);
 
         if (handshake.origin == null) {
-            handshake.origin = request.getFirstHeaderValue(UpgradeRequest.ORIGIN_HEADER);
+            handshake.origin = request.getHeader(UpgradeRequest.ORIGIN_HEADER);
         }
         Handshake.determineHostAndPort(handshake, request);
 
         // TODO - trim?
-        final String protocolHeader = request.getFirstHeaderValue(UpgradeRequest.SEC_WEBSOCKET_PROTOCOL);
+        final String protocolHeader = request.getHeader(UpgradeRequest.SEC_WEBSOCKET_PROTOCOL);
         handshake.subProtocols = (protocolHeader == null ? Collections.<String>emptyList() : Arrays.asList(protocolHeader.split(",")));
 
         if (handshake.serverHostName == null) {
@@ -135,7 +135,7 @@ public final class Handshake {
         if (value != null) {
             handshake.extensions = TyrusExtension.fromHeaders(value);
         }
-        handshake.secKey = SecKey.generateServerKey(new SecKey(request.getFirstHeaderValue(UpgradeRequest.SEC_WEBSOCKET_KEY)));
+        handshake.secKey = SecKey.generateServerKey(new SecKey(request.getHeader(UpgradeRequest.SEC_WEBSOCKET_KEY)));
 
         return handshake;
     }
@@ -159,7 +159,7 @@ public final class Handshake {
     }
 
     private static void determineHostAndPort(Handshake handshake, UpgradeRequest request) {
-        String header = request.getFirstHeaderValue(UpgradeRequest.HOST);
+        String header = request.getHeader(UpgradeRequest.HOST);
 
         final int i = header == null ? -1 : header.indexOf(":");
         if (i == -1) {
@@ -190,10 +190,6 @@ public final class Handshake {
 
     int getPort() {
         return port;
-    }
-
-    String getResourcePath() {
-        return resourcePath;
     }
 
     String getServerHostName() {
@@ -261,40 +257,39 @@ public final class Handshake {
     }
 
     /**
-     * Gets the {@link WebSocketRequest}.
+     * Gets the {@link UpgradeRequest}.
      *
-     * @return {@link WebSocketRequest} created on this HandShake.
+     * @return {@link UpgradeRequest} created on this HandShake.
      */
-    public WebSocketRequest getRequest() {
+    public UpgradeRequest getRequest() {
         return request;
     }
 
     /**
-     * Compose the {@link WebSocketRequest} and store it for further use.
+     * Compose the {@link UpgradeRequest} and store it for further use.
      *
-     * @return composed {@link WebSocketRequest}.
+     * @return composed {@link UpgradeRequest}.
      */
-    public WebSocketRequest prepareRequest() {
+    public UpgradeRequest prepareRequest() {
         String host = getServerHostName();
         if (port != -1 && port != 80 && port != 443) {
             host += ":" + getPort();
         }
 
-        request.setRequestPath(getResourcePath());
-        request.putSingleHeader(UpgradeRequest.HOST, host);
-        request.putSingleHeader(UpgradeRequest.CONNECTION, UpgradeRequest.UPGRADE);
-        request.putSingleHeader(UpgradeRequest.UPGRADE, UpgradeRequest.WEBSOCKET);
+        putSingleHeader(request, UpgradeRequest.HOST, host);
+        putSingleHeader(request, UpgradeRequest.CONNECTION, UpgradeRequest.UPGRADE);
+        putSingleHeader(request, UpgradeRequest.UPGRADE, UpgradeRequest.WEBSOCKET);
 
-        request.putSingleHeader(UpgradeRequest.SEC_WEBSOCKET_KEY, secKey.toString());
-        request.putSingleHeader(UpgradeRequest.SEC_WS_ORIGIN_HEADER, getOrigin());
-        request.putSingleHeader(UpgradeRequest.SEC_WEBSOCKET_VERSION, getVersion() + "");
+        putSingleHeader(request, UpgradeRequest.SEC_WEBSOCKET_KEY, secKey.toString());
+        putSingleHeader(request, UpgradeRequest.SEC_WS_ORIGIN_HEADER, getOrigin());
+        putSingleHeader(request, UpgradeRequest.SEC_WEBSOCKET_VERSION, getVersion() + "");
 
         if (!getSubProtocols().isEmpty()) {
-            request.putSingleHeader(UpgradeRequest.SEC_WEBSOCKET_PROTOCOL, getHeaderFromList(subProtocols, null));
+            putSingleHeader(request, UpgradeRequest.SEC_WEBSOCKET_PROTOCOL, getHeaderFromList(subProtocols, null));
         }
 
         if (!getExtensions().isEmpty()) {
-            request.putSingleHeader(UpgradeRequest.SEC_WEBSOCKET_EXTENSIONS, getHeaderFromList(getExtensions(), new Stringifier<Extension>() {
+            putSingleHeader(request, UpgradeRequest.SEC_WEBSOCKET_EXTENSIONS, getHeaderFromList(getExtensions(), new Stringifier<Extension>() {
                 @Override
                 String toString(Extension extension) {
                     return TyrusExtension.toString(extension);
@@ -302,10 +297,14 @@ public final class Handshake {
             }));
         }
 
-        final String headerValue = request.getFirstHeaderValue(UpgradeRequest.SEC_WS_ORIGIN_HEADER);
+        final String headerValue = request.getHeader(UpgradeRequest.SEC_WS_ORIGIN_HEADER);
         request.getHeaders().remove(UpgradeRequest.SEC_WS_ORIGIN_HEADER);
-        request.putSingleHeader(UpgradeRequest.ORIGIN_HEADER, headerValue);
+        putSingleHeader(request, UpgradeRequest.ORIGIN_HEADER, headerValue);
         return request;
+    }
+
+    private void putSingleHeader(UpgradeRequest request, String headerName, String headerValue) {
+        request.getHeaders().put(headerName, Arrays.asList(headerValue));
     }
 
     public void validateServerResponse(UpgradeResponse response) {

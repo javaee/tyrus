@@ -49,12 +49,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.glassfish.tyrus.spi.UpgradeRequest;
+
 /**
  * Implementation of all possible request interfaces. Should be the only point of truth.
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public final class RequestContext extends WebSocketRequest implements javax.websocket.server.HandshakeRequest {
+public final class RequestContext extends UpgradeRequest {
 
     private final URI requestURI;
     private final String queryString;
@@ -62,8 +64,6 @@ public final class RequestContext extends WebSocketRequest implements javax.webs
     private final boolean secure;
     private final Principal userPrincipal;
     private final Builder.IsUserInRoleDelegate isUserInRoleDelegate;
-
-    private String requestPath;
 
     private Map<String, List<String>> headers = new TreeMap<String, List<String>>(new Comparator<String>() {
         @Override
@@ -74,11 +74,10 @@ public final class RequestContext extends WebSocketRequest implements javax.webs
 
     private Map<String, List<String>> parameterMap;
 
-    private RequestContext(URI requestURI, String requestPath, String queryString,
+    private RequestContext(URI requestURI, String queryString,
                            Object httpSession, boolean secure, Principal userPrincipal,
                            Builder.IsUserInRoleDelegate IsUserInRoleDelegate, Map<String, List<String>> parameterMap) {
         this.requestURI = requestURI;
-        this.requestPath = requestPath;
         this.queryString = queryString;
         this.httpSession = httpSession;
         this.secure = secure;
@@ -133,21 +132,6 @@ public final class RequestContext extends WebSocketRequest implements javax.webs
     }
 
     @Override
-    public void putSingleHeader(String headerName, String headerValue) {
-        headers.put(headerName, Arrays.asList(headerValue));
-    }
-
-    @Override
-    public String getRequestPath() {
-        return requestPath;
-    }
-
-    @Override
-    public void setRequestPath(String requestPath) {
-        this.requestPath = requestPath;
-    }
-
-    @Override
     public Principal getUserPrincipal() {
         return userPrincipal;
     }
@@ -197,7 +181,6 @@ public final class RequestContext extends WebSocketRequest implements javax.webs
     public static final class Builder {
 
         private URI requestURI;
-        private String requestPath;
         private String queryString;
         private Object httpSession;
         private boolean secure;
@@ -233,17 +216,6 @@ public final class RequestContext extends WebSocketRequest implements javax.webs
          */
         public Builder queryString(String queryString) {
             this.queryString = queryString;
-            return this;
-        }
-
-        /**
-         * Set request path.
-         *
-         * @param requestPath request path to be set.
-         * @return updated {@link RequestContext.Builder} instance.
-         */
-        public Builder requestPath(String requestPath) {
-            this.requestPath = requestPath;
             return this;
         }
 
@@ -318,7 +290,7 @@ public final class RequestContext extends WebSocketRequest implements javax.webs
          * @return created {@link RequestContext}.
          */
         public RequestContext build() {
-            return new RequestContext(requestURI, requestPath, queryString, httpSession, secure,
+            return new RequestContext(requestURI, queryString, httpSession, secure,
                     userPrincipal, isUserInRoleDelegate,
                     parameterMap != null ? parameterMap : new HashMap<String, List<String>>());
         }
