@@ -55,7 +55,9 @@ import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
+import javax.websocket.OnMessage;
 import javax.websocket.Session;
+import javax.websocket.server.ServerEndpoint;
 import javax.websocket.server.ServerEndpointConfig;
 
 import org.glassfish.tyrus.core.CoderAdapter;
@@ -111,6 +113,35 @@ public class TextAndBinaryProgrammaticDecoder extends TestContainer {
         }
     }
 
+    @Test
+    public void testAnnotatedEndpointRegisteredProgramatically() throws DeploymentException, IOException, InterruptedException {
+        final Server server = startServer(ServerDeployApplicationConfig.class);
+
+        try {
+            final CountDownLatch textLatch = new CountDownLatch(1);
+
+            final Session session = ContainerProvider.getWebSocketContainer().connectToServer(new Endpoint() {
+                @Override
+                public void onOpen(Session session, EndpointConfig config) {
+                    session.addMessageHandler(new MessageHandler.Whole<String>() {
+                        @Override
+                        public void onMessage(String message) {
+                            if (message.equals("text")) {
+                                textLatch.countDown();
+                            }
+                        }
+                    });
+                }
+            }, ClientEndpointConfig.Builder.create().build(), getURI("/annotatedEndpointRegisteredProgramatically"));
+
+            session.getBasicRemote().sendText("text");
+
+            assertTrue(textLatch.await(3, TimeUnit.SECONDS));
+        } finally {
+            server.stop();
+        }
+    }
+
     public static class ServerDeployApplicationConfig extends TyrusServerConfiguration {
         public ServerDeployApplicationConfig() {
             super(Collections.<Class<?>>emptySet(), new HashSet<ServerEndpointConfig>(
@@ -118,8 +149,17 @@ public class TextAndBinaryProgrammaticDecoder extends TestContainer {
                 add(ServerEndpointConfig.Builder.create(TextAndBinaryDecoderEndpoint.class, "/textAndBinaryDecoderEndpoint")
                         .decoders(Arrays.<Class<? extends Decoder>>asList(TextContainerDecoder.class, BinaryContainerDecoder.class))
                         .build());
+                add(ServerEndpointConfig.Builder.create(AnnotatedEndpoint.class, "/annotatedEndpointRegisteredProgramatically").build());
 
             }});
+        }
+    }
+
+    @ServerEndpoint(value = "/annotatedEndpointRegisteredProgramatically")
+    public static class AnnotatedEndpoint {
+        @OnMessage
+        public String onMessage(String message) {
+            return message;
         }
     }
 

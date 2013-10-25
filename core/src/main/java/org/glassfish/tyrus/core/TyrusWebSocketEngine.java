@@ -53,6 +53,7 @@ import java.util.logging.Logger;
 
 import javax.websocket.CloseReason;
 import javax.websocket.DeploymentException;
+import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfig;
 import javax.websocket.WebSocketContainer;
 import javax.websocket.server.ServerEndpointConfig;
@@ -415,8 +416,28 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
 
         final ErrorCollector collector = new ErrorCollector();
 
-        TyrusEndpointWrapper ew = new TyrusEndpointWrapper(serverConfig.getEndpointClass(),
-                serverConfig, componentProviderService, webSocketContainer, contextPath, collector, serverConfig.getConfigurator());
+        TyrusEndpointWrapper ew;
+
+        Class<?> endpointClass = serverConfig.getEndpointClass();
+        boolean isEndpointClass = false;
+
+        do {
+            endpointClass = endpointClass.getSuperclass();
+            if (endpointClass.equals(Endpoint.class)) {
+                isEndpointClass = true;
+            }
+        } while (endpointClass != null && !endpointClass.equals(Object.class));
+
+        if (isEndpointClass) {
+            ew = new TyrusEndpointWrapper(serverConfig.getEndpointClass(),
+                    serverConfig, componentProviderService, webSocketContainer, contextPath, collector, serverConfig.getConfigurator());
+        } else {
+            final AnnotatedEndpoint endpoint = AnnotatedEndpoint.fromClass(endpointClass, componentProviderService, true, collector);
+            final EndpointConfig config = endpoint.getEndpointConfig();
+
+            ew = new TyrusEndpointWrapper(endpoint, config, componentProviderService, webSocketContainer,
+                    contextPath, collector, config instanceof ServerEndpointConfig ? ((ServerEndpointConfig) config).getConfigurator() : null);
+        }
 
         if (collector.isEmpty()) {
             register(new TyrusEndpoint(ew));
