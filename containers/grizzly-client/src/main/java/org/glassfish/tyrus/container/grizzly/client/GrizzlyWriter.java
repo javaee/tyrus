@@ -51,7 +51,7 @@ import org.glassfish.grizzly.memory.Buffers;
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class GrizzlyWriter implements Writer {
+public class GrizzlyWriter extends Writer {
 
     private final org.glassfish.grizzly.Connection connection;
 

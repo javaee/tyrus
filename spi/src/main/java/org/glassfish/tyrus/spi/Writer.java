@@ -53,12 +53,9 @@ import java.nio.ByteBuffer;
  * object using {@link WebSocketEngine.UpgradeInfo#createConnection} after
  * a successful upgrade.
  *
- * TODO Should we make it abstract class (since it is written by transport)
- * TODO and we can add some methods in future
- *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public interface Writer extends Closeable {
+public abstract class Writer implements Closeable {
 
     /**
      * Tyrus runtime calls this method to handover the data for a connection
@@ -68,5 +65,5 @@ public interface Writer extends Closeable {
      * @param buffer bytes to write
      * @param completionHandler completion handler to know the write status
      */
-    public void write(ByteBuffer buffer, CompletionHandler<ByteBuffer> completionHandler);
+    public abstract void write(ByteBuffer buffer, CompletionHandler<ByteBuffer> completionHandler);
 }

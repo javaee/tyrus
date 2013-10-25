@@ -57,7 +57,7 @@ import org.glassfish.tyrus.spi.Writer;
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-class TyrusServletWriter implements Writer, WriteListener {
+class TyrusServletWriter extends Writer implements WriteListener {
 
     private final TyrusHttpUpgradeHandler tyrusHttpUpgradeHandler;
     private final ArrayBlockingQueue<QueuedFrame> queue = new ArrayBlockingQueue<QueuedFrame>(32);
