@@ -44,30 +44,33 @@ import java.util.List;
 import javax.websocket.HandshakeResponse;
 
 /**
- * Handshake response.
+ * Abstraction for a HTTP upgrade response. A transport creates an
+ * implementation for this and uses {@link WebSocketEngine#upgrade} method
+ * to upgrade the request.
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 public abstract class UpgradeResponse implements HandshakeResponse {
 
     /**
-     * Get HTTP status.
+     * Gets the current HTTP status code of this response.
      *
-     * @return HTTP status.
+     * @return the current HTTP status code
      */
     public abstract int getStatus();
 
     /**
-     * Set HTTP status.
+     * Sets HTTP status code for this response.
      *
-     * @return HTTP status.
+     * @param status HTTP status code for this response
      */
     public abstract void setStatus(int status);
 
     /**
      * Get HTTP reason phrase.
      *
-     * @return reason phrase.
+     * TODO remove ?? we are using only for "Switching Protocols" and that is
+     * TODO standard status code 101
      */
     public abstract void setReasonPhrase(String reason);
 
@@ -84,10 +87,17 @@ public abstract class UpgradeResponse implements HandshakeResponse {
     public abstract void setHeader(String name, String value);
 
     /**
-     * Gets the first header value from the {@link List} of header values corresponding to the name.
+     * Gets the value of the response header with the given name.
+     *
+     * <p>If a response header with the given name exists and contains
+     * multiple values, the value that was added first will be returned.
      *
      * @param name header name.
-     * @return {@link String} value iff it exists, {@code null} otherwise.
+     * @return the value of the response header with the given name,
+     *         null if no header with the given name has been set
+     *         on this response
+     * TODO rename to getHeader(String name) ?? similar to
+     * TODO HttpServletResponse#getHeader(String)
      */
     public String getFirstHeaderValue(String name) {
         final List<String> stringList = getHeaders().get(name);

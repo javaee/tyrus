@@ -42,22 +42,57 @@ package org.glassfish.tyrus.spi;
 
 import javax.websocket.CloseReason;
 
-// Tyrus creates Connection implementation and connectors
-// call get ProtocolReader,  and set ProtocolWriter and Closeable impl
+/**
+ * A logical websocket connection. Tyrus creates this connection after
+ * successful upgrade and gets data from {@link ReadHandler} and writes data
+ * to {@link Writer}
+ */
 public interface Connection {
 
+    /**
+     * Returns a read handler. A transport can pass websocket data to
+     * tyrus using the handler.
+     *
+     * @return tryus read handler that handles websocket data
+     */
     ReadHandler getReadHandler();
 
+    /**
+     * Returns the same writer that is passed for creating connection in
+     * {@link WebSocketEngine.UpgradeInfo#createConnection(Writer, CloseListener)}
+     * The transport writer that actually writes websocket data
+     * to underlying connection
+     *
+     * @return transport writer that actually writes websocket data
+     *         to underlying connection
+     */
     Writer getWriter();
 
-    // Tyrus notifies the the given Closeable that it is closing the
-    // connection.
+    /**
+     * Returns the same close listener that is passed for creating connection in
+     * {@link WebSocketEngine.UpgradeInfo#createConnection(Writer, CloseListener)}
+     * This transport close listener receives connection close notifications
+     * from tyrus.
+     */
     CloseListener getCloseListener();
 
-    // Notify tyrus that underlying transport is closing the connection
+    /**
+     * Notifies tyrus that underlying transport is closing the connection
+     *
+     * @param reason for closing the actual connection
+     */
     void close(CloseReason reason);
 
+    /**
+     * Transport close listener that receives connection close
+     * notifications from tyrus
+     */
     interface CloseListener {
+        /**
+         * Tyrus notifies that logical connection is closed.
+         *
+         * @param reason for closing the connection
+         */
         void close(CloseReason reason);
     }
 }

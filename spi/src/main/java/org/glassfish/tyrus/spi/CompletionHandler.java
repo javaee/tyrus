@@ -40,8 +40,7 @@
 package org.glassfish.tyrus.spi;
 
 /**
- * Interface, which will be used by Grizzly to notify about asynchronous I/O
- * operations status updates.
+ * A callback to notify about asynchronous I/O operations status updates.
  *
  * @author Alexey Stashok
  */
