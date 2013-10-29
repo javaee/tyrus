@@ -137,7 +137,7 @@ public void onMessage(Session session, String message) {
     </section>
 
     <section>
-        <title>Servlet container incoming buffer size</title>
+        <title>Incoming buffer size</title>
 
         <para>Sevlet container buffers incoming WebSocket frames and there must a size limit to precede OutOfMemory
         Exception and potentially DDoS attacks.</para>
@@ -156,6 +156,12 @@ public void onMessage(Session session, String message) {
 
         <para>Default value is 4194315, which correspond to 4M plus few bytes to frame headers, so you should be able to
         receive up to 4M long message without the need to care about this property.</para>
+
+        <para>Same issue is present on client side. There you can set this property via ClientManager:</para>
+
+        <programlisting language="java" linenumbering="numbered">ClientManager client = ClientManager.createClient();
+client.getProperties().put("org.glassfish.tyrus.incomingBufferSize", 6000000); // sets the incoming buffer size to 6000000 bytes.
+client.connectToServer( ... )</programlisting>
     </section>
 
 </chapter>
