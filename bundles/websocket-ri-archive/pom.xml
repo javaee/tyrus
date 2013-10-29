@@ -75,7 +75,7 @@
         </dependency>
         <dependency>
             <groupId>org.glassfish.tyrus</groupId>
-            <artifactId>tyrus-container-grizzly</artifactId>
+            <artifactId>tyrus-container-grizzly-client</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
@@ -142,14 +142,6 @@
                                 </artifactItem>
                                 <artifactItem>
                                     <groupId>org.glassfish.tyrus</groupId>
-                                    <artifactId>tyrus-websocket-core</artifactId>
-                                    <version>${project.version}</version>
-                                    <type>jar</type>
-                                    <overWrite>false</overWrite>
-                                    <outputDirectory>${assembly.directory}</outputDirectory>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>org.glassfish.tyrus</groupId>
                                     <artifactId>tyrus-container-glassfish-cdi</artifactId>
                                     <version>${project.version}</version>
                                     <type>jar</type>
@@ -159,14 +151,6 @@
                                 <artifactItem>
                                     <groupId>org.glassfish.tyrus</groupId>
                                     <artifactId>tyrus-container-grizzly-client</artifactId>
-                                    <version>${project.version}</version>
-                                    <type>jar</type>
-                                    <overWrite>false</overWrite>
-                                    <outputDirectory>${assembly.directory}</outputDirectory>
-                                </artifactItem>
-                                <artifactItem>
-                                    <groupId>org.glassfish.tyrus</groupId>
-                                    <artifactId>tyrus-container-grizzly-server</artifactId>
                                     <version>${project.version}</version>
                                     <type>jar</type>
                                     <overWrite>false</overWrite>
