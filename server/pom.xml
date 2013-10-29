@@ -59,7 +59,11 @@
         </dependency>
         <dependency>
             <groupId>org.glassfish.tyrus</groupId>
-            <artifactId>tyrus-core</artifactId>
+            <artifactId>tyrus-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.tyrus</groupId>
+            <artifactId>tyrus-container-grizzly-client</artifactId>
         </dependency>
         <dependency>
             <groupId>org.osgi</groupId>

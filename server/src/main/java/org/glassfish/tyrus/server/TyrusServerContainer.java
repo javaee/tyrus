@@ -45,6 +45,7 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.Future;
 
 import javax.websocket.ClientEndpointConfig;
 import javax.websocket.DeploymentException;
@@ -54,6 +55,7 @@ import javax.websocket.Session;
 import javax.websocket.server.ServerApplicationConfig;
 import javax.websocket.server.ServerEndpointConfig;
 
+import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.core.BaseContainer;
 import org.glassfish.tyrus.core.ErrorCollector;
 import org.glassfish.tyrus.spi.ServerContainer;
@@ -78,6 +80,8 @@ public abstract class TyrusServerContainer extends BaseContainer implements Serv
     private long defaultAsyncSendTimeout = 0;
     private int maxTextMessageBufferSize = Integer.MAX_VALUE;
     private int maxBinaryMessageBufferSize = Integer.MAX_VALUE;
+
+    private ClientManager clientManager = null;
 
     /**
      * Create new {@link TyrusServerContainer}.
@@ -133,6 +137,7 @@ public abstract class TyrusServerContainer extends BaseContainer implements Serv
     /**
      * Undeploy all endpoints and stop underlying {@link org.glassfish.tyrus.spi.ServerContainer}.
      */
+    @Override
     public void stop() {
 //        for (EndpointWrapper wsa : this.endpoints) {
 //            this.server.unregister(wsa);
@@ -163,24 +168,103 @@ public abstract class TyrusServerContainer extends BaseContainer implements Serv
         }
     }
 
-    @Override
-    public Session connectToServer(Class annotatedEndpointClass, URI path) throws DeploymentException {
-        throw new UnsupportedOperationException();
+    private synchronized ClientManager getClientManager() {
+        if (clientManager == null) {
+            clientManager = new ClientManager();
+        }
+
+        clientManager.setAsyncSendTimeout(defaultAsyncSendTimeout);
+        clientManager.setDefaultMaxSessionIdleTimeout(defaultMaxSessionIdleTimeout);
+        clientManager.setDefaultMaxSessionIdleTimeout(maxBinaryMessageBufferSize);
+        clientManager.setDefaultMaxTextMessageBufferSize(maxTextMessageBufferSize);
+
+        return clientManager;
     }
 
     @Override
-    public Session connectToServer(Class<? extends Endpoint> endpointClass, ClientEndpointConfig cec, URI path) throws DeploymentException {
-        throw new UnsupportedOperationException();
+    public Session connectToServer(Class annotatedEndpointClass, URI path) throws DeploymentException, IOException {
+        return getClientManager().connectToServer(annotatedEndpointClass, path);
+    }
+
+    @Override
+    public Session connectToServer(Class<? extends Endpoint> endpointClass, ClientEndpointConfig cec, URI path) throws DeploymentException, IOException {
+        return getClientManager().connectToServer(endpointClass, cec, path);
     }
 
     @Override
     public Session connectToServer(Object annotatedEndpointInstance, URI path) throws DeploymentException, IOException {
-        throw new UnsupportedOperationException();
+        return getClientManager().connectToServer(annotatedEndpointInstance, path);
     }
 
     @Override
     public Session connectToServer(Endpoint endpointInstance, ClientEndpointConfig cec, URI path) throws DeploymentException, IOException {
-        throw new UnsupportedOperationException();
+        return getClientManager().connectToServer(endpointInstance, cec, path);
+    }
+
+    /**
+     * Non-blocking version of {@link javax.websocket.WebSocketContainer#connectToServer(Class, java.net.URI)}.
+     * <p/>
+     * Only simple checks are performed in the main thread; client container is created in different thread, same
+     * applies to connecting etc.
+     *
+     * @param annotatedEndpointClass the annotated websocket client endpoint.
+     * @param path                   the complete path to the server endpoint.
+     * @return Future for the Session created if the connection is successful.
+     * @throws DeploymentException if the class is not a valid annotated endpoint class.
+     */
+    public Future<Session> asyncConnectToServer(Class<?> annotatedEndpointClass, URI path) throws DeploymentException {
+        return getClientManager().asyncConnectToServer(annotatedEndpointClass, path);
+    }
+
+    /**
+     * Non-blocking version of {@link javax.websocket.WebSocketContainer#connectToServer(Class, javax.websocket.ClientEndpointConfig, java.net.URI)}.
+     * <p/>
+     * Only simple checks are performed in the main thread; client container is created in different thread, same
+     * applies to connecting etc.
+     *
+     * @param endpointClass the programmatic client endpoint class {@link Endpoint}.
+     * @param path          the complete path to the server endpoint.
+     * @param cec           the configuration used to configure the programmatic endpoint.
+     * @return the Session created if the connection is successful.
+     * @throws DeploymentException if the configuration is not valid
+     * @see javax.websocket.WebSocketContainer#connectToServer(Class, javax.websocket.ClientEndpointConfig, java.net.URI)
+     */
+    public Future<Session> asyncConnectToServer(Class<? extends Endpoint> endpointClass, ClientEndpointConfig cec, URI path) throws DeploymentException {
+        return getClientManager().asyncConnectToServer(endpointClass, cec, path);
+    }
+
+    /**
+     * Non-blocking version of {@link javax.websocket.WebSocketContainer#connectToServer(javax.websocket.Endpoint, javax.websocket.ClientEndpointConfig, java.net.URI)}.
+     * <p/>
+     * Only simple checks are performed in the main thread; client container is created in different thread, same
+     * applies to connecting etc.
+     *
+     * @param endpointInstance the programmatic client endpoint instance {@link Endpoint}.
+     * @param path             the complete path to the server endpoint.
+     * @param cec              the configuration used to configure the programmatic endpoint.
+     * @return the Session created if the connection is successful.
+     * @throws DeploymentException if the configuration is not valid
+     * @see javax.websocket.WebSocketContainer#connectToServer(javax.websocket.Endpoint, javax.websocket.ClientEndpointConfig, java.net.URI)
+     */
+    public Future<Session> asyncConnectToServer(Endpoint endpointInstance, ClientEndpointConfig cec, URI path) throws DeploymentException {
+        return getClientManager().asyncConnectToServer(endpointInstance, cec, path);
+    }
+
+    /**
+     * Non-blocking version of {@link javax.websocket.WebSocketContainer#connectToServer(Object, java.net.URI)}.
+     * <p/>
+     * Only simple checks are performed in the main thread; client container is created in different thread, same
+     * applies to connecting etc.
+     *
+     * @param obj  the annotated websocket client endpoint
+     *             instance.
+     * @param path the complete path to the server endpoint.
+     * @return the Session created if the connection is successful.
+     * @throws DeploymentException if the annotated endpoint instance is not valid.
+     * @see javax.websocket.WebSocketContainer#connectToServer(Object, java.net.URI)
+     */
+    public Future<Session> asyncConnectToServer(Object obj, URI path) throws DeploymentException {
+        return getClientManager().asyncConnectToServer(obj, path);
     }
 
     @Override
