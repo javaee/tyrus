@@ -91,7 +91,7 @@ public class AsyncTextTest {
     private Server startServer() throws DeploymentException {
         final String host = System.getProperty("tyrus.test.host");
         if (host == null) {
-            final Server server = new Server(DEFAULT_HOST, DEFAULT_PORT, CONTEXT_PATH, endpointClasses);
+            final Server server = new Server(DEFAULT_HOST, DEFAULT_PORT, CONTEXT_PATH, null, endpointClasses);
             server.start();
             return server;
         } else {

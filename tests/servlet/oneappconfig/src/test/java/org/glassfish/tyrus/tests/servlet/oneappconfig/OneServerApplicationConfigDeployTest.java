@@ -68,7 +68,6 @@ import junit.framework.Assert;
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
- *
  */
 public class OneServerApplicationConfigDeployTest {
 
@@ -91,7 +90,7 @@ public class OneServerApplicationConfigDeployTest {
     private Server startServer() throws DeploymentException {
         final String host = System.getProperty("tyrus.test.host");
         if (host == null) {
-            final Server server = new Server(DEFAULT_HOST, DEFAULT_PORT, CONTEXT_PATH, endpointClasses);
+            final Server server = new Server(DEFAULT_HOST, DEFAULT_PORT, CONTEXT_PATH, null, endpointClasses);
             server.start();
             return server;
         } else {

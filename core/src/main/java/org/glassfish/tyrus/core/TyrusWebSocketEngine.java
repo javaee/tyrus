@@ -91,10 +91,23 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
 
     private int incomingBufferSize = 4194315; // 4M (payload) + 11 (frame overhead)
 
+    /**
+     * Create {@link WebSocketEngine} instance based on passed {@link WebSocketContainer}.
+     *
+     * @param webSocketContainer used {@link WebSocketContainer} instance.
+     */
     public TyrusWebSocketEngine(WebSocketContainer webSocketContainer) {
         this.webSocketContainer = webSocketContainer;
     }
 
+    /**
+     * Create {@link WebSocketEngine} instance based on passed {@link WebSocketContainer} and with configured maximal
+     * incoming buffer size.
+     *
+     * @param webSocketContainer used {@link WebSocketContainer} instance.
+     * @param incomingBufferSize maximal incoming buffer size (this engine won't be able to process messages bigger
+     *                           than this number. If null, default value will be used).
+     */
     public TyrusWebSocketEngine(WebSocketContainer webSocketContainer, Integer incomingBufferSize) {
         if (incomingBufferSize != null) {
             this.incomingBufferSize = incomingBufferSize;
@@ -208,6 +221,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
             this.incomingBufferSize = incomingBufferSize;
         }
 
+        @Override
         public void handle(ByteBuffer data) {
             if (webSocketHolder == null) {
                 // TODO?
@@ -309,7 +323,6 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
     public void setIncomingBufferSize(int incomingBufferSize) {
         this.incomingBufferSize = incomingBufferSize;
     }
-
 
 
     /**

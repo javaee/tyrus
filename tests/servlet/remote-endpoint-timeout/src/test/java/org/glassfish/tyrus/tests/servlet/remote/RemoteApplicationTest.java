@@ -95,7 +95,7 @@ public class RemoteApplicationTest {
     private Server startServer() throws DeploymentException {
         final String host = System.getProperty("tyrus.test.host");
         if (host == null) {
-            final Server server = new Server(DEFAULT_HOST, DEFAULT_PORT, CONTEXT_PATH, endpointClasses);
+            final Server server = new Server(DEFAULT_HOST, DEFAULT_PORT, CONTEXT_PATH, null, endpointClasses);
             server.start();
             return server;
         } else {
@@ -176,7 +176,7 @@ public class RemoteApplicationTest {
                         session.addMessageHandler(new MessageHandler.Whole<String>() {
                             @Override
                             public void onMessage(String message) {
-                                System.out.println("Received message: "+message);
+                                System.out.println("Received message: " + message);
                                 receivedMessage1 = message;
                                 serviceMessageLatch.countDown();
                             }
@@ -235,7 +235,7 @@ public class RemoteApplicationTest {
                         session.addMessageHandler(new MessageHandler.Whole<String>() {
                             @Override
                             public void onMessage(String message) {
-                                System.out.println("Received message: "+message);
+                                System.out.println("Received message: " + message);
                                 receivedMessage2 = message;
                                 serviceMessageLatch.countDown();
                             }
@@ -272,7 +272,7 @@ public class RemoteApplicationTest {
                         session.addMessageHandler(new MessageHandler.Whole<String>() {
                             @Override
                             public void onMessage(String buffer) {
-                                System.out.println("Received from action3: "+buffer);
+                                System.out.println("Received from action3: " + buffer);
                                 Assert.assertTrue(messageToSend.equals(buffer));
                                 messageLatch.countDown();
                             }
@@ -286,7 +286,7 @@ public class RemoteApplicationTest {
             }, ClientEndpointConfig.Builder.create().build(), getURI(NoTimeoutEndpointResultByHandler.class.getAnnotation(ServerEndpoint.class).value()));
 
             messageLatch.await(2, TimeUnit.SECONDS);
-            Assert.assertEquals("Received message should be one.",0, messageLatch.getCount());
+            Assert.assertEquals("Received message should be one.", 0, messageLatch.getCount());
 
             final CountDownLatch serviceMessageLatch = new CountDownLatch(1);
             client.connectToServer(new Endpoint() {
@@ -296,7 +296,7 @@ public class RemoteApplicationTest {
                         session.addMessageHandler(new MessageHandler.Whole<String>() {
                             @Override
                             public void onMessage(String message) {
-                                System.out.println("Received message: "+message);
+                                System.out.println("Received message: " + message);
                                 receivedMessage3 = message;
                                 serviceMessageLatch.countDown();
                             }
@@ -333,7 +333,7 @@ public class RemoteApplicationTest {
                         session.addMessageHandler(new MessageHandler.Whole<String>() {
                             @Override
                             public void onMessage(String buffer) {
-                                System.out.println("Received from action3: "+buffer);
+                                System.out.println("Received from action3: " + buffer);
                                 Assert.assertTrue(messageToSend.equals(buffer));
                                 messageLatch.countDown();
                             }
@@ -347,7 +347,7 @@ public class RemoteApplicationTest {
             clientSession.getBasicRemote().sendText(messageToSend);
 
             messageLatch.await(3, TimeUnit.SECONDS);
-            Assert.assertEquals("Received message should be one",0, messageLatch.getCount());
+            Assert.assertEquals("Received message should be one", 0, messageLatch.getCount());
 
             final CountDownLatch serviceMessageLatch = new CountDownLatch(1);
             client.connectToServer(new Endpoint() {
@@ -357,7 +357,7 @@ public class RemoteApplicationTest {
                         session.addMessageHandler(new MessageHandler.Whole<String>() {
                             @Override
                             public void onMessage(String message) {
-                                System.out.println("Received message: "+message);
+                                System.out.println("Received message: " + message);
                                 receivedMessage4 = message;
                                 serviceMessageLatch.countDown();
                             }
@@ -371,8 +371,8 @@ public class RemoteApplicationTest {
             }, ClientEndpointConfig.Builder.create().build(), getURI(ServiceEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
 
             serviceMessageLatch.await(1, TimeUnit.SECONDS);
-            Assert.assertEquals("One message should be received.",0, serviceMessageLatch.getCount());
-            Assert.assertTrue("Received service message should be \"1\".",receivedMessage4.equals("1"));
+            Assert.assertEquals("One message should be received.", 0, serviceMessageLatch.getCount());
+            Assert.assertTrue("Received service message should be \"1\".", receivedMessage4.equals("1"));
         } finally {
             stopServer(server);
         }

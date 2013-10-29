@@ -44,6 +44,9 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.ServiceLoader;
 
+/**
+ * Factory used to get instances of {@link ServerContainer}.
+ */
 public abstract class ServerContainerFactory {
 
     private static final String CONTAINTER_CLASS =
@@ -53,7 +56,7 @@ public abstract class ServerContainerFactory {
         return createServerContainer(Collections.<String, Object>emptyMap());
     }
 
-    public static ServerContainer createServerContainer(Map<String, Object> config) {
+    public static ServerContainer createServerContainer(Map<String, Object> properties) {
         ServerContainerFactory factory = null;
 
         Iterator<ServerContainerFactory> it = ServiceLoader.load(ServerContainerFactory.class).iterator();
@@ -66,7 +69,7 @@ public abstract class ServerContainerFactory {
                 Class factoryClass = (classLoader == null)
                         ? Class.forName(CONTAINTER_CLASS)
                         : classLoader.loadClass(CONTAINTER_CLASS);
-                factory = (ServerContainerFactory)factoryClass.newInstance();
+                factory = (ServerContainerFactory) factoryClass.newInstance();
             } catch (ClassNotFoundException ce) {
                 throw new RuntimeException(ce);
             } catch (InstantiationException ie) {
@@ -75,9 +78,9 @@ public abstract class ServerContainerFactory {
                 throw new RuntimeException(ie);
             }
         }
-        return factory.createContainer(config);
+        return factory.createContainer(properties);
     }
 
-    public abstract ServerContainer createContainer(Map<String, Object> config);
+    public abstract ServerContainer createContainer(Map<String, Object> properties);
 
 }

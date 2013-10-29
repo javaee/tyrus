@@ -92,7 +92,7 @@ public class SessionCloseApplicationTest {
     private Server startServer() throws DeploymentException {
         final String host = System.getProperty("tyrus.test.host");
         if (host == null) {
-            final Server server = new Server(DEFAULT_HOST, DEFAULT_PORT, CONTEXT_PATH, endpointClasses);
+            final Server server = new Server(DEFAULT_HOST, DEFAULT_PORT, CONTEXT_PATH, null, endpointClasses);
             server.start();
             return server;
         } else {
@@ -156,7 +156,8 @@ public class SessionCloseApplicationTest {
                     session.addMessageHandler(new MessageHandler.Whole<String>() {
 
                         @Override
-                        public void onMessage(String s) {}
+                        public void onMessage(String s) {
+                        }
                     });
                     try {
                         session.getBasicRemote().sendText("message");
@@ -175,7 +176,7 @@ public class SessionCloseApplicationTest {
                 }
 
                 @Override
-                public void onError(javax.websocket.Session session, Throwable thr){
+                public void onError(javax.websocket.Session session, Throwable thr) {
                     thr.printStackTrace();
                 }
             }, cec, getURI(CloseServerEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
@@ -234,7 +235,7 @@ public class SessionCloseApplicationTest {
                 }
 
                 @Override
-                public void onError(javax.websocket.Session session, Throwable thr){
+                public void onError(javax.websocket.Session session, Throwable thr) {
                     thr.printStackTrace();
                 }
 
@@ -297,7 +298,7 @@ public class SessionCloseApplicationTest {
                 }
 
                 @Override
-                public void onError(javax.websocket.Session session, Throwable thr){
+                public void onError(javax.websocket.Session session, Throwable thr) {
                     thr.printStackTrace();
                 }
             }, cec, getURI(CloseClientEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
@@ -356,7 +357,7 @@ public class SessionCloseApplicationTest {
                 }
 
                 @Override
-                public void onError(javax.websocket.Session session, Throwable thr){
+                public void onError(javax.websocket.Session session, Throwable thr) {
                     thr.printStackTrace();
                 }
 
@@ -375,7 +376,6 @@ public class SessionCloseApplicationTest {
     @Test
     public void testSessionTimeoutClient() throws DeploymentException {
 
-        final CountDownLatch clientLatch = new CountDownLatch(1);
         final Server server = startServer();
 
         try {
@@ -387,12 +387,13 @@ public class SessionCloseApplicationTest {
                     session.addMessageHandler(new MessageHandler.Whole<String>() {
 
                         @Override
-                        public void onMessage(String s) {}
+                        public void onMessage(String s) {
+                        }
                     });
                 }
 
                 @Override
-                public void onError(javax.websocket.Session session, Throwable thr){
+                public void onError(javax.websocket.Session session, Throwable thr) {
                     thr.printStackTrace();
                 }
             }, cec, getURI(CloseClientEndpoint.class.getAnnotation(ServerEndpoint.class).value()));

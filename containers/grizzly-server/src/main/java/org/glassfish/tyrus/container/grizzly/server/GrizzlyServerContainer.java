@@ -55,16 +55,28 @@ import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.grizzly.strategies.WorkerThreadIOStrategy;
 
 /**
+ * Grizzly implementation of {@link ServerContainerFactory} and {@link ServerContainer}.
+ *
  * @author Danny Coward (danny.coward at oracle.com)
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 public class GrizzlyServerContainer extends ServerContainerFactory {
 
     @Override
-    public ServerContainer createContainer(final Map<String, Object> config) {
+    public ServerContainer createContainer(final Map<String, Object> properties) {
+
+        final Object o = (properties == null ? null : properties.get(TyrusWebSocketEngine.INCOMING_BUFFER_SIZE));
+
+        final Integer incommingBufferSize;
+        if (o instanceof Integer) {
+            incommingBufferSize = (Integer) o;
+        } else {
+            incommingBufferSize = null;
+        }
 
         return new TyrusServerContainer(null) {
 
-            private final WebSocketEngine engine = new TyrusWebSocketEngine(this);
+            private final WebSocketEngine engine = new TyrusWebSocketEngine(this, incommingBufferSize);
 
             private HttpServer server;
             private String contextPath;
