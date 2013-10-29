@@ -376,7 +376,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
         } else {
             final ErrorCollector collector = new ErrorCollector();
 
-            final AnnotatedEndpoint endpoint = AnnotatedEndpoint.fromClass(endpointClass, componentProviderService, true, collector);
+            final AnnotatedEndpoint endpoint = AnnotatedEndpoint.fromClass(serverConfig.getEndpointClass(), componentProviderService, true, collector);
             final EndpointConfig config = endpoint.getEndpointConfig();
 
             ew = new TyrusEndpointWrapper(endpoint, config, componentProviderService, webSocketContainer,
