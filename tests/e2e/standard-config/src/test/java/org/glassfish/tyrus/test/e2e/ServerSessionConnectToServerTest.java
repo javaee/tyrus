@@ -130,8 +130,9 @@ public class ServerSessionConnectToServerTest extends TestContainer {
                             public void onMessage(String message) {
                                 System.out.println("### Server endpoint received: " + message);
 
-                                assertEquals("Yo Dawg, I heard you like clients, so we put client into server so you can connectToServer while you connectToServer.", message);
-                                messageLatch.countDown();
+                                if (message.equals("Yo Dawg, I heard you like clients, so we put client into server so you can connectToServer while you connectToServer.")) {
+                                    messageLatch.countDown();
+                                }
                             }
                         });
                         session.getBasicRemote().sendText("Yo Dawg, I heard you like clients, so we put client into server so you can connectToServer while you connectToServer.");
@@ -143,8 +144,11 @@ public class ServerSessionConnectToServerTest extends TestContainer {
 
             }, cec, URI.create(message));
 
-            assertTrue(messageLatch.await(3, TimeUnit.SECONDS));
-            return message;
+            if (messageLatch.await(3, TimeUnit.SECONDS)) {
+                return message;
+            } else {
+                return null;
+            }
         }
     }
 
