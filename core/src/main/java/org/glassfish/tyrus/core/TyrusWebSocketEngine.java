@@ -368,7 +368,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
             if (endpointClass.equals(Endpoint.class)) {
                 isEndpointClass = true;
             }
-        } while (endpointClass != null && !endpointClass.equals(Object.class));
+        } while (!endpointClass.equals(Object.class));
 
         if (isEndpointClass) {
             ew = new TyrusEndpointWrapper(serverConfig.getEndpointClass(),
