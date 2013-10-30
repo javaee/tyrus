@@ -40,7 +40,8 @@
 
 -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <parent>
         <groupId>org.glassfish.tyrus.bundles</groupId>
         <artifactId>tyrus-bundles</artifactId>
@@ -56,12 +57,6 @@
         <dependency>
             <groupId>org.glassfish.tyrus</groupId>
             <artifactId>tyrus-client</artifactId>
-            <exclusions>
-                <exclusion>
-                    <groupId>javax.websocket</groupId>
-                    <artifactId>javax.websocket-api</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>org.glassfish.tyrus</groupId>
@@ -105,6 +100,123 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>unpack</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>unpack</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>javax.websocket</groupId>
+                                    <artifactId>javax.websocket-api</artifactId>
+                                    <classifier>sources</classifier>
+                                    <overWrite>false</overWrite>
+                                    <outputDirectory>${gen-src-dir}</outputDirectory>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>org.glassfish.tyrus</groupId>
+                                    <artifactId>tyrus-core</artifactId>
+                                    <version>${project.version}</version>
+                                    <classifier>sources</classifier>
+                                    <overWrite>false</overWrite>
+                                    <outputDirectory>${gen-src-dir}</outputDirectory>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>org.glassfish.tyrus</groupId>
+                                    <artifactId>tyrus-client</artifactId>
+                                    <version>${project.version}</version>
+                                    <classifier>sources</classifier>
+                                    <overWrite>false</overWrite>
+                                    <outputDirectory>${gen-src-dir}</outputDirectory>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>org.glassfish.tyrus</groupId>
+                                    <artifactId>tyrus-container-grizzly-client</artifactId>
+                                    <version>${project.version}</version>
+                                    <classifier>sources</classifier>
+                                    <overWrite>false</overWrite>
+                                    <outputDirectory>${gen-src-dir}</outputDirectory>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>org.glassfish.tyrus</groupId>
+                                    <artifactId>tyrus-spi</artifactId>
+                                    <version>${project.version}</version>
+                                    <classifier>sources</classifier>
+                                    <overWrite>false</overWrite>
+                                    <outputDirectory>${gen-src-dir}</outputDirectory>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>org.glassfish.grizzly</groupId>
+                                    <artifactId>grizzly-framework</artifactId>
+                                    <version>${grizzly.version}</version>
+                                    <classifier>sources</classifier>
+                                    <overWrite>false</overWrite>
+                                    <outputDirectory>${gen-src-dir}</outputDirectory>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>org.glassfish.grizzly</groupId>
+                                    <artifactId>grizzly-http-server</artifactId>
+                                    <version>${grizzly.version}</version>
+                                    <classifier>sources</classifier>
+                                    <overWrite>false</overWrite>
+                                    <outputDirectory>${gen-src-dir}</outputDirectory>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>org.glassfish.grizzly</groupId>
+                                    <artifactId>grizzly-http</artifactId>
+                                    <version>${grizzly.version}</version>
+                                    <classifier>sources</classifier>
+                                    <overWrite>false</overWrite>
+                                    <outputDirectory>${gen-src-dir}</outputDirectory>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>add-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>${gen-src-dir}</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.9</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <excludePackageNames>*.tests.*,*.sample.*</excludePackageNames>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
+
+    <properties>
+        <gen-src-dir>${project.build.directory}/client-bundle-sources</gen-src-dir>
+    </properties>
 </project>
