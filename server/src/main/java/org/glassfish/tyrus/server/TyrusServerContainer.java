@@ -168,15 +168,15 @@ public abstract class TyrusServerContainer extends BaseContainer implements Serv
         }
     }
 
-    private synchronized ClientManager getClientManager() {
+    /**
+     * Can be overridden to provide own {@link ClientManager} implementation or instance.
+     *
+     * @return {@link ClientManager} associated with this server container.
+     */
+    protected synchronized ClientManager getClientManager() {
         if (clientManager == null) {
-            clientManager = new ClientManager();
+            clientManager = ClientManager.createClient(this);
         }
-
-        clientManager.setAsyncSendTimeout(defaultAsyncSendTimeout);
-        clientManager.setDefaultMaxSessionIdleTimeout(defaultMaxSessionIdleTimeout);
-        clientManager.setDefaultMaxSessionIdleTimeout(maxBinaryMessageBufferSize);
-        clientManager.setDefaultMaxTextMessageBufferSize(maxTextMessageBufferSize);
 
         return clientManager;
     }

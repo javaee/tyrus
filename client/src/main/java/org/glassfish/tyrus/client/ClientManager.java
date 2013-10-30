@@ -89,6 +89,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
      */
     private static final String CONTAINER_PROVIDER_CLASSNAME = "org.glassfish.tyrus.container.grizzly.client.GrizzlyClientContainer";
     private static final Logger LOGGER = Logger.getLogger(ClientManager.class.getName());
+    private final WebSocketContainer webSocketContainer;
     private final ClientContainer container;
     private final ComponentProviderService componentProvider;
     private final Map<String, Object> properties = new HashMap<String, Object>();
@@ -111,12 +112,34 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
     }
 
     /**
+     * Create new ClientManager instance on top of provided {@link WebSocketContainer} instance.
+     * <p/>
+     * Uses {@link ClientManager#CONTAINER_PROVIDER_CLASSNAME} as container implementation, thus relevant module needs to
+     * be on classpath. Setting different container is possible via {@link ClientManager#createClient(String)}.
+     *
+     * @see ClientManager#createClient(String)
+     */
+    public static ClientManager createClient(WebSocketContainer webSocketContainer) {
+        return createClient(CONTAINER_PROVIDER_CLASSNAME, webSocketContainer);
+    }
+
+
+    /**
      * Create new ClientManager instance.
      *
      * @return new ClientManager instance.
      */
     public static ClientManager createClient(String containerProviderClassName) {
-        return new ClientManager(containerProviderClassName);
+        return new ClientManager(containerProviderClassName, null);
+    }
+
+    /**
+     * Create new ClientManager instance on top of provided {@link WebSocketContainer} instance.
+     *
+     * @return new ClientManager instance.
+     */
+    public static ClientManager createClient(String containerProviderClassName, WebSocketContainer webSocketContainer) {
+        return new ClientManager(containerProviderClassName, webSocketContainer);
     }
 
     /**
@@ -128,10 +151,10 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
      * @see ClientManager#createClient(String)
      */
     public ClientManager() {
-        this(CONTAINER_PROVIDER_CLASSNAME);
+        this(CONTAINER_PROVIDER_CLASSNAME, null);
     }
 
-    private ClientManager(String containerProviderClassName) {
+    private ClientManager(String containerProviderClassName, WebSocketContainer webSocketContainer) {
         final ErrorCollector collector = new ErrorCollector();
         componentProvider = ComponentProviderService.create();
         Class engineProviderClazz;
@@ -146,6 +169,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
         if (!collector.isEmpty()) {
             throw new RuntimeException(collector.composeComprehensiveException());
         }
+        this.webSocketContainer = webSocketContainer;
     }
 
     @Override
@@ -352,7 +376,8 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                     final ClientEndpointConfig finalConfig = config;
 
                     if (endpoint != null) {
-                        TyrusEndpointWrapper clientEndpoint = new TyrusEndpointWrapper(endpoint, config, componentProvider, ClientManager.this, url, null);
+                        TyrusEndpointWrapper clientEndpoint = new TyrusEndpointWrapper(endpoint, config, componentProvider,
+                                webSocketContainer == null ? ClientManager.this : webSocketContainer, url, null);
 
                         // fail fast when there is some issue with client endpoint.
                         if (!collector.isEmpty()) {
@@ -420,47 +445,85 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
 
     @Override
     public int getDefaultMaxBinaryMessageBufferSize() {
-        return maxBinaryMessageBufferSize;
+        if (webSocketContainer == null) {
+            return maxBinaryMessageBufferSize;
+        } else {
+            return webSocketContainer.getDefaultMaxBinaryMessageBufferSize();
+        }
     }
 
     @Override
     public void setDefaultMaxBinaryMessageBufferSize(int i) {
-        maxBinaryMessageBufferSize = i;
+        if (webSocketContainer == null) {
+            maxBinaryMessageBufferSize = i;
+        } else {
+            webSocketContainer.setDefaultMaxBinaryMessageBufferSize(i);
+        }
     }
 
     @Override
     public int getDefaultMaxTextMessageBufferSize() {
-        return maxTextMessageBufferSize;
+        if (webSocketContainer == null) {
+            return maxTextMessageBufferSize;
+        } else {
+            return webSocketContainer.getDefaultMaxTextMessageBufferSize();
+        }
+
     }
 
     @Override
     public void setDefaultMaxTextMessageBufferSize(int i) {
-        maxTextMessageBufferSize = i;
+        if (webSocketContainer == null) {
+            maxTextMessageBufferSize = i;
+        } else {
+            webSocketContainer.setDefaultMaxTextMessageBufferSize(i);
+        }
     }
 
     @Override
     public Set<Extension> getInstalledExtensions() {
-        return Collections.emptySet();
+        if (webSocketContainer == null) {
+            // TODO
+            return Collections.emptySet();
+        } else {
+            return webSocketContainer.getInstalledExtensions();
+        }
     }
 
     @Override
     public long getDefaultAsyncSendTimeout() {
-        return defaultAsyncSendTimeout;
+        if (webSocketContainer == null) {
+            return defaultAsyncSendTimeout;
+        } else {
+            return webSocketContainer.getDefaultAsyncSendTimeout();
+        }
     }
 
     @Override
     public void setAsyncSendTimeout(long timeoutmillis) {
-        this.defaultAsyncSendTimeout = timeoutmillis;
+        if (webSocketContainer == null) {
+            defaultAsyncSendTimeout = timeoutmillis;
+        } else {
+            webSocketContainer.setAsyncSendTimeout(timeoutmillis);
+        }
     }
 
     @Override
     public long getDefaultMaxSessionIdleTimeout() {
-        return defaultMaxSessionIdleTimeout;
+        if (webSocketContainer == null) {
+            return defaultMaxSessionIdleTimeout;
+        } else {
+            return webSocketContainer.getDefaultMaxSessionIdleTimeout();
+        }
     }
 
     @Override
     public void setDefaultMaxSessionIdleTimeout(long defaultMaxSessionIdleTimeout) {
-        this.defaultMaxSessionIdleTimeout = defaultMaxSessionIdleTimeout;
+        if (webSocketContainer == null) {
+            this.defaultMaxSessionIdleTimeout = defaultMaxSessionIdleTimeout;
+        } else {
+            webSocketContainer.setDefaultMaxSessionIdleTimeout(defaultMaxSessionIdleTimeout);
+        }
     }
 
     public Map<String, Object> getProperties() {

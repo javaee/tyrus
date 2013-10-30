@@ -51,6 +51,7 @@ import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
 import javax.websocket.OnMessage;
 import javax.websocket.Session;
+import javax.websocket.WebSocketContainer;
 import javax.websocket.server.ServerEndpoint;
 
 import org.glassfish.tyrus.client.ClientManager;
@@ -118,19 +119,20 @@ public class ServerSessionConnectToServerTest extends TestContainer {
         public String onMessage(String message, Session session) throws IOException, DeploymentException, InterruptedException {
 
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
+            final WebSocketContainer serverWebSocketContainer = session.getContainer();
 
-            session.getContainer().connectToServer(new Endpoint() {
-
+            serverWebSocketContainer.connectToServer(new Endpoint() {
 
                 @Override
-                public void onOpen(Session session, EndpointConfig config) {
+                public void onOpen(final Session session, EndpointConfig config) {
                     try {
                         session.addMessageHandler(new MessageHandler.Whole<String>() {
                             @Override
                             public void onMessage(String message) {
                                 System.out.println("### Server endpoint received: " + message);
 
-                                if (message.equals("Yo Dawg, I heard you like clients, so we put client into server so you can connectToServer while you connectToServer.")) {
+                                if (message.equals("Yo Dawg, I heard you like clients, so we put client into server so you can connectToServer while you connectToServer.")
+                                        && (serverWebSocketContainer.equals(session.getContainer()))) {
                                     messageLatch.countDown();
                                 }
                             }
