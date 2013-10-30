@@ -44,7 +44,7 @@
     <parent>
         <groupId>org.glassfish.tyrus.ext</groupId>
         <artifactId>tyrus-extensions-project</artifactId>
-        <version>1.3</version>
+        <version>1.4-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
