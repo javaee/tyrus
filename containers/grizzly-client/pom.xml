@@ -81,7 +81,7 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
-                        <Export-Package>org.glassfish.tyrus.container.grizzly.server.*;version=${project.version}</Export-Package>
+                        <Export-Package>org.glassfish.tyrus.container.grizzly.client.*;version=${project.version}</Export-Package>
                     </instructions>
                     <unpackBundle>true</unpackBundle>
                 </configuration>
