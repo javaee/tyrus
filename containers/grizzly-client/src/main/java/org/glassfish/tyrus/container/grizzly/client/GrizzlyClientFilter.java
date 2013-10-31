@@ -236,28 +236,6 @@ class GrizzlyClientFilter extends BaseFilter {
 
         // client
         if (tyrusConnection != null) {
-            final HttpStatus httpStatus = ((HttpResponsePacket) message.getHttpHeader()).getHttpStatus();
-
-            if (httpStatus != HttpStatus.SWITCHING_PROTOCOLS_101) {
-                if (proxy) {
-                    if (httpStatus == HttpStatus.OK_200) {
-
-                        // TYRUS-221: Proxy handshake is complete, we need to enable SSL layer for secure ("wss")
-                        // connections now.
-                        if (sslFilter != null) {
-                            ((GrizzlyClientSocket.FilterWrapper) sslFilter).enable();
-                        }
-
-                        ctx.write(getHttpContent(webSocketRequest));
-                    } else {
-                        throw new HandshakeException(String.format("Proxy error. %s: %s", httpStatus.getStatusCode(),
-                                new String(httpStatus.getReasonPhraseBytes(), "UTF-8")));
-                    }
-
-                    return ctx.getInvokeAction();
-                }
-            }
-
             // this is websocket with completed handshake
             if (message.getContent().hasRemaining()) {
 
@@ -275,6 +253,29 @@ class GrizzlyClientFilter extends BaseFilter {
         }
 
         // tyrusConnection == null
+
+        // proxy
+        final HttpStatus httpStatus = ((HttpResponsePacket) message.getHttpHeader()).getHttpStatus();
+
+        if (httpStatus.getStatusCode() != 101) {
+            if (proxy) {
+                if (httpStatus == HttpStatus.OK_200) {
+
+                    // TYRUS-221: Proxy handshake is complete, we need to enable SSL layer for secure ("wss")
+                    // connections now.
+                    if (sslFilter != null) {
+                        ((GrizzlyClientSocket.FilterWrapper) sslFilter).enable();
+                    }
+
+                    ctx.write(getHttpContent(webSocketRequest));
+                } else {
+                    throw new HandshakeException(String.format("Proxy error. %s: %s", httpStatus.getStatusCode(),
+                            new String(httpStatus.getReasonPhraseBytes(), "UTF-8")));
+                }
+
+                return ctx.getInvokeAction();
+            }
+        }
 
         // If websocket is null - it means either non-websocket Connection
         if (!UpgradeRequest.WEBSOCKET.equalsIgnoreCase(header.getUpgrade()) && message.getHttpHeader().isRequest()) {
