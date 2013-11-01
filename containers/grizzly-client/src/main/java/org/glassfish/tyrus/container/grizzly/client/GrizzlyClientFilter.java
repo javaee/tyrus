@@ -43,10 +43,10 @@ package org.glassfish.tyrus.container.grizzly.client;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
-import java.util.Deque;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -110,7 +110,7 @@ class GrizzlyClientFilter extends BaseFilter {
     private final WebSocketEngine engine;
     private final WebSocketContainer webSocketContainer;
 
-    private final Deque<Task> taskDeque = new ConcurrentLinkedDeque<Task>();
+    private final Queue<Task> taskDeque = new ConcurrentLinkedQueue<Task>();
 
     private UpgradeRequest webSocketRequest;
 
@@ -201,7 +201,7 @@ class GrizzlyClientFilter extends BaseFilter {
 
         final org.glassfish.tyrus.spi.Connection connection = getConnection(ctx);
         if (connection != null) {
-            taskDeque.addLast(new CloseTask(connection, new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, null), ctx.getConnection()));
+            taskDeque.add(new CloseTask(connection, new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, null), ctx.getConnection()));
             processDeque(connection);
         }
         return ctx.getStopAction();
@@ -245,7 +245,7 @@ class GrizzlyClientFilter extends BaseFilter {
                 message.recycle();
                 final ReadHandler readHandler = tyrusConnection.getReadHandler();
 
-                taskDeque.addLast(new ProcessTask(webSocketBuffer, readHandler));
+                taskDeque.add(new ProcessTask(webSocketBuffer, readHandler));
 
                 processDeque(tyrusConnection);
             }
@@ -429,7 +429,7 @@ class GrizzlyClientFilter extends BaseFilter {
     protected void processDeque(final Object lock) {
         if (!taskDeque.isEmpty()) {
             do {
-                final Task first = taskDeque.pollFirst();
+                final Task first = taskDeque.poll();
                 if (first == null) {
                     continue;
                 }
@@ -461,18 +461,18 @@ class GrizzlyClientFilter extends BaseFilter {
     private class CloseTask extends Task {
         private final org.glassfish.tyrus.spi.Connection connection;
         private final CloseReason closeReason;
-        private final Connection grizllyConnection;
+        private final Connection grizzlyConnection;
 
         private CloseTask(org.glassfish.tyrus.spi.Connection connection, CloseReason closeReason, Connection grizzlyConnection) {
             this.connection = connection;
             this.closeReason = closeReason;
-            this.grizllyConnection = grizzlyConnection;
+            this.grizzlyConnection = grizzlyConnection;
         }
 
         @Override
         public void execute() {
             connection.close(closeReason);
-            TYRUS_CONNECTION.remove(grizllyConnection);
+            TYRUS_CONNECTION.remove(grizzlyConnection);
         }
     }
 }

@@ -54,9 +54,9 @@ import javax.websocket.OnMessage;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
-import org.glassfish.tyrus.test.tools.TestContainer;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
+import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -74,9 +74,8 @@ public class BinaryTest extends TestContainer {
     private static final byte[] BINARY_MESSAGE = new byte[]{1, 2, 3, 4};
     private static final String TEXT_MESSAGE = "Always pass on what you have learned.";
 
-
-    private ByteBuffer receivedMessageBuffer;
-    private byte[] receivedMessageArray;
+    private volatile ByteBuffer receivedMessageBuffer;
+    private volatile byte[] receivedMessageArray;
 
     private final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
@@ -188,16 +187,16 @@ public class BinaryTest extends TestContainer {
             client.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig EndpointConfig) {
+                    session.addMessageHandler(new MessageHandler.Whole<byte[]>() {
+                        @Override
+                        public void onMessage(byte[] data) {
+                            receivedMessageArray = data;
+                            messageLatch.countDown();
+                        }
+                    });
                     try {
                         ByteBuffer buffer = ByteBuffer.wrap(BINARY_MESSAGE);
                         session.getBasicRemote().sendBinary(buffer);
-                        session.addMessageHandler(new MessageHandler.Whole<byte[]>() {
-                            @Override
-                            public void onMessage(byte[] data) {
-                                receivedMessageArray = data;
-                                messageLatch.countDown();
-                            }
-                        });
                     } catch (IOException e) {
                         e.printStackTrace();
                     }

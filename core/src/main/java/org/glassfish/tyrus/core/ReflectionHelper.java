@@ -69,11 +69,11 @@ public class ReflectionHelper {
      */
     public static Class getDeclaringClass(AccessibleObject ao) {
         if (ao instanceof Method) {
-            return ((Method)ao).getDeclaringClass();
+            return ((Method) ao).getDeclaringClass();
         } else if (ao instanceof Field) {
-            return ((Field)ao).getDeclaringClass();
+            return ((Field) ao).getDeclaringClass();
         } else if (ao instanceof Constructor) {
-            return ((Constructor)ao).getDeclaringClass();
+            return ((Constructor) ao).getDeclaringClass();
         } else {
             throw new RuntimeException();
         }
@@ -81,7 +81,7 @@ public class ReflectionHelper {
 
     /**
      * Create a string representation of an object.
-     * <p>
+     * <p/>
      * Returns a string consisting of the name of the class of which the
      * object is an instance, the at-sign character '<code>@</code>', and
      * the unsigned hexadecimal representation of the hash code of the
@@ -107,7 +107,7 @@ public class ReflectionHelper {
     /**
      * Create a string representation of a method and an instance whose
      * class implements the method.
-     * <p>
+     * <p/>
      * Returns a string consisting of the name of the class of which the object
      * is an instance, the at-sign character '<code>@</code>',
      * the unsigned hexadecimal representation of the hash code of the
@@ -126,7 +126,7 @@ public class ReflectionHelper {
      * @return the string representation of the method and instance.
      */
     public static String methodInstanceToString(Object o, Method m) {
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         sb.append(o.getClass().getName()).
                 append('@').append(Integer.toHexString(o.hashCode())).
                 append('.').append(m.getName()).append('(');
@@ -144,7 +144,6 @@ public class ReflectionHelper {
     }
 
     /**
-     *
      * @param type
      * @return
      */
@@ -170,7 +169,7 @@ public class ReflectionHelper {
 
     /**
      * Get the Class from the class name.
-     * <p>
+     * <p/>
      * The context class loader will be utilized if accessible and non-null.
      * Otherwise the defining class loader of this class will
      * be utilized.
@@ -186,8 +185,8 @@ public class ReflectionHelper {
      * Get the Class from the class name.
      *
      * @param name the class name.
-     * @param cl the class loader to use, if null then the defining class loader
-     * of this class will be utilized.
+     * @param cl   the class loader to use, if null then the defining class loader
+     *             of this class will be utilized.
      * @return the Class, otherwise null if the class cannot be found.
      */
     public static Class classForName(String name, ClassLoader cl) {
@@ -207,7 +206,7 @@ public class ReflectionHelper {
 
     /**
      * Get the Class from the class name.
-     * <p>
+     * <p/>
      * The context class loader will be utilized if accessible and non-null.
      * Otherwise the defining class loader of this class will
      * be utilized.
@@ -225,8 +224,8 @@ public class ReflectionHelper {
      * Get the Class from the class name.
      *
      * @param name the class name.
-     * @param cl the class loader to use, if null then the defining class loader
-     * of this class will be utilized.
+     * @param cl   the class loader to use, if null then the defining class loader
+     *             of this class will be utilized.
      * @return the Class, otherwise null if the class cannot be found.
      * @throws ClassNotFoundException if the class cannot be found.
      */
@@ -284,9 +283,10 @@ public class ReflectionHelper {
 
     /**
      * Get the class that is the type argument of a parameterized type.
-     * <p>
+     * <p/>
+     *
      * @param parameterizedType must be an instance of ParameterizedType
-     *        and have exactly one type argument.
+     *                          and have exactly one type argument.
      * @return the class of the actual type argument. If the type argument
      *         is a class then the class is returned. If the type argument
      *         is a generic array type and the generic component type is a
@@ -296,9 +296,9 @@ public class ReflectionHelper {
      *         If the parameterizedType is not an instance of ParameterizedType
      *         or contains more than one type argument null is returned.
      * @throws IllegalArgumentException if the single type argument is not of
-     *         a class, or a generic array type, or the generic component type
-     *         of the generic array type is not class, or not a parameterized
-     *         type with a raw type that is not a class.
+     *                                  a class, or a generic array type, or the generic component type
+     *                                  of the generic array type is not class, or not a parameterized
+     *                                  type with a raw type that is not a class.
      */
     public static Class getGenericClass(Type parameterizedType) throws Exception {
         final Type t = getTypeArgumentOfParameterizedType(parameterizedType);
@@ -338,7 +338,7 @@ public class ReflectionHelper {
     private static Type getTypeArgumentOfParameterizedType(Type parameterizedType) {
         if (!(parameterizedType instanceof ParameterizedType)) return null;
 
-        ParameterizedType type = (ParameterizedType)parameterizedType;
+        ParameterizedType type = (ParameterizedType) parameterizedType;
         Type[] genericTypes = type.getActualTypeArguments();
         if (genericTypes.length != 1) return null;
 
@@ -347,18 +347,18 @@ public class ReflectionHelper {
 
     private static Class getClassOfType(Type type) {
         if (type instanceof Class) {
-            return (Class)type;
+            return (Class) type;
         } else if (type instanceof GenericArrayType) {
-            GenericArrayType arrayType = (GenericArrayType)type;
+            GenericArrayType arrayType = (GenericArrayType) type;
             Type t = arrayType.getGenericComponentType();
             if (t instanceof Class) {
-                return getArrayClass((Class)t);
+                return getArrayClass((Class) t);
             }
         } else if (type instanceof ParameterizedType) {
-            ParameterizedType subType = (ParameterizedType)type;
+            ParameterizedType subType = (ParameterizedType) type;
             Type t = subType.getRawType();
             if (t instanceof Class) {
-                return (Class)t;
+                return (Class) t;
             }
         }
         return null;
@@ -461,20 +461,22 @@ public class ReflectionHelper {
      */
     public static Class[] getParameterizedClassArguments(DeclaringClassInterfacePair p) {
         if (p.genericInterface instanceof ParameterizedType) {
-            ParameterizedType pt = (ParameterizedType)p.genericInterface;
+            ParameterizedType pt = (ParameterizedType) p.genericInterface;
             Type[] as = pt.getActualTypeArguments();
             Class[] cas = new Class[as.length];
 
             for (int i = 0; i < as.length; i++) {
                 Type a = as[i];
                 if (a instanceof Class) {
-                    cas[i] = (Class)a;
+                    cas[i] = (Class) a;
                 } else if (a instanceof ParameterizedType) {
-                    pt = (ParameterizedType)a;
-                    cas[i] = (Class)pt.getRawType();
+                    pt = (ParameterizedType) a;
+                    cas[i] = (Class) pt.getRawType();
                 } else if (a instanceof TypeVariable) {
-                    ClassTypePair ctp = resolveTypeVariable(p.concreteClass, p.declaringClass, (TypeVariable)a);
+                    ClassTypePair ctp = resolveTypeVariable(p.concreteClass, p.declaringClass, (TypeVariable) a);
                     cas[i] = (ctp != null) ? ctp.c : Object.class;
+                } else if (a instanceof GenericArrayType) {
+                    cas[i] = getClassOfType(a);
                 }
             }
             return cas;
@@ -493,7 +495,7 @@ public class ReflectionHelper {
      */
     public static Type[] getParameterizedTypeArguments(DeclaringClassInterfacePair p) {
         if (p.genericInterface instanceof ParameterizedType) {
-            ParameterizedType pt = (ParameterizedType)p.genericInterface;
+            ParameterizedType pt = (ParameterizedType) p.genericInterface;
             Type[] as = pt.getActualTypeArguments();
             Type[] ras = new Type[as.length];
 
@@ -502,10 +504,10 @@ public class ReflectionHelper {
                 if (a instanceof Class) {
                     ras[i] = a;
                 } else if (a instanceof ParameterizedType) {
-                    pt = (ParameterizedType)a;
+                    pt = (ParameterizedType) a;
                     ras[i] = a;
                 } else if (a instanceof TypeVariable) {
-                    ClassTypePair ctp = resolveTypeVariable(p.concreteClass, p.declaringClass, (TypeVariable)a);
+                    ClassTypePair ctp = resolveTypeVariable(p.concreteClass, p.declaringClass, (TypeVariable) a);
                     ras[i] = ctp.t;
                 }
             }
@@ -519,8 +521,8 @@ public class ReflectionHelper {
      * Find the declaring class that implements or extends an interface.
      *
      * @param concrete the concrete class than directly or indirectly
-     *        implements or extends an interface class.
-     * @param iface the interface class.
+     *                 implements or extends an interface class.
+     * @param iface    the interface class.
      * @return the tuple of the declaring class and the generic interface
      *         type.
      */
@@ -555,14 +557,14 @@ public class ReflectionHelper {
             if (t == iface) {
                 return new DeclaringClassInterfacePair(concrete, c, t);
             } else {
-                return getClass(concrete, iface, (Class)t);
+                return getClass(concrete, iface, (Class) t);
             }
         } else if (t instanceof ParameterizedType) {
-            ParameterizedType pt = (ParameterizedType)t;
+            ParameterizedType pt = (ParameterizedType) t;
             if (pt.getRawType() == iface) {
                 return new DeclaringClassInterfacePair(concrete, c, t);
             } else {
-                return getClass(concrete, iface, (Class)pt.getRawType());
+                return getClass(concrete, iface, (Class) pt.getRawType());
             }
         }
         return null;
@@ -595,7 +597,7 @@ public class ReflectionHelper {
     /**
      * Given a type variable resolve the Java class of that variable.
      *
-     * @param c the concrete class from which all type variables are resolved
+     * @param c  the concrete class from which all type variables are resolved
      * @param dc the declaring class where the type variable was defined
      * @param tv the type variable
      * @return the resolved Java class and type, otherwise null if the type variable
@@ -611,8 +613,8 @@ public class ReflectionHelper {
         for (Type gi : gis) {
             if (gi instanceof ParameterizedType) {
                 // process pt of interface
-                ParameterizedType pt = (ParameterizedType)gi;
-                ClassTypePair ctp = resolveTypeVariable(pt, (Class)pt.getRawType(), dc, tv, map);
+                ParameterizedType pt = (ParameterizedType) gi;
+                ClassTypePair ctp = resolveTypeVariable(pt, (Class) pt.getRawType(), dc, tv, map);
                 if (ctp != null)
                     return ctp;
             }
@@ -621,7 +623,7 @@ public class ReflectionHelper {
         Type gsc = c.getGenericSuperclass();
         if (gsc instanceof ParameterizedType) {
             // process pt of class
-            ParameterizedType pt = (ParameterizedType)gsc;
+            ParameterizedType pt = (ParameterizedType) gsc;
             return resolveTypeVariable(pt, c.getSuperclass(), dc, tv, map);
         } else if (gsc instanceof Class) {
             return resolveTypeVariable(c.getSuperclass(), dc, tv, map);
@@ -649,11 +651,11 @@ public class ReflectionHelper {
         if (c == dc) {
             Type t = submap.get(tv);
             if (t instanceof Class) {
-                return new ClassTypePair((Class)t);
+                return new ClassTypePair((Class) t);
             } else if (t instanceof GenericArrayType) {
-                t = ((GenericArrayType)t).getGenericComponentType();
+                t = ((GenericArrayType) t).getGenericComponentType();
                 if (t instanceof Class) {
-                    c = (Class)t;
+                    c = (Class) t;
                     try {
                         return new ClassTypePair(getArrayClass(c));
                     } catch (Exception e) {
@@ -675,9 +677,9 @@ public class ReflectionHelper {
                     return null;
                 }
             } else if (t instanceof ParameterizedType) {
-                pt = (ParameterizedType)t;
+                pt = (ParameterizedType) t;
                 if (pt.getRawType() instanceof Class) {
-                    return new ClassTypePair((Class)pt.getRawType(), pt);
+                    return new ClassTypePair((Class) pt.getRawType(), pt);
                 } else
                     return null;
             } else {
@@ -690,11 +692,11 @@ public class ReflectionHelper {
 
     /**
      * Find a method on a class given an existing method.
-     * <p>
+     * <p/>
      * If there exists a public method on the class that has the same name
      * and parameters as the existing method then that public method is
      * returned.
-     * <p>
+     * <p/>
      * Otherwise, if there exists a public method on the class that has
      * the same name and the same number of parameters as the existing method,
      * and each generic parameter type, in order, of the public method is equal
@@ -738,15 +740,15 @@ public class ReflectionHelper {
      * Find a type of the class given it's Superclass.
      *
      * @param inspectedClass Class whose type is searched for.
-     * @param superClass Class relatively to which the search is performed.
+     * @param superClass     Class relatively to which the search is performed.
      * @return
      */
     public static Class<?> getClassType(Class<?> inspectedClass, Class<?> superClass) {
         ReflectionHelper.DeclaringClassInterfacePair p = ReflectionHelper.getClass(inspectedClass, superClass);
         Class[] as = ReflectionHelper.getParameterizedClassArguments(p);
-        if(as==null){
+        if (as == null) {
             return null;
-        }else{
+        } else {
             return as[0];
         }
     }
@@ -775,20 +777,20 @@ public class ReflectionHelper {
      * </p>
      * Exceptions are logged to {@link ErrorCollector}.
      *
-     * @param c {@link Class} whose instance is going to be created
+     * @param c         {@link Class} whose instance is going to be created
      * @param collector {@link ErrorCollector} which collects the {@link Exception}s.
-     * @param <T> type.
+     * @param <T>       type.
      * @return new instance of {@link Class}.
      */
-    public static <T> T getInstance(Class<T> c, ErrorCollector collector){
+    public static <T> T getInstance(Class<T> c, ErrorCollector collector) {
         T instance = null;
 
         try {
             instance = getInstance(c);
         } catch (InstantiationException e) {
-            collector.addException(new DeploymentException(String.format("Class %s couldn't be instantiated",c.getName()),e));
+            collector.addException(new DeploymentException(String.format("Class %s couldn't be instantiated", c.getName()), e));
         } catch (IllegalAccessException e) {
-            collector.addException(new DeploymentException(String.format("Class %s couldn't be instantiated",c.getName()),e));
+            collector.addException(new DeploymentException(String.format("Class %s couldn't be instantiated", c.getName()), e));
         }
 
         return instance;
@@ -797,7 +799,7 @@ public class ReflectionHelper {
     /**
      * Creates an instance of {@link Class} c using {@link Class#newInstance()}.
      *
-     * @param c {@link Class} whose instance is going to be created
+     * @param c   {@link Class} whose instance is going to be created
      * @param <T> type.
      * @return new instance of {@link Class}.
      */

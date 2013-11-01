@@ -43,10 +43,10 @@ package org.glassfish.tyrus.container.grizzly.server;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
-import java.util.Deque;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentLinkedDeque;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -103,7 +103,7 @@ class GrizzlyServerFilter extends BaseFilter {
 
     private final ServerContainer serverContainer;
 
-    private final Deque<Task> taskDeque = new ConcurrentLinkedDeque<Task>();
+    private final Queue<Task> taskDeque = new ConcurrentLinkedQueue<Task>();
 
     // ------------------------------------------------------------ Constructors
 
@@ -133,7 +133,7 @@ class GrizzlyServerFilter extends BaseFilter {
 
         final org.glassfish.tyrus.spi.Connection connection = getConnection(ctx);
         if (connection != null) {
-            taskDeque.addLast(new CloseTask(connection, new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, null), ctx.getConnection()));
+            taskDeque.add(new CloseTask(connection, new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, null), ctx.getConnection()));
             processDeque(connection);
         }
         return ctx.getStopAction();
@@ -198,13 +198,13 @@ class GrizzlyServerFilter extends BaseFilter {
             message.recycle();
             final ReadHandler readHandler = tyrusConnection.getReadHandler();
             if (!buffer.isComposite()) {
-                taskDeque.addLast(new ProcessTask(buffer.toByteBuffer(), readHandler));
+                taskDeque.add(new ProcessTask(buffer.toByteBuffer(), readHandler));
             } else {
                 final ByteBufferArray byteBufferArray = buffer.toByteBufferArray();
                 final ByteBuffer[] array = byteBufferArray.getArray();
 
                 for (int i = 0; i < byteBufferArray.size(); i++) {
-                    taskDeque.addLast(new ProcessTask(array[i], readHandler));
+                    taskDeque.add(new ProcessTask(array[i], readHandler));
                 }
 
                 byteBufferArray.recycle();
@@ -312,7 +312,7 @@ class GrizzlyServerFilter extends BaseFilter {
     protected void processDeque(final Object lock) {
         if (!taskDeque.isEmpty()) {
             do {
-                final Task first = taskDeque.pollFirst();
+                final Task first = taskDeque.poll();
                 if (first == null) {
                     continue;
                 }
