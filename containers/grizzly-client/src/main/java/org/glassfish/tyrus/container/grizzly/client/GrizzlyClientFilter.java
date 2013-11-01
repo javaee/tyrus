@@ -110,7 +110,7 @@ class GrizzlyClientFilter extends BaseFilter {
     private final WebSocketEngine engine;
     private final WebSocketContainer webSocketContainer;
 
-    private final Queue<Task> taskDeque = new ConcurrentLinkedQueue<Task>();
+    private final Queue<TaskProcessor.Task> taskQueue = new ConcurrentLinkedQueue<TaskProcessor.Task>();
 
     private UpgradeRequest webSocketRequest;
 
@@ -201,8 +201,8 @@ class GrizzlyClientFilter extends BaseFilter {
 
         final org.glassfish.tyrus.spi.Connection connection = getConnection(ctx);
         if (connection != null) {
-            taskDeque.add(new CloseTask(connection, new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, null), ctx.getConnection()));
-            processDeque(connection);
+            taskQueue.add(new CloseTask(connection, new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, null), ctx.getConnection()));
+            TaskProcessor.processQueue(taskQueue, null);
         }
         return ctx.getStopAction();
     }
@@ -245,9 +245,9 @@ class GrizzlyClientFilter extends BaseFilter {
                 message.recycle();
                 final ReadHandler readHandler = tyrusConnection.getReadHandler();
 
-                taskDeque.add(new ProcessTask(webSocketBuffer, readHandler));
+                taskQueue.add(new ProcessTask(webSocketBuffer, readHandler));
 
-                processDeque(tyrusConnection);
+                TaskProcessor.processQueue(taskQueue, null);
             }
             return ctx.getStopAction();
         }
@@ -426,24 +426,7 @@ class GrizzlyClientFilter extends BaseFilter {
         return new GrizzlyWriter(ctx.getConnection());
     }
 
-    protected void processDeque(final Object lock) {
-        if (!taskDeque.isEmpty()) {
-            do {
-                final Task first = taskDeque.poll();
-                if (first == null) {
-                    continue;
-                }
-
-                first.execute();
-            } while (!taskDeque.isEmpty());
-        }
-    }
-
-    abstract static class Task {
-        public abstract void execute();
-    }
-
-    private class ProcessTask extends Task {
+    private class ProcessTask extends TaskProcessor.Task {
         private final ByteBuffer buffer;
         private final ReadHandler readHandler;
 
@@ -458,7 +441,7 @@ class GrizzlyClientFilter extends BaseFilter {
         }
     }
 
-    private class CloseTask extends Task {
+    private class CloseTask extends TaskProcessor.Task {
         private final org.glassfish.tyrus.spi.Connection connection;
         private final CloseReason closeReason;
         private final Connection grizzlyConnection;

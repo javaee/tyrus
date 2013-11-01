@@ -40,18 +40,27 @@
 package org.glassfish.tyrus.container.grizzly.client;
 
 import java.nio.ByteBuffer;
+import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.glassfish.tyrus.spi.CompletionHandler;
 import org.glassfish.tyrus.spi.Writer;
+import static org.glassfish.tyrus.container.grizzly.client.TaskProcessor.Task;
 
 import org.glassfish.grizzly.Buffer;
+import org.glassfish.grizzly.Connection;
 import org.glassfish.grizzly.EmptyCompletionHandler;
+import org.glassfish.grizzly.WriteHandler;
 import org.glassfish.grizzly.memory.Buffers;
 
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 public class GrizzlyWriter extends Writer {
+
+    private final Queue<Task> taskQueue = new ConcurrentLinkedQueue<Task>();
 
     private final org.glassfish.grizzly.Connection connection;
 
@@ -92,13 +101,51 @@ public class GrizzlyWriter extends Writer {
             }
         };
 
-        //noinspection unchecked
-        connection.write(message, emptyCompletionHandler);
+        taskQueue.add(new WriteTask(connection, message, emptyCompletionHandler));
+        TaskProcessor.processQueue(taskQueue, new WriterCondition(connection, taskQueue));
+    }
+
+    private static class WriterCondition implements TaskProcessor.Condition {
+
+        private final Connection connection;
+        private final Queue<Task> taskQueue;
+
+        private WriterCondition(Connection connection, Queue<Task> taskQueue) {
+            this.connection = connection;
+            this.taskQueue = taskQueue;
+        }
+
+        @Override
+        public boolean isValid() {
+            if (!connection.canWrite()) {
+                try {
+                    connection.notifyCanWrite(new WriteHandler() {
+                        @Override
+                        public void onWritePossible() throws Exception {
+                            TaskProcessor.processQueue(taskQueue, WriterCondition.this);
+                        }
+
+                        @Override
+                        public void onError(Throwable t) {
+                            Logger.getLogger(GrizzlyWriter.class.getName()).log(Level.WARNING, t.getMessage(), t);
+                            // TODO: do what?
+                        }
+                    });
+                } catch (IllegalStateException e) {
+                    // ignore - WriteHandler was already registered.
+                }
+
+                return false;
+            }
+
+            return true;
+        }
     }
 
     @Override
     public void close() {
-        connection.closeSilently();
+        taskQueue.add(new CloseTask(connection));
+        TaskProcessor.processQueue(taskQueue, null);
     }
 
     @Override
@@ -111,7 +158,39 @@ public class GrizzlyWriter extends Writer {
         return obj instanceof GrizzlyWriter && connection.equals(((GrizzlyWriter) obj).connection);
     }
 
+    @Override
     public String toString() {
         return this.getClass().getName() + " " + connection.toString() + " " + connection.hashCode();
+    }
+
+    private class WriteTask extends Task {
+        private final Connection connection;
+        private final Buffer message;
+        private final EmptyCompletionHandler completionHandler;
+
+        private WriteTask(Connection connection, Buffer message, EmptyCompletionHandler completionHandler) {
+            this.connection = connection;
+            this.message = message;
+            this.completionHandler = completionHandler;
+        }
+
+        @Override
+        public void execute() {
+            //noinspection unchecked
+            connection.write(message, completionHandler);
+        }
+    }
+
+    private class CloseTask extends Task {
+        private final Connection connection;
+
+        private CloseTask(Connection connection) {
+            this.connection = connection;
+        }
+
+        @Override
+        public void execute() {
+            connection.close();
+        }
     }
 }
