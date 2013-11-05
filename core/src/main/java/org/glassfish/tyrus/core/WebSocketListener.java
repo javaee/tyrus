@@ -42,6 +42,8 @@ package org.glassfish.tyrus.core;
 
 import javax.websocket.CloseReason;
 
+import org.glassfish.tyrus.spi.UpgradeRequest;
+
 /**
  * Interface to allow notification of events occurring on specific
  * {@link WebSocket} instances.
@@ -57,8 +59,8 @@ public interface WebSocketListener {
      * particular {@link WebSocket} instance.
      * <p/>
      *
-     * @param socket the {@link WebSocket} being closed.
-     * @param closeReason  the {@link CloseReason} sent by the remote end-point.
+     * @param socket      the {@link WebSocket} being closed.
+     * @param closeReason the {@link CloseReason} sent by the remote end-point.
      */
     void onClose(WebSocket socket, CloseReason closeReason);
 
@@ -68,9 +70,10 @@ public interface WebSocketListener {
      * {@link WebSocket} instance.
      * </p>
      *
-     * @param socket the newly connected {@link WebSocket}
+     * @param socket         the newly connected {@link WebSocket}
+     * @param upgradeRequest request associated with accepted connection.
      */
-    void onConnect(WebSocket socket);
+    void onConnect(WebSocket socket, UpgradeRequest upgradeRequest);
 
     /**
      * <p>

@@ -95,10 +95,11 @@ public abstract class WebSocketApplication implements WebSocketListener {
      * When a new {@link WebSocket} connection is made to this application, the
      * {@link WebSocket} will be associated with this application.
      *
-     * @param socket the new {@link WebSocket} connection.
+     * @param socket         the new {@link WebSocket} connection.
+     * @param upgradeRequest request associated with connection.
      */
     @Override
-    public void onConnect(WebSocket socket) {
+    public void onConnect(WebSocket socket, UpgradeRequest upgradeRequest) {
         add(socket);
     }
 

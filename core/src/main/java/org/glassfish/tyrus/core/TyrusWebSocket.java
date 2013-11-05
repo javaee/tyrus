@@ -53,6 +53,7 @@ import javax.websocket.SendHandler;
 
 import org.glassfish.tyrus.core.frame.PingFrame;
 import org.glassfish.tyrus.core.frame.PongFrame;
+import org.glassfish.tyrus.spi.UpgradeRequest;
 
 /**
  * Tyrus implementation of {@link WebSocket}.
@@ -122,11 +123,11 @@ public class TyrusWebSocket implements WebSocket {
     }
 
     @Override
-    public void onConnect() {
+    public void onConnect(UpgradeRequest upgradeRequest) {
         state.set(State.CONNECTED);
 
         for (WebSocketListener listener : listeners) {
-            listener.onConnect(this);
+            listener.onConnect(this, upgradeRequest);
         }
 
         onConnectLatch.countDown();

@@ -113,8 +113,8 @@ public class TyrusEndpoint extends WebSocketApplication {
     }
 
     @Override
-    public void onConnect(WebSocket socket) {
-        this.endpoint.onConnect(new TyrusRemoteEndpoint(socket), temporaryNegotiatedProtocol, temporaryNegotiatedExtensions);
+    public void onConnect(WebSocket socket, UpgradeRequest upgradeRequest) {
+        this.endpoint.onConnect(new TyrusRemoteEndpoint(socket), temporaryNegotiatedProtocol, temporaryNegotiatedExtensions, upgradeRequest);
     }
 
     @Override

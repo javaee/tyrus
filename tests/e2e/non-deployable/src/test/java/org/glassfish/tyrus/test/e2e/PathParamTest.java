@@ -41,7 +41,13 @@ package org.glassfish.tyrus.test.e2e;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -52,6 +58,7 @@ import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
 import javax.websocket.OnError;
 import javax.websocket.OnMessage;
+import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
@@ -64,6 +71,8 @@ import org.junit.Assert;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
@@ -82,10 +91,10 @@ public class PathParamTest extends TestContainer {
 
         @OnMessage
         public String doThat1(@PathParam("first") String first,
-                             @PathParam("second") String second,
-                             @PathParam("third") String third,
-                             @PathParam("fourth") String fourth,
-                             String message, Session peer) {
+                              @PathParam("second") String second,
+                              @PathParam("third") String third,
+                              @PathParam("fourth") String fourth,
+                              String message, Session peer) {
 
             if (first != null && second != null && third != null && fourth == null && message != null && peer != null) {
                 return message + first + second + third;
@@ -105,7 +114,7 @@ public class PathParamTest extends TestContainer {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
             ClientManager client = ClientManager.createClient();
-            client.connectToServer(new Endpoint(){
+            client.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig config) {
                     try {
@@ -138,8 +147,8 @@ public class PathParamTest extends TestContainer {
 
         @OnMessage
         public String onMessage(String message) {
-            if (message.equals("PathParamTestBeanError")){
-                if(PathParamTestBeanError.onErrorCalled.get() && PathParamTestBeanError.onErrorThrowable != null){
+            if (message.equals("PathParamTestBeanError")) {
+                if (PathParamTestBeanError.onErrorCalled.get() && PathParamTestBeanError.onErrorThrowable != null) {
                     return POSITIVE;
                 }
             }
@@ -156,8 +165,8 @@ public class PathParamTest extends TestContainer {
 
         @OnMessage
         public String doThat2(@PathParam("one") String one,
-                             @PathParam("two") Integer two,
-                             String message, Session peer) {
+                              @PathParam("two") Integer two,
+                              String message, Session peer) {
 
             assertNotNull(one);
             assertNotNull(two);
@@ -220,8 +229,8 @@ public class PathParamTest extends TestContainer {
 
         @OnMessage
         public String doThat3(@PathParam("first") String first,
-                             @PathParam("second") PathParamTest second,
-                             String message, Session peer) {
+                              @PathParam("second") PathParamTest second,
+                              String message, Session peer) {
 
             return message + first + second;
         }
@@ -248,14 +257,14 @@ public class PathParamTest extends TestContainer {
 
         @OnMessage
         public String doThat4(@PathParam("one") String one,
-                             @PathParam("second") Integer second,
-                             @PathParam("third") Boolean third,
-                             @PathParam("fourth") Long fourth,
-                             @PathParam("fifth") Float fifth,
-                             @PathParam("sixth") Double sixth,
-                             @PathParam("seventh") Character seventh,
-                             @PathParam("eighth") Byte eighth,
-                             String message, Session peer) {
+                              @PathParam("second") Integer second,
+                              @PathParam("third") Boolean third,
+                              @PathParam("fourth") Long fourth,
+                              @PathParam("fifth") Float fifth,
+                              @PathParam("sixth") Double sixth,
+                              @PathParam("seventh") Character seventh,
+                              @PathParam("eighth") Byte eighth,
+                              String message, Session peer) {
 
             if (one != null && second != null && third != null && fourth != null && fifth != null && sixth != null && seventh != null && eighth != null && message != null && peer != null) {
                 return message + one + second + third + fourth + fifth + sixth + seventh + eighth;
@@ -270,17 +279,17 @@ public class PathParamTest extends TestContainer {
 
         @OnMessage
         public String doThat5(@PathParam("first") String first,
-                             @PathParam("second") int second,
-                             @PathParam("third") boolean third,
-                             @PathParam("fourth") long fourth,
-                             @PathParam("fifth") float fifth,
-                             @PathParam("sixth") double sixth,
-                             @PathParam("seventh") char seventh,
-                             @PathParam("eighth") byte eighth,
-                             String message, Session peer) {
-            if(message != null && peer != null){
+                              @PathParam("second") int second,
+                              @PathParam("third") boolean third,
+                              @PathParam("fourth") long fourth,
+                              @PathParam("fifth") float fifth,
+                              @PathParam("sixth") double sixth,
+                              @PathParam("seventh") char seventh,
+                              @PathParam("eighth") byte eighth,
+                              String message, Session peer) {
+            if (message != null && peer != null) {
                 return message + first + second + third + fourth + fifth + sixth + seventh + eighth;
-            }else{
+            } else {
                 return "Error";
             }
         }
@@ -339,5 +348,69 @@ public class PathParamTest extends TestContainer {
         }
     }
 
+    @ServerEndpoint("/pathparam6/{param}")
+    public static class PathParamParalelTestEndpoint {
 
+        private String param;
+
+        @OnOpen
+        public void onOpen(Session session, @PathParam("param") String param) throws IOException {
+            this.param = param;
+
+            session.getBasicRemote().sendText(param);
+        }
+
+        @OnError
+        public void onError(Throwable t) {
+            t.printStackTrace();
+        }
+    }
+
+    @Test
+    public void testPathParamParalel() throws DeploymentException {
+        final int CLIENTS = 10;
+
+        Server server = startServer(PathParamParalelTestEndpoint.class);
+        List<Callable<Boolean>> clients = new ArrayList<Callable<Boolean>>();
+
+        for (int i = 0; i < CLIENTS; i++) {
+            final String param = Integer.toString(i);
+            clients.add(new Callable<Boolean>() {
+                @Override
+                public Boolean call() throws Exception {
+                    final ClientManager client = ClientManager.createClient();
+                    final CountDownLatch messageLatch = new CountDownLatch(1);
+                    client.connectToServer(new Endpoint() {
+                        @Override
+                        public void onOpen(Session session, EndpointConfig config) {
+                            session.addMessageHandler(new MessageHandler.Whole<String>() {
+                                @Override
+                                public void onMessage(String message) {
+                                    if (message.equals(param)) {
+                                        messageLatch.countDown();
+                                    }
+                                }
+                            });
+                        }
+                    }, getURI("/pathparam6/" + param));
+
+                    assertTrue(messageLatch.await(5, TimeUnit.SECONDS));
+                    return true;
+                }
+            });
+        }
+
+        try {
+            ExecutorService pool = Executors.newFixedThreadPool(CLIENTS);
+            List<Future<Boolean>> r = pool.invokeAll(clients);
+            for (Future<Boolean> future : r) {
+                future.get(5, TimeUnit.SECONDS);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            fail();
+        } finally {
+            stopServer(server);
+        }
+    }
 }

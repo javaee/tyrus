@@ -50,6 +50,7 @@ import javax.websocket.SendResult;
 import org.glassfish.tyrus.core.DataFrame;
 import org.glassfish.tyrus.core.WebSocket;
 import org.glassfish.tyrus.core.WebSocketListener;
+import org.glassfish.tyrus.spi.UpgradeRequest;
 
 import org.glassfish.grizzly.GrizzlyFuture;
 
@@ -129,7 +130,7 @@ class MockWebSocketClient implements WebSocket {
     }
 
     @Override
-    public void onConnect() {
+    public void onConnect(UpgradeRequest upgradeRequest) {
     }
 
     @Override

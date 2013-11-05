@@ -328,7 +328,7 @@ class GrizzlyClientFilter extends BaseFilter {
             final UpgradeResponse upgradeResponse = getWebSocketResponse((HttpResponsePacket) content.getHttpHeader());
             holder.handshake.validateServerResponse(upgradeResponse);
             holder.handshake.getResponseListener().onHandShakeResponse(upgradeResponse);
-            holder.webSocket.onConnect();
+            holder.webSocket.onConnect(null);
         } catch (HandshakeException e) {
             holder.handshake.getResponseListener().onError(e);
             content.getContent().clear();

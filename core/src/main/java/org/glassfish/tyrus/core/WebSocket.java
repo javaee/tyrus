@@ -46,6 +46,8 @@ import java.util.concurrent.Future;
 import javax.websocket.CloseReason;
 import javax.websocket.SendHandler;
 
+import org.glassfish.tyrus.spi.UpgradeRequest;
+
 /**
  * General WebSocket unit interface.
  *
@@ -163,8 +165,10 @@ public interface WebSocket {
     /**
      * This callback will be invoked when the opening handshake between both
      * endpoints has been completed.
+     *
+     * @param upgradeRequest request associated with this socket.
      */
-    void onConnect();
+    void onConnect(UpgradeRequest upgradeRequest);
 
     /**
      * This callback will be invoked when a text message has been received.

@@ -82,6 +82,7 @@ import org.glassfish.tyrus.core.frame.PongFrame;
 import org.glassfish.tyrus.spi.ClientContainer;
 import org.glassfish.tyrus.spi.ClientSocket;
 import org.glassfish.tyrus.spi.EndpointWrapper;
+import org.glassfish.tyrus.spi.UpgradeRequest;
 import org.glassfish.tyrus.spi.UpgradeResponse;
 import org.glassfish.tyrus.spi.WebSocketEngine;
 import org.glassfish.tyrus.spi.Writer;
@@ -464,9 +465,9 @@ public class GrizzlyClientSocket implements WebSocket, ClientSocket {
     }
 
     @Override
-    public void onConnect() {
+    public void onConnect(UpgradeRequest upgradeRequest) {
         state.set(State.CONNECTED);
-        endpoint.onConnect(remoteEndpoint, responseSubprotocol.get(0), responseExtensions);
+        endpoint.onConnect(remoteEndpoint, responseSubprotocol.get(0), responseExtensions, upgradeRequest);
         onConnectLatch.countDown();
     }
 

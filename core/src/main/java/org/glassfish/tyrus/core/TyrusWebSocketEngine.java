@@ -196,7 +196,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
                     return HANDSHAKE_FAILED_UPGRADE_INFO;
                 }
                 protocolHandler.handshake(app, request, response);
-                return new SuccessfulUpgradeInfo(app, protocolHandler, incomingBufferSize);
+                return new SuccessfulUpgradeInfo(app, protocolHandler, incomingBufferSize, request);
             }
         } catch (HandshakeException e) {
             LOGGER.log(Level.SEVERE, e.getMessage(), e);
@@ -459,11 +459,13 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
         private final WebSocketApplication app;
         private final ProtocolHandler protocolHandler;
         private final int incomingBufferSize;
+        private final UpgradeRequest upgradeRequest;
 
-        SuccessfulUpgradeInfo(WebSocketApplication app, ProtocolHandler protocolHandler, int incomingBufferSize) {
+        SuccessfulUpgradeInfo(WebSocketApplication app, ProtocolHandler protocolHandler, int incomingBufferSize, UpgradeRequest upgradeRequest) {
             this.app = app;
             this.protocolHandler = protocolHandler;
             this.incomingBufferSize = incomingBufferSize;
+            this.upgradeRequest = upgradeRequest;
         }
 
         @Override
@@ -473,7 +475,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
 
         @Override
         public Connection createConnection(Writer writer, Connection.CloseListener closeListener) {
-            return new TyrusConnection(app, protocolHandler, incomingBufferSize, writer, closeListener);
+            return new TyrusConnection(app, protocolHandler, incomingBufferSize, writer, closeListener, upgradeRequest);
         }
     }
 
@@ -484,12 +486,12 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
         private final CloseListener closeListener;
         private final WebSocket socket;
 
-        TyrusConnection(WebSocketApplication app, ProtocolHandler protocolHandler, int incomingBufferSize, Writer writer, Connection.CloseListener closeListener) {
+        TyrusConnection(WebSocketApplication app, ProtocolHandler protocolHandler, int incomingBufferSize, Writer writer, Connection.CloseListener closeListener, UpgradeRequest upgradeRequest) {
             protocolHandler.setWriter(writer);
             final WebSocket socket = app.createSocket(protocolHandler, app);
             final WebSocketHolder holder = new WebSocketHolder(protocolHandler, socket, null, app);
 
-            socket.onConnect();
+            socket.onConnect(upgradeRequest);
             this.socket = socket;
             this.readHandler = new TyrusReadHandler(holder, incomingBufferSize);
             this.writer = writer;

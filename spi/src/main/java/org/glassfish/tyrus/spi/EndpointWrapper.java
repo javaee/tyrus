@@ -77,9 +77,12 @@ public abstract class EndpointWrapper {
      * Called by the provider when the web socket connection
      * is established.
      *
-     * @param gs SPIRemoteEndpoint who has just connected to this web socket endpoint.
+     * @param gs             SPIRemoteEndpoint who has just connected to this web socket endpoint.
+     * @param subprotocol    TODO.
+     * @param extensions     TODO.
+     * @param upgradeRequest request associated with accepted connection.
      */
-    public abstract void onConnect(RemoteEndpoint gs, String subprotocol, List<Extension> extensions);
+    public abstract void onConnect(RemoteEndpoint gs, String subprotocol, List<Extension> extensions, UpgradeRequest upgradeRequest);
 
     /**
      * Called by the provider when the web socket connection

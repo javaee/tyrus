@@ -50,7 +50,6 @@ import java.io.StringWriter;
 import java.io.Writer;
 import java.net.URI;
 import java.nio.ByteBuffer;
-import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -114,14 +113,6 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
 
     final WebSocketContainer container;
 
-    // the following is set during the handshake
-    private String uri;
-    private Principal principal;
-    private final Map<String, String> templateValues = new HashMap<String, String>();
-    private boolean isSecure;
-    private String queryString;
-    private Map<String, List<String>> requestParameterMap;
-
     /**
      * Create {@link TyrusEndpointWrapper} for class that extends {@link Endpoint}.
      *
@@ -156,10 +147,6 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
         this.endpoint = endpoint;
         this.container = container;
         this.contextPath = contextPath;
-        // Uri is re-set in checkHandshake method; this value will be used only in scenarios
-        // when checkHandshake is not called, like using EndpointWrapper on the client side.
-        // this.uri is then used for creating SessionImpl and used as a return value in Session.getRequestURI() method.
-        this.uri = configuration instanceof ServerEndpointConfig ? ((ServerEndpointConfig) configuration).getPath() : contextPath;
         this.configurator = configurator;
         this.componentProvider = configurator == null ? componentProvider : new ComponentProviderService(componentProvider) {
             @Override
@@ -216,17 +203,6 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
     public boolean checkHandshake(UpgradeRequest hr) {
         if (!(configuration instanceof ServerEndpointConfig)) {
             return false;
-        }
-
-        uri = hr.getRequestUri();
-        queryString = hr.getQueryString();
-        isSecure = hr.isSecure();
-        principal = hr.getUserPrincipal();
-        requestParameterMap = hr.getParameterMap();
-
-        this.templateValues.clear();
-        for (Map.Entry<String, List<String>> entry : hr.getParameterMap().entrySet()) {
-            this.templateValues.put(entry.getKey(), entry.getValue().get(0));
         }
 
         if (configurator.checkOrigin(hr.getHeader("Origin"))) {
@@ -410,8 +386,8 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
     public Session createSessionForRemoteEndpoint(RemoteEndpoint re, String subprotocol, List<Extension> extensions) {
         synchronized (remoteEndpointToSession) {
             try {
-                final TyrusSession session = new TyrusSession(container, re, this, subprotocol, extensions, isSecure,
-                        getURI(uri, queryString), queryString, templateValues, principal, requestParameterMap);
+                final TyrusSession session = new TyrusSession(container, re, this, subprotocol, extensions, false,
+                        getURI(contextPath, null), null, Collections.<String, String>emptyMap(), null, Collections.<String, List<String>>emptyMap());
                 remoteEndpointToSession.put(re, session);
                 return session;
             } catch (Exception e) {
@@ -428,13 +404,20 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
     }
 
     @Override
-    public void onConnect(RemoteEndpoint gs, String subprotocol, List<Extension> extensions) {
+    public void onConnect(RemoteEndpoint gs, String subprotocol, List<Extension> extensions, UpgradeRequest upgradeRequest) {
         synchronized (remoteEndpointToSession) {
             TyrusSession session = remoteEndpointToSession.get(gs);
             if (session == null) {
+                final Map<String, String> templateValues = new HashMap<String, String>();
+
+                for (Map.Entry<String, List<String>> entry : upgradeRequest.getParameterMap().entrySet()) {
+                    templateValues.put(entry.getKey(), entry.getValue().get(0));
+                }
+
                 // create a new session
-                session = new TyrusSession(container, gs, this, subprotocol, extensions, isSecure,
-                        getURI(uri, queryString), queryString, templateValues, principal, requestParameterMap);
+                session = new TyrusSession(container, gs, this, subprotocol, extensions, upgradeRequest.isSecure(),
+                        getURI(upgradeRequest.getRequestURI().toString(), upgradeRequest.getQueryString()),
+                        upgradeRequest.getQueryString(), templateValues, upgradeRequest.getUserPrincipal(), upgradeRequest.getParameterMap());
                 remoteEndpointToSession.put(gs, session);
             }
             // Session was already created in WebSocketContainer#connectToServer call
@@ -875,7 +858,6 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
         sb.append("EndpointWrapper");
         sb.append("{endpointClass=").append(endpointClass);
         sb.append(", endpoint=").append(endpoint);
-        sb.append(", uri='").append(uri).append('\'');
         sb.append(", contextPath='").append(contextPath).append('\'');
         sb.append('}');
         return sb.toString();
