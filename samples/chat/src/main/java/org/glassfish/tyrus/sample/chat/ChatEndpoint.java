@@ -169,7 +169,7 @@ public class ChatEndpoint {
 
     private void broadcastUpdatedTranscript() {
         List transcriptEntry = new ArrayList();
-        transcriptEntry.add(this.chatTranscript.get(this.chatTranscript.size() - 1).toString());
+        transcriptEntry.add(this.chatTranscript.get(this.chatTranscript.size() - 1));
         logger.info("Broadcasting updated transcript with " + transcriptEntry);
 
         for (Session nextSession : connections.values()) {

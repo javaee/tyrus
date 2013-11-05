@@ -40,7 +40,7 @@
 
 package org.glassfish.tyrus.core;
 
-abstract class FramingException extends WebSocketException {
+public abstract class FramingException extends WebSocketException {
 
     FramingException(String s) {
         super(s);

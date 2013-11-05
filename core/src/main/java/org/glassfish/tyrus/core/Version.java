@@ -63,7 +63,7 @@ public enum Version {
 
     public abstract boolean validate(UpgradeRequest request);
 
-    protected final String wireProtocolVersion;
+    final String wireProtocolVersion;
 
     private Version(final String wireProtocolVersion) {
         this.wireProtocolVersion = wireProtocolVersion;

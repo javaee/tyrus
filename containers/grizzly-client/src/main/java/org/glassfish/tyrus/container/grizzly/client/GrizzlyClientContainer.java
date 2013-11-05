@@ -47,10 +47,8 @@ import java.util.Map;
 import javax.websocket.ClientEndpointConfig;
 import javax.websocket.DeploymentException;
 
-import org.glassfish.tyrus.core.TyrusWebSocketEngine;
 import org.glassfish.tyrus.spi.ClientContainer;
-import org.glassfish.tyrus.spi.ClientSocket;
-import org.glassfish.tyrus.spi.EndpointWrapper;
+import org.glassfish.tyrus.spi.ClientEngine;
 
 import org.glassfish.grizzly.ssl.SSLContextConfigurator;
 import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
@@ -58,6 +56,7 @@ import org.glassfish.grizzly.threadpool.ThreadPoolConfig;
 
 /**
  * @author Danny Coward (danny.coward at oracle.com)
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 public class GrizzlyClientContainer implements ClientContainer {
 
@@ -67,8 +66,10 @@ public class GrizzlyClientContainer implements ClientContainer {
     private static final long CLIENT_SOCKET_TIMEOUT = 30000;
 
     @Override
-    public ClientSocket openClientSocket(String url, ClientEndpointConfig cec, EndpointWrapper endpoint,
-                                         ClientContainer.ClientHandshakeListener listener, Map<String, Object> properties) throws DeploymentException, IOException {
+    public void openClientSocket(String url, ClientEndpointConfig cec,
+                                 Map<String, Object> properties,
+                                 ClientEngine clientEngine
+    ) throws DeploymentException, IOException {
         URI uri;
 
         try {
@@ -86,13 +87,12 @@ public class GrizzlyClientContainer implements ClientContainer {
             sslEngineConfigurator = new SSLEngineConfigurator(defaultConfig, true, false, false);
         }
 
-        GrizzlyClientSocket clientSocket = new GrizzlyClientSocket(endpoint, uri, cec, CLIENT_SOCKET_TIMEOUT, listener,
-                new TyrusWebSocketEngine(endpoint.getWebSocketContainer(), properties == null ? null : (Integer) properties.get(TyrusWebSocketEngine.INCOMING_BUFFER_SIZE)),
+        GrizzlyClientSocket clientSocket = new GrizzlyClientSocket(uri, CLIENT_SOCKET_TIMEOUT,
+                clientEngine,
                 properties == null ? null : sslEngineConfigurator,
                 properties == null ? null : (String) properties.get(GrizzlyClientSocket.PROXY_URI),
                 properties == null ? null : (ThreadPoolConfig) properties.get(GrizzlyClientSocket.WORKER_THREAD_POOL_CONFIG),
                 properties == null ? null : (ThreadPoolConfig) properties.get(GrizzlyClientSocket.SELECTOR_THREAD_POOL_CONFIG));
         clientSocket.connect();
-        return clientSocket;
     }
 }

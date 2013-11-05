@@ -46,46 +46,17 @@ import java.net.ProxySelector;
 import java.net.SocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.EnumSet;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.websocket.ClientEndpointConfig;
-import javax.websocket.CloseReason;
 import javax.websocket.DeploymentException;
-import javax.websocket.SendHandler;
-import javax.websocket.Session;
-import javax.websocket.WebSocketContainer;
-import javax.websocket.server.HandshakeRequest;
 
-import org.glassfish.tyrus.core.DataFrame;
-import org.glassfish.tyrus.core.Handshake;
-import org.glassfish.tyrus.core.HandshakeException;
-import org.glassfish.tyrus.core.ProtocolHandler;
-import org.glassfish.tyrus.core.RequestContext;
-import org.glassfish.tyrus.core.TyrusExtension;
-import org.glassfish.tyrus.core.TyrusRemoteEndpoint;
-import org.glassfish.tyrus.core.TyrusWebSocketEngine;
-import org.glassfish.tyrus.core.WebSocket;
-import org.glassfish.tyrus.core.WebSocketListener;
-import org.glassfish.tyrus.core.frame.PingFrame;
-import org.glassfish.tyrus.core.frame.PongFrame;
-import org.glassfish.tyrus.spi.ClientContainer;
-import org.glassfish.tyrus.spi.ClientSocket;
-import org.glassfish.tyrus.spi.EndpointWrapper;
-import org.glassfish.tyrus.spi.UpgradeRequest;
-import org.glassfish.tyrus.spi.UpgradeResponse;
-import org.glassfish.tyrus.spi.WebSocketEngine;
-import org.glassfish.tyrus.spi.Writer;
+import org.glassfish.tyrus.spi.ClientEngine;
 
 import org.glassfish.grizzly.Connection;
 import org.glassfish.grizzly.GrizzlyFuture;
@@ -112,7 +83,7 @@ import org.glassfish.grizzly.threadpool.ThreadPoolConfig;
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class GrizzlyClientSocket implements WebSocket, ClientSocket {
+public class GrizzlyClientSocket {
 
     /**
      * Can be used as client-side user property to set proxy.
@@ -145,64 +116,38 @@ public class GrizzlyClientSocket implements WebSocket, ClientSocket {
 
     private static final Logger LOGGER = Logger.getLogger(GrizzlyClientSocket.class.getName());
 
-    private final EnumSet<State> connected = EnumSet.range(State.CONNECTED, State.CLOSING);
-    private final AtomicReference<State> state = new AtomicReference<State>(State.NEW);
     private final List<Proxy> proxies = new ArrayList<Proxy>();
-    private final List<javax.websocket.Extension> responseExtensions = new ArrayList<javax.websocket.Extension>();
-    private final List<String> responseSubprotocol = new ArrayList<String>(1);
-    private final CountDownLatch onConnectLatch = new CountDownLatch(1);
 
     private final URI uri;
-    private final ProtocolHandler protocolHandler;
-    private final EndpointWrapper endpoint;
-    private final TyrusRemoteEndpoint remoteEndpoint;
     private final long timeoutMs;
-    private final ClientEndpointConfig configuration;
-    private final ClientContainer.ClientHandshakeListener listener;
     private final SSLEngineConfigurator clientSSLEngineConfigurator;
     private final ThreadPoolConfig workerThreadPoolConfig;
     private final ThreadPoolConfig selectorThreadPoolConfig;
-    private final WebSocketEngine engine;
+    private final ClientEngine engine;
 
     private SocketAddress socketAddress;
 
     private TCPNIOTransport transport;
-    private Session session = null;
-
-    enum State {
-        NEW, CONNECTED, CLOSING, CLOSED
-    }
 
     /**
      * Create new instance.
      *
      * @param uri                         endpoint address.
-     * @param configuration               client endpoint configuration.
      * @param timeoutMs                   TODO
-     * @param listener                    listener called when response is received.
      * @param engine                      engine used for this websocket communication
      * @param clientSSLEngineConfigurator ssl engine configurator
      */
-    GrizzlyClientSocket(EndpointWrapper endpoint, URI uri, ClientEndpointConfig configuration, long timeoutMs,
-                        ClientContainer.ClientHandshakeListener listener, WebSocketEngine engine,
+    GrizzlyClientSocket(URI uri, long timeoutMs,
+                        ClientEngine engine,
                         SSLEngineConfigurator clientSSLEngineConfigurator,
                         String proxyString,
                         ThreadPoolConfig workerThreadPoolConfig,
                         ThreadPoolConfig selectorThreadPoolConfig) {
-        this.endpoint = endpoint;
         this.uri = uri;
-        this.configuration = configuration;
-        protocolHandler = TyrusWebSocketEngine.DEFAULT_VERSION.createHandler(true);
-        protocolHandler.setContainer(endpoint.getWebSocketContainer());
-        remoteEndpoint = new TyrusRemoteEndpoint(this);
         this.timeoutMs = timeoutMs;
-        this.listener = listener;
         this.clientSSLEngineConfigurator = clientSSLEngineConfigurator;
         this.workerThreadPoolConfig = workerThreadPoolConfig;
         this.selectorThreadPoolConfig = selectorThreadPoolConfig;
-        if (session == null) {
-            session = endpoint.createSessionForRemoteEndpoint(remoteEndpoint, null, null);
-        }
         this.engine = engine;
 
         setProxy(proxyString);
@@ -211,7 +156,7 @@ public class GrizzlyClientSocket implements WebSocket, ClientSocket {
     /**
      * Connects to the given {@link URI}.
      */
-    public void connect() throws DeploymentException, IOException {
+    public void connect() throws IOException, DeploymentException {
         for (Proxy proxy : proxies) {
             try {
                 transport = createTransport(workerThreadPoolConfig, selectorThreadPoolConfig);
@@ -222,35 +167,28 @@ public class GrizzlyClientSocket implements WebSocket, ClientSocket {
             }
 
             final TCPNIOConnectorHandler connectorHandler = new TCPNIOConnectorHandler(transport) {
-                @Override
-                protected void preConfigure(Connection conn) {
-                    super.preConfigure(conn);
-
-                    final Writer writer = getConnection(conn);
-
-                    protocolHandler.setWriter(writer);
-
-                    final TyrusWebSocketEngine.WebSocketHolder holder = new TyrusWebSocketEngine.WebSocketHolder(protocolHandler, GrizzlyClientSocket.this, protocolHandler.createClientHandShake(RequestContext.Builder.create().requestURI(uri).build()), null);
-                    GrizzlyClientFilter.WEB_SOCKET_HOLDER.set(conn,
-                            holder);
-
-                    prepareHandshake(holder.handshake);
-                }
             };
 
             connectorHandler.setSyncConnectTimeout(timeoutMs, TimeUnit.MILLISECONDS);
 
             GrizzlyFuture<Connection> connectionGrizzlyFuture;
 
+            final ClientEngine.TimeoutHandler timeoutHandler = new ClientEngine.TimeoutHandler() {
+                @Override
+                public void handleTimeout() {
+                    closeTransport();
+                }
+            };
+
             switch (proxy.type()) {
                 case DIRECT:
-                    connectorHandler.setProcessor(createFilterChain(engine, endpoint.getWebSocketContainer(), null, clientSSLEngineConfigurator, false));
+                    connectorHandler.setProcessor(createFilterChain(engine, null, clientSSLEngineConfigurator, false, uri, timeoutHandler));
 
                     LOGGER.log(Level.CONFIG, String.format("Connecting to '%s' (no proxy).", uri));
                     connectionGrizzlyFuture = connectorHandler.connect(socketAddress);
                     break;
                 default:
-                    connectorHandler.setProcessor(createFilterChain(engine, endpoint.getWebSocketContainer(), null, clientSSLEngineConfigurator, true));
+                    connectorHandler.setProcessor(createFilterChain(engine, null, clientSSLEngineConfigurator, true, uri, timeoutHandler));
 
                     LOGGER.log(Level.CONFIG, String.format("Connecting to '%s' via proxy '%s'.", uri, proxy));
 
@@ -271,8 +209,8 @@ public class GrizzlyClientSocket implements WebSocket, ClientSocket {
             try {
                 final Connection connection = connectionGrizzlyFuture.get(timeoutMs, TimeUnit.MILLISECONDS);
 
+
                 LOGGER.log(Level.CONFIG, String.format("Connected to '%s'.", connection.getPeerAddress()));
-                awaitOnConnect();
                 return;
             } catch (InterruptedException interruptedException) {
                 LOGGER.log(Level.CONFIG, String.format("Connection to '%s' failed.", uri), interruptedException);
@@ -299,7 +237,7 @@ public class GrizzlyClientSocket implements WebSocket, ClientSocket {
             }
         }
 
-        throw new HandshakeException("Connection failed.");
+        throw new DeploymentException("Connection failed.");
     }
 
     private TCPNIOTransport createTransport(ThreadPoolConfig workerThreadPoolConfig, ThreadPoolConfig selectorThreadPoolConfig) {
@@ -322,215 +260,6 @@ public class GrizzlyClientSocket implements WebSocket, ClientSocket {
         transportBuilder.setIOStrategy(WorkerThreadIOStrategy.getInstance());
 
         return transportBuilder.build();
-    }
-
-    private void prepareHandshake(Handshake handshake) {
-        handshake.setExtensions(configuration.getExtensions());
-        handshake.setSubProtocols(configuration.getPreferredSubprotocols());
-
-        handshake.setResponseListener(new Handshake.HandshakeResponseListener() {
-
-            @Override
-            public void onHandShakeResponse(UpgradeResponse response) {
-                List<String> values = response.getHeaders().get(HandshakeRequest.SEC_WEBSOCKET_EXTENSIONS);
-                if (values != null) {
-                    responseExtensions.addAll(TyrusExtension.fromString(values));
-                }
-
-                responseSubprotocol.add(response.getFirstHeaderValue(HandshakeRequest.SEC_WEBSOCKET_PROTOCOL));
-
-                listener.onHandshakeResponse(response);
-            }
-
-            @Override
-            public void onError(HandshakeException exception) {
-                listener.onError(exception);
-                onConnectLatch.countDown();
-            }
-        });
-
-        handshake.prepareRequest();
-        configuration.getConfigurator().beforeRequest(handshake.getRequest().getHeaders());
-    }
-
-    @Override
-    public Future<DataFrame> send(String s) {
-        if (isConnected()) {
-            return protocolHandler.send(s);
-        } else {
-            throw new RuntimeException("Socket is not connected.");
-        }
-    }
-
-    @Override
-    public void send(String data, SendHandler handler) {
-        if (isConnected()) {
-            protocolHandler.send(data, handler);
-        } else {
-            throw new RuntimeException("Socket is not connected.");
-        }
-    }
-
-    @Override
-    public Future<DataFrame> send(byte[] bytes) {
-        if (isConnected()) {
-            return protocolHandler.send(bytes);
-        } else {
-            throw new RuntimeException("Socket is not connected.");
-        }
-    }
-
-    @Override
-    public void send(byte[] data, SendHandler handler) {
-        if (isConnected()) {
-            protocolHandler.send(data, handler);
-        } else {
-            throw new RuntimeException("Socket is not connected.");
-        }
-    }
-
-    @Override
-    public Future<DataFrame> sendRawFrame(ByteBuffer data) {
-        if (isConnected()) {
-            return protocolHandler.sendRawFrame(data);
-        } else {
-            throw new RuntimeException("Socket is not connected.");
-        }
-    }
-
-    @Override
-    public Future<DataFrame> sendPing(byte[] bytes) {
-        if (isConnected()) {
-            DataFrame df = new DataFrame(new PingFrame(), bytes);
-            return protocolHandler.send(df, false);
-        } else {
-            throw new RuntimeException("Socket is not connected.");
-        }
-    }
-
-    @Override
-    public Future<DataFrame> sendPong(byte[] bytes) {
-        if (isConnected()) {
-            DataFrame df = new DataFrame(new PongFrame(), bytes);
-            return protocolHandler.send(df, false);
-        } else {
-            throw new RuntimeException("Socket is not connected.");
-        }
-    }
-
-    @Override
-    public Future<DataFrame> stream(boolean b, String s) {
-        if (isConnected()) {
-            return protocolHandler.stream(b, s);
-        } else {
-            throw new RuntimeException("Socket is not connected.");
-        }
-    }
-
-    @Override
-    public Future<DataFrame> stream(boolean b, byte[] bytes, int i, int i1) {
-        if (isConnected()) {
-            return protocolHandler.stream(b, bytes, i, i1);
-        } else {
-            throw new RuntimeException("Socket is not connected.");
-        }
-    }
-
-    @Override
-    public void close() {
-        close(CloseReason.CloseCodes.NORMAL_CLOSURE.getCode(), "Closing");
-    }
-
-    @Override
-    public Session getSession() {
-        return session;
-    }
-
-    @Override
-    public void close(int i, String s) {
-        CloseReason closeReason = new CloseReason(CloseReason.CloseCodes.getCloseCode(i), s);
-
-        if (state.compareAndSet(State.CONNECTED, State.CLOSING)) {
-            endpoint.onClose(remoteEndpoint, closeReason);
-            protocolHandler.close(i, s);
-            closeTransport();
-        }
-
-        this.onClose(closeReason);
-    }
-
-    @Override
-    public boolean isConnected() {
-        return connected.contains(state.get());
-    }
-
-    @Override
-    public void onConnect(UpgradeRequest upgradeRequest) {
-        state.set(State.CONNECTED);
-        endpoint.onConnect(remoteEndpoint, responseSubprotocol.get(0), responseExtensions, upgradeRequest);
-        onConnectLatch.countDown();
-    }
-
-    @Override
-    public void onMessage(String message) {
-        awaitOnConnect();
-        endpoint.onMessage(remoteEndpoint, message);
-    }
-
-    @Override
-    public void onMessage(byte[] bytes) {
-        awaitOnConnect();
-        endpoint.onMessage(remoteEndpoint, ByteBuffer.wrap(bytes));
-    }
-
-    @Override
-    public void onFragment(boolean b, String s) {
-        awaitOnConnect();
-        endpoint.onPartialMessage(remoteEndpoint, s, b);
-    }
-
-    @Override
-    public void onFragment(boolean bool, byte[] bytes) {
-        awaitOnConnect();
-        endpoint.onPartialMessage(remoteEndpoint, ByteBuffer.wrap(bytes), bool);
-    }
-
-    @Override
-    public void onClose(CloseReason closeReason) {
-        onConnectLatch.countDown();
-
-        if (state.get() == State.CLOSED) {
-            return;
-        }
-
-        if (!state.compareAndSet(State.CLOSING, State.CLOSED)) {
-            endpoint.onClose(remoteEndpoint, closeReason);
-            state.set(State.CLOSED);
-            protocolHandler.doClose();
-            closeTransport();
-        }
-    }
-
-    @Override
-    public void onPing(DataFrame dataFrame) {
-        awaitOnConnect();
-        endpoint.onPing(remoteEndpoint, ByteBuffer.wrap(dataFrame.getBytes()));
-    }
-
-    @Override
-    public void onPong(DataFrame dataFrame) {
-        awaitOnConnect();
-        endpoint.onPong(remoteEndpoint, ByteBuffer.wrap(dataFrame.getBytes()));
-    }
-
-    @Override
-    public boolean add(WebSocketListener webSocketListener) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public void setWriteTimeout(long timeoutMs) {
-        protocolHandler.setWriteTimeout(timeoutMs);
     }
 
     private void setProxy(String proxyString) {
@@ -617,11 +346,12 @@ public class GrizzlyClientSocket implements WebSocket, ClientSocket {
         }
     }
 
-    private static Processor createFilterChain(WebSocketEngine engine,
-                                               WebSocketContainer webSocketContainer,
+    private static Processor createFilterChain(ClientEngine engine,
                                                SSLEngineConfigurator serverSSLEngineConfigurator,
                                                SSLEngineConfigurator clientSSLEngineConfigurator,
-                                               boolean proxy) {
+                                               boolean proxy,
+                                               URI uri,
+                                               ClientEngine.TimeoutHandler timeoutHandler) {
         FilterChainBuilder clientFilterChainBuilder = FilterChainBuilder.stateless();
         Filter sslFilter = null;
 
@@ -634,12 +364,8 @@ public class GrizzlyClientSocket implements WebSocket, ClientSocket {
             clientFilterChainBuilder.add(sslFilter);
         }
         clientFilterChainBuilder.add(new HttpClientFilter());
-        clientFilterChainBuilder.add(new GrizzlyClientFilter(engine, webSocketContainer, proxy, sslFilter));
+        clientFilterChainBuilder.add(new GrizzlyClientFilter(engine, proxy, sslFilter, uri, timeoutHandler));
         return clientFilterChainBuilder.build();
-    }
-
-    private static Writer getConnection(final Connection connection) {
-        return new GrizzlyWriter(connection);
     }
 
     private void closeTransport() {
@@ -647,16 +373,8 @@ public class GrizzlyClientSocket implements WebSocket, ClientSocket {
             try {
                 transport.shutdownNow();
             } catch (IOException e) {
-                Logger.getLogger(GrizzlyClientSocket.class.getName()).log(Level.FINE, "Transport closing problem.");
+                Logger.getLogger(GrizzlyClientSocket.class.getName()).log(Level.INFO, "Exception thrown when closing Grizzly transport: " + e.getMessage(), e);
             }
-        }
-    }
-
-    private void awaitOnConnect() {
-        try {
-            onConnectLatch.await(timeoutMs, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
-            // do nothing.
         }
     }
 

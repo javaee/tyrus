@@ -145,7 +145,7 @@ public class SessionTimeoutTest extends TestContainer {
                     return POSITIVE;
                 }
             } else if (message.equals("SessionNoTimeoutEndpoint")) {
-                if (SessionNoTimeoutEndpoint.onClosedCalled.get() == false) {
+                if (!SessionNoTimeoutEndpoint.onClosedCalled.get()) {
                     return POSITIVE;
                 }
             }

@@ -232,16 +232,6 @@ public interface WebSocket {
     void onPong(DataFrame frame);
 
     /**
-     * Add a {@link WebSocketListener} to be notified of events of interest.
-     *
-     * @param listener the {@link WebSocketListener} to add.
-     * @return <code>true</code> if the listener was added, otherwise
-     *         <code>false</code>
-     * @see WebSocketListener
-     */
-    boolean add(WebSocketListener listener);
-
-    /**
      * Sets the timeout for the writing operation.
      *
      * @param timeoutMs timeout in milliseconds.

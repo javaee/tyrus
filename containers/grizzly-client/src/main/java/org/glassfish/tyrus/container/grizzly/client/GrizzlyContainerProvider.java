@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -37,24 +37,19 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.spi;
+package org.glassfish.tyrus.container.grizzly.client;
 
-import java.io.Closeable;
+import javax.websocket.ContainerProvider;
+import javax.websocket.WebSocketContainer;
 
-import javax.websocket.Session;
+import org.glassfish.tyrus.client.ClientManager;
 
 /**
- * Client socket representation.
- *
- * @author Martin Matula (martin.matula at oracle.com)
- * @see ClientContainer#openClientSocket(String, javax.websocket.ClientEndpointConfig, EndpointWrapper, ClientContainer.ClientHandshakeListener, java.util.Map)
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public interface ClientSocket extends Closeable {
-
-    /**
-     * {@link Session} representing the connection with server.
-     *
-     * @return session.
-     */
-    public Session getSession();
+public class GrizzlyContainerProvider extends ContainerProvider {
+    @Override
+    protected WebSocketContainer getContainer() {
+        return ClientManager.createClient(GrizzlyClientContainer.class.getName());
+    }
 }

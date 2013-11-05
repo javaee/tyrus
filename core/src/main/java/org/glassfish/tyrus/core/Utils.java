@@ -43,6 +43,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Utility methods shared among Tyrus modules.
@@ -174,6 +175,98 @@ public class Utils {
     public static <T> void checkNotNull(T reference, String errorMessage) {
         if (reference == null) {
             throw new IllegalArgumentException(errorMessage);
+        }
+    }
+
+    /**
+     * Convert {@code long} to {@code byte[]}.
+     *
+     * @param value to be converted.
+     * @return converted value.
+     */
+    public static byte[] toArray(long value) {
+        byte[] b = new byte[8];
+        for (int i = 7; i >= 0 && value > 0; i--) {
+            b[i] = (byte) (value & 0xFF);
+            value >>= 8;
+        }
+        return b;
+    }
+
+    /**
+     * Convert {@code byte[]} to {@code long}.
+     *
+     * @param bytes to be converted.
+     * @param start start index.
+     * @param end   end index.
+     * @return converted value.
+     */
+    public static long toLong(byte[] bytes, int start, int end) {
+        long value = 0;
+        for (int i = start; i < end; i++) {
+            value <<= 8;
+            value ^= (long) bytes[i] & 0xFF;
+        }
+        return value;
+    }
+
+    public static List<String> toString(byte[] bytes) {
+        return toString(bytes, 0, bytes.length);
+    }
+
+    public static List<String> toString(byte[] bytes, int start, int end) {
+        List<String> list = new ArrayList<String>();
+        for (int i = start; i < end; i++) {
+            list.add(Integer.toHexString(bytes[i] & 0xFF).toUpperCase(Locale.US));
+        }
+        return list;
+    }
+
+    /**
+     * Concatenates two buffers into one. If buffer given as first argument has enough space for putting
+     * the other one, it will be done and the original buffer will be returned. Otherwise new buffer will
+     * be created.
+     *
+     * @param buffer  first buffer.
+     * @param buffer1 second buffer.
+     * @return concatenation.
+     */
+    public static ByteBuffer appendBuffers(ByteBuffer buffer, ByteBuffer buffer1, int incomingBufferSize, int BUFFER_STEP_SIZE) {
+
+        final int limit = buffer.limit();
+        final int capacity = buffer.capacity();
+        final int remaining = buffer.remaining();
+        final int len = buffer1.remaining();
+
+        // buffer1 will be appended to buffer
+        if (len < (capacity - limit)) {
+
+            buffer.mark();
+            buffer.position(limit);
+            buffer.limit(capacity);
+            buffer.put(buffer1);
+            buffer.limit(limit + len);
+            buffer.reset();
+            return buffer;
+            // Remaining data is moved to left. Then new data is appended
+        } else if (remaining + len < capacity) {
+            buffer.compact();
+            buffer.put(buffer1);
+            buffer.flip();
+            return buffer;
+            // create new buffer
+        } else {
+            int newSize = remaining + len;
+            if (newSize > incomingBufferSize) {
+                throw new IllegalArgumentException("Buffer overflow.");
+            } else {
+                final int roundedSize = (newSize % BUFFER_STEP_SIZE) > 0 ? ((newSize / BUFFER_STEP_SIZE) + 1) * BUFFER_STEP_SIZE : newSize;
+                final ByteBuffer result = ByteBuffer.allocate(roundedSize > incomingBufferSize ? newSize : roundedSize);
+                result.put(buffer);
+                result.put(buffer1);
+                result.flip();
+                return result;
+            }
         }
     }
 }

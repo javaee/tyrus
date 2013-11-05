@@ -41,6 +41,7 @@ package org.glassfish.tyrus.container.grizzly.server;
 
 import java.io.IOException;
 import java.util.Map;
+import java.util.Set;
 
 import javax.websocket.DeploymentException;
 import javax.websocket.server.ServerEndpointConfig;
@@ -74,7 +75,8 @@ public class GrizzlyServerContainer extends ServerContainerFactory {
             incommingBufferSize = null;
         }
 
-        return new TyrusServerContainer(null) {
+        // TODO
+        return new TyrusServerContainer((Set<Class<?>>) null) {
 
             private final WebSocketEngine engine = new TyrusWebSocketEngine(this, incommingBufferSize);
 

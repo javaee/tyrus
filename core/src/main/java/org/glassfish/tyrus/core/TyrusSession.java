@@ -71,8 +71,6 @@ import javax.websocket.PongMessage;
 import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
 
-import org.glassfish.tyrus.spi.RemoteEndpoint;
-
 /**
  * Implementation of the {@link Session}.
  *
@@ -102,9 +100,9 @@ public class TyrusSession implements Session {
     private final AtomicReference<State> state = new AtomicReference<State>(State.RUNNING);
     private final TextBuffer textBuffer = new TextBuffer();
     private final BinaryBuffer binaryBuffer = new BinaryBuffer();
+    private final List<Extension> negotiatedExtensions;
+    private final String negotiatedSubprotocol;
 
-    private String negotiatedSubprotocol;
-    private List<Extension> negotiatedExtensions;
     private int maxBinaryMessageBufferSize = Integer.MAX_VALUE;
     private int maxTextMessageBufferSize = Integer.MAX_VALUE;
     private volatile long maxIdleTimeout = 0;
@@ -120,6 +118,7 @@ public class TyrusSession implements Session {
         this.container = container;
         this.endpoint = tyrusEndpointWrapper;
         this.negotiatedExtensions = extensions == null ? Collections.<Extension>emptyList() : Collections.unmodifiableList(extensions);
+        this.negotiatedSubprotocol = subprotocol == null ? "" : subprotocol;
         this.isSecure = isSecure;
         this.uri = uri;
         this.queryString = queryString;
@@ -136,8 +135,6 @@ public class TyrusSession implements Session {
             service = ((ExecutorServiceProvider) container).getScheduledExecutorService();
             setMaxIdleTimeout(container.getDefaultMaxSessionIdleTimeout());
         }
-
-        setNegotiatedSubprotocol(subprotocol);
     }
 
     /**
@@ -153,10 +150,6 @@ public class TyrusSession implements Session {
     @Override
     public String getNegotiatedSubprotocol() {
         return negotiatedSubprotocol;
-    }
-
-    void setNegotiatedSubprotocol(String negotiatedSubprotocol) {
-        this.negotiatedSubprotocol = negotiatedSubprotocol == null ? "" : negotiatedSubprotocol;
     }
 
     @Override
@@ -223,10 +216,6 @@ public class TyrusSession implements Session {
     @Override
     public List<Extension> getNegotiatedExtensions() {
         return negotiatedExtensions;
-    }
-
-    void setNegotiatedExtensions(List<Extension> negotiatedExtensions) {
-        this.negotiatedExtensions = Collections.unmodifiableList(new ArrayList<Extension>(negotiatedExtensions));
     }
 
     @Override

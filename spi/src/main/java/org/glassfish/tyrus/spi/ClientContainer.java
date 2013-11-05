@@ -53,37 +53,22 @@ import javax.websocket.DeploymentException;
 public interface ClientContainer {
 
     /**
-     * Called when response is received from the server.
-     */
-    public static interface ClientHandshakeListener {
-
-        /**
-         * Called when correct handshake response is received.
-         *
-         * @param upgradeResponse received response.
-         */
-        public void onHandshakeResponse(UpgradeResponse upgradeResponse);
-
-
-        /**
-         * Called when an error is found in handshake response.
-         *
-         * @param exception error found during handshake response check.
-         */
-        public void onError(Throwable exception);
-    }
-
-    /**
      * Open client socket - connect to endpoint specified with {@code url} parameter.
+     * <p/>
+     * Called from ClientManager when {@link javax.websocket.WebSocketContainer#connectToServer(Class, javax.websocket.ClientEndpointConfig, java.net.URI)}
+     * is invoked.
      *
-     * @param url               address where remote service is deployed.
-     * @param cec               endpoint configuration.
-     * @param endpoint          endpoint instance.
-     * @param handshakeListener handshake listener.
-     * @param properties        properties map.
-     * @return representation of incoming socket.
+     * @param url          address where remote service is deployed.
+     * @param cec          endpoint configuration. SPI consumer can access user properties, {@link javax.websocket.ClientEndpointConfig.Configurator},
+     *                     extensions and subprotocol configuration, etc..
+     * @param properties   properties passed from client container. Don't mix up this with {@link javax.websocket.ClientEndpointConfig#getUserProperties()},
+     *                     these are Tyrus proprietary.
+     * @param clientEngine one instance equals to one connection, cannot be reused. Implementation is expected to call
+     *                     {@link ClientEngine#createUpgradeRequest(java.net.URI, org.glassfish.tyrus.spi.ClientEngine.TimeoutHandler)}
+     *                     and {@link ClientEngine#processResponse(UpgradeResponse, Writer, org.glassfish.tyrus.spi.Connection.CloseListener)}
+     *                     (in that order).
      */
-    public ClientSocket openClientSocket(String url, ClientEndpointConfig cec, EndpointWrapper endpoint,
-                                         ClientContainer.ClientHandshakeListener handshakeListener,
-                                         Map<String, Object> properties) throws DeploymentException, IOException;
+    public void openClientSocket(String url, ClientEndpointConfig cec,
+                                 Map<String, Object> properties,
+                                 ClientEngine clientEngine) throws DeploymentException, IOException;
 }

@@ -39,7 +39,6 @@
  */
 package org.glassfish.tyrus.core;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.nio.ByteBuffer;
@@ -54,8 +53,6 @@ import javax.websocket.PongMessage;
 import javax.websocket.SendHandler;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
-
-import org.glassfish.tyrus.spi.RemoteEndpoint;
 
 import org.junit.Test;
 import static org.junit.Assert.assertFalse;
@@ -481,12 +478,12 @@ public class TyrusSessionTest {
         }
 
         @Override
-        public Future<DataFrame> sendPing(ByteBuffer applicationData) throws IOException {
+        public Future<DataFrame> sendPing(ByteBuffer applicationData) {
             return null;
         }
 
         @Override
-        public Future<DataFrame> sendPong(ByteBuffer applicationData) throws IOException {
+        public Future<DataFrame> sendPong(ByteBuffer applicationData) {
             return null;
         }
 

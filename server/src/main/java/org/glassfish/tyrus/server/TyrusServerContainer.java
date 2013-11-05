@@ -74,6 +74,7 @@ public abstract class TyrusServerContainer extends BaseContainer implements Serv
     private final Set<Class<?>> dynamicallyAddedClasses;
     private final Set<ServerEndpointConfig> dynamicallyAddedEndpointConfigs;
     private final Set<Class<?>> classes;
+    private final ServerApplicationConfig serverApplicationConfig;
 
     private boolean canDeploy = true;
     private long defaultMaxSessionIdleTimeout = 0;
@@ -85,19 +86,29 @@ public abstract class TyrusServerContainer extends BaseContainer implements Serv
 
     /**
      * Create new {@link TyrusServerContainer}.
-     * <p/>
-     * //     * @param classes                 classes to be included in this application instance. Can contain any combination of annotated
-     * //     *                                endpoints (see {@link javax.websocket.server.ServerEndpoint}) or {@link javax.websocket.Endpoint} descendants.
-     * //     * @param dynamicallyAddedClasses dynamically deployed classes. See {@link javax.websocket.server.ServerContainer#addEndpoint(Class)}.
-     * //     * @param dynamicallyAddedEndpointConfigs
-     * //     *                                dynamically deployed {@link ServerEndpointConfig ServerEndpointConfigs}. See
-     * //     *                                {@link javax.websocket.server.ServerContainer#addEndpoint(ServerEndpointConfig)}.
+     *
+     * @param classes classes to be included in this application instance. Can contain any combination of annotated
+     *                endpoints (see {@link javax.websocket.server.ServerEndpoint}) or {@link javax.websocket.Endpoint} descendants.
      */
     public TyrusServerContainer(Set<Class<?>> classes) {
         this.collector = new ErrorCollector();
         this.classes = classes == null ? Collections.<Class<?>>emptySet() : new HashSet<Class<?>>(classes);
         this.dynamicallyAddedClasses = new HashSet<Class<?>>();
         this.dynamicallyAddedEndpointConfigs = new HashSet<ServerEndpointConfig>();
+        this.serverApplicationConfig = null;
+    }
+
+    /**
+     * Create new {@link TyrusServerContainer} using already created {@link ServerApplicationConfig} instance.
+     *
+     * @param serverApplicationConfig provided application config.
+     */
+    public TyrusServerContainer(ServerApplicationConfig serverApplicationConfig) {
+        this.collector = new ErrorCollector();
+        this.classes = new HashSet<Class<?>>();
+        this.dynamicallyAddedClasses = new HashSet<Class<?>>();
+        this.dynamicallyAddedEndpointConfigs = new HashSet<ServerEndpointConfig>();
+        this.serverApplicationConfig = serverApplicationConfig;
     }
 
     /**
@@ -122,6 +133,20 @@ public abstract class TyrusServerContainer extends BaseContainer implements Serv
             for (ServerEndpointConfig serverEndpointConfiguration : configuration.getEndpointConfigs(null)) {
                 if (serverEndpointConfiguration != null) {
                     register(serverEndpointConfiguration);
+                }
+            }
+
+            if (serverApplicationConfig != null) {
+                // deploy all the annotated endpoints
+                for (Class<?> endpointClass : serverApplicationConfig.getAnnotatedEndpointClasses(null)) {
+                    register(endpointClass);
+                }
+
+                // deploy all the programmatic endpoints
+                for (ServerEndpointConfig serverEndpointConfiguration : serverApplicationConfig.getEndpointConfigs(null)) {
+                    if (serverEndpointConfiguration != null) {
+                        register(serverEndpointConfiguration);
+                    }
                 }
             }
         } catch (DeploymentException de) {

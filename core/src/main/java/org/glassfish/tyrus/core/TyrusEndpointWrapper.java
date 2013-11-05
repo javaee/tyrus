@@ -78,8 +78,6 @@ import javax.websocket.server.ServerEndpointConfig;
 
 import org.glassfish.tyrus.core.frame.BinaryFrame;
 import org.glassfish.tyrus.core.frame.TextFrame;
-import org.glassfish.tyrus.spi.EndpointWrapper;
-import org.glassfish.tyrus.spi.RemoteEndpoint;
 import org.glassfish.tyrus.spi.UpgradeRequest;
 
 /**
@@ -110,8 +108,8 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
             new ConcurrentHashMap<RemoteEndpoint, TyrusSession>();
     private final ComponentProviderService componentProvider;
     private final ServerEndpointConfig.Configurator configurator;
+    private final WebSocketContainer container;
 
-    final WebSocketContainer container;
 
     /**
      * Create {@link TyrusEndpointWrapper} for class that extends {@link Endpoint}.
@@ -404,7 +402,7 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
     }
 
     @Override
-    public void onConnect(RemoteEndpoint gs, String subprotocol, List<Extension> extensions, UpgradeRequest upgradeRequest) {
+    public Session onConnect(RemoteEndpoint gs, String subprotocol, List<Extension> extensions, UpgradeRequest upgradeRequest) {
         synchronized (remoteEndpointToSession) {
             TyrusSession session = remoteEndpointToSession.get(gs);
             if (session == null) {
@@ -420,10 +418,6 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
                         upgradeRequest.getQueryString(), templateValues, upgradeRequest.getUserPrincipal(), upgradeRequest.getParameterMap());
                 remoteEndpointToSession.put(gs, session);
             }
-            // Session was already created in WebSocketContainer#connectToServer call
-            // we need to update extensions and subprotocols
-            session.setNegotiatedExtensions(extensions);
-            session.setNegotiatedSubprotocol(subprotocol);
 
             ErrorCollector collector = new ErrorCollector();
 
@@ -439,9 +433,10 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
                     toCall.onError(session, t);
                 } else {
                     LOGGER.log(Level.WARNING, t.getMessage(), t);
-
                 }
             }
+
+            return session;
         }
     }
 
@@ -643,7 +638,6 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
             }
         }
     }
-
 
     /**
      * Check {@link Throwable} produced during {@link javax.websocket.OnMessage} annotated method call.

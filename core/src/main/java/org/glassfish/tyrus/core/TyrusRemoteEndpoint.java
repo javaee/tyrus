@@ -45,10 +45,8 @@ import java.util.concurrent.Future;
 import javax.websocket.CloseReason;
 import javax.websocket.SendHandler;
 
-import org.glassfish.tyrus.spi.RemoteEndpoint;
-
 /**
- * {@link org.glassfish.tyrus.spi.RemoteEndpoint} implementation.
+ * {@link RemoteEndpoint} implementation.
  *
  * @author Danny Coward (danny.coward at oracle.com)
  * @author Pavel Bucek (pavel.bucek at oracle.com)

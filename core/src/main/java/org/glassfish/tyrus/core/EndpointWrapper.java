@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.spi;
+package org.glassfish.tyrus.core;
 
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -48,6 +48,8 @@ import javax.websocket.EndpointConfig;
 import javax.websocket.Extension;
 import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
+
+import org.glassfish.tyrus.spi.UpgradeRequest;
 
 /**
  * The WebSocket SDK implements {@link EndpointWrapper} with its representation of
@@ -81,8 +83,9 @@ public abstract class EndpointWrapper {
      * @param subprotocol    TODO.
      * @param extensions     TODO.
      * @param upgradeRequest request associated with accepted connection.
+     * @return TODO.
      */
-    public abstract void onConnect(RemoteEndpoint gs, String subprotocol, List<Extension> extensions, UpgradeRequest upgradeRequest);
+    public abstract Session onConnect(RemoteEndpoint gs, String subprotocol, List<Extension> extensions, UpgradeRequest upgradeRequest);
 
     /**
      * Called by the provider when the web socket connection

@@ -327,7 +327,7 @@ public class PatternWithGroups {
 
         // Check for match against the empty pattern
         if (cs == null || cs.length() == 0) {
-            return (regexPattern == null) ? true : false;
+            return (regexPattern == null);
         } else if (regexPattern == null) {
             return false;
         }
@@ -383,7 +383,7 @@ public class PatternWithGroups {
 
         // Check for match against the empty pattern
         if (cs == null || cs.length() == 0) {
-            return (regexPattern == null) ? true : false;
+            return (regexPattern == null);
         } else if (regexPattern == null) {
             return false;
         }

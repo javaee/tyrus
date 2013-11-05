@@ -42,15 +42,13 @@ package org.glassfish.tyrus.core;
 import java.io.IOException;
 import java.io.Writer;
 
-import org.glassfish.tyrus.spi.RemoteEndpoint;
-
 /**
  * Simple Writer that writes its data to
  * an async sink.
  *
  * @author Danny Coward (danny.coward at oracle.com)
  */
-public class WriterToAsyncTextAdapter extends Writer {
+class WriterToAsyncTextAdapter extends Writer {
     private final RemoteEndpoint re;
     private String buffer = null;
 
@@ -58,7 +56,7 @@ public class WriterToAsyncTextAdapter extends Writer {
         this.re = re;
     }
 
-    private void sendBuffer(boolean last) throws IOException {
+    private void sendBuffer(boolean last) {
         re.sendText(buffer, last);
     }
 

@@ -64,9 +64,9 @@ import javax.servlet.http.HttpSessionListener;
 import javax.servlet.http.WebConnection;
 
 import org.glassfish.tyrus.core.RequestContext;
+import org.glassfish.tyrus.core.TyrusUpgradeResponse;
 import org.glassfish.tyrus.core.TyrusWebSocketEngine;
 import org.glassfish.tyrus.core.Utils;
-import org.glassfish.tyrus.core.WebSocketResponse;
 import org.glassfish.tyrus.spi.WebSocketEngine;
 import org.glassfish.tyrus.spi.Writer;
 
@@ -227,11 +227,11 @@ class TyrusServletFilter implements Filter, HttpSessionListener {
                 }
             }
 
-            final WebSocketResponse webSocketResponse = new WebSocketResponse();
-            final WebSocketEngine.UpgradeInfo upgradeInfo = engine.upgrade(requestContext, webSocketResponse);
+            final TyrusUpgradeResponse tyrusUpgradeResponse = new TyrusUpgradeResponse();
+            final WebSocketEngine.UpgradeInfo upgradeInfo = engine.upgrade(requestContext, tyrusUpgradeResponse);
             switch (upgradeInfo.getStatus()) {
                 case HANDSHAKE_FAILED:
-                    httpServletResponse.sendError(webSocketResponse.getStatus());
+                    httpServletResponse.sendError(tyrusUpgradeResponse.getStatus());
                     break;
                 case NOT_APPLICABLE:
                     filterChain.doFilter(request, response);
@@ -249,8 +249,8 @@ class TyrusServletFilter implements Filter, HttpSessionListener {
 
                     sessionToHandler.put(httpServletRequest.getSession(), handler);
 
-                    httpServletResponse.setStatus(webSocketResponse.getStatus());
-                    for (Map.Entry<String, List<String>> entry : webSocketResponse.getHeaders().entrySet()) {
+                    httpServletResponse.setStatus(tyrusUpgradeResponse.getStatus());
+                    for (Map.Entry<String, List<String>> entry : tyrusUpgradeResponse.getHeaders().entrySet()) {
                         httpServletResponse.addHeader(entry.getKey(), Utils.getHeaderFromList(entry.getValue()));
                     }
 

@@ -58,6 +58,8 @@ import org.glassfish.tyrus.spi.UpgradeResponse;
  */
 public final class Handshake {
 
+    public static final int RESPONSE_CODE_VALUE = 101;
+
     private boolean secure;
     private String origin;
     private String serverHostName;
@@ -67,10 +69,10 @@ public final class Handshake {
     private List<Extension> extensions = new ArrayList<Extension>(); // client extensions
     // client side request!
     private UpgradeRequest request;
-    private HandshakeResponseListener responseListener;
     private UpgradeRequest incomingRequest;
     private SecKey secKey;
 
+    private final String VERSION = "13";
 
     private Handshake() {
     }
@@ -282,7 +284,7 @@ public final class Handshake {
 
         putSingleHeader(request, UpgradeRequest.SEC_WEBSOCKET_KEY, secKey.toString());
         putSingleHeader(request, UpgradeRequest.SEC_WS_ORIGIN_HEADER, getOrigin());
-        putSingleHeader(request, UpgradeRequest.SEC_WEBSOCKET_VERSION, getVersion() + "");
+        putSingleHeader(request, UpgradeRequest.SEC_WEBSOCKET_VERSION, VERSION);
 
         if (!getSubProtocols().isEmpty()) {
             putSingleHeader(request, UpgradeRequest.SEC_WEBSOCKET_PROTOCOL, getHeaderFromList(subProtocols, null));
@@ -308,9 +310,9 @@ public final class Handshake {
     }
 
     public void validateServerResponse(UpgradeResponse response) {
-        if (TyrusWebSocketEngine.RESPONSE_CODE_VALUE != response.getStatus()) {
+        if (RESPONSE_CODE_VALUE != response.getStatus()) {
             throw new HandshakeException(String.format("Response code was not %s: %s",
-                    TyrusWebSocketEngine.RESPONSE_CODE_VALUE, response.getStatus()));
+                    RESPONSE_CODE_VALUE, response.getStatus()));
         }
 
         checkForHeader(response.getFirstHeaderValue(UpgradeRequest.UPGRADE), UpgradeRequest.UPGRADE, UpgradeRequest.WEBSOCKET);
@@ -323,7 +325,7 @@ public final class Handshake {
         secKey.validateServerKey(response.getFirstHeaderValue(UpgradeResponse.SEC_WEBSOCKET_ACCEPT));
     }
 
-    void respond(UpgradeResponse response, WebSocketApplication application/*, WebSocketResponse response*/) {
+    void respond(UpgradeResponse response, WebSocketApplication application/*, TyrusUpgradeResponse response*/) {
         response.setStatus(101);
 
         response.getHeaders().put(UpgradeRequest.UPGRADE, Arrays.asList(UpgradeRequest.WEBSOCKET));
@@ -348,54 +350,5 @@ public final class Handshake {
         }
 
         application.onHandShakeResponse(incomingRequest, response);
-    }
-
-    public UpgradeRequest initiate(/*FilterChainContext ctx*/) {
-        return request;
-    }
-
-    /**
-     * Get response listener
-     *
-     * @return registered response listener.
-     */
-    public HandshakeResponseListener getResponseListener() {
-        return responseListener;
-    }
-
-    /**
-     * Set response listener.
-     *
-     * @param responseListener {@link Handshake.HandshakeResponseListener#onHandShakeResponse(org.glassfish.tyrus.spi.UpgradeResponse)}
-     *                         will be called when response is ready and validated.
-     */
-    public void setResponseListener(HandshakeResponseListener responseListener) {
-        this.responseListener = responseListener;
-    }
-
-    int getVersion() {
-        return 13;
-    }
-
-    /**
-     * Used to register with {@link Handshake}. If the handshake response is received, this listener is called.
-     *
-     * @author Stepan Kopriva (stepan.kopriva at oracle.com)
-     */
-    public interface HandshakeResponseListener {
-
-        /**
-         * Called when correct handshake response is received in {@link Handshake}.
-         *
-         * @param response received response.
-         */
-        public void onHandShakeResponse(UpgradeResponse response);
-
-        /**
-         * Called when an error is found in handshake response.
-         *
-         * @param exception error found during handshake response check.
-         */
-        public void onError(HandshakeException exception);
     }
 }

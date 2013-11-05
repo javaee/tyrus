@@ -52,7 +52,7 @@ import org.glassfish.tyrus.spi.UpgradeResponse;
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class WebSocketResponse extends UpgradeResponse {
+public class TyrusUpgradeResponse extends UpgradeResponse {
 
     private final Map<String, List<String>> headers = new TreeMap<String, List<String>>(new Comparator<String>() {
         @Override

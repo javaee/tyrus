@@ -70,7 +70,7 @@ class Masker {
         byte[] bytes = get(count);
         if (mask != null) {
             for (int i = 0; i < bytes.length; i++) {
-                bytes[i] ^= mask[index++ % TyrusWebSocketEngine.MASK_SIZE];
+                bytes[i] ^= mask[index++ % ProtocolHandler.MASK_SIZE];
             }
         }
 
@@ -78,7 +78,7 @@ class Masker {
     }
 
     void generateMask() {
-        mask = new byte[TyrusWebSocketEngine.MASK_SIZE];
+        mask = new byte[ProtocolHandler.MASK_SIZE];
         new SecureRandom().nextBytes(mask);
     }
 
@@ -87,7 +87,7 @@ class Masker {
             for (int i = 0; i < bytes.length; i++) {
                 target[location + i] = mask == null
                         ? bytes[i]
-                        : (byte) (bytes[i] ^ mask[index++ % TyrusWebSocketEngine.MASK_SIZE]);
+                        : (byte) (bytes[i] ^ mask[index++ % ProtocolHandler.MASK_SIZE]);
             }
         }
     }
@@ -101,6 +101,6 @@ class Masker {
     }
 
     public void readMask() {
-        mask = get(TyrusWebSocketEngine.MASK_SIZE);
+        mask = get(ProtocolHandler.MASK_SIZE);
     }
 }

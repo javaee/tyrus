@@ -131,8 +131,9 @@ public class TyrusExtension implements Extension {
     static String toString(Extension extension) {
         final StringBuilder sb = new StringBuilder();
         sb.append(extension.getName());
-        if (extension.getParameters() != null && !extension.getParameters().isEmpty()) {
-            for (Extension.Parameter p : extension.getParameters()) {
+        final List<Parameter> extensionParameters = extension.getParameters();
+        if (extensionParameters != null && !extensionParameters.isEmpty()) {
+            for (Extension.Parameter p : extensionParameters) {
                 sb.append("; ");
                 sb.append(TyrusParameter.toString(p));
             }

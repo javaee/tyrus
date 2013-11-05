@@ -43,6 +43,7 @@ package org.glassfish.tyrus.core.uri;
 import java.util.Collections;
 import java.util.List;
 
+import javax.websocket.CloseReason;
 import javax.websocket.Extension;
 
 import org.glassfish.tyrus.core.ProtocolHandler;
@@ -73,7 +74,7 @@ public class TestWebSocketApplication extends WebSocketApplication {
     }
 
     @Override
-    public WebSocket createSocket(ProtocolHandler handler, WebSocketListener... listeners) {
+    public WebSocket createSocket(ProtocolHandler handler, WebSocketListener listener) {
         return null;
     }
 
@@ -90,6 +91,14 @@ public class TestWebSocketApplication extends WebSocketApplication {
     @Override
     public List<String> getSupportedProtocols(List<String> subProtocol) {
         return Collections.emptyList();
+    }
+
+    @Override
+    public void onClose(WebSocket socket, CloseReason closeReason) {
+    }
+
+    @Override
+    public void onConnect(WebSocket socket, UpgradeRequest upgradeRequest) {
     }
 
     @Override

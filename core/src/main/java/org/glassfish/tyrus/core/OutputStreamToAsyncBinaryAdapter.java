@@ -46,8 +46,6 @@ import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-import org.glassfish.tyrus.spi.RemoteEndpoint;
-
 /**
  * Simple Writer that writes its data to
  * an async sink.

@@ -42,8 +42,6 @@ package org.glassfish.tyrus.core;
 
 import java.nio.ByteBuffer;
 import java.util.EnumSet;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
@@ -61,7 +59,7 @@ import org.glassfish.tyrus.spi.UpgradeRequest;
  * Instance of this class represents one bi-directional websocket connection.
  */
 public class TyrusWebSocket implements WebSocket {
-    private final Queue<WebSocketListener> listeners = new ConcurrentLinkedQueue<WebSocketListener>();
+    private final WebSocketListener listener;
     private final ProtocolHandler protocolHandler;
 
     private final CountDownLatch onConnectLatch = new CountDownLatch(1);
@@ -77,20 +75,13 @@ public class TyrusWebSocket implements WebSocket {
      * Create new instance, set {@link ProtocolHandler} and register {@link WebSocketListener WebSocketListeners}.
      *
      * @param protocolHandler used for writing data (sending).
-     * @param listeners       notifies registered endpoints about incoming events.
+     * @param listener        notifies registered endpoints about incoming events.
      */
     public TyrusWebSocket(final ProtocolHandler protocolHandler,
-                          final WebSocketListener... listeners) {
+                          final WebSocketListener listener) {
         this.protocolHandler = protocolHandler;
-        for (WebSocketListener listener : listeners) {
-            add(listener);
-        }
+        this.listener = listener;
         protocolHandler.setWebSocket(this);
-    }
-
-    @Override
-    public final boolean add(WebSocketListener listener) {
-        return listeners.add(listener);
     }
 
     @Override
@@ -103,14 +94,9 @@ public class TyrusWebSocket implements WebSocket {
         return connected.contains(state.get());
     }
 
-    public void setClosed() {
-        state.set(State.CLOSED);
-    }
-
     @Override
     public void onClose(final CloseReason closeReason) {
-        WebSocketListener listener;
-        while ((listener = listeners.poll()) != null) {
+        if (listener != null) {
             listener.onClose(this, closeReason);
         }
 
@@ -126,7 +112,7 @@ public class TyrusWebSocket implements WebSocket {
     public void onConnect(UpgradeRequest upgradeRequest) {
         state.set(State.CONNECTED);
 
-        for (WebSocketListener listener : listeners) {
+        if (listener != null) {
             listener.onConnect(this, upgradeRequest);
         }
 
@@ -136,7 +122,7 @@ public class TyrusWebSocket implements WebSocket {
     @Override
     public void onFragment(boolean last, byte[] fragment) {
         awaitOnConnect();
-        for (WebSocketListener listener : listeners) {
+        if (listener != null) {
             listener.onFragment(this, fragment, last);
         }
     }
@@ -144,7 +130,7 @@ public class TyrusWebSocket implements WebSocket {
     @Override
     public void onFragment(boolean last, String fragment) {
         awaitOnConnect();
-        for (WebSocketListener listener : listeners) {
+        if (listener != null) {
             listener.onFragment(this, fragment, last);
         }
     }
@@ -152,7 +138,7 @@ public class TyrusWebSocket implements WebSocket {
     @Override
     public void onMessage(byte[] data) {
         awaitOnConnect();
-        for (WebSocketListener listener : listeners) {
+        if (listener != null) {
             listener.onMessage(this, data);
         }
     }
@@ -160,7 +146,7 @@ public class TyrusWebSocket implements WebSocket {
     @Override
     public void onMessage(String text) {
         awaitOnConnect();
-        for (WebSocketListener listener : listeners) {
+        if (listener != null) {
             listener.onMessage(this, text);
         }
     }
@@ -168,7 +154,7 @@ public class TyrusWebSocket implements WebSocket {
     @Override
     public void onPing(DataFrame frame) {
         awaitOnConnect();
-        for (WebSocketListener listener : listeners) {
+        if (listener != null) {
             listener.onPing(this, frame.getBytes());
         }
     }
@@ -176,7 +162,7 @@ public class TyrusWebSocket implements WebSocket {
     @Override
     public void onPong(DataFrame frame) {
         awaitOnConnect();
-        for (WebSocketListener listener : listeners) {
+        if (listener != null) {
             listener.onPong(this, frame.getBytes());
         }
     }

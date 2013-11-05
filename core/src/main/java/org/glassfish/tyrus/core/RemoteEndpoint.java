@@ -37,9 +37,8 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.spi;
+package org.glassfish.tyrus.core;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.concurrent.Future;
 
@@ -114,7 +113,7 @@ public abstract class RemoteEndpoint {
      *
      * @param applicationData the data to be carried in the ping request.
      */
-    public abstract Future<?> sendPing(ByteBuffer applicationData) throws IOException;
+    public abstract Future<?> sendPing(ByteBuffer applicationData);
 
     /**
      * Allows the developer to send an unsolicited Pong message containing the given application
@@ -123,7 +122,7 @@ public abstract class RemoteEndpoint {
      *
      * @param applicationData the application data to be carried in the pong response.
      */
-    public abstract Future<?> sendPong(ByteBuffer applicationData) throws IOException;
+    public abstract Future<?> sendPong(ByteBuffer applicationData);
 
     /**
      * Send a Close message.

@@ -55,9 +55,9 @@ import javax.websocket.CloseReason;
 import org.glassfish.tyrus.container.grizzly.client.GrizzlyWriter;
 import org.glassfish.tyrus.container.grizzly.client.TaskProcessor;
 import org.glassfish.tyrus.core.RequestContext;
+import org.glassfish.tyrus.core.TyrusUpgradeResponse;
 import org.glassfish.tyrus.core.Utils;
 import org.glassfish.tyrus.core.WebSocket;
-import org.glassfish.tyrus.core.WebSocketResponse;
 import org.glassfish.tyrus.spi.ReadHandler;
 import org.glassfish.tyrus.spi.ServerContainer;
 import org.glassfish.tyrus.spi.UpgradeRequest;
@@ -230,10 +230,10 @@ class GrizzlyServerFilter extends BaseFilter {
      * @return {@link NextAction} instruction for {@link FilterChain}, how it should continue the execution
      * @throws IOException TODO
      */
-    private NextAction handleHandshake(final FilterChainContext ctx, HttpContent content) throws IOException {
+    private NextAction handleHandshake(final FilterChainContext ctx, HttpContent content) {
         final UpgradeRequest upgradeRequest = createWebSocketRequest(content);
         // TODO: final UpgradeResponse upgradeResponse = GrizzlyUpgradeResponse(HttpResponsePacket)
-        final UpgradeResponse upgradeResponse = new WebSocketResponse();
+        final UpgradeResponse upgradeResponse = new TyrusUpgradeResponse();
         final WebSocketEngine.UpgradeInfo upgradeInfo = serverContainer.getWebSocketEngine().upgrade(upgradeRequest, upgradeResponse);
 
         switch (upgradeInfo.getStatus()) {

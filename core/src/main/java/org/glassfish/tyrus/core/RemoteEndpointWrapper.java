@@ -56,7 +56,6 @@ import javax.websocket.EncodeException;
 import javax.websocket.SendHandler;
 import javax.websocket.SendResult;
 
-import org.glassfish.tyrus.spi.RemoteEndpoint;
 import static org.glassfish.tyrus.core.Utils.checkNotNull;
 
 /**
@@ -69,9 +68,10 @@ import static org.glassfish.tyrus.core.Utils.checkNotNull;
  */
 public abstract class RemoteEndpointWrapper implements javax.websocket.RemoteEndpoint {
 
-    final RemoteEndpoint remoteEndpoint;
-    final TyrusSession session;
-    final TyrusEndpointWrapper tyrusEndpointWrapper;
+    protected final TyrusSession session;
+    protected final RemoteEndpoint remoteEndpoint;
+
+    private final TyrusEndpointWrapper tyrusEndpointWrapper;
 
     private RemoteEndpointWrapper(TyrusSession session, RemoteEndpoint remoteEndpoint, TyrusEndpointWrapper tyrusEndpointWrapper) {
         this.remoteEndpoint = remoteEndpoint;

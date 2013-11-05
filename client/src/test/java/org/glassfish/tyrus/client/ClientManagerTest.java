@@ -39,13 +39,14 @@
  */
 package org.glassfish.tyrus.client;
 
+import java.io.IOException;
 import java.util.Map;
 
 import javax.websocket.ClientEndpointConfig;
+import javax.websocket.DeploymentException;
 
 import org.glassfish.tyrus.spi.ClientContainer;
-import org.glassfish.tyrus.spi.ClientSocket;
-import org.glassfish.tyrus.spi.EndpointWrapper;
+import org.glassfish.tyrus.spi.ClientEngine;
 
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
@@ -87,9 +88,9 @@ public class ClientManagerTest {
     public static class NoopContainer implements ClientContainer {
 
         @Override
-        public ClientSocket openClientSocket(String url, ClientEndpointConfig cec, EndpointWrapper endpoint,
-                                             ClientContainer.ClientHandshakeListener listener, Map<String, Object> properties) {
-            return null;
+        public void openClientSocket(String url, ClientEndpointConfig cec,
+                                     Map<String, Object> properties,
+                                     ClientEngine clientEngine) throws DeploymentException, IOException {
         }
     }
 }

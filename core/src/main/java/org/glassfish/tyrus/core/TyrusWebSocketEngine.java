@@ -41,11 +41,8 @@
 package org.glassfish.tyrus.core;
 
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
-import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
@@ -67,23 +64,26 @@ import org.glassfish.tyrus.spi.WebSocketEngine;
 import org.glassfish.tyrus.spi.Writer;
 
 /**
- * WebSockets engine implementation (singleton), which handles {@link WebSocketApplication}s registration, responsible
- * for client and server handshake validation.
+ * {@link WebSocketEngine} implementation, which handles server-side handshake, validation and data processing.
  *
  * @author Alexey Stashok
- * @see WebSocket
- * @see WebSocketApplication
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
+ * @see org.glassfish.tyrus.core.WebSocket
+ * @see org.glassfish.tyrus.core.WebSocketApplication
  */
 public class TyrusWebSocketEngine implements WebSocketEngine {
 
     public static final String INCOMING_BUFFER_SIZE = "org.glassfish.tyrus.incomingBufferSize";
 
-    public static final int RESPONSE_CODE_VALUE = 101;
-    public static final Version DEFAULT_VERSION = Version.DRAFT17;
-    public static final int MASK_SIZE = 4;
-
     private static final int BUFFER_STEP_SIZE = 256;
     private static final Logger LOGGER = Logger.getLogger(UpgradeRequest.WEBSOCKET);
+
+    private static final UpgradeInfo NOT_APPLICABLE_UPGRADE_INFO =
+            new NoConnectionUpgradeInfo(UpgradeStatus.NOT_APPLICABLE);
+
+    private static final UpgradeInfo HANDSHAKE_FAILED_UPGRADE_INFO =
+            new NoConnectionUpgradeInfo(UpgradeStatus.HANDSHAKE_FAILED);
+
 
     private final Set<WebSocketApplication> applications = Collections.newSetFromMap(new ConcurrentHashMap<WebSocketApplication, Boolean>());
     private final ComponentProviderService componentProviderService = ComponentProviderService.create();
@@ -113,37 +113,6 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
             this.incomingBufferSize = incomingBufferSize;
         }
         this.webSocketContainer = webSocketContainer;
-    }
-
-    public static byte[] toArray(long length) {
-        long value = length;
-        byte[] b = new byte[8];
-        for (int i = 7; i >= 0 && value > 0; i--) {
-            b[i] = (byte) (value & 0xFF);
-            value >>= 8;
-        }
-        return b;
-    }
-
-    public static long toLong(byte[] bytes, int start, int end) {
-        long value = 0;
-        for (int i = start; i < end; i++) {
-            value <<= 8;
-            value ^= (long) bytes[i] & 0xFF;
-        }
-        return value;
-    }
-
-    public static List<String> toString(byte[] bytes) {
-        return toString(bytes, 0, bytes.length);
-    }
-
-    private static List<String> toString(byte[] bytes, int start, int end) {
-        List<String> list = new ArrayList<String>();
-        for (int i = start; i < end; i++) {
-            list.add(Integer.toHexString(bytes[i] & 0xFF).toUpperCase(Locale.US));
-        }
-        return list;
     }
 
     private static ProtocolHandler loadHandler(UpgradeRequest request) {
@@ -183,7 +152,6 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
         return null;
     }
 
-
     @Override
     public UpgradeInfo upgrade(final UpgradeRequest request, final UpgradeResponse response) {
 
@@ -208,31 +176,29 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
         return NOT_APPLICABLE_UPGRADE_INFO;
     }
 
-    public ReadHandler getReadHandler(WebSocketHolder webSocketHolder) {
-        return new TyrusReadHandler(webSocketHolder, incomingBufferSize);
-    }
-
     private static class TyrusReadHandler implements ReadHandler {
-        private final WebSocketHolder webSocketHolder;
+
+        private final ProtocolHandler protocolHandler;
+        private final WebSocket socket;
+        private final WebSocketApplication application;
         private final int incomingBufferSize;
 
-        TyrusReadHandler(final WebSocketHolder webSocketHolder, int incomingBufferSize) {
-            this.webSocketHolder = webSocketHolder;
+        private volatile ByteBuffer buffer;
+
+        private TyrusReadHandler(ProtocolHandler protocolHandler, WebSocket socket, WebSocketApplication application, int incomingBufferSize) {
+            this.protocolHandler = protocolHandler;
+            this.socket = socket;
+            this.application = application;
             this.incomingBufferSize = incomingBufferSize;
         }
 
         @Override
         public void handle(ByteBuffer data) {
-            if (webSocketHolder == null) {
-                // TODO?
-                return;
-            }
-
             try {
                 if (data != null && data.hasRemaining()) {
 
-                    if (webSocketHolder.buffer != null) {
-                        data = appendBuffers(webSocketHolder.buffer, data);
+                    if (buffer != null) {
+                        data = Utils.appendBuffers(buffer, data, incomingBufferSize, BUFFER_STEP_SIZE);
                     } else {
                         int newSize = data.remaining();
                         if (newSize > incomingBufferSize) {
@@ -241,80 +207,26 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
                             final int roundedSize = (newSize % BUFFER_STEP_SIZE) > 0 ? ((newSize / BUFFER_STEP_SIZE) + 1) * BUFFER_STEP_SIZE : newSize;
                             final ByteBuffer result = ByteBuffer.allocate(roundedSize > incomingBufferSize ? newSize : roundedSize);
                             result.flip();
-                            data = appendBuffers(result, data);
+                            data = Utils.appendBuffers(result, data, incomingBufferSize, BUFFER_STEP_SIZE);
                         }
                     }
 
                     do {
-                        final DataFrame result = webSocketHolder.handler.unframe(data);
+                        final DataFrame result = protocolHandler.unframe(data);
                         if (result == null) {
-                            webSocketHolder.buffer = data;
+                            buffer = data;
                             break;
                         } else {
-                            result.respond(webSocketHolder.webSocket);
+                            result.respond(socket);
                         }
                     } while (true);
                 }
             } catch (FramingException e) {
                 e.printStackTrace();
-                webSocketHolder.webSocket.onClose(new CloseReason(CloseReason.CloseCodes.getCloseCode(e.getClosingCode()), e.getMessage()));
+                socket.onClose(new CloseReason(CloseReason.CloseCodes.getCloseCode(e.getClosingCode()), e.getMessage()));
             } catch (Exception wse) {
-                wse.printStackTrace();
-
-                // client-side only
-                if (webSocketHolder.application == null) {
-                    webSocketHolder.webSocket.onClose(new CloseReason(CloseReason.CloseCodes.UNEXPECTED_CONDITION, wse.getMessage()));
-                    // server
-                } else if (webSocketHolder.application.onError(webSocketHolder.webSocket, wse)) {
-                    webSocketHolder.webSocket.onClose(new CloseReason(CloseReason.CloseCodes.UNEXPECTED_CONDITION, wse.getMessage()));
-                }
-            }
-        }
-
-        /**
-         * Concatenates two buffers into one. If buffer given as first argument has enough space for putting
-         * the other one, it will be done and the original buffer will be returned. Otherwise new buffer will
-         * be created.
-         *
-         * @param buffer  first buffer.
-         * @param buffer1 second buffer.
-         * @return concatenation.
-         */
-        private ByteBuffer appendBuffers(ByteBuffer buffer, ByteBuffer buffer1) {
-
-            final int limit = buffer.limit();
-            final int capacity = buffer.capacity();
-            final int remaining = buffer.remaining();
-            final int len = buffer1.remaining();
-
-            // buffer1 will be appended to buffer
-            if (len < (capacity - limit)) {
-
-                buffer.mark();
-                buffer.position(limit);
-                buffer.limit(capacity);
-                buffer.put(buffer1);
-                buffer.limit(limit + len);
-                buffer.reset();
-                return buffer;
-                // Remaining data is moved to left. Then new data is appended
-            } else if (remaining + len < capacity) {
-                buffer.compact();
-                buffer.put(buffer1);
-                buffer.flip();
-                return buffer;
-                // create new buffer
-            } else {
-                int newSize = remaining + len;
-                if (newSize > incomingBufferSize) {
-                    throw new IllegalArgumentException("Buffer overflow.");
-                } else {
-                    final int roundedSize = (newSize % BUFFER_STEP_SIZE) > 0 ? ((newSize / BUFFER_STEP_SIZE) + 1) * BUFFER_STEP_SIZE : newSize;
-                    final ByteBuffer result = ByteBuffer.allocate(roundedSize > incomingBufferSize ? newSize : roundedSize);
-                    result.put(buffer);
-                    result.put(buffer1);
-                    result.flip();
-                    return result;
+                if (application.onError(socket, wse)) {
+                    socket.onClose(new CloseReason(CloseReason.CloseCodes.UNEXPECTED_CONDITION, wse.getMessage()));
                 }
             }
         }
@@ -323,7 +235,6 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
     public void setIncomingBufferSize(int incomingBufferSize) {
         this.incomingBufferSize = incomingBufferSize;
     }
-
 
     /**
      * Registers the specified {@link WebSocketApplication} with the
@@ -410,32 +321,6 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
         applications.remove(app);
     }
 
-    /**
-     * WebSocketHolder object, which gets associated with the Grizzly {@link org.glassfish.tyrus.spi.Writer}.
-     */
-    public final static class WebSocketHolder {
-        public final WebSocket webSocket;
-        public final ProtocolHandler handler;
-        public final Handshake handshake;
-        public final WebSocketApplication application;
-        public volatile ByteBuffer buffer;
-
-        public WebSocketHolder(final ProtocolHandler handler, final WebSocket socket, final Handshake handshake,
-                               final WebSocketApplication application) {
-            this.handler = handler;
-            this.webSocket = socket;
-            this.handshake = handshake;
-            this.application = application;
-        }
-    }
-
-    private static final UpgradeInfo NOT_APPLICABLE_UPGRADE_INFO =
-            new NoConnectionUpgradeInfo(UpgradeStatus.NOT_APPLICABLE);
-
-    private static final UpgradeInfo HANDSHAKE_FAILED_UPGRADE_INFO =
-            new NoConnectionUpgradeInfo(UpgradeStatus.HANDSHAKE_FAILED);
-
-
     private static class NoConnectionUpgradeInfo implements UpgradeInfo {
         private final UpgradeStatus status;
 
@@ -489,11 +374,10 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
         TyrusConnection(WebSocketApplication app, ProtocolHandler protocolHandler, int incomingBufferSize, Writer writer, Connection.CloseListener closeListener, UpgradeRequest upgradeRequest) {
             protocolHandler.setWriter(writer);
             final WebSocket socket = app.createSocket(protocolHandler, app);
-            final WebSocketHolder holder = new WebSocketHolder(protocolHandler, socket, null, app);
 
             socket.onConnect(upgradeRequest);
             this.socket = socket;
-            this.readHandler = new TyrusReadHandler(holder, incomingBufferSize);
+            this.readHandler = new TyrusReadHandler(protocolHandler, socket, app, incomingBufferSize);
             this.writer = writer;
             this.closeListener = closeListener;
         }
@@ -518,5 +402,4 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
             socket.close(reason.getCloseCode().getCode(), reason.getReasonPhrase());
         }
     }
-
 }

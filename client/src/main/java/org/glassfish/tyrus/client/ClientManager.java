@@ -71,8 +71,7 @@ import org.glassfish.tyrus.core.ReflectionHelper;
 import org.glassfish.tyrus.core.TyrusEndpointWrapper;
 import org.glassfish.tyrus.core.TyrusFuture;
 import org.glassfish.tyrus.spi.ClientContainer;
-import org.glassfish.tyrus.spi.ClientSocket;
-import org.glassfish.tyrus.spi.UpgradeResponse;
+import org.glassfish.tyrus.spi.ClientEngine;
 
 /**
  * ClientManager implementation.
@@ -81,6 +80,13 @@ import org.glassfish.tyrus.spi.UpgradeResponse;
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 public class ClientManager extends BaseContainer implements WebSocketContainer {
+
+    /**
+     * Property usable in {@link #getProperties()}.
+     * <p/>
+     * Value must be {@code int} and represents handshake timeout in milliseconds. Default value is 10000 (10 seconds).
+     */
+    public static final String HANDSHAKE_TIMEOUT = "org.glassfish.tyrus.client.ClientManager.ContainerTimeout";
 
     /**
      * Default {@link org.glassfish.tyrus.spi.ServerContainerFactory} class name.
@@ -122,7 +128,6 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
     public static ClientManager createClient(WebSocketContainer webSocketContainer) {
         return createClient(CONTAINER_PROVIDER_CLASSNAME, webSocketContainer);
     }
-
 
     /**
      * Create new ClientManager instance.
@@ -340,16 +345,20 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
             throw new DeploymentException("Incorrect WebSocket endpoint URI=" + url, e);
         }
 
+        final int handshakeTimeout = getHandshakeTimeout();
+
         executorService.submit(new Runnable() {
             @Override
             public void run() {
 
                 ClientEndpointConfig config = null;
                 Endpoint endpoint;
-                ClientSocket clientSocket = null;
                 final ErrorCollector collector = new ErrorCollector();
+                TyrusEndpointWrapper clientEndpoint;
 
                 final CountDownLatch responseLatch = new CountDownLatch(1);
+                ManagerClientHandshakeListener listener = null;
+                TyrusClientEngine clientEngine = null;
 
                 try {
                     if (o instanceof Endpoint) {
@@ -373,38 +382,49 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                         config = (ClientEndpointConfig) ((AnnotatedEndpoint) endpoint).getEndpointConfig();
                     }
 
+
+                    clientEndpoint = new TyrusEndpointWrapper(endpoint, config, componentProvider,
+                            webSocketContainer == null ? ClientManager.this : webSocketContainer, url, null);
+
+                    // fail fast when there is some issue with client endpoint.
+                    if (!collector.isEmpty()) {
+                        future.setFailure(collector.composeComprehensiveException());
+                        return;
+                    }
+
                     final ClientEndpointConfig finalConfig = config;
 
-                    if (endpoint != null) {
-                        TyrusEndpointWrapper clientEndpoint = new TyrusEndpointWrapper(endpoint, config, componentProvider,
-                                webSocketContainer == null ? ClientManager.this : webSocketContainer, url, null);
+                    listener = new ManagerClientHandshakeListener() {
 
-                        // fail fast when there is some issue with client endpoint.
-                        if (!collector.isEmpty()) {
-                            future.setFailure(collector.composeComprehensiveException());
-                            return;
+                        private volatile Session session;
+
+                        @Override
+                        public void onSessionCreated(Session session) {
+                            this.session = session;
+                            responseLatch.countDown();
                         }
 
-                        ClientContainer.ClientHandshakeListener listener = new ClientContainer.ClientHandshakeListener() {
+                        @Override
+                        public void onError(Throwable exception) {
+                            assert finalConfig != null;
+                            finalConfig.getUserProperties().put("org.glassfish.tyrus.client.exception", exception);
+                            responseLatch.countDown();
+                        }
 
-                            @Override
-                            public void onHandshakeResponse(UpgradeResponse handshakeResponse) {
-                                finalConfig.getConfigurator().afterResponse(handshakeResponse);
-                                responseLatch.countDown();
-                            }
+                        @Override
+                        public Session getSession() {
+                            return session;
+                        }
+                    };
 
-                            @Override
-                            public void onError(Throwable exception) {
-                                finalConfig.getUserProperties().put("org.glassfish.tyrus.client.exception", exception);
-                                responseLatch.countDown();
-                            }
-                        };
-                        clientSocket = container.openClientSocket(url, config, clientEndpoint, listener, properties);
-                    }
+                    clientEngine = new TyrusClientEngine(clientEndpoint, listener, (Integer) properties.get(TyrusClientEngine.INCOMING_BUFFER_SIZE));
+
+                    container.openClientSocket(url, config, properties, clientEngine);
                 } catch (IOException e) {
                     future.setFailure(e);
                     return;
                 } catch (DeploymentException e) {
+                    e.printStackTrace();
                     collector.addException(new DeploymentException("Connection failed.", e));
                 }
 
@@ -413,34 +433,53 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                     return;
                 }
 
-                if (clientSocket != null) {
-                    try {
-                        // TODO - configurable timeout?
-                        final boolean countedDown = responseLatch.await(10, TimeUnit.SECONDS);
-                        if (countedDown) {
-                            final Object exception = config.getUserProperties().get("org.glassfish.tyrus.client.exception");
-                            if (exception != null) {
-                                future.setFailure(new DeploymentException("Handshake error.", (Throwable) exception));
-                            }
-
-                            final Session session = clientSocket.getSession();
-                            if (session.isOpen()) {
-                                session.setMaxBinaryMessageBufferSize(maxBinaryMessageBufferSize);
-                                session.setMaxTextMessageBufferSize(maxTextMessageBufferSize);
-                                session.setMaxIdleTimeout(defaultMaxSessionIdleTimeout);
-                            }
-                            future.setResult(session);
+                try {
+                    final boolean countedDown = responseLatch.await(handshakeTimeout, TimeUnit.MILLISECONDS);
+                    if (countedDown) {
+                        assert config != null;
+                        final Object exception = config.getUserProperties().get("org.glassfish.tyrus.client.exception");
+                        if (exception != null) {
+                            future.setFailure(new DeploymentException("Handshake error.", (Throwable) exception));
                             return;
                         }
-                    } catch (InterruptedException e) {
-                        future.setFailure(new DeploymentException("Handshake response not received.", e));
+
+                        final Session session = listener.getSession();
+                        if (session.isOpen()) {
+                            session.setMaxBinaryMessageBufferSize(maxBinaryMessageBufferSize);
+                            session.setMaxTextMessageBufferSize(maxTextMessageBufferSize);
+                            session.setMaxIdleTimeout(defaultMaxSessionIdleTimeout);
+                        }
+                        future.setResult(session);
+                        return;
+                    } else {
+                        // timeout!
+                        final ClientEngine.TimeoutHandler timeoutHandler = clientEngine.getTimeoutHandler();
+                        if (timeoutHandler != null) {
+                            timeoutHandler.handleTimeout();
+                        }
                     }
+                } catch (Exception e) {
+                    future.setFailure(new DeploymentException("Handshake response not received.", e));
                 }
                 future.setFailure(new DeploymentException("Handshake response not received."));
             }
         });
 
         return future;
+    }
+
+    private int getHandshakeTimeout() {
+        final Object o = properties.get(HANDSHAKE_TIMEOUT);
+        if (o != null && o instanceof Integer) {
+            return (Integer) o;
+        } else {
+            // default value
+            return 10000;
+        }
+    }
+
+    private interface ManagerClientHandshakeListener extends TyrusClientEngine.ClientHandshakeListener {
+        Session getSession();
     }
 
     @Override

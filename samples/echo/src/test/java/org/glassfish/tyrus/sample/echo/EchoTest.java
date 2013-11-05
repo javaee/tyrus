@@ -80,6 +80,7 @@ public class EchoTest extends TestContainer {
             client.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig EndpointConfig) {
+
                     try {
                         session.addMessageHandler(new MessageHandler.Whole<String>() {
                             @Override

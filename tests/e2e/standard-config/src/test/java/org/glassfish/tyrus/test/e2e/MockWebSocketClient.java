@@ -162,11 +162,6 @@ class MockWebSocketClient implements WebSocket {
     }
 
     @Override
-    public boolean add(WebSocketListener webSocketListener) {
-        return false;
-    }
-
-    @Override
     public void setWriteTimeout(long timeoutMs) {
     }
 }

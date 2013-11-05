@@ -75,7 +75,7 @@ public class ProgrammaticEchoTest extends TestContainer {
             final CountDownLatch messageLatch = new CountDownLatch(1);
 
             final ClientManager client = ClientManager.createClient();
-            final Session session = client.connectToServer(new Endpoint() {
+            client.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig EndpointConfig) {
                     try {

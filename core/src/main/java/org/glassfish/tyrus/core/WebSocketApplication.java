@@ -41,8 +41,6 @@
 package org.glassfish.tyrus.core;
 
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.websocket.CloseReason;
 import javax.websocket.Extension;
@@ -59,24 +57,18 @@ import org.glassfish.tyrus.spi.UpgradeResponse;
  */
 public abstract class WebSocketApplication implements WebSocketListener {
 
-    /*
-     * WebSockets registered with this application.
-     */
-    private final Map<WebSocket, Boolean> sockets =
-            new ConcurrentHashMap<WebSocket, Boolean>();
-
     /**
      * Factory method to create new {@link WebSocket} instances.  Developers may
      * wish to override this to return customized {@link WebSocket} implementations.
      *
-     * @param handler   the {@link ProtocolHandler} to use with the newly created
-     *                  {@link WebSocket}.
-     * @param listeners the {@link WebSocketListener}s to associate with the new
-     *                  {@link WebSocket}.
+     * @param handler  the {@link ProtocolHandler} to use with the newly created
+     *                 {@link WebSocket}.
+     * @param listener the {@link WebSocketListener} to associate with the new
+     *                 {@link WebSocket}.
      * @return TODO
      */
     public abstract WebSocket createSocket(final ProtocolHandler handler,
-                                           final WebSocketListener... listeners);
+                                           final WebSocketListener listener);
 
     /**
      * When a {@link WebSocket#onClose(javax.websocket.CloseReason)} is invoked, the {@link WebSocket}
@@ -86,10 +78,7 @@ public abstract class WebSocketApplication implements WebSocketListener {
      * @param closeReason the {@link CloseReason}.
      */
     @Override
-    public void onClose(WebSocket socket, CloseReason closeReason) {
-        remove(socket);
-        socket.close();
-    }
+    public abstract void onClose(WebSocket socket, CloseReason closeReason);
 
     /**
      * When a new {@link WebSocket} connection is made to this application, the
@@ -99,9 +88,7 @@ public abstract class WebSocketApplication implements WebSocketListener {
      * @param upgradeRequest request associated with connection.
      */
     @Override
-    public void onConnect(WebSocket socket, UpgradeRequest upgradeRequest) {
-        add(socket);
-    }
+    public abstract void onConnect(WebSocket socket, UpgradeRequest upgradeRequest);
 
     /**
      * Checks protocol specific information can and should be upgraded.
@@ -179,26 +166,4 @@ public abstract class WebSocketApplication implements WebSocketListener {
      * @return TODO
      */
     public abstract List<String> getSupportedProtocols(List<String> subProtocol);
-
-    /**
-     * Associates the specified {@link WebSocket} with this application.
-     *
-     * @param socket the {@link WebSocket} to associate with this application.
-     * @return <code>true</code> if the socket was successfully associated,
-     *         otherwise returns <code>false</code>.
-     */
-    boolean add(WebSocket socket) {
-        return sockets.put(socket, Boolean.TRUE) == null;
-    }
-
-    /**
-     * Unassociates the specified {@link WebSocket} with this application.
-     *
-     * @param socket the {@link WebSocket} to unassociate with this application.
-     * @return <code>true</code> if the socket was successfully unassociated,
-     *         otherwise returns <code>false</code>.
-     */
-    boolean remove(WebSocket socket) {
-        return sockets.remove(socket) != null;
-    }
 }

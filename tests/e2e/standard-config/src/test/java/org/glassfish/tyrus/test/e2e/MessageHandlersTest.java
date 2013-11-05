@@ -58,9 +58,9 @@ import javax.websocket.OnMessage;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
-import org.glassfish.tyrus.test.tools.TestContainer;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
+import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.junit.Test;
 import static org.junit.Assert.assertArrayEquals;
@@ -503,7 +503,6 @@ public class MessageHandlersTest extends TestContainer {
                     session.addMessageHandler(new MessageHandler.Whole<byte[]>() {
                         @Override
                         public void onMessage(byte[] message) {
-                            System.out.println("### onMessage received: "+message);
                             if (new String(message).equals("In my experience, there's no such thing as luck.")) {
                                 latch.countDown();
                             }
@@ -752,7 +751,7 @@ public class MessageHandlersTest extends TestContainer {
                         // don't care
                     }
                 }
-            }, cec,getURI(ClientPartialText.class));
+            }, cec, getURI(ClientPartialText.class));
 
             messageLatch.await(1, TimeUnit.SECONDS);
             assertEquals(0, messageLatch.getCount());
@@ -882,6 +881,7 @@ public class MessageHandlersTest extends TestContainer {
                     }
                 }
 
+                @Override
                 public void onError(Session session, Throwable thr) {
                     thr.printStackTrace();
                 }
@@ -944,7 +944,7 @@ public class MessageHandlersTest extends TestContainer {
                     session.addMessageHandler(new MessageHandler.Whole<byte[]>() {
                         @Override
                         public void onMessage(byte[] message) {
-                            System.out.println("Client received message: " + message.toString());
+                            System.out.println("Client received message: " + new String(message));
                             assertArrayEquals(result, message);
                             messageLatch.countDown();
 
@@ -981,6 +981,7 @@ public class MessageHandlersTest extends TestContainer {
                     }
                 }
 
+                @Override
                 public void onError(Session session, Throwable thr) {
                     thr.printStackTrace();
                 }
@@ -1041,6 +1042,7 @@ public class MessageHandlersTest extends TestContainer {
                     }
                 }
 
+                @Override
                 public void onError(Session session, Throwable thr) {
                     thr.printStackTrace();
                 }

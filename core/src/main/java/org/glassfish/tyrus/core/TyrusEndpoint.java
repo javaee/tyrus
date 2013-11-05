@@ -52,7 +52,6 @@ import javax.websocket.Extension;
 import javax.websocket.server.HandshakeRequest;
 import javax.websocket.server.ServerEndpointConfig;
 
-import org.glassfish.tyrus.spi.EndpointWrapper;
 import org.glassfish.tyrus.spi.UpgradeRequest;
 import org.glassfish.tyrus.spi.UpgradeResponse;
 
@@ -82,7 +81,7 @@ public class TyrusEndpoint extends WebSocketApplication {
     private String temporaryNegotiatedProtocol;
 
     /**
-     * Create {@link TyrusEndpoint} which represents given {@link org.glassfish.tyrus.spi.EndpointWrapper}.
+     * Create {@link TyrusEndpoint} which represents given {@link EndpointWrapper}.
      *
      * @param endpoint endpoint to be wrapped.
      */
@@ -107,9 +106,9 @@ public class TyrusEndpoint extends WebSocketApplication {
     }
 
     @Override
-    public WebSocket createSocket(final ProtocolHandler handler, final WebSocketListener... listeners) {
+    public WebSocket createSocket(final ProtocolHandler handler, final WebSocketListener listener) {
         handler.setContainer(endpoint.getWebSocketContainer());
-        return new TyrusWebSocket(handler, listeners);
+        return new TyrusWebSocket(handler, listener);
     }
 
     @Override
