@@ -190,7 +190,7 @@ public class GrizzlyWriter extends Writer {
 
         @Override
         public void execute() {
-            connection.close();
+            connection.closeSilently();
         }
     }
 }
