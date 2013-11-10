@@ -403,9 +403,13 @@ class GrizzlyClientFilter extends BaseFilter {
 
         StringBuilder sb = new StringBuilder();
         final URI uri = URI.create(request.getRequestUri());
-        sb.append(uri.getPath()).append('?').append(uri.getQuery());
-
+        sb.append(uri.getPath());
+        final String query = uri.getQuery();
+        if (query != null) {
+            sb.append('?').append(query);
+        }
         builder = builder.uri(sb.toString());
+
         for (Map.Entry<String, List<String>> headerEntry : request.getHeaders().entrySet()) {
             StringBuilder finalHeaderValue = new StringBuilder();
 
