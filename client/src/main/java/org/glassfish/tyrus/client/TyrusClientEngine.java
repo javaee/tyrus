@@ -137,12 +137,13 @@ public class TyrusClientEngine implements ClientEngine {
                     TyrusExtension.fromHeaders(upgradeResponse.getHeaders().get(HandshakeRequest.SEC_WEBSOCKET_EXTENSIONS)));
 
             ((ClientEndpointConfig) endpointWrapper.getEndpointConfig()).getConfigurator().afterResponse(upgradeResponse);
-            listener.onSessionCreated(sessionForRemoteEndpoint);
 
             protocolHandler.setWriter(writer);
             protocolHandler.setWebSocket(tyrusWebSocket);
 
             tyrusWebSocket.onConnect(this.clientHandShake.getRequest());
+
+            listener.onSessionCreated(sessionForRemoteEndpoint);
 
             return new Connection() {
 
