@@ -60,6 +60,8 @@ public final class Handshake {
 
     public static final int RESPONSE_CODE_VALUE = 101;
 
+    private static final String VERSION = "13";
+
     private boolean secure;
     private String origin;
     private String serverHostName;
@@ -72,7 +74,6 @@ public final class Handshake {
     private UpgradeRequest incomingRequest;
     private SecKey secKey;
 
-    private final String VERSION = "13";
 
     private Handshake() {
     }

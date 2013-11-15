@@ -146,7 +146,7 @@ public class InMemoryClientContainer implements ClientContainer {
     }
 
 
-    private class InMemoryWriter extends Writer {
+    private static class InMemoryWriter extends Writer {
 
         private final List<ByteBuffer> cache = new ArrayList<ByteBuffer>();
         private volatile ReadHandler readHandler = null;
