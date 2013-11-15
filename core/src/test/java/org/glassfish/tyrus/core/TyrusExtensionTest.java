@@ -210,4 +210,19 @@ public class TyrusExtensionTest {
         assertEquals("param", extensions.get(1).getParameters().get(0).getName());
         assertEquals("  value \\ ", extensions.get(1).getParameters().get(0).getValue());
     }
+
+    @Test
+    public void testToString() {
+        TyrusExtension.toString(new Extension() {
+            @Override
+            public String getName() {
+                return "name";
+            }
+
+            @Override
+            public List<Parameter> getParameters() {
+                return null;
+            }
+        });
+    }
 }
