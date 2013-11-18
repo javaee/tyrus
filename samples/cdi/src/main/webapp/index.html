@@ -54,6 +54,9 @@
     var injectingAppScopedUri = getRootUri() + "/sample-cdi/injectingappscoped";
     var singletonUri = getRootUri() + "/sample-cdi/singleton";
     var statefulUri = getRootUri() + "/sample-cdi/stateful";
+    var statelessWithRemote = getRootUri() + "/sample-cdi/statelessRemoteInterfaceEndpoint";
+    var statelessWithRemoteRef = getRootUri() + "/sample-cdi/statelessRemoteInterfaceRefEndpoint";
+    var programmaticStatelessWithRemote = getRootUri() + "/sample-cdi/programmaticStatelessRemoteInterfaceEndpoint";
 
     function getRootUri() {
         return "ws://" + (document.location.hostname == "" ? "localhost" : document.location.hostname) + ":" +
@@ -117,11 +120,20 @@
 <div style="text-align: center;">
     <form action="">
         <input onclick="send_message(simpleBeanUri)" value="Send message to simple bean" type="button">
-        <input onclick="send_message(injectingSingletonUri)" value="Send message to bean injecting singleton bean" type="button">
-        <input onclick="send_message(injectingAppScopedUri)" value="Send message to bean injecting appscoped bean" type="button">
-        <input onclick="send_message(injectingStatefulUri)" value="Send message to bean injecting stateful bean" type="button"></br></br>
+        <input onclick="send_message(injectingSingletonUri)" value="Send message to bean injecting singleton bean"
+               type="button">
+        <input onclick="send_message(injectingAppScopedUri)" value="Send message to bean injecting appscoped bean"
+               type="button">
+        <input onclick="send_message(injectingStatefulUri)" value="Send message to bean injecting stateful bean"
+               type="button"></br></br>
         <input onclick="send_message(singletonUri)" value="Send message to singleton bean" type="button">
         <input onclick="send_message(statefulUri)" value="Send message to stateful bean" type="button"></br></br>
+        <input onclick="send_message(statelessWithRemote)" value="Send message to stateless bean with remote interface"
+               type="button"></br></br>
+        <input onclick="send_message(statelessWithRemoteRef)"
+               value="Send message to stateless bean with remote interface" type="button"></br></br>
+        <input onclick="send_message(programmaticStatelessWithRemote)"
+               value="Send message to programmatic stateless bean with remote interface" type="button"></br></br>
         <input id="textID" name="message" value="Hello Web Sockets !" type="text"><br>
     </form>
 </div>

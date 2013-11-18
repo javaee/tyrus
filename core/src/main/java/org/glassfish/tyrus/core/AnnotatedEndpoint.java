@@ -128,7 +128,7 @@ public class AnnotatedEndpoint extends Endpoint {
         this.annotatedClass = annotatedClass;
         this.componentProvider = isServerEndpoint ? new ComponentProviderService(componentProvider) {
             @Override
-            public <T> T getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
+            public <T> Object getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
                 return ((ServerEndpointConfig) configuration).getConfigurator().getEndpointInstance(endpointClass);
             }
         } : componentProvider;
@@ -198,7 +198,7 @@ public class AnnotatedEndpoint extends Endpoint {
                     if (unknownParams.size() == 1) {
                         Map.Entry<Integer, Class<?>> entry = unknownParams.entrySet().iterator().next();
                         extractors[entry.getKey()] = new ParamValue(0);
-                        handlerFactory = new WholeHandler(m, extractors, entry.getValue(), maxMessageSize);
+                        handlerFactory = new WholeHandler(componentProvider.getInvocableMethod(m), extractors, entry.getValue(), maxMessageSize);
                         messageHandlerFactories.add(handlerFactory);
                         validityChecker.checkOnMessageParams(m, handlerFactory.create(null));
                     } else if (unknownParams.size() == 2) {
@@ -214,7 +214,7 @@ public class AnnotatedEndpoint extends Endpoint {
                         extractors[message.getKey()] = new ParamValue(0);
                         extractors[last.getKey()] = new ParamValue(1);
                         if (last.getValue() == boolean.class || last.getValue() == Boolean.class) {
-                            handlerFactory = new PartialHandler(m, extractors, message.getValue(), maxMessageSize);
+                            handlerFactory = new PartialHandler(componentProvider.getInvocableMethod(m), extractors, message.getValue(), maxMessageSize);
                             messageHandlerFactories.add(handlerFactory);
                             validityChecker.checkOnMessageParams(m, handlerFactory.create(null));
                         } else {
@@ -227,9 +227,9 @@ public class AnnotatedEndpoint extends Endpoint {
             }
         }
 
-        this.onOpenMethod = onOpen;
-        this.onErrorMethod = onError;
-        this.onCloseMethod = onClose;
+        this.onOpenMethod = onOpen == null ? null : componentProvider.getInvocableMethod(onOpen);
+        this.onErrorMethod = onError == null ? null : componentProvider.getInvocableMethod(onError);
+        this.onCloseMethod = onClose == null ? null : componentProvider.getInvocableMethod(onClose);
         this.onOpenParameters = onOpenParameters;
         this.onErrorParameters = onErrorParameters;
         this.onCloseParameters = onCloseParameters;

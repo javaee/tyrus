@@ -39,6 +39,7 @@
  */
 package org.glassfish.tyrus.core;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
 import java.nio.ByteBuffer;
@@ -47,6 +48,9 @@ import java.util.List;
 import java.util.concurrent.Future;
 
 import javax.websocket.CloseReason;
+import javax.websocket.DeploymentException;
+import javax.websocket.Endpoint;
+import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
 import javax.websocket.OnMessage;
 import javax.websocket.PongMessage;
@@ -65,7 +69,15 @@ import static org.junit.Assert.assertTrue;
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 public class TyrusSessionTest {
-    TyrusEndpointWrapper ew = new TyrusEndpointWrapper(EchoEndpoint.class, null, null, null, null, null);
+    TyrusEndpointWrapper ew;
+
+    public TyrusSessionTest() {
+        try {
+            ew = new TyrusEndpointWrapper(EchoEndpoint.class, null, ComponentProviderService.create(), null, null, null);
+        } catch (DeploymentException e) {
+            // do nothing.
+        }
+    }
 
     @Test
     public void simpleTest() {
@@ -416,10 +428,28 @@ public class TyrusSessionTest {
 
 
     @ServerEndpoint(value = "/echo")
-    private static class EchoEndpoint {
+    private static class EchoEndpoint extends Endpoint {
+
+        @Override
+        public void onOpen(final Session session, EndpointConfig config) {
+            session.addMessageHandler(new MessageHandler.Whole<String>() {
+                @Override
+                public void onMessage(String message) {
+                    final String s = EchoEndpoint.this.doThat(message);
+                    if (s != null) {
+                        try {
+                            session.getBasicRemote().sendText(s);
+                        } catch (IOException e) {
+                            System.out.println("# error");
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            });
+        }
 
         @OnMessage
-        public String doThat(String message, Session peer) {
+        public String doThat(String message) {
             return message;
         }
     }

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -37,60 +37,62 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+package org.glassfish.tyrus.sample.cdi;
 
-package org.glassfish.tyrus.core;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
-import java.lang.reflect.Method;
+import javax.websocket.CloseReason;
+import javax.websocket.Endpoint;
+import javax.websocket.EndpointConfig;
+import javax.websocket.MessageHandler;
+import javax.websocket.Session;
+import javax.websocket.server.ServerApplicationConfig;
+import javax.websocket.server.ServerEndpointConfig;
+
+import javax.ejb.Stateless;
 
 /**
- * Provides an instance.
- * </p>
- * <p/>
- * Method {@link #isApplicable(Class)} is called first to check whether the provider is able to provide the given {@link Class}.
- * </p>
- * Method {@link #create(Class)} is called to get the instance.
- *
- * @author Stepan Kopriva (stepan.kopriva at oracle.com)
- * @author Martin Matula (martin.matula at oracle.com)
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public abstract class ComponentProvider {
-    /**
-     * Checks whether this component provider is able to provide an instance of given {@link Class}.
-     *
-     * @param c {@link Class} to be checked.
-     * @return {@code true} iff this {@link ComponentProvider} is able to create an instance of the given {@link Class}.
-     */
-    public abstract boolean isApplicable(Class<?> c);
-
-    /**
-     * Create new instance.
-     *
-     * @param c {@link Class} to be created.
-     * @return instance, iff found, {@code null} otherwise.
-     */
-    public abstract <T> Object create(Class<T> c);
-
-    /**
-     * Get the method which should be invoked instead provided one.
-     * <p/>
-     * Useful mainly for EJB container support, where methods from endpoint class cannot be invoked directly - Tyrus needs
-     * to use method declared on remote interface.
-     * <p/>
-     * Default implementation returns method provided as parameter.
-     *
-     * @param method method from endpoint class.
-     * @return method which should be invoked.
-     */
-    public Method getInvocableMethod(Method method) {
-        return method;
+public class ApplicationConfig implements ServerApplicationConfig {
+    @Override
+    public Set<ServerEndpointConfig> getEndpointConfigs(Set<Class<? extends Endpoint>> endpointClasses) {
+        return new HashSet<ServerEndpointConfig>(Arrays.asList(
+                ServerEndpointConfig.Builder.create(ProgrammaticStatelessRemoteInterfaceEndpoint.class, "/programmaticStatelessRemoteInterfaceEndpoint").build()
+        ));
     }
 
-    /**
-     * Destroys the given managed instance.
-     *
-     * @param o instance to be destroyed.
-     * @return <code>true</code> iff the instance was coupled to this {@link ComponentProvider}, false otherwise.
-     */
-    public abstract boolean destroy(Object o);
+    @Override
+    public Set<Class<?>> getAnnotatedEndpointClasses(Set<Class<?>> scanned) {
+        return scanned;
+    }
+
+    @Stateless
+    public static class ProgrammaticStatelessRemoteInterfaceEndpoint extends Endpoint implements RemoteServiceProgrammatic {
+
+        @Override
+        public void onOpen(final Session session, EndpointConfig config) {
+            session.addMessageHandler(new MessageHandler.Whole<String>() {
+                @Override
+                public void onMessage(String message) {
+                    try {
+                        session.getBasicRemote().sendText(message);
+                    } catch (IOException e) {
+                        // do nothing.
+                    }
+                }
+            });
+        }
+
+        @Override
+        public void onClose(Session session, CloseReason closeReason) {
+        }
+
+        @Override
+        public void onError(Session session, Throwable thr) {
+        }
+    }
 }

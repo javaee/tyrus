@@ -39,6 +39,7 @@
  */
 package org.glassfish.tyrus.core;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -111,8 +112,8 @@ public class ComponentProviderService {
      * @param <T>       type of the provided instance.
      * @return instance
      */
-    public <T> T getInstance(Class<T> c, Session session, ErrorCollector collector) {
-        T loaded = null;
+    public <T> Object getInstance(Class<T> c, Session session, ErrorCollector collector) {
+        Object loaded = null;
 
         final Map<Class<?>, Object> classObjectMap = sessionToObject.get(session);
 
@@ -120,8 +121,7 @@ public class ComponentProviderService {
             if (classObjectMap != null) {
                 synchronized (classObjectMap) {
                     if (classObjectMap.containsKey(c)) {
-                        final Object fromMap = classObjectMap.get(c);
-                        loaded = c.isAssignableFrom(fromMap.getClass()) ? (T) fromMap : null;
+                        loaded = classObjectMap.get(c);
                     } else {
                         // returns not-null value
                         loaded = getEndpointInstance(c);
@@ -157,8 +157,8 @@ public class ComponentProviderService {
      * @param <T>            type of the provided instance.
      * @return instance
      */
-    public <T> T getCoderInstance(Class<T> c, Session session, EndpointConfig endpointConfig, ErrorCollector collector) {
-        T loaded = null;
+    public <T> Object getCoderInstance(Class<T> c, Session session, EndpointConfig endpointConfig, ErrorCollector collector) {
+        Object loaded = null;
 
         final Map<Class<?>, Object> classObjectMap = sessionToObject.get(session);
 
@@ -166,8 +166,7 @@ public class ComponentProviderService {
             if (classObjectMap != null) {
                 synchronized (classObjectMap) {
                     if (classObjectMap.containsKey(c)) {
-                        Object fromMap = classObjectMap.get(c);
-                        loaded = c.isAssignableFrom(fromMap.getClass()) ? (T) fromMap : null;
+                        loaded = classObjectMap.get(c);
                     } else {
                         loaded = getInstance(c);
                         if (loaded != null) {
@@ -201,10 +200,20 @@ public class ComponentProviderService {
         return loaded;
     }
 
-    private <T> T getInstance(Class<T> clazz) throws InstantiationException {
+    public Method getInvocableMethod(Method method) {
+        for (ComponentProvider componentProvider : providers) {
+            if (componentProvider.isApplicable(method.getDeclaringClass())) {
+                return componentProvider.getInvocableMethod(method);
+            }
+        }
+
+        return method;
+    }
+
+    private <T> Object getInstance(Class<T> clazz) throws InstantiationException {
         for (ComponentProvider componentProvider : providers) {
             if (componentProvider.isApplicable(clazz)) {
-                final T t = componentProvider.create(clazz);
+                final Object t = componentProvider.create(clazz);
                 if (t != null) {
                     return t;
                 }
@@ -264,7 +273,7 @@ public class ComponentProviderService {
      *                                endpoint instance.
      * @see javax.websocket.server.ServerEndpointConfig.Configurator#getEndpointInstance(Class)
      */
-    public <T> T getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
+    public <T> Object getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
         return getInstance(endpointClass);
     }
 }

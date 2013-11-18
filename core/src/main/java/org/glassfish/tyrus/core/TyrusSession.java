@@ -531,7 +531,7 @@ public class TyrusSession implements Session {
     /**
      * Session state.
      */
-    public enum State {
+    enum State {
 
         /**
          * {@link Session} is running and is not receiving partial messages on registered {@link MessageHandler.Whole}.

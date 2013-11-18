@@ -40,6 +40,8 @@
 
 package org.glassfish.tyrus.core;
 
+import java.lang.reflect.Method;
+
 /**
  * Provides instances using reflection.
  *
@@ -53,10 +55,10 @@ public class DefaultComponentProvider extends ComponentProvider {
     }
 
     @Override
-    public <T> T create(Class<T> toLoad) {
-        try{
+    public <T> Object create(Class<T> toLoad) {
+        try {
             return ReflectionHelper.getInstance(toLoad);
-        } catch (Exception e){
+        } catch (Exception e) {
             return null;
         }
     }
@@ -64,5 +66,10 @@ public class DefaultComponentProvider extends ComponentProvider {
     @Override
     public boolean destroy(Object o) {
         return false;
+    }
+
+    @Override
+    public Method getInvocableMethod(Method method) {
+        return method;
     }
 }

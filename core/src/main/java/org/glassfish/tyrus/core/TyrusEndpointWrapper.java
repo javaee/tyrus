@@ -48,6 +48,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.lang.reflect.Method;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -102,13 +103,17 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
     private final List<CoderWrapper<Encoder>> encoders = new ArrayList<CoderWrapper<Encoder>>();
 
     private final EndpointConfig configuration;
-    private final Class<?> endpointClass;
+    private final Class<? extends Endpoint> endpointClass;
     private final Endpoint endpoint;
     private final Map<RemoteEndpoint, TyrusSession> remoteEndpointToSession =
             new ConcurrentHashMap<RemoteEndpoint, TyrusSession>();
     private final ComponentProviderService componentProvider;
     private final ServerEndpointConfig.Configurator configurator;
     private final WebSocketContainer container;
+
+    private final Method onOpen;
+    private final Method onClose;
+    private final Method onError;
 
 
     /**
@@ -119,9 +124,9 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
      * @param componentProvider component provider.
      * @param container         container where the wrapper is running.
      */
-    public TyrusEndpointWrapper(Class<?> endpointClass, EndpointConfig configuration,
+    public TyrusEndpointWrapper(Class<? extends Endpoint> endpointClass, EndpointConfig configuration,
                                 ComponentProviderService componentProvider, WebSocketContainer container,
-                                String contextPath, ServerEndpointConfig.Configurator configurator) {
+                                String contextPath, ServerEndpointConfig.Configurator configurator) throws DeploymentException {
         this(null, endpointClass, configuration, componentProvider, container, contextPath, configurator);
     }
 
@@ -134,13 +139,13 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
      * @param container         container where the wrapper is running.
      */
     public TyrusEndpointWrapper(Endpoint endpoint, EndpointConfig configuration, ComponentProviderService componentProvider, WebSocketContainer container,
-                                String contextPath, ServerEndpointConfig.Configurator configurator) {
+                                String contextPath, ServerEndpointConfig.Configurator configurator) throws DeploymentException {
         this(endpoint, null, configuration, componentProvider, container, contextPath, configurator);
     }
 
-    private TyrusEndpointWrapper(Endpoint endpoint, Class<?> endpointClass, EndpointConfig configuration,
+    private TyrusEndpointWrapper(Endpoint endpoint, Class<? extends Endpoint> endpointClass, EndpointConfig configuration,
                                  ComponentProviderService componentProvider, WebSocketContainer container,
-                                 String contextPath, final ServerEndpointConfig.Configurator configurator) {
+                                 String contextPath, final ServerEndpointConfig.Configurator configurator) throws DeploymentException {
         this.endpointClass = endpointClass;
         this.endpoint = endpoint;
         this.container = container;
@@ -152,6 +157,46 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
                 return configurator.getEndpointInstance(endpointClass);
             }
         };
+
+
+        {
+            final Class<? extends Endpoint> clazz = endpointClass == null ? endpoint.getClass() : endpointClass;
+            Method onOpenMethod = null;
+            Method onCloseMethod = null;
+            Method onErrorMethod = null;
+
+            for (Method m : Endpoint.class.getMethods()) {
+                if (m.getName().equals("onOpen")) {
+                    onOpenMethod = m;
+                } else if (m.getName().equals("onClose")) {
+                    onCloseMethod = m;
+                } else if (m.getName().equals("onError")) {
+                    onErrorMethod = m;
+                }
+            }
+
+            try {
+                // Endpoint class contains all of these.
+                assert onOpenMethod != null;
+                assert onCloseMethod != null;
+                assert onErrorMethod != null;
+                onOpenMethod = clazz.getMethod(onOpenMethod.getName(), onOpenMethod.getParameterTypes());
+                onCloseMethod = clazz.getMethod(onCloseMethod.getName(), onCloseMethod.getParameterTypes());
+                onErrorMethod = clazz.getMethod(onErrorMethod.getName(), onErrorMethod.getParameterTypes());
+            } catch (NoSuchMethodException e) {
+                throw new DeploymentException(e.getMessage(), e);
+            }
+
+            if (endpoint != null) {
+                this.onOpen = onOpenMethod;
+                this.onClose = onCloseMethod;
+                this.onError = onErrorMethod;
+            } else {
+                this.onOpen = componentProvider.getInvocableMethod(onOpenMethod);
+                this.onClose = componentProvider.getInvocableMethod(onCloseMethod);
+                this.onError = componentProvider.getInvocableMethod(onErrorMethod);
+            }
+        }
 
         this.configuration = configuration == null ? new EndpointConfig() {
 
@@ -237,11 +282,11 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
         return container;
     }
 
-    private <T> T getCoderInstance(Session session, CoderWrapper<T> wrapper) {
-        final T coder = wrapper.getCoder();
+    private <T> Object getCoderInstance(Session session, CoderWrapper<T> wrapper) {
+        final Object coder = wrapper.getCoder();
         if (coder == null) {
             ErrorCollector collector = new ErrorCollector();
-            final T coderInstance = this.componentProvider.getCoderInstance(wrapper.getCoderClass(), session, getEndpointConfig(), collector);
+            final Object coderInstance = this.componentProvider.getCoderInstance(wrapper.getCoderClass(), session, getEndpointConfig(), collector);
             if (!collector.isEmpty()) {
                 final DeploymentException deploymentException = collector.composeComprehensiveException();
                 LOGGER.log(Level.WARNING, deploymentException.getMessage(), deploymentException);
@@ -421,16 +466,29 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
 
             ErrorCollector collector = new ErrorCollector();
 
-            final Endpoint toCall = endpoint != null ? endpoint :
-                    (Endpoint) componentProvider.getInstance(endpointClass, session, collector);
+            final Object toCall = endpoint != null ? endpoint :
+                    componentProvider.getInstance(endpointClass, session, collector);
             try {
                 if (!collector.isEmpty()) {
                     throw collector.composeComprehensiveException();
                 }
-                toCall.onOpen(session, configuration);
+
+                if (endpoint != null) {
+                    ((Endpoint) toCall).onOpen(session, configuration);
+                } else {
+                    onOpen.invoke(toCall, session, configuration);
+                }
             } catch (Throwable t) {
                 if (toCall != null) {
-                    toCall.onError(session, t);
+                    if (endpoint != null) {
+                        ((Endpoint) toCall).onError(session, t);
+                    } else {
+                        try {
+                            onError.invoke(toCall, session, t);
+                        } catch (Exception e) {
+                            LOGGER.log(Level.WARNING, t.getMessage(), t);
+                        }
+                    }
                 } else {
                     LOGGER.log(Level.WARNING, t.getMessage(), t);
                 }
@@ -457,10 +515,18 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
         } catch (Throwable t) {
             if (!processThrowable(t, session)) {
                 ErrorCollector collector = new ErrorCollector();
-                final Endpoint toCall = endpoint != null ? endpoint :
-                        (Endpoint) componentProvider.getInstance(endpointClass, session, collector);
+                final Object toCall = endpoint != null ? endpoint :
+                        componentProvider.getInstance(endpointClass, session, collector);
                 if (toCall != null) {
-                    toCall.onError(session, t);
+                    if (endpoint != null) {
+                        ((Endpoint) toCall).onError(session, t);
+                    } else {
+                        try {
+                            onError.invoke(toCall, session, t);
+                        } catch (Exception e) {
+                            LOGGER.log(Level.WARNING, t.getMessage(), t);
+                        }
+                    }
                 } else if (!collector.isEmpty()) {
                     final DeploymentException deploymentException = collector.composeComprehensiveException();
                     LOGGER.log(Level.WARNING, deploymentException.getMessage(), deploymentException);
@@ -491,10 +557,18 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
         } catch (Throwable t) {
             if (!processThrowable(t, session)) {
                 ErrorCollector collector = new ErrorCollector();
-                final Endpoint toCall = endpoint != null ? endpoint :
-                        (Endpoint) componentProvider.getInstance(endpointClass, session, collector);
+                final Object toCall = endpoint != null ? endpoint :
+                        componentProvider.getInstance(endpointClass, session, collector);
                 if (toCall != null) {
-                    toCall.onError(session, t);
+                    if (endpoint != null) {
+                        ((Endpoint) toCall).onError(session, t);
+                    } else {
+                        try {
+                            onError.invoke(toCall, session, t);
+                        } catch (Exception e) {
+                            LOGGER.log(Level.WARNING, t.getMessage(), t);
+                        }
+                    }
                 } else if (!collector.isEmpty()) {
                     final DeploymentException deploymentException = collector.composeComprehensiveException();
                     LOGGER.log(Level.WARNING, deploymentException.getMessage(), deploymentException);
@@ -559,10 +633,18 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
         } catch (Throwable t) {
             if (!processThrowable(t, session)) {
                 ErrorCollector collector = new ErrorCollector();
-                final Endpoint toCall = endpoint != null ? endpoint :
-                        (Endpoint) componentProvider.getInstance(endpointClass, session, collector);
+                final Object toCall = endpoint != null ? endpoint :
+                        componentProvider.getInstance(endpointClass, session, collector);
                 if (toCall != null) {
-                    toCall.onError(session, t);
+                    if (endpoint != null) {
+                        ((Endpoint) toCall).onError(session, t);
+                    } else {
+                        try {
+                            onError.invoke(toCall, session, t);
+                        } catch (Exception e) {
+                            LOGGER.log(Level.WARNING, t.getMessage(), t);
+                        }
+                    }
                 } else if (!collector.isEmpty()) {
                     final DeploymentException deploymentException = collector.composeComprehensiveException();
                     LOGGER.log(Level.WARNING, deploymentException.getMessage(), deploymentException);
@@ -627,10 +709,18 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
         } catch (Throwable t) {
             if (!processThrowable(t, session)) {
                 ErrorCollector collector = new ErrorCollector();
-                final Endpoint toCall = endpoint != null ? endpoint :
-                        (Endpoint) componentProvider.getInstance(endpointClass, session, collector);
+                final Object toCall = endpoint != null ? endpoint :
+                        componentProvider.getInstance(endpointClass, session, collector);
                 if (toCall != null) {
-                    toCall.onError(session, t);
+                    if (endpoint != null) {
+                        ((Endpoint) toCall).onError(session, t);
+                    } else {
+                        try {
+                            onError.invoke(toCall, session, t);
+                        } catch (Exception e) {
+                            LOGGER.log(Level.WARNING, t.getMessage(), t);
+                        }
+                    }
                 } else if (!collector.isEmpty()) {
                     final DeploymentException deploymentException = collector.composeComprehensiveException();
                     LOGGER.log(Level.WARNING, deploymentException.getMessage(), deploymentException);
@@ -707,19 +797,31 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
 
         ErrorCollector collector = new ErrorCollector();
 
-        final Endpoint toCall = endpoint != null ? endpoint :
-                (Endpoint) componentProvider.getInstance(endpointClass, session, collector);
+        final Object toCall = endpoint != null ? endpoint :
+                componentProvider.getInstance(endpointClass, session, collector);
 
         try {
             if (!collector.isEmpty()) {
                 throw collector.composeComprehensiveException();
             }
 
-            toCall.onClose(session, closeReason);
+            if (endpoint != null) {
+                ((Endpoint) toCall).onClose(session, closeReason);
+            } else {
+                onClose.invoke(toCall, session, closeReason);
+            }
             session.setState(TyrusSession.State.CLOSED);
         } catch (Throwable t) {
             if (toCall != null) {
-                toCall.onError(session, t);
+                if (endpoint != null) {
+                    ((Endpoint) toCall).onError(session, t);
+                } else {
+                    try {
+                        onError.invoke(toCall, session, t);
+                    } catch (Exception e) {
+                        LOGGER.log(Level.WARNING, t.getMessage(), t);
+                    }
+                }
             } else {
                 LOGGER.log(Level.WARNING, t.getMessage(), t);
             }

@@ -40,9 +40,15 @@
 
 package org.glassfish.tyrus.gf.ejb;
 
+import java.lang.reflect.Method;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.ejb.Local;
+import javax.ejb.Remote;
 import javax.ejb.Singleton;
 import javax.ejb.Stateful;
 import javax.ejb.Stateless;
@@ -55,6 +61,7 @@ import org.glassfish.tyrus.core.ComponentProvider;
  * Provides the instance for the supported EJB classes.
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 public class EjbComponentProvider extends ComponentProvider {
 
@@ -62,7 +69,7 @@ public class EjbComponentProvider extends ComponentProvider {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> T create(Class<T> c) {
+    public <T> Object create(Class<T> c) {
         String name = getName(c);
         T result = null;
         if (name == null) {
@@ -71,9 +78,9 @@ public class EjbComponentProvider extends ComponentProvider {
 
         try {
             InitialContext ic = new InitialContext();
-            result =  (T) lookup(ic, c, name);
+            result = (T) lookup(ic, c, name);
         } catch (NamingException ex) {
-            String message =  "An instance of EJB class " + c.getName() +
+            String message = "An instance of EJB class " + c.getName() +
                     " could not be looked up using simple form name or the fully-qualified form name.";
             LOGGER.log(Level.SEVERE, message, ex);
         }
@@ -82,7 +89,7 @@ public class EjbComponentProvider extends ComponentProvider {
     }
 
     @Override
-    public boolean isApplicable(Class<?> c){
+    public boolean isApplicable(Class<?> c) {
         return (c.isAnnotationPresent(Singleton.class) ||
                 c.isAnnotationPresent(Stateful.class) ||
                 c.isAnnotationPresent(Stateless.class));
@@ -91,6 +98,37 @@ public class EjbComponentProvider extends ComponentProvider {
     @Override
     public boolean destroy(Object o) {
         return false;
+    }
+
+    @Override
+    public Method getInvocableMethod(Method method) {
+        final Class<?> declaringClass = method.getDeclaringClass();
+
+        final List<Class> interfaces = new LinkedList<Class>();
+        if (declaringClass.isAnnotationPresent(Remote.class)) {
+            interfaces.addAll(Arrays.asList(declaringClass.getAnnotation(Remote.class).value()));
+        }
+        if (declaringClass.isAnnotationPresent(Local.class)) {
+            interfaces.addAll(Arrays.asList(declaringClass.getAnnotation(Local.class).value()));
+        }
+        for (Class<?> i : declaringClass.getInterfaces()) {
+            if (i.isAnnotationPresent(Remote.class) || i.isAnnotationPresent(Local.class)) {
+                interfaces.add(i);
+            }
+        }
+
+        for (Class iface : interfaces) {
+            try {
+                final Method interfaceMethod = iface.getDeclaredMethod(method.getName(), method.getParameterTypes());
+                if (interfaceMethod != null) {
+                    return interfaceMethod;
+                }
+            } catch (Exception e) {
+                LOGGER.log(Level.WARNING, e.getMessage(), e);
+            }
+        }
+
+        return method;
     }
 
     private String getName(Class<?> c) {
@@ -114,7 +152,7 @@ public class EjbComponentProvider extends ComponentProvider {
 
     private Object lookup(InitialContext ic, Class<?> c, String name) throws NamingException {
         try {
-            return lookupSimpleForm(ic, c, name);
+            return lookupSimpleForm(ic, name);
         } catch (NamingException ex) {
             LOGGER.log(Level.WARNING, "An instance of EJB class " + c.getName() +
                     " could not be looked up using simple form name. " +
@@ -124,7 +162,7 @@ public class EjbComponentProvider extends ComponentProvider {
         }
     }
 
-    private Object lookupSimpleForm(InitialContext ic, Class<?> c, String name) throws NamingException {
+    private Object lookupSimpleForm(InitialContext ic, String name) throws NamingException {
         String jndiName = "java:module/" + name;
         return ic.lookup(jndiName);
     }

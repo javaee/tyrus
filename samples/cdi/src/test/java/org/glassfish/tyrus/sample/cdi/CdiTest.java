@@ -56,6 +56,7 @@ import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * This test works properly with EE container only.
@@ -126,7 +127,7 @@ public class CdiTest extends TestContainer {
 
                         @Override
                         public void onMessage(String message) {
-                            try{
+                            try {
                                 if (first) {
                                     firstMessage = Integer.parseInt(message.split(":")[1]);
                                     messageLatch.countDown();
@@ -138,10 +139,10 @@ public class CdiTest extends TestContainer {
                                     first = false;
                                 } else {
                                     secondMessage = Integer.parseInt(message.split(":")[1]);
-                                    assertEquals("secondMessage - firstMessage != 1",1,secondMessage - firstMessage);
+                                    assertEquals("secondMessage - firstMessage != 1", 1, secondMessage - firstMessage);
                                     messageLatch.countDown();
                                 }
-                            }catch(Exception e){
+                            } catch (Exception e) {
                                 e.printStackTrace();
                             }
                         }
@@ -256,5 +257,101 @@ public class CdiTest extends TestContainer {
 
         messageLatch.await(2, TimeUnit.SECONDS);
         assertEquals("Number of received messages is not 0.", 0, messageLatch.getCount());
+    }
+
+    @Test
+    public void testStatelessRemoteInterface() throws DeploymentException, InterruptedException, IOException {
+        final String host = System.getProperty("tyrus.test.host");
+        if (host == null) {
+            return;
+        }
+
+        final CountDownLatch messageLatch = new CountDownLatch(1);
+
+        final ClientManager client = ClientManager.createClient();
+        client.connectToServer(new Endpoint() {
+            @Override
+            public void onOpen(Session session, EndpointConfig EndpointConfig) {
+                try {
+                    session.addMessageHandler(new MessageHandler.Whole<String>() {
+                        @Override
+                        public void onMessage(String message) {
+                            assertEquals(message, SENT_MESSAGE);
+                            messageLatch.countDown();
+                        }
+                    });
+
+                    session.getBasicRemote().sendText(SENT_MESSAGE);
+                } catch (IOException e) {
+                    //do nothing
+                }
+            }
+        }, ClientEndpointConfig.Builder.create().build(), getURI("/statelessRemoteInterfaceEndpoint"));
+
+        assertTrue(messageLatch.await(2, TimeUnit.SECONDS));
+    }
+
+    @Test
+    public void testStatelessRemoteInterfaceRef() throws DeploymentException, InterruptedException, IOException {
+        final String host = System.getProperty("tyrus.test.host");
+        if (host == null) {
+            return;
+        }
+
+        final CountDownLatch messageLatch = new CountDownLatch(1);
+
+        final ClientManager client = ClientManager.createClient();
+        client.connectToServer(new Endpoint() {
+            @Override
+            public void onOpen(Session session, EndpointConfig EndpointConfig) {
+                try {
+                    session.addMessageHandler(new MessageHandler.Whole<String>() {
+                        @Override
+                        public void onMessage(String message) {
+                            assertEquals(message, SENT_MESSAGE);
+                            messageLatch.countDown();
+                        }
+                    });
+
+                    session.getBasicRemote().sendText(SENT_MESSAGE);
+                } catch (IOException e) {
+                    //do nothing
+                }
+            }
+        }, ClientEndpointConfig.Builder.create().build(), getURI("/statelessRemoteInterfaceRefEndpoint"));
+
+        assertTrue(messageLatch.await(2, TimeUnit.SECONDS));
+    }
+
+    @Test
+    public void testProgrammaticStatelessRemoteInterface() throws DeploymentException, InterruptedException, IOException {
+        final String host = System.getProperty("tyrus.test.host");
+        if (host == null) {
+            return;
+        }
+
+        final CountDownLatch messageLatch = new CountDownLatch(1);
+
+        final ClientManager client = ClientManager.createClient();
+        client.connectToServer(new Endpoint() {
+            @Override
+            public void onOpen(Session session, EndpointConfig EndpointConfig) {
+                try {
+                    session.addMessageHandler(new MessageHandler.Whole<String>() {
+                        @Override
+                        public void onMessage(String message) {
+                            assertEquals(message, SENT_MESSAGE);
+                            messageLatch.countDown();
+                        }
+                    });
+
+                    session.getBasicRemote().sendText(SENT_MESSAGE);
+                } catch (IOException e) {
+                    //do nothing
+                }
+            }
+        }, ClientEndpointConfig.Builder.create().build(), getURI("/programmaticStatelessRemoteInterfaceEndpoint"));
+
+        assertTrue(messageLatch.await(2, TimeUnit.SECONDS));
     }
 }

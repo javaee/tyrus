@@ -104,6 +104,7 @@ public class TyrusServerEndpointConfigurator extends ServerEndpointConfig.Config
 
     @Override
     public <T> T getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
-        return componentProviderService.getEndpointInstance(endpointClass);
+        //noinspection unchecked
+        return (T) componentProviderService.getEndpointInstance(endpointClass);
     }
 }

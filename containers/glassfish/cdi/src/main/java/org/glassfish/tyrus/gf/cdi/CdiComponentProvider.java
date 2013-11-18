@@ -109,7 +109,7 @@ public class CdiComponentProvider extends ComponentProvider {
 
     @SuppressWarnings("unchecked")
     @Override
-    public <T> T create(Class<T> c) {
+    public <T> Object create(Class<T> c) {
         if (managerRetrieved) {
             synchronized (beanManager) {
                 T managedObject;
@@ -119,7 +119,7 @@ public class CdiComponentProvider extends ComponentProvider {
                 managedObject = (T) it.produce(cc);
                 it.inject(managedObject, cc);
                 it.postConstruct(managedObject);
-                cdiBeanToContext.put(managedObject, new CdiInjectionContext(it,cc));
+                cdiBeanToContext.put(managedObject, new CdiInjectionContext(it, cc));
 
                 return managedObject;
             }
@@ -131,7 +131,7 @@ public class CdiComponentProvider extends ComponentProvider {
     @Override
     public boolean destroy(Object o) {
         //if the object is not in map, nothing happens
-        if(cdiBeanToContext.containsKey(o)) {
+        if (cdiBeanToContext.containsKey(o)) {
             cdiBeanToContext.get(o).cleanup(o);
             cdiBeanToContext.remove(o);
             return true;
