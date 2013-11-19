@@ -64,7 +64,6 @@ import javax.websocket.server.ServerEndpoint;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -175,7 +174,6 @@ public class ServletTest {
     }
 
     @Test
-    @Ignore("TODO")
     public void testPlainEchoShort100() throws DeploymentException, InterruptedException, IOException {
         final Server server = startServer();
 
@@ -203,7 +201,6 @@ public class ServletTest {
                     }
                 }
             }, ClientEndpointConfig.Builder.create().build(), getURI(PlainEchoEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
-
 
             messageLatch.await(20, TimeUnit.SECONDS);
             assertEquals(0, messageLatch.getCount());
@@ -612,7 +609,6 @@ public class ServletTest {
 
     // "performance" test; 20 clients, endpoint broadcasts.
     @Test
-    @Ignore("TYRUS-246")
     public void testWebSocketBroadcast() throws IOException, DeploymentException, InterruptedException {
         final Server server = startServer();
 
@@ -651,7 +647,7 @@ public class ServletTest {
                 s.getBasicRemote().sendText(text);
             }
 
-            messageLatch.await(300, TimeUnit.SECONDS);
+            messageLatch.await(20, TimeUnit.SECONDS);
             assertEquals(0, messageLatch.getCount());
 
             System.out.println("***** WebSocket broadcast ***** " + (System.currentTimeMillis() - l));
