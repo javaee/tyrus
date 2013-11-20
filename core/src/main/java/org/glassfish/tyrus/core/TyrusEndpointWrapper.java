@@ -502,9 +502,17 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
     public void onMessage(RemoteEndpoint gs, ByteBuffer messageBytes) {
         TyrusSession session = getSession(gs);
 
+        if (session == null) {
+            LOGGER.log(Level.FINE, "Message received on already closed connection.");
+            return;
+        }
+
         try {
             session.restartIdleTimeoutExecutor();
-            session.setState(TyrusSession.State.RUNNING);
+            final TyrusSession.State state = session.getState();
+            if (state == TyrusSession.State.RECEIVING_BINARY || state == TyrusSession.State.RECEIVING_TEXT) {
+                session.setState(TyrusSession.State.RUNNING);
+            }
             if (session.isWholeBinaryHandlerPresent()) {
                 session.notifyMessageHandlers(messageBytes, findApplicableDecoders(session, messageBytes, false));
             } else if (session.isPartialBinaryHandlerPresent()) {
@@ -546,7 +554,10 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
 
         try {
             session.restartIdleTimeoutExecutor();
-            session.setState(TyrusSession.State.RUNNING);
+            final TyrusSession.State state = session.getState();
+            if (state == TyrusSession.State.RECEIVING_BINARY || state == TyrusSession.State.RECEIVING_TEXT) {
+                session.setState(TyrusSession.State.RUNNING);
+            }
             if (session.isWholeTextHandlerPresent()) {
                 session.notifyMessageHandlers(messageString, findApplicableDecoders(session, messageString, true));
             } else if (session.isPartialTextHandlerPresent()) {
@@ -583,12 +594,15 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
 
         try {
             session.restartIdleTimeoutExecutor();
+            final TyrusSession.State state = session.getState();
             if (session.isPartialTextHandlerPresent()) {
                 session.notifyMessageHandlers(partialString, last);
-                session.setState(TyrusSession.State.RUNNING);
+                if (state == TyrusSession.State.RECEIVING_BINARY || state == TyrusSession.State.RECEIVING_TEXT) {
+                    session.setState(TyrusSession.State.RUNNING);
+                }
             } else if (session.isReaderHandlerPresent()) {
                 ReaderBuffer buffer = session.getReaderBuffer();
-                switch (session.getState()) {
+                switch (state) {
                     case RUNNING:
                         if (buffer == null) {
                             // TODO:
@@ -607,11 +621,13 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
                         }
                         break;
                     default:
-                        session.setState(TyrusSession.State.RUNNING);
+                        if (state == TyrusSession.State.RECEIVING_BINARY) {
+                            session.setState(TyrusSession.State.RUNNING);
+                        }
                         throw new IllegalStateException(String.format("Partial text message received out of order. Session: '%s'.", session));
                 }
             } else if (session.isWholeTextHandlerPresent()) {
-                switch (session.getState()) {
+                switch (state) {
                     case RUNNING:
                         session.getTextBuffer().resetBuffer(session.getMaxTextMessageBufferSize());
                         session.getTextBuffer().appendMessagePart(partialString);
@@ -626,7 +642,9 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
                         }
                         break;
                     default:
-                        session.setState(TyrusSession.State.RUNNING);
+                        if (state == TyrusSession.State.RECEIVING_BINARY) {
+                            session.setState(TyrusSession.State.RUNNING);
+                        }
                         throw new IllegalStateException(String.format("Text message received out of order. Session: '%s'.", session));
                 }
             }
@@ -659,12 +677,15 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
 
         try {
             session.restartIdleTimeoutExecutor();
+            final TyrusSession.State state = session.getState();
             if (session.isPartialBinaryHandlerPresent()) {
                 session.notifyMessageHandlers(partialBytes, last);
-                session.setState(TyrusSession.State.RUNNING);
+                if (state == TyrusSession.State.RECEIVING_BINARY || state == TyrusSession.State.RECEIVING_TEXT) {
+                    session.setState(TyrusSession.State.RUNNING);
+                }
             } else if (session.isInputStreamHandlerPresent()) {
                 InputStreamBuffer buffer = session.getInputStreamBuffer();
-                switch (session.getState()) {
+                switch (state) {
                     case RUNNING:
                         if (buffer == null) {
                             // TODO
@@ -683,11 +704,13 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
                         }
                         break;
                     default:
-                        session.setState(TyrusSession.State.RUNNING);
+                        if (state == TyrusSession.State.RECEIVING_TEXT) {
+                            session.setState(TyrusSession.State.RUNNING);
+                        }
                         throw new IllegalStateException(String.format("Partial binary message received out of order. Session: '%s'.", session));
                 }
             } else if (session.isWholeBinaryHandlerPresent()) {
-                switch (session.getState()) {
+                switch (state) {
                     case RUNNING:
                         session.getBinaryBuffer().resetBuffer(session.getMaxBinaryMessageBufferSize());
                         session.getBinaryBuffer().appendMessagePart(partialBytes);
@@ -702,7 +725,9 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
                         }
                         break;
                     default:
-                        session.setState(TyrusSession.State.RUNNING);
+                        if (state == TyrusSession.State.RECEIVING_TEXT) {
+                            session.setState(TyrusSession.State.RUNNING);
+                        }
                         throw new IllegalStateException(String.format("Binary message received out of order. Session: '%s'.", session));
                 }
             }
@@ -810,7 +835,6 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
             } else {
                 onClose.invoke(toCall, session, closeReason);
             }
-            session.setState(TyrusSession.State.CLOSED);
         } catch (Throwable t) {
             if (toCall != null) {
                 if (endpoint != null) {
@@ -825,11 +849,13 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
             } else {
                 LOGGER.log(Level.WARNING, t.getMessage(), t);
             }
-        }
+        } finally {
+            session.setState(TyrusSession.State.CLOSED);
 
-        synchronized (remoteEndpointToSession) {
-            remoteEndpointToSession.remove(gs);
-            componentProvider.removeSession(session);
+            synchronized (remoteEndpointToSession) {
+                remoteEndpointToSession.remove(gs);
+                componentProvider.removeSession(session);
+            }
         }
     }
 

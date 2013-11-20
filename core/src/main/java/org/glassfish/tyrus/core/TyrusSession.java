@@ -355,8 +355,6 @@ public class TyrusSession implements Session {
     }
 
     void notifyMessageHandlers(Object message, List<CoderWrapper<Decoder>> availableDecoders) throws DecodeException, IOException {
-        checkConnectionState(State.CLOSED);
-
         boolean decoded = false;
 
         if (availableDecoders.isEmpty()) {
@@ -375,8 +373,11 @@ public class TyrusSession implements Session {
 
                     Object object = endpoint.decodeCompleteMessage(this, message, type, decoder);
                     if (object != null) {
-                        //noinspection unchecked
-                        ((MessageHandler.Whole) mh).onMessage(object);
+                        final State currentState = state.get();
+                        if (currentState != State.CLOSING && currentState != State.CLOSED) {
+                            //noinspection unchecked
+                            ((MessageHandler.Whole) mh).onMessage(object);
+                        }
                         decoded = true;
                         break;
                     }
@@ -399,7 +400,6 @@ public class TyrusSession implements Session {
     }
 
     void notifyMessageHandlers(Object message, boolean last) {
-        checkConnectionState(State.CLOSED);
         boolean handled = false;
 
         for (MessageHandler handler : getMessageHandlers()) {
@@ -410,8 +410,11 @@ public class TyrusSession implements Session {
                     checkMessageSize(message, ((AsyncMessageHandler) handler).getMaxMessageSize());
                 }
 
-                //noinspection unchecked
-                ((MessageHandler.Partial) handler).onMessage(message, last);
+                final State currentState = state.get();
+                if (currentState != State.CLOSING && currentState != State.CLOSED) {
+                    //noinspection unchecked
+                    ((MessageHandler.Partial) handler).onMessage(message, last);
+                }
                 handled = true;
                 break;
             }

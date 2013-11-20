@@ -416,10 +416,10 @@ public class AnnotatedEndpoint extends Endpoint {
         ErrorCollector collector = new ErrorCollector();
         Object[] paramValues = new Object[extractors.length];
 
-        final Object endpoint = annotatedInstance != null ? annotatedInstance :
-                componentProvider.getInstance(annotatedClass, session, collector);
-
         try {
+            final Object endpoint = annotatedInstance != null ? annotatedInstance :
+                    componentProvider.getInstance(annotatedClass, session, collector);
+
             if (!collector.isEmpty()) {
                 throw collector.composeComprehensiveException();
             }
@@ -441,11 +441,13 @@ public class AnnotatedEndpoint extends Endpoint {
     }
 
     void onClose(CloseReason closeReason, Session session) {
-        if (onCloseMethod != null) {
-            callMethod(onCloseMethod, onCloseParameters, session, true, closeReason);
+        try {
+            if (onCloseMethod != null) {
+                callMethod(onCloseMethod, onCloseParameters, session, true, closeReason);
+            }
+        } finally {
+            componentProvider.removeSession(session);
         }
-
-        componentProvider.removeSession(session);
     }
 
     @Override
