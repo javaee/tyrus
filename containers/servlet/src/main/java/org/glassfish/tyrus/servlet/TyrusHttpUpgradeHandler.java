@@ -137,19 +137,23 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
 
         do {
             try {
-                int available = is.available();
-                while (available > 0) {
-                    int toRead = (buf == null ?
-                            (available > incomingBufferSize ? incomingBufferSize : available) :
-                            buf.remaining() + available > incomingBufferSize ? incomingBufferSize - buf.remaining() : buf.remaining() + available
-                    );
+                // tomcat impl returns always 0
+                // int available = is.available();
+                int available = 512;
+//                while (available > 0) {
+                int toRead = (buf == null ?
+                        (available > incomingBufferSize ? incomingBufferSize : available) :
+                        buf.remaining() + available > incomingBufferSize ? incomingBufferSize - buf.remaining() : buf.remaining() + available
+                );
 
-                    if (toRead == 0) {
-                        throw new IOException(String.format("Tyrus input buffer exceeded. Current buffer size is %s bytes.",
-                                incomingBufferSize));
-                    }
+                if (toRead == 0) {
+                    throw new IOException(String.format("Tyrus input buffer exceeded. Current buffer size is %s bytes.",
+                            incomingBufferSize));
+                }
 
-                    available -= fillBuf(toRead);
+                available -= fillBuf(toRead);
+
+                if (buf != null) {
 
                     LOGGER.finest(String.format("Remaining Data = %d", buf.remaining()));
 
@@ -157,6 +161,7 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
                         connection.getReadHandler().handle(buf);
                     }
                 }
+//                }
             } catch (IOException e) {
                 connection.close(new CloseReason(CloseReason.CloseCodes.CANNOT_ACCEPT, null));
             }
@@ -174,7 +179,7 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
         byte[] data = new byte[length];
         int len = is.read(data);
         if (len == 0) {
-            throw new RuntimeException("No data available.");
+            return 0;
         }
         if (buf == null) {
             LOGGER.finest("No Buffer. Allocating new one");

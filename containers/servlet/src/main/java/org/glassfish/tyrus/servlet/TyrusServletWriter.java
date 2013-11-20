@@ -133,8 +133,8 @@ class TyrusServletWriter extends Writer implements WriteListener {
                     completionHandler.failed(e);
                     return;
                 }
-                isReady = servletOutputStream.isReady();
                 servletOutputStream.setWriteListener(this);
+                isReady = servletOutputStream.isReady();
             } else {
                 isReady = servletOutputStream.isReady();
             }
