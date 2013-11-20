@@ -647,7 +647,7 @@ public class ServletTest {
                 s.getBasicRemote().sendText(text);
             }
 
-            messageLatch.await(20, TimeUnit.SECONDS);
+            messageLatch.await(60, TimeUnit.SECONDS);
             assertEquals(0, messageLatch.getCount());
 
             System.out.println("***** WebSocket broadcast ***** " + (System.currentTimeMillis() - l));
