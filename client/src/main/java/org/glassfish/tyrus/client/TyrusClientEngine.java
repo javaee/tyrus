@@ -42,6 +42,7 @@ package org.glassfish.tyrus.client;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -78,6 +79,7 @@ import org.glassfish.tyrus.spi.Writer;
 public class TyrusClientEngine implements ClientEngine {
 
     public static final String INCOMING_BUFFER_SIZE = "org.glassfish.tyrus.incomingBufferSize";
+    private static final int DEFAULT_INCOMING_BUFFER_SIZE = 4194315; // 4M (payload) + 11 (frame overhead)
 
     private static final Version DEFAULT_VERSION = Version.DRAFT17;
     private static final int BUFFER_STEP_SIZE = 256;
@@ -85,27 +87,27 @@ public class TyrusClientEngine implements ClientEngine {
     private final ProtocolHandler protocolHandler = DEFAULT_VERSION.createHandler(true);
     private final EndpointWrapper endpointWrapper;
     private final ClientHandshakeListener listener;
+    private final Map<String, Object> properties;
 
     private Handshake clientHandShake = null;
     private volatile TimeoutHandler timeoutHandler = null;
 
-    private int incomingBufferSize = 4194315; // 4M (payload) + 11 (frame overhead)
 
     /**
      * Create {@link org.glassfish.tyrus.spi.WebSocketEngine} instance based on passed {@link WebSocketContainer} and with configured maximal
      * incoming buffer size.
      *
-     * @param endpointWrapper    TODO.
-     * @param listener           TODO.
-     * @param incomingBufferSize maximal incoming buffer size (this engine won't be able to process messages bigger
-     *                           than this number. If null, default value will be used).
+     * @param endpointWrapper wrapped client endpoint.
+     * @param listener        used for reporting back the outcome of handshake. {@link ClientHandshakeListener#onSessionCreated(javax.websocket.Session)}
+     *                        is invoked if handshake is completed and provided {@link Session} is open and ready to be
+     *                        returned from {@link WebSocketContainer#connectToServer(Class, javax.websocket.ClientEndpointConfig, java.net.URI)}
+     *                        (and alternatives) call.
+     * @param properties      passed container properties, see {@link org.glassfish.tyrus.client.ClientManager#getProperties()}.
      */
-    public TyrusClientEngine(EndpointWrapper endpointWrapper, ClientHandshakeListener listener, Integer incomingBufferSize) {
-        if (incomingBufferSize != null) {
-            this.incomingBufferSize = incomingBufferSize;
-        }
+    /* package */ TyrusClientEngine(EndpointWrapper endpointWrapper, ClientHandshakeListener listener, Map<String, Object> properties) {
         this.endpointWrapper = endpointWrapper;
         this.listener = listener;
+        this.properties = properties;
     }
 
     @Override
@@ -144,6 +146,14 @@ public class TyrusClientEngine implements ClientEngine {
             tyrusWebSocket.onConnect(this.clientHandShake.getRequest());
 
             listener.onSessionCreated(sessionForRemoteEndpoint);
+
+            final Object o = properties.get(TyrusClientEngine.INCOMING_BUFFER_SIZE);
+            final int incomingBufferSize;
+            if (o != null && o instanceof Integer) {
+                incomingBufferSize = (Integer) o;
+            } else {
+                incomingBufferSize = DEFAULT_INCOMING_BUFFER_SIZE;
+            }
 
             return new Connection() {
 
@@ -197,9 +207,11 @@ public class TyrusClientEngine implements ClientEngine {
     public static interface ClientHandshakeListener {
 
         /**
-         * Called when correct handshake response is received.
+         * Invoked when handshake is completed and provided {@link Session} is open and ready to be
+         * returned from {@link WebSocketContainer#connectToServer(Class, javax.websocket.ClientEndpointConfig, java.net.URI)}
+         * (and alternatives) call.
          *
-         * @param session TODO.
+         * @param session opened client session.
          */
         public void onSessionCreated(Session session);
 

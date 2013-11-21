@@ -100,10 +100,10 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
     private final ComponentProviderService componentProvider;
     private final Map<String, Object> properties = new HashMap<String, Object>();
 
-    private long defaultAsyncSendTimeout;
-    private long defaultMaxSessionIdleTimeout;
-    private int maxBinaryMessageBufferSize = Integer.MAX_VALUE;
-    private int maxTextMessageBufferSize = Integer.MAX_VALUE;
+    private volatile long defaultAsyncSendTimeout;
+    private volatile long defaultMaxSessionIdleTimeout;
+    private volatile int maxBinaryMessageBufferSize = Integer.MAX_VALUE;
+    private volatile int maxTextMessageBufferSize = Integer.MAX_VALUE;
 
     /**
      * Create new {@link ClientManager} instance.
@@ -417,7 +417,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                         }
                     };
 
-                    clientEngine = new TyrusClientEngine(clientEndpoint, listener, (Integer) properties.get(TyrusClientEngine.INCOMING_BUFFER_SIZE));
+                    clientEngine = new TyrusClientEngine(clientEndpoint, listener, properties);
 
                     container.openClientSocket(url, config, properties, clientEngine);
                 } catch (IOException e) {
@@ -565,6 +565,16 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
         }
     }
 
+    /**
+     * Container properties.
+     * <p/>
+     * Used to set container specific configuration as SSL truststore and keystore, HTTP Proxy configuration and
+     * maximum incoming buffer size. These properties cannot be shared among various containers due to constraints in
+     * WebSocket API, so if you need to have multiple configurations, you will need to create multiple ClientManager
+     * instances or synchronize connectToServer method invocations.
+     *
+     * @return map containing container properties.
+     */
     public Map<String, Object> getProperties() {
         return properties;
     }
