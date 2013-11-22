@@ -39,6 +39,7 @@
  */
 package org.glassfish.tyrus.tests.qa.tools;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.logging.Level;
@@ -77,7 +78,7 @@ public class TyrusToolkit implements ServerToolkit {
     public void startServer() throws DeploymentException {
         final String host = System.getProperty("tyrus.test.host");
         if (host == null) {
-            server = new Server(config.getHost(), config.getPort(), config.getContextPath(), endpointClasses);
+            server = new Server(config.getHost(), config.getPort(), config.getContextPath(), Collections.<String, Object>emptyMap(), endpointClasses);
             server.start();
             logger.log(Level.INFO, "Tyrus Server started at {0}:{1}", new Object[]{config.getHost(), config.getPort()});
         }

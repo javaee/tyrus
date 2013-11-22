@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011 - 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -39,6 +39,8 @@
  */
 package org.glassfish.tyrus.tests.qa.lifecycle;
 
+import java.util.Collections;
+
 import org.glassfish.tyrus.server.Server;
 
 /**
@@ -49,7 +51,7 @@ import org.glassfish.tyrus.server.Server;
 public class Main {
 
     public static void main(String[] args) {
-        Server server = new Server("localhost", 8080, "/websockets-lifecycle-test", org.glassfish.tyrus.tests.qa.lifecycle.ProgrammaticWholeMessageEndpoint.class);
+        Server server = new Server("localhost", 8080, "/websockets-lifecycle-test", Collections.<String, Object>emptyMap(), org.glassfish.tyrus.tests.qa.lifecycle.ProgrammaticWholeMessageEndpoint.class);
 
         try {
             server.start();
