@@ -137,10 +137,12 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
 
         do {
             try {
-                // tomcat impl returns always 0
-                // int available = is.available();
-                int available = 512;
-//                while (available > 0) {
+                int available = is.available();
+                if (available == 0) {
+                    // tomcat impl returns always 0
+                    available = 16384;
+                }
+
                 int toRead = (buf == null ?
                         (available > incomingBufferSize ? incomingBufferSize : available) :
                         buf.remaining() + available > incomingBufferSize ? incomingBufferSize - buf.remaining() : buf.remaining() + available
@@ -161,7 +163,6 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
                         connection.getReadHandler().handle(buf);
                     }
                 }
-//                }
             } catch (IOException e) {
                 connection.close(new CloseReason(CloseReason.CloseCodes.CANNOT_ACCEPT, null));
             }
