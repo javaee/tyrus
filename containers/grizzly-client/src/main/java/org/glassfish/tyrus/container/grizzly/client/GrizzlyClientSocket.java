@@ -209,7 +209,6 @@ public class GrizzlyClientSocket {
             try {
                 final Connection connection = connectionGrizzlyFuture.get(timeoutMs, TimeUnit.MILLISECONDS);
 
-
                 LOGGER.log(Level.CONFIG, String.format("Connected to '%s'.", connection.getPeerAddress()));
                 return;
             } catch (InterruptedException interruptedException) {
@@ -226,7 +225,6 @@ public class GrizzlyClientSocket {
                 if ((cause != null) && (cause instanceof IOException)) {
                     ioException = (IOException) cause;
                     ProxySelector.getDefault().connectFailed(uri, socketAddress, ioException);
-
                 }
 
                 closeTransport();

@@ -84,7 +84,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
     /**
      * Property usable in {@link #getProperties()}.
      * <p/>
-     * Value must be {@code int} and represents handshake timeout in milliseconds. Default value is 10000 (10 seconds).
+     * Value must be {@code int} and represents handshake timeout in milliseconds. Default value is 30000 (30 seconds).
      */
     public static final String HANDSHAKE_TIMEOUT = "org.glassfish.tyrus.client.ClientManager.ContainerTimeout";
 
@@ -351,14 +351,14 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
             @Override
             public void run() {
 
-                ClientEndpointConfig config = null;
+                ClientEndpointConfig config;
                 Endpoint endpoint;
                 final ErrorCollector collector = new ErrorCollector();
                 TyrusEndpointWrapper clientEndpoint;
 
                 final CountDownLatch responseLatch = new CountDownLatch(1);
-                ManagerClientHandshakeListener listener = null;
-                TyrusClientEngine clientEngine = null;
+                ClientManagerHandshakeListener listener;
+                TyrusClientEngine clientEngine;
 
                 try {
                     if (o instanceof Endpoint) {
@@ -392,11 +392,10 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                         return;
                     }
 
-                    final ClientEndpointConfig finalConfig = config;
-
-                    listener = new ManagerClientHandshakeListener() {
+                    listener = new ClientManagerHandshakeListener() {
 
                         private volatile Session session;
+                        private volatile Throwable throwable;
 
                         @Override
                         public void onSessionCreated(Session session) {
@@ -406,14 +405,18 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
 
                         @Override
                         public void onError(Throwable exception) {
-                            assert finalConfig != null;
-                            finalConfig.getUserProperties().put("org.glassfish.tyrus.client.exception", exception);
+                            throwable = exception;
                             responseLatch.countDown();
                         }
 
                         @Override
                         public Session getSession() {
                             return session;
+                        }
+
+                        @Override
+                        public Throwable getThrowable() {
+                            return throwable;
                         }
                     };
 
@@ -425,7 +428,8 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                     return;
                 } catch (DeploymentException e) {
                     e.printStackTrace();
-                    collector.addException(new DeploymentException("Connection failed.", e));
+                    future.setFailure(e);
+                    return;
                 }
 
                 if (!collector.isEmpty()) {
@@ -437,9 +441,9 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                     final boolean countedDown = responseLatch.await(handshakeTimeout, TimeUnit.MILLISECONDS);
                     if (countedDown) {
                         assert config != null;
-                        final Object exception = config.getUserProperties().get("org.glassfish.tyrus.client.exception");
+                        final Throwable exception = listener.getThrowable();
                         if (exception != null) {
-                            future.setFailure(new DeploymentException("Handshake error.", (Throwable) exception));
+                            future.setFailure(new DeploymentException("Handshake error.", exception));
                             return;
                         }
 
@@ -474,12 +478,14 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
             return (Integer) o;
         } else {
             // default value
-            return 10000;
+            return 30000;
         }
     }
 
-    private interface ManagerClientHandshakeListener extends TyrusClientEngine.ClientHandshakeListener {
+    private interface ClientManagerHandshakeListener extends TyrusClientEngine.ClientHandshakeListener {
         Session getSession();
+
+        Throwable getThrowable();
     }
 
     @Override
