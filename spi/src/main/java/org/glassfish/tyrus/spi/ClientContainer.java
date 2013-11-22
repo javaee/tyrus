@@ -53,6 +53,13 @@ import javax.websocket.DeploymentException;
 public interface ClientContainer {
 
     /**
+     * Property name for maximal incoming buffer size.
+     *
+     * Can be set in properties map (see {@link #openClientSocket(String, javax.websocket.ClientEndpointConfig, java.util.Map, ClientEngine)}).
+     */
+    public static final String INCOMING_BUFFER_SIZE = "org.glassfish.tyrus.incomingBufferSize";
+
+    /**
      * Open client socket - connect to endpoint specified with {@code url} parameter.
      * <p/>
      * Called from ClientManager when {@link javax.websocket.WebSocketContainer#connectToServer(Class, javax.websocket.ClientEndpointConfig, java.net.URI)}

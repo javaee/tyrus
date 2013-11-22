@@ -66,6 +66,7 @@ import org.glassfish.tyrus.core.TyrusWebSocket;
 import org.glassfish.tyrus.core.Utils;
 import org.glassfish.tyrus.core.Version;
 import org.glassfish.tyrus.core.WebSocket;
+import org.glassfish.tyrus.spi.ClientContainer;
 import org.glassfish.tyrus.spi.ClientEngine;
 import org.glassfish.tyrus.spi.Connection;
 import org.glassfish.tyrus.spi.ReadHandler;
@@ -78,7 +79,6 @@ import org.glassfish.tyrus.spi.Writer;
  */
 public class TyrusClientEngine implements ClientEngine {
 
-    public static final String INCOMING_BUFFER_SIZE = "org.glassfish.tyrus.incomingBufferSize";
     private static final int DEFAULT_INCOMING_BUFFER_SIZE = 4194315; // 4M (payload) + 11 (frame overhead)
 
     private static final Version DEFAULT_VERSION = Version.DRAFT17;
@@ -147,7 +147,7 @@ public class TyrusClientEngine implements ClientEngine {
 
             listener.onSessionCreated(sessionForRemoteEndpoint);
 
-            final Object o = properties.get(TyrusClientEngine.INCOMING_BUFFER_SIZE);
+            final Object o = properties.get(ClientContainer.INCOMING_BUFFER_SIZE);
             final int incomingBufferSize;
             if (o != null && o instanceof Integer) {
                 incomingBufferSize = (Integer) o;
