@@ -592,6 +592,11 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
     public void onPartialMessage(RemoteEndpoint gs, String partialString, boolean last) {
         TyrusSession session = getSession(gs);
 
+        if (session == null) {
+            LOGGER.log(Level.FINE, "Message received on already closed connection.");
+            return;
+        }
+
         try {
             session.restartIdleTimeoutExecutor();
             final TyrusSession.State state = session.getState();
@@ -674,6 +679,11 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
     @Override
     public void onPartialMessage(RemoteEndpoint gs, ByteBuffer partialBytes, boolean last) {
         TyrusSession session = getSession(gs);
+
+        if (session == null) {
+            LOGGER.log(Level.FINE, "Message received on already closed connection.");
+            return;
+        }
 
         try {
             session.restartIdleTimeoutExecutor();
@@ -782,6 +792,12 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
     @Override
     public void onPong(RemoteEndpoint gs, final ByteBuffer bytes) {
         TyrusSession session = getSession(gs);
+
+        if (session == null) {
+            LOGGER.log(Level.FINE, "Pong received on already closed connection.");
+            return;
+        }
+
         session.restartIdleTimeoutExecutor();
 
         if (session.isPongHandlerPreset()) {
@@ -801,6 +817,12 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
     @Override
     public void onPing(RemoteEndpoint gs, ByteBuffer bytes) {
         TyrusSession session = getSession(gs);
+
+        if (session == null) {
+            LOGGER.log(Level.FINE, "Ping received on already closed connection.");
+            return;
+        }
+
         session.restartIdleTimeoutExecutor();
         try {
             session.getBasicRemote().sendPong(bytes);

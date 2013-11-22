@@ -291,7 +291,18 @@ class GrizzlyClientFilter extends BaseFilter {
      */
     private NextAction handleHandshake(final FilterChainContext ctx, HttpContent content) {
 
-        final GrizzlyWriter grizzlyWriter = new GrizzlyWriter(ctx.getConnection());
+        final GrizzlyWriter grizzlyWriter = new GrizzlyWriter(ctx.getConnection()) {
+            @Override
+            public void close() {
+                super.close();
+                try {
+                    connection.getTransport().shutdownNow();
+                } catch (IOException e) {
+                    Logger.getLogger(GrizzlyClientFilter.class.getName()).log(Level.INFO, "Exception thrown during container shutdown.", e);
+                }
+            }
+        };
+
         final org.glassfish.tyrus.spi.Connection tyrusConnection = engine.processResponse(
                 getUpgradeResponse((HttpResponsePacket) content.getHttpHeader()),
                 grizzlyWriter,
