@@ -65,6 +65,7 @@ import org.glassfish.tyrus.test.tools.TestContainer;
 import org.junit.Ignore;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import junit.framework.Assert;
@@ -309,7 +310,6 @@ public class SessionTimeoutTest extends TestContainer {
 
         @OnMessage
         public void onMessage(String message, Session session) {
-
         }
 
         @OnClose
@@ -400,5 +400,50 @@ public class SessionTimeoutTest extends TestContainer {
         }
     }
 
+    @Test
+    public void testSessionTimeoutReset() throws DeploymentException {
+        Server server = startServer(SessionClientTimeoutEndpoint.class);
+        final CountDownLatch onCloseLatch = new CountDownLatch(1);
+        SessionClientTimeoutEndpoint.clientOnCloseCalled.set(false);
+
+        try {
+            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
+
+            final ClientManager client = ClientManager.createClient();
+            client.setDefaultMaxSessionIdleTimeout(1000);
+            Session session = client.connectToServer(new TestEndpointAdapter() {
+                @Override
+                public void onMessage(String message) {
+                }
+
+                @Override
+                public void onOpen(Session session) {
+                }
+
+                @Override
+                public EndpointConfig getEndpointConfig() {
+                    return cec;
+                }
+
+                @Override
+                public void onClose(Session session, CloseReason closeReason) {
+                    System.out.println(System.currentTimeMillis() + "### !closed " + closeReason);
+                    SessionClientTimeoutEndpoint.clientOnCloseCalled.set(true);
+                    onCloseLatch.countDown();
+                }
+            }, cec, getURI(SessionClientTimeoutEndpoint.class));
+
+            assertTrue(session.getMaxIdleTimeout() == 1000);
+            session.setMaxIdleTimeout(0);
+
+            assertFalse(onCloseLatch.await(4, TimeUnit.SECONDS));
+            assertFalse(SessionClientTimeoutEndpoint.clientOnCloseCalled.get());
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            stopServer(server);
+        }
+    }
 
 }

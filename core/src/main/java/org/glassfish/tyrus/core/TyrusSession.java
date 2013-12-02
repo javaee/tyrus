@@ -103,11 +103,11 @@ public class TyrusSession implements Session {
     private final List<Extension> negotiatedExtensions;
     private final String negotiatedSubprotocol;
 
+    private volatile long maxIdleTimeout = 0;
+    private volatile ScheduledFuture<?> idleTimeoutFuture = null;
     private int maxBinaryMessageBufferSize = Integer.MAX_VALUE;
     private int maxTextMessageBufferSize = Integer.MAX_VALUE;
-    private volatile long maxIdleTimeout = 0;
     private ScheduledExecutorService service;
-    private ScheduledFuture<?> idleTimeoutFuture = null;
     private ReaderBuffer readerBuffer;
     private InputStreamBuffer inputStreamBuffer;
 
@@ -322,7 +322,13 @@ public class TyrusSession implements Session {
 
     void restartIdleTimeoutExecutor() {
         if (this.maxIdleTimeout < 1) {
-            return;
+            synchronized (idleTimeoutLock) {
+                if (idleTimeoutFuture != null) {
+                    final boolean b = idleTimeoutFuture.cancel(true);
+                } else {
+                    return;
+                }
+            }
         }
 
         synchronized (idleTimeoutLock) {
@@ -592,13 +598,15 @@ public class TyrusSession implements Session {
 
         @Override
         public void run() {
-            try {
-                TyrusSession session = TyrusSession.this;
-                if (session.isOpen()) {
+            TyrusSession session = TyrusSession.this;
+
+            // condition is required because scheduled task can be (for some reason) run even when it is cancelled.
+            if (session.getMaxIdleTimeout() != 0 && session.isOpen()) {
+                try {
                     session.close(new CloseReason(CloseReason.CloseCodes.CLOSED_ABNORMALLY, "Session closed by the container because of the idle timeout."));
+                } catch (IOException e) {
+                    LOGGER.log(Level.FINE, "Session could not been closed. " + e.getMessage());
                 }
-            } catch (IOException e) {
-                LOGGER.log(Level.FINE, "Session could not been closed. " + e.getMessage());
             }
         }
     }
