@@ -40,19 +40,61 @@
 
 package org.glassfish.tyrus.core.frame;
 
-import org.glassfish.tyrus.core.DataFrame;
+import java.nio.ByteBuffer;
+import java.util.Locale;
+
+import org.glassfish.tyrus.core.Frame;
+import org.glassfish.tyrus.core.ProtocolError;
 import org.glassfish.tyrus.core.WebSocket;
 
 /**
- * WebSocket frame representation.
+ * Frame representation used in Tyrus runtime.
+ * <p/>
+ * Enriched {@link Frame} representation.
  */
-public interface Frame {
+public abstract class TyrusFrame extends Frame {
 
-    void respond(WebSocket socket, DataFrame frame);
+    protected TyrusFrame(Frame frame) {
+        super(frame);
+    }
 
-    void setPayload(DataFrame frame, byte[] data);
+    /**
+     * Execution part of frame processing.
+     *
+     * @param socket socket on which the appropriate action will be performed.
+     */
+    public abstract void respond(WebSocket socket);
 
-    byte[] getBytes(DataFrame dataFrame);
+    /**
+     * {@link TyrusFrame} factory method.
+     *
+     * @param frame            original plain frame.
+     * @param inFragmentedType type of fragment (text or binary).
+     * @param remainder        decoding remainder. Used only for partial text frames.
+     * @return new TyrusFrame.
+     */
+    public static TyrusFrame wrap(Frame frame, byte inFragmentedType, ByteBuffer remainder) {
 
-    DataFrame create(boolean fin, byte[] data);
+        switch (frame.getOpcode()) {
+            case 0x00:
+                if ((inFragmentedType & 0x01) == 0x01) {
+                    return new TextFrame(frame, remainder, true);
+                } else {
+                    return new BinaryFrame(frame, true);
+                }
+            case 0x01:
+                return new TextFrame(frame, remainder);
+            case 0x02:
+                return new BinaryFrame(frame);
+            case 0x08:
+                return new CloseFrame(frame);
+            case 0x09:
+                return new PingFrame(frame);
+            case 0x0A:
+                return new PongFrame(frame);
+            default:
+                throw new ProtocolError(String.format("Unknown wrappedFrame type: %s",
+                        Integer.toHexString(frame.getOpcode()).toUpperCase(Locale.US)));
+        }
+    }
 }

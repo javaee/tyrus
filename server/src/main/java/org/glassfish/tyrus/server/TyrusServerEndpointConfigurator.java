@@ -48,6 +48,8 @@ import javax.websocket.server.HandshakeRequest;
 import javax.websocket.server.ServerEndpointConfig;
 
 import org.glassfish.tyrus.core.ComponentProviderService;
+import org.glassfish.tyrus.core.ExtendedExtension;
+import org.glassfish.tyrus.core.Frame;
 
 /**
  * Tyrus implementation of {@link ServerEndpointConfig.Configurator}.
@@ -77,13 +79,64 @@ public class TyrusServerEndpointConfigurator extends ServerEndpointConfig.Config
 
     @Override
     public List<Extension> getNegotiatedExtensions(List<Extension> installed, List<Extension> requested) {
+        installed = new ArrayList<Extension>(installed);
+
         List<Extension> result = new ArrayList<Extension>();
 
         if (requested != null) {
-            for (Extension requestedExtension : requested) {
+            for (final Extension requestedExtension : requested) {
                 for (Extension extension : installed) {
-                    if (extension.equals(requestedExtension)) {
-                        result.add(requestedExtension);
+                    final String name = extension.getName();
+                    // exception have the same name = are equal. Params should not be taken into account.
+                    if (name != null && name.equals(requestedExtension.getName())) {
+                        if (extension instanceof ExtendedExtension) {
+                            final ExtendedExtension extendedExtension = (ExtendedExtension) extension;
+                            result.add(new ExtendedExtension() {
+                                @Override
+                                public Frame processIncoming(ExtensionContext context, Frame frame) {
+                                    return extendedExtension.processIncoming(context, frame);
+                                }
+
+                                @Override
+                                public Frame processOutgoing(ExtensionContext context, Frame frame) {
+                                    return extendedExtension.processOutgoing(context, frame);
+                                }
+
+                                /**
+                                 * TODO.
+                                 *
+                                 * @param context TODO
+                                 * @param requestedParameters TODO
+                                 * @return TODO
+                                 */
+                                @Override
+                                public List<Parameter> onExtensionNegotiation(ExtensionContext context, List<Parameter> requestedParameters) {
+                                    return extendedExtension.onExtensionNegotiation(context, requestedExtension.getParameters());
+                                }
+
+                                @Override
+                                public void onHandshakeResponse(ExtensionContext context, List<Parameter> responseParameters) {
+                                    extendedExtension.onHandshakeResponse(context, responseParameters);
+                                }
+
+                                @Override
+                                public void destroy(ExtensionContext context) {
+                                    extendedExtension.destroy(context);
+                                }
+
+                                @Override
+                                public String getName() {
+                                    return name;
+                                }
+
+                                @Override
+                                public List<Parameter> getParameters() {
+                                    return extendedExtension.getParameters();
+                                }
+                            });
+                        } else {
+                            result.add(requestedExtension);
+                        }
                     }
                 }
             }

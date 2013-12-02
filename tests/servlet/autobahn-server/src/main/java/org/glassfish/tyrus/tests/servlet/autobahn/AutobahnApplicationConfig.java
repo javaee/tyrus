@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -38,29 +38,37 @@
  * holder.
  */
 
-package org.glassfish.tyrus.core.frame;
+package org.glassfish.tyrus.tests.servlet.autobahn;
 
-import javax.websocket.CloseReason;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
-import org.glassfish.tyrus.core.ClosingDataFrame;
-import org.glassfish.tyrus.core.DataFrame;
-import org.glassfish.tyrus.core.WebSocket;
+import javax.websocket.Endpoint;
+import javax.websocket.Extension;
+import javax.websocket.server.ServerApplicationConfig;
+import javax.websocket.server.ServerEndpointConfig;
 
-public class ClosingFrame extends BaseFrame {
+import org.glassfish.tyrus.core.extension.CompressionExtension;
+import org.glassfish.tyrus.core.extension.WebkitDeflateExtension;
 
+/**
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
+ */
+public class AutobahnApplicationConfig implements ServerApplicationConfig {
     @Override
-    public DataFrame create(boolean fin, byte[] data) {
-        return new ClosingDataFrame(data);
+    public Set<ServerEndpointConfig> getEndpointConfigs(Set<Class<? extends Endpoint>> endpointClasses) {
+        final ServerEndpointConfig serverEndpointConfig = ServerEndpointConfig.Builder.create(EchoServer.class, "/echo")
+                .extensions(Arrays.<Extension>asList(new CompressionExtension(), new WebkitDeflateExtension())).build();
+
+        return new HashSet<ServerEndpointConfig>() {{
+            add(serverEndpointConfig);
+        }};
     }
 
     @Override
-    public void respond(WebSocket socket, DataFrame frame) {
-        if(frame instanceof ClosingDataFrame) {
-            final ClosingDataFrame closingFrame = (ClosingDataFrame) frame;
-            socket.onClose(new CloseReason(CloseReason.CloseCodes.getCloseCode(closingFrame.getCode()), closingFrame.getReason()));
-            socket.close();
-        } else {
-            throw new IllegalArgumentException();
-        }
+    public Set<Class<?>> getAnnotatedEndpointClasses(Set<Class<?>> scanned) {
+        return Collections.<Class<?>>emptySet();
     }
 }

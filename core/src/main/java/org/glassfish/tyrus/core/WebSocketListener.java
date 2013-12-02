@@ -55,7 +55,7 @@ public interface WebSocketListener {
 
     /**
      * <p/>
-     * Invoked when {@link WebSocket#onClose(CloseReason)} has been called on a
+     * Invoked when {@link WebSocket#onClose(org.glassfish.tyrus.core.frame.CloseFrame)} has been called on a
      * particular {@link WebSocket} instance.
      * <p/>
      *
@@ -77,7 +77,7 @@ public interface WebSocketListener {
 
     /**
      * <p>
-     * Invoked when {@link WebSocket#onMessage(String)} has been called on a
+     * Invoked when {@link WebSocket#onMessage(org.glassfish.tyrus.core.frame.TextFrame)} has been called on a
      * particular {@link WebSocket} instance.
      * </p>
      *
@@ -88,7 +88,7 @@ public interface WebSocketListener {
 
     /**
      * <p>
-     * Invoked when {@link WebSocket#onMessage(String)} has been called on a
+     * Invoked when {@link WebSocket#onMessage(org.glassfish.tyrus.core.frame.BinaryFrame)} has been called on a
      * particular {@link WebSocket} instance.
      * </p>
      *
@@ -99,7 +99,7 @@ public interface WebSocketListener {
 
     /**
      * <p>
-     * Invoked when {@link WebSocket#onPing(DataFrame)} has been called on a
+     * Invoked when {@link WebSocket#onPing(org.glassfish.tyrus.core.frame.PingFrame)} has been called on a
      * particular {@link WebSocket} instance.
      * </p>
      *
@@ -110,7 +110,7 @@ public interface WebSocketListener {
 
     /**
      * <p>
-     * Invoked when {@link WebSocket#onPong(DataFrame)} has been called on a
+     * Invoked when {@link WebSocket#onPong(org.glassfish.tyrus.core.frame.PongFrame)} has been called on a
      * particular {@link WebSocket} instance.
      * </p>
      *
@@ -121,7 +121,7 @@ public interface WebSocketListener {
 
     /**
      * <p>
-     * Invoked when {@link WebSocket#onFragment(boolean, String)} has been called
+     * Invoked when {@link WebSocket#onFragment(boolean, org.glassfish.tyrus.core.frame.TextFrame)} has been called
      * on a particular {@link WebSocket} instance.
      * </p>
      *
@@ -133,7 +133,7 @@ public interface WebSocketListener {
 
     /**
      * <p>
-     * Invoked when {@link WebSocket#onFragment(boolean, byte[])} has been called
+     * Invoked when {@link WebSocket#onFragment(boolean, org.glassfish.tyrus.core.frame.BinaryFrame)} has been called
      * on a particular {@link WebSocket} instance.
      * </p>
      *

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -38,37 +38,18 @@
  * holder.
  */
 
-package org.glassfish.tyrus.core.frame;
+package org.glassfish.tyrus.core.extension;
 
-import org.glassfish.tyrus.core.DataFrame;
-import org.glassfish.tyrus.core.WebSocket;
-
-public class ContinuationFrame extends BaseFrame {
-
-    private final boolean text;
-    private final Frame wrappedType;
-
-    public ContinuationFrame(boolean text) {
-        this.text = text;
-        wrappedType = text ? new TextFrame() : new BinaryFrame();
-    }
-
+/**
+ * Compression extension for webkit based browsers.
+ * <p/>
+ * Very same as {@link org.glassfish.tyrus.core.extension.CompressionExtension}, only name differs.
+ *
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
+ */
+public class WebkitDeflateExtension extends CompressionExtension {
     @Override
-    public void respond(WebSocket socket, DataFrame frame) {
-        if (text) {
-            socket.onFragment(frame.isLast(), frame.getTextPayload());
-        } else {
-            socket.onFragment(frame.isLast(), frame.getBytes());
-        }
-    }
-
-    @Override
-    public void setPayload(DataFrame frame, byte[] data) {
-        wrappedType.setPayload(frame, data);
-    }
-
-    @Override
-    public byte[] getBytes(DataFrame dataFrame) {
-        return wrappedType.getBytes(dataFrame);
+    public String getName() {
+        return "x-webkit-deflate-frame";
     }
 }

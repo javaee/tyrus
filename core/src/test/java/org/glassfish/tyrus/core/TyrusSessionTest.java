@@ -508,12 +508,12 @@ public class TyrusSessionTest {
         }
 
         @Override
-        public Future<DataFrame> sendPing(ByteBuffer applicationData) {
+        public Future<Frame> sendPing(ByteBuffer applicationData) {
             return null;
         }
 
         @Override
-        public Future<DataFrame> sendPong(ByteBuffer applicationData) {
+        public Future<Frame> sendPong(ByteBuffer applicationData) {
             return null;
         }
 

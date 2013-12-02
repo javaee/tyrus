@@ -40,32 +40,159 @@
 
 package org.glassfish.tyrus.core.frame;
 
-import org.glassfish.tyrus.core.DataFrame;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CoderResult;
+
+import org.glassfish.tyrus.core.Frame;
 import org.glassfish.tyrus.core.StrictUtf8;
+import org.glassfish.tyrus.core.Utf8DecodingError;
 import org.glassfish.tyrus.core.Utf8Utils;
 import org.glassfish.tyrus.core.WebSocket;
 
-public class TextFrame extends BaseFrame {
-    @Override
-    public void setPayload(DataFrame frame, byte[] data) {
-        frame.setPayload(data);
+/**
+ * Text frame representation.
+ */
+public class TextFrame extends TyrusFrame {
+
+    private final Charset utf8 = new StrictUtf8();
+    private final CharsetDecoder currentDecoder = utf8.newDecoder();
+    private final String textPayload;
+    private final boolean continuation;
+
+    private ByteBuffer remainder;
+
+    /**
+     * Constructor.
+     *
+     * @param frame     original (text) frame.
+     * @param remainder UTF-8 decoding remainder from previously processed frame.
+     */
+    public TextFrame(Frame frame, ByteBuffer remainder) {
+        super(frame);
+        this.textPayload = utf8Decode(isFin(), getPayloadData(), remainder);
+        this.continuation = false;
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param frame        original (text) frame.
+     * @param remainder    UTF-8 decoding remainder from previously processed frame.
+     * @param continuation {@code true} when this frame is continuation frame, {@code false} otherwise.
+     */
+    public TextFrame(Frame frame, ByteBuffer remainder, boolean continuation) {
+        super(frame);
+        this.textPayload = utf8Decode(isFin(), getPayloadData(), remainder);
+        this.continuation = continuation;
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param message      text message (will be encoded using strict UTF-8 encoding).
+     * @param continuation {@code true} when this frame is continuation frame, {@code false} otherwise.
+     * @param fin          {@code true} when this frame is last in current partial message batch. Standard (non-continuous)
+     *                     frames have this bit set to {@code true}.
+     */
+    public TextFrame(String message, boolean continuation, boolean fin) {
+        super(Frame.builder().payloadData(Utf8Utils.encode(new StrictUtf8(), message)).opcode(continuation ? (byte) 0x00 : (byte) 0x01).fin(fin).build());
+        this.continuation = continuation;
+        this.textPayload = message;
+    }
+
+    /**
+     * Get text payload.
+     *
+     * @return text payload.
+     */
+    public String getTextPayload() {
+        return textPayload;
+    }
+
+    /**
+     * Remainder after UTF-8 decoding.
+     * <p/>
+     * This might be removed in the future, if encoding part will be separated from text frame impl.
+     *
+     * @return UTF-8 decoding remainder. Used internally to decoding next incoming frame.
+     */
+    public ByteBuffer getRemainder() {
+        return remainder;
     }
 
     @Override
-    public byte[] getBytes(DataFrame dataFrame) {
-        final byte[] bytes = dataFrame.getBytes();
-        if (bytes == null) {
-            setPayload(dataFrame, Utf8Utils.encode(new StrictUtf8(), dataFrame.getTextPayload()));
-        }
-        return dataFrame.getBytes();
-    }
+    public void respond(WebSocket socket) {
 
-    @Override
-    public void respond(WebSocket socket, DataFrame frame) {
-        if (frame.isLast()) {
-            socket.onMessage(frame.getTextPayload());
+        if (continuation) {
+            socket.onFragment(isFin(), this);
         } else {
-            socket.onFragment(frame.isLast(), frame.getTextPayload());
+            if (isFin()) {
+                socket.onMessage(this);
+            } else {
+                socket.onFragment(false, this);
+            }
         }
+
+    }
+
+    private String utf8Decode(boolean finalFragment, byte[] data, ByteBuffer remainder) {
+        final ByteBuffer b = getByteBuffer(data, remainder);
+        int n = (int) (b.remaining() * currentDecoder.averageCharsPerByte());
+        CharBuffer cb = CharBuffer.allocate(n);
+        String res;
+        while (true) {
+            CoderResult result = currentDecoder.decode(b, cb, finalFragment);
+            if (result.isUnderflow()) {
+                if (finalFragment) {
+                    currentDecoder.flush(cb);
+                    if (b.hasRemaining()) {
+                        throw new IllegalStateException("Final UTF-8 fragment received, but not all bytes consumed by decode process");
+                    }
+                    currentDecoder.reset();
+                } else {
+                    if (b.hasRemaining()) {
+                        this.remainder = b;
+                    }
+                }
+                cb.flip();
+                res = cb.toString();
+                break;
+            }
+            if (result.isOverflow()) {
+                CharBuffer tmp = CharBuffer.allocate(2 * n + 1);
+                cb.flip();
+                tmp.put(cb);
+                cb = tmp;
+                continue;
+            }
+            if (result.isError() || result.isMalformed()) {
+                throw new Utf8DecodingError("Illegal UTF-8 Sequence");
+            }
+        }
+
+        return res;
+    }
+
+    private ByteBuffer getByteBuffer(final byte[] data, ByteBuffer remainder) {
+        if (remainder == null) {
+            return ByteBuffer.wrap(data);
+        } else {
+            final int rem = remainder.remaining();
+            final byte[] orig = remainder.array();
+            byte[] b = new byte[rem + data.length];
+            System.arraycopy(orig, orig.length - rem, b, 0, rem);
+            System.arraycopy(data, 0, b, rem, data.length);
+            return ByteBuffer.wrap(b);
+        }
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder(super.toString());
+        sb.append(", textPayload='").append(textPayload).append('\'');
+        return sb.toString();
     }
 }

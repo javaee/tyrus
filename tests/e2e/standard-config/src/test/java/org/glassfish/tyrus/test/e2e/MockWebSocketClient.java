@@ -43,13 +43,17 @@ package org.glassfish.tyrus.test.e2e;
 import java.nio.ByteBuffer;
 import java.util.concurrent.Future;
 
-import javax.websocket.CloseReason;
 import javax.websocket.SendHandler;
 import javax.websocket.SendResult;
 
-import org.glassfish.tyrus.core.DataFrame;
+import org.glassfish.tyrus.core.Frame;
 import org.glassfish.tyrus.core.WebSocket;
 import org.glassfish.tyrus.core.WebSocketListener;
+import org.glassfish.tyrus.core.frame.BinaryFrame;
+import org.glassfish.tyrus.core.frame.CloseFrame;
+import org.glassfish.tyrus.core.frame.PingFrame;
+import org.glassfish.tyrus.core.frame.PongFrame;
+import org.glassfish.tyrus.core.frame.TextFrame;
 import org.glassfish.tyrus.spi.UpgradeRequest;
 
 import org.glassfish.grizzly.GrizzlyFuture;
@@ -69,7 +73,7 @@ class MockWebSocketClient implements WebSocket {
     }
 
     @Override
-    public GrizzlyFuture<DataFrame> send(String message) {
+    public GrizzlyFuture<Frame> send(String message) {
         listener.onMessage(this, message);
         return null;
     }
@@ -82,7 +86,7 @@ class MockWebSocketClient implements WebSocket {
 
 
     @Override
-    public Future<DataFrame> send(byte[] data) {
+    public Future<Frame> send(byte[] data) {
         return null;
     }
 
@@ -91,28 +95,28 @@ class MockWebSocketClient implements WebSocket {
     }
 
     @Override
-    public Future<DataFrame> sendRawFrame(ByteBuffer data) {
+    public Future<Frame> sendRawFrame(ByteBuffer data) {
         return null;
     }
 
     @Override
-    public GrizzlyFuture<DataFrame> sendPing(byte[] bytes) {
+    public GrizzlyFuture<Frame> sendPing(byte[] bytes) {
         return null;
     }
 
     @Override
-    public GrizzlyFuture<DataFrame> sendPong(byte[] bytes) {
+    public GrizzlyFuture<Frame> sendPong(byte[] bytes) {
         return null;
     }
 
     @Override
-    public Future<DataFrame> stream(boolean last, String fragment) {
+    public Future<Frame> stream(boolean last, String fragment) {
         return null;
     }
 
 
     @Override
-    public GrizzlyFuture<DataFrame> stream(boolean b, byte[] bytes, int i, int i1) {
+    public GrizzlyFuture<Frame> stream(boolean b, byte[] bytes, int i, int i1) {
         return null;
     }
 
@@ -126,7 +130,7 @@ class MockWebSocketClient implements WebSocket {
 
     @Override
     public boolean isConnected() {
-        return false;
+        return true;
     }
 
     @Override
@@ -134,31 +138,31 @@ class MockWebSocketClient implements WebSocket {
     }
 
     @Override
-    public void onMessage(String s) {
+    public void onMessage(TextFrame frame) {
     }
 
     @Override
-    public void onMessage(byte[] bytes) {
+    public void onMessage(BinaryFrame frame) {
     }
 
     @Override
-    public void onFragment(boolean b, String s) {
+    public void onFragment(boolean last, TextFrame frame) {
     }
 
     @Override
-    public void onFragment(boolean b, byte[] bytes) {
+    public void onFragment(boolean last, BinaryFrame frame) {
     }
 
     @Override
-    public void onClose(CloseReason closeReason) {
+    public void onClose(CloseFrame frame) {
     }
 
     @Override
-    public void onPing(DataFrame dataFrame) {
+    public void onPing(PingFrame frame) {
     }
 
     @Override
-    public void onPong(DataFrame dataFrame) {
+    public void onPong(PongFrame frame) {
     }
 
     @Override

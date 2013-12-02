@@ -41,7 +41,6 @@
 package org.glassfish.tyrus.core;
 
 import java.nio.ByteBuffer;
-import java.security.SecureRandom;
 
 class Masker {
     private volatile ByteBuffer buffer;
@@ -52,8 +51,12 @@ class Masker {
         this.buffer = buffer;
     }
 
-    public Masker() {
-        generateMask();
+    public Masker(int mask) {
+        this.mask = new byte[4];
+        this.mask[0] = (byte) (mask >> 24);
+        this.mask[1] = (byte) (mask >> 16);
+        this.mask[2] = (byte) (mask >> 8);
+        this.mask[3] = (byte) mask;
     }
 
     byte get() {
@@ -77,14 +80,9 @@ class Masker {
         return bytes;
     }
 
-    void generateMask() {
-        mask = new byte[ProtocolHandler.MASK_SIZE];
-        new SecureRandom().nextBytes(mask);
-    }
-
-    public void mask(byte[] target, int location, byte[] bytes) {
+    public void mask(byte[] target, int location, byte[] bytes, int length) {
         if (bytes != null && target != null) {
-            for (int i = 0; i < bytes.length; i++) {
+            for (int i = 0; i < length; i++) {
                 target[location + i] = mask == null
                         ? bytes[i]
                         : (byte) (bytes[i] ^ mask[index++ % ProtocolHandler.MASK_SIZE]);

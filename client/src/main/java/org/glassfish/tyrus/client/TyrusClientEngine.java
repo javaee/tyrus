@@ -42,18 +42,24 @@ package org.glassfish.tyrus.client;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.websocket.ClientEndpointConfig;
 import javax.websocket.CloseReason;
+import javax.websocket.Extension;
 import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
 import javax.websocket.server.HandshakeRequest;
 
-import org.glassfish.tyrus.core.DataFrame;
 import org.glassfish.tyrus.core.EndpointWrapper;
+import org.glassfish.tyrus.core.ExtendedExtension;
+import org.glassfish.tyrus.core.Frame;
 import org.glassfish.tyrus.core.FramingException;
 import org.glassfish.tyrus.core.Handshake;
 import org.glassfish.tyrus.core.ProtocolHandler;
@@ -65,6 +71,7 @@ import org.glassfish.tyrus.core.TyrusWebSocket;
 import org.glassfish.tyrus.core.Utils;
 import org.glassfish.tyrus.core.Version;
 import org.glassfish.tyrus.core.WebSocket;
+import org.glassfish.tyrus.core.frame.CloseFrame;
 import org.glassfish.tyrus.spi.ClientContainer;
 import org.glassfish.tyrus.spi.ClientEngine;
 import org.glassfish.tyrus.spi.Connection;
@@ -133,15 +140,43 @@ public class TyrusClientEngine implements ClientEngine {
             clientHandShake.validateServerResponse(upgradeResponse);
 
             final TyrusWebSocket tyrusWebSocket = new TyrusWebSocket(protocolHandler, new TyrusEndpoint(endpointWrapper));
+            final List<Extension> handshakeResponseExtensions = TyrusExtension.fromHeaders(upgradeResponse.getHeaders().get(HandshakeRequest.SEC_WEBSOCKET_EXTENSIONS));
+            final List<Extension> extensions = new ArrayList<Extension>();
+
+            final ExtendedExtension.ExtensionContext extensionContext = new ExtendedExtension.ExtensionContext() {
+
+                private final Map<String, Object> properties = new HashMap<String, Object>();
+
+                @Override
+                public Map<String, Object> getProperties() {
+                    return properties;
+                }
+            };
+
+            for (Extension responseExtension : handshakeResponseExtensions) {
+                for (Extension installedExtension : ((ClientEndpointConfig) endpointWrapper.getEndpointConfig()).getExtensions()) {
+                    if (responseExtension.getName() != null && responseExtension.getName().equals(installedExtension.getName())) {
+
+                        if (installedExtension instanceof ExtendedExtension) {
+                            ((ExtendedExtension) installedExtension).onHandshakeResponse(extensionContext, responseExtension.getParameters());
+                        }
+
+                        extensions.add(installedExtension);
+                    }
+                }
+            }
+
             final Session sessionForRemoteEndpoint = endpointWrapper.createSessionForRemoteEndpoint(
                     new TyrusRemoteEndpoint(tyrusWebSocket),
                     upgradeResponse.getFirstHeaderValue(HandshakeRequest.SEC_WEBSOCKET_PROTOCOL),
-                    TyrusExtension.fromHeaders(upgradeResponse.getHeaders().get(HandshakeRequest.SEC_WEBSOCKET_EXTENSIONS)));
+                    extensions);
 
             ((ClientEndpointConfig) endpointWrapper.getEndpointConfig()).getConfigurator().afterResponse(upgradeResponse);
 
             protocolHandler.setWriter(writer);
             protocolHandler.setWebSocket(tyrusWebSocket);
+            protocolHandler.setExtensions(extensions);
+            protocolHandler.setExtensionContext(extensionContext);
 
             tyrusWebSocket.onConnect(this.clientHandShake.getRequest());
 
@@ -157,7 +192,7 @@ public class TyrusClientEngine implements ClientEngine {
 
             return new Connection() {
 
-                private final ReadHandler readHandler = new TyrusReadHandler(protocolHandler, tyrusWebSocket, incomingBufferSize);
+                private final ReadHandler readHandler = new TyrusReadHandler(protocolHandler, tyrusWebSocket, incomingBufferSize, sessionForRemoteEndpoint.getNegotiatedExtensions(), extensionContext);
 
                 @Override
                 public ReadHandler getReadHandler() {
@@ -183,6 +218,13 @@ public class TyrusClientEngine implements ClientEngine {
                     }
 
                     tyrusWebSocket.close(reason.getCloseCode().getCode(), reason.getReasonPhrase());
+
+                    for (Extension extension : sessionForRemoteEndpoint.getNegotiatedExtensions()) {
+                        if (extension instanceof ExtendedExtension) {
+                            ((ExtendedExtension) extension).destroy(extensionContext);
+                        }
+                    }
+
                 }
             };
         } catch (Throwable e) {
@@ -228,12 +270,23 @@ public class TyrusClientEngine implements ClientEngine {
         private final int incomingBufferSize;
         private final ProtocolHandler handler;
         private final WebSocket webSocket;
+        private final List<Extension> reversedNegotiatedExtensions;
+        private final ExtendedExtension.ExtensionContext extensionContext;
+
         private ByteBuffer buffer = null;
 
-        TyrusReadHandler(final ProtocolHandler handler, final WebSocket webSocket, int incomingBufferSize) {
-            this.handler = handler;
+        TyrusReadHandler(final ProtocolHandler protocolHandler, final WebSocket webSocket, int incomingBufferSize, List<Extension> negotiatedExtensions, ExtendedExtension.ExtensionContext extensionContext) {
+            this.handler = protocolHandler;
             this.webSocket = webSocket;
             this.incomingBufferSize = incomingBufferSize;
+
+            this.reversedNegotiatedExtensions = new ArrayList<Extension>();
+            this.reversedNegotiatedExtensions.addAll(negotiatedExtensions);
+            Collections.reverse(reversedNegotiatedExtensions);
+
+            this.extensionContext = extensionContext;
+
+            protocolHandler.setExtensionContext(extensionContext);
         }
 
         @Override
@@ -256,21 +309,29 @@ public class TyrusClientEngine implements ClientEngine {
                     }
 
                     do {
-                        final DataFrame result = handler.unframe(data);
-                        if (result == null) {
+                        Frame frame = handler.unframe(data);
+                        if (frame == null) {
                             buffer = data;
                             break;
                         } else {
-                            result.respond(webSocket);
+                            if (reversedNegotiatedExtensions != null && reversedNegotiatedExtensions.size() > 0) {
+                                for (Extension extension : reversedNegotiatedExtensions) {
+                                    if (extension instanceof ExtendedExtension) {
+                                        frame = ((ExtendedExtension) extension).processIncoming(extensionContext, frame);
+                                    }
+                                }
+                            }
+
+                            handler.process(frame, webSocket);
                         }
                     } while (true);
                 }
             } catch (FramingException e) {
                 LOGGER.log(Level.FINE, e.getMessage(), e);
-                webSocket.onClose(new CloseReason(CloseReason.CloseCodes.getCloseCode(e.getClosingCode()), e.getMessage()));
+                webSocket.onClose(new CloseFrame(new CloseReason(CloseReason.CloseCodes.getCloseCode(e.getClosingCode()), e.getMessage())));
             } catch (Exception e) {
                 LOGGER.log(Level.FINE, e.getMessage(), e);
-                webSocket.onClose(new CloseReason(CloseReason.CloseCodes.UNEXPECTED_CONDITION, e.getMessage()));
+                webSocket.onClose(new CloseFrame(new CloseReason(CloseReason.CloseCodes.UNEXPECTED_CONDITION, e.getMessage())));
             }
         }
     }

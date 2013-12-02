@@ -38,7 +38,7 @@
  * holder.
  */
 
-package org.glassfish.tyrus.core;
+package org.glassfish.tyrus.core.frame;
 
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
@@ -48,84 +48,93 @@ import java.nio.charset.CoderResult;
 
 import javax.websocket.CloseReason;
 
-public class ClosingDataFrame extends DataFrame {
+import org.glassfish.tyrus.core.Frame;
+import org.glassfish.tyrus.core.ProtocolError;
+import org.glassfish.tyrus.core.StrictUtf8;
+import org.glassfish.tyrus.core.Utf8DecodingError;
+import org.glassfish.tyrus.core.Utils;
+import org.glassfish.tyrus.core.WebSocket;
 
+/**
+ * Close frame representation.
+ */
+public class CloseFrame extends TyrusFrame {
+
+    private final CloseReason closeReason;
     private static final byte[] EMPTY_BYTES = new byte[0];
-    private int code = CloseReason.CloseCodes.NORMAL_CLOSURE.getCode();
-    private String reason;
 
-    public ClosingDataFrame(int code, String reason) {
-        super(new org.glassfish.tyrus.core.frame.ClosingFrame());
-        if (code > 0) {
-            this.code = code;
-        }
-        this.reason = reason;
-    }
+    /**
+     * Constructor.
+     *
+     * @param frame original (close) frame.
+     */
+    public CloseFrame(Frame frame) {
+        super(frame);
 
-    public ClosingDataFrame(byte[] data) {
-        super(new org.glassfish.tyrus.core.frame.ClosingFrame());
-        setPayload(data);
-    }
+        int closeCode;
+        String closeReasonString;
+        final byte[] data = frame.getPayloadData();
+        if (data.length < 2) {
+            throw new ProtocolError("Closing wrappedFrame payload, if present, must be a minimum of 2 bytes in length") {
 
-    public int getCode() {
-        return code;
-    }
-
-    public String getReason() {
-        return reason;
-    }
-
-    @Override
-    public void setPayload(byte[] bytes) {
-        if (bytes.length == 1) {
-            throw new ProtocolError("Closing frame payload, if present, must be a minimum of 2 bytes in length");
-        }
-        if (bytes.length > 0) {
-            code = (int) Utils.toLong(bytes, 0, 2);
-            if (code < 1000 || code == 1004 || code == 1005 || code == 1006 || (code > 1011 && code < 3000) || code > 4999) {
-                throw new ProtocolError("Illegal status code: " + code);
+                // autobahn test suite, test 7.3.1
+                @Override
+                public int getClosingCode() {
+                    if (data.length == 0) {
+                        return 1000;
+                    } else {
+                        return super.getClosingCode();
+                    }
+                }
+            };
+        } else {
+            closeCode = (int) Utils.toLong(data, 0, 2);
+            if (closeCode < 1000 || closeCode == 1004 || closeCode == 1005 || closeCode == 1006 || (closeCode > 1011 && closeCode < 3000) || closeCode > 4999) {
+                throw new ProtocolError("Illegal status code: " + closeCode);
             }
-            if (bytes.length > 2) {
-                utf8Decode(bytes);
+            if (data.length > 2) {
+                closeReasonString = utf8Decode(data);
+            } else {
+                closeReasonString = null;
             }
         }
+
+        closeReason = new CloseReason(CloseReason.CloseCodes.getCloseCode(closeCode), closeReasonString);
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param closeReason close reason used to construct close frame.
+     */
+    public CloseFrame(CloseReason closeReason) {
+        super(Frame.builder().fin(true).opcode((byte) 0x08).payloadData(getPayload(closeReason.getCloseCode().getCode(), closeReason.getReasonPhrase())).build());
+        this.closeReason = closeReason;
+    }
+
+    /**
+     * Get close reason.
+     *
+     * @return close reason.
+     */
+    public CloseReason getCloseReason() {
+        return closeReason;
     }
 
     @Override
-    public byte[] getBytes() {
-        if (code == -1) {
-            return EMPTY_BYTES;
-        }
-
-        final byte[] bytes = Utils.toArray(code);
-        final byte[] reasonBytes = reason == null ? EMPTY_BYTES : reason.getBytes(new StrictUtf8());
-        final byte[] frameBytes = new byte[2 + reasonBytes.length];
-        System.arraycopy(bytes, bytes.length - 2, frameBytes, 0, 2);
-        System.arraycopy(reasonBytes, 0, frameBytes, 2, reasonBytes.length);
-
-        return frameBytes;
+    public void respond(WebSocket socket) {
+        socket.onClose(this);
+        socket.close();
     }
 
-    @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder();
-        sb.append("ClosingFrame");
-        sb.append("{code=").append(code);
-        sb.append(", reason=").append(reason == null ? null : "'" + reason + "'");
-        sb.append('}');
-        return sb.toString();
-    }
-
-
-    // --------------------------------------------------------- Private Methods
-
-    private void utf8Decode(byte[] data) {
+    private String utf8Decode(byte[] data) {
+        String reason;
         final ByteBuffer b = ByteBuffer.wrap(data, 2, data.length - 2);
         Charset charset = new StrictUtf8();
         final CharsetDecoder decoder = charset.newDecoder();
         int n = (int) (b.remaining() * decoder.averageCharsPerByte());
         CharBuffer cb = CharBuffer.allocate(n);
-        for (; ; ) {
+        while (true) {
             CoderResult result = decoder.decode(b, cb, true);
             if (result.isUnderflow()) {
                 decoder.flush(cb);
@@ -144,5 +153,21 @@ public class ClosingDataFrame extends DataFrame {
                 throw new Utf8DecodingError("Illegal UTF-8 Sequence");
             }
         }
+
+        return reason;
+    }
+
+    private static byte[] getPayload(int closeCode, String closeReason) {
+        if (closeCode == -1) {
+            return EMPTY_BYTES;
+        }
+
+        final byte[] bytes = Utils.toArray(closeCode);
+        final byte[] reasonBytes = closeReason == null ? EMPTY_BYTES : closeReason.getBytes(new StrictUtf8());
+        final byte[] frameBytes = new byte[2 + reasonBytes.length];
+        System.arraycopy(bytes, bytes.length - 2, frameBytes, 0, 2);
+        System.arraycopy(reasonBytes, 0, frameBytes, 2, reasonBytes.length);
+
+        return frameBytes;
     }
 }

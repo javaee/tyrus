@@ -87,7 +87,6 @@ public class AnnotatedClientTest extends TestContainer {
         try {
             ClientManager client = ClientManager.createClient();
 
-
             client.connectToServer(new TestEndpointAdapter() {
                 @Override
                 public EndpointConfig getEndpointConfig() {
@@ -110,6 +109,7 @@ public class AnnotatedClientTest extends TestContainer {
                     messageLatch.countDown();
                 }
             }, configuration, getURI(TestEndpoint.class));
+
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertEquals("hello", receivedMessage);
         } catch (Exception e) {

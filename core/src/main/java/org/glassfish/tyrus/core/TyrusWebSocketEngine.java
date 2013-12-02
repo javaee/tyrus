@@ -41,8 +41,12 @@
 package org.glassfish.tyrus.core;
 
 import java.nio.ByteBuffer;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
@@ -52,9 +56,11 @@ import javax.websocket.CloseReason;
 import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfig;
+import javax.websocket.Extension;
 import javax.websocket.WebSocketContainer;
 import javax.websocket.server.ServerEndpointConfig;
 
+import org.glassfish.tyrus.core.frame.CloseFrame;
 import org.glassfish.tyrus.core.uri.Match;
 import org.glassfish.tyrus.spi.Connection;
 import org.glassfish.tyrus.spi.ReadHandler;
@@ -97,7 +103,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
      * @param webSocketContainer used {@link WebSocketContainer} instance.
      */
     public TyrusWebSocketEngine(WebSocketContainer webSocketContainer) {
-        this.webSocketContainer = webSocketContainer;
+        this(webSocketContainer, null);
     }
 
     /**
@@ -163,8 +169,19 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
                     handleUnsupportedVersion(request, response);
                     return HANDSHAKE_FAILED_UPGRADE_INFO;
                 }
-                protocolHandler.handshake(app, request, response);
-                return new SuccessfulUpgradeInfo(app, protocolHandler, incomingBufferSize, request);
+
+                final ExtendedExtension.ExtensionContext extensionContext = new ExtendedExtension.ExtensionContext() {
+
+                    private final Map<String, Object> properties = new HashMap<String, Object>();
+
+                    @Override
+                    public Map<String, Object> getProperties() {
+                        return properties;
+                    }
+                };
+
+                protocolHandler.handshake(app, request, response, extensionContext);
+                return new SuccessfulUpgradeInfo(app, protocolHandler, incomingBufferSize, request, extensionContext);
             }
         } catch (HandshakeException e) {
             LOGGER.log(Level.SEVERE, e.getMessage(), e);
@@ -182,14 +199,19 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
         private final WebSocket socket;
         private final WebSocketApplication application;
         private final int incomingBufferSize;
+        private final List<Extension> processChain;
+        private final ExtendedExtension.ExtensionContext extensionContext;
 
         private volatile ByteBuffer buffer;
 
-        private TyrusReadHandler(ProtocolHandler protocolHandler, WebSocket socket, WebSocketApplication application, int incomingBufferSize) {
+        private TyrusReadHandler(ProtocolHandler protocolHandler, WebSocket socket, WebSocketApplication application, int incomingBufferSize, ExtendedExtension.ExtensionContext extensionContext) {
+            this.extensionContext = extensionContext;
             this.protocolHandler = protocolHandler;
             this.socket = socket;
             this.application = application;
             this.incomingBufferSize = incomingBufferSize;
+            this.processChain = new ArrayList<Extension>();
+            processChain.addAll(application.getSupportedExtensions());
         }
 
         @Override
@@ -212,22 +234,33 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
                     }
 
                     do {
-                        final DataFrame result = protocolHandler.unframe(data);
-                        if (result == null) {
+                        final Frame incomingFrame = protocolHandler.unframe(data);
+
+                        if (incomingFrame == null) {
                             buffer = data;
                             break;
                         } else {
-                            result.respond(socket);
+                            Frame frame = incomingFrame;
+
+                            if (processChain != null && processChain.size() > 0) {
+                                for (Extension extension : processChain) {
+                                    if (extension instanceof ExtendedExtension) {
+                                        frame = ((ExtendedExtension) extension).processIncoming(extensionContext, frame);
+                                    }
+                                }
+                            }
+
+                            protocolHandler.process(frame, socket);
                         }
                     } while (true);
                 }
             } catch (FramingException e) {
                 LOGGER.log(Level.FINE, e.getMessage(), e);
-                socket.onClose(new CloseReason(CloseReason.CloseCodes.getCloseCode(e.getClosingCode()), e.getMessage()));
+                socket.onClose(new CloseFrame(new CloseReason(CloseReason.CloseCodes.getCloseCode(e.getClosingCode()), e.getMessage())));
             } catch (Exception e) {
                 LOGGER.log(Level.FINE, e.getMessage(), e);
                 if (application.onError(socket, e)) {
-                    socket.onClose(new CloseReason(CloseReason.CloseCodes.UNEXPECTED_CONDITION, e.getMessage()));
+                    socket.onClose(new CloseFrame(new CloseReason(CloseReason.CloseCodes.UNEXPECTED_CONDITION, e.getMessage())));
                 }
             }
         }
@@ -348,12 +381,14 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
         private final ProtocolHandler protocolHandler;
         private final int incomingBufferSize;
         private final UpgradeRequest upgradeRequest;
+        private final ExtendedExtension.ExtensionContext extensionContext;
 
-        SuccessfulUpgradeInfo(WebSocketApplication app, ProtocolHandler protocolHandler, int incomingBufferSize, UpgradeRequest upgradeRequest) {
+        SuccessfulUpgradeInfo(WebSocketApplication app, ProtocolHandler protocolHandler, int incomingBufferSize, UpgradeRequest upgradeRequest, ExtendedExtension.ExtensionContext extensionContext) {
             this.app = app;
             this.protocolHandler = protocolHandler;
             this.incomingBufferSize = incomingBufferSize;
             this.upgradeRequest = upgradeRequest;
+            this.extensionContext = extensionContext;
         }
 
         @Override
@@ -363,7 +398,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
 
         @Override
         public Connection createConnection(Writer writer, Connection.CloseListener closeListener) {
-            return new TyrusConnection(app, protocolHandler, incomingBufferSize, writer, closeListener, upgradeRequest);
+            return new TyrusConnection(app, protocolHandler, incomingBufferSize, writer, closeListener, upgradeRequest, extensionContext);
         }
     }
 
@@ -373,16 +408,20 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
         private final Writer writer;
         private final CloseListener closeListener;
         private final WebSocket socket;
+        private final ExtendedExtension.ExtensionContext extensionContext;
+        private final WebSocketApplication application;
 
-        TyrusConnection(WebSocketApplication app, ProtocolHandler protocolHandler, int incomingBufferSize, Writer writer, Connection.CloseListener closeListener, UpgradeRequest upgradeRequest) {
+        TyrusConnection(WebSocketApplication app, ProtocolHandler protocolHandler, int incomingBufferSize, Writer writer, Connection.CloseListener closeListener, UpgradeRequest upgradeRequest, ExtendedExtension.ExtensionContext extensionContext) {
             protocolHandler.setWriter(writer);
             final WebSocket socket = app.createSocket(protocolHandler, app);
 
             socket.onConnect(upgradeRequest);
             this.socket = socket;
-            this.readHandler = new TyrusReadHandler(protocolHandler, socket, app, incomingBufferSize);
+            this.readHandler = new TyrusReadHandler(protocolHandler, socket, app, incomingBufferSize, extensionContext);
             this.writer = writer;
             this.closeListener = closeListener;
+            this.extensionContext = extensionContext;
+            this.application = app;
         }
 
         @Override
@@ -402,7 +441,15 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
 
         @Override
         public void close(CloseReason reason) {
-            socket.close(reason.getCloseCode().getCode(), reason.getReasonPhrase());
+            if (socket.isConnected()) {
+                socket.close(reason.getCloseCode().getCode(), reason.getReasonPhrase());
+
+                for (Extension extension : application.getSupportedExtensions()) {
+                    if (extension instanceof ExtendedExtension) {
+                        ((ExtendedExtension) extension).destroy(extensionContext);
+                    }
+                }
+            }
         }
     }
 }

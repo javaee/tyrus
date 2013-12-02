@@ -43,9 +43,13 @@ package org.glassfish.tyrus.core;
 import java.nio.ByteBuffer;
 import java.util.concurrent.Future;
 
-import javax.websocket.CloseReason;
 import javax.websocket.SendHandler;
 
+import org.glassfish.tyrus.core.frame.BinaryFrame;
+import org.glassfish.tyrus.core.frame.CloseFrame;
+import org.glassfish.tyrus.core.frame.PingFrame;
+import org.glassfish.tyrus.core.frame.PongFrame;
+import org.glassfish.tyrus.core.frame.TextFrame;
 import org.glassfish.tyrus.spi.UpgradeRequest;
 
 /**
@@ -61,7 +65,7 @@ public interface WebSocket {
      * @param data data to be sent.
      * @return {@link Future} which could be used to control/check the sending completion state.
      */
-    Future<DataFrame> send(String data);
+    Future<Frame> send(String data);
 
     /**
      * Send a text frame to the remote endpoint.
@@ -77,7 +81,7 @@ public interface WebSocket {
      * @param data data to be sent.
      * @return {@link Future} which could be used to control/check the sending completion state.
      */
-    Future<DataFrame> send(byte[] data);
+    Future<Frame> send(byte[] data);
 
     /**
      * Send a binary frame to the remote endpoint.
@@ -93,7 +97,7 @@ public interface WebSocket {
      * @param data complete data frame.
      * @return {@link Future} which could be used to control/check the sending completion state.
      */
-    Future<DataFrame> sendRawFrame(ByteBuffer data);
+    Future<Frame> sendRawFrame(ByteBuffer data);
 
     /**
      * Sends a <code>ping</code> frame with the specified payload (if any).
@@ -101,9 +105,8 @@ public interface WebSocket {
      * @param data optional payload.  Note that payload length is restricted
      *             to 125 bytes or less.
      * @return {@link Future} which could be used to control/check the sending completion state.
-     * @since 2.1.9
      */
-    Future<DataFrame> sendPing(byte[] data);
+    Future<Frame> sendPing(byte[] data);
 
     /**
      * Sends a <code>ping</code> frame with the specified payload (if any).
@@ -116,9 +119,8 @@ public interface WebSocket {
      * @param data optional payload.  Note that payload length is restricted
      *             to 125 bytes or less.
      * @return {@link Future} which could be used to control/check the sending completion state.
-     * @since 2.1.9
      */
-    Future<DataFrame> sendPong(byte[] data);
+    Future<Frame> sendPong(byte[] data);
 
     /**
      * Sends a fragment of a complete message.
@@ -127,7 +129,7 @@ public interface WebSocket {
      * @param fragment the textual fragment to send.
      * @return {@link Future} which could be used to control/check the sending completion state.
      */
-    Future<DataFrame> stream(boolean last, String fragment);
+    Future<Frame> stream(boolean last, String fragment);
 
     /**
      * Sends a fragment of a complete message.
@@ -138,7 +140,7 @@ public interface WebSocket {
      * @param len      the number of bytes of the fragment to send.
      * @return {@link Future} which could be used to control/check the sending completion state.
      */
-    Future<DataFrame> stream(boolean last, byte[] fragment, int off, int len);
+    Future<Frame> stream(boolean last, byte[] fragment, int off, int len);
 
     /**
      * Closes this {@link WebSocket}.
@@ -158,7 +160,7 @@ public interface WebSocket {
      * Convenience method to determine if this {@link WebSocket} is connected.
      *
      * @return <code>true</code> if the {@link WebSocket} is connected, otherwise
-     *         <code>false</code>
+     * <code>false</code>
      */
     boolean isConnected();
 
@@ -173,63 +175,60 @@ public interface WebSocket {
     /**
      * This callback will be invoked when a text message has been received.
      *
-     * @param text the text received from the remote end-point.
+     * @param frame the text received from the remote end-point.
      */
-    void onMessage(String text);
+    void onMessage(TextFrame frame);
 
     /**
      * This callback will be invoked when a binary message has been received.
      *
-     * @param data the binary data received from the remote end-point.
+     * @param frame the binary data received from the remote end-point.
      */
-    void onMessage(byte[] data);
+    void onMessage(BinaryFrame frame);
 
     /**
      * This callback will be invoked when a fragmented textual message has
      * been received.
      *
-     * @param last    flag indicating whether or not the payload received is the
-     *                final fragment of a message.
-     * @param payload the text received from the remote end-point.
+     * @param last  flag indicating whether or not the payload received is the
+     *              final fragment of a message.
+     * @param frame the text received from the remote end-point.
      */
-    void onFragment(boolean last, String payload);
+    void onFragment(boolean last, TextFrame frame);
 
     /**
      * This callback will be invoked when a fragmented binary message has
      * been received.
      *
-     * @param last    flag indicating whether or not the payload received is the
-     *                final fragment of a message.
-     * @param payload the binary data received from the remote end-point.
+     * @param last  flag indicating whether or not the payload received is the
+     *              final fragment of a message.
+     * @param frame the binary data received from the remote end-point.
      */
-    void onFragment(boolean last, byte[] payload);
+    void onFragment(boolean last, BinaryFrame frame);
 
     /**
      * This callback will be invoked when the remote end-point sent a closing
      * frame.
      *
-     * @param closeReason the close reason from the remote end-point.
-     * @see DataFrame
+     * @param frame the close frame from the remote end-point.
      */
-    void onClose(CloseReason closeReason);
+    void onClose(CloseFrame frame);
 
     /**
      * This callback will be invoked when the remote end-point has sent a ping
      * frame.
      *
      * @param frame the ping frame from the remote end-point.
-     * @see DataFrame
      */
-    void onPing(DataFrame frame);
+    void onPing(PingFrame frame);
 
     /**
      * This callback will be invoked when the remote end-point has sent a pong
      * frame.
      *
      * @param frame the pong frame from the remote end-point.
-     * @see DataFrame
      */
-    void onPong(DataFrame frame);
+    void onPong(PongFrame frame);
 
     /**
      * Sets the timeout for the writing operation.

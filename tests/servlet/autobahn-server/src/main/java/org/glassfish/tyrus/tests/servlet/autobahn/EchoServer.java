@@ -39,24 +39,46 @@
  */
 package org.glassfish.tyrus.tests.servlet.autobahn;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import javax.websocket.OnMessage;
-import javax.websocket.server.ServerEndpoint;
+import javax.websocket.Endpoint;
+import javax.websocket.EndpointConfig;
+import javax.websocket.MessageHandler;
+import javax.websocket.Session;
 
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-@ServerEndpoint(value = "/echo")
-public class EchoServer {
+public class EchoServer extends Endpoint {
 
-    @OnMessage
-    public String onText(String text) {
-        return text;
-    }
+    @Override
+    public void onOpen(final Session session, EndpointConfig config) {
 
-    @OnMessage
-    public ByteBuffer onBinary(ByteBuffer binary) {
-        return binary;
+        session.addMessageHandler(new MessageHandler.Whole<String>() {
+
+            @Override
+            public void onMessage(String message) {
+                try {
+                    session.getBasicRemote().sendText(message);
+                } catch (IOException e) {
+                    // ignore.
+                }
+            }
+        });
+
+        session.addMessageHandler(new MessageHandler.Whole<ByteBuffer>() {
+
+            @Override
+            public void onMessage(ByteBuffer message) {
+                try {
+                    session.getBasicRemote().sendBinary(message);
+                } catch (IOException e) {
+                    // ignore.
+                }
+            }
+        });
+
+
     }
 }

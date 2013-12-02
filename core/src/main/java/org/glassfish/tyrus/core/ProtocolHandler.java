@@ -42,27 +42,23 @@ package org.glassfish.tyrus.core;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.CharBuffer;
-import java.nio.charset.Charset;
-import java.nio.charset.CharsetDecoder;
-import java.nio.charset.CoderResult;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Locale;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.websocket.CloseReason;
+import javax.websocket.Extension;
 import javax.websocket.SendHandler;
 import javax.websocket.SendResult;
 import javax.websocket.WebSocketContainer;
 
 import org.glassfish.tyrus.core.frame.BinaryFrame;
-import org.glassfish.tyrus.core.frame.ClosingFrame;
-import org.glassfish.tyrus.core.frame.ContinuationFrame;
-import org.glassfish.tyrus.core.frame.Frame;
-import org.glassfish.tyrus.core.frame.PingFrame;
-import org.glassfish.tyrus.core.frame.PongFrame;
+import org.glassfish.tyrus.core.frame.CloseFrame;
 import org.glassfish.tyrus.core.frame.TextFrame;
+import org.glassfish.tyrus.core.frame.TyrusFrame;
 import org.glassfish.tyrus.spi.CompletionHandler;
 import org.glassfish.tyrus.spi.UpgradeRequest;
 import org.glassfish.tyrus.spi.UpgradeResponse;
@@ -72,32 +68,38 @@ public final class ProtocolHandler {
 
     public static final int MASK_SIZE = 4;
 
-    private final Charset utf8 = new StrictUtf8();
-    private final CharsetDecoder currentDecoder = utf8.newDecoder();
     private final AtomicBoolean onClosedCalled = new AtomicBoolean(false);
     private final boolean maskData;
     private final ParsingState state = new ParsingState();
+
     private WebSocket webSocket;
     private byte outFragmentedType;
-    private ByteBuffer remainder;
     private long writeTimeoutMs = -1;
     private WebSocketContainer container;
+    private List<Extension> extensions;
+    private Writer writer;
+    private byte inFragmentedType;
+    private boolean processingFragment;
+    private boolean sendingFragment = false;
+    private ExtendedExtension.ExtensionContext extensionContext;
+
+    private ByteBuffer remainder = null;
 
     public Writer getWriter() {
         return writer;
     }
 
-    private Writer writer;
-    private byte inFragmentedType;
-    private boolean processingFragment;
-
     ProtocolHandler(boolean maskData) {
         this.maskData = maskData;
     }
 
-    public Handshake handshake(WebSocketApplication app, UpgradeRequest request, UpgradeResponse response) {
-        final Handshake handshake = createHandShake(request);
+    public Handshake handshake(WebSocketApplication app, UpgradeRequest request, UpgradeResponse response, ExtendedExtension.ExtensionContext extensionContext) {
+        final Handshake handshake = createHandShake(request, extensionContext);
         handshake.respond(response, app);
+        this.extensionContext = extensionContext;
+        this.extensions = new ArrayList<Extension>();
+        this.extensions.addAll(app.getSupportedExtensions());
+        Collections.reverse(extensions);
         return handshake;
     }
 
@@ -105,8 +107,31 @@ public final class ProtocolHandler {
         this.writer = handler;
     }
 
+    /**
+     * Client side.
+     *
+     * @param webSocket TODO.
+     */
     public void setWebSocket(WebSocket webSocket) {
         this.webSocket = webSocket;
+    }
+
+    /**
+     * Client side.
+     *
+     * @param extensionContext TODO.
+     */
+    public void setExtensionContext(ExtendedExtension.ExtensionContext extensionContext) {
+        this.extensionContext = extensionContext;
+    }
+
+    /**
+     * Client side.
+     *
+     * @param extensions TODO.
+     */
+    public void setExtensions(List<Extension> extensions) {
+        this.extensions = extensions;
     }
 
     /**
@@ -115,8 +140,8 @@ public final class ProtocolHandler {
      * @param webSocketRequest representation of received initial HTTP request.
      * @return new {@link Handshake} instance.
      */
-    Handshake createHandShake(UpgradeRequest webSocketRequest) {
-        return Handshake.createServerHandShake(webSocketRequest);
+    Handshake createHandShake(UpgradeRequest webSocketRequest, ExtendedExtension.ExtensionContext extensionContext) {
+        return Handshake.createServerHandShake(webSocketRequest, extensionContext);
     }
 
     /**
@@ -129,112 +154,128 @@ public final class ProtocolHandler {
         return Handshake.createClientHandShake(webSocketRequest);
     }
 
-    public final Future<DataFrame> send(DataFrame frame, boolean useTimeout) {
+    public final Future<Frame> send(Frame frame, boolean useTimeout) {
         return send(frame, null, useTimeout);
     }
 
-    public final Future<DataFrame> send(DataFrame frame) {
+    public final Future<Frame> send(Frame frame) {
         return send(frame, null, true);
     }
 
-    Future<DataFrame> send(DataFrame frame,
-                           CompletionHandler<DataFrame> completionHandler, Boolean useTimeout) {
+    Future<Frame> send(Frame frame,
+                       CompletionHandler<Frame> completionHandler, Boolean useTimeout) {
         return write(frame, completionHandler, useTimeout);
     }
 
-    Future<DataFrame> send(ByteBuffer frame,
-                           CompletionHandler<DataFrame> completionHandler, Boolean useTimeout) {
+    Future<Frame> send(ByteBuffer frame,
+                       CompletionHandler<Frame> completionHandler, Boolean useTimeout) {
         return write(frame, completionHandler, useTimeout);
     }
 
-    public Future<DataFrame> send(byte[] data) {
-        return send(new DataFrame(new BinaryFrame(), data), null, true);
+    public Future<Frame> send(byte[] data) {
+        return send(new BinaryFrame(data, false, true), null, true);
     }
 
     public void send(final byte[] data, final SendHandler handler) {
-        send(new DataFrame(new BinaryFrame(), data), new CompletionHandler<DataFrame>() {
+        send(new BinaryFrame(data, false, true), new CompletionHandler<Frame>() {
             @Override
             public void failed(Throwable throwable) {
                 handler.onResult(new SendResult(throwable));
             }
 
             @Override
-            public void completed(DataFrame result) {
+            public void completed(Frame result) {
                 handler.onResult(new SendResult());
             }
         }, true);
     }
 
-    public Future<DataFrame> send(String data) {
-        return send(new DataFrame(new TextFrame(), data));
+    public Future<Frame> send(String data) {
+        return send(new TextFrame(data, false, true));
     }
 
     public void send(final String data, final SendHandler handler) {
-        send(new DataFrame(new TextFrame(), data), new CompletionHandler<DataFrame>() {
+        send(new TextFrame(data, false, true), new CompletionHandler<Frame>() {
             @Override
             public void failed(Throwable throwable) {
                 handler.onResult(new SendResult(throwable));
             }
 
             @Override
-            public void completed(DataFrame result) {
+            public void completed(Frame result) {
                 handler.onResult(new SendResult());
             }
         }, true);
     }
 
-    public Future<DataFrame> sendRawFrame(ByteBuffer data) {
+    public Future<Frame> sendRawFrame(ByteBuffer data) {
         return send(data, null, true);
     }
 
-    public Future<DataFrame> stream(boolean last, byte[] bytes, int off, int len) {
-        return send(new DataFrame(new BinaryFrame(), Arrays.copyOfRange(bytes, off, off + len), last));
+    public Future<Frame> stream(boolean last, byte[] bytes, int off, int len) {
+        if (sendingFragment) {
+            if (last) {
+                sendingFragment = false;
+            }
+            return send(new BinaryFrame(Arrays.copyOfRange(bytes, off, off + len), true, last));
+        } else {
+            sendingFragment = !last;
+            return send(new BinaryFrame(Arrays.copyOfRange(bytes, off, off + len), false, last));
+        }
     }
 
-    public Future<DataFrame> stream(boolean last, String fragment) {
-        return send(new DataFrame(new TextFrame(), fragment, last));
+    public Future<Frame> stream(boolean last, String fragment) {
+        if (sendingFragment) {
+            if (last) {
+                sendingFragment = false;
+            }
+            return send(new TextFrame(fragment, true, last));
+        } else {
+            sendingFragment = !last;
+            return send(new TextFrame(fragment, false, last));
+        }
     }
 
-    public Future<DataFrame> close(final int code, final String reason) {
-        final ClosingDataFrame outgoingClosingFrame;
+    public Future<Frame> close(final int code, final String reason) {
+        final CloseFrame outgoingCloseFrame;
         final CloseReason closeReason = new CloseReason(CloseReason.CloseCodes.getCloseCode(code), reason);
 
         if (code == CloseReason.CloseCodes.NO_STATUS_CODE.getCode() || code == CloseReason.CloseCodes.CLOSED_ABNORMALLY.getCode()
                 || code == CloseReason.CloseCodes.TLS_HANDSHAKE_FAILURE.getCode()) {
-            outgoingClosingFrame = new ClosingDataFrame(CloseReason.CloseCodes.NORMAL_CLOSURE.getCode(), reason);
+            outgoingCloseFrame = new CloseFrame(new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, reason));
         } else {
-            outgoingClosingFrame = new ClosingDataFrame(code, reason);
+            outgoingCloseFrame = new CloseFrame(closeReason);
         }
 
-        return send(outgoingClosingFrame, new CompletionHandler<DataFrame>() {
+        return send(outgoingCloseFrame, new CompletionHandler<Frame>() {
 
             @Override
             public void cancelled() {
                 if (webSocket != null && !onClosedCalled.getAndSet(true)) {
-                    webSocket.onClose(closeReason);
+                    webSocket.onClose(new CloseFrame(closeReason));
                 }
             }
 
             @Override
             public void failed(final Throwable throwable) {
                 if (webSocket != null && !onClosedCalled.getAndSet(true)) {
-                    webSocket.onClose(closeReason);
+                    webSocket.onClose(new CloseFrame(closeReason));
                 }
             }
 
             @Override
-            public void completed(DataFrame result) {
+            public void completed(Frame result) {
                 if (!maskData && (webSocket != null) && !onClosedCalled.getAndSet(true)) {
-                    webSocket.onClose(closeReason);
+                    webSocket.onClose(new CloseFrame(closeReason));
                 }
             }
         }, false);
     }
 
     @SuppressWarnings({"unchecked"})
-    private Future<DataFrame> write(final DataFrame frame, final CompletionHandler<DataFrame> completionHandler, boolean useTimeout) {
+    private Future<Frame> write(final Frame frame, final CompletionHandler<Frame> completionHandler, boolean useTimeout) {
         final Writer localWriter = writer;
-        final TyrusFuture<DataFrame> future = new TyrusFuture<DataFrame>();
+        final TyrusFuture<Frame> future = new TyrusFuture<Frame>();
 
         if (localWriter == null) {
             throw new IllegalStateException("Connection is null");
@@ -247,9 +288,9 @@ public final class ProtocolHandler {
     }
 
     @SuppressWarnings({"unchecked"})
-    private Future<DataFrame> write(final ByteBuffer frame, final CompletionHandler<DataFrame> completionHandler, boolean useTimeout) {
+    private Future<Frame> write(final ByteBuffer frame, final CompletionHandler<Frame> completionHandler, boolean useTimeout) {
         final Writer localWriter = writer;
-        final TyrusFuture<DataFrame> future = new TyrusFuture<DataFrame>();
+        final TyrusFuture<Frame> future = new TyrusFuture<Frame>();
 
         if (localWriter == null) {
             throw new IllegalStateException("Connection is null");
@@ -258,10 +299,6 @@ public final class ProtocolHandler {
         localWriter.write(frame, new CompletionHandlerWrapper(completionHandler, future, null));
 
         return future;
-    }
-
-    public DataFrame unframe(ByteBuffer buffer) {
-        return parse(buffer);
     }
 
     /**
@@ -304,21 +341,21 @@ public final class ProtocolHandler {
     }
 
     void validate(final byte fragmentType, byte opcode) {
-        if (fragmentType != 0 && opcode != fragmentType && !isControlFrame(opcode)) {
+        if (opcode != 0 && opcode != fragmentType && !isControlFrame(opcode)) {
             throw new WebSocketException("Attempting to send a message while sending fragments of another");
         }
     }
 
-    byte checkForLastFrame(DataFrame frame, byte opcode) {
-        byte local = opcode;
-        if (!frame.isLast()) {
-            validate(outFragmentedType, local);
+    byte checkForLastFrame(Frame frame) {
+        byte local = frame.getOpcode();
+        if (!frame.isFin()) {
             if (outFragmentedType != 0) {
                 local = 0x00;
             } else {
                 outFragmentedType = local;
                 local &= 0x7F;
             }
+            validate(outFragmentedType, local);
         } else if (outFragmentedType != 0) {
             local = (byte) 0x80;
             outFragmentedType = 0;
@@ -341,57 +378,6 @@ public final class ProtocolHandler {
         }
     }
 
-    void utf8Decode(boolean finalFragment, byte[] data, DataFrame dataFrame) {
-        final ByteBuffer b = getByteBuffer(data);
-        int n = (int) (b.remaining() * currentDecoder.averageCharsPerByte());
-        CharBuffer cb = CharBuffer.allocate(n);
-        for (; ; ) {
-            CoderResult result = currentDecoder.decode(b, cb, finalFragment);
-            if (result.isUnderflow()) {
-                if (finalFragment) {
-                    currentDecoder.flush(cb);
-                    if (b.hasRemaining()) {
-                        throw new IllegalStateException("Final UTF-8 fragment received, but not all bytes consumed by decode process");
-                    }
-                    currentDecoder.reset();
-                } else {
-                    if (b.hasRemaining()) {
-                        remainder = b;
-                    }
-                }
-                cb.flip();
-                String res = cb.toString();
-                dataFrame.setPayload(res);
-                dataFrame.setPayload(Utf8Utils.encode(new StrictUtf8(), res));
-                break;
-            }
-            if (result.isOverflow()) {
-                CharBuffer tmp = CharBuffer.allocate(2 * n + 1);
-                cb.flip();
-                tmp.put(cb);
-                cb = tmp;
-                continue;
-            }
-            if (result.isError() || result.isMalformed()) {
-                throw new Utf8DecodingError("Illegal UTF-8 Sequence");
-            }
-        }
-    }
-
-    ByteBuffer getByteBuffer(final byte[] data) {
-        if (remainder == null) {
-            return ByteBuffer.wrap(data);
-        } else {
-            final int rem = remainder.remaining();
-            final byte[] orig = remainder.array();
-            byte[] b = new byte[rem + data.length];
-            System.arraycopy(orig, orig.length - rem, b, 0, rem);
-            System.arraycopy(data, 0, b, rem, data.length);
-            remainder = null;
-            return ByteBuffer.wrap(b);
-        }
-    }
-
     /**
      * Sets the timeout for the writing operation.
      *
@@ -410,29 +396,58 @@ public final class ProtocolHandler {
         this.container = container;
     }
 
-    public ByteBuffer frame(DataFrame frame) {
-        byte opcode = checkForLastFrame(frame, getOpcode(frame.getType()));
-        final byte[] bytes = frame.getType().getBytes(frame);
-        final byte[] lengthBytes = encodeLength(bytes.length);
+    public ByteBuffer frame(Frame frame) {
 
-        int length = 1 + lengthBytes.length + bytes.length + (maskData ? MASK_SIZE : 0);
+        if (extensions != null && extensions.size() > 0) {
+            for (Extension extension : extensions) {
+                if (extension instanceof ExtendedExtension) {
+                    frame = ((ExtendedExtension) extension).processOutgoing(extensionContext, frame);
+                }
+            }
+        }
+
+        byte opcode = checkForLastFrame(frame);
+        if (frame.isRsv1()) {
+            opcode |= 0x40;
+        }
+        if (frame.isRsv2()) {
+            opcode |= 0x20;
+        }
+        if (frame.isRsv3()) {
+            opcode |= 0x10;
+        }
+
+        final byte[] bytes = frame.getPayloadData();
+        final byte[] lengthBytes = encodeLength(frame.getPayloadLength());
+
+        // TODO - length limited to int, it should be long (see RFC 9788, chapter 5.2)
+        // TODO - in that case, we will need to NOT store dataframe inmemory - introduce maskingByteStream or
+        // TODO   maskingByteBuffer
+        final int payloadLength = (int) frame.getPayloadLength();
+        int length = 1 + lengthBytes.length + payloadLength + (maskData ? MASK_SIZE : 0);
         int payloadStart = 1 + lengthBytes.length + (maskData ? MASK_SIZE : 0);
         final byte[] packet = new byte[length];
         packet[0] = opcode;
         System.arraycopy(lengthBytes, 0, packet, 1, lengthBytes.length);
         if (maskData) {
-            Masker masker = new Masker();
+            Masker masker = new Masker(frame.getMaskingKey());
             packet[1] |= 0x80;
-            masker.mask(packet, payloadStart, bytes);
+            masker.mask(packet, payloadStart, bytes, payloadLength);
             System.arraycopy(masker.getMask(), 0, packet, payloadStart - MASK_SIZE,
                     MASK_SIZE);
         } else {
-            System.arraycopy(bytes, 0, packet, payloadStart, bytes.length);
+            System.arraycopy(bytes, 0, packet, payloadStart, payloadLength);
         }
         return ByteBuffer.wrap(packet);
     }
 
-    DataFrame parse(ByteBuffer buffer) {
+    /**
+     * TODO!
+     *
+     * @param buffer TODO.
+     * @return TODO.
+     */
+    public Frame unframe(ByteBuffer buffer) {
 
         try {
             // this do { .. } while cycle was forced by findbugs check - complained about missing break statements.
@@ -445,35 +460,14 @@ public final class ProtocolHandler {
                         }
 
                         byte opcode = buffer.get();
-                        boolean rsvBitSet = isBitSet(opcode, 6)
-                                || isBitSet(opcode, 5)
-                                || isBitSet(opcode, 4);
-                        if (rsvBitSet) {
-                            throw new ProtocolError("RSV bit(s) incorrectly set.");
-                        }
+
+
                         state.finalFragment = isBitSet(opcode, 7);
                         state.controlFrame = isControlFrame(opcode);
                         state.opcode = (byte) (opcode & 0x7f);
-                        state.frame = valueOf(inFragmentedType, state.opcode);
+//                        state.tyrusFrame = valueOf(inFragmentedType, state.opcode);
                         if (!state.finalFragment && state.controlFrame) {
                             throw new ProtocolError("Fragmented control frame");
-                        }
-
-                        if (!state.controlFrame) {
-                            if (isContinuationFrame(state.opcode) && !processingFragment) {
-                                throw new ProtocolError("End fragment sent, but wasn't processing any previous fragments");
-                            }
-                            if (processingFragment && !isContinuationFrame(state.opcode)) {
-                                throw new ProtocolError("Fragment sent but opcode was not 0");
-                            }
-                            if (!state.finalFragment && !isContinuationFrame(state.opcode)) {
-                                processingFragment = true;
-                            }
-                            if (!state.finalFragment) {
-                                if (inFragmentedType == 0) {
-                                    inFragmentedType = state.opcode;
-                                }
-                            }
                         }
 
                         byte lengthCode = buffer.get();
@@ -497,7 +491,7 @@ public final class ProtocolHandler {
 
                             final int lengthBytes = state.lengthCode == 126 ? 2 : 8;
                             if (buffer.remaining() < lengthBytes) {
-                                // Don't have enought bytes to read length
+                                // Don't have enough bytes to read length
                                 return null;
                             }
                             state.masker.setBuffer(buffer);
@@ -527,19 +521,20 @@ public final class ProtocolHandler {
                             throw new ProtocolError(String.format("Data read (%s) is not the expected" +
                                     " size (%s)", data.length, state.length));
                         }
-                        DataFrame dataFrame = state.frame.create(state.finalFragment, data);
 
-                        if (!state.controlFrame && (isTextFrame(state.opcode) || inFragmentedType == 1)) {
-                            utf8Decode(state.finalFragment, data, dataFrame);
-                        }
+                        final Frame frame = Frame.builder()
+                                .fin(state.finalFragment)
+                                .rsv1(isBitSet(state.opcode, 6))
+                                .rsv2(isBitSet(state.opcode, 5))
+                                .rsv3(isBitSet(state.opcode, 4))
+                                .opcode((byte) (state.opcode & 0xf))
+                                .payloadLength(state.length)
+                                .payloadData(data)
+                                .build();
 
-                        if (!state.controlFrame && state.finalFragment) {
-                            inFragmentedType = 0;
-                            processingFragment = false;
-                        }
                         state.recycle();
-                        return dataFrame;
 
+                        return frame;
                     default:
                         // Should never get here
                         throw new IllegalStateException("Unexpected state: " + state.state);
@@ -551,6 +546,58 @@ public final class ProtocolHandler {
         }
     }
 
+    /**
+     * TODO.
+     * <p/>
+     * called after Extension execution.
+     * <p/>
+     * validates frame + processes its content
+     *
+     * @param frame  TODO.
+     * @param socket TODO.
+     */
+    public void process(Frame frame, WebSocket socket) {
+        if (frame.isRsv1() || frame.isRsv2() || frame.isRsv3()) {
+            throw new ProtocolError("RSV bit(s) incorrectly set.");
+        }
+
+        final byte opcode = frame.getOpcode();
+        final boolean fin = frame.isFin();
+        if (!frame.isControlFrame()) {
+            final boolean continuationFrame = (opcode == 0);
+            if (continuationFrame && !processingFragment) {
+                throw new ProtocolError("End fragment sent, but wasn't processing any previous fragments");
+            }
+            if (processingFragment && !continuationFrame) {
+                throw new ProtocolError("Fragment sent but opcode was not 0");
+            }
+            if (!fin && !continuationFrame) {
+                processingFragment = true;
+            }
+            if (!fin) {
+                if (inFragmentedType == 0) {
+                    inFragmentedType = opcode;
+                }
+            }
+        }
+
+        TyrusFrame tyrusFrame = TyrusFrame.wrap(frame, inFragmentedType, remainder);
+
+        // TODO - utf8 decoder needs this state to be shared among decoded frames.
+        // TODO - investigate whether it can be removed; (this effectively denies lazy decoding)
+        if (tyrusFrame instanceof TextFrame) {
+            remainder = ((TextFrame) tyrusFrame).getRemainder();
+        }
+
+        tyrusFrame.respond(socket);
+
+        if (!tyrusFrame.isControlFrame() && fin) {
+            inFragmentedType = 0;
+            processingFragment = false;
+        }
+    }
+
+
     boolean isControlFrame(byte opcode) {
         return (opcode & 0x08) == 0x08;
     }
@@ -559,61 +606,16 @@ public final class ProtocolHandler {
         return ((b >> bit & 1) != 0);
     }
 
-    private boolean isContinuationFrame(byte opcode) {
-        return opcode == 0;
-    }
-
-    private boolean isTextFrame(byte opcode) {
-        return opcode == 1;
-    }
-
-    private byte getOpcode(Frame type) {
-        if (type instanceof TextFrame) {
-            return 0x01;
-        } else if (type instanceof BinaryFrame) {
-            return 0x02;
-        } else if (type instanceof ClosingFrame) {
-            return 0x08;
-        } else if (type instanceof PingFrame) {
-            return 0x09;
-        } else if (type instanceof PongFrame) {
-            return 0x0A;
-        }
-
-        throw new ProtocolError("Unknown frame type: " + type.getClass().getName());
-    }
-
-    private Frame valueOf(byte fragmentType, byte value) {
-        final int opcode = value & 0xF;
-        switch (opcode) {
-            case 0x00:
-                return new ContinuationFrame((fragmentType & 0x01) == 0x01);
-            case 0x01:
-                return new TextFrame();
-            case 0x02:
-                return new BinaryFrame();
-            case 0x08:
-                return new ClosingFrame();
-            case 0x09:
-                return new PingFrame();
-            case 0x0A:
-                return new PongFrame();
-            default:
-                throw new ProtocolError(String.format("Unknown frame type: %s, %s",
-                        Integer.toHexString(opcode & 0xFF).toUpperCase(Locale.US), writer));
-        }
-    }
-
     /**
      * Handler passed to the {@link org.glassfish.tyrus.spi.Writer}.
      */
     private static class CompletionHandlerWrapper extends CompletionHandler<ByteBuffer> {
 
-        private final CompletionHandler<DataFrame> frameCompletionHandler;
-        private final TyrusFuture<DataFrame> future;
-        private final DataFrame frame;
+        private final CompletionHandler<Frame> frameCompletionHandler;
+        private final TyrusFuture<Frame> future;
+        private final Frame frame;
 
-        private CompletionHandlerWrapper(CompletionHandler<DataFrame> frameCompletionHandler, TyrusFuture<DataFrame> future, DataFrame frame) {
+        private CompletionHandlerWrapper(CompletionHandler<Frame> frameCompletionHandler, TyrusFuture<Frame> future, Frame frame) {
             this.frameCompletionHandler = frameCompletionHandler;
             this.future = future;
             this.frame = frame;
@@ -626,7 +628,7 @@ public final class ProtocolHandler {
             }
 
             if (future != null) {
-                future.setFailure(new RuntimeException("Frame writing was canceled."));
+                future.setFailure(new RuntimeException("frame writing was canceled."));
             }
         }
 
@@ -664,7 +666,6 @@ public final class ProtocolHandler {
         int state = 0;
         byte opcode = (byte) -1;
         long length = -1;
-        Frame frame;
         boolean masked;
         Masker masker;
         boolean finalFragment;
@@ -680,7 +681,6 @@ public final class ProtocolHandler {
             masker = null;
             finalFragment = false;
             controlFrame = false;
-            frame = null;
         }
     }
 }

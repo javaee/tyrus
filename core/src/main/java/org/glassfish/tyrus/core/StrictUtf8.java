@@ -758,7 +758,6 @@ public class StrictUtf8 extends Charset {
      */
     public static class Parser {
 
-        private int character;          // UCS-4
         private CoderResult error = CoderResult.UNDERFLOW;
 
         /**
@@ -778,11 +777,13 @@ public class StrictUtf8 extends Charset {
          * @param in The source buffer, from which one more character
          *           will be consumed if c is a high surrogate
          * @return Either a parsed UCS-4 character, in which case the isPair()
-         * and increment() methods will return meaningful values, or
-         * -1, in which case error() will return a descriptive result
-         * object
+         *         and increment() methods will return meaningful values, or
+         *         -1, in which case error() will return a descriptive result
+         *         object
          */
         public int parse(char c, CharBuffer in) {
+            int character;          // UCS-4
+
             if (Character.isHighSurrogate(c)) {
                 if (!in.hasRemaining()) {
                     error = CoderResult.UNDERFLOW;
@@ -816,11 +817,13 @@ public class StrictUtf8 extends Charset {
          * @param ip The input index
          * @param il The input limit
          * @return Either a parsed UCS-4 character, in which case the isPair()
-         * and increment() methods will return meaningful values, or
-         * -1, in which case error() will return a descriptive result
-         * object
+         *         and increment() methods will return meaningful values, or
+         *         -1, in which case error() will return a descriptive result
+         *         object
          */
         public int parse(char c, char[] ia, int ip, int il) {
+            int character;          // UCS-4
+
             assert (ia[ip] == c);
             if (Character.isHighSurrogate(c)) {
                 if (il - ip < 2) {

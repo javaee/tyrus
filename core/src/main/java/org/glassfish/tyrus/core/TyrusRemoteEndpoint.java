@@ -65,7 +65,7 @@ public class TyrusRemoteEndpoint extends RemoteEndpoint {
     }
 
     @Override
-    public Future<DataFrame> sendText(String text) {
+    public Future<Frame> sendText(String text) {
         return socket.send(text);
     }
 
@@ -75,7 +75,7 @@ public class TyrusRemoteEndpoint extends RemoteEndpoint {
     }
 
     @Override
-    public Future<DataFrame> sendBinary(ByteBuffer byteBuffer) {
+    public Future<Frame> sendBinary(ByteBuffer byteBuffer) {
         return socket.send(Utils.getRemainingArray(byteBuffer));
     }
 
@@ -85,23 +85,23 @@ public class TyrusRemoteEndpoint extends RemoteEndpoint {
     }
 
     @Override
-    public Future<DataFrame> sendText(String fragment, boolean isLast) {
+    public Future<Frame> sendText(String fragment, boolean isLast) {
         return socket.stream(isLast, fragment);
     }
 
     @Override
-    public Future<DataFrame> sendBinary(ByteBuffer byteBuffer, boolean b) {
+    public Future<Frame> sendBinary(ByteBuffer byteBuffer, boolean b) {
         byte[] bytes = Utils.getRemainingArray(byteBuffer);
         return socket.stream(b, bytes, 0, bytes.length);
     }
 
     @Override
-    public Future<DataFrame> sendPing(ByteBuffer byteBuffer) {
+    public Future<Frame> sendPing(ByteBuffer byteBuffer) {
         return socket.sendPing(Utils.getRemainingArray(byteBuffer));
     }
 
     @Override
-    public Future<DataFrame> sendPong(ByteBuffer byteBuffer) {
+    public Future<Frame> sendPong(ByteBuffer byteBuffer) {
         return socket.sendPong(Utils.getRemainingArray(byteBuffer));
     }
 
@@ -138,7 +138,7 @@ public class TyrusRemoteEndpoint extends RemoteEndpoint {
      * @param dataFrame bytes to be send.
      * @return future can be used to get information about sent message.
      */
-    public Future<DataFrame> sendRawFrame(ByteBuffer dataFrame) {
+    public Future<Frame> sendRawFrame(ByteBuffer dataFrame) {
         return socket.sendRawFrame(dataFrame);
     }
 

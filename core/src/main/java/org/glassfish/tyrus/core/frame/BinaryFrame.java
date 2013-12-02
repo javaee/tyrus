@@ -40,17 +40,61 @@
 
 package org.glassfish.tyrus.core.frame;
 
-import org.glassfish.tyrus.core.DataFrame;
+import org.glassfish.tyrus.core.Frame;
 import org.glassfish.tyrus.core.WebSocket;
 
-public class BinaryFrame extends BaseFrame {
+/**
+ * Binary frame representation.
+ */
+public class BinaryFrame extends TyrusFrame {
+
+    private final boolean continuation;
+
+    /**
+     * Constructor.
+     *
+     * @param frame original (binary) frame.
+     */
+    public BinaryFrame(Frame frame) {
+        super(frame);
+        this.continuation = false;
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param frame        original (binary) frame.
+     * @param continuation {@code true} when this frame is continuation frame, {@code false} otherwise.
+     */
+    public BinaryFrame(Frame frame, boolean continuation) {
+        super(frame);
+        this.continuation = continuation;
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param payload      frame payload.
+     * @param continuation {@code true} {@code true} when this frame is continuation frame, {@code false} otherwise.
+     * @param fin          {@code true} when this frame is last in current partial message batch. Standard (non-continuous)
+     *                     frames have this bit set to {@code true}.
+     */
+    public BinaryFrame(byte[] payload, boolean continuation, boolean fin) {
+        super(Frame.builder().payloadData(payload).opcode(continuation ? (byte) 0x00 : (byte) 0x02).fin(fin).build());
+        this.continuation = continuation;
+    }
 
     @Override
-    public void respond(WebSocket socket, DataFrame frame) {
-        if (!frame.isLast()) {
-            socket.onFragment(frame.isLast(), frame.getBytes());
+    public void respond(WebSocket socket) {
+
+        if (continuation) {
+            socket.onFragment(isFin(), this);
         } else {
-            socket.onMessage(frame.getBytes());
+            if (isFin()) {
+                socket.onMessage(this);
+            } else {
+                socket.onFragment(false, this);
+            }
         }
     }
 }

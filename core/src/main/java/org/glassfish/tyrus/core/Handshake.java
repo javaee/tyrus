@@ -72,6 +72,7 @@ public final class Handshake {
     // client side request!
     private UpgradeRequest request;
     private UpgradeRequest incomingRequest;
+    private ExtendedExtension.ExtensionContext extensionContext;
     private SecKey secKey;
 
 
@@ -99,10 +100,11 @@ public final class Handshake {
         return handshake;
     }
 
-    static Handshake createServerHandShake(UpgradeRequest request) {
+    static Handshake createServerHandShake(UpgradeRequest request, ExtendedExtension.ExtensionContext extensionContext) {
         final Handshake handshake = new Handshake();
 
         handshake.incomingRequest = request;
+        handshake.extensionContext = extensionContext;
         checkForHeader(request.getHeader(UpgradeRequest.UPGRADE), UpgradeRequest.UPGRADE, "WebSocket");
         checkForHeader(request.getHeader(UpgradeRequest.CONNECTION), UpgradeRequest.CONNECTION, UpgradeRequest.UPGRADE);
 
@@ -344,12 +346,28 @@ public final class Handshake {
         if (!application.getSupportedExtensions().isEmpty()) {
             response.getHeaders().put(UpgradeRequest.SEC_WEBSOCKET_EXTENSIONS, getStringList(application.getSupportedExtensions(), new Stringifier<Extension>() {
                 @Override
-                String toString(Extension extension) {
-                    return TyrusExtension.toString(extension);
+                String toString(final Extension extension) {
+                    if (extension instanceof ExtendedExtension) {
+                        return TyrusExtension.toString(new Extension() {
+                            @Override
+                            public String getName() {
+                                return extension.getName();
+                            }
+
+                            @Override
+                            public List<Parameter> getParameters() {
+                                // TODO! XXX FIXME
+                                // null is there because extension is wrapped and the original parameters are stored
+                                // in the wrapped instance.
+                                return ((ExtendedExtension) extension).onExtensionNegotiation(extensionContext, null);
+                            }
+                        });
+                    } else {
+                        return TyrusExtension.toString(extension);
+                    }
                 }
             }));
         }
-
         application.onHandShakeResponse(incomingRequest, response);
     }
 }

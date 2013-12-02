@@ -218,7 +218,23 @@ public class TyrusExtension implements Extension {
 
                         switch (chars[i]) {
                             case ';':
-                                next = ParserState.ERROR;
+                                next = ParserState.PARAM_NAME;
+                                params.add(new TyrusParameter(paramName.toString().trim(), null));
+                                paramName = new StringBuilder();
+                                paramValue = new StringBuilder();
+                                break;
+                            case ',':
+                                next = ParserState.NAME;
+                                params.add(new TyrusParameter(paramName.toString().trim(), null));
+                                paramName = new StringBuilder();
+                                paramValue = new StringBuilder();
+                                if (name.length() > 0) {
+                                    extensions.add(new TyrusExtension(name.toString().trim(), params));
+                                    name = new StringBuilder();
+                                    paramName = new StringBuilder();
+                                    paramValue = new StringBuilder();
+                                    params.clear();
+                                }
                                 break;
                             case '=':
                                 next = ParserState.PARAM_VALUE;

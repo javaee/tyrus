@@ -322,12 +322,12 @@ public class RemoteEndpointWrapperTest {
         private int lastSentMessageSize;
 
         @Override
-        public Future<DataFrame> sendText(String text) {
+        public Future<Frame> sendText(String text) {
             return null;
         }
 
         @Override
-        public Future<DataFrame> sendBinary(ByteBuffer data) {
+        public Future<Frame> sendBinary(ByteBuffer data) {
             return null;
         }
 
@@ -340,9 +340,9 @@ public class RemoteEndpointWrapperTest {
         }
 
         @Override
-        public Future<DataFrame> sendText(String fragment, boolean isLast) {
+        public Future<Frame> sendText(String fragment, boolean isLast) {
             builder.append(fragment);
-            return new Future<DataFrame>() {
+            return new Future<Frame>() {
                 @Override
                 public boolean cancel(boolean mayInterruptIfRunning) {
                     return false;
@@ -359,25 +359,25 @@ public class RemoteEndpointWrapperTest {
                 }
 
                 @Override
-                public DataFrame get() throws InterruptedException, ExecutionException {
+                public Frame get() throws InterruptedException, ExecutionException {
                     return null;
                 }
 
                 @Override
-                public DataFrame get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+                public Frame get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
                     return null;
                 }
             };
         }
 
         @Override
-        public Future<DataFrame> sendBinary(ByteBuffer partialByte, boolean isLast) {
+        public Future<Frame> sendBinary(ByteBuffer partialByte, boolean isLast) {
             byte[] bytes = partialByte.array();
             lastSentMessageSize = bytes.length;
             for (byte b : bytes) {
                 bytesToSend.add(b);
             }
-            return new Future<DataFrame>() {
+            return new Future<Frame>() {
                 @Override
                 public boolean cancel(boolean mayInterruptIfRunning) {
                     return false;
@@ -394,24 +394,24 @@ public class RemoteEndpointWrapperTest {
                 }
 
                 @Override
-                public DataFrame get() throws InterruptedException, ExecutionException {
+                public Frame get() throws InterruptedException, ExecutionException {
                     return null;
                 }
 
                 @Override
-                public DataFrame get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+                public Frame get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
                     return null;
                 }
             };
         }
 
         @Override
-        public Future<DataFrame> sendPing(ByteBuffer applicationData) {
+        public Future<Frame> sendPing(ByteBuffer applicationData) {
             return null;
         }
 
         @Override
-        public Future<DataFrame> sendPong(ByteBuffer applicationData) {
+        public Future<Frame> sendPong(ByteBuffer applicationData) {
             return null;
         }
 

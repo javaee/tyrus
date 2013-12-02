@@ -71,7 +71,7 @@ public abstract class WebSocketApplication implements WebSocketListener {
                                            final WebSocketListener listener);
 
     /**
-     * When a {@link WebSocket#onClose(javax.websocket.CloseReason)} is invoked, the {@link WebSocket}
+     * When a {@link WebSocket#onClose(org.glassfish.tyrus.core.frame.CloseFrame)} is invoked, the {@link WebSocket}
      * will be unassociated with this application and closed.
      *
      * @param socket      the {@link WebSocket} being closed.
@@ -100,7 +100,7 @@ public abstract class WebSocketApplication implements WebSocketListener {
      *
      * @param request TODO
      * @return <code>true</code> if the request should be upgraded to a
-     *         WebSocket connection
+     * WebSocket connection
      */
     public final boolean upgrade(UpgradeRequest request) {
         final String upgradeHeader = request.getHeader(UpgradeRequest.UPGRADE);
@@ -117,7 +117,7 @@ public abstract class WebSocketApplication implements WebSocketListener {
      *                  exception occurred.
      * @param t         the unexpected exception.
      * @return {@code true} if the WebSocket should be closed otherwise
-     *         {@code false}.
+     * {@code false}.
      */
     public boolean onError(final WebSocket webSocket,
                            final Throwable t) {
@@ -157,7 +157,7 @@ public abstract class WebSocketApplication implements WebSocketListener {
      * exclusively for matching the requested extensions.
      *
      * @return the websocket extensions supported by this
-     *         <code>WebSocketApplication</code>.
+     * <code>WebSocketApplication</code>.
      */
     public abstract List<Extension> getSupportedExtensions();
 

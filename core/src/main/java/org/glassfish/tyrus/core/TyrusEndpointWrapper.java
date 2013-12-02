@@ -765,7 +765,7 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
      * @param throwable thrown {@link Throwable}.
      * @param session   {@link Session} related to {@link Throwable}.
      * @return {@code true} when exception is handled within this method (framework produced it), {@code false}
-     *         otherwise.
+     * otherwise.
      */
     private boolean processThrowable(Throwable throwable, Session session) {
         if (LOGGER.isLoggable(Level.FINE)) {
@@ -898,13 +898,13 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
                 final TyrusRemoteEndpoint remoteEndpoint = (TyrusRemoteEndpoint) e.getKey();
 
                 if (frame == null) {
-                    final DataFrame dataFrame = new DataFrame(new TextFrame(), message);
-                    final ByteBuffer byteBuffer = ((TyrusWebSocket) remoteEndpoint.getSocket()).getProtocolHandler().frame(dataFrame);
+                    final Frame wrappedFrame = new TextFrame(message, false, true);
+                    final ByteBuffer byteBuffer = ((TyrusWebSocket) remoteEndpoint.getSocket()).getProtocolHandler().frame(wrappedFrame);
                     frame = new byte[byteBuffer.remaining()];
                     byteBuffer.get(frame);
                 }
 
-                final Future<DataFrame> frameFuture = remoteEndpoint.sendRawFrame(ByteBuffer.wrap(frame));
+                final Future<Frame> frameFuture = remoteEndpoint.sendRawFrame(ByteBuffer.wrap(frame));
                 futures.put(e.getValue(), frameFuture);
             }
         }
@@ -932,13 +932,13 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
                     byte[] byteArrayMessage = new byte[message.remaining()];
                     message.get(byteArrayMessage);
 
-                    final DataFrame dataFrame = new DataFrame(new BinaryFrame(), byteArrayMessage);
+                    final Frame dataFrame = new BinaryFrame(byteArrayMessage, false, true);
                     final ByteBuffer byteBuffer = ((TyrusWebSocket) remoteEndpoint.getSocket()).getProtocolHandler().frame(dataFrame);
                     frame = new byte[byteBuffer.remaining()];
                     byteBuffer.get(frame);
                 }
 
-                final Future<DataFrame> frameFuture = remoteEndpoint.sendRawFrame(ByteBuffer.wrap(frame));
+                final Future<Frame> frameFuture = remoteEndpoint.sendRawFrame(ByteBuffer.wrap(frame));
                 futures.put(e.getValue(), frameFuture);
             }
         }

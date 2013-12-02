@@ -49,8 +49,11 @@ import java.util.concurrent.atomic.AtomicReference;
 import javax.websocket.CloseReason;
 import javax.websocket.SendHandler;
 
+import org.glassfish.tyrus.core.frame.BinaryFrame;
+import org.glassfish.tyrus.core.frame.CloseFrame;
 import org.glassfish.tyrus.core.frame.PingFrame;
 import org.glassfish.tyrus.core.frame.PongFrame;
+import org.glassfish.tyrus.core.frame.TextFrame;
 import org.glassfish.tyrus.spi.UpgradeRequest;
 
 /**
@@ -95,11 +98,12 @@ public class TyrusWebSocket implements WebSocket {
     }
 
     @Override
-    public void onClose(final CloseReason closeReason) {
+    public void onClose(CloseFrame frame) {
+        final CloseReason closeReason = frame.getCloseReason();
+
         if (listener != null) {
             listener.onClose(this, closeReason);
         }
-
         if (state.compareAndSet(State.CONNECTED, State.CLOSING)) {
             protocolHandler.close(closeReason.getCloseCode().getCode(), closeReason.getReasonPhrase());
         } else {
@@ -120,50 +124,50 @@ public class TyrusWebSocket implements WebSocket {
     }
 
     @Override
-    public void onFragment(boolean last, byte[] fragment) {
+    public void onFragment(boolean last, BinaryFrame frame) {
         awaitOnConnect();
         if (listener != null) {
-            listener.onFragment(this, fragment, last);
+            listener.onFragment(this, frame.getPayloadData(), last);
         }
     }
 
     @Override
-    public void onFragment(boolean last, String fragment) {
+    public void onFragment(boolean last, TextFrame frame) {
         awaitOnConnect();
         if (listener != null) {
-            listener.onFragment(this, fragment, last);
+            listener.onFragment(this, frame.getTextPayload(), last);
         }
     }
 
     @Override
-    public void onMessage(byte[] data) {
+    public void onMessage(BinaryFrame frame) {
         awaitOnConnect();
         if (listener != null) {
-            listener.onMessage(this, data);
+            listener.onMessage(this, frame.getPayloadData());
         }
     }
 
     @Override
-    public void onMessage(String text) {
+    public void onMessage(TextFrame frame) {
         awaitOnConnect();
         if (listener != null) {
-            listener.onMessage(this, text);
+            listener.onMessage(this, frame.getTextPayload());
         }
     }
 
     @Override
-    public void onPing(DataFrame frame) {
+    public void onPing(PingFrame frame) {
         awaitOnConnect();
         if (listener != null) {
-            listener.onPing(this, frame.getBytes());
+            listener.onPing(this, frame.getPayloadData());
         }
     }
 
     @Override
-    public void onPong(DataFrame frame) {
+    public void onPong(PongFrame frame) {
         awaitOnConnect();
         if (listener != null) {
-            listener.onPong(this, frame.getBytes());
+            listener.onPong(this, frame.getPayloadData());
         }
     }
 
@@ -180,7 +184,7 @@ public class TyrusWebSocket implements WebSocket {
     }
 
     @Override
-    public Future<DataFrame> send(byte[] data) {
+    public Future<Frame> send(byte[] data) {
         if (isConnected()) {
             return protocolHandler.send(data);
         } else {
@@ -198,7 +202,7 @@ public class TyrusWebSocket implements WebSocket {
     }
 
     @Override
-    public Future<DataFrame> send(String data) {
+    public Future<Frame> send(String data) {
         if (isConnected()) {
             return protocolHandler.send(data);
         } else {
@@ -215,8 +219,9 @@ public class TyrusWebSocket implements WebSocket {
         }
     }
 
+
     @Override
-    public Future<DataFrame> sendRawFrame(ByteBuffer data) {
+    public Future<Frame> sendRawFrame(ByteBuffer data) {
         if (isConnected()) {
             return protocolHandler.sendRawFrame(data);
         } else {
@@ -225,13 +230,13 @@ public class TyrusWebSocket implements WebSocket {
     }
 
     @Override
-    public Future<DataFrame> sendPing(byte[] data) {
-        return send(new DataFrame(new PingFrame(), data));
+    public Future<Frame> sendPing(byte[] data) {
+        return send(new PingFrame(data));
     }
 
     @Override
-    public Future<DataFrame> sendPong(byte[] data) {
-        return send(new DataFrame(new PongFrame(), data));
+    public Future<Frame> sendPong(byte[] data) {
+        return send(new PongFrame(data));
     }
 
     // return boolean, check return value
@@ -243,7 +248,7 @@ public class TyrusWebSocket implements WebSocket {
         }
     }
 
-    private Future<DataFrame> send(DataFrame frame) {
+    private Future<Frame> send(Frame frame) {
         if (isConnected()) {
             return protocolHandler.send(frame);
         } else {
@@ -252,7 +257,7 @@ public class TyrusWebSocket implements WebSocket {
     }
 
     @Override
-    public Future<DataFrame> stream(boolean last, String fragment) {
+    public Future<Frame> stream(boolean last, String fragment) {
         if (isConnected()) {
             return protocolHandler.stream(last, fragment);
         } else {
@@ -261,7 +266,7 @@ public class TyrusWebSocket implements WebSocket {
     }
 
     @Override
-    public Future<DataFrame> stream(boolean last, byte[] bytes, int off, int len) {
+    public Future<Frame> stream(boolean last, byte[] bytes, int off, int len) {
         if (isConnected()) {
             return protocolHandler.stream(last, bytes, off, len);
         } else {

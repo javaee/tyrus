@@ -78,7 +78,7 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
-                        <Export-Package>org.glassfish.tyrus.core.*;version=${project.version}</Export-Package>
+                        <Export-Package>org.glassfish.tyrus.core.*;version=${project.version},org.glassfish.tyrus.core.extension.*;version=${project.version}</Export-Package>
                         <Import-Package>javax.websocket;version=${apijar.bundle.version},javax.websocket.server;version=${apijar.bundle.version},*</Import-Package>
                     </instructions>
                     <unpackBundle>true</unpackBundle>
