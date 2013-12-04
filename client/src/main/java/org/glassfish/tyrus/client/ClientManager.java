@@ -427,7 +427,6 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                     future.setFailure(e);
                     return;
                 } catch (DeploymentException e) {
-                    e.printStackTrace();
                     future.setFailure(e);
                     return;
                 }

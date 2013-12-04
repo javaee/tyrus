@@ -222,11 +222,12 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
                     } while (true);
                 }
             } catch (FramingException e) {
-                e.printStackTrace();
+                LOGGER.log(Level.FINE, e.getMessage(), e);
                 socket.onClose(new CloseReason(CloseReason.CloseCodes.getCloseCode(e.getClosingCode()), e.getMessage()));
-            } catch (Exception wse) {
-                if (application.onError(socket, wse)) {
-                    socket.onClose(new CloseReason(CloseReason.CloseCodes.UNEXPECTED_CONDITION, wse.getMessage()));
+            } catch (Exception e) {
+                LOGGER.log(Level.FINE, e.getMessage(), e);
+                if (application.onError(socket, e)) {
+                    socket.onClose(new CloseReason(CloseReason.CloseCodes.UNEXPECTED_CONDITION, e.getMessage()));
                 }
             }
         }

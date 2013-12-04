@@ -68,6 +68,8 @@ import org.glassfish.tyrus.spi.UpgradeResponse;
  */
 public class TyrusEndpoint extends WebSocketApplication {
 
+    private static final Logger LOGGER = Logger.getLogger(TyrusEndpoint.class.getName());
+
     private final EndpointWrapper endpoint;
 
     /**
@@ -121,8 +123,7 @@ public class TyrusEndpoint extends WebSocketApplication {
         try {
             this.endpoint.onPartialMessage(new TyrusRemoteEndpoint(socket), fragment, last);
         } catch (Throwable t) {
-            Logger.getLogger(TyrusEndpoint.class.getName()).severe("Error !!!" + t);
-            t.printStackTrace();
+            LOGGER.log(Level.FINE, t.getMessage(), t);
         }
     }
 
@@ -131,8 +132,7 @@ public class TyrusEndpoint extends WebSocketApplication {
         try {
             this.endpoint.onPartialMessage(new TyrusRemoteEndpoint(socket), ByteBuffer.wrap(fragment), last);
         } catch (Throwable t) {
-            Logger.getLogger(TyrusEndpoint.class.getName()).severe("Error !!!" + t);
-            t.printStackTrace();
+            LOGGER.log(Level.FINE, t.getMessage(), t);
         }
     }
 

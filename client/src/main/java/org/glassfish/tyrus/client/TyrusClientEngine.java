@@ -56,7 +56,6 @@ import org.glassfish.tyrus.core.DataFrame;
 import org.glassfish.tyrus.core.EndpointWrapper;
 import org.glassfish.tyrus.core.FramingException;
 import org.glassfish.tyrus.core.Handshake;
-import org.glassfish.tyrus.core.HandshakeException;
 import org.glassfish.tyrus.core.ProtocolHandler;
 import org.glassfish.tyrus.core.RequestContext;
 import org.glassfish.tyrus.core.TyrusEndpoint;
@@ -79,6 +78,7 @@ import org.glassfish.tyrus.spi.Writer;
  */
 public class TyrusClientEngine implements ClientEngine {
 
+    private static final Logger LOGGER = Logger.getLogger(TyrusClientEngine.class.getName());
     private static final int DEFAULT_INCOMING_BUFFER_SIZE = 4194315; // 4M (payload) + 11 (frame overhead)
 
     private static final Version DEFAULT_VERSION = Version.DRAFT17;
@@ -183,7 +183,7 @@ public class TyrusClientEngine implements ClientEngine {
                     }
                 }
             };
-        } catch (HandshakeException e) {
+        } catch (Throwable e) {
             listener.onError(e);
             // TODO
 //            content.getContent().clear();
@@ -267,10 +267,11 @@ public class TyrusClientEngine implements ClientEngine {
                     } while (true);
                 }
             } catch (FramingException e) {
-                e.printStackTrace();
+                LOGGER.log(Level.FINE, e.getMessage(), e);
                 webSocket.onClose(new CloseReason(CloseReason.CloseCodes.getCloseCode(e.getClosingCode()), e.getMessage()));
-            } catch (Exception wse) {
-                webSocket.onClose(new CloseReason(CloseReason.CloseCodes.UNEXPECTED_CONDITION, wse.getMessage()));
+            } catch (Exception e) {
+                LOGGER.log(Level.FINE, e.getMessage(), e);
+                webSocket.onClose(new CloseReason(CloseReason.CloseCodes.UNEXPECTED_CONDITION, e.getMessage()));
             }
         }
     }

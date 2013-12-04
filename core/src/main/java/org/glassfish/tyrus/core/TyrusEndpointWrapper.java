@@ -428,15 +428,10 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
     @Override
     public Session createSessionForRemoteEndpoint(RemoteEndpoint re, String subprotocol, List<Extension> extensions) {
         synchronized (remoteEndpointToSession) {
-            try {
-                final TyrusSession session = new TyrusSession(container, re, this, subprotocol, extensions, false,
-                        getURI(contextPath, null), null, Collections.<String, String>emptyMap(), null, Collections.<String, List<String>>emptyMap());
-                remoteEndpointToSession.put(re, session);
-                return session;
-            } catch (Exception e) {
-                e.printStackTrace();
-                return null;
-            }
+            final TyrusSession session = new TyrusSession(container, re, this, subprotocol, extensions, false,
+                    getURI(contextPath, null), null, Collections.<String, String>emptyMap(), null, Collections.<String, List<String>>emptyMap());
+            remoteEndpointToSession.put(re, session);
+            return session;
         }
     }
 
