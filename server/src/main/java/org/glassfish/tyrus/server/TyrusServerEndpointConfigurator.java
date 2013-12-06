@@ -82,7 +82,8 @@ public class TyrusServerEndpointConfigurator extends ServerEndpointConfig.Config
         if (requested != null) {
             for (Extension requestedExtension : requested) {
                 for (Extension extension : installed) {
-                    if (extension.equals(requestedExtension)) {
+                    final String name = extension.getName();
+                    if (name != null && name.equals(requestedExtension.getName())) {
                         result.add(requestedExtension);
                     }
                 }

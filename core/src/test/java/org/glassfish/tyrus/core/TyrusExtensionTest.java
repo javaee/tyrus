@@ -171,6 +171,23 @@ public class TyrusExtensionTest {
     }
 
     @Test
+    public void testParseHeaders4() {
+        final List<Extension> extensions = TyrusExtension.fromHeaders(Arrays.asList("ext1;param;param2,ext2;param"));
+
+        assertEquals(2, extensions.size());
+        assertEquals("ext1", extensions.get(0).getName());
+        assertTrue(extensions.get(0).getParameters().size() == 2);
+        assertEquals("param", extensions.get(0).getParameters().get(0).getName());
+        assertEquals(null, extensions.get(0).getParameters().get(0).getValue());
+        assertEquals("param2", extensions.get(0).getParameters().get(1).getName());
+        assertEquals(null, extensions.get(0).getParameters().get(1).getValue());
+        assertEquals("ext2", extensions.get(1).getName());
+        assertTrue(extensions.get(1).getParameters().size() == 1);
+        assertEquals("param", extensions.get(1).getParameters().get(0).getName());
+        assertEquals(null, extensions.get(1).getParameters().get(0).getValue());
+    }
+
+    @Test
     public void testParseHeadersQuoted1() {
         final List<Extension> extensions = TyrusExtension.fromHeaders(Arrays.asList("ext1;param=\"  value  \""));
 
