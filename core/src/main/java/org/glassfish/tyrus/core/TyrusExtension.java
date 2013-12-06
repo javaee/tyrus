@@ -218,23 +218,7 @@ public class TyrusExtension implements Extension {
 
                         switch (chars[i]) {
                             case ';':
-                                next = ParserState.PARAM_NAME;
-                                params.add(new TyrusParameter(paramName.toString().trim(), null));
-                                paramName = new StringBuilder();
-                                paramValue = new StringBuilder();
-                                break;
-                            case ',':
-                                next = ParserState.NAME;
-                                params.add(new TyrusParameter(paramName.toString().trim(), null));
-                                paramName = new StringBuilder();
-                                paramValue = new StringBuilder();
-                                if (name.length() > 0) {
-                                    extensions.add(new TyrusExtension(name.toString().trim(), params));
-                                    name = new StringBuilder();
-                                    paramName = new StringBuilder();
-                                    paramValue = new StringBuilder();
-                                    params.clear();
-                                }
+                                next = ParserState.ERROR;
                                 break;
                             case '=':
                                 next = ParserState.PARAM_VALUE;
@@ -373,7 +357,7 @@ public class TyrusExtension implements Extension {
 
             if ((name.length() > 0) && (next != ParserState.ERROR)) {
                 if (paramName.length() > 0) {
-                    params.add(new TyrusParameter(paramName.toString().trim(), (paramValue.length() > 0 ? paramValue.toString() : null)));
+                    params.add(new TyrusParameter(paramName.toString().trim(), paramValue.toString()));
                 }
                 extensions.add(new TyrusExtension(name.toString().trim(), params));
                 params.clear();
