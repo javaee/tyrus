@@ -324,7 +324,7 @@ public class TyrusSession implements Session {
         if (this.maxIdleTimeout < 1) {
             synchronized (idleTimeoutLock) {
                 if (idleTimeoutFuture != null) {
-                    final boolean b = idleTimeoutFuture.cancel(true);
+                    idleTimeoutFuture.cancel(true);
                 } else {
                     return;
                 }
@@ -601,7 +601,7 @@ public class TyrusSession implements Session {
             TyrusSession session = TyrusSession.this;
 
             // condition is required because scheduled task can be (for some reason) run even when it is cancelled.
-            if (session.getMaxIdleTimeout() != 0 && session.isOpen()) {
+            if (session.getMaxIdleTimeout() > 0 && session.isOpen()) {
                 try {
                     session.close(new CloseReason(CloseReason.CloseCodes.CLOSED_ABNORMALLY, "Session closed by the container because of the idle timeout."));
                 } catch (IOException e) {
