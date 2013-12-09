@@ -181,13 +181,12 @@ public class TyrusClientEngine implements ClientEngine {
                     } catch (IOException e) {
                         Logger.getLogger(this.getClass().getName()).log(Level.WARNING, e.getMessage(), e);
                     }
+
+                    tyrusWebSocket.close(reason.getCloseCode().getCode(), reason.getReasonPhrase());
                 }
             };
         } catch (Throwable e) {
             listener.onError(e);
-            // TODO
-//            content.getContent().clear();
-//            return ctx.getStopAction();
             return null;
         }
     }

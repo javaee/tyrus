@@ -48,11 +48,7 @@ import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CoderResult;
 import java.util.Arrays;
 import java.util.Locale;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.websocket.CloseReason;
@@ -244,28 +240,8 @@ public final class ProtocolHandler {
             throw new IllegalStateException("Connection is null");
         }
 
-//        if (useTimeout && writeTimeoutMs > 0 && container instanceof ExecutorServiceProvider) {
-//            ExecutorService executor = ((ExecutorServiceProvider) container).getExecutorService();
-//            try {
-//                executor.submit(new Runnable() {
-//
-//                    @Override
-//                    public void run() {
         final ByteBuffer byteBuffer = frame(frame);
         localWriter.write(byteBuffer, new CompletionHandlerWrapper(completionHandler, future, frame));
-//                    }
-//                }).get(writeTimeoutMs, TimeUnit.MILLISECONDS);
-//            } catch (InterruptedException e) {
-//                future.setFailure(e);
-//            } catch (ExecutionException e) {
-//                future.setFailure(e);
-//            } catch (TimeoutException e) {
-//                future.setFailure(e);
-//            }
-//        } else {
-//            final ByteBuffer byteBuffer = frame(frame);
-//            localWriter.write(byteBuffer, new CompletionHandlerWrapper(completionHandler, future, frame));
-//        }
 
         return future;
     }
@@ -279,27 +255,7 @@ public final class ProtocolHandler {
             throw new IllegalStateException("Connection is null");
         }
 
-
-        if (useTimeout && writeTimeoutMs > 0 && container instanceof ExecutorServiceProvider) {
-            ExecutorService executor = ((ExecutorServiceProvider) container).getExecutorService();
-            try {
-                executor.submit(new Runnable() {
-
-                    @Override
-                    public void run() {
-                        localWriter.write(frame, new CompletionHandlerWrapper(completionHandler, future, null));
-                    }
-                }).get(writeTimeoutMs, TimeUnit.MILLISECONDS);
-            } catch (InterruptedException e) {
-                future.setFailure(e);
-            } catch (ExecutionException e) {
-                future.setFailure(e);
-            } catch (TimeoutException e) {
-                future.setFailure(e);
-            }
-        } else {
-            localWriter.write(frame, new CompletionHandlerWrapper(completionHandler, future, null));
-        }
+        localWriter.write(frame, new CompletionHandlerWrapper(completionHandler, future, null));
 
         return future;
     }
@@ -591,11 +547,7 @@ public final class ProtocolHandler {
             } while (true);
         } catch (Exception e) {
             state.recycle();
-            if (e instanceof RuntimeException) {
-                throw (RuntimeException) e;
-            } else {
-                throw new RuntimeException(e);
-            }
+            throw (RuntimeException) e;
         }
     }
 
