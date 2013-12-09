@@ -161,7 +161,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
 
     private ClientManager(String containerProviderClassName, WebSocketContainer webSocketContainer) {
         final ErrorCollector collector = new ErrorCollector();
-        componentProvider = ComponentProviderService.create();
+        componentProvider = ComponentProviderService.createClient();
         Class engineProviderClazz;
         try {
             engineProviderClazz = ReflectionHelper.classForNameWithException(containerProviderClassName);

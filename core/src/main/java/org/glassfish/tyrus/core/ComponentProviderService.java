@@ -41,6 +41,7 @@ package org.glassfish.tyrus.core;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -84,6 +85,20 @@ public class ComponentProviderService {
 
         foundProviders.add(new DefaultComponentProvider());
         return new ComponentProviderService(Collections.unmodifiableList(foundProviders));
+    }
+
+    /**
+     * Create new instance of {@link ComponentProviderService}.
+     * </p>
+     * Contains *only* {@link DefaultComponentProvider}. Used for creating client instances (CDI/EJB container are
+     * often confused and using them to retrieve instances leads to unstable results since the injection scope is not
+     * properly defined for these cases). See https://java.net/jira/browse/WEBSOCKET_SPEC-197 and
+     * https://java.net/jira/browse/WEBSOCKET_SPEC-196.
+     *
+     * @return initialized {@link ComponentProviderService}.
+     */
+    public static ComponentProviderService createClient() {
+        return new ComponentProviderService(Collections.unmodifiableList(Arrays.<ComponentProvider>asList(new DefaultComponentProvider())));
     }
 
     private ComponentProviderService(List<ComponentProvider> providers) {
