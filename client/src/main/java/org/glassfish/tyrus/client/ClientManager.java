@@ -333,6 +333,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
      * @throws DeploymentException if the endpoint or provided URL is not valid.
      */
     Future<Session> connectToServer(final Object o, final ClientEndpointConfig configuration, final String url, final ExecutorService executorService) throws DeploymentException {
+        final Map<String, Object> copiedProperties = new HashMap<String, Object>(properties);
         final TyrusFuture<Session> future = new TyrusFuture<Session>();
 
         try {
@@ -420,9 +421,9 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                         }
                     };
 
-                    clientEngine = new TyrusClientEngine(clientEndpoint, listener, properties);
+                    clientEngine = new TyrusClientEngine(clientEndpoint, listener, copiedProperties);
 
-                    container.openClientSocket(url, config, properties, clientEngine);
+                    container.openClientSocket(url, config, copiedProperties, clientEngine);
                 } catch (IOException e) {
                     future.setFailure(e);
                     return;
