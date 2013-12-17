@@ -91,7 +91,7 @@ import org.glassfish.grizzly.http.util.HttpStatus;
  */
 class GrizzlyClientFilter extends BaseFilter {
 
-    private static final Logger logger = Grizzly.logger(GrizzlyClientFilter.class);
+    private static final Logger LOGGER = Grizzly.logger(GrizzlyClientFilter.class);
 
     private static final Attribute<org.glassfish.tyrus.spi.Connection> TYRUS_CONNECTION = Grizzly.DEFAULT_ATTRIBUTE_BUILDER
             .createAttribute(GrizzlyClientFilter.class.getName() + ".Connection");
@@ -104,6 +104,7 @@ class GrizzlyClientFilter extends BaseFilter {
     private final ClientEngine engine;
     private final URI uri;
     private final ClientEngine.TimeoutHandler timeoutHandler;
+    private final boolean sharedTransport;
 
     private final Queue<TaskProcessor.Task> taskQueue = new ConcurrentLinkedQueue<TaskProcessor.Task>();
 
@@ -116,12 +117,13 @@ class GrizzlyClientFilter extends BaseFilter {
      * @param sslFilter filter to be "enabled" in case connection is created via proxy.
      */
     /* package */ GrizzlyClientFilter(ClientEngine engine, boolean proxy,
-                                      Filter sslFilter, URI uri, ClientEngine.TimeoutHandler timeoutHandler) {
+                                      Filter sslFilter, URI uri, ClientEngine.TimeoutHandler timeoutHandler, boolean sharedTransport) {
         this.engine = engine;
         this.proxy = proxy;
         this.sslFilter = sslFilter;
         this.uri = uri;
         this.timeoutHandler = timeoutHandler;
+        this.sharedTransport = sharedTransport;
     }
 
     // ----------------------------------------------------- Methods from Filter
@@ -136,7 +138,7 @@ class GrizzlyClientFilter extends BaseFilter {
      */
     @Override
     public NextAction handleConnect(final FilterChainContext ctx) {
-        logger.log(Level.FINEST, "handleConnect");
+        LOGGER.log(Level.FINEST, "handleConnect");
 
         final UpgradeRequest upgradeRequest = engine.createUpgradeRequest(uri, timeoutHandler);
 
@@ -167,7 +169,7 @@ class GrizzlyClientFilter extends BaseFilter {
     /**
      * Method handles Grizzly {@link Connection} close phase. Check if the {@link Connection} is a {@link org.glassfish.tyrus.core.WebSocket}, if
      * yes - tries to close the websocket gracefully (sending close frame) and calls {@link
-     * org.glassfish.tyrus.core.WebSocket#onClose(javax.websocket.CloseReason)}. If the Grizzly {@link Connection} is not websocket - passes processing to the next
+     * org.glassfish.tyrus.core.WebSocket#onClose(org.glassfish.tyrus.core.frame.CloseFrame)}. If the Grizzly {@link Connection} is not websocket - passes processing to the next
      * filter in the chain.
      *
      * @param ctx {@link FilterChainContext}
@@ -188,7 +190,7 @@ class GrizzlyClientFilter extends BaseFilter {
     /**
      * Handle Grizzly {@link Connection} read phase. If the {@link Connection} has associated {@link org.glassfish.tyrus.core.WebSocket} object
      * (websocket connection), we check if websocket handshake has been completed for this connection, if not -
-     * initiate/validate handshake. If handshake has been completed - parse websocket {@link org.glassfish.tyrus.core.DataFrame}s one by one and
+     * initiate/validate handshake. If handshake has been completed - parse websocket {@link org.glassfish.tyrus.core.Frame}s one by one and
      * pass processing to appropriate {@link org.glassfish.tyrus.core.WebSocket}: {@link org.glassfish.tyrus.core.WebSocketApplication} for server- and client- side
      * connections.
      *
@@ -208,8 +210,8 @@ class GrizzlyClientFilter extends BaseFilter {
         // Get the HTTP header
         final HttpHeader header = message.getHttpHeader();
 
-        if (logger.isLoggable(Level.FINE)) {
-            logger.log(Level.FINE, "handleRead websocket: {0} content-size={1} headers=\n{2}",
+        if (LOGGER.isLoggable(Level.FINE)) {
+            LOGGER.log(Level.FINE, "handleRead websocket: {0} content-size={1} headers=\n{2}",
                     new Object[]{tyrusConnection, message.getContent().remaining(), header});
         }
 
@@ -296,9 +298,13 @@ class GrizzlyClientFilter extends BaseFilter {
             public void close() {
                 super.close();
                 try {
-                    connection.getTransport().shutdownNow();
+                    if (sharedTransport) {
+                        connection.close();
+                    } else {
+                        connection.getTransport().shutdownNow();
+                    }
                 } catch (IOException e) {
-                    Logger.getLogger(GrizzlyClientFilter.class.getName()).log(Level.INFO, "Exception thrown during container shutdown.", e);
+                    Logger.getLogger(GrizzlyClientFilter.class.getName()).log(Level.INFO, "Exception thrown during shutdown.", e);
                 }
             }
         };

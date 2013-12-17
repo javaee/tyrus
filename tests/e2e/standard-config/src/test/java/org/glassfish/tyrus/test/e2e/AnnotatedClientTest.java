@@ -72,9 +72,7 @@ import org.junit.Test;
 public class AnnotatedClientTest extends TestContainer {
 
     private volatile static String receivedMessage;
-
     private volatile static String receivedTestMessage;
-
     private volatile static CountDownLatch messageLatch;
 
     @Test

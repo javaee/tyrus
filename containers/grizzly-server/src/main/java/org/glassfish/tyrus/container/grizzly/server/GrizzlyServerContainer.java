@@ -103,6 +103,8 @@ public class GrizzlyServerContainer extends ServerContainerFactory {
                 contextPath = rootPath;
                 server = HttpServer.createSimpleServer(rootPath, port);
                 server.getListener("grizzly").getTransport().setIOStrategy(WorkerThreadIOStrategy.getInstance());
+                // idle timeout set to indefinite.
+                server.getListener("grizzly").getKeepAlive().setIdleTimeoutInSeconds(-1);
                 server.getListener("grizzly").registerAddOn(new WebSocketAddOn(this));
                 server.start();
 

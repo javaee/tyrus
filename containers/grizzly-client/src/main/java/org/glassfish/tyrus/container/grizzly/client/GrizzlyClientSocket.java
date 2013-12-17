@@ -48,6 +48,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -72,9 +73,9 @@ import org.glassfish.grizzly.http.HttpClientFilter;
 import org.glassfish.grizzly.nio.transport.TCPNIOConnectorHandler;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransportBuilder;
+import org.glassfish.grizzly.ssl.SSLContextConfigurator;
 import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
 import org.glassfish.grizzly.ssl.SSLFilter;
-import org.glassfish.grizzly.strategies.WorkerThreadIOStrategy;
 import org.glassfish.grizzly.threadpool.ThreadPoolConfig;
 
 /**
@@ -124,49 +125,106 @@ public class GrizzlyClientSocket {
     private final ThreadPoolConfig workerThreadPoolConfig;
     private final ThreadPoolConfig selectorThreadPoolConfig;
     private final ClientEngine engine;
+    private final boolean sharedTransport;
 
     private SocketAddress socketAddress;
 
-    private TCPNIOTransport transport;
+    private static volatile TCPNIOTransport transport;
+    private static final Object TRANSPORT_LOCK = new Object();
+
+    private TCPNIOTransport privateTransport;
+
 
     /**
      * Create new instance.
      *
-     * @param uri                         endpoint address.
-     * @param timeoutMs                   TODO
-     * @param engine                      engine used for this websocket communication
-     * @param clientSSLEngineConfigurator ssl engine configurator
+     * @param uri       endpoint address.
+     * @param timeoutMs TODO
+     * @param engine    engine used for this websocket communication
      */
     GrizzlyClientSocket(URI uri, long timeoutMs,
                         ClientEngine engine,
-                        SSLEngineConfigurator clientSSLEngineConfigurator,
-                        String proxyString,
-                        ThreadPoolConfig workerThreadPoolConfig,
-                        ThreadPoolConfig selectorThreadPoolConfig) {
+                        Map<String, Object> properties) {
         this.uri = uri;
         this.timeoutMs = timeoutMs;
-        this.clientSSLEngineConfigurator = clientSSLEngineConfigurator;
-        this.workerThreadPoolConfig = workerThreadPoolConfig;
-        this.selectorThreadPoolConfig = selectorThreadPoolConfig;
-        this.engine = engine;
 
-        setProxy(proxyString);
+        SSLEngineConfigurator sslEngineConfigurator = (properties == null ? null : (SSLEngineConfigurator) properties.get(GrizzlyClientContainer.SSL_ENGINE_CONFIGURATOR));
+        // if we are trying to access "wss" scheme and we don't have sslEngineConfigurator instance
+        // we should try to create ssl connection using JVM properties.
+        if (uri.getScheme().equalsIgnoreCase("wss") && sslEngineConfigurator == null) {
+            SSLContextConfigurator defaultConfig = new SSLContextConfigurator();
+            defaultConfig.retrieve(System.getProperties());
+            sslEngineConfigurator = new SSLEngineConfigurator(defaultConfig, true, false, false);
+        }
+
+        try {
+            this.clientSSLEngineConfigurator = sslEngineConfigurator;
+            this.workerThreadPoolConfig = getProperty(properties, GrizzlyClientSocket.WORKER_THREAD_POOL_CONFIG, ThreadPoolConfig.class);
+            this.selectorThreadPoolConfig = getProperty(properties, GrizzlyClientSocket.SELECTOR_THREAD_POOL_CONFIG, ThreadPoolConfig.class);
+            Boolean shared = getProperty(properties, GrizzlyClientContainer.SHARED_CONTAINER, Boolean.class);
+            if (shared == null || !shared) {
+                // TODO introduce some better (generic) way how to configure client from system properties.
+                final String property = System.getProperty(GrizzlyClientContainer.SHARED_CONTAINER);
+                if (property != null && property.equals("true")) {
+                    shared = true;
+                }
+            }
+            this.sharedTransport = (shared == null ? false : shared);
+            this.engine = engine;
+        } catch (RuntimeException e) {
+            e.printStackTrace();
+            throw e;
+        }
+
+        setProxy(properties == null ? null : (String) properties.get(GrizzlyClientSocket.PROXY_URI));
+    }
+
+    private <T> T getProperty(Map<String, Object> properties, String key, Class<T> type) {
+        if (properties != null) {
+            final Object o = properties.get(key);
+            if (o != null && type.isAssignableFrom(o.getClass())) {
+                //noinspection unchecked
+                return (T) o;
+            }
+        }
+
+        return null;
     }
 
     /**
      * Connects to the given {@link URI}.
      */
     public void connect() throws IOException, DeploymentException {
+        try {
+            if (sharedTransport) {
+                synchronized (TRANSPORT_LOCK) {
+                    if (transport == null) {
+                        transport = createTransport(workerThreadPoolConfig, selectorThreadPoolConfig);
+                        transport.start();
+                    }
+                }
+            }
+        } catch (IOException e) {
+            LOGGER.log(Level.SEVERE, "Transport failed to start.", e);
+            synchronized (TRANSPORT_LOCK) {
+                transport = null;
+            }
+            throw e;
+        }
+
         for (Proxy proxy : proxies) {
             try {
-                transport = createTransport(workerThreadPoolConfig, selectorThreadPoolConfig);
-                transport.start();
+                if (!sharedTransport) {
+                    privateTransport = createTransport(workerThreadPoolConfig, selectorThreadPoolConfig);
+                    privateTransport.start();
+                }
             } catch (IOException e) {
                 LOGGER.log(Level.SEVERE, "Transport failed to start.", e);
                 throw e;
+
             }
 
-            final TCPNIOConnectorHandler connectorHandler = new TCPNIOConnectorHandler(transport) {
+            final TCPNIOConnectorHandler connectorHandler = new TCPNIOConnectorHandler(sharedTransport ? transport : privateTransport) {
             };
 
             connectorHandler.setSyncConnectTimeout(timeoutMs, TimeUnit.MILLISECONDS);
@@ -182,13 +240,13 @@ public class GrizzlyClientSocket {
 
             switch (proxy.type()) {
                 case DIRECT:
-                    connectorHandler.setProcessor(createFilterChain(engine, null, clientSSLEngineConfigurator, false, uri, timeoutHandler));
+                    connectorHandler.setProcessor(createFilterChain(engine, null, clientSSLEngineConfigurator, false, uri, timeoutHandler, sharedTransport));
 
                     LOGGER.log(Level.CONFIG, String.format("Connecting to '%s' (no proxy).", uri));
                     connectionGrizzlyFuture = connectorHandler.connect(socketAddress);
                     break;
                 default:
-                    connectorHandler.setProcessor(createFilterChain(engine, null, clientSSLEngineConfigurator, true, uri, timeoutHandler));
+                    connectorHandler.setProcessor(createFilterChain(engine, null, clientSSLEngineConfigurator, true, uri, timeoutHandler, sharedTransport));
 
                     LOGGER.log(Level.CONFIG, String.format("Connecting to '%s' via proxy '%s'.", uri, proxy));
 
@@ -217,11 +275,11 @@ public class GrizzlyClientSocket {
             } catch (TimeoutException timeoutException) {
                 LOGGER.log(Level.CONFIG, String.format("Connection to '%s' failed.", uri), timeoutException);
                 closeTransport();
-            } catch (ExecutionException exectionException) {
-                LOGGER.log(Level.CONFIG, String.format("Connection to '%s' failed.", uri), exectionException);
+            } catch (ExecutionException executionException) {
+                LOGGER.log(Level.CONFIG, String.format("Connection to '%s' failed.", uri), executionException);
 
                 IOException ioException = null;
-                final Throwable cause = exectionException.getCause();
+                final Throwable cause = executionException.getCause();
                 if ((cause != null) && (cause instanceof IOException)) {
                     ioException = (IOException) cause;
                     ProxySelector.getDefault().connectFailed(uri, socketAddress, ioException);
@@ -244,18 +302,26 @@ public class GrizzlyClientSocket {
         TCPNIOTransportBuilder transportBuilder = TCPNIOTransportBuilder.newInstance();
 
         if (workerThreadPoolConfig == null) {
-            transportBuilder.setWorkerThreadPoolConfig(ThreadPoolConfig.defaultConfig().setMaxPoolSize(2).setCorePoolSize(2));
+            if (sharedTransport) {
+                // if the container is shared, we don't want to limit thread pool size by default.
+                transportBuilder.setWorkerThreadPoolConfig(ThreadPoolConfig.defaultConfig());
+            } else {
+                transportBuilder.setWorkerThreadPoolConfig(ThreadPoolConfig.defaultConfig().setMaxPoolSize(2).setCorePoolSize(2));
+            }
         } else {
             transportBuilder.setWorkerThreadPoolConfig(workerThreadPoolConfig);
         }
 
         if (selectorThreadPoolConfig == null) {
-            transportBuilder.setSelectorThreadPoolConfig(ThreadPoolConfig.defaultConfig().setMaxPoolSize(1).setCorePoolSize(1));
+            if (sharedTransport) {
+                // if the container is shared, we don't want to limit thread pool size by default.
+                transportBuilder.setWorkerThreadPoolConfig(ThreadPoolConfig.defaultConfig());
+            } else {
+                transportBuilder.setSelectorThreadPoolConfig(ThreadPoolConfig.defaultConfig().setMaxPoolSize(1).setCorePoolSize(1));
+            }
         } else {
             transportBuilder.setSelectorThreadPoolConfig(selectorThreadPoolConfig);
         }
-
-        transportBuilder.setIOStrategy(WorkerThreadIOStrategy.getInstance());
 
         return transportBuilder.build();
     }
@@ -349,7 +415,8 @@ public class GrizzlyClientSocket {
                                                SSLEngineConfigurator clientSSLEngineConfigurator,
                                                boolean proxy,
                                                URI uri,
-                                               ClientEngine.TimeoutHandler timeoutHandler) {
+                                               ClientEngine.TimeoutHandler timeoutHandler,
+                                               boolean sharedTransport) {
         FilterChainBuilder clientFilterChainBuilder = FilterChainBuilder.stateless();
         Filter sslFilter = null;
 
@@ -362,16 +429,18 @@ public class GrizzlyClientSocket {
             clientFilterChainBuilder.add(sslFilter);
         }
         clientFilterChainBuilder.add(new HttpClientFilter());
-        clientFilterChainBuilder.add(new GrizzlyClientFilter(engine, proxy, sslFilter, uri, timeoutHandler));
+        clientFilterChainBuilder.add(new GrizzlyClientFilter(engine, proxy, sslFilter, uri, timeoutHandler, sharedTransport));
         return clientFilterChainBuilder.build();
     }
 
     private void closeTransport() {
-        if (transport != null) {
-            try {
-                transport.shutdownNow();
-            } catch (IOException e) {
-                Logger.getLogger(GrizzlyClientSocket.class.getName()).log(Level.INFO, "Exception thrown when closing Grizzly transport: " + e.getMessage(), e);
+        if (!sharedTransport) {
+            if (privateTransport != null) {
+                try {
+                    privateTransport.shutdownNow();
+                } catch (IOException e) {
+                    Logger.getLogger(GrizzlyClientSocket.class.getName()).log(Level.INFO, "Exception thrown when closing Grizzly transport: " + e.getMessage(), e);
+                }
             }
         }
     }

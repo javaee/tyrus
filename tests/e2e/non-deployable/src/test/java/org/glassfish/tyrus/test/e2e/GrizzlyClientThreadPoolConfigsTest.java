@@ -56,6 +56,7 @@ import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
 import org.glassfish.tyrus.client.ClientManager;
+import org.glassfish.tyrus.container.grizzly.client.GrizzlyClientContainer;
 import org.glassfish.tyrus.container.grizzly.client.GrizzlyClientSocket;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.tools.TestContainer;
@@ -73,6 +74,11 @@ public class GrizzlyClientThreadPoolConfigsTest extends TestContainer {
 
     @Test
     public void testCustomThreadFactories() throws DeploymentException {
+        if (System.getProperties().getProperty(GrizzlyClientContainer.SHARED_CONTAINER) != null) {
+            // test not valid with shared container.
+            return;
+        }
+
         Server server = startServer(EchoEndpoint.class);
 
         try {

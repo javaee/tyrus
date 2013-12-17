@@ -62,6 +62,7 @@ import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
 import org.glassfish.tyrus.client.ClientManager;
+import org.glassfish.tyrus.container.grizzly.client.GrizzlyClientContainer;
 import org.glassfish.tyrus.server.Server;
 
 import org.junit.Test;
@@ -624,6 +625,155 @@ public class ServletTest {
         try {
             for (int i = 0; i < 20; i++) {
                 final ClientManager client = ClientManager.createClient();
+                final Session session = client.connectToServer(new Endpoint() {
+                    @Override
+                    public void onOpen(Session session, EndpointConfig EndpointConfig) {
+                        session.addMessageHandler(new MessageHandler.Whole<String>() {
+                            @Override
+                            public void onMessage(String message) {
+                                assertEquals(LENGTH, message.length());
+                                messageLatch.countDown();
+                                System.out.println("### " + messageLatch.getCount());
+                            }
+                        });
+                    }
+                }, ClientEndpointConfig.Builder.create().build(), getURI(WebSocketBroadcastEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
+                System.out.println("Client " + i + " connected.");
+                sessions.add(session);
+            }
+
+            final long l = System.currentTimeMillis();
+            for (Session s : sessions) {
+                s.getBasicRemote().sendText(text);
+                s.getBasicRemote().sendText(text);
+            }
+
+            messageLatch.await(60, TimeUnit.SECONDS);
+            assertEquals(0, messageLatch.getCount());
+
+            System.out.println("***** WebSocket broadcast ***** " + (System.currentTimeMillis() - l));
+
+        } finally {
+            stopServer(server);
+        }
+    }
+
+    // "performance" test; 20 clients, endpoint broadcasts.
+    @Test
+    public void testTyrusBroadcastStringSharedClientContainer() throws IOException, DeploymentException, InterruptedException {
+        final Server server = startServer();
+
+        final int LENGTH = 587952;
+        byte[] b = new byte[LENGTH];
+        Arrays.fill(b, 0, LENGTH, (byte) 'a');
+
+        final String text = new String(b);
+
+        final CountDownLatch messageLatch = new CountDownLatch(800);
+        final List<Session> sessions = new ArrayList<Session>(20);
+
+        try {
+            for (int i = 0; i < 20; i++) {
+                final ClientManager client = ClientManager.createClient();
+                client.getProperties().put(GrizzlyClientContainer.SHARED_CONTAINER, true);
+                final Session session = client.connectToServer(new Endpoint() {
+                    @Override
+                    public void onOpen(Session session, EndpointConfig EndpointConfig) {
+                        session.addMessageHandler(new MessageHandler.Whole<String>() {
+                            @Override
+                            public void onMessage(String message) {
+                                assertEquals(LENGTH, message.length());
+                                System.out.println("### " + messageLatch.getCount());
+                                messageLatch.countDown();
+                            }
+                        });
+                    }
+                }, ClientEndpointConfig.Builder.create().build(), getURI(TyrusBroadcastEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
+                System.out.println("Client " + i + " connected.");
+                sessions.add(session);
+            }
+
+            final long l = System.currentTimeMillis();
+            for (Session s : sessions) {
+                s.getBasicRemote().sendText(text);
+                s.getBasicRemote().sendText(text);
+            }
+
+            messageLatch.await(100, TimeUnit.SECONDS);
+            assertEquals(0, messageLatch.getCount());
+            System.out.println("***** Tyrus broadcast - text ***** " + (System.currentTimeMillis() - l));
+        } finally {
+            stopServer(server);
+        }
+    }
+
+    // "performance" test; 20 clients, endpoint broadcasts.
+    @Test
+    public void testTyrusBroadcastBinarySharedClientContainer() throws IOException, DeploymentException, InterruptedException {
+        final Server server = startServer();
+
+        final int LENGTH = 587952;
+        byte[] b = new byte[LENGTH];
+        Arrays.fill(b, 0, LENGTH, (byte) 'a');
+
+        final String text = new String(b);
+
+        final CountDownLatch messageLatch = new CountDownLatch(800);
+        final List<Session> sessions = new ArrayList<Session>(20);
+
+        try {
+            for (int i = 0; i < 20; i++) {
+                final ClientManager client = ClientManager.createClient();
+                client.getProperties().put(GrizzlyClientContainer.SHARED_CONTAINER, true);
+                final Session session = client.connectToServer(new Endpoint() {
+                    @Override
+                    public void onOpen(Session session, EndpointConfig EndpointConfig) {
+                        session.addMessageHandler(new MessageHandler.Whole<byte[]>() {
+                            @Override
+                            public void onMessage(byte[] message) {
+                                assertEquals(LENGTH, message.length);
+                                System.out.println("### " + messageLatch.getCount());
+                                messageLatch.countDown();
+                            }
+                        });
+                    }
+                }, ClientEndpointConfig.Builder.create().build(), getURI(TyrusBroadcastEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
+                System.out.println("Client " + i + " connected.");
+                sessions.add(session);
+            }
+
+            final long l = System.currentTimeMillis();
+            for (Session s : sessions) {
+                s.getBasicRemote().sendBinary(ByteBuffer.wrap(text.getBytes()));
+                s.getBasicRemote().sendBinary(ByteBuffer.wrap(text.getBytes()));
+            }
+
+            messageLatch.await(100, TimeUnit.SECONDS);
+            assertEquals(0, messageLatch.getCount());
+            System.out.println("***** Tyrus broadcast - binary ***** " + (System.currentTimeMillis() - l));
+        } finally {
+            stopServer(server);
+        }
+    }
+
+    // "performance" test; 20 clients, endpoint broadcasts.
+    @Test
+    public void testWebSocketBroadcastSharedClientContainer() throws IOException, DeploymentException, InterruptedException {
+        final Server server = startServer();
+
+        final int LENGTH = 587952;
+        byte[] b = new byte[LENGTH];
+        Arrays.fill(b, 0, LENGTH, (byte) 'a');
+
+        final String text = new String(b);
+
+        final CountDownLatch messageLatch = new CountDownLatch(800);
+        final List<Session> sessions = new ArrayList<Session>(20);
+
+        try {
+            for (int i = 0; i < 20; i++) {
+                final ClientManager client = ClientManager.createClient();
+                client.getProperties().put(GrizzlyClientContainer.SHARED_CONTAINER, true);
                 final Session session = client.connectToServer(new Endpoint() {
                     @Override
                     public void onOpen(Session session, EndpointConfig EndpointConfig) {

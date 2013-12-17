@@ -50,10 +50,6 @@ import javax.websocket.DeploymentException;
 import org.glassfish.tyrus.spi.ClientContainer;
 import org.glassfish.tyrus.spi.ClientEngine;
 
-import org.glassfish.grizzly.ssl.SSLContextConfigurator;
-import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
-import org.glassfish.grizzly.threadpool.ThreadPoolConfig;
-
 /**
  * @author Danny Coward (danny.coward at oracle.com)
  * @author Pavel Bucek (pavel.bucek at oracle.com)
@@ -61,6 +57,8 @@ import org.glassfish.grizzly.threadpool.ThreadPoolConfig;
 public class GrizzlyClientContainer implements ClientContainer {
 
     public static final String SSL_ENGINE_CONFIGURATOR = "org.glassfish.tyrus.client.sslEngineConfigurator";
+
+    public static final String SHARED_CONTAINER = "org.glassfish.tyrus.client.sharedContainer";
 
     //The same value Grizzly is using for socket timeout.
     private static final long CLIENT_SOCKET_TIMEOUT = 30000;
@@ -78,21 +76,6 @@ public class GrizzlyClientContainer implements ClientContainer {
             throw new DeploymentException("Invalid URI.", e);
         }
 
-        SSLEngineConfigurator sslEngineConfigurator = (properties == null ? null : (SSLEngineConfigurator) properties.get(SSL_ENGINE_CONFIGURATOR));
-        // if we are trying to access "wss" scheme and we don't have sslEngineConfigurator instance
-        // we should try to create ssl connection using JVM properties.
-        if (uri.getScheme().equalsIgnoreCase("wss") && sslEngineConfigurator == null) {
-            SSLContextConfigurator defaultConfig = new SSLContextConfigurator();
-            defaultConfig.retrieve(System.getProperties());
-            sslEngineConfigurator = new SSLEngineConfigurator(defaultConfig, true, false, false);
-        }
-
-        GrizzlyClientSocket clientSocket = new GrizzlyClientSocket(uri, CLIENT_SOCKET_TIMEOUT,
-                clientEngine,
-                properties == null ? null : sslEngineConfigurator,
-                properties == null ? null : (String) properties.get(GrizzlyClientSocket.PROXY_URI),
-                properties == null ? null : (ThreadPoolConfig) properties.get(GrizzlyClientSocket.WORKER_THREAD_POOL_CONFIG),
-                properties == null ? null : (ThreadPoolConfig) properties.get(GrizzlyClientSocket.SELECTOR_THREAD_POOL_CONFIG));
-        clientSocket.connect();
+        new GrizzlyClientSocket(uri, CLIENT_SOCKET_TIMEOUT, clientEngine, properties).connect();
     }
 }
