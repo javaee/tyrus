@@ -147,6 +147,7 @@ public class TextFutureCompletionHandlerTest extends TestContainer {
             System.out.println("HELLOCFSERVER got  message: " + message + " from session " + session);
             System.out.println("HELLOCFSERVER lets send one back in async mode with a future and completion handler");
             SendHandler sh = new SendHandler() {
+                @Override
                 public void onResult(SendResult sr) {
                     if (!sr.isOK()) {
                         throw new RuntimeException(sr.getException());

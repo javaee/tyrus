@@ -214,6 +214,7 @@ public class CdiTest extends TestContainer {
                 }
             }
 
+            @Override
             public void onError(Session session, Throwable thr) {
                 thr.printStackTrace();
             }

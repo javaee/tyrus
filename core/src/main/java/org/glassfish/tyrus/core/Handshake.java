@@ -58,8 +58,7 @@ import org.glassfish.tyrus.spi.UpgradeResponse;
  */
 public final class Handshake {
 
-    public static final int RESPONSE_CODE_VALUE = 101;
-
+    private static final int RESPONSE_CODE_VALUE = 101;
     private static final String VERSION = "13";
 
     private boolean secure;

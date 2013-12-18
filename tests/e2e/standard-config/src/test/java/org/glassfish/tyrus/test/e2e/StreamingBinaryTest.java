@@ -164,6 +164,7 @@ public class StreamingBinaryTest extends TestContainer {
         //        return null;
         //    }
 
+        @Override
         public void onOpen(Session session, EndpointConfig EndpointConfig) {
 
             System.out.println("STREAMINGBCLIENT opened !");
@@ -173,6 +174,7 @@ public class StreamingBinaryTest extends TestContainer {
             session.addMessageHandler(new MessageHandler.Partial<ByteBuffer>() {
                 StringBuilder sb = new StringBuilder();
 
+                @Override
                 public void onMessage(ByteBuffer bb, boolean last) {
                     System.out.println("STREAMINGBCLIENT piece came: " + new String(bb.array()));
                     sb.append(new String(bb.array()));

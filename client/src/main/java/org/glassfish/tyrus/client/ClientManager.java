@@ -597,7 +597,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
         @Override
         public List<Runnable> shutdownNow() {
             // do nothing.
-            return null;
+            return Collections.emptyList();
         }
 
         @Override

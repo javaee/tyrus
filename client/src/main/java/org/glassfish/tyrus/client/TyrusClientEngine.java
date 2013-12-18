@@ -314,7 +314,7 @@ public class TyrusClientEngine implements ClientEngine {
                             buffer = data;
                             break;
                         } else {
-                            if (reversedNegotiatedExtensions != null && reversedNegotiatedExtensions.size() > 0) {
+                            if (reversedNegotiatedExtensions.size() > 0) {
                                 for (Extension extension : reversedNegotiatedExtensions) {
                                     if (extension instanceof ExtendedExtension) {
                                         frame = ((ExtendedExtension) extension).processIncoming(extensionContext, frame);

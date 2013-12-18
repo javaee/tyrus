@@ -146,6 +146,7 @@ public class JsonTest extends TestContainer {
      */
     public static class JsonDecoder extends CoderAdapter implements Decoder.Text<JSONObject> {
 
+        @Override
         public JSONObject decode(String s) throws DecodeException {
             try {
                 return new JSONObject(s);
@@ -154,6 +155,7 @@ public class JsonTest extends TestContainer {
             }
         }
 
+        @Override
         public boolean willDecode(String s) {
             return true;
         }

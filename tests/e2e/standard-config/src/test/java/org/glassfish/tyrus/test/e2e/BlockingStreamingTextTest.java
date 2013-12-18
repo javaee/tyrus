@@ -134,6 +134,7 @@ public class BlockingStreamingTextTest {
             }
         }
 
+        @Override
         @OnOpen
         public void onOpen(Session session, EndpointConfig EndpointConfig) {
             System.out.println("BLOCKINGSERVER opened !");
@@ -154,6 +155,7 @@ public class BlockingStreamingTextTest {
             this.messageLatch = messageLatch;
         }
 
+        @Override
         public void onOpen(Session session, EndpointConfig EndpointConfig) {
             System.out.println("BLOCKINGCLIENT opened !");
 
@@ -162,6 +164,7 @@ public class BlockingStreamingTextTest {
             session.addMessageHandler(new MessageHandler.Partial<Reader>() {
                 final StringBuilder sb = new StringBuilder();
 
+                @Override
                 public void onMessage(Reader r, boolean isLast) {
                     System.out.println("BLOCKINGCLIENT onMessage called ");
                     try {

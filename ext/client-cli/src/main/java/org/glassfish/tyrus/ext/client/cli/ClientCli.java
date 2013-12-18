@@ -71,9 +71,9 @@ import jline.console.completer.StringsCompleter;
  */
 public class ClientCli {
 
-    public static final String NAME = "tyrus-client";
-    public static final String CONSOLE_PREFIX_NO_CONN = NAME + "> ";
-    public static final String CONSOLE_PREFIX_CONN = "session %s> ";
+    private static final String NAME = "tyrus-client";
+    private static final String CONSOLE_PREFIX_NO_CONN = NAME + "> ";
+    private static final String CONSOLE_PREFIX_CONN = "session %s> ";
 
     private static volatile Session session = null;
 
@@ -283,7 +283,7 @@ public class ClientCli {
     }
 
 
-    protected static void connectToURI(final ConsoleReader console, final String uri, final WebSocketContainer webSocketContainer) throws IOException {
+    private static void connectToURI(final ConsoleReader console, final String uri, final WebSocketContainer webSocketContainer) throws IOException {
 
         // Use a local copy so that we don't get odd race conditions
         //

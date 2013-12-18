@@ -115,6 +115,7 @@ public class BinaryFutureCompletionHandlerTest extends TestContainer {
 
             System.out.println("BINARYCFSERVER lets send one back in async mode with a future and completion handler");
             SendHandler sh = new SendHandler() {
+                @Override
                 public void onResult(SendResult sr) {
                     if (!sr.isOK()) {
                         throw new RuntimeException(sr.getException());

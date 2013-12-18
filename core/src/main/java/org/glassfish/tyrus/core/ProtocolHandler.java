@@ -53,7 +53,6 @@ import javax.websocket.CloseReason;
 import javax.websocket.Extension;
 import javax.websocket.SendHandler;
 import javax.websocket.SendResult;
-import javax.websocket.WebSocketContainer;
 
 import org.glassfish.tyrus.core.frame.BinaryFrame;
 import org.glassfish.tyrus.core.frame.CloseFrame;
@@ -66,6 +65,9 @@ import org.glassfish.tyrus.spi.Writer;
 
 public final class ProtocolHandler {
 
+    /**
+     * RFC 6455
+     */
     public static final int MASK_SIZE = 4;
 
     private final AtomicBoolean onClosedCalled = new AtomicBoolean(false);
@@ -74,23 +76,24 @@ public final class ProtocolHandler {
 
     private WebSocket webSocket;
     private byte outFragmentedType;
-    private long writeTimeoutMs = -1;
-    private WebSocketContainer container;
     private List<Extension> extensions;
     private Writer writer;
     private byte inFragmentedType;
     private boolean processingFragment;
     private boolean sendingFragment = false;
     private ExtendedExtension.ExtensionContext extensionContext;
-
     private ByteBuffer remainder = null;
+
+    ProtocolHandler(boolean maskData) {
+        this.maskData = maskData;
+    }
 
     public Writer getWriter() {
         return writer;
     }
 
-    ProtocolHandler(boolean maskData) {
-        this.maskData = maskData;
+    public void setWriter(Writer handler) {
+        this.writer = handler;
     }
 
     public Handshake handshake(WebSocketApplication app, UpgradeRequest request, UpgradeResponse response, ExtendedExtension.ExtensionContext extensionContext) {
@@ -101,10 +104,6 @@ public final class ProtocolHandler {
         this.extensions.addAll(app.getSupportedExtensions());
         Collections.reverse(extensions);
         return handshake;
-    }
-
-    public void setWriter(Writer handler) {
-        this.writer = handler;
     }
 
     /**
@@ -378,24 +377,6 @@ public final class ProtocolHandler {
         }
     }
 
-    /**
-     * Sets the timeout for the writing operation.
-     *
-     * @param timeoutMs timeout in milliseconds.
-     */
-    public void setWriteTimeout(long timeoutMs) {
-        this.writeTimeoutMs = timeoutMs;
-    }
-
-    /**
-     * Sets the container.
-     *
-     * @param container container.
-     */
-    public void setContainer(WebSocketContainer container) {
-        this.container = container;
-    }
-
     public ByteBuffer frame(Frame frame) {
 
         if (extensions != null && extensions.size() > 0) {
@@ -597,8 +578,7 @@ public final class ProtocolHandler {
         }
     }
 
-
-    boolean isControlFrame(byte opcode) {
+    private boolean isControlFrame(byte opcode) {
         return (opcode & 0x08) == 0x08;
     }
 

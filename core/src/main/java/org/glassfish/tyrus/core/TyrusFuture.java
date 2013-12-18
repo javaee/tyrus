@@ -47,7 +47,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 /**
- * Represents the result of writing a {@link DataFrame}.
+ * Simple {@link Future} implementation.
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */

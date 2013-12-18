@@ -94,9 +94,11 @@ public class ServerEndpointPathTest extends TestContainer {
 
             ClientManager client = ClientManager.createClient();
             client.connectToServer(new Endpoint() {
+                @Override
                 public void onOpen(Session session, EndpointConfig EndpointConfig) {
                     try {
                         session.addMessageHandler(new MessageHandler.Whole<String>() {
+                            @Override
                             public void onMessage(String message) {
                                 receivedMessage = message;
                                 messageLatch.countDown();

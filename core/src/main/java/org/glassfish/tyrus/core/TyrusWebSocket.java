@@ -89,7 +89,7 @@ public class TyrusWebSocket implements WebSocket {
 
     @Override
     public void setWriteTimeout(long timeoutMs) {
-        protocolHandler.setWriteTimeout(timeoutMs);
+        // do nothing.
     }
 
     @Override

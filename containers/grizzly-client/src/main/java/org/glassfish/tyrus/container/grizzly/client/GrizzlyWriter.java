@@ -62,7 +62,7 @@ public class GrizzlyWriter extends Writer {
 
     private final Queue<Task> taskQueue = new ConcurrentLinkedQueue<Task>();
 
-    protected final org.glassfish.grizzly.Connection connection;
+    final org.glassfish.grizzly.Connection connection;
 
     public GrizzlyWriter(final org.glassfish.grizzly.Connection connection) {
         this.connection = connection;

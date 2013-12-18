@@ -199,7 +199,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
         private final WebSocket socket;
         private final WebSocketApplication application;
         private final int incomingBufferSize;
-        private final List<Extension> processChain;
+        private final List<Extension> negotiatedExtensions;
         private final ExtendedExtension.ExtensionContext extensionContext;
 
         private volatile ByteBuffer buffer;
@@ -210,8 +210,8 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
             this.socket = socket;
             this.application = application;
             this.incomingBufferSize = incomingBufferSize;
-            this.processChain = new ArrayList<Extension>();
-            processChain.addAll(application.getSupportedExtensions());
+            this.negotiatedExtensions = new ArrayList<Extension>();
+            negotiatedExtensions.addAll(application.getSupportedExtensions());
         }
 
         @Override
@@ -242,8 +242,8 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
                         } else {
                             Frame frame = incomingFrame;
 
-                            if (processChain != null && processChain.size() > 0) {
-                                for (Extension extension : processChain) {
+                            if (negotiatedExtensions.size() > 0) {
+                                for (Extension extension : negotiatedExtensions) {
                                     if (extension instanceof ExtendedExtension) {
                                         frame = ((ExtendedExtension) extension).processIncoming(extensionContext, frame);
                                     }

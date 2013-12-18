@@ -159,6 +159,7 @@ public class StreamingTextTest extends TestContainer {
         //        return null;
         //    }
 
+        @Override
         public void onOpen(Session session, EndpointConfig EndpointConfig) {
             System.out.println("STREAMINGCLIENT opened !");
 
@@ -175,6 +176,7 @@ public class StreamingTextTest extends TestContainer {
             session.addMessageHandler(new MessageHandler.Partial<String>() {
                 StringBuilder sb = new StringBuilder();
 
+                @Override
                 public void onMessage(String text, boolean last) {
                     System.out.println("STREAMINGCLIENT piece came: " + text);
                     sb.append(text);

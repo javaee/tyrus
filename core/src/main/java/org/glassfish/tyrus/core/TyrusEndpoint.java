@@ -109,7 +109,6 @@ public class TyrusEndpoint extends WebSocketApplication {
 
     @Override
     public WebSocket createSocket(final ProtocolHandler handler, final WebSocketListener listener) {
-        handler.setContainer(endpoint.getWebSocketContainer());
         return new TyrusWebSocket(handler, listener);
     }
 

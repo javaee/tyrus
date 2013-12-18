@@ -58,10 +58,12 @@ public class HelloTextClient extends Endpoint {
         this.messageLatch = messageLatch;
     }
 
+    @Override
     public void onOpen(Session session, EndpointConfig EndpointConfig) {
         System.out.println("HELLOCLIENT opened !!");
         try {
             session.addMessageHandler(new MessageHandler.Whole<String>() {
+                @Override
                 public void onMessage(String text) {
                     System.out.println("HELLOCLIENT received: " + text);
                     gotSomethingBack = true;
