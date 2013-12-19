@@ -43,11 +43,11 @@ package org.glassfish.tyrus.core.extension;
 /**
  * Compression extension for webkit based browsers.
  * <p/>
- * Very same as {@link org.glassfish.tyrus.core.extension.CompressionExtension}, only name differs.
+ * Very same as {@link PermessageDeflateExtension}, only name differs.
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class WebkitDeflateExtension extends CompressionExtension {
+public class XWebkitDeflateExtension extends PermessageDeflateExtension {
     @Override
     public String getName() {
         return "x-webkit-deflate-frame";

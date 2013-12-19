@@ -68,7 +68,7 @@ import org.glassfish.tyrus.core.Frame;
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class CompressionExtension implements ExtendedExtension {
+public class PermessageDeflateExtension implements ExtendedExtension {
 
     private static final Pool<byte[]> BYTE_ARRAY_POOL = new Pool<byte[]>() {
         @Override
@@ -77,10 +77,10 @@ public class CompressionExtension implements ExtendedExtension {
         }
     };
 
-    private static final String INFLATER = CompressionExtension.class.getName() + ".INFLATER";
-    private static final String DEFLATER = CompressionExtension.class.getName() + ".DEFLATER";
+    private static final String INFLATER = PermessageDeflateExtension.class.getName() + ".INFLATER";
+    private static final String DEFLATER = PermessageDeflateExtension.class.getName() + ".DEFLATER";
 
-    private static final Logger LOGGER = Logger.getLogger(CompressionExtension.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(PermessageDeflateExtension.class.getName());
     private static final boolean DEBUG = LOGGER.isLoggable(Level.FINE);
 
     private static final byte[] TAIL = {0x00, 0x00, (byte) 0xff, (byte) 0xff};

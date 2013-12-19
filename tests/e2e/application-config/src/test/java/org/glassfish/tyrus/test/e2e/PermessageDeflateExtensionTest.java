@@ -63,7 +63,7 @@ import javax.websocket.Session;
 import javax.websocket.server.ServerEndpointConfig;
 
 import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.core.extension.CompressionExtension;
+import org.glassfish.tyrus.core.extension.PermessageDeflateExtension;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.server.TyrusServerConfiguration;
 import org.glassfish.tyrus.test.tools.TestContainer;
@@ -74,9 +74,9 @@ import static org.junit.Assert.assertTrue;
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class CompressionExtensionTest extends TestContainer {
+public class PermessageDeflateExtensionTest extends TestContainer {
 
-    public CompressionExtensionTest() {
+    public PermessageDeflateExtensionTest() {
         this.setContextPath("/e2e-test-appconfig");
     }
 
@@ -84,7 +84,7 @@ public class CompressionExtensionTest extends TestContainer {
         public ServerDeployApplicationConfig() {
             super(Collections.<Class<?>>emptySet(), new HashSet<ServerEndpointConfig>() {{
                 add(ServerEndpointConfig.Builder.create(EchoEndpoint.class, "/compressionExtensionTest")
-                        .extensions(Arrays.<Extension>asList(new CompressionExtension())).build());
+                        .extensions(Arrays.<Extension>asList(new PermessageDeflateExtension())).build());
             }});
         }
     }
@@ -113,7 +113,7 @@ public class CompressionExtensionTest extends TestContainer {
 
         try {
             ArrayList<Extension> extensions = new ArrayList<Extension>();
-            extensions.add(new CompressionExtension());
+            extensions.add(new PermessageDeflateExtension());
 
             final ClientEndpointConfig clientConfiguration = ClientEndpointConfig.Builder.create()
                     .extensions(extensions)
@@ -138,7 +138,7 @@ public class CompressionExtensionTest extends TestContainer {
 
             boolean compressionNegotiated = false;
             for (Extension e : session.getNegotiatedExtensions()) {
-                if (e instanceof CompressionExtension) {
+                if (e instanceof PermessageDeflateExtension) {
                     compressionNegotiated = true;
                 }
             }
