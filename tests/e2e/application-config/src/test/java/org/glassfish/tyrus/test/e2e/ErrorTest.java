@@ -83,7 +83,7 @@ public class ErrorTest extends TestContainer {
                 add(OnOpenErrorTestEndpoint.class);
                 add(OnCloseErrorTestEndpoint.class);
                 add(ServiceEndpoint.class);
-            }}, Collections.<ServerEndpointConfig> emptySet());
+            }}, Collections.<ServerEndpointConfig>emptySet());
         }
     }
 
@@ -202,20 +202,20 @@ public class ErrorTest extends TestContainer {
 
         @OnMessage
         public String onMessage(String message) {
-            if (message.equals("OnCloseErrorTestEndpoint")){
-                if(OnCloseErrorTestEndpoint.throwable != null && OnCloseErrorTestEndpoint.session != null) {
+            if (message.equals("OnCloseErrorTestEndpoint")) {
+                if (OnCloseErrorTestEndpoint.throwable != null && OnCloseErrorTestEndpoint.session != null) {
                     return POSITIVE;
                 }
-            } else if(message.equals("OnOpenErrorTestEndpoint")) {
-                if(OnOpenErrorTestEndpoint.throwable != null && OnOpenErrorTestEndpoint.session != null) {
+            } else if (message.equals("OnOpenErrorTestEndpoint")) {
+                if (OnOpenErrorTestEndpoint.throwable != null && OnOpenErrorTestEndpoint.session != null) {
                     return POSITIVE;
                 }
-            } else if(message.equals("OnOpenExceptionEndpoint")) {
-                if(OnOpenExceptionEndpoint.throwable != null && OnOpenExceptionEndpoint.session != null) {
+            } else if (message.equals("OnOpenExceptionEndpoint")) {
+                if (OnOpenExceptionEndpoint.throwable != null && OnOpenExceptionEndpoint.session != null) {
                     return POSITIVE;
                 }
-            } else if(message.equals("OnMessageExceptionEndpoint")) {
-                if(OnMessageExceptionEndpoint.throwable != null && OnMessageExceptionEndpoint.session != null) {
+            } else if (message.equals("OnMessageExceptionEndpoint")) {
+                if (OnMessageExceptionEndpoint.throwable != null && OnMessageExceptionEndpoint.session != null) {
                     return POSITIVE;
                 }
             }

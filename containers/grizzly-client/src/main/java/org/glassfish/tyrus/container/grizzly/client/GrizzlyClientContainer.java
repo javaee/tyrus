@@ -58,7 +58,20 @@ public class GrizzlyClientContainer implements ClientContainer {
 
     public static final String SSL_ENGINE_CONFIGURATOR = "org.glassfish.tyrus.client.sslEngineConfigurator";
 
+    /**
+     * When set to {@code true} (boolean value), client runtime preserves used container and reuses it for outgoing
+     * connections.
+     *
+     * @see #SHARED_CONTAINER_IDLE_TIMEOUT
+     */
     public static final String SHARED_CONTAINER = "org.glassfish.tyrus.client.sharedContainer";
+
+    /**
+     * Container idle timeout in seconds (Integer value).
+     *
+     * @see #SHARED_CONTAINER
+     */
+    public static final String SHARED_CONTAINER_IDLE_TIMEOUT = "org.glassfish.tyrus.client.sharedContainerIdleTimeout";
 
     //The same value Grizzly is using for socket timeout.
     private static final long CLIENT_SOCKET_TIMEOUT = 30000;

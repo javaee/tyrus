@@ -492,8 +492,10 @@ public class TyrusSession implements Session {
      * @param state the newly set state.
      */
     void setState(State state) {
-        checkConnectionState(State.CLOSED);
-        this.state.set(state);
+        if (!state.equals(this.state.get())) {
+            checkConnectionState(State.CLOSED);
+            this.state.set(state);
+        }
     }
 
     TextBuffer getTextBuffer() {

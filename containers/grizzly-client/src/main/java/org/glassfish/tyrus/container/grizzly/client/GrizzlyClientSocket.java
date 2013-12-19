@@ -126,14 +126,11 @@ public class GrizzlyClientSocket {
     private final ThreadPoolConfig selectorThreadPoolConfig;
     private final ClientEngine engine;
     private final boolean sharedTransport;
-
-    private SocketAddress socketAddress;
+    private final Integer sharedTransportTimeout;
+    private final SocketAddress socketAddress;
 
     private static volatile TCPNIOTransport transport;
     private static final Object TRANSPORT_LOCK = new Object();
-
-    private TCPNIOTransport privateTransport;
-
 
     /**
      * Create new instance.
@@ -170,13 +167,18 @@ public class GrizzlyClientSocket {
                 }
             }
             this.sharedTransport = (shared == null ? false : shared);
+            if (this.sharedTransport) {
+                GrizzlyTransportTimeoutFilter.lastAccessed = System.currentTimeMillis();
+            }
+            // default value for shared transport timeout is 30.
+            sharedTransportTimeout = sharedTransport ? getProperty(properties, GrizzlyClientContainer.SHARED_CONTAINER_IDLE_TIMEOUT, Integer.class) : 30;
             this.engine = engine;
         } catch (RuntimeException e) {
             e.printStackTrace();
             throw e;
         }
 
-        setProxy(properties == null ? null : (String) properties.get(GrizzlyClientSocket.PROXY_URI));
+        socketAddress = processProxy((properties == null ? null : (String) properties.get(GrizzlyClientSocket.PROXY_URI)));
     }
 
     private <T> T getProperty(Map<String, Object> properties, String key, Class<T> type) {
@@ -195,14 +197,11 @@ public class GrizzlyClientSocket {
      * Connects to the given {@link URI}.
      */
     public void connect() throws IOException, DeploymentException {
+        TCPNIOTransport privateTransport = null;
+
         try {
             if (sharedTransport) {
-                synchronized (TRANSPORT_LOCK) {
-                    if (transport == null) {
-                        transport = createTransport(workerThreadPoolConfig, selectorThreadPoolConfig);
-                        transport.start();
-                    }
-                }
+                privateTransport = getOrCreateSharedTransport(workerThreadPoolConfig, selectorThreadPoolConfig);
             }
         } catch (IOException e) {
             LOGGER.log(Level.SEVERE, "Transport failed to start.", e);
@@ -221,7 +220,6 @@ public class GrizzlyClientSocket {
             } catch (IOException e) {
                 LOGGER.log(Level.SEVERE, "Transport failed to start.", e);
                 throw e;
-
             }
 
             final TCPNIOConnectorHandler connectorHandler = new TCPNIOConnectorHandler(sharedTransport ? transport : privateTransport) {
@@ -231,22 +229,23 @@ public class GrizzlyClientSocket {
 
             GrizzlyFuture<Connection> connectionGrizzlyFuture;
 
+            final TCPNIOTransport finalPrivateTransport = privateTransport;
             final ClientEngine.TimeoutHandler timeoutHandler = new ClientEngine.TimeoutHandler() {
                 @Override
                 public void handleTimeout() {
-                    closeTransport();
+                    closeTransport(finalPrivateTransport);
                 }
             };
 
             switch (proxy.type()) {
                 case DIRECT:
-                    connectorHandler.setProcessor(createFilterChain(engine, null, clientSSLEngineConfigurator, false, uri, timeoutHandler, sharedTransport));
+                    connectorHandler.setProcessor(createFilterChain(engine, null, clientSSLEngineConfigurator, false, uri, timeoutHandler, sharedTransport, sharedTransportTimeout));
 
                     LOGGER.log(Level.CONFIG, String.format("Connecting to '%s' (no proxy).", uri));
                     connectionGrizzlyFuture = connectorHandler.connect(socketAddress);
                     break;
                 default:
-                    connectorHandler.setProcessor(createFilterChain(engine, null, clientSSLEngineConfigurator, true, uri, timeoutHandler, sharedTransport));
+                    connectorHandler.setProcessor(createFilterChain(engine, null, clientSSLEngineConfigurator, true, uri, timeoutHandler, sharedTransport, sharedTransportTimeout));
 
                     LOGGER.log(Level.CONFIG, String.format("Connecting to '%s' via proxy '%s'.", uri, proxy));
 
@@ -255,7 +254,7 @@ public class GrizzlyClientSocket {
                     if (address instanceof InetSocketAddress) {
                         InetSocketAddress inetSocketAddress = (InetSocketAddress) address;
                         if (inetSocketAddress.isUnresolved()) {
-                            // resolves the address.
+                            // resolve the address.
                             address = new InetSocketAddress(inetSocketAddress.getHostName(), inetSocketAddress.getPort());
                         }
                     }
@@ -271,10 +270,10 @@ public class GrizzlyClientSocket {
                 return;
             } catch (InterruptedException interruptedException) {
                 LOGGER.log(Level.CONFIG, String.format("Connection to '%s' failed.", uri), interruptedException);
-                closeTransport();
+                closeTransport(privateTransport);
             } catch (TimeoutException timeoutException) {
                 LOGGER.log(Level.CONFIG, String.format("Connection to '%s' failed.", uri), timeoutException);
-                closeTransport();
+                closeTransport(privateTransport);
             } catch (ExecutionException executionException) {
                 LOGGER.log(Level.CONFIG, String.format("Connection to '%s' failed.", uri), executionException);
 
@@ -285,7 +284,7 @@ public class GrizzlyClientSocket {
                     ProxySelector.getDefault().connectFailed(uri, socketAddress, ioException);
                 }
 
-                closeTransport();
+                closeTransport(privateTransport);
 
                 if (ioException != null) {
                     throw ioException;
@@ -296,7 +295,11 @@ public class GrizzlyClientSocket {
         throw new DeploymentException("Connection failed.");
     }
 
-    private TCPNIOTransport createTransport(ThreadPoolConfig workerThreadPoolConfig, ThreadPoolConfig selectorThreadPoolConfig) {
+    private static TCPNIOTransport createTransport(ThreadPoolConfig workerThreadPoolConfig, ThreadPoolConfig selectorThreadPoolConfig) {
+        return createTransport(workerThreadPoolConfig, selectorThreadPoolConfig, false);
+    }
+
+    private static TCPNIOTransport createTransport(ThreadPoolConfig workerThreadPoolConfig, ThreadPoolConfig selectorThreadPoolConfig, boolean sharedTransport) {
 
         // TYRUS-188: lots of threads were created for every single client instance.
         TCPNIOTransportBuilder transportBuilder = TCPNIOTransportBuilder.newInstance();
@@ -326,7 +329,7 @@ public class GrizzlyClientSocket {
         return transportBuilder.build();
     }
 
-    private void setProxy(String proxyString) {
+    private SocketAddress processProxy(String proxyString) {
         URI proxyUri;
         try {
             if (proxyString != null) {
@@ -366,7 +369,7 @@ public class GrizzlyClientSocket {
         if (LOGGER.isLoggable(Level.FINE)) {
             LOGGER.log(Level.FINE, String.format(String.format("Not using proxy for URI '%s'.", uri)));
         }
-        socketAddress = new InetSocketAddress(uri.getHost(), port);
+        return new InetSocketAddress(uri.getHost(), port);
     }
 
     /**
@@ -416,7 +419,7 @@ public class GrizzlyClientSocket {
                                                boolean proxy,
                                                URI uri,
                                                ClientEngine.TimeoutHandler timeoutHandler,
-                                               boolean sharedTransport) {
+                                               boolean sharedTransport, Integer sharedTransportTimeout) {
         FilterChainBuilder clientFilterChainBuilder = FilterChainBuilder.stateless();
         Filter sslFilter = null;
 
@@ -428,20 +431,53 @@ public class GrizzlyClientSocket {
             }
             clientFilterChainBuilder.add(sslFilter);
         }
+
+        if (sharedTransport) {
+            clientFilterChainBuilder.add(new GrizzlyTransportTimeoutFilter(sharedTransportTimeout));
+        }
+
         clientFilterChainBuilder.add(new HttpClientFilter());
         clientFilterChainBuilder.add(new GrizzlyClientFilter(engine, proxy, sslFilter, uri, timeoutHandler, sharedTransport));
         return clientFilterChainBuilder.build();
     }
 
-    private void closeTransport() {
+    private void closeTransport(TCPNIOTransport transport) {
         if (!sharedTransport) {
-            if (privateTransport != null) {
+            if (transport != null) {
                 try {
-                    privateTransport.shutdownNow();
+                    transport.shutdownNow();
                 } catch (IOException e) {
                     Logger.getLogger(GrizzlyClientSocket.class.getName()).log(Level.INFO, "Exception thrown when closing Grizzly transport: " + e.getMessage(), e);
                 }
             }
+        } else {
+            closeSharedTransport();
+        }
+    }
+
+    private static TCPNIOTransport getOrCreateSharedTransport(ThreadPoolConfig workerThreadPoolConfig, ThreadPoolConfig selectorThreadPoolConfig) throws IOException {
+        synchronized (TRANSPORT_LOCK) {
+            if (transport == null) {
+                Logger.getLogger(GrizzlyClientSocket.class.getName()).log(Level.FINE, "Starting shared container.");
+                transport = createTransport(workerThreadPoolConfig, selectorThreadPoolConfig, true);
+                transport.start();
+            }
+        }
+
+        return transport;
+    }
+
+    static void closeSharedTransport() {
+        synchronized (TRANSPORT_LOCK) {
+            if (transport != null) {
+                try {
+                    Logger.getLogger(GrizzlyClientSocket.class.getName()).log(Level.FINE, "Stopping shared container.");
+                    transport.shutdownNow();
+                } catch (IOException e) {
+                    Logger.getLogger(GrizzlyClientSocket.class.getName()).log(Level.INFO, "Exception thrown when closing Grizzly transport: " + e.getMessage(), e);
+                }
+            }
+            transport = null;
         }
     }
 
