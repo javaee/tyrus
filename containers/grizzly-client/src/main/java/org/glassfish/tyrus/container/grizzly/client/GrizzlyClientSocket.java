@@ -170,8 +170,10 @@ public class GrizzlyClientSocket {
             if (this.sharedTransport) {
                 GrizzlyTransportTimeoutFilter.lastAccessed = System.currentTimeMillis();
             }
+
+            final Integer sharedTransportTimeoutProperty = getProperty(properties, GrizzlyClientContainer.SHARED_CONTAINER_IDLE_TIMEOUT, Integer.class);
             // default value for shared transport timeout is 30.
-            sharedTransportTimeout = sharedTransport ? getProperty(properties, GrizzlyClientContainer.SHARED_CONTAINER_IDLE_TIMEOUT, Integer.class) : 30;
+            sharedTransportTimeout = (sharedTransport && sharedTransportTimeoutProperty != null) ? sharedTransportTimeoutProperty : 30;
             this.engine = engine;
         } catch (RuntimeException e) {
             e.printStackTrace();
