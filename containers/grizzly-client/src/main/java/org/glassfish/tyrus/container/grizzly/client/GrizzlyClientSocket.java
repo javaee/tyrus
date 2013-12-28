@@ -166,9 +166,9 @@ public class GrizzlyClientSocket {
                     shared = true;
                 }
             }
-            this.sharedTransport = (shared == null ? false : shared);
-            if (this.sharedTransport) {
-                GrizzlyTransportTimeoutFilter.lastAccessed = System.currentTimeMillis();
+            sharedTransport = (shared == null ? false : shared);
+            if (sharedTransport) {
+                GrizzlyTransportTimeoutFilter.touch();
             }
 
             final Integer sharedTransportTimeoutProperty = getProperty(properties, GrizzlyClientContainer.SHARED_CONTAINER_IDLE_TIMEOUT, Integer.class);
@@ -444,16 +444,12 @@ public class GrizzlyClientSocket {
     }
 
     private void closeTransport(TCPNIOTransport transport) {
-        if (!sharedTransport) {
-            if (transport != null) {
-                try {
-                    transport.shutdownNow();
-                } catch (IOException e) {
-                    Logger.getLogger(GrizzlyClientSocket.class.getName()).log(Level.INFO, "Exception thrown when closing Grizzly transport: " + e.getMessage(), e);
-                }
+        if (transport != null) {
+            try {
+                transport.shutdownNow();
+            } catch (IOException e) {
+                Logger.getLogger(GrizzlyClientSocket.class.getName()).log(Level.INFO, "Exception thrown when closing Grizzly transport: " + e.getMessage(), e);
             }
-        } else {
-            closeSharedTransport();
         }
     }
 

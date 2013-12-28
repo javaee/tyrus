@@ -46,6 +46,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.glassfish.grizzly.filterchain.BaseFilter;
 import org.glassfish.grizzly.filterchain.FilterChainContext;
@@ -58,48 +60,57 @@ import org.glassfish.grizzly.filterchain.NextAction;
  */
 class GrizzlyTransportTimeoutFilter extends BaseFilter {
 
+    private static final Logger LOGGER = Logger.getLogger(GrizzlyTransportTimeoutFilter.class.getName());
     private static final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
-    private final int timeout;
+    private static final AtomicInteger connectionCounter = new AtomicInteger(0);
 
     /**
      * Should be updated whenever you don't want to the container to be stopped. (lastAccessed + timeout) is used
      * for evaluating timeout condition when there are no ongoing connections.
      */
-    static volatile long lastAccessed;
-
-    private static final AtomicInteger connectionCounter = new AtomicInteger(0);
+    private static volatile long lastAccessed;
     private static volatile boolean closed;
     private static volatile ScheduledFuture<?> timeoutTask;
+
+    private final int timeout;
 
     public GrizzlyTransportTimeoutFilter(int timeout) {
         this.timeout = timeout;
         closed = false;
     }
 
+    /**
+     * Update last accessed info.
+     */
+    public static void touch() {
+        lastAccessed = System.currentTimeMillis();
+    }
+
     @Override
     public NextAction handleConnect(FilterChainContext ctx) throws IOException {
         connectionCounter.incrementAndGet();
-        lastAccessed = System.currentTimeMillis();
+        touch();
         return super.handleConnect(ctx);
     }
 
     @Override
     public NextAction handleClose(FilterChainContext ctx) throws IOException {
         final int connectionCount = connectionCounter.decrementAndGet();
-        lastAccessed = System.currentTimeMillis();
+        touch();
 
         if (connectionCount == 0 && timeoutTask == null) {
-            timeoutTask = executorService.schedule(new IdleTimeoutTransportCommand(connectionCounter), timeout, TimeUnit.SECONDS);
+            LOGGER.log(Level.FINER, "Scheduling IdleTimeoutTransportTask: " + timeout + " seconds.");
+            timeoutTask = executorService.schedule(new IdleTimeoutTransportTask(connectionCounter), timeout, TimeUnit.SECONDS);
         }
 
         return super.handleClose(ctx);
     }
 
-    private class IdleTimeoutTransportCommand implements Runnable {
+    private class IdleTimeoutTransportTask implements Runnable {
 
         private final AtomicInteger connectionCounter;
 
-        private IdleTimeoutTransportCommand(AtomicInteger connectionCounter) {
+        private IdleTimeoutTransportTask(AtomicInteger connectionCounter) {
             this.connectionCounter = connectionCounter;
         }
 
@@ -112,7 +123,10 @@ class GrizzlyTransportTimeoutFilter extends BaseFilter {
                     timeoutTask = null;
                     GrizzlyClientSocket.closeSharedTransport();
                 } else {
-                    timeoutTask = executorService.schedule(new IdleTimeoutTransportCommand(connectionCounter), currentTime - lastAccessed + (timeout * 1000), TimeUnit.MILLISECONDS);
+                    final long delay = (lastAccessed + (timeout * 1000)) - currentTime;
+                    LOGGER.log(Level.FINER, "Scheduling IdleTimeoutTransportTask: " + delay / 1000 + " seconds.");
+
+                    timeoutTask = executorService.schedule(new IdleTimeoutTransportTask(connectionCounter), delay, TimeUnit.MILLISECONDS);
                 }
             }
         }

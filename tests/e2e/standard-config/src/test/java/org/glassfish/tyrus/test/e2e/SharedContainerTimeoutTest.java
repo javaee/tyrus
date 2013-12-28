@@ -78,7 +78,7 @@ public class SharedContainerTimeoutTest extends TestContainer {
         Thread.sleep(10000);
 
         // shared client transport should be stopped now.
-//        assertTrue(activeThreads > Thread.activeCount());
+        assertTrue(activeThreads > Thread.activeCount());
 
         // test shared container restart.
         _testHello();
@@ -92,14 +92,14 @@ public class SharedContainerTimeoutTest extends TestContainer {
         Thread.sleep(10000);
 
         // shared client transport should be stopped now.
-//        assertTrue(activeThreads > Thread.activeCount());
+        assertTrue(activeThreads > Thread.activeCount());
 
         // test shared container restart.
         _testHello();
 
     }
 
-    public void _testHello() throws DeploymentException {
+    void _testHello() throws DeploymentException {
         final CountDownLatch messageLatch;
 
         final Server server = startServer(EchoEndpoint.class);
