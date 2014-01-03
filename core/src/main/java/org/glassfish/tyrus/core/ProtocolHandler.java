@@ -83,6 +83,7 @@ public final class ProtocolHandler {
     private boolean sendingFragment = false;
     private ExtendedExtension.ExtensionContext extensionContext;
     private ByteBuffer remainder = null;
+    private boolean hasExtensions = false;
 
     ProtocolHandler(boolean maskData) {
         this.maskData = maskData;
@@ -96,6 +97,25 @@ public final class ProtocolHandler {
         this.writer = handler;
     }
 
+    /**
+     * Returns true when current connection has some negotiated extension.
+     *
+     * @return {@code true} if there is at least one negotiated extension associated to this connection,
+     * {@code false} otherwise.
+     */
+    public boolean hasExtensions() {
+        return hasExtensions;
+    }
+
+    /**
+     * Server side.
+     *
+     * @param app              TODO.
+     * @param request          TODO.
+     * @param response         TODO.
+     * @param extensionContext TODO.
+     * @return TODO.
+     */
     public Handshake handshake(WebSocketApplication app, UpgradeRequest request, UpgradeResponse response, ExtendedExtension.ExtensionContext extensionContext) {
         final Handshake handshake = createHandShake(request, extensionContext);
         handshake.respond(response, app);
@@ -103,6 +123,7 @@ public final class ProtocolHandler {
         this.extensions = new ArrayList<Extension>();
         this.extensions.addAll(app.getSupportedExtensions());
         Collections.reverse(extensions);
+        hasExtensions = extensions != null && extensions.size() > 0;
         return handshake;
     }
 
@@ -131,6 +152,7 @@ public final class ProtocolHandler {
      */
     public void setExtensions(List<Extension> extensions) {
         this.extensions = extensions;
+        this.hasExtensions = extensions != null && extensions.size() > 0;
     }
 
     /**
@@ -446,7 +468,6 @@ public final class ProtocolHandler {
                         state.finalFragment = isBitSet(opcode, 7);
                         state.controlFrame = isControlFrame(opcode);
                         state.opcode = (byte) (opcode & 0x7f);
-//                        state.tyrusFrame = valueOf(inFragmentedType, state.opcode);
                         if (!state.finalFragment && state.controlFrame) {
                             throw new ProtocolError("Fragmented control frame");
                         }

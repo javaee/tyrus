@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -896,16 +896,32 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
             if (e.getValue().isOpen()) {
 
                 final TyrusRemoteEndpoint remoteEndpoint = (TyrusRemoteEndpoint) e.getKey();
+                final ProtocolHandler protocolHandler = ((TyrusWebSocket) remoteEndpoint.getSocket()).getProtocolHandler();
 
-                if (frame == null) {
-                    final Frame wrappedFrame = new TextFrame(message, false, true);
-                    final ByteBuffer byteBuffer = ((TyrusWebSocket) remoteEndpoint.getSocket()).getProtocolHandler().frame(wrappedFrame);
-                    frame = new byte[byteBuffer.remaining()];
-                    byteBuffer.get(frame);
+                // we need to let protocol handler execute extensions if there are any
+                if (protocolHandler.hasExtensions()) {
+                    byte[] tempFrame;
+
+                    final Frame dataFrame = new TextFrame(message, false, true);
+                    final ByteBuffer byteBuffer = ((TyrusWebSocket) remoteEndpoint.getSocket()).getProtocolHandler().frame(dataFrame);
+                    tempFrame = new byte[byteBuffer.remaining()];
+                    byteBuffer.get(tempFrame);
+
+                    final Future<Frame> frameFuture = remoteEndpoint.sendRawFrame(ByteBuffer.wrap(tempFrame));
+                    futures.put(e.getValue(), frameFuture);
+
+                } else {
+
+                    if (frame == null) {
+                        final Frame dataFrame = new TextFrame(message, false, true);
+                        final ByteBuffer byteBuffer = ((TyrusWebSocket) remoteEndpoint.getSocket()).getProtocolHandler().frame(dataFrame);
+                        frame = new byte[byteBuffer.remaining()];
+                        byteBuffer.get(frame);
+                    }
+
+                    final Future<Frame> frameFuture = remoteEndpoint.sendRawFrame(ByteBuffer.wrap(frame));
+                    futures.put(e.getValue(), frameFuture);
                 }
-
-                final Future<Frame> frameFuture = remoteEndpoint.sendRawFrame(ByteBuffer.wrap(frame));
-                futures.put(e.getValue(), frameFuture);
             }
         }
 
@@ -927,19 +943,37 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
             if (e.getValue().isOpen()) {
 
                 final TyrusRemoteEndpoint remoteEndpoint = (TyrusRemoteEndpoint) e.getKey();
+                final ProtocolHandler protocolHandler = ((TyrusWebSocket) remoteEndpoint.getSocket()).getProtocolHandler();
 
-                if (frame == null) {
+                // we need to let protocol handler execute extensions if there are any
+                if (protocolHandler.hasExtensions()) {
+                    byte[] tempFrame;
                     byte[] byteArrayMessage = new byte[message.remaining()];
                     message.get(byteArrayMessage);
 
                     final Frame dataFrame = new BinaryFrame(byteArrayMessage, false, true);
                     final ByteBuffer byteBuffer = ((TyrusWebSocket) remoteEndpoint.getSocket()).getProtocolHandler().frame(dataFrame);
-                    frame = new byte[byteBuffer.remaining()];
-                    byteBuffer.get(frame);
-                }
+                    tempFrame = new byte[byteBuffer.remaining()];
+                    byteBuffer.get(tempFrame);
 
-                final Future<Frame> frameFuture = remoteEndpoint.sendRawFrame(ByteBuffer.wrap(frame));
-                futures.put(e.getValue(), frameFuture);
+                    final Future<Frame> frameFuture = remoteEndpoint.sendRawFrame(ByteBuffer.wrap(tempFrame));
+                    futures.put(e.getValue(), frameFuture);
+
+                } else {
+
+                    if (frame == null) {
+                        byte[] byteArrayMessage = new byte[message.remaining()];
+                        message.get(byteArrayMessage);
+
+                        final Frame dataFrame = new BinaryFrame(byteArrayMessage, false, true);
+                        final ByteBuffer byteBuffer = ((TyrusWebSocket) remoteEndpoint.getSocket()).getProtocolHandler().frame(dataFrame);
+                        frame = new byte[byteBuffer.remaining()];
+                        byteBuffer.get(frame);
+                    }
+
+                    final Future<Frame> frameFuture = remoteEndpoint.sendRawFrame(ByteBuffer.wrap(frame));
+                    futures.put(e.getValue(), frameFuture);
+                }
             }
         }
 
