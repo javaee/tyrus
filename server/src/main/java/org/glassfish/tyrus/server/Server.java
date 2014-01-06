@@ -61,6 +61,17 @@ import org.glassfish.tyrus.spi.ServerContainerFactory;
  */
 public class Server {
 
+    /**
+     * Path to static content to be served by created Server instance.
+     * <p/>
+     * Value have to be non-empty {@link String} and should represent content root of static content (file system path).
+     *
+     * @see Server#Server(java.util.Map, Class[])
+     * @see Server#Server(String, int, String, java.util.Map, Class[])
+     * @see Server#Server(String, int, String, java.util.Map, java.util.Set)
+     */
+    public static final String STATIC_CONTENT_ROOT = "org.glassfish.tyrus.server.staticContentRoot";
+
     private static final Logger LOGGER = Logger.getLogger(Server.class.getClass().getName());
     private static final int DEFAULT_PORT = 8025;
     private static final String DEFAULT_HOST_NAME = "localhost";
@@ -120,7 +131,7 @@ public class Server {
      *
      * @param hostName      hostName of the server.
      * @param port          port of the server.
-     * @param contextPath      root path to the server App.
+     * @param contextPath   root path to the server App.
      * @param properties    properties used as a parameter to {@link ServerContainerFactory#createServerContainer(java.util.Map)} call.
      * @param configuration to be registered with the server. Classes annotated with
      *                      {@link javax.websocket.server.ServerEndpoint},

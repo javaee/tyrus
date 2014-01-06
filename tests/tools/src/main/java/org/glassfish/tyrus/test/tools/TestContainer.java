@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -43,6 +43,8 @@ package org.glassfish.tyrus.test.tools;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -65,12 +67,12 @@ import static junit.framework.Assert.assertTrue;
  */
 public class TestContainer {
 
+    protected static final String POSITIVE = "POSITIVE";
+    protected static final String NEGATIVE = "NEGATIVE";
     private String contextPath = "/e2e-test";
     private String defaultHost = "localhost";
     private int defaultPort = 8025;
-
-    protected static final String POSITIVE = "POSITIVE";
-    protected static final String NEGATIVE = "NEGATIVE";
+    private Map<String, Object> properties = new HashMap<String, Object>();
 
     /**
      * Start embedded server unless "tyrus.test.host" system property is specified.
@@ -80,7 +82,7 @@ public class TestContainer {
     protected Server startServer(Class<?>... endpointClasses) throws DeploymentException {
         final String host = System.getProperty("tyrus.test.host");
         if (host == null) {
-            final Server server = new Server(defaultHost, defaultPort, contextPath, null, endpointClasses);
+            final Server server = new Server(defaultHost, defaultPort, contextPath, properties, endpointClasses);
             server.start();
             return server;
         } else {
@@ -141,7 +143,6 @@ public class TestContainer {
         return getURI(endpointPath, scheme);
     }
 
-
     /**
      * Get the {@link URI} for the given {@link String} path.
      *
@@ -168,6 +169,23 @@ public class TestContainer {
         }
     }
 
+    /**
+     * Get server properties.
+     *
+     * @return server properties.
+     */
+    public Map<String, Object> getProperties() {
+        return properties;
+    }
+
+    /**
+     * Set properties.
+     *
+     * @param properties server properties.
+     */
+    public void setProperties(Map<String, Object> properties) {
+        this.properties = properties;
+    }
 
     /**
      * Send message to the service endpoint and compare the received result with the specified one.

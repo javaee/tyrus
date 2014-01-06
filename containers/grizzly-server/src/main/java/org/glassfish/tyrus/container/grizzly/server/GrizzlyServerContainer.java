@@ -49,12 +49,14 @@ import javax.websocket.DeploymentException;
 import javax.websocket.server.ServerEndpointConfig;
 
 import org.glassfish.tyrus.core.TyrusWebSocketEngine;
+import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.server.TyrusServerContainer;
 import org.glassfish.tyrus.spi.ServerContainer;
 import org.glassfish.tyrus.spi.ServerContainerFactory;
 import org.glassfish.tyrus.spi.WebSocketEngine;
 
 import org.glassfish.grizzly.http.server.HttpServer;
+import org.glassfish.grizzly.http.server.StaticHttpHandler;
 import org.glassfish.grizzly.strategies.WorkerThreadIOStrategy;
 
 /**
@@ -67,14 +69,16 @@ public class GrizzlyServerContainer extends ServerContainerFactory {
 
     @Override
     public ServerContainer createContainer(Map<String, Object> properties) {
+
+        final Map<String, Object> localProperties;
         // defensive copy
         if (properties == null) {
-            properties = Collections.emptyMap();
+            localProperties = Collections.emptyMap();
         } else {
-            properties = new HashMap<String, Object>(properties);
+            localProperties = new HashMap<String, Object>(properties);
         }
 
-        final Object o = properties.get(TyrusWebSocketEngine.INCOMING_BUFFER_SIZE);
+        final Object o = localProperties.get(TyrusWebSocketEngine.INCOMING_BUFFER_SIZE);
 
         final Integer incomingBufferSize;
         if (o instanceof Integer) {
@@ -113,8 +117,14 @@ public class GrizzlyServerContainer extends ServerContainerFactory {
                 // idle timeout set to indefinite.
                 server.getListener("grizzly").getKeepAlive().setIdleTimeoutInSeconds(-1);
                 server.getListener("grizzly").registerAddOn(new WebSocketAddOn(this));
-                server.start();
 
+                final Object staticContentPath = localProperties.get(Server.STATIC_CONTENT_ROOT);
+                if (staticContentPath != null && !staticContentPath.toString().isEmpty()) {
+                    StaticHttpHandler staticHttpHandler = new StaticHttpHandler(staticContentPath.toString());
+                    server.getServerConfiguration().addHttpHandler(staticHttpHandler, "/");
+                }
+
+                server.start();
                 super.start(rootPath, port);
             }
 
