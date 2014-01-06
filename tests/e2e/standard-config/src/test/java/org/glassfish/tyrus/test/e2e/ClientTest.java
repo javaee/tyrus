@@ -77,7 +77,6 @@ public class ClientTest extends TestContainer {
         Server server = startServer(TestEndpoint.class);
 
         try {
-            server.start();
             messageLatch = new CountDownLatch(1);
 
             ClientManager client = ClientManager.createClient();

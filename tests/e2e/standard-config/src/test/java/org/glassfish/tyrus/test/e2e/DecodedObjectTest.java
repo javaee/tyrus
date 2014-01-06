@@ -85,7 +85,6 @@ public class DecodedObjectTest extends TestContainer {
         Server server = startServer(TestEndpoint.class);
 
         try {
-            server.start();
             messageLatch = new CountDownLatch(1);
             ArrayList<Class<? extends Decoder>> decoders = new ArrayList<Class<? extends Decoder>>();
             decoders.add(CustomDecoder.class);
@@ -123,7 +122,6 @@ public class DecodedObjectTest extends TestContainer {
         Server server = startServer(TestEndpoint.class);
 
         try {
-            server.start();
             messageLatch = new CountDownLatch(1);
             ArrayList<Class<? extends Decoder>> decoders = new ArrayList<Class<? extends Decoder>>();
             decoders.add(CustomDecoderThrowingDecodeException.class);
@@ -166,7 +164,6 @@ public class DecodedObjectTest extends TestContainer {
         Server server = startServer(TestEndpoint.class);
 
         try {
-            server.start();
             messageLatch = new CountDownLatch(1);
             ArrayList<Class<? extends Decoder>> decoders = new ArrayList<Class<? extends Decoder>>();
             decoders.add(ExtendedDecoder.class);
