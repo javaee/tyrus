@@ -49,6 +49,7 @@ import javax.websocket.DeploymentException;
 import javax.websocket.server.ServerEndpointConfig;
 
 import org.glassfish.tyrus.core.TyrusWebSocketEngine;
+import org.glassfish.tyrus.core.Utils;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.server.TyrusServerContainer;
 import org.glassfish.tyrus.spi.ServerContainer;
@@ -57,7 +58,9 @@ import org.glassfish.tyrus.spi.WebSocketEngine;
 
 import org.glassfish.grizzly.http.server.HttpServer;
 import org.glassfish.grizzly.http.server.StaticHttpHandler;
+import org.glassfish.grizzly.nio.transport.TCPNIOTransportBuilder;
 import org.glassfish.grizzly.strategies.WorkerThreadIOStrategy;
+import org.glassfish.grizzly.threadpool.ThreadPoolConfig;
 
 /**
  * Grizzly implementation of {@link ServerContainerFactory} and {@link ServerContainer}.
@@ -66,6 +69,20 @@ import org.glassfish.grizzly.strategies.WorkerThreadIOStrategy;
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 public class GrizzlyServerContainer extends ServerContainerFactory {
+
+    /**
+     * Server-side property to set custom worker {@link ThreadPoolConfig}.
+     * <p/>
+     * Value is expected to be instance of {@link ThreadPoolConfig}, can be {@code null} (it won't be used).
+     */
+    public static final String WORKER_THREAD_POOL_CONFIG = "org.glassfish.tyrus.container.grizzly.server.workerThreadPoolConfig";
+
+    /**
+     * Server-side property to set custom selector {@link ThreadPoolConfig}.
+     * <p/>
+     * Value is expected to be instance of {@link ThreadPoolConfig}, can be {@code null} (it won't be used).
+     */
+    public static final String SELECTOR_THREAD_POOL_CONFIG = "org.glassfish.tyrus.container.grizzly.server.selectorThreadPoolConfig";
 
     @Override
     public ServerContainer createContainer(Map<String, Object> properties) {
@@ -113,7 +130,26 @@ public class GrizzlyServerContainer extends ServerContainerFactory {
             public void start(String rootPath, int port) throws IOException, DeploymentException {
                 contextPath = rootPath;
                 server = HttpServer.createSimpleServer(rootPath, port);
-                server.getListener("grizzly").getTransport().setIOStrategy(WorkerThreadIOStrategy.getInstance());
+
+                ThreadPoolConfig workerThreadPoolConfig = Utils.getProperty(localProperties, WORKER_THREAD_POOL_CONFIG, ThreadPoolConfig.class);
+                ThreadPoolConfig selectorThreadPoolConfig = Utils.getProperty(localProperties, SELECTOR_THREAD_POOL_CONFIG, ThreadPoolConfig.class);
+
+                // TYRUS-287: configurable server thread pools
+                if (workerThreadPoolConfig != null || selectorThreadPoolConfig != null) {
+                    TCPNIOTransportBuilder transportBuilder = TCPNIOTransportBuilder.newInstance();
+                    if (workerThreadPoolConfig != null) {
+                        transportBuilder.setWorkerThreadPoolConfig(workerThreadPoolConfig);
+                    }
+                    if (selectorThreadPoolConfig != null) {
+                        transportBuilder.setSelectorThreadPoolConfig(selectorThreadPoolConfig);
+                    }
+                    transportBuilder.setIOStrategy(WorkerThreadIOStrategy.getInstance());
+                    server.getListener("grizzly").setTransport(transportBuilder.build());
+                } else {
+                    // if no configuration is set, just update IO Strategy to worker thread strat.
+                    server.getListener("grizzly").getTransport().setIOStrategy(WorkerThreadIOStrategy.getInstance());
+                }
+
                 // idle timeout set to indefinite.
                 server.getListener("grizzly").getKeepAlive().setIdleTimeoutInSeconds(-1);
                 server.getListener("grizzly").registerAddOn(new WebSocketAddOn(this));

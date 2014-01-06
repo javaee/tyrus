@@ -59,7 +59,7 @@ import org.junit.Test;
 public class StandaloneServerStaticContentTest extends TestContainer {
 
     public StandaloneServerStaticContentTest() {
-        getProperties().put(Server.STATIC_CONTENT_ROOT, "./");
+        getServerProperties().put(Server.STATIC_CONTENT_ROOT, "./");
         setContextPath("/");
     }
 

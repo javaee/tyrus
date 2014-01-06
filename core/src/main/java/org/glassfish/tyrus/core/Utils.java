@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -44,6 +44,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 /**
  * Utility methods shared among Tyrus modules.
@@ -268,5 +269,25 @@ public class Utils {
                 return result;
             }
         }
+    }
+
+    /**
+     * Get typed property from generic property map.
+     *
+     * @param properties property map.
+     * @param key        key of value to be retrieved.
+     * @param type       type of value to be retrieved.
+     * @return typed value or {@code null} if property is not set or value is not assignable.
+     */
+    public static <T> T getProperty(Map<String, Object> properties, String key, Class<T> type) {
+        if (properties != null) {
+            final Object o = properties.get(key);
+            if (o != null && type.isAssignableFrom(o.getClass())) {
+                //noinspection unchecked
+                return (T) o;
+            }
+        }
+
+        return null;
     }
 }

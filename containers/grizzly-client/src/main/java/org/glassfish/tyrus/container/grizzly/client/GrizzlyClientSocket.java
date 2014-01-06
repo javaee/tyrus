@@ -1,7 +1,7 @@
 /*
 * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
 *
-* Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
+* Copyright (c) 2011-2014 Oracle and/or its affiliates. All rights reserved.
 *
 * The contents of this file are subject to the terms of either the GNU
 * General Public License Version 2 only ("GPL") or the Common Development
@@ -57,6 +57,7 @@ import java.util.logging.Logger;
 
 import javax.websocket.DeploymentException;
 
+import org.glassfish.tyrus.core.Utils;
 import org.glassfish.tyrus.spi.ClientEngine;
 
 import org.glassfish.grizzly.Connection;
@@ -156,9 +157,9 @@ public class GrizzlyClientSocket {
 
         try {
             this.clientSSLEngineConfigurator = sslEngineConfigurator;
-            this.workerThreadPoolConfig = getProperty(properties, GrizzlyClientSocket.WORKER_THREAD_POOL_CONFIG, ThreadPoolConfig.class);
-            this.selectorThreadPoolConfig = getProperty(properties, GrizzlyClientSocket.SELECTOR_THREAD_POOL_CONFIG, ThreadPoolConfig.class);
-            Boolean shared = getProperty(properties, GrizzlyClientContainer.SHARED_CONTAINER, Boolean.class);
+            this.workerThreadPoolConfig = Utils.getProperty(properties, GrizzlyClientSocket.WORKER_THREAD_POOL_CONFIG, ThreadPoolConfig.class);
+            this.selectorThreadPoolConfig = Utils.getProperty(properties, GrizzlyClientSocket.SELECTOR_THREAD_POOL_CONFIG, ThreadPoolConfig.class);
+            Boolean shared = Utils.getProperty(properties, GrizzlyClientContainer.SHARED_CONTAINER, Boolean.class);
             if (shared == null || !shared) {
                 // TODO introduce some better (generic) way how to configure client from system properties.
                 final String property = System.getProperty(GrizzlyClientContainer.SHARED_CONTAINER);
@@ -171,7 +172,7 @@ public class GrizzlyClientSocket {
                 GrizzlyTransportTimeoutFilter.touch();
             }
 
-            final Integer sharedTransportTimeoutProperty = getProperty(properties, GrizzlyClientContainer.SHARED_CONTAINER_IDLE_TIMEOUT, Integer.class);
+            final Integer sharedTransportTimeoutProperty = Utils.getProperty(properties, GrizzlyClientContainer.SHARED_CONTAINER_IDLE_TIMEOUT, Integer.class);
             // default value for shared transport timeout is 30.
             sharedTransportTimeout = (sharedTransport && sharedTransportTimeoutProperty != null) ? sharedTransportTimeoutProperty : 30;
             this.engine = engine;
@@ -181,18 +182,6 @@ public class GrizzlyClientSocket {
         }
 
         socketAddress = processProxy((properties == null ? null : (String) properties.get(GrizzlyClientSocket.PROXY_URI)));
-    }
-
-    private <T> T getProperty(Map<String, Object> properties, String key, Class<T> type) {
-        if (properties != null) {
-            final Object o = properties.get(key);
-            if (o != null && type.isAssignableFrom(o.getClass())) {
-                //noinspection unchecked
-                return (T) o;
-            }
-        }
-
-        return null;
     }
 
     /**

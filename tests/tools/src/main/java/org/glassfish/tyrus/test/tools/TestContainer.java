@@ -72,7 +72,7 @@ public class TestContainer {
     private String contextPath = "/e2e-test";
     private String defaultHost = "localhost";
     private int defaultPort = 8025;
-    private Map<String, Object> properties = new HashMap<String, Object>();
+    private Map<String, Object> serverProperties = new HashMap<String, Object>();
 
     /**
      * Start embedded server unless "tyrus.test.host" system property is specified.
@@ -82,7 +82,7 @@ public class TestContainer {
     protected Server startServer(Class<?>... endpointClasses) throws DeploymentException {
         final String host = System.getProperty("tyrus.test.host");
         if (host == null) {
-            final Server server = new Server(defaultHost, defaultPort, contextPath, properties, endpointClasses);
+            final Server server = new Server(defaultHost, defaultPort, contextPath, serverProperties, endpointClasses);
             server.start();
             return server;
         } else {
@@ -174,8 +174,8 @@ public class TestContainer {
      *
      * @return server properties.
      */
-    public Map<String, Object> getProperties() {
-        return properties;
+    public Map<String, Object> getServerProperties() {
+        return serverProperties;
     }
 
     /**
@@ -183,8 +183,8 @@ public class TestContainer {
      *
      * @param properties server properties.
      */
-    public void setProperties(Map<String, Object> properties) {
-        this.properties = properties;
+    public void setServerProperties(Map<String, Object> properties) {
+        this.serverProperties = properties;
     }
 
     /**
