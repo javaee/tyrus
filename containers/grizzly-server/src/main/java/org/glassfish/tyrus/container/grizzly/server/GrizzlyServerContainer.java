@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -40,6 +40,8 @@
 package org.glassfish.tyrus.container.grizzly.server;
 
 import java.io.IOException;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
@@ -64,21 +66,26 @@ import org.glassfish.grizzly.strategies.WorkerThreadIOStrategy;
 public class GrizzlyServerContainer extends ServerContainerFactory {
 
     @Override
-    public ServerContainer createContainer(final Map<String, Object> properties) {
-
-        final Object o = (properties == null ? null : properties.get(TyrusWebSocketEngine.INCOMING_BUFFER_SIZE));
-
-        final Integer incommingBufferSize;
-        if (o instanceof Integer) {
-            incommingBufferSize = (Integer) o;
+    public ServerContainer createContainer(Map<String, Object> properties) {
+        // defensive copy
+        if (properties == null) {
+            properties = Collections.emptyMap();
         } else {
-            incommingBufferSize = null;
+            properties = new HashMap<String, Object>(properties);
         }
 
-        // TODO
+        final Object o = properties.get(TyrusWebSocketEngine.INCOMING_BUFFER_SIZE);
+
+        final Integer incomingBufferSize;
+        if (o instanceof Integer) {
+            incomingBufferSize = (Integer) o;
+        } else {
+            incomingBufferSize = null;
+        }
+
         return new TyrusServerContainer((Set<Class<?>>) null) {
 
-            private final WebSocketEngine engine = new TyrusWebSocketEngine(this, incommingBufferSize);
+            private final WebSocketEngine engine = new TyrusWebSocketEngine(this, incomingBufferSize);
 
             private HttpServer server;
             private String contextPath;

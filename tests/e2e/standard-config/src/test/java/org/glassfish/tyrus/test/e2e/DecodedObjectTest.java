@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -40,7 +40,6 @@
 package org.glassfish.tyrus.test.e2e;
 
 import java.io.IOException;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -48,6 +47,7 @@ import java.util.concurrent.TimeUnit;
 import javax.websocket.ClientEndpointConfig;
 import javax.websocket.DecodeException;
 import javax.websocket.Decoder;
+import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
@@ -58,6 +58,7 @@ import org.glassfish.tyrus.core.CoderAdapter;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.e2e.bean.TestEndpoint;
 import org.glassfish.tyrus.test.e2e.message.StringContainer;
+import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.junit.Ignore;
 import org.junit.Test;
@@ -70,7 +71,7 @@ import static org.junit.Assert.fail;
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class DecodedObjectTest {
+public class DecodedObjectTest extends TestContainer {
 
     private CountDownLatch messageLatch;
 
@@ -79,9 +80,9 @@ public class DecodedObjectTest {
     private static final String SENT_MESSAGE = "hello";
 
     @Test
-    public void testSimpleDecoder() {
+    public void testSimpleDecoder() throws DeploymentException {
 
-        Server server = new Server(TestEndpoint.class);
+        Server server = startServer(TestEndpoint.class);
 
         try {
             server.start();
@@ -103,7 +104,7 @@ public class DecodedObjectTest {
                         e.printStackTrace();
                     }
                 }
-            }, cec, new URI("ws://localhost:8025/websockets/tests/echo1"));
+            }, cec, getURI(TestEndpoint.class));
 
             assertTrue(messageLatch.await(5, TimeUnit.SECONDS));
             assertTrue("The received message is the same as the sent one", receivedMessage.equals(SENT_MESSAGE));
@@ -112,14 +113,14 @@ public class DecodedObjectTest {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
         } finally {
-            server.stop();
+            stopServer(server);
         }
     }
 
     @Test
-    public void testDecodeException() {
+    public void testDecodeException() throws DeploymentException {
 
-        Server server = new Server(TestEndpoint.class);
+        Server server = startServer(TestEndpoint.class);
 
         try {
             server.start();
@@ -148,21 +149,21 @@ public class DecodedObjectTest {
                         messageLatch.countDown();
                     }
                 }
-            }, cec, new URI("ws://localhost:8025/websockets/tests/echo1"));
+            }, cec, getURI(TestEndpoint.class));
 
             assertTrue(messageLatch.await(5, TimeUnit.SECONDS));
         } catch (Exception e) {
             e.printStackTrace();
             fail();
         } finally {
-            server.stop();
+            stopServer(server);
         }
     }
 
     @Test
     @Ignore
-    public void testExtendedDecoded() {
-        Server server = new Server(TestEndpoint.class);
+    public void testExtendedDecoded() throws DeploymentException {
+        Server server = startServer(TestEndpoint.class);
 
         try {
             server.start();
@@ -186,7 +187,7 @@ public class DecodedObjectTest {
                         e.printStackTrace();
                     }
                 }
-            }, cec, new URI("ws://localhost:8025/websockets/tests/echo1"));
+            }, cec, getURI(TestEndpoint.class));
 
             assertTrue(messageLatch.await(5000, TimeUnit.SECONDS));
             assertTrue("The received message is the same as the sent one", receivedMessage.equals("Extended " + SENT_MESSAGE));
@@ -195,7 +196,7 @@ public class DecodedObjectTest {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
         } finally {
-            server.stop();
+            stopServer(server);
         }
     }
 

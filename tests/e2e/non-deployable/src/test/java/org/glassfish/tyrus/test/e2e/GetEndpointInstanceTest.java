@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -40,7 +40,6 @@
 package org.glassfish.tyrus.test.e2e;
 
 import java.io.IOException;
-import java.net.URI;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -69,9 +68,9 @@ import static org.junit.Assert.assertEquals;
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 public class GetEndpointInstanceTest extends TestContainer {
-    private String receivedMessage;
-
     private static final String SENT_MESSAGE = "Always pass on what you have learned.";
+
+    private String receivedMessage;
 
     @ServerEndpoint(value = "/echoAnnotated", configurator = MyServerConfigurator.class)
     public static class MyEndpointAnnotated {
@@ -133,7 +132,7 @@ public class GetEndpointInstanceTest extends TestContainer {
 
         @Override
         public Set<Class<?>> getAnnotatedEndpointClasses(Set<Class<?>> scanned) {
-            return new HashSet<Class<?>>(Arrays.asList(MyEndpointAnnotated.class));
+            return new HashSet<Class<?>>(Arrays.<Class<?>>asList(MyEndpointAnnotated.class));
         }
     }
 
@@ -179,17 +178,17 @@ public class GetEndpointInstanceTest extends TestContainer {
     }
 
     @Test
-    public void testProgrammatic() {
-        Server server = new Server(MyApplication.class);
-
+    public void testProgrammatic() throws DeploymentException {
         final CountDownLatch messageLatch = new CountDownLatch(1);
+        final Server server = startServer(MyApplication.class);
 
         try {
-            server.start();
-
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
             ClientManager client = ClientManager.createClient();
+
+            System.out.println(getURI("/echoProgrammatic"));
+
             client.connectToServer(new Endpoint() {
 
                 @Override
@@ -208,7 +207,7 @@ public class GetEndpointInstanceTest extends TestContainer {
                         e.printStackTrace();
                     }
                 }
-            }, cec, new URI("ws://localhost:8025/websockets/tests/echoProgrammatic"));
+            }, cec, getURI("/echoProgrammatic"));
 
             messageLatch.await(5, TimeUnit.SECONDS);
             assertEquals(0, messageLatch.getCount());
@@ -217,7 +216,7 @@ public class GetEndpointInstanceTest extends TestContainer {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
         } finally {
-            server.stop();
+            stopServer(server);
         }
     }
 }

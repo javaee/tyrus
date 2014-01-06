@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -40,7 +40,6 @@
 package org.glassfish.tyrus.test.e2e;
 
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -53,6 +52,7 @@ import javax.websocket.Session;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.e2e.bean.TestEndpoint;
+import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
@@ -62,7 +62,7 @@ import static org.junit.Assert.assertEquals;
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class ClientTest {
+public class ClientTest extends TestContainer {
 
     private CountDownLatch messageLatch;
 
@@ -74,7 +74,7 @@ public class ClientTest {
     @Test
     public void testClient() throws URISyntaxException, InterruptedException, IOException, DeploymentException {
         final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
-        Server server = new Server(TestEndpoint.class);
+        Server server = startServer(TestEndpoint.class);
 
         try {
             server.start();
@@ -107,16 +107,16 @@ public class ClientTest {
                         e.printStackTrace();
                     }
                 }
-            }, cec, new URI("ws://localhost:8025/websockets/tests/echo1"));
+            }, cec, getURI(TestEndpoint.class));
 
-            assertEquals("ws://localhost:8025/websockets/tests/echo1", clientSession.getRequestURI().toString());
+            assertEquals(getURI(TestEndpoint.class), clientSession.getRequestURI());
 
             messageLatch.await(5, TimeUnit.SECONDS);
 
             assertEquals(clientSession, ClientTest.session);
             assertEquals(SENT_MESSAGE, receivedMessage);
         } finally {
-            server.stop();
+            stopServer(server);
         }
     }
 }

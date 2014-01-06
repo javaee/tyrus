@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -60,18 +60,19 @@ import org.glassfish.tyrus.spi.ServerContainerFactory;
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 public class Server {
-    private ServerContainer server;
+
+    private static final Logger LOGGER = Logger.getLogger(Server.class.getClass().getName());
+    private static final int DEFAULT_PORT = 8025;
+    private static final String DEFAULT_HOST_NAME = "localhost";
+    private static final String DEFAULT_CONTEXT_PATH = "/";
+
     private final Map<String, Object> properties;
     private final Set<Class<?>> configuration;
     private final String hostName;
     private final int port;
-    private final String rootPath;
+    private final String contextPath;
 
-    private static final String ENGINE_PROVIDER_CLASSNAME = "org.glassfish.tyrus.container.grizzly.server.GrizzlyServerContainer";
-    private static final Logger LOGGER = Logger.getLogger(Server.class.getClass().getName());
-    private static final int DEFAULT_PORT = 8025;
-    private static final String DEFAULT_HOST_NAME = "localhost";
-    private static final String DEFAULT_ROOT_PATH = "/websockets/tests";
+    private ServerContainer server;
 
     /**
      * Create new server instance.
@@ -103,15 +104,15 @@ public class Server {
      *
      * @param hostName      hostName of the server.
      * @param port          port of the server.
-     * @param rootPath      root path to the server App.
+     * @param contextPath   root path to the server App.
      * @param properties    properties used as a parameter to {@link ServerContainerFactory#createServerContainer(java.util.Map)} call.
      * @param configuration to be registered with the server. Classes annotated with
      *                      {@link javax.websocket.server.ServerEndpoint},
      *                      implementing {@link javax.websocket.server.ServerApplicationConfig}
      *                      or extending {@link javax.websocket.server.ServerEndpointConfig} are supported.
      */
-    public Server(String hostName, int port, String rootPath, Map<String, Object> properties, Class<?>... configuration) {
-        this(hostName, port, rootPath, properties, new HashSet<Class<?>>(Arrays.asList(configuration)));
+    public Server(String hostName, int port, String contextPath, Map<String, Object> properties, Class<?>... configuration) {
+        this(hostName, port, contextPath, properties, new HashSet<Class<?>>(Arrays.asList(configuration)));
     }
 
     /**
@@ -119,51 +120,19 @@ public class Server {
      *
      * @param hostName      hostName of the server.
      * @param port          port of the server.
-     * @param rootPath      root path to the server App.
+     * @param contextPath      root path to the server App.
      * @param properties    properties used as a parameter to {@link ServerContainerFactory#createServerContainer(java.util.Map)} call.
      * @param configuration to be registered with the server. Classes annotated with
      *                      {@link javax.websocket.server.ServerEndpoint},
      *                      implementing {@link javax.websocket.server.ServerApplicationConfig}
      *                      or extending {@link javax.websocket.server.ServerEndpointConfig} are supported.
      */
-    public Server(String hostName, int port, String rootPath, Map<String, Object> properties, Set<Class<?>> configuration) {
+    public Server(String hostName, int port, String contextPath, Map<String, Object> properties, Set<Class<?>> configuration) {
         this.hostName = hostName == null ? DEFAULT_HOST_NAME : hostName;
         this.port = port == 0 ? DEFAULT_PORT : port;
-        this.rootPath = rootPath == null ? DEFAULT_ROOT_PATH : rootPath;
+        this.contextPath = contextPath == null ? DEFAULT_CONTEXT_PATH : contextPath;
         this.configuration = configuration;
         this.properties = properties == null ? null : new HashMap<String, Object>(properties);
-    }
-
-    /**
-     * Start the server.
-     */
-    public synchronized void start() throws DeploymentException {
-        try {
-            if (server == null) {
-                server = ServerContainerFactory.createServerContainer(null);
-
-                for (Class<?> clazz : configuration) {
-                    server.addEndpoint(clazz);
-                }
-
-                server.start(rootPath, port);
-                LOGGER.info("WebSocket Registered apps: URLs all start with ws://" + this.hostName + ":" + this.port);
-                LOGGER.info("WebSocket server started.");
-            }
-        } catch (IOException e) {
-            throw new DeploymentException(e.getMessage(), e);
-        }
-    }
-
-    /**
-     * Stop the server.
-     */
-    public synchronized void stop() {
-        if (server != null) {
-            server.stop();
-            server = null;
-            LOGGER.info("Websocket Server stopped.");
-        }
     }
 
     public static void main(String[] args) {
@@ -208,5 +177,37 @@ public class Server {
             }
         }
         return beanClasses;
+    }
+
+    /**
+     * Start the server.
+     */
+    public void start() throws DeploymentException {
+        try {
+            if (server == null) {
+                server = ServerContainerFactory.createServerContainer(properties);
+
+                for (Class<?> clazz : configuration) {
+                    server.addEndpoint(clazz);
+                }
+
+                server.start(contextPath, port);
+                LOGGER.info("WebSocket Registered apps: URLs all start with ws://" + this.hostName + ":" + this.port);
+                LOGGER.info("WebSocket server started.");
+            }
+        } catch (IOException e) {
+            throw new DeploymentException(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Stop the server.
+     */
+    public void stop() {
+        if (server != null) {
+            server.stop();
+            server = null;
+            LOGGER.info("Websocket Server stopped.");
+        }
     }
 }
