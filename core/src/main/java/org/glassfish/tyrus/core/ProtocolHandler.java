@@ -42,12 +42,12 @@ package org.glassfish.tyrus.core;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.websocket.CloseReason;
 import javax.websocket.Extension;
@@ -70,17 +70,19 @@ public final class ProtocolHandler {
      */
     public static final int MASK_SIZE = 4;
 
+    private static final Logger LOGGER = Logger.getLogger(ProtocolHandler.class.getName());
+
     private final AtomicBoolean onClosedCalled = new AtomicBoolean(false);
     private final boolean maskData;
     private final ParsingState state = new ParsingState();
 
     private WebSocket webSocket;
     private byte outFragmentedType;
-    private List<Extension> extensions;
     private Writer writer;
     private byte inFragmentedType;
     private boolean processingFragment;
     private boolean sendingFragment = false;
+    private List<Extension> extensions;
     private ExtendedExtension.ExtensionContext extensionContext;
     private ByteBuffer remainder = null;
     private boolean hasExtensions = false;
@@ -120,9 +122,7 @@ public final class ProtocolHandler {
         final Handshake handshake = createHandShake(request, extensionContext);
         handshake.respond(response, app);
         this.extensionContext = extensionContext;
-        this.extensions = new ArrayList<Extension>();
-        this.extensions.addAll(app.getSupportedExtensions());
-        Collections.reverse(extensions);
+        this.extensions = app.getSupportedExtensions();
         hasExtensions = extensions != null && extensions.size() > 0;
         return handshake;
     }
@@ -404,7 +404,11 @@ public final class ProtocolHandler {
         if (extensions != null && extensions.size() > 0) {
             for (Extension extension : extensions) {
                 if (extension instanceof ExtendedExtension) {
-                    frame = ((ExtendedExtension) extension).processOutgoing(extensionContext, frame);
+                    try {
+                        frame = ((ExtendedExtension) extension).processOutgoing(extensionContext, frame);
+                    } catch (Throwable t) {
+                        LOGGER.log(Level.FINE, String.format("Extension '%s' threw an exception during processOutgoing method invocation: \"%s\".", extension.getName(), t.getMessage()), t);
+                    }
                 }
             }
         }

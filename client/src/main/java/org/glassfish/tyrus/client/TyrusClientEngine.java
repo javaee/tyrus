@@ -43,7 +43,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -270,7 +269,7 @@ public class TyrusClientEngine implements ClientEngine {
         private final int incomingBufferSize;
         private final ProtocolHandler handler;
         private final WebSocket webSocket;
-        private final List<Extension> reversedNegotiatedExtensions;
+        private final List<Extension> negotiatedExtensions;
         private final ExtendedExtension.ExtensionContext extensionContext;
 
         private ByteBuffer buffer = null;
@@ -279,11 +278,7 @@ public class TyrusClientEngine implements ClientEngine {
             this.handler = protocolHandler;
             this.webSocket = webSocket;
             this.incomingBufferSize = incomingBufferSize;
-
-            this.reversedNegotiatedExtensions = new ArrayList<Extension>();
-            this.reversedNegotiatedExtensions.addAll(negotiatedExtensions);
-            Collections.reverse(reversedNegotiatedExtensions);
-
+            this.negotiatedExtensions = negotiatedExtensions;
             this.extensionContext = extensionContext;
 
             protocolHandler.setExtensionContext(extensionContext);
@@ -314,10 +309,12 @@ public class TyrusClientEngine implements ClientEngine {
                             buffer = data;
                             break;
                         } else {
-                            if (reversedNegotiatedExtensions.size() > 0) {
-                                for (Extension extension : reversedNegotiatedExtensions) {
-                                    if (extension instanceof ExtendedExtension) {
+                            for (Extension extension : negotiatedExtensions) {
+                                if (extension instanceof ExtendedExtension) {
+                                    try {
                                         frame = ((ExtendedExtension) extension).processIncoming(extensionContext, frame);
+                                    } catch (Throwable t) {
+                                        LOGGER.log(Level.FINE, String.format("Extension '%s' threw an exception during processIncoming method invocation: \"%s\".", extension.getName(), t.getMessage()), t);
                                     }
                                 }
                             }

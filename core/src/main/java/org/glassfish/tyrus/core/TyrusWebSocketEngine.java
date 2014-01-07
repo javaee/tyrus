@@ -242,10 +242,12 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
                         } else {
                             Frame frame = incomingFrame;
 
-                            if (negotiatedExtensions.size() > 0) {
-                                for (Extension extension : negotiatedExtensions) {
-                                    if (extension instanceof ExtendedExtension) {
+                            for (Extension extension : negotiatedExtensions) {
+                                if (extension instanceof ExtendedExtension) {
+                                    try {
                                         frame = ((ExtendedExtension) extension).processIncoming(extensionContext, frame);
+                                    } catch (Throwable t) {
+                                        LOGGER.log(Level.FINE, String.format("Extension '%s' threw an exception during processIncoming method invocation: \"%s\".", extension.getName(), t.getMessage()), t);
                                     }
                                 }
                             }
@@ -446,7 +448,11 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
 
                 for (Extension extension : application.getSupportedExtensions()) {
                     if (extension instanceof ExtendedExtension) {
-                        ((ExtendedExtension) extension).destroy(extensionContext);
+                        try {
+                            ((ExtendedExtension) extension).destroy(extensionContext);
+                        } catch (Throwable t) {
+                            // ignore.
+                        }
                     }
                 }
             }

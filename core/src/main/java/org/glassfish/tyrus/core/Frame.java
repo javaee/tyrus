@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -178,22 +178,16 @@ public class Frame {
     /**
      * Get payload data.
      * <p/>
-     * Length of returned array will be always same as {@link #getPayloadLength()}.
+     * Changes done to returned array won't be propagated to current {@link Frame} instance. If you need to modify payload,
+     * you have to create new instance, see {@link org.glassfish.tyrus.core.Frame.Builder#Frame(Frame)}. Length of returned
+     * array will be always same as {@link #getPayloadLength()}.
      *
      * @return payload data.
      */
     public byte[] getPayloadData() {
-        if (payloadData.length == payloadLength) {
-            return payloadData;
-        } else {
-            if (payloadData.length > payloadLength) {
-                byte[] tmp = new byte[(int) payloadLength];
-                System.arraycopy(payloadData, 0, tmp, 0, (int) payloadLength);
-                return tmp;
-            }
-
-            return null;
-        }
+        byte[] tmp = new byte[(int) payloadLength];
+        System.arraycopy(payloadData, 0, tmp, 0, (int) payloadLength);
+        return tmp;
     }
 
     /**

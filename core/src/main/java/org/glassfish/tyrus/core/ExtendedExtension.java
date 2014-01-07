@@ -49,16 +49,41 @@ import javax.websocket.Extension;
  * WebSocket {@link Extension}.
  * <p/>
  * Capable of parameters negotiation, incoming and outgoing frames processing.
+ *
+ * Extensions are ordered as they appear in handshake response headers, as per RFC 6455, chapter 9.1. It does not state
+ * any ordering in regards of sender/receiver side and current implementation reflects that. See TODO below for possible
+ * issue related to ordering.
+ *
+ * Let's say we have negotiated two extensions, ext1 and ext2 in this order without parameters, so handshake response
+ * headers will be: "sec-websocket-extensions: ext1, ext2". Prefix "c_" means client side, prefix "s_" server side.
+ * <pre>
+ *   client -> server
+ *
+ *                +--------+   +--------+                  +--------+   +--------+
+ *   client  >----| c_ext1 |-->| c_ext2 |--> [network] --> | s_ext1 |-->| s_ext2 |--> server
+ *                +--------+   +--------+                  +--------+   +--------+
+ *
+ *   client <- server
+ *
+ *                +--------+   +--------+                  +--------+   +--------+
+ *   client  <----| c_ext2 |<--| c_ext1 |<-- [network] <-- | s_ext2 |<--| s_ext1 |<-- server
+ *                +--------+   +--------+                  +--------+   +--------+
+ * </pre>
+ *
+ * </pre>
+ *
+ * Any exception thrown from processIncoming or processOutgoing will be logged. Rest of extension chain will be invoked
+ * without any modifications done in "faulty" extension. {@link javax.websocket.OnError} won't be triggered. (this might change).
+ *
+ * <p/>
  * <pre>TODO:
  * - naming.
+ * - ordering - we might need to ensure that compression/decompression is invoked first when receiving and last when
+ *              sending message (to enable access to uncompressed data for other extensions).
  * - param negotiation.
  * - param validation.
  * - general validation - two extensions using same rsv bit cannot be "negotiated" for same session/connection.
- * - exception handling.
- * - extension ordering
- *   - current state
- *     - server: incoming in headers order, outgoing in reversed order.
- *     - client: incoming in reversed order, outgoing in headers order.
+ * - negotiation exception handling (onExtensionNegotiation)
  * </pre>
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)

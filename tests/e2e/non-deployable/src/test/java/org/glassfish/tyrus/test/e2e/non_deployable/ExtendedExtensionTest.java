@@ -80,10 +80,6 @@ import static org.junit.Assert.assertTrue;
  */
 public class ExtendedExtensionTest extends TestContainer {
 
-    public ExtendedExtensionTest() {
-        this.setContextPath("/e2e-test-appconfig");
-    }
-
     @Test
     public void extendedExtensionTest() throws DeploymentException {
 
