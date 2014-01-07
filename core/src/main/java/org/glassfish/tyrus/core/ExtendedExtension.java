@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -49,11 +49,11 @@ import javax.websocket.Extension;
  * WebSocket {@link Extension}.
  * <p/>
  * Capable of parameters negotiation, incoming and outgoing frames processing.
- *
+ * <p/>
  * Extensions are ordered as they appear in handshake response headers, as per RFC 6455, chapter 9.1. It does not state
  * any ordering in regards of sender/receiver side and current implementation reflects that. See TODO below for possible
  * issue related to ordering.
- *
+ * <p/>
  * Let's say we have negotiated two extensions, ext1 and ext2 in this order without parameters, so handshake response
  * headers will be: "sec-websocket-extensions: ext1, ext2". Prefix "c_" means client side, prefix "s_" server side.
  * <pre>
@@ -69,17 +69,17 @@ import javax.websocket.Extension;
  *   client  <----| c_ext2 |<--| c_ext1 |<-- [network] <-- | s_ext2 |<--| s_ext1 |<-- server
  *                +--------+   +--------+                  +--------+   +--------+
  * </pre>
- *
+ * <p/>
  * </pre>
- *
+ * <p/>
  * Any exception thrown from processIncoming or processOutgoing will be logged. Rest of extension chain will be invoked
  * without any modifications done in "faulty" extension. {@link javax.websocket.OnError} won't be triggered. (this might change).
- *
+ * <p/>
  * <p/>
  * <pre>TODO:
  * - naming.
  * - ordering - we might need to ensure that compression/decompression is invoked first when receiving and last when
- *              sending message (to enable access to uncompressed data for other extensions).
+ * sending message (to enable access to uncompressed data for other extensions).
  * - param negotiation.
  * - param validation.
  * - general validation - two extensions using same rsv bit cannot be "negotiated" for same session/connection.

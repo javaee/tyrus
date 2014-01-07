@@ -202,8 +202,8 @@ public class ExtendedExtensionTest extends TestContainer {
     public static class TestExtendedExtension implements ExtendedExtension {
 
         public final static byte MASK = 0x55;
+        public final static String NAME = "TestExtendedExtension";
 
-        private final static String NAME = "TestExtendedExtension";
         protected final int index;
         private final String name;
 
@@ -313,6 +313,7 @@ public class ExtendedExtensionTest extends TestContainer {
                         @Override
                         public void onMessage(byte[] message) {
                             System.out.println("client onMessage.");
+
                             if (Arrays.equals(MESSAGE, message)) {
                                 messageLatch.countDown();
                             }
@@ -408,11 +409,15 @@ public class ExtendedExtensionTest extends TestContainer {
                 return frame;
             }
 
-
+            // no junit on server side.
             if (index == 2) {
-                assertEquals(frame.getPayloadData()[3], (MESSAGE[3] ^ MASK));
+                if (frame.getPayloadData()[3] != (MESSAGE[3] ^ MASK)) {
+                    throw new IllegalArgumentException();
+                }
             } else if (index == 3) {
-                assertEquals(frame.getPayloadData()[2], MESSAGE[2]);
+                if (frame.getPayloadData()[2] != MESSAGE[2]) {
+                    throw new IllegalArgumentException();
+                }
             } else {
                 throw new IllegalArgumentException();
             }
