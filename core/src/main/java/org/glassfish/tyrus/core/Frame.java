@@ -151,7 +151,7 @@ public class Frame {
     /**
      * Get opcode.
      *
-     * @return opcode. (4 bit value).
+     * @return opcode (4 bit value).
      */
     public byte getOpcode() {
         return opcode;
@@ -160,7 +160,7 @@ public class Frame {
     /**
      * Get payload length.
      *
-     * @return
+     * @return payload length.
      */
     public long getPayloadLength() {
         return payloadLength;
@@ -169,7 +169,7 @@ public class Frame {
     /**
      * Get masking key.
      *
-     * @return masking key (32 bit value)
+     * @return masking key (32 bit value).
      */
     public int getMaskingKey() {
         return maskingKey;

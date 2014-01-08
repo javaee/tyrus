@@ -56,7 +56,6 @@ import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
 import javax.websocket.server.HandshakeRequest;
 
-import org.glassfish.tyrus.core.EndpointWrapper;
 import org.glassfish.tyrus.core.ExtendedExtension;
 import org.glassfish.tyrus.core.Frame;
 import org.glassfish.tyrus.core.FramingException;
@@ -64,6 +63,7 @@ import org.glassfish.tyrus.core.Handshake;
 import org.glassfish.tyrus.core.ProtocolHandler;
 import org.glassfish.tyrus.core.RequestContext;
 import org.glassfish.tyrus.core.TyrusEndpoint;
+import org.glassfish.tyrus.core.TyrusEndpointWrapper;
 import org.glassfish.tyrus.core.TyrusExtension;
 import org.glassfish.tyrus.core.TyrusRemoteEndpoint;
 import org.glassfish.tyrus.core.TyrusWebSocket;
@@ -91,7 +91,7 @@ public class TyrusClientEngine implements ClientEngine {
     private static final int BUFFER_STEP_SIZE = 256;
 
     private final ProtocolHandler protocolHandler = DEFAULT_VERSION.createHandler(true);
-    private final EndpointWrapper endpointWrapper;
+    private final TyrusEndpointWrapper endpointWrapper;
     private final ClientHandshakeListener listener;
     private final Map<String, Object> properties;
 
@@ -110,7 +110,7 @@ public class TyrusClientEngine implements ClientEngine {
      *                        (and alternatives) call.
      * @param properties      passed container properties, see {@link org.glassfish.tyrus.client.ClientManager#getProperties()}.
      */
-    /* package */ TyrusClientEngine(EndpointWrapper endpointWrapper, ClientHandshakeListener listener, Map<String, Object> properties) {
+    /* package */ TyrusClientEngine(TyrusEndpointWrapper endpointWrapper, ClientHandshakeListener listener, Map<String, Object> properties) {
         this.endpointWrapper = endpointWrapper;
         this.listener = listener;
         this.properties = properties;

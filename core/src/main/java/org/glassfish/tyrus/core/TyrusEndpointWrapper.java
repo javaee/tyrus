@@ -90,18 +90,15 @@ import org.glassfish.tyrus.spi.UpgradeRequest;
  * @author Martin Matula (martin.matula at oracle.com)
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class TyrusEndpointWrapper extends EndpointWrapper {
+public class TyrusEndpointWrapper {
 
     private final static Logger LOGGER = Logger.getLogger(TyrusEndpointWrapper.class.getName());
-
     /**
      * The container for this session.
      */
     private final String contextPath;
-
     private final List<CoderWrapper<Decoder>> decoders = new ArrayList<CoderWrapper<Decoder>>();
     private final List<CoderWrapper<Encoder>> encoders = new ArrayList<CoderWrapper<Encoder>>();
-
     private final EndpointConfig configuration;
     private final Class<? extends Endpoint> endpointClass;
     private final Endpoint endpoint;
@@ -110,11 +107,9 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
     private final ComponentProviderService componentProvider;
     private final ServerEndpointConfig.Configurator configurator;
     private final WebSocketContainer container;
-
     private final Method onOpen;
     private final Method onClose;
     private final Method onError;
-
 
     /**
      * Create {@link TyrusEndpointWrapper} for class that extends {@link Endpoint}.
@@ -242,7 +237,36 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
         encoders.add(new CoderWrapper<Encoder>(ToStringEncoder.class, Object.class));
     }
 
-    @Override
+    static List<Class<? extends Decoder>> getDefaultDecoders() {
+        final List<Class<? extends Decoder>> classList = new ArrayList<Class<? extends Decoder>>();
+        classList.addAll(PrimitiveDecoders.ALL);
+        classList.add(NoOpTextCoder.class);
+        classList.add(NoOpByteBufferCoder.class);
+        classList.add(NoOpByteArrayCoder.class);
+        classList.add(ReaderDecoder.class);
+        classList.add(InputStreamDecoder.class);
+        return classList;
+    }
+
+    private static URI getURI(String uri, String queryString) {
+        if (queryString != null && !queryString.isEmpty()) {
+            return URI.create(String.format("%s?%s", uri, queryString));
+        } else {
+            return URI.create(uri);
+        }
+    }
+
+    /**
+     * This method must be called by the provider during
+     * its check for a successful websocket handshake. The
+     * provider must turn down the handshake if the method returns false.
+     * If the web socket handshake does complete, as determined by the provider,
+     * the endpoint must establish a connection and route all websocket
+     * events to this SDK provided component as appropriate.
+     *
+     * @param hr {@link org.glassfish.tyrus.spi.UpgradeRequest} that is going to be checked.
+     * @return {@code true} if handshake is successful {@code false} otherwise.
+     */
     public boolean checkHandshake(UpgradeRequest hr) {
         if (!(configuration instanceof ServerEndpointConfig)) {
             return false;
@@ -255,18 +279,11 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
         }
     }
 
-    static List<Class<? extends Decoder>> getDefaultDecoders() {
-        final List<Class<? extends Decoder>> classList = new ArrayList<Class<? extends Decoder>>();
-        classList.addAll(PrimitiveDecoders.ALL);
-        classList.add(NoOpTextCoder.class);
-        classList.add(NoOpByteBufferCoder.class);
-        classList.add(NoOpByteArrayCoder.class);
-        classList.add(ReaderDecoder.class);
-        classList.add(InputStreamDecoder.class);
-        return classList;
-    }
-
-    @Override
+    /**
+     * Get Endpoint absolute path.
+     *
+     * @return endpoint absolute path.
+     */
     public String getEndpointPath() {
         if (configuration instanceof ServerEndpointConfig) {
             String relativePath = ((ServerEndpointConfig) configuration).getPath();
@@ -277,7 +294,11 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
         return null;
     }
 
-    @Override
+    /**
+     * Get {@link WebSocketContainer}.
+     *
+     * @return WebSocketContainer associated with this endpoint.
+     */
     public WebSocketContainer getWebSocketContainer() {
         return container;
     }
@@ -394,7 +415,12 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
         throw new EncodeException(message, "Encoding failed.");
     }
 
-    @Override
+    /**
+     * Get the negotiated extensions' names based on the extensions supported by client.
+     *
+     * @param clientExtensions names of the extensions' supported by client.
+     * @return names of extensions supported by both client and class that implements this one.
+     */
     public List<Extension> getNegotiatedExtensions(List<Extension> clientExtensions) {
         if (configuration instanceof ServerEndpointConfig) {
             return configurator.getNegotiatedExtensions(((ServerEndpointConfig) configuration).getExtensions(), clientExtensions);
@@ -403,7 +429,12 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
         }
     }
 
-    @Override
+    /**
+     * Compute the sub-protocol which will be used.
+     *
+     * @param clientProtocols sub-protocols supported by client.
+     * @return negotiated sub-protocol, {@code null} if none found.
+     */
     public String getNegotiatedProtocol(List<String> clientProtocols) {
         if (configuration instanceof ServerEndpointConfig) {
             return configurator.getNegotiatedSubprotocol(((ServerEndpointConfig) configuration).getSubprotocols(), clientProtocols);
@@ -412,7 +443,11 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
         }
     }
 
-    @Override
+    /**
+     * Get the endpoint's open {@link Session}s.
+     *
+     * @return open sessions.
+     */
     public Set<Session> getOpenSessions() {
         Set<Session> result = new HashSet<Session>();
 
@@ -425,7 +460,14 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
         return Collections.unmodifiableSet(result);
     }
 
-    @Override
+    /**
+     * Creates a Session based on the {@link RemoteEndpoint}, subprotocols and extensions.
+     *
+     * @param re          the other end of the connection.
+     * @param subprotocol used.
+     * @param extensions  extensions used.
+     * @return {@link Session} representing the connection.
+     */
     public Session createSessionForRemoteEndpoint(RemoteEndpoint re, String subprotocol, List<Extension> extensions) {
         synchronized (remoteEndpointToSession) {
             final TyrusSession session = new TyrusSession(container, re, this, subprotocol, extensions, false,
@@ -441,7 +483,16 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
         }
     }
 
-    @Override
+    /**
+     * Called by the provider when the web socket connection
+     * is established.
+     *
+     * @param gs             {@link org.glassfish.tyrus.core.RemoteEndpoint} who has just connected to this web socket endpoint.
+     * @param subprotocol    TODO.
+     * @param extensions     TODO.
+     * @param upgradeRequest request associated with accepted connection.
+     * @return TODO.
+     */
     public Session onConnect(RemoteEndpoint gs, String subprotocol, List<Extension> extensions, UpgradeRequest upgradeRequest) {
         synchronized (remoteEndpointToSession) {
             TyrusSession session = remoteEndpointToSession.get(gs);
@@ -493,7 +544,13 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
         }
     }
 
-    @Override
+    /**
+     * Called by the provider when the web socket connection
+     * has an incoming text message from the given remote endpoint.
+     *
+     * @param gs           {@link org.glassfish.tyrus.core.RemoteEndpoint} who sent the message.
+     * @param messageBytes the message.
+     */
     public void onMessage(RemoteEndpoint gs, ByteBuffer messageBytes) {
         TyrusSession session = getSession(gs);
 
@@ -538,7 +595,13 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
         }
     }
 
-    @Override
+    /**
+     * Called by the provider when the web socket connection
+     * has an incoming text message from the given remote endpoint.
+     *
+     * @param gs            {@link org.glassfish.tyrus.core.RemoteEndpoint} who sent the message.
+     * @param messageString the message.
+     */
     public void onMessage(RemoteEndpoint gs, String messageString) {
         TyrusSession session = getSession(gs);
 
@@ -583,7 +646,17 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
         }
     }
 
-    @Override
+    /**
+     * Called by the provider when the web socket connection
+     * has an incoming partial text message from the given remote endpoint. Partial
+     * text messages are passed in sequential order, one piece at a time. If an implementation
+     * does not support streaming, it will need to reconstruct the message here and pass the whole
+     * thing along.
+     *
+     * @param gs            {@link RemoteEndpoint} who sent the message.
+     * @param partialString the String message.
+     * @param last          to indicate if this is the last partial string in the sequence
+     */
     public void onPartialMessage(RemoteEndpoint gs, String partialString, boolean last) {
         TyrusSession session = getSession(gs);
 
@@ -671,7 +744,17 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
         }
     }
 
-    @Override
+    /**
+     * Called by the provider when the web socket connection
+     * has an incoming partial binary message from the given remote endpoint. Partial
+     * binary messages are passed in sequential order, one piece at a time. If an implementation
+     * does not support streaming, it will need to reconstruct the message here and pass the whole
+     * thing along.
+     *
+     * @param gs           {@link RemoteEndpoint} who sent the message.
+     * @param partialBytes the piece of the binary message.
+     * @param last         to indicate if this is the last partial byte buffer in the sequence
+     */
     public void onPartialMessage(RemoteEndpoint gs, ByteBuffer partialBytes, boolean last) {
         TyrusSession session = getSession(gs);
 
@@ -784,7 +867,13 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
         return false;
     }
 
-    @Override
+    /**
+     * Called by the provider when the web socket connection
+     * has an incoming pong message from the given remote endpoint.
+     *
+     * @param gs    {@link RemoteEndpoint} who sent the message.
+     * @param bytes the message.
+     */
     public void onPong(RemoteEndpoint gs, final ByteBuffer bytes) {
         TyrusSession session = getSession(gs);
 
@@ -807,9 +896,16 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
         }
     }
 
-    // the endpoint needs to respond as soon as possible (see the websocket RFC)
-    // no involvement from application layer, there is no ping listener
-    @Override
+    /**
+     * Called by the provider when the web socket connection
+     * has an incoming ping message from the given remote endpoint.
+     * <p/>
+     * The endpoint needs to respond as soon as possible (see the websocket RFC).
+     * No involvement from application layer, there is no ping listener.
+     *
+     * @param gs    {@link RemoteEndpoint} who sent the message.
+     * @param bytes the message.
+     */
     public void onPing(RemoteEndpoint gs, ByteBuffer bytes) {
         TyrusSession session = getSession(gs);
 
@@ -827,7 +923,12 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
         }
     }
 
-    @Override
+    /**
+     * Called by the provider when the web socket connection
+     * to the given remote endpoint has just closed.
+     *
+     * @param gs {@link RemoteEndpoint} who has just closed the connection.
+     */
     public void onClose(RemoteEndpoint gs, CloseReason closeReason) {
         TyrusSession session = getSession(gs);
 
@@ -876,7 +977,11 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
         }
     }
 
-    @Override
+    /**
+     * Get Endpoint configuration.
+     *
+     * @return configuration.
+     */
     public EndpointConfig getEndpointConfig() {
         return configuration;
     }
@@ -1017,18 +1122,10 @@ public class TyrusEndpointWrapper extends EndpointWrapper {
         }
     }
 
-    private static URI getURI(String uri, String queryString) {
-        if (queryString != null && !queryString.isEmpty()) {
-            return URI.create(String.format("%s?%s", uri, queryString));
-        } else {
-            return URI.create(uri);
-        }
-    }
-
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();
-        sb.append("EndpointWrapper");
+        sb.append("TyrusEndpointWrapper");
         sb.append("{endpointClass=").append(endpointClass);
         sb.append(", endpoint=").append(endpoint);
         sb.append(", contextPath='").append(contextPath).append('\'');

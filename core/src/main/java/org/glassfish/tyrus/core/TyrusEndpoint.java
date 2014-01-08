@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -70,7 +70,7 @@ public class TyrusEndpoint extends WebSocketApplication {
 
     private static final Logger LOGGER = Logger.getLogger(TyrusEndpoint.class.getName());
 
-    private final EndpointWrapper endpoint;
+    private final TyrusEndpointWrapper endpoint;
 
     /**
      * Used to store negotiated extensions between the call of isApplicationRequest method and getSupportedExtensions.
@@ -83,11 +83,11 @@ public class TyrusEndpoint extends WebSocketApplication {
     private String temporaryNegotiatedProtocol;
 
     /**
-     * Create {@link TyrusEndpoint} which represents given {@link EndpointWrapper}.
+     * Create {@link TyrusEndpoint} which represents given {@link TyrusEndpointWrapper}.
      *
      * @param endpoint endpoint to be wrapped.
      */
-    public TyrusEndpoint(EndpointWrapper endpoint) {
+    public TyrusEndpoint(TyrusEndpointWrapper endpoint) {
         this.endpoint = endpoint;
     }
 
