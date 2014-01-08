@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -60,7 +60,7 @@ import org.glassfish.tyrus.core.Frame;
  * <p/>
  * http://tools.ietf.org/html/draft-ietf-hybi-permessage-compression-15
  * <p/>
- *
+ * <p/>
  * <pre>TODO:
  * - parameters (window sizes, context takeovers).
  * - context (some utility methods to get the typed params - T getParam(Class<T>))
@@ -68,7 +68,7 @@ import org.glassfish.tyrus.core.Frame;
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class PermessageDeflateExtension implements ExtendedExtension {
+public class PerMessageDeflateExtension implements ExtendedExtension {
 
     private static final Pool<byte[]> BYTE_ARRAY_POOL = new Pool<byte[]>() {
         @Override
@@ -77,10 +77,10 @@ public class PermessageDeflateExtension implements ExtendedExtension {
         }
     };
 
-    private static final String INFLATER = PermessageDeflateExtension.class.getName() + ".INFLATER";
-    private static final String DEFLATER = PermessageDeflateExtension.class.getName() + ".DEFLATER";
+    private static final String INFLATER = PerMessageDeflateExtension.class.getName() + ".INFLATER";
+    private static final String DEFLATER = PerMessageDeflateExtension.class.getName() + ".DEFLATER";
 
-    private static final Logger LOGGER = Logger.getLogger(PermessageDeflateExtension.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(PerMessageDeflateExtension.class.getName());
     private static final boolean DEBUG = LOGGER.isLoggable(Level.FINE);
 
     private static final byte[] TAIL = {0x00, 0x00, (byte) 0xff, (byte) 0xff};

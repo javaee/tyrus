@@ -63,7 +63,7 @@ import javax.websocket.Session;
 import javax.websocket.server.ServerEndpointConfig;
 
 import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.core.extension.PermessageDeflateExtension;
+import org.glassfish.tyrus.core.extension.PerMessageDeflateExtension;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.server.TyrusServerConfiguration;
 import org.glassfish.tyrus.test.tools.TestContainer;
@@ -74,9 +74,9 @@ import static org.junit.Assert.assertTrue;
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class PermessageDeflateExtensionTest extends TestContainer {
+public class PerMessageDeflateExtensionTest extends TestContainer {
 
-    public PermessageDeflateExtensionTest() {
+    public PerMessageDeflateExtensionTest() {
         this.setContextPath("/e2e-test-appconfig");
     }
 
@@ -84,7 +84,7 @@ public class PermessageDeflateExtensionTest extends TestContainer {
         public ServerDeployApplicationConfig() {
             super(Collections.<Class<?>>emptySet(), new HashSet<ServerEndpointConfig>() {{
                 add(ServerEndpointConfig.Builder.create(EchoEndpoint.class, "/compressionExtensionTest")
-                        .extensions(Arrays.<Extension>asList(new PermessageDeflateExtension())).build());
+                        .extensions(Arrays.<Extension>asList(new PerMessageDeflateExtension())).build());
             }});
         }
     }
@@ -113,7 +113,7 @@ public class PermessageDeflateExtensionTest extends TestContainer {
 
         try {
             ArrayList<Extension> extensions = new ArrayList<Extension>();
-            extensions.add(new PermessageDeflateExtension());
+            extensions.add(new PerMessageDeflateExtension());
 
             final ClientEndpointConfig clientConfiguration = ClientEndpointConfig.Builder.create()
                     .extensions(extensions)
@@ -138,7 +138,7 @@ public class PermessageDeflateExtensionTest extends TestContainer {
 
             boolean compressionNegotiated = false;
             for (Extension e : session.getNegotiatedExtensions()) {
-                if (e instanceof PermessageDeflateExtension) {
+                if (e instanceof PerMessageDeflateExtension) {
                     compressionNegotiated = true;
                 }
             }

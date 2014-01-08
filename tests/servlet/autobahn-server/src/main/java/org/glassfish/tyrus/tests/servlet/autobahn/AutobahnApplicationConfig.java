@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -50,7 +50,7 @@ import javax.websocket.Extension;
 import javax.websocket.server.ServerApplicationConfig;
 import javax.websocket.server.ServerEndpointConfig;
 
-import org.glassfish.tyrus.core.extension.PermessageDeflateExtension;
+import org.glassfish.tyrus.core.extension.PerMessageDeflateExtension;
 import org.glassfish.tyrus.core.extension.XWebkitDeflateExtension;
 
 /**
@@ -60,7 +60,7 @@ public class AutobahnApplicationConfig implements ServerApplicationConfig {
     @Override
     public Set<ServerEndpointConfig> getEndpointConfigs(Set<Class<? extends Endpoint>> endpointClasses) {
         final ServerEndpointConfig serverEndpointConfig = ServerEndpointConfig.Builder.create(EchoServer.class, "/echo")
-                .extensions(Arrays.<Extension>asList(new PermessageDeflateExtension(), new XWebkitDeflateExtension())).build();
+                .extensions(Arrays.<Extension>asList(new PerMessageDeflateExtension(), new XWebkitDeflateExtension())).build();
 
         return new HashSet<ServerEndpointConfig>() {{
             add(serverEndpointConfig);
