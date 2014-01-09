@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -327,7 +327,7 @@ public final class Handshake {
         secKey.validateServerKey(response.getFirstHeaderValue(UpgradeResponse.SEC_WEBSOCKET_ACCEPT));
     }
 
-    void respond(UpgradeResponse response, WebSocketApplication application/*, TyrusUpgradeResponse response*/) {
+    void respond(UpgradeResponse response, TyrusEndpoint tyrusEndpoint/*, TyrusUpgradeResponse response*/) {
         response.setStatus(101);
 
         response.getHeaders().put(UpgradeRequest.UPGRADE, Arrays.asList(UpgradeRequest.WEBSOCKET));
@@ -336,14 +336,14 @@ public final class Handshake {
         response.getHeaders().put(UpgradeResponse.SEC_WEBSOCKET_ACCEPT, Arrays.asList(secKey.getSecKey()));
 
         if (subProtocols != null && !subProtocols.isEmpty()) {
-            List<String> appProtocols = application.getSupportedProtocols(subProtocols);
+            List<String> appProtocols = tyrusEndpoint.getSupportedProtocols(subProtocols);
             if (!appProtocols.isEmpty()) {
                 response.getHeaders().put(UpgradeRequest.SEC_WEBSOCKET_PROTOCOL, getStringList(appProtocols, null));
             }
         }
 
-        if (!application.getSupportedExtensions().isEmpty()) {
-            response.getHeaders().put(UpgradeRequest.SEC_WEBSOCKET_EXTENSIONS, getStringList(application.getSupportedExtensions(), new Stringifier<Extension>() {
+        if (!tyrusEndpoint.getSupportedExtensions().isEmpty()) {
+            response.getHeaders().put(UpgradeRequest.SEC_WEBSOCKET_EXTENSIONS, getStringList(tyrusEndpoint.getSupportedExtensions(), new Stringifier<Extension>() {
                 @Override
                 String toString(final Extension extension) {
                     if (extension instanceof ExtendedExtension) {
@@ -367,6 +367,6 @@ public final class Handshake {
                 }
             }));
         }
-        application.onHandShakeResponse(incomingRequest, response);
+        tyrusEndpoint.onHandShakeResponse(incomingRequest, response);
     }
 }

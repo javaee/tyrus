@@ -47,20 +47,20 @@ import javax.websocket.CloseReason;
 import javax.websocket.Extension;
 
 import org.glassfish.tyrus.core.ProtocolHandler;
+import org.glassfish.tyrus.core.TyrusEndpoint;
 import org.glassfish.tyrus.core.TyrusWebSocket;
-import org.glassfish.tyrus.core.WebSocketApplication;
-import org.glassfish.tyrus.core.WebSocketListener;
 import org.glassfish.tyrus.spi.UpgradeRequest;
 import org.glassfish.tyrus.spi.UpgradeResponse;
 
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class TestWebSocketApplication extends WebSocketApplication {
+public class TestWebSocketEndpoint extends TyrusEndpoint {
 
     private final String path;
 
-    public TestWebSocketApplication(String path) {
+    public TestWebSocketEndpoint(String path) {
+        super(null);
         this.path = path;
     }
 
@@ -74,7 +74,7 @@ public class TestWebSocketApplication extends WebSocketApplication {
     }
 
     @Override
-    public TyrusWebSocket createSocket(ProtocolHandler handler, WebSocketListener listener) {
+    public TyrusWebSocket createSocket(ProtocolHandler handler) {
         return null;
     }
 

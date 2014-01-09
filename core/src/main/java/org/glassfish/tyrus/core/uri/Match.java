@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -47,7 +47,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.glassfish.tyrus.core.WebSocketApplication;
+import org.glassfish.tyrus.core.TyrusEndpoint;
 import org.glassfish.tyrus.core.uri.internal.PathSegment;
 import org.glassfish.tyrus.core.uri.internal.UriComponent;
 
@@ -61,7 +61,7 @@ import org.glassfish.tyrus.core.uri.internal.UriComponent;
  */
 public class Match {
 
-    private final WebSocketApplication webSocketApplication; // the endpoint that has the path
+    private final TyrusEndpoint tyrusEndpoint; // the endpoint that has the path
     private final List<String> parameterNames = new ArrayList<String>();
     private final List<String> parameterValues = new ArrayList<String>();
     //list of all segment indices in the path with variables
@@ -79,10 +79,10 @@ public class Match {
     /**
      * Constructor.
      *
-     * @param webSocketApplication {@link WebSocketApplication} instance.
+     * @param tyrusEndpoint {@link TyrusEndpoint} instance.
      */
-    private Match(WebSocketApplication webSocketApplication) {
-        this.webSocketApplication = webSocketApplication;
+    private Match(TyrusEndpoint tyrusEndpoint) {
+        this.tyrusEndpoint = tyrusEndpoint;
     }
 
     /**
@@ -91,7 +91,7 @@ public class Match {
      * @return path.
      */
     public String getPath() {
-        return this.webSocketApplication.getPath();
+        return this.tyrusEndpoint.getPath();
     }
 
     /**
@@ -144,20 +144,20 @@ public class Match {
     }
 
     /**
-     * Get {@link WebSocketApplication}.
+     * Get {@link TyrusEndpoint}.
      *
      * @return web socket application of this {@link Math}.
      */
-    public WebSocketApplication getWebSocketApplication() {
-        return this.webSocketApplication;
+    public TyrusEndpoint getTyrusEndpoit() {
+        return this.tyrusEndpoint;
     }
 
     @Override
     public String toString() {
         if (this.isExact()) {
-            return "Match(exact, path:" + webSocketApplication.getPath() + ")";
+            return "Match(exact, path:" + tyrusEndpoint.getPath() + ")";
         } else {
-            return "Match(path:" + webSocketApplication.getPath() + " params: " + this.paramsToString() + " idices: " + this.variableSegmentIndices + ")";
+            return "Match(path:" + tyrusEndpoint.getPath() + " params: " + this.paramsToString() + " idices: " + this.variableSegmentIndices + ")";
         }
     }
 
@@ -188,7 +188,7 @@ public class Match {
      * @param thingsWithPath TODO
      * @return TODO
      */
-    public static Match getBestMatch(String incoming, Set<WebSocketApplication> thingsWithPath) {
+    public static Match getBestMatch(String incoming, Set<TyrusEndpoint> thingsWithPath) {
         List<Match> sortedMatches = getAllMatches(incoming, thingsWithPath);
         if (sortedMatches.isEmpty()) {
             return null;
@@ -204,9 +204,9 @@ public class Match {
      * @param thingsWithPath TODO
      * @return TODO
      */
-    public static List<Match> getAllMatches(String incoming, Set<WebSocketApplication> thingsWithPath) {
+    public static List<Match> getAllMatches(String incoming, Set<TyrusEndpoint> thingsWithPath) {
         Set<Match> matches = new HashSet<Match>();
-        for (WebSocketApplication nextThingWithPath : thingsWithPath) {
+        for (TyrusEndpoint nextThingWithPath : thingsWithPath) {
             Match m = matchPath(incoming, nextThingWithPath);
             if (m != null) {
                 matches.add(m);
@@ -271,7 +271,7 @@ public class Match {
         return eq;
     }
 
-    private static Match matchPath(String incoming, WebSocketApplication hasPath) {
+    private static Match matchPath(String incoming, TyrusEndpoint hasPath) {
         List<PathSegment> incomingList = UriComponent.decodePath(incoming, true);
         List<PathSegment> pathList = UriComponent.decodePath(hasPath.getPath(), true);
         if (incomingList.size() != pathList.size()) {

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -40,10 +40,6 @@
 package org.glassfish.tyrus.core.uri;
 
 import java.net.URI;
-
-import org.glassfish.tyrus.core.uri.TestBestMatch;
-import org.glassfish.tyrus.core.uri.TestEquivalentPaths;
-import org.glassfish.tyrus.core.uri.TestWebSocketApplication;
 
 import org.junit.Test;
 
@@ -86,9 +82,9 @@ public class UriMatchingTest {
     public static void runMatchingTests() throws Exception {
         TestBestMatch basicExactMatching = new TestBestMatch("Basic exact match testing");
         basicExactMatching
-                .addEP(new TestWebSocketApplication("/a"))
-                .addEP(new TestWebSocketApplication("/a/b"))
-                .addEP(new TestWebSocketApplication("/a/b/c"));
+                .addEP(new TestWebSocketEndpoint("/a"))
+                .addEP(new TestWebSocketEndpoint("/a/b"))
+                .addEP(new TestWebSocketEndpoint("/a/b/c"));
 
         basicExactMatching.setUri(new URI("/a")).verifyResult(true, "/a");
         basicExactMatching.setUri(new URI("/a/b")).verifyResult(true, "/a/b");
@@ -101,7 +97,7 @@ public class UriMatchingTest {
 
         TestBestMatch basicSingleVariable = new TestBestMatch("Basic single variable templates");
         basicSingleVariable
-                .addEP(new TestWebSocketApplication("/a/{var}"));
+                .addEP(new TestWebSocketEndpoint("/a/{var}"));
 
         basicSingleVariable.setUri(new URI("/a")).verifyResult(false, null);
         basicSingleVariable.setUri(new URI("/a/b/c")).verifyResult(false, null);
@@ -110,9 +106,9 @@ public class UriMatchingTest {
 
         TestBestMatch multiVariableMatch = new TestBestMatch("Multivariable Match");
         multiVariableMatch
-                .addEP(new TestWebSocketApplication("/{var1}"))
-                .addEP(new TestWebSocketApplication("/{var1}/{var2}"))
-                .addEP(new TestWebSocketApplication("/{var1}/{var2}/{var3}"));
+                .addEP(new TestWebSocketEndpoint("/{var1}"))
+                .addEP(new TestWebSocketEndpoint("/{var1}/{var2}"))
+                .addEP(new TestWebSocketEndpoint("/{var1}/{var2}/{var3}"));
 
         multiVariableMatch.setUri(new URI("/a")).verifyResult(true, "/{var1}");
         multiVariableMatch.setUri(new URI("/a/b")).verifyResult(true, "/{var1}/{var2}");
@@ -121,9 +117,9 @@ public class UriMatchingTest {
 
         TestBestMatch exactVsVariableMatchPrecedence = new TestBestMatch("Exact Match wins over variable match");
         exactVsVariableMatchPrecedence
-                .addEP(new TestWebSocketApplication("/a/b/c"))
-                .addEP(new TestWebSocketApplication("/a/{var2}/{var3}"))
-                .addEP(new TestWebSocketApplication("/a/{var2}/c"));
+                .addEP(new TestWebSocketEndpoint("/a/b/c"))
+                .addEP(new TestWebSocketEndpoint("/a/{var2}/{var3}"))
+                .addEP(new TestWebSocketEndpoint("/a/{var2}/c"));
 
         exactVsVariableMatchPrecedence.setUri(new URI("/a/b/c")).verifyResult(true, "/a/b/c");
         exactVsVariableMatchPrecedence.setUri(new URI("/a/d/c")).verifyResult(true, "/a/{var2}/c");
@@ -132,19 +128,19 @@ public class UriMatchingTest {
 
         TestBestMatch leftRightPrecedence = new TestBestMatch("Left Right precedence Match");
         leftRightPrecedence
-                .addEP((new TestWebSocketApplication("/{var1}/d")))
-                .addEP((new TestWebSocketApplication("/b/{var2}")));
+                .addEP((new TestWebSocketEndpoint("/{var1}/d")))
+                .addEP((new TestWebSocketEndpoint("/b/{var2}")));
 
         leftRightPrecedence.setUri(new URI("/b/d")).verifyResult(true, "/b/{var2}");
 
 
         TestBestMatch moreLeftRightPrecedence = new TestBestMatch("More Left Right precedence Match");
         moreLeftRightPrecedence
-                .addEP((new TestWebSocketApplication("/a")))
-                .addEP((new TestWebSocketApplication("/{var1}")))
-                .addEP((new TestWebSocketApplication("/a/b")))
-                .addEP((new TestWebSocketApplication("/{var1}/b")))
-                .addEP((new TestWebSocketApplication("/a/{var2}")));
+                .addEP((new TestWebSocketEndpoint("/a")))
+                .addEP((new TestWebSocketEndpoint("/{var1}")))
+                .addEP((new TestWebSocketEndpoint("/a/b")))
+                .addEP((new TestWebSocketEndpoint("/{var1}/b")))
+                .addEP((new TestWebSocketEndpoint("/a/{var2}")));
         moreLeftRightPrecedence.setUri(new URI("/a")).verifyResult(true, "/a");
         moreLeftRightPrecedence.setUri(new URI("/x")).verifyResult(true, "/{var1}");
         moreLeftRightPrecedence.setUri(new URI("/a/b")).verifyResult(true, "/a/b");

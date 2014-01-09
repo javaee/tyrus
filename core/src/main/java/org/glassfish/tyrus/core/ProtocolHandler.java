@@ -112,17 +112,17 @@ public final class ProtocolHandler {
     /**
      * Server side.
      *
-     * @param app              TODO.
+     * @param tyrusEndpoint    TODO.
      * @param request          TODO.
      * @param response         TODO.
      * @param extensionContext TODO.
      * @return TODO.
      */
-    public Handshake handshake(WebSocketApplication app, UpgradeRequest request, UpgradeResponse response, ExtendedExtension.ExtensionContext extensionContext) {
+    public Handshake handshake(TyrusEndpoint tyrusEndpoint, UpgradeRequest request, UpgradeResponse response, ExtendedExtension.ExtensionContext extensionContext) {
         final Handshake handshake = createHandShake(request, extensionContext);
-        handshake.respond(response, app);
+        handshake.respond(response, tyrusEndpoint);
         this.extensionContext = extensionContext;
-        this.extensions = app.getSupportedExtensions();
+        this.extensions = tyrusEndpoint.getSupportedExtensions();
         hasExtensions = extensions != null && extensions.size() > 0;
         return handshake;
     }

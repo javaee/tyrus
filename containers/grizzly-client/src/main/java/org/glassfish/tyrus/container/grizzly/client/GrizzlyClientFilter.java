@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2010-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2010-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -84,7 +84,7 @@ import org.glassfish.grizzly.http.util.HttpStatus;
  * WebSocket {@link Filter} implementation, which supposed to be placed into a {@link FilterChain} right after HTTP
  * Filter: {@link HttpServerFilter}, {@link HttpClientFilter}; depending whether it's server or client side. The
  * <tt>WebSocketFilter</tt> handles websocket connection, handshake phases and, when receives a websocket frame -
- * redirects it to appropriate connection ({@link org.glassfish.tyrus.core.WebSocketApplication}, {@link org.glassfish.tyrus.core.WebSocket}) for processing.
+ * redirects it to appropriate connection ({@link org.glassfish.tyrus.core.TyrusEndpoint}, {@link org.glassfish.tyrus.core.TyrusWebSocket}) for processing.
  *
  * @author Alexey Stashok
  * @author Pavel Bucek (pavel.bucek at oracle.com)
@@ -130,7 +130,7 @@ class GrizzlyClientFilter extends BaseFilter {
 
     /**
      * Method handles Grizzly {@link Connection} connect phase. Check if the {@link Connection} is a client-side {@link
-     * org.glassfish.tyrus.core.WebSocket}, if yes - creates websocket handshake packet and send it to a server. Otherwise, if it's not websocket
+     * org.glassfish.tyrus.core.TyrusWebSocket}, if yes - creates websocket handshake packet and send it to a server. Otherwise, if it's not websocket
      * connection - pass processing to the next {@link Filter} in a chain.
      *
      * @param ctx {@link FilterChainContext}
@@ -167,9 +167,9 @@ class GrizzlyClientFilter extends BaseFilter {
     }
 
     /**
-     * Method handles Grizzly {@link Connection} close phase. Check if the {@link Connection} is a {@link org.glassfish.tyrus.core.WebSocket}, if
+     * Method handles Grizzly {@link Connection} close phase. Check if the {@link Connection} is a {@link org.glassfish.tyrus.core.TyrusWebSocket}, if
      * yes - tries to close the websocket gracefully (sending close frame) and calls {@link
-     * org.glassfish.tyrus.core.WebSocket#onClose(org.glassfish.tyrus.core.frame.CloseFrame)}. If the Grizzly {@link Connection} is not websocket - passes processing to the next
+     * org.glassfish.tyrus.core.TyrusWebSocket#onClose(org.glassfish.tyrus.core.frame.CloseFrame)}. If the Grizzly {@link Connection} is not websocket - passes processing to the next
      * filter in the chain.
      *
      * @param ctx {@link FilterChainContext}
@@ -188,10 +188,10 @@ class GrizzlyClientFilter extends BaseFilter {
     }
 
     /**
-     * Handle Grizzly {@link Connection} read phase. If the {@link Connection} has associated {@link org.glassfish.tyrus.core.WebSocket} object
+     * Handle Grizzly {@link Connection} read phase. If the {@link Connection} has associated {@link org.glassfish.tyrus.core.TyrusWebSocket} object
      * (websocket connection), we check if websocket handshake has been completed for this connection, if not -
      * initiate/validate handshake. If handshake has been completed - parse websocket {@link org.glassfish.tyrus.core.Frame}s one by one and
-     * pass processing to appropriate {@link org.glassfish.tyrus.core.WebSocket}: {@link org.glassfish.tyrus.core.WebSocketApplication} for server- and client- side
+     * pass processing to appropriate {@link org.glassfish.tyrus.core.TyrusWebSocket}: {@link org.glassfish.tyrus.core.TyrusEndpoint} for server- and client- side
      * connections.
      *
      * @param ctx {@link FilterChainContext}

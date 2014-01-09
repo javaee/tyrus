@@ -62,22 +62,22 @@ import org.glassfish.tyrus.spi.UpgradeRequest;
  * Instance of this class represents one bi-directional websocket connection.
  */
 public class TyrusWebSocket {
-    private final WebSocketListener listener;
+    private final TyrusEndpoint tyrusEndpoint;
     private final ProtocolHandler protocolHandler;
     private final CountDownLatch onConnectLatch = new CountDownLatch(1);
     private final EnumSet<State> connected = EnumSet.range(State.CONNECTED, State.CLOSING);
     private final AtomicReference<State> state = new AtomicReference<State>(State.NEW);
 
     /**
-     * Create new instance, set {@link ProtocolHandler} and register {@link WebSocketListener WebSocketListeners}.
+     * Create new instance, set {@link ProtocolHandler} and register {@link TyrusEndpoint}.
      *
      * @param protocolHandler used for writing data (sending).
-     * @param listener        notifies registered endpoints about incoming events.
+     * @param tyrusEndpoint   notifies registered endpoints about incoming events.
      */
     public TyrusWebSocket(final ProtocolHandler protocolHandler,
-                          final WebSocketListener listener) {
+                          final TyrusEndpoint tyrusEndpoint) {
         this.protocolHandler = protocolHandler;
-        this.listener = listener;
+        this.tyrusEndpoint = tyrusEndpoint;
         protocolHandler.setWebSocket(this);
     }
 
@@ -91,9 +91,9 @@ public class TyrusWebSocket {
     }
 
     /**
-     * Convenience method to determine if this {@link WebSocket} is connected.
+     * Convenience method to determine if this {@link TyrusWebSocket} is connected.
      *
-     * @return {@code true} if the {@link WebSocket} is connected, otherwise
+     * @return {@code true} if the {@link TyrusWebSocket} is connected, otherwise
      * {@code false}
      */
     public boolean isConnected() {
@@ -109,8 +109,8 @@ public class TyrusWebSocket {
     public void onClose(CloseFrame frame) {
         final CloseReason closeReason = frame.getCloseReason();
 
-        if (listener != null) {
-            listener.onClose(this, closeReason);
+        if (tyrusEndpoint != null) {
+            tyrusEndpoint.onClose(this, closeReason);
         }
         if (state.compareAndSet(State.CONNECTED, State.CLOSING)) {
             protocolHandler.close(closeReason.getCloseCode().getCode(), closeReason.getReasonPhrase());
@@ -129,8 +129,8 @@ public class TyrusWebSocket {
     public void onConnect(UpgradeRequest upgradeRequest) {
         state.set(State.CONNECTED);
 
-        if (listener != null) {
-            listener.onConnect(this, upgradeRequest);
+        if (tyrusEndpoint != null) {
+            tyrusEndpoint.onConnect(this, upgradeRequest);
         }
 
         onConnectLatch.countDown();
@@ -146,8 +146,8 @@ public class TyrusWebSocket {
      */
     public void onFragment(boolean last, BinaryFrame frame) {
         awaitOnConnect();
-        if (listener != null) {
-            listener.onFragment(this, frame.getPayloadData(), last);
+        if (tyrusEndpoint != null) {
+            tyrusEndpoint.onFragment(this, frame.getPayloadData(), last);
         }
     }
 
@@ -161,8 +161,8 @@ public class TyrusWebSocket {
      */
     public void onFragment(boolean last, TextFrame frame) {
         awaitOnConnect();
-        if (listener != null) {
-            listener.onFragment(this, frame.getTextPayload(), last);
+        if (tyrusEndpoint != null) {
+            tyrusEndpoint.onFragment(this, frame.getTextPayload(), last);
         }
     }
 
@@ -173,8 +173,8 @@ public class TyrusWebSocket {
      */
     public void onMessage(BinaryFrame frame) {
         awaitOnConnect();
-        if (listener != null) {
-            listener.onMessage(this, frame.getPayloadData());
+        if (tyrusEndpoint != null) {
+            tyrusEndpoint.onMessage(this, frame.getPayloadData());
         }
     }
 
@@ -185,8 +185,8 @@ public class TyrusWebSocket {
      */
     public void onMessage(TextFrame frame) {
         awaitOnConnect();
-        if (listener != null) {
-            listener.onMessage(this, frame.getTextPayload());
+        if (tyrusEndpoint != null) {
+            tyrusEndpoint.onMessage(this, frame.getTextPayload());
         }
     }
 
@@ -198,8 +198,8 @@ public class TyrusWebSocket {
      */
     public void onPing(PingFrame frame) {
         awaitOnConnect();
-        if (listener != null) {
-            listener.onPing(this, frame.getPayloadData());
+        if (tyrusEndpoint != null) {
+            tyrusEndpoint.onPing(this, frame.getPayloadData());
         }
     }
 
@@ -211,8 +211,8 @@ public class TyrusWebSocket {
      */
     public void onPong(PongFrame frame) {
         awaitOnConnect();
-        if (listener != null) {
-            listener.onPong(this, frame.getPayloadData());
+        if (tyrusEndpoint != null) {
+            tyrusEndpoint.onPong(this, frame.getPayloadData());
         }
     }
 
@@ -224,7 +224,7 @@ public class TyrusWebSocket {
     }
 
     /**
-     * Closes this {@link WebSocket} using the specified status code and
+     * Closes this {@link TyrusWebSocket} using the specified status code and
      * reason.
      *
      * @param code   the closing status code.
