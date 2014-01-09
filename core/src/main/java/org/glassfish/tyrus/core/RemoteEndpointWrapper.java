@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -69,11 +69,11 @@ import static org.glassfish.tyrus.core.Utils.checkNotNull;
 public abstract class RemoteEndpointWrapper implements javax.websocket.RemoteEndpoint {
 
     protected final TyrusSession session;
-    protected final RemoteEndpoint remoteEndpoint;
+    protected final TyrusRemoteEndpoint remoteEndpoint;
 
     private final TyrusEndpointWrapper tyrusEndpointWrapper;
 
-    private RemoteEndpointWrapper(TyrusSession session, RemoteEndpoint remoteEndpoint, TyrusEndpointWrapper tyrusEndpointWrapper) {
+    private RemoteEndpointWrapper(TyrusSession session, TyrusRemoteEndpoint remoteEndpoint, TyrusEndpointWrapper tyrusEndpointWrapper) {
         this.remoteEndpoint = remoteEndpoint;
         this.tyrusEndpointWrapper = tyrusEndpointWrapper;
         this.session = session;
@@ -81,7 +81,7 @@ public abstract class RemoteEndpointWrapper implements javax.websocket.RemoteEnd
 
     static class Basic extends RemoteEndpointWrapper implements javax.websocket.RemoteEndpoint.Basic {
 
-        Basic(TyrusSession session, RemoteEndpoint remoteEndpoint, TyrusEndpointWrapper tyrusEndpointWrapper) {
+        Basic(TyrusSession session, TyrusRemoteEndpoint remoteEndpoint, TyrusEndpointWrapper tyrusEndpointWrapper) {
             super(session, remoteEndpoint, tyrusEndpointWrapper);
         }
 
@@ -191,7 +191,7 @@ public abstract class RemoteEndpointWrapper implements javax.websocket.RemoteEnd
     static class Async extends RemoteEndpointWrapper implements javax.websocket.RemoteEndpoint.Async {
         private long sendTimeout;
 
-        Async(TyrusSession session, RemoteEndpoint remoteEndpoint, TyrusEndpointWrapper tyrusEndpointWrapper) {
+        Async(TyrusSession session, TyrusRemoteEndpoint remoteEndpoint, TyrusEndpointWrapper tyrusEndpointWrapper) {
             super(session, remoteEndpoint, tyrusEndpointWrapper);
 
             if (session.getContainer() != null) {

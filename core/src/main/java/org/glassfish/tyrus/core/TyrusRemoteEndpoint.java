@@ -46,12 +46,13 @@ import javax.websocket.CloseReason;
 import javax.websocket.SendHandler;
 
 /**
- * {@link RemoteEndpoint} implementation.
+ * Subset of {@link javax.websocket.RemoteEndpoint} interface which should be implemented
+ * by container implementations.
  *
  * @author Danny Coward (danny.coward at oracle.com)
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class TyrusRemoteEndpoint extends RemoteEndpoint {
+public class TyrusRemoteEndpoint {
 
     private final TyrusWebSocket socket;
 
@@ -64,53 +65,108 @@ public class TyrusRemoteEndpoint extends RemoteEndpoint {
         this.socket = socket;
     }
 
-    @Override
+    /**
+     * Send text message.
+     *
+     * @param text the message to be sent.
+     * @return {@link Future} related to send command.
+     */
     public Future<Frame> sendText(String text) {
         return socket.send(text);
     }
 
-    @Override
+    /**
+     * Send text message.
+     *
+     * @param text    the message to be sent.
+     * @param handler notification handler. {@link SendHandler#onResult(javax.websocket.SendResult)} is called when send
+     *                operation is completed.
+     */
     public void sendText(String text, SendHandler handler) {
         socket.send(text, handler);
     }
 
-    @Override
-    public Future<Frame> sendBinary(ByteBuffer byteBuffer) {
-        return socket.send(Utils.getRemainingArray(byteBuffer));
+    /**
+     * Send binary message.
+     *
+     * @param data the message to be sent.
+     * @return {@link Future} related to send command.
+     */
+    public Future<Frame> sendBinary(ByteBuffer data) {
+        return socket.send(Utils.getRemainingArray(data));
     }
 
-    @Override
+    /**
+     * Send binary message.
+     *
+     * @param data    the message to be sent.
+     * @param handler notification handler. {@link SendHandler#onResult(javax.websocket.SendResult)} is called when send
+     *                operation is completed.
+     */
     public void sendBinary(ByteBuffer data, SendHandler handler) {
         socket.send(Utils.getRemainingArray(data), handler);
     }
 
-    @Override
+    /**
+     * Send text message in pieces, blocking until all of the message has been transmitted. The runtime
+     * reads the message in order. Non-final pieces are sent with isLast set to false. The final piece
+     * must be sent with isLast set to true.
+     *
+     * @param fragment the piece of the message being sent.
+     * @param isLast   Whether the fragment being sent is the last piece of the message.
+     */
     public Future<Frame> sendText(String fragment, boolean isLast) {
         return socket.stream(isLast, fragment);
     }
 
-    @Override
-    public Future<Frame> sendBinary(ByteBuffer byteBuffer, boolean b) {
-        byte[] bytes = Utils.getRemainingArray(byteBuffer);
-        return socket.stream(b, bytes, 0, bytes.length);
+    /**
+     * Send a binary message in pieces, blocking until all of the message has been transmitted. The runtime
+     * reads the message in order. Non-final pieces are sent with isLast set to false. The final piece
+     * must be sent with isLast set to true.
+     *
+     * @param data   the piece of the message being sent.
+     * @param isLast Whether the fragment being sent is the last piece of the message.
+     */
+    public Future<Frame> sendBinary(ByteBuffer data, boolean isLast) {
+        byte[] bytes = Utils.getRemainingArray(data);
+        return socket.stream(isLast, bytes, 0, bytes.length);
     }
 
-    @Override
-    public Future<Frame> sendPing(ByteBuffer byteBuffer) {
-        return socket.sendPing(Utils.getRemainingArray(byteBuffer));
+    /**
+     * Send a Ping message containing the given application data to the remote endpoint. The corresponding Pong message may be picked
+     * up using the MessageHandler.Pong handler.
+     *
+     * @param data the data to be carried in the ping request.
+     */
+    public Future<Frame> sendPing(ByteBuffer data) {
+        return socket.sendPing(Utils.getRemainingArray(data));
     }
 
-    @Override
-    public Future<Frame> sendPong(ByteBuffer byteBuffer) {
-        return socket.sendPong(Utils.getRemainingArray(byteBuffer));
+    /**
+     * Allows the developer to send an unsolicited Pong message containing the given application
+     * data in order to serve as a unidirectional
+     * heartbeat for the session.
+     *
+     * @param data the application data to be carried in the pong response.
+     */
+    public Future<Frame> sendPong(ByteBuffer data) {
+        return socket.sendPong(Utils.getRemainingArray(data));
     }
 
-    @Override
+    /**
+     * Send a Close message.
+     *
+     * @param closeReason close reason.
+     */
     public void close(CloseReason closeReason) {
         socket.close(closeReason.getCloseCode().getCode(), closeReason.getReasonPhrase());
     }
 
-    @Override
+    /**
+     * Sets the timeout for the writing operation.
+     *
+     * @param timeoutMs timeout in milliseconds.
+     */
     public void setWriteTimeout(long timeoutMs) {
         socket.setWriteTimeout(timeoutMs);
     }

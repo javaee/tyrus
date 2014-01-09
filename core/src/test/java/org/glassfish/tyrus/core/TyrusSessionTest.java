@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -476,16 +476,19 @@ public class TyrusSessionTest {
         return new TyrusSession(null, new TestRemoteEndpoint(), tyrusEndpointWrapper, null, null, false, null, null, null, null, new HashMap<String, List<String>>());
     }
 
-    private static class TestRemoteEndpoint extends RemoteEndpoint {
+    private static class TestRemoteEndpoint extends TyrusRemoteEndpoint {
 
+        private TestRemoteEndpoint() {
+            super(null);
+        }
 
         @Override
-        public Future<?> sendText(String text) {
+        public Future<Frame> sendText(String text) {
             return null;
         }
 
         @Override
-        public Future<?> sendBinary(ByteBuffer data) {
+        public Future<Frame> sendBinary(ByteBuffer data) {
             return null;
         }
 
@@ -498,12 +501,12 @@ public class TyrusSessionTest {
         }
 
         @Override
-        public Future<?> sendText(String fragment, boolean isLast) {
+        public Future<Frame> sendText(String fragment, boolean isLast) {
             return null;
         }
 
         @Override
-        public Future<?> sendBinary(ByteBuffer partialByte, boolean isLast) {
+        public Future<Frame> sendBinary(ByteBuffer partialByte, boolean isLast) {
             return null;
         }
 

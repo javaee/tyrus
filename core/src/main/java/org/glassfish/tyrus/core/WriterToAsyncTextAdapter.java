@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -49,10 +49,10 @@ import java.io.Writer;
  * @author Danny Coward (danny.coward at oracle.com)
  */
 class WriterToAsyncTextAdapter extends Writer {
-    private final RemoteEndpoint re;
+    private final TyrusRemoteEndpoint re;
     private String buffer = null;
 
-    public WriterToAsyncTextAdapter(RemoteEndpoint re) {
+    public WriterToAsyncTextAdapter(TyrusRemoteEndpoint re) {
         this.re = re;
     }
 

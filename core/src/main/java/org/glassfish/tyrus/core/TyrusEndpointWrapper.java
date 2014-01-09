@@ -102,8 +102,8 @@ public class TyrusEndpointWrapper {
     private final EndpointConfig configuration;
     private final Class<? extends Endpoint> endpointClass;
     private final Endpoint endpoint;
-    private final Map<RemoteEndpoint, TyrusSession> remoteEndpointToSession =
-            new ConcurrentHashMap<RemoteEndpoint, TyrusSession>();
+    private final Map<TyrusRemoteEndpoint, TyrusSession> remoteEndpointToSession =
+            new ConcurrentHashMap<TyrusRemoteEndpoint, TyrusSession>();
     private final ComponentProviderService componentProvider;
     private final ServerEndpointConfig.Configurator configurator;
     private final WebSocketContainer container;
@@ -461,14 +461,14 @@ public class TyrusEndpointWrapper {
     }
 
     /**
-     * Creates a Session based on the {@link RemoteEndpoint}, subprotocols and extensions.
+     * Creates a Session based on the {@link TyrusRemoteEndpoint}, subprotocols and extensions.
      *
      * @param re          the other end of the connection.
      * @param subprotocol used.
      * @param extensions  extensions used.
      * @return {@link Session} representing the connection.
      */
-    public Session createSessionForRemoteEndpoint(RemoteEndpoint re, String subprotocol, List<Extension> extensions) {
+    public Session createSessionForRemoteEndpoint(TyrusRemoteEndpoint re, String subprotocol, List<Extension> extensions) {
         synchronized (remoteEndpointToSession) {
             final TyrusSession session = new TyrusSession(container, re, this, subprotocol, extensions, false,
                     getURI(contextPath, null), null, Collections.<String, String>emptyMap(), null, Collections.<String, List<String>>emptyMap());
@@ -477,7 +477,7 @@ public class TyrusEndpointWrapper {
         }
     }
 
-    private TyrusSession getSession(RemoteEndpoint gs) {
+    private TyrusSession getSession(TyrusRemoteEndpoint gs) {
         synchronized (remoteEndpointToSession) {
             return remoteEndpointToSession.get(gs);
         }
@@ -487,13 +487,13 @@ public class TyrusEndpointWrapper {
      * Called by the provider when the web socket connection
      * is established.
      *
-     * @param gs             {@link org.glassfish.tyrus.core.RemoteEndpoint} who has just connected to this web socket endpoint.
+     * @param gs             {@link org.glassfish.tyrus.core.TyrusRemoteEndpoint} who has just connected to this web socket endpoint.
      * @param subprotocol    TODO.
      * @param extensions     TODO.
      * @param upgradeRequest request associated with accepted connection.
      * @return TODO.
      */
-    public Session onConnect(RemoteEndpoint gs, String subprotocol, List<Extension> extensions, UpgradeRequest upgradeRequest) {
+    public Session onConnect(TyrusRemoteEndpoint gs, String subprotocol, List<Extension> extensions, UpgradeRequest upgradeRequest) {
         synchronized (remoteEndpointToSession) {
             TyrusSession session = remoteEndpointToSession.get(gs);
             if (session == null) {
@@ -548,10 +548,10 @@ public class TyrusEndpointWrapper {
      * Called by the provider when the web socket connection
      * has an incoming text message from the given remote endpoint.
      *
-     * @param gs           {@link org.glassfish.tyrus.core.RemoteEndpoint} who sent the message.
+     * @param gs           {@link org.glassfish.tyrus.core.TyrusRemoteEndpoint} who sent the message.
      * @param messageBytes the message.
      */
-    public void onMessage(RemoteEndpoint gs, ByteBuffer messageBytes) {
+    public void onMessage(TyrusRemoteEndpoint gs, ByteBuffer messageBytes) {
         TyrusSession session = getSession(gs);
 
         if (session == null) {
@@ -599,10 +599,10 @@ public class TyrusEndpointWrapper {
      * Called by the provider when the web socket connection
      * has an incoming text message from the given remote endpoint.
      *
-     * @param gs            {@link org.glassfish.tyrus.core.RemoteEndpoint} who sent the message.
+     * @param gs            {@link org.glassfish.tyrus.core.TyrusRemoteEndpoint} who sent the message.
      * @param messageString the message.
      */
-    public void onMessage(RemoteEndpoint gs, String messageString) {
+    public void onMessage(TyrusRemoteEndpoint gs, String messageString) {
         TyrusSession session = getSession(gs);
 
         if (session == null) {
@@ -653,11 +653,11 @@ public class TyrusEndpointWrapper {
      * does not support streaming, it will need to reconstruct the message here and pass the whole
      * thing along.
      *
-     * @param gs            {@link RemoteEndpoint} who sent the message.
+     * @param gs            {@link TyrusRemoteEndpoint} who sent the message.
      * @param partialString the String message.
      * @param last          to indicate if this is the last partial string in the sequence
      */
-    public void onPartialMessage(RemoteEndpoint gs, String partialString, boolean last) {
+    public void onPartialMessage(TyrusRemoteEndpoint gs, String partialString, boolean last) {
         TyrusSession session = getSession(gs);
 
         if (session == null) {
@@ -751,11 +751,11 @@ public class TyrusEndpointWrapper {
      * does not support streaming, it will need to reconstruct the message here and pass the whole
      * thing along.
      *
-     * @param gs           {@link RemoteEndpoint} who sent the message.
+     * @param gs           {@link TyrusRemoteEndpoint} who sent the message.
      * @param partialBytes the piece of the binary message.
      * @param last         to indicate if this is the last partial byte buffer in the sequence
      */
-    public void onPartialMessage(RemoteEndpoint gs, ByteBuffer partialBytes, boolean last) {
+    public void onPartialMessage(TyrusRemoteEndpoint gs, ByteBuffer partialBytes, boolean last) {
         TyrusSession session = getSession(gs);
 
         if (session == null) {
@@ -871,10 +871,10 @@ public class TyrusEndpointWrapper {
      * Called by the provider when the web socket connection
      * has an incoming pong message from the given remote endpoint.
      *
-     * @param gs    {@link RemoteEndpoint} who sent the message.
+     * @param gs    {@link TyrusRemoteEndpoint} who sent the message.
      * @param bytes the message.
      */
-    public void onPong(RemoteEndpoint gs, final ByteBuffer bytes) {
+    public void onPong(TyrusRemoteEndpoint gs, final ByteBuffer bytes) {
         TyrusSession session = getSession(gs);
 
         if (session == null) {
@@ -903,10 +903,10 @@ public class TyrusEndpointWrapper {
      * The endpoint needs to respond as soon as possible (see the websocket RFC).
      * No involvement from application layer, there is no ping listener.
      *
-     * @param gs    {@link RemoteEndpoint} who sent the message.
+     * @param gs    {@link TyrusRemoteEndpoint} who sent the message.
      * @param bytes the message.
      */
-    public void onPing(RemoteEndpoint gs, ByteBuffer bytes) {
+    public void onPing(TyrusRemoteEndpoint gs, ByteBuffer bytes) {
         TyrusSession session = getSession(gs);
 
         if (session == null) {
@@ -927,9 +927,9 @@ public class TyrusEndpointWrapper {
      * Called by the provider when the web socket connection
      * to the given remote endpoint has just closed.
      *
-     * @param gs {@link RemoteEndpoint} who has just closed the connection.
+     * @param gs {@link TyrusRemoteEndpoint} who has just closed the connection.
      */
-    public void onClose(RemoteEndpoint gs, CloseReason closeReason) {
+    public void onClose(TyrusRemoteEndpoint gs, CloseReason closeReason) {
         TyrusSession session = getSession(gs);
 
         if (session == null) {
@@ -997,18 +997,18 @@ public class TyrusEndpointWrapper {
         final Map<Session, Future<?>> futures = new HashMap<Session, Future<?>>();
         byte[] frame = null;
 
-        for (Map.Entry<RemoteEndpoint, TyrusSession> e : remoteEndpointToSession.entrySet()) {
+        for (Map.Entry<TyrusRemoteEndpoint, TyrusSession> e : remoteEndpointToSession.entrySet()) {
             if (e.getValue().isOpen()) {
 
-                final TyrusRemoteEndpoint remoteEndpoint = (TyrusRemoteEndpoint) e.getKey();
-                final ProtocolHandler protocolHandler = ((TyrusWebSocket) remoteEndpoint.getSocket()).getProtocolHandler();
+                final TyrusRemoteEndpoint remoteEndpoint = e.getKey();
+                final ProtocolHandler protocolHandler = remoteEndpoint.getSocket().getProtocolHandler();
 
                 // we need to let protocol handler execute extensions if there are any
                 if (protocolHandler.hasExtensions()) {
                     byte[] tempFrame;
 
                     final Frame dataFrame = new TextFrame(message, false, true);
-                    final ByteBuffer byteBuffer = ((TyrusWebSocket) remoteEndpoint.getSocket()).getProtocolHandler().frame(dataFrame);
+                    final ByteBuffer byteBuffer = remoteEndpoint.getSocket().getProtocolHandler().frame(dataFrame);
                     tempFrame = new byte[byteBuffer.remaining()];
                     byteBuffer.get(tempFrame);
 
@@ -1019,7 +1019,7 @@ public class TyrusEndpointWrapper {
 
                     if (frame == null) {
                         final Frame dataFrame = new TextFrame(message, false, true);
-                        final ByteBuffer byteBuffer = ((TyrusWebSocket) remoteEndpoint.getSocket()).getProtocolHandler().frame(dataFrame);
+                        final ByteBuffer byteBuffer = remoteEndpoint.getSocket().getProtocolHandler().frame(dataFrame);
                         frame = new byte[byteBuffer.remaining()];
                         byteBuffer.get(frame);
                     }
@@ -1044,11 +1044,11 @@ public class TyrusEndpointWrapper {
         final Map<Session, Future<?>> futures = new HashMap<Session, Future<?>>();
         byte[] frame = null;
 
-        for (Map.Entry<RemoteEndpoint, TyrusSession> e : remoteEndpointToSession.entrySet()) {
+        for (Map.Entry<TyrusRemoteEndpoint, TyrusSession> e : remoteEndpointToSession.entrySet()) {
             if (e.getValue().isOpen()) {
 
-                final TyrusRemoteEndpoint remoteEndpoint = (TyrusRemoteEndpoint) e.getKey();
-                final ProtocolHandler protocolHandler = ((TyrusWebSocket) remoteEndpoint.getSocket()).getProtocolHandler();
+                final TyrusRemoteEndpoint remoteEndpoint = e.getKey();
+                final ProtocolHandler protocolHandler = remoteEndpoint.getSocket().getProtocolHandler();
 
                 // we need to let protocol handler execute extensions if there are any
                 if (protocolHandler.hasExtensions()) {
@@ -1057,7 +1057,7 @@ public class TyrusEndpointWrapper {
                     message.get(byteArrayMessage);
 
                     final Frame dataFrame = new BinaryFrame(byteArrayMessage, false, true);
-                    final ByteBuffer byteBuffer = ((TyrusWebSocket) remoteEndpoint.getSocket()).getProtocolHandler().frame(dataFrame);
+                    final ByteBuffer byteBuffer = remoteEndpoint.getSocket().getProtocolHandler().frame(dataFrame);
                     tempFrame = new byte[byteBuffer.remaining()];
                     byteBuffer.get(tempFrame);
 
@@ -1071,7 +1071,7 @@ public class TyrusEndpointWrapper {
                         message.get(byteArrayMessage);
 
                         final Frame dataFrame = new BinaryFrame(byteArrayMessage, false, true);
-                        final ByteBuffer byteBuffer = ((TyrusWebSocket) remoteEndpoint.getSocket()).getProtocolHandler().frame(dataFrame);
+                        final ByteBuffer byteBuffer = remoteEndpoint.getSocket().getProtocolHandler().frame(dataFrame);
                         frame = new byte[byteBuffer.remaining()];
                         byteBuffer.get(frame);
                     }

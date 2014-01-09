@@ -111,7 +111,7 @@ public class TyrusSession implements Session {
     private ReaderBuffer readerBuffer;
     private InputStreamBuffer inputStreamBuffer;
 
-    TyrusSession(WebSocketContainer container, RemoteEndpoint remoteEndpoint, TyrusEndpointWrapper tyrusEndpointWrapper,
+    TyrusSession(WebSocketContainer container, TyrusRemoteEndpoint remoteEndpoint, TyrusEndpointWrapper tyrusEndpointWrapper,
                  String subprotocol, List<Extension> extensions, boolean isSecure,
                  URI uri, String queryString, Map<String, String> pathParameters, Principal principal,
                  Map<String, List<String>> requestParameterMap) {
