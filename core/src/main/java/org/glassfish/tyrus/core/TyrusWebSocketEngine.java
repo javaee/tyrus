@@ -74,7 +74,7 @@ import org.glassfish.tyrus.spi.Writer;
  *
  * @author Alexey Stashok
  * @author Pavel Bucek (pavel.bucek at oracle.com)
- * @see org.glassfish.tyrus.core.WebSocket
+ * @see org.glassfish.tyrus.core.TyrusWebSocket
  * @see org.glassfish.tyrus.core.WebSocketApplication
  */
 public class TyrusWebSocketEngine implements WebSocketEngine {
@@ -196,7 +196,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
     private static class TyrusReadHandler implements ReadHandler {
 
         private final ProtocolHandler protocolHandler;
-        private final WebSocket socket;
+        private final TyrusWebSocket socket;
         private final WebSocketApplication application;
         private final int incomingBufferSize;
         private final List<Extension> negotiatedExtensions;
@@ -204,7 +204,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
 
         private volatile ByteBuffer buffer;
 
-        private TyrusReadHandler(ProtocolHandler protocolHandler, WebSocket socket, WebSocketApplication application, int incomingBufferSize, ExtendedExtension.ExtensionContext extensionContext) {
+        private TyrusReadHandler(ProtocolHandler protocolHandler, TyrusWebSocket socket, WebSocketApplication application, int incomingBufferSize, ExtendedExtension.ExtensionContext extensionContext) {
             this.extensionContext = extensionContext;
             this.protocolHandler = protocolHandler;
             this.socket = socket;
@@ -409,13 +409,13 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
         private final ReadHandler readHandler;
         private final Writer writer;
         private final CloseListener closeListener;
-        private final WebSocket socket;
+        private final TyrusWebSocket socket;
         private final ExtendedExtension.ExtensionContext extensionContext;
         private final WebSocketApplication application;
 
         TyrusConnection(WebSocketApplication app, ProtocolHandler protocolHandler, int incomingBufferSize, Writer writer, Connection.CloseListener closeListener, UpgradeRequest upgradeRequest, ExtendedExtension.ExtensionContext extensionContext) {
             protocolHandler.setWriter(writer);
-            final WebSocket socket = app.createSocket(protocolHandler, app);
+            final TyrusWebSocket socket = app.createSocket(protocolHandler, app);
 
             socket.onConnect(upgradeRequest);
             this.socket = socket;

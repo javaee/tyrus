@@ -69,7 +69,6 @@ import org.glassfish.tyrus.core.TyrusRemoteEndpoint;
 import org.glassfish.tyrus.core.TyrusWebSocket;
 import org.glassfish.tyrus.core.Utils;
 import org.glassfish.tyrus.core.Version;
-import org.glassfish.tyrus.core.WebSocket;
 import org.glassfish.tyrus.core.frame.CloseFrame;
 import org.glassfish.tyrus.spi.ClientContainer;
 import org.glassfish.tyrus.spi.ClientEngine;
@@ -268,13 +267,13 @@ public class TyrusClientEngine implements ClientEngine {
 
         private final int incomingBufferSize;
         private final ProtocolHandler handler;
-        private final WebSocket webSocket;
+        private final TyrusWebSocket webSocket;
         private final List<Extension> negotiatedExtensions;
         private final ExtendedExtension.ExtensionContext extensionContext;
 
         private ByteBuffer buffer = null;
 
-        TyrusReadHandler(final ProtocolHandler protocolHandler, final WebSocket webSocket, int incomingBufferSize, List<Extension> negotiatedExtensions, ExtendedExtension.ExtensionContext extensionContext) {
+        TyrusReadHandler(final ProtocolHandler protocolHandler, final TyrusWebSocket webSocket, int incomingBufferSize, List<Extension> negotiatedExtensions, ExtendedExtension.ExtensionContext extensionContext) {
             this.handler = protocolHandler;
             this.webSocket = webSocket;
             this.incomingBufferSize = incomingBufferSize;

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -62,7 +62,7 @@ public interface WebSocketListener {
      * @param socket      the {@link WebSocket} being closed.
      * @param closeReason the {@link CloseReason} sent by the remote end-point.
      */
-    void onClose(WebSocket socket, CloseReason closeReason);
+    void onClose(TyrusWebSocket socket, CloseReason closeReason);
 
     /**
      * <p>
@@ -73,7 +73,7 @@ public interface WebSocketListener {
      * @param socket         the newly connected {@link WebSocket}
      * @param upgradeRequest request associated with accepted connection.
      */
-    void onConnect(WebSocket socket, UpgradeRequest upgradeRequest);
+    void onConnect(TyrusWebSocket socket, UpgradeRequest upgradeRequest);
 
     /**
      * <p>
@@ -84,7 +84,7 @@ public interface WebSocketListener {
      * @param socket the {@link WebSocket} that received a message.
      * @param text   the message received.
      */
-    void onMessage(WebSocket socket, String text);
+    void onMessage(TyrusWebSocket socket, String text);
 
     /**
      * <p>
@@ -95,7 +95,7 @@ public interface WebSocketListener {
      * @param socket the {@link WebSocket} that received a message.
      * @param bytes  the message received.
      */
-    void onMessage(WebSocket socket, byte[] bytes);
+    void onMessage(TyrusWebSocket socket, byte[] bytes);
 
     /**
      * <p>
@@ -106,7 +106,7 @@ public interface WebSocketListener {
      * @param socket the {@link WebSocket} that received the ping.
      * @param bytes  the payload of the ping frame, if any.
      */
-    void onPing(WebSocket socket, byte[] bytes);
+    void onPing(TyrusWebSocket socket, byte[] bytes);
 
     /**
      * <p>
@@ -117,7 +117,7 @@ public interface WebSocketListener {
      * @param socket the {@link WebSocket} that received the pong.
      * @param bytes  the payload of the pong frame, if any.
      */
-    void onPong(WebSocket socket, byte[] bytes);
+    void onPong(TyrusWebSocket socket, byte[] bytes);
 
     /**
      * <p>
@@ -129,7 +129,7 @@ public interface WebSocketListener {
      * @param fragment the message fragment.
      * @param last     flag indicating if this was the last fragment.
      */
-    void onFragment(WebSocket socket, String fragment, boolean last);
+    void onFragment(TyrusWebSocket socket, String fragment, boolean last);
 
     /**
      * <p>
@@ -141,5 +141,5 @@ public interface WebSocketListener {
      * @param fragment the message fragment.
      * @param last     flag indicating if this was the last fragment.
      */
-    void onFragment(WebSocket socket, byte[] fragment, boolean last);
+    void onFragment(TyrusWebSocket socket, byte[] fragment, boolean last);
 }

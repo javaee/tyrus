@@ -108,17 +108,17 @@ public class TyrusEndpoint extends WebSocketApplication {
     }
 
     @Override
-    public WebSocket createSocket(final ProtocolHandler handler, final WebSocketListener listener) {
+    public TyrusWebSocket createSocket(final ProtocolHandler handler, final WebSocketListener listener) {
         return new TyrusWebSocket(handler, listener);
     }
 
     @Override
-    public void onConnect(WebSocket socket, UpgradeRequest upgradeRequest) {
+    public void onConnect(TyrusWebSocket socket, UpgradeRequest upgradeRequest) {
         this.endpoint.onConnect(new TyrusRemoteEndpoint(socket), temporaryNegotiatedProtocol, temporaryNegotiatedExtensions, upgradeRequest);
     }
 
     @Override
-    public void onFragment(WebSocket socket, String fragment, boolean last) {
+    public void onFragment(TyrusWebSocket socket, String fragment, boolean last) {
         try {
             this.endpoint.onPartialMessage(new TyrusRemoteEndpoint(socket), fragment, last);
         } catch (Throwable t) {
@@ -127,7 +127,7 @@ public class TyrusEndpoint extends WebSocketApplication {
     }
 
     @Override
-    public void onFragment(WebSocket socket, byte[] fragment, boolean last) {
+    public void onFragment(TyrusWebSocket socket, byte[] fragment, boolean last) {
         try {
             this.endpoint.onPartialMessage(new TyrusRemoteEndpoint(socket), ByteBuffer.wrap(fragment), last);
         } catch (Throwable t) {
@@ -136,27 +136,27 @@ public class TyrusEndpoint extends WebSocketApplication {
     }
 
     @Override
-    public void onMessage(WebSocket socket, String messageString) {
+    public void onMessage(TyrusWebSocket socket, String messageString) {
         this.endpoint.onMessage(new TyrusRemoteEndpoint(socket), messageString);
     }
 
     @Override
-    public void onMessage(WebSocket socket, byte[] bytes) {
+    public void onMessage(TyrusWebSocket socket, byte[] bytes) {
         this.endpoint.onMessage(new TyrusRemoteEndpoint(socket), ByteBuffer.wrap(bytes));
     }
 
     @Override
-    public void onClose(WebSocket socket, CloseReason closeReason) {
+    public void onClose(TyrusWebSocket socket, CloseReason closeReason) {
         this.endpoint.onClose(new TyrusRemoteEndpoint(socket), closeReason);
     }
 
     @Override
-    public void onPing(WebSocket socket, byte[] bytes) {
+    public void onPing(TyrusWebSocket socket, byte[] bytes) {
         this.endpoint.onPing(new TyrusRemoteEndpoint(socket), ByteBuffer.wrap(bytes));
     }
 
     @Override
-    public void onPong(WebSocket socket, byte[] bytes) {
+    public void onPong(TyrusWebSocket socket, byte[] bytes) {
         this.endpoint.onPong(new TyrusRemoteEndpoint(socket), ByteBuffer.wrap(bytes));
     }
 
@@ -166,7 +166,7 @@ public class TyrusEndpoint extends WebSocketApplication {
     }
 
     @Override
-    public boolean onError(WebSocket webSocket, Throwable t) {
+    public boolean onError(TyrusWebSocket webSocket, Throwable t) {
         Logger.getLogger(TyrusEndpoint.class.getName()).log(Level.WARNING, "Unexpected error, closing connection.", t);
         return true;
     }

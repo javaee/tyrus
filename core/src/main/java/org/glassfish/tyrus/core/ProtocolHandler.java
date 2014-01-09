@@ -76,7 +76,7 @@ public final class ProtocolHandler {
     private final boolean maskData;
     private final ParsingState state = new ParsingState();
 
-    private WebSocket webSocket;
+    private TyrusWebSocket webSocket;
     private byte outFragmentedType;
     private Writer writer;
     private byte inFragmentedType;
@@ -132,7 +132,7 @@ public final class ProtocolHandler {
      *
      * @param webSocket TODO.
      */
-    public void setWebSocket(WebSocket webSocket) {
+    public void setWebSocket(TyrusWebSocket webSocket) {
         this.webSocket = webSocket;
     }
 
@@ -562,7 +562,7 @@ public final class ProtocolHandler {
      * @param frame  TODO.
      * @param socket TODO.
      */
-    public void process(Frame frame, WebSocket socket) {
+    public void process(Frame frame, TyrusWebSocket socket) {
         if (frame.isRsv1() || frame.isRsv2() || frame.isRsv3()) {
             throw new ProtocolError("RSV bit(s) incorrectly set.");
         }

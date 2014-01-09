@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -47,7 +47,7 @@ import javax.websocket.CloseReason;
 import javax.websocket.Extension;
 
 import org.glassfish.tyrus.core.ProtocolHandler;
-import org.glassfish.tyrus.core.WebSocket;
+import org.glassfish.tyrus.core.TyrusWebSocket;
 import org.glassfish.tyrus.core.WebSocketApplication;
 import org.glassfish.tyrus.core.WebSocketListener;
 import org.glassfish.tyrus.spi.UpgradeRequest;
@@ -74,7 +74,7 @@ public class TestWebSocketApplication extends WebSocketApplication {
     }
 
     @Override
-    public WebSocket createSocket(ProtocolHandler handler, WebSocketListener listener) {
+    public TyrusWebSocket createSocket(ProtocolHandler handler, WebSocketListener listener) {
         return null;
     }
 
@@ -94,34 +94,34 @@ public class TestWebSocketApplication extends WebSocketApplication {
     }
 
     @Override
-    public void onClose(WebSocket socket, CloseReason closeReason) {
+    public void onClose(TyrusWebSocket socket, CloseReason closeReason) {
     }
 
     @Override
-    public void onConnect(WebSocket socket, UpgradeRequest upgradeRequest) {
+    public void onConnect(TyrusWebSocket socket, UpgradeRequest upgradeRequest) {
     }
 
     @Override
-    public void onMessage(WebSocket socket, String text) {
+    public void onMessage(TyrusWebSocket socket, String text) {
     }
 
     @Override
-    public void onMessage(WebSocket socket, byte[] bytes) {
+    public void onMessage(TyrusWebSocket socket, byte[] bytes) {
     }
 
     @Override
-    public void onPing(WebSocket socket, byte[] bytes) {
+    public void onPing(TyrusWebSocket socket, byte[] bytes) {
     }
 
     @Override
-    public void onPong(WebSocket socket, byte[] bytes) {
+    public void onPong(TyrusWebSocket socket, byte[] bytes) {
     }
 
     @Override
-    public void onFragment(WebSocket socket, String fragment, boolean last) {
+    public void onFragment(TyrusWebSocket socket, String fragment, boolean last) {
     }
 
     @Override
-    public void onFragment(WebSocket socket, byte[] fragment, boolean last) {
+    public void onFragment(TyrusWebSocket socket, byte[] fragment, boolean last) {
     }
 }

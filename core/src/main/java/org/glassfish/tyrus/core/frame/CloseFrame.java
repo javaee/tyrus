@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -51,9 +51,9 @@ import javax.websocket.CloseReason;
 import org.glassfish.tyrus.core.Frame;
 import org.glassfish.tyrus.core.ProtocolError;
 import org.glassfish.tyrus.core.StrictUtf8;
+import org.glassfish.tyrus.core.TyrusWebSocket;
 import org.glassfish.tyrus.core.Utf8DecodingError;
 import org.glassfish.tyrus.core.Utils;
-import org.glassfish.tyrus.core.WebSocket;
 
 /**
  * Close frame representation.
@@ -122,7 +122,7 @@ public class CloseFrame extends TyrusFrame {
     }
 
     @Override
-    public void respond(WebSocket socket) {
+    public void respond(TyrusWebSocket socket) {
         socket.onClose(this);
         socket.close();
     }

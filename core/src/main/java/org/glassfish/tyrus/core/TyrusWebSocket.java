@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -57,20 +57,14 @@ import org.glassfish.tyrus.core.frame.TextFrame;
 import org.glassfish.tyrus.spi.UpgradeRequest;
 
 /**
- * Tyrus implementation of {@link WebSocket}.
+ * Tyrus representation of web socket connection.
  * <p/>
  * Instance of this class represents one bi-directional websocket connection.
  */
-public class TyrusWebSocket implements WebSocket {
+public class TyrusWebSocket {
     private final WebSocketListener listener;
     private final ProtocolHandler protocolHandler;
-
     private final CountDownLatch onConnectLatch = new CountDownLatch(1);
-
-    enum State {
-        NEW, CONNECTED, CLOSING, CLOSED
-    }
-
     private final EnumSet<State> connected = EnumSet.range(State.CONNECTED, State.CLOSING);
     private final AtomicReference<State> state = new AtomicReference<State>(State.NEW);
 
@@ -87,17 +81,31 @@ public class TyrusWebSocket implements WebSocket {
         protocolHandler.setWebSocket(this);
     }
 
-    @Override
+    /**
+     * Sets the timeout for the writing operation.
+     *
+     * @param timeoutMs timeout in milliseconds.
+     */
     public void setWriteTimeout(long timeoutMs) {
         // do nothing.
     }
 
-    @Override
+    /**
+     * Convenience method to determine if this {@link WebSocket} is connected.
+     *
+     * @return {@code true} if the {@link WebSocket} is connected, otherwise
+     * {@code false}
+     */
     public boolean isConnected() {
         return connected.contains(state.get());
     }
 
-    @Override
+    /**
+     * This callback will be invoked when the remote end-point sent a closing
+     * frame.
+     *
+     * @param frame the close frame from the remote end-point.
+     */
     public void onClose(CloseFrame frame) {
         final CloseReason closeReason = frame.getCloseReason();
 
@@ -112,7 +120,12 @@ public class TyrusWebSocket implements WebSocket {
         }
     }
 
-    @Override
+    /**
+     * This callback will be invoked when the opening handshake between both
+     * endpoints has been completed.
+     *
+     * @param upgradeRequest request associated with this socket.
+     */
     public void onConnect(UpgradeRequest upgradeRequest) {
         state.set(State.CONNECTED);
 
@@ -123,7 +136,14 @@ public class TyrusWebSocket implements WebSocket {
         onConnectLatch.countDown();
     }
 
-    @Override
+    /**
+     * This callback will be invoked when a fragmented binary message has
+     * been received.
+     *
+     * @param last  flag indicating whether or not the payload received is the
+     *              final fragment of a message.
+     * @param frame the binary data received from the remote end-point.
+     */
     public void onFragment(boolean last, BinaryFrame frame) {
         awaitOnConnect();
         if (listener != null) {
@@ -131,7 +151,14 @@ public class TyrusWebSocket implements WebSocket {
         }
     }
 
-    @Override
+    /**
+     * This callback will be invoked when a fragmented textual message has
+     * been received.
+     *
+     * @param last  flag indicating whether or not the payload received is the
+     *              final fragment of a message.
+     * @param frame the text received from the remote end-point.
+     */
     public void onFragment(boolean last, TextFrame frame) {
         awaitOnConnect();
         if (listener != null) {
@@ -139,7 +166,11 @@ public class TyrusWebSocket implements WebSocket {
         }
     }
 
-    @Override
+    /**
+     * This callback will be invoked when a binary message has been received.
+     *
+     * @param frame the binary data received from the remote end-point.
+     */
     public void onMessage(BinaryFrame frame) {
         awaitOnConnect();
         if (listener != null) {
@@ -147,7 +178,11 @@ public class TyrusWebSocket implements WebSocket {
         }
     }
 
-    @Override
+    /**
+     * This callback will be invoked when a text message has been received.
+     *
+     * @param frame the text received from the remote end-point.
+     */
     public void onMessage(TextFrame frame) {
         awaitOnConnect();
         if (listener != null) {
@@ -155,7 +190,12 @@ public class TyrusWebSocket implements WebSocket {
         }
     }
 
-    @Override
+    /**
+     * This callback will be invoked when the remote end-point has sent a ping
+     * frame.
+     *
+     * @param frame the ping frame from the remote end-point.
+     */
     public void onPing(PingFrame frame) {
         awaitOnConnect();
         if (listener != null) {
@@ -163,7 +203,12 @@ public class TyrusWebSocket implements WebSocket {
         }
     }
 
-    @Override
+    /**
+     * This callback will be invoked when the remote end-point has sent a pong
+     * frame.
+     *
+     * @param frame the pong frame from the remote end-point.
+     */
     public void onPong(PongFrame frame) {
         awaitOnConnect();
         if (listener != null) {
@@ -171,19 +216,32 @@ public class TyrusWebSocket implements WebSocket {
         }
     }
 
-    @Override
+    /**
+     * Closes this {@link TyrusWebSocket}.
+     */
     public void close() {
         close(CloseReason.CloseCodes.NORMAL_CLOSURE.getCode(), null);
     }
 
-    @Override
+    /**
+     * Closes this {@link WebSocket} using the specified status code and
+     * reason.
+     *
+     * @param code   the closing status code.
+     * @param reason the reason, if any.
+     */
     public void close(int code, String reason) {
         if (state.compareAndSet(State.CONNECTED, State.CLOSING)) {
             protocolHandler.close(code, reason);
         }
     }
 
-    @Override
+    /**
+     * Send a binary frame to the remote endpoint.
+     *
+     * @param data data to be sent.
+     * @return {@link Future} which could be used to control/check the sending completion state.
+     */
     public Future<Frame> send(byte[] data) {
         if (isConnected()) {
             return protocolHandler.send(data);
@@ -192,7 +250,12 @@ public class TyrusWebSocket implements WebSocket {
         }
     }
 
-    @Override
+    /**
+     * Send a binary frame to the remote endpoint.
+     *
+     * @param data    data to be sent.
+     * @param handler {@link SendHandler#onResult(javax.websocket.SendResult)} will be called when sending is complete.
+     */
     public void send(byte[] data, SendHandler handler) {
         if (isConnected()) {
             protocolHandler.send(data, handler);
@@ -201,7 +264,12 @@ public class TyrusWebSocket implements WebSocket {
         }
     }
 
-    @Override
+    /**
+     * Send a text frame to the remote endpoint.
+     *
+     * @param data data to be sent.
+     * @return {@link Future} which could be used to control/check the sending completion state.
+     */
     public Future<Frame> send(String data) {
         if (isConnected()) {
             return protocolHandler.send(data);
@@ -210,7 +278,12 @@ public class TyrusWebSocket implements WebSocket {
         }
     }
 
-    @Override
+    /**
+     * Send a text frame to the remote endpoint.
+     *
+     * @param data    data to be sent.
+     * @param handler {@link SendHandler#onResult(javax.websocket.SendResult)} will be called when sending is complete.
+     */
     public void send(String data, SendHandler handler) {
         if (isConnected()) {
             protocolHandler.send(data, handler);
@@ -219,8 +292,12 @@ public class TyrusWebSocket implements WebSocket {
         }
     }
 
-
-    @Override
+    /**
+     * Send a frame to the remote endpoint.
+     *
+     * @param data complete data frame.
+     * @return {@link Future} which could be used to control/check the sending completion state.
+     */
     public Future<Frame> sendRawFrame(ByteBuffer data) {
         if (isConnected()) {
             return protocolHandler.sendRawFrame(data);
@@ -229,12 +306,29 @@ public class TyrusWebSocket implements WebSocket {
         }
     }
 
-    @Override
+    /**
+     * Sends a <code>ping</code> frame with the specified payload (if any).
+     *
+     * @param data optional payload.  Note that payload length is restricted
+     *             to 125 bytes or less.
+     * @return {@link Future} which could be used to control/check the sending completion state.
+     */
     public Future<Frame> sendPing(byte[] data) {
         return send(new PingFrame(data));
     }
 
-    @Override
+    /**
+     * Sends a <code>ping</code> frame with the specified payload (if any).
+     * <p/>
+     * It may seem odd to send a pong frame, however, RFC-6455 states:
+     * "A Pong frame MAY be sent unsolicited.  This serves as a
+     * unidirectional heartbeat.  A response to an unsolicited Pong frame is
+     * not expected."
+     *
+     * @param data optional payload.  Note that payload length is restricted
+     *             to 125 bytes or less.
+     * @return {@link Future} which could be used to control/check the sending completion state.
+     */
     public Future<Frame> sendPong(byte[] data) {
         return send(new PongFrame(data));
     }
@@ -256,7 +350,13 @@ public class TyrusWebSocket implements WebSocket {
         }
     }
 
-    @Override
+    /**
+     * Sends a fragment of a complete message.
+     *
+     * @param last     boolean indicating if this message fragment is the last.
+     * @param fragment the textual fragment to send.
+     * @return {@link Future} which could be used to control/check the sending completion state.
+     */
     public Future<Frame> stream(boolean last, String fragment) {
         if (isConnected()) {
             return protocolHandler.stream(last, fragment);
@@ -265,7 +365,15 @@ public class TyrusWebSocket implements WebSocket {
         }
     }
 
-    @Override
+    /**
+     * Sends a fragment of a complete message.
+     *
+     * @param last  boolean indicating if this message fragment is the last.
+     * @param bytes the binary fragment to send.
+     * @param off   the offset within the fragment to send.
+     * @param len   the number of bytes of the fragment to send.
+     * @return {@link Future} which could be used to control/check the sending completion state.
+     */
     public Future<Frame> stream(boolean last, byte[] bytes, int off, int len) {
         if (isConnected()) {
             return protocolHandler.stream(last, bytes, off, len);
@@ -276,5 +384,9 @@ public class TyrusWebSocket implements WebSocket {
 
     ProtocolHandler getProtocolHandler() {
         return protocolHandler;
+    }
+
+    enum State {
+        NEW, CONNECTED, CLOSING, CLOSED
     }
 }

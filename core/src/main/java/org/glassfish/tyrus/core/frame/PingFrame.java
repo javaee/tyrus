@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -41,7 +41,7 @@
 package org.glassfish.tyrus.core.frame;
 
 import org.glassfish.tyrus.core.Frame;
-import org.glassfish.tyrus.core.WebSocket;
+import org.glassfish.tyrus.core.TyrusWebSocket;
 
 /**
  * Ping frame representation.
@@ -67,7 +67,7 @@ public class PingFrame extends TyrusFrame {
     }
 
     @Override
-    public void respond(WebSocket socket) {
+    public void respond(TyrusWebSocket socket) {
         socket.onPing(this);
     }
 }

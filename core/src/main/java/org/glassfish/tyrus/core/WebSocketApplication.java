@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -67,8 +67,8 @@ public abstract class WebSocketApplication implements WebSocketListener {
      *                 {@link WebSocket}.
      * @return TODO
      */
-    public abstract WebSocket createSocket(final ProtocolHandler handler,
-                                           final WebSocketListener listener);
+    public abstract TyrusWebSocket createSocket(final ProtocolHandler handler,
+                                                final WebSocketListener listener);
 
     /**
      * When a {@link WebSocket#onClose(org.glassfish.tyrus.core.frame.CloseFrame)} is invoked, the {@link WebSocket}
@@ -78,7 +78,7 @@ public abstract class WebSocketApplication implements WebSocketListener {
      * @param closeReason the {@link CloseReason}.
      */
     @Override
-    public abstract void onClose(WebSocket socket, CloseReason closeReason);
+    public abstract void onClose(TyrusWebSocket socket, CloseReason closeReason);
 
     /**
      * When a new {@link WebSocket} connection is made to this application, the
@@ -88,7 +88,7 @@ public abstract class WebSocketApplication implements WebSocketListener {
      * @param upgradeRequest request associated with connection.
      */
     @Override
-    public abstract void onConnect(WebSocket socket, UpgradeRequest upgradeRequest);
+    public abstract void onConnect(TyrusWebSocket socket, UpgradeRequest upgradeRequest);
 
     /**
      * Checks protocol specific information can and should be upgraded.
@@ -119,7 +119,7 @@ public abstract class WebSocketApplication implements WebSocketListener {
      * @return {@code true} if the WebSocket should be closed otherwise
      * {@code false}.
      */
-    public boolean onError(final WebSocket webSocket,
+    public boolean onError(final TyrusWebSocket webSocket,
                            final Throwable t) {
         return true;
     }
