@@ -2,7 +2,7 @@
 
     DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
 
-    Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
+    Copyright (c) 2011-2014 Oracle and/or its affiliates. All rights reserved.
 
     The contents of this file are subject to the terms of either the GNU
     General Public License Version 2 only ("GPL") or the Common Development
@@ -156,7 +156,7 @@
         <websocket.api.build_number>18</websocket.api.build_number>
 
         <servlet.api.version>3.1.0</servlet.api.version>
-        <grizzly.version>2.3.8</grizzly.version>
+        <grizzly.version>2.3.9</grizzly.version>
         <javax.ejb-api.version>3.2</javax.ejb-api.version>
         <cdi-api.version>1.1</cdi-api.version>
 
