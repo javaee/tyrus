@@ -204,7 +204,244 @@ client.getProperties().put(GrizzlyClientContainer.SHARED_CONTAINER, true);</prog
 
 <programlisting language="java" linenumbering="numbered">client.getProperties().put(GrizzlyClientSocket.SELECTOR_THREAD_POOL_CONFIG, ThreadPoolConfig.defaultConfig().setMaxPoolSize(3));
 client.getProperties().put(GrizzlyClientSocket.WORKER_THREAD_POOL_CONFIG, ThreadPoolConfig.defaultConfig().setMaxPoolSize(10));</programlisting>
-
     </section>
 
+    <section>
+        <title>WebSocket Extensions</title>
+
+        <para>Please note that Extensions support is considered to be experimental and any API can be changed anytime. Also,
+        you should ask yourself at least twice whether you don't want to achieve your goal by other means - WebSocket
+        Extension is very powerful and can easily break your application when not used with care or enough expertise.
+        </para>
+
+        <para>WebSocket frame used in ExtendedExtension:</para>
+
+        <programlisting language="java" linenumbering="numbered">public class Frame {
+
+    public boolean isFin() { .. }
+    public boolean isRsv1() { .. }
+    public boolean isRsv2() { .. }
+    public boolean isRsv3() { .. }
+    public boolean isMask() { .. }
+    public byte getOpcode() { .. }
+    public long getPayloadLength() { .. }
+    public int getMaskingKey() { .. }
+    public byte[] getPayloadData() { .. }
+    public boolean isControlFrame() { .. }
+
+    public static Builder builder() { .. }
+    public static Builder builder(Frame frame) { .. }
+
+    public final static class Builder {
+
+    public Builder() { .. }
+    public Builder(Frame frame) { .. }
+    public Frame build() { .. }
+    public Builder fin(boolean fin) { .. }
+    public Builder rsv1(boolean rsv1) { .. }
+    public Builder rsv2(boolean rsv2) { .. }
+    public Builder rsv3(boolean rsv3) { .. }
+    public Builder mask(boolean mask) { .. }
+    public Builder opcode(byte opcode) { .. }
+    public Builder payloadLength(long payloadLength) { .. }
+    public Builder maskingKey(int maskingKey) { .. }
+    public Builder payloadData(byte[] payloadData) { .. }
+}</programlisting>
+
+        <para>Frame is immutable, so if you want to create new one, you need to create new builder, modify what you want
+        and build it:</para>
+
+        <programlisting language="java" linenumbering="numbered">Frame newFrame = Frame.builder(originalFrame).rsv1(true).build();</programlisting>
+
+        <para>Note that there is only one convenience method: isControlFrame. Other information about frame type etc needs
+            to be evaluated directly from opcode, simply because there might not be enough information to get the correct
+            outcome or the information itself would not be very useful. For example: opcode 0×00 means continuation frame,
+            but you don’t have any chance to get the information about actual type (text or binary) without intercepting
+            data from previous frames. Consider Frame class as as raw as possible representation.isControlFrame can be also
+            gathered from opcode, but it is at least always deterministic and it will be used by most of extension
+            implementations. It is not usual to modify control frames as it might end with half closed connections or
+            unanswered ping messages.</para>
+
+        <para>ExtendedExtension representation needs to be able to handle extension parameter negotiation and actual processing
+        of incoming and outgoing frames. It also should be compatible with existing javax.websocket.Extension class, since we
+        wan’t to re-use existing registration API and be able to return new extension instance included in response
+        fromSession.getNegotiatedExtensions():List&lt;Extension&gt; call. Consider following:</para>
+
+        <programlisting language="java" linenumbering="numbered">public interface ExtendedExtension extends Extension {
+
+    Frame processIncoming(ExtensionContext context, Frame frame);
+    Frame processOutgoing(ExtensionContext context, Frame frame);
+
+    List onExtensionNegotiation(ExtensionContext context, List requestedParameters);
+    void onHandshakeResponse(ExtensionContext context, List responseParameters);
+
+    void destroy(ExtensionContext context);
+
+    interface ExtensionContext {
+
+        Map&lt;String, Object> getProperties();
+    }
+}</programlisting>
+
+        <para>ExtendedExtension is capable of processing frames and influence parameter values during the handshake.
+            Extension is used on both client and server side and since the negotiation is only place where this fact
+            applies, we needed to somehow differentiate these sides. On server side, only onExtensionNegotiation(..)
+            method is invoked and client side hasonHandshakeResponse(..). Server side method is a must, client side could
+            be somehow solved by implementing ClientEndpointConfig.Configurator#afterResponse(..) or calling
+            Session.getNegotiatedExtenions(), but it won’t be as easy to get this information back to extension instance
+            and even if it was, it won’t be very elegant. Also, you might suggest replacing processIncoming and
+            processOutgoing methods by just oneprocess(Frame) method. That is also possible, but then you might have to
+            assume current direction from frame instance or somehow from ExtenionContext, which is generally not a bad
+            idea, but it resulted it slightly less readable code.</para>
+
+        <para>ExtensionContext and related lifecycle method is there because original javax.websocket.Extension is singleton
+        and ExtendedExtension must obey this fact. But it does not meet some requirements we stated previously, like per
+        connection parameter negotiation and of course processing itself will most likely have some connection state.
+        Lifecycle of ExtensionContext is defined as follows: ExtensionContextinstance is created right before onExtensionNegotiation
+        (server side) oronHandshakeResponse (client side) and destroyed after destroy method invocation. Obviously, processIncoming
+        or processOutgoing cannot be called before ExtensionContextis created or after is destroyed. You can think of handshake
+        related methods as @OnOpenand destroy as @OnClose.</para>
+
+        <para>For those more familiar with WebSocket protocol: process*(ExtensionContext, Frame) is always invoked with unmasked
+        frame, you don’t need to care about it. On the other side, payload is as it was received from the wire, before any
+            validation (UTF-8 check for text messages). This fact is particularly important when you are modifying text
+            message content, you need to make sure it is properly encoded in relation to other messages, because encoding/decoding
+            process is stateful – remainder after UTF-8 coding is used as input to coding process for next message. If you
+            want just test this feature and save yourself some headaches, don’t modify text message content or try binary
+            messages instead.</para>
+
+        <section>
+            <title>ExtendedExtension sample</title>
+
+        <para>Let’s say we want to create extension which will encrypt and decrypt first byte of every binary message. Assume we have a key (one byte) and our symmetrical cipher will be XOR. (Just for simplicity (a XOR key XOR key) = a, so encrypt() and decrypt() functions are the same).</para>
+            <programlisting language="java" linenumbering="numbered">public class CryptoExtension implements ExtendedExtension {
+
+    @Override
+    public Frame processIncoming(ExtensionContext context, Frame frame) {
+         return lameCrypt(context, frame);
+    }
+
+    @Override
+    public Frame processOutgoing(ExtensionContext context, Frame frame) {
+        return lameCrypt(context, frame);
+    }
+
+    private Frame lameCrypt(ExtensionContext context, Frame frame) {
+        if(!frame.isControlFrame() &amp;&amp; (frame.getOpcode() == 0x02)) {
+            final byte[] payloadData = frame.getPayloadData();
+            payloadData[0] ^= (Byte)(context.getProperties().get("key"));
+
+            return Frame.builder(frame).payloadData(payloadData).build();
+        } else {
+            return frame;
+        }
+    }
+
+    @Override
+    public List onExtensionNegotiation(ExtensionContext context,
+                                       List requestedParameters) {
+        init(context);
+        // no params.
+        return null;
+    }
+
+    @Override
+    public void onHandshakeResponse(ExtensionContext context,
+    List responseParameters) {
+        init(context);
+    }
+
+    private void init(ExtensionContext context) {
+        context.getProperties().put("key", (byte)0x55);
+    }
+
+    @Override
+    public void destroy(ExtensionContext context) {
+        context.getProperties().clear();
+    }
+
+    @Override
+    public String getName() {
+        return "lame-crypto-extension";
+    }
+
+    @Override
+    public List getParameters() {
+        // no params.
+        return null;
+    }
+}</programlisting>
+
+        <para>You can see that ExtendedExtension is slightly more complicated that original Extension so the implementation
+            has to be also not as straightforward.. on the other hand, it does something. Sample code above shows possible
+            simplification mentioned earlier (one process method will be enough), but please take this as just sample
+            implementation. Real world case is usually more complicated.</para>
+
+        <para>Now when we have our CryptoExtension implemented, we want to use it. There is nothing new compared to standard
+            WebSocket Java API, feel free to skip this part if you are already familiar with it. Only programmatic version
+            will be demonstrated. It is possible to do it for annotated version as well, but it is little bit more complicated
+            on the server side and I want to keep the code as compact as possible.</para>
+
+        <para>Client registration</para>
+
+            <programlisting language="java" linenumbering="numbered">ArrayList extensions = new ArrayList();
+extensions.add(new CryptoExtension());
+
+final ClientEndpointConfig clientConfiguration =
+    ClientEndpointConfig.Builder.create()
+    .extensions(extensions).build();
+
+WebSocketContainer client = ContainerProvider.getWebSocketContainer();
+final Session session = client.connectToServer(new Endpoint() {
+    @Override
+    public void onOpen(Session session, EndpointConfig config) {
+        // ...
+    }
+}, clientConfiguration, URI.create(/* ... */));</programlisting>
+
+       <para>Server registration:</para>
+
+       <programlisting language="java" linenumbering="numbered">public class CryptoExtensionApplicationConfig implements ServerApplicationConfig {
+
+    @Override
+    public Set getEndpointConfigs(Set&lt;Class&lt;? extends Endpoint>> endpointClasses) {
+        Set endpointConfigs = new HashSet();
+        endpointConfigs.add(
+            ServerEndpointConfig.Builder.create(EchoEndpoint.class, "/echo")
+            .extensions(Arrays.asList(new CryptoExtension())).build()
+        );
+        return endpointConfigs;
+    }
+
+    @Override
+    public Set&lt;Class&lt;?>> getAnnotatedEndpointClasses(Set&lt;Class&lt;?>> scanned) {
+        // all scanned endpoints will be used.
+        return scanned;
+    }
+}
+
+public class EchoEndpoint extends Endpoint {
+    @Override
+    public void onOpen(Session session, EndpointConfig config) {
+        // ...
+    }
+}</programlisting>
+
+            <para>CryptoExtensionApplicationConfig will be found by servlets scanning mechanism and automatically used for
+                application configuration, no need to add anything (or even have)web.xml.</para>
+        </section>
+
+        <section>
+            <title>Per Message Deflate Extension</title>
+
+            <para>The original goal of whole extension support was to implement Permessage extension as defined in
+                draft-ietf-hybi-permessage-compression-15 and we were able to achieve that goal. Well, not completely, current
+                implementation ignores parameters. But it seems like it does not matter much, it was tested with Chrome and it
+                works fine. Also it passes newest version of Autobahn test suite, which includes tests for this extension.</para>
+
+            <para>see PerMessageDeflateExtension.java (compatible with draft-ietf-hybi-permessage-compression-15, autobahn test suite) and
+                XWebKitDeflateExtension.java (compatible with Chrome and Firefox – same as previous, just different extension name)
+                </para>
+        </section>
+    </section>
 </chapter>
