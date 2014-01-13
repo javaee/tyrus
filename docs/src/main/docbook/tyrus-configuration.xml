@@ -3,7 +3,7 @@
 
     DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
 
-    Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+    Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
 
     The contents of this file are subject to the terms of either the GNU
     General Public License Version 2 only ("GPL") or the Common Development
@@ -162,6 +162,49 @@ public void onMessage(Session session, String message) {
         <programlisting language="java" linenumbering="numbered">ClientManager client = ClientManager.createClient();
 client.getProperties().put("org.glassfish.tyrus.incomingBufferSize", 6000000); // sets the incoming buffer size to 6000000 bytes.
 client.connectToServer( ... )</programlisting>
+    </section>
+
+    <section>
+        <title>Shared client container</title>
+
+        <para>By default, WebSocket client implementation in Tyrus re-creates client runtime whenever WebSocketContainer#connectToServer
+            is invoked. This approach gives us some perks like out-of-the-box isolation and relatively low thread count
+            (currently we have 1 selector thread and 2 worker threads). Also it gives you the ability to stop the client
+            runtime – one Session instance is tied to exactly one client runtime, so we can stop it when Session is closed.
+            This seems as a good solution for most of WebSocket client use cases – you usually use java client from
+            application which uses it for communicating with server side and you typically don’t need more than 10 instances
+            (my personal estimate is that more than 90% applications won’t use more than 1 connection). There are several
+            reasons for it – of it is just a client, it needs to preserve server resources – one WebSocket connection means
+            one TCP connection and we don’t really want clients to consume more than needed. Previous statement may be
+            invalidated by WebSocket multiplexing extension, but for now, it is still valid.</para>
+
+        <para>On the other hand, WebSocket client implementations in some other containers took another (also correct)
+            approach – they share client runtime for creating all client connections. That means they might not have this
+            strict one session one runtime policy, they cannot really give user way how he to control system resources,
+            but surely it has another advantage – it can handle much more opened connections. Thread pools are share among
+            client sessions which may or may not have some unforeseen consequences, but if its implemented correctly, it
+            should outperform Tyrus solution mentioned in previous paragraph in some use cases, like the one mentioned
+            in TYRUS-275 - performance tests. Reported created simple program which used WebSocket API to create clients
+            and connect to remote endpoint and he measured how many clients can he create (or in other words: how many
+            parallel client connection can be created; I guess that original test case is to measure possible number of
+            concurrent clients on server side, but that does not really matter for this post). Tyrus implementation loose
+            compared to some other and it was exactly because it did not have shared client runtime capability.</para>
+
+        <para>How can you use this feature?</para>
+
+<programlisting language="java" linenumbering="numbered">ClientManager client = ClientManager.createClient();
+
+client.getProperties().put(GrizzlyClientContainer.SHARED_CONTAINER, true);</programlisting>
+
+        <para>You might also want to specify container idle timeout:</para>
+
+<programlisting language="java" linenumbering="numbered">client.getProperties().put(GrizzlyClientContainer.SHARED_CONTAINER_IDLE_TIMEOUT, 5);</programlisting>
+
+        <para>Last but not least, you might want to specify thread pool sizes used by shared container (please use this feature only when you do know what are you doing. Grizzly by default does not limit max number of used threads, so if you do that, please make sure thread pool size fits your purpose):</para>
+
+<programlisting language="java" linenumbering="numbered">client.getProperties().put(GrizzlyClientSocket.SELECTOR_THREAD_POOL_CONFIG, ThreadPoolConfig.defaultConfig().setMaxPoolSize(3));
+client.getProperties().put(GrizzlyClientSocket.WORKER_THREAD_POOL_CONFIG, ThreadPoolConfig.defaultConfig().setMaxPoolSize(10));</programlisting>
+
     </section>
 
 </chapter>
