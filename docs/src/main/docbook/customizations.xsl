@@ -121,17 +121,6 @@
     </xsl:template>
 
     <xsl:template name="user.head.content">
-        <xsl:element name="script">
-            <xsl:attribute name="type">text/javascript</xsl:attribute>
-              (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-              (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-              m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-              })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-
-              ga('create', 'UA-41373632-1', 'java.net');
-              ga('send', 'pageview');
-
-        </xsl:element>
     </xsl:template>
 
     <xsl:template match="d:programlisting">
