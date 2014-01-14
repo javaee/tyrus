@@ -144,14 +144,14 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
         final String requestPath = request.getRequestUri();
 
         for (Match m : Match.getAllMatches(requestPath, endpoints)) {
-            final TyrusEndpoint tyrusEndpoint = m.getTyrusEndpoit();
+            final TyrusEndpoint endpoint = m.getTyrusEndpoit();
 
             for (String name : m.getParameterNames()) {
                 request.getParameterMap().put(name, Arrays.asList(m.getParameterValue(name)));
             }
 
-            if (tyrusEndpoint.upgrade(request)) {
-                return tyrusEndpoint;
+            if (endpoint.upgrade(request)) {
+                return endpoint;
             }
         }
 
@@ -276,12 +276,12 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
      * Registers the specified {@link TyrusEndpoint} with the
      * <code>WebSocketEngine</code>.
      *
-     * @param app the {@link TyrusEndpoint} to register.
-     * @throws DeploymentException when added applications responds to same path as some already registered application.
+     * @param endpoint the {@link TyrusEndpoint} to register.
+     * @throws DeploymentException when added endpoint responds to same path as some already registered endpoint.
      */
-    private void register(TyrusEndpoint app) throws DeploymentException {
-        checkPath(app);
-        endpoints.add(app);
+    private void register(TyrusEndpoint endpoint) throws DeploymentException {
+        checkPath(endpoint);
+        endpoints.add(endpoint);
     }
 
     @Override
@@ -339,11 +339,11 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
         register(new TyrusEndpoint(ew));
     }
 
-    private void checkPath(TyrusEndpoint app) throws DeploymentException {
+    private void checkPath(TyrusEndpoint endpoint) throws DeploymentException {
         for (TyrusEndpoint tyrusEndpoint : endpoints) {
-            if (Match.isEquivalent(app.getPath(), tyrusEndpoint.getPath())) {
+            if (Match.isEquivalent(endpoint.getPath(), tyrusEndpoint.getPath())) {
                 throw new DeploymentException(String.format(
-                        "Found equivalent paths. Added path: '%s' is equivalent with '%s'.", app.getPath(),
+                        "Found equivalent paths. Added path: '%s' is equivalent with '%s'.", endpoint.getPath(),
                         tyrusEndpoint.getPath()));
             }
         }
@@ -353,10 +353,10 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
      * Un-registers the specified {@link TyrusEndpoint} with the
      * <code>WebSocketEngine</code>.
      *
-     * @param app the {@link TyrusEndpoint} to un-register.
+     * @param endpoint the {@link TyrusEndpoint} to un-register.
      */
-    public void unregister(TyrusEndpoint app) {
-        endpoints.remove(app);
+    public void unregister(TyrusEndpoint endpoint) {
+        endpoints.remove(endpoint);
     }
 
     private static class NoConnectionUpgradeInfo implements UpgradeInfo {
@@ -379,14 +379,14 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
 
     private static class SuccessfulUpgradeInfo implements UpgradeInfo {
 
-        private final TyrusEndpoint app;
+        private final TyrusEndpoint endpoint;
         private final ProtocolHandler protocolHandler;
         private final int incomingBufferSize;
         private final UpgradeRequest upgradeRequest;
         private final ExtendedExtension.ExtensionContext extensionContext;
 
-        SuccessfulUpgradeInfo(TyrusEndpoint app, ProtocolHandler protocolHandler, int incomingBufferSize, UpgradeRequest upgradeRequest, ExtendedExtension.ExtensionContext extensionContext) {
-            this.app = app;
+        SuccessfulUpgradeInfo(TyrusEndpoint endpoint, ProtocolHandler protocolHandler, int incomingBufferSize, UpgradeRequest upgradeRequest, ExtendedExtension.ExtensionContext extensionContext) {
+            this.endpoint = endpoint;
             this.protocolHandler = protocolHandler;
             this.incomingBufferSize = incomingBufferSize;
             this.upgradeRequest = upgradeRequest;
@@ -400,7 +400,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
 
         @Override
         public Connection createConnection(Writer writer, Connection.CloseListener closeListener) {
-            return new TyrusConnection(app, protocolHandler, incomingBufferSize, writer, closeListener, upgradeRequest, extensionContext);
+            return new TyrusConnection(endpoint, protocolHandler, incomingBufferSize, writer, closeListener, upgradeRequest, extensionContext);
         }
     }
 
@@ -411,19 +411,19 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
         private final CloseListener closeListener;
         private final TyrusWebSocket socket;
         private final ExtendedExtension.ExtensionContext extensionContext;
-        private final TyrusEndpoint tyrusEndpoint;
+        private final TyrusEndpoint endpoint;
 
-        TyrusConnection(TyrusEndpoint tyrusEndpoint, ProtocolHandler protocolHandler, int incomingBufferSize, Writer writer, Connection.CloseListener closeListener, UpgradeRequest upgradeRequest, ExtendedExtension.ExtensionContext extensionContext) {
+        TyrusConnection(TyrusEndpoint endpoint, ProtocolHandler protocolHandler, int incomingBufferSize, Writer writer, Connection.CloseListener closeListener, UpgradeRequest upgradeRequest, ExtendedExtension.ExtensionContext extensionContext) {
             protocolHandler.setWriter(writer);
-            final TyrusWebSocket socket = tyrusEndpoint.createSocket(protocolHandler);
+            final TyrusWebSocket socket = endpoint.createSocket(protocolHandler);
 
             socket.onConnect(upgradeRequest);
             this.socket = socket;
-            this.readHandler = new TyrusReadHandler(protocolHandler, socket, tyrusEndpoint, incomingBufferSize, extensionContext);
+            this.readHandler = new TyrusReadHandler(protocolHandler, socket, endpoint, incomingBufferSize, extensionContext);
             this.writer = writer;
             this.closeListener = closeListener;
             this.extensionContext = extensionContext;
-            this.tyrusEndpoint = tyrusEndpoint;
+            this.endpoint = endpoint;
         }
 
         @Override
@@ -446,7 +446,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
             if (socket.isConnected()) {
                 socket.close(reason.getCloseCode().getCode(), reason.getReasonPhrase());
 
-                for (Extension extension : tyrusEndpoint.getSupportedExtensions()) {
+                for (Extension extension : endpoint.getSupportedExtensions()) {
                     if (extension instanceof ExtendedExtension) {
                         try {
                             ((ExtendedExtension) extension).destroy(extensionContext);
