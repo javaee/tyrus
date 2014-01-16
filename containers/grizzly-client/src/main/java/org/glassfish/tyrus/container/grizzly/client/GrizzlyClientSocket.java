@@ -70,7 +70,6 @@ import org.glassfish.grizzly.filterchain.FilterChainContext;
 import org.glassfish.grizzly.filterchain.FilterChainEvent;
 import org.glassfish.grizzly.filterchain.NextAction;
 import org.glassfish.grizzly.filterchain.TransportFilter;
-import org.glassfish.grizzly.http.HttpClientFilter;
 import org.glassfish.grizzly.nio.transport.TCPNIOConnectorHandler;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransportBuilder;
@@ -427,8 +426,12 @@ public class GrizzlyClientSocket {
             clientFilterChainBuilder.add(new GrizzlyTransportTimeoutFilter(sharedTransportTimeout));
         }
 
-        clientFilterChainBuilder.add(new HttpClientFilter());
-        clientFilterChainBuilder.add(new GrizzlyClientFilter(engine, proxy, sslFilter, uri, timeoutHandler, sharedTransport));
+        final HttpCodecFilter httpCodecFilter = new HttpCodecFilter();
+        clientFilterChainBuilder.add(httpCodecFilter);
+
+        clientFilterChainBuilder.add(new GrizzlyClientFilter(engine, proxy,
+                sslFilter, httpCodecFilter, uri, timeoutHandler, sharedTransport));
+
         return clientFilterChainBuilder.build();
     }
 

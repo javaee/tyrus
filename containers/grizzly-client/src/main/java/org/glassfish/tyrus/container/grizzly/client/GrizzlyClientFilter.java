@@ -101,6 +101,7 @@ class GrizzlyClientFilter extends BaseFilter {
 
     private final boolean proxy;
     private final Filter sslFilter;
+    private final HttpCodecFilter httpCodecFilter;
     private final ClientEngine engine;
     private final URI uri;
     private final ClientEngine.TimeoutHandler timeoutHandler;
@@ -117,10 +118,12 @@ class GrizzlyClientFilter extends BaseFilter {
      * @param sslFilter filter to be "enabled" in case connection is created via proxy.
      */
     /* package */ GrizzlyClientFilter(ClientEngine engine, boolean proxy,
-                                      Filter sslFilter, URI uri, ClientEngine.TimeoutHandler timeoutHandler, boolean sharedTransport) {
+                                      Filter sslFilter, HttpCodecFilter httpCodecFilter,
+                                      URI uri, ClientEngine.TimeoutHandler timeoutHandler, boolean sharedTransport) {
         this.engine = engine;
         this.proxy = proxy;
         this.sslFilter = sslFilter;
+        this.httpCodecFilter = httpCodecFilter;
         this.uri = uri;
         this.timeoutHandler = timeoutHandler;
         this.sharedTransport = sharedTransport;
@@ -247,6 +250,8 @@ class GrizzlyClientFilter extends BaseFilter {
                     if (sslFilter != null) {
                         ((GrizzlyClientSocket.FilterWrapper) sslFilter).enable();
                     }
+
+                    httpCodecFilter.resetResponseProcessing(grizzlyConnection);
 
                     final UpgradeRequest upgradeRequest = UPGRADE_REQUEST.get(grizzlyConnection);
                     ctx.write(getHttpContent(upgradeRequest));
