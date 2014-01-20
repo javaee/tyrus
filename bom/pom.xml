@@ -105,6 +105,11 @@
                 <artifactId>tyrus-spi</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>org.glassfish.tyrus.tests</groupId>
+                <artifactId>tyrus-test-tools</artifactId>
+                <version>${project.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 

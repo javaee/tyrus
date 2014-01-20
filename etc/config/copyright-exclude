@@ -35,3 +35,4 @@ nbactions.xml
 README.txt
 README.md
 .dart.js
+/archetype-resources/

@@ -185,6 +185,7 @@
     </properties>
 
     <modules>
+        <module>archetypes</module>
         <module>bom</module>
         <module>bundles</module>
         <module>client</module>
