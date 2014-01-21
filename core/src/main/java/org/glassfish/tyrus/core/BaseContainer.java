@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -39,6 +39,7 @@
  */
 package org.glassfish.tyrus.core;
 
+import java.lang.reflect.Method;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -46,8 +47,6 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.websocket.WebSocketContainer;
-
-import javax.naming.InitialContext;
 
 /**
  * Base WebSocket container.
@@ -81,8 +80,12 @@ public abstract class BaseContainer extends ExecutorServiceProvider implements W
 
         // Get the default ManagedExecutorService, if available
         try {
-            InitialContext ic = new InitialContext();
-            es = (ExecutorService) ic.lookup("java:comp/DefaultManagedExecutorService");
+            // TYRUS-256: Tyrus client on Android
+            final Class<?> aClass = Class.forName("javax.naming.InitialContext");
+            final Object o = aClass.newInstance();
+
+            final Method lookupMethod = aClass.getMethod("lookup", String.class);
+            es = (ExecutorService) lookupMethod.invoke(o, "java:comp/DefaultManagedExecutorService");
         } catch (Exception e) {
             // ignore
         } catch (LinkageError error) {
@@ -103,8 +106,12 @@ public abstract class BaseContainer extends ExecutorServiceProvider implements W
         ScheduledExecutorService service = null;
 
         try {
-            InitialContext ic = new InitialContext();
-            service = (ScheduledExecutorService) ic.lookup("java:comp/DefaultManagedScheduledExecutorService");
+            // TYRUS-256: Tyrus client on Android
+            final Class<?> aClass = Class.forName("javax.naming.InitialContext");
+            final Object o = aClass.newInstance();
+
+            final Method lookupMethod = aClass.getMethod("lookup", String.class);
+            service = (ScheduledExecutorService) lookupMethod.invoke(o, "java:comp/DefaultManagedScheduledExecutorService");
         } catch (Exception e) {
             // ignore
         } catch (LinkageError error) {
@@ -143,5 +150,4 @@ public abstract class BaseContainer extends ExecutorServiceProvider implements W
             return t;
         }
     }
-
 }
