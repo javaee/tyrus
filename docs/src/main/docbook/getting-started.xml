@@ -133,7 +133,7 @@ public class EchoEndpointAnnotated {
                     <example xml:id="websocket-client-endpoint">
                         <title>Client Endpoint</title>
                         <programlisting language="java" linenumbering="numbered">public class DocClient {
-    private CountDownLatch messageLatch;
+    private static CountDownLatch messageLatch;
     private static final String SENT_MESSAGE = "Hello World";
 
     public static void main(String [] args){
@@ -227,13 +227,7 @@ public class EchoEndpointAnnotated {
 
 &lt;dependency&gt;
     &lt;groupId&gt;org.glassfish.tyrus&lt;/groupId&gt;
-    &lt;artifactId&gt;tyrus-client&lt;/artifactId&gt;
-    &lt;version&gt;&version;&lt;/version&gt;
-&lt;/dependency&gt;
-
-&lt;dependency&gt;
-    &lt;groupId&gt;org.glassfish.tyrus&lt;/groupId&gt;
-    &lt;artifactId&gt;tyrus-container-grizzly&lt;/artifactId&gt;
+    &lt;artifactId&gt;tyrus-container-grizzly-server&lt;/artifactId&gt;
     &lt;version&gt;&version;&lt;/version&gt;
 &lt;/dependency&gt;</programlisting>
             </para>

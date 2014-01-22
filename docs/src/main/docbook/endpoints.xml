@@ -171,7 +171,7 @@ public class UserEndpoint {
             <section>
                 <title>decoders</title>
                 <para>
-                    Contains list of classes that will be used decode incoming messages for the endpoint. By decoding
+                    Contains list of classes that will be used to decode incoming messages for the endpoint. By decoding
                     we mean transforming from text / binary websocket message to some user defined type. Each decoder
                     needs to implement the Decoder interface.
                 </para>
@@ -491,8 +491,8 @@ public class EchoEndpoint {
 public class EchoEndpoint {
 
     @OnMessage
-    public void onMessage(Session session, Throwable t) {
-        t.printStackTrace();
+    public void onMessage(Session session, String message) {
+        System.out.println("Received message: " + message);
     }
 }</programlisting>
                 </example>

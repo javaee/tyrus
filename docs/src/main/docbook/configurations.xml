@@ -76,7 +76,7 @@
             specifies that the supported subprotocols are "echo1" and "echo2". The method <code>getExtensions()</code>
             defines the extensions the endpoint supports. Similarly the example configuration does not use any configurator.
             Method <code>public List&lt;Class&lt;? extends Encoder&gt;&gt; getEncoders()</code> defines the encoders
-            used by teh endpoint. The decoders and user properties map are defined in similar fashion.
+            used by the endpoint. The decoders and user properties map are defined in similar fashion.
         </para>
         <para>
             If the endpoint class which is about to be deployed is an annotated endpoint, note that the endpoint configuration

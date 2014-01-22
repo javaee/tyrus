@@ -60,7 +60,7 @@
         <title>Client-side SSL configuration</title>
 
         <para>When accessing "wss" URLs, Tyrus client will pick up whatever keystore and truststore is actually set for current JVM instance, but
-            that might not be always convenient. WebSocket API does not have this feature (yet, see<link xlink:href="https://java.net/jira/browse/WEBSOCKET_SPEC-210">WEBSOCKET_SPEC-210</link>),
+            that might not be always convenient. WebSocket API does not have this feature (yet, see <link xlink:href="https://java.net/jira/browse/WEBSOCKET_SPEC-210">WEBSOCKET_SPEC-210</link>),
             so Tyrus exposed <link xlink:href="https://grizzly.java.net/docs/2.3/apidocs/org/glassfish/grizzly/ssl/SSLEngineConfigurator.html">SSLEngineConfigurator</link> class from Grizzly which can be used for specifying all SSL parameters
             to be used with current client instance. Additionally, WebSocket API does not have anything like a client,
             only WebSocketContainer and it does not have any properties, so you need to use Tyrus specific class -
@@ -139,7 +139,7 @@ public void onMessage(Session session, String message) {
     <section>
         <title>Incoming buffer size</title>
 
-        <para>Sevlet container buffers incoming WebSocket frames and there must a size limit to precede OutOfMemory
+        <para>Sevlet container buffers incoming WebSocket frames and there must be a size limit to precede OutOfMemory
         Exception and potentially DDoS attacks.</para>
 
         <para>Configuration property is named <code>"org.glassfish.tyrus.servlet.incoming-buffer-size"</code> and you can
@@ -184,11 +184,12 @@ client.connectToServer( ... )</programlisting>
             but surely it has another advantage – it can handle much more opened connections. Thread pools are share among
             client sessions which may or may not have some unforeseen consequences, but if its implemented correctly, it
             should outperform Tyrus solution mentioned in previous paragraph in some use cases, like the one mentioned
-            in TYRUS-275 - performance tests. Reported created simple program which used WebSocket API to create clients
-            and connect to remote endpoint and he measured how many clients can he create (or in other words: how many
-            parallel client connection can be created; I guess that original test case is to measure possible number of
-            concurrent clients on server side, but that does not really matter for this post). Tyrus implementation loose
-            compared to some other and it was exactly because it did not have shared client runtime capability.</para>
+            in <link xlink:href="https://java.net/jira/browse/TYRUS-275">TYRUS-275</link> - performance tests. Reporter
+            created simple program which used WebSocket API to create clients and connect to remote endpoint and he measured
+            how many clients can he create (or in other words: how many parallel client connections can be created; I guess
+            that original test case is to measure possible number of concurrent clients on server side, but that does not
+            really matter for this post). Tyrus implementation loose compared to some other and it was exactly because it
+            did not have shared client runtime capability.</para>
 
         <para>How can you use this feature?</para>
 
@@ -257,15 +258,15 @@ client.getProperties().put(GrizzlyClientSocket.WORKER_THREAD_POOL_CONFIG, Thread
             to be evaluated directly from opcode, simply because there might not be enough information to get the correct
             outcome or the information itself would not be very useful. For example: opcode 0×00 means continuation frame,
             but you don’t have any chance to get the information about actual type (text or binary) without intercepting
-            data from previous frames. Consider Frame class as as raw as possible representation.isControlFrame can be also
+            data from previous frames. Consider Frame class as raw representation as possible. isControlFrame() can be also
             gathered from opcode, but it is at least always deterministic and it will be used by most of extension
             implementations. It is not usual to modify control frames as it might end with half closed connections or
             unanswered ping messages.</para>
 
         <para>ExtendedExtension representation needs to be able to handle extension parameter negotiation and actual processing
         of incoming and outgoing frames. It also should be compatible with existing javax.websocket.Extension class, since we
-        wan’t to re-use existing registration API and be able to return new extension instance included in response
-        fromSession.getNegotiatedExtensions():List&lt;Extension&gt; call. Consider following:</para>
+        want to re-use existing registration API and be able to return new extension instance included in response
+        from List&lt;Extension&gt; Session.getNegotiatedExtensions() call. Consider following:</para>
 
         <programlisting language="java" linenumbering="numbered">public interface ExtendedExtension extends Extension {
 
