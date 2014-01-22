@@ -287,20 +287,20 @@ client.getProperties().put(GrizzlyClientSocket.WORKER_THREAD_POOL_CONFIG, Thread
         <para>ExtendedExtension is capable of processing frames and influence parameter values during the handshake.
             Extension is used on both client and server side and since the negotiation is only place where this fact
             applies, we needed to somehow differentiate these sides. On server side, only onExtensionNegotiation(..)
-            method is invoked and client side hasonHandshakeResponse(..). Server side method is a must, client side could
+            method is invoked and on client side onHandshakeResponse(..). Server side method is a must, client side could
             be somehow solved by implementing ClientEndpointConfig.Configurator#afterResponse(..) or calling
             Session.getNegotiatedExtenions(), but it won’t be as easy to get this information back to extension instance
             and even if it was, it won’t be very elegant. Also, you might suggest replacing processIncoming and
             processOutgoing methods by just oneprocess(Frame) method. That is also possible, but then you might have to
-            assume current direction from frame instance or somehow from ExtenionContext, which is generally not a bad
+            assume current direction from frame instance or somehow from ExtensionContext, which is generally not a bad
             idea, but it resulted it slightly less readable code.</para>
 
         <para>ExtensionContext and related lifecycle method is there because original javax.websocket.Extension is singleton
         and ExtendedExtension must obey this fact. But it does not meet some requirements we stated previously, like per
         connection parameter negotiation and of course processing itself will most likely have some connection state.
-        Lifecycle of ExtensionContext is defined as follows: ExtensionContextinstance is created right before onExtensionNegotiation
-        (server side) oronHandshakeResponse (client side) and destroyed after destroy method invocation. Obviously, processIncoming
-        or processOutgoing cannot be called before ExtensionContextis created or after is destroyed. You can think of handshake
+        Lifecycle of ExtensionContext is defined as follows: ExtensionContext instance is created right before onExtensionNegotiation
+        (server side) or onHandshakeResponse (client side) and destroyed after destroy method invocation. Obviously, processIncoming
+        or processOutgoing cannot be called before ExtensionContext is created or after is destroyed. You can think of handshake
         related methods as @OnOpenand destroy as @OnClose.</para>
 
         <para>For those more familiar with WebSocket protocol: process*(ExtensionContext, Frame) is always invoked with unmasked
@@ -429,7 +429,7 @@ public class EchoEndpoint extends Endpoint {
 }</programlisting>
 
             <para>CryptoExtensionApplicationConfig will be found by servlets scanning mechanism and automatically used for
-                application configuration, no need to add anything (or even have)web.xml.</para>
+                application configuration, no need to add anything (or even have) web.xml.</para>
         </section>
 
         <section>
