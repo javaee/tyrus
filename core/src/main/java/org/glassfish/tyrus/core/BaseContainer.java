@@ -45,6 +45,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.websocket.WebSocketContainer;
 
@@ -56,6 +58,9 @@ import javax.websocket.WebSocketContainer;
  * @author Jitendra Kotamraju
  */
 public abstract class BaseContainer extends ExecutorServiceProvider implements WebSocketContainer {
+
+    private static final Logger LOGGER = Logger.getLogger(BaseContainer.class.getName());
+
     private final ExecutorService executorService;
     private final ScheduledExecutorService scheduledExecutorService;
     private ThreadFactory threadFactory = null;
@@ -88,6 +93,9 @@ public abstract class BaseContainer extends ExecutorServiceProvider implements W
             es = (ExecutorService) lookupMethod.invoke(o, "java:comp/DefaultManagedExecutorService");
         } catch (Exception e) {
             // ignore
+            if(LOGGER.isLoggable(Level.FINE)) {
+                LOGGER.log(Level.FINE, e.getMessage(), e);
+            }
         } catch (LinkageError error) {
             // ignore - JDK8 compact2 profile - http://openjdk.java.net/jeps/161
         }
@@ -114,6 +122,9 @@ public abstract class BaseContainer extends ExecutorServiceProvider implements W
             service = (ScheduledExecutorService) lookupMethod.invoke(o, "java:comp/DefaultManagedScheduledExecutorService");
         } catch (Exception e) {
             // ignore
+            if(LOGGER.isLoggable(Level.FINE)) {
+                LOGGER.log(Level.FINE, e.getMessage(), e);
+            }
         } catch (LinkageError error) {
             // ignore - JDK8 compact2 profile - http://openjdk.java.net/jeps/161
         }
