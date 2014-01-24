@@ -88,12 +88,12 @@ public class BinaryFrame extends TyrusFrame {
     public void respond(TyrusWebSocket socket) {
 
         if (continuation) {
-            socket.onFragment(isFin(), this);
+            socket.onFragment(this, isFin());
         } else {
             if (isFin()) {
                 socket.onMessage(this);
             } else {
-                socket.onFragment(false, this);
+                socket.onFragment(this, false);
             }
         }
     }

@@ -327,7 +327,8 @@ public final class Handshake {
         secKey.validateServerKey(response.getFirstHeaderValue(UpgradeResponse.SEC_WEBSOCKET_ACCEPT));
     }
 
-    void respond(UpgradeResponse response, TyrusEndpoint tyrusEndpoint/*, TyrusUpgradeResponse response*/) {
+    // server side
+    List<Extension> respond(UpgradeRequest request, UpgradeResponse response, TyrusEndpointWrapper endpointWrapper/*, TyrusUpgradeResponse response*/) {
         response.setStatus(101);
 
         response.getHeaders().put(UpgradeRequest.UPGRADE, Arrays.asList(UpgradeRequest.WEBSOCKET));
@@ -335,15 +336,19 @@ public final class Handshake {
         response.setReasonPhrase(UpgradeRequest.RESPONSE_CODE_MESSAGE);
         response.getHeaders().put(UpgradeResponse.SEC_WEBSOCKET_ACCEPT, Arrays.asList(secKey.getSecKey()));
 
+        final List<String> protocols = request.getHeaders().get(UpgradeRequest.SEC_WEBSOCKET_PROTOCOL);
+        final List<Extension> extensions = TyrusExtension.fromString(request.getHeaders().get(UpgradeRequest.SEC_WEBSOCKET_EXTENSIONS));
+
         if (subProtocols != null && !subProtocols.isEmpty()) {
-            List<String> appProtocols = tyrusEndpoint.getSupportedProtocols(subProtocols);
-            if (!appProtocols.isEmpty()) {
-                response.getHeaders().put(UpgradeRequest.SEC_WEBSOCKET_PROTOCOL, getStringList(appProtocols, null));
+            String protocol = endpointWrapper.getNegotiatedProtocol(protocols);
+            if (protocol != null && !protocol.isEmpty()) {
+                response.getHeaders().put(UpgradeRequest.SEC_WEBSOCKET_PROTOCOL, Arrays.asList(protocol));
             }
         }
 
-        if (!tyrusEndpoint.getSupportedExtensions().isEmpty()) {
-            response.getHeaders().put(UpgradeRequest.SEC_WEBSOCKET_EXTENSIONS, getStringList(tyrusEndpoint.getSupportedExtensions(), new Stringifier<Extension>() {
+        final List<Extension> negotiatedExtensions = endpointWrapper.getNegotiatedExtensions(extensions);
+        if (!negotiatedExtensions.isEmpty()) {
+            response.getHeaders().put(UpgradeRequest.SEC_WEBSOCKET_EXTENSIONS, getStringList(negotiatedExtensions, new Stringifier<Extension>() {
                 @Override
                 String toString(final Extension extension) {
                     if (extension instanceof ExtendedExtension) {
@@ -367,6 +372,8 @@ public final class Handshake {
                 }
             }));
         }
-        tyrusEndpoint.onHandShakeResponse(incomingRequest, response);
+        endpointWrapper.onHandShakeResponse(incomingRequest, response);
+
+        return negotiatedExtensions;
     }
 }

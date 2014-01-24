@@ -41,8 +41,6 @@ package org.glassfish.tyrus.core;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.nio.ByteBuffer;
-import java.util.Arrays;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -53,10 +51,10 @@ import java.util.concurrent.Future;
  * @author Danny Coward (danny.coward at oracle.com)
  */
 class OutputStreamToAsyncBinaryAdapter extends OutputStream {
-    private final TyrusRemoteEndpoint re;
+    private final TyrusWebSocket socket;
 
-    public OutputStreamToAsyncBinaryAdapter(TyrusRemoteEndpoint re) {
-        this.re = re;
+    public OutputStreamToAsyncBinaryAdapter(TyrusWebSocket socket) {
+        this.socket = socket;
     }
 
     @Override
@@ -70,10 +68,7 @@ class OutputStreamToAsyncBinaryAdapter extends OutputStream {
             return;
         }
 
-        ByteBuffer result = ByteBuffer.allocate(len);
-        result.put(Arrays.copyOfRange(b, off, len));
-        result.flip();
-        final Future<?> future = re.sendBinary(result, false);
+        final Future<?> future = socket.sendBinary(b, off, len, false);
         try {
             future.get();
         } catch (InterruptedException e) {
@@ -101,6 +96,6 @@ class OutputStreamToAsyncBinaryAdapter extends OutputStream {
 
     @Override
     public void close() throws IOException {
-        re.sendBinary(ByteBuffer.wrap(new byte[]{}), true);
+        socket.sendBinary(new byte[]{}, true);
     }
 }

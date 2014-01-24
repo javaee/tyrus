@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -39,166 +39,437 @@
  */
 package org.glassfish.tyrus.core;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.StringWriter;
+import java.io.Writer;
 import java.nio.ByteBuffer;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+import java.util.logging.Logger;
 
 import javax.websocket.CloseReason;
+import javax.websocket.EncodeException;
 import javax.websocket.SendHandler;
+import javax.websocket.SendResult;
+
+import static org.glassfish.tyrus.core.Utils.checkNotNull;
 
 /**
- * Subset of {@link javax.websocket.RemoteEndpoint} interface which should be implemented
- * by container implementations.
+ * Wraps the {@link javax.websocket.RemoteEndpoint} and represents the other side of the websocket connection.
  *
  * @author Danny Coward (danny.coward at oracle.com)
+ * @author Martin Matula (martin.matula at oracle.com)
+ * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class TyrusRemoteEndpoint {
+public abstract class TyrusRemoteEndpoint implements javax.websocket.RemoteEndpoint {
 
-    private final TyrusWebSocket socket;
+    final TyrusSession session;
+    final TyrusWebSocket webSocket;
 
-    /**
-     * Create remote endpoint.
-     *
-     * @param socket to be used for sending messages.
-     */
-    public TyrusRemoteEndpoint(TyrusWebSocket socket) {
-        this.socket = socket;
+    private final TyrusEndpointWrapper endpointWrapper;
+
+    private TyrusRemoteEndpoint(TyrusSession session, TyrusWebSocket socket, TyrusEndpointWrapper endpointWrapper) {
+        this.webSocket = socket;
+        this.endpointWrapper = endpointWrapper;
+        this.session = session;
     }
 
-    /**
-     * Send text message.
-     *
-     * @param text the message to be sent.
-     * @return {@link Future} related to send command.
-     */
-    public Future<Frame> sendText(String text) {
-        return socket.send(text);
+    static class Basic extends TyrusRemoteEndpoint implements javax.websocket.RemoteEndpoint.Basic {
+
+        Basic(TyrusSession session, TyrusWebSocket socket, TyrusEndpointWrapper endpointWrapper) {
+            super(session, socket, endpointWrapper);
+        }
+
+        @Override
+        public void sendText(String text) throws IOException {
+            checkNotNull(text, "Argument 'text' cannot be null.");
+            final Future<?> future = webSocket.sendText(text);
+            try {
+                future.get();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } catch (ExecutionException e) {
+                if (e.getCause() instanceof IOException) {
+                    throw (IOException) e.getCause();
+                } else {
+                    throw new IOException(e.getCause());
+                }
+            }
+            session.restartIdleTimeoutExecutor();
+        }
+
+        @Override
+        public void sendBinary(ByteBuffer data) throws IOException {
+            checkNotNull(data, "Argument 'data' cannot be null.");
+            final Future<?> future = webSocket.sendBinary(Utils.getRemainingArray(data));
+            try {
+                future.get();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } catch (ExecutionException e) {
+                if (e.getCause() instanceof IOException) {
+                    throw (IOException) e.getCause();
+                } else {
+                    throw new IOException(e.getCause());
+                }
+            }
+            session.restartIdleTimeoutExecutor();
+        }
+
+        @Override
+        public void sendText(String partialMessage, boolean isLast) throws IOException {
+            checkNotNull(partialMessage, "Argument 'partialMessage' cannot be null.");
+            final Future<?> future = webSocket.sendText(partialMessage, isLast);
+            try {
+                future.get();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } catch (ExecutionException e) {
+                if (e.getCause() instanceof IOException) {
+                    throw (IOException) e.getCause();
+                } else {
+                    throw new IOException(e.getCause());
+                }
+            }
+            session.restartIdleTimeoutExecutor();
+        }
+
+        @Override
+        public void sendBinary(ByteBuffer partialByte, boolean isLast) throws IOException {
+            checkNotNull(partialByte, "Argument 'partialByte' cannot be null.");
+            final Future<?> future = webSocket.sendBinary(Utils.getRemainingArray(partialByte), isLast);
+            try {
+                future.get();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } catch (ExecutionException e) {
+                if (e.getCause() instanceof IOException) {
+                    throw (IOException) e.getCause();
+                } else {
+                    throw new IOException(e.getCause());
+                }
+            }
+            session.restartIdleTimeoutExecutor();
+        }
+
+        @Override
+        public void sendObject(Object data) throws IOException, EncodeException {
+            checkNotNull(data, "Argument 'data' cannot be null.");
+            final Future<?> future = sendSyncObject(data);
+            try {
+                future.get();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            } catch (ExecutionException e) {
+                if (e.getCause() instanceof IOException) {
+                    throw (IOException) e.getCause();
+                } else if (e.getCause() instanceof EncodeException) {
+                    throw (EncodeException) e.getCause();
+                } else {
+                    throw new IOException(e.getCause());
+                }
+            }
+            session.restartIdleTimeoutExecutor();
+        }
+
+        @Override
+        public OutputStream getSendStream() throws IOException {
+            return new OutputStreamToAsyncBinaryAdapter(webSocket);
+        }
+
+        @Override
+        public Writer getSendWriter() throws IOException {
+            return new WriterToAsyncTextAdapter(webSocket);
+        }
     }
 
-    /**
-     * Send text message.
-     *
-     * @param text    the message to be sent.
-     * @param handler notification handler. {@link SendHandler#onResult(javax.websocket.SendResult)} is called when send
-     *                operation is completed.
-     */
-    public void sendText(String text, SendHandler handler) {
-        socket.send(text, handler);
+    static class Async extends TyrusRemoteEndpoint implements javax.websocket.RemoteEndpoint.Async {
+        private long sendTimeout;
+
+        Async(TyrusSession session, TyrusWebSocket socket, TyrusEndpointWrapper endpointWrapper) {
+            super(session, socket, endpointWrapper);
+
+            if (session.getContainer() != null) {
+                setSendTimeout(session.getContainer().getDefaultAsyncSendTimeout());
+            }
+        }
+
+        @Override
+        public void sendText(String text, SendHandler handler) {
+            checkNotNull(text, "Argument 'text' cannot be null.");
+            checkNotNull(handler, "Argument 'handler' cannot be null.");
+            session.restartIdleTimeoutExecutor();
+            sendAsync(text, handler, AsyncMessageType.TEXT);
+        }
+
+        @Override
+        public Future<Void> sendText(String text) {
+            checkNotNull(text, "Argument 'text' cannot be null.");
+            session.restartIdleTimeoutExecutor();
+            return sendAsync(text, AsyncMessageType.TEXT);
+        }
+
+        @Override
+        public Future<Void> sendBinary(ByteBuffer data) {
+            checkNotNull(data, "Argument 'data' cannot be null.");
+            session.restartIdleTimeoutExecutor();
+            return sendAsync(data, AsyncMessageType.BINARY);
+        }
+
+        @Override
+        public void sendBinary(ByteBuffer data, SendHandler handler) {
+            checkNotNull(data, "Argument 'data' cannot be null.");
+            checkNotNull(handler, "Argument 'handler' cannot be null.");
+            session.restartIdleTimeoutExecutor();
+            sendAsync(data, handler, AsyncMessageType.BINARY);
+        }
+
+        @Override
+        public void sendObject(Object data, SendHandler handler) {
+            checkNotNull(data, "Argument 'data' cannot be null.");
+            checkNotNull(handler, "Argument 'handler' cannot be null.");
+            session.restartIdleTimeoutExecutor();
+            sendAsync(data, handler, AsyncMessageType.OBJECT);
+        }
+
+        @Override
+        public Future<Void> sendObject(Object data) {
+            checkNotNull(data, "Argument 'data' cannot be null.");
+            session.restartIdleTimeoutExecutor();
+            return sendAsync(data, AsyncMessageType.OBJECT);
+        }
+
+        @Override
+        public long getSendTimeout() {
+            return sendTimeout;
+        }
+
+        @Override
+        public void setSendTimeout(long timeoutmillis) {
+            sendTimeout = timeoutmillis;
+            webSocket.setWriteTimeout(timeoutmillis);
+        }
+
+        /**
+         * Sends the message asynchronously.
+         * <p/>
+         * IMPORTANT NOTE: There is no need to start new thread here. All writer are by default asynchronous, only
+         * difference between sync and async writer are that sync send should wait for future.get().
+         *
+         * @param message message to be sent
+         * @param type    message type
+         * @return message sending callback {@link Future}
+         */
+        private Future<Void> sendAsync(final Object message, final AsyncMessageType type) {
+            Future<?> result = null;
+
+            switch (type) {
+                case TEXT:
+                    result = webSocket.sendText((String) message);
+                    break;
+
+                case BINARY:
+                    result = webSocket.sendBinary(Utils.getRemainingArray((ByteBuffer) message));
+                    break;
+
+                case OBJECT:
+                    result = sendSyncObject(message);
+                    break;
+            }
+
+            final Future<?> finalResult = result;
+
+            return new Future<Void>() {
+                @Override
+                public boolean cancel(boolean mayInterruptIfRunning) {
+                    return finalResult.cancel(mayInterruptIfRunning);
+                }
+
+                @Override
+                public boolean isCancelled() {
+                    return finalResult.isCancelled();
+                }
+
+                @Override
+                public boolean isDone() {
+                    return finalResult.isDone();
+                }
+
+                @Override
+                public Void get() throws InterruptedException, ExecutionException {
+                    finalResult.get();
+                    return null;
+                }
+
+                @Override
+                public Void get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+                    finalResult.get(timeout, unit);
+                    return null;
+                }
+            };
+        }
+
+        /**
+         * Sends the message asynchronously.
+         * <p/>
+         * IMPORTANT NOTE: There is no need to start new thread here. All writer are by default asynchronous, only
+         * difference between sync and async writer are that sync send should wait for future.get().
+         *
+         * @param message message to be sent
+         * @param handler message sending callback handler
+         * @param type    message type
+         */
+        private void sendAsync(final Object message, final SendHandler handler, final AsyncMessageType type) {
+            switch (type) {
+                case TEXT:
+                    webSocket.sendText((String) message, handler);
+                    break;
+
+                case BINARY:
+                    webSocket.sendBinary(Utils.getRemainingArray((ByteBuffer) message), handler);
+                    break;
+
+                case OBJECT:
+                    sendSyncObject(message, handler);
+                    break;
+            }
+        }
+
+        private static enum AsyncMessageType {
+            TEXT, // String
+            BINARY,  // ByteBuffer
+            OBJECT // OBJECT
+        }
     }
 
-    /**
-     * Send binary message.
-     *
-     * @param data the message to be sent.
-     * @return {@link Future} related to send command.
-     */
-    public Future<Frame> sendBinary(ByteBuffer data) {
-        return socket.send(Utils.getRemainingArray(data));
+    @SuppressWarnings("unchecked")
+    Future<?> sendSyncObject(Object o) {
+        if (o instanceof String) {
+            return webSocket.sendText((String) o);
+        } else {
+            Object toSend;
+            try {
+                toSend = endpointWrapper.doEncode(session, o);
+            } catch (final Exception e) {
+                return new Future<Object>() {
+                    @Override
+                    public boolean cancel(boolean mayInterruptIfRunning) {
+                        return false;
+                    }
+
+                    @Override
+                    public boolean isCancelled() {
+                        return false;
+                    }
+
+                    @Override
+                    public boolean isDone() {
+                        return true;
+                    }
+
+                    @Override
+                    public Object get() throws InterruptedException, ExecutionException {
+                        throw new ExecutionException(e);
+                    }
+
+                    @Override
+                    public Object get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+                        throw new ExecutionException(e);
+                    }
+                };
+            }
+
+            if (toSend instanceof String) {
+                return webSocket.sendText((String) toSend);
+            } else if (toSend instanceof ByteBuffer) {
+                return webSocket.sendBinary(Utils.getRemainingArray((ByteBuffer) toSend));
+            } else if (toSend instanceof StringWriter) {
+                StringWriter writer = (StringWriter) toSend;
+                StringBuffer sb = writer.getBuffer();
+                return webSocket.sendText(sb.toString());
+            } else if (toSend instanceof ByteArrayOutputStream) {
+                ByteArrayOutputStream baos = (ByteArrayOutputStream) toSend;
+                return webSocket.sendBinary(baos.toByteArray());
+            }
+        }
+
+        return null;
     }
 
-    /**
-     * Send binary message.
-     *
-     * @param data    the message to be sent.
-     * @param handler notification handler. {@link SendHandler#onResult(javax.websocket.SendResult)} is called when send
-     *                operation is completed.
-     */
-    public void sendBinary(ByteBuffer data, SendHandler handler) {
-        socket.send(Utils.getRemainingArray(data), handler);
-    }
+    // TODO: naming
+    @SuppressWarnings("unchecked")
+    void sendSyncObject(Object o, SendHandler handler) {
+        if (o instanceof String) {
+            webSocket.sendText((String) o, handler);
+        } else {
+            Object toSend = null;
+            try {
+                toSend = endpointWrapper.doEncode(session, o);
+            } catch (final Exception e) {
+                handler.onResult(new SendResult(e));
+            }
 
-    /**
-     * Send text message in pieces, blocking until all of the message has been transmitted. The runtime
-     * reads the message in order. Non-final pieces are sent with isLast set to false. The final piece
-     * must be sent with isLast set to true.
-     *
-     * @param fragment the piece of the message being sent.
-     * @param isLast   Whether the fragment being sent is the last piece of the message.
-     */
-    public Future<Frame> sendText(String fragment, boolean isLast) {
-        return socket.stream(isLast, fragment);
-    }
-
-    /**
-     * Send a binary message in pieces, blocking until all of the message has been transmitted. The runtime
-     * reads the message in order. Non-final pieces are sent with isLast set to false. The final piece
-     * must be sent with isLast set to true.
-     *
-     * @param data   the piece of the message being sent.
-     * @param isLast Whether the fragment being sent is the last piece of the message.
-     */
-    public Future<Frame> sendBinary(ByteBuffer data, boolean isLast) {
-        byte[] bytes = Utils.getRemainingArray(data);
-        return socket.stream(isLast, bytes, 0, bytes.length);
-    }
-
-    /**
-     * Send a Ping message containing the given application data to the remote endpoint. The corresponding Pong message may be picked
-     * up using the MessageHandler.Pong handler.
-     *
-     * @param data the data to be carried in the ping request.
-     */
-    public Future<Frame> sendPing(ByteBuffer data) {
-        return socket.sendPing(Utils.getRemainingArray(data));
-    }
-
-    /**
-     * Allows the developer to send an unsolicited Pong message containing the given application
-     * data in order to serve as a unidirectional
-     * heartbeat for the session.
-     *
-     * @param data the application data to be carried in the pong response.
-     */
-    public Future<Frame> sendPong(ByteBuffer data) {
-        return socket.sendPong(Utils.getRemainingArray(data));
-    }
-
-    /**
-     * Send a Close message.
-     *
-     * @param closeReason close reason.
-     */
-    public void close(CloseReason closeReason) {
-        socket.close(closeReason.getCloseCode().getCode(), closeReason.getReasonPhrase());
-    }
-
-    /**
-     * Sets the timeout for the writing operation.
-     *
-     * @param timeoutMs timeout in milliseconds.
-     */
-    public void setWriteTimeout(long timeoutMs) {
-        socket.setWriteTimeout(timeoutMs);
+            if (toSend instanceof String) {
+                webSocket.sendText((String) toSend, handler);
+            } else if (toSend instanceof ByteBuffer) {
+                webSocket.sendBinary(Utils.getRemainingArray((ByteBuffer) toSend), handler);
+            } else if (toSend instanceof StringWriter) {
+                StringWriter writer = (StringWriter) toSend;
+                StringBuffer sb = writer.getBuffer();
+                webSocket.sendText(sb.toString(), handler);
+            } else if (toSend instanceof ByteArrayOutputStream) {
+                ByteArrayOutputStream baos = (ByteArrayOutputStream) toSend;
+                webSocket.sendBinary(baos.toByteArray(), handler);
+            }
+        }
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof TyrusRemoteEndpoint)) return false;
-
-        TyrusRemoteEndpoint that = (TyrusRemoteEndpoint) o;
-
-        return socket.equals(that.socket);
+    public void sendPing(ByteBuffer applicationData) throws IOException {
+        if (applicationData != null && applicationData.remaining() > 125) {
+            throw new IllegalArgumentException("Ping applicationData exceeded the maximum allowed payload of 125 bytes.");
+        }
+        session.restartIdleTimeoutExecutor();
+        webSocket.sendPing(Utils.getRemainingArray(applicationData));
     }
 
     @Override
-    public int hashCode() {
-        return socket.hashCode();
+    public void sendPong(ByteBuffer applicationData) throws IOException {
+        if (applicationData != null && applicationData.remaining() > 125) {
+            throw new IllegalArgumentException("Pong applicationData exceeded the maximum allowed payload of 125 bytes.");
+        }
+        session.restartIdleTimeoutExecutor();
+        webSocket.sendPong(Utils.getRemainingArray(applicationData));
     }
 
-    /**
-     * Write raw data to underlying connection.
-     * <p/>
-     * Use this only when you know what you are doing.
-     *
-     * @param dataFrame bytes to be send.
-     * @return future can be used to get information about sent message.
-     */
-    public Future<Frame> sendRawFrame(ByteBuffer dataFrame) {
-        return socket.sendRawFrame(dataFrame);
+    @Override
+    public String toString() {
+        return "Wrapped: " + getClass().getSimpleName();
     }
 
-    TyrusWebSocket getSocket() {
-        return socket;
+    @Override
+    public void setBatchingAllowed(boolean allowed) {
+        // TODO: Implement.
+    }
+
+    @Override
+    public boolean getBatchingAllowed() {
+        return false;  // TODO: Implement.
+    }
+
+    @Override
+    public void flushBatch() {
+        // TODO: Implement.
+    }
+
+
+    public void close(CloseReason cr) {
+        Logger.getLogger(TyrusRemoteEndpoint.class.getName()).fine("Close public void close(CloseReason cr): " + cr);
+        webSocket.close(cr);
     }
 }

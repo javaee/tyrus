@@ -84,9 +84,9 @@ public class TyrusSession implements Session {
     private static final Logger LOGGER = Logger.getLogger(TyrusSession.class.getName());
     private static final String SESSION_CLOSED = "The connection has been closed.";
     private final WebSocketContainer container;
-    private final TyrusEndpointWrapper endpoint;
-    private final RemoteEndpointWrapper.Basic basicRemote;
-    private final RemoteEndpointWrapper.Async asyncRemote;
+    private final TyrusEndpointWrapper endpointWrapper;
+    private final TyrusRemoteEndpoint.Basic basicRemote;
+    private final TyrusRemoteEndpoint.Async asyncRemote;
     private final boolean isSecure;
     private final URI uri;
     private final String queryString;
@@ -111,21 +111,21 @@ public class TyrusSession implements Session {
     private ReaderBuffer readerBuffer;
     private InputStreamBuffer inputStreamBuffer;
 
-    TyrusSession(WebSocketContainer container, TyrusRemoteEndpoint remoteEndpoint, TyrusEndpointWrapper tyrusEndpointWrapper,
+    TyrusSession(WebSocketContainer container, TyrusWebSocket socket, TyrusEndpointWrapper endpointWrapper,
                  String subprotocol, List<Extension> extensions, boolean isSecure,
                  URI uri, String queryString, Map<String, String> pathParameters, Principal principal,
                  Map<String, List<String>> requestParameterMap) {
         this.container = container;
-        this.endpoint = tyrusEndpointWrapper;
+        this.endpointWrapper = endpointWrapper;
         this.negotiatedExtensions = extensions == null ? Collections.<Extension>emptyList() : Collections.unmodifiableList(extensions);
         this.negotiatedSubprotocol = subprotocol == null ? "" : subprotocol;
         this.isSecure = isSecure;
         this.uri = uri;
         this.queryString = queryString;
         this.pathParameters = pathParameters == null ? Collections.<String, String>emptyMap() : Collections.unmodifiableMap(new HashMap<String, String>(pathParameters));
-        this.basicRemote = new RemoteEndpointWrapper.Basic(this, remoteEndpoint, tyrusEndpointWrapper);
-        this.asyncRemote = new RemoteEndpointWrapper.Async(this, remoteEndpoint, tyrusEndpointWrapper);
-        this.handlerManager = MessageHandlerManager.fromDecoderInstances(tyrusEndpointWrapper.getDecoders());
+        this.basicRemote = new TyrusRemoteEndpoint.Basic(this, socket, endpointWrapper);
+        this.asyncRemote = new TyrusRemoteEndpoint.Async(this, socket, endpointWrapper);
+        this.handlerManager = MessageHandlerManager.fromDecoderInstances(endpointWrapper.getDecoders());
         this.userPrincipal = principal;
         this.requestParameterMap = requestParameterMap == null ? Collections.<String, List<String>>emptyMap() : Collections.unmodifiableMap(new HashMap<String, List<String>>(requestParameterMap));
 
@@ -210,7 +210,7 @@ public class TyrusSession implements Session {
     @Override
     public Set<Session> getOpenSessions() {
         checkConnectionState(State.CLOSED);
-        return endpoint.getOpenSessions();
+        return endpointWrapper.getOpenSessions();
     }
 
     @Override
@@ -306,7 +306,7 @@ public class TyrusSession implements Session {
      * @return map of sessions and futures for user to get the information about status of the message.
      */
     public Map<Session, Future<?>> broadcast(String message) {
-        return endpoint.broadcast(message);
+        return endpointWrapper.broadcast(message);
     }
 
     /**
@@ -316,7 +316,7 @@ public class TyrusSession implements Session {
      * @return map of sessions and futures for user to get the information about status of the message.
      */
     public Map<Session, Future<?>> broadcast(ByteBuffer message) {
-        return endpoint.broadcast(message);
+        return endpointWrapper.broadcast(message);
     }
 
 
@@ -377,7 +377,7 @@ public class TyrusSession implements Session {
                         checkMessageSize(message, ((BasicMessageHandler) mh).getMaxMessageSize());
                     }
 
-                    Object object = endpoint.decodeCompleteMessage(this, message, type, decoder);
+                    Object object = endpointWrapper.decodeCompleteMessage(this, message, type, decoder);
                     if (object != null) {
                         final State currentState = state.get();
                         if (currentState != State.CLOSING && currentState != State.CLOSED) {
@@ -528,7 +528,7 @@ public class TyrusSession implements Session {
         sb.append("SessionImpl");
         sb.append("{uri=").append(uri);
         sb.append(", id='").append(id).append('\'');
-        sb.append(", endpoint=").append(endpoint);
+        sb.append(", endpointWrapper=").append(endpointWrapper);
         sb.append('}');
         return sb.toString();
     }

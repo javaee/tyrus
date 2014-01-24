@@ -84,7 +84,7 @@ import org.glassfish.grizzly.http.util.HttpStatus;
  * WebSocket {@link Filter} implementation, which supposed to be placed into a {@link FilterChain} right after HTTP
  * Filter: {@link HttpServerFilter}, {@link HttpClientFilter}; depending whether it's server or client side. The
  * <tt>WebSocketFilter</tt> handles websocket connection, handshake phases and, when receives a websocket frame -
- * redirects it to appropriate connection ({@link org.glassfish.tyrus.core.TyrusEndpoint}, {@link org.glassfish.tyrus.core.TyrusWebSocket}) for processing.
+ * redirects it to appropriate connection ({@link org.glassfish.tyrus.core.TyrusEndpointWrapper}, {@link org.glassfish.tyrus.core.TyrusWebSocket}) for processing.
  *
  * @author Alexey Stashok
  * @author Pavel Bucek (pavel.bucek at oracle.com)
@@ -194,7 +194,7 @@ class GrizzlyClientFilter extends BaseFilter {
      * Handle Grizzly {@link Connection} read phase. If the {@link Connection} has associated {@link org.glassfish.tyrus.core.TyrusWebSocket} object
      * (websocket connection), we check if websocket handshake has been completed for this connection, if not -
      * initiate/validate handshake. If handshake has been completed - parse websocket {@link org.glassfish.tyrus.core.Frame}s one by one and
-     * pass processing to appropriate {@link org.glassfish.tyrus.core.TyrusWebSocket}: {@link org.glassfish.tyrus.core.TyrusEndpoint} for server- and client- side
+     * pass processing to appropriate {@link org.glassfish.tyrus.core.TyrusWebSocket}: {@link org.glassfish.tyrus.core.TyrusEndpointWrapper} for server- and client- side
      * connections.
      *
      * @param ctx {@link FilterChainContext}

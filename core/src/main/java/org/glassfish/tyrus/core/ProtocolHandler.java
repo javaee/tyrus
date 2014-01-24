@@ -82,6 +82,7 @@ public final class ProtocolHandler {
     private byte inFragmentedType;
     private boolean processingFragment;
     private boolean sendingFragment = false;
+    private String subProtocol = null;
     private List<Extension> extensions;
     private ExtendedExtension.ExtensionContext extensionContext;
     private ByteBuffer remainder = null;
@@ -89,10 +90,6 @@ public final class ProtocolHandler {
 
     ProtocolHandler(boolean maskData) {
         this.maskData = maskData;
-    }
-
-    public Writer getWriter() {
-        return writer;
     }
 
     public void setWriter(Writer handler) {
@@ -112,19 +109,27 @@ public final class ProtocolHandler {
     /**
      * Server side.
      *
-     * @param tyrusEndpoint    TODO.
+     * @param endpointWrapper  TODO.
      * @param request          TODO.
      * @param response         TODO.
      * @param extensionContext TODO.
      * @return TODO.
      */
-    public Handshake handshake(TyrusEndpoint tyrusEndpoint, UpgradeRequest request, UpgradeResponse response, ExtendedExtension.ExtensionContext extensionContext) {
+    public Handshake handshake(TyrusEndpointWrapper endpointWrapper, UpgradeRequest request, UpgradeResponse response, ExtendedExtension.ExtensionContext extensionContext) {
         final Handshake handshake = createHandShake(request, extensionContext);
-        handshake.respond(response, tyrusEndpoint);
+        this.extensions = handshake.respond(request, response, endpointWrapper);
+        this.subProtocol = response.getFirstHeaderValue(UpgradeRequest.SEC_WEBSOCKET_PROTOCOL);
         this.extensionContext = extensionContext;
-        this.extensions = tyrusEndpoint.getSupportedExtensions();
         hasExtensions = extensions != null && extensions.size() > 0;
         return handshake;
+    }
+
+    List<Extension> getExtensions() {
+        return extensions;
+    }
+
+    String getSubProtocol() {
+        return subProtocol;
     }
 
     /**

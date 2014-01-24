@@ -45,16 +45,13 @@ import java.io.Reader;
 import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.Future;
 
-import javax.websocket.CloseReason;
 import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
 import javax.websocket.OnMessage;
 import javax.websocket.PongMessage;
-import javax.websocket.SendHandler;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
@@ -69,11 +66,11 @@ import static org.junit.Assert.assertTrue;
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 public class TyrusSessionTest {
-    TyrusEndpointWrapper ew;
+    private TyrusEndpointWrapper endpointWrapper;
 
     public TyrusSessionTest() {
         try {
-            ew = new TyrusEndpointWrapper(EchoEndpoint.class, null, ComponentProviderService.create(), null, null, null);
+            endpointWrapper = new TyrusEndpointWrapper(EchoEndpoint.class, null, ComponentProviderService.create(), null, null, null);
         } catch (DeploymentException e) {
             // do nothing.
         }
@@ -81,7 +78,7 @@ public class TyrusSessionTest {
 
     @Test
     public void simpleTest() {
-        Session session = createSession(ew);
+        Session session = createSession(endpointWrapper);
 
         session.addMessageHandler(new MessageHandler.Whole<String>() {
             @Override
@@ -105,7 +102,7 @@ public class TyrusSessionTest {
 
     @Test(expected = IllegalStateException.class)
     public void multipleTextHandlers() {
-        Session session = createSession(ew);
+        Session session = createSession(endpointWrapper);
 
         session.addMessageHandler(new MessageHandler.Whole<String>() {
             @Override
@@ -122,7 +119,7 @@ public class TyrusSessionTest {
 
     @Test(expected = IllegalStateException.class)
     public void multipleStringHandlers() {
-        Session session = createSession(ew);
+        Session session = createSession(endpointWrapper);
 
         session.addMessageHandler(new MessageHandler.Whole<String>() {
             @Override
@@ -139,7 +136,7 @@ public class TyrusSessionTest {
 
     @Test(expected = IllegalStateException.class)
     public void multipleBinaryHandlers() {
-        Session session = createSession(ew);
+        Session session = createSession(endpointWrapper);
 
         session.addMessageHandler(new MessageHandler.Whole<InputStream>() {
             @Override
@@ -156,7 +153,7 @@ public class TyrusSessionTest {
 
     @Test(expected = IllegalStateException.class)
     public void multipleBinaryHandlersWithByteArray() {
-        Session session = createSession(ew);
+        Session session = createSession(endpointWrapper);
 
         session.addMessageHandler(new MessageHandler.Whole<byte[]>() {
             @Override
@@ -173,7 +170,7 @@ public class TyrusSessionTest {
 
     @Test(expected = IllegalStateException.class)
     public void multipleInputStreamHandlers() {
-        Session session = createSession(ew);
+        Session session = createSession(endpointWrapper);
 
         session.addMessageHandler(new MessageHandler.Whole<InputStream>() {
             @Override
@@ -190,7 +187,7 @@ public class TyrusSessionTest {
 
     @Test(expected = IllegalStateException.class)
     public void multiplePongHandlers() {
-        Session session = createSession(ew);
+        Session session = createSession(endpointWrapper);
 
         session.addMessageHandler(new MessageHandler.Whole<PongMessage>() {
             @Override
@@ -207,7 +204,7 @@ public class TyrusSessionTest {
 
     @Test(expected = IllegalStateException.class)
     public void multipleBasicDecodable() {
-        Session session = createSession(ew);
+        Session session = createSession(endpointWrapper);
 
         session.addMessageHandler(new MessageHandler.Whole<TyrusSessionTest>() {
             @Override
@@ -224,7 +221,7 @@ public class TyrusSessionTest {
 
     @Test(expected = IllegalStateException.class)
     public void multipleTextHandlersAsync() {
-        Session session = createSession(ew);
+        Session session = createSession(endpointWrapper);
 
         session.addMessageHandler(new MessageHandler.Partial<String>() {
             @Override
@@ -241,7 +238,7 @@ public class TyrusSessionTest {
 
     @Test(expected = IllegalStateException.class)
     public void multipleStringHandlersAsync() {
-        Session session = createSession(ew);
+        Session session = createSession(endpointWrapper);
 
         session.addMessageHandler(new MessageHandler.Partial<String>() {
             @Override
@@ -258,7 +255,7 @@ public class TyrusSessionTest {
 
     @Test(expected = IllegalStateException.class)
     public void multipleBinaryHandlersAsync() {
-        Session session = createSession(ew);
+        Session session = createSession(endpointWrapper);
 
         session.addMessageHandler(new MessageHandler.Partial<InputStream>() {
             @Override
@@ -275,7 +272,7 @@ public class TyrusSessionTest {
 
     @Test(expected = IllegalStateException.class)
     public void multipleBinaryHandlersWithByteArrayAsync() {
-        Session session = createSession(ew);
+        Session session = createSession(endpointWrapper);
 
         session.addMessageHandler(new MessageHandler.Partial<byte[]>() {
             @Override
@@ -292,7 +289,7 @@ public class TyrusSessionTest {
 
     @Test(expected = IllegalStateException.class)
     public void multipleInputStreamHandlersAsync() {
-        Session session = createSession(ew);
+        Session session = createSession(endpointWrapper);
 
 
         session.addMessageHandler(new MessageHandler.Partial<InputStream>() {
@@ -310,7 +307,7 @@ public class TyrusSessionTest {
 
     @Test(expected = IllegalStateException.class)
     public void multiplePongHandlersAsync() {
-        Session session = createSession(ew);
+        Session session = createSession(endpointWrapper);
 
 
         session.addMessageHandler(new MessageHandler.Partial<PongMessage>() {
@@ -328,7 +325,7 @@ public class TyrusSessionTest {
 
     @Test(expected = IllegalStateException.class)
     public void multipleBasicDecodableAsync() {
-        Session session = createSession(ew);
+        Session session = createSession(endpointWrapper);
 
 
         session.addMessageHandler(new MessageHandler.Partial<TyrusSessionTest>() {
@@ -346,7 +343,7 @@ public class TyrusSessionTest {
 
     @Test
     public void getHandlers() {
-        Session session = createSession(ew);
+        Session session = createSession(endpointWrapper);
 
         final MessageHandler.Whole<String> handler1 = new MessageHandler.Whole<String>() {
             @Override
@@ -375,7 +372,7 @@ public class TyrusSessionTest {
 
     @Test
     public void removeHandlers() {
-        Session session = createSession(ew);
+        Session session = createSession(endpointWrapper);
 
 
         final MessageHandler.Partial<String> handler1 = new MessageHandler.Partial<String>() {
@@ -417,9 +414,9 @@ public class TyrusSessionTest {
 
     @Test
     public void idTest() {
-        Session session1 = createSession(ew);
-        Session session2 = createSession(ew);
-        Session session3 = createSession(ew);
+        Session session1 = createSession(endpointWrapper);
+        Session session2 = createSession(endpointWrapper);
+        Session session3 = createSession(endpointWrapper);
 
         assertFalse(session1.getId().equals(session2.getId()));
         assertFalse(session1.getId().equals(session3.getId()));
@@ -456,8 +453,8 @@ public class TyrusSessionTest {
 
     @Test
     public void userPropertiesTest() {
-        Session session1 = createSession(ew);
-        Session session2 = createSession(ew);
+        Session session1 = createSession(endpointWrapper);
+        Session session2 = createSession(endpointWrapper);
 
         final String test1 = "test1";
         final String test2 = "test2";
@@ -472,62 +469,14 @@ public class TyrusSessionTest {
         assertNotNull(session2.getUserProperties().get(test2));
     }
 
-    private TyrusSession createSession(TyrusEndpointWrapper tyrusEndpointWrapper) {
-        return new TyrusSession(null, new TestRemoteEndpoint(), tyrusEndpointWrapper, null, null, false, null, null, null, null, new HashMap<String, List<String>>());
+    private TyrusSession createSession(TyrusEndpointWrapper endpointWrapper) {
+        return new TyrusSession(null, new TestRemoteEndpoint(), endpointWrapper, null, null, false, null, null, null, null, new HashMap<String, List<String>>());
     }
 
-    private static class TestRemoteEndpoint extends TyrusRemoteEndpoint {
+    private static class TestRemoteEndpoint extends TyrusWebSocket {
 
         private TestRemoteEndpoint() {
-            super(null);
-        }
-
-        @Override
-        public Future<Frame> sendText(String text) {
-            return null;
-        }
-
-        @Override
-        public Future<Frame> sendBinary(ByteBuffer data) {
-            return null;
-        }
-
-        @Override
-        public void sendText(String text, SendHandler handler) {
-        }
-
-        @Override
-        public void sendBinary(ByteBuffer data, SendHandler handler) {
-        }
-
-        @Override
-        public Future<Frame> sendText(String fragment, boolean isLast) {
-            return null;
-        }
-
-        @Override
-        public Future<Frame> sendBinary(ByteBuffer partialByte, boolean isLast) {
-            return null;
-        }
-
-        @Override
-        public Future<Frame> sendPing(ByteBuffer applicationData) {
-            return null;
-        }
-
-        @Override
-        public Future<Frame> sendPong(ByteBuffer applicationData) {
-            return null;
-        }
-
-        @Override
-        public void close(CloseReason closeReason) {
-
-        }
-
-        @Override
-        public void setWriteTimeout(long timeoutMs) {
-
+            super(new ProtocolHandler(false), null);
         }
     }
 

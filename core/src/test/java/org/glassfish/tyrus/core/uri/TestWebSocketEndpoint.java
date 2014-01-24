@@ -40,88 +40,35 @@
 package org.glassfish.tyrus.core.uri;
 
 
-import java.util.Collections;
-import java.util.List;
+import javax.websocket.DeploymentException;
+import javax.websocket.Endpoint;
+import javax.websocket.EndpointConfig;
+import javax.websocket.Session;
 
-import javax.websocket.CloseReason;
-import javax.websocket.Extension;
-
-import org.glassfish.tyrus.core.ProtocolHandler;
-import org.glassfish.tyrus.core.TyrusEndpoint;
-import org.glassfish.tyrus.core.TyrusWebSocket;
-import org.glassfish.tyrus.spi.UpgradeRequest;
-import org.glassfish.tyrus.spi.UpgradeResponse;
+import org.glassfish.tyrus.core.ComponentProviderService;
+import org.glassfish.tyrus.core.TyrusEndpointWrapper;
 
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class TestWebSocketEndpoint extends TyrusEndpoint {
+public class TestWebSocketEndpoint extends TyrusEndpointWrapper {
 
     private final String path;
 
-    public TestWebSocketEndpoint(String path) {
-        super(null);
+    public TestWebSocketEndpoint(String path) throws DeploymentException {
+        super(TestEndpoint.class, null, ComponentProviderService.createClient(), null, null, null);
         this.path = path;
     }
 
     @Override
-    public void onHandShakeResponse(UpgradeRequest request, UpgradeResponse response) {
-    }
-
-    @Override
-    protected boolean isApplicationRequest(UpgradeRequest request) {
-        return false;
-    }
-
-    @Override
-    public TyrusWebSocket createSocket(ProtocolHandler handler) {
-        return null;
-    }
-
-    @Override
-    public String getPath() {
+    public String getEndpointPath() {
         return path;
     }
 
-    @Override
-    public List<Extension> getSupportedExtensions() {
-        return Collections.emptyList();
-    }
+    public static class TestEndpoint extends Endpoint {
+        @Override
+        public void onOpen(Session session, EndpointConfig config) {
 
-    @Override
-    public List<String> getSupportedProtocols(List<String> subProtocol) {
-        return Collections.emptyList();
-    }
-
-    @Override
-    public void onClose(TyrusWebSocket socket, CloseReason closeReason) {
-    }
-
-    @Override
-    public void onConnect(TyrusWebSocket socket, UpgradeRequest upgradeRequest) {
-    }
-
-    @Override
-    public void onMessage(TyrusWebSocket socket, String text) {
-    }
-
-    @Override
-    public void onMessage(TyrusWebSocket socket, byte[] bytes) {
-    }
-
-    @Override
-    public void onPing(TyrusWebSocket socket, byte[] bytes) {
-    }
-
-    @Override
-    public void onPong(TyrusWebSocket socket, byte[] bytes) {
-    }
-
-    @Override
-    public void onFragment(TyrusWebSocket socket, String fragment, boolean last) {
-    }
-
-    @Override
-    public void onFragment(TyrusWebSocket socket, byte[] fragment, boolean last) {
+        }
     }
 }

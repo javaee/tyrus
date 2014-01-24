@@ -49,15 +49,15 @@ import java.io.Writer;
  * @author Danny Coward (danny.coward at oracle.com)
  */
 class WriterToAsyncTextAdapter extends Writer {
-    private final TyrusRemoteEndpoint re;
+    private final TyrusWebSocket socket;
     private String buffer = null;
 
-    public WriterToAsyncTextAdapter(TyrusRemoteEndpoint re) {
-        this.re = re;
+    public WriterToAsyncTextAdapter(TyrusWebSocket socket) {
+        this.socket = socket;
     }
 
     private void sendBuffer(boolean last) {
-        re.sendText(buffer, last);
+        socket.sendText(buffer, last);
     }
 
     @Override

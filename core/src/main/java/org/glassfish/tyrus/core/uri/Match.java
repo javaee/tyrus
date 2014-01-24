@@ -47,7 +47,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.glassfish.tyrus.core.TyrusEndpoint;
+import org.glassfish.tyrus.core.TyrusEndpointWrapper;
 import org.glassfish.tyrus.core.uri.internal.PathSegment;
 import org.glassfish.tyrus.core.uri.internal.UriComponent;
 
@@ -61,7 +61,7 @@ import org.glassfish.tyrus.core.uri.internal.UriComponent;
  */
 public class Match {
 
-    private final TyrusEndpoint tyrusEndpoint; // the endpoint that has the path
+    private final TyrusEndpointWrapper endpointWrapper; // the endpoint that has the path
     private final List<String> parameterNames = new ArrayList<String>();
     private final List<String> parameterValues = new ArrayList<String>();
     //list of all segment indices in the path with variables
@@ -79,10 +79,10 @@ public class Match {
     /**
      * Constructor.
      *
-     * @param tyrusEndpoint {@link TyrusEndpoint} instance.
+     * @param endpointWrapper {@link TyrusEndpointWrapper} instance.
      */
-    private Match(TyrusEndpoint tyrusEndpoint) {
-        this.tyrusEndpoint = tyrusEndpoint;
+    private Match(TyrusEndpointWrapper endpointWrapper) {
+        this.endpointWrapper = endpointWrapper;
     }
 
     /**
@@ -91,7 +91,7 @@ public class Match {
      * @return path.
      */
     public String getPath() {
-        return this.tyrusEndpoint.getPath();
+        return this.endpointWrapper.getEndpointPath();
     }
 
     /**
@@ -144,20 +144,20 @@ public class Match {
     }
 
     /**
-     * Get {@link TyrusEndpoint}.
+     * Get {@link TyrusEndpointWrapper}.
      *
      * @return web socket application of this {@link Math}.
      */
-    public TyrusEndpoint getTyrusEndpoit() {
-        return this.tyrusEndpoint;
+    public TyrusEndpointWrapper getEndpointWrapper() {
+        return this.endpointWrapper;
     }
 
     @Override
     public String toString() {
         if (this.isExact()) {
-            return "Match(exact, path:" + tyrusEndpoint.getPath() + ")";
+            return "Match(exact, path:" + getPath() + ")";
         } else {
-            return "Match(path:" + tyrusEndpoint.getPath() + " params: " + this.paramsToString() + " idices: " + this.variableSegmentIndices + ")";
+            return "Match(path:" + getPath() + " params: " + this.paramsToString() + " idices: " + this.variableSegmentIndices + ")";
         }
     }
 
@@ -188,7 +188,7 @@ public class Match {
      * @param thingsWithPath TODO
      * @return TODO
      */
-    public static Match getBestMatch(String incoming, Set<TyrusEndpoint> thingsWithPath) {
+    public static Match getBestMatch(String incoming, Set<TyrusEndpointWrapper> thingsWithPath) {
         List<Match> sortedMatches = getAllMatches(incoming, thingsWithPath);
         if (sortedMatches.isEmpty()) {
             return null;
@@ -204,9 +204,9 @@ public class Match {
      * @param thingsWithPath TODO
      * @return TODO
      */
-    public static List<Match> getAllMatches(String incoming, Set<TyrusEndpoint> thingsWithPath) {
+    public static List<Match> getAllMatches(String incoming, Set<TyrusEndpointWrapper> thingsWithPath) {
         Set<Match> matches = new HashSet<Match>();
-        for (TyrusEndpoint nextThingWithPath : thingsWithPath) {
+        for (TyrusEndpointWrapper nextThingWithPath : thingsWithPath) {
             Match m = matchPath(incoming, nextThingWithPath);
             if (m != null) {
                 matches.add(m);
@@ -271,14 +271,13 @@ public class Match {
         return eq;
     }
 
-    private static Match matchPath(String incoming, TyrusEndpoint hasPath) {
+    private static Match matchPath(String incoming, TyrusEndpointWrapper hasPath) {
         List<PathSegment> incomingList = UriComponent.decodePath(incoming, true);
-        List<PathSegment> pathList = UriComponent.decodePath(hasPath.getPath(), true);
+        List<PathSegment> pathList = UriComponent.decodePath(hasPath.getEndpointPath(), true);
         if (incomingList.size() != pathList.size()) {
             return null;
         } else {
             Match m = new Match(hasPath);
-            //System.out.println("Created match: " + m);
             boolean somethingMatched = false;
             for (int i = 0; i < incomingList.size(); i++) {
                 String incomingSegment = incomingList.get(i).getPath();

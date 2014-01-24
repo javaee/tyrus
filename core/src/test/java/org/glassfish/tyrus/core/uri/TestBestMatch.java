@@ -43,14 +43,14 @@ import java.net.URI;
 import java.util.HashSet;
 import java.util.Set;
 
-import org.glassfish.tyrus.core.TyrusEndpoint;
+import org.glassfish.tyrus.core.TyrusEndpointWrapper;
 
 /**
  * @author dannycoward
  */
 public class TestBestMatch {
     private URI uri;
-    private final Set<TyrusEndpoint> eps = new HashSet<TyrusEndpoint>();
+    private final Set<TyrusEndpointWrapper> eps = new HashSet<TyrusEndpointWrapper>();
     private final String title;
 
     public TestBestMatch(String title) {

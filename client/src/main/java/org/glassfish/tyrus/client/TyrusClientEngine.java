@@ -62,10 +62,8 @@ import org.glassfish.tyrus.core.FramingException;
 import org.glassfish.tyrus.core.Handshake;
 import org.glassfish.tyrus.core.ProtocolHandler;
 import org.glassfish.tyrus.core.RequestContext;
-import org.glassfish.tyrus.core.TyrusEndpoint;
 import org.glassfish.tyrus.core.TyrusEndpointWrapper;
 import org.glassfish.tyrus.core.TyrusExtension;
-import org.glassfish.tyrus.core.TyrusRemoteEndpoint;
 import org.glassfish.tyrus.core.TyrusWebSocket;
 import org.glassfish.tyrus.core.Utils;
 import org.glassfish.tyrus.core.Version;
@@ -137,7 +135,7 @@ public class TyrusClientEngine implements ClientEngine {
         try {
             clientHandShake.validateServerResponse(upgradeResponse);
 
-            final TyrusWebSocket tyrusWebSocket = new TyrusWebSocket(protocolHandler, new TyrusEndpoint(endpointWrapper));
+            final TyrusWebSocket socket = new TyrusWebSocket(protocolHandler, endpointWrapper);
             final List<Extension> handshakeResponseExtensions = TyrusExtension.fromHeaders(upgradeResponse.getHeaders().get(HandshakeRequest.SEC_WEBSOCKET_EXTENSIONS));
             final List<Extension> extensions = new ArrayList<Extension>();
 
@@ -165,18 +163,19 @@ public class TyrusClientEngine implements ClientEngine {
             }
 
             final Session sessionForRemoteEndpoint = endpointWrapper.createSessionForRemoteEndpoint(
-                    new TyrusRemoteEndpoint(tyrusWebSocket),
+                    socket,
                     upgradeResponse.getFirstHeaderValue(HandshakeRequest.SEC_WEBSOCKET_PROTOCOL),
                     extensions);
 
             ((ClientEndpointConfig) endpointWrapper.getEndpointConfig()).getConfigurator().afterResponse(upgradeResponse);
 
             protocolHandler.setWriter(writer);
-            protocolHandler.setWebSocket(tyrusWebSocket);
+            protocolHandler.setWebSocket(socket);
             protocolHandler.setExtensions(extensions);
             protocolHandler.setExtensionContext(extensionContext);
 
-            tyrusWebSocket.onConnect(this.clientHandShake.getRequest());
+            // subprotocol and extensions are already set -- TODO: introduce new method (onClientConnect)?
+            socket.onConnect(this.clientHandShake.getRequest(), null, null);
 
             listener.onSessionCreated(sessionForRemoteEndpoint);
 
@@ -190,7 +189,7 @@ public class TyrusClientEngine implements ClientEngine {
 
             return new Connection() {
 
-                private final ReadHandler readHandler = new TyrusReadHandler(protocolHandler, tyrusWebSocket, incomingBufferSize, sessionForRemoteEndpoint.getNegotiatedExtensions(), extensionContext);
+                private final ReadHandler readHandler = new TyrusReadHandler(protocolHandler, socket, incomingBufferSize, sessionForRemoteEndpoint.getNegotiatedExtensions(), extensionContext);
 
                 @Override
                 public ReadHandler getReadHandler() {
@@ -215,7 +214,7 @@ public class TyrusClientEngine implements ClientEngine {
                         Logger.getLogger(this.getClass().getName()).log(Level.WARNING, e.getMessage(), e);
                     }
 
-                    tyrusWebSocket.close(reason.getCloseCode().getCode(), reason.getReasonPhrase());
+                    socket.close(reason.getCloseCode().getCode(), reason.getReasonPhrase());
 
                     for (Extension extension : sessionForRemoteEndpoint.getNegotiatedExtensions()) {
                         if (extension instanceof ExtendedExtension) {
@@ -267,15 +266,15 @@ public class TyrusClientEngine implements ClientEngine {
 
         private final int incomingBufferSize;
         private final ProtocolHandler handler;
-        private final TyrusWebSocket webSocket;
+        private final TyrusWebSocket socket;
         private final List<Extension> negotiatedExtensions;
         private final ExtendedExtension.ExtensionContext extensionContext;
 
         private ByteBuffer buffer = null;
 
-        TyrusReadHandler(final ProtocolHandler protocolHandler, final TyrusWebSocket webSocket, int incomingBufferSize, List<Extension> negotiatedExtensions, ExtendedExtension.ExtensionContext extensionContext) {
+        TyrusReadHandler(final ProtocolHandler protocolHandler, final TyrusWebSocket socket, int incomingBufferSize, List<Extension> negotiatedExtensions, ExtendedExtension.ExtensionContext extensionContext) {
             this.handler = protocolHandler;
-            this.webSocket = webSocket;
+            this.socket = socket;
             this.incomingBufferSize = incomingBufferSize;
             this.negotiatedExtensions = negotiatedExtensions;
             this.extensionContext = extensionContext;
@@ -318,16 +317,16 @@ public class TyrusClientEngine implements ClientEngine {
                                 }
                             }
 
-                            handler.process(frame, webSocket);
+                            handler.process(frame, socket);
                         }
                     } while (true);
                 }
             } catch (FramingException e) {
                 LOGGER.log(Level.FINE, e.getMessage(), e);
-                webSocket.onClose(new CloseFrame(new CloseReason(CloseReason.CloseCodes.getCloseCode(e.getClosingCode()), e.getMessage())));
+                socket.onClose(new CloseFrame(new CloseReason(CloseReason.CloseCodes.getCloseCode(e.getClosingCode()), e.getMessage())));
             } catch (Exception e) {
                 LOGGER.log(Level.FINE, e.getMessage(), e);
-                webSocket.onClose(new CloseFrame(new CloseReason(CloseReason.CloseCodes.UNEXPECTED_CONDITION, e.getMessage())));
+                socket.onClose(new CloseFrame(new CloseReason(CloseReason.CloseCodes.UNEXPECTED_CONDITION, e.getMessage())));
             }
         }
     }
