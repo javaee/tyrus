@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -48,6 +48,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.AbstractExecutorService;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -57,6 +58,7 @@ import java.util.logging.Logger;
 
 import javax.websocket.ClientEndpoint;
 import javax.websocket.ClientEndpointConfig;
+import javax.websocket.CloseReason;
 import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
 import javax.websocket.Extension;
@@ -87,6 +89,13 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
      * Value must be {@code int} and represents handshake timeout in milliseconds. Default value is 30000 (30 seconds).
      */
     public static final String HANDSHAKE_TIMEOUT = "org.glassfish.tyrus.client.ClientManager.ContainerTimeout";
+
+    /**
+     * Property usable in {@link #getProperties()}.
+     * <p/>
+     * Value must be {@link org.glassfish.tyrus.client.ClientManager.ReconnectHandler} instance.
+     */
+    public static final String RECONNECT_HANDLER = "org.glassfish.tyrus.client.ClientManager.ReconnectHandler";
 
     /**
      * Default {@link org.glassfish.tyrus.spi.ServerContainerFactory} class name.
@@ -352,16 +361,16 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
             @Override
             public void run() {
 
-                ClientEndpointConfig config;
-                Endpoint endpoint;
                 final ErrorCollector collector = new ErrorCollector();
-                TyrusEndpointWrapper clientEndpoint;
 
                 final CountDownLatch responseLatch = new CountDownLatch(1);
                 ClientManagerHandshakeListener listener;
                 TyrusClientEngine clientEngine;
 
                 try {
+                    final ClientEndpointConfig config;
+                    final Endpoint endpoint;
+
                     if (o instanceof Endpoint) {
                         endpoint = (Endpoint) o;
                         config = configuration == null ? ClientEndpointConfig.Builder.create().build() : configuration;
@@ -383,9 +392,6 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                         config = (ClientEndpointConfig) ((AnnotatedEndpoint) endpoint).getEndpointConfig();
                     }
 
-
-                    clientEndpoint = new TyrusEndpointWrapper(endpoint, config, componentProvider,
-                            webSocketContainer == null ? ClientManager.this : webSocketContainer, url, null);
 
                     // fail fast when there is some issue with client endpoint.
                     if (!collector.isEmpty()) {
@@ -421,13 +427,60 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                         }
                     };
 
-                    clientEngine = new TyrusClientEngine(clientEndpoint, listener, copiedProperties);
+                    final ClientManagerHandshakeListener finalListener = listener;
 
-                    container.openClientSocket(url, config, copiedProperties, clientEngine);
+                    final Object o = copiedProperties.get(RECONNECT_HANDLER);
+                    final ReconnectHandler reconnectHandler;
+                    if (o != null && o instanceof ReconnectHandler) {
+                        reconnectHandler = (ReconnectHandler) o;
+                    } else {
+                        reconnectHandler = new ReconnectHandler();
+                    }
+
+                    Callable<TyrusClientEngine> connector = new Callable<TyrusClientEngine>() {
+                        @Override
+                        public TyrusClientEngine call() throws Exception {
+                            TyrusEndpointWrapper clientEndpoint = new TyrusEndpointWrapper(endpoint, config, componentProvider,
+                                    webSocketContainer == null ? ClientManager.this : webSocketContainer, url, null, new TyrusEndpointWrapper.OnCloseListener() {
+                                @Override
+                                public void onClose(CloseReason closeReason) {
+                                    if (reconnectHandler.onDisconnect(closeReason)) {
+                                        try {
+                                            call();
+                                        } catch (Exception e) {
+                                            // do nothing (exception is already handled in call() method itself).
+                                        }
+                                    }
+                                }
+                            });
+
+                            TyrusClientEngine clientEngine = new TyrusClientEngine(clientEndpoint, finalListener, copiedProperties);
+
+                            try {
+                                container.openClientSocket(url, config, copiedProperties, clientEngine);
+                            } catch (Exception e) {
+                                try {
+                                    throw e;
+                                } finally {
+                                    if (reconnectHandler.onConnectFailure(e)) {
+                                        call();
+                                    }
+                                }
+                            }
+
+                            return clientEngine;
+                        }
+                    };
+
+                    clientEngine = connector.call();
+
                 } catch (IOException e) {
                     future.setFailure(e);
                     return;
                 } catch (DeploymentException e) {
+                    future.setFailure(e);
+                    return;
+                } catch (Exception e) {
                     future.setFailure(e);
                     return;
                 }
@@ -440,7 +493,6 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                 try {
                     final boolean countedDown = responseLatch.await(handshakeTimeout, TimeUnit.MILLISECONDS);
                     if (countedDown) {
-                        assert config != null;
                         final Throwable exception = listener.getThrowable();
                         if (exception != null) {
                             future.setFailure(new DeploymentException("Handshake error.", exception));
@@ -618,6 +670,39 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
         @Override
         public void execute(Runnable command) {
             command.run();
+        }
+    }
+
+    /**
+     * Reconnect handler.
+     * <p/>
+     * When implementing, be sure that you do have enough logic behind cancelling reconnect feature - even {@link javax.websocket.Session#close()}
+     * call will be treated just like any other disconnect resulting in reconnect.
+     */
+    public static class ReconnectHandler {
+
+        /**
+         * Called after {@link javax.websocket.OnClose} annotated method (or {@link Endpoint#onClose(javax.websocket.Session, javax.websocket.CloseReason)}
+         * is invoked.
+         *
+         * @param closeReason close reason passed to onClose method.
+         * @return When {@code true} is returned, client container will reconnect.
+         */
+        public boolean onDisconnect(CloseReason closeReason) {
+            return false;
+        }
+
+        /**
+         * Called when there is a connection failure.
+         * <p/>
+         * Type of the failure is indicated by {@link Exception} parameter. Be cautious when implementing this method,
+         * you might easily cause DDoS like behaviour.
+         *
+         * @param exception Exception thrown during connection phase.
+         * @return When {@code true} is returned, client container will reconnect.
+         */
+        public boolean onConnectFailure(Exception exception) {
+            return false;
         }
     }
 }

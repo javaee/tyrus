@@ -289,7 +289,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
         EndpointConfig config = endpoint.getEndpointConfig();
 
         TyrusEndpointWrapper endpointWrapper = new TyrusEndpointWrapper(endpoint, config, componentProviderService, webSocketContainer,
-                contextPath, config instanceof ServerEndpointConfig ? ((ServerEndpointConfig) config).getConfigurator() : null);
+                contextPath, config instanceof ServerEndpointConfig ? ((ServerEndpointConfig) config).getConfigurator() : null, null);
 
         if (collector.isEmpty()) {
             register(endpointWrapper);
@@ -325,7 +325,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
             final EndpointConfig config = endpoint.getEndpointConfig();
 
             endpointWrapper = new TyrusEndpointWrapper(endpoint, config, componentProviderService, webSocketContainer,
-                    contextPath, config instanceof ServerEndpointConfig ? ((ServerEndpointConfig) config).getConfigurator() : null);
+                    contextPath, config instanceof ServerEndpointConfig ? ((ServerEndpointConfig) config).getConfigurator() : null, null);
 
             if (!collector.isEmpty()) {
                 throw collector.composeComprehensiveException();

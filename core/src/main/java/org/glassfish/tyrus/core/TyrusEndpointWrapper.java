@@ -109,6 +109,7 @@ public class TyrusEndpointWrapper {
     private final ComponentProviderService componentProvider;
     private final ServerEndpointConfig.Configurator configurator;
     private final WebSocketContainer container;
+    private final OnCloseListener onCloseListener;
     private final Method onOpen;
     private final Method onClose;
     private final Method onError;
@@ -124,7 +125,7 @@ public class TyrusEndpointWrapper {
     public TyrusEndpointWrapper(Class<? extends Endpoint> endpointClass, EndpointConfig configuration,
                                 ComponentProviderService componentProvider, WebSocketContainer container,
                                 String contextPath, ServerEndpointConfig.Configurator configurator) throws DeploymentException {
-        this(null, endpointClass, configuration, componentProvider, container, contextPath, configurator);
+        this(null, endpointClass, configuration, componentProvider, container, contextPath, configurator, null);
     }
 
     /**
@@ -136,18 +137,20 @@ public class TyrusEndpointWrapper {
      * @param container         container where the wrapper is running.
      */
     public TyrusEndpointWrapper(Endpoint endpoint, EndpointConfig configuration, ComponentProviderService componentProvider, WebSocketContainer container,
-                                String contextPath, ServerEndpointConfig.Configurator configurator) throws DeploymentException {
-        this(endpoint, null, configuration, componentProvider, container, contextPath, configurator);
+                                String contextPath, ServerEndpointConfig.Configurator configurator, OnCloseListener onCloseListener) throws DeploymentException {
+        this(endpoint, null, configuration, componentProvider, container, contextPath, configurator, onCloseListener);
     }
 
     private TyrusEndpointWrapper(Endpoint endpoint, Class<? extends Endpoint> endpointClass, EndpointConfig configuration,
                                  ComponentProviderService componentProvider, WebSocketContainer container,
-                                 String contextPath, final ServerEndpointConfig.Configurator configurator) throws DeploymentException {
+                                 String contextPath, final ServerEndpointConfig.Configurator configurator,
+                                 OnCloseListener onCloseListener) throws DeploymentException {
         this.endpointClass = endpointClass;
         this.endpoint = endpoint;
         this.container = container;
         this.contextPath = contextPath;
         this.configurator = configurator;
+        this.onCloseListener = onCloseListener;
         this.componentProvider = configurator == null ? componentProvider : new ComponentProviderService(componentProvider) {
             @Override
             public <T> T getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
@@ -433,7 +436,7 @@ public class TyrusEndpointWrapper {
     /**
      * Creates a Session based on the {@link TyrusWebSocket}, subprotocols and extensions.
      *
-     * @param socket          the other end of the connection.
+     * @param socket      the other end of the connection.
      * @param subprotocol used.
      * @param extensions  extensions used.
      * @return {@link Session} representing the connection.
@@ -457,7 +460,7 @@ public class TyrusEndpointWrapper {
      * Called by the provider when the web socket connection
      * is established.
      *
-     * @param socket             {@link TyrusWebSocket} who has just connected to this web socket endpoint.
+     * @param socket         {@link TyrusWebSocket} who has just connected to this web socket endpoint.
      * @param upgradeRequest request associated with accepted connection.
      * @return TODO.
      */
@@ -517,7 +520,7 @@ public class TyrusEndpointWrapper {
      * Called by the provider when the web socket connection
      * has an incoming text message from the given remote endpoint.
      *
-     * @param socket           {@link TyrusWebSocket} who sent the message.
+     * @param socket       {@link TyrusWebSocket} who sent the message.
      * @param messageBytes the message.
      */
     public void onMessage(TyrusWebSocket socket, ByteBuffer messageBytes) {
@@ -568,7 +571,7 @@ public class TyrusEndpointWrapper {
      * Called by the provider when the web socket connection
      * has an incoming text message from the given remote endpoint.
      *
-     * @param socket            {@link TyrusWebSocket} who sent the message.
+     * @param socket        {@link TyrusWebSocket} who sent the message.
      * @param messageString the message.
      */
     public void onMessage(TyrusWebSocket socket, String messageString) {
@@ -622,7 +625,7 @@ public class TyrusEndpointWrapper {
      * does not support streaming, it will need to reconstruct the message here and pass the whole
      * thing along.
      *
-     * @param socket            {@link TyrusWebSocket} who sent the message.
+     * @param socket        {@link TyrusWebSocket} who sent the message.
      * @param partialString the String message.
      * @param last          to indicate if this is the last partial string in the sequence
      */
@@ -720,7 +723,7 @@ public class TyrusEndpointWrapper {
      * does not support streaming, it will need to reconstruct the message here and pass the whole
      * thing along.
      *
-     * @param socket           {@link TyrusWebSocket} who sent the message.
+     * @param socket       {@link TyrusWebSocket} who sent the message.
      * @param partialBytes the piece of the binary message.
      * @param last         to indicate if this is the last partial byte buffer in the sequence
      */
@@ -840,8 +843,8 @@ public class TyrusEndpointWrapper {
      * Called by the provider when the web socket connection
      * has an incoming pong message from the given remote endpoint.
      *
-     * @param socket    {@link TyrusWebSocket} who sent the message.
-     * @param bytes the message.
+     * @param socket {@link TyrusWebSocket} who sent the message.
+     * @param bytes  the message.
      */
     public void onPong(TyrusWebSocket socket, final ByteBuffer bytes) {
         TyrusSession session = getSession(socket);
@@ -872,8 +875,8 @@ public class TyrusEndpointWrapper {
      * The endpoint needs to respond as soon as possible (see the websocket RFC).
      * No involvement from application layer, there is no ping listener.
      *
-     * @param socket    {@link TyrusWebSocket} who sent the message.
-     * @param bytes the message.
+     * @param socket {@link TyrusWebSocket} who sent the message.
+     * @param bytes  the message.
      */
     public void onPing(TyrusWebSocket socket, ByteBuffer bytes) {
         TyrusSession session = getSession(socket);
@@ -942,6 +945,10 @@ public class TyrusEndpointWrapper {
             synchronized (webSocketToSession) {
                 webSocketToSession.remove(socket);
                 componentProvider.removeSession(session);
+            }
+
+            if (onCloseListener != null) {
+                onCloseListener.onClose(closeReason);
             }
         }
     }
@@ -1189,5 +1196,17 @@ public class TyrusEndpointWrapper {
         }
 
         return null;
+    }
+
+    /**
+     * Close listener.
+     */
+    public interface OnCloseListener {
+        /**
+         * Invoked after {@link javax.websocket.OnClose} annotated method or {@link Endpoint#onClose(javax.websocket.Session, javax.websocket.CloseReason)} is invoked.
+         *
+         * @param closeReason close reason.
+         */
+        void onClose(CloseReason closeReason);
     }
 }
