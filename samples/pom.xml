@@ -94,12 +94,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
-                <configuration>
-                    <!--<packagingExcludes>WEB-INF/lib/tyrus-*.jar, WEB-INF/lib/javax.*.jar, WEB-INF/lib/grizzly-*,-->
-                    <!--WEB-INF/lib-->
-                    <!--</packagingExcludes>-->
-                    <failOnMissingWebXml>false</failOnMissingWebXml>
-                </configuration>
             </plugin>
         </plugins>
 
