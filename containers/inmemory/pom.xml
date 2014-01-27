@@ -49,7 +49,7 @@
         <version>1.5-SNAPSHOT</version>
     </parent>
 
-    <packaging>jar</packaging>
+    <packaging>bundle</packaging>
     <artifactId>tyrus-container-inmemory</artifactId>
 
     <name>Tyrus InMemory Container</name>

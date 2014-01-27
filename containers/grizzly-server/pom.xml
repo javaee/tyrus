@@ -49,7 +49,7 @@
         <version>1.5-SNAPSHOT</version>
     </parent>
 
-    <packaging>jar</packaging>
+    <packaging>bundle</packaging>
     <artifactId>tyrus-container-grizzly-server</artifactId>
 
     <name>Tyrus Grizzly Server Container</name>
