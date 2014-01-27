@@ -78,24 +78,17 @@ public class SessionTimeoutTest extends TestContainer {
     @ServerEndpoint(value = "/timeout3")
     public static class SessionTimeoutEndpoint {
         private final static AtomicBoolean onClosedCalled = new AtomicBoolean(false);
-        private long timeoutSetTime;
         private static final long TIMEOUT = 300;
 
         @OnOpen
         public void onOpen(Session session) {
             session.setMaxIdleTimeout(TIMEOUT);
-            timeoutSetTime = System.currentTimeMillis();
-        }
-
-        @OnMessage
-        public void onMessage(String message, Session session) {
-
         }
 
         @OnClose
-        public void onClose(Session session, CloseReason closeReason) {
+        public void onClose(CloseReason closeReason) {
             //TYRUS-230
-            if (System.currentTimeMillis() - timeoutSetTime - TIMEOUT < 20 && closeReason.getCloseCode() == CloseReason.CloseCodes.CLOSED_ABNORMALLY) {
+            if (closeReason.getCloseCode() == CloseReason.CloseCodes.CLOSED_ABNORMALLY) {
                 onClosedCalled.set(true);
             }
         }
@@ -124,7 +117,7 @@ public class SessionTimeoutTest extends TestContainer {
                 }
             }, cec, getURI(SessionTimeoutEndpoint.class));
 
-            latch.await(5, TimeUnit.SECONDS);
+            assertTrue(latch.await(5, TimeUnit.SECONDS));
 
             testViaServiceEndpoint(client, ServiceEndpoint.class, POSITIVE, "SessionTimeoutEndpoint");
 
@@ -183,7 +176,7 @@ public class SessionTimeoutTest extends TestContainer {
         }
 
         @OnClose
-        public void onClose(Session session, CloseReason closeReason) {
+        public void onClose() {
             onClosedCalled.set(true);
         }
     }
@@ -255,7 +248,7 @@ public class SessionTimeoutTest extends TestContainer {
         }
 
         @OnClose
-        public void onClose(Session session) {
+        public void onClose() {
             assertTrue(System.currentTimeMillis() - timeoutSetTime - TIMEOUT2 < 20);
             latch.countDown();
         }
@@ -304,17 +297,6 @@ public class SessionTimeoutTest extends TestContainer {
     public static class SessionClientTimeoutEndpoint {
         public static final AtomicBoolean clientOnCloseCalled = new AtomicBoolean(false);
 
-        @OnOpen
-        public void onOpen(Session session) {
-        }
-
-        @OnMessage
-        public void onMessage(String message, Session session) {
-        }
-
-        @OnClose
-        public void onClose(Session session) {
-        }
     }
 
     @Test
