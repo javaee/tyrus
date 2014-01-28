@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -144,7 +144,11 @@ public class AnnotatedEndpoint extends Endpoint {
         AnnotatedClassValidityChecker validityChecker = new AnnotatedClassValidityChecker(annotatedClass, configuration.getEncoders(), configuration.getDecoders(), collector);
 
         // TODO: how about methods from the superclass?
-        for (Method m : annotatedClass.getDeclaredMethods()) {
+        for (Method m : annotatedClass.getMethods()) {
+            if(m.isBridge()) {
+                continue;
+            }
+
             for (Annotation a : m.getAnnotations()) {
                 // TODO: should we support multiple annotations on the same method?
                 if (a instanceof OnOpen) {
