@@ -392,7 +392,6 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                         config = (ClientEndpointConfig) ((AnnotatedEndpoint) endpoint).getEndpointConfig();
                     }
 
-
                     // fail fast when there is some issue with client endpoint.
                     if (!collector.isEmpty()) {
                         future.setFailure(collector.composeComprehensiveException());
