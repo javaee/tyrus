@@ -143,9 +143,8 @@ public class AnnotatedEndpoint extends Endpoint {
         Map<Integer, Class<?>> unknownParams = new HashMap<Integer, Class<?>>();
         AnnotatedClassValidityChecker validityChecker = new AnnotatedClassValidityChecker(annotatedClass, configuration.getEncoders(), configuration.getDecoders(), collector);
 
-        // TODO: how about methods from the superclass?
         for (Method m : annotatedClass.getMethods()) {
-            if(m.isBridge()) {
+            if (m.isBridge()) {
                 continue;
             }
 

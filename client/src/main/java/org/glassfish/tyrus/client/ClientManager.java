@@ -48,7 +48,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.AbstractExecutorService;
-import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -362,15 +361,10 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
             public void run() {
 
                 final ErrorCollector collector = new ErrorCollector();
-
-                final CountDownLatch responseLatch = new CountDownLatch(1);
-                ClientManagerHandshakeListener listener;
-                TyrusClientEngine clientEngine;
+                final ClientEndpointConfig config;
+                final Endpoint endpoint;
 
                 try {
-                    final ClientEndpointConfig config;
-                    final Endpoint endpoint;
-
                     if (o instanceof Endpoint) {
                         endpoint = (Endpoint) o;
                         config = configuration == null ? ClientEndpointConfig.Builder.create().build() : configuration;
@@ -397,126 +391,115 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                         future.setFailure(collector.composeComprehensiveException());
                         return;
                     }
+                } catch (Exception e) {
+                    future.setFailure(e);
+                    return;
+                }
 
-                    listener = new ClientManagerHandshakeListener() {
+                final Object o = copiedProperties.get(RECONNECT_HANDLER);
+                final ReconnectHandler reconnectHandler;
+                if (o != null && o instanceof ReconnectHandler) {
+                    reconnectHandler = (ReconnectHandler) o;
+                } else {
+                    reconnectHandler = new ReconnectHandler();
+                }
 
-                        private volatile Session session;
-                        private volatile Throwable throwable;
+                Runnable connector = new Runnable() {
+                    @Override
+                    public void run() {
 
-                        @Override
-                        public void onSessionCreated(Session session) {
-                            this.session = session;
-                            responseLatch.countDown();
-                        }
+                        do {
+                            final CountDownLatch responseLatch = new CountDownLatch(1);
 
-                        @Override
-                        public void onError(Throwable exception) {
-                            throwable = exception;
-                            responseLatch.countDown();
-                        }
+                            final ClientManagerHandshakeListener listener = new ClientManagerHandshakeListener() {
 
-                        @Override
-                        public Session getSession() {
-                            return session;
-                        }
+                                private volatile Session session;
+                                private volatile Throwable throwable;
 
-                        @Override
-                        public Throwable getThrowable() {
-                            return throwable;
-                        }
-                    };
-
-                    final ClientManagerHandshakeListener finalListener = listener;
-
-                    final Object o = copiedProperties.get(RECONNECT_HANDLER);
-                    final ReconnectHandler reconnectHandler;
-                    if (o != null && o instanceof ReconnectHandler) {
-                        reconnectHandler = (ReconnectHandler) o;
-                    } else {
-                        reconnectHandler = new ReconnectHandler();
-                    }
-
-                    Callable<TyrusClientEngine> connector = new Callable<TyrusClientEngine>() {
-                        @Override
-                        public TyrusClientEngine call() throws Exception {
-                            TyrusEndpointWrapper clientEndpoint = new TyrusEndpointWrapper(endpoint, config, componentProvider,
-                                    webSocketContainer == null ? ClientManager.this : webSocketContainer, url, null, new TyrusEndpointWrapper.OnCloseListener() {
                                 @Override
-                                public void onClose(CloseReason closeReason) {
-                                    if (reconnectHandler.onDisconnect(closeReason)) {
-                                        try {
-                                            call();
-                                        } catch (Exception e) {
-                                            // do nothing (exception is already handled in call() method itself).
-                                        }
-                                    }
+                                public void onSessionCreated(Session session) {
+                                    this.session = session;
+                                    responseLatch.countDown();
                                 }
-                            });
 
-                            TyrusClientEngine clientEngine = new TyrusClientEngine(clientEndpoint, finalListener, copiedProperties);
+                                @Override
+                                public void onError(Throwable exception) {
+                                    throwable = exception;
+                                    responseLatch.countDown();
+                                }
+
+                                @Override
+                                public Session getSession() {
+                                    return session;
+                                }
+
+                                @Override
+                                public Throwable getThrowable() {
+                                    return throwable;
+                                }
+                            };
 
                             try {
-                                container.openClientSocket(url, config, copiedProperties, clientEngine);
-                            } catch (Exception e) {
-                                try {
-                                    throw e;
-                                } finally {
-                                    if (reconnectHandler.onConnectFailure(e)) {
-                                        call();
+                                TyrusEndpointWrapper clientEndpoint = new TyrusEndpointWrapper(endpoint, config, componentProvider,
+                                        webSocketContainer == null ? ClientManager.this : webSocketContainer, url, null, new TyrusEndpointWrapper.OnCloseListener() {
+                                    @Override
+                                    public void onClose(CloseReason closeReason) {
+                                        if (reconnectHandler.onDisconnect(closeReason)) {
+                                            try {
+                                                run();
+                                            } catch (Exception e) {
+                                                // do nothing (exception is already handled in call() method itself).
+                                            }
+                                        }
                                     }
+                                });
+
+                                TyrusClientEngine clientEngine = new TyrusClientEngine(clientEndpoint, listener, copiedProperties);
+
+                                container.openClientSocket(url, config, copiedProperties, clientEngine);
+
+                                try {
+                                    final boolean countedDown = responseLatch.await(handshakeTimeout, TimeUnit.MILLISECONDS);
+                                    if (countedDown) {
+                                        final Throwable exception = listener.getThrowable();
+                                        if (exception != null) {
+                                            throw new DeploymentException("Handshake error.", exception);
+                                        }
+
+                                        final Session session = listener.getSession();
+                                        if (session.isOpen()) {
+                                            session.setMaxBinaryMessageBufferSize(maxBinaryMessageBufferSize);
+                                            session.setMaxTextMessageBufferSize(maxTextMessageBufferSize);
+                                            session.setMaxIdleTimeout(defaultMaxSessionIdleTimeout);
+                                        }
+                                        future.setResult(session);
+                                        return;
+                                    } else {
+                                        // timeout!
+                                        final ClientEngine.TimeoutHandler timeoutHandler = clientEngine.getTimeoutHandler();
+                                        if (timeoutHandler != null) {
+                                            timeoutHandler.handleTimeout();
+                                        }
+                                    }
+                                } catch (DeploymentException e) {
+                                    throw e;
+                                } catch (Exception e) {
+                                    throw new DeploymentException("Handshake response not received.", e);
+                                }
+
+                                throw new DeploymentException("Handshake response not received.");
+                            } catch (Exception e) {
+                                if (!reconnectHandler.onConnectFailure(e)) {
+                                    future.setFailure(e);
+                                    return;
                                 }
                             }
 
-                            return clientEngine;
-                        }
-                    };
-
-                    clientEngine = connector.call();
-
-                } catch (IOException e) {
-                    future.setFailure(e);
-                    return;
-                } catch (DeploymentException e) {
-                    future.setFailure(e);
-                    return;
-                } catch (Exception e) {
-                    future.setFailure(e);
-                    return;
-                }
-
-                if (!collector.isEmpty()) {
-                    future.setFailure(collector.composeComprehensiveException());
-                    return;
-                }
-
-                try {
-                    final boolean countedDown = responseLatch.await(handshakeTimeout, TimeUnit.MILLISECONDS);
-                    if (countedDown) {
-                        final Throwable exception = listener.getThrowable();
-                        if (exception != null) {
-                            future.setFailure(new DeploymentException("Handshake error.", exception));
-                            return;
-                        }
-
-                        final Session session = listener.getSession();
-                        if (session.isOpen()) {
-                            session.setMaxBinaryMessageBufferSize(maxBinaryMessageBufferSize);
-                            session.setMaxTextMessageBufferSize(maxTextMessageBufferSize);
-                            session.setMaxIdleTimeout(defaultMaxSessionIdleTimeout);
-                        }
-                        future.setResult(session);
-                        return;
-                    } else {
-                        // timeout!
-                        final ClientEngine.TimeoutHandler timeoutHandler = clientEngine.getTimeoutHandler();
-                        if (timeoutHandler != null) {
-                            timeoutHandler.handleTimeout();
-                        }
+                        } while (true);
                     }
-                } catch (Exception e) {
-                    future.setFailure(new DeploymentException("Handshake response not received.", e));
-                }
-                future.setFailure(new DeploymentException("Handshake response not received."));
+                };
+
+                connector.run();
             }
         });
 

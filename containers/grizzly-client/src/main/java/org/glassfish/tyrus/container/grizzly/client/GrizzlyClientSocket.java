@@ -220,7 +220,7 @@ public class GrizzlyClientSocket {
             GrizzlyFuture<Connection> connectionGrizzlyFuture;
 
             final TCPNIOTransport finalPrivateTransport = privateTransport;
-            final ClientEngine.TimeoutHandler timeoutHandler = new ClientEngine.TimeoutHandler() {
+            final ClientEngine.TimeoutHandler timeoutHandler = sharedTransport ? null : new ClientEngine.TimeoutHandler() {
                 @Override
                 public void handleTimeout() {
                     closeTransport(finalPrivateTransport);
