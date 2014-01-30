@@ -71,6 +71,8 @@ import javax.websocket.PongMessage;
 import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
 
+import org.glassfish.tyrus.core.coder.CoderWrapper;
+
 /**
  * Implementation of the {@link Session}.
  *

@@ -55,7 +55,7 @@ import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
 import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.core.CoderAdapter;
+import org.glassfish.tyrus.core.coder.CoderAdapter;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.standard_config.message.StringContainer;
 import org.glassfish.tyrus.test.tools.TestContainer;

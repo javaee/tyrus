@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -37,20 +37,29 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
+package org.glassfish.tyrus.core.coder;
 
-package org.glassfish.tyrus.core;
-
+import javax.websocket.DecodeException;
+import javax.websocket.Decoder;
 import javax.websocket.EncodeException;
 import javax.websocket.Encoder;
 
 /**
- * Fall-back encoder - encoders any object to string using {@link Object#toString()} method.
- *
- * @author Martin Matula (martin.matula at oracle.com)
+ * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-class ToStringEncoder extends CoderAdapter implements Encoder.Text<Object> {
+public class NoOpTextCoder extends CoderAdapter implements Decoder.Text<String>, Encoder.Text<String> {
     @Override
-    public String encode(Object object) throws EncodeException {
-        return object.toString();
+    public boolean willDecode(String s) {
+        return true;
+    }
+
+    @Override
+    public String decode(String s) throws DecodeException {
+        return s;
+    }
+
+    @Override
+    public String encode(String object) throws EncodeException {
+        return object;
     }
 }

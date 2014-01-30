@@ -78,6 +78,14 @@ import javax.websocket.WebSocketContainer;
 import javax.websocket.server.HandshakeRequest;
 import javax.websocket.server.ServerEndpointConfig;
 
+import org.glassfish.tyrus.core.coder.CoderWrapper;
+import org.glassfish.tyrus.core.coder.InputStreamDecoder;
+import org.glassfish.tyrus.core.coder.NoOpByteArrayCoder;
+import org.glassfish.tyrus.core.coder.NoOpByteBufferCoder;
+import org.glassfish.tyrus.core.coder.NoOpTextCoder;
+import org.glassfish.tyrus.core.coder.PrimitiveDecoders;
+import org.glassfish.tyrus.core.coder.ReaderDecoder;
+import org.glassfish.tyrus.core.coder.ToStringEncoder;
 import org.glassfish.tyrus.core.frame.BinaryFrame;
 import org.glassfish.tyrus.core.frame.TextFrame;
 import org.glassfish.tyrus.spi.UpgradeRequest;

@@ -60,7 +60,7 @@ import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 import javax.websocket.server.ServerEndpointConfig;
 
-import org.glassfish.tyrus.core.CoderAdapter;
+import org.glassfish.tyrus.core.coder.CoderAdapter;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.server.TyrusServerConfiguration;
 import org.glassfish.tyrus.test.tools.TestContainer;

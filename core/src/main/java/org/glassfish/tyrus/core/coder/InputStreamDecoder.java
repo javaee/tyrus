@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.core;
+package org.glassfish.tyrus.core.coder;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -51,7 +51,7 @@ import javax.websocket.Decoder;
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-class InputStreamDecoder extends CoderAdapter implements Decoder.Binary<InputStream> {
+public class InputStreamDecoder extends CoderAdapter implements Decoder.Binary<InputStream> {
     @Override
     public boolean willDecode(ByteBuffer bytes) {
         return true;

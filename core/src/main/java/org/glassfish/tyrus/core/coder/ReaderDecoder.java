@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -37,33 +37,28 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.core;
+package org.glassfish.tyrus.core.coder;
 
-import java.nio.ByteBuffer;
+import java.io.Reader;
+import java.io.StringReader;
 
 import javax.websocket.DecodeException;
 import javax.websocket.Decoder;
-import javax.websocket.EncodeException;
-import javax.websocket.Encoder;
 
 /**
- * {@link Encoder} and {@link Decoder} implementation for byte array.
+ * Built in {@link Decoder} for {@link Reader}.
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-class NoOpByteArrayCoder extends CoderAdapter implements Decoder.Binary<byte[]>, Encoder.Binary<byte[]> {
-    @Override
-    public ByteBuffer encode(byte[] object) throws EncodeException {
-        return ByteBuffer.wrap(object);
-    }
+public class ReaderDecoder extends CoderAdapter implements Decoder.Text<Reader> {
 
     @Override
-    public boolean willDecode(ByteBuffer bytes) {
+    public boolean willDecode(String s) {
         return true;
     }
 
     @Override
-    public byte[] decode(ByteBuffer bytes) throws DecodeException {
-        return bytes.array();
+    public Reader decode(String s) throws DecodeException {
+        return new StringReader(s);
     }
 }

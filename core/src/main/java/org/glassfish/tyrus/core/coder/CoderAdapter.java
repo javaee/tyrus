@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -37,28 +37,30 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.core;
+package org.glassfish.tyrus.core.coder;
 
-import java.io.Reader;
-import java.io.StringReader;
-
-import javax.websocket.DecodeException;
-import javax.websocket.Decoder;
+import javax.websocket.EndpointConfig;
 
 /**
- * Built in {@link Decoder} for {@link Reader}.
+ * Adapter for {@link javax.websocket.Encoder} and {@link javax.websocket.Decoder} which implements lifecycle
+ * methods.
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-class ReaderDecoder extends CoderAdapter implements Decoder.Text<Reader> {
+public abstract class CoderAdapter {
 
-    @Override
-    public boolean willDecode(String s) {
-        return true;
+    /**
+     * This method does nothing.
+     *
+     * @param config the endpoint configuration object when being brought into
+     *               service
+     */
+    public void init(EndpointConfig config) {
     }
 
-    @Override
-    public Reader decode(String s) throws DecodeException {
-        return new StringReader(s);
+    /**
+     * This method does nothing.
+     */
+    public void destroy() {
     }
 }

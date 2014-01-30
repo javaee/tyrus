@@ -37,27 +37,20 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.test.standard_config.decoder;
 
-import javax.websocket.DecodeException;
-import javax.websocket.Decoder;
+package org.glassfish.tyrus.core.coder;
 
-import org.glassfish.tyrus.core.coder.CoderAdapter;
-import org.glassfish.tyrus.test.standard_config.message.TestMessage;
+import javax.websocket.EncodeException;
+import javax.websocket.Encoder;
 
 /**
- * Decoder for the TestMessage
+ * Fall-back encoder - encoders any object to string using {@link Object#toString()} method.
  *
- * @author Stepan Kopriva (stepan.kopriva at oracle.com)
+ * @author Martin Matula (martin.matula at oracle.com)
  */
-public class TestDecoder extends CoderAdapter implements Decoder.Text<TestMessage> {
+public class ToStringEncoder extends CoderAdapter implements Encoder.Text<Object> {
     @Override
-    public TestMessage decode(String s) throws DecodeException {
-        return new TestMessage(s.substring(TestMessage.PREFIX.length(), s.length()));
-    }
-
-    @Override
-    public boolean willDecode(String s) {
-        return s.startsWith(TestMessage.PREFIX);
+    public String encode(Object object) throws EncodeException {
+        return object.toString();
     }
 }

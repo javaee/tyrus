@@ -73,6 +73,8 @@ import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 import javax.websocket.server.ServerEndpointConfig;
 
+import org.glassfish.tyrus.core.coder.PrimitiveDecoders;
+
 /**
  * AnnotatedEndpoint of a class annotated using the ServerEndpoint annotations.
  *

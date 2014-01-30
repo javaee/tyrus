@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -37,27 +37,33 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.test.standard_config.decoder;
+package org.glassfish.tyrus.core.coder;
+
+import java.nio.ByteBuffer;
 
 import javax.websocket.DecodeException;
 import javax.websocket.Decoder;
-
-import org.glassfish.tyrus.core.coder.CoderAdapter;
-import org.glassfish.tyrus.test.standard_config.message.TestMessage;
+import javax.websocket.EncodeException;
+import javax.websocket.Encoder;
 
 /**
- * Decoder for the TestMessage
+ * {@link Encoder} and {@link Decoder} implementation for byte array.
  *
- * @author Stepan Kopriva (stepan.kopriva at oracle.com)
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class TestDecoder extends CoderAdapter implements Decoder.Text<TestMessage> {
+public class NoOpByteArrayCoder extends CoderAdapter implements Decoder.Binary<byte[]>, Encoder.Binary<byte[]> {
     @Override
-    public TestMessage decode(String s) throws DecodeException {
-        return new TestMessage(s.substring(TestMessage.PREFIX.length(), s.length()));
+    public ByteBuffer encode(byte[] object) throws EncodeException {
+        return ByteBuffer.wrap(object);
     }
 
     @Override
-    public boolean willDecode(String s) {
-        return s.startsWith(TestMessage.PREFIX);
+    public boolean willDecode(ByteBuffer bytes) {
+        return true;
+    }
+
+    @Override
+    public byte[] decode(ByteBuffer bytes) throws DecodeException {
+        return bytes.array();
     }
 }
