@@ -69,6 +69,12 @@ import org.glassfish.tyrus.spi.Writer;
  */
 public class InMemoryClientContainer implements ClientContainer {
 
+    /**
+     * Property used to define server config used for in-memory container.
+     *
+     * Value has to be instance of {@link javax.websocket.server.ServerApplicationConfig} and is provided as user
+     * parameter in {@link javax.websocket.ClientEndpointConfig}.
+     */
     public static final String SERVER_CONFIG = "org.glassfish.tyrus.container.inmemory.ServerConfig";
 
     @Override

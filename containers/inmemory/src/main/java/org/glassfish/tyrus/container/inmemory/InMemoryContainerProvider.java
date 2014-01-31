@@ -45,9 +45,12 @@ import javax.websocket.WebSocketContainer;
 import org.glassfish.tyrus.client.ClientManager;
 
 /**
+ * In-memory container provider.
+ *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 public class InMemoryContainerProvider extends ContainerProvider {
+
     @Override
     protected WebSocketContainer getContainer() {
         return ClientManager.createClient(InMemoryClientContainer.class.getName());
