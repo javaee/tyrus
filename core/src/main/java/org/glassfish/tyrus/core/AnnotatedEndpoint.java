@@ -76,7 +76,7 @@ import javax.websocket.server.ServerEndpointConfig;
 import org.glassfish.tyrus.core.coder.PrimitiveDecoders;
 
 /**
- * AnnotatedEndpoint of a class annotated using the ServerEndpoint annotations.
+ * {@link Endpoint} descendant which represents deployed annotated endpoint.
  *
  * @author Martin Matula (martin.matula at oracle.com)
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)

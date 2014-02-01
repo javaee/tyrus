@@ -445,4 +445,52 @@ public class EchoEndpoint extends Endpoint {
                 </para>
         </section>
     </section>
+
+    <section>
+        <title>Client reconnect</title>
+
+        <para>If you need semi-persistent client connection, you can always implement some reconnect logic by yourself,
+        but Tyrus Client offers useful feature which should be much easier to use. See short sample code:</para>
+
+        <programlisting language="java" linenumbering="numbered">ClientManager client = ClientManager.createClient();
+ClientManager.ReconnectHandler reconnectHandler = new ClientManager.ReconnectHandler() {
+
+  private final AtomicInteger counter = new AtomicInteger(0);
+
+  @Override
+  public boolean onDisconnect(CloseReason closeReason) {
+    final int i = counter.incrementAndGet();
+    if (i &lt;= 3) {
+      System.out.println("### Reconnecting... (reconnect count: " + i + ")");
+      return true;
+    } else {
+      return false;
+    }
+  }
+
+  @Override
+  public boolean onConnectFailure(Exception exception) {
+    final int i = counter.incrementAndGet();
+    if (i &lt;= 3) {
+      System.out.println("### Reconnecting... (reconnect count: " + i + ") " + exception.getMessage());
+
+      // Thread.sleep(...) or something other "sleep-like" expression can be put here - you might want
+      // to do it here to avoid potential DDoS when you don't limit number of reconnects.
+      return true;
+    } else {
+      return false;
+    }
+  }
+};
+
+client.getProperties().put(ClientManager.RECONNECT_HANDLER, reconnectHandler);
+
+client.connectToServer(...)</programlisting>
+
+        <para>As you can see, ReconnectHandler contains two methods, onDisconnect and onConnectFailure. First will be executed
+        whenever @OnClose annotated method (or Endpoint.onClose(..)) is executed on client side - this should happen when
+        established connection is lost for any reason. You can find the reason in methods parameter. Other one, called
+        onConnectFailure is invoked when client fails to connect to remote endpoint, for example due to temporary network
+        issue or current high server load.</para>
+    </section>
 </chapter>
