@@ -54,8 +54,10 @@ import javax.websocket.Extension;
 import javax.websocket.SendHandler;
 import javax.websocket.SendResult;
 
+import org.glassfish.tyrus.core.extension.ExtendedExtension;
 import org.glassfish.tyrus.core.frame.BinaryFrame;
 import org.glassfish.tyrus.core.frame.CloseFrame;
+import org.glassfish.tyrus.core.frame.Frame;
 import org.glassfish.tyrus.core.frame.TextFrame;
 import org.glassfish.tyrus.core.frame.TyrusFrame;
 import org.glassfish.tyrus.spi.CompletionHandler;

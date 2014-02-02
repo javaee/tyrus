@@ -51,8 +51,7 @@ import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
 
-import org.glassfish.tyrus.core.ExtendedExtension;
-import org.glassfish.tyrus.core.Frame;
+import org.glassfish.tyrus.core.frame.Frame;
 
 /**
  * Compression Extensions for WebSocket

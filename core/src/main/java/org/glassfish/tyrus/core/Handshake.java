@@ -49,6 +49,7 @@ import java.util.List;
 
 import javax.websocket.Extension;
 
+import org.glassfish.tyrus.core.extension.ExtendedExtension;
 import org.glassfish.tyrus.spi.UpgradeRequest;
 import org.glassfish.tyrus.spi.UpgradeResponse;
 

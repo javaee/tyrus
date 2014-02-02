@@ -42,6 +42,8 @@ package org.glassfish.tyrus.core;
 
 import java.util.Arrays;
 
+import org.glassfish.tyrus.core.frame.Frame;
+
 import org.junit.Test;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;

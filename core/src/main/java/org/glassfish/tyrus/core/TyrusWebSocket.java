@@ -53,6 +53,7 @@ import javax.websocket.SendHandler;
 
 import org.glassfish.tyrus.core.frame.BinaryFrame;
 import org.glassfish.tyrus.core.frame.CloseFrame;
+import org.glassfish.tyrus.core.frame.Frame;
 import org.glassfish.tyrus.core.frame.PingFrame;
 import org.glassfish.tyrus.core.frame.PongFrame;
 import org.glassfish.tyrus.core.frame.TextFrame;

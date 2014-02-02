@@ -59,7 +59,9 @@ import javax.websocket.Extension;
 import javax.websocket.WebSocketContainer;
 import javax.websocket.server.ServerEndpointConfig;
 
+import org.glassfish.tyrus.core.extension.ExtendedExtension;
 import org.glassfish.tyrus.core.frame.CloseFrame;
+import org.glassfish.tyrus.core.frame.Frame;
 import org.glassfish.tyrus.core.uri.Match;
 import org.glassfish.tyrus.spi.Connection;
 import org.glassfish.tyrus.spi.ReadHandler;

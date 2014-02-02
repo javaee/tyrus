@@ -43,7 +43,6 @@ package org.glassfish.tyrus.core.frame;
 import java.nio.ByteBuffer;
 import java.util.Locale;
 
-import org.glassfish.tyrus.core.Frame;
 import org.glassfish.tyrus.core.ProtocolError;
 import org.glassfish.tyrus.core.TyrusWebSocket;
 

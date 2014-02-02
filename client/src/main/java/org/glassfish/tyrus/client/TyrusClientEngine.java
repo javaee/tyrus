@@ -56,8 +56,8 @@ import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
 import javax.websocket.server.HandshakeRequest;
 
-import org.glassfish.tyrus.core.ExtendedExtension;
-import org.glassfish.tyrus.core.Frame;
+import org.glassfish.tyrus.core.extension.ExtendedExtension;
+import org.glassfish.tyrus.core.frame.Frame;
 import org.glassfish.tyrus.core.FramingException;
 import org.glassfish.tyrus.core.Handshake;
 import org.glassfish.tyrus.core.ProtocolHandler;

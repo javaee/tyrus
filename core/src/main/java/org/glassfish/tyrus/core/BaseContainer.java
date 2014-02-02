@@ -93,7 +93,7 @@ public abstract class BaseContainer extends ExecutorServiceProvider implements W
             es = (ExecutorService) lookupMethod.invoke(o, "java:comp/DefaultManagedExecutorService");
         } catch (Exception e) {
             // ignore
-            if(LOGGER.isLoggable(Level.FINE)) {
+            if (LOGGER.isLoggable(Level.FINE)) {
                 LOGGER.log(Level.FINE, e.getMessage(), e);
             }
         } catch (LinkageError error) {

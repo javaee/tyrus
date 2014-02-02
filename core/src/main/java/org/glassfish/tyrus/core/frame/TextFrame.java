@@ -46,7 +46,6 @@ import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
 import java.nio.charset.CoderResult;
 
-import org.glassfish.tyrus.core.Frame;
 import org.glassfish.tyrus.core.StrictUtf8;
 import org.glassfish.tyrus.core.TyrusWebSocket;
 import org.glassfish.tyrus.core.Utf8DecodingError;

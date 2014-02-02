@@ -40,7 +40,6 @@
 
 package org.glassfish.tyrus.core.frame;
 
-import org.glassfish.tyrus.core.Frame;
 import org.glassfish.tyrus.core.TyrusWebSocket;
 
 /**

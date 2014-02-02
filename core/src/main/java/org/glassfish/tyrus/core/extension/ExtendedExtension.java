@@ -38,12 +38,14 @@
  * holder.
  */
 
-package org.glassfish.tyrus.core;
+package org.glassfish.tyrus.core.extension;
 
 import java.util.List;
 import java.util.Map;
 
 import javax.websocket.Extension;
+
+import org.glassfish.tyrus.core.frame.Frame;
 
 /**
  * WebSocket {@link Extension}.
@@ -133,7 +135,7 @@ public interface ExtendedExtension extends Extension {
     void onHandshakeResponse(ExtensionContext context, List<Parameter> responseParameters);
 
     /**
-     * Context lifecycle method. {@link org.glassfish.tyrus.core.ExtendedExtension.ExtensionContext} won't be used
+     * Context lifecycle method. {@link ExtendedExtension.ExtensionContext} won't be used
      * after this method is called.
      *
      * @param context extension context to be destroyed.
@@ -141,12 +143,12 @@ public interface ExtendedExtension extends Extension {
     void destroy(ExtensionContext context);
 
     /**
-     * Context present as a parameter in all {@link org.glassfish.tyrus.core.ExtendedExtension} methods. Maintains per
+     * Context present as a parameter in all {@link ExtendedExtension} methods. Maintains per
      * connection state of current extension.
      * <p/>
-     * Context is created right before {@link #onExtensionNegotiation(org.glassfish.tyrus.core.ExtendedExtension.ExtensionContext, java.util.List)} method
-     * call (server-side) or {@link #onHandshakeResponse(org.glassfish.tyrus.core.ExtendedExtension.ExtensionContext, java.util.List)} method call (client-side).
-     * Last chance to access it is within {@link #destroy(org.glassfish.tyrus.core.ExtendedExtension.ExtensionContext)}
+     * Context is created right before {@link #onExtensionNegotiation(ExtendedExtension.ExtensionContext, java.util.List)} method
+     * call (server-side) or {@link #onHandshakeResponse(ExtendedExtension.ExtensionContext, java.util.List)} method call (client-side).
+     * Last chance to access it is within {@link #destroy(ExtendedExtension.ExtensionContext)}
      * method invocation.
      */
     interface ExtensionContext {
@@ -154,7 +156,7 @@ public interface ExtendedExtension extends Extension {
         /**
          * Mutable, not synchronised property map.
          * <p/>
-         * Synchronisation is not necessary if you are accessing this map only during {@link org.glassfish.tyrus.core.ExtendedExtension}
+         * Synchronisation is not necessary if you are accessing this map only during {@link ExtendedExtension}
          * methods invocation.
          *
          * @return property map.

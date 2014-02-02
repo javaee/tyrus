@@ -48,7 +48,6 @@ import java.nio.charset.CoderResult;
 
 import javax.websocket.CloseReason;
 
-import org.glassfish.tyrus.core.Frame;
 import org.glassfish.tyrus.core.ProtocolError;
 import org.glassfish.tyrus.core.StrictUtf8;
 import org.glassfish.tyrus.core.TyrusWebSocket;

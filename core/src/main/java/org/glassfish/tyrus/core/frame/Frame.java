@@ -38,7 +38,7 @@
  * holder.
  */
 
-package org.glassfish.tyrus.core;
+package org.glassfish.tyrus.core.frame;
 
 import java.security.SecureRandom;
 
@@ -179,7 +179,7 @@ public class Frame {
      * Get payload data.
      * <p/>
      * Changes done to returned array won't be propagated to current {@link Frame} instance. If you need to modify payload,
-     * you have to create new instance, see {@link org.glassfish.tyrus.core.Frame.Builder#Frame(Frame)}. Length of returned
+     * you have to create new instance, see {@link Frame.Builder#Frame(Frame)}. Length of returned
      * array will be always same as {@link #getPayloadLength()}.
      *
      * @return payload data.
@@ -215,7 +215,7 @@ public class Frame {
     }
 
     /**
-     * Create new {@link org.glassfish.tyrus.core.Frame.Builder}.
+     * Create new {@link Frame.Builder}.
      *
      * @return new builder instance.
      */
@@ -224,7 +224,7 @@ public class Frame {
     }
 
     /**
-     * Create new {@link org.glassfish.tyrus.core.Frame.Builder} based on provided frame.
+     * Create new {@link Frame.Builder} based on provided frame.
      *
      * @param frame frame used as a base for building new frame.
      * @return new builder instance.
@@ -286,7 +286,7 @@ public class Frame {
          * Set FIN flag.
          *
          * @param fin value to be set as FIN.
-         * @return updated {@link org.glassfish.tyrus.core.Frame.Builder} instance.
+         * @return updated {@link Frame.Builder} instance.
          */
         public Builder fin(boolean fin) {
             this.fin = fin;
@@ -297,7 +297,7 @@ public class Frame {
          * Set RSV1 flag.
          *
          * @param rsv1 value to be set as RSV1.
-         * @return updated {@link org.glassfish.tyrus.core.Frame.Builder} instance.
+         * @return updated {@link Frame.Builder} instance.
          */
         public Builder rsv1(boolean rsv1) {
             this.rsv1 = rsv1;
@@ -308,7 +308,7 @@ public class Frame {
          * Set RSV2 flag.
          *
          * @param rsv2 value to be set as RSV2.
-         * @return updated {@link org.glassfish.tyrus.core.Frame.Builder} instance.
+         * @return updated {@link Frame.Builder} instance.
          */
         public Builder rsv2(boolean rsv2) {
             this.rsv2 = rsv2;
@@ -319,7 +319,7 @@ public class Frame {
          * Set RSV3 flag.
          *
          * @param rsv3 value to be set as RSV3.
-         * @return updated {@link org.glassfish.tyrus.core.Frame.Builder} instance.
+         * @return updated {@link Frame.Builder} instance.
          */
         public Builder rsv3(boolean rsv3) {
             this.rsv3 = rsv3;
@@ -330,7 +330,7 @@ public class Frame {
          * Currently not used.
          *
          * @param mask not used.
-         * @return updated {@link org.glassfish.tyrus.core.Frame.Builder} instance.
+         * @return updated {@link Frame.Builder} instance.
          */
         public Builder mask(boolean mask) {
             this.mask = mask;
@@ -341,7 +341,7 @@ public class Frame {
          * Set opcode.
          *
          * @param opcode opcode to be set. (4 bits).
-         * @return updated {@link org.glassfish.tyrus.core.Frame.Builder} instance.
+         * @return updated {@link Frame.Builder} instance.
          */
         public Builder opcode(byte opcode) {
             this.opcode = (byte) (opcode & 0x0f);
@@ -355,7 +355,7 @@ public class Frame {
          * method can limit the data used for this frame by setting smaller value than payloadData.length.
          *
          * @param payloadLength payload length. Must not be greater than payloadData.length.
-         * @return updated {@link org.glassfish.tyrus.core.Frame.Builder} instance.
+         * @return updated {@link Frame.Builder} instance.
          * @see #payloadData(byte[])
          */
         public Builder payloadLength(long payloadLength) {
@@ -367,7 +367,7 @@ public class Frame {
          * Set masking key. Default value is {@code new SecureRandom().nextInt();}.
          *
          * @param maskingKey masking key.
-         * @return updated {@link org.glassfish.tyrus.core.Frame.Builder} instance.
+         * @return updated {@link Frame.Builder} instance.
          */
         public Builder maskingKey(int maskingKey) {
             this.maskingKey = maskingKey;
@@ -378,7 +378,7 @@ public class Frame {
          * Set payload data. {@link #payloadLength(long)} is also updated with payloadData.length.
          *
          * @param payloadData data to be set.
-         * @return updated {@link org.glassfish.tyrus.core.Frame.Builder} instance.
+         * @return updated {@link Frame.Builder} instance.
          * @see #payloadLength(long)
          */
         public Builder payloadData(byte[] payloadData) {

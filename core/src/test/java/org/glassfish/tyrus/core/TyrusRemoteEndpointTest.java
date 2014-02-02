@@ -70,6 +70,8 @@ import javax.websocket.SendResult;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
+import org.glassfish.tyrus.core.frame.Frame;
+
 import org.junit.Assert;
 import org.junit.Test;
 

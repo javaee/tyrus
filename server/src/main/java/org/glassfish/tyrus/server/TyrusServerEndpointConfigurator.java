@@ -48,8 +48,8 @@ import javax.websocket.server.HandshakeRequest;
 import javax.websocket.server.ServerEndpointConfig;
 
 import org.glassfish.tyrus.core.ComponentProviderService;
-import org.glassfish.tyrus.core.ExtendedExtension;
-import org.glassfish.tyrus.core.Frame;
+import org.glassfish.tyrus.core.extension.ExtendedExtension;
+import org.glassfish.tyrus.core.frame.Frame;
 
 /**
  * Tyrus implementation of {@link ServerEndpointConfig.Configurator}.

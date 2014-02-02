@@ -87,6 +87,7 @@ import org.glassfish.tyrus.core.coder.PrimitiveDecoders;
 import org.glassfish.tyrus.core.coder.ReaderDecoder;
 import org.glassfish.tyrus.core.coder.ToStringEncoder;
 import org.glassfish.tyrus.core.frame.BinaryFrame;
+import org.glassfish.tyrus.core.frame.Frame;
 import org.glassfish.tyrus.core.frame.TextFrame;
 import org.glassfish.tyrus.spi.UpgradeRequest;
 import org.glassfish.tyrus.spi.UpgradeResponse;

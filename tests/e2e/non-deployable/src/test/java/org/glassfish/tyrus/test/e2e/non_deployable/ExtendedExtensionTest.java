@@ -65,8 +65,8 @@ import javax.websocket.server.ServerApplicationConfig;
 import javax.websocket.server.ServerEndpointConfig;
 
 import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.core.ExtendedExtension;
-import org.glassfish.tyrus.core.Frame;
+import org.glassfish.tyrus.core.extension.ExtendedExtension;
+import org.glassfish.tyrus.core.frame.Frame;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.tools.TestContainer;
 
