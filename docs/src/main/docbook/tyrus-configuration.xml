@@ -455,13 +455,13 @@ public class EchoEndpoint extends Endpoint {
         <programlisting language="java" linenumbering="numbered">ClientManager client = ClientManager.createClient();
 ClientManager.ReconnectHandler reconnectHandler = new ClientManager.ReconnectHandler() {
 
-  private final AtomicInteger counter = new AtomicInteger(0);
+  private int counter = 0;
 
   @Override
   public boolean onDisconnect(CloseReason closeReason) {
-    final int i = counter.incrementAndGet();
-    if (i &lt;= 3) {
-      System.out.println("### Reconnecting... (reconnect count: " + i + ")");
+    counter++;
+    if (counter &lt;= 3) {
+      System.out.println("### Reconnecting... (reconnect count: " + counter + ")");
       return true;
     } else {
       return false;
@@ -470,9 +470,9 @@ ClientManager.ReconnectHandler reconnectHandler = new ClientManager.ReconnectHan
 
   @Override
   public boolean onConnectFailure(Exception exception) {
-    final int i = counter.incrementAndGet();
-    if (i &lt;= 3) {
-      System.out.println("### Reconnecting... (reconnect count: " + i + ") " + exception.getMessage());
+    counter++;
+    if (counter &lt;= 3) {
+      System.out.println("### Reconnecting... (reconnect count: " + counter + ") " + exception.getMessage());
 
       // Thread.sleep(...) or something other "sleep-like" expression can be put here - you might want
       // to do it here to avoid potential DDoS when you don't limit number of reconnects.
