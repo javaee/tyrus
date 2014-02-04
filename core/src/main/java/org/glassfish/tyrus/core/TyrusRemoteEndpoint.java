@@ -90,17 +90,10 @@ public abstract class TyrusRemoteEndpoint implements javax.websocket.RemoteEndpo
             checkNotNull(text, "Argument 'text' cannot be null.");
             final Future<?> future = webSocket.sendText(text);
             try {
-                future.get();
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            } catch (ExecutionException e) {
-                if (e.getCause() instanceof IOException) {
-                    throw (IOException) e.getCause();
-                } else {
-                    throw new IOException(e.getCause());
-                }
+                processFuture(future);
+            } finally {
+                session.restartIdleTimeoutExecutor();
             }
-            session.restartIdleTimeoutExecutor();
         }
 
         @Override
@@ -108,17 +101,10 @@ public abstract class TyrusRemoteEndpoint implements javax.websocket.RemoteEndpo
             checkNotNull(data, "Argument 'data' cannot be null.");
             final Future<?> future = webSocket.sendBinary(Utils.getRemainingArray(data));
             try {
-                future.get();
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            } catch (ExecutionException e) {
-                if (e.getCause() instanceof IOException) {
-                    throw (IOException) e.getCause();
-                } else {
-                    throw new IOException(e.getCause());
-                }
+                processFuture(future);
+            } finally {
+                session.restartIdleTimeoutExecutor();
             }
-            session.restartIdleTimeoutExecutor();
         }
 
         @Override
@@ -126,23 +112,33 @@ public abstract class TyrusRemoteEndpoint implements javax.websocket.RemoteEndpo
             checkNotNull(partialMessage, "Argument 'partialMessage' cannot be null.");
             final Future<?> future = webSocket.sendText(partialMessage, isLast);
             try {
-                future.get();
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            } catch (ExecutionException e) {
-                if (e.getCause() instanceof IOException) {
-                    throw (IOException) e.getCause();
-                } else {
-                    throw new IOException(e.getCause());
-                }
+                processFuture(future);
+            } finally {
+                session.restartIdleTimeoutExecutor();
             }
-            session.restartIdleTimeoutExecutor();
         }
 
         @Override
         public void sendBinary(ByteBuffer partialByte, boolean isLast) throws IOException {
             checkNotNull(partialByte, "Argument 'partialByte' cannot be null.");
             final Future<?> future = webSocket.sendBinary(Utils.getRemainingArray(partialByte), isLast);
+            try {
+                processFuture(future);
+            } finally {
+                session.restartIdleTimeoutExecutor();
+            }
+        }
+
+        /**
+         * Wait for the future to be completed.
+         * <p/>
+         * {@link java.util.concurrent.Future#get()} will be invoked and exception processed (if thrown).
+         *
+         * @param future to be processed.
+         * @throws IOException when {@link java.io.IOException} is the cause of thrown {@link java.util.concurrent.ExecutionException}
+         *                     it will be extracted and rethrown. Otherwise whole ExecutionException will be rethrown wrapped in {@link java.io.IOException}.
+         */
+        private void processFuture(Future<?> future) throws IOException {
             try {
                 future.get();
             } catch (InterruptedException e) {
@@ -154,7 +150,6 @@ public abstract class TyrusRemoteEndpoint implements javax.websocket.RemoteEndpo
                     throw new IOException(e.getCause());
                 }
             }
-            session.restartIdleTimeoutExecutor();
         }
 
         @Override
