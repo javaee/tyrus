@@ -59,6 +59,7 @@ import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
 import org.glassfish.tyrus.client.ClientManager;
+import org.glassfish.tyrus.core.Utils;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.tools.TestContainer;
 
@@ -944,7 +945,7 @@ public class MessageHandlersTest extends TestContainer {
                     session.addMessageHandler(new MessageHandler.Whole<byte[]>() {
                         @Override
                         public void onMessage(byte[] message) {
-                            System.out.println("Client received message: " + new String(message));
+                            System.out.println("Client received message: " + Utils.toString(message));
                             assertArrayEquals(result, message);
                             messageLatch.countDown();
 
