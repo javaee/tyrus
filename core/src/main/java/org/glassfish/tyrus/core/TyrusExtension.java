@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -39,6 +39,7 @@
  */
 package org.glassfish.tyrus.core;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -51,7 +52,7 @@ import javax.websocket.Extension;
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class TyrusExtension implements Extension {
+public class TyrusExtension implements Extension, Serializable {
 
     private static final Logger LOGGER = Logger.getLogger(TyrusExtension.class.getName());
     private final String name;

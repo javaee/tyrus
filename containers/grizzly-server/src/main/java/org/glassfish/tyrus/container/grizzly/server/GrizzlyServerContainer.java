@@ -50,6 +50,7 @@ import javax.websocket.server.ServerEndpointConfig;
 
 import org.glassfish.tyrus.core.TyrusWebSocketEngine;
 import org.glassfish.tyrus.core.Utils;
+import org.glassfish.tyrus.core.cluster.ClusterContext;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.server.TyrusServerContainer;
 import org.glassfish.tyrus.spi.ServerContainer;
@@ -95,18 +96,25 @@ public class GrizzlyServerContainer extends ServerContainerFactory {
             localProperties = new HashMap<String, Object>(properties);
         }
 
-        final Object o = localProperties.get(TyrusWebSocketEngine.INCOMING_BUFFER_SIZE);
-
+        Object o = localProperties.get(TyrusWebSocketEngine.INCOMING_BUFFER_SIZE);
         final Integer incomingBufferSize;
-        if (o instanceof Integer) {
+        if (o != null && o instanceof Integer) {
             incomingBufferSize = (Integer) o;
         } else {
             incomingBufferSize = null;
         }
 
+        o = localProperties.get(ClusterContext.CLUSTER_CONTEXT);
+        final ClusterContext clusterContext;
+        if (o != null && o instanceof ClusterContext) {
+            clusterContext = (ClusterContext) o;
+        } else {
+            clusterContext = null;
+        }
+
         return new TyrusServerContainer((Set<Class<?>>) null) {
 
-            private final WebSocketEngine engine = new TyrusWebSocketEngine(this, incomingBufferSize);
+            private final WebSocketEngine engine = new TyrusWebSocketEngine(this, incomingBufferSize, clusterContext);
 
             private HttpServer server;
             private String contextPath;

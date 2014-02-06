@@ -462,7 +462,6 @@ public abstract class TyrusRemoteEndpoint implements javax.websocket.RemoteEndpo
         // TODO: Implement.
     }
 
-
     public void close(CloseReason cr) {
         Logger.getLogger(TyrusRemoteEndpoint.class.getName()).fine("Close public void close(CloseReason cr): " + cr);
         webSocket.close(cr);

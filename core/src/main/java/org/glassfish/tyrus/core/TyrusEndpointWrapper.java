@@ -78,6 +78,9 @@ import javax.websocket.WebSocketContainer;
 import javax.websocket.server.HandshakeRequest;
 import javax.websocket.server.ServerEndpointConfig;
 
+import org.glassfish.tyrus.core.cluster.ClusterContext;
+import org.glassfish.tyrus.core.cluster.ClusterSession;
+import org.glassfish.tyrus.core.cluster.SessionListener;
 import org.glassfish.tyrus.core.coder.CoderWrapper;
 import org.glassfish.tyrus.core.coder.InputStreamDecoder;
 import org.glassfish.tyrus.core.coder.NoOpByteArrayCoder;
@@ -115,6 +118,8 @@ public class TyrusEndpointWrapper {
     private final Endpoint endpoint;
     private final Map<TyrusWebSocket, TyrusSession> webSocketToSession =
             new ConcurrentHashMap<TyrusWebSocket, TyrusSession>();
+    private final Map<String, ClusterSession> clusteredSessions =
+            new ConcurrentHashMap<String, ClusterSession>();
     private final ComponentProviderService componentProvider;
     private final ServerEndpointConfig.Configurator configurator;
     private final WebSocketContainer container;
@@ -122,6 +127,9 @@ public class TyrusEndpointWrapper {
     private final Method onOpen;
     private final Method onClose;
     private final Method onError;
+
+    private final ClusterContext clusterContext;
+    private final Session dummySession;
 
     /**
      * Create {@link TyrusEndpointWrapper} for class that extends {@link Endpoint}.
@@ -134,7 +142,7 @@ public class TyrusEndpointWrapper {
     public TyrusEndpointWrapper(Class<? extends Endpoint> endpointClass, EndpointConfig configuration,
                                 ComponentProviderService componentProvider, WebSocketContainer container,
                                 String contextPath, ServerEndpointConfig.Configurator configurator) throws DeploymentException {
-        this(null, endpointClass, configuration, componentProvider, container, contextPath, configurator, null);
+        this(null, endpointClass, configuration, componentProvider, container, contextPath, configurator, null, null);
     }
 
     /**
@@ -144,22 +152,25 @@ public class TyrusEndpointWrapper {
      * @param configuration     endpoint configuration.
      * @param componentProvider component provider.
      * @param container         container where the wrapper is running.
+     * @param clusterContext
      */
     public TyrusEndpointWrapper(Endpoint endpoint, EndpointConfig configuration, ComponentProviderService componentProvider, WebSocketContainer container,
-                                String contextPath, ServerEndpointConfig.Configurator configurator, OnCloseListener onCloseListener) throws DeploymentException {
-        this(endpoint, null, configuration, componentProvider, container, contextPath, configurator, onCloseListener);
+                                String contextPath, ServerEndpointConfig.Configurator configurator, OnCloseListener onCloseListener, ClusterContext clusterContext) throws DeploymentException {
+        this(endpoint, null, configuration, componentProvider, container, contextPath, configurator, onCloseListener, clusterContext);
     }
 
     private TyrusEndpointWrapper(Endpoint endpoint, Class<? extends Endpoint> endpointClass, EndpointConfig configuration,
                                  ComponentProviderService componentProvider, WebSocketContainer container,
                                  String contextPath, final ServerEndpointConfig.Configurator configurator,
-                                 OnCloseListener onCloseListener) throws DeploymentException {
+                                 OnCloseListener onCloseListener, final ClusterContext clusterContext) throws DeploymentException {
         this.endpointClass = endpointClass;
         this.endpoint = endpoint;
         this.container = container;
         this.contextPath = contextPath;
         this.configurator = configurator;
         this.onCloseListener = onCloseListener;
+        this.clusterContext = clusterContext;
+
         this.componentProvider = configurator == null ? componentProvider : new ComponentProviderService(componentProvider) {
             @Override
             public <T> T getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
@@ -249,6 +260,32 @@ public class TyrusEndpointWrapper {
         encoders.add(new CoderWrapper<Encoder>(NoOpByteBufferCoder.class, ByteBuffer.class));
         encoders.add(new CoderWrapper<Encoder>(NoOpByteArrayCoder.class, byte[].class));
         encoders.add(new CoderWrapper<Encoder>(ToStringEncoder.class, Object.class));
+
+        // clustered mode
+        if (clusterContext != null) {
+            dummySession = new ClusterSession(null, null, null, null, null);
+
+            clusterContext.registerSessionListener(getEndpointPath(), new SessionListener() {
+                @Override
+                public void onSessionOpened(String sessionId) {
+                    System.out.println("### registering remote session " + sessionId);
+                    final Map<ClusterSession.DistributedMapKey, Object> distributedSessionProperties = clusterContext.getDistributedSessionProperties(sessionId);
+                    clusteredSessions.put(sessionId, new ClusterSession(sessionId, clusterContext, distributedSessionProperties, TyrusEndpointWrapper.this, dummySession));
+                }
+
+                @Override
+                public void onSessionClosed(String sessionId) {
+                    clusteredSessions.remove(sessionId);
+                }
+            });
+
+            for (String sessionId : clusterContext.getRemoteSessionIds(getEndpointPath())) {
+                final Map<ClusterSession.DistributedMapKey, Object> distributedSessionProperties = clusterContext.getDistributedSessionProperties(sessionId);
+                clusteredSessions.put(sessionId, new ClusterSession(sessionId, clusterContext, distributedSessionProperties, this, dummySession));
+            }
+        } else {
+            dummySession = null;
+        }
     }
 
     static List<Class<? extends Decoder>> getDefaultDecoders() {
@@ -359,7 +396,7 @@ public class TyrusEndpointWrapper {
         return result;
     }
 
-    Object doEncode(Session session, Object message) throws EncodeException, IOException {
+    public Object doEncode(Session session, Object message) throws EncodeException, IOException {
         for (CoderWrapper<Encoder> enc : encoders) {
             final Class<? extends Encoder> encoderClass = enc.getCoderClass();
 
@@ -428,15 +465,21 @@ public class TyrusEndpointWrapper {
     /**
      * Get the endpoint's open {@link Session}s.
      *
+     * @param tyrusSession only for clustering purpose (local encoder will be used when needed).
      * @return open sessions.
      */
-    public Set<Session> getOpenSessions() {
+    public Set<Session> getOpenSessions(final TyrusSession tyrusSession) {
         Set<Session> result = new HashSet<Session>();
 
         for (Session session : webSocketToSession.values()) {
             if (session.isOpen()) {
                 result.add(session);
             }
+        }
+
+        // clustered mode
+        if (clusterContext != null) {
+            result.addAll(clusteredSessions.values());
         }
 
         return Collections.unmodifiableSet(result);
@@ -453,7 +496,7 @@ public class TyrusEndpointWrapper {
     public Session createSessionForRemoteEndpoint(TyrusWebSocket socket, String subprotocol, List<Extension> extensions) {
         synchronized (webSocketToSession) {
             final TyrusSession session = new TyrusSession(container, socket, this, subprotocol, extensions, false,
-                    getURI(contextPath, null), null, Collections.<String, String>emptyMap(), null, Collections.<String, List<String>>emptyMap());
+                    getURI(contextPath, null), null, Collections.<String, String>emptyMap(), null, Collections.<String, List<String>>emptyMap(), null);
             webSocketToSession.put(socket, session);
             return session;
         }
@@ -487,7 +530,8 @@ public class TyrusEndpointWrapper {
                 // create a new session
                 session = new TyrusSession(container, socket, this, subProtocol, extensions, upgradeRequest.isSecure(),
                         getURI(upgradeRequest.getRequestURI().toString(), upgradeRequest.getQueryString()),
-                        upgradeRequest.getQueryString(), templateValues, upgradeRequest.getUserPrincipal(), upgradeRequest.getParameterMap());
+                        upgradeRequest.getQueryString(), templateValues, upgradeRequest.getUserPrincipal(),
+                        upgradeRequest.getParameterMap(), clusterContext);
                 webSocketToSession.put(socket, session);
             }
 
@@ -871,6 +915,11 @@ public class TyrusEndpointWrapper {
                 public ByteBuffer getApplicationData() {
                     return bytes;
                 }
+
+                @Override
+                public String toString() {
+                    return "PongMessage: " + bytes;
+                }
             });
         } else {
             LOGGER.log(Level.FINE, String.format("Unhandled pong message. Session: '%s'", session));
@@ -950,6 +999,9 @@ public class TyrusEndpointWrapper {
             }
         } finally {
             session.setState(TyrusSession.State.CLOSED);
+            if (clusterContext != null) {
+                clusterContext.removeSession(session.getId(), getEndpointPath());
+            }
 
             synchronized (webSocketToSession) {
                 webSocketToSession.remove(socket);
@@ -1015,6 +1067,12 @@ public class TyrusEndpointWrapper {
             }
         }
 
+        if (clusterContext != null) {
+            for (Session session : clusteredSessions.values()) {
+                futures.put(session, session.getAsyncRemote().sendText(message));
+            }
+        }
+
         return futures;
     }
 
@@ -1029,6 +1087,8 @@ public class TyrusEndpointWrapper {
         final Map<Session, Future<?>> futures = new HashMap<Session, Future<?>>();
         byte[] frame = null;
 
+        byte[] byteArrayMessage = Utils.getRemainingArray(message);
+
         for (Map.Entry<TyrusWebSocket, TyrusSession> e : webSocketToSession.entrySet()) {
             if (e.getValue().isOpen()) {
 
@@ -1038,8 +1098,6 @@ public class TyrusEndpointWrapper {
                 // we need to let protocol handler execute extensions if there are any
                 if (protocolHandler.hasExtensions()) {
                     byte[] tempFrame;
-                    byte[] byteArrayMessage = new byte[message.remaining()];
-                    message.get(byteArrayMessage);
 
                     final Frame dataFrame = new BinaryFrame(byteArrayMessage, false, true);
                     final ByteBuffer byteBuffer = webSocket.getProtocolHandler().frame(dataFrame);
@@ -1052,9 +1110,6 @@ public class TyrusEndpointWrapper {
                 } else {
 
                     if (frame == null) {
-                        byte[] byteArrayMessage = new byte[message.remaining()];
-                        message.get(byteArrayMessage);
-
                         final Frame dataFrame = new BinaryFrame(byteArrayMessage, false, true);
                         final ByteBuffer byteBuffer = webSocket.getProtocolHandler().frame(dataFrame);
                         frame = new byte[byteBuffer.remaining()];
@@ -1064,6 +1119,12 @@ public class TyrusEndpointWrapper {
                     final Future<Frame> frameFuture = webSocket.sendRawFrame(ByteBuffer.wrap(frame));
                     futures.put(e.getValue(), frameFuture);
                 }
+            }
+        }
+
+        if (clusterContext != null) {
+            for (Session session : clusteredSessions.values()) {
+                futures.put(session, session.getAsyncRemote().sendBinary(ByteBuffer.wrap(byteArrayMessage)));
             }
         }
 

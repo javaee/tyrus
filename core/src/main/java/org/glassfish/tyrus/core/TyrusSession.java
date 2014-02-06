@@ -71,6 +71,9 @@ import javax.websocket.PongMessage;
 import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
 
+import org.glassfish.tyrus.core.cluster.ClusterContext;
+import org.glassfish.tyrus.core.cluster.ClusterSession;
+import org.glassfish.tyrus.core.cluster.SessionEventListener;
 import org.glassfish.tyrus.core.coder.CoderWrapper;
 
 /**
@@ -90,13 +93,13 @@ public class TyrusSession implements Session {
     private final TyrusRemoteEndpoint.Basic basicRemote;
     private final TyrusRemoteEndpoint.Async asyncRemote;
     private final boolean isSecure;
-    private final URI uri;
+    private final URI requestURI;
     private final String queryString;
     private final Map<String, String> pathParameters;
     private final Principal userPrincipal;
     private final Map<String, List<String>> requestParameterMap;
     private final Object idleTimeoutLock = new Object();
-    private final String id = UUID.randomUUID().toString();
+    private final String id;
     private final Map<String, Object> userProperties = new HashMap<String, Object>();
     private final MessageHandlerManager handlerManager;
     private final AtomicReference<State> state = new AtomicReference<State>(State.RUNNING);
@@ -104,6 +107,8 @@ public class TyrusSession implements Session {
     private final BinaryBuffer binaryBuffer = new BinaryBuffer();
     private final List<Extension> negotiatedExtensions;
     private final String negotiatedSubprotocol;
+
+    private final Map<ClusterSession.DistributedMapKey, Object> distributedPropertyMap;
 
     private volatile long maxIdleTimeout = 0;
     private volatile ScheduledFuture<?> idleTimeoutFuture = null;
@@ -115,14 +120,14 @@ public class TyrusSession implements Session {
 
     TyrusSession(WebSocketContainer container, TyrusWebSocket socket, TyrusEndpointWrapper endpointWrapper,
                  String subprotocol, List<Extension> extensions, boolean isSecure,
-                 URI uri, String queryString, Map<String, String> pathParameters, Principal principal,
-                 Map<String, List<String>> requestParameterMap) {
+                 URI requestURI, String queryString, Map<String, String> pathParameters, Principal principal,
+                 Map<String, List<String>> requestParameterMap, final ClusterContext clusterContext) {
         this.container = container;
         this.endpointWrapper = endpointWrapper;
         this.negotiatedExtensions = extensions == null ? Collections.<Extension>emptyList() : Collections.unmodifiableList(extensions);
         this.negotiatedSubprotocol = subprotocol == null ? "" : subprotocol;
         this.isSecure = isSecure;
-        this.uri = uri;
+        this.requestURI = requestURI;
         this.queryString = queryString;
         this.pathParameters = pathParameters == null ? Collections.<String, String>emptyMap() : Collections.unmodifiableMap(new HashMap<String, String>(pathParameters));
         this.basicRemote = new TyrusRemoteEndpoint.Basic(this, socket, endpointWrapper);
@@ -136,6 +141,31 @@ public class TyrusSession implements Session {
             maxBinaryMessageBufferSize = container.getDefaultMaxBinaryMessageBufferSize();
             service = ((ExecutorServiceProvider) container).getScheduledExecutorService();
             setMaxIdleTimeout(container.getDefaultMaxSessionIdleTimeout());
+        }
+
+        // cluster context is always null on client side
+        if (clusterContext != null) {
+            id = clusterContext.createSessionId();
+            distributedPropertyMap = clusterContext.getDistributedSessionProperties(id);
+            distributedPropertyMap.put(ClusterSession.DistributedMapKey.NEGOTIATED_SUBPROTOCOL, negotiatedSubprotocol);
+            distributedPropertyMap.put(ClusterSession.DistributedMapKey.NEGOTIATED_EXTENSIONS, negotiatedExtensions);
+            distributedPropertyMap.put(ClusterSession.DistributedMapKey.SECURE, isSecure);
+            distributedPropertyMap.put(ClusterSession.DistributedMapKey.MAX_IDLE_TIMEOUT, maxIdleTimeout);
+            distributedPropertyMap.put(ClusterSession.DistributedMapKey.MAX_BINARY_MESSAGE_BUFFER_SIZE, maxBinaryMessageBufferSize);
+            distributedPropertyMap.put(ClusterSession.DistributedMapKey.MAX_TEXT_MESSAGE_BUFFER_SIZE, maxTextMessageBufferSize);
+            distributedPropertyMap.put(ClusterSession.DistributedMapKey.REQUEST_URI, requestURI);
+            distributedPropertyMap.put(ClusterSession.DistributedMapKey.REQUEST_PARAMETER_MAP, requestParameterMap);
+            distributedPropertyMap.put(ClusterSession.DistributedMapKey.QUERY_STRING, queryString == null ? "" : queryString);
+            distributedPropertyMap.put(ClusterSession.DistributedMapKey.PATH_PARAMETERS, this.pathParameters);
+            distributedPropertyMap.put(ClusterSession.DistributedMapKey.USER_PROPERTIES, userProperties);
+            if (userPrincipal != null) {
+                distributedPropertyMap.put(ClusterSession.DistributedMapKey.USER_PRINCIPAL, userPrincipal);
+            }
+
+            clusterContext.initClusteredSession(id, endpointWrapper.getEndpointPath(), new SessionEventListener(this));
+        } else {
+            id = UUID.randomUUID().toString();
+            distributedPropertyMap = null;
         }
     }
 
@@ -196,6 +226,9 @@ public class TyrusSession implements Session {
     public void setMaxBinaryMessageBufferSize(int maxBinaryMessageBufferSize) {
         checkConnectionState(State.CLOSED);
         this.maxBinaryMessageBufferSize = maxBinaryMessageBufferSize;
+        if (distributedPropertyMap != null) {
+            distributedPropertyMap.put(ClusterSession.DistributedMapKey.MAX_BINARY_MESSAGE_BUFFER_SIZE, maxBinaryMessageBufferSize);
+        }
     }
 
     @Override
@@ -207,12 +240,15 @@ public class TyrusSession implements Session {
     public void setMaxTextMessageBufferSize(int maxTextMessageBufferSize) {
         checkConnectionState(State.CLOSED);
         this.maxTextMessageBufferSize = maxTextMessageBufferSize;
+        if (distributedPropertyMap != null) {
+            distributedPropertyMap.put(ClusterSession.DistributedMapKey.MAX_TEXT_MESSAGE_BUFFER_SIZE, maxTextMessageBufferSize);
+        }
     }
 
     @Override
     public Set<Session> getOpenSessions() {
         checkConnectionState(State.CLOSED);
-        return endpointWrapper.getOpenSessions();
+        return endpointWrapper.getOpenSessions(this);
     }
 
     @Override
@@ -230,6 +266,9 @@ public class TyrusSession implements Session {
         checkConnectionState(State.CLOSED);
         this.maxIdleTimeout = maxIdleTimeout;
         restartIdleTimeoutExecutor();
+        if (distributedPropertyMap != null) {
+            distributedPropertyMap.put(ClusterSession.DistributedMapKey.MAX_IDLE_TIMEOUT, maxIdleTimeout);
+        }
     }
 
     @Override
@@ -267,10 +306,9 @@ public class TyrusSession implements Session {
 
     @Override
     public URI getRequestURI() {
-        return uri;
+        return requestURI;
     }
 
-    // TODO: this method should be deleted?
     @Override
     public Map<String, List<String>> getRequestParameterMap() {
         return requestParameterMap;
@@ -320,7 +358,6 @@ public class TyrusSession implements Session {
     public Map<Session, Future<?>> broadcast(ByteBuffer message) {
         return endpointWrapper.broadcast(message);
     }
-
 
     void restartIdleTimeoutExecutor() {
         if (this.maxIdleTimeout < 1) {
@@ -528,7 +565,7 @@ public class TyrusSession implements Session {
     public String toString() {
         final StringBuilder sb = new StringBuilder();
         sb.append("SessionImpl");
-        sb.append("{uri=").append(uri);
+        sb.append("{uri=").append(requestURI);
         sb.append(", id='").append(id).append('\'');
         sb.append(", endpointWrapper=").append(endpointWrapper);
         sb.append('}');

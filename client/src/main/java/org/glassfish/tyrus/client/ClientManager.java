@@ -452,7 +452,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                                             }
                                         }
                                     }
-                                });
+                                }, null);
 
                                 TyrusClientEngine clientEngine = new TyrusClientEngine(clientEndpoint, listener, copiedProperties);
 

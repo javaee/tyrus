@@ -59,6 +59,7 @@ import javax.websocket.Extension;
 import javax.websocket.WebSocketContainer;
 import javax.websocket.server.ServerEndpointConfig;
 
+import org.glassfish.tyrus.core.cluster.ClusterContext;
 import org.glassfish.tyrus.core.extension.ExtendedExtension;
 import org.glassfish.tyrus.core.frame.CloseFrame;
 import org.glassfish.tyrus.core.frame.Frame;
@@ -91,12 +92,13 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
     private static final UpgradeInfo HANDSHAKE_FAILED_UPGRADE_INFO =
             new NoConnectionUpgradeInfo(UpgradeStatus.HANDSHAKE_FAILED);
 
-
     private final Set<TyrusEndpointWrapper> endpointWrappers = Collections.newSetFromMap(new ConcurrentHashMap<TyrusEndpointWrapper, Boolean>());
     private final ComponentProviderService componentProviderService = ComponentProviderService.create();
     private final WebSocketContainer webSocketContainer;
 
     private int incomingBufferSize = 4194315; // 4M (payload) + 11 (frame overhead)
+
+    private final ClusterContext clusterContext;
 
     /**
      * Create {@link WebSocketEngine} instance based on passed {@link WebSocketContainer}.
@@ -104,7 +106,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
      * @param webSocketContainer used {@link WebSocketContainer} instance.
      */
     public TyrusWebSocketEngine(WebSocketContainer webSocketContainer) {
-        this(webSocketContainer, null);
+        this(webSocketContainer, null, null);
     }
 
     /**
@@ -115,11 +117,12 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
      * @param incomingBufferSize maximal incoming buffer size (this engine won't be able to process messages bigger
      *                           than this number. If null, default value will be used).
      */
-    public TyrusWebSocketEngine(WebSocketContainer webSocketContainer, Integer incomingBufferSize) {
+    public TyrusWebSocketEngine(WebSocketContainer webSocketContainer, Integer incomingBufferSize, ClusterContext clusterContext) {
         if (incomingBufferSize != null) {
             this.incomingBufferSize = incomingBufferSize;
         }
         this.webSocketContainer = webSocketContainer;
+        this.clusterContext = clusterContext;
     }
 
     private static ProtocolHandler loadHandler(UpgradeRequest request) {
@@ -291,7 +294,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
         EndpointConfig config = endpoint.getEndpointConfig();
 
         TyrusEndpointWrapper endpointWrapper = new TyrusEndpointWrapper(endpoint, config, componentProviderService, webSocketContainer,
-                contextPath, config instanceof ServerEndpointConfig ? ((ServerEndpointConfig) config).getConfigurator() : null, null);
+                contextPath, config instanceof ServerEndpointConfig ? ((ServerEndpointConfig) config).getConfigurator() : null, null, clusterContext);
 
         if (collector.isEmpty()) {
             register(endpointWrapper);
@@ -327,7 +330,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
             final EndpointConfig config = endpoint.getEndpointConfig();
 
             endpointWrapper = new TyrusEndpointWrapper(endpoint, config, componentProviderService, webSocketContainer,
-                    contextPath, config instanceof ServerEndpointConfig ? ((ServerEndpointConfig) config).getConfigurator() : null, null);
+                    contextPath, config instanceof ServerEndpointConfig ? ((ServerEndpointConfig) config).getConfigurator() : null, null, clusterContext);
 
             if (!collector.isEmpty()) {
                 throw collector.composeComprehensiveException();
