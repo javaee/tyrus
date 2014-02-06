@@ -268,7 +268,6 @@ public class TyrusEndpointWrapper {
             clusterContext.registerSessionListener(getEndpointPath(), new SessionListener() {
                 @Override
                 public void onSessionOpened(String sessionId) {
-                    System.out.println("### registering remote session " + sessionId);
                     final Map<ClusterSession.DistributedMapKey, Object> distributedSessionProperties = clusterContext.getDistributedSessionProperties(sessionId);
                     clusteredSessions.put(sessionId, new ClusterSession(sessionId, clusterContext, distributedSessionProperties, TyrusEndpointWrapper.this, dummySession));
                 }
