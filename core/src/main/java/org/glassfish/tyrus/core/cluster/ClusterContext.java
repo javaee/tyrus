@@ -113,7 +113,7 @@ public abstract class ClusterContext {
      * Send ping message.
      *
      * @param sessionId remote session id.
-     * @param data      data to be sent as "body" of ping message.
+     * @param data      data to be sent as ping message payload.
      * @return future representing the send event. {@link java.util.concurrent.Future#get()} returns when there is an acknowledge
      * from the other node that the message has been successfully sent. If there is any exception, it will be wrapped into
      * {@link java.util.concurrent.ExecutionException} and thrown.
@@ -124,7 +124,7 @@ public abstract class ClusterContext {
      * Send pong message.
      *
      * @param sessionId remote session id.
-     * @param data      data to be sent as "body" of pong message.
+     * @param data      data to be sent as pong message payload.
      * @return future representing the send event. {@link java.util.concurrent.Future#get()} returns when there is an acknowledge
      * from the other node that the message has been successfully sent. If there is any exception, it will be wrapped into
      * {@link java.util.concurrent.ExecutionException} and thrown.
