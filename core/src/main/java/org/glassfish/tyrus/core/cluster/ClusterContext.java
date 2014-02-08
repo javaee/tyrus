@@ -152,6 +152,22 @@ public abstract class ClusterContext {
     public abstract void sendBinary(String sessionId, byte[] data, SendHandler sendHandler);
 
     /**
+     * Broadcast text message.
+     *
+     * @param endpointPath endpoint path identifying sessions alignment to the endpoint.
+     * @param text         message to be broadcasted.
+     */
+    public abstract void broadcastText(String endpointPath, String text);
+
+    /**
+     * Broadcast binary message.
+     *
+     * @param endpointPath endpoint path identifying sessions alignment to the endpoint.
+     * @param data         data to be broadcasted.
+     */
+    public abstract void broadcastBinary(String endpointPath, byte[] data);
+
+    /**
      * Close remote session.
      *
      * @param sessionId remote session id.
@@ -211,6 +227,8 @@ public abstract class ClusterContext {
      * @see org.glassfish.tyrus.core.cluster.SessionListener
      */
     public abstract void registerSessionListener(String endpointPath, SessionListener listener);
+
+    public abstract void registerBroadcastListener(String endpointPath, BroadcastListener listener);
 
     /**
      * Get the map containing session properties to be shared among nodes.

@@ -78,6 +78,7 @@ import javax.websocket.WebSocketContainer;
 import javax.websocket.server.HandshakeRequest;
 import javax.websocket.server.ServerEndpointConfig;
 
+import org.glassfish.tyrus.core.cluster.BroadcastListener;
 import org.glassfish.tyrus.core.cluster.ClusterContext;
 import org.glassfish.tyrus.core.cluster.ClusterSession;
 import org.glassfish.tyrus.core.cluster.SessionListener;
@@ -152,7 +153,7 @@ public class TyrusEndpointWrapper {
      * @param configuration     endpoint configuration.
      * @param componentProvider component provider.
      * @param container         container where the wrapper is running.
-     * @param clusterContext
+     * @param clusterContext    cluster context instance. {@code null} indicates standalone mode.
      */
     public TyrusEndpointWrapper(Endpoint endpoint, EndpointConfig configuration, ComponentProviderService componentProvider, WebSocketContainer container,
                                 String contextPath, ServerEndpointConfig.Configurator configurator, OnCloseListener onCloseListener, ClusterContext clusterContext) throws DeploymentException {
@@ -275,6 +276,18 @@ public class TyrusEndpointWrapper {
                 @Override
                 public void onSessionClosed(String sessionId) {
                     clusteredSessions.remove(sessionId);
+                }
+            });
+
+            clusterContext.registerBroadcastListener(getEndpointPath(), new BroadcastListener() {
+                @Override
+                public void onBroadcast(String text) {
+                    broadcast(text, true);
+                }
+
+                @Override
+                public void onBroadcast(byte[] data) {
+                    broadcast(ByteBuffer.wrap(data), true);
                 }
             });
 
@@ -1026,9 +1039,18 @@ public class TyrusEndpointWrapper {
      * Broadcasts text message to all connected clients.
      *
      * @param message message to be broadcasted.
-     * @return map of sessions and futures for user to get the information about status of the message.
+     * @return map of sessions and futures for user to get the information about status of the message. Messages send
+     * from other cluster nodes are not included.
      */
     public Map<Session, Future<?>> broadcast(final String message) {
+        return broadcast(message, false);
+    }
+
+    private Map<Session, Future<?>> broadcast(final String message, boolean local) {
+
+        if (!local && clusterContext != null) {
+            clusterContext.broadcastText(getEndpointPath(), message);
+        }
 
         final Map<Session, Future<?>> futures = new HashMap<Session, Future<?>>();
         byte[] frame = null;
@@ -1066,12 +1088,6 @@ public class TyrusEndpointWrapper {
             }
         }
 
-        if (clusterContext != null) {
-            for (Session session : clusteredSessions.values()) {
-                futures.put(session, session.getAsyncRemote().sendText(message));
-            }
-        }
-
         return futures;
     }
 
@@ -1079,14 +1095,23 @@ public class TyrusEndpointWrapper {
      * Broadcasts binary message to all connected clients.
      *
      * @param message message to be broadcasted.
-     * @return map of sessions and futures for user to get the information about status of the message.
+     * @return map of sessions and futures for user to get the information about status of the message. Messages send
+     * from other cluster nodes are not included.
      */
     public Map<Session, Future<?>> broadcast(final ByteBuffer message) {
+        return broadcast(message, false);
+    }
+
+    private Map<Session, Future<?>> broadcast(final ByteBuffer message, boolean local) {
 
         final Map<Session, Future<?>> futures = new HashMap<Session, Future<?>>();
         byte[] frame = null;
 
         byte[] byteArrayMessage = Utils.getRemainingArray(message);
+
+        if (!local && clusterContext != null) {
+            clusterContext.broadcastBinary(getEndpointPath(), byteArrayMessage);
+        }
 
         for (Map.Entry<TyrusWebSocket, TyrusSession> e : webSocketToSession.entrySet()) {
             if (e.getValue().isOpen()) {
@@ -1118,12 +1143,6 @@ public class TyrusEndpointWrapper {
                     final Future<Frame> frameFuture = webSocket.sendRawFrame(ByteBuffer.wrap(frame));
                     futures.put(e.getValue(), frameFuture);
                 }
-            }
-        }
-
-        if (clusterContext != null) {
-            for (Session session : clusteredSessions.values()) {
-                futures.put(session, session.getAsyncRemote().sendBinary(ByteBuffer.wrap(byteArrayMessage)));
             }
         }
 
