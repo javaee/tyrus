@@ -173,6 +173,106 @@ public class PingPongTest extends TestContainer {
     }
 
     @Test
+    public void testPongClientNoData() throws DeploymentException {
+        Server server = startServer(PingPongEndpointNoData.class);
+
+        try {
+            final CountDownLatch messageLatch = new CountDownLatch(1);
+
+            ContainerProvider.getWebSocketContainer().connectToServer(new Endpoint() {
+                @Override
+                public void onOpen(Session session, EndpointConfig config) {
+                    try {
+                        session.addMessageHandler(new MessageHandler.Whole<PongMessage>() {
+                            @Override
+                            public void onMessage(PongMessage message) {
+                                System.out.println("### Client - received pong \"" + new String(message.getApplicationData().array()) + "\"");
+                                if (message.getApplicationData().equals(ByteBuffer.wrap("".getBytes()))) {
+                                    messageLatch.countDown();
+                                }
+                            }
+                        });
+
+                        System.out.println("### Client - sending ping \"\"");
+                        session.getBasicRemote().sendPing(null);
+
+                    } catch (IOException e) {
+                        // do nothing.
+                    }
+                }
+            }, ClientEndpointConfig.Builder.create().build(), getURI(PingPongEndpointNoData.class));
+
+            messageLatch.await(1, TimeUnit.SECONDS);
+            assertEquals(0, messageLatch.getCount());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            stopServer(server);
+        }
+    }
+
+    @Test
+    public void testPongServerNoData() throws DeploymentException {
+        Server server = startServer(PingPongEndpointNoData.class);
+
+        try {
+            final CountDownLatch messageLatch = new CountDownLatch(1);
+
+            ContainerProvider.getWebSocketContainer().connectToServer(new Endpoint() {
+                @Override
+                public void onOpen(Session session, EndpointConfig config) {
+                    try {
+                        session.addMessageHandler(new MessageHandler.Whole<String>() {
+                            @Override
+                            public void onMessage(String message) {
+                                if (message.equals(PONG_RECEIVED)) {
+                                    messageLatch.countDown();
+                                }
+                            }
+                        });
+                        session.getBasicRemote().sendText("ping-initiator");
+                    } catch (IOException e) {
+                        // do nothing.
+                    }
+                }
+            }, ClientEndpointConfig.Builder.create().build(), getURI(PingPongEndpointNoData.class));
+
+            messageLatch.await(2, TimeUnit.SECONDS);
+            assertEquals(0, messageLatch.getCount());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            stopServer(server);
+        }
+    }
+
+    @ServerEndpoint(value = "/pingpongnodata")
+    public static class PingPongEndpointNoData {
+
+        @OnMessage
+        public void onPong(PongMessage pongMessage, Session session) {
+            System.out.println("### PingPongEndpoint - received pong \"" + new String(pongMessage.getApplicationData().array()) + "\"");
+            if (pongMessage.getApplicationData().equals(ByteBuffer.wrap("".getBytes()))) {
+                try {
+                    session.getBasicRemote().sendText(PONG_RECEIVED);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        @OnMessage
+        public void onMessage(Session session, String message) throws IOException {
+            System.out.println("### PingPongEndpoint - sending ping \"\"");
+            session.getBasicRemote().sendPing(null);
+        }
+    }
+
+    @Test
     public void testLimits() throws DeploymentException {
         Server server = startServer(PingPongEndpoint.class);
 

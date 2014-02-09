@@ -134,6 +134,10 @@ public class Utils {
      * @return array of bytes containing the bytes from the position to the limit of the {@link ByteBuffer}.
      */
     public static byte[] getRemainingArray(ByteBuffer buffer) {
+        if (buffer == null) {
+            return new byte[0];
+        }
+
         byte[] ret = new byte[buffer.remaining()];
 
         if (buffer.hasArray()) {

@@ -54,9 +54,11 @@ import javax.websocket.Extension;
  */
 public class TyrusExtension implements Extension, Serializable {
 
-    private static final Logger LOGGER = Logger.getLogger(TyrusExtension.class.getName());
+    private static final transient Logger LOGGER = Logger.getLogger(TyrusExtension.class.getName());
     private final String name;
-    private final List<Parameter> parameters;
+    private final ArrayList<Parameter> parameters;
+
+    private static final long serialVersionUID = -3671075267907614851L;
 
     /**
      * Create {@link Extension} with specific name.
@@ -81,9 +83,9 @@ public class TyrusExtension implements Extension, Serializable {
 
         this.name = name;
         if (parameters != null) {
-            this.parameters = Collections.unmodifiableList(new ArrayList<Parameter>(parameters));
+            this.parameters = new ArrayList<Parameter>(parameters);
         } else {
-            this.parameters = Collections.unmodifiableList(Collections.<Parameter>emptyList());
+            this.parameters = new ArrayList<Parameter>();
         }
     }
 
@@ -94,7 +96,7 @@ public class TyrusExtension implements Extension, Serializable {
 
     @Override
     public List<Parameter> getParameters() {
-        return parameters;
+        return Collections.unmodifiableList(parameters);
     }
 
     @Override

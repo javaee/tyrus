@@ -227,7 +227,7 @@ public class ClusterSession implements Session {
                         future = clusterContext.sendBinary(sessionId, baos.toByteArray());
                     } else {
                         // will never happen.
-                        future = null;
+                        return;
                     }
 
                 }
@@ -453,9 +453,8 @@ public class ClusterSession implements Session {
 
                 checkNotNull(data, "Argument 'data' cannot be null.");
 
-                final Future<Void> future;
                 if (data instanceof String) {
-                    future = clusterContext.sendText(sessionId, (String) data);
+                    clusterContext.sendText(sessionId, (String) data, handler);
                 } else {
                     final Object toSend;
                     try {
