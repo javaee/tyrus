@@ -100,7 +100,8 @@ public class TyrusSession implements Session {
     private final Map<String, List<String>> requestParameterMap;
     private final Object idleTimeoutLock = new Object();
     private final String id;
-    private final Map<String, Object> userProperties = new HashMap<String, Object>();
+    private final String connectionId;
+    private final Map<String, Object> userProperties;
     private final MessageHandlerManager handlerManager;
     private final AtomicReference<State> state = new AtomicReference<State>(State.RUNNING);
     private final TextBuffer textBuffer = new TextBuffer();
@@ -121,7 +122,8 @@ public class TyrusSession implements Session {
     TyrusSession(WebSocketContainer container, TyrusWebSocket socket, TyrusEndpointWrapper endpointWrapper,
                  String subprotocol, List<Extension> extensions, boolean isSecure,
                  URI requestURI, String queryString, Map<String, String> pathParameters, Principal principal,
-                 Map<String, List<String>> requestParameterMap, final ClusterContext clusterContext) {
+                 Map<String, List<String>> requestParameterMap, final ClusterContext clusterContext,
+                 String connectionId) {
         this.container = container;
         this.endpointWrapper = endpointWrapper;
         this.negotiatedExtensions = extensions == null ? Collections.<Extension>emptyList() : Collections.unmodifiableList(extensions);
@@ -135,6 +137,7 @@ public class TyrusSession implements Session {
         this.handlerManager = MessageHandlerManager.fromDecoderInstances(endpointWrapper.getDecoders());
         this.userPrincipal = principal;
         this.requestParameterMap = requestParameterMap == null ? Collections.<String, List<String>>emptyMap() : Collections.unmodifiableMap(new HashMap<String, List<String>>(requestParameterMap));
+        this.connectionId = connectionId;
 
         if (container != null) {
             maxTextMessageBufferSize = container.getDefaultMaxTextMessageBufferSize();
@@ -157,14 +160,16 @@ public class TyrusSession implements Session {
             distributedPropertyMap.put(ClusterSession.DistributedMapKey.REQUEST_PARAMETER_MAP, requestParameterMap);
             distributedPropertyMap.put(ClusterSession.DistributedMapKey.QUERY_STRING, queryString == null ? "" : queryString);
             distributedPropertyMap.put(ClusterSession.DistributedMapKey.PATH_PARAMETERS, this.pathParameters);
-            distributedPropertyMap.put(ClusterSession.DistributedMapKey.USER_PROPERTIES, userProperties);
             if (userPrincipal != null) {
                 distributedPropertyMap.put(ClusterSession.DistributedMapKey.USER_PRINCIPAL, userPrincipal);
             }
 
+            userProperties = clusterContext.getDistributedUserProperties(connectionId);
+
             clusterContext.initClusteredSession(id, endpointWrapper.getEndpointPath(), new SessionEventListener(this));
         } else {
             id = UUID.randomUUID().toString();
+            userProperties = new HashMap<String, Object>();
             distributedPropertyMap = null;
         }
     }
@@ -523,6 +528,10 @@ public class TyrusSession implements Session {
 
     State getState() {
         return state.get();
+    }
+
+    String getConnectionId() {
+        return connectionId;
     }
 
     /**

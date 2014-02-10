@@ -197,11 +197,18 @@ public abstract class ClusterContext {
     public abstract Set<String> getRemoteSessionIds(String endpointPath);
 
     /**
-     * Create session id. It has to ne unique among all cluster nodes.
+     * Create session id. It has to be unique among all cluster nodes.
      *
      * @return session id.
      */
     public abstract String createSessionId();
+
+    /**
+     * Create connection id. It has to be unique among all cluster nodes.
+     *
+     * @return connection id.
+     */
+    public abstract String createConnectionId();
 
     /**
      * Initializes cluster session.
@@ -239,6 +246,18 @@ public abstract class ClusterContext {
      * @return distributed map containing session properties.
      */
     public abstract Map<ClusterSession.DistributedMapKey, Object> getDistributedSessionProperties(String sessionId);
+
+    /**
+     * Get the map containing session user properties to be shared among nodes.
+     * <p/>
+     * Changes must be propagated to remote instances.
+     *
+     * @param connectionId remote session id.
+     * @return distributed map containing session properties.
+     */
+    public abstract Map<String, Object> getDistributedUserProperties(String connectionId);
+
+    public abstract void destroyDistributedUserProperties(String connectionId);
 
     /**
      * Remove session from this Cluster context.

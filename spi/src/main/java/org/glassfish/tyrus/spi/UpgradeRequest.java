@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -59,6 +59,7 @@ public abstract class UpgradeRequest implements HandshakeRequest {
     public static final String SERVER_KEY_HASH = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
     public static final String SEC_WS_ORIGIN_HEADER = "Sec-WebSocket-Origin";
     public static final String ORIGIN_HEADER = "Origin";
+    public static final String CLUSTER_CONNECTION_ID_HEADER = "tyrus-cluster-connection-id";
 
     /**
      * Returns the value of the specified request header name. If there are
@@ -67,7 +68,7 @@ public abstract class UpgradeRequest implements HandshakeRequest {
      *
      * @param name a header name.
      * @return value of the specified header name,
-     *         null if the request doesn't have a header of that name.
+     * null if the request doesn't have a header of that name.
      */
     public abstract String getHeader(String name);
 
@@ -84,7 +85,7 @@ public abstract class UpgradeRequest implements HandshakeRequest {
      * (such as HTTPS).
      *
      * @return true if the request was made using secure channel,
-     *         false otherwise.
+     * false otherwise.
      */
     public abstract boolean isSecure();
 }

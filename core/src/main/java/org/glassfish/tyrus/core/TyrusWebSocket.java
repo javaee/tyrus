@@ -75,7 +75,7 @@ public class TyrusWebSocket {
     /**
      * Create new instance, set {@link ProtocolHandler} and register {@link TyrusEndpointWrapper}.
      *
-     * @param protocolHandler      used for writing data (sending).
+     * @param protocolHandler used for writing data (sending).
      * @param endpointWrapper notifies registered endpoints about incoming events.
      */
     public TyrusWebSocket(final ProtocolHandler protocolHandler,
@@ -130,11 +130,11 @@ public class TyrusWebSocket {
      *
      * @param upgradeRequest request associated with this socket.
      */
-    public void onConnect(UpgradeRequest upgradeRequest, String subProtocol, List<Extension> extensions) {
+    public void onConnect(UpgradeRequest upgradeRequest, String subProtocol, List<Extension> extensions, String connectionId) {
         state.set(State.CONNECTED);
 
         if (endpointWrapper != null) {
-            endpointWrapper.onConnect(this, upgradeRequest, subProtocol, extensions);
+            endpointWrapper.onConnect(this, upgradeRequest, subProtocol, extensions, connectionId);
         }
 
         onConnectLatch.countDown();

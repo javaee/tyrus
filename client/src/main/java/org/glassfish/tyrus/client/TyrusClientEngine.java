@@ -56,8 +56,6 @@ import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
 import javax.websocket.server.HandshakeRequest;
 
-import org.glassfish.tyrus.core.extension.ExtendedExtension;
-import org.glassfish.tyrus.core.frame.Frame;
 import org.glassfish.tyrus.core.FramingException;
 import org.glassfish.tyrus.core.Handshake;
 import org.glassfish.tyrus.core.ProtocolHandler;
@@ -67,7 +65,9 @@ import org.glassfish.tyrus.core.TyrusExtension;
 import org.glassfish.tyrus.core.TyrusWebSocket;
 import org.glassfish.tyrus.core.Utils;
 import org.glassfish.tyrus.core.Version;
+import org.glassfish.tyrus.core.extension.ExtendedExtension;
 import org.glassfish.tyrus.core.frame.CloseFrame;
+import org.glassfish.tyrus.core.frame.Frame;
 import org.glassfish.tyrus.spi.ClientContainer;
 import org.glassfish.tyrus.spi.ClientEngine;
 import org.glassfish.tyrus.spi.Connection;
@@ -175,7 +175,7 @@ public class TyrusClientEngine implements ClientEngine {
             protocolHandler.setExtensionContext(extensionContext);
 
             // subprotocol and extensions are already set -- TODO: introduce new method (onClientConnect)?
-            socket.onConnect(this.clientHandShake.getRequest(), null, null);
+            socket.onConnect(this.clientHandShake.getRequest(), null, null, null);
 
             listener.onSessionCreated(sessionForRemoteEndpoint);
 

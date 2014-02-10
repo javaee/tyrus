@@ -95,7 +95,6 @@ public class ClusterSession implements Session {
         REQUEST_PARAMETER_MAP("requestParameterMap"),
         QUERY_STRING("queryString"),
         PATH_PARAMETERS("pathParameters"),
-        USER_PROPERTIES("userProperties"),
         USER_PRINCIPAL("userPrincipal");
 
         private final String key;
@@ -681,7 +680,7 @@ public class ClusterSession implements Session {
     @Override
     public Map<String, Object> getUserProperties() {
         //noinspection unchecked
-        return (Map<String, Object>) distributedPropertyMap.get(DistributedMapKey.USER_PROPERTIES);
+        return (Map<String, Object>) clusterContext.getDistributedUserProperties(sessionId);
     }
 
     @Override

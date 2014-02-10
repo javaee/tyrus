@@ -185,7 +185,13 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
                 };
 
                 protocolHandler.handshake(endpointWrapper, request, response, extensionContext);
-                return new SuccessfulUpgradeInfo(endpointWrapper, protocolHandler, incomingBufferSize, request, extensionContext);
+
+                if (clusterContext != null && request.getHeaders().get(UpgradeRequest.CLUSTER_CONNECTION_ID_HEADER) == null) {
+                    // TODO: we might need to introduce some property to check whether we should put this header into the response.
+                    response.getHeaders().put(UpgradeRequest.CLUSTER_CONNECTION_ID_HEADER, Collections.singletonList(clusterContext.createConnectionId()));
+                }
+
+                return new SuccessfulUpgradeInfo(endpointWrapper, protocolHandler, incomingBufferSize, request, response, extensionContext);
             }
         } catch (HandshakeException e) {
             LOGGER.log(Level.SEVERE, e.getMessage(), e);
@@ -384,13 +390,16 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
         private final ProtocolHandler protocolHandler;
         private final int incomingBufferSize;
         private final UpgradeRequest upgradeRequest;
+        private final UpgradeResponse upgradeResponse;
         private final ExtendedExtension.ExtensionContext extensionContext;
 
-        SuccessfulUpgradeInfo(TyrusEndpointWrapper endpointWrapper, ProtocolHandler protocolHandler, int incomingBufferSize, UpgradeRequest upgradeRequest, ExtendedExtension.ExtensionContext extensionContext) {
+        SuccessfulUpgradeInfo(TyrusEndpointWrapper endpointWrapper, ProtocolHandler protocolHandler, int incomingBufferSize,
+                              UpgradeRequest upgradeRequest, UpgradeResponse upgradeResponse, ExtendedExtension.ExtensionContext extensionContext) {
             this.endpointWrapper = endpointWrapper;
             this.protocolHandler = protocolHandler;
             this.incomingBufferSize = incomingBufferSize;
             this.upgradeRequest = upgradeRequest;
+            this.upgradeResponse = upgradeResponse;
             this.extensionContext = extensionContext;
         }
 
@@ -401,7 +410,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
 
         @Override
         public Connection createConnection(Writer writer, Connection.CloseListener closeListener) {
-            return new TyrusConnection(endpointWrapper, protocolHandler, incomingBufferSize, writer, closeListener, upgradeRequest, extensionContext);
+            return new TyrusConnection(endpointWrapper, protocolHandler, incomingBufferSize, writer, closeListener, upgradeRequest, upgradeResponse, extensionContext);
         }
     }
 
@@ -414,12 +423,22 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
         private final ExtendedExtension.ExtensionContext extensionContext;
         private final List<Extension> extensions;
 
-        TyrusConnection(TyrusEndpointWrapper endpointWrapper, ProtocolHandler protocolHandler, int incomingBufferSize, Writer writer, CloseListener closeListener, UpgradeRequest upgradeRequest, ExtendedExtension.ExtensionContext extensionContext) {
+        TyrusConnection(TyrusEndpointWrapper endpointWrapper, ProtocolHandler protocolHandler, int incomingBufferSize, Writer writer, CloseListener closeListener,
+                        UpgradeRequest upgradeRequest, UpgradeResponse upgradeResponse, ExtendedExtension.ExtensionContext extensionContext) {
             protocolHandler.setWriter(writer);
             extensions = protocolHandler.getExtensions();
             this.socket = endpointWrapper.createSocket(protocolHandler);
 
-            this.socket.onConnect(upgradeRequest, protocolHandler.getSubProtocol(), extensions);
+            // TODO: we might need to introduce some property to check whether we should put this header into the response.
+            final List<String> connectionIdHeader = upgradeRequest.getHeaders().get(UpgradeRequest.CLUSTER_CONNECTION_ID_HEADER);
+            String connectionId;
+            if (connectionIdHeader != null && connectionIdHeader.size() == 1) {
+                connectionId = connectionIdHeader.get(0);
+            } else {
+                connectionId = upgradeResponse.getFirstHeaderValue(UpgradeRequest.CLUSTER_CONNECTION_ID_HEADER);
+            }
+
+            this.socket.onConnect(upgradeRequest, protocolHandler.getSubProtocol(), extensions, connectionId);
 
             this.readHandler = new TyrusReadHandler(protocolHandler, socket, endpointWrapper, incomingBufferSize, extensionContext);
             this.writer = writer;

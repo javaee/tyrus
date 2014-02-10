@@ -508,7 +508,7 @@ public class TyrusEndpointWrapper {
     public Session createSessionForRemoteEndpoint(TyrusWebSocket socket, String subprotocol, List<Extension> extensions) {
         synchronized (webSocketToSession) {
             final TyrusSession session = new TyrusSession(container, socket, this, subprotocol, extensions, false,
-                    getURI(contextPath, null), null, Collections.<String, String>emptyMap(), null, Collections.<String, List<String>>emptyMap(), null);
+                    getURI(contextPath, null), null, Collections.<String, String>emptyMap(), null, Collections.<String, List<String>>emptyMap(), null, null);
             webSocketToSession.put(socket, session);
             return session;
         }
@@ -528,7 +528,7 @@ public class TyrusEndpointWrapper {
      * @param upgradeRequest request associated with accepted connection.
      * @return TODO.
      */
-    public Session onConnect(TyrusWebSocket socket, UpgradeRequest upgradeRequest, String subProtocol, List<Extension> extensions) {
+    public Session onConnect(TyrusWebSocket socket, UpgradeRequest upgradeRequest, String subProtocol, List<Extension> extensions, String connectionId) {
         synchronized (webSocketToSession) {
             TyrusSession session = webSocketToSession.get(socket);
             // session is null on Server; client always has session instance at this point.
@@ -543,7 +543,7 @@ public class TyrusEndpointWrapper {
                 session = new TyrusSession(container, socket, this, subProtocol, extensions, upgradeRequest.isSecure(),
                         getURI(upgradeRequest.getRequestURI().toString(), upgradeRequest.getQueryString()),
                         upgradeRequest.getQueryString(), templateValues, upgradeRequest.getUserPrincipal(),
-                        upgradeRequest.getParameterMap(), clusterContext);
+                        upgradeRequest.getParameterMap(), clusterContext, connectionId);
                 webSocketToSession.put(socket, session);
             }
 
@@ -1013,6 +1013,7 @@ public class TyrusEndpointWrapper {
             session.setState(TyrusSession.State.CLOSED);
             if (clusterContext != null) {
                 clusterContext.removeSession(session.getId(), getEndpointPath());
+                clusterContext.destroyDistributedUserProperties(session.getConnectionId());
             }
 
             synchronized (webSocketToSession) {
