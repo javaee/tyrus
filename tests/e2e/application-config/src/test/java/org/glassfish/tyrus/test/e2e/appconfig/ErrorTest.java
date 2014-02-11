@@ -98,6 +98,8 @@ public class ErrorTest extends TestContainer {
         public static volatile Throwable throwable;
         public static volatile Session session;
 
+        public static final CountDownLatch ON_ERROR_LATCH = new CountDownLatch(1);
+
         @OnOpen
         public void open() {
             throw new RuntimeException("testException");
@@ -113,6 +115,8 @@ public class ErrorTest extends TestContainer {
         public void handleError(Throwable throwable, Session session) {
             OnOpenErrorTestEndpoint.throwable = throwable;
             OnOpenErrorTestEndpoint.session = session;
+
+            ON_ERROR_LATCH.countDown();
         }
     }
 
@@ -155,6 +159,8 @@ public class ErrorTest extends TestContainer {
         public static volatile Throwable throwable;
         public static volatile Session session;
 
+        public static final CountDownLatch ON_ERROR_LATCH = new CountDownLatch(1);
+
         @OnClose
         public void close() {
             throw new RuntimeException("testException");
@@ -170,6 +176,7 @@ public class ErrorTest extends TestContainer {
         public void handleError(Throwable throwable, Session session) {
             OnCloseErrorTestEndpoint.throwable = throwable;
             OnCloseErrorTestEndpoint.session = session;
+            ON_ERROR_LATCH.countDown();
         }
     }
 
@@ -202,21 +209,33 @@ public class ErrorTest extends TestContainer {
     public static class ServiceEndpoint {
 
         @OnMessage
-        public String onMessage(String message) {
+        public String onMessage(String message) throws InterruptedException {
             if (message.equals("OnCloseErrorTestEndpoint")) {
-                if (OnCloseErrorTestEndpoint.throwable != null && OnCloseErrorTestEndpoint.session != null) {
+
+                final boolean await = OnCloseErrorTestEndpoint.ON_ERROR_LATCH.await(3, TimeUnit.SECONDS);
+
+                if (await && OnCloseErrorTestEndpoint.throwable != null && OnCloseErrorTestEndpoint.session != null) {
                     return POSITIVE;
                 }
             } else if (message.equals("OnOpenErrorTestEndpoint")) {
-                if (OnOpenErrorTestEndpoint.throwable != null && OnOpenErrorTestEndpoint.session != null) {
+
+                final boolean await = OnOpenErrorTestEndpoint.ON_ERROR_LATCH.await(3, TimeUnit.SECONDS);
+
+                if (await && OnOpenErrorTestEndpoint.throwable != null && OnOpenErrorTestEndpoint.session != null) {
                     return POSITIVE;
                 }
             } else if (message.equals("OnOpenExceptionEndpoint")) {
-                if (OnOpenExceptionEndpoint.throwable != null && OnOpenExceptionEndpoint.session != null) {
+
+                final boolean await = OnOpenExceptionEndpoint.ON_ERROR_LATCH.await(3, TimeUnit.SECONDS);
+
+                if (await && OnOpenExceptionEndpoint.throwable != null && OnOpenExceptionEndpoint.session != null) {
                     return POSITIVE;
                 }
             } else if (message.equals("OnMessageExceptionEndpoint")) {
-                if (OnMessageExceptionEndpoint.throwable != null && OnMessageExceptionEndpoint.session != null) {
+
+                final boolean await = OnMessageExceptionEndpoint.ON_ERROR_LATCH.await(3, TimeUnit.SECONDS);
+
+                if (await && OnMessageExceptionEndpoint.throwable != null && OnMessageExceptionEndpoint.session != null) {
                     return POSITIVE;
                 }
             }
@@ -238,6 +257,8 @@ public class ErrorTest extends TestContainer {
         public static volatile Throwable throwable;
         public static volatile Session session;
 
+        public static final CountDownLatch ON_ERROR_LATCH = new CountDownLatch(1);
+
         @Override
         public void onOpen(Session session, EndpointConfig config) {
             throw new RuntimeException("testException");
@@ -247,6 +268,7 @@ public class ErrorTest extends TestContainer {
         public void onError(Session session, Throwable thr) {
             OnOpenExceptionEndpoint.throwable = thr;
             OnOpenExceptionEndpoint.session = session;
+            ON_ERROR_LATCH.countDown();
         }
     }
 
@@ -292,6 +314,8 @@ public class ErrorTest extends TestContainer {
         public static volatile Throwable throwable;
         public static volatile Session session;
 
+        public static final CountDownLatch ON_ERROR_LATCH = new CountDownLatch(1);
+
         @Override
         public void onOpen(Session session, EndpointConfig config) {
             session.addMessageHandler(this);
@@ -306,6 +330,8 @@ public class ErrorTest extends TestContainer {
         public void onError(Session session, Throwable thr) {
             OnMessageExceptionEndpoint.throwable = thr;
             OnMessageExceptionEndpoint.session = session;
+
+            ON_ERROR_LATCH.countDown();
         }
     }
 
