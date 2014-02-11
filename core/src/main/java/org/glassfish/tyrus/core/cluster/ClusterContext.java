@@ -235,6 +235,17 @@ public abstract class ClusterContext {
      */
     public abstract void registerSessionListener(String endpointPath, SessionListener listener);
 
+    /**
+     * Register broadcast listener.
+     * <p/>
+     * Gets notification about broadcasted messages. Used as an optimized variant of standard websocket broadcast patter.
+     * In this case, only one message is sent to all cluster nodes (instead {@code n} when {@code n} represent number of
+     * clients connected to remote nodes).
+     *
+     * @param endpointPath endpoint path identifying sessions alignment to the endpoint.
+     * @param listener     listener instance.
+     * @see org.glassfish.tyrus.core.cluster.BroadcastListener
+     */
     public abstract void registerBroadcastListener(String endpointPath, BroadcastListener listener);
 
     /**
@@ -252,11 +263,20 @@ public abstract class ClusterContext {
      * <p/>
      * Changes must be propagated to remote instances.
      *
-     * @param connectionId remote session id.
+     * @param connectionId connection id. Connection id may be shared among subsequent TCP connection - represents
+     *                     logical connection.
      * @return distributed map containing session properties.
      */
     public abstract Map<String, Object> getDistributedUserProperties(String connectionId);
 
+    /**
+     * Destroy map which holds distributed user properties.
+     * <p/>
+     * This method should be invoked only when session is properly closed.
+     *
+     * @param connectionId connection id. Connection id may be shared among subsequent TCP connection - represents
+     *                     logical connection.
+     */
     public abstract void destroyDistributedUserProperties(String connectionId);
 
     /**

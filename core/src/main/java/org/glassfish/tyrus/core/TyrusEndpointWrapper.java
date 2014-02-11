@@ -1013,6 +1013,10 @@ public class TyrusEndpointWrapper {
             session.setState(TyrusSession.State.CLOSED);
             if (clusterContext != null) {
                 clusterContext.removeSession(session.getId(), getEndpointPath());
+
+                // TODO: check the close reason or something more descriptive to get the info
+                // TODO: about the proper reason. We don't want to destroy userProperties in case
+                // TODO: of node failure.
                 clusterContext.destroyDistributedUserProperties(session.getConnectionId());
             }
 
