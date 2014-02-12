@@ -65,6 +65,11 @@ import org.glassfish.tyrus.spi.UpgradeRequest;
 import org.glassfish.tyrus.spi.UpgradeResponse;
 import org.glassfish.tyrus.spi.Writer;
 
+/**
+ * Tyrus protocol handler.
+ * <p/>
+ * Responsible for framing and unframing raw websocket frames.
+ */
 public final class ProtocolHandler {
 
     /**
@@ -370,7 +375,7 @@ public final class ProtocolHandler {
 
     void validate(final byte fragmentType, byte opcode) {
         if (opcode != 0 && opcode != fragmentType && !isControlFrame(opcode)) {
-            throw new WebSocketException("Attempting to send a message while sending fragments of another");
+            throw new ProtocolException("Attempting to send a message while sending fragments of another");
         }
     }
 
@@ -480,7 +485,7 @@ public final class ProtocolHandler {
                         state.controlFrame = isControlFrame(opcode);
                         state.opcode = (byte) (opcode & 0x7f);
                         if (!state.finalFragment && state.controlFrame) {
-                            throw new ProtocolError("Fragmented control frame");
+                            throw new ProtocolException("Fragmented control frame");
                         }
 
                         byte lengthCode = buffer.get();
@@ -499,7 +504,7 @@ public final class ProtocolHandler {
                             state.length = state.lengthCode;
                         } else {
                             if (state.controlFrame) {
-                                throw new ProtocolError("Control frame payloads must be no greater than 125 bytes.");
+                                throw new ProtocolException("Control frame payloads must be no greater than 125 bytes.");
                             }
 
                             final int lengthBytes = state.lengthCode == 126 ? 2 : 8;
@@ -531,7 +536,7 @@ public final class ProtocolHandler {
                         state.masker.setBuffer(buffer);
                         final byte[] data = state.masker.unmask((int) state.length);
                         if (data.length != state.length) {
-                            throw new ProtocolError(String.format("Data read (%s) is not the expected" +
+                            throw new ProtocolException(String.format("Data read (%s) is not the expected" +
                                     " size (%s)", data.length, state.length));
                         }
 
@@ -571,7 +576,7 @@ public final class ProtocolHandler {
      */
     public void process(Frame frame, TyrusWebSocket socket) {
         if (frame.isRsv1() || frame.isRsv2() || frame.isRsv3()) {
-            throw new ProtocolError("RSV bit(s) incorrectly set.");
+            throw new ProtocolException("RSV bit(s) incorrectly set.");
         }
 
         final byte opcode = frame.getOpcode();
@@ -579,10 +584,10 @@ public final class ProtocolHandler {
         if (!frame.isControlFrame()) {
             final boolean continuationFrame = (opcode == 0);
             if (continuationFrame && !processingFragment) {
-                throw new ProtocolError("End fragment sent, but wasn't processing any previous fragments");
+                throw new ProtocolException("End fragment sent, but wasn't processing any previous fragments");
             }
             if (processingFragment && !continuationFrame) {
-                throw new ProtocolError("Fragment sent but opcode was not 0");
+                throw new ProtocolException("Fragment sent but opcode was not 0");
             }
             if (!fin && !continuationFrame) {
                 processingFragment = true;

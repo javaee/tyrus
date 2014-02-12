@@ -43,13 +43,15 @@ package org.glassfish.tyrus.core.frame;
 import java.nio.ByteBuffer;
 import java.util.Locale;
 
-import org.glassfish.tyrus.core.ProtocolError;
+import org.glassfish.tyrus.core.ProtocolException;
 import org.glassfish.tyrus.core.TyrusWebSocket;
 
 /**
  * Frame representation used in Tyrus runtime.
  * <p/>
  * Enriched {@link Frame} representation.
+ *
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 public abstract class TyrusFrame extends Frame {
 
@@ -92,7 +94,7 @@ public abstract class TyrusFrame extends Frame {
             case 0x0A:
                 return new PongFrame(frame);
             default:
-                throw new ProtocolError(String.format("Unknown wrappedFrame type: %s",
+                throw new ProtocolException(String.format("Unknown wrappedFrame type: %s",
                         Integer.toHexString(frame.getOpcode()).toUpperCase(Locale.US)));
         }
     }

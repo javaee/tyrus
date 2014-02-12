@@ -56,7 +56,6 @@ import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
 import javax.websocket.server.HandshakeRequest;
 
-import org.glassfish.tyrus.core.FramingException;
 import org.glassfish.tyrus.core.Handshake;
 import org.glassfish.tyrus.core.ProtocolHandler;
 import org.glassfish.tyrus.core.RequestContext;
@@ -65,6 +64,7 @@ import org.glassfish.tyrus.core.TyrusExtension;
 import org.glassfish.tyrus.core.TyrusWebSocket;
 import org.glassfish.tyrus.core.Utils;
 import org.glassfish.tyrus.core.Version;
+import org.glassfish.tyrus.core.WebSocketException;
 import org.glassfish.tyrus.core.extension.ExtendedExtension;
 import org.glassfish.tyrus.core.frame.CloseFrame;
 import org.glassfish.tyrus.core.frame.Frame;
@@ -77,6 +77,8 @@ import org.glassfish.tyrus.spi.UpgradeResponse;
 import org.glassfish.tyrus.spi.Writer;
 
 /**
+ * Tyrus {@link ClientEngine} implementaion.
+ *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 public class TyrusClientEngine implements ClientEngine {
@@ -321,9 +323,9 @@ public class TyrusClientEngine implements ClientEngine {
                         }
                     } while (true);
                 }
-            } catch (FramingException e) {
+            } catch (WebSocketException e) {
                 LOGGER.log(Level.FINE, e.getMessage(), e);
-                socket.onClose(new CloseFrame(new CloseReason(CloseReason.CloseCodes.getCloseCode(e.getClosingCode()), e.getMessage())));
+                socket.onClose(new CloseFrame(e.getCloseReason()));
             } catch (Exception e) {
                 LOGGER.log(Level.FINE, e.getMessage(), e);
                 socket.onClose(new CloseFrame(new CloseReason(CloseReason.CloseCodes.UNEXPECTED_CONDITION, e.getMessage())));

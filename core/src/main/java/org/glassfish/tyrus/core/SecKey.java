@@ -120,6 +120,11 @@ class SecKey {
         return secKey;
     }
 
+    /**
+     * Validate provided server key.
+     *
+     * @param serverKey server key to be validated.
+     */
     public void validateServerKey(String serverKey) {
         final SecKey key = generateServerKey(this);
         if (!key.getSecKey().equals(serverKey)) {

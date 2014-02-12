@@ -54,6 +54,22 @@ import java.util.Map;
 public class Utils {
 
     /**
+     * Define to {@link String} conversion for various types.
+     *
+     * @param <T> type for which is conversion defined.
+     */
+    public static abstract class Stringifier<T> {
+
+        /**
+         * Convert object to {@link String}.
+         *
+         * @param t object to be converted.
+         * @return {@link String} representation of given object.
+         */
+        abstract String toString(T t);
+    }
+
+    /**
      * Parse header value - splits multiple values (quoted, unquoted) separated by
      * comma.
      *
@@ -163,6 +179,48 @@ public class Utils {
         Iterator<T> it = list.iterator();
         while (it.hasNext()) {
             sb.append(it.next());
+            if (it.hasNext()) {
+                sb.append(", ");
+            }
+        }
+        return sb.toString();
+    }
+
+    /**
+     * Get list of strings from List&lt;T&gt;.
+     *
+     * @param list        list to be converted.
+     * @param stringifier strignifier used for conversion. When {@code null}, {@link Object#toString()} method will be used.
+     * @return converted list.
+     */
+    public static <T> List<String> getStringList(List<T> list, Stringifier<T> stringifier) {
+        List<String> result = new ArrayList<String>();
+        for (T item : list) {
+            if (stringifier != null) {
+                result.add(stringifier.toString(item));
+            } else {
+                result.add(item.toString());
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Convert list of values to singe {@link String} usable as HTTP header value.
+     *
+     * @param list        list of values.
+     * @param stringifier strignifier used for conversion. When {@code null}, {@link Object#toString()} method will be used.
+     * @return serialized list.
+     */
+    public static <T> String getHeaderFromList(List<T> list, Stringifier<T> stringifier) {
+        StringBuilder sb = new StringBuilder();
+        Iterator<T> it = list.iterator();
+        while (it.hasNext()) {
+            if (stringifier != null) {
+                sb.append(stringifier.toString(it.next()));
+            } else {
+                sb.append(it.next());
+            }
             if (it.hasNext()) {
                 sb.append(", ");
             }

@@ -40,49 +40,34 @@
 
 package org.glassfish.tyrus.core;
 
-import javax.websocket.CloseReason;
-
 /**
- * {@link Exception}, which describes the error, occurred during the handshake phase.
+ * {@link RuntimeException}, which describes the error, occurred during the handshake phase.
  *
  * @author Alexey Stashok
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class HandshakeException extends WebSocketException {
-    private final int code;
+public class HandshakeException extends RuntimeException {
+
+    private final int httpStatusCode;
 
     /**
-     * Construct a <tt>HandshakeException</tt>.
+     * Construct a HandshakeException. HTTP status code will be set to {@code 500}.
      *
      * @param message error description
      */
     public HandshakeException(String message) {
-        this(CloseReason.CloseCodes.PROTOCOL_ERROR.getCode(), message);
+        this(500, message);
     }
 
     /**
      * Construct a <tt>HandshakeException</tt>.
      *
-     * @param code    error code
-     * @param message error description
+     * @param httpStatusCode http status code to be set to response.
+     * @param message        error description
      */
-    public HandshakeException(int code, String message) {
+    public HandshakeException(int httpStatusCode, String message) {
         super(message);
-        this.code = code;
-    }
-
-    /**
-     * Construct a <tt>HandshakeException</tt>.
-     *
-     * @param code    error code
-     * @param message error description
-     * @param cause   the cause (which is saved for later retrieval by the
-     *                {@link #getCause()} method).  (A <tt>null</tt> value is
-     *                permitted, and indicates that the cause is nonexistent or
-     *                unknown.)
-     */
-    public HandshakeException(int code, String message, Throwable cause) {
-        super(message, cause);
-        this.code = code;
+        this.httpStatusCode = httpStatusCode;
     }
 
     /**
@@ -90,7 +75,7 @@ public class HandshakeException extends WebSocketException {
      *
      * @return the error code.
      */
-    public int getCode() {
-        return code;
+    public int getHttpStatusCode() {
+        return httpStatusCode;
     }
 }

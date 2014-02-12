@@ -44,7 +44,6 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 
 import javax.websocket.Extension;
@@ -75,10 +74,19 @@ public final class Handshake {
     private ExtendedExtension.ExtensionContext extensionContext;
     private SecKey secKey;
 
-
+    /**
+     * @see #createClientHandShake(org.glassfish.tyrus.spi.UpgradeRequest)
+     * @see #createServerHandShake(org.glassfish.tyrus.spi.UpgradeRequest, org.glassfish.tyrus.core.extension.ExtendedExtension.ExtensionContext)
+     */
     private Handshake() {
     }
 
+    /**
+     * Client-side handshake.
+     *
+     * @param webSocketRequest request representation to be modified for use as WebSocket handshake request.
+     * @return handshake instance.
+     */
     static Handshake createClientHandShake(UpgradeRequest webSocketRequest) {
         final Handshake handshake = new Handshake();
         handshake.request = webSocketRequest;
@@ -100,6 +108,13 @@ public final class Handshake {
         return handshake;
     }
 
+    /**
+     * Server-side handshake.
+     *
+     * @param request          received handshake request.
+     * @param extensionContext extension context.
+     * @return created handshake.
+     */
     static Handshake createServerHandShake(UpgradeRequest request, ExtendedExtension.ExtensionContext extensionContext) {
         final Handshake handshake = new Handshake();
 
@@ -113,7 +128,7 @@ public final class Handshake {
         if (handshake.origin == null) {
             handshake.origin = request.getHeader(UpgradeRequest.ORIGIN_HEADER);
         }
-        Handshake.determineHostAndPort(handshake, request);
+        handshake.determineHostAndPort(request);
 
         // TODO - trim?
         final String protocolHeader = request.getHeader(UpgradeRequest.SEC_WEBSOCKET_PROTOCOL);
@@ -163,16 +178,16 @@ public final class Handshake {
         }
     }
 
-    private static void determineHostAndPort(Handshake handshake, UpgradeRequest request) {
+    private void determineHostAndPort(UpgradeRequest request) {
         String header = request.getHeader(UpgradeRequest.HOST);
 
         final int i = header == null ? -1 : header.indexOf(":");
         if (i == -1) {
-            handshake.serverHostName = header;
-            handshake.port = 80;
+            serverHostName = header;
+            port = 80;
         } else {
-            handshake.serverHostName = header.substring(0, i);
-            handshake.port = Integer.valueOf(header.substring(i + 1));
+            serverHostName = header.substring(0, i);
+            port = Integer.valueOf(header.substring(i + 1));
         }
     }
 
@@ -205,60 +220,8 @@ public final class Handshake {
         return subProtocols;
     }
 
-    public void setSubProtocols(List<String> subProtocols) {
-        this.subProtocols = subProtocols;
-    }
-
-    /**
-     * Define to {@link String} conversion for various types.
-     *
-     * @param <T> type for which is conversion defined.
-     */
-    static abstract class Stringifier<T> {
-
-        /**
-         * Convert object to {@link String}.
-         *
-         * @param t object to be converted.
-         * @return {@link String} representation of given object.
-         */
-        abstract String toString(T t);
-    }
-
-    <T> String getHeaderFromList(List<T> list, Stringifier<T> stringifier) {
-        StringBuilder sb = new StringBuilder();
-        Iterator<T> it = list.iterator();
-        while (it.hasNext()) {
-            if (stringifier != null) {
-                sb.append(stringifier.toString(it.next()));
-            } else {
-                sb.append(it.next());
-            }
-            if (it.hasNext()) {
-                sb.append(", ");
-            }
-        }
-        return sb.toString();
-    }
-
-    <T> List<String> getStringList(List<T> list, Stringifier<T> stringifier) {
-        List<String> result = new ArrayList<String>();
-        for (T item : list) {
-            if (stringifier != null) {
-                result.add(stringifier.toString(item));
-            } else {
-                result.add(item.toString());
-            }
-        }
-        return result;
-    }
-
     List<Extension> getExtensions() {
         return extensions;
-    }
-
-    public void setExtensions(List<Extension> extensions) {
-        this.extensions = extensions;
     }
 
     /**
@@ -268,6 +231,24 @@ public final class Handshake {
      */
     public UpgradeRequest getRequest() {
         return request;
+    }
+
+    /**
+     * Client side only - set the list of supported subprotocols.
+     *
+     * @param subProtocols list of supported subprotocol.
+     */
+    public void setSubProtocols(List<String> subProtocols) {
+        this.subProtocols = subProtocols;
+    }
+
+    /**
+     * Client side only - set the list of supported extensions.
+     *
+     * @param extensions list of supported extensions.
+     */
+    public void setExtensions(List<Extension> extensions) {
+        this.extensions = extensions;
     }
 
     /**
@@ -290,11 +271,11 @@ public final class Handshake {
         putSingleHeader(request, UpgradeRequest.SEC_WEBSOCKET_VERSION, VERSION);
 
         if (!getSubProtocols().isEmpty()) {
-            putSingleHeader(request, UpgradeRequest.SEC_WEBSOCKET_PROTOCOL, getHeaderFromList(subProtocols, null));
+            putSingleHeader(request, UpgradeRequest.SEC_WEBSOCKET_PROTOCOL, Utils.getHeaderFromList(subProtocols, null));
         }
 
         if (!getExtensions().isEmpty()) {
-            putSingleHeader(request, UpgradeRequest.SEC_WEBSOCKET_EXTENSIONS, getHeaderFromList(getExtensions(), new Stringifier<Extension>() {
+            putSingleHeader(request, UpgradeRequest.SEC_WEBSOCKET_EXTENSIONS, Utils.getHeaderFromList(getExtensions(), new Utils.Stringifier<Extension>() {
                 @Override
                 String toString(Extension extension) {
                     return TyrusExtension.toString(extension);
@@ -349,7 +330,7 @@ public final class Handshake {
 
         final List<Extension> negotiatedExtensions = endpointWrapper.getNegotiatedExtensions(extensions);
         if (!negotiatedExtensions.isEmpty()) {
-            response.getHeaders().put(UpgradeRequest.SEC_WEBSOCKET_EXTENSIONS, getStringList(negotiatedExtensions, new Stringifier<Extension>() {
+            response.getHeaders().put(UpgradeRequest.SEC_WEBSOCKET_EXTENSIONS, Utils.getStringList(negotiatedExtensions, new Utils.Stringifier<Extension>() {
                 @Override
                 String toString(final Extension extension) {
                     if (extension instanceof ExtendedExtension) {

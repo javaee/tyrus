@@ -195,7 +195,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
             }
         } catch (HandshakeException e) {
             LOGGER.log(Level.SEVERE, e.getMessage(), e);
-            response.setStatus(e.getCode());
+            response.setStatus(e.getHttpStatusCode());
             return HANDSHAKE_FAILED_UPGRADE_INFO;
         }
 
@@ -263,9 +263,9 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
                         }
                     } while (true);
                 }
-            } catch (FramingException e) {
+            } catch (WebSocketException e) {
                 LOGGER.log(Level.FINE, e.getMessage(), e);
-                socket.onClose(new CloseFrame(new CloseReason(CloseReason.CloseCodes.getCloseCode(e.getClosingCode()), e.getMessage())));
+                socket.onClose(new CloseFrame(e.getCloseReason()));
             } catch (Exception e) {
                 LOGGER.log(Level.FINE, e.getMessage(), e);
                 if (endpointWrapper.onError(socket, e)) {

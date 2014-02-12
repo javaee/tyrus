@@ -48,14 +48,16 @@ import java.nio.charset.CoderResult;
 
 import javax.websocket.CloseReason;
 
-import org.glassfish.tyrus.core.ProtocolError;
+import org.glassfish.tyrus.core.ProtocolException;
 import org.glassfish.tyrus.core.StrictUtf8;
 import org.glassfish.tyrus.core.TyrusWebSocket;
-import org.glassfish.tyrus.core.Utf8DecodingError;
+import org.glassfish.tyrus.core.Utf8DecodingException;
 import org.glassfish.tyrus.core.Utils;
 
 /**
  * Close frame representation.
+ *
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 public class CloseFrame extends TyrusFrame {
 
@@ -74,22 +76,23 @@ public class CloseFrame extends TyrusFrame {
         String closeReasonString;
         final byte[] data = frame.getPayloadData();
         if (data.length < 2) {
-            throw new ProtocolError("Closing wrappedFrame payload, if present, must be a minimum of 2 bytes in length") {
+            throw new ProtocolException("Closing wrappedFrame payload, if present, must be a minimum of 2 bytes in length") {
 
                 // autobahn test suite, test 7.3.1
                 @Override
-                public int getClosingCode() {
+                public CloseReason getCloseReason() {
                     if (data.length == 0) {
-                        return 1000;
+                        return new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, "Normal closure.");
                     } else {
-                        return super.getClosingCode();
+                        return super.getCloseReason();
                     }
+
                 }
             };
         } else {
             closeCode = (int) Utils.toLong(data, 0, 2);
             if (closeCode < 1000 || closeCode == 1004 || closeCode == 1005 || closeCode == 1006 || (closeCode > 1011 && closeCode < 3000) || closeCode > 4999) {
-                throw new ProtocolError("Illegal status code: " + closeCode);
+                throw new ProtocolException("Illegal status code: " + closeCode);
             }
             if (data.length > 2) {
                 closeReasonString = utf8Decode(data);
@@ -149,7 +152,7 @@ public class CloseFrame extends TyrusFrame {
                 continue;
             }
             if (result.isError() || result.isMalformed()) {
-                throw new Utf8DecodingError("Illegal UTF-8 Sequence");
+                throw new Utf8DecodingException();
             }
         }
 

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -40,16 +40,26 @@
 
 package org.glassfish.tyrus.core;
 
-class WebSocketException extends RuntimeException {
+import javax.websocket.CloseReason;
+
+/**
+ * WebSocketException can be thrown during runtime (after handshake).
+ */
+public abstract class WebSocketException extends RuntimeException {
+
+    /**
+     * Create new {@link org.glassfish.tyrus.core.WebSocketException}.
+     *
+     * @param message excetion message.
+     */
     public WebSocketException(String message) {
         super(message);
     }
 
-    WebSocketException(String message, Throwable throwable) {
-        super(message, throwable);
-    }
-
-    WebSocketException(Throwable throwable) {
-        super(throwable);
-    }
+    /**
+     * Get close reason.
+     *
+     * @return close reason used when processing this exception.
+     */
+    public abstract CloseReason getCloseReason();
 }

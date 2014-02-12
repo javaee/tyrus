@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -39,6 +39,8 @@
  */
 package org.glassfish.tyrus.core;
 
+import javax.websocket.CloseReason;
+
 /**
  * Thrown when {@link javax.websocket.OnMessage#maxMessageSize()} is smaller than received message size.
  * <p/>
@@ -49,9 +51,16 @@ package org.glassfish.tyrus.core;
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-class MessageTooBigException extends RuntimeException {
+class MessageTooBigException extends WebSocketException {
+
+    private static final CloseReason CLOSE_REASON = new CloseReason(CloseReason.CloseCodes.TOO_BIG, "Message too big.");
 
     MessageTooBigException(String message) {
         super(message);
+    }
+
+    @Override
+    public CloseReason getCloseReason() {
+        return CLOSE_REASON;
     }
 }

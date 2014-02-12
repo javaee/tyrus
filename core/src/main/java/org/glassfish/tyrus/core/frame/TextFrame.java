@@ -48,11 +48,13 @@ import java.nio.charset.CoderResult;
 
 import org.glassfish.tyrus.core.StrictUtf8;
 import org.glassfish.tyrus.core.TyrusWebSocket;
-import org.glassfish.tyrus.core.Utf8DecodingError;
+import org.glassfish.tyrus.core.Utf8DecodingException;
 import org.glassfish.tyrus.core.Utf8Utils;
 
 /**
  * Text frame representation.
+ *
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 public class TextFrame extends TyrusFrame {
 
@@ -168,7 +170,7 @@ public class TextFrame extends TyrusFrame {
                 continue;
             }
             if (result.isError() || result.isMalformed()) {
-                throw new Utf8DecodingError("Illegal UTF-8 Sequence");
+                throw new Utf8DecodingException();
             }
         }
 

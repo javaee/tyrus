@@ -111,6 +111,7 @@ public class TyrusEndpointWrapper {
     /**
      * The container for this session.
      */
+    private final WebSocketContainer container;
     private final String contextPath;
     private final List<CoderWrapper<Decoder>> decoders = new ArrayList<CoderWrapper<Decoder>>();
     private final List<CoderWrapper<Encoder>> encoders = new ArrayList<CoderWrapper<Encoder>>();
@@ -123,7 +124,6 @@ public class TyrusEndpointWrapper {
             new ConcurrentHashMap<String, ClusterSession>();
     private final ComponentProviderService componentProvider;
     private final ServerEndpointConfig.Configurator configurator;
-    private final WebSocketContainer container;
     private final OnCloseListener onCloseListener;
     private final Method onOpen;
     private final Method onClose;
@@ -892,9 +892,9 @@ public class TyrusEndpointWrapper {
             LOGGER.log(Level.FINE, String.format("Exception thrown while processing message. Session: '%session'.", session), throwable);
         }
 
-        if (throwable instanceof MessageTooBigException) {
+        if (throwable instanceof WebSocketException) {
             try {
-                session.close(new CloseReason(CloseReason.CloseCodes.TOO_BIG, "Message too big."));
+                session.close(((WebSocketException) throwable).getCloseReason());
                 return false;
             } catch (IOException e) {
                 // we don't care.
