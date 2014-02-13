@@ -447,7 +447,7 @@ public class TyrusEndpointWrapper {
     }
 
     /**
-     * Get the negotiated extensions' names based on the extensions supported by client.
+     * Server-side; Get the negotiated extensions' names based on the extensions supported by client.
      *
      * @param clientExtensions names of the extensions' supported by client.
      * @return names of extensions supported by both client and class that implements this one.

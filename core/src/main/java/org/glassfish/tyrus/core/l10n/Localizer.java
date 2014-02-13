@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.core.uri.internal.l10n;
+package org.glassfish.tyrus.core.l10n;
 
 import java.text.MessageFormat;
 import java.util.HashMap;

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -66,7 +66,7 @@ import java.util.jar.Manifest;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.glassfish.tyrus.core.uri.internal.LocalizationMessages;
+import org.glassfish.tyrus.core.l10n.LocalizationMessages;
 
 /**
  * A simple service-provider lookup mechanism.  A <i>service</i> is a
@@ -591,10 +591,10 @@ public final class ServiceFinder<T> implements Iterable<T> {
      * Returns discovered objects incrementally.
      *
      * @return An <tt>Iterator</tt> that yields provider objects for the given
-     *         service, in some arbitrary order.  The iterator will throw a
-     *         <tt>ServiceConfigurationError</tt> if a provider-configuration
-     *         file violates the specified format or if a provider class cannot
-     *         be found and instantiated.
+     * service, in some arbitrary order.  The iterator will throw a
+     * <tt>ServiceConfigurationError</tt> if a provider-configuration
+     * file violates the specified format or if a provider class cannot
+     * be found and instantiated.
      */
     @Override
     public Iterator<T> iterator() {
@@ -605,10 +605,10 @@ public final class ServiceFinder<T> implements Iterable<T> {
      * Returns discovered classes incrementally.
      *
      * @return An <tt>Iterator</tt> that yields provider classes for the given
-     *         service, in some arbitrary order.  The iterator will throw a
-     *         <tt>ServiceConfigurationError</tt> if a provider-configuration
-     *         file violates the specified format or if a provider class cannot
-     *         be found.
+     * service, in some arbitrary order.  The iterator will throw a
+     * <tt>ServiceConfigurationError</tt> if a provider-configuration
+     * file violates the specified format or if a provider class cannot
+     * be found.
      */
     private Iterator<Class<T>> classIterator() {
         return ServiceIteratorProvider.getInstance().createClassIterator(serviceClass, serviceName, classLoader, ignoreOnClassNotFound);
@@ -715,8 +715,8 @@ public final class ServiceFinder<T> implements Iterable<T> {
      *                    been returned.  This set will be updated to contain the names
      *                    that will be yielded from the returned <tt>Iterator</tt>.
      * @return A (possibly empty) <tt>Iterator</tt> that will yield the
-     *         provider-class names in the given configuration file that are
-     *         not yet members of the returned set
+     * provider-class names in the given configuration file that are
+     * not yet members of the returned set
      * @throws ServiceConfigurationError If an I/O error occurs while reading from the given URL, or
      *                                   if a configuration-file format error is detected
      */

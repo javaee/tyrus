@@ -37,40 +37,22 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.core.uri.internal.l10n;
+
+package org.glassfish.tyrus.core.l10n;
 
 /**
  * @author WS Development Team
  */
-public final class LocalizableMessage implements Localizable {
+public class LocalizableMessageFactory {
 
     private final String _bundlename;
-    private final String _key;
-    private final Object[] _args;
 
-    public LocalizableMessage(String bundlename, String key, Object... args) {
+    public LocalizableMessageFactory(String bundlename) {
         _bundlename = bundlename;
-        _key = key;
-        if (args == null) {
-            args = new Object[0];
-        }
-        _args = args;
     }
 
-    @Override
-    public String getKey() {
-        return _key;
+    public Localizable getMessage(String key, Object... args) {
+        return new LocalizableMessage(_bundlename, key, args);
     }
 
-    @Override
-    public Object[] getArguments() {
-        final Object[] copy = new Object[_args.length];
-        System.arraycopy(_args, 0, copy, 0, _args.length);
-        return copy;
-    }
-
-    @Override
-    public String getResourceBundleName() {
-        return _bundlename;
-    }
 }

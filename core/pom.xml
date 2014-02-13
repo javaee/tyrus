@@ -40,7 +40,8 @@
 
 -->
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <parent>
         <groupId>org.glassfish.tyrus</groupId>
         <artifactId>tyrus-project</artifactId>
@@ -78,7 +79,9 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
-                        <Export-Package>org.glassfish.tyrus.core.*;version=${project.version},org.glassfish.tyrus.core.extension.*;version=${project.version}</Export-Package>
+                        <Export-Package>
+                            org.glassfish.tyrus.core.*;version=${project.version},org.glassfish.tyrus.core.extension.*;version=${project.version},org.glassfish.tyrus.core.cluster.*;version=${project.version},org.glassfish.tyrus.core.coder.*;version=${project.version},org.glassfish.tyrus.core.frame.*;version=${project.version}
+                        </Export-Package>
                         <Import-Package>
                             javax.websocket;version=${apijar.bundle.version},javax.websocket.server;version=${apijar.bundle.version},javax.naming,*
                         </Import-Package>

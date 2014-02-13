@@ -37,22 +37,44 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-
-package org.glassfish.tyrus.core.uri.internal.l10n;
+package org.glassfish.tyrus.core.l10n;
 
 /**
+ * Localizable message.
+ *
  * @author WS Development Team
  */
-public class LocalizableMessageFactory {
+public interface Localizable {
 
-    private final String _bundlename;
+    /**
+     * Special constant that represents a message that
+     * is not localizable.
+     * <p/>
+     * <p/>
+     * Use of "new" is to create an unique instance.
+     */
+    public static final String NOT_LOCALIZABLE = "\u0000";
 
-    public LocalizableMessageFactory(String bundlename) {
-        _bundlename = bundlename;
-    }
+    /**
+     * Gets the key in the resource bundle.
+     *
+     * @return if this method returns {@link #NOT_LOCALIZABLE}, that means the
+     * message is not localizable, and the first item of {@link #getArguments()}
+     * array holds a {@code String}.
+     */
+    public String getKey();
 
-    public Localizable getMessage(String key, Object... args) {
-        return new LocalizableMessage(_bundlename, key, args);
-    }
+    /**
+     * Returns the arguments for message formatting.
+     *
+     * @return can be an array of length 0 but never be {@code null}.
+     */
+    public Object[] getArguments();
 
+    /**
+     * Get the name of the localization messages resource bundle.
+     *
+     * @return the localization messages resource bundle name.
+     */
+    public String getResourceBundleName();
 }

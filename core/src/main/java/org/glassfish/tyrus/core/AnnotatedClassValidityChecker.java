@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -52,19 +52,14 @@ import javax.websocket.Encoder;
 import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
 
+import org.glassfish.tyrus.core.l10n.LocalizationMessages;
+
 /**
  * Used when processing a class annotated with {@link @ServerEndpoint} to check that it complies with specification.
  *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
 class AnnotatedClassValidityChecker {
-
-    private static final String MULTIPLE_IDENTICAL_PARAMETERS = " has got multiple parameters of identical type.";
-    private static final String FORBIDDEN_WEB_SOCKET_OPEN_PARAM = " is not allowed as parameter type for method annotated with @OnOpen.";
-    private static final String FORBIDDEN_WEB_SOCKET_CLOSE_PARAMS = " @OnClose has got different params than Session or CloseReason.";
-    private static final String FORBIDDEN_WEB_SOCKET_ERROR_PARAM = " is not allowed as parameter type for method annotated with @OnError.";
-    private static final String MANDATORY_ERROR_PARAM_MISSING = " does not have mandatory Throwable param.";
-    private static final String FORBIDDEN_RETURN_TYPE = " has got unsupported return type.";
 
     private final Class<?> annotatedClass;
     private final List<Class<? extends Encoder>> encoders;
@@ -89,12 +84,11 @@ class AnnotatedClassValidityChecker {
      * Voluntary parameters of type {@link javax.websocket.Session} and parameters annotated with {@link javax.websocket.server.PathParam}
      * are checked in advance in {@link AnnotatedEndpoint}.
      */
-
     public void checkOnMessageParams(Method method, MessageHandler handler) {
         try {
             handlerManager.addMessageHandler(handler);
         } catch (IllegalStateException ise) {
-            collector.addException(new DeploymentException(String.format("Class: %s. %s", annotatedClass.getCanonicalName(), ise.getMessage()), ise.getCause()));
+            collector.addException(new DeploymentException(LocalizationMessages.CLASS_CHECKER_ADD_MESSAGE_HANDLER_ERROR(annotatedClass.getCanonicalName(), ise.getMessage()), ise.getCause()));
         }
 
         checkOnMessageReturnType(method);
@@ -105,7 +99,7 @@ class AnnotatedClassValidityChecker {
 
         if (returnType != void.class && returnType != String.class && returnType != ByteBuffer.class &&
                 returnType != byte[].class && !returnType.isPrimitive() && checkEncoders(returnType) && !PrimitivesToWrappers.isPrimitiveWrapper(returnType)) {
-            logDeploymentException(new DeploymentException(String.format("Method: %s.%s %s", annotatedClass.getName(), method.getName(), FORBIDDEN_RETURN_TYPE)));
+            logDeploymentException(new DeploymentException(LocalizationMessages.CLASS_CHECKER_FORBIDDEN_RETURN_TYPE(annotatedClass.getName(), method.getName())));
         }
     }
 
@@ -120,7 +114,7 @@ class AnnotatedClassValidityChecker {
     public void checkOnOpenParams(Method method, Map<Integer, Class<?>> params) {
         for (Class<?> value : params.values()) {
             if (value != EndpointConfig.class) {
-                logDeploymentException(new DeploymentException(String.format("%s:%s %s", getPrefix(method.getName()), value, FORBIDDEN_WEB_SOCKET_OPEN_PARAM)));
+                logDeploymentException(new DeploymentException(LocalizationMessages.CLASS_CHECKER_FORBIDDEN_WEB_SOCKET_OPEN_PARAM(annotatedClass.getName(), method.getName(), value)));
             }
         }
     }
@@ -133,7 +127,7 @@ class AnnotatedClassValidityChecker {
     public void checkOnCloseParams(Method method, Map<Integer, Class<?>> params) {
         for (Class<?> value : params.values()) {
             if (value != CloseReason.class) {
-                logDeploymentException(new DeploymentException(String.format("%s %s", getPrefix(method.getName()), FORBIDDEN_WEB_SOCKET_CLOSE_PARAMS)));
+                logDeploymentException(new DeploymentException(LocalizationMessages.CLASS_CHECKER_FORBIDDEN_WEB_SOCKET_CLOSE_PARAM(annotatedClass.getName(), method.getName())));
             }
         }
     }
@@ -148,17 +142,17 @@ class AnnotatedClassValidityChecker {
 
         for (Class<?> value : params.values()) {
             if (value != Throwable.class) {
-                logDeploymentException(new DeploymentException(String.format("%s%s%s", getPrefix(method.getName()), value, FORBIDDEN_WEB_SOCKET_ERROR_PARAM)));
+                logDeploymentException(new DeploymentException(LocalizationMessages.CLASS_CHECKER_FORBIDDEN_WEB_SOCKET_ERROR_PARAM(annotatedClass.getName(), method.getName(), value)));
             } else {
                 if (throwablePresent) {
-                    logDeploymentException(new DeploymentException(String.format("%s%s", getPrefix(method.getName()), MULTIPLE_IDENTICAL_PARAMETERS)));
+                    logDeploymentException(new DeploymentException(LocalizationMessages.CLASS_CHECKER_MULTIPLE_IDENTICAL_PARAMS(annotatedClass.getName(), method.getName())));
                 }
                 throwablePresent = true;
             }
         }
 
         if (!throwablePresent) {
-            logDeploymentException(new DeploymentException(String.format("%s%s", getPrefix(method.getName()), MANDATORY_ERROR_PARAM_MISSING)));
+            logDeploymentException(new DeploymentException(LocalizationMessages.CLASS_CHECKER_MANDATORY_PARAM_MISSING(annotatedClass.getName(), method.getName())));
         }
     }
 
@@ -168,7 +162,7 @@ class AnnotatedClassValidityChecker {
 
     private boolean checkEncoders(Class<?> requiredType) {
         for (Class<? extends Encoder> encoderClass : encoders) {
-            if(AnnotatedEndpoint.getEncoderClassType(encoderClass).isAssignableFrom(requiredType)) {
+            if (AnnotatedEndpoint.getEncoderClassType(encoderClass).isAssignableFrom(requiredType)) {
                 return false;
             }
         }
