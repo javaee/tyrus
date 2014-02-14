@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -76,9 +76,12 @@ public class MyWsConfiguration implements ServerApplicationConfig {
             session.addMessageHandler(new MessageHandler.Whole<String>() {
                 @Override
                 public void onMessage(String message) {
-                    System.out.println("##################### Message received");
+                    System.out.println("### Server: Message received: " + message);
                     try {
-                        session.getBasicRemote().sendText(message + " (from your server)");
+                        final String toSend = message + " (from your server)";
+                        System.out.println("### Server: Sending: " + toSend);
+                        session.getBasicRemote().sendText(toSend);
+                        session.close();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }

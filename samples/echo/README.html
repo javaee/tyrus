@@ -3,7 +3,7 @@
 
     DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
 
-    Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+    Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
 
     The contents of this file are subject to the terms of either the GNU
     General Public License Version 2 only ("GPL") or the Common Development
@@ -49,7 +49,11 @@
 <p>This application presents Echo sample. The user sends a text message, server concatenates text " (from your server)" to the message and sends it back.</p>
 
 <h2>Contents</h2>
-<p>The application utilizes endpoint <code>org.glassfish.tyrus.sample.echo.EchoEndpoint</code> to receive messages, add the text and send it back.</p>
+
+<p>The application utilizes endpoint <code>org.glassfish.tyrus.sample.echo.EchoEndpoint</code> to receive messages, add
+    the text and send it back.
+    Server endpoint also closes the connection after message is sent back, which should be indicated on the client side
+    as well.</p>
 
 <h2>Running the Example</h2>
 <p>Run the example as follows:

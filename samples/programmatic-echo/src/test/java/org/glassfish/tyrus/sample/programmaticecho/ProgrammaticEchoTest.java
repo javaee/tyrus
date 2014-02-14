@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -44,6 +44,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfig;
+import javax.websocket.CloseReason;
 import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfig;
@@ -56,6 +57,7 @@ import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
@@ -73,6 +75,7 @@ public class ProgrammaticEchoTest extends TestContainer {
 
         try {
             final CountDownLatch messageLatch = new CountDownLatch(1);
+            final CountDownLatch onCloseLatch = new CountDownLatch(1);
 
             final ClientManager client = ClientManager.createClient();
             client.connectToServer(new Endpoint() {
@@ -92,10 +95,17 @@ public class ProgrammaticEchoTest extends TestContainer {
                         // do nothing
                     }
                 }
+
+                @Override
+                public void onClose(Session session, CloseReason closeReason) {
+                    System.out.println("### Client session closed: " + closeReason);
+                    onCloseLatch.countDown();
+                }
+
             }, ClientEndpointConfig.Builder.create().build(), getURI("/echo"));
 
-            messageLatch.await(1, TimeUnit.SECONDS);
-            assertEquals(0, messageLatch.getCount());
+            assertTrue(messageLatch.await(1, TimeUnit.SECONDS));
+            assertTrue(onCloseLatch.await(10, TimeUnit.SECONDS));
         } catch (Exception e) {
             fail(e.getMessage());
         } finally {
