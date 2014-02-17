@@ -49,6 +49,7 @@ import java.util.List;
 import javax.websocket.Extension;
 
 import org.glassfish.tyrus.core.extension.ExtendedExtension;
+import org.glassfish.tyrus.core.l10n.LocalizationMessages;
 import org.glassfish.tyrus.spi.UpgradeRequest;
 import org.glassfish.tyrus.spi.UpgradeResponse;
 
@@ -135,7 +136,7 @@ public final class Handshake {
         handshake.subProtocols = (protocolHeader == null ? Collections.<String>emptyList() : Arrays.asList(protocolHeader.split(",")));
 
         if (handshake.serverHostName == null) {
-            throw new HandshakeException("Missing required headers for WebSocket negotiation");
+            throw new HandshakeException(LocalizationMessages.HEADERS_MISSING());
         }
         handshake.resourcePath = request.getRequestUri();
         final String queryString = request.getQueryString();
@@ -169,11 +170,11 @@ public final class Handshake {
         // Firefox workaround (it sends "Connections: keep-alive, upgrade").
         if (header.equalsIgnoreCase(UpgradeRequest.CONNECTION)) {
             if (!value.toLowerCase().contains(validValue.toLowerCase())) {
-                throw new HandshakeException(String.format("Invalid %s header returned: '%s'", header, value));
+                throw new HandshakeException(LocalizationMessages.INVALID_HEADER(header, value));
             }
         } else {
             if (!value.equalsIgnoreCase(validValue)) {
-                throw new HandshakeException(String.format("Invalid %s header returned: '%s'", header, value));
+                throw new HandshakeException(LocalizationMessages.INVALID_HEADER(header, value));
             }
         }
     }
@@ -295,8 +296,7 @@ public final class Handshake {
 
     public void validateServerResponse(UpgradeResponse response) {
         if (RESPONSE_CODE_VALUE != response.getStatus()) {
-            throw new HandshakeException(String.format("Response code was not %s: %s",
-                    RESPONSE_CODE_VALUE, response.getStatus()));
+            throw new HandshakeException(LocalizationMessages.INVALID_RESPONSE_CODE(RESPONSE_CODE_VALUE, response.getStatus()));
         }
 
         checkForHeader(response.getFirstHeaderValue(UpgradeRequest.UPGRADE), UpgradeRequest.UPGRADE, UpgradeRequest.WEBSOCKET);

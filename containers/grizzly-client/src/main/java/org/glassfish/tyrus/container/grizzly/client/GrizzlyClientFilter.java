@@ -52,6 +52,7 @@ import java.util.logging.Logger;
 
 import javax.websocket.CloseReason;
 
+import org.glassfish.tyrus.core.CloseReasons;
 import org.glassfish.tyrus.core.TyrusUpgradeResponse;
 import org.glassfish.tyrus.core.Utils;
 import org.glassfish.tyrus.spi.ClientEngine;
@@ -184,7 +185,7 @@ class GrizzlyClientFilter extends BaseFilter {
 
         final org.glassfish.tyrus.spi.Connection connection = TYRUS_CONNECTION.get(ctx.getConnection());
         if (connection != null) {
-            taskQueue.add(new CloseTask(connection, new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, null), ctx.getConnection()));
+            taskQueue.add(new CloseTask(connection, CloseReasons.NORMAL_CLOSURE.getCloseReason(), ctx.getConnection()));
             TaskProcessor.processQueue(taskQueue, null);
         }
         return ctx.getStopAction();

@@ -74,6 +74,7 @@ import javax.websocket.server.ServerEndpoint;
 import javax.websocket.server.ServerEndpointConfig;
 
 import org.glassfish.tyrus.core.coder.PrimitiveDecoders;
+import org.glassfish.tyrus.core.l10n.LocalizationMessages;
 
 /**
  * {@link Endpoint} descendant which represents deployed annotated endpoint.
@@ -158,9 +159,10 @@ public class AnnotatedEndpoint extends Endpoint {
                         onOpenParameters = getParameterExtractors(m, unknownParams, collector);
                         validityChecker.checkOnOpenParams(m, unknownParams);
                     } else {
-                        collector.addException(new DeploymentException("Multiple methods using @OnOpen annotation" +
-                                " in class " + annotatedClass.getName() + ": " + onOpen.getName() + " and " +
-                                m.getName() + ". The latter will be ignored."));
+                        collector.addException(new DeploymentException(
+                                LocalizationMessages.ENDPOINT_MULTIPLE_METHODS(
+                                        OnOpen.class.getSimpleName(), annotatedClass.getName(), onOpen.getName(), m.getName()
+                                )));
                     }
                 } else if (a instanceof OnClose) {
                     if (onClose == null) {
@@ -171,9 +173,10 @@ public class AnnotatedEndpoint extends Endpoint {
                             onCloseParameters[unknownParams.keySet().iterator().next()] = new ParamValue(0);
                         }
                     } else {
-                        collector.addException(new DeploymentException("Multiple methods using @OnClose annotation" +
-                                " in class " + annotatedClass.getName() + ": " + onClose.getName() + " and " +
-                                m.getName() + ". The latter will be ignored."));
+                        collector.addException(new DeploymentException(
+                                LocalizationMessages.ENDPOINT_MULTIPLE_METHODS(
+                                        OnClose.class.getSimpleName(), annotatedClass.getName(), onClose.getName(), m.getName()
+                                )));
                     }
                 } else if (a instanceof OnError) {
                     if (onError == null) {
@@ -184,16 +187,15 @@ public class AnnotatedEndpoint extends Endpoint {
                                 Throwable.class == unknownParams.values().iterator().next()) {
                             onErrorParameters[unknownParams.keySet().iterator().next()] = new ParamValue(0);
                         } else if (!unknownParams.isEmpty()) {
-                            LOGGER.warning("Unknown parameter(s) for " + annotatedClass.getName() + "." + m.getName() +
-                                    " method annotated with @OnError annotation: " + unknownParams + ". This" +
-                                    " method will be ignored.");
+                            LOGGER.warning(LocalizationMessages.ENDPOINT_UNKNOWN_PARAMS(annotatedClass.getName(), m.getName(), unknownParams));
                             onError = null;
                             onErrorParameters = null;
                         }
                     } else {
-                        collector.addException(new DeploymentException("Multiple methods using @OnError annotation" +
-                                " in class " + annotatedClass.getName() + ": " + onError.getName() + " and " +
-                                m.getName()));
+                        collector.addException(new DeploymentException(
+                                LocalizationMessages.ENDPOINT_MULTIPLE_METHODS(
+                                        OnError.class.getSimpleName(), annotatedClass.getName(), onError.getName(), m.getName()
+                                )));
                     }
                 } else if (a instanceof OnMessage) {
                     final long maxMessageSize = ((OnMessage) a).maxMessageSize();
@@ -223,10 +225,10 @@ public class AnnotatedEndpoint extends Endpoint {
                             messageHandlerFactories.add(handlerFactory);
                             validityChecker.checkOnMessageParams(m, handlerFactory.create(null));
                         } else {
-                            collector.addException(new DeploymentException(String.format("Method: %s.%s: has got wrong number of params.", annotatedClass.getName(), m.getName())));
+                            collector.addException(new DeploymentException(LocalizationMessages.ENDPOINT_WRONG_PARAMS(annotatedClass.getName(), m.getName())));
                         }
                     } else {
-                        collector.addException(new DeploymentException(String.format("Method: %s.%s: has got wrong number of params.", annotatedClass.getName(), m.getName())));
+                        collector.addException(new DeploymentException(LocalizationMessages.ENDPOINT_WRONG_PARAMS(annotatedClass.getName(), m.getName())));
                     }
                 }
             }
@@ -245,7 +247,7 @@ public class AnnotatedEndpoint extends Endpoint {
             final ServerEndpoint wseAnnotation = annotatedClass.getAnnotation(ServerEndpoint.class);
 
             if (wseAnnotation == null) {
-                collector.addException(new DeploymentException(String.format("@ServerEndpoint annotation not found on class %s", annotatedClass.getName())));
+                collector.addException(new DeploymentException(LocalizationMessages.ENDPOINT_ANNOTATION_NOT_FOUND(ServerEndpoint.class.getSimpleName(), annotatedClass.getName())));
                 return null;
             }
 
@@ -273,7 +275,7 @@ public class AnnotatedEndpoint extends Endpoint {
             final ClientEndpoint wscAnnotation = annotatedClass.getAnnotation(ClientEndpoint.class);
 
             if (wscAnnotation == null) {
-                collector.addException(new DeploymentException(String.format("@ClientEndpoint annotation not found on class %s", annotatedClass.getName())));
+                collector.addException(new DeploymentException(LocalizationMessages.ENDPOINT_ANNOTATION_NOT_FOUND(ClientEndpoint.class.getSimpleName(), annotatedClass.getName())));
                 return null;
             }
 
@@ -348,7 +350,7 @@ public class AnnotatedEndpoint extends Endpoint {
             final String pathParamName = getPathParamName(method.getParameterAnnotations()[i]);
             if (pathParamName != null) {
                 if (!(PrimitivesToWrappers.isPrimitiveWrapper(type) || type.isPrimitive() || type.equals(String.class))) {
-                    collector.addException(new DeploymentException(String.format("Method:%s: %s is not allowed type for PathParameter", method.getName(), type.getName())));
+                    collector.addException(new DeploymentException(LocalizationMessages.ENDPOINT_WRONG_PATH_PARAM(method.getName(), type.getName())));
                 }
 
                 result[i] = new ParameterExtractor() {
@@ -370,7 +372,7 @@ public class AnnotatedEndpoint extends Endpoint {
                 };
             } else if (type == Session.class) {
                 if (sessionPresent) {
-                    collector.addException(new DeploymentException(String.format("Method  %s  has got two or more Session parameters.", method.getName())));
+                    collector.addException(new DeploymentException(LocalizationMessages.ENDPOINT_MULTIPLE_SESSION_PARAM(method.getName())));
                 } else {
                     sessionPresent = true;
                 }
@@ -438,7 +440,7 @@ public class AnnotatedEndpoint extends Endpoint {
             if (callOnError) {
                 onError(session, (e instanceof InvocationTargetException ? e.getCause() : e));
             } else {
-                LOGGER.log(Level.INFO, String.format("Exception thrown from onError method '%s'", method), e);
+                LOGGER.log(Level.INFO, LocalizationMessages.ENDPOINT_EXCEPTION_FROM_ON_ERROR(method), e);
             }
         }
 
@@ -465,7 +467,7 @@ public class AnnotatedEndpoint extends Endpoint {
         if (onErrorMethod != null) {
             callMethod(onErrorMethod, onErrorParameters, session, false, thr);
         } else {
-            LOGGER.log(Level.INFO, String.format("Unhandled exception in endpoint %s:", annotatedClass.getCanonicalName()), thr);
+            LOGGER.log(Level.INFO, LocalizationMessages.ENDPOINT_UNHANDLED_EXCEPTION(annotatedClass.getCanonicalName()), thr);
         }
     }
 

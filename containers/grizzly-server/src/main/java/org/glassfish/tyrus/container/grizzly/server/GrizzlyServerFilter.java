@@ -54,6 +54,7 @@ import javax.websocket.CloseReason;
 
 import org.glassfish.tyrus.container.grizzly.client.GrizzlyWriter;
 import org.glassfish.tyrus.container.grizzly.client.TaskProcessor;
+import org.glassfish.tyrus.core.CloseReasons;
 import org.glassfish.tyrus.core.RequestContext;
 import org.glassfish.tyrus.core.TyrusUpgradeResponse;
 import org.glassfish.tyrus.core.Utils;
@@ -133,7 +134,7 @@ class GrizzlyServerFilter extends BaseFilter {
 
         final org.glassfish.tyrus.spi.Connection connection = getConnection(ctx);
         if (connection != null) {
-            taskQueue.add(new CloseTask(connection, new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, null), ctx.getConnection()));
+            taskQueue.add(new CloseTask(connection, CloseReasons.NORMAL_CLOSURE.getCloseReason(), ctx.getConnection()));
             TaskProcessor.processQueue(taskQueue, null);
         }
         return ctx.getStopAction();
@@ -251,7 +252,8 @@ class GrizzlyServerFilter extends BaseFilter {
                 grizzlyConnection.addCloseListener(new CloseListener() {
                     @Override
                     public void onClosed(Closeable closeable, ICloseType type) throws IOException {
-                        connection.close(new CloseReason(CloseReason.CloseCodes.GOING_AWAY, "Close detected on connection"));
+                        // close detected on connection
+                        connection.close(CloseReasons.GOING_AWAY.getCloseReason());
                         // might not be necessary, connection is going to be recycled/freed anyway
                         TYRUS_CONNECTION.remove(grizzlyConnection);
                     }

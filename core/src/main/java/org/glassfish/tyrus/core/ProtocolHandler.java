@@ -60,6 +60,7 @@ import org.glassfish.tyrus.core.frame.CloseFrame;
 import org.glassfish.tyrus.core.frame.Frame;
 import org.glassfish.tyrus.core.frame.TextFrame;
 import org.glassfish.tyrus.core.frame.TyrusFrame;
+import org.glassfish.tyrus.core.l10n.LocalizationMessages;
 import org.glassfish.tyrus.spi.CompletionHandler;
 import org.glassfish.tyrus.spi.UpgradeRequest;
 import org.glassfish.tyrus.spi.UpgradeResponse;
@@ -311,7 +312,7 @@ public final class ProtocolHandler {
         final TyrusFuture<Frame> future = new TyrusFuture<Frame>();
 
         if (localWriter == null) {
-            throw new IllegalStateException("Connection is null");
+            throw new IllegalStateException(LocalizationMessages.CONNECTION_NULL());
         }
 
         final ByteBuffer byteBuffer = frame(frame);
@@ -326,7 +327,7 @@ public final class ProtocolHandler {
         final TyrusFuture<Frame> future = new TyrusFuture<Frame>();
 
         if (localWriter == null) {
-            throw new IllegalStateException("Connection is null");
+            throw new IllegalStateException(LocalizationMessages.CONNECTION_NULL());
         }
 
         localWriter.write(frame, new CompletionHandlerWrapper(completionHandler, future, null));
@@ -375,7 +376,7 @@ public final class ProtocolHandler {
 
     void validate(final byte fragmentType, byte opcode) {
         if (opcode != 0 && opcode != fragmentType && !isControlFrame(opcode)) {
-            throw new ProtocolException("Attempting to send a message while sending fragments of another");
+            throw new ProtocolException(LocalizationMessages.SEND_MESSAGE_INFRAGMENT());
         }
     }
 
@@ -401,13 +402,13 @@ public final class ProtocolHandler {
     public void doClose() {
         final Writer localWriter = writer;
         if (localWriter == null) {
-            throw new IllegalStateException("Connection is null");
+            throw new IllegalStateException(LocalizationMessages.CONNECTION_NULL());
         }
 
         try {
             localWriter.close();
         } catch (IOException e) {
-            throw new IllegalStateException("IOException thrown when closing connection", e);
+            throw new IllegalStateException(LocalizationMessages.IOEXCEPTION_CLOSE(), e);
         }
     }
 
@@ -419,7 +420,7 @@ public final class ProtocolHandler {
                     try {
                         frame = ((ExtendedExtension) extension).processOutgoing(extensionContext, frame);
                     } catch (Throwable t) {
-                        LOGGER.log(Level.FINE, String.format("Extension '%s' threw an exception during processOutgoing method invocation: \"%s\".", extension.getName(), t.getMessage()), t);
+                        LOGGER.log(Level.FINE, LocalizationMessages.EXTENSION_EXCEPTION(extension.getName(), t.getMessage()), t);
                     }
                 }
             }
@@ -485,7 +486,7 @@ public final class ProtocolHandler {
                         state.controlFrame = isControlFrame(opcode);
                         state.opcode = (byte) (opcode & 0x7f);
                         if (!state.finalFragment && state.controlFrame) {
-                            throw new ProtocolException("Fragmented control frame");
+                            throw new ProtocolException(LocalizationMessages.CONTROL_FRAME_FRAGMENTED());
                         }
 
                         byte lengthCode = buffer.get();
@@ -504,7 +505,7 @@ public final class ProtocolHandler {
                             state.length = state.lengthCode;
                         } else {
                             if (state.controlFrame) {
-                                throw new ProtocolException("Control frame payloads must be no greater than 125 bytes.");
+                                throw new ProtocolException(LocalizationMessages.CONTROL_FRAME_LENGTH());
                             }
 
                             final int lengthBytes = state.lengthCode == 126 ? 2 : 8;
@@ -536,8 +537,7 @@ public final class ProtocolHandler {
                         state.masker.setBuffer(buffer);
                         final byte[] data = state.masker.unmask((int) state.length);
                         if (data.length != state.length) {
-                            throw new ProtocolException(String.format("Data read (%s) is not the expected" +
-                                    " size (%s)", data.length, state.length));
+                            throw new ProtocolException(LocalizationMessages.DATA_UNEXPECTED_LENGTH(data.length, state.length));
                         }
 
                         final Frame frame = Frame.builder()
@@ -555,7 +555,7 @@ public final class ProtocolHandler {
                         return frame;
                     default:
                         // Should never get here
-                        throw new IllegalStateException("Unexpected state: " + state.state);
+                        throw new IllegalStateException(LocalizationMessages.UNEXPECTED_STATE(state.state));
                 }
             } while (true);
         } catch (Exception e) {
@@ -576,7 +576,7 @@ public final class ProtocolHandler {
      */
     public void process(Frame frame, TyrusWebSocket socket) {
         if (frame.isRsv1() || frame.isRsv2() || frame.isRsv3()) {
-            throw new ProtocolException("RSV bit(s) incorrectly set.");
+            throw new ProtocolException(LocalizationMessages.RSV_INCORRECTLY_SET());
         }
 
         final byte opcode = frame.getOpcode();
@@ -584,10 +584,10 @@ public final class ProtocolHandler {
         if (!frame.isControlFrame()) {
             final boolean continuationFrame = (opcode == 0);
             if (continuationFrame && !processingFragment) {
-                throw new ProtocolException("End fragment sent, but wasn't processing any previous fragments");
+                throw new ProtocolException(LocalizationMessages.UNEXPECTED_END_FRAGMENT());
             }
             if (processingFragment && !continuationFrame) {
-                throw new ProtocolException("Fragment sent but opcode was not 0");
+                throw new ProtocolException(LocalizationMessages.FRAGMENT_INVALID_OPCODE());
             }
             if (!fin && !continuationFrame) {
                 processingFragment = true;
@@ -645,7 +645,7 @@ public final class ProtocolHandler {
             }
 
             if (future != null) {
-                future.setFailure(new RuntimeException("frame writing was canceled."));
+                future.setFailure(new RuntimeException(LocalizationMessages.FRAME_WRITE_CANCELLED()));
             }
         }
 

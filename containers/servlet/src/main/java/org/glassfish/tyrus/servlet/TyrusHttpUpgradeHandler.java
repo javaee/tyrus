@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -54,6 +54,7 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpUpgradeHandler;
 import javax.servlet.http.WebConnection;
 
+import org.glassfish.tyrus.core.CloseReasons;
 import org.glassfish.tyrus.spi.Connection;
 import org.glassfish.tyrus.spi.WebSocketEngine;
 import org.glassfish.tyrus.spi.Writer;
@@ -164,7 +165,7 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
                     }
                 }
             } catch (IOException e) {
-                connection.close(new CloseReason(CloseReason.CloseCodes.CANNOT_ACCEPT, null));
+                connection.close(CloseReasons.CANNOT_ACCEPT.getCloseReason());
             }
         } while (!closed && is.isReady());
     }

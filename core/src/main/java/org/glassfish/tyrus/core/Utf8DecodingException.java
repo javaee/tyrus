@@ -42,12 +42,15 @@ package org.glassfish.tyrus.core;
 
 import javax.websocket.CloseReason;
 
+import org.glassfish.tyrus.core.l10n.LocalizationMessages;
+
 /**
  * TODO
  */
 public class Utf8DecodingException extends WebSocketException {
 
-    private static final CloseReason CLOSE_REASON = new CloseReason(CloseReason.CloseCodes.NOT_CONSISTENT, "Illegal UTF-8 Sequence");
+    private static final CloseReason CLOSE_REASON = new CloseReason(CloseReason.CloseCodes.NOT_CONSISTENT, LocalizationMessages.ILLEGAL_UTF_8_SEQUENCE());
+    private static final long serialVersionUID = 7766051445796057L;
 
     /**
      * TODO

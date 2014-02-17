@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -56,6 +56,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.websocket.DeploymentException;
+
+import org.glassfish.tyrus.core.l10n.LocalizationMessages;
 
 /**
  * Utility methods for Java reflection.
@@ -244,7 +246,7 @@ public class ReflectionHelper {
      * Get the context class loader.
      *
      * @return the context class loader, otherwise null security privilages
-     *         are not set.
+     * are not set.
      */
     public static ClassLoader getContextClassLoader() {
         return AccessController.doPrivileged(
@@ -288,13 +290,13 @@ public class ReflectionHelper {
      * @param parameterizedType must be an instance of ParameterizedType
      *                          and have exactly one type argument.
      * @return the class of the actual type argument. If the type argument
-     *         is a class then the class is returned. If the type argument
-     *         is a generic array type and the generic component type is a
-     *         class then class of the array is returned. if the type argument
-     *         is a parameterized type and it's raw type is a class then
-     *         that class is returned.
-     *         If the parameterizedType is not an instance of ParameterizedType
-     *         or contains more than one type argument null is returned.
+     * is a class then the class is returned. If the type argument
+     * is a generic array type and the generic component type is a
+     * class then class of the array is returned. if the type argument
+     * is a parameterized type and it's raw type is a class then
+     * that class is returned.
+     * If the parameterizedType is not an instance of ParameterizedType
+     * or contains more than one type argument null is returned.
      * @throws IllegalArgumentException if the single type argument is not of
      *                                  a class, or a generic array type, or the generic component type
      *                                  of the generic array type is not class, or not a parameterized
@@ -457,7 +459,7 @@ public class ReflectionHelper {
      *
      * @param p the declaring class
      * @return the parameterized class arguments, or null if the generic
-     *         interface type is not a parameterized type.
+     * interface type is not a parameterized type.
      */
     public static Class[] getParameterizedClassArguments(DeclaringClassInterfacePair p) {
         if (p.genericInterface instanceof ParameterizedType) {
@@ -491,7 +493,7 @@ public class ReflectionHelper {
      *
      * @param p the declaring class
      * @return the parameterized type arguments, or null if the generic
-     *         interface type is not a parameterized type.
+     * interface type is not a parameterized type.
      */
     public static Type[] getParameterizedTypeArguments(DeclaringClassInterfacePair p) {
         if (p.genericInterface instanceof ParameterizedType) {
@@ -524,7 +526,7 @@ public class ReflectionHelper {
      *                 implements or extends an interface class.
      * @param iface    the interface class.
      * @return the tuple of the declaring class and the generic interface
-     *         type.
+     * type.
      */
     public static DeclaringClassInterfacePair getClass(Class concrete, Class iface) {
         return getClass(concrete, iface, concrete);
@@ -601,7 +603,7 @@ public class ReflectionHelper {
      * @param dc the declaring class where the type variable was defined
      * @param tv the type variable
      * @return the resolved Java class and type, otherwise null if the type variable
-     *         could not be resolved
+     * could not be resolved
      */
     public static ClassTypePair resolveTypeVariable(Class c, Class dc, TypeVariable tv) {
         return resolveTypeVariable(c, dc, tv, new HashMap<TypeVariable, Type>());
@@ -787,10 +789,8 @@ public class ReflectionHelper {
 
         try {
             instance = getInstance(c);
-        } catch (InstantiationException e) {
-            collector.addException(new DeploymentException(String.format("Class %s couldn't be instantiated", c.getName()), e));
-        } catch (IllegalAccessException e) {
-            collector.addException(new DeploymentException(String.format("Class %s couldn't be instantiated", c.getName()), e));
+        } catch (ReflectiveOperationException e) {
+            collector.addException(new DeploymentException(LocalizationMessages.CLASS_NOT_INSTANTIATED(c.getName()), e));
         }
 
         return instance;

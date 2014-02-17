@@ -46,6 +46,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Random;
 
+import org.glassfish.tyrus.core.l10n.LocalizationMessages;
 import org.glassfish.tyrus.spi.UpgradeRequest;
 
 /**
@@ -75,7 +76,7 @@ class SecKey {
 
     public SecKey(String base64) {
         if (base64 == null) {
-            throw new HandshakeException("Null keys are not allowed.");
+            throw new HandshakeException(LocalizationMessages.SEC_KEY_NULL_NOT_ALLOWED());
         }
         secKey = base64;
     }
@@ -95,7 +96,7 @@ class SecKey {
             instance.update(key.getBytes("UTF-8"));
             final byte[] digest = instance.digest();
             if (digest.length != 20) {
-                throw new HandshakeException("Invalid key length.  Should be 20: " + digest.length);
+                throw new HandshakeException(LocalizationMessages.SEC_KEY_INVALID_LENGTH(digest.length));
             }
 
             return new SecKey(Base64Utils.encodeToString(digest, false));
@@ -128,7 +129,7 @@ class SecKey {
     public void validateServerKey(String serverKey) {
         final SecKey key = generateServerKey(this);
         if (!key.getSecKey().equals(serverKey)) {
-            throw new HandshakeException("Server key returned does not match expected response");
+            throw new HandshakeException(LocalizationMessages.SEC_KEY_INVALID_SERVER());
         }
     }
 }

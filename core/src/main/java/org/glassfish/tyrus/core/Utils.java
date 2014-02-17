@@ -46,6 +46,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
+import org.glassfish.tyrus.core.l10n.LocalizationMessages;
+
 /**
  * Utility methods shared among Tyrus modules.
  *
@@ -321,7 +323,7 @@ public class Utils {
         } else {
             int newSize = remaining + len;
             if (newSize > incomingBufferSize) {
-                throw new IllegalArgumentException("Buffer overflow.");
+                throw new IllegalArgumentException(LocalizationMessages.BUFFER_OVERFLOW());
             } else {
                 final int roundedSize = (newSize % BUFFER_STEP_SIZE) > 0 ? ((newSize / BUFFER_STEP_SIZE) + 1) * BUFFER_STEP_SIZE : newSize;
                 final ByteBuffer result = ByteBuffer.allocate(roundedSize > incomingBufferSize ? newSize : roundedSize);

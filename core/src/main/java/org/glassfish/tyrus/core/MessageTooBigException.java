@@ -53,7 +53,8 @@ import javax.websocket.CloseReason;
  */
 class MessageTooBigException extends WebSocketException {
 
-    private static final CloseReason CLOSE_REASON = new CloseReason(CloseReason.CloseCodes.TOO_BIG, "Message too big.");
+    private static final CloseReason CLOSE_REASON = CloseReasons.TOO_BIG.getCloseReason();
+    private static final long serialVersionUID = -1636733948291376261L;
 
     MessageTooBigException(String message) {
         super(message);

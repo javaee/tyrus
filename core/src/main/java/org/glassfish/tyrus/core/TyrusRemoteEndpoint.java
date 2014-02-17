@@ -56,6 +56,7 @@ import javax.websocket.EncodeException;
 import javax.websocket.SendHandler;
 import javax.websocket.SendResult;
 
+import org.glassfish.tyrus.core.l10n.LocalizationMessages;
 import static org.glassfish.tyrus.core.Utils.checkNotNull;
 
 /**
@@ -73,6 +74,8 @@ public abstract class TyrusRemoteEndpoint implements javax.websocket.RemoteEndpo
 
     private final TyrusEndpointWrapper endpointWrapper;
 
+    private static final Logger LOGGER = Logger.getLogger(TyrusRemoteEndpoint.class.getName());
+
     private TyrusRemoteEndpoint(TyrusSession session, TyrusWebSocket socket, TyrusEndpointWrapper endpointWrapper) {
         this.webSocket = socket;
         this.endpointWrapper = endpointWrapper;
@@ -87,7 +90,7 @@ public abstract class TyrusRemoteEndpoint implements javax.websocket.RemoteEndpo
 
         @Override
         public void sendText(String text) throws IOException {
-            checkNotNull(text, "Argument 'text' cannot be null.");
+            checkNotNull(text, LocalizationMessages.ARGUMENT_NOT_NULL("text"));
             final Future<?> future = webSocket.sendText(text);
             try {
                 processFuture(future);
@@ -98,7 +101,7 @@ public abstract class TyrusRemoteEndpoint implements javax.websocket.RemoteEndpo
 
         @Override
         public void sendBinary(ByteBuffer data) throws IOException {
-            checkNotNull(data, "Argument 'data' cannot be null.");
+            checkNotNull(data, LocalizationMessages.ARGUMENT_NOT_NULL("data"));
             final Future<?> future = webSocket.sendBinary(Utils.getRemainingArray(data));
             try {
                 processFuture(future);
@@ -109,7 +112,7 @@ public abstract class TyrusRemoteEndpoint implements javax.websocket.RemoteEndpo
 
         @Override
         public void sendText(String partialMessage, boolean isLast) throws IOException {
-            checkNotNull(partialMessage, "Argument 'partialMessage' cannot be null.");
+            checkNotNull(partialMessage, LocalizationMessages.ARGUMENT_NOT_NULL("partialMessage"));
             final Future<?> future = webSocket.sendText(partialMessage, isLast);
             try {
                 processFuture(future);
@@ -120,7 +123,7 @@ public abstract class TyrusRemoteEndpoint implements javax.websocket.RemoteEndpo
 
         @Override
         public void sendBinary(ByteBuffer partialByte, boolean isLast) throws IOException {
-            checkNotNull(partialByte, "Argument 'partialByte' cannot be null.");
+            checkNotNull(partialByte, LocalizationMessages.ARGUMENT_NOT_NULL("partialByte"));
             final Future<?> future = webSocket.sendBinary(Utils.getRemainingArray(partialByte), isLast);
             try {
                 processFuture(future);
@@ -154,7 +157,7 @@ public abstract class TyrusRemoteEndpoint implements javax.websocket.RemoteEndpo
 
         @Override
         public void sendObject(Object data) throws IOException, EncodeException {
-            checkNotNull(data, "Argument 'data' cannot be null.");
+            checkNotNull(data, LocalizationMessages.ARGUMENT_NOT_NULL("data"));
             final Future<?> future = sendSyncObject(data);
             try {
                 future.get();
@@ -196,45 +199,45 @@ public abstract class TyrusRemoteEndpoint implements javax.websocket.RemoteEndpo
 
         @Override
         public void sendText(String text, SendHandler handler) {
-            checkNotNull(text, "Argument 'text' cannot be null.");
-            checkNotNull(handler, "Argument 'handler' cannot be null.");
+            checkNotNull(text, LocalizationMessages.ARGUMENT_NOT_NULL("text"));
+            checkNotNull(handler, LocalizationMessages.ARGUMENT_NOT_NULL("handler"));
             session.restartIdleTimeoutExecutor();
             sendAsync(text, handler, AsyncMessageType.TEXT);
         }
 
         @Override
         public Future<Void> sendText(String text) {
-            checkNotNull(text, "Argument 'text' cannot be null.");
+            checkNotNull(text, LocalizationMessages.ARGUMENT_NOT_NULL("text"));
             session.restartIdleTimeoutExecutor();
             return sendAsync(text, AsyncMessageType.TEXT);
         }
 
         @Override
         public Future<Void> sendBinary(ByteBuffer data) {
-            checkNotNull(data, "Argument 'data' cannot be null.");
+            checkNotNull(data, LocalizationMessages.ARGUMENT_NOT_NULL("data"));
             session.restartIdleTimeoutExecutor();
             return sendAsync(data, AsyncMessageType.BINARY);
         }
 
         @Override
         public void sendBinary(ByteBuffer data, SendHandler handler) {
-            checkNotNull(data, "Argument 'data' cannot be null.");
-            checkNotNull(handler, "Argument 'handler' cannot be null.");
+            checkNotNull(data, LocalizationMessages.ARGUMENT_NOT_NULL("data"));
+            checkNotNull(handler, LocalizationMessages.ARGUMENT_NOT_NULL("handler"));
             session.restartIdleTimeoutExecutor();
             sendAsync(data, handler, AsyncMessageType.BINARY);
         }
 
         @Override
         public void sendObject(Object data, SendHandler handler) {
-            checkNotNull(data, "Argument 'data' cannot be null.");
-            checkNotNull(handler, "Argument 'handler' cannot be null.");
+            checkNotNull(data, LocalizationMessages.ARGUMENT_NOT_NULL("data"));
+            checkNotNull(handler, LocalizationMessages.ARGUMENT_NOT_NULL("handler"));
             session.restartIdleTimeoutExecutor();
             sendAsync(data, handler, AsyncMessageType.OBJECT);
         }
 
         @Override
         public Future<Void> sendObject(Object data) {
-            checkNotNull(data, "Argument 'data' cannot be null.");
+            checkNotNull(data, LocalizationMessages.ARGUMENT_NOT_NULL("data"));
             session.restartIdleTimeoutExecutor();
             return sendAsync(data, AsyncMessageType.OBJECT);
         }
@@ -427,7 +430,7 @@ public abstract class TyrusRemoteEndpoint implements javax.websocket.RemoteEndpo
     @Override
     public void sendPing(ByteBuffer applicationData) throws IOException {
         if (applicationData != null && applicationData.remaining() > 125) {
-            throw new IllegalArgumentException("Ping applicationData exceeded the maximum allowed payload of 125 bytes.");
+            throw new IllegalArgumentException(LocalizationMessages.APPLICATION_DATA_TOO_LONG("Ping"));
         }
         session.restartIdleTimeoutExecutor();
         webSocket.sendPing(Utils.getRemainingArray(applicationData));
@@ -436,7 +439,7 @@ public abstract class TyrusRemoteEndpoint implements javax.websocket.RemoteEndpo
     @Override
     public void sendPong(ByteBuffer applicationData) throws IOException {
         if (applicationData != null && applicationData.remaining() > 125) {
-            throw new IllegalArgumentException("Pong applicationData exceeded the maximum allowed payload of 125 bytes.");
+            throw new IllegalArgumentException(LocalizationMessages.APPLICATION_DATA_TOO_LONG("Pong"));
         }
         session.restartIdleTimeoutExecutor();
         webSocket.sendPong(Utils.getRemainingArray(applicationData));
@@ -463,7 +466,7 @@ public abstract class TyrusRemoteEndpoint implements javax.websocket.RemoteEndpo
     }
 
     public void close(CloseReason cr) {
-        Logger.getLogger(TyrusRemoteEndpoint.class.getName()).fine("Close public void close(CloseReason cr): " + cr);
+        LOGGER.fine("Close public void close(CloseReason cr): " + cr);
         webSocket.close(cr);
     }
 }

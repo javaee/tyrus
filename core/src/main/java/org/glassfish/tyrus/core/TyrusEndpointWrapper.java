@@ -93,6 +93,7 @@ import org.glassfish.tyrus.core.coder.ToStringEncoder;
 import org.glassfish.tyrus.core.frame.BinaryFrame;
 import org.glassfish.tyrus.core.frame.Frame;
 import org.glassfish.tyrus.core.frame.TextFrame;
+import org.glassfish.tyrus.core.l10n.LocalizationMessages;
 import org.glassfish.tyrus.spi.UpgradeRequest;
 import org.glassfish.tyrus.spi.UpgradeResponse;
 
@@ -443,7 +444,7 @@ public class TyrusEndpointWrapper {
             }
         }
 
-        throw new EncodeException(message, "Encoding failed.");
+        throw new EncodeException(message, LocalizationMessages.ENCODING_FAILED());
     }
 
     /**
@@ -607,7 +608,7 @@ public class TyrusEndpointWrapper {
             } else if (session.isPartialBinaryHandlerPresent()) {
                 session.notifyMessageHandlers(messageBytes, true);
             } else {
-                throw new IllegalStateException(String.format("Binary messageHandler not found. Session: '%s'.", session));
+                throw new IllegalStateException(LocalizationMessages.BINARY_MESSAGE_HANDLER_NOT_FOUND(session));
             }
         } catch (Throwable t) {
             if (!processThrowable(t, session)) {
@@ -658,7 +659,7 @@ public class TyrusEndpointWrapper {
             } else if (session.isPartialTextHandlerPresent()) {
                 session.notifyMessageHandlers(messageString, true);
             } else {
-                throw new IllegalStateException(String.format("Text messageHandler not found. Session: '%s'.", session));
+                throw new IllegalStateException(LocalizationMessages.TEXT_MESSAGE_HANDLER_NOT_FOUND(session));
             }
         } catch (Throwable t) {
             if (!processThrowable(t, session)) {
@@ -734,7 +735,7 @@ public class TyrusEndpointWrapper {
                         if (state == TyrusSession.State.RECEIVING_BINARY) {
                             session.setState(TyrusSession.State.RUNNING);
                         }
-                        throw new IllegalStateException(String.format("Partial text message received out of order. Session: '%s'.", session));
+                        throw new IllegalStateException(LocalizationMessages.PARTIAL_TEXT_MESSAGE_OUT_OF_ORDER(session));
                 }
             } else if (session.isWholeTextHandlerPresent()) {
                 switch (state) {
@@ -755,7 +756,7 @@ public class TyrusEndpointWrapper {
                         if (state == TyrusSession.State.RECEIVING_BINARY) {
                             session.setState(TyrusSession.State.RUNNING);
                         }
-                        throw new IllegalStateException(String.format("Text message received out of order. Session: '%s'.", session));
+                        throw new IllegalStateException(LocalizationMessages.TEXT_MESSAGE_OUT_OF_ORDER(session));
                 }
             }
         } catch (Throwable t) {
@@ -832,7 +833,7 @@ public class TyrusEndpointWrapper {
                         if (state == TyrusSession.State.RECEIVING_TEXT) {
                             session.setState(TyrusSession.State.RUNNING);
                         }
-                        throw new IllegalStateException(String.format("Partial binary message received out of order. Session: '%s'.", session));
+                        throw new IllegalStateException(LocalizationMessages.PARTIAL_BINARY_MESSAGE_OUT_OF_ORDER(session));
                 }
             } else if (session.isWholeBinaryHandlerPresent()) {
                 switch (state) {
@@ -853,7 +854,7 @@ public class TyrusEndpointWrapper {
                         if (state == TyrusSession.State.RECEIVING_TEXT) {
                             session.setState(TyrusSession.State.RUNNING);
                         }
-                        throw new IllegalStateException(String.format("Binary message received out of order. Session: '%s'.", session));
+                        throw new IllegalStateException(LocalizationMessages.BINARY_MESSAGE_OUT_OF_ORDER(session));
                 }
             }
         } catch (Throwable t) {
@@ -1225,7 +1226,7 @@ public class TyrusEndpointWrapper {
             if (configurator.checkOrigin(request.getHeader("Origin"))) {
                 return true;
             } else {
-                throw new HandshakeException(403, "Origin not verified.");
+                throw new HandshakeException(403, LocalizationMessages.ORIGIN_NOT_VERIFIED());
             }
         }
 
@@ -1255,7 +1256,7 @@ public class TyrusEndpointWrapper {
      * {@code false}.
      */
     public boolean onError(TyrusWebSocket socket, Throwable t) {
-        Logger.getLogger(TyrusEndpointWrapper.class.getName()).log(Level.WARNING, "Unexpected error, closing connection.", t);
+        Logger.getLogger(TyrusEndpointWrapper.class.getName()).log(Level.WARNING, LocalizationMessages.UNEXPECTED_ERROR_CONNECTION_CLOSE(), t);
         return true;
     }
 

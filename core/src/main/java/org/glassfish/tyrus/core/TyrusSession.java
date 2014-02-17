@@ -75,6 +75,7 @@ import org.glassfish.tyrus.core.cluster.ClusterContext;
 import org.glassfish.tyrus.core.cluster.ClusterSession;
 import org.glassfish.tyrus.core.cluster.SessionEventListener;
 import org.glassfish.tyrus.core.coder.CoderWrapper;
+import org.glassfish.tyrus.core.l10n.LocalizationMessages;
 
 /**
  * Implementation of the {@link Session}.
@@ -87,7 +88,7 @@ import org.glassfish.tyrus.core.coder.CoderWrapper;
 public class TyrusSession implements Session {
 
     private static final Logger LOGGER = Logger.getLogger(TyrusSession.class.getName());
-    private static final String SESSION_CLOSED = "The connection has been closed.";
+
     private final WebSocketContainer container;
     private final TyrusEndpointWrapper endpointWrapper;
     private final TyrusRemoteEndpoint.Basic basicRemote;
@@ -209,7 +210,7 @@ public class TyrusSession implements Session {
     @Override
     public void close() throws IOException {
         changeStateToClosing();
-        basicRemote.close(new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, "no reason given"));
+        basicRemote.close(CloseReasons.NORMAL_CLOSURE.getCloseReason());
     }
 
     /**
@@ -388,7 +389,7 @@ public class TyrusSession implements Session {
         final State sessionState = state.get();
         for (State s : states) {
             if (sessionState == s) {
-                throw new IllegalStateException(SESSION_CLOSED);
+                throw new IllegalStateException(LocalizationMessages.CONNECTION_HAS_BEEN_CLOSED());
             }
         }
     }
@@ -399,7 +400,7 @@ public class TyrusSession implements Session {
                     ((ByteBuffer) message).remaining());
 
             if (messageSize > maxMessageSize) {
-                throw new MessageTooBigException(String.format("Message too long; allowed message size is %d bytes. (Current message length is %d bytes).", maxMessageSize, messageSize));
+                throw new MessageTooBigException(LocalizationMessages.MESSAGE_TOO_LONG(maxMessageSize, messageSize));
             }
         }
     }
@@ -408,7 +409,7 @@ public class TyrusSession implements Session {
         boolean decoded = false;
 
         if (availableDecoders.isEmpty()) {
-            LOGGER.severe("No decoder found");
+            LOGGER.warning(LocalizationMessages.NO_DECODER_FOUND());
         }
 
         for (CoderWrapper<Decoder> decoder : availableDecoders) {
@@ -474,7 +475,7 @@ public class TyrusSession implements Session {
             if (message instanceof ByteBuffer) {
                 notifyMessageHandlers(((ByteBuffer) message).array(), last);
             } else {
-                LOGGER.severe("Unhandled text message in EndpointWrapper");
+                LOGGER.warning(LocalizationMessages.UNHANDLED_TEXT_MESSAGE(this));
             }
         }
     }
@@ -653,7 +654,7 @@ public class TyrusSession implements Session {
             // condition is required because scheduled task can be (for some reason) run even when it is cancelled.
             if (session.getMaxIdleTimeout() > 0 && session.isOpen()) {
                 try {
-                    session.close(new CloseReason(CloseReason.CloseCodes.CLOSED_ABNORMALLY, "Session closed by the container because of the idle timeout."));
+                    session.close(new CloseReason(CloseReason.CloseCodes.CLOSED_ABNORMALLY, LocalizationMessages.SESSION_CLOSED_IDLE_TIMEOUT()));
                 } catch (IOException e) {
                     LOGGER.log(Level.FINE, "Session could not been closed. " + e.getMessage());
                 }

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -53,6 +53,8 @@ import javax.websocket.DeploymentException;
 import javax.websocket.Encoder;
 import javax.websocket.EndpointConfig;
 import javax.websocket.Session;
+
+import org.glassfish.tyrus.core.l10n.LocalizationMessages;
 
 /**
  * Provides an instance of component. Searches for registered {@link ComponentProvider}s which are used to provide instances.
@@ -150,8 +152,7 @@ public class ComponentProviderService {
                 sessionToObject.put(session, hashMap);
             }
         } catch (Exception e) {
-            collector.addException(new DeploymentException(String.format("Component provider threw exception when providing instance of class %s",
-                    c.getName()), e));
+            collector.addException(new DeploymentException(LocalizationMessages.COMPONENT_PROVIDER_THREW_EXCEPTION(c.getName()), e));
         }
 
         return loaded;
@@ -209,7 +210,7 @@ public class ComponentProviderService {
                 }
             }
         } catch (InstantiationException e) {
-            collector.addException(new DeploymentException(String.format("Exception thrown when providing instance of class %s", c.getName()), e));
+            collector.addException(new DeploymentException(LocalizationMessages.COMPONENT_PROVIDER_THREW_EXCEPTION(c.getName()), e));
         }
 
         return loaded;
@@ -235,7 +236,7 @@ public class ComponentProviderService {
             }
         }
 
-        throw new InstantiationException(String.format("Component provider for class %s not found.", clazz.getName()));
+        throw new InstantiationException(LocalizationMessages.COMPONENT_PROVIDER_NOT_FOUND(clazz.getName()));
     }
 
     /**
@@ -283,7 +284,7 @@ public class ComponentProviderService {
      * @param endpointClass the class of the endpoint.
      * @param <T>           the type of the endpoint.
      * @return an instance of the endpoint that will handle all
-     *         interactions from a new client.
+     * interactions from a new client.
      * @throws InstantiationException if there was an error producing the
      *                                endpoint instance.
      * @see javax.websocket.server.ServerEndpointConfig.Configurator#getEndpointInstance(Class)

@@ -57,6 +57,7 @@ import org.glassfish.tyrus.core.frame.Frame;
 import org.glassfish.tyrus.core.frame.PingFrame;
 import org.glassfish.tyrus.core.frame.PongFrame;
 import org.glassfish.tyrus.core.frame.TextFrame;
+import org.glassfish.tyrus.core.l10n.LocalizationMessages;
 import org.glassfish.tyrus.spi.UpgradeRequest;
 
 /**
@@ -70,7 +71,6 @@ public class TyrusWebSocket {
     private final ProtocolHandler protocolHandler;
     private final CountDownLatch onConnectLatch = new CountDownLatch(1);
     private final EnumSet<State> connected = EnumSet.range(State.CONNECTED, State.CLOSING);
-    private final AtomicReference<State> state = new AtomicReference<State>(State.NEW);
 
     /**
      * Create new instance, set {@link ProtocolHandler} and register {@link TyrusEndpointWrapper}.
@@ -85,6 +85,8 @@ public class TyrusWebSocket {
         protocolHandler.setWebSocket(this);
     }
 
+    private final AtomicReference<State> state = new AtomicReference<State>(State.NEW);
+
     /**
      * Sets the timeout for the writing operation.
      *
@@ -95,10 +97,9 @@ public class TyrusWebSocket {
     }
 
     /**
-     * Convenience method to determine if this {@link TyrusWebSocket} is connected.
+     * Convenience method to determine if this {@link TyrusWebSocket} instance is connected.
      *
-     * @return {@code true} if the {@link TyrusWebSocket} is connected, otherwise
-     * {@code false}
+     * @return {@code true} if the {@link TyrusWebSocket} is connected, {@code false} otherwise.
      */
     public boolean isConnected() {
         return connected.contains(state.get());
@@ -256,11 +257,8 @@ public class TyrusWebSocket {
      * @return {@link Future} which could be used to control/check the sending completion state.
      */
     public Future<Frame> sendBinary(byte[] data) {
-        if (isConnected()) {
-            return protocolHandler.send(data);
-        } else {
-            throw new RuntimeException("Socket is not connected.");
-        }
+        checkConnectedState();
+        return protocolHandler.send(data);
     }
 
     /**
@@ -270,11 +268,8 @@ public class TyrusWebSocket {
      * @param handler {@link SendHandler#onResult(javax.websocket.SendResult)} will be called when sending is complete.
      */
     public void sendBinary(byte[] data, SendHandler handler) {
-        if (isConnected()) {
-            protocolHandler.send(data, handler);
-        } else {
-            throw new RuntimeException("Socket is not connected.");
-        }
+        checkConnectedState();
+        protocolHandler.send(data, handler);
     }
 
     /**
@@ -284,11 +279,8 @@ public class TyrusWebSocket {
      * @return {@link Future} which could be used to control/check the sending completion state.
      */
     public Future<Frame> sendText(String data) {
-        if (isConnected()) {
-            return protocolHandler.send(data);
-        } else {
-            throw new RuntimeException("Socket is not connected.");
-        }
+        checkConnectedState();
+        return protocolHandler.send(data);
     }
 
     /**
@@ -298,11 +290,8 @@ public class TyrusWebSocket {
      * @param handler {@link SendHandler#onResult(javax.websocket.SendResult)} will be called when sending is complete.
      */
     public void sendText(String data, SendHandler handler) {
-        if (isConnected()) {
-            protocolHandler.send(data, handler);
-        } else {
-            throw new RuntimeException("Socket is not connected");
-        }
+        checkConnectedState();
+        protocolHandler.send(data, handler);
     }
 
     /**
@@ -312,11 +301,8 @@ public class TyrusWebSocket {
      * @return {@link Future} which could be used to control/check the sending completion state.
      */
     public Future<Frame> sendRawFrame(ByteBuffer data) {
-        if (isConnected()) {
-            return protocolHandler.sendRawFrame(data);
-        } else {
-            throw new RuntimeException("Socket is not connected.");
-        }
+        checkConnectedState();
+        return protocolHandler.sendRawFrame(data);
     }
 
     /**
@@ -356,11 +342,8 @@ public class TyrusWebSocket {
     }
 
     private Future<Frame> send(Frame frame) {
-        if (isConnected()) {
-            return protocolHandler.send(frame);
-        } else {
-            throw new RuntimeException("Socket is not connected.");
-        }
+        checkConnectedState();
+        return protocolHandler.send(frame);
     }
 
     /**
@@ -371,11 +354,8 @@ public class TyrusWebSocket {
      * @return {@link Future} which could be used to control/check the sending completion state.
      */
     public Future<Frame> sendText(String fragment, boolean last) {
-        if (isConnected()) {
-            return protocolHandler.stream(last, fragment);
-        } else {
-            throw new RuntimeException("Socket is not connected.");
-        }
+        checkConnectedState();
+        return protocolHandler.stream(last, fragment);
     }
 
     /**
@@ -399,18 +379,21 @@ public class TyrusWebSocket {
      * @return {@link Future} which could be used to control/check the sending completion state.
      */
     public Future<Frame> sendBinary(byte[] bytes, int off, int len, boolean last) {
-        if (isConnected()) {
-            return protocolHandler.stream(last, bytes, off, len);
-        } else {
-            throw new RuntimeException("Socket is not connected.");
-        }
+        checkConnectedState();
+        return protocolHandler.stream(last, bytes, off, len);
     }
 
     ProtocolHandler getProtocolHandler() {
         return protocolHandler;
     }
 
-    enum State {
+    private void checkConnectedState() {
+        if (!isConnected()) {
+            throw new RuntimeException(LocalizationMessages.SOCKET_NOT_CONNECTED());
+        }
+    }
+
+    private enum State {
         NEW, CONNECTED, CLOSING, CLOSED
     }
 }

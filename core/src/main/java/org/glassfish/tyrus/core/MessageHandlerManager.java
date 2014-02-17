@@ -58,6 +58,7 @@ import javax.websocket.MessageHandler;
 import javax.websocket.PongMessage;
 
 import org.glassfish.tyrus.core.coder.CoderWrapper;
+import org.glassfish.tyrus.core.l10n.LocalizationMessages;
 
 /**
  * Manages registered {@link MessageHandler}s and checks whether the new ones may be registered.
@@ -129,7 +130,7 @@ class MessageHandlerManager {
     public void addMessageHandler(MessageHandler handler) throws IllegalStateException {
 
         if (!(handler instanceof MessageHandler.Whole) && !(handler instanceof MessageHandler.Partial)) {
-            throwException("MessageHandler must implement MessageHandler.Whole or MessageHandler.Partial.");
+            throwException(LocalizationMessages.MESSAGE_HANDLER_WHOLE_OR_PARTIAL());
         }
 
         final Class<?> handlerClass = getHandlerType(handler);
@@ -137,7 +138,7 @@ class MessageHandlerManager {
         if (handler instanceof MessageHandler.Whole) { //WHOLE MESSAGE HANDLER
             if (WHOLE_TEXT_HANDLER_TYPES.contains(handlerClass)) { // text
                 if (textHandlerPresent) {
-                    throwException("Text MessageHandler already registered.");
+                    throwException(LocalizationMessages.MESSAGE_HANDLER_ALREADY_REGISTERED_TEXT());
                 } else {
                     if (Reader.class.isAssignableFrom(handlerClass)) {
                         readerHandlerPresent = true;
@@ -147,7 +148,7 @@ class MessageHandlerManager {
                 }
             } else if (WHOLE_BINARY_HANDLER_TYPES.contains(handlerClass)) { // binary
                 if (binaryHandlerPresent) {
-                    throwException("Binary MessageHandler already registered.");
+                    throwException(LocalizationMessages.MESSAGE_HANDLER_ALREADY_REGISTERED_BINARY());
                 } else {
                     if (InputStream.class.isAssignableFrom(handlerClass)) {
                         inputStreamHandlerPresent = true;
@@ -157,7 +158,7 @@ class MessageHandlerManager {
                 }
             } else if (PONG_HANDLER_TYPE == handlerClass) { // pong
                 if (pongHandlerPresent) {
-                    throwException("Pong MessageHander already registered.");
+                    throwException(LocalizationMessages.MESSAGE_HANDLER_ALREADY_REGISTERED_PONG());
                 } else {
                     pongHandlerPresent = true;
                 }
@@ -166,7 +167,7 @@ class MessageHandlerManager {
 
                 if (checkTextDecoders(handlerClass)) {//decodable text
                     if (textHandlerPresent) {
-                        throwException("Text MessageHandler already registered.");
+                        throwException(LocalizationMessages.MESSAGE_HANDLER_ALREADY_REGISTERED_TEXT());
                     } else {
                         textHandlerPresent = true;
                         textWholeHandlerPresent = true;
@@ -176,7 +177,7 @@ class MessageHandlerManager {
 
                 if (checkBinaryDecoders(handlerClass)) {//decodable binary
                     if (binaryHandlerPresent) {
-                        throwException("Binary MessageHandler already registered.");
+                        throwException(LocalizationMessages.MESSAGE_HANDLER_ALREADY_REGISTERED_BINARY());
                     } else {
                         binaryHandlerPresent = true;
                         binaryWholeHandlerPresent = true;
@@ -185,7 +186,7 @@ class MessageHandlerManager {
                 }
 
                 if (!viable) {
-                    throwException(String.format("Decoder for type: %s has not been registered.", handlerClass));
+                    throwException(LocalizationMessages.MESSAGE_HANDLER_ALREADY_REGISTERED_TYPE(handlerClass));
                 }
             }
         } else { // PARTIAL MESSAGE HANDLER
@@ -193,7 +194,7 @@ class MessageHandlerManager {
 
             if (PARTIAL_TEXT_HANDLER_TYPE.equals(handlerClass)) { // text
                 if (textHandlerPresent) {
-                    throwException("Text MessageHandler already registered.");
+                    throwException(LocalizationMessages.MESSAGE_HANDLER_ALREADY_REGISTERED_TEXT());
                 } else {
                     textHandlerPresent = true;
                     viable = true;
@@ -202,7 +203,7 @@ class MessageHandlerManager {
 
             if (PARTIAL_BINARY_HANDLER_TYPES.contains(handlerClass)) { // binary
                 if (binaryHandlerPresent) {
-                    throwException("Binary MessageHandler already registered.");
+                    throwException(LocalizationMessages.MESSAGE_HANDLER_ALREADY_REGISTERED_BINARY());
                 } else {
                     binaryHandlerPresent = true;
                     viable = true;
@@ -210,13 +211,13 @@ class MessageHandlerManager {
             }
 
             if (!viable) {
-                throwException(String.format("Partial MessageHandler can't be of type: %s.", handlerClass));
+                throwException(LocalizationMessages.MESSAGE_HANDLER_PARTIAL_INVALID_TYPE(handlerClass.getName()));
             }
         }
 
         // map of all registered handlers
         if (registeredHandlers.containsKey(handlerClass)) {
-            throwException(String.format("MessageHandler for type: %s already registered.", handlerClass));
+            throwException(LocalizationMessages.MESSAGE_HANDLER_ALREADY_REGISTERED_TYPE(handlerClass));
         } else {
             registeredHandlers.put(handlerClass, handler);
         }
@@ -307,7 +308,7 @@ class MessageHandlerManager {
         } else if (handler instanceof MessageHandler.Whole) {
             root = MessageHandler.Whole.class;
         } else {
-            throw new IllegalArgumentException(String.format("Illegal MessageHandler argument value: %s", handler));
+            throw new IllegalArgumentException(LocalizationMessages.MESSAGE_HANDLER_ILLEGAL_ARGUMENT(handler));
         }
         Class<?> result = ReflectionHelper.getClassType(handler.getClass(), root);
         return result == null ? Object.class : result;

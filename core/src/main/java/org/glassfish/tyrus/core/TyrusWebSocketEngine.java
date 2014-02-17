@@ -63,6 +63,7 @@ import org.glassfish.tyrus.core.cluster.ClusterContext;
 import org.glassfish.tyrus.core.extension.ExtendedExtension;
 import org.glassfish.tyrus.core.frame.CloseFrame;
 import org.glassfish.tyrus.core.frame.Frame;
+import org.glassfish.tyrus.core.l10n.LocalizationMessages;
 import org.glassfish.tyrus.core.uri.Match;
 import org.glassfish.tyrus.spi.Connection;
 import org.glassfish.tyrus.spi.ReadHandler;
@@ -86,11 +87,8 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
     private static final int BUFFER_STEP_SIZE = 256;
     private static final Logger LOGGER = Logger.getLogger(UpgradeRequest.WEBSOCKET);
 
-    private static final UpgradeInfo NOT_APPLICABLE_UPGRADE_INFO =
-            new NoConnectionUpgradeInfo(UpgradeStatus.NOT_APPLICABLE);
-
-    private static final UpgradeInfo HANDSHAKE_FAILED_UPGRADE_INFO =
-            new NoConnectionUpgradeInfo(UpgradeStatus.HANDSHAKE_FAILED);
+    private static final UpgradeInfo NOT_APPLICABLE_UPGRADE_INFO = new NoConnectionUpgradeInfo(UpgradeStatus.NOT_APPLICABLE);
+    private static final UpgradeInfo HANDSHAKE_FAILED_UPGRADE_INFO = new NoConnectionUpgradeInfo(UpgradeStatus.HANDSHAKE_FAILED);
 
     private final Set<TyrusEndpointWrapper> endpointWrappers = Collections.newSetFromMap(new ConcurrentHashMap<TyrusEndpointWrapper, Boolean>());
     private final ComponentProviderService componentProviderService = ComponentProviderService.create();
@@ -231,7 +229,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
                     } else {
                         int newSize = data.remaining();
                         if (newSize > incomingBufferSize) {
-                            throw new IllegalArgumentException("Buffer overflow.");
+                            throw new IllegalArgumentException(LocalizationMessages.BUFFER_OVERFLOW());
                         } else {
                             final int roundedSize = (newSize % BUFFER_STEP_SIZE) > 0 ? ((newSize / BUFFER_STEP_SIZE) + 1) * BUFFER_STEP_SIZE : newSize;
                             final ByteBuffer result = ByteBuffer.allocate(roundedSize > incomingBufferSize ? newSize : roundedSize);
@@ -267,9 +265,14 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
                 LOGGER.log(Level.FINE, e.getMessage(), e);
                 socket.onClose(new CloseFrame(e.getCloseReason()));
             } catch (Exception e) {
-                LOGGER.log(Level.FINE, e.getMessage(), e);
+                String message = e.getMessage();
+                LOGGER.log(Level.FINE, message, e);
                 if (endpointWrapper.onError(socket, e)) {
-                    socket.onClose(new CloseFrame(new CloseReason(CloseReason.CloseCodes.UNEXPECTED_CONDITION, e.getMessage())));
+                    if (message.length() > 123) {
+                        // reason phrase length is limited.
+                        message = message.substring(0, 123);
+                    }
+                    socket.onClose(new CloseFrame(new CloseReason(CloseReason.CloseCodes.UNEXPECTED_CONDITION, message)));
                 }
             }
         }
@@ -349,8 +352,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
     private void checkPath(TyrusEndpointWrapper endpoint) throws DeploymentException {
         for (TyrusEndpointWrapper endpointWrapper : endpointWrappers) {
             if (Match.isEquivalent(endpoint.getEndpointPath(), endpointWrapper.getEndpointPath())) {
-                throw new DeploymentException(String.format(
-                        "Found equivalent paths. Added path: '%s' is equivalent with '%s'.", endpoint.getEndpointPath(),
+                throw new DeploymentException(LocalizationMessages.EQUIVALENT_PATHS(endpoint.getEndpointPath(),
                         endpointWrapper.getEndpointPath()));
             }
         }
@@ -463,16 +465,18 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
 
         @Override
         public void close(CloseReason reason) {
-            if (socket.isConnected()) {
-                socket.close(reason.getCloseCode().getCode(), reason.getReasonPhrase());
+            if (!socket.isConnected()) {
+                return;
+            }
 
-                for (Extension extension : extensions) {
-                    if (extension instanceof ExtendedExtension) {
-                        try {
-                            ((ExtendedExtension) extension).destroy(extensionContext);
-                        } catch (Throwable t) {
-                            // ignore.
-                        }
+            socket.close(reason.getCloseCode().getCode(), reason.getReasonPhrase());
+
+            for (Extension extension : extensions) {
+                if (extension instanceof ExtendedExtension) {
+                    try {
+                        ((ExtendedExtension) extension).destroy(extensionContext);
+                    } catch (Throwable t) {
+                        // ignore.
                     }
                 }
             }

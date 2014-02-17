@@ -48,6 +48,7 @@ import java.nio.charset.CoderResult;
 
 import javax.websocket.CloseReason;
 
+import org.glassfish.tyrus.core.CloseReasons;
 import org.glassfish.tyrus.core.ProtocolException;
 import org.glassfish.tyrus.core.StrictUtf8;
 import org.glassfish.tyrus.core.TyrusWebSocket;
@@ -78,11 +79,13 @@ public class CloseFrame extends TyrusFrame {
         if (data.length < 2) {
             throw new ProtocolException("Closing wrappedFrame payload, if present, must be a minimum of 2 bytes in length") {
 
+                private static final long serialVersionUID = -5720682492584668231L;
+
                 // autobahn test suite, test 7.3.1
                 @Override
                 public CloseReason getCloseReason() {
                     if (data.length == 0) {
-                        return new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, "Normal closure.");
+                        return CloseReasons.NORMAL_CLOSURE.getCloseReason();
                     } else {
                         return super.getCloseReason();
                     }
