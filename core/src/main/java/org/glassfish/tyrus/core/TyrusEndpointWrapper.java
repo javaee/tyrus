@@ -462,7 +462,7 @@ public class TyrusEndpointWrapper {
     }
 
     /**
-     * Compute the sub-protocol which will be used.
+     * Server-side; Compute the sub-protocol which will be used.
      *
      * @param clientProtocols sub-protocols supported by client.
      * @return negotiated sub-protocol, {@code null} if none found.
@@ -507,18 +507,14 @@ public class TyrusEndpointWrapper {
      * @return {@link Session} representing the connection.
      */
     public Session createSessionForRemoteEndpoint(TyrusWebSocket socket, String subprotocol, List<Extension> extensions) {
-        synchronized (webSocketToSession) {
-            final TyrusSession session = new TyrusSession(container, socket, this, subprotocol, extensions, false,
-                    getURI(contextPath, null), null, Collections.<String, String>emptyMap(), null, Collections.<String, List<String>>emptyMap(), null, null);
-            webSocketToSession.put(socket, session);
-            return session;
-        }
+        final TyrusSession session = new TyrusSession(container, socket, this, subprotocol, extensions, false,
+                getURI(contextPath, null), null, Collections.<String, String>emptyMap(), null, Collections.<String, List<String>>emptyMap(), null, null);
+        webSocketToSession.put(socket, session);
+        return session;
     }
 
     private TyrusSession getSession(TyrusWebSocket socket) {
-        synchronized (webSocketToSession) {
-            return webSocketToSession.get(socket);
-        }
+        return webSocketToSession.get(socket);
     }
 
     /**
@@ -530,56 +526,54 @@ public class TyrusEndpointWrapper {
      * @return TODO.
      */
     public Session onConnect(TyrusWebSocket socket, UpgradeRequest upgradeRequest, String subProtocol, List<Extension> extensions, String connectionId) {
-        synchronized (webSocketToSession) {
-            TyrusSession session = webSocketToSession.get(socket);
-            // session is null on Server; client always has session instance at this point.
-            if (session == null) {
-                final Map<String, String> templateValues = new HashMap<String, String>();
+        TyrusSession session = webSocketToSession.get(socket);
+        // session is null on Server; client always has session instance at this point.
+        if (session == null) {
+            final Map<String, String> templateValues = new HashMap<String, String>();
 
-                for (Map.Entry<String, List<String>> entry : upgradeRequest.getParameterMap().entrySet()) {
-                    templateValues.put(entry.getKey(), entry.getValue().get(0));
-                }
-
-                // create a new session
-                session = new TyrusSession(container, socket, this, subProtocol, extensions, upgradeRequest.isSecure(),
-                        getURI(upgradeRequest.getRequestURI().toString(), upgradeRequest.getQueryString()),
-                        upgradeRequest.getQueryString(), templateValues, upgradeRequest.getUserPrincipal(),
-                        upgradeRequest.getParameterMap(), clusterContext, connectionId);
-                webSocketToSession.put(socket, session);
+            for (Map.Entry<String, List<String>> entry : upgradeRequest.getParameterMap().entrySet()) {
+                templateValues.put(entry.getKey(), entry.getValue().get(0));
             }
 
-            ErrorCollector collector = new ErrorCollector();
-
-            final Object toCall = endpoint != null ? endpoint :
-                    componentProvider.getInstance(endpointClass, session, collector);
-            try {
-                if (!collector.isEmpty()) {
-                    throw collector.composeComprehensiveException();
-                }
-
-                if (endpoint != null) {
-                    ((Endpoint) toCall).onOpen(session, configuration);
-                } else {
-                    onOpen.invoke(toCall, session, configuration);
-                }
-            } catch (Throwable t) {
-                if (toCall != null) {
-                    if (endpoint != null) {
-                        ((Endpoint) toCall).onError(session, t);
-                    } else {
-                        try {
-                            onError.invoke(toCall, session, t);
-                        } catch (Exception e) {
-                            LOGGER.log(Level.WARNING, t.getMessage(), t);
-                        }
-                    }
-                } else {
-                    LOGGER.log(Level.WARNING, t.getMessage(), t);
-                }
-            }
-
-            return session;
+            // create a new session
+            session = new TyrusSession(container, socket, this, subProtocol, extensions, upgradeRequest.isSecure(),
+                    getURI(upgradeRequest.getRequestURI().toString(), upgradeRequest.getQueryString()),
+                    upgradeRequest.getQueryString(), templateValues, upgradeRequest.getUserPrincipal(),
+                    upgradeRequest.getParameterMap(), clusterContext, connectionId);
+            webSocketToSession.put(socket, session);
         }
+
+        ErrorCollector collector = new ErrorCollector();
+
+        final Object toCall = endpoint != null ? endpoint :
+                componentProvider.getInstance(endpointClass, session, collector);
+        try {
+            if (!collector.isEmpty()) {
+                throw collector.composeComprehensiveException();
+            }
+
+            if (endpoint != null) {
+                ((Endpoint) toCall).onOpen(session, configuration);
+            } else {
+                onOpen.invoke(toCall, session, configuration);
+            }
+        } catch (Throwable t) {
+            if (toCall != null) {
+                if (endpoint != null) {
+                    ((Endpoint) toCall).onError(session, t);
+                } else {
+                    try {
+                        onError.invoke(toCall, session, t);
+                    } catch (Exception e) {
+                        LOGGER.log(Level.WARNING, t.getMessage(), t);
+                    }
+                }
+            } else {
+                LOGGER.log(Level.WARNING, t.getMessage(), t);
+            }
+        }
+
+        return session;
     }
 
     /**
@@ -1021,10 +1015,8 @@ public class TyrusEndpointWrapper {
                 clusterContext.destroyDistributedUserProperties(session.getConnectionId());
             }
 
-            synchronized (webSocketToSession) {
-                webSocketToSession.remove(socket);
-                componentProvider.removeSession(session);
-            }
+            webSocketToSession.remove(socket);
+            componentProvider.removeSession(session);
 
             if (onCloseListener != null) {
                 onCloseListener.onClose(closeReason);
