@@ -166,9 +166,7 @@ public class OnCloseTest extends TestContainer {
 
             stopServer(server);
 
-            messageLatch.await(3, TimeUnit.SECONDS);
-
-            assertEquals(0L, messageLatch.getCount());
+            assertTrue(messageLatch.await(10, TimeUnit.SECONDS));
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
