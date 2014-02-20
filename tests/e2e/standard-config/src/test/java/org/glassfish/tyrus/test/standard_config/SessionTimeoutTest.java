@@ -68,8 +68,6 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-import junit.framework.Assert;
-
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
@@ -112,7 +110,7 @@ public class SessionTimeoutTest extends TestContainer {
                 @Override
                 public void onClose(Session session, CloseReason closeReason) {
                     //TYRUS-230
-                    Assert.assertEquals(1000, closeReason.getCloseCode().getCode());
+                    assertEquals(1000, closeReason.getCloseCode().getCode());
                     latch.countDown();
                 }
             }, cec, getURI(SessionTimeoutEndpoint.class));

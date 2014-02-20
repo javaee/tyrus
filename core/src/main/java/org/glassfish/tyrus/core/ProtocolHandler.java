@@ -281,7 +281,7 @@ public final class ProtocolHandler {
             outgoingCloseFrame = new CloseFrame(closeReason);
         }
 
-        return send(outgoingCloseFrame, new CompletionHandler<Frame>() {
+        final Future<Frame> send = send(outgoingCloseFrame, new CompletionHandler<Frame>() {
 
             @Override
             public void cancelled() {
@@ -304,6 +304,13 @@ public final class ProtocolHandler {
                 }
             }
         }, false);
+
+        if (code == CloseReason.CloseCodes.NO_STATUS_CODE.getCode() || code == CloseReason.CloseCodes.CLOSED_ABNORMALLY.getCode()
+                || code == CloseReason.CloseCodes.TLS_HANDSHAKE_FAILURE.getCode()) {
+            webSocket.onClose(new CloseFrame(closeReason));
+        }
+
+        return send;
     }
 
     @SuppressWarnings({"unchecked"})

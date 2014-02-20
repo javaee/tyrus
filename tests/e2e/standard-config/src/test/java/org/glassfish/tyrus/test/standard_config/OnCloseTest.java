@@ -132,6 +132,49 @@ public class OnCloseTest extends TestContainer {
         }
     }
 
+    @Test
+    public void testOnClose1006() throws DeploymentException {
+        Server server = startServer(OnCloseEndpoint.class);
+
+        final CountDownLatch messageLatch = new CountDownLatch(1);
+
+        try {
+            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
+
+            ClientManager.createClient().connectToServer(new TestEndpointAdapter() {
+                @Override
+                public EndpointConfig getEndpointConfig() {
+                    return cec;
+                }
+
+                @Override
+                public void onOpen(Session session) {
+                }
+
+                @Override
+                public void onClose(Session session, CloseReason closeReason) {
+                    if (closeReason != null && closeReason.getCloseCode().getCode() == CloseReason.CloseCodes.CLOSED_ABNORMALLY.getCode()) {
+                        messageLatch.countDown();
+                    }
+                }
+
+                @Override
+                public void onMessage(String message) {
+                    // do nothing
+                }
+            }, cec, getURI(OnCloseEndpoint.class));
+
+            stopServer(server);
+
+            messageLatch.await(3, TimeUnit.SECONDS);
+
+            assertEquals(0L, messageLatch.getCount());
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
     static final String CUSTOM_REASON = "When nine hundred years old you reach, look as good, you will not, hmmm?";
 
     @ServerEndpoint(value = "/close3")

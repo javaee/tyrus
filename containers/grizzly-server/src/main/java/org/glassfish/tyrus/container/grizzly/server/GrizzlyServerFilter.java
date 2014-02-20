@@ -134,7 +134,7 @@ class GrizzlyServerFilter extends BaseFilter {
 
         final org.glassfish.tyrus.spi.Connection connection = getConnection(ctx);
         if (connection != null) {
-            taskQueue.add(new CloseTask(connection, CloseReasons.NORMAL_CLOSURE.getCloseReason(), ctx.getConnection()));
+            taskQueue.add(new CloseTask(connection, CloseReasons.CLOSED_ABNORMALLY.getCloseReason(), ctx.getConnection()));
             TaskProcessor.processQueue(taskQueue, null);
         }
         return ctx.getStopAction();
