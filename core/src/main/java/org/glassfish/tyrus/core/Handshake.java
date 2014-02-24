@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -111,15 +111,15 @@ public final class Handshake {
         if (handshake.origin == null) {
             handshake.origin = request.getHeader(UpgradeRequest.ORIGIN_HEADER);
         }
-        Handshake.determineHostAndPort(handshake, request);
 
         // TODO - trim?
         final String protocolHeader = request.getHeader(UpgradeRequest.SEC_WEBSOCKET_PROTOCOL);
         handshake.subProtocols = (protocolHeader == null ? Collections.<String>emptyList() : Arrays.asList(protocolHeader.split(",")));
 
-        if (handshake.serverHostName == null) {
+        if (request.getHeader(UpgradeRequest.HOST) == null) {
             throw new HandshakeException("Missing required headers for WebSocket negotiation");
         }
+
         handshake.resourcePath = request.getRequestUri();
         final String queryString = request.getQueryString();
         if (queryString != null) {
@@ -161,19 +161,6 @@ public final class Handshake {
         }
     }
 
-    private static void determineHostAndPort(Handshake handshake, UpgradeRequest request) {
-        String header = request.getHeader(UpgradeRequest.HOST);
-
-        final int i = header == null ? -1 : header.indexOf(":");
-        if (i == -1) {
-            handshake.serverHostName = header;
-            handshake.port = 80;
-        } else {
-            handshake.serverHostName = header.substring(0, i);
-            handshake.port = Integer.valueOf(header.substring(i + 1));
-        }
-    }
-
     private static StringBuilder appendPort(StringBuilder builder, int port, boolean secure) {
         if (secure) {
             if (port != 443 && port != -1) {
@@ -189,14 +176,6 @@ public final class Handshake {
 
     String getOrigin() {
         return origin;
-    }
-
-    int getPort() {
-        return port;
-    }
-
-    String getServerHostName() {
-        return serverHostName;
     }
 
     List<String> getSubProtocols() {
@@ -269,14 +248,14 @@ public final class Handshake {
     }
 
     /**
-     * Compose the {@link UpgradeRequest} and store it for further use.
+     * Client side only - Compose the {@link UpgradeRequest} and store it for further use.
      *
      * @return composed {@link UpgradeRequest}.
      */
     public UpgradeRequest prepareRequest() {
-        String host = getServerHostName();
+        String host = serverHostName;
         if (port != -1 && port != 80 && port != 443) {
-            host += ":" + getPort();
+            host += ":" + port;
         }
 
         putSingleHeader(request, UpgradeRequest.HOST, host);
