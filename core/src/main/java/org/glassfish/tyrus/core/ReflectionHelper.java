@@ -789,7 +789,7 @@ public class ReflectionHelper {
 
         try {
             instance = getInstance(c);
-        } catch (ReflectiveOperationException e) {
+        } catch (Exception e) {
             collector.addException(new DeploymentException(LocalizationMessages.CLASS_NOT_INSTANTIATED(c.getName()), e));
         }
 
