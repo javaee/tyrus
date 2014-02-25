@@ -76,8 +76,8 @@ public final class Handshake {
     private SecKey secKey;
 
     /**
-     * @see #createClientHandShake(org.glassfish.tyrus.spi.UpgradeRequest)
-     * @see #createServerHandShake(org.glassfish.tyrus.spi.UpgradeRequest, org.glassfish.tyrus.core.extension.ExtendedExtension.ExtensionContext)
+     * @see #createClientHandshake(org.glassfish.tyrus.spi.UpgradeRequest)
+     * @see #createServerHandshake(org.glassfish.tyrus.spi.UpgradeRequest, org.glassfish.tyrus.core.extension.ExtendedExtension.ExtensionContext)
      */
     private Handshake() {
     }
@@ -88,7 +88,7 @@ public final class Handshake {
      * @param webSocketRequest request representation to be modified for use as WebSocket handshake request.
      * @return handshake instance.
      */
-    static Handshake createClientHandShake(UpgradeRequest webSocketRequest) {
+    public static Handshake createClientHandshake(UpgradeRequest webSocketRequest) {
         final Handshake handshake = new Handshake();
         handshake.request = webSocketRequest;
 
@@ -116,7 +116,7 @@ public final class Handshake {
      * @param extensionContext extension context.
      * @return created handshake.
      */
-    static Handshake createServerHandShake(UpgradeRequest request, ExtendedExtension.ExtensionContext extensionContext) {
+    static Handshake createServerHandshake(UpgradeRequest request, ExtendedExtension.ExtensionContext extensionContext) {
         final Handshake handshake = new Handshake();
 
         handshake.incomingRequest = request;
@@ -205,7 +205,7 @@ public final class Handshake {
     }
 
     /**
-     * Gets the {@link UpgradeRequest}.
+     * Client side only - get the {@link UpgradeRequest}.
      *
      * @return {@link UpgradeRequest} created on this HandShake.
      */
@@ -273,6 +273,7 @@ public final class Handshake {
         request.getHeaders().put(headerName, Arrays.asList(headerValue));
     }
 
+    // client side
     public void validateServerResponse(UpgradeResponse response) {
         if (RESPONSE_CODE_VALUE != response.getStatus()) {
             throw new HandshakeException(LocalizationMessages.INVALID_RESPONSE_CODE(RESPONSE_CODE_VALUE, response.getStatus()));

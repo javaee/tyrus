@@ -118,7 +118,7 @@ public class TyrusClientEngine implements ClientEngine {
     @Override
     public UpgradeRequest createUpgradeRequest(URI uri, TimeoutHandler timeoutHandler) {
         this.timeoutHandler = timeoutHandler;
-        clientHandShake = protocolHandler.createClientHandShake(RequestContext.Builder.create().requestURI(uri).build());
+        clientHandShake = Handshake.createClientHandshake(RequestContext.Builder.create().requestURI(uri).build());
 
         ClientEndpointConfig config = (ClientEndpointConfig) endpointWrapper.getEndpointConfig();
 

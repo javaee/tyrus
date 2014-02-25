@@ -124,7 +124,7 @@ public final class ProtocolHandler {
      * @return TODO.
      */
     public Handshake handshake(TyrusEndpointWrapper endpointWrapper, UpgradeRequest request, UpgradeResponse response, ExtendedExtension.ExtensionContext extensionContext) {
-        final Handshake handshake = createHandShake(request, extensionContext);
+        final Handshake handshake = Handshake.createServerHandshake(request, extensionContext);
         this.extensions = handshake.respond(request, response, endpointWrapper);
         this.subProtocol = response.getFirstHeaderValue(UpgradeRequest.SEC_WEBSOCKET_PROTOCOL);
         this.extensionContext = extensionContext;
@@ -166,26 +166,6 @@ public final class ProtocolHandler {
     public void setExtensions(List<Extension> extensions) {
         this.extensions = extensions;
         this.hasExtensions = extensions != null && extensions.size() > 0;
-    }
-
-    /**
-     * Create {@link Handshake} on server side.
-     *
-     * @param webSocketRequest representation of received initial HTTP request.
-     * @return new {@link Handshake} instance.
-     */
-    Handshake createHandShake(UpgradeRequest webSocketRequest, ExtendedExtension.ExtensionContext extensionContext) {
-        return Handshake.createServerHandShake(webSocketRequest, extensionContext);
-    }
-
-    /**
-     * Create {@link Handshake} on client side.
-     *
-     * @param webSocketRequest representation of HTTP request to be sent.
-     * @return new {@link Handshake} instance.
-     */
-    public Handshake createClientHandShake(UpgradeRequest webSocketRequest) {
-        return Handshake.createClientHandShake(webSocketRequest);
     }
 
     public final Future<Frame> send(Frame frame, boolean useTimeout) {
@@ -313,7 +293,6 @@ public final class ProtocolHandler {
         return send;
     }
 
-    @SuppressWarnings({"unchecked"})
     private Future<Frame> write(final Frame frame, final CompletionHandler<Frame> completionHandler, boolean useTimeout) {
         final Writer localWriter = writer;
         final TyrusFuture<Frame> future = new TyrusFuture<Frame>();
@@ -328,7 +307,6 @@ public final class ProtocolHandler {
         return future;
     }
 
-    @SuppressWarnings({"unchecked"})
     private Future<Frame> write(final ByteBuffer frame, final CompletionHandler<Frame> completionHandler, boolean useTimeout) {
         final Writer localWriter = writer;
         final TyrusFuture<Frame> future = new TyrusFuture<Frame>();
