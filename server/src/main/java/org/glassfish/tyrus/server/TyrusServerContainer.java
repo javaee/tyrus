@@ -160,9 +160,14 @@ public abstract class TyrusServerContainer extends BaseContainer implements Serv
 
     /**
      * Undeploy all endpoints and stop underlying {@link org.glassfish.tyrus.spi.ServerContainer}.
+     *
+     * Release all created threadpools / executor services.
      */
     @Override
     public void stop() {
+
+        // release executor services managed by {@link BaseContainer}.
+        shutdown();
     }
 
     public abstract void register(Class<?> endpointClass) throws DeploymentException;

@@ -63,6 +63,10 @@ public abstract class BaseContainer extends ExecutorServiceProvider implements W
 
     private final ExecutorService executorService;
     private final ScheduledExecutorService scheduledExecutorService;
+
+    private boolean shutdownExecutorService = true;
+    private boolean shutdownScheduledExecutorService = true;
+
     private ThreadFactory threadFactory = null;
 
     public BaseContainer() {
@@ -80,6 +84,20 @@ public abstract class BaseContainer extends ExecutorServiceProvider implements W
         return scheduledExecutorService;
     }
 
+    /**
+     * Release executor services managed by this instance. Executor services obtained via JNDI lookup won't be
+     * shut down.
+     */
+    public void shutdown() {
+        if (shutdownExecutorService) {
+            executorService.shutdown();
+        }
+
+        if (shutdownScheduledExecutorService) {
+            scheduledExecutorService.shutdown();
+        }
+    }
+
     private ExecutorService newExecutorService() {
         ExecutorService es = null;
 
@@ -91,6 +109,7 @@ public abstract class BaseContainer extends ExecutorServiceProvider implements W
 
             final Method lookupMethod = aClass.getMethod("lookup", String.class);
             es = (ExecutorService) lookupMethod.invoke(o, "java:comp/DefaultManagedExecutorService");
+            shutdownExecutorService = false;
         } catch (Exception e) {
             // ignore
             if (LOGGER.isLoggable(Level.FINE)) {
@@ -120,9 +139,10 @@ public abstract class BaseContainer extends ExecutorServiceProvider implements W
 
             final Method lookupMethod = aClass.getMethod("lookup", String.class);
             service = (ScheduledExecutorService) lookupMethod.invoke(o, "java:comp/DefaultManagedScheduledExecutorService");
+            shutdownScheduledExecutorService = false;
         } catch (Exception e) {
             // ignore
-            if(LOGGER.isLoggable(Level.FINE)) {
+            if (LOGGER.isLoggable(Level.FINE)) {
                 LOGGER.log(Level.FINE, e.getMessage(), e);
             }
         } catch (LinkageError error) {
@@ -150,7 +170,7 @@ public abstract class BaseContainer extends ExecutorServiceProvider implements W
         }
 
         @Override
-        public Thread newThread(Runnable r) {
+        public Thread newThread(@SuppressWarnings("NullableProblems") Runnable r) {
             Thread t = new Thread(null, r, namePrefix + threadNumber.getAndIncrement(), 0);
             if (!t.isDaemon()) {
                 t.setDaemon(true);
