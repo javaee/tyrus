@@ -38,7 +38,7 @@
  * holder.
  */
 
-package org.glassfish.tyrus.core.extension;
+package org.glassfish.tyrus.ext.extension.deflate;
 
 /**
  * Compression extension for webkit based browsers.

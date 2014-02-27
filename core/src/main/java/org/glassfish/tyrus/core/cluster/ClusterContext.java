@@ -84,7 +84,7 @@ public abstract class ClusterContext {
      * from the other node that the message has been successfully sent. If there is any exception, it will be wrapped into
      * {@link java.util.concurrent.ExecutionException} and thrown.
      */
-    public abstract Future<Void> sendText(final String sessionId, final String text, boolean isLast);
+    public abstract Future<Void> sendText(String sessionId, String text, boolean isLast);
 
     /**
      * Send binary message.
@@ -107,7 +107,7 @@ public abstract class ClusterContext {
      * from the other node that the message has been successfully sent. If there is any exception, it will be wrapped into
      * {@link java.util.concurrent.ExecutionException} and thrown.
      */
-    public abstract Future<Void> sendBinary(final String sessionId, final byte[] data, boolean isLast);
+    public abstract Future<Void> sendBinary(String sessionId, byte[] data, boolean isLast);
 
     /**
      * Send ping message.

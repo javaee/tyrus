@@ -56,4 +56,16 @@
     <modules>
         <module>client-cli</module>
     </modules>
+
+    <profiles>
+        <profile>
+            <id>jdk7</id>
+            <activation>
+                <jdk>1.7</jdk>
+            </activation>
+            <modules>
+                <module>extension-deflate</module>
+            </modules>
+        </profile>
+    </profiles>
 </project>

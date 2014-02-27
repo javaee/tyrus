@@ -50,8 +50,8 @@ import javax.websocket.Extension;
 import javax.websocket.server.ServerApplicationConfig;
 import javax.websocket.server.ServerEndpointConfig;
 
-import org.glassfish.tyrus.core.extension.PerMessageDeflateExtension;
-import org.glassfish.tyrus.core.extension.XWebkitDeflateExtension;
+import org.glassfish.tyrus.ext.extension.deflate.PerMessageDeflateExtension;
+import org.glassfish.tyrus.ext.extension.deflate.XWebkitDeflateExtension;
 
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)

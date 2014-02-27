@@ -38,7 +38,7 @@
  * holder.
  */
 
-package org.glassfish.tyrus.test.e2e.appconfig;
+package org.glassfish.tyrus.ext.extension.deflate;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -63,7 +63,6 @@ import javax.websocket.Session;
 import javax.websocket.server.ServerEndpointConfig;
 
 import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.core.extension.PerMessageDeflateExtension;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.server.TyrusServerConfiguration;
 import org.glassfish.tyrus.test.tools.TestContainer;
@@ -76,16 +75,15 @@ import static org.junit.Assert.assertTrue;
  */
 public class PerMessageDeflateExtensionTest extends TestContainer {
 
-    public PerMessageDeflateExtensionTest() {
-        this.setContextPath("/e2e-test-appconfig");
-    }
-
     public static class ServerDeployApplicationConfig extends TyrusServerConfiguration {
         public ServerDeployApplicationConfig() {
             super(Collections.<Class<?>>emptySet(), new HashSet<ServerEndpointConfig>() {{
                 add(ServerEndpointConfig.Builder.create(EchoEndpoint.class, "/compressionExtensionTest")
                         .extensions(Arrays.<Extension>asList(new PerMessageDeflateExtension())).build());
-            }});
+            }
+
+                private static final long serialVersionUID = -6065653369480760041L;
+            });
         }
     }
 

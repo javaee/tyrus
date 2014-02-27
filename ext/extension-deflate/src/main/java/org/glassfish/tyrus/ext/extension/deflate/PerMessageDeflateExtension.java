@@ -38,7 +38,7 @@
  * holder.
  */
 
-package org.glassfish.tyrus.core.extension;
+package org.glassfish.tyrus.ext.extension.deflate;
 
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -51,6 +51,7 @@ import java.util.zip.DataFormatException;
 import java.util.zip.Deflater;
 import java.util.zip.Inflater;
 
+import org.glassfish.tyrus.core.extension.ExtendedExtension;
 import org.glassfish.tyrus.core.frame.Frame;
 
 /**

@@ -85,6 +85,10 @@
             <artifactId>tyrus-server</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.glassfish.tyrus.ext</groupId>
+            <artifactId>tyrus-extension-deflate</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.glassfish.tyrus.tests</groupId>
             <artifactId>tyrus-test-tools</artifactId>
         </dependency>
