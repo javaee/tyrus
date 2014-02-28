@@ -45,7 +45,6 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Future;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -80,7 +79,6 @@ public final class ProtocolHandler {
 
     private static final Logger LOGGER = Logger.getLogger(ProtocolHandler.class.getName());
 
-    private final AtomicBoolean onClosedCalled = new AtomicBoolean(false);
     private final boolean maskData;
     private final ParsingState state = new ParsingState();
 
@@ -261,34 +259,9 @@ public final class ProtocolHandler {
             outgoingCloseFrame = new CloseFrame(closeReason);
         }
 
-        final Future<Frame> send = send(outgoingCloseFrame, new CompletionHandler<Frame>() {
+        final Future<Frame> send = send(outgoingCloseFrame, null, false);
 
-            @Override
-            public void cancelled() {
-                if (webSocket != null && !onClosedCalled.getAndSet(true)) {
-                    webSocket.onClose(new CloseFrame(closeReason));
-                }
-            }
-
-            @Override
-            public void failed(final Throwable throwable) {
-                if (webSocket != null && !onClosedCalled.getAndSet(true)) {
-                    webSocket.onClose(new CloseFrame(closeReason));
-                }
-            }
-
-            @Override
-            public void completed(Frame result) {
-                if (!maskData && (webSocket != null) && !onClosedCalled.getAndSet(true)) {
-                    webSocket.onClose(new CloseFrame(closeReason));
-                }
-            }
-        }, false);
-
-        if (code == CloseReason.CloseCodes.NO_STATUS_CODE.getCode() || code == CloseReason.CloseCodes.CLOSED_ABNORMALLY.getCode()
-                || code == CloseReason.CloseCodes.TLS_HANDSHAKE_FAILURE.getCode()) {
-            webSocket.onClose(new CloseFrame(closeReason));
-        }
+        webSocket.onClose(new CloseFrame(closeReason));
 
         return send;
     }

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -63,6 +63,8 @@ import org.glassfish.tyrus.tests.servlet.session.CloseServerEndpoint;
 import org.glassfish.tyrus.tests.servlet.session.ServiceEndpoint;
 
 import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import junit.framework.Assert;
 
@@ -173,6 +175,8 @@ public class SessionCloseApplicationTest {
                     } catch (Exception e) {
                         inCloseSendMessageExceptionThrown1 = true;
                     }
+
+                    clientLatch.countDown();
                 }
 
                 @Override
@@ -181,7 +185,7 @@ public class SessionCloseApplicationTest {
                 }
             }, cec, getURI(CloseServerEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
 
-            clientLatch.await(1, TimeUnit.SECONDS);
+            assertTrue(clientLatch.await(3, TimeUnit.SECONDS));
 
             try {
                 clientSession.addMessageHandler(null);
@@ -241,7 +245,7 @@ public class SessionCloseApplicationTest {
 
             }, cec, getURI(ServiceEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
             messageLatch.await(3, TimeUnit.SECONDS);
-            Assert.assertTrue("Received message was not 1.", messageReceived1.equals("1"));
+            assertEquals("Received message was not 1.", messageReceived1, "1");
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -363,7 +367,7 @@ public class SessionCloseApplicationTest {
 
             }, cec, getURI(ServiceEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
             messageLatch.await(3, TimeUnit.SECONDS);
-            Assert.assertTrue("Received message was not 1.", messageReceived2.equals("1"));
+            assertEquals("Received message was not 1.", messageReceived2, "1");
 
         } catch (Exception e) {
             e.printStackTrace();

@@ -218,7 +218,7 @@ public class TyrusSession implements Session {
      */
     @Override
     public void close(CloseReason closeReason) throws IOException {
-        checkConnectionState(State.CLOSED);
+        checkConnectionState(State.CLOSED, State.CLOSING);
         changeStateToClosing();
         basicRemote.close(closeReason);
     }
@@ -230,7 +230,7 @@ public class TyrusSession implements Session {
 
     @Override
     public void setMaxBinaryMessageBufferSize(int maxBinaryMessageBufferSize) {
-        checkConnectionState(State.CLOSED);
+        checkConnectionState(State.CLOSED, State.CLOSING);
         this.maxBinaryMessageBufferSize = maxBinaryMessageBufferSize;
         if (distributedPropertyMap != null) {
             distributedPropertyMap.put(ClusterSession.DistributedMapKey.MAX_BINARY_MESSAGE_BUFFER_SIZE, maxBinaryMessageBufferSize);
@@ -244,7 +244,7 @@ public class TyrusSession implements Session {
 
     @Override
     public void setMaxTextMessageBufferSize(int maxTextMessageBufferSize) {
-        checkConnectionState(State.CLOSED);
+        checkConnectionState(State.CLOSED, State.CLOSING);
         this.maxTextMessageBufferSize = maxTextMessageBufferSize;
         if (distributedPropertyMap != null) {
             distributedPropertyMap.put(ClusterSession.DistributedMapKey.MAX_TEXT_MESSAGE_BUFFER_SIZE, maxTextMessageBufferSize);
@@ -253,7 +253,7 @@ public class TyrusSession implements Session {
 
     @Override
     public Set<Session> getOpenSessions() {
-        checkConnectionState(State.CLOSED);
+        checkConnectionState(State.CLOSED, State.CLOSING);
         return endpointWrapper.getOpenSessions(this);
     }
 
@@ -269,7 +269,7 @@ public class TyrusSession implements Session {
 
     @Override
     public void setMaxIdleTimeout(long maxIdleTimeout) {
-        checkConnectionState(State.CLOSED);
+        checkConnectionState(State.CLOSED, State.CLOSING);
         this.maxIdleTimeout = maxIdleTimeout;
         restartIdleTimeoutExecutor();
         if (distributedPropertyMap != null) {
@@ -289,7 +289,7 @@ public class TyrusSession implements Session {
 
     @Override
     public void addMessageHandler(MessageHandler handler) {
-        checkConnectionState(State.CLOSED);
+        checkConnectionState(State.CLOSED, State.CLOSING);
         synchronized (handlerManager) {
             handlerManager.addMessageHandler(handler);
         }
@@ -304,7 +304,7 @@ public class TyrusSession implements Session {
 
     @Override
     public void removeMessageHandler(MessageHandler handler) {
-        checkConnectionState(State.CLOSED);
+        checkConnectionState(State.CLOSED, State.CLOSING);
         synchronized (handlerManager) {
             handlerManager.removeMessageHandler(handler);
         }
@@ -620,6 +620,8 @@ public class TyrusSession implements Session {
     }
 
     private static class MessageHandlerComparator implements Comparator<MessageHandler>, Serializable {
+
+        private static final long serialVersionUID = -5136634876439146784L;
 
         @Override
         public int compare(MessageHandler o1, MessageHandler o2) {

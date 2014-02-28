@@ -111,7 +111,7 @@ public class TyrusWebSocket {
      *
      * @param frame the close frame from the remote end-point.
      */
-    public void onClose(CloseFrame frame) {
+    public synchronized void onClose(CloseFrame frame) {
         final CloseReason closeReason = frame.getCloseReason();
 
         if (endpointWrapper != null) {
