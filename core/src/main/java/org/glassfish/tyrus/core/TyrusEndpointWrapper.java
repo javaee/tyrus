@@ -973,7 +973,7 @@ public class TyrusEndpointWrapper {
             return;
         }
 
-        session.setState(TyrusSession.State.CLOSING);
+        session.setState(TyrusSession.State.CLOSED);
 
         ErrorCollector collector = new ErrorCollector();
 

@@ -192,24 +192,24 @@ public class TyrusSession implements Session {
 
     @Override
     public javax.websocket.RemoteEndpoint.Async getAsyncRemote() {
-        checkConnectionState(State.CLOSED, State.CLOSING);
+        checkConnectionState(State.CLOSED);
         return asyncRemote;
     }
 
     @Override
     public javax.websocket.RemoteEndpoint.Basic getBasicRemote() {
-        checkConnectionState(State.CLOSED, State.CLOSING);
+        checkConnectionState(State.CLOSED);
         return basicRemote;
     }
 
     @Override
     public boolean isOpen() {
-        return (!(state.get() == State.CLOSED || state.get() == State.CLOSING));
+        return state.get() != State.CLOSED;
     }
 
     @Override
     public void close() throws IOException {
-        changeStateToClosing();
+        changeStateToClosed();
         basicRemote.close(CloseReasons.NORMAL_CLOSURE.getCloseReason());
     }
 
@@ -218,8 +218,8 @@ public class TyrusSession implements Session {
      */
     @Override
     public void close(CloseReason closeReason) throws IOException {
-        checkConnectionState(State.CLOSED, State.CLOSING);
-        changeStateToClosing();
+        checkConnectionState(State.CLOSED);
+        changeStateToClosed();
         basicRemote.close(closeReason);
     }
 
@@ -230,7 +230,7 @@ public class TyrusSession implements Session {
 
     @Override
     public void setMaxBinaryMessageBufferSize(int maxBinaryMessageBufferSize) {
-        checkConnectionState(State.CLOSED, State.CLOSING);
+        checkConnectionState(State.CLOSED);
         this.maxBinaryMessageBufferSize = maxBinaryMessageBufferSize;
         if (distributedPropertyMap != null) {
             distributedPropertyMap.put(ClusterSession.DistributedMapKey.MAX_BINARY_MESSAGE_BUFFER_SIZE, maxBinaryMessageBufferSize);
@@ -244,7 +244,7 @@ public class TyrusSession implements Session {
 
     @Override
     public void setMaxTextMessageBufferSize(int maxTextMessageBufferSize) {
-        checkConnectionState(State.CLOSED, State.CLOSING);
+        checkConnectionState(State.CLOSED);
         this.maxTextMessageBufferSize = maxTextMessageBufferSize;
         if (distributedPropertyMap != null) {
             distributedPropertyMap.put(ClusterSession.DistributedMapKey.MAX_TEXT_MESSAGE_BUFFER_SIZE, maxTextMessageBufferSize);
@@ -253,7 +253,7 @@ public class TyrusSession implements Session {
 
     @Override
     public Set<Session> getOpenSessions() {
-        checkConnectionState(State.CLOSED, State.CLOSING);
+        checkConnectionState(State.CLOSED);
         return endpointWrapper.getOpenSessions(this);
     }
 
@@ -269,7 +269,7 @@ public class TyrusSession implements Session {
 
     @Override
     public void setMaxIdleTimeout(long maxIdleTimeout) {
-        checkConnectionState(State.CLOSED, State.CLOSING);
+        checkConnectionState(State.CLOSED);
         this.maxIdleTimeout = maxIdleTimeout;
         restartIdleTimeoutExecutor();
         if (distributedPropertyMap != null) {
@@ -289,7 +289,7 @@ public class TyrusSession implements Session {
 
     @Override
     public void addMessageHandler(MessageHandler handler) {
-        checkConnectionState(State.CLOSED, State.CLOSING);
+        checkConnectionState(State.CLOSED);
         synchronized (handlerManager) {
             handlerManager.addMessageHandler(handler);
         }
@@ -304,7 +304,7 @@ public class TyrusSession implements Session {
 
     @Override
     public void removeMessageHandler(MessageHandler handler) {
-        checkConnectionState(State.CLOSED, State.CLOSING);
+        checkConnectionState(State.CLOSED);
         synchronized (handlerManager) {
             handlerManager.removeMessageHandler(handler);
         }
@@ -425,7 +425,7 @@ public class TyrusSession implements Session {
                     Object object = endpointWrapper.decodeCompleteMessage(this, message, type, decoder);
                     if (object != null) {
                         final State currentState = state.get();
-                        if (currentState != State.CLOSING && currentState != State.CLOSED) {
+                        if (currentState != State.CLOSED) {
                             //noinspection unchecked
                             ((MessageHandler.Whole) mh).onMessage(object);
                         }
@@ -462,7 +462,7 @@ public class TyrusSession implements Session {
                 }
 
                 final State currentState = state.get();
-                if (currentState != State.CLOSING && currentState != State.CLOSED) {
+                if (currentState != State.CLOSED) {
                     //noinspection unchecked
                     ((MessageHandler.Partial) handler).onMessage(message, last);
                 }
@@ -582,10 +582,10 @@ public class TyrusSession implements Session {
         return sb.toString();
     }
 
-    private void changeStateToClosing() {
-        state.compareAndSet(State.RUNNING, State.CLOSING);
-        state.compareAndSet(State.RECEIVING_BINARY, State.CLOSING);
-        state.compareAndSet(State.RECEIVING_TEXT, State.CLOSING);
+    private void changeStateToClosed() {
+        state.compareAndSet(State.RUNNING, State.CLOSED);
+        state.compareAndSet(State.RECEIVING_BINARY, State.CLOSED);
+        state.compareAndSet(State.RECEIVING_TEXT, State.CLOSED);
     }
 
     /**
@@ -607,11 +607,6 @@ public class TyrusSession implements Session {
          * {@link Session} is currently receiving binary partial message on registered {@link MessageHandler.Whole}.
          */
         RECEIVING_BINARY,
-
-        /**
-         * {@link Session} is being closed.
-         */
-        CLOSING,
 
         /**
          * {@link Session} has been already closed.
