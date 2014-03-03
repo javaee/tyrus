@@ -64,7 +64,6 @@ import org.glassfish.tyrus.tests.servlet.session.ServiceEndpoint;
 
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import junit.framework.Assert;
 
@@ -176,7 +175,7 @@ public class SessionCloseApplicationTest {
                         inCloseSendMessageExceptionThrown1 = true;
                     }
 
-                    clientLatch.countDown();
+                    // clientLatch.countDown();
                 }
 
                 @Override
@@ -185,7 +184,8 @@ public class SessionCloseApplicationTest {
                 }
             }, cec, getURI(CloseServerEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
 
-            assertTrue(clientLatch.await(3, TimeUnit.SECONDS));
+            // assertTrue(clientLatch.await(5, TimeUnit.SECONDS));
+            clientLatch.await(5, TimeUnit.SECONDS);
 
             try {
                 clientSession.addMessageHandler(null);
@@ -307,7 +307,7 @@ public class SessionCloseApplicationTest {
                 }
             }, cec, getURI(CloseClientEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
 
-            clientLatch.await(1, TimeUnit.SECONDS);
+            clientLatch.await(5, TimeUnit.SECONDS);
 
             try {
                 clientSession.addMessageHandler(null);
