@@ -108,16 +108,6 @@
 
     <developers>
         <developer>
-            <id>jitu</id>
-            <name>Jitendra Kotamraju</name>
-            <url>https://www.java.net/blogs/jitu</url>
-            <organization>Oracle Corporation</organization>
-            <organizationUrl>http://www.oracle.com</organizationUrl>
-            <roles>
-                <role>developer</role>
-            </roles>
-        </developer>
-        <developer>
             <id>pavel_bucek</id>
             <name>Pavel Bucek</name>
             <organization>Oracle Corporation</organization>
@@ -144,6 +134,15 @@
         </contributor>
         <contributor>
             <name>Danny Coward</name>
+            <organization>Oracle Corporation</organization>
+            <organizationUrl>http://www.oracle.com</organizationUrl>
+            <roles>
+                <role>developer</role>
+            </roles>
+        </contributor>
+        <contributor>
+            <name>Jitendra Kotamraju</name>
+            <url>https://www.java.net/blogs/jitu</url>
             <organization>Oracle Corporation</organization>
             <organizationUrl>http://www.oracle.com</organizationUrl>
             <roles>
