@@ -92,7 +92,7 @@ class InputStreamBuffer {
      *
      * @return next received bytes.
      */
-    public byte getNextByte() {
+    public int getNextByte() {
         lock.lock();
         try {
             if (this.bufferedFragments.isEmpty()) {
@@ -126,7 +126,7 @@ class InputStreamBuffer {
                 bufferedFragments.remove(0);
             }
 
-            return result;
+            return result & 0xFF;
         } finally {
             lock.unlock();
         }
