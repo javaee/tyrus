@@ -52,6 +52,7 @@ import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
+import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
@@ -72,7 +73,6 @@ import static org.junit.Assert.assertTrue;
  * @author Raghuram Krishnamchari (raghuramcbz at gmail.com) jira/github user: raghucbz
  */
 public class BufferedInputStreamTest extends TestContainer {
-    public static int MESSAGE = 1234;
 
     @Test
     public void testClient() throws DeploymentException {
@@ -102,29 +102,29 @@ public class BufferedInputStreamTest extends TestContainer {
     @ServerEndpoint(value = "/bufferedinputstreamserver")
     public static class BufferedInputStreamEndpoint {
 
+        public static int MESSAGE = 1234;
+
         @OnOpen
-        public void init(final Session session) {
+        public void init() {
             System.out.println("BufferedInputStreamServer opened");
-            session.addMessageHandler(new MessageHandler.Whole<InputStream>() {
+        }
 
-                @Override
-                public void onMessage(InputStream inputStream) {
-                    System.out.println("BufferedInputStreamServer got message: " + inputStream);
-                    try {
-                        DataInputStream dataInputStream = new DataInputStream(inputStream);
-                        int messageReceived = dataInputStream.readInt();
+        @OnMessage
+        public void onMessage(Session session, InputStream inputStream) {
+            System.out.println("BufferedInputStreamServer got message: " + inputStream);
+            try {
+                DataInputStream dataInputStream = new DataInputStream(inputStream);
+                int messageReceived = dataInputStream.readInt();
 
-                        // assertTrue("Server did not get the right message: " + messageReceived, messageReceived == BufferedInputStreamTest.MESSAGE);
-                        if (messageReceived == BufferedInputStreamTest.MESSAGE) {
-                            System.out.println("Server successfully got message: " + messageReceived);
-                            session.getBasicRemote().sendText("ok");
-                        }
-                    } catch (Exception e) {
-                        System.out.println("BufferedInputStreamServer exception: " + e);
-                        e.printStackTrace();
-                    }
+                // assertTrue("Server did not get the right message: " + messageReceived, messageReceived == BufferedInputStreamTest.MESSAGE);
+                if (messageReceived == BufferedInputStreamEndpoint.MESSAGE) {
+                    System.out.println("Server successfully got message: " + messageReceived);
+                    session.getBasicRemote().sendText("ok");
                 }
-            });
+            } catch (Exception e) {
+                System.out.println("BufferedInputStreamServer exception: " + e);
+                e.printStackTrace();
+            }
         }
     }
 
@@ -156,7 +156,7 @@ public class BufferedInputStreamTest extends TestContainer {
             try {
                 OutputStream outputStream = session.getBasicRemote().getSendStream();
                 DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
-                dataOutputStream.writeInt(MESSAGE);
+                dataOutputStream.writeInt(BufferedInputStreamEndpoint.MESSAGE);
                 dataOutputStream.close();
                 System.out.println("## BufferedInputStreamClient - binary message sent");
 
