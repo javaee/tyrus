@@ -46,7 +46,7 @@
     <parent>
         <groupId>org.glassfish.tyrus.samples</groupId>
         <artifactId>tyrus-samples-project</artifactId>
-        <version>1.5-SNAPSHOT</version>
+        <version>1.5</version>
     </parent>
 
     <packaging>war</packaging>
