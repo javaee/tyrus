@@ -268,7 +268,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
                 String message = e.getMessage();
                 LOGGER.log(Level.FINE, message, e);
                 if (endpointWrapper.onError(socket, e)) {
-                    if (message.length() > 123) {
+                    if (message != null && message.length() > 123) {
                         // reason phrase length is limited.
                         message = message.substring(0, 123);
                     }
