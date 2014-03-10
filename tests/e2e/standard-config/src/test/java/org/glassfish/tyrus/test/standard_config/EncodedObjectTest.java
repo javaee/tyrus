@@ -41,6 +41,7 @@
 package org.glassfish.tyrus.test.standard_config;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -48,7 +49,9 @@ import javax.websocket.ClientEndpointConfig;
 import javax.websocket.DeploymentException;
 import javax.websocket.EncodeException;
 import javax.websocket.Encoder;
+import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfig;
+import javax.websocket.MessageHandler;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
@@ -265,5 +268,109 @@ public class EncodedObjectTest extends TestContainer {
         }
     }
 
+    @Test
+    public void testStringEncoderSendText() throws DeploymentException {
+        final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().encoders(Collections.<Class<? extends Encoder>>singletonList(StringEncoder.class)).build();
+        Server server = startServer(StringEncoderSendTextEndpoint.class);
+
+        try {
+            messageLatch = new CountDownLatch(1);
+
+            ClientManager client = ClientManager.createClient();
+            client.connectToServer(new Endpoint() {
+                @Override
+                public void onOpen(Session session, EndpointConfig config) {
+                    session.addMessageHandler(new MessageHandler.Whole<String>() {
+                        @Override
+                        public void onMessage(String message) {
+                            // decoders should NOT be used, because we are using sendText, not sendObject
+                            if (message.equals("test")) {
+                                messageLatch.countDown();
+                            }
+                        }
+                    });
+
+                    try {
+                        session.getBasicRemote().sendText("test");
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }, cec, getURI(StringEncoderSendTextEndpoint.class));
+
+            assertTrue(messageLatch.await(3, TimeUnit.SECONDS));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            stopServer(server);
+        }
+    }
+
+    @Test
+    public void testStringEncoder() throws DeploymentException {
+        final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().encoders(Collections.<Class<? extends Encoder>>singletonList(StringEncoder.class)).build();
+        Server server = startServer(StringEncoderSendObjectEndpoint.class);
+
+        try {
+            messageLatch = new CountDownLatch(1);
+
+            ClientManager client = ClientManager.createClient();
+            client.connectToServer(new Endpoint() {
+                @Override
+                public void onOpen(Session session, EndpointConfig config) {
+                    session.addMessageHandler(new MessageHandler.Whole<String>() {
+                        @Override
+                        public void onMessage(String message) {
+                            // "testtest" is sent from client to server, server replies "testtesttesttest".
+                            if (message.equals("testtesttesttest")) {
+                                messageLatch.countDown();
+                            }
+                        }
+                    });
+
+                    try {
+                        session.getBasicRemote().sendObject("test");
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    } catch (EncodeException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }, cec, getURI(StringEncoderSendObjectEndpoint.class));
+
+            assertTrue(messageLatch.await(3, TimeUnit.SECONDS));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            stopServer(server);
+        }
+    }
+
+    @ServerEndpoint(value = "/encodedObjectTest-stringEncoder-sendText", encoders = {EncodedObjectTest.StringEncoder.class})
+    public static class StringEncoderSendTextEndpoint {
+        @OnMessage
+        public void onMessage(Session session, String message) throws IOException {
+            session.getBasicRemote().sendText(message);
+        }
+    }
+
+    @ServerEndpoint(value = "/encodedObjectTest-stringEncoder-sendObject", encoders = {EncodedObjectTest.StringEncoder.class})
+    public static class StringEncoderSendObjectEndpoint {
+        @OnMessage
+        public void onMessage(Session session, String message) throws IOException, EncodeException {
+            session.getBasicRemote().sendObject(message);
+        }
+    }
+
+    public static class StringEncoder extends CoderAdapter implements Encoder.Text<String> {
+        @Override
+        public String encode(String object) throws EncodeException {
+            return object + object;
+        }
+    }
 }
 

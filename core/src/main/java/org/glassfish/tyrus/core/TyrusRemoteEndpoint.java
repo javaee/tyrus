@@ -347,53 +347,49 @@ public abstract class TyrusRemoteEndpoint implements javax.websocket.RemoteEndpo
 
     @SuppressWarnings("unchecked")
     Future<?> sendSyncObject(Object o) {
-        if (o instanceof String) {
-            return webSocket.sendText((String) o);
-        } else {
-            Object toSend;
-            try {
-                toSend = endpointWrapper.doEncode(session, o);
-            } catch (final Exception e) {
-                return new Future<Object>() {
-                    @Override
-                    public boolean cancel(boolean mayInterruptIfRunning) {
-                        return false;
-                    }
+        Object toSend;
+        try {
+            toSend = endpointWrapper.doEncode(session, o);
+        } catch (final Exception e) {
+            return new Future<Object>() {
+                @Override
+                public boolean cancel(boolean mayInterruptIfRunning) {
+                    return false;
+                }
 
-                    @Override
-                    public boolean isCancelled() {
-                        return false;
-                    }
+                @Override
+                public boolean isCancelled() {
+                    return false;
+                }
 
-                    @Override
-                    public boolean isDone() {
-                        return true;
-                    }
+                @Override
+                public boolean isDone() {
+                    return true;
+                }
 
-                    @Override
-                    public Object get() throws InterruptedException, ExecutionException {
-                        throw new ExecutionException(e);
-                    }
+                @Override
+                public Object get() throws InterruptedException, ExecutionException {
+                    throw new ExecutionException(e);
+                }
 
-                    @Override
-                    public Object get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-                        throw new ExecutionException(e);
-                    }
-                };
-            }
+                @Override
+                public Object get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+                    throw new ExecutionException(e);
+                }
+            };
+        }
 
-            if (toSend instanceof String) {
-                return webSocket.sendText((String) toSend);
-            } else if (toSend instanceof ByteBuffer) {
-                return webSocket.sendBinary(Utils.getRemainingArray((ByteBuffer) toSend));
-            } else if (toSend instanceof StringWriter) {
-                StringWriter writer = (StringWriter) toSend;
-                StringBuffer sb = writer.getBuffer();
-                return webSocket.sendText(sb.toString());
-            } else if (toSend instanceof ByteArrayOutputStream) {
-                ByteArrayOutputStream baos = (ByteArrayOutputStream) toSend;
-                return webSocket.sendBinary(baos.toByteArray());
-            }
+        if (toSend instanceof String) {
+            return webSocket.sendText((String) toSend);
+        } else if (toSend instanceof ByteBuffer) {
+            return webSocket.sendBinary(Utils.getRemainingArray((ByteBuffer) toSend));
+        } else if (toSend instanceof StringWriter) {
+            StringWriter writer = (StringWriter) toSend;
+            StringBuffer sb = writer.getBuffer();
+            return webSocket.sendText(sb.toString());
+        } else if (toSend instanceof ByteArrayOutputStream) {
+            ByteArrayOutputStream baos = (ByteArrayOutputStream) toSend;
+            return webSocket.sendBinary(baos.toByteArray());
         }
 
         return null;

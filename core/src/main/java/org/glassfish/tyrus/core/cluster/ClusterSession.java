@@ -209,27 +209,23 @@ public class ClusterSession implements Session {
                 checkNotNull(data, "Argument 'data' cannot be null.");
 
                 final Future<Void> future;
-                if (data instanceof String) {
-                    future = clusterContext.sendText(sessionId, (String) data);
+                final Object toSend = endpointWrapper.doEncode(session, data);
+                if (toSend instanceof String) {
+                    future = clusterContext.sendText(sessionId, (String) toSend);
+                } else if (toSend instanceof ByteBuffer) {
+                    future = clusterContext.sendBinary(sessionId, Utils.getRemainingArray((ByteBuffer) toSend));
+                } else if (toSend instanceof StringWriter) {
+                    StringWriter writer = (StringWriter) toSend;
+                    StringBuffer sb = writer.getBuffer();
+                    future = clusterContext.sendText(sessionId, sb.toString());
+                } else if (toSend instanceof ByteArrayOutputStream) {
+                    ByteArrayOutputStream baos = (ByteArrayOutputStream) toSend;
+                    future = clusterContext.sendBinary(sessionId, baos.toByteArray());
                 } else {
-                    final Object toSend = endpointWrapper.doEncode(session, data);
-                    if (toSend instanceof String) {
-                        future = clusterContext.sendText(sessionId, (String) toSend);
-                    } else if (toSend instanceof ByteBuffer) {
-                        future = clusterContext.sendBinary(sessionId, Utils.getRemainingArray((ByteBuffer) toSend));
-                    } else if (toSend instanceof StringWriter) {
-                        StringWriter writer = (StringWriter) toSend;
-                        StringBuffer sb = writer.getBuffer();
-                        future = clusterContext.sendText(sessionId, sb.toString());
-                    } else if (toSend instanceof ByteArrayOutputStream) {
-                        ByteArrayOutputStream baos = (ByteArrayOutputStream) toSend;
-                        future = clusterContext.sendBinary(sessionId, baos.toByteArray());
-                    } else {
-                        // will never happen.
-                        return;
-                    }
-
+                    // will never happen.
+                    return;
                 }
+
                 processFuture(future);
             }
 
@@ -385,55 +381,51 @@ public class ClusterSession implements Session {
                 checkNotNull(data, "Argument 'data' cannot be null.");
 
                 final Future<Void> future;
-                if (data instanceof String) {
-                    future = clusterContext.sendText(sessionId, (String) data);
+                final Object toSend;
+                try {
+                    toSend = endpointWrapper.doEncode(session, data);
+                } catch (final Exception e) {
+                    return new Future<Void>() {
+                        @Override
+                        public boolean cancel(boolean mayInterruptIfRunning) {
+                            return false;
+                        }
+
+                        @Override
+                        public boolean isCancelled() {
+                            return false;
+                        }
+
+                        @Override
+                        public boolean isDone() {
+                            return true;
+                        }
+
+                        @Override
+                        public Void get() throws InterruptedException, ExecutionException {
+                            throw new ExecutionException(e);
+                        }
+
+                        @Override
+                        public Void get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
+                            throw new ExecutionException(e);
+                        }
+                    };
+                }
+                if (toSend instanceof String) {
+                    future = clusterContext.sendText(sessionId, (String) toSend);
+                } else if (toSend instanceof ByteBuffer) {
+                    future = clusterContext.sendBinary(sessionId, Utils.getRemainingArray((ByteBuffer) toSend));
+                } else if (toSend instanceof StringWriter) {
+                    StringWriter writer = (StringWriter) toSend;
+                    StringBuffer sb = writer.getBuffer();
+                    future = clusterContext.sendText(sessionId, sb.toString());
+                } else if (toSend instanceof ByteArrayOutputStream) {
+                    ByteArrayOutputStream baos = (ByteArrayOutputStream) toSend;
+                    future = clusterContext.sendBinary(sessionId, baos.toByteArray());
                 } else {
-                    final Object toSend;
-                    try {
-                        toSend = endpointWrapper.doEncode(session, data);
-                    } catch (final Exception e) {
-                        return new Future<Void>() {
-                            @Override
-                            public boolean cancel(boolean mayInterruptIfRunning) {
-                                return false;
-                            }
-
-                            @Override
-                            public boolean isCancelled() {
-                                return false;
-                            }
-
-                            @Override
-                            public boolean isDone() {
-                                return true;
-                            }
-
-                            @Override
-                            public Void get() throws InterruptedException, ExecutionException {
-                                throw new ExecutionException(e);
-                            }
-
-                            @Override
-                            public Void get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-                                throw new ExecutionException(e);
-                            }
-                        };
-                    }
-                    if (toSend instanceof String) {
-                        future = clusterContext.sendText(sessionId, (String) toSend);
-                    } else if (toSend instanceof ByteBuffer) {
-                        future = clusterContext.sendBinary(sessionId, Utils.getRemainingArray((ByteBuffer) toSend));
-                    } else if (toSend instanceof StringWriter) {
-                        StringWriter writer = (StringWriter) toSend;
-                        StringBuffer sb = writer.getBuffer();
-                        future = clusterContext.sendText(sessionId, sb.toString());
-                    } else if (toSend instanceof ByteArrayOutputStream) {
-                        ByteArrayOutputStream baos = (ByteArrayOutputStream) toSend;
-                        future = clusterContext.sendBinary(sessionId, baos.toByteArray());
-                    } else {
-                        // will never happen.
-                        future = null;
-                    }
+                    // will never happen.
+                    future = null;
                 }
 
                 return future;
