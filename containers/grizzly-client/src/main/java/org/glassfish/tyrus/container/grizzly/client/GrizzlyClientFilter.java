@@ -107,6 +107,7 @@ class GrizzlyClientFilter extends BaseFilter {
     private final URI uri;
     private final ClientEngine.TimeoutHandler timeoutHandler;
     private final boolean sharedTransport;
+    private final Map<String, String> proxyHeaders;
 
     private final Queue<TaskProcessor.Task> taskQueue = new ConcurrentLinkedQueue<TaskProcessor.Task>();
 
@@ -120,7 +121,8 @@ class GrizzlyClientFilter extends BaseFilter {
      */
     /* package */ GrizzlyClientFilter(ClientEngine engine, boolean proxy,
                                       Filter sslFilter, HttpCodecFilter httpCodecFilter,
-                                      URI uri, ClientEngine.TimeoutHandler timeoutHandler, boolean sharedTransport) {
+                                      URI uri, ClientEngine.TimeoutHandler timeoutHandler, boolean sharedTransport,
+                                      Map<String, String> proxyHeaders) {
         this.engine = engine;
         this.proxy = proxy;
         this.sslFilter = sslFilter;
@@ -128,6 +130,7 @@ class GrizzlyClientFilter extends BaseFilter {
         this.uri = uri;
         this.timeoutHandler = timeoutHandler;
         this.sharedTransport = sharedTransport;
+        this.proxyHeaders = proxyHeaders;
     }
 
     // ----------------------------------------------------- Methods from Filter
@@ -157,6 +160,13 @@ class GrizzlyClientFilter extends BaseFilter {
             builder = builder.uri(String.format("%s:%d", requestURI.getHost(), requestPort));
             builder = builder.protocol(Protocol.HTTP_1_1);
             builder = builder.method(Method.CONNECT);
+
+            if (proxyHeaders != null && proxyHeaders.size() > 0) {
+                for (Map.Entry<String, String> entry : proxyHeaders.entrySet()) {
+                    builder.header(entry.getKey(), entry.getValue());
+                }
+            }
+
             builder = builder.header(Header.Host, requestURI.getHost());
             builder = builder.header(Header.ProxyConnection, "keep-alive");
             builder = builder.header(Header.Connection, "keep-alive");
