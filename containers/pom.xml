@@ -67,6 +67,7 @@
             </activation>
             <modules>
                 <module>servlet</module>
+                <module>jdk-client</module>
             </modules>
         </profile>
     </profiles>
