@@ -108,7 +108,7 @@ public class SharedContainerTimeoutTest extends TestContainer {
 
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
 
             // this is the interesting part.
             client.getProperties().put(GrizzlyClientContainer.SHARED_CONTAINER, true);

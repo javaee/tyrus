@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -42,13 +42,10 @@ package org.glassfish.tyrus.tests.servlet.basic;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -64,6 +61,7 @@ import javax.websocket.server.ServerEndpoint;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.container.grizzly.client.GrizzlyClientContainer;
 import org.glassfish.tyrus.server.Server;
+import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
@@ -74,80 +72,22 @@ import static org.junit.Assert.assertTrue;
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class ServletTest {
+public class ServletTest extends TestContainer {
 
-    private final String CONTEXT_PATH = "/servlet-test";
-    private final String DEFAULT_HOST = "localhost";
-    private final int DEFAULT_PORT = 8025;
+    private static final String CONTEXT_PATH = "/servlet-test";
 
-    private final Set<Class<?>> endpointClasses = new HashSet<Class<?>>() {{
-        add(PlainEchoEndpoint.class);
-        add(RequestUriEndpoint.class);
-        add(OnOpenCloseEndpoint.class);
-        add(MultiEchoEndpoint.class);
-        add(TyrusBroadcastEndpoint.class);
-        add(WebSocketBroadcastEndpoint.class);
-    }};
-
-    /**
-     * Start embedded server unless "tyrus.test.host" system property is specified.
-     *
-     * @return new {@link Server} instance or {@code null} if "tyrus.test.host" system property is set.
-     */
-    private Server startServer() throws DeploymentException {
-        final String host = System.getProperty("tyrus.test.host");
-        if (host == null) {
-            final Server server = new Server(DEFAULT_HOST, DEFAULT_PORT, CONTEXT_PATH, null, endpointClasses);
-            server.start();
-            return server;
-        } else {
-            return null;
-        }
-    }
-
-    private String getHost() {
-        final String host = System.getProperty("tyrus.test.host");
-        if (host != null) {
-            return host;
-        }
-        return DEFAULT_HOST;
-    }
-
-    private int getPort() {
-        final String port = System.getProperty("tyrus.test.port");
-        if (port != null) {
-            try {
-                return Integer.parseInt(port);
-            } catch (NumberFormatException nfe) {
-                // do nothing
-            }
-        }
-        return DEFAULT_PORT;
-    }
-
-    private URI getURI(String endpointPath) {
-        try {
-            return new URI("ws", null, getHost(), getPort(), CONTEXT_PATH + endpointPath, null, null);
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    private void stopServer(Server server) {
-        if (server != null) {
-            server.stop();
-        }
+    public ServletTest() {
+        setContextPath(CONTEXT_PATH);
     }
 
     @Test
     public void testPlainEchoShort() throws DeploymentException, InterruptedException, IOException {
-        final Server server = startServer();
+        final Server server = startServer(PlainEchoEndpoint.class);
 
         final CountDownLatch messageLatch = new CountDownLatch(1);
 
         try {
-            final ClientManager client = ClientManager.createClient();
+            final ClientManager client = createClient();
             client.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig EndpointConfig) {
@@ -176,12 +116,12 @@ public class ServletTest {
 
     @Test
     public void testPlainEchoShort100() throws DeploymentException, InterruptedException, IOException {
-        final Server server = startServer();
+        final Server server = startServer(PlainEchoEndpoint.class);
 
         final CountDownLatch messageLatch = new CountDownLatch(100);
 
         try {
-            final ClientManager client = ClientManager.createClient();
+            final ClientManager client = createClient();
             client.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig EndpointConfig) {
@@ -212,13 +152,13 @@ public class ServletTest {
 
     @Test
     public void testPlainEchoShort10Sequence() throws DeploymentException, InterruptedException, IOException {
-        final Server server = startServer();
+        final Server server = startServer(PlainEchoEndpoint.class);
 
         final CountDownLatch messageLatch = new CountDownLatch(10);
 
         try {
             for (int i = 0; i < 10; i++) {
-                final ClientManager client = ClientManager.createClient();
+                final ClientManager client = createClient();
                 client.connectToServer(new Endpoint() {
                     @Override
                     public void onOpen(Session session, EndpointConfig EndpointConfig) {
@@ -251,13 +191,13 @@ public class ServletTest {
 
     @Test
     public void testPlainEchoShort10SequenceReturnedSession() throws DeploymentException, InterruptedException, IOException {
-        final Server server = startServer();
+        final Server server = startServer(PlainEchoEndpoint.class);
 
         final CountDownLatch messageLatch = new CountDownLatch(10);
 
         try {
             for (int i = 0; i < 10; i++) {
-                final ClientManager client = ClientManager.createClient();
+                final ClientManager client = createClient();
                 Session session = client.connectToServer(new Endpoint() {
                     @Override
                     public void onOpen(Session session, EndpointConfig EndpointConfig) {
@@ -300,12 +240,12 @@ public class ServletTest {
 
     @Test
     public void testPlainEchoLong() throws DeploymentException, InterruptedException, IOException {
-        final Server server = startServer();
+        final Server server = startServer(PlainEchoEndpoint.class);
 
         final CountDownLatch messageLatch = new CountDownLatch(1);
 
         try {
-            final ClientManager client = ClientManager.createClient();
+            final ClientManager client = createClient();
             client.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig EndpointConfig) {
@@ -334,12 +274,12 @@ public class ServletTest {
 
     @Test
     public void testPlainEchoLong10() throws DeploymentException, InterruptedException, IOException {
-        final Server server = startServer();
+        final Server server = startServer(PlainEchoEndpoint.class);
 
         final CountDownLatch messageLatch = new CountDownLatch(10);
 
         try {
-            final ClientManager client = ClientManager.createClient();
+            final ClientManager client = createClient();
             client.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig EndpointConfig) {
@@ -370,13 +310,13 @@ public class ServletTest {
 
     @Test
     public void testPlainEchoLong10Sequence() throws DeploymentException, InterruptedException, IOException {
-        final Server server = startServer();
+        final Server server = startServer(PlainEchoEndpoint.class);
 
         final CountDownLatch messageLatch = new CountDownLatch(10);
 
         try {
             for (int i = 0; i < 10; i++) {
-                final ClientManager client = ClientManager.createClient();
+                final ClientManager client = createClient();
                 client.connectToServer(new Endpoint() {
                     @Override
                     public void onOpen(Session session, EndpointConfig EndpointConfig) {
@@ -409,12 +349,12 @@ public class ServletTest {
 
     @Test
     public void testGetRequestURI() throws DeploymentException, InterruptedException, IOException {
-        final Server server = startServer();
+        final Server server = startServer(RequestUriEndpoint.class);
 
         final CountDownLatch messageLatch = new CountDownLatch(1);
 
         try {
-            final ClientManager client = ClientManager.createClient();
+            final ClientManager client = createClient();
 
             URI uri = getURI(RequestUriEndpoint.class.getAnnotation(ServerEndpoint.class).value());
             uri = URI.create(uri.toString() + "?test=1;aaa");
@@ -447,12 +387,12 @@ public class ServletTest {
 
     @Test
     public void testOnOpenClose() throws DeploymentException, InterruptedException, IOException {
-        final Server server = startServer();
+        final Server server = startServer(OnOpenCloseEndpoint.class);
 
         final CountDownLatch latch = new CountDownLatch(2);
 
         try {
-            final ClientManager client = ClientManager.createClient();
+            final ClientManager client = createClient();
 
             URI uri = getURI(OnOpenCloseEndpoint.class.getAnnotation(ServerEndpoint.class).value());
 
@@ -478,7 +418,7 @@ public class ServletTest {
     // "performance" test; 500 kB message is echoed 10 times.
     @Test
     public void testMultiEcho() throws IOException, DeploymentException, InterruptedException {
-        final Server server = startServer();
+        final Server server = startServer(MultiEchoEndpoint.class);
 
         final int LENGTH = 587952;
         byte[] b = new byte[LENGTH];
@@ -489,7 +429,7 @@ public class ServletTest {
         final CountDownLatch messageLatch = new CountDownLatch(10);
 
         try {
-            final ClientManager client = ClientManager.createClient();
+            final ClientManager client = createClient();
             final Session session = client.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig EndpointConfig) {
@@ -515,7 +455,7 @@ public class ServletTest {
     // "performance" test; 20 clients, endpoint broadcasts.
     @Test
     public void testTyrusBroadcastString() throws IOException, DeploymentException, InterruptedException {
-        final Server server = startServer();
+        final Server server = startServer(TyrusBroadcastEndpoint.class);
 
         final int LENGTH = 587952;
         byte[] b = new byte[LENGTH];
@@ -528,7 +468,7 @@ public class ServletTest {
 
         try {
             for (int i = 0; i < 20; i++) {
-                final ClientManager client = ClientManager.createClient();
+                final ClientManager client = createClient();
                 final Session session = client.connectToServer(new Endpoint() {
                     @Override
                     public void onOpen(Session session, EndpointConfig EndpointConfig) {
@@ -563,7 +503,7 @@ public class ServletTest {
     // "performance" test; 20 clients, endpoint broadcasts.
     @Test
     public void testTyrusBroadcastBinary() throws IOException, DeploymentException, InterruptedException {
-        final Server server = startServer();
+        final Server server = startServer(TyrusBroadcastEndpoint.class);
 
         final int LENGTH = 587952;
         byte[] b = new byte[LENGTH];
@@ -576,7 +516,7 @@ public class ServletTest {
 
         try {
             for (int i = 0; i < 20; i++) {
-                final ClientManager client = ClientManager.createClient();
+                final ClientManager client = createClient();
                 final Session session = client.connectToServer(new Endpoint() {
                     @Override
                     public void onOpen(Session session, EndpointConfig EndpointConfig) {
@@ -611,7 +551,7 @@ public class ServletTest {
     // "performance" test; 20 clients, endpoint broadcasts.
     @Test
     public void testWebSocketBroadcast() throws IOException, DeploymentException, InterruptedException {
-        final Server server = startServer();
+        final Server server = startServer(WebSocketBroadcastEndpoint.class);
 
         final int LENGTH = 587952;
         byte[] b = new byte[LENGTH];
@@ -624,7 +564,7 @@ public class ServletTest {
 
         try {
             for (int i = 0; i < 20; i++) {
-                final ClientManager client = ClientManager.createClient();
+                final ClientManager client = createClient();
                 final Session session = client.connectToServer(new Endpoint() {
                     @Override
                     public void onOpen(Session session, EndpointConfig EndpointConfig) {
@@ -661,7 +601,7 @@ public class ServletTest {
     // "performance" test; 20 clients, endpoint broadcasts.
     @Test
     public void testTyrusBroadcastStringSharedClientContainer() throws IOException, DeploymentException, InterruptedException {
-        final Server server = startServer();
+        final Server server = startServer(TyrusBroadcastEndpoint.class);
 
         final int LENGTH = 587952;
         byte[] b = new byte[LENGTH];
@@ -674,7 +614,7 @@ public class ServletTest {
 
         try {
             for (int i = 0; i < 20; i++) {
-                final ClientManager client = ClientManager.createClient();
+                final ClientManager client = createClient();
                 client.getProperties().put(GrizzlyClientContainer.SHARED_CONTAINER, true);
                 final Session session = client.connectToServer(new Endpoint() {
                     @Override
@@ -710,7 +650,7 @@ public class ServletTest {
     // "performance" test; 20 clients, endpoint broadcasts.
     @Test
     public void testTyrusBroadcastBinarySharedClientContainer() throws IOException, DeploymentException, InterruptedException {
-        final Server server = startServer();
+        final Server server = startServer(TyrusBroadcastEndpoint.class);
 
         final int LENGTH = 587952;
         byte[] b = new byte[LENGTH];
@@ -723,7 +663,7 @@ public class ServletTest {
 
         try {
             for (int i = 0; i < 20; i++) {
-                final ClientManager client = ClientManager.createClient();
+                final ClientManager client = createClient();
                 client.getProperties().put(GrizzlyClientContainer.SHARED_CONTAINER, true);
                 final Session session = client.connectToServer(new Endpoint() {
                     @Override
@@ -759,7 +699,7 @@ public class ServletTest {
     // "performance" test; 20 clients, endpoint broadcasts.
     @Test
     public void testWebSocketBroadcastSharedClientContainer() throws IOException, DeploymentException, InterruptedException {
-        final Server server = startServer();
+        final Server server = startServer(WebSocketBroadcastEndpoint.class);
 
         final int LENGTH = 587952;
         byte[] b = new byte[LENGTH];
@@ -772,7 +712,7 @@ public class ServletTest {
 
         try {
             for (int i = 0; i < 20; i++) {
-                final ClientManager client = ClientManager.createClient();
+                final ClientManager client = createClient();
                 client.getProperties().put(GrizzlyClientContainer.SHARED_CONTAINER, true);
                 final Session session = client.connectToServer(new Endpoint() {
                     @Override

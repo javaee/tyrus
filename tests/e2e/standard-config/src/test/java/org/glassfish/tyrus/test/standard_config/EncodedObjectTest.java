@@ -88,7 +88,7 @@ public class EncodedObjectTest extends TestContainer {
         try {
             messageLatch = new CountDownLatch(1);
 
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(new TestEndpointAdapter() {
                 @Override
                 public void onMessage(String message) {
@@ -151,7 +151,7 @@ public class EncodedObjectTest extends TestContainer {
         try {
             messageLatch = new CountDownLatch(1);
 
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(new TestEndpointAdapter() {
                 @Override
                 public void onMessage(String message) {
@@ -215,7 +215,7 @@ public class EncodedObjectTest extends TestContainer {
         try {
             messageLatch = new CountDownLatch(1);
 
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(new TestEndpointAdapter() {
                 @Override
                 public void onMessage(String message) {
@@ -276,7 +276,7 @@ public class EncodedObjectTest extends TestContainer {
         try {
             messageLatch = new CountDownLatch(1);
 
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig config) {
@@ -316,7 +316,7 @@ public class EncodedObjectTest extends TestContainer {
         try {
             messageLatch = new CountDownLatch(1);
 
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig config) {

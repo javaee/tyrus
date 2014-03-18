@@ -80,7 +80,7 @@ public class BlockingBinaryTest extends TestContainer {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
             BlockingBinaryClient sbc = new BlockingBinaryClient(messageLatch);
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(sbc, cec, getURI(BlockingBinaryEndpoint.class));
 
             messageLatch.await(5, TimeUnit.SECONDS);

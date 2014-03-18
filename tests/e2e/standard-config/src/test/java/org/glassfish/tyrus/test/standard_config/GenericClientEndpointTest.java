@@ -80,7 +80,7 @@ public class GenericClientEndpointTest extends TestContainer {
     public void testHello() throws DeploymentException {
         final Server server = startServer(EchoEndpoint.class);
         try {
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             final Session session = client.connectToServer(ConcreteEndpoint.class, getURI(EchoEndpoint.class));
 
             session.getBasicRemote().sendText("This is Red 5, I’m going in.");

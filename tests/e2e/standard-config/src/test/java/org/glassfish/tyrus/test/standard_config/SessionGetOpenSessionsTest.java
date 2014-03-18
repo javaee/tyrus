@@ -100,7 +100,7 @@ public class SessionGetOpenSessionsTest extends TestContainer {
 
         try {
             Thread.sleep(1000);
-            final ClientManager client = ClientManager.createClient();
+            final ClientManager client = createClient();
             for (int i = 0; i < 2; i++) {
                 client.connectToServer(new TestEndpointAdapter() {
                     @Override

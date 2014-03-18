@@ -45,7 +45,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfig;
-import javax.websocket.ContainerProvider;
 import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfig;
@@ -55,6 +54,7 @@ import javax.websocket.PongMessage;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
+import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.tools.TestContainer;
 
@@ -101,7 +101,8 @@ public class PingPongTest extends TestContainer {
         try {
             final CountDownLatch messageLatch = new CountDownLatch(1);
 
-            ContainerProvider.getWebSocketContainer().connectToServer(new Endpoint() {
+            ClientManager client = createClient();
+            client.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig config) {
                     try {
@@ -142,7 +143,8 @@ public class PingPongTest extends TestContainer {
         try {
             final CountDownLatch messageLatch = new CountDownLatch(1);
 
-            ContainerProvider.getWebSocketContainer().connectToServer(new Endpoint() {
+            ClientManager client = createClient();
+            client.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig config) {
                     try {
@@ -179,7 +181,8 @@ public class PingPongTest extends TestContainer {
         try {
             final CountDownLatch messageLatch = new CountDownLatch(1);
 
-            ContainerProvider.getWebSocketContainer().connectToServer(new Endpoint() {
+            ClientManager client = createClient();
+            client.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig config) {
                     try {
@@ -220,7 +223,8 @@ public class PingPongTest extends TestContainer {
         try {
             final CountDownLatch messageLatch = new CountDownLatch(1);
 
-            ContainerProvider.getWebSocketContainer().connectToServer(new Endpoint() {
+            ClientManager client = createClient();
+            client.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig config) {
                     try {
@@ -278,7 +282,8 @@ public class PingPongTest extends TestContainer {
 
         try {
 
-            final Session session = ContainerProvider.getWebSocketContainer().connectToServer(new Endpoint() {
+            ClientManager client = createClient();
+            final Session session = client.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig config) {
                     // do nothing.

@@ -124,7 +124,7 @@ public class ExtensionsTest extends TestContainer {
 
             final ClientEndpointConfig clientConfiguration = ClientEndpointConfig.Builder.create().extensions(extensions).build();
 
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             ExtensionsClientEndpoint clientEndpoint = new ExtensionsClientEndpoint();
             client.connectToServer(clientEndpoint, clientConfiguration,
                     getURI(TestEndpoint.class));

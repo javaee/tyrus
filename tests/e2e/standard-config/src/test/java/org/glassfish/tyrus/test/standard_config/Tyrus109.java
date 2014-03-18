@@ -54,6 +54,7 @@ import javax.websocket.server.ServerEndpoint;
 
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
+import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
@@ -62,7 +63,7 @@ import static org.junit.Assert.assertNotNull;
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class Tyrus109 {
+public class Tyrus109 extends TestContainer{
 
     @ServerEndpoint("/open109")
     public static class OnOpenErrorTestEndpoint {
@@ -99,7 +100,7 @@ public class Tyrus109 {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
             CountDownLatch messageLatch = new CountDownLatch(1);
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig configuration) {

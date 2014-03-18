@@ -78,7 +78,7 @@ public class ClientManagerTest extends TestContainer {
         final CountDownLatch messageLatch = new CountDownLatch(1);
 
         try {
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(new TestEndpointAdapter() {
 
                 @Override

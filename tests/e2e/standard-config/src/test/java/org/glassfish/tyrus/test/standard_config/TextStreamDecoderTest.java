@@ -47,7 +47,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfig;
-import javax.websocket.ContainerProvider;
 import javax.websocket.DecodeException;
 import javax.websocket.Decoder;
 import javax.websocket.DeploymentException;
@@ -57,9 +56,9 @@ import javax.websocket.MessageHandler;
 import javax.websocket.OnMessage;
 import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
-import javax.websocket.WebSocketContainer;
 import javax.websocket.server.ServerEndpoint;
 
+import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.tools.TestContainer;
 
@@ -147,8 +146,8 @@ public class TextStreamDecoderTest extends TestContainer {
         try {
             final ClientEndpointConfig build = ClientEndpointConfig.Builder.create().decoders(Collections.<Class<? extends Decoder>>singletonList(TextStreamDecoder.class)).build();
 
-            final WebSocketContainer webSocketContainer = ContainerProvider.getWebSocketContainer();
-            webSocketContainer.connectToServer(new Endpoint() {
+            ClientManager client = createClient();
+            client.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig config) {
                     session.addMessageHandler(new MessageHandler.Whole<TestMessage>() {
@@ -181,8 +180,8 @@ public class TextStreamDecoderTest extends TestContainer {
         try {
             final ClientEndpointConfig build = ClientEndpointConfig.Builder.create().decoders(Collections.<Class<? extends Decoder>>singletonList(TextStreamDecoder.class)).build();
 
-            final WebSocketContainer webSocketContainer = ContainerProvider.getWebSocketContainer();
-            webSocketContainer.connectToServer(new Endpoint() {
+            ClientManager client = createClient();
+            client.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig config) {
                     session.addMessageHandler(new MessageHandler.Whole<String>() {

@@ -125,7 +125,7 @@ public class InputStreamTest extends TestContainer {
 
         try {
             messageLatch = new CountDownLatch(1);
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(new Endpoint() {
 
                 @Override

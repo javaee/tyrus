@@ -100,7 +100,7 @@ public class SessionTimeoutTest extends TestContainer {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
             final CountDownLatch latch = new CountDownLatch(1);
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig config) {
@@ -155,6 +155,7 @@ public class SessionTimeoutTest extends TestContainer {
         @OnOpen
         public void onOpen(Session session) {
             session.setMaxIdleTimeout(TIMEOUT);
+            onClosedCalled.set(false);
         }
 
         @OnMessage
@@ -188,7 +189,7 @@ public class SessionTimeoutTest extends TestContainer {
 
             final CountDownLatch latch = new CountDownLatch(1);
 
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig config) {
@@ -260,7 +261,8 @@ public class SessionTimeoutTest extends TestContainer {
         try {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
-            ClientManager.createClient().connectToServer(new TestEndpointAdapter() {
+            ClientManager client = createClient();
+            client.connectToServer(new TestEndpointAdapter() {
                 @Override
                 public void onMessage(String message) {
 
@@ -306,7 +308,8 @@ public class SessionTimeoutTest extends TestContainer {
         try {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
-            Session session = ClientManager.createClient().connectToServer(new TestEndpointAdapter() {
+            ClientManager client = createClient();
+            Session session = client.connectToServer(new TestEndpointAdapter() {
                 @Override
                 public void onMessage(String message) {
                 }
@@ -347,7 +350,7 @@ public class SessionTimeoutTest extends TestContainer {
         try {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
-            final ClientManager client = ClientManager.createClient();
+            final ClientManager client = createClient();
             client.setDefaultMaxSessionIdleTimeout(200);
             Session session = client.connectToServer(new TestEndpointAdapter() {
                 @Override
@@ -389,7 +392,7 @@ public class SessionTimeoutTest extends TestContainer {
         try {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
-            final ClientManager client = ClientManager.createClient();
+            final ClientManager client = createClient();
             client.setDefaultMaxSessionIdleTimeout(1000);
             Session session = client.connectToServer(new TestEndpointAdapter() {
                 @Override
@@ -435,7 +438,7 @@ public class SessionTimeoutTest extends TestContainer {
         try {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
-            final ClientManager client = ClientManager.createClient();
+            final ClientManager client = createClient();
             client.setDefaultMaxSessionIdleTimeout(1000);
             Session session = client.connectToServer(new TestEndpointAdapter() {
                 @Override

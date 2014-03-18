@@ -127,7 +127,7 @@ public class ErrorTest extends TestContainer {
         try {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig config) {
@@ -187,7 +187,7 @@ public class ErrorTest extends TestContainer {
         try {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             final Session session = client.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig config) {
@@ -279,7 +279,7 @@ public class ErrorTest extends TestContainer {
         try {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             final Session session = client.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig config) {
@@ -343,7 +343,7 @@ public class ErrorTest extends TestContainer {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
             CountDownLatch messageLatch = new CountDownLatch(1);
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig config) {

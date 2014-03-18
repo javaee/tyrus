@@ -62,6 +62,7 @@ import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
 import javax.websocket.server.ServerEndpoint;
 
+import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.tools.TestContainer;
 
@@ -148,8 +149,8 @@ public class BinaryStreamDecoderTest extends TestContainer {
         try {
             final ClientEndpointConfig build = ClientEndpointConfig.Builder.create().decoders(Collections.<Class<? extends Decoder>>singletonList(BinaryStreamDecoder.class)).build();
 
-            final WebSocketContainer webSocketContainer = ContainerProvider.getWebSocketContainer();
-            webSocketContainer.connectToServer(new Endpoint() {
+            ClientManager client = createClient();
+            client.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig config) {
                     session.addMessageHandler(new MessageHandler.Whole<TestMessage>() {

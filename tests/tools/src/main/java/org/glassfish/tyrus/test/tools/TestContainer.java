@@ -170,6 +170,19 @@ public class TestContainer {
     }
 
     /**
+     * Get the {@link ClientManager} instance.
+     *
+     * @return {@link ClientManager} which can be used to connect to a server
+     */
+    protected ClientManager createClient() {
+        final String clientContainerClassName = System.getProperty("tyrus.test.container.client");
+        if(clientContainerClassName != null) {
+            return ClientManager.createClient(clientContainerClassName);
+        }
+        return ClientManager.createClient();
+    }
+
+    /**
      * Get server properties.
      *
      * @return server properties.

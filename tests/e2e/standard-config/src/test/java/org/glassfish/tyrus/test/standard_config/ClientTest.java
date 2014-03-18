@@ -79,7 +79,7 @@ public class ClientTest extends TestContainer {
         try {
             messageLatch = new CountDownLatch(1);
 
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             final Session clientSession = client.connectToServer(new TestEndpointAdapter() {
                 private final ClientEndpointConfig configuration = ClientEndpointConfig.Builder.create().build();
 

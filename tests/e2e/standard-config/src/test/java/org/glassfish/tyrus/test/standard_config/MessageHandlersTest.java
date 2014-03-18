@@ -105,7 +105,7 @@ public class MessageHandlersTest extends TestContainer {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
             messageLatch = new CountDownLatch(1);
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(new Endpoint() {
 
                 @Override
@@ -147,7 +147,7 @@ public class MessageHandlersTest extends TestContainer {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
             messageLatch = new CountDownLatch(1);
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(new Endpoint() {
 
                 @Override
@@ -189,7 +189,7 @@ public class MessageHandlersTest extends TestContainer {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
             messageLatch = new CountDownLatch(1);
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(new Endpoint() {
 
                 @Override
@@ -233,7 +233,7 @@ public class MessageHandlersTest extends TestContainer {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
             messageLatch = new CountDownLatch(1);
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(new Endpoint() {
 
                 @Override
@@ -368,7 +368,7 @@ public class MessageHandlersTest extends TestContainer {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
             messageLatch = new CountDownLatch(1);
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(new Endpoint() {
 
                 @Override
@@ -410,7 +410,7 @@ public class MessageHandlersTest extends TestContainer {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
             messageLatch = new CountDownLatch(1);
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(new Endpoint() {
 
                 @Override
@@ -452,7 +452,7 @@ public class MessageHandlersTest extends TestContainer {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
             messageLatch = new CountDownLatch(1);
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(new Endpoint() {
 
                 @Override
@@ -496,7 +496,7 @@ public class MessageHandlersTest extends TestContainer {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
             final CountDownLatch latch = new CountDownLatch(1);
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(new Endpoint() {
 
                 @Override
@@ -540,7 +540,7 @@ public class MessageHandlersTest extends TestContainer {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
             messageLatch = new CountDownLatch(1);
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(new Endpoint() {
 
                 @Override
@@ -582,7 +582,7 @@ public class MessageHandlersTest extends TestContainer {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
             messageLatch = new CountDownLatch(1);
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(new Endpoint() {
 
                 @Override
@@ -624,7 +624,7 @@ public class MessageHandlersTest extends TestContainer {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
             messageLatch = new CountDownLatch(1);
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(new Endpoint() {
 
                 @Override
@@ -668,7 +668,7 @@ public class MessageHandlersTest extends TestContainer {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
             messageLatch = new CountDownLatch(1);
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(new Endpoint() {
 
                 @Override
@@ -732,7 +732,7 @@ public class MessageHandlersTest extends TestContainer {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
             messageLatch = new CountDownLatch(1);
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(new Endpoint() {
 
                 @Override
@@ -774,7 +774,7 @@ public class MessageHandlersTest extends TestContainer {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
             messageLatch = new CountDownLatch(1);
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(new Endpoint() {
 
                 @Override
@@ -836,7 +836,7 @@ public class MessageHandlersTest extends TestContainer {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
             messageLatch = new CountDownLatch(2);
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(new Endpoint() {
                 boolean first = true;
 
@@ -932,7 +932,7 @@ public class MessageHandlersTest extends TestContainer {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
             messageLatch = new CountDownLatch(2);
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(new Endpoint() {
                 boolean first = true;
                 byte[] buf1 = {1, 2, 3};
@@ -1008,7 +1008,7 @@ public class MessageHandlersTest extends TestContainer {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
             messageLatch = new CountDownLatch(1);
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(new Endpoint() {
                 byte[] buf1 = {1, 2, 3};
                 byte[] buf2 = {4, 5, 6};

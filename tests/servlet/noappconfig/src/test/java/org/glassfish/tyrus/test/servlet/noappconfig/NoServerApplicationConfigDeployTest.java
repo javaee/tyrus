@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -41,10 +41,6 @@
 package org.glassfish.tyrus.test.servlet.noappconfig;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -58,6 +54,7 @@ import javax.websocket.server.ServerEndpoint;
 
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
+import org.glassfish.tyrus.test.tools.TestContainer;
 import org.glassfish.tyrus.tests.servlet.noappconfig.PlainEcho;
 
 import org.junit.Test;
@@ -70,75 +67,22 @@ import junit.framework.Assert;
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class NoServerApplicationConfigDeployTest {
+public class NoServerApplicationConfigDeployTest extends TestContainer {
 
-    private final String CONTEXT_PATH = "/noappconfig-test";
-    private final String DEFAULT_HOST = "localhost";
-    private final int DEFAULT_PORT = 8025;
+    private static final String CONTEXT_PATH = "/noappconfig-test";
 
-    private final Set<Class<?>> endpointClasses = new HashSet<Class<?>>() {{
-        add(PlainEcho.class);
-    }};
-
-    /**
-     * Start embedded server unless "tyrus.test.host" system property is specified.
-     *
-     * @return new {@link org.glassfish.tyrus.server.Server} instance or {@code null} if "tyrus.test.host" system property is set.
-     */
-    private Server startServer() throws DeploymentException {
-        final String host = System.getProperty("tyrus.test.host");
-        if (host == null) {
-            final Server server = new Server(DEFAULT_HOST, DEFAULT_PORT, CONTEXT_PATH, null, endpointClasses);
-            server.start();
-            return server;
-        } else {
-            return null;
-        }
-    }
-
-    private String getHost() {
-        final String host = System.getProperty("tyrus.test.host");
-        if (host != null) {
-            return host;
-        }
-        return DEFAULT_HOST;
-    }
-
-    private int getPort() {
-        final String port = System.getProperty("tyrus.test.port");
-        if (port != null) {
-            try {
-                return Integer.parseInt(port);
-            } catch (NumberFormatException nfe) {
-                // do nothing
-            }
-        }
-        return DEFAULT_PORT;
-    }
-
-    private URI getURI(String endpointPath) {
-        try {
-            return new URI("ws", null, getHost(), getPort(), CONTEXT_PATH + endpointPath, null, null);
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    private void stopServer(Server server) {
-        if (server != null) {
-            server.stop();
-        }
+    public NoServerApplicationConfigDeployTest() {
+        setContextPath(CONTEXT_PATH);
     }
 
     @Test
     public void noServerAppConfigEcho() throws DeploymentException, InterruptedException, IOException {
-        final Server server = startServer();
+        final Server server = startServer(PlainEcho.class);
 
         final CountDownLatch messageLatch = new CountDownLatch(1);
 
         try {
-            final ClientManager client = ClientManager.createClient();
+            final ClientManager client = createClient();
             client.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig EndpointConfig) {
@@ -167,14 +111,14 @@ public class NoServerApplicationConfigDeployTest {
 
     @Test
     public void noServerAppConfigOne() throws DeploymentException, InterruptedException, IOException {
-        final Server server = startServer();
+        final Server server = startServer(PlainEcho.class);
 
         final CountDownLatch messageLatch = new CountDownLatch(1);
 
         System.out.println(getURI("/one"));
 
         try {
-            final ClientManager client = ClientManager.createClient();
+            final ClientManager client = createClient();
             client.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig EndpointConfig) {

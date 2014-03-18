@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -54,7 +54,7 @@ import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
 import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.server.Server;
+import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
@@ -62,63 +62,19 @@ import static org.junit.Assert.assertEquals;
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class DynamicDeployTest {
-    private final String CONTEXT_PATH = "/dynamic-deploy";
-    private final String DEFAULT_HOST = "localhost";
-    private final int DEFAULT_PORT = 8080;
+public class DynamicDeployTest extends TestContainer {
 
-    /**
-     * Start embedded server unless "tyrus.test.host" system property is specified.
-     *
-     * @return new {@link org.glassfish.tyrus.server.Server} instance or {@code null} if "tyrus.test.host" system property is set.
-     */
-    private Server startServer() throws DeploymentException {
-        // glassfish only sample
-        return null;
-    }
+    private static final String CONTEXT_PATH = "/dynamic-deploy";
 
-    private String getHost() {
-        final String host = System.getProperty("tyrus.test.host");
-        if (host != null) {
-            return host;
-        }
-        return DEFAULT_HOST;
-    }
-
-    private int getPort() {
-        final String port = System.getProperty("tyrus.test.port");
-        if (port != null) {
-            try {
-                return Integer.parseInt(port);
-            } catch (NumberFormatException nfe) {
-                // do nothing
-            }
-        }
-        return DEFAULT_PORT;
-    }
-
-    private URI getURI(String endpointPath) {
-        try {
-            return new URI("ws", null, getHost(), getPort(), CONTEXT_PATH + endpointPath, null, null);
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    private void stopServer(Server server) {
-        if (server != null) {
-            server.stop();
-        }
+    public DynamicDeployTest() {
+        setContextPath(CONTEXT_PATH);
     }
 
     @Test
     public void testEcho() throws DeploymentException, InterruptedException, IOException, URISyntaxException {
-        if(System.getProperty("tyrus.test.host") == null) {
+        if (System.getProperty("tyrus.test.host") == null) {
             return;
         }
-
-        final Server server = startServer();
 
         final CountDownLatch messageLatch = new CountDownLatch(1);
 
@@ -126,115 +82,103 @@ public class DynamicDeployTest {
         // Test for TYRUS-187; works only in servlet case, thus test is here.
         uri = new URI(uri.toString() + "?myParam=myValue");
 
-        try {
-            final ClientManager client = ClientManager.createClient();
-            client.connectToServer(new Endpoint() {
-                @Override
-                public void onOpen(Session session, EndpointConfig EndpointConfig) {
 
-                    try {
-                        session.addMessageHandler(new MessageHandler.Whole<String>() {
-                            @Override
-                            public void onMessage(String message) {
-                                assertEquals(message, "Do or do not, there is no try.");
-                                messageLatch.countDown();
-                            }
-                        });
+        final ClientManager client = createClient();
+        client.connectToServer(new Endpoint() {
+            @Override
+            public void onOpen(Session session, EndpointConfig EndpointConfig) {
 
-                        session.getBasicRemote().sendText("Do or do not, there is no try.");
-                    } catch (IOException e) {
-                        // do nothing
-                    }
+                try {
+                    session.addMessageHandler(new MessageHandler.Whole<String>() {
+                        @Override
+                        public void onMessage(String message) {
+                            assertEquals(message, "Do or do not, there is no try.");
+                            messageLatch.countDown();
+                        }
+                    });
+
+                    session.getBasicRemote().sendText("Do or do not, there is no try.");
+                } catch (IOException e) {
+                    // do nothing
                 }
-            }, ClientEndpointConfig.Builder.create().build(), uri);
+            }
+        }, ClientEndpointConfig.Builder.create().build(), uri);
 
-            messageLatch.await(1, TimeUnit.SECONDS);
-            assertEquals(0, messageLatch.getCount());
-        } finally {
-            stopServer(server);
-        }
+        messageLatch.await(1, TimeUnit.SECONDS);
+        assertEquals(0, messageLatch.getCount());
+
     }
 
     @Test
     public void testAnnotated() throws DeploymentException, InterruptedException, IOException {
-        if(System.getProperty("tyrus.test.host") == null) {
+        if (System.getProperty("tyrus.test.host") == null) {
             return;
         }
 
-        final Server server = startServer();
-
         final CountDownLatch messageLatch = new CountDownLatch(1);
 
-        try {
-            final ClientManager client = ClientManager.createClient();
-            client.connectToServer(new Endpoint() {
-                @Override
-                public void onOpen(Session session, EndpointConfig EndpointConfig) {
-                    try {
-                        session.addMessageHandler(new MessageHandler.Whole<String>() {
-                            @Override
-                            public void onMessage(String message) {
-                                assertEquals(message, "Do or do not, there is no try.");
-                                messageLatch.countDown();
-                            }
-                        });
+        final ClientManager client = createClient();
+        client.connectToServer(new Endpoint() {
+            @Override
+            public void onOpen(Session session, EndpointConfig EndpointConfig) {
+                try {
+                    session.addMessageHandler(new MessageHandler.Whole<String>() {
+                        @Override
+                        public void onMessage(String message) {
+                            assertEquals(message, "Do or do not, there is no try.");
+                            messageLatch.countDown();
+                        }
+                    });
 
-                        session.getBasicRemote().sendText("Do or do not, there is no try.");
-                    } catch (IOException e) {
-                        // do nothing
-                    }
+                    session.getBasicRemote().sendText("Do or do not, there is no try.");
+                } catch (IOException e) {
+                    // do nothing
                 }
-            }, ClientEndpointConfig.Builder.create().build(), getURI(MyServletContextListenerAnnotated.class.getAnnotation(ServerEndpoint.class).value()));
+            }
+        }, ClientEndpointConfig.Builder.create().build(), getURI(MyServletContextListenerAnnotated.class.getAnnotation(ServerEndpoint.class).value()));
 
-            messageLatch.await(1, TimeUnit.SECONDS);
-            assertEquals(0, messageLatch.getCount());
-        } finally {
-            stopServer(server);
-        }
+        messageLatch.await(1, TimeUnit.SECONDS);
+        assertEquals(0, messageLatch.getCount());
+
     }
 
     @Test
     public void testProgrammatic() throws DeploymentException, InterruptedException, IOException {
-        if(System.getProperty("tyrus.test.host") == null) {
+        if (System.getProperty("tyrus.test.host") == null) {
             return;
         }
 
-        final Server server = startServer();
-
         final CountDownLatch messageLatch = new CountDownLatch(1);
 
-        try {
-            final ClientManager client = ClientManager.createClient();
-            client.connectToServer(new Endpoint() {
-                @Override
-                public void onOpen(Session session, EndpointConfig EndpointConfig) {
-                    try {
-                        session.addMessageHandler(new MessageHandler.Whole<String>() {
-                            @Override
-                            public void onMessage(String message) {
-                                assertEquals(message, "Do or do not, there is no try.");
-                                messageLatch.countDown();
-                            }
-                        });
-
-                        // TODO: remove when TYRUS-108 is resolved.
-                        try {
-                            Thread.sleep(100);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
+        final ClientManager client = createClient();
+        client.connectToServer(new Endpoint() {
+            @Override
+            public void onOpen(Session session, EndpointConfig EndpointConfig) {
+                try {
+                    session.addMessageHandler(new MessageHandler.Whole<String>() {
+                        @Override
+                        public void onMessage(String message) {
+                            assertEquals(message, "Do or do not, there is no try.");
+                            messageLatch.countDown();
                         }
+                    });
 
-                        session.getBasicRemote().sendText("Do or do not, there is no try.");
-                    } catch (IOException e) {
-                        // do nothing
+                    // TODO: remove when TYRUS-108 is resolved.
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
                     }
-                }
-            }, ClientEndpointConfig.Builder.create().build(), getURI("/programmatic"));
 
-            messageLatch.await(100, TimeUnit.SECONDS);
-            assertEquals(0, messageLatch.getCount());
-        } finally {
-            stopServer(server);
-        }
+                    session.getBasicRemote().sendText("Do or do not, there is no try.");
+                } catch (IOException e) {
+                    // do nothing
+                }
+            }
+        }, ClientEndpointConfig.Builder.create().build(), getURI("/programmatic"));
+
+        messageLatch.await(100, TimeUnit.SECONDS);
+        assertEquals(0, messageLatch.getCount());
+
     }
 }

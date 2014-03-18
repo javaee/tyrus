@@ -101,7 +101,7 @@ public class HandshakeTest extends TestContainer {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().
                     preferredSubprotocols(subprotocols).configurator(myClientEndpointConfigurator).build();
 
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(new TestEndpointAdapter() {
                 @Override
                 public void onMessage(String message) {

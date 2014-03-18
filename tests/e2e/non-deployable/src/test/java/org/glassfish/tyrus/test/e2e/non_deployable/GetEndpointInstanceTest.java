@@ -145,7 +145,7 @@ public class GetEndpointInstanceTest extends TestContainer {
         try {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(new Endpoint() {
 
                 @Override
@@ -185,7 +185,7 @@ public class GetEndpointInstanceTest extends TestContainer {
         try {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
 
             System.out.println(getURI("/echoProgrammatic"));
 

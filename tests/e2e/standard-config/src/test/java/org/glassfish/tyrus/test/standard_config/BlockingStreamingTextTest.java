@@ -56,6 +56,7 @@ import javax.websocket.server.ServerEndpoint;
 
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
+import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.junit.Assert;
 import org.junit.Ignore;
@@ -67,7 +68,7 @@ import org.junit.Test;
  * @author Danny Coward (danny.coward at oracle.com)
  * @author Martin Matula (martin.matula at oracle.com)
  */
-public class BlockingStreamingTextTest {
+public class BlockingStreamingTextTest extends TestContainer{
 
     @Ignore
     @Test
@@ -81,7 +82,7 @@ public class BlockingStreamingTextTest {
             CountDownLatch messageLatch = new CountDownLatch(1);
 
             BlockingStreamingTextClient bstc = new BlockingStreamingTextClient(messageLatch);
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(bstc, cec, new URI("ws://localhost:8025/websockets/tests/blockingstreaming"));
 
             messageLatch.await(5, TimeUnit.SECONDS);

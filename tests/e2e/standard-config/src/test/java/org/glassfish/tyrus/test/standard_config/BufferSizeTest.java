@@ -106,7 +106,7 @@ public class BufferSizeTest extends TestContainer {
             messageLatch = new CountDownLatch(1);
 
             final ClientEndpointConfig clientConfiguration = ClientEndpointConfig.Builder.create().build();
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
 
             client.connectToServer(new Endpoint() {
 
@@ -195,7 +195,7 @@ public class BufferSizeTest extends TestContainer {
             messageLatch = new CountDownLatch(1);
 
             final ClientEndpointConfig clientConfiguration = ClientEndpointConfig.Builder.create().build();
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
 
             client.connectToServer(new Endpoint() {
 
@@ -292,7 +292,7 @@ public class BufferSizeTest extends TestContainer {
             messageLatch = new CountDownLatch(1);
 
             final ClientEndpointConfig clientConfiguration = ClientEndpointConfig.Builder.create().build();
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
 
             client.connectToServer(new Endpoint() {
 
@@ -390,7 +390,7 @@ public class BufferSizeTest extends TestContainer {
             messageLatch = new CountDownLatch(1);
 
             final ClientEndpointConfig clientConfiguration = ClientEndpointConfig.Builder.create().build();
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
 
             client.connectToServer(new Endpoint() {
 

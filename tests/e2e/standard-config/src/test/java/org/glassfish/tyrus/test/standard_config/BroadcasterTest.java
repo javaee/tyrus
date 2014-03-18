@@ -58,6 +58,7 @@ import javax.websocket.server.ServerEndpoint;
 
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
+import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.junit.Ignore;
 import org.junit.Test;
@@ -68,7 +69,7 @@ import static org.junit.Assert.assertTrue;
  *
  * @author Martin Matula (martin.matula at oracle.com)
  */
-public class BroadcasterTest {
+public class BroadcasterTest extends TestContainer{
     private static final String SENT_MESSAGE = "Hello World";
 
     private final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
@@ -84,9 +85,9 @@ public class BroadcasterTest {
             final TEndpointAdapter ea1 = new TEndpointAdapter(messageLatch);
             final TEndpointAdapter ea2 = new TEndpointAdapter(messageLatch);
 
-            final ClientManager client1 = ClientManager.createClient();
+            final ClientManager client1 = createClient();
             client1.connectToServer(ea1, cec, new URI("ws://localhost:8025/websockets/tests/broadcast"));
-            final ClientManager client2 = ClientManager.createClient();
+            final ClientManager client2 = createClient();
             client2.connectToServer(ea2, cec, new URI("ws://localhost:8025/websockets/tests/broadcast"));
 
             synchronized (ea1) {

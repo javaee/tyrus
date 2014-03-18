@@ -74,7 +74,7 @@ public class StreamingTextAnnotTest extends TestContainer {
             CountDownLatch messageLatch = new CountDownLatch(1);
 
             StreamingTextTest.StreamingTextClient stc = new StreamingTextTest.StreamingTextClient(messageLatch);
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(stc, cec, getURI(StreamingTextAnnotEndpoint.class));
 
             messageLatch.await(5, TimeUnit.SECONDS);

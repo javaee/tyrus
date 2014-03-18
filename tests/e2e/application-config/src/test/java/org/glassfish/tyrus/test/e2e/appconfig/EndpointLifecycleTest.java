@@ -114,7 +114,7 @@ public class EndpointLifecycleTest extends TestContainer {
         final AtomicInteger msgNumber = new AtomicInteger(0);
         Server server = startServer(ProgrammaticEndpointApplicationConfiguration.class, ServerDeployApplicationConfig.class);
 
-        final ClientManager client = ClientManager.createClient();
+        final ClientManager client = createClient();
         try {
             for (int i = 0; i < iterations; i++) {
                 try {
@@ -160,7 +160,7 @@ public class EndpointLifecycleTest extends TestContainer {
         final AtomicInteger msgNumber = new AtomicInteger(0);
         Server server = startServer(Annotated.class, ServiceEndpoint.class);
 
-        final ClientManager client = ClientManager.createClient();
+        final ClientManager client = createClient();
         try {
             for (int i = 0; i < iterations; i++) {
                 try {

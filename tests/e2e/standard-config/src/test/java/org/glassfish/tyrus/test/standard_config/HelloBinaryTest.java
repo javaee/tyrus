@@ -73,7 +73,7 @@ public class HelloBinaryTest extends TestContainer {
             CountDownLatch messageLatch = new CountDownLatch(1);
 
             HelloBinaryClient htc = new HelloBinaryClient(messageLatch);
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(htc, cec, getURI(HelloBinaryEndpoint.class));
 
             assertTrue(messageLatch.await(5, TimeUnit.SECONDS));

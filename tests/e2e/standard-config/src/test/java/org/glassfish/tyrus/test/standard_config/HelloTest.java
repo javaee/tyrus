@@ -82,7 +82,7 @@ public class HelloTest extends TestContainer {
 
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(new TestEndpointAdapter() {
 
                 private Session session;
@@ -135,7 +135,7 @@ public class HelloTest extends TestContainer {
 
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.asyncConnectToServer(new TestEndpointAdapter() {
 
                 private Session session;
@@ -216,7 +216,7 @@ public class HelloTest extends TestContainer {
         try {
             messageLatchEndpoint = new CountDownLatch(1);
 
-            ClientManager.createClient().asyncConnectToServer(MyEndpoint.class, cec, getURI(EchoEndpoint.class));
+            createClient().asyncConnectToServer(MyEndpoint.class, cec, getURI(EchoEndpoint.class));
             messageLatchEndpoint.await(5, TimeUnit.SECONDS);
             Assert.assertEquals(0L, messageLatchEndpoint.getCount());
             Assert.assertEquals(SENT_MESSAGE, receivedMessageEndpoint);

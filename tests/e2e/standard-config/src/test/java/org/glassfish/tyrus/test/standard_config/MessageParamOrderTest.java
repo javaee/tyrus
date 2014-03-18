@@ -80,7 +80,7 @@ public class MessageParamOrderTest extends TestContainer {
         try {
             messageLatch = new CountDownLatch(1);
 
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(new TestEndpointAdapter() {
 
                 @Override
@@ -121,7 +121,7 @@ public class MessageParamOrderTest extends TestContainer {
         try {
             messageLatch = new CountDownLatch(1);
 
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(new TestEndpointAdapter() {
 
                 @Override

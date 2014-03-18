@@ -92,7 +92,8 @@ public class OnCloseTest extends TestContainer {
         try {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
-            ClientManager.createClient().connectToServer(new TestEndpointAdapter() {
+            ClientManager client = createClient();
+            client.connectToServer(new TestEndpointAdapter() {
                 @Override
                 public EndpointConfig getEndpointConfig() {
                     return cec;
@@ -176,7 +177,8 @@ public class OnCloseTest extends TestContainer {
         try {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
-            ClientManager.createClient().connectToServer(new TestEndpointAdapter() {
+            ClientManager client = createClient();
+            client.connectToServer(new TestEndpointAdapter() {
                 @Override
                 public EndpointConfig getEndpointConfig() {
                     return cec;
@@ -227,7 +229,7 @@ public class OnCloseTest extends TestContainer {
         try {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(new TestEndpointAdapter() {
                 @Override
                 public EndpointConfig getEndpointConfig() {
@@ -320,7 +322,8 @@ public class OnCloseTest extends TestContainer {
         try {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
-            ClientManager.createClient().connectToServer(new Endpoint() {
+            ClientManager client = createClient();
+            client.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig endpointConfig) {
                     try {
@@ -385,7 +388,7 @@ public class OnCloseTest extends TestContainer {
             try {
                 final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
-                final ClientManager client = ClientManager.createClient();
+                final ClientManager client = createClient();
                 final CountDownLatch onCloseLatch = new CountDownLatch(1);
                 client.connectToServer(new Endpoint() {
                     @Override
@@ -473,7 +476,7 @@ public class OnCloseTest extends TestContainer {
         Server server = startServer(DoubleCloseEndpoint.class, ServiceEndpoint.class);
 
         final CountDownLatch messageLatch = new CountDownLatch(1);
-        ClientManager client = ClientManager.createClient();
+        ClientManager client = createClient();
 
         try {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
@@ -726,7 +729,7 @@ public class OnCloseTest extends TestContainer {
 
         try {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
 
             client.connectToServer(new Endpoint() {
                 @Override

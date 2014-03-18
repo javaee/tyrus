@@ -81,7 +81,7 @@ public class BinaryFutureCompletionHandlerTest extends TestContainer {
             BinaryFutureCompletionHandlerEndpoint.messageLatch = messageLatch;
 
             HelloBinaryClient htc = new HelloBinaryClient(messageLatch);
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(htc, cec, getURI(BinaryFutureCompletionHandlerEndpoint.class));
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertTrue("The client got the echo back", htc.echoWorked);

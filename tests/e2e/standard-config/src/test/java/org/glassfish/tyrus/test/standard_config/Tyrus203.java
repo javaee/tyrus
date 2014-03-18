@@ -54,6 +54,7 @@ import javax.websocket.server.ServerEndpoint;
 
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
+import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
@@ -63,7 +64,7 @@ import static org.junit.Assert.assertEquals;
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class Tyrus203 {
+public class Tyrus203 extends TestContainer{
 
     @ServerEndpoint("/echo/{color}")
     public static class EchoServerEndpoint {
@@ -83,7 +84,7 @@ public class Tyrus203 {
 
             final CountDownLatch client1messageLatch = new CountDownLatch(1);
             final CountDownLatch client2messageLatch = new CountDownLatch(1);
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             Session session1 = client.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(final Session session, EndpointConfig configuration) {

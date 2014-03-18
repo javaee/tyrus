@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -41,11 +41,7 @@
 package org.glassfish.tyrus.test.servlet.session;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.CountDownLatch;
@@ -61,6 +57,7 @@ import javax.websocket.server.ServerEndpoint;
 
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
+import org.glassfish.tyrus.test.tools.TestContainer;
 import org.glassfish.tyrus.tests.servlet.session.IdleTimeoutReceivingEndpoint;
 import org.glassfish.tyrus.tests.servlet.session.IdleTimeoutSendingEndpoint;
 import org.glassfish.tyrus.tests.servlet.session.IdleTimeoutSendingPingEndpoint;
@@ -73,81 +70,26 @@ import junit.framework.Assert;
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class SessionIdleTimeoutTest {
-    private final String CONTEXT_PATH = "/session-test";
-    private final String DEFAULT_HOST = "localhost";
-    private final int DEFAULT_PORT = 8025;
+public class SessionIdleTimeoutTest extends TestContainer {
+    private static final String CONTEXT_PATH = "/session-test";
     private static String messageReceived = "not received.";
 
-    private final Set<Class<?>> endpointClasses = new HashSet<Class<?>>() {{
-        add(IdleTimeoutReceivingEndpoint.class);
-        add(IdleTimeoutSendingEndpoint.class);
-        add(IdleTimeoutSendingPingEndpoint.class);
-        add(ServiceEndpoint.class);
-    }};
-
-    /**
-     * Start embedded server unless "tyrus.test.host" system property is specified.
-     *
-     * @return new {@link org.glassfish.tyrus.server.Server} instance or {@code null} if "tyrus.test.host" system property is set.
-     */
-    private Server startServer() throws DeploymentException {
-        final String host = System.getProperty("tyrus.test.host");
-        if (host == null) {
-            final Server server = new Server(DEFAULT_HOST, DEFAULT_PORT, CONTEXT_PATH, null, endpointClasses);
-            server.start();
-            return server;
-        } else {
-            return null;
-        }
-    }
-
-    private String getHost() {
-        final String host = System.getProperty("tyrus.test.host");
-        if (host != null) {
-            return host;
-        }
-        return DEFAULT_HOST;
-    }
-
-    private int getPort() {
-        final String port = System.getProperty("tyrus.test.port");
-        if (port != null) {
-            try {
-                return Integer.parseInt(port);
-            } catch (NumberFormatException nfe) {
-                // do nothing
-            }
-        }
-        return DEFAULT_PORT;
-    }
-
-    private URI getURI(String endpointPath) {
-        try {
-            return new URI("ws", null, getHost(), getPort(), CONTEXT_PATH + endpointPath, null, null);
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    private void stopServer(Server server) {
-        if (server != null) {
-            server.stop();
-        }
+    public SessionIdleTimeoutTest() {
+        setContextPath(CONTEXT_PATH);
     }
 
     @Test
     public void testIdleTimeoutRaised() throws DeploymentException {
 
         final CountDownLatch clientLatch = new CountDownLatch(1);
-        final Server server = startServer();
+        final Server server = startServer(IdleTimeoutReceivingEndpoint.class, ServiceEndpoint.class);
         resetServerEndpoints();
 
         try {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
-            ClientManager.createClient().connectToServer(new Endpoint() {
+            ClientManager client = createClient();
+            client.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig endpointConfig) {
 
@@ -167,7 +109,8 @@ public class SessionIdleTimeoutTest {
 
             final CountDownLatch messageLatch = new CountDownLatch(1);
 
-            ClientManager.createClient().connectToServer(new Endpoint() {
+            ClientManager client2 = createClient();
+            client2.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig endpointConfig) {
                     session.addMessageHandler(new MessageHandler.Whole<String>() {
@@ -207,14 +150,15 @@ public class SessionIdleTimeoutTest {
     public void testNoIdleTimeoutRaisedReceiving() throws DeploymentException {
 
         final CountDownLatch clientLatch = new CountDownLatch(1);
-        final Server server = startServer();
+        final Server server = startServer(IdleTimeoutReceivingEndpoint.class, ServiceEndpoint.class);
         resetServerEndpoints();
         final Timer timer = new Timer();
 
         try {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
-            ClientManager.createClient().connectToServer(new Endpoint() {
+            ClientManager client = createClient();
+            client.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(final Session session, EndpointConfig endpointConfig) {
                     timer.schedule(new TimerTask() {
@@ -243,7 +187,8 @@ public class SessionIdleTimeoutTest {
 
             final CountDownLatch messageLatch = new CountDownLatch(1);
 
-            ClientManager.createClient().connectToServer(new Endpoint() {
+            ClientManager client2 = createClient();
+            client2.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig endpointConfig) {
                     session.addMessageHandler(new MessageHandler.Whole<String>() {
@@ -284,7 +229,7 @@ public class SessionIdleTimeoutTest {
     public void testNoIdleTimeoutRaisedReceivingPing() throws DeploymentException {
 
         final CountDownLatch clientLatch = new CountDownLatch(1);
-        final Server server = startServer();
+        final Server server = startServer(IdleTimeoutReceivingEndpoint.class, ServiceEndpoint.class);
         final byte[] data = new byte[]{1, 2, 3};
         final Timer timer = new Timer();
         resetServerEndpoints();
@@ -292,7 +237,8 @@ public class SessionIdleTimeoutTest {
         try {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
-            ClientManager.createClient().connectToServer(new Endpoint() {
+            ClientManager client = createClient();
+            client.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(final Session session, EndpointConfig endpointConfig) {
                     timer.schedule(new TimerTask() {
@@ -321,7 +267,8 @@ public class SessionIdleTimeoutTest {
 
             final CountDownLatch messageLatch = new CountDownLatch(1);
 
-            ClientManager.createClient().connectToServer(new Endpoint() {
+            ClientManager client2 = createClient();
+            client2.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig endpointConfig) {
                     session.addMessageHandler(new MessageHandler.Whole<String>() {
@@ -362,14 +309,14 @@ public class SessionIdleTimeoutTest {
     public void testIdleTimeoutNotRaisedServerSending() throws DeploymentException {
 
         final CountDownLatch clientLatch = new CountDownLatch(1);
-        final Server server = startServer();
+        final Server server = startServer(IdleTimeoutSendingEndpoint.class, ServiceEndpoint.class);
         resetServerEndpoints();
 
         try {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
-            ClientManager cm = ClientManager.createClient();
-            Session clientSession = cm.connectToServer(new Endpoint() {
+            ClientManager client1 = createClient();
+            Session clientSession = client1.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig endpointConfig) {
                     session.addMessageHandler(new MessageHandler.Whole<String>() {
@@ -395,7 +342,8 @@ public class SessionIdleTimeoutTest {
 
             final CountDownLatch messageLatch = new CountDownLatch(1);
 
-            ClientManager.createClient().connectToServer(new Endpoint() {
+            ClientManager client2 = createClient();
+            client2.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig endpointConfig) {
                     session.addMessageHandler(new MessageHandler.Whole<String>() {
@@ -435,14 +383,14 @@ public class SessionIdleTimeoutTest {
     public void testIdleTimeoutNotRaisedServerSendingPing() throws DeploymentException {
 
         final CountDownLatch clientLatch = new CountDownLatch(1);
-        final Server server = startServer();
+        final Server server = startServer(IdleTimeoutSendingPingEndpoint.class, ServiceEndpoint.class);
         resetServerEndpoints();
 
         try {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
-            ClientManager cm = ClientManager.createClient();
-            Session clientSession = cm.connectToServer(new Endpoint() {
+            ClientManager client1 = createClient();
+            Session clientSession = client1.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig endpointConfig) {
                     session.addMessageHandler(new MessageHandler.Whole<String>() {
@@ -468,7 +416,8 @@ public class SessionIdleTimeoutTest {
 
             final CountDownLatch messageLatch = new CountDownLatch(1);
 
-            ClientManager.createClient().connectToServer(new Endpoint() {
+            ClientManager client2 = createClient();
+            client2.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig endpointConfig) {
                     session.addMessageHandler(new MessageHandler.Whole<String>() {
@@ -508,7 +457,8 @@ public class SessionIdleTimeoutTest {
         final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
         try {
-            ClientManager.createClient().connectToServer(new Endpoint() {
+            ClientManager client = createClient();
+            client.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig endpointConfig) {
                     session.addMessageHandler(new MessageHandler.Whole<String>() {

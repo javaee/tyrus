@@ -76,7 +76,7 @@ public class StreamingTextTest extends TestContainer {
             CountDownLatch messageLatch = new CountDownLatch(1);
 
             StreamingTextClient stc = new StreamingTextClient(messageLatch);
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(stc, cec, getURI(StreamingTextEndpoint.class));
 
             messageLatch.await(5, TimeUnit.SECONDS);

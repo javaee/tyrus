@@ -78,7 +78,7 @@ public class StreamingBinaryTest extends TestContainer {
             CountDownLatch messageLatch = new CountDownLatch(1);
 
             StreamingBinaryClient sbc = new StreamingBinaryClient(messageLatch);
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(sbc, cec, getURI(StreamingBinaryEndpoint.class));
 
             messageLatch.await(5, TimeUnit.SECONDS);

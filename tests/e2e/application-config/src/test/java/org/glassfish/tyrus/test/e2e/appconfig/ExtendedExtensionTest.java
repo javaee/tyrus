@@ -121,7 +121,7 @@ public class ExtendedExtensionTest extends TestContainer {
             final ClientEndpointConfig clientConfiguration = ClientEndpointConfig.Builder.create().extensions(extensions)
                     .configurator(new LoggingClientEndpointConfigurator()).build();
 
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             final Session session = client.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig config) {
@@ -305,7 +305,7 @@ public class ExtendedExtensionTest extends TestContainer {
             final ClientEndpointConfig clientConfiguration = ClientEndpointConfig.Builder.create().extensions(extensions)
                     .configurator(new LoggingClientEndpointConfigurator()).build();
 
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             final Session session = client.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig config) {

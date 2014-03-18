@@ -72,7 +72,7 @@ public class HelloTextTest extends TestContainer {
             CountDownLatch messageLatch = new CountDownLatch(1);
 
             HelloTextClient htc = new HelloTextClient(messageLatch);
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(htc, cec, getURI(HelloTextEndpoint.class));
 
             messageLatch.await(5, TimeUnit.SECONDS);

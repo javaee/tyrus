@@ -83,7 +83,7 @@ public class AnnotatedClientTest extends TestContainer {
         messageLatch = new CountDownLatch(1);
 
         try {
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
 
             client.connectToServer(new TestEndpointAdapter() {
                 @Override
@@ -126,7 +126,7 @@ public class AnnotatedClientTest extends TestContainer {
         messageLatch = new CountDownLatch(1);
 
         try {
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
 
 
             client.asyncConnectToServer(new TestEndpointAdapter() {
@@ -167,7 +167,7 @@ public class AnnotatedClientTest extends TestContainer {
         messageLatch = new CountDownLatch(1);
 
         try {
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(new ClientTestEndpoint(), getURI(TestEndpoint.class));
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertEquals("testHello", receivedTestMessage);
@@ -185,7 +185,7 @@ public class AnnotatedClientTest extends TestContainer {
         messageLatch = new CountDownLatch(1);
 
         try {
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.asyncConnectToServer(new ClientTestEndpoint(), getURI(TestEndpoint.class));
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertEquals("testHello", receivedTestMessage);
@@ -204,7 +204,7 @@ public class AnnotatedClientTest extends TestContainer {
         receivedMessage = null;
 
         try {
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(SimpleClientTestEndpoint.class, getURI(TestEndpoint.class));
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertEquals("hello", receivedMessage);
@@ -223,7 +223,7 @@ public class AnnotatedClientTest extends TestContainer {
         receivedMessage = null;
 
         try {
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.asyncConnectToServer(SimpleClientTestEndpoint.class, getURI(TestEndpoint.class));
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertEquals("hello", receivedMessage);
@@ -248,7 +248,7 @@ public class AnnotatedClientTest extends TestContainer {
     @Test
     public void testNonAnnotatedClassAsyncClient() throws Exception {
         try {
-            ClientManager.createClient().asyncConnectToServer(String.class, getURI(TestEndpoint.class));
+            createClient().asyncConnectToServer(String.class, getURI(TestEndpoint.class));
         } catch (DeploymentException de) {
             // Expected exception, ignore
         }

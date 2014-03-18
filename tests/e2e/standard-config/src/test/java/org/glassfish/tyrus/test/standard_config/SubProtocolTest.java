@@ -56,6 +56,7 @@ import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
+import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.spi.UpgradeRequest;
 import org.glassfish.tyrus.test.tools.TestContainer;
@@ -133,7 +134,8 @@ public class SubProtocolTest extends TestContainer {
                         }
                     }).
                     preferredSubprotocols(Arrays.asList("a", "b", "c")).build();
-            ContainerProvider.getWebSocketContainer().connectToServer(new javax.websocket.Endpoint() {
+            ClientManager client = createClient();
+            client.connectToServer(new javax.websocket.Endpoint() {
                 @Override
                 public void onOpen(final Session session, EndpointConfig config) {
                     session.addMessageHandler(new MessageHandler.Whole<String>() {

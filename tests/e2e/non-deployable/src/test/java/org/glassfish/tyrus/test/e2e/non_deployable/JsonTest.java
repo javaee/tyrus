@@ -88,7 +88,7 @@ public class JsonTest extends TestContainer {
         messageLatch = new CountDownLatch(1);
 
         try {
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig config) {

@@ -40,10 +40,6 @@
 package org.glassfish.tyrus.tests.servlet.async;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -60,6 +56,7 @@ import javax.websocket.server.ServerEndpoint;
 
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
+import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.junit.Assert;
 import org.junit.Test;
@@ -70,79 +67,24 @@ import org.junit.Test;
  * @author Jitendra Kotamraju
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class AsyncObjectTest {
+public class AsyncObjectTest extends TestContainer {
 
     private static final int MESSAGE_NO = 100;
-    private final String CONTEXT_PATH = "/servlet-test-async";
-    private final String DEFAULT_HOST = "localhost";
-    private final int DEFAULT_PORT = 8025;
+    private static final String CONTEXT_PATH = "/servlet-test-async";
 
-    private final Set<Class<?>> endpointClasses = new HashSet<Class<?>>() {{
-        add(ObjectFutureEndpoint.class);
-        add(ObjectHandlerEndpoint.class);
-        add(ServiceEndpoint.class);
-    }};
-
-    /**
-     * Start embedded server unless "tyrus.test.host" system property is specified.
-     *
-     * @return new {@link Server} instance or {@code null} if "tyrus.test.host" system property is set.
-     */
-    private Server startServer() throws DeploymentException {
-        final String host = System.getProperty("tyrus.test.host");
-        if (host == null) {
-            final Server server = new Server(DEFAULT_HOST, DEFAULT_PORT, CONTEXT_PATH, null, endpointClasses);
-            server.start();
-            return server;
-        } else {
-            return null;
-        }
-    }
-
-    private String getHost() {
-        final String host = System.getProperty("tyrus.test.host");
-        if (host != null) {
-            return host;
-        }
-        return DEFAULT_HOST;
-    }
-
-    private int getPort() {
-        final String port = System.getProperty("tyrus.test.port");
-        if (port != null) {
-            try {
-                return Integer.parseInt(port);
-            } catch (NumberFormatException nfe) {
-                // do nothing
-            }
-        }
-        return DEFAULT_PORT;
-    }
-
-    private URI getURI(String endpointPath) {
-        try {
-            return new URI("ws", null, getHost(), getPort(), CONTEXT_PATH + endpointPath, null, null);
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    private void stopServer(Server server) {
-        if (server != null) {
-            server.stop();
-        }
+    public AsyncObjectTest() {
+        setContextPath(CONTEXT_PATH);
     }
 
     @Test
     public void testObjectFuture() throws DeploymentException, InterruptedException, IOException {
-        final Server server = startServer();
+        final Server server = startServer(ObjectFutureEndpoint.class, ServiceEndpoint.class);
 
         CountDownLatch sentLatch = new CountDownLatch(MESSAGE_NO);
         CountDownLatch receivedLatch = new CountDownLatch(MESSAGE_NO);
 
         try {
-            final ClientManager client = ClientManager.createClient();
+            final ClientManager client = createClient();
             client.connectToServer(
                     new AsyncFutureClient(sentLatch, receivedLatch),
                     ClientEndpointConfig.Builder.create().build(),
@@ -216,13 +158,13 @@ public class AsyncObjectTest {
 
     @Test
     public void testObjectHandler() throws DeploymentException, InterruptedException, IOException {
-        final Server server = startServer();
+        final Server server = startServer(ObjectHandlerEndpoint.class, ServiceEndpoint.class);
 
         CountDownLatch sentLatch = new CountDownLatch(MESSAGE_NO);
         CountDownLatch receivedLatch = new CountDownLatch(MESSAGE_NO);
 
         try {
-            final ClientManager client = ClientManager.createClient();
+            final ClientManager client = createClient();
             client.connectToServer(
                     new AsyncHandlerClient(sentLatch, receivedLatch),
                     ClientEndpointConfig.Builder.create().build(),

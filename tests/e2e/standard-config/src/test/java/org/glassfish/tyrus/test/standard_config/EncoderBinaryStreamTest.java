@@ -103,7 +103,7 @@ public class EncoderBinaryStreamTest extends TestContainer {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
             messageLatch = new CountDownLatch(1);
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(new Endpoint() {
 
                 @Override

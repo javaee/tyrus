@@ -93,7 +93,7 @@ public class AsyncTimeoutTest extends TestContainer {
 
             final CountDownLatch latch1 = new CountDownLatch(1);
             final CountDownLatch latch2 = new CountDownLatch(1);
-            final ClientManager client = ClientManager.createClient();
+            final ClientManager client = createClient();
 
             Session session = client.connectToServer(new Endpoint() {
                 @Override

@@ -139,7 +139,7 @@ public class MaxMessageSizeTest extends TestContainer {
             messageLatch = new CountDownLatch(1);
 
             final ClientEndpointConfig clientConfiguration = ClientEndpointConfig.Builder.create().build();
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
 
             client.connectToServer(new Endpoint() {
 
@@ -204,7 +204,7 @@ public class MaxMessageSizeTest extends TestContainer {
             messageLatch = new CountDownLatch(1);
 
             final ClientEndpointConfig clientConfiguration = ClientEndpointConfig.Builder.create().build();
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
 
             client.connectToServer(new Endpoint() {
 
@@ -297,7 +297,7 @@ public class MaxMessageSizeTest extends TestContainer {
         Server server = startServer(Endpoint1.class, ServiceEndpoint.class);
 
         try {
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
 
             final Session session = client.connectToServer(MyClientEndpoint.class, getURI(Endpoint1.class));
             testViaServiceEndpoint(client, ServiceEndpoint.class, POSITIVE, "CLEANUP");
@@ -323,7 +323,7 @@ public class MaxMessageSizeTest extends TestContainer {
         Server server = startServer(Endpoint1.class, ServiceEndpoint.class);
 
         try {
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
 
             final Session session = client.connectToServer(MyClientEndpoint.class, getURI(Endpoint1.class));
             testViaServiceEndpoint(client, ServiceEndpoint.class, POSITIVE, "CLEANUP");
@@ -349,7 +349,7 @@ public class MaxMessageSizeTest extends TestContainer {
         Server server = startServer(Endpoint1.class, ServiceEndpoint.class);
 
         try {
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
 
             final Session session = client.connectToServer(MyClientEndpoint.class, getURI(Endpoint1.class));
             testViaServiceEndpoint(client, ServiceEndpoint.class, POSITIVE, "CLEANUP");
@@ -375,7 +375,7 @@ public class MaxMessageSizeTest extends TestContainer {
         Server server = startServer(Endpoint1.class, ServiceEndpoint.class);
 
         try {
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
 
             final Session session = client.connectToServer(MyClientEndpoint.class, getURI(Endpoint1.class));
             testViaServiceEndpoint(client, ServiceEndpoint.class, POSITIVE, "CLEANUP");

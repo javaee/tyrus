@@ -54,7 +54,6 @@ import javax.websocket.OnMessage;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
-import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.tools.TestContainer;
 
@@ -85,7 +84,7 @@ public class IPv6EchoTest extends TestContainer {
         try {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
-            ClientManager.createClient().connectToServer(new Endpoint() {
+            createClient().connectToServer(new Endpoint() {
 
                 @Override
                 public void onOpen(Session session, EndpointConfig config) {

@@ -82,7 +82,7 @@ public class BufferedInputStreamTest extends TestContainer {
         try {
             final CountDownLatch messageLatch = new CountDownLatch(1);
             BufferedInputStreamClient bisc = new BufferedInputStreamClient(messageLatch);
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(bisc, cec, getURI(BufferedInputStreamEndpoint.class));
 
             assertTrue(messageLatch.await(3, TimeUnit.SECONDS));

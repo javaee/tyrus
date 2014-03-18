@@ -321,7 +321,7 @@ public class EncoderDecoderLifecycleTest extends TestContainer {
         try {
             messageLatch = new CountDownLatch(1);
 
-            ClientManager serviceClient = ClientManager.createClient();
+            ClientManager serviceClient = createClient();
             testViaServiceEndpoint(serviceClient, ServiceEndpoint.class, POSITIVE, "Cleanup");
 
             WebSocketContainer client = ContainerProvider.getWebSocketContainer();
@@ -425,7 +425,7 @@ public class EncoderDecoderLifecycleTest extends TestContainer {
         try {
             messageLatch = new CountDownLatch(1);
 
-            ClientManager serviceClient = ClientManager.createClient();
+            ClientManager serviceClient = createClient();
 
             testViaServiceEndpoint(serviceClient, ServiceEndpoint.class, POSITIVE, "Cleanup");
 

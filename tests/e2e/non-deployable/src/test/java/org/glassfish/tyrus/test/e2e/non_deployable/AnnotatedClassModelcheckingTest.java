@@ -54,6 +54,7 @@ import javax.websocket.server.ServerEndpoint;
 
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
+import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.junit.Test;
 
@@ -62,7 +63,7 @@ import junit.framework.Assert;
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class AnnotatedClassModelcheckingTest {
+public class AnnotatedClassModelcheckingTest extends TestContainer{
 
     private void testServerPositive(Class<?> testedBean) {
         testServer(testedBean, false);
@@ -222,7 +223,7 @@ public class AnnotatedClassModelcheckingTest {
         boolean exceptionThrown = false;
 
         try {
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(MultipleWrongMethodsBean.class, new URI("wss://localhost:8025/websockets/tests/hello"));
         } catch (DeploymentException e) {
             //e.printStackTrace();

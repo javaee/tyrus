@@ -113,7 +113,7 @@ public class GrizzlyServerThreadPoolConfigsTest extends TestContainer {
         try {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
 
             client.connectToServer(new Endpoint() {
                 @Override

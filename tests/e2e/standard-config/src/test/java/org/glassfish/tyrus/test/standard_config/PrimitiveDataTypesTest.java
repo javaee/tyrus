@@ -120,7 +120,7 @@ public class PrimitiveDataTypesTest extends TestContainer {
         try {
             messageLatch = new CountDownLatch(1);
 
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             TestAdapter ta = new TestAdapter(message);
             client.connectToServer(ta, cec, getURI(segmentPath));
 

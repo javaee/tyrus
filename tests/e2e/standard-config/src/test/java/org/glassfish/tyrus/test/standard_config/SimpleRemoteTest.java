@@ -83,7 +83,7 @@ public class SimpleRemoteTest extends TestContainer {
         try {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
-            final ClientManager client = ClientManager.createClient();
+            final ClientManager client = createClient();
             client.connectToServer(new TestEndpointAdapter() {
                 @Override
                 public EndpointConfig getEndpointConfig() {
@@ -136,7 +136,7 @@ public class SimpleRemoteTest extends TestContainer {
                                 SENT_MESSAGE + msgNumber.incrementAndGet()};
                         // replace ClientManager with MockClientEndpoint to confirm the test passes if the backend
                         // does not have issues
-                        final ClientManager client = ClientManager.createClient();
+                        final ClientManager client = createClient();
                         final Session session = client.connectToServer(new Endpoint() {
 
                             @Override

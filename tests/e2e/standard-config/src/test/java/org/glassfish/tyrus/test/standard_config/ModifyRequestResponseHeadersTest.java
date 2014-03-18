@@ -147,7 +147,7 @@ public class ModifyRequestResponseHeadersTest extends TestContainer {
             final MyClientConfigurator clientConfigurator = new MyClientConfigurator();
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().configurator(clientConfigurator).build();
 
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(new Endpoint() {
 
                 @Override
@@ -203,7 +203,7 @@ public class ModifyRequestResponseHeadersTest extends TestContainer {
         MyClientConfigurator.called = false;
 
         try {
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(MyClientEndpoint.class, getURI(TestEndpoint.class));
 
             MyClientEndpoint.messageLatch.await(5, TimeUnit.SECONDS);

@@ -90,7 +90,7 @@ public class DecodedObjectTest extends TestContainer {
             decoders.add(CustomDecoder.class);
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().decoders(decoders).build();
 
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(new Endpoint() {
 
                 @Override
@@ -127,7 +127,7 @@ public class DecodedObjectTest extends TestContainer {
             decoders.add(CustomDecoderThrowingDecodeException.class);
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().decoders(decoders).build();
 
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(new Endpoint() {
 
                 @Override
@@ -169,7 +169,7 @@ public class DecodedObjectTest extends TestContainer {
             decoders.add(ExtendedDecoder.class);
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().decoders(decoders).build();
 
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(new Endpoint() {
 
                 @Override

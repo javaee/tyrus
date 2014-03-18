@@ -89,7 +89,7 @@ public class GrizzlyClientThreadPoolConfigsTest extends TestContainer {
 
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = ClientManager.createClient(GrizzlyClientContainer.class.getName());
 
             client.getProperties().put(GrizzlyClientSocket.WORKER_THREAD_POOL_CONFIG, ThreadPoolConfig.defaultConfig().setThreadFactory(new ThreadFactory() {
                 @Override

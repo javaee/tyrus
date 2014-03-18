@@ -136,7 +136,7 @@ public class ReaderWriterTest extends TestContainer {
 
         try {
             messageLatch = new CountDownLatch(1);
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(new Endpoint() {
 
                 @Override
@@ -173,7 +173,7 @@ public class ReaderWriterTest extends TestContainer {
         final CountDownLatch messageLatch = new CountDownLatch(1);
 
         try {
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(new Endpoint() {
 
                 @Override

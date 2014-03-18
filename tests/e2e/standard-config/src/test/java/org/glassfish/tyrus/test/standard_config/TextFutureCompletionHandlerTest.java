@@ -80,7 +80,7 @@ public class TextFutureCompletionHandlerTest extends TestContainer {
             TextFutureCompletionHandlerEndpoint.messageLatch = messageLatch;
 
             HelloTextClient htc = new HelloTextClient(messageLatch);
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(htc, cec, getURI(TextFutureCompletionHandlerEndpoint.class));
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertTrue("The client did not get anything back", htc.gotSomethingBack);
@@ -102,7 +102,7 @@ public class TextFutureCompletionHandlerTest extends TestContainer {
             TextFutureCompletionHandlerEndpoint.messageLatch = messageLatch;
 
             HelloTextClient htc = new HelloTextClient(messageLatch);
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(htc, cec, getURI(TextFutureCompletionHandlerEndpoint.class));
             messageLatch.await(5, TimeUnit.SECONDS);
             Assert.assertTrue("The client did not get anything back", htc.gotSomethingBack);

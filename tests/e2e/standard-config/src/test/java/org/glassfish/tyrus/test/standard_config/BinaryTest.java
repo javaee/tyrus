@@ -100,7 +100,7 @@ public class BinaryTest extends TestContainer {
         try {
             messageLatch = new CountDownLatch(1);
 
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig EndpointConfig) {
@@ -136,7 +136,7 @@ public class BinaryTest extends TestContainer {
         try {
             messageLatch = new CountDownLatch(1);
 
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig EndpointConfig) {
@@ -183,7 +183,7 @@ public class BinaryTest extends TestContainer {
         try {
             messageLatch = new CountDownLatch(1);
 
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig EndpointConfig) {
@@ -231,7 +231,7 @@ public class BinaryTest extends TestContainer {
             messageLatch = new CountDownLatch(1);
 
             final ClientEndpointConfig clientConfiguration = ClientEndpointConfig.Builder.create().build();
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
 
             client.connectToServer(new Endpoint() {
 
@@ -281,7 +281,7 @@ public class BinaryTest extends TestContainer {
             messageLatch = new CountDownLatch(1);
 
             final ClientEndpointConfig clientConfiguration = ClientEndpointConfig.Builder.create().build();
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
 
             client.connectToServer(new Endpoint() {
 

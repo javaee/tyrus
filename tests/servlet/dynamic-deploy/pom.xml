@@ -71,12 +71,6 @@
             <scope>provided</scope>
             <version>${servlet.api.version}</version>
         </dependency>
-
-        <dependency>
-            <groupId>org.glassfish.tyrus</groupId>
-            <artifactId>tyrus-container-grizzly-server</artifactId>
-            <scope>test</scope>
-        </dependency>
         <dependency>
             <groupId>org.glassfish.tyrus</groupId>
             <artifactId>tyrus-container-grizzly-client</artifactId>
@@ -84,12 +78,12 @@
         </dependency>
         <dependency>
             <groupId>org.glassfish.tyrus</groupId>
-            <artifactId>tyrus-client</artifactId>
+            <artifactId>tyrus-container-jdk-client</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
+            <groupId>org.glassfish.tyrus.tests</groupId>
+            <artifactId>tyrus-test-tools</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

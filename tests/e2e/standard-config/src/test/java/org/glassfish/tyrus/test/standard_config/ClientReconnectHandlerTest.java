@@ -81,7 +81,7 @@ public class ClientReconnectHandlerTest extends TestContainer {
         try {
             final CountDownLatch messageLatch = new CountDownLatch(1);
 
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
 
             ClientManager.ReconnectHandler reconnectHandler = new ClientManager.ReconnectHandler() {
 
@@ -128,7 +128,7 @@ public class ClientReconnectHandlerTest extends TestContainer {
         try {
             final CountDownLatch messageLatch = new CountDownLatch(1);
 
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
 
             ClientManager.ReconnectHandler reconnectHandler = new ClientManager.ReconnectHandler() {
 

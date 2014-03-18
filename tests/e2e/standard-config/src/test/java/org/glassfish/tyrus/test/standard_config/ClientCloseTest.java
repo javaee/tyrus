@@ -74,8 +74,8 @@ public class ClientCloseTest extends TestContainer {
         final CountDownLatch messageLatch = new CountDownLatch(2);
 
         try {
-            final ClientManager client1 = ClientManager.createClient();
-            final ClientManager client2 = ClientManager.createClient();
+            final ClientManager client1 = createClient();
+            final ClientManager client2 = createClient();
             final Session session1 = client1.connectToServer(createEndpoint(messageLatch), ClientEndpointConfig.Builder.create().build(), getURI(EchoEndpoint.class));
             final Session session2 = client2.connectToServer(createEndpoint(messageLatch), ClientEndpointConfig.Builder.create().build(), getURI(EchoEndpoint.class));
 

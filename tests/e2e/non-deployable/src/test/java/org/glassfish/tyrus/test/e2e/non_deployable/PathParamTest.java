@@ -113,7 +113,7 @@ public class PathParamTest extends TestContainer {
 
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig config) {
@@ -192,7 +192,7 @@ public class PathParamTest extends TestContainer {
 
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(new Endpoint() {
 
                 @Override
@@ -318,7 +318,7 @@ public class PathParamTest extends TestContainer {
 
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig config) {
@@ -378,7 +378,7 @@ public class PathParamTest extends TestContainer {
             clients.add(new Callable<Boolean>() {
                 @Override
                 public Boolean call() throws Exception {
-                    final ClientManager client = ClientManager.createClient();
+                    final ClientManager client = createClient();
                     final CountDownLatch messageLatch = new CountDownLatch(1);
                     client.connectToServer(new Endpoint() {
                         @Override
