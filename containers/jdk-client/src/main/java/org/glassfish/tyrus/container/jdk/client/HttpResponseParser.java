@@ -78,12 +78,12 @@ class HttpResponseParser {
         List<String> lines = new LinkedList<>();
         lines.addAll(Arrays.asList(tokens).subList(1, tokens.length));
         Map<String, String> headers = parseHeaders(lines);
-        for (String name : headers.keySet()) {
-            final List<String> values = tyrusUpgradeResponse.getHeaders().get(name);
+        for (Map.Entry<String, String> entry : headers.entrySet()) {
+            final List<String> values = tyrusUpgradeResponse.getHeaders().get(entry.getKey());
             if (values == null) {
-                tyrusUpgradeResponse.getHeaders().put(name, Utils.parseHeaderValue(headers.get(name)));
+                tyrusUpgradeResponse.getHeaders().put(entry.getKey(), Utils.parseHeaderValue(entry.getValue()));
             } else {
-                values.addAll(Utils.parseHeaderValue(headers.get(name)));
+                values.addAll(Utils.parseHeaderValue(entry.getValue()));
             }
         }
         return tyrusUpgradeResponse;
