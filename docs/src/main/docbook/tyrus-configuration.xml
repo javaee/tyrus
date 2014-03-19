@@ -493,4 +493,46 @@ client.connectToServer(...)</programlisting>
         onConnectFailure is invoked when client fails to connect to remote endpoint, for example due to temporary network
         issue or current high server load.</para>
     </section>
+    <section>
+        <title>JDK 7 client</title>
+        <para>
+            As has been said in previous chapters both Tyrus client and server were implemented on top of Grizzly NIO framework.
+            This still remains true, but an alternative Tyrus Websocket client implementation based on Java 7 Asynchronous Channel
+            API has been available since version 1.6. There are two options how to switch between client implementations.
+            If you do not mind using Tyrus specific API, the most straightforward way is to use:
+            <programlisting language="java" linenumbering="numbered">
+                final ClientManager client = ClientManager.createClient(JdkClientContainer.class.getName());
+            </programlisting>
+            You just have to make sure that the dependency on JDK client is included in your project:
+            <programlisting language="xml" linenumbering="unnumbered">
+                &lt;dependency&gt;
+                    &lt;groupId&gt;org.glassfish.tyrus&lt;/groupId&gt;
+                    &lt;artifactId&gt;tyrus-container-jdk-client&lt;/artifactId&gt;
+                    &lt;version&gt;&version;&lt;/version&gt;
+                &lt;/dependency&gt;
+            </programlisting>
+            Grizzly client is the default option, so creating a client without any parameters will result in Grizzly client being used.
+        </para>
+        <para>
+            There is also an option how to use JDK client with the standard Websocket API.
+            <programlisting language="java" linenumbering="numbered">
+                final WebSocketContainer client = ContainerProvider.getWebSocketContainer();
+            </programlisting>
+            The code listed above will scan class path for Websocket client implementations. A slight problem with this
+            approach is that if there is more than one client on the classpath, the first one discovered will be used.
+            Therefore if you intend to use JDK client with the standard API, you have to make sure that there is not
+            a Grizzly client on the classpath as it might be used instead.
+        </para>
+        <para>
+            The main reason why JDK client has been implemented is that it does not have any extra dependencies
+            except JDK 7 and of course some other Tyrus modules, which makes it considerable more lightweight compared
+            to Tyrus Grizzly client, which requires 1.4 MB of dependencies.
+        </para>
+        <para>
+            It is also important to note that the JDK client has been implemented in a way similar to Grizzly client
+            shared container option, which means that there is one thread pool shared among all clients. Unlike in the
+            case of Grizzly client there are no configuration options available for JDK client and JDK client also
+            does not support SSL and proxy traversing.
+        </para>
+    </section>
 </chapter>
