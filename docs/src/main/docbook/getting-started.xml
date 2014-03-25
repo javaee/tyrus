@@ -236,7 +236,7 @@ public class EchoEndpointAnnotated {
                 standalone Tyrus server on the hostname "localhost", port 8025 and path "/websocket", so the endpoint
                 will be available at address "ws://localhost:8025/websockets/echo".
 <programlisting language="java" linenumbering="unnumbered">public void runServer() {
-    Server server = new Server("localhost", 8025, "/websocket", EchoEndpoint.class);
+    Server server = new Server("localhost", 8025, "/websocket", null, EchoEndpoint.class);
 
     try {
         server.start();
