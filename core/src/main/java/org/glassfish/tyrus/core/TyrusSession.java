@@ -370,9 +370,8 @@ public class TyrusSession implements Session {
             synchronized (idleTimeoutLock) {
                 if (idleTimeoutFuture != null) {
                     idleTimeoutFuture.cancel(true);
-                } else {
-                    return;
                 }
+                return;
             }
         }
 
