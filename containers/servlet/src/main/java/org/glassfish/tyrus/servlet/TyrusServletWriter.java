@@ -66,7 +66,7 @@ class TyrusServletWriter extends Writer implements WriteListener {
 
     /**
      * ServletOutputStream is not thread safe, must be synchronized.
-     *
+     * <p/>
      * Access synchronized via "this" - Tyrus creates one instance of TyrusServletWriter per WebSocket connection,
      * so that should be ok.
      */
@@ -150,11 +150,16 @@ class TyrusServletWriter extends Writer implements WriteListener {
     private synchronized void _write(ByteBuffer buffer, CompletionHandler<ByteBuffer> completionHandler) {
 
         try {
-            final int remaining = buffer.remaining();
-            final byte[] array = new byte[remaining];
-            buffer.get(array);
+            if (buffer.hasArray()) {
+                byte[] array = buffer.array();
+                servletOutputStream.write(array, buffer.arrayOffset() + buffer.position(), buffer.remaining());
+            } else {
+                final int remaining = buffer.remaining();
+                final byte[] array = new byte[remaining];
+                buffer.get(array);
+                servletOutputStream.write(array);
+            }
 
-            servletOutputStream.write(array);
             servletOutputStream.flush();
 
             if (completionHandler != null) {
