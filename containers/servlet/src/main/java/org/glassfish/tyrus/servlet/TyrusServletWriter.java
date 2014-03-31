@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -39,10 +39,10 @@
  */
 package org.glassfish.tyrus.servlet;
 
-
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.concurrent.ArrayBlockingQueue;
+import java.util.Deque;
+import java.util.LinkedList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -60,7 +60,7 @@ import org.glassfish.tyrus.spi.Writer;
 class TyrusServletWriter extends Writer implements WriteListener {
 
     private final TyrusHttpUpgradeHandler tyrusHttpUpgradeHandler;
-    private final ArrayBlockingQueue<QueuedFrame> queue = new ArrayBlockingQueue<QueuedFrame>(32);
+    private final Deque<QueuedFrame> queue = new LinkedList<QueuedFrame>();
 
     private static final Logger LOGGER = Logger.getLogger(TyrusServletWriter.class.getName());
 
@@ -71,8 +71,6 @@ class TyrusServletWriter extends Writer implements WriteListener {
      * so that should be ok.
      */
     private ServletOutputStream servletOutputStream = null;
-
-    private volatile boolean isReady = false;
 
     private static class QueuedFrame {
         public final CompletionHandler<ByteBuffer> completionHandler;
@@ -109,7 +107,7 @@ class TyrusServletWriter extends Writer implements WriteListener {
     }
 
     @Override
-    public void onError(Throwable t) {
+    public synchronized void onError(Throwable t) {
         LOGGER.log(Level.WARNING, "TyrusServletWriter.onError", t);
 
         QueuedFrame queuedFrame;
@@ -133,21 +131,15 @@ class TyrusServletWriter extends Writer implements WriteListener {
             servletOutputStream.setWriteListener(this);
         }
 
-        if (servletOutputStream.isReady()) { //  && queue.isEmpty()
+        if (servletOutputStream.isReady() && queue.isEmpty()) {
             _write(buffer, completionHandler);
         } else {
             final QueuedFrame queuedFrame = new QueuedFrame(completionHandler, buffer);
-            try {
-                queue.put(queuedFrame);
-            } catch (InterruptedException e) {
-                LOGGER.log(Level.CONFIG, "Cannot enqueue frame", e);
-                completionHandler.failed(e);
-            }
+            queue.offer(queuedFrame);
         }
     }
 
-    // synchronized is not neccesary here, _write is called only from synchronized methods.. left there just to be sure.
-    private synchronized void _write(ByteBuffer buffer, CompletionHandler<ByteBuffer> completionHandler) {
+    private void _write(ByteBuffer buffer, CompletionHandler<ByteBuffer> completionHandler) {
 
         try {
             if (buffer.hasArray()) {
