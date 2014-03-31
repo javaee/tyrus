@@ -64,6 +64,7 @@ import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.junit.Test;
+
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -496,6 +497,10 @@ public class ServletTest extends TestContainer {
             assertEquals(0, messageLatch.getCount());
             System.out.println("***** Tyrus broadcast - text ***** " + (System.currentTimeMillis() - l));
         } finally {
+            for(Session session : sessions) {
+                session.close();
+            }
+
             stopServer(server);
         }
     }
@@ -519,6 +524,11 @@ public class ServletTest extends TestContainer {
                 final ClientManager client = createClient();
                 final Session session = client.connectToServer(new Endpoint() {
                     @Override
+                    public void onError(Session session, Throwable thr) {
+                        thr.printStackTrace();
+                    }
+
+                    @Override
                     public void onOpen(Session session, EndpointConfig EndpointConfig) {
                         session.addMessageHandler(new MessageHandler.Whole<byte[]>() {
                             @Override
@@ -528,6 +538,8 @@ public class ServletTest extends TestContainer {
                                 messageLatch.countDown();
                             }
                         });
+
+
                     }
                 }, ClientEndpointConfig.Builder.create().build(), getURI(TyrusBroadcastEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
                 System.out.println("Client " + i + " connected.");
@@ -544,6 +556,10 @@ public class ServletTest extends TestContainer {
             assertEquals(0, messageLatch.getCount());
             System.out.println("***** Tyrus broadcast - binary ***** " + (System.currentTimeMillis() - l));
         } finally {
+            for(Session session : sessions) {
+                session.close();
+            }
+
             stopServer(server);
         }
     }
@@ -594,6 +610,10 @@ public class ServletTest extends TestContainer {
             System.out.println("***** WebSocket broadcast ***** " + (System.currentTimeMillis() - l));
 
         } finally {
+            for(Session session : sessions) {
+                session.close();
+            }
+
             stopServer(server);
         }
     }
@@ -643,6 +663,10 @@ public class ServletTest extends TestContainer {
             assertEquals(0, messageLatch.getCount());
             System.out.println("***** Tyrus broadcast - text ***** " + (System.currentTimeMillis() - l));
         } finally {
+            for(Session session : sessions) {
+                session.close();
+            }
+
             stopServer(server);
         }
     }
@@ -692,6 +716,10 @@ public class ServletTest extends TestContainer {
             assertEquals(0, messageLatch.getCount());
             System.out.println("***** Tyrus broadcast - binary ***** " + (System.currentTimeMillis() - l));
         } finally {
+            for(Session session : sessions) {
+                session.close();
+            }
+
             stopServer(server);
         }
     }
@@ -743,6 +771,10 @@ public class ServletTest extends TestContainer {
             System.out.println("***** WebSocket broadcast ***** " + (System.currentTimeMillis() - l));
 
         } finally {
+            for(Session session : sessions) {
+                session.close();
+            }
+
             stopServer(server);
         }
     }

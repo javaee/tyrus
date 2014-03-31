@@ -40,6 +40,8 @@
 package org.glassfish.tyrus.tests.servlet.basic;
 
 import java.nio.ByteBuffer;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.logging.Logger;
 
 import javax.websocket.OnMessage;
 import javax.websocket.Session;
@@ -57,6 +59,8 @@ public class TyrusBroadcastEndpoint {
     public void onMessage(Session session, String message) {
         ((TyrusSession) session).broadcast(message);
     }
+
+    private static final AtomicInteger counter = new AtomicInteger(0);
 
     @OnMessage
     public void onMessage(Session session, ByteBuffer message) {
