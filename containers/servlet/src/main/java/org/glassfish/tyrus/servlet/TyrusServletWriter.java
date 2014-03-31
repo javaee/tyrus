@@ -64,8 +64,12 @@ class TyrusServletWriter extends Writer implements WriteListener {
 
     private static final Logger LOGGER = Logger.getLogger(TyrusServletWriter.class.getName());
 
-    // servlet output stream is not thread safe, we need to ensure it is not accessed from multiple threads at once.
-    private final Object outputStreamLock = new Object();
+    /**
+     * ServletOutputStream is not thread safe, must be synchronized.
+     *
+     * Access synchronized via "this" - Tyrus creates one instance of TyrusServletWriter per WebSocket connection,
+     * so that should be ok.
+     */
     private ServletOutputStream servletOutputStream = null;
 
     private volatile boolean isReady = false;
@@ -90,57 +94,46 @@ class TyrusServletWriter extends Writer implements WriteListener {
     }
 
     @Override
-    public void onWritePossible() throws IOException {
+    public synchronized void onWritePossible() throws IOException {
         LOGGER.log(Level.FINEST, "OnWritePossible called");
 
-        QueuedFrame queuedFrame = queue.poll();
-
-        // this might seem weird but it cannot be another way, at least not without further synchronization logic.
-        // servletOutputStream cannot be touched without synchronizing access via outputStreamLock, but this method is
-        // also called from #write(...) when servletOutputStream.setWriteListener is invoked, but from different thread.
-        // Calling servletOutputStream.isReady() here would result in deadlock.
-        isReady = true;
-        if (queuedFrame == null) {
+        if (queue.isEmpty()) {
             return;
         }
 
-        while (isReady && queuedFrame != null) {
+        QueuedFrame queuedFrame;
+        while (servletOutputStream.isReady() &&
+                (queuedFrame = queue.poll()) != null) {
             _write(queuedFrame.dataFrame, queuedFrame.completionHandler);
-            synchronized (outputStreamLock) {
-                isReady = servletOutputStream.isReady();
-            }
-            if (isReady) {
-                queuedFrame = queue.poll();
-            }
         }
     }
 
     @Override
     public void onError(Throwable t) {
-        LOGGER.log(Level.WARNING, "WriteListener.onError", t);
+        LOGGER.log(Level.WARNING, "TyrusServletWriter.onError", t);
+
+        QueuedFrame queuedFrame;
+        while ((queuedFrame = queue.poll()) != null) {
+            queuedFrame.completionHandler.failed(t);
+        }
     }
 
     @Override
-    public void write(final ByteBuffer buffer, CompletionHandler<ByteBuffer> completionHandler) {
+    public synchronized void write(final ByteBuffer buffer, CompletionHandler<ByteBuffer> completionHandler) {
 
-        synchronized (outputStreamLock) {
-            // first write
-            if (servletOutputStream == null) {
-                try {
-                    servletOutputStream = tyrusHttpUpgradeHandler.getWebConnection().getOutputStream();
-                } catch (IOException e) {
-                    LOGGER.log(Level.CONFIG, "ServletOutputStream cannot be obtained", e);
-                    completionHandler.failed(e);
-                    return;
-                }
-                servletOutputStream.setWriteListener(this);
-                isReady = servletOutputStream.isReady();
-            } else {
-                isReady = servletOutputStream.isReady();
+        // first write
+        if (servletOutputStream == null) {
+            try {
+                servletOutputStream = tyrusHttpUpgradeHandler.getWebConnection().getOutputStream();
+            } catch (IOException e) {
+                LOGGER.log(Level.CONFIG, "ServletOutputStream cannot be obtained", e);
+                completionHandler.failed(e);
+                return;
             }
+            servletOutputStream.setWriteListener(this);
         }
 
-        if (isReady) {
+        if (servletOutputStream.isReady()) { //  && queue.isEmpty()
             _write(buffer, completionHandler);
         } else {
             final QueuedFrame queuedFrame = new QueuedFrame(completionHandler, buffer);
@@ -153,17 +146,16 @@ class TyrusServletWriter extends Writer implements WriteListener {
         }
     }
 
-    public void _write(ByteBuffer buffer, CompletionHandler<ByteBuffer> completionHandler) {
+    // synchronized is not neccesary here, _write is called only from synchronized methods.. left there just to be sure.
+    private synchronized void _write(ByteBuffer buffer, CompletionHandler<ByteBuffer> completionHandler) {
 
         try {
             final int remaining = buffer.remaining();
             final byte[] array = new byte[remaining];
             buffer.get(array);
 
-            synchronized (outputStreamLock) {
-                servletOutputStream.write(array);
-                servletOutputStream.flush();
-            }
+            servletOutputStream.write(array);
+            servletOutputStream.flush();
 
             if (completionHandler != null) {
                 completionHandler.completed(buffer);
