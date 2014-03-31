@@ -342,6 +342,48 @@ public class SessionTimeoutTest extends TestContainer {
     }
 
     @Test
+    public void testSessionClientTimeoutSessionOnOpen() throws DeploymentException {
+        Server server = startServer(SessionClientTimeoutEndpoint.class);
+        final CountDownLatch onCloseLatch = new CountDownLatch(1);
+        SessionClientTimeoutEndpoint.clientOnCloseCalled.set(false);
+
+        try {
+            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
+
+            ClientManager client = createClient();
+            client.connectToServer(new TestEndpointAdapter() {
+                @Override
+                public void onMessage(String message) {
+                }
+
+                @Override
+                public void onOpen(Session session) {
+                    session.setMaxIdleTimeout(200);
+                }
+
+                @Override
+                public EndpointConfig getEndpointConfig() {
+                    return cec;
+                }
+
+                @Override
+                public void onClose(Session session, CloseReason closeReason) {
+                    SessionClientTimeoutEndpoint.clientOnCloseCalled.set(true);
+                    onCloseLatch.countDown();
+                }
+            }, cec, getURI(SessionClientTimeoutEndpoint.class));
+
+            onCloseLatch.await(2, TimeUnit.SECONDS);
+            assertTrue(SessionClientTimeoutEndpoint.clientOnCloseCalled.get());
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            stopServer(server);
+        }
+    }
+
+    @Test
     public void testSessionClientTimeoutContainer() throws DeploymentException {
         Server server = startServer(SessionClientTimeoutEndpoint.class);
         final CountDownLatch onCloseLatch = new CountDownLatch(1);

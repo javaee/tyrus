@@ -466,13 +466,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                                             throw new DeploymentException("Handshake error.", exception);
                                         }
 
-                                        final Session session = listener.getSession();
-                                        if (session.isOpen()) {
-                                            session.setMaxBinaryMessageBufferSize(maxBinaryMessageBufferSize);
-                                            session.setMaxTextMessageBufferSize(maxTextMessageBufferSize);
-                                            session.setMaxIdleTimeout(defaultMaxSessionIdleTimeout);
-                                        }
-                                        future.setResult(session);
+                                        future.setResult(listener.getSession());
                                         return;
                                     } else {
                                         // timeout!
