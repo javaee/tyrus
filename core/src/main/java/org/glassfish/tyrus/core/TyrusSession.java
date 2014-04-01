@@ -119,6 +119,8 @@ public class TyrusSession implements Session {
     private ScheduledExecutorService service;
     private ReaderBuffer readerBuffer;
     private InputStreamBuffer inputStreamBuffer;
+    private volatile long heartbeatInterval;
+    private volatile ScheduledFuture<?> heartbeatTask;
 
     TyrusSession(WebSocketContainer container, TyrusWebSocket socket, TyrusEndpointWrapper endpointWrapper,
                  String subprotocol, List<Extension> extensions, boolean isSecure,
@@ -209,6 +211,9 @@ public class TyrusSession implements Session {
 
     @Override
     public void close() throws IOException {
+        if (heartbeatTask != null && !heartbeatTask.isCancelled()) {
+            heartbeatTask.cancel(true);
+        }
         changeStateToClosed();
         basicRemote.close(CloseReasons.NORMAL_CLOSURE.getCloseReason());
     }
@@ -218,6 +223,9 @@ public class TyrusSession implements Session {
      */
     @Override
     public void close(CloseReason closeReason) throws IOException {
+        if (heartbeatTask != null && !heartbeatTask.isCancelled()) {
+            heartbeatTask.cancel(true);
+        }
         checkConnectionState(State.CLOSED);
         changeStateToClosed();
         basicRemote.close(closeReason);
@@ -363,6 +371,36 @@ public class TyrusSession implements Session {
      */
     public Map<Session, Future<?>> broadcast(ByteBuffer message) {
         return endpointWrapper.broadcast(message);
+    }
+
+    /**
+     * Return an interval in milliseconds between scheduled periodic Pong messages.
+     * A negative value or 0 means that sending of periodic Pong messages is not turned on.
+     *
+     * @return heartbeatInterval interval between periodic pong messages in milliseconds.
+     */
+    public long getHeartbeatInterval() {
+        return heartbeatInterval;
+    }
+
+    /**
+     * Set an interval in milliseconds between scheduled periodic Pong messages.
+     * Setting the interval to a negative value or 0 will cancel sending of periodic Pong messages.
+     *
+     * @param heartbeatInterval interval between periodic Pong messages in milliseconds.
+     */
+    public void setHeartbeatInterval(long heartbeatInterval) {
+        checkConnectionState(State.CLOSED);
+        this.heartbeatInterval = heartbeatInterval;
+        if (heartbeatTask != null && !heartbeatTask.isCancelled()) {
+            heartbeatTask.cancel(true);
+        }
+
+        if (heartbeatInterval < 1) {
+            return;
+        }
+
+        heartbeatTask = service.scheduleAtFixedRate(new HeartbeatCommand(), heartbeatInterval, heartbeatInterval, TimeUnit.MILLISECONDS);
     }
 
     void restartIdleTimeoutExecutor() {
@@ -653,6 +691,21 @@ public class TyrusSession implements Session {
                     session.close(new CloseReason(CloseReason.CloseCodes.CLOSED_ABNORMALLY, LocalizationMessages.SESSION_CLOSED_IDLE_TIMEOUT()));
                 } catch (IOException e) {
                     LOGGER.log(Level.FINE, "Session could not been closed. " + e.getMessage());
+                }
+            }
+        }
+    }
+
+    private class HeartbeatCommand implements Runnable {
+
+        @Override
+        public void run() {
+            TyrusSession session = TyrusSession.this;
+            if (session.isOpen() && session.getHeartbeatInterval() > 0) {
+                try {
+                    session.getBasicRemote().sendPong(null);
+                } catch (IOException e) {
+                    LOGGER.log(Level.FINE, "Pong could not have been sent " + e.getMessage());
                 }
             }
         }
