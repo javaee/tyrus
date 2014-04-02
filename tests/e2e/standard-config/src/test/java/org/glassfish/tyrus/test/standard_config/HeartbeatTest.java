@@ -61,7 +61,6 @@ import org.glassfish.tyrus.core.TyrusSession;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.tools.TestContainer;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -69,21 +68,16 @@ import static org.junit.Assert.assertTrue;
 /**
  * @author Petr Janouch (petr.janouch at oracle.com)
  */
-@Ignore
 public class HeartbeatTest extends TestContainer {
 
-    private static String PONG_RECEIVED = "pong received";
+    private static final String PONG_RECEIVED = "pong received";
 
     @ServerEndpoint(value = "/replyingHeartbeatEndpoint")
     public static class ReplyingHeartbeatEndpoint {
 
         @OnMessage
-        public void onPong(PongMessage pongMessage, Session session) {
-            try {
-                session.getBasicRemote().sendText(PONG_RECEIVED);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        public void onPong(PongMessage pongMessage, Session session) throws IOException {
+            session.getBasicRemote().sendText(PONG_RECEIVED);
         }
     }
 
@@ -110,7 +104,7 @@ public class HeartbeatTest extends TestContainer {
                 }
 
             }, ClientEndpointConfig.Builder.create().build(), getURI(ReplyingHeartbeatEndpoint.class));
-            assertTrue(messageLatch.await(2, TimeUnit.SECONDS));
+            assertTrue(messageLatch.await(3, TimeUnit.SECONDS));
             session.close();
 
         } catch (Exception e) {
