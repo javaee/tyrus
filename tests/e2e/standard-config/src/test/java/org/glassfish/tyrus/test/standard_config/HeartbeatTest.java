@@ -61,6 +61,7 @@ import org.glassfish.tyrus.core.TyrusSession;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.tools.TestContainer;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
@@ -68,6 +69,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * @author Petr Janouch (petr.janouch at oracle.com)
  */
+@Ignore
 public class HeartbeatTest extends TestContainer {
 
     private static String PONG_RECEIVED = "pong received";
