@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -40,82 +40,56 @@
 
 package org.glassfish.tyrus.core;
 
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
 /**
- * Simple {@link Future} implementation.
+ * Sanity tests for TyrusFuture.
  *
- * @author Stepan Kopriva (stepan.kopriva at oracle.com)
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class TyrusFuture<T> implements Future<T> {
+public class TyrusFutureTest {
 
-    private volatile T result;
-    private volatile Throwable throwable = null;
-    private final CountDownLatch latch = new CountDownLatch(1);
+    private static final String RESULT = "You do have your moments. Not many, but you have them.";
 
-    @Override
-    public boolean cancel(boolean mayInterruptIfRunning) {
-        return false;
+    @Test
+    public void testGet() throws ExecutionException, InterruptedException {
+        TyrusFuture<String> voidTyrusFuture = new TyrusFuture<String>();
+        voidTyrusFuture.setResult(RESULT);
+        assertEquals(RESULT, voidTyrusFuture.get());
     }
 
-    @Override
-    public boolean isCancelled() {
-        return false;
+    @Test(expected = ExecutionException.class)
+    public void testException() throws ExecutionException, InterruptedException {
+        TyrusFuture<String> voidTyrusFuture = new TyrusFuture<String>();
+        voidTyrusFuture.setFailure(new Throwable());
+        voidTyrusFuture.get();
     }
 
-    @Override
-    public boolean isDone() {
-        return (latch.getCount() == 0);
+    @Test(expected = InterruptedException.class)
+    public void testInterrupted() throws ExecutionException, InterruptedException {
+        TyrusFuture<String> voidTyrusFuture = new TyrusFuture<String>();
+        Thread.currentThread().interrupt();
+        voidTyrusFuture.get();
     }
 
-    @Override
-    public T get() throws InterruptedException, ExecutionException {
-        latch.await();
-
-        if (throwable != null) {
-            throw new ExecutionException(throwable);
-        }
-
-        return result;
+    @Test
+    public void testIsDone() {
+        TyrusFuture<Void> voidTyrusFuture = new TyrusFuture<Void>();
+        assertFalse(voidTyrusFuture.isDone());
+        voidTyrusFuture.setResult(null);
+        assertTrue(voidTyrusFuture.isDone());
     }
 
-    @Override
-    public T get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-        if (latch.await(timeout, unit)) {
-            if (throwable != null) {
-                throw new ExecutionException(throwable);
-            }
-            return result;
-        }
-
-        throw new TimeoutException();
-    }
-
-    /**
-     * Sets the result of the message writing process.
-     *
-     * @param result result
-     */
-    public void setResult(T result) {
-        if (latch.getCount() == 1) {
-            this.result = result;
-            latch.countDown();
-        }
-    }
-
-    /**
-     * Sets the failure result of message writing process.
-     *
-     * @param throwable throwable.
-     */
-    public void setFailure(Throwable throwable) {
-        if (latch.getCount() == 1) {
-            this.throwable = throwable;
-            latch.countDown();
-        }
+    @Test(expected = TimeoutException.class)
+    public void testTimeout() throws InterruptedException, ExecutionException, TimeoutException {
+        TyrusFuture<Void> voidTyrusFuture = new TyrusFuture<Void>();
+        voidTyrusFuture.get(1, TimeUnit.MILLISECONDS);
     }
 }
