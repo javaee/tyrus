@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -247,7 +247,9 @@ class TyrusServletFilter implements Filter, HttpSessionListener {
 
                     handler.preInit(upgradeInfo, webSocketConnection, httpServletRequest.getUserPrincipal() != null);
 
-                    sessionToHandler.put(httpServletRequest.getSession(), handler);
+                    if (requestContext.getHttpSession() != null) {
+                        sessionToHandler.put((HttpSession) requestContext.getHttpSession(), handler);
+                    }
 
                     httpServletResponse.setStatus(tyrusUpgradeResponse.getStatus());
                     for (Map.Entry<String, List<String>> entry : tyrusUpgradeResponse.getHeaders().entrySet()) {
