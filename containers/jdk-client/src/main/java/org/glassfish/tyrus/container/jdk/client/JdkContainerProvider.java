@@ -45,6 +45,8 @@ import javax.websocket.WebSocketContainer;
 import org.glassfish.tyrus.client.ClientManager;
 
 /**
+ * Factory for @WebSocketContainer based on JDK client.
+ *
  * @author Petr Janouch (petr.janouch at oracle.com)
  */
 public class JdkContainerProvider extends ContainerProvider {
@@ -53,5 +55,4 @@ public class JdkContainerProvider extends ContainerProvider {
     protected WebSocketContainer getContainer() {
         return ClientManager.createClient(JdkClientContainer.class.getName());
     }
-
 }

@@ -97,6 +97,21 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
     public static final String RECONNECT_HANDLER = "org.glassfish.tyrus.client.ClientManager.ReconnectHandler";
 
     /**
+     * Client-side user property to set proxy URI.
+     * <p/>
+     * Value is expected to be {@link String} and represent proxy URI. Protocol part is currently ignored
+     * but must be present ({@link URI#URI(String)} is used for parsing).
+     * <p/>
+     * <pre>
+     *     client.getProperties().put(ClientManager.PROXY_URI, "http://my.proxy.com:80");
+     *     client.connectToServer(...);
+     * </pre>
+     *
+     * @see javax.websocket.ClientEndpointConfig#getUserProperties()
+     */
+    public static final String PROXY_URI = "org.glassfish.tyrus.client.proxy";
+
+    /**
      * Default {@link org.glassfish.tyrus.spi.ServerContainerFactory} class name.
      * <p/>
      * Uses Grizzly as transport implementation.

@@ -57,6 +57,7 @@ import java.util.logging.Logger;
 
 import javax.websocket.DeploymentException;
 
+import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.core.Utils;
 import org.glassfish.tyrus.spi.ClientEngine;
 
@@ -98,8 +99,9 @@ public class GrizzlyClientSocket {
      * </pre>
      *
      * @see javax.websocket.ClientEndpointConfig#getUserProperties()
+     * @deprecated please use {@link org.glassfish.tyrus.client.ClientManager#PROXY_URI}.
      */
-    public static final String PROXY_URI = "org.glassfish.tyrus.client.proxy";
+    public static final String PROXY_URI = ClientManager.PROXY_URI;
 
     /**
      * Client-side user property to set additional proxy headers.
@@ -205,7 +207,7 @@ public class GrizzlyClientSocket {
             throw e;
         }
 
-        socketAddress = processProxy((properties == null ? null : (String) properties.get(GrizzlyClientSocket.PROXY_URI)));
+        socketAddress = processProxy((properties == null ? null : (String) properties.get(ClientManager.PROXY_URI)));
     }
 
     /**

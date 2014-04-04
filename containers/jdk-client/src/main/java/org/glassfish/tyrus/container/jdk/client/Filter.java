@@ -40,51 +40,68 @@
 package org.glassfish.tyrus.container.jdk.client;
 
 import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
-import java.util.List;
-import java.util.Map.Entry;
+
+import org.glassfish.tyrus.spi.CompletionHandler;
 
 /**
+ * A filter can add functionality to JDK client transport. Filters are composed together to
+ * create JDK client transport.
+ *
  * @author Petr Janouch (petr.janouch at oracle.com)
  */
-class HttpRequestBuilder {
+class Filter {
 
-    private static final String ENCODING = "ISO-8859-1";
-    private static final String LINE_SEPARATOR = "\r\n";
-    private static final String HTTP_VERSION = "HTTP/1.1";
-
-    private static void appendUpgradeHeaders(StringBuilder request, JdkUpgradeRequest upgradeRequest) {
-        for (Entry<String, List<String>> header : upgradeRequest.getHeaders().entrySet()) {
-            StringBuilder value = new StringBuilder();
-            for (String valuePart : header.getValue()) {
-                if (value.length() != 0) {
-                    value.append(", ");
-                }
-                value.append(valuePart);
-            }
-            appendHeader(request, header.getKey(), value.toString());
-        }
+    /**
+     * Performs write operation for this filter and invokes write method on the next filter in the filter chain.
+     *
+     * @param data              on which write operation is performed.
+     * @param completionHandler will be invoked when the write operation is completed or has failed.
+     */
+    void write(ByteBuffer data, CompletionHandler<ByteBuffer> completionHandler) {
     }
 
-    private static void appendHeader(StringBuilder request, String key, String value) {
-        request.append(key);
-        request.append(":");
-        request.append(value);
-        request.append(LINE_SEPARATOR);
+    /**
+     * Closes the filter, invokes close operation on the next filter in the filter chain.
+     * <p/>
+     * The filter is expected to clean up any allocated resources and pass the invocation to downstream filter.
+     */
+    void close() {
     }
 
-    static ByteBuffer build(JdkUpgradeRequest upgradeRequest) {
-        StringBuilder request = new StringBuilder();
-        request.append(upgradeRequest.getHttpMethod());
-        request.append(" ");
-        request.append(upgradeRequest.getRequestUri());
-        request.append(" ");
-        request.append(HTTP_VERSION);
-        request.append(LINE_SEPARATOR);
-        appendUpgradeHeaders(request, upgradeRequest);
-        request.append(LINE_SEPARATOR);
-        String requestStr = request.toString();
-        byte[] bytes = requestStr.getBytes(Charset.forName(ENCODING));
-        return ByteBuffer.wrap(bytes);
+    /**
+     * Signals to turn on SSL, it is passed on in the filter chain until a filter responsible for SSL is reached.
+     */
+    void startSsl() {
+    }
+
+    /**
+     * An event listener that is called when a connection is set up.
+     * This event travels up in the filter chain.
+     *
+     * @param downstreamFilter a filter that is positioned directly under the current filter in the filter chain.
+     */
+    void onConnect(Filter downstreamFilter) {
+    }
+
+    /**
+     * An event listener that is called when some data is read.
+     *
+     * @param downstreamFilter a filter that is positioned directly under the current filter in the filter chain.
+     * @param data             that has been read.
+     */
+    void onRead(Filter downstreamFilter, ByteBuffer data) {
+    }
+
+    /**
+     * An event listener that is called when the connection is closed.
+     */
+    void onConnectionClosed() {
+    }
+
+    /**
+     * An event listener that is called, when SSL completes its handshake.
+     */
+    void onSslHandshakeCompleted() {
+
     }
 }

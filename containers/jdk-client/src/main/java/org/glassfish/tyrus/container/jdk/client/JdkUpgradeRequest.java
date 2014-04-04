@@ -39,52 +39,81 @@
  */
 package org.glassfish.tyrus.container.jdk.client;
 
-import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
+import java.net.URI;
+import java.security.Principal;
 import java.util.List;
-import java.util.Map.Entry;
+import java.util.Map;
+
+import org.glassfish.tyrus.spi.UpgradeRequest;
 
 /**
+ * Adds getHttpMethod method to @UpgradeRequest. Wraps an upgrade request and delegates all method calls except
+ * {@link #getHttpMethod()} to it.
+ *
  * @author Petr Janouch (petr.janouch at oracle.com)
  */
-class HttpRequestBuilder {
+abstract class JdkUpgradeRequest extends UpgradeRequest {
 
-    private static final String ENCODING = "ISO-8859-1";
-    private static final String LINE_SEPARATOR = "\r\n";
-    private static final String HTTP_VERSION = "HTTP/1.1";
+    private final UpgradeRequest upgradeRequest;
 
-    private static void appendUpgradeHeaders(StringBuilder request, JdkUpgradeRequest upgradeRequest) {
-        for (Entry<String, List<String>> header : upgradeRequest.getHeaders().entrySet()) {
-            StringBuilder value = new StringBuilder();
-            for (String valuePart : header.getValue()) {
-                if (value.length() != 0) {
-                    value.append(", ");
-                }
-                value.append(valuePart);
-            }
-            appendHeader(request, header.getKey(), value.toString());
-        }
+    /**
+     * Create new {@link org.glassfish.tyrus.container.jdk.client.JdkUpgradeRequest} wrapping
+     *
+     * @param upgradeRequest wrapped upgrade request.
+     */
+    JdkUpgradeRequest(UpgradeRequest upgradeRequest) {
+        this.upgradeRequest = upgradeRequest;
     }
 
-    private static void appendHeader(StringBuilder request, String key, String value) {
-        request.append(key);
-        request.append(":");
-        request.append(value);
-        request.append(LINE_SEPARATOR);
+    /**
+     * Returns a HTTP method that should be used when composing HTTP request.
+     *
+     * @return a HTTP method.
+     */
+    public abstract String getHttpMethod();
+
+    @Override
+    public String getHeader(String name) {
+        return upgradeRequest.getHeader(name);
     }
 
-    static ByteBuffer build(JdkUpgradeRequest upgradeRequest) {
-        StringBuilder request = new StringBuilder();
-        request.append(upgradeRequest.getHttpMethod());
-        request.append(" ");
-        request.append(upgradeRequest.getRequestUri());
-        request.append(" ");
-        request.append(HTTP_VERSION);
-        request.append(LINE_SEPARATOR);
-        appendUpgradeHeaders(request, upgradeRequest);
-        request.append(LINE_SEPARATOR);
-        String requestStr = request.toString();
-        byte[] bytes = requestStr.getBytes(Charset.forName(ENCODING));
-        return ByteBuffer.wrap(bytes);
+    @Override
+    public boolean isSecure() {
+        return upgradeRequest.isSecure();
+    }
+
+    @Override
+    public Map<String, List<String>> getHeaders() {
+        return upgradeRequest.getHeaders();
+    }
+
+    @Override
+    public Principal getUserPrincipal() {
+        return upgradeRequest.getUserPrincipal();
+    }
+
+    @Override
+    public URI getRequestURI() {
+        return upgradeRequest.getRequestURI();
+    }
+
+    @Override
+    public boolean isUserInRole(String role) {
+        return upgradeRequest.isUserInRole(role);
+    }
+
+    @Override
+    public Object getHttpSession() {
+        return upgradeRequest.getHttpSession();
+    }
+
+    @Override
+    public Map<String, List<String>> getParameterMap() {
+        return upgradeRequest.getParameterMap();
+    }
+
+    @Override
+    public String getQueryString() {
+        return upgradeRequest.getQueryString();
     }
 }

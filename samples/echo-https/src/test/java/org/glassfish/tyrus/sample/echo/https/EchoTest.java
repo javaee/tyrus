@@ -79,7 +79,7 @@ public class EchoTest extends TestContainer {
         final CountDownLatch onOpenLatch = new CountDownLatch(1);
 
         try {
-            final ClientManager client = ClientManager.createClient();
+            final ClientManager client = createClient();
             client.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig EndpointConfig) {

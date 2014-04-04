@@ -58,7 +58,7 @@ class HttpResponseParser {
     private static final String ENCODING = "ISO-8859-1";
     private static final String LINE_SEPARATOR = "\r\n";
     private static final int BUFFER_STEP_SIZE = 256;
-    private static final int BUFFER_MAX_SIZE = 512;
+    private static final int BUFFER_MAX_SIZE = 1024;
 
     private volatile boolean complete = false;
     private volatile ByteBuffer buffer;
@@ -69,12 +69,11 @@ class HttpResponseParser {
         buffer.flip(); //buffer created for read
     }
 
-    TyrusUpgradeResponse parse() throws ParseException {
+    TyrusUpgradeResponse parseUpgradeResponse() throws ParseException {
         String response = bufferToString();
         String[] tokens = response.split(LINE_SEPARATOR);
         TyrusUpgradeResponse tyrusUpgradeResponse = new TyrusUpgradeResponse();
-        int statusCode = parseStatusCode(tokens[0]);
-        tyrusUpgradeResponse.setStatus(statusCode);
+        parseFirstLine(tokens, tyrusUpgradeResponse);
         List<String> lines = new LinkedList<>();
         lines.addAll(Arrays.asList(tokens).subList(1, tokens.length));
         Map<String, String> headers = parseHeaders(lines);
@@ -107,12 +106,30 @@ class HttpResponseParser {
         complete = true;
     }
 
-    private int parseStatusCode(String firstLine) throws ParseException {
-        String[] tokens = firstLine.split(" ");
-        if (tokens.length < 2) {
+    private void parseFirstLine(String[] responseLines, TyrusUpgradeResponse tyrusUpgradeResponse) throws ParseException {
+        if (responseLines.length == 0) {
+            throw new ParseException("Empty HTTP response");
+        }
+        String firstLine = responseLines[0];
+        int versionEndIndex = firstLine.indexOf(' ');
+        if (versionEndIndex == -1) {
             throw new ParseException("Unexpected format of the first line of a HTTP response: " + firstLine);
         }
-        return Integer.valueOf(tokens[1]);
+        int statusCodeEndIndex = firstLine.indexOf(' ', versionEndIndex + 1);
+        if (statusCodeEndIndex == -1) {
+            throw new ParseException("Unexpected format of the first line of a HTTP response: " + firstLine);
+        }
+        String statusCode = firstLine.substring(versionEndIndex + 1, statusCodeEndIndex);
+        String reasonPhrase = firstLine.substring(statusCodeEndIndex + 1);
+        int status;
+        try {
+            status = Integer.valueOf(statusCode);
+        } catch (Exception e) {
+            throw new ParseException("Invalid format of status code: " + statusCode);
+        }
+        tyrusUpgradeResponse.setStatus(status);
+        tyrusUpgradeResponse.setReasonPhrase(reasonPhrase);
+
     }
 
     private Map<String, String> parseHeaders(List<String> headerLines) {
@@ -141,6 +158,13 @@ class HttpResponseParser {
 
     void destroy() {
         buffer = null;
+    }
+
+    void clear() {
+        buffer.clear();
+        buffer.flip();
+        complete = false;
+        findEndState = State.INIT;
     }
 
     private int getEndPosition(ByteBuffer buffer) {
