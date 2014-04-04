@@ -297,9 +297,11 @@ class SslFilter extends Filter {
         if (keyStoreFile == null) {
             return null;
         }
-        InputStream keyStoreInputStream = new FileInputStream(keyStoreFile);
-        keyStore.load(keyStoreInputStream, keyStorePassword);
-        return keyStore;
+
+        try (InputStream keyStoreInputStream = new FileInputStream(keyStoreFile)) {
+            keyStore.load(keyStoreInputStream, keyStorePassword);
+            return keyStore;
+        }
     }
 
     private void retrieveSystemProperties() {
