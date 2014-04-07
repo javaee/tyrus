@@ -71,6 +71,7 @@ import org.glassfish.tyrus.core.ErrorCollector;
 import org.glassfish.tyrus.core.ReflectionHelper;
 import org.glassfish.tyrus.core.TyrusEndpointWrapper;
 import org.glassfish.tyrus.core.TyrusFuture;
+import org.glassfish.tyrus.core.Utils;
 import org.glassfish.tyrus.spi.ClientContainer;
 import org.glassfish.tyrus.spi.ClientEngine;
 
@@ -378,6 +379,8 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                 final ErrorCollector collector = new ErrorCollector();
                 final ClientEndpointConfig config;
                 final Endpoint endpoint;
+                int incomingBufferSize = Utils.getProperty(copiedProperties, ClientContainer.INCOMING_BUFFER_SIZE,
+                        Integer.class, TyrusClientEngine.DEFAULT_INCOMING_BUFFER_SIZE);
 
                 try {
                     if (o instanceof Endpoint) {
@@ -389,7 +392,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                             endpoint = ReflectionHelper.getInstance(((Class<Endpoint>) o), collector);
                             config = configuration == null ? ClientEndpointConfig.Builder.create().build() : configuration;
                         } else if ((((Class<?>) o).getAnnotation(ClientEndpoint.class) != null)) {
-                            endpoint = AnnotatedEndpoint.fromClass((Class) o, componentProvider, false, collector);
+                            endpoint = AnnotatedEndpoint.fromClass((Class) o, componentProvider, false, incomingBufferSize, collector);
                             config = (ClientEndpointConfig) ((AnnotatedEndpoint) endpoint).getEndpointConfig();
                         } else {
                             collector.addException(new DeploymentException(String.format("Class %s in not Endpoint descendant and does not have @ClientEndpoint", ((Class<?>) o).getName())));
@@ -397,7 +400,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                             config = null;
                         }
                     } else {
-                        endpoint = AnnotatedEndpoint.fromInstance(o, componentProvider, false, collector);
+                        endpoint = AnnotatedEndpoint.fromInstance(o, componentProvider, false, incomingBufferSize, collector);
                         config = (ClientEndpointConfig) ((AnnotatedEndpoint) endpoint).getEndpointConfig();
                     }
 

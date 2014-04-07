@@ -77,14 +77,18 @@ import org.glassfish.tyrus.spi.UpgradeResponse;
 import org.glassfish.tyrus.spi.Writer;
 
 /**
- * Tyrus {@link ClientEngine} implementaion.
+ * Tyrus {@link ClientEngine} implementation.
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 public class TyrusClientEngine implements ClientEngine {
 
+    /**
+     * Default incoming buffer size for client container.
+     */
+    public static final int DEFAULT_INCOMING_BUFFER_SIZE = 4194315; // 4M (payload) + 11 (frame overhead)
+
     private static final Logger LOGGER = Logger.getLogger(TyrusClientEngine.class.getName());
-    private static final int DEFAULT_INCOMING_BUFFER_SIZE = 4194315; // 4M (payload) + 11 (frame overhead)
 
     private static final Version DEFAULT_VERSION = Version.DRAFT17;
     private static final int BUFFER_STEP_SIZE = 256;
@@ -181,17 +185,13 @@ public class TyrusClientEngine implements ClientEngine {
 
             listener.onSessionCreated(sessionForRemoteEndpoint);
 
-            final Object o = properties.get(ClientContainer.INCOMING_BUFFER_SIZE);
-            final int incomingBufferSize;
-            if (o != null && o instanceof Integer) {
-                incomingBufferSize = (Integer) o;
-            } else {
-                incomingBufferSize = DEFAULT_INCOMING_BUFFER_SIZE;
-            }
 
             return new Connection() {
 
-                private final ReadHandler readHandler = new TyrusReadHandler(protocolHandler, socket, incomingBufferSize, sessionForRemoteEndpoint.getNegotiatedExtensions(), extensionContext);
+                private final ReadHandler readHandler = new TyrusReadHandler(protocolHandler, socket,
+                        Utils.getProperty(properties, ClientContainer.INCOMING_BUFFER_SIZE, Integer.class, DEFAULT_INCOMING_BUFFER_SIZE),
+                        sessionForRemoteEndpoint.getNegotiatedExtensions(),
+                        extensionContext);
 
                 @Override
                 public ReadHandler getReadHandler() {

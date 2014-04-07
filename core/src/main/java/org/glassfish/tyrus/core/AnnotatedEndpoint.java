@@ -105,11 +105,12 @@ public class AnnotatedEndpoint extends Endpoint {
      * @param annotatedClass    annotated class.
      * @param componentProvider used for instantiating.
      * @param isServerEndpoint  {@code true} iff annotated endpoint is deployed on server side.
+     * @param incomingBufferSize size limit of the incoming buffer
      * @param collector         error collector.
      * @return new instance.
      */
-    public static AnnotatedEndpoint fromClass(Class<?> annotatedClass, ComponentProviderService componentProvider, boolean isServerEndpoint, ErrorCollector collector) {
-        return new AnnotatedEndpoint(annotatedClass, null, componentProvider, isServerEndpoint, collector);
+    public static AnnotatedEndpoint fromClass(Class<?> annotatedClass, ComponentProviderService componentProvider, boolean isServerEndpoint, int incomingBufferSize, ErrorCollector collector) {
+        return new AnnotatedEndpoint(annotatedClass, null, componentProvider, isServerEndpoint, incomingBufferSize, collector);
     }
 
     /**
@@ -118,14 +119,18 @@ public class AnnotatedEndpoint extends Endpoint {
      * @param annotatedInstance annotated instance.
      * @param componentProvider used for instantiating.
      * @param isServerEndpoint  {@code true} iff annotated endpoint is deployed on server side.
+     * @param incomingBufferSize size limit of the incoming buffer
      * @param collector         error collector.
      * @return new instance.
      */
-    public static AnnotatedEndpoint fromInstance(Object annotatedInstance, ComponentProviderService componentProvider, boolean isServerEndpoint, ErrorCollector collector) {
-        return new AnnotatedEndpoint(annotatedInstance.getClass(), annotatedInstance, componentProvider, isServerEndpoint, collector);
+    public static AnnotatedEndpoint fromInstance(Object annotatedInstance, ComponentProviderService componentProvider,
+                                                 boolean isServerEndpoint, int incomingBufferSize, ErrorCollector collector) {
+        return new AnnotatedEndpoint(annotatedInstance.getClass(), annotatedInstance, componentProvider, isServerEndpoint,
+                incomingBufferSize, collector);
     }
 
-    private AnnotatedEndpoint(Class<?> annotatedClass, Object instance, ComponentProviderService componentProvider, Boolean isServerEndpoint, ErrorCollector collector) {
+    private AnnotatedEndpoint(Class<?> annotatedClass, Object instance, ComponentProviderService componentProvider,
+                              Boolean isServerEndpoint, int incomingBufferSize, ErrorCollector collector) {
         this.configuration = createEndpointConfig(annotatedClass, isServerEndpoint, collector);
         this.annotatedInstance = instance;
         this.annotatedClass = annotatedClass;
@@ -199,6 +204,9 @@ public class AnnotatedEndpoint extends Endpoint {
                     }
                 } else if (a instanceof OnMessage) {
                     final long maxMessageSize = ((OnMessage) a).maxMessageSize();
+                    if(maxMessageSize > incomingBufferSize) {
+                        LOGGER.config(LocalizationMessages.ENDPOINT_MAX_MESSAGE_SIZE_TOO_LONG(maxMessageSize, m.getName(), annotatedClass.getName(), incomingBufferSize));
+                    }
                     final ParameterExtractor[] extractors = getParameterExtractors(m, unknownParams, collector);
                     MessageHandlerFactory handlerFactory;
 
@@ -504,7 +512,7 @@ public class AnnotatedEndpoint extends Endpoint {
         }
     }
 
-    abstract class MessageHandlerFactory {
+    private abstract class MessageHandlerFactory {
         final Method method;
         final ParameterExtractor[] extractors;
         final Class<?> type;
@@ -520,7 +528,7 @@ public class AnnotatedEndpoint extends Endpoint {
         abstract MessageHandler create(Session session);
     }
 
-    class WholeHandler extends MessageHandlerFactory {
+    private class WholeHandler extends MessageHandlerFactory {
         WholeHandler(Method method, ParameterExtractor[] extractors, Class<?> type, long maxMessageSize) {
             super(method, extractors, type, maxMessageSize);
         }
@@ -553,7 +561,7 @@ public class AnnotatedEndpoint extends Endpoint {
         }
     }
 
-    class PartialHandler extends MessageHandlerFactory {
+    private class PartialHandler extends MessageHandlerFactory {
         PartialHandler(Method method, ParameterExtractor[] extractors, Class<?> type, long maxMessageSize) {
             super(method, extractors, type, maxMessageSize);
         }

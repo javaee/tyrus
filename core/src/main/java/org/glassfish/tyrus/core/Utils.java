@@ -344,6 +344,19 @@ public class Utils {
      * @return typed value or {@code null} if property is not set or value is not assignable.
      */
     public static <T> T getProperty(Map<String, Object> properties, String key, Class<T> type) {
+        return getProperty(properties, key, type, null);
+    }
+
+    /**
+     * Get typed property from generic property map.
+     *
+     * @param properties   property map.
+     * @param key          key of value to be retrieved.
+     * @param type         type of value to be retrieved.
+     * @param defaultValue value returned when record does not exist in supplied map.
+     * @return typed value or {@code null} if property is not set or value is not assignable.
+     */
+    public static <T> T getProperty(Map<String, Object> properties, String key, Class<T> type, T defaultValue) {
         if (properties != null) {
             final Object o = properties.get(key);
             if (o != null && type.isAssignableFrom(o.getClass())) {
@@ -352,6 +365,6 @@ public class Utils {
             }
         }
 
-        return null;
+        return defaultValue;
     }
 }

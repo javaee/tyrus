@@ -299,7 +299,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
 
         final ErrorCollector collector = new ErrorCollector();
 
-        AnnotatedEndpoint endpoint = AnnotatedEndpoint.fromClass(endpointClass, componentProviderService, true, collector);
+        AnnotatedEndpoint endpoint = AnnotatedEndpoint.fromClass(endpointClass, componentProviderService, true, incomingBufferSize, collector);
         EndpointConfig config = endpoint.getEndpointConfig();
 
         TyrusEndpointWrapper endpointWrapper = new TyrusEndpointWrapper(endpoint, config, componentProviderService, webSocketContainer,
@@ -335,7 +335,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
         } else {
             final ErrorCollector collector = new ErrorCollector();
 
-            final AnnotatedEndpoint endpoint = AnnotatedEndpoint.fromClass(serverConfig.getEndpointClass(), componentProviderService, true, collector);
+            final AnnotatedEndpoint endpoint = AnnotatedEndpoint.fromClass(serverConfig.getEndpointClass(), componentProviderService, true, incomingBufferSize, collector);
             final EndpointConfig config = endpoint.getEndpointConfig();
 
             endpointWrapper = new TyrusEndpointWrapper(endpoint, config, componentProviderService, webSocketContainer,

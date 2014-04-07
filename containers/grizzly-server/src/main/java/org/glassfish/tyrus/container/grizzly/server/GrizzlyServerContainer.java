@@ -96,21 +96,9 @@ public class GrizzlyServerContainer extends ServerContainerFactory {
             localProperties = new HashMap<String, Object>(properties);
         }
 
-        Object o = localProperties.get(TyrusWebSocketEngine.INCOMING_BUFFER_SIZE);
-        final Integer incomingBufferSize;
-        if (o != null && o instanceof Integer) {
-            incomingBufferSize = (Integer) o;
-        } else {
-            incomingBufferSize = null;
-        }
+        final Integer incomingBufferSize = Utils.getProperty(localProperties, TyrusWebSocketEngine.INCOMING_BUFFER_SIZE, Integer.class);
 
-        o = localProperties.get(ClusterContext.CLUSTER_CONTEXT);
-        final ClusterContext clusterContext;
-        if (o != null && o instanceof ClusterContext) {
-            clusterContext = (ClusterContext) o;
-        } else {
-            clusterContext = null;
-        }
+        final ClusterContext clusterContext = Utils.getProperty(localProperties, ClusterContext.CLUSTER_CONTEXT, ClusterContext.class);
 
         return new TyrusServerContainer((Set<Class<?>>) null) {
 
