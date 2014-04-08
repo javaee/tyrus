@@ -72,6 +72,8 @@ class TyrusServletWriter extends Writer implements WriteListener {
      */
     private ServletOutputStream servletOutputStream = null;
 
+    private boolean isListenerSet;
+
     private static class QueuedFrame {
         public final CompletionHandler<ByteBuffer> completionHandler;
         public final ByteBuffer dataFrame;
@@ -95,13 +97,10 @@ class TyrusServletWriter extends Writer implements WriteListener {
     public synchronized void onWritePossible() throws IOException {
         LOGGER.log(Level.FINEST, "OnWritePossible called");
 
-        if (queue.isEmpty()) {
-            return;
-        }
+        while (!queue.isEmpty() && servletOutputStream.isReady()) {
+            final QueuedFrame queuedFrame = queue.poll();
+            assert queuedFrame != null;
 
-        QueuedFrame queuedFrame;
-        while (servletOutputStream.isReady() &&
-                (queuedFrame = queue.poll()) != null) {
             _write(queuedFrame.dataFrame, queuedFrame.completionHandler);
         }
     }
@@ -128,12 +127,16 @@ class TyrusServletWriter extends Writer implements WriteListener {
                 completionHandler.failed(e);
                 return;
             }
-            servletOutputStream.setWriteListener(this);
         }
 
-        if (servletOutputStream.isReady() && queue.isEmpty()) {
+        if (queue.isEmpty() && servletOutputStream.isReady()) {
             _write(buffer, completionHandler);
         } else {
+            if (!isListenerSet) {
+                isListenerSet = true;
+                servletOutputStream.setWriteListener(this);
+            }
+
             final QueuedFrame queuedFrame = new QueuedFrame(completionHandler, buffer);
             queue.offer(queuedFrame);
         }
