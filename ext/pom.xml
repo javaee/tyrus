@@ -61,7 +61,7 @@
         <profile>
             <id>jdk7</id>
             <activation>
-                <jdk>1.7</jdk>
+                <jdk>[1.7,2)</jdk>
             </activation>
             <modules>
                 <module>extension-deflate</module>
