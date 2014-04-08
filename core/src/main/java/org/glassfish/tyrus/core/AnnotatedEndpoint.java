@@ -102,11 +102,11 @@ public class AnnotatedEndpoint extends Endpoint {
     /**
      * Create {@link AnnotatedEndpoint} from class.
      *
-     * @param annotatedClass    annotated class.
-     * @param componentProvider used for instantiating.
-     * @param isServerEndpoint  {@code true} iff annotated endpoint is deployed on server side.
+     * @param annotatedClass     annotated class.
+     * @param componentProvider  used for instantiating.
+     * @param isServerEndpoint   {@code true} iff annotated endpoint is deployed on server side.
      * @param incomingBufferSize size limit of the incoming buffer
-     * @param collector         error collector.
+     * @param collector          error collector.
      * @return new instance.
      */
     public static AnnotatedEndpoint fromClass(Class<?> annotatedClass, ComponentProviderService componentProvider, boolean isServerEndpoint, int incomingBufferSize, ErrorCollector collector) {
@@ -116,11 +116,11 @@ public class AnnotatedEndpoint extends Endpoint {
     /**
      * Create {@link AnnotatedEndpoint} from instance.
      *
-     * @param annotatedInstance annotated instance.
-     * @param componentProvider used for instantiating.
-     * @param isServerEndpoint  {@code true} iff annotated endpoint is deployed on server side.
+     * @param annotatedInstance  annotated instance.
+     * @param componentProvider  used for instantiating.
+     * @param isServerEndpoint   {@code true} iff annotated endpoint is deployed on server side.
      * @param incomingBufferSize size limit of the incoming buffer
-     * @param collector         error collector.
+     * @param collector          error collector.
      * @return new instance.
      */
     public static AnnotatedEndpoint fromInstance(Object annotatedInstance, ComponentProviderService componentProvider,
@@ -204,7 +204,7 @@ public class AnnotatedEndpoint extends Endpoint {
                     }
                 } else if (a instanceof OnMessage) {
                     final long maxMessageSize = ((OnMessage) a).maxMessageSize();
-                    if(maxMessageSize > incomingBufferSize) {
+                    if (maxMessageSize > incomingBufferSize) {
                         LOGGER.config(LocalizationMessages.ENDPOINT_MAX_MESSAGE_SIZE_TOO_LONG(maxMessageSize, m.getName(), annotatedClass.getName(), incomingBufferSize));
                     }
                     final ParameterExtractor[] extractors = getParameterExtractors(m, unknownParams, collector);
