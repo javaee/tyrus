@@ -113,6 +113,26 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
     public static final String PROXY_URI = "org.glassfish.tyrus.client.proxy";
 
     /**
+     * Property usable in {@link #getProperties()} as a key for SSL configuration.
+     * <p/>
+     * Value is expected to be either {@link org.glassfish.grizzly.ssl.SSLEngineConfigurator}
+     * or {@link org.glassfish.tyrus.container.jdk.client.SslEngineConfigurator}.
+     * <p/>
+     * <pre>
+     *      SslContextConfigurator sslContextConfigurator = new SslContextConfigurator();
+     *      sslContextConfigurator.setTrustStoreFile("...");
+     *      sslContextConfigurator.setTrustStorePass("...");
+     *      sslContextConfigurator.setTrustStoreType("...");
+     *      sslContextConfigurator.setKeyStoreFile("...");
+     *      sslContextConfigurator.setKeyStorePass("...");
+     *      sslContextConfigurator.setKeyStoreType("...");
+     *      SslEngineConfigurator sslEngineConfigurator = new SslEngineConfigurator(sslContextConfigurator, true, false, false);
+     *      client.getProperties().put(ClientManager.SSL_ENGINE_CONFIGURATOR, sslEngineConfigurator);
+     * </pre>
+     */
+    public static final String SSL_ENGINE_CONFIGURATOR = "org.glassfish.tyrus.client.sslEngineConfigurator";
+
+    /**
      * Default {@link org.glassfish.tyrus.spi.ServerContainerFactory} class name.
      * <p/>
      * Uses Grizzly as transport implementation.

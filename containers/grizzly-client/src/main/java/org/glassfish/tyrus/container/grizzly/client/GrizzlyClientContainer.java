@@ -56,6 +56,10 @@ import org.glassfish.tyrus.spi.ClientEngine;
  */
 public class GrizzlyClientContainer implements ClientContainer {
 
+
+    /**
+     * @deprecated please use {@link org.glassfish.tyrus.client.ClientManager#SSL_ENGINE_CONFIGURATOR}.
+     */
     public static final String SSL_ENGINE_CONFIGURATOR = "org.glassfish.tyrus.client.sslEngineConfigurator";
 
     /**

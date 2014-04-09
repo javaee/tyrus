@@ -84,12 +84,8 @@ public class JdkClientContainer implements ClientContainer {
             throw new DeploymentException("Invalid URI.", e);
         }
 
-        boolean sslEnabled = false;
         TransportFilter transportFilter;
 
-        if (uri.getScheme().equalsIgnoreCase("wss")) {
-            sslEnabled = true;
-        }
         boolean proxy = false;
         String proxyUri = null;
         if (properties.get(ClientManager.PROXY_URI) != null) {
@@ -102,8 +98,16 @@ public class JdkClientContainer implements ClientContainer {
 
         final ClientFilter clientFilter = new ClientFilter(clientEngine, uri, proxy);
         final TaskQueueFilter writeQueue = new TaskQueueFilter(clientFilter);
-        if (sslEnabled) {
-            SslFilter sslConnection = new SslFilter(writeQueue);
+        if (uri.getScheme().equalsIgnoreCase("wss")) {
+            SslEngineConfigurator sslEngineConfigurator = (properties == null ? null : (SslEngineConfigurator) properties.get(ClientManager.SSL_ENGINE_CONFIGURATOR));
+            // if we are trying to access "wss" scheme and we don't have sslEngineConfigurator instance
+            // we should try to create ssl connection using JVM properties.
+            if (sslEngineConfigurator == null) {
+                SslContextConfigurator defaultConfig = new SslContextConfigurator();
+                defaultConfig.retrieve(System.getProperties());
+                sslEngineConfigurator = new SslEngineConfigurator(defaultConfig, true, false, false);
+            }
+            SslFilter sslConnection = new SslFilter(writeQueue, sslEngineConfigurator);
             transportFilter = new TransportFilter(sslConnection, SSL_INPUT_BUFFER_SIZE);
         } else {
             transportFilter = new TransportFilter(writeQueue, INPUT_BUFFER_SIZE);

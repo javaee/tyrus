@@ -494,6 +494,18 @@ client.connectToServer(...)</programlisting>
         issue or current high server load.</para>
     </section>
     <section>
+        <title>Client behind proxy</title>
+        <para>
+            Tyrus client supports traversing proxies, but it is Tyrus specific feature and its configuration is shown
+            in the following code sample:
+            <programlisting language="java" linenumbering="numbered">
+                ClientManager client = ClientManager.createClient();
+                client.getProperties().put(ClientManager.PROXY_URI, "http://my.proxy.com:80");
+            </programlisting>
+            Value is expected to be proxy URI. Protocol part is currently ignored, but must be present.
+        </para>
+    </section>
+    <section>
         <title>JDK 7 client</title>
         <para>
             As has been said in previous chapters both Tyrus client and server were implemented on top of Grizzly NIO framework.
@@ -530,9 +542,38 @@ client.connectToServer(...)</programlisting>
         </para>
         <para>
             It is also important to note that the JDK client has been implemented in a way similar to Grizzly client
-            shared container option, which means that there is one thread pool shared among all clients. Unlike in the
-            case of Grizzly client there are no configuration options available for JDK client and JDK client also
-            does not support SSL and proxy traversing.
+            shared container option, which means that there is one thread pool shared among all clients.
         </para>
+        <para>
+            Proxy configuration for JDK client is the same as for Grizzly client shown above.
+        </para>
+        <section>
+            <title>SSL configuration</title>
+            <para>
+                Alike in case of Grizzly client, accessing "wss" URLs will cause Tyrus client to pick up whatever keystore
+                and truststore is actually set for the current JVM instance. However, specifying SSL parameters
+                to be used with JDK client instance is little different from Grizzly client, because Grizzly client uses
+                <link xlink:href="https://grizzly.java.net/docs/2.3/apidocs/org/glassfish/grizzly/ssl/SSLEngineConfigurator.html">SSLEngineConfigurator</link>
+                end
+                <link xlink:href="https://grizzly.java.net/docs/2.3/apidocs/org/glassfish/grizzly/ssl/SSLContextConfigurator.html">SSLContextConfigurator</link>
+                from Grizzly project. The main configuration principle stays the same for the JDK client, but classes
+                <link xlink:href="https://tyrus.java.net/apidocs/&version;/org/glassfish/tyrus/container/jdk/client/SslEngineConfigurator.html">SslEngineConfigurator</link>
+                and
+                <link xlink:href="https://tyrus.java.net/apidocs/&version;/org/glassfish/tyrus/container/jdk/client/SslContextConfigurator.html">SslContextConfigurator</link>
+                from Tyrus project must be used instead.
+                The following code sample shows an example of some SSL parameters configuration for the JDK client:
+                <programlisting language="java" linenumbering="numbered">
+                    SslContextConfigurator sslContextConfigurator = new SslContextConfigurator();
+                    sslContextConfigurator.setTrustStoreFile("...");
+                    sslContextConfigurator.setTrustStorePass("...");
+                    sslContextConfigurator.setTrustStoreType("...");
+                    sslContextConfigurator.setKeyStoreFile("...");
+                    sslContextConfigurator.setKeyStorePass("...");
+                    sslContextConfigurator.setKeyStoreType("...");
+                    SslEngineConfigurator sslEngineConfigurator = new SslEngineConfigurator(sslContextConfigurator, true, false, false);
+                    client.getProperties().put(ClientManager.SSL_ENGINE_CONFIGURATOR, sslEngineConfigurator);
+                </programlisting>
+            </para>
+        </section>
     </section>
 </chapter>

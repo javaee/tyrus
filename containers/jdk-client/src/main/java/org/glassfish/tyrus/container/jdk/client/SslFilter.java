@@ -39,28 +39,15 @@
  */
 package org.glassfish.tyrus.container.jdk.client;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStream;
 import java.nio.ByteBuffer;
-import java.security.KeyManagementException;
-import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
-import java.security.cert.CertificateException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.websocket.DeploymentException;
 
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLEngineResult;
 import javax.net.ssl.SSLException;
-import javax.net.ssl.TrustManagerFactory;
 
 import org.glassfish.tyrus.spi.CompletionHandler;
 
@@ -79,29 +66,12 @@ import org.glassfish.tyrus.spi.CompletionHandler;
 class SslFilter extends Filter {
 
     private static final Logger LOGGER = Logger.getLogger(SslFilter.class.getName());
-    private static final String TRUST_STORE_FILE = "javax.net.ssl.trustStore";
-    private static final String KEY_STORE_FILE = "javax.net.ssl.keyStore";
-    private static final String TRUST_STORE_PASSWORD = "javax.net.ssl.trustStorePassword";
-    private static final String KEY_STORE_PASSWORD = "javax.net.ssl.keyStorePassword";
-    private static final String TRUST_STORE_TYPE = "javax.net.ssl.trustStoreType";
-    private static final String KEY_STORE_TYPE = "javax.net.ssl.keyStoreType";
-    private static final String DEFAULT_SECURITY_ALGORITHM = "TLS";
 
     private final ByteBuffer applicationInputBuffer;
     private final ByteBuffer networkOutputBuffer;
     private final Filter upstreamFilter;
+    private final SSLEngine sslEngine;
 
-    private String keyStoreFile;
-    private String keyStoreType;
-    private char[] keyStorePassword;
-    private String keyStoreManagerAlgorithm;
-
-    private String trustStoreFile;
-    private String trustStoreType;
-    private char[] trustStorePassword;
-    private String trustStoreManagerAlgorithm;
-
-    private volatile SSLEngine sslEngine;
     private volatile Filter downstreamFilter;
     private volatile boolean sslStarted = false;
 
@@ -111,21 +81,9 @@ class SslFilter extends Filter {
      * @param upstreamFilter a filter that is positioned above the SSL filter.
      * @throws DeploymentException when SSL context could not have been initialized.
      */
-    SslFilter(Filter upstreamFilter) throws DeploymentException {
+    SslFilter(Filter upstreamFilter, SslEngineConfigurator sslEngineConfigurator) {
         this.upstreamFilter = upstreamFilter;
-        SSLContext sslContext = initializeSslContext();
-        if (sslContext == null) {
-            throw new DeploymentException("Could not initialize SSL context");
-        }
-
-        sslEngine = sslContext.createSSLEngine();
-        sslEngine.setUseClientMode(true);
-        if (keyStoreFile == null) {
-            sslEngine.setNeedClientAuth(false);
-        } else {
-            sslEngine.setNeedClientAuth(true);
-        }
-
+        sslEngine = sslEngineConfigurator.createSSLEngine();
         applicationInputBuffer = ByteBuffer.allocate(sslEngine.getSession().getApplicationBufferSize());
         networkOutputBuffer = ByteBuffer.allocate(sslEngine.getSession().getPacketBufferSize());
     }
@@ -231,94 +189,6 @@ class SslFilter extends Filter {
     @Override
     void onConnectionClosed() {
         upstreamFilter.onConnectionClosed();
-    }
-
-    private SSLContext initializeSslContext() {
-        retrieveSystemProperties();
-        // initialize key store
-        KeyStore keyStore = null;
-        try {
-            keyStore = setUpKeyStore(keyStoreType, keyStoreFile, keyStorePassword);
-
-        } catch (KeyStoreException | CertificateException e) {
-            LOGGER.log(Level.SEVERE, "Could not initialize key store", e);
-        } catch (NoSuchAlgorithmException e) {
-            LOGGER.log(Level.SEVERE, "Could not initialize key store - incorrect algorithm ", e);
-        } catch (FileNotFoundException e) {
-            LOGGER.log(Level.SEVERE, "Could not find key store file " + keyStoreFile, e);
-        } catch (IOException e) {
-            LOGGER.log(Level.SEVERE, "Could not load key sore form file " + keyStoreFile, e);
-        }
-        KeyManagerFactory keyManagerFactory = null;
-        try {
-            keyManagerFactory = KeyManagerFactory.getInstance(keyStoreManagerAlgorithm != null ? keyStoreManagerAlgorithm : KeyManagerFactory.getDefaultAlgorithm());
-            keyManagerFactory.init(keyStore, keyStorePassword);
-        } catch (KeyStoreException | UnrecoverableKeyException e) {
-            LOGGER.log(Level.SEVERE, "Could not initialize key store", e);
-        } catch (NoSuchAlgorithmException e) {
-            LOGGER.log(Level.SEVERE, "Could not initialize key store - incorrect algorithm ", e);
-        }
-
-        //initialize trust store
-        KeyStore trustStore = null;
-        try {
-            trustStore = setUpKeyStore(trustStoreType, trustStoreFile, trustStorePassword);
-        } catch (FileNotFoundException e) {
-            LOGGER.log(Level.SEVERE, "Could not find trust store file " + trustStoreFile, e);
-        } catch (IOException e) {
-            LOGGER.log(Level.SEVERE, "Could not load trust sore form file " + trustStoreFile, e);
-        } catch (NoSuchAlgorithmException e) {
-            LOGGER.log(Level.SEVERE, "Could not initialize trust store - incorrect algorithm ", e);
-        } catch (KeyStoreException | CertificateException e) {
-            LOGGER.log(Level.SEVERE, "Could not initialize trust store", e);
-        }
-        TrustManagerFactory trustManagerFactory = null;
-        try {
-            trustManagerFactory = TrustManagerFactory.getInstance(trustStoreManagerAlgorithm != null ? trustStoreManagerAlgorithm : TrustManagerFactory.getDefaultAlgorithm());
-            trustManagerFactory.init(trustStore);
-        } catch (KeyStoreException e) {
-            LOGGER.log(Level.SEVERE, "Could not initialize trust store", e);
-        } catch (NoSuchAlgorithmException e) {
-            LOGGER.log(Level.SEVERE, "Could not initialize trust store - incorrect algorithm ", e);
-        }
-
-        try {
-            SSLContext sslContext = SSLContext.getInstance(DEFAULT_SECURITY_ALGORITHM);
-            sslContext.init(keyManagerFactory != null ? keyManagerFactory.getKeyManagers() : null, trustManagerFactory != null ? trustManagerFactory.getTrustManagers() : null, null);
-            return sslContext;
-        } catch (NoSuchAlgorithmException | KeyManagementException e) {
-            LOGGER.log(Level.SEVERE, "SSL could not have been initialized", e);
-        }
-        return null;
-    }
-
-    private KeyStore setUpKeyStore(String keyStoreType, String keyStoreFile, char[] keyStorePassword) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
-        KeyStore keyStore = KeyStore.getInstance(keyStoreType != null ? keyStoreType : KeyStore.getDefaultType());
-        if (keyStoreFile == null) {
-            return null;
-        }
-
-        try (InputStream keyStoreInputStream = new FileInputStream(keyStoreFile)) {
-            keyStore.load(keyStoreInputStream, keyStorePassword);
-            return keyStore;
-        }
-    }
-
-    private void retrieveSystemProperties() {
-        keyStoreFile = System.getProperty(KEY_STORE_FILE);
-        keyStoreType = System.getProperty(KEY_STORE_TYPE);
-        String keyStorePasswordStr = System.getProperty(KEY_STORE_PASSWORD);
-        if (keyStorePasswordStr != null) {
-            keyStorePassword = keyStorePasswordStr.toCharArray();
-        }
-        keyStoreManagerAlgorithm = System.getProperty(KEY_STORE_TYPE);
-        trustStoreFile = System.getProperty(TRUST_STORE_FILE);
-        trustStoreType = System.getProperty(TRUST_STORE_TYPE);
-        String trustStorePasswordStr = System.getProperty(TRUST_STORE_PASSWORD);
-        if (trustStorePasswordStr != null) {
-            trustStorePassword = trustStorePasswordStr.toCharArray();
-        }
-        trustStoreManagerAlgorithm = System.getProperty(TRUST_STORE_TYPE);
     }
 
     private void doHandshakeStep(final Filter filter) {
