@@ -53,7 +53,7 @@
     <packaging>bundle</packaging>
     <artifactId>tyrus-container-jdk-client</artifactId>
 
-    <name>JDK Client Container</name>
+    <name>Tyrus JDK Client Container</name>
 
     <dependencies>
         <dependency>
