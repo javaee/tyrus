@@ -331,7 +331,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
             // we are pretty sure that endpoint class is javax.websocket.Endpoint descendant.
             //noinspection unchecked
             endpointWrapper = new TyrusEndpointWrapper((Class<? extends Endpoint>) serverConfig.getEndpointClass(),
-                    serverConfig, componentProviderService, webSocketContainer, contextPath, serverConfig.getConfigurator());
+                    serverConfig, componentProviderService, webSocketContainer, contextPath, serverConfig.getConfigurator(), null, clusterContext);
         } else {
             final ErrorCollector collector = new ErrorCollector();
 

@@ -143,8 +143,9 @@ public class TyrusEndpointWrapper {
      */
     public TyrusEndpointWrapper(Class<? extends Endpoint> endpointClass, EndpointConfig configuration,
                                 ComponentProviderService componentProvider, WebSocketContainer container,
-                                String contextPath, ServerEndpointConfig.Configurator configurator) throws DeploymentException {
-        this(null, endpointClass, configuration, componentProvider, container, contextPath, configurator, null, null);
+                                String contextPath, ServerEndpointConfig.Configurator configurator,
+                                OnCloseListener onCloseListener, ClusterContext clusterContext) throws DeploymentException {
+        this(null, endpointClass, configuration, componentProvider, container, contextPath, configurator, onCloseListener, clusterContext);
     }
 
     /**
