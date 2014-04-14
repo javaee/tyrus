@@ -58,10 +58,10 @@ import javax.websocket.server.ServerEndpoint;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.annotation.XmlRootElement;
 
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
+import org.glassfish.tyrus.test.standard_config.bean.JAXBBean;
 import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.junit.Test;
@@ -71,22 +71,6 @@ import static org.junit.Assert.assertTrue;
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 public class ReaderWriterTest extends TestContainer {
-
-    @XmlRootElement
-    public static class JAXBBean {
-
-        public String string1;
-        public String string2;
-
-        public JAXBBean(String string1, String string2) {
-            this.string1 = string1;
-            this.string2 = string2;
-        }
-
-        @SuppressWarnings("UnusedDeclaration")
-        public JAXBBean() {
-        }
-    }
 
     @ServerEndpoint("/readerWriter-reader")
     public static class ReaderEndpoint {
