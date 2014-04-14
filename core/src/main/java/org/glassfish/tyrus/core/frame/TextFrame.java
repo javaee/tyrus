@@ -42,14 +42,15 @@ package org.glassfish.tyrus.core.frame;
 
 import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
+import java.nio.charset.CharacterCodingException;
 import java.nio.charset.Charset;
 import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CharsetEncoder;
 import java.nio.charset.CoderResult;
 
 import org.glassfish.tyrus.core.StrictUtf8;
 import org.glassfish.tyrus.core.TyrusWebSocket;
 import org.glassfish.tyrus.core.Utf8DecodingException;
-import org.glassfish.tyrus.core.Utf8Utils;
 
 /**
  * Text frame representation.
@@ -99,7 +100,7 @@ public class TextFrame extends TyrusFrame {
      *                     frames have this bit set to {@code true}.
      */
     public TextFrame(String message, boolean continuation, boolean fin) {
-        super(Frame.builder().payloadData(Utf8Utils.encode(new StrictUtf8(), message)).opcode(continuation ? (byte) 0x00 : (byte) 0x01).fin(fin).build());
+        super(Frame.builder().payloadData(encode(new StrictUtf8(), message)).opcode(continuation ? (byte) 0x00 : (byte) 0x01).fin(fin).build());
         this.continuation = continuation;
         this.textPayload = message;
     }
@@ -195,5 +196,57 @@ public class TextFrame extends TyrusFrame {
         final StringBuilder sb = new StringBuilder(super.toString());
         sb.append(", textPayload='").append(textPayload).append('\'');
         return sb.toString();
+    }
+
+    private static byte[] encode(Charset charset, String string) {
+        if (string == null || string.isEmpty()) {
+            return new byte[0];
+        }
+
+        CharsetEncoder ce = charset.newEncoder();
+        int en = scale(string.length(), ce.maxBytesPerChar());
+        byte[] ba = new byte[en];
+        if (string.length() == 0)
+            return ba;
+
+        ce.reset();
+        ByteBuffer bb = ByteBuffer.wrap(ba);
+        CharBuffer cb = CharBuffer.wrap(string);
+        try {
+            CoderResult cr = ce.encode(cb, bb, true);
+            if (!cr.isUnderflow())
+                cr.throwException();
+            cr = ce.flush(bb);
+            if (!cr.isUnderflow())
+                cr.throwException();
+        } catch (CharacterCodingException x) {
+            // Substitution is always enabled,
+            // so this shouldn't happen
+            throw new Error(x);
+        }
+        return safeTrim(ba, bb.position());
+    }
+
+    private static int scale(int len, float expansionFactor) {
+        // We need to perform double, not float, arithmetic; otherwise
+        // we lose low order bits when len is larger than 2**24.
+        return (int) (len * (double) expansionFactor);
+    }
+
+    // Trim the given byte array to the given length
+    private static byte[] safeTrim(byte[] ba, int len) {
+        if (len == ba.length
+                && (System.getSecurityManager() == null)) {
+            return ba;
+        } else {
+            return copyOf(ba, len);
+        }
+    }
+
+    private static byte[] copyOf(byte[] original, int newLength) {
+        byte[] copy = new byte[newLength];
+        System.arraycopy(original, 0, copy, 0,
+                Math.min(original.length, newLength));
+        return copy;
     }
 }

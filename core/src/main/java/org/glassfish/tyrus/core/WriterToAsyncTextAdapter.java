@@ -71,7 +71,9 @@ class WriterToAsyncTextAdapter extends Writer {
 
     @Override
     public void flush() throws IOException {
-        this.sendBuffer(false);
+        if (buffer != null) {
+            this.sendBuffer(false);
+        }
         buffer = null;
     }
 
