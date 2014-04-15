@@ -60,34 +60,148 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManagerFactory;
 
 /**
- * SslContextConfigurator class from Grizzly project.
+ * Utility class, which helps to configure ssl context.
  * <p/>
- * Utility class, which helps to configure {@link javax.net.ssl.SSLContext}.
+ * Used to configure {@link org.glassfish.tyrus.container.jdk.client.SslEngineConfigurator}, which
+ * will be passed to client via configuration properties. Example:
+ *
+ * <pre>
+ *      SslContextConfigurator sslContextConfigurator = new SslContextConfigurator();
+ *      sslContextConfigurator.setTrustStoreFile("...");
+ *      sslContextConfigurator.setTrustStorePassword("...");
+ *      sslContextConfigurator.setTrustStoreType("...");
+ *      sslContextConfigurator.setKeyStoreFile("...");
+ *      sslContextConfigurator.setKeyStorePassword("...");
+ *      sslContextConfigurator.setKeyStoreType("...");
+ *      SslEngineConfigurator sslEngineConfigurator = new SslEngineConfigurator(sslContextConfigurator, true, false, false);
+ *      client.getProperties().put(ClientManager.SSL_ENGINE_CONFIGURATOR, sslEngineConfigurator);
+ * </pre>
  *
  * @author Alexey Stashok
  * @author Hubert Iwaniuk
  * @author Bruno Harbulot
+ * @author Marek Potociar (marek.potociar at oracle.com)
  */
 public class SslContextConfigurator {
-
+    /**
+     * <em>Trust</em> store provider name.
+     * <p/>
+     * The value MUST be a {@code String} representing the name of a <em>trust</em> store provider.
+     * <p>
+     * No default value is set.
+     * </p>
+     * <p>
+     * The name of the configuration property is <tt>{@value}</tt>.
+     * </p>
+     */
     public static final String TRUST_STORE_PROVIDER = "javax.net.ssl.trustStoreProvider";
-
+    /**
+     * <em>Key</em> store provider name.
+     * <p/>
+     * The value MUST be a {@code String} representing the name of a <em>trust</em> store provider.
+     * <p>
+     * No default value is set.
+     * </p>
+     * <p>
+     * The name of the configuration property is <tt>{@value}</tt>.
+     * </p>
+     */
     public static final String KEY_STORE_PROVIDER = "javax.net.ssl.keyStoreProvider";
-
+    /**
+     * <em>Trust</em> store file name.
+     * <p/>
+     * The value MUST be a {@code String} representing the name of a <em>trust</em> store file.
+     * <p>
+     * No default value is set.
+     * </p>
+     * <p>
+     * The name of the configuration property is <tt>{@value}</tt>.
+     * </p>
+     */
     public static final String TRUST_STORE_FILE = "javax.net.ssl.trustStore";
-
+    /**
+     * <em>Key</em> store file name.
+     * <p/>
+     * The value MUST be a {@code String} representing the name of a <em>key</em> store file.
+     * <p>
+     * No default value is set.
+     * </p>
+     * <p>
+     * The name of the configuration property is <tt>{@value}</tt>.
+     * </p>
+     */
     public static final String KEY_STORE_FILE = "javax.net.ssl.keyStore";
-
+    /**
+     * <em>Trust</em> store file password - the password used to unlock the <em>trust</em> store file.
+     * <p/>
+     * The value MUST be a {@code String} representing the <em>trust</em> store file password.
+     * <p>
+     * No default value is set.
+     * </p>
+     * <p>
+     * The name of the configuration property is <tt>{@value}</tt>.
+     * </p>
+     */
     public static final String TRUST_STORE_PASSWORD = "javax.net.ssl.trustStorePassword";
-
+    /**
+     * <em>Key</em> store file password - the password used to unlock the <em>trust</em> store file.
+     * <p/>
+     * The value MUST be a {@code String} representing the <em>key</em> store file password.
+     * <p>
+     * No default value is set.
+     * </p>
+     * <p>
+     * The name of the configuration property is <tt>{@value}</tt>.
+     * </p>
+     */
     public static final String KEY_STORE_PASSWORD = "javax.net.ssl.keyStorePassword";
-
+    /**
+     * <em>Trust</em> store type (see {@link java.security.KeyStore#getType()} for more info).
+     * <p/>
+     * The value MUST be a {@code String} representing the <em>trust</em> store type name.
+     * <p>
+     * No default value is set.
+     * </p>
+     * <p>
+     * The name of the configuration property is <tt>{@value}</tt>.
+     * </p>
+     */
     public static final String TRUST_STORE_TYPE = "javax.net.ssl.trustStoreType";
-
+    /**
+     * <em>Key</em> store type (see {@link java.security.KeyStore#getType()} for more info).
+     * <p/>
+     * The value MUST be a {@code String} representing the <em>key</em> store type name.
+     * <p>
+     * No default value is set.
+     * </p>
+     * <p>
+     * The name of the configuration property is <tt>{@value}</tt>.
+     * </p>
+     */
     public static final String KEY_STORE_TYPE = "javax.net.ssl.keyStoreType";
-
+    /**
+     * <em>Key</em> manager factory algorithm name.
+     * <p/>
+     * The value MUST be a {@code String} representing the <em>key</em> manager factory algorithm name.
+     * <p>
+     * No default value is set.
+     * </p>
+     * <p>
+     * The name of the configuration property is <tt>{@value}</tt>.
+     * </p>
+     */
     public static final String KEY_FACTORY_MANAGER_ALGORITHM = "ssl.KeyManagerFactory.algorithm";
-
+    /**
+     * <em>Trust</em> manager factory algorithm name.
+     * <p/>
+     * The value MUST be a {@code String} representing the <em>trust</em> manager factory algorithm name.
+     * <p>
+     * No default value is set.
+     * </p>
+     * <p>
+     * The name of the configuration property is <tt>{@value}</tt>.
+     * </p>
+     */
     public static final String TRUST_FACTORY_MANAGER_ALGORITHM = "ssl.TrustManagerFactory.algorithm";
 
     /**
@@ -108,9 +222,9 @@ public class SslContextConfigurator {
     private String trustStoreType;
     private String keyStoreType;
 
-    private char[] trustStorePass;
-    private char[] keyStorePass;
-    private char[] keyPass;
+    private char[] trustStorePassword;
+    private char[] keyStorePassword;
+    private char[] keyPassword;
 
     private String trustStoreFile;
     private String keyStoreFile;
@@ -184,46 +298,46 @@ public class SslContextConfigurator {
     /**
      * Password of <em>trust</em> store.
      *
-     * @param trustStorePass Password of <em>trust</em> store to set.
+     * @param trustStorePassword Password of <em>trust</em> store to set.
      */
-    public void setTrustStorePass(String trustStorePass) {
-        this.trustStorePass = trustStorePass.toCharArray();
+    public void setTrustStorePassword(String trustStorePassword) {
+        this.trustStorePassword = trustStorePassword.toCharArray();
     }
 
     /**
      * Password of <em>key</em> store.
      *
-     * @param keyStorePass Password of <em>key</em> store to set.
+     * @param keyStorePassword Password of <em>key</em> store to set.
      */
-    public void setKeyStorePass(String keyStorePass) {
-        this.keyStorePass = keyStorePass.toCharArray();
+    public void setKeyStorePassword(String keyStorePassword) {
+        this.keyStorePassword = keyStorePassword.toCharArray();
     }
 
     /**
      * Password of <em>key</em> store.
      *
-     * @param keyStorePass Password of <em>key</em> store to set.
+     * @param keyStorePassword Password of <em>key</em> store to set.
      */
-    public void setKeyStorePass(char[] keyStorePass) {
-        this.keyStorePass = keyStorePass;
+    public void setKeyStorePassword(char[] keyStorePassword) {
+        this.keyStorePassword = keyStorePassword.clone();
     }
 
     /**
      * Password of the key in the <em>key</em> store.
      *
-     * @param keyPass Password of <em>key</em> to set.
+     * @param keyPassword Password of <em>key</em> to set.
      */
-    public void setKeyPass(String keyPass) {
-        this.keyPass = keyPass.toCharArray();
+    public void setKeyPassword(String keyPassword) {
+        this.keyPassword = keyPassword.toCharArray();
     }
 
     /**
      * Password of the key in the <em>key</em> store.
      *
-     * @param keyPass Password of <em>key</em> to set.
+     * @param keyPassword Password of <em>key</em> to set.
      */
-    public void setKeyPass(char[] keyPass) {
-        this.keyPass = keyPass;
+    public void setKeyPassword(char[] keyPassword) {
+        this.keyPassword = keyPassword.clone();
     }
 
     /**
@@ -247,7 +361,7 @@ public class SslContextConfigurator {
      * @param trustStoreBytes trust store payload.
      */
     public void setTrustStoreBytes(byte[] trustStoreBytes) {
-        this.trustStoreBytes = trustStoreBytes;
+        this.trustStoreBytes = trustStoreBytes.clone();
         this.trustStoreFile = null;
     }
 
@@ -272,7 +386,7 @@ public class SslContextConfigurator {
      * @param keyStoreBytes key store payload.
      */
     public void setKeyStoreBytes(byte[] keyStoreBytes) {
-        this.keyStoreBytes = keyStoreBytes;
+        this.keyStoreBytes = keyStoreBytes.clone();
         this.keyStoreFile = null;
     }
 
@@ -329,13 +443,9 @@ public class SslContextConfigurator {
             try {
                 KeyStore keyStore;
                 if (keyStoreProvider != null) {
-                    keyStore = KeyStore.getInstance(
-                            keyStoreType != null ? keyStoreType : KeyStore
-                                    .getDefaultType(), keyStoreProvider);
+                    keyStore = KeyStore.getInstance(keyStoreType != null ? keyStoreType : KeyStore.getDefaultType(), keyStoreProvider);
                 } else {
-                    keyStore = KeyStore
-                            .getInstance(keyStoreType != null ? keyStoreType
-                                    : KeyStore.getDefaultType());
+                    keyStore = KeyStore.getInstance(keyStoreType != null ? keyStoreType : KeyStore.getDefaultType());
                 }
                 InputStream keyStoreInputStream = null;
                 try {
@@ -345,26 +455,23 @@ public class SslContextConfigurator {
                         keyStoreInputStream = new FileInputStream(keyStoreFile);
                     }
 
-                    keyStore.load(keyStoreInputStream, keyStorePass);
+                    keyStore.load(keyStoreInputStream, keyStorePassword);
                 } finally {
                     try {
                         if (keyStoreInputStream != null) {
                             keyStoreInputStream.close();
                         }
-                    } catch (IOException ignored) {
+                    } catch (IOException e) {
+                        LOGGER.log(Level.FINEST, "Could not close key store file", e);
                     }
                 }
 
                 String kmfAlgorithm = keyManagerFactoryAlgorithm;
                 if (kmfAlgorithm == null) {
-                    kmfAlgorithm = System.getProperty(
-                            KEY_FACTORY_MANAGER_ALGORITHM, KeyManagerFactory
-                            .getDefaultAlgorithm());
+                    kmfAlgorithm = System.getProperty(KEY_FACTORY_MANAGER_ALGORITHM, KeyManagerFactory.getDefaultAlgorithm());
                 }
-                KeyManagerFactory keyManagerFactory = KeyManagerFactory
-                        .getInstance(kmfAlgorithm);
-                keyManagerFactory.init(keyStore, keyPass != null ? keyPass
-                        : keyStorePass);
+                KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(kmfAlgorithm);
+                keyManagerFactory.init(keyStore, keyPassword != null ? keyPassword : keyStorePassword);
             } catch (KeyStoreException e) {
                 LOGGER.log(Level.FINE, "Error initializing key store", e);
                 valid = false;
@@ -375,20 +482,16 @@ public class SslContextConfigurator {
                 LOGGER.log(Level.FINE, "Key store unrecoverable exception.", e);
                 valid = false;
             } catch (FileNotFoundException e) {
-                LOGGER.log(Level.FINE, "Can't find key store file: "
-                        + keyStoreFile, e);
+                LOGGER.log(Level.FINE, "Can't find key store file: " + keyStoreFile, e);
                 valid = false;
             } catch (IOException e) {
-                LOGGER.log(Level.FINE, "Error loading key store from file: "
-                        + keyStoreFile, e);
+                LOGGER.log(Level.FINE, "Error loading key store from file: " + keyStoreFile, e);
                 valid = false;
             } catch (NoSuchAlgorithmException e) {
-                LOGGER.log(Level.FINE,
-                        "Error initializing key manager factory (no such algorithm)", e);
+                LOGGER.log(Level.FINE, "Error initializing key manager factory (no such algorithm)", e);
                 valid = false;
             } catch (NoSuchProviderException e) {
-                LOGGER.log(Level.FINE,
-                        "Error initializing key store (no such provider)", e);
+                LOGGER.log(Level.FINE, "Error initializing key store (no such provider)", e);
                 valid = false;
             }
         } else {
@@ -399,13 +502,9 @@ public class SslContextConfigurator {
             try {
                 KeyStore trustStore;
                 if (trustStoreProvider != null) {
-                    trustStore = KeyStore.getInstance(
-                            trustStoreType != null ? trustStoreType : KeyStore
-                                    .getDefaultType(), trustStoreProvider);
+                    trustStore = KeyStore.getInstance(trustStoreType != null ? trustStoreType : KeyStore.getDefaultType(), trustStoreProvider);
                 } else {
-                    trustStore = KeyStore
-                            .getInstance(trustStoreType != null ? trustStoreType
-                                    : KeyStore.getDefaultType());
+                    trustStore = KeyStore.getInstance(trustStoreType != null ? trustStoreType : KeyStore.getDefaultType());
                 }
                 InputStream trustStoreInputStream = null;
                 try {
@@ -414,13 +513,14 @@ public class SslContextConfigurator {
                     } else if (!trustStoreFile.equals("NONE")) {
                         trustStoreInputStream = new FileInputStream(trustStoreFile);
                     }
-                    trustStore.load(trustStoreInputStream, trustStorePass);
+                    trustStore.load(trustStoreInputStream, trustStorePassword);
                 } finally {
                     try {
                         if (trustStoreInputStream != null) {
                             trustStoreInputStream.close();
                         }
-                    } catch (IOException ignored) {
+                    } catch (IOException e) {
+                        LOGGER.log(Level.FINEST, "Could not close key store file", e);
                     }
                 }
 
@@ -431,8 +531,7 @@ public class SslContextConfigurator {
                             TrustManagerFactory.getDefaultAlgorithm());
                 }
 
-                TrustManagerFactory trustManagerFactory = TrustManagerFactory
-                        .getInstance(tmfAlgorithm);
+                TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(tmfAlgorithm);
                 trustManagerFactory.init(trustStore);
             } catch (KeyStoreException e) {
                 LOGGER.log(Level.FINE, "Error initializing trust store", e);
@@ -441,23 +540,16 @@ public class SslContextConfigurator {
                 LOGGER.log(Level.FINE, "Trust store certificate exception.", e);
                 valid = false;
             } catch (FileNotFoundException e) {
-                LOGGER.log(Level.FINE, "Can't find trust store file: "
-                        + trustStoreFile, e);
+                LOGGER.log(Level.FINE, "Can't find trust store file: " + trustStoreFile, e);
                 valid = false;
             } catch (IOException e) {
-                LOGGER.log(Level.FINE, "Error loading trust store from file: "
-                        + trustStoreFile, e);
+                LOGGER.log(Level.FINE, "Error loading trust store from file: " + trustStoreFile, e);
                 valid = false;
             } catch (NoSuchAlgorithmException e) {
-                LOGGER
-                        .log(
-                                Level.FINE,
-                                "Error initializing trust manager factory (no such algorithm)",
-                                e);
+                LOGGER.log(Level.FINE, "Error initializing trust manager factory (no such algorithm)", e);
                 valid = false;
             } catch (NoSuchProviderException e) {
-                LOGGER.log(Level.FINE,
-                        "Error initializing trust store (no such provider)", e);
+                LOGGER.log(Level.FINE, "Error initializing trust store (no such provider)", e);
                 valid = false;
             }
         }
@@ -476,12 +568,9 @@ public class SslContextConfigurator {
                     KeyStore keyStore;
                     if (keyStoreProvider != null) {
                         keyStore = KeyStore.getInstance(
-                                keyStoreType != null ? keyStoreType : KeyStore
-                                        .getDefaultType(), keyStoreProvider);
+                        keyStoreType != null ? keyStoreType : KeyStore.getDefaultType(), keyStoreProvider);
                     } else {
-                        keyStore = KeyStore
-                                .getInstance(keyStoreType != null ? keyStoreType
-                                        : KeyStore.getDefaultType());
+                        keyStore = KeyStore.getInstance(keyStoreType != null ? keyStoreType : KeyStore.getDefaultType());
                     }
                     InputStream keyStoreInputStream = null;
                     try {
@@ -490,51 +579,37 @@ public class SslContextConfigurator {
                         } else if (!keyStoreFile.equals("NONE")) {
                             keyStoreInputStream = new FileInputStream(keyStoreFile);
                         }
-                        keyStore.load(keyStoreInputStream, keyStorePass);
+                        keyStore.load(keyStoreInputStream, keyStorePassword);
                     } finally {
                         try {
                             if (keyStoreInputStream != null) {
                                 keyStoreInputStream.close();
                             }
-                        } catch (IOException ignored) {
+                        } catch (IOException e) {
+                            LOGGER.log(Level.FINEST, "Could not close key store file", e);
                         }
                     }
 
                     String kmfAlgorithm = keyManagerFactoryAlgorithm;
                     if (kmfAlgorithm == null) {
-                        kmfAlgorithm = System.getProperty(
-                                KEY_FACTORY_MANAGER_ALGORITHM,
-                                KeyManagerFactory.getDefaultAlgorithm());
+                        kmfAlgorithm = System.getProperty(KEY_FACTORY_MANAGER_ALGORITHM, KeyManagerFactory.getDefaultAlgorithm());
                     }
-                    keyManagerFactory = KeyManagerFactory
-                            .getInstance(kmfAlgorithm);
-                    keyManagerFactory.init(keyStore, keyPass != null ? keyPass
-                            : keyStorePass);
+                    keyManagerFactory = KeyManagerFactory.getInstance(kmfAlgorithm);
+                    keyManagerFactory.init(keyStore, keyPassword != null ? keyPassword : keyStorePassword);
                 } catch (KeyStoreException e) {
                     LOGGER.log(Level.FINE, "Error initializing key store", e);
                 } catch (CertificateException e) {
-                    LOGGER.log(Level.FINE, "Key store certificate exception.",
-                            e);
+                    LOGGER.log(Level.FINE, "Key store certificate exception.", e);
                 } catch (UnrecoverableKeyException e) {
-                    LOGGER.log(Level.FINE,
-                            "Key store unrecoverable exception.", e);
+                    LOGGER.log(Level.FINE, "Key store unrecoverable exception.", e);
                 } catch (FileNotFoundException e) {
-                    LOGGER.log(Level.FINE, "Can't find key store file: "
-                            + keyStoreFile, e);
+                    LOGGER.log(Level.FINE, "Can't find key store file: " + keyStoreFile, e);
                 } catch (IOException e) {
-                    LOGGER.log(Level.FINE,
-                            "Error loading key store from file: "
-                                    + keyStoreFile, e);
+                    LOGGER.log(Level.FINE, "Error loading key store from file: " + keyStoreFile, e);
                 } catch (NoSuchAlgorithmException e) {
-                    LOGGER
-                            .log(
-                                    Level.FINE,
-                                    "Error initializing key manager factory (no such algorithm)",
-                                    e);
+                    LOGGER.log(Level.FINE, "Error initializing key manager factory (no such algorithm)", e);
                 } catch (NoSuchProviderException e) {
-                    LOGGER.log(Level.FINE,
-                            "Error initializing key store (no such provider)",
-                            e);
+                    LOGGER.log(Level.FINE, "Error initializing key store (no such provider)", e);
                 }
             }
 
@@ -542,67 +617,47 @@ public class SslContextConfigurator {
                 try {
                     KeyStore trustStore;
                     if (trustStoreProvider != null) {
-                        trustStore = KeyStore.getInstance(
-                                trustStoreType != null ? trustStoreType
-                                        : KeyStore.getDefaultType(),
-                                trustStoreProvider);
+                        trustStore = KeyStore.getInstance(trustStoreType != null ? trustStoreType : KeyStore.getDefaultType(), trustStoreProvider);
                     } else {
-                        trustStore = KeyStore
-                                .getInstance(trustStoreType != null ? trustStoreType
-                                        : KeyStore.getDefaultType());
+                        trustStore = KeyStore.getInstance(trustStoreType != null ? trustStoreType : KeyStore.getDefaultType());
                     }
                     InputStream trustStoreInputStream = null;
                     try {
                         if (trustStoreBytes != null) {
                             trustStoreInputStream = new ByteArrayInputStream(trustStoreBytes);
                         } else if (!trustStoreFile.equals("NONE")) {
-                            trustStoreInputStream = new FileInputStream(
-                                    trustStoreFile);
+                            trustStoreInputStream = new FileInputStream(trustStoreFile);
                         }
-                        trustStore.load(trustStoreInputStream, trustStorePass);
+                        trustStore.load(trustStoreInputStream, trustStorePassword);
                     } finally {
                         try {
                             if (trustStoreInputStream != null) {
                                 trustStoreInputStream.close();
                             }
-                        } catch (IOException ignored) {
+                        } catch (IOException e) {
+                            LOGGER.log(Level.FINEST, "Could not close trust store file", e);
                         }
                     }
 
                     String tmfAlgorithm = trustManagerFactoryAlgorithm;
                     if (tmfAlgorithm == null) {
-                        tmfAlgorithm = System.getProperty(
-                                TRUST_FACTORY_MANAGER_ALGORITHM,
-                                TrustManagerFactory.getDefaultAlgorithm());
+                        tmfAlgorithm = System.getProperty(TRUST_FACTORY_MANAGER_ALGORITHM, TrustManagerFactory.getDefaultAlgorithm());
                     }
 
-                    trustManagerFactory = TrustManagerFactory
-                            .getInstance(tmfAlgorithm);
+                    trustManagerFactory = TrustManagerFactory.getInstance(tmfAlgorithm);
                     trustManagerFactory.init(trustStore);
                 } catch (KeyStoreException e) {
                     LOGGER.log(Level.FINE, "Error initializing trust store", e);
                 } catch (CertificateException e) {
-                    LOGGER.log(Level.FINE,
-                            "Trust store certificate exception.", e);
+                    LOGGER.log(Level.FINE, "Trust store certificate exception.", e);
                 } catch (FileNotFoundException e) {
-                    LOGGER.log(Level.FINE, "Can't find trust store file: "
-                            + trustStoreFile, e);
+                    LOGGER.log(Level.FINE, "Can't find trust store file: " + trustStoreFile, e);
                 } catch (IOException e) {
-                    LOGGER.log(Level.FINE,
-                            "Error loading trust store from file: "
-                                    + trustStoreFile, e);
+                    LOGGER.log(Level.FINE, "Error loading trust store from file: " + trustStoreFile, e);
                 } catch (NoSuchAlgorithmException e) {
-                    LOGGER
-                            .log(
-                                    Level.FINE,
-                                    "Error initializing trust manager factory (no such algorithm)",
-                                    e);
+                    LOGGER.log(Level.FINE, "Error initializing trust manager factory (no such algorithm)", e);
                 } catch (NoSuchProviderException e) {
-                    LOGGER
-                            .log(
-                                    Level.FINE,
-                                    "Error initializing trust store (no such provider)",
-                                    e);
+                    LOGGER.log(Level.FINE, "Error initializing trust store (no such provider)", e);
                 }
             }
 
@@ -611,10 +666,7 @@ public class SslContextConfigurator {
                 secProtocol = securityProtocol;
             }
             sslContext = SSLContext.getInstance(secProtocol);
-            sslContext.init(keyManagerFactory != null ? keyManagerFactory
-                    .getKeyManagers() : null,
-                    trustManagerFactory != null ? trustManagerFactory
-                            .getTrustManagers() : null, null);
+            sslContext.init(keyManagerFactory != null ? keyManagerFactory.getKeyManagers() : null, trustManagerFactory != null ? trustManagerFactory.getTrustManagers() : null, null);
         } catch (KeyManagementException e) {
             LOGGER.log(Level.FINE, "Key management error.", e);
         } catch (NoSuchAlgorithmException e) {
@@ -632,16 +684,15 @@ public class SslContextConfigurator {
         keyStoreType = props.getProperty(KEY_STORE_TYPE);
 
         if (props.getProperty(TRUST_STORE_PASSWORD) != null) {
-            trustStorePass = props.getProperty(TRUST_STORE_PASSWORD)
-                    .toCharArray();
+            trustStorePassword = props.getProperty(TRUST_STORE_PASSWORD).toCharArray();
         } else {
-            trustStorePass = null;
+            trustStorePassword = null;
         }
 
         if (props.getProperty(KEY_STORE_PASSWORD) != null) {
-            keyStorePass = props.getProperty(KEY_STORE_PASSWORD).toCharArray();
+            keyStorePassword = props.getProperty(KEY_STORE_PASSWORD).toCharArray();
         } else {
-            keyStorePass = null;
+            keyStorePassword = null;
         }
 
         trustStoreFile = props.getProperty(TRUST_STORE_FILE);

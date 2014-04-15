@@ -116,15 +116,18 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
      * Property usable in {@link #getProperties()} as a key for SSL configuration.
      * <p/>
      * Value is expected to be either {@link org.glassfish.grizzly.ssl.SSLEngineConfigurator}
-     * or {@link org.glassfish.tyrus.container.jdk.client.SslEngineConfigurator}.
+     * when configuring Grizzly client or
+     * {@link org.glassfish.tyrus.container.jdk.client.SslEngineConfigurator}
+     * when configuring JDK client.
      * <p/>
+     * Example configuration for JDK client:
      * <pre>
      *      SslContextConfigurator sslContextConfigurator = new SslContextConfigurator();
      *      sslContextConfigurator.setTrustStoreFile("...");
-     *      sslContextConfigurator.setTrustStorePass("...");
+     *      sslContextConfigurator.setTrustStorePassword("...");
      *      sslContextConfigurator.setTrustStoreType("...");
      *      sslContextConfigurator.setKeyStoreFile("...");
-     *      sslContextConfigurator.setKeyStorePass("...");
+     *      sslContextConfigurator.setKeyStorePassword("...");
      *      sslContextConfigurator.setKeyStoreType("...");
      *      SslEngineConfigurator sslEngineConfigurator = new SslEngineConfigurator(sslContextConfigurator, true, false, false);
      *      client.getProperties().put(ClientManager.SSL_ENGINE_CONFIGURATOR, sslEngineConfigurator);

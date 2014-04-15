@@ -99,7 +99,7 @@ public class JdkClientContainer implements ClientContainer {
         final ClientFilter clientFilter = new ClientFilter(clientEngine, uri, proxy);
         final TaskQueueFilter writeQueue = new TaskQueueFilter(clientFilter);
         if (uri.getScheme().equalsIgnoreCase("wss")) {
-            SslEngineConfigurator sslEngineConfigurator = (properties == null ? null : (SslEngineConfigurator) properties.get(ClientManager.SSL_ENGINE_CONFIGURATOR));
+            SslEngineConfigurator sslEngineConfigurator = (SslEngineConfigurator) properties.get(ClientManager.SSL_ENGINE_CONFIGURATOR);
             // if we are trying to access "wss" scheme and we don't have sslEngineConfigurator instance
             // we should try to create ssl connection using JVM properties.
             if (sslEngineConfigurator == null) {

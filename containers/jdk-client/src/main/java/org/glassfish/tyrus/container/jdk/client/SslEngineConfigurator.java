@@ -50,6 +50,18 @@ import javax.net.ssl.SSLEngine;
  * SSLEngineConfigurator class from Grizzly project.
  * <p/>
  * Utility class, which helps to configure {@link SSLEngine}.
+ * Should be passed to client via configuration properties. Example:
+ * <pre>
+ *      SslContextConfigurator sslContextConfigurator = new SslContextConfigurator();
+ *      sslContextConfigurator.setTrustStoreFile("...");
+ *      sslContextConfigurator.setTrustStorePassword("...");
+ *      sslContextConfigurator.setTrustStoreType("...");
+ *      sslContextConfigurator.setKeyStoreFile("...");
+ *      sslContextConfigurator.setKeyStorePassword("...");
+ *      sslContextConfigurator.setKeyStoreType("...");
+ *      SslEngineConfigurator sslEngineConfigurator = new SslEngineConfigurator(sslContextConfigurator, true, false, false);
+ *      client.getProperties().put(ClientManager.SSL_ENGINE_CONFIGURATOR, sslEngineConfigurator);
+ * </pre>
  *
  * @author Alexey Stashok
  */
@@ -61,11 +73,11 @@ public class SslEngineConfigurator {
     protected volatile SSLContext sslContext;
 
     /**
-     * The list of cipher suite
+     * The list of cipher suites.
      */
     protected String[] enabledCipherSuites = null;
     /**
-     * the list of protocols
+     * The list of protocols.
      */
     protected String[] enabledProtocols = null;
     /**
@@ -102,16 +114,15 @@ public class SslEngineConfigurator {
      * Create SSL Engine configuration basing on passed {@link SSLContext},
      * using passed client mode, need/want client auth parameters.
      *
-     * @param sslContext     {@link SSLContext}.
-     * @param clientMode
-     * @param needClientAuth
-     * @param wantClientAuth
+     * @param sslContext {@link SSLContext}.
+     * @param clientMode will be configured to work in client mode.
+     * @param needClientAuth client authentication is required.
+     * @param wantClientAuth client should authenticate.
      */
-    public SslEngineConfigurator(final SSLContext sslContext,
-                                 final boolean clientMode, final boolean needClientAuth,
-                                 final boolean wantClientAuth) {
-        if (sslContext == null)
+    public SslEngineConfigurator(final SSLContext sslContext, final boolean clientMode, final boolean needClientAuth, final boolean wantClientAuth) {
+        if (sslContext == null) {
             throw new IllegalArgumentException("SSLContext can not be null");
+        }
 
         this.sslContextConfiguration = null;
         this.sslContext = sslContext;
@@ -137,16 +148,14 @@ public class SslEngineConfigurator {
      * fashion on first {@link #createSSLEngine()} call.
      *
      * @param sslContextConfiguration {@link SslContextConfigurator}.
-     * @param clientMode
-     * @param needClientAuth
-     * @param wantClientAuth
+     * @param clientMode will be configured to work in client mode.
+     * @param needClientAuth client authentication is required.
+     * @param wantClientAuth client should authenticate.
      */
-    public SslEngineConfigurator(SslContextConfigurator sslContextConfiguration,
-                                 boolean clientMode,
-                                 boolean needClientAuth, boolean wantClientAuth) {
-
-        if (sslContextConfiguration == null)
+    public SslEngineConfigurator(SslContextConfigurator sslContextConfiguration, boolean clientMode, boolean needClientAuth, boolean wantClientAuth) {
+        if (sslContextConfiguration == null) {
             throw new IllegalArgumentException("SSLContextConfigurator can not be null");
+        }
 
         this.sslContextConfiguration = sslContextConfiguration;
         this.clientMode = clientMode;
@@ -168,6 +177,10 @@ public class SslEngineConfigurator {
         this.isProtocolConfigured = pattern.isProtocolConfigured;
     }
 
+    /**
+     * Default constructor.
+     *
+     */
     protected SslEngineConfigurator() {
     }
 
@@ -200,8 +213,7 @@ public class SslEngineConfigurator {
     public SSLEngine configure(final SSLEngine sslEngine) {
         if (enabledCipherSuites != null) {
             if (!isCipherConfigured) {
-                enabledCipherSuites = configureEnabledCiphers(sslEngine,
-                        enabledCipherSuites);
+                enabledCipherSuites = configureEnabledCiphers(sslEngine, enabledCipherSuites);
                 isCipherConfigured = true;
             }
             sslEngine.setEnabledCipherSuites(enabledCipherSuites);
@@ -209,8 +221,7 @@ public class SslEngineConfigurator {
 
         if (enabledProtocols != null) {
             if (!isProtocolConfigured) {
-                enabledProtocols = configureEnabledProtocols(sslEngine,
-                        enabledProtocols);
+                enabledProtocols = configureEnabledProtocols(sslEngine, enabledProtocols);
                 isProtocolConfigured = true;
             }
             sslEngine.setEnabledProtocols(enabledProtocols);
@@ -269,20 +280,20 @@ public class SslEngineConfigurator {
     }
 
     public String[] getEnabledCipherSuites() {
-        return enabledCipherSuites;
+        return enabledCipherSuites.clone();
     }
 
     public SslEngineConfigurator setEnabledCipherSuites(String[] enabledCipherSuites) {
-        this.enabledCipherSuites = enabledCipherSuites;
+        this.enabledCipherSuites = enabledCipherSuites.clone();
         return this;
     }
 
     public String[] getEnabledProtocols() {
-        return enabledProtocols;
+        return enabledProtocols.clone();
     }
 
     public SslEngineConfigurator setEnabledProtocols(String[] enabledProtocols) {
-        this.enabledProtocols = enabledProtocols;
+        this.enabledProtocols = enabledProtocols.clone();
         return this;
     }
 
@@ -321,8 +332,7 @@ public class SslEngineConfigurator {
      *
      * @return String[] an array of supported protocols.
      */
-    private static String[] configureEnabledProtocols(
-            SSLEngine sslEngine, String[] requestedProtocols) {
+    private static String[] configureEnabledProtocols(SSLEngine sslEngine, String[] requestedProtocols) {
 
         String[] supportedProtocols = sslEngine.getSupportedProtocols();
         String[] protocols = null;
@@ -357,8 +367,7 @@ public class SslEngineConfigurator {
      * @return Array of SSL cipher suites to be enabled, or null if none of the
      * requested ciphers are supported
      */
-    private static String[] configureEnabledCiphers(SSLEngine sslEngine,
-                                                    String[] requestedCiphers) {
+    private static String[] configureEnabledCiphers(SSLEngine sslEngine, String[] requestedCiphers) {
 
         String[] supportedCiphers = sslEngine.getSupportedCipherSuites();
         String[] ciphers = null;

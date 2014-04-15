@@ -565,10 +565,10 @@ client.connectToServer(...)</programlisting>
                 <programlisting language="java" linenumbering="numbered">
                     SslContextConfigurator sslContextConfigurator = new SslContextConfigurator();
                     sslContextConfigurator.setTrustStoreFile("...");
-                    sslContextConfigurator.setTrustStorePass("...");
+                    sslContextConfigurator.setTrustStorePassword("...");
                     sslContextConfigurator.setTrustStoreType("...");
                     sslContextConfigurator.setKeyStoreFile("...");
-                    sslContextConfigurator.setKeyStorePass("...");
+                    sslContextConfigurator.setKeyStorePassword("...");
                     sslContextConfigurator.setKeyStoreType("...");
                     SslEngineConfigurator sslEngineConfigurator = new SslEngineConfigurator(sslContextConfigurator, true, false, false);
                     client.getProperties().put(ClientManager.SSL_ENGINE_CONFIGURATOR, sslEngineConfigurator);
