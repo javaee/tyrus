@@ -157,8 +157,8 @@ public class JdkClientContainer implements ClientContainer {
                 transportFilter.connect(proxyAddress, new CompletionHandler<Void, Void>() {
                     @Override
                     public void completed(Void result, Void attachment) {
-                        connectLatch.countDown();
                         success.set(true);
+                        connectLatch.countDown();                   
                     }
 
                     @Override
