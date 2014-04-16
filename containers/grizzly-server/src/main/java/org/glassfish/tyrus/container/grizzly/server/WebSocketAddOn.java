@@ -53,7 +53,9 @@ import org.glassfish.grizzly.http.server.NetworkListener;
  *
  * @author Alexey Stashok
  */
-class WebSocketAddOn implements AddOn {
+// keep this public to allow other developers use this with their own GrizzlyServerContainer alternative
+// see https://java.net/jira/browse/TYRUS-317
+public class WebSocketAddOn implements AddOn {
 
     private final ServerContainer serverContainer;
 
