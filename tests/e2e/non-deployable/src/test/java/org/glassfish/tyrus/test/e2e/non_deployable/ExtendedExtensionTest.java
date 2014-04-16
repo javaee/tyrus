@@ -292,15 +292,29 @@ public class ExtendedExtensionTest extends TestContainer {
         @Override
         public void beforeRequest(Map<String, List<String>> headers) {
             System.out.println("##### beforeRequest");
-            System.out.println(headers);
+            logHeaders(headers);
             System.out.println();
         }
 
         @Override
         public void afterResponse(HandshakeResponse hr) {
             System.out.println("##### afterResponse");
-            System.out.println(hr.getHeaders());
+            logHeaders(hr.getHeaders());
             System.out.println();
+        }
+
+        private void logHeaders(Map<String, List<String>> headers) {
+            for(Map.Entry<String, List<String>> entry: headers.entrySet()) {
+                System.out.print("# " + entry.getKey() + ": ");
+                boolean first = true;
+                for(String value : entry.getValue()) {
+                    System.out.print((first ? "" : ", ") + value);
+                    if(first) {
+                        first = false;
+                    }
+                }
+                System.out.println();
+            }
         }
     }
 }

@@ -66,6 +66,7 @@ import org.glassfish.tyrus.core.frame.Frame;
 import org.glassfish.tyrus.core.l10n.LocalizationMessages;
 import org.glassfish.tyrus.core.monitoring.ApplicationEventListener;
 import org.glassfish.tyrus.core.uri.Match;
+import org.glassfish.tyrus.core.wsadl.model.Application;
 import org.glassfish.tyrus.spi.Connection;
 import org.glassfish.tyrus.spi.ReadHandler;
 import org.glassfish.tyrus.spi.UpgradeRequest;
@@ -83,7 +84,30 @@ import org.glassfish.tyrus.spi.Writer;
  */
 public class TyrusWebSocketEngine implements WebSocketEngine {
 
+    /**
+     * Maximum size of incoming buffer in bytes.
+     * <p/>
+     * The value must be {@link java.lang.Integer} or its primitive alternative.
+     * <p/>
+     * Default value is 4194315, which means that TyrusWebSocketEngine is by default
+     * capable of processing messages up to 4 MB.
+     */
     public static final String INCOMING_BUFFER_SIZE = "org.glassfish.tyrus.incomingBufferSize";
+
+    /**
+     * Wsadl support.
+     * <p/>
+     * Wsadl is experimental feature which exposes endpoint configuration in form of XML file,
+     * similarly as Wadl for REST services. Currently generated Wsadl contains only set of
+     * endpoints and their endpoint paths. Wsadl is exposed on URI ending by "application.wsadl".
+     * <p/>
+     * The value must be string, "true" means that the feature is enable, "false" that the feature
+     * is disabled.
+     * <p/>
+     * Default value is "false";
+     */
+    @Beta
+    public static final String WSADL_SUPPORT = "org.glassfish.tyrus.server.wsadl";
 
     private static final int BUFFER_STEP_SIZE = 256;
     private static final Logger LOGGER = Logger.getLogger(UpgradeRequest.WEBSOCKET);
@@ -443,6 +467,23 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
         public Connection createConnection(Writer writer, Connection.CloseListener closeListener) {
             return new TyrusConnection(endpointWrapper, protocolHandler, incomingBufferSize, writer, closeListener, upgradeRequest, upgradeResponse, extensionContext);
         }
+    }
+
+    /**
+     * Get {@link org.glassfish.tyrus.core.wsadl.model.Application} representing current set of deployed endpoints.
+     *
+     * @return application representing current set of deployed endpoints.
+     */
+    @Beta
+    public Application getWsadlApplication() {
+        Application application = new Application();
+        for (TyrusEndpointWrapper wrapper : endpointWrappers) {
+            org.glassfish.tyrus.core.wsadl.model.Endpoint endpoint = new org.glassfish.tyrus.core.wsadl.model.Endpoint();
+            endpoint.setPath(wrapper.getServerEndpointPath());
+            application.getEndpoint().add(endpoint);
+        }
+
+        return application;
     }
 
     static class TyrusConnection implements Connection {

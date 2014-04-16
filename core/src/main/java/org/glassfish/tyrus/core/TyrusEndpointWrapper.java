@@ -114,6 +114,8 @@ public class TyrusEndpointWrapper {
      */
     private final WebSocketContainer container;
     private final String contextPath;
+    private final String endpointPath;
+    private final String serverEndpointPath;
     private final List<CoderWrapper<Decoder>> decoders = new ArrayList<CoderWrapper<Decoder>>();
     private final List<CoderWrapper<Encoder>> encoders = new ArrayList<CoderWrapper<Encoder>>();
     private final EndpointConfig configuration;
@@ -132,8 +134,6 @@ public class TyrusEndpointWrapper {
 
     private final ClusterContext clusterContext;
     private final Session dummySession;
-    private final String endpointPath;
-    private final String serverEnpointPath;
 
     /**
      * Create {@link TyrusEndpointWrapper} for class that extends {@link Endpoint}.
@@ -175,6 +175,16 @@ public class TyrusEndpointWrapper {
         this.configurator = configurator;
         this.onCloseListener = onCloseListener;
         this.clusterContext = clusterContext;
+
+        // server-side only
+        if (configuration instanceof ServerEndpointConfig) {
+            this.serverEndpointPath = ((ServerEndpointConfig) configuration).getPath();
+            this.endpointPath = (contextPath.endsWith("/") ? contextPath.substring(0, contextPath.length() - 1) : contextPath)
+                    + "/" + (serverEndpointPath.startsWith("/") ? serverEndpointPath.substring(1) : serverEndpointPath);
+        } else {
+            this.serverEndpointPath = null;
+            this.endpointPath = null;
+        }
 
         this.componentProvider = configurator == null ? componentProvider : new ComponentProviderService(componentProvider) {
             @Override
@@ -266,15 +276,6 @@ public class TyrusEndpointWrapper {
         encoders.add(new CoderWrapper<Encoder>(NoOpByteArrayCoder.class, byte[].class));
         encoders.add(new CoderWrapper<Encoder>(ToStringEncoder.class, Object.class));
 
-        if (configuration instanceof ServerEndpointConfig) {
-            serverEnpointPath = ((ServerEndpointConfig) configuration).getPath();
-            endpointPath = (contextPath.endsWith("/") ? contextPath.substring(0, contextPath.length() - 1) : contextPath)
-                    + "/" + (serverEnpointPath.startsWith("/") ? serverEnpointPath.substring(1) : serverEnpointPath);
-        } else {
-            endpointPath = null;
-            serverEnpointPath = null;
-        }
-
         // clustered mode
         if (clusterContext != null) {
             dummySession = new ClusterSession(null, null, null, null, null);
@@ -330,24 +331,6 @@ public class TyrusEndpointWrapper {
         } else {
             return URI.create(uri);
         }
-    }
-
-    /**
-     * Get Endpoint absolute path.
-     *
-     * @return endpoint absolute path.
-     */
-    public String getEndpointPath() {
-        return endpointPath;
-    }
-
-    /**
-     * Get Endpoint path relative to server application root.
-     *
-     * @return path relative to server application root.
-     */
-    public String getServerEndpointPath() {
-        return serverEnpointPath;
     }
 
     private <T> Object getCoderInstance(Session session, CoderWrapper<T> wrapper) {
@@ -460,6 +443,30 @@ public class TyrusEndpointWrapper {
         }
 
         throw new EncodeException(message, LocalizationMessages.ENCODING_FAILED());
+    }
+
+    /**
+     * Server-side; Get Endpoint absolute path.
+     *
+     * @return endpoint absolute path.
+     */
+    public String getEndpointPath() {
+        return endpointPath;
+    }
+
+    /**
+     * Server-side; Get server endpoint path.
+     * <p/>
+     * In this context, server endpoint path is exactly what is present in {@link javax.websocket.server.ServerEndpoint}
+     * annotation or returned from {@link javax.websocket.server.ServerEndpointConfig#getPath()} method call. Context
+     * path is not included.
+     *
+     * @return server endpoint path.
+     * @see javax.websocket.server.ServerEndpoint#value()
+     * @see javax.websocket.server.ServerEndpointConfig#getPath()
+     */
+    public String getServerEndpointPath() {
+        return serverEndpointPath;
     }
 
     /**

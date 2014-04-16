@@ -112,8 +112,10 @@ public class TyrusServletContainerInitializer implements ServletContainerInitial
             }
         };
         ctx.setAttribute(ServerContainer.class.getName(), serverContainer);
+        String wsadlEnabledParam = ctx.getInitParameter(TyrusWebSocketEngine.WSADL_SUPPORT);
 
-        TyrusServletFilter filter = new TyrusServletFilter((TyrusWebSocketEngine) serverContainer.getWebSocketEngine(), applicationEventListener);
+        TyrusServletFilter filter = new TyrusServletFilter((TyrusWebSocketEngine) serverContainer.getWebSocketEngine(),
+                applicationEventListener, wsadlEnabledParam != null && wsadlEnabledParam.equalsIgnoreCase("true"));
 
         // HttpSessionListener registration
         ctx.addListener(filter);

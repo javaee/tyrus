@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -38,41 +38,61 @@
  * holder.
  */
 
-package org.glassfish.tyrus.container.grizzly.server;
+package org.glassfish.tyrus.test.e2e.non_deployable;
 
-import java.util.Collections;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URLConnection;
 
-import org.glassfish.tyrus.spi.ServerContainer;
+import javax.websocket.DeploymentException;
+import javax.websocket.server.ServerEndpoint;
 
-import org.glassfish.grizzly.filterchain.FilterChainBuilder;
-import org.glassfish.grizzly.http.server.AddOn;
-import org.glassfish.grizzly.http.server.HttpServer;
-import org.glassfish.grizzly.http.server.HttpServerFilter;
-import org.glassfish.grizzly.http.server.NetworkListener;
+import org.glassfish.tyrus.core.TyrusWebSocketEngine;
+import org.glassfish.tyrus.server.Server;
+import org.glassfish.tyrus.test.tools.TestContainer;
+
+import org.junit.Test;
+import static org.junit.Assert.assertTrue;
 
 /**
- * WebSockets {@link AddOn} for the {@link HttpServer}.
- *
- * @author Alexey Stashok
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-// keep this public to allow other developers use this with their own GrizzlyServerContainer alternative
-// see https://java.net/jira/browse/TYRUS-317
-public class WebSocketAddOn implements AddOn {
+public class WsadlTest extends TestContainer {
 
-    private final ServerContainer serverContainer;
-
-    WebSocketAddOn(ServerContainer serverContainer) {
-        this.serverContainer = serverContainer;
+    public WsadlTest() {
+        getServerProperties().put(TyrusWebSocketEngine.WSADL_SUPPORT, "true");
     }
 
-    @Override
-    public void setup(NetworkListener networkListener, FilterChainBuilder builder) {
-        // Get the index of HttpServerFilter in the HttpServer filter chain
-        final int httpServerFilterIdx = builder.indexOfType(HttpServerFilter.class);
+    @Test
+    public void testWsadl() throws DeploymentException, IOException {
+        Server server = startServer(NoopEndpoint.class);
 
-        if (httpServerFilterIdx >= 0) {
-            // Insert the WebSocketFilter right before HttpServerFilter
-            builder.add(httpServerFilterIdx, new GrizzlyServerFilter(serverContainer));
+        try {
+            boolean found = false;
+
+            URLConnection urlConnection = getURI("/application.wsadl", "http").toURL().openConnection();
+            urlConnection.connect();
+            System.out.println(urlConnection.getContentLength());
+            InputStream inputStream = urlConnection.getInputStream();
+            BufferedReader in = new BufferedReader(new InputStreamReader(inputStream));
+            String line;
+            while ((line = in.readLine()) != null) {
+                if (line.contains(NoopEndpoint.class.getAnnotation(ServerEndpoint.class).value())) {
+                    found = true;
+                }
+                System.out.println("### " + line);
+            }
+
+            assertTrue(found);
+        } finally {
+            stopServer(server);
         }
     }
+
+    @ServerEndpoint(value = "/noopEndpoint")
+    public static class NoopEndpoint {
+    }
+
 }

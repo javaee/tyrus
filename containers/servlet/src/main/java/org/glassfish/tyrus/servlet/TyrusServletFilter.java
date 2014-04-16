@@ -62,12 +62,15 @@ import javax.servlet.http.HttpSession;
 import javax.servlet.http.HttpSessionEvent;
 import javax.servlet.http.HttpSessionListener;
 import javax.servlet.http.WebConnection;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
 
 import org.glassfish.tyrus.core.RequestContext;
 import org.glassfish.tyrus.core.TyrusUpgradeResponse;
 import org.glassfish.tyrus.core.TyrusWebSocketEngine;
 import org.glassfish.tyrus.core.Utils;
 import org.glassfish.tyrus.core.monitoring.ApplicationEventListener;
+import org.glassfish.tyrus.core.wsadl.model.Application;
 import org.glassfish.tyrus.spi.WebSocketEngine;
 import org.glassfish.tyrus.spi.Writer;
 
@@ -85,6 +88,7 @@ class TyrusServletFilter implements Filter, HttpSessionListener {
     private final static Logger LOGGER = Logger.getLogger(TyrusServletFilter.class.getName());
     private final TyrusWebSocketEngine engine;
     private final ApplicationEventListener applicationEventListener;
+    private final boolean wsadlEnabled;
 
     private org.glassfish.tyrus.server.TyrusServerContainer serverContainer = null;
 
@@ -97,8 +101,13 @@ class TyrusServletFilter implements Filter, HttpSessionListener {
             new ConcurrentHashMap<HttpSession, TyrusHttpUpgradeHandler>();
 
     TyrusServletFilter(TyrusWebSocketEngine engine, ApplicationEventListener applicationEventListener) {
+        this(engine, applicationEventListener, false);
+    }
+
+    TyrusServletFilter(TyrusWebSocketEngine engine, ApplicationEventListener applicationEventListener, boolean wsadlEnabled) {
         this.engine = engine;
         this.applicationEventListener = applicationEventListener;
+        this.wsadlEnabled = wsadlEnabled;
     }
 
     @Override
@@ -264,8 +273,33 @@ class TyrusServletFilter implements Filter, HttpSessionListener {
                     break;
             }
         } else {
+            if (wsadlEnabled) {// wsadl
+                if (((HttpServletRequest) request).getMethod().equals("GET") &&
+                        ((HttpServletRequest) request).getRequestURI().endsWith("application.wsadl")) {
+
+                    try {
+                        getWsadlJaxbContext().createMarshaller().marshal(engine.getWsadlApplication(), response.getWriter());
+                    } catch (JAXBException e) {
+                        throw new ServletException(e);
+                    }
+                    ((HttpServletResponse) response).setStatus(200);
+                    response.setContentType("application/wsadl+xml");
+                    response.flushBuffer();
+                    return;
+                }
+            }
+
             filterChain.doFilter(request, response);
         }
+    }
+
+    private JAXBContext wsadlJaxbContext;
+
+    private synchronized JAXBContext getWsadlJaxbContext() throws JAXBException {
+        if (wsadlJaxbContext == null) {
+            wsadlJaxbContext = JAXBContext.newInstance(Application.class.getPackage().getName());
+        }
+        return wsadlJaxbContext;
     }
 
     @Override

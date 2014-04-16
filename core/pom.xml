@@ -79,13 +79,32 @@
                 <configuration>
                     <instructions>
                         <Export-Package>
-                            org.glassfish.tyrus.core.*;version=${project.version},org.glassfish.tyrus.core.extension.*;version=${project.version},org.glassfish.tyrus.core.cluster.*;version=${project.version},org.glassfish.tyrus.core.coder.*;version=${project.version},org.glassfish.tyrus.core.frame.*;version=${project.version}
+                            org.glassfish.tyrus.core.*;version=${project.version},org.glassfish.tyrus.core.extension.*;version=${project.version},org.glassfish.tyrus.core.cluster.*;version=${project.version},org.glassfish.tyrus.core.coder.*;version=${project.version},org.glassfish.tyrus.core.frame.*;version=${project.version},org.glassfish.tyrus.core.wsadl.model.*;version=${project.version}
                         </Export-Package>
                         <Import-Package>
                             javax.websocket;version=${apijar.bundle.version},javax.websocket.server;version=${apijar.bundle.version},javax.naming,*
                         </Import-Package>
                     </instructions>
                     <unpackBundle>true</unpackBundle>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>com.sun.tools.xjc.maven2</groupId>
+                <artifactId>maven-jaxb-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>generate</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <generatePackage>org.glassfish.tyrus.core.wsadl.model</generatePackage>
+                    <catalog>${basedir}/etc/catalog.xml</catalog>
+                    <schemaDirectory>${basedir}/etc</schemaDirectory>
+                    <includeSchemas>
+                        <includeSchema>wsadl.xsd</includeSchema>
+                    </includeSchemas>
                 </configuration>
             </plugin>
         </plugins>

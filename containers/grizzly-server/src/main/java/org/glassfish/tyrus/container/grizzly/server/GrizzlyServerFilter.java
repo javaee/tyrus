@@ -84,6 +84,7 @@ import org.glassfish.grizzly.http.HttpRequestPacket;
 import org.glassfish.grizzly.http.HttpResponsePacket;
 import org.glassfish.grizzly.http.HttpServerFilter;
 import org.glassfish.grizzly.http.Protocol;
+import org.glassfish.grizzly.http.util.ContentType;
 import org.glassfish.grizzly.memory.ByteBufferArray;
 
 /**
