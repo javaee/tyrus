@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.container.jdk;
+package org.glassfish.tyrus.container.jdk.client;
 
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;
