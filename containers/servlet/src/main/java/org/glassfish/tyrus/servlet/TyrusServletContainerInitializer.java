@@ -42,6 +42,7 @@ package org.glassfish.tyrus.servlet;
 
 import java.util.HashSet;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.websocket.DeploymentException;
@@ -58,6 +59,7 @@ import javax.servlet.ServletException;
 import javax.servlet.annotation.HandlesTypes;
 
 import org.glassfish.tyrus.core.TyrusWebSocketEngine;
+import org.glassfish.tyrus.core.monitoring.ApplicationEventListener;
 import org.glassfish.tyrus.server.TyrusServerContainer;
 import org.glassfish.tyrus.spi.WebSocketEngine;
 
@@ -89,9 +91,10 @@ public class TyrusServletContainerInitializer implements ServletContainerInitial
 
         classes.removeAll(FILTERED_CLASSES);
 
+        final ApplicationEventListener applicationEventListener = createApplicationEventListener(ctx);
         final TyrusServerContainer serverContainer = new TyrusServerContainer(classes) {
 
-            private final WebSocketEngine engine = new TyrusWebSocketEngine(this);
+            private final WebSocketEngine engine = new TyrusWebSocketEngine(this, applicationEventListener);
 
             @Override
             public void register(Class<?> endpointClass) throws DeploymentException {
@@ -110,8 +113,7 @@ public class TyrusServletContainerInitializer implements ServletContainerInitial
         };
         ctx.setAttribute(ServerContainer.class.getName(), serverContainer);
 
-        // TODO
-        TyrusServletFilter filter = new TyrusServletFilter((TyrusWebSocketEngine)serverContainer.getWebSocketEngine());
+        TyrusServletFilter filter = new TyrusServletFilter((TyrusWebSocketEngine) serverContainer.getWebSocketEngine(), applicationEventListener);
 
         // HttpSessionListener registration
         ctx.addListener(filter);
@@ -121,6 +123,33 @@ public class TyrusServletContainerInitializer implements ServletContainerInitial
         reg.setAsyncSupported(true);
         reg.addMappingForUrlPatterns(null, true, "/*");
         LOGGER.info("Registering WebSocket filter for url pattern /*");
+        if (applicationEventListener != null) {
+            applicationEventListener.onApplicationInitialized(ctx.getContextPath());
+        }
+    }
 
+    private ApplicationEventListener createApplicationEventListener(final ServletContext ctx) {
+        String listenerClassName = ctx.getInitParameter(ApplicationEventListener.APPLICATION_EVENT_LISTENER);
+        if (listenerClassName == null) {
+            return null;
+        }
+        try {
+            ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+            Class listenerClass = Class.forName(listenerClassName, true, contextClassLoader);
+
+            Object o = listenerClass.newInstance();
+            if (o instanceof ApplicationEventListener) {
+                return (ApplicationEventListener) o;
+            } else {
+                LOGGER.log(Level.WARNING, "Class " + listenerClassName + " does not implement ApplicationEventListener");
+            }
+        } catch (ClassNotFoundException e) {
+            LOGGER.log(Level.WARNING, "ApplicationEventListener implementation " + listenerClassName + " not found", e);
+        } catch (InstantiationException e) {
+            LOGGER.log(Level.WARNING, "ApplicationEventListener implementation " + listenerClassName + " could not have been instantiated", e);
+        } catch (IllegalAccessException e) {
+            LOGGER.log(Level.WARNING, "ApplicationEventListener implementation " + listenerClassName + " could not have been instantiated", e);
+        }
+        return null;
     }
 }

@@ -51,6 +51,7 @@ import javax.websocket.server.ServerEndpointConfig;
 import org.glassfish.tyrus.core.TyrusWebSocketEngine;
 import org.glassfish.tyrus.core.Utils;
 import org.glassfish.tyrus.core.cluster.ClusterContext;
+import org.glassfish.tyrus.core.monitoring.ApplicationEventListener;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.server.TyrusServerContainer;
 import org.glassfish.tyrus.spi.ServerContainer;
@@ -97,12 +98,12 @@ public class GrizzlyServerContainer extends ServerContainerFactory {
         }
 
         final Integer incomingBufferSize = Utils.getProperty(localProperties, TyrusWebSocketEngine.INCOMING_BUFFER_SIZE, Integer.class);
-
         final ClusterContext clusterContext = Utils.getProperty(localProperties, ClusterContext.CLUSTER_CONTEXT, ClusterContext.class);
+        final ApplicationEventListener applicationEventListener= Utils.getProperty(localProperties, ApplicationEventListener.APPLICATION_EVENT_LISTENER, ApplicationEventListener.class);
 
         return new TyrusServerContainer((Set<Class<?>>) null) {
 
-            private final WebSocketEngine engine = new TyrusWebSocketEngine(this, incomingBufferSize, clusterContext);
+            private final WebSocketEngine engine = new TyrusWebSocketEngine(this, incomingBufferSize, clusterContext, applicationEventListener);
 
             private HttpServer server;
             private String contextPath;
@@ -158,12 +159,18 @@ public class GrizzlyServerContainer extends ServerContainerFactory {
 
                 server.start();
                 super.start(rootPath, port);
+                if(applicationEventListener != null) {
+                    applicationEventListener.onApplicationInitialized(rootPath);
+                }
             }
 
             @Override
             public void stop() {
                 super.stop();
                 server.shutdownNow();
+                if(applicationEventListener != null) {
+                    applicationEventListener.onApplicationDestroyed();
+                }
             }
         };
     }

@@ -67,6 +67,7 @@ import org.glassfish.tyrus.core.RequestContext;
 import org.glassfish.tyrus.core.TyrusUpgradeResponse;
 import org.glassfish.tyrus.core.TyrusWebSocketEngine;
 import org.glassfish.tyrus.core.Utils;
+import org.glassfish.tyrus.core.monitoring.ApplicationEventListener;
 import org.glassfish.tyrus.spi.WebSocketEngine;
 import org.glassfish.tyrus.spi.Writer;
 
@@ -83,6 +84,7 @@ class TyrusServletFilter implements Filter, HttpSessionListener {
 
     private final static Logger LOGGER = Logger.getLogger(TyrusServletFilter.class.getName());
     private final TyrusWebSocketEngine engine;
+    private final ApplicationEventListener applicationEventListener;
 
     private org.glassfish.tyrus.server.TyrusServerContainer serverContainer = null;
 
@@ -94,8 +96,9 @@ class TyrusServletFilter implements Filter, HttpSessionListener {
     private final Map<HttpSession, TyrusHttpUpgradeHandler> sessionToHandler =
             new ConcurrentHashMap<HttpSession, TyrusHttpUpgradeHandler>();
 
-    TyrusServletFilter(TyrusWebSocketEngine engine) {
+    TyrusServletFilter(TyrusWebSocketEngine engine, ApplicationEventListener applicationEventListener) {
         this.engine = engine;
+        this.applicationEventListener = applicationEventListener;
     }
 
     @Override
@@ -268,5 +271,8 @@ class TyrusServletFilter implements Filter, HttpSessionListener {
     @Override
     public void destroy() {
         serverContainer.stop();
+        if(applicationEventListener != null) {
+            applicationEventListener.onApplicationDestroyed();
+        }
     }
 }

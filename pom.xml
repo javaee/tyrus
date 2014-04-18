@@ -607,6 +607,11 @@
                 <version>${project.version}</version>
             </dependency>
             <dependency>
+                <groupId>org.glassfish.tyrus.ext</groupId>
+                <artifactId>tyrus-monitoring-jmx</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+            <dependency>
                 <groupId>org.osgi</groupId>
                 <artifactId>org.osgi.core</artifactId>
                 <version>4.2.0</version>

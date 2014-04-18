@@ -55,6 +55,7 @@
 
     <modules>
         <module>client-cli</module>
+        <module>monitoring-jmx</module>
     </modules>
 
     <profiles>

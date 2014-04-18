@@ -64,6 +64,7 @@ import org.glassfish.tyrus.core.extension.ExtendedExtension;
 import org.glassfish.tyrus.core.frame.CloseFrame;
 import org.glassfish.tyrus.core.frame.Frame;
 import org.glassfish.tyrus.core.l10n.LocalizationMessages;
+import org.glassfish.tyrus.core.monitoring.ApplicationEventListener;
 import org.glassfish.tyrus.core.uri.Match;
 import org.glassfish.tyrus.spi.Connection;
 import org.glassfish.tyrus.spi.ReadHandler;
@@ -98,13 +99,15 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
 
     private final ClusterContext clusterContext;
 
+    private final ApplicationEventListener applicationEventListener;
+
     /**
      * Create {@link WebSocketEngine} instance based on passed {@link WebSocketContainer}.
      *
      * @param webSocketContainer used {@link WebSocketContainer} instance.
      */
-    public TyrusWebSocketEngine(WebSocketContainer webSocketContainer) {
-        this(webSocketContainer, null, null);
+    public TyrusWebSocketEngine(WebSocketContainer webSocketContainer, ApplicationEventListener applicationEventListener) {
+        this(webSocketContainer, null, null, applicationEventListener);
     }
 
     /**
@@ -114,13 +117,34 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
      * @param webSocketContainer used {@link WebSocketContainer} instance.
      * @param incomingBufferSize maximal incoming buffer size (this engine won't be able to process messages bigger
      *                           than this number. If null, default value will be used).
+     * @param clusterContext     cluster context instance. {@code null} indicates standalone mode.
      */
     public TyrusWebSocketEngine(WebSocketContainer webSocketContainer, Integer incomingBufferSize, ClusterContext clusterContext) {
+        this(webSocketContainer, incomingBufferSize, clusterContext, null);
+    }
+
+    /**
+     * Create {@link WebSocketEngine} instance based on passed {@link WebSocketContainer} and with configured maximal
+     * incoming buffer size.
+     *
+     * @param webSocketContainer       used {@link WebSocketContainer} instance.
+     * @param incomingBufferSize       maximal incoming buffer size (this engine won't be able to process messages bigger
+     *                                 than this number. If null, default value will be used).
+     * @param clusterContext           cluster context instance. {@code null} indicates standalone mode.
+     * @param applicationEventListener listener used to collect monitored events.
+     */
+    public TyrusWebSocketEngine(WebSocketContainer webSocketContainer, Integer incomingBufferSize, ClusterContext clusterContext, ApplicationEventListener applicationEventListener) {
         if (incomingBufferSize != null) {
             this.incomingBufferSize = incomingBufferSize;
         }
         this.webSocketContainer = webSocketContainer;
         this.clusterContext = clusterContext;
+        if (applicationEventListener == null) {
+            // create dummy instance in order not to have to check null pointer
+            this.applicationEventListener = ApplicationEventListener.NO_OP;
+        } else {
+            this.applicationEventListener = applicationEventListener;
+        }
     }
 
     private static ProtocolHandler loadHandler(UpgradeRequest request) {
@@ -307,6 +331,8 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
 
         if (collector.isEmpty()) {
             register(endpointWrapper);
+
+            applicationEventListener.onEndpointRegistered(endpointClass, endpointWrapper.getServerEndpointPath());
         } else {
             throw collector.composeComprehensiveException();
         }
@@ -318,24 +344,25 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
         TyrusEndpointWrapper endpointWrapper;
 
         Class<?> endpointClass = serverConfig.getEndpointClass();
+        Class<?> parent = endpointClass;
         boolean isEndpointClass = false;
 
         do {
-            endpointClass = endpointClass.getSuperclass();
-            if (endpointClass.equals(Endpoint.class)) {
+            parent = parent.getSuperclass();
+            if (parent.equals(Endpoint.class)) {
                 isEndpointClass = true;
             }
-        } while (!endpointClass.equals(Object.class));
+        } while (!parent.equals(Object.class));
 
         if (isEndpointClass) {
             // we are pretty sure that endpoint class is javax.websocket.Endpoint descendant.
             //noinspection unchecked
-            endpointWrapper = new TyrusEndpointWrapper((Class<? extends Endpoint>) serverConfig.getEndpointClass(),
+            endpointWrapper = new TyrusEndpointWrapper((Class<? extends Endpoint>) endpointClass,
                     serverConfig, componentProviderService, webSocketContainer, contextPath, serverConfig.getConfigurator(), null, clusterContext);
         } else {
             final ErrorCollector collector = new ErrorCollector();
 
-            final AnnotatedEndpoint endpoint = AnnotatedEndpoint.fromClass(serverConfig.getEndpointClass(), componentProviderService, true, incomingBufferSize, collector);
+            final AnnotatedEndpoint endpoint = AnnotatedEndpoint.fromClass(endpointClass, componentProviderService, true, incomingBufferSize, collector);
             final EndpointConfig config = endpoint.getEndpointConfig();
 
             endpointWrapper = new TyrusEndpointWrapper(endpoint, config, componentProviderService, webSocketContainer,
@@ -347,6 +374,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
         }
 
         register(endpointWrapper);
+        applicationEventListener.onEndpointRegistered(endpointClass, endpointWrapper.getServerEndpointPath());
     }
 
     private void checkPath(TyrusEndpointWrapper endpoint) throws DeploymentException {
@@ -366,6 +394,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
      */
     public void unregister(TyrusEndpointWrapper endpointWrapper) {
         endpointWrappers.remove(endpointWrapper);
+        applicationEventListener.onEndpointUnregistered(endpointWrapper.getEndpointPath());
     }
 
     private static class NoConnectionUpgradeInfo implements UpgradeInfo {

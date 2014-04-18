@@ -83,7 +83,7 @@ public class InMemoryClientContainer implements ClientContainer {
 
         final ServerApplicationConfig serverApplicationConfig = getServerApplicationConfig(cec);
         final TyrusServerContainer tyrusServerContainer = new TyrusServerContainer(serverApplicationConfig) {
-            private final WebSocketEngine webSocketEngine = new TyrusWebSocketEngine(getClientManager());
+            private final WebSocketEngine webSocketEngine = new TyrusWebSocketEngine(getClientManager(), null);
 
             @Override
             public void register(Class<?> endpointClass) throws DeploymentException {

@@ -132,6 +132,8 @@ public class TyrusEndpointWrapper {
 
     private final ClusterContext clusterContext;
     private final Session dummySession;
+    private final String endpointPath;
+    private final String serverEnpointPath;
 
     /**
      * Create {@link TyrusEndpointWrapper} for class that extends {@link Endpoint}.
@@ -264,6 +266,15 @@ public class TyrusEndpointWrapper {
         encoders.add(new CoderWrapper<Encoder>(NoOpByteArrayCoder.class, byte[].class));
         encoders.add(new CoderWrapper<Encoder>(ToStringEncoder.class, Object.class));
 
+        if (configuration instanceof ServerEndpointConfig) {
+            serverEnpointPath = ((ServerEndpointConfig) configuration).getPath();
+            endpointPath = (contextPath.endsWith("/") ? contextPath.substring(0, contextPath.length() - 1) : contextPath)
+                    + "/" + (serverEnpointPath.startsWith("/") ? serverEnpointPath.substring(1) : serverEnpointPath);
+        } else {
+            endpointPath = null;
+            serverEnpointPath = null;
+        }
+
         // clustered mode
         if (clusterContext != null) {
             dummySession = new ClusterSession(null, null, null, null, null);
@@ -327,13 +338,16 @@ public class TyrusEndpointWrapper {
      * @return endpoint absolute path.
      */
     public String getEndpointPath() {
-        if (configuration instanceof ServerEndpointConfig) {
-            String relativePath = ((ServerEndpointConfig) configuration).getPath();
-            return (contextPath.endsWith("/") ? contextPath.substring(0, contextPath.length() - 1) : contextPath)
-                    + "/" + (relativePath.startsWith("/") ? relativePath.substring(1) : relativePath);
-        }
+        return endpointPath;
+    }
 
-        return null;
+    /**
+     * Get Endpoint path relative to server application root.
+     *
+     * @return path relative to server application root.
+     */
+    public String getServerEndpointPath() {
+        return serverEnpointPath;
     }
 
     private <T> Object getCoderInstance(Session session, CoderWrapper<T> wrapper) {
