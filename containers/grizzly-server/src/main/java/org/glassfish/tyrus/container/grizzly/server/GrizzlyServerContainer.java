@@ -114,7 +114,9 @@ public class GrizzlyServerContainer extends ServerContainerFactory {
 
         return new TyrusServerContainer((Set<Class<?>>) null) {
 
-            private final WebSocketEngine engine = new TyrusWebSocketEngine(this, incomingBufferSize, clusterContext, applicationEventListener);
+            private final WebSocketEngine engine = TyrusWebSocketEngine.builder(this)
+                    .incomingBufferSize(incomingBufferSize).clusterContext(clusterContext)
+                    .applicationEventListener(applicationEventListener).build();
 
             private HttpServer server;
             private String contextPath;

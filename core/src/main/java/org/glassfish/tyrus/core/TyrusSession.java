@@ -611,7 +611,7 @@ public class TyrusSession implements Session {
     @Override
     public String toString() {
         final StringBuilder sb = new StringBuilder();
-        sb.append("SessionImpl");
+        sb.append("TyrusSession");
         sb.append("{uri=").append(requestURI);
         sb.append(", id='").append(id).append('\'');
         sb.append(", endpointWrapper=").append(endpointWrapper);

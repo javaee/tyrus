@@ -693,4 +693,12 @@ public class ClusterSession implements Session {
         // Session.getOpenSessions()."get(<remoteIndex>)".getOpenSessions() .. why would anyone try to do that?
         throw new UnsupportedOperationException();
     }
+
+    @Override
+    public String toString() {
+        return "ClusterSession{" +
+                "sessionId='" + sessionId + '\'' +
+                ", clusterContext=" + clusterContext +
+                '}';
+    }
 }

@@ -125,26 +125,14 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
     private final ApplicationEventListener applicationEventListener;
 
     /**
-     * Create {@link WebSocketEngine} instance based on passed {@link WebSocketContainer}.
+     * Create {@link org.glassfish.tyrus.core.TyrusWebSocketEngine.TyrusWebSocketEngineBuilder}
+     * instance based on passed {@link WebSocketContainer}.
      *
-     * @param webSocketContainer used {@link WebSocketContainer} instance.
-     * @param applicationEventListener listener used to collect monitored events.
+     * @param webSocketContainer {@link WebSocketContainer} instance. Cannot be {@link null}.
+     * @return new builder.
      */
-    public TyrusWebSocketEngine(WebSocketContainer webSocketContainer, ApplicationEventListener applicationEventListener) {
-        this(webSocketContainer, null, null, applicationEventListener);
-    }
-
-    /**
-     * Create {@link WebSocketEngine} instance based on passed {@link WebSocketContainer} and with configured maximal
-     * incoming buffer size.
-     *
-     * @param webSocketContainer used {@link WebSocketContainer} instance.
-     * @param incomingBufferSize maximal incoming buffer size (this engine won't be able to process messages bigger
-     *                           than this number. If null, default value will be used).
-     * @param clusterContext     cluster context instance. {@code null} indicates standalone mode.
-     */
-    public TyrusWebSocketEngine(WebSocketContainer webSocketContainer, Integer incomingBufferSize, ClusterContext clusterContext) {
-        this(webSocketContainer, incomingBufferSize, clusterContext, null);
+    public static TyrusWebSocketEngineBuilder builder(WebSocketContainer webSocketContainer) {
+        return new TyrusWebSocketEngineBuilder(webSocketContainer);
     }
 
     /**
@@ -157,7 +145,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
      * @param clusterContext           cluster context instance. {@code null} indicates standalone mode.
      * @param applicationEventListener listener used to collect monitored events.
      */
-    public TyrusWebSocketEngine(WebSocketContainer webSocketContainer, Integer incomingBufferSize, ClusterContext clusterContext, ApplicationEventListener applicationEventListener) {
+    private TyrusWebSocketEngine(WebSocketContainer webSocketContainer, Integer incomingBufferSize, ClusterContext clusterContext, ApplicationEventListener applicationEventListener) {
         if (incomingBufferSize != null) {
             this.incomingBufferSize = incomingBufferSize;
         }
@@ -470,6 +458,16 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
     }
 
     /**
+     * Get {@link org.glassfish.tyrus.core.monitoring.ApplicationEventListener} related to current
+     * {@link org.glassfish.tyrus.core.TyrusWebSocketEngine} instance.
+     *
+     * @return listener instance.
+     */
+    public ApplicationEventListener getApplicationEventListener() {
+        return applicationEventListener;
+    }
+
+    /**
      * Get {@link org.glassfish.tyrus.core.wsadl.model.Application} representing current set of deployed endpoints.
      *
      * @return application representing current set of deployed endpoints.
@@ -550,6 +548,76 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
                     }
                 }
             }
+        }
+    }
+
+    /**
+     * {@link org.glassfish.tyrus.core.TyrusWebSocketEngine} builder.
+     */
+    public static class TyrusWebSocketEngineBuilder {
+
+        private final WebSocketContainer webSocketContainer;
+
+        private Integer incomingBufferSize = null;
+        private ClusterContext clusterContext = null;
+        private ApplicationEventListener applicationEventListener = null;
+
+        /**
+         * Create new {@link org.glassfish.tyrus.core.TyrusWebSocketEngine} instance with
+         * current set of parameters.
+         *
+         * @return new {@link org.glassfish.tyrus.core.TyrusWebSocketEngine} instance.
+         */
+        public TyrusWebSocketEngine build() {
+            return new TyrusWebSocketEngine(webSocketContainer, incomingBufferSize, clusterContext, applicationEventListener);
+        }
+
+        TyrusWebSocketEngineBuilder(WebSocketContainer webSocketContainer) {
+            if (webSocketContainer == null) {
+                throw new NullPointerException();
+            }
+
+            this.webSocketContainer = webSocketContainer;
+        }
+
+        /**
+         * Set {@link org.glassfish.tyrus.core.monitoring.ApplicationEventListener}.
+         * <p/>
+         * Listener can be used for monitoring various events and properties, such as deployed endpoints,
+         * ongoing sessions etc...
+         *
+         * @param applicationEventListener listener instance used for building {@link org.glassfish.tyrus.core.TyrusWebSocketEngine}.
+         *                                 Can be {@link null}.
+         * @return updated builder.
+         */
+        public TyrusWebSocketEngineBuilder applicationEventListener(ApplicationEventListener applicationEventListener) {
+            this.applicationEventListener = applicationEventListener;
+            return this;
+        }
+
+        /**
+         * Set incoming buffer size.
+         *
+         * @param incomingBufferSize maximal incoming buffer size (this engine won't be able to process messages bigger
+         *                           than this number. If {@code null}, default value will be used).
+         * @return updated builder.
+         */
+        public TyrusWebSocketEngineBuilder incomingBufferSize(Integer incomingBufferSize) {
+            this.incomingBufferSize = incomingBufferSize;
+            return this;
+        }
+
+        /**
+         * Set {@link org.glassfish.tyrus.core.cluster.ClusterContext}.
+         * <p/>
+         * ClusterContext provides clustering functionality.
+         *
+         * @param clusterContext cluster context instance. {@code null} indicates standalone mode.
+         * @return updated builder.
+         */
+        public TyrusWebSocketEngineBuilder clusterContext(ClusterContext clusterContext) {
+            this.clusterContext = clusterContext;
+            return this;
         }
     }
 }

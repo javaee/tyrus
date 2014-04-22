@@ -40,8 +40,6 @@
 
 package org.glassfish.tyrus.container.grizzly.server;
 
-import java.util.Collections;
-
 import org.glassfish.tyrus.spi.ServerContainer;
 
 import org.glassfish.grizzly.filterchain.FilterChainBuilder;

@@ -94,7 +94,8 @@ public class TyrusServletContainerInitializer implements ServletContainerInitial
         final ApplicationEventListener applicationEventListener = createApplicationEventListener(ctx);
         final TyrusServerContainer serverContainer = new TyrusServerContainer(classes) {
 
-            private final WebSocketEngine engine = new TyrusWebSocketEngine(this, applicationEventListener);
+            private final WebSocketEngine engine = TyrusWebSocketEngine.builder(this)
+                    .applicationEventListener(applicationEventListener).build();
 
             @Override
             public void register(Class<?> endpointClass) throws DeploymentException {
@@ -115,7 +116,7 @@ public class TyrusServletContainerInitializer implements ServletContainerInitial
         String wsadlEnabledParam = ctx.getInitParameter(TyrusWebSocketEngine.WSADL_SUPPORT);
 
         TyrusServletFilter filter = new TyrusServletFilter((TyrusWebSocketEngine) serverContainer.getWebSocketEngine(),
-                applicationEventListener, wsadlEnabledParam != null && wsadlEnabledParam.equalsIgnoreCase("true"));
+                wsadlEnabledParam != null && wsadlEnabledParam.equalsIgnoreCase("true"));
 
         // HttpSessionListener registration
         ctx.addListener(filter);

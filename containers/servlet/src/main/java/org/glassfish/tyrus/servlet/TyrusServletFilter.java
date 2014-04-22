@@ -69,7 +69,6 @@ import org.glassfish.tyrus.core.RequestContext;
 import org.glassfish.tyrus.core.TyrusUpgradeResponse;
 import org.glassfish.tyrus.core.TyrusWebSocketEngine;
 import org.glassfish.tyrus.core.Utils;
-import org.glassfish.tyrus.core.monitoring.ApplicationEventListener;
 import org.glassfish.tyrus.core.wsadl.model.Application;
 import org.glassfish.tyrus.spi.WebSocketEngine;
 import org.glassfish.tyrus.spi.Writer;
@@ -87,10 +86,7 @@ class TyrusServletFilter implements Filter, HttpSessionListener {
 
     private final static Logger LOGGER = Logger.getLogger(TyrusServletFilter.class.getName());
     private final TyrusWebSocketEngine engine;
-    private final ApplicationEventListener applicationEventListener;
     private final boolean wsadlEnabled;
-
-    private org.glassfish.tyrus.server.TyrusServerContainer serverContainer = null;
 
     // I don't like this map, but it seems like it is necessary. I am forced to handle subscriptions
     // for HttpSessionListener because the listener itself must be registered *before* ServletContext
@@ -100,13 +96,16 @@ class TyrusServletFilter implements Filter, HttpSessionListener {
     private final Map<HttpSession, TyrusHttpUpgradeHandler> sessionToHandler =
             new ConcurrentHashMap<HttpSession, TyrusHttpUpgradeHandler>();
 
-    TyrusServletFilter(TyrusWebSocketEngine engine, ApplicationEventListener applicationEventListener) {
-        this(engine, applicationEventListener, false);
+    private org.glassfish.tyrus.server.TyrusServerContainer serverContainer = null;
+    private JAXBContext wsadlJaxbContext;
+
+
+    TyrusServletFilter(TyrusWebSocketEngine engine) {
+        this(engine, false);
     }
 
-    TyrusServletFilter(TyrusWebSocketEngine engine, ApplicationEventListener applicationEventListener, boolean wsadlEnabled) {
+    TyrusServletFilter(TyrusWebSocketEngine engine, boolean wsadlEnabled) {
         this.engine = engine;
-        this.applicationEventListener = applicationEventListener;
         this.wsadlEnabled = wsadlEnabled;
     }
 
@@ -293,8 +292,6 @@ class TyrusServletFilter implements Filter, HttpSessionListener {
         }
     }
 
-    private JAXBContext wsadlJaxbContext;
-
     private synchronized JAXBContext getWsadlJaxbContext() throws JAXBException {
         if (wsadlJaxbContext == null) {
             wsadlJaxbContext = JAXBContext.newInstance(Application.class.getPackage().getName());
@@ -305,8 +302,6 @@ class TyrusServletFilter implements Filter, HttpSessionListener {
     @Override
     public void destroy() {
         serverContainer.stop();
-        if(applicationEventListener != null) {
-            applicationEventListener.onApplicationDestroyed();
-        }
+        engine.getApplicationEventListener().onApplicationDestroyed();
     }
 }

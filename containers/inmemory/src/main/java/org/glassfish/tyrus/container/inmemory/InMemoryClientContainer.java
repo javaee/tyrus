@@ -65,13 +65,15 @@ import org.glassfish.tyrus.spi.WebSocketEngine;
 import org.glassfish.tyrus.spi.Writer;
 
 /**
+ * In-Memory {@link org.glassfish.tyrus.spi.ClientContainer} implementation.
+ *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 public class InMemoryClientContainer implements ClientContainer {
 
     /**
      * Property used to define server config used for in-memory container.
-     *
+     * <p/>
      * Value has to be instance of {@link javax.websocket.server.ServerApplicationConfig} and is provided as user
      * parameter in {@link javax.websocket.ClientEndpointConfig}.
      */
@@ -83,7 +85,7 @@ public class InMemoryClientContainer implements ClientContainer {
 
         final ServerApplicationConfig serverApplicationConfig = getServerApplicationConfig(cec);
         final TyrusServerContainer tyrusServerContainer = new TyrusServerContainer(serverApplicationConfig) {
-            private final WebSocketEngine webSocketEngine = new TyrusWebSocketEngine(getClientManager(), null);
+            private final WebSocketEngine webSocketEngine = TyrusWebSocketEngine.builder(getClientManager()).build();
 
             @Override
             public void register(Class<?> endpointClass) throws DeploymentException {
@@ -112,7 +114,7 @@ public class InMemoryClientContainer implements ClientContainer {
         if (upgradeRequest.getRequestURI().getQuery() != null) {
             sb.append('?').append(upgradeRequest.getRequestURI().getQuery());
         }
-        if(sb.length() == 0) {
+        if (sb.length() == 0) {
             sb.append('/');
         }
 
