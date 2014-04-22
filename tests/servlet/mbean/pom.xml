@@ -50,9 +50,9 @@
     </parent>
 
     <packaging>war</packaging>
-    <artifactId>tyrus-tests-servlet-monitoring</artifactId>
+    <artifactId>tyrus-tests-servlet-mbean-test</artifactId>
 
-    <name>Tyrus Servlet Monitoring</name>
+    <name>Tyrus Servlet Monitoring Test</name>
 
     <dependencies>
         <dependency>

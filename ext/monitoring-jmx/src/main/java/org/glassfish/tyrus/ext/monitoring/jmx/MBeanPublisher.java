@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.ext.jmx;
+package org.glassfish.tyrus.ext.monitoring.jmx;
 
 import java.lang.management.ManagementFactory;
 import java.util.logging.Level;
@@ -47,10 +47,8 @@ import javax.management.JMException;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
-
 /**
- * Publishes Tyrus MBeans, so that they are accessible from
- * MBean clients e.g. jConsole.
+ * Publishes Tyrus MBeans, so that they are accessible from MBean clients e.g. jConsole.
  *
  * @author Petr Janouch (petr.janouch at oracle.com)
  */

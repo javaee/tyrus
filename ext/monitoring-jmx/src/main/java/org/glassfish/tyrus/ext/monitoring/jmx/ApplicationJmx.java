@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.ext.jmx;
+package org.glassfish.tyrus.ext.monitoring.jmx;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -64,7 +64,7 @@ import org.glassfish.tyrus.core.monitoring.EndpointEventListener;
  *
  *      <context-param>
  *         <param-name>org.glassfish.tyrus.core.monitoring.ApplicationEventListener</param-name>
- *         <param-value>org.glassfish.tyrus.ext.jmx.ApplicationJmx</param-value>
+ *         <param-value>org.glassfish.tyrus.ext.monitoring.jmx.ApplicationJmx</param-value>
  *      </context-param>
  *      }
  *  <pre/>

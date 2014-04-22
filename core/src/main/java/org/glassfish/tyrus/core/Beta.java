@@ -37,43 +37,44 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.ext.jmx;
 
+package org.glassfish.tyrus.core;
 
-import java.beans.ConstructorProperties;
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+import static java.lang.annotation.ElementType.ANNOTATION_TYPE;
+import static java.lang.annotation.ElementType.CONSTRUCTOR;
+import static java.lang.annotation.ElementType.FIELD;
+import static java.lang.annotation.ElementType.METHOD;
+import static java.lang.annotation.ElementType.PACKAGE;
+import static java.lang.annotation.ElementType.TYPE;
 
 /**
- * Properties of an endpoint exposed by JMX.
+ * Marker of a public Tyrus API that is still in "beta" non-final version.
+ * <p>
+ * This annotation signals that the annotated public Tyrus API (package, class, method or field)
+ * has not been fully stabilized yet. As such, the API is subject to backward-incompatible changes
+ * (or even removal) in a future Tyrus release. Tyrus development team does not make any guarantees
+ * to retain backward compatibility of a {@code @Beta}-annotated Tyrus API.
+ * </p>
+ * <p>
+ * This annotation does not indicate inferior quality or performance of the API, just informs that the
+ * API may still evolve in the future in a backward-incompatible ways. Tyrus users may use beta APIs
+ * in their applications keeping in mind potential cost of extra work associated with an upgrade
+ * to a newer Tyrus version.
+ * </p>
+ * <p>
+ * Once a {@code @Beta}-annotated Tyrus API reaches the desired maturity, the {@code @Beta} annotation
+ * will be removed from such API and the API will become part of a stable public Tyrus API.
+ * </p>
  *
- * @author Petr Janouch (petr.janouch at oracle.com)
- * @see {@link org.glassfish.tyrus.core.monitoring.ApplicationEventListener}.
+ * @author Marek Potociar (marek.potociar at oracle.com)
  */
-public class MonitoredEndpointProperties {
-
-    private final String endpointClassName;
-    private final String endpointPath;
-
-    /**
-     * @param endpointClassName class name of an endpoint.
-     * @param endpointPath      the URL the endpoint is registered on.
-     */
-    @ConstructorProperties({"endpointClassName", "endpointPath"})
-    public MonitoredEndpointProperties(String endpointClassName, String endpointPath) {
-        this.endpointClassName = endpointClassName;
-        this.endpointPath = endpointPath;
-    }
-
-    /**
-     * @return class name of the endpoint.
-     */
-    public String getEndpointClassName() {
-        return endpointClassName;
-    }
-
-    /**
-     * @return the URI the endpoint is registered on.
-     */
-    public String getEndpointPath() {
-        return endpointPath;
-    }
+@Retention(RetentionPolicy.CLASS)
+@Documented
+@Target({ANNOTATION_TYPE, TYPE, CONSTRUCTOR, METHOD, FIELD, PACKAGE})
+public @interface Beta {
 }

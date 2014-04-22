@@ -37,13 +37,43 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.tests.servlet;
+package org.glassfish.tyrus.ext.monitoring.jmx;
 
-import javax.websocket.server.ServerEndpoint;
+
+import java.beans.ConstructorProperties;
 
 /**
+ * Properties of an endpoint exposed by JMX.
+ *
  * @author Petr Janouch (petr.janouch at oracle.com)
+ * @see {@link org.glassfish.tyrus.core.monitoring.ApplicationEventListener}.
  */
-@ServerEndpoint("/monitoredEndpoint2")
-public class MonitoredEndpoint2 {
+public class MonitoredEndpointProperties {
+
+    private final String endpointClassName;
+    private final String endpointPath;
+
+    /**
+     * @param endpointClassName class name of an endpoint.
+     * @param endpointPath      the URL the endpoint is registered on.
+     */
+    @ConstructorProperties({"endpointClassName", "endpointPath"})
+    public MonitoredEndpointProperties(String endpointClassName, String endpointPath) {
+        this.endpointClassName = endpointClassName;
+        this.endpointPath = endpointPath;
+    }
+
+    /**
+     * @return class name of the endpoint.
+     */
+    public String getEndpointClassName() {
+        return endpointClassName;
+    }
+
+    /**
+     * @return the URI the endpoint is registered on.
+     */
+    public String getEndpointPath() {
+        return endpointPath;
+    }
 }

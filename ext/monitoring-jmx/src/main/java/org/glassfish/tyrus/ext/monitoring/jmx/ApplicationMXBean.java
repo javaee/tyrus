@@ -37,73 +37,30 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.core.monitoring;
+package org.glassfish.tyrus.ext.monitoring.jmx;
 
-import org.glassfish.tyrus.core.Beta;
+import java.util.List;
+import java.util.Set;
 
 /**
- * Listens to application events that are interesting for monitoring.
- * Only one listener per application must be registered.
- * Implemented by monitoring modules.
+ * MXBean used for accessing monitored endpoint properties
+ * {@link org.glassfish.tyrus.ext.monitoring.jmx.MonitoredEndpointProperties}.
  *
  * @author Petr Janouch (petr.janouch at oracle.com)
  */
-@Beta
-public interface ApplicationEventListener {
-
-    public static final String APPLICATION_EVENT_LISTENER = "org.glassfish.tyrus.core.monitoring.ApplicationEventListener";
+public interface ApplicationMXBean {
 
     /**
-     * Called when the application has been initialized.
+     * Exposes monitored endpoint properties.
      *
-     * @param applicationName name of the initialized application.
+     * @return monitored endpoint properties.
      */
-    void onApplicationInitialized(String applicationName);
+    Set<MonitoredEndpointProperties> getEndpoints();
 
     /**
-     * Called when the application has been destroyed.
-     */
-    void onApplicationDestroyed();
-
-    /**
-     * Called when an endpoint has been registered.
+     * Exposes monitored endpoint paths.
      *
-     * @param endpointClass class of the registered endpoint.
-     * @param endpointPath  the URI the endpoint has been registered on.
-     * @return endpoint event listener for registered endpoint.
+     * @return paths of monitored endpoints.
      */
-    EndpointEventListener onEndpointRegistered(Class<?> endpointClass, String endpointPath);
-
-    /**
-     * Called when an endpoint has been unregistered.
-     *
-     * @param endpointPath the URI the endpoint has been registered on.
-     */
-    void onEndpointUnregistered(String endpointPath);
-
-    /**
-     * An instance of @ApplicationEventListener that does not do anything.
-     */
-    public static final ApplicationEventListener NO_OP = new ApplicationEventListener() {
-
-        @Override
-        public void onApplicationInitialized(String applicationName) {
-            // do nothing
-        }
-
-        @Override
-        public void onApplicationDestroyed() {
-            // do nothing
-        }
-
-        @Override
-        public EndpointEventListener onEndpointRegistered(Class<?> endpointClass, String endpointPath) {
-            return EndpointEventListener.NO_OP;
-        }
-
-        @Override
-        public void onEndpointUnregistered(String endpointPath) {
-            // do nothing
-        }
-    };
+    List<String> getEndpointPaths();
 }

@@ -98,13 +98,13 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
     private int incomingBufferSize = 4194315; // 4M (payload) + 11 (frame overhead)
 
     private final ClusterContext clusterContext;
-
     private final ApplicationEventListener applicationEventListener;
 
     /**
      * Create {@link WebSocketEngine} instance based on passed {@link WebSocketContainer}.
      *
      * @param webSocketContainer used {@link WebSocketContainer} instance.
+     * @param applicationEventListener listener used to collect monitored events.
      */
     public TyrusWebSocketEngine(WebSocketContainer webSocketContainer, ApplicationEventListener applicationEventListener) {
         this(webSocketContainer, null, null, applicationEventListener);

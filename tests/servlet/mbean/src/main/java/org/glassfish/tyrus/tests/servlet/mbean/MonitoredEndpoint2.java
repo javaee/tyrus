@@ -37,31 +37,13 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.ext.jmx;
+package org.glassfish.tyrus.tests.servlet.mbean;
 
-import java.util.List;
-import java.util.Set;
+import javax.websocket.server.ServerEndpoint;
 
 /**
- * MXBean used for accessing monitored endpoint properties
- * {@link org.glassfish.tyrus.ext.jmx.MonitoredEndpointProperties}.
- *
  * @author Petr Janouch (petr.janouch at oracle.com)
  */
-public interface ApplicationMXBean {
-
-    /**
-     * Exposes monitored endpoint properties.
-     *
-     * @return monitored endpoint properties.
-     */
-    Set<MonitoredEndpointProperties> getEndpoints();
-
-    /**
-     * Exposes monitored endpoint paths.
-     *
-     * @return paths of monitored endpoints.
-     */
-
-    List<String> getEndpointPaths();
+@ServerEndpoint("/monitoredEndpoint2")
+public class MonitoredEndpoint2 {
 }

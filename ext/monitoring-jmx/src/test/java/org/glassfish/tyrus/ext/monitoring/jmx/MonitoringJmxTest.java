@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.ext.jmx;
+package org.glassfish.tyrus.ext.monitoring.jmx;
 
 import java.lang.management.ManagementFactory;
 import java.util.HashMap;
@@ -68,7 +68,7 @@ import static org.junit.Assert.fail;
  *
  * @author Petr Janouch (petr.janouch at oracle.com)
  */
-public class JmxTest extends TestContainer {
+public class MonitoringJmxTest extends TestContainer {
 
     @ServerEndpoint("/jmxServerEndpoint1")
     public static class AnnotatedServerEndpoint1 {
@@ -146,5 +146,4 @@ public class JmxTest extends TestContainer {
         }
         return false;
     }
-
 }

@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.tests.servlet;
+package org.glassfish.tyrus.tests.servlet.mbean;
 
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
@@ -51,8 +51,8 @@ import javax.management.JMX;
 import javax.management.MBeanServer;
 import javax.management.ObjectName;
 
-import org.glassfish.tyrus.ext.jmx.ApplicationMXBean;
-import org.glassfish.tyrus.ext.jmx.MonitoredEndpointProperties;
+import org.glassfish.tyrus.ext.monitoring.jmx.ApplicationMXBean;
+import org.glassfish.tyrus.ext.monitoring.jmx.MonitoredEndpointProperties;
 
 /**
  * Endpoint that returns OK in @#onOpen if @MonitoredEndpoint1 and @ MonitoredEndpoint2 are registered in

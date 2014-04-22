@@ -50,9 +50,11 @@ import javax.websocket.Session;
 
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.core.monitoring.ApplicationEventListener;
-import org.glassfish.tyrus.ext.jmx.ApplicationJmx;
+import org.glassfish.tyrus.ext.monitoring.jmx.ApplicationJmx;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.tools.TestContainer;
+import org.glassfish.tyrus.tests.servlet.mbean.MonitoredEndpoint1;
+import org.glassfish.tyrus.tests.servlet.mbean.MonitoredEndpoint2;
 
 import org.junit.Test;
 import static org.junit.Assert.assertTrue;

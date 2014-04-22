@@ -39,6 +39,8 @@
  */
 package org.glassfish.tyrus.core.monitoring;
 
+import org.glassfish.tyrus.core.Beta;
+
 /**
  * Listens to endpoint events that are interesting for monitoring.
  * <p/>
@@ -48,6 +50,7 @@ package org.glassfish.tyrus.core.monitoring;
  *
  * @author Petr Janouch (petr.janouch at oracle.com)
  */
+@Beta
 public interface EndpointEventListener {
 
     /**

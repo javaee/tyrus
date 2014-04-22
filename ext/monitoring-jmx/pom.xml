@@ -88,7 +88,7 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
-                        <Export-Package>org.glassfish.tyrus.ext.extension.monitoring;version=${project.version}</Export-Package>
+                        <Export-Package>org.glassfish.tyrus.ext.monitoring.jmx.*;version=${project.version}</Export-Package>
                     </instructions>
                     <unpackBundle>true</unpackBundle>
                 </configuration>
