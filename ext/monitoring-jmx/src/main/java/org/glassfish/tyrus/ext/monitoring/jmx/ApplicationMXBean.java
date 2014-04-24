@@ -40,7 +40,6 @@
 package org.glassfish.tyrus.ext.monitoring.jmx;
 
 import java.util.List;
-import java.util.Set;
 
 /**
  * MXBean used for accessing monitored endpoint properties
@@ -55,7 +54,7 @@ public interface ApplicationMXBean {
      *
      * @return monitored endpoint properties.
      */
-    Set<MonitoredEndpointProperties> getEndpoints();
+    List<MonitoredEndpointProperties> getEndpoints();
 
     /**
      * Exposes monitored endpoint paths.

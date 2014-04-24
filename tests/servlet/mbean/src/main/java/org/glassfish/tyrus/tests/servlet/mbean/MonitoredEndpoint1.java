@@ -41,7 +41,7 @@ package org.glassfish.tyrus.tests.servlet.mbean;
 
 import java.io.IOException;
 import java.lang.management.ManagementFactory;
-import java.util.Set;
+import java.util.List;
 
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
@@ -79,7 +79,7 @@ public class MonitoredEndpoint1 {
         ApplicationMXBean proxy;
         try {
             proxy = JMX.newMXBeanProxy(mBeanServer, new ObjectName(fullMxBeanName), ApplicationMXBean.class);
-            Set<MonitoredEndpointProperties> registeredEndpoints = proxy.getEndpoints();
+            List<MonitoredEndpointProperties> registeredEndpoints = proxy.getEndpoints();
             for (MonitoredEndpointProperties registeredEndpoint : registeredEndpoints) {
                 if (registeredEndpoint.getEndpointPath().equals(endpoint.getEndpointPath()) && registeredEndpoint.getEndpointClassName().equals(endpoint.getEndpointClassName())) {
                     return true;

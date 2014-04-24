@@ -40,9 +40,8 @@
 package org.glassfish.tyrus.ext.monitoring.jmx;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.glassfish.tyrus.core.monitoring.ApplicationEventListener;
@@ -52,14 +51,14 @@ import org.glassfish.tyrus.core.monitoring.EndpointEventListener;
  * MBean used for exposing application-level properties.
  * For monitoring in Grizzly server an instance should be passed
  * to the server in server properties.
- *
+ * <p/>
  * <pre>
  *     serverProperties.put(ApplicationEventListener.APPLICATION_EVENT_LISTENER, new ApplicationJmx());
  * </pre>
- *
+ * <p/>
  * For use in servlet container a class name should be passed as context parameter in web.xml.
- *
- *  <pre>
+ * <p/>
+ * <pre>
  *      {@code
  *
  *      <context-param>
@@ -73,21 +72,17 @@ import org.glassfish.tyrus.core.monitoring.EndpointEventListener;
  */
 public class ApplicationJmx implements ApplicationMXBean, ApplicationEventListener {
 
-    private final Set<MonitoredEndpointProperties> endpoints = Collections.newSetFromMap(new ConcurrentHashMap<MonitoredEndpointProperties, Boolean>());
+    private final Map<String, MonitoredEndpointProperties> endpoints = new ConcurrentHashMap<String, MonitoredEndpointProperties>();
     private String applicationName;
 
     @Override
-    public Set<MonitoredEndpointProperties> getEndpoints() {
-        return endpoints;
+    public List<MonitoredEndpointProperties> getEndpoints() {
+        return new ArrayList<MonitoredEndpointProperties>(endpoints.values());
     }
 
     @Override
     public List<String> getEndpointPaths() {
-        List<String> paths = new ArrayList<String>(endpoints.size());
-        for (MonitoredEndpointProperties endpoint : endpoints) {
-            paths.add(endpoint.getEndpointPath());
-        }
-        return paths;
+        return new ArrayList<String>(endpoints.keySet());
     }
 
     @Override
@@ -103,17 +98,12 @@ public class ApplicationJmx implements ApplicationMXBean, ApplicationEventListen
 
     @Override
     public EndpointEventListener onEndpointRegistered(Class<?> endpointClass, String endpointPath) {
-        endpoints.add(new MonitoredEndpointProperties(endpointClass.getName(), endpointPath));
+        endpoints.put(endpointPath, new MonitoredEndpointProperties(endpointClass.getName(), endpointPath));
         return EndpointEventListener.NO_OP;
     }
 
     @Override
     public void onEndpointUnregistered(String endpointPath) {
-        for (MonitoredEndpointProperties endpoint : endpoints) {
-            if (endpoint.getEndpointPath().equals(endpointPath)) {
-                endpoints.remove(endpoint);
-                return;
-            }
-        }
+        endpoints.remove(endpointPath);
     }
 }
