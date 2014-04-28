@@ -261,7 +261,6 @@ public class TyrusSession implements Session {
 
     @Override
     public Set<Session> getOpenSessions() {
-        checkConnectionState(State.CLOSED);
         return endpointWrapper.getOpenSessions(this);
     }
 
