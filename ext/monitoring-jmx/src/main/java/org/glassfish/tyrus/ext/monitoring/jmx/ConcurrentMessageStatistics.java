@@ -39,45 +39,61 @@
  */
 package org.glassfish.tyrus.ext.monitoring.jmx;
 
-import java.util.List;
-
-import org.glassfish.tyrus.core.Beta;
-
 /**
- * MXBean used for accessing monitored application properties - registered endpoints, number of currently open sessions,
- * maximal number of open sessions since the start of the monitoring and message statistics.
+ * An implementation of {@link org.glassfish.tyrus.ext.monitoring.jmx.MessageStatisticsSource} that allows concurrent
+ * updates by many threads.
  *
  * @author Petr Janouch (petr.janouch at oracle.com)
- * @see MessageStatisticsMXBean
  */
-@Beta
-public interface ApplicationMXBean extends MessageStatisticsMXBean {
-    /**
-     * Get endpoint paths and class names for currently registered endpoints.
-     *
-     * @return endpoint paths and class names for currently registered endpoints.
-     */
-    public List<EndpointClassNamePathPair> getEndpoints();
+class ConcurrentMessageStatistics implements MessageStatisticsSource {
 
-    /**
-     * Get endpoint paths for currently registered endpoints.
-     *
-     * @return paths of registered endpoints.
-     */
-    public List<String> getEndpointPaths();
+    private final LongAdder messagesCount = new LongAdder();
+    private final LongAdder messagesSize = new LongAdder();
+    private final Object minimalMessageSizeLock = new Object();
+    private final Object maximalMessageSizeLock = new Object();
 
-    /**
-     * Get number of currently open sessions.
-     *
-     * @return number of currently open sessions.
-     */
-    public int getOpenSessionsCount();
+    private volatile long minimalMessageSize = Long.MAX_VALUE;
+    private volatile long maximalMessageSize = 0;
 
-    /**
-     * Get the maximal number of open sessions since the start of monitoring.
-     *
-     * @return maximal number of open sessions since the start of monitoring.
-     */
-    public int getMaximalOpenSessionsCount();
+    void onMessage(long size) {
+        messagesCount.increment();
+        messagesSize.add(size);
+        if (minimalMessageSize > size) {
+            synchronized (minimalMessageSizeLock) {
+                if (minimalMessageSize > size) {
+                    minimalMessageSize = size;
+                }
+            }
+        }
+        if (maximalMessageSize < size) {
+            synchronized (maximalMessageSizeLock) {
+                if (maximalMessageSize < size) {
+                    maximalMessageSize = size;
+                }
+            }
+        }
+    }
 
+    @Override
+    public long getMessagesCount() {
+        return messagesCount.longValue();
+    }
+
+    @Override
+    public long getMessagesSize() {
+        return messagesSize.longValue();
+    }
+
+    @Override
+    public long getMinMessageSize() {
+        if (minimalMessageSize == Long.MAX_VALUE) {
+            return 0;
+        }
+        return minimalMessageSize;
+    }
+
+    @Override
+    public long getMaxMessageSize() {
+        return maximalMessageSize;
+    }
 }

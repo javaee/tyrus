@@ -42,9 +42,8 @@ package org.glassfish.tyrus.core.monitoring;
 import org.glassfish.tyrus.core.Beta;
 
 /**
- * Listens to application events that are interesting for monitoring.
- * Only one listener per application must be registered.
- * Implemented by monitoring modules.
+ * Listens to application-level events that are interesting for monitoring.
+ * Only one listener per application can be registered.
  *
  * @author Petr Janouch (petr.janouch at oracle.com)
  */
@@ -68,16 +67,16 @@ public interface ApplicationEventListener {
     /**
      * Called when an endpoint has been registered.
      *
+     * @param endpointPath  the path the endpoint has been registered on.
      * @param endpointClass class of the registered endpoint.
-     * @param endpointPath  the URI the endpoint has been registered on.
      * @return endpoint event listener for registered endpoint.
      */
-    EndpointEventListener onEndpointRegistered(Class<?> endpointClass, String endpointPath);
+    EndpointEventListener onEndpointRegistered(String endpointPath, Class<?> endpointClass);
 
     /**
      * Called when an endpoint has been unregistered.
      *
-     * @param endpointPath the URI the endpoint has been registered on.
+     * @param endpointPath the path the endpoint has been registered on.
      */
     void onEndpointUnregistered(String endpointPath);
 
@@ -97,7 +96,7 @@ public interface ApplicationEventListener {
         }
 
         @Override
-        public EndpointEventListener onEndpointRegistered(Class<?> endpointClass, String endpointPath) {
+        public EndpointEventListener onEndpointRegistered(String endpointPath, Class<?> endpointClass) {
             return EndpointEventListener.NO_OP;
         }
 

@@ -53,7 +53,7 @@ public class PongFrame extends TyrusFrame {
      * @param frame original (pong) frame.
      */
     public PongFrame(Frame frame) {
-        super(frame);
+        super(frame, FrameType.PONG);
     }
 
     /**
@@ -62,7 +62,7 @@ public class PongFrame extends TyrusFrame {
      * @param payload pong frame payload.
      */
     public PongFrame(byte[] payload) {
-        super(Frame.builder().fin(true).opcode((byte) 0x0A).payloadData(payload).build());
+        super(Frame.builder().fin(true).opcode((byte) 0x0A).payloadData(payload).build(), FrameType.PONG);
     }
 
     @Override

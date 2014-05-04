@@ -39,45 +39,18 @@
  */
 package org.glassfish.tyrus.ext.monitoring.jmx;
 
-import java.util.List;
-
-import org.glassfish.tyrus.core.Beta;
-
 /**
- * MXBean used for accessing monitored application properties - registered endpoints, number of currently open sessions,
- * maximal number of open sessions since the start of the monitoring and message statistics.
+ * A generic representation of collected message statistics which is passed to MXBeans exposing these statistics.
  *
  * @author Petr Janouch (petr.janouch at oracle.com)
- * @see MessageStatisticsMXBean
  */
-@Beta
-public interface ApplicationMXBean extends MessageStatisticsMXBean {
-    /**
-     * Get endpoint paths and class names for currently registered endpoints.
-     *
-     * @return endpoint paths and class names for currently registered endpoints.
-     */
-    public List<EndpointClassNamePathPair> getEndpoints();
+interface MessageStatisticsSource {
 
-    /**
-     * Get endpoint paths for currently registered endpoints.
-     *
-     * @return paths of registered endpoints.
-     */
-    public List<String> getEndpointPaths();
+    long getMessagesCount();
 
-    /**
-     * Get number of currently open sessions.
-     *
-     * @return number of currently open sessions.
-     */
-    public int getOpenSessionsCount();
+    long getMessagesSize();
 
-    /**
-     * Get the maximal number of open sessions since the start of monitoring.
-     *
-     * @return maximal number of open sessions since the start of monitoring.
-     */
-    public int getMaximalOpenSessionsCount();
+    long getMinMessageSize();
 
+    long getMaxMessageSize();
 }

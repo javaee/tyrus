@@ -53,7 +53,7 @@ public class PingFrame extends TyrusFrame {
      * @param frame original (ping) frame.
      */
     public PingFrame(Frame frame) {
-        super(frame);
+        super(frame, FrameType.PING);
     }
 
     /**
@@ -62,7 +62,7 @@ public class PingFrame extends TyrusFrame {
      * @param payload ping frame payload.
      */
     public PingFrame(byte[] payload) {
-        super(Frame.builder().fin(true).opcode((byte) 0x09).payloadData(payload).build());
+        super(Frame.builder().fin(true).opcode((byte) 0x09).payloadData(payload).build(), FrameType.PING);
     }
 
     @Override

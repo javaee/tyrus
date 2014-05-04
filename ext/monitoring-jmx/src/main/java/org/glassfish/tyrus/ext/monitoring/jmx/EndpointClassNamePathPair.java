@@ -39,45 +39,47 @@
  */
 package org.glassfish.tyrus.ext.monitoring.jmx;
 
-import java.util.List;
 
-import org.glassfish.tyrus.core.Beta;
+import java.beans.ConstructorProperties;
 
 /**
- * MXBean used for accessing monitored application properties - registered endpoints, number of currently open sessions,
- * maximal number of open sessions since the start of the monitoring and message statistics.
+ * Path and class name of an endpoint exposed by JMX.
  *
  * @author Petr Janouch (petr.janouch at oracle.com)
- * @see MessageStatisticsMXBean
+ * @see {@link org.glassfish.tyrus.core.monitoring.ApplicationEventListener}.
  */
-@Beta
-public interface ApplicationMXBean extends MessageStatisticsMXBean {
-    /**
-     * Get endpoint paths and class names for currently registered endpoints.
-     *
-     * @return endpoint paths and class names for currently registered endpoints.
-     */
-    public List<EndpointClassNamePathPair> getEndpoints();
+public class EndpointClassNamePathPair {
+
+    private final String endpointPath;
+    private final String endpointClassName;
 
     /**
-     * Get endpoint paths for currently registered endpoints.
+     * Constructor, {@link java.beans.ConstructorProperties} is required, so that MXBean client can create an instance.
      *
-     * @return paths of registered endpoints.
+     * @param endpointPath      the path the endpoint is registered on.
+     * @param endpointClassName the class name of the endpoint.
      */
-    public List<String> getEndpointPaths();
+    @ConstructorProperties({"endpointPath", "endpointClassName"})
+    public EndpointClassNamePathPair(String endpointPath, String endpointClassName) {
+        this.endpointPath = endpointPath;
+        this.endpointClassName = endpointClassName;
+    }
 
     /**
-     * Get number of currently open sessions.
+     * Get class name of the endpoint.
      *
-     * @return number of currently open sessions.
+     * @return class name of the endpoint.
      */
-    public int getOpenSessionsCount();
+    public String getEndpointClassName() {
+        return endpointClassName;
+    }
 
     /**
-     * Get the maximal number of open sessions since the start of monitoring.
+     * Get the path the endpoint is registered on.
      *
-     * @return maximal number of open sessions since the start of monitoring.
+     * @return the path the endpoint is registered on.
      */
-    public int getMaximalOpenSessionsCount();
-
+    public String getEndpointPath() {
+        return endpointPath;
+    }
 }

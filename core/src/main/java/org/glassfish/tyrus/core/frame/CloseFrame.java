@@ -71,7 +71,7 @@ public class CloseFrame extends TyrusFrame {
      * @param frame original (close) frame.
      */
     public CloseFrame(Frame frame) {
-        super(frame);
+        super(frame, FrameType.CLOSE);
 
         int closeCode;
         String closeReasonString;
@@ -113,7 +113,7 @@ public class CloseFrame extends TyrusFrame {
      * @param closeReason close reason used to construct close frame.
      */
     public CloseFrame(CloseReason closeReason) {
-        super(Frame.builder().fin(true).opcode((byte) 0x08).payloadData(getPayload(closeReason.getCloseCode().getCode(), closeReason.getReasonPhrase())).build());
+        super(Frame.builder().fin(true).opcode((byte) 0x08).payloadData(getPayload(closeReason.getCloseCode().getCode(), closeReason.getReasonPhrase())).build(), FrameType.CLOSE);
         this.closeReason = closeReason;
     }
 

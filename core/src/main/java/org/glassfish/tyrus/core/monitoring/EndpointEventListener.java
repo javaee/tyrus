@@ -42,11 +42,7 @@ package org.glassfish.tyrus.core.monitoring;
 import org.glassfish.tyrus.core.Beta;
 
 /**
- * Listens to endpoint events that are interesting for monitoring.
- * <p/>
- * An instance should be created only by {@link org.glassfish.tyrus.core.monitoring.ApplicationEventListener},
- * when a new endpoint is registered.
- * Implemented by monitoring modules.
+ * Listens to endpoint-level events that are interesting for monitoring.
  *
  * @author Petr Janouch (petr.janouch at oracle.com)
  */
@@ -54,8 +50,32 @@ import org.glassfish.tyrus.core.Beta;
 public interface EndpointEventListener {
 
     /**
+     * Called when a session has been opened.
+     *
+     * @param sessionId an ID of the newly opened session.
+     * @return listener that listens for message-level events.
+     */
+    MessageEventListener onSessionOpened(String sessionId);
+
+    /**
+     * Called when a session has been closed.
+     *
+     * @param sessionId an ID of the closed session.
+     */
+    void onSessionClosed(String sessionId);
+
+    /**
      * An instance of @EndpointEventListener that does not do anything.
      */
-    public static EndpointEventListener NO_OP = new EndpointEventListener() {
+    public static final EndpointEventListener NO_OP = new EndpointEventListener() {
+        @Override
+        public MessageEventListener onSessionOpened(String sessionId) {
+            return MessageEventListener.NO_OP;
+        }
+
+        @Override
+        public void onSessionClosed(String sessionId) {
+            // do nothing
+        }
     };
 }

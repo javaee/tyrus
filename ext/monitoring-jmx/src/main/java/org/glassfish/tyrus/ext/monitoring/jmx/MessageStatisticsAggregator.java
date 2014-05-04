@@ -39,41 +39,52 @@
  */
 package org.glassfish.tyrus.ext.monitoring.jmx;
 
-
-import java.beans.ConstructorProperties;
-
 /**
- * Properties of an endpoint exposed by JMX.
+ * Message statistics aggregator.
  *
  * @author Petr Janouch (petr.janouch at oracle.com)
- * @see {@link org.glassfish.tyrus.core.monitoring.ApplicationEventListener}.
  */
-public class MonitoredEndpointProperties {
+class MessageStatisticsAggregator implements MessageStatisticsSource {
 
-    private final String endpointClassName;
-    private final String endpointPath;
+    private final MessageStatisticsSource[] messageStatisticsSources;
 
-    /**
-     * @param endpointClassName class name of an endpoint.
-     * @param endpointPath      the URL the endpoint is registered on.
-     */
-    @ConstructorProperties({"endpointClassName", "endpointPath"})
-    public MonitoredEndpointProperties(String endpointClassName, String endpointPath) {
-        this.endpointClassName = endpointClassName;
-        this.endpointPath = endpointPath;
+    MessageStatisticsAggregator(MessageStatisticsSource... messageStatisticsSources) {
+        this.messageStatisticsSources = messageStatisticsSources;
     }
 
-    /**
-     * @return class name of the endpoint.
-     */
-    public String getEndpointClassName() {
-        return endpointClassName;
+    @Override
+    public long getMessagesCount() {
+        long result = 0;
+        for (MessageStatisticsSource statisticsSource : messageStatisticsSources) {
+            result += statisticsSource.getMessagesCount();
+        }
+        return result;
     }
 
-    /**
-     * @return the URI the endpoint is registered on.
-     */
-    public String getEndpointPath() {
-        return endpointPath;
+    @Override
+    public long getMessagesSize() {
+        long result = 0;
+        for (MessageStatisticsSource statisticsSource : messageStatisticsSources) {
+            result += statisticsSource.getMessagesSize();
+        }
+        return result;
+    }
+
+    @Override
+    public long getMinMessageSize() {
+        long result = Long.MAX_VALUE;
+        for (MessageStatisticsSource statisticsSource : messageStatisticsSources) {
+            result = Math.min(result, statisticsSource.getMinMessageSize());
+        }
+        return result;
+    }
+
+    @Override
+    public long getMaxMessageSize() {
+        long result = 0;
+        for (MessageStatisticsSource statisticsSource : messageStatisticsSources) {
+            result = Math.max(result, statisticsSource.getMaxMessageSize());
+        }
+        return result;
     }
 }

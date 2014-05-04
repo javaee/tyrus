@@ -55,7 +55,7 @@ public class BinaryFrame extends TyrusFrame {
      * @param frame original (binary) frame.
      */
     public BinaryFrame(Frame frame) {
-        super(frame);
+        super(frame, FrameType.BINARY);
         this.continuation = false;
     }
 
@@ -66,7 +66,7 @@ public class BinaryFrame extends TyrusFrame {
      * @param continuation {@code true} when this frame is continuation frame, {@code false} otherwise.
      */
     public BinaryFrame(Frame frame, boolean continuation) {
-        super(frame);
+        super(frame, continuation ? FrameType.BINARY_CONTINUATION : FrameType.BINARY);
         this.continuation = continuation;
     }
 
@@ -79,7 +79,7 @@ public class BinaryFrame extends TyrusFrame {
      *                     frames have this bit set to {@code true}.
      */
     public BinaryFrame(byte[] payload, boolean continuation, boolean fin) {
-        super(Frame.builder().payloadData(payload).opcode(continuation ? (byte) 0x00 : (byte) 0x02).fin(fin).build());
+        super(Frame.builder().payloadData(payload).opcode(continuation ? (byte) 0x00 : (byte) 0x02).fin(fin).build(), continuation ? FrameType.BINARY_CONTINUATION : FrameType.BINARY);
         this.continuation = continuation;
     }
 

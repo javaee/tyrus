@@ -39,45 +39,45 @@
  */
 package org.glassfish.tyrus.ext.monitoring.jmx;
 
-import java.util.List;
-
-import org.glassfish.tyrus.core.Beta;
+import org.glassfish.tyrus.core.frame.TyrusFrame;
+import org.glassfish.tyrus.core.monitoring.MessageEventListener;
 
 /**
- * MXBean used for accessing monitored application properties - registered endpoints, number of currently open sessions,
- * maximal number of open sessions since the start of the monitoring and message statistics.
+ * Determines the type of a received or sent frame.
  *
  * @author Petr Janouch (petr.janouch at oracle.com)
- * @see MessageStatisticsMXBean
  */
-@Beta
-public interface ApplicationMXBean extends MessageStatisticsMXBean {
-    /**
-     * Get endpoint paths and class names for currently registered endpoints.
-     *
-     * @return endpoint paths and class names for currently registered endpoints.
-     */
-    public List<EndpointClassNamePathPair> getEndpoints();
+class MessageEventListenerImpl implements MessageEventListener {
 
-    /**
-     * Get endpoint paths for currently registered endpoints.
-     *
-     * @return paths of registered endpoints.
-     */
-    public List<String> getEndpointPaths();
+    private final MessageListener messageListener;
 
-    /**
-     * Get number of currently open sessions.
-     *
-     * @return number of currently open sessions.
-     */
-    public int getOpenSessionsCount();
+    MessageEventListenerImpl(MessageListener messageListener) {
+        this.messageListener = messageListener;
+    }
 
-    /**
-     * Get the maximal number of open sessions since the start of monitoring.
-     *
-     * @return maximal number of open sessions since the start of monitoring.
-     */
-    public int getMaximalOpenSessionsCount();
+    @Override
+    public void onFrameSent(TyrusFrame.FrameType frameType, long payloadLength) {
+        if (frameType == TyrusFrame.FrameType.TEXT || frameType == TyrusFrame.FrameType.TEXT_CONTINUATION) {
+            messageListener.onTextMessageSent(payloadLength);
+        }
+        if (frameType == TyrusFrame.FrameType.BINARY || frameType == TyrusFrame.FrameType.BINARY_CONTINUATION) {
+            messageListener.onBinaryMessageSent(payloadLength);
+        }
+        if (frameType == TyrusFrame.FrameType.PING || frameType == TyrusFrame.FrameType.PONG) {
+            messageListener.onControlMessageSent(payloadLength);
+        }
+    }
 
+    @Override
+    public void onFrameReceived(TyrusFrame.FrameType frameType, long payloadLength) {
+        if (frameType == TyrusFrame.FrameType.TEXT || frameType == TyrusFrame.FrameType.TEXT_CONTINUATION) {
+            messageListener.onTextMessageReceived(payloadLength);
+        }
+        if (frameType == TyrusFrame.FrameType.BINARY || frameType == TyrusFrame.FrameType.BINARY_CONTINUATION) {
+            messageListener.onBinaryMessageReceived(payloadLength);
+        }
+        if (frameType == TyrusFrame.FrameType.PING || frameType == TyrusFrame.FrameType.PONG) {
+            messageListener.onControlMessageReceived(payloadLength);
+        }
+    }
 }

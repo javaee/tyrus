@@ -60,6 +60,7 @@ import org.glassfish.tyrus.core.frame.Frame;
 import org.glassfish.tyrus.core.frame.TextFrame;
 import org.glassfish.tyrus.core.frame.TyrusFrame;
 import org.glassfish.tyrus.core.l10n.LocalizationMessages;
+import org.glassfish.tyrus.core.monitoring.MessageEventListener;
 import org.glassfish.tyrus.spi.CompletionHandler;
 import org.glassfish.tyrus.spi.UpgradeRequest;
 import org.glassfish.tyrus.spi.UpgradeResponse;
@@ -82,17 +83,18 @@ public final class ProtocolHandler {
     private final boolean maskData;
     private final ParsingState state = new ParsingState();
 
-    private TyrusWebSocket webSocket;
-    private byte outFragmentedType;
-    private Writer writer;
-    private byte inFragmentedType;
-    private boolean processingFragment;
-    private boolean sendingFragment = false;
-    private String subProtocol = null;
-    private List<Extension> extensions;
-    private ExtendedExtension.ExtensionContext extensionContext;
-    private ByteBuffer remainder = null;
-    private boolean hasExtensions = false;
+    private volatile TyrusWebSocket webSocket;
+    private volatile byte outFragmentedType;
+    private volatile Writer writer;
+    private volatile byte inFragmentedType;
+    private volatile boolean processingFragment;
+    private volatile boolean sendingFragment = false;
+    private volatile String subProtocol = null;
+    private volatile List<Extension> extensions;
+    private volatile ExtendedExtension.ExtensionContext extensionContext;
+    private volatile ByteBuffer remainder = null;
+    private volatile boolean hasExtensions = false;
+    private volatile MessageEventListener messageEventListener = MessageEventListener.NO_OP;
 
     ProtocolHandler(boolean maskData) {
         this.maskData = maskData;
@@ -166,15 +168,24 @@ public final class ProtocolHandler {
         this.hasExtensions = extensions != null && extensions.size() > 0;
     }
 
-    public final Future<Frame> send(Frame frame, boolean useTimeout) {
+    /**
+     * Set message event listener.
+     *
+     * @param messageEventListener message event listener.
+     */
+    public void setMessageEventListener(MessageEventListener messageEventListener) {
+        this.messageEventListener = messageEventListener;
+    }
+
+    public final Future<Frame> send(TyrusFrame frame, boolean useTimeout) {
         return send(frame, null, useTimeout);
     }
 
-    public final Future<Frame> send(Frame frame) {
+    public final Future<Frame> send(TyrusFrame frame) {
         return send(frame, null, true);
     }
 
-    Future<Frame> send(Frame frame,
+    Future<Frame> send(TyrusFrame frame,
                        CompletionHandler<Frame> completionHandler, Boolean useTimeout) {
         return write(frame, completionHandler, useTimeout);
     }
@@ -266,7 +277,7 @@ public final class ProtocolHandler {
         return send;
     }
 
-    private Future<Frame> write(final Frame frame, final CompletionHandler<Frame> completionHandler, boolean useTimeout) {
+    private Future<Frame> write(final TyrusFrame frame, final CompletionHandler<Frame> completionHandler, boolean useTimeout) {
         final Writer localWriter = writer;
         final TyrusFuture<Frame> future = new TyrusFuture<Frame>();
 
@@ -276,6 +287,7 @@ public final class ProtocolHandler {
 
         final ByteBuffer byteBuffer = frame(frame);
         localWriter.write(byteBuffer, new CompletionHandlerWrapper(completionHandler, future, frame));
+        messageEventListener.onFrameSent(frame.getFrameType(), frame.getPayloadLength());
 
         return future;
     }

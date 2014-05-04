@@ -41,43 +41,41 @@ package org.glassfish.tyrus.ext.monitoring.jmx;
 
 import java.util.List;
 
-import org.glassfish.tyrus.core.Beta;
-
 /**
- * MXBean used for accessing monitored application properties - registered endpoints, number of currently open sessions,
- * maximal number of open sessions since the start of the monitoring and message statistics.
- *
  * @author Petr Janouch (petr.janouch at oracle.com)
- * @see MessageStatisticsMXBean
  */
-@Beta
-public interface ApplicationMXBean extends MessageStatisticsMXBean {
-    /**
-     * Get endpoint paths and class names for currently registered endpoints.
-     *
-     * @return endpoint paths and class names for currently registered endpoints.
-     */
-    public List<EndpointClassNamePathPair> getEndpoints();
+class ApplicationMXBeanImpl extends MessageStatisticsMXBeanImpl implements ApplicationMXBean {
 
-    /**
-     * Get endpoint paths for currently registered endpoints.
-     *
-     * @return paths of registered endpoints.
-     */
-    public List<String> getEndpointPaths();
+    private final Callable<List<EndpointClassNamePathPair>> endpoints;
+    private final Callable<List<String>> endpointPaths;
+    private final Callable<Integer> openSessionsCount;
+    private final Callable<Integer> maxOpenSessionsCount;
 
-    /**
-     * Get number of currently open sessions.
-     *
-     * @return number of currently open sessions.
-     */
-    public int getOpenSessionsCount();
+    public ApplicationMXBeanImpl(MessageStatisticsSource sentMessageStatistics, MessageStatisticsSource receivedMessageStatistics, Callable<List<EndpointClassNamePathPair>> endpoints, Callable<List<String>> endpointPaths, Callable<Integer> openSessionsCount, Callable<Integer> maxOpenSessionsCount) {
+        super(sentMessageStatistics, receivedMessageStatistics);
+        this.endpoints = endpoints;
+        this.endpointPaths = endpointPaths;
+        this.openSessionsCount = openSessionsCount;
+        this.maxOpenSessionsCount = maxOpenSessionsCount;
+    }
 
-    /**
-     * Get the maximal number of open sessions since the start of monitoring.
-     *
-     * @return maximal number of open sessions since the start of monitoring.
-     */
-    public int getMaximalOpenSessionsCount();
+    @Override
+    public List<EndpointClassNamePathPair> getEndpoints() {
+        return endpoints.call();
+    }
 
+    @Override
+    public List<String> getEndpointPaths() {
+        return endpointPaths.call();
+    }
+
+    @Override
+    public int getOpenSessionsCount() {
+        return openSessionsCount.call();
+    }
+
+    @Override
+    public int getMaximalOpenSessionsCount() {
+        return maxOpenSessionsCount.call();
+    }
 }

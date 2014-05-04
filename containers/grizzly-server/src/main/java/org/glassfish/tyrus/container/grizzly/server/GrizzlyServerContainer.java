@@ -188,11 +188,12 @@ public class GrizzlyServerContainer extends ServerContainerFactory {
                     config.addHttpHandler(staticHandler);
                 }
 
-                server.start();
-                super.start(rootPath, port);
                 if(applicationEventListener != null) {
                     applicationEventListener.onApplicationInitialized(rootPath);
                 }
+
+                server.start();
+                super.start(rootPath, port);
             }
 
             @Override

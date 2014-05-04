@@ -57,7 +57,9 @@ import org.glassfish.tyrus.core.frame.Frame;
 import org.glassfish.tyrus.core.frame.PingFrame;
 import org.glassfish.tyrus.core.frame.PongFrame;
 import org.glassfish.tyrus.core.frame.TextFrame;
+import org.glassfish.tyrus.core.frame.TyrusFrame;
 import org.glassfish.tyrus.core.l10n.LocalizationMessages;
+import org.glassfish.tyrus.core.monitoring.MessageEventListener;
 import org.glassfish.tyrus.spi.UpgradeRequest;
 
 /**
@@ -71,6 +73,9 @@ public class TyrusWebSocket {
     private final ProtocolHandler protocolHandler;
     private final CountDownLatch onConnectLatch = new CountDownLatch(1);
     private final EnumSet<State> connected = EnumSet.range(State.CONNECTED, State.CLOSING);
+    //TODO try refactoring to make immutable.
+    private final AtomicReference<State> state = new AtomicReference<State>(State.NEW);
+    private volatile MessageEventListener messageEventListener = MessageEventListener.NO_OP;
 
     /**
      * Create new instance, set {@link ProtocolHandler} and register {@link TyrusEndpointWrapper}.
@@ -84,8 +89,6 @@ public class TyrusWebSocket {
         this.endpointWrapper = endpointWrapper;
         protocolHandler.setWebSocket(this);
     }
-
-    private final AtomicReference<State> state = new AtomicReference<State>(State.NEW);
 
     /**
      * Sets the timeout for the writing operation.
@@ -153,6 +156,7 @@ public class TyrusWebSocket {
         awaitOnConnect();
         if (endpointWrapper != null) {
             endpointWrapper.onPartialMessage(this, ByteBuffer.wrap(frame.getPayloadData()), last);
+            messageEventListener.onFrameReceived(frame.getFrameType(), frame.getPayloadLength());
         }
     }
 
@@ -168,6 +172,7 @@ public class TyrusWebSocket {
         awaitOnConnect();
         if (endpointWrapper != null) {
             endpointWrapper.onPartialMessage(this, frame.getTextPayload(), last);
+            messageEventListener.onFrameReceived(frame.getFrameType(), frame.getPayloadLength());
         }
     }
 
@@ -180,6 +185,7 @@ public class TyrusWebSocket {
         awaitOnConnect();
         if (endpointWrapper != null) {
             endpointWrapper.onMessage(this, ByteBuffer.wrap(frame.getPayloadData()));
+            messageEventListener.onFrameReceived(frame.getFrameType(), frame.getPayloadLength());
         }
     }
 
@@ -192,6 +198,7 @@ public class TyrusWebSocket {
         awaitOnConnect();
         if (endpointWrapper != null) {
             endpointWrapper.onMessage(this, frame.getTextPayload());
+            messageEventListener.onFrameReceived(frame.getFrameType(), frame.getPayloadLength());
         }
     }
 
@@ -205,6 +212,7 @@ public class TyrusWebSocket {
         awaitOnConnect();
         if (endpointWrapper != null) {
             endpointWrapper.onPing(this, ByteBuffer.wrap(frame.getPayloadData()));
+            messageEventListener.onFrameReceived(frame.getFrameType(), frame.getPayloadLength());
         }
     }
 
@@ -218,6 +226,7 @@ public class TyrusWebSocket {
         awaitOnConnect();
         if (endpointWrapper != null) {
             endpointWrapper.onPong(this, ByteBuffer.wrap(frame.getPayloadData()));
+            messageEventListener.onFrameReceived(frame.getFrameType(), frame.getPayloadLength());
         }
     }
 
@@ -341,7 +350,7 @@ public class TyrusWebSocket {
         }
     }
 
-    private Future<Frame> send(Frame frame) {
+    private Future<Frame> send(TyrusFrame frame) {
         checkConnectedState();
         return protocolHandler.send(frame);
     }
@@ -385,6 +394,16 @@ public class TyrusWebSocket {
 
     ProtocolHandler getProtocolHandler() {
         return protocolHandler;
+    }
+
+    /**
+     * Set message event listener.
+     *
+     * @param messageEventListener message event listener.
+     */
+    void setMessageEventListener(MessageEventListener messageEventListener) {
+        this.messageEventListener = messageEventListener;
+        protocolHandler.setMessageEventListener(messageEventListener);
     }
 
     private void checkConnectedState() {

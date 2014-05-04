@@ -37,47 +37,49 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.ext.monitoring.jmx;
-
-import java.util.List;
+package org.glassfish.tyrus.core.monitoring;
 
 import org.glassfish.tyrus.core.Beta;
+import org.glassfish.tyrus.core.frame.TyrusFrame;
 
 /**
- * MXBean used for accessing monitored application properties - registered endpoints, number of currently open sessions,
- * maximal number of open sessions since the start of the monitoring and message statistics.
+ * Listens for message-level events that are interesting for monitoring.
  *
  * @author Petr Janouch (petr.janouch at oracle.com)
- * @see MessageStatisticsMXBean
  */
 @Beta
-public interface ApplicationMXBean extends MessageStatisticsMXBean {
-    /**
-     * Get endpoint paths and class names for currently registered endpoints.
-     *
-     * @return endpoint paths and class names for currently registered endpoints.
-     */
-    public List<EndpointClassNamePathPair> getEndpoints();
+public interface MessageEventListener {
 
     /**
-     * Get endpoint paths for currently registered endpoints.
+     * Called when a frame has been sent.
      *
-     * @return paths of registered endpoints.
+     * @param frameType     type of the frame.
+     * @param payloadLength length of the frame payload.
      */
-    public List<String> getEndpointPaths();
+    void onFrameSent(TyrusFrame.FrameType frameType, long payloadLength);
 
     /**
-     * Get number of currently open sessions.
+     * Called when a frame has been received.
      *
-     * @return number of currently open sessions.
+     * @param frameType     type of the frame.
+     * @param payloadLength length of the frame payload.
      */
-    public int getOpenSessionsCount();
+    void onFrameReceived(TyrusFrame.FrameType frameType, long payloadLength);
 
     /**
-     * Get the maximal number of open sessions since the start of monitoring.
-     *
-     * @return maximal number of open sessions since the start of monitoring.
+     * An instance of @MessageEventListener that does not do anything.
      */
-    public int getMaximalOpenSessionsCount();
+    public static final MessageEventListener NO_OP = new MessageEventListener() {
 
+
+        @Override
+        public void onFrameSent(TyrusFrame.FrameType frameType, long payloadLength) {
+            //do nothing
+        }
+
+        @Override
+        public void onFrameReceived(TyrusFrame.FrameType frameType, long payloadLength) {
+            //do nothing
+        }
+    };
 }

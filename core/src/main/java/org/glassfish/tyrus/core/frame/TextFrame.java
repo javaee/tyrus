@@ -73,7 +73,7 @@ public class TextFrame extends TyrusFrame {
      * @param remainder UTF-8 decoding remainder from previously processed frame.
      */
     public TextFrame(Frame frame, ByteBuffer remainder) {
-        super(frame);
+        super(frame, FrameType.TEXT);
         this.textPayload = utf8Decode(isFin(), getPayloadData(), remainder);
         this.continuation = false;
     }
@@ -86,7 +86,7 @@ public class TextFrame extends TyrusFrame {
      * @param continuation {@code true} when this frame is continuation frame, {@code false} otherwise.
      */
     public TextFrame(Frame frame, ByteBuffer remainder, boolean continuation) {
-        super(frame);
+        super(frame, continuation ? FrameType.TEXT_CONTINUATION : FrameType.TEXT);
         this.textPayload = utf8Decode(isFin(), getPayloadData(), remainder);
         this.continuation = continuation;
     }
@@ -100,7 +100,7 @@ public class TextFrame extends TyrusFrame {
      *                     frames have this bit set to {@code true}.
      */
     public TextFrame(String message, boolean continuation, boolean fin) {
-        super(Frame.builder().payloadData(encode(new StrictUtf8(), message)).opcode(continuation ? (byte) 0x00 : (byte) 0x01).fin(fin).build());
+        super(Frame.builder().payloadData(encode(new StrictUtf8(), message)).opcode(continuation ? (byte) 0x00 : (byte) 0x01).fin(fin).build(), continuation ? FrameType.TEXT_CONTINUATION : FrameType.TEXT);
         this.continuation = continuation;
         this.textPayload = message;
     }

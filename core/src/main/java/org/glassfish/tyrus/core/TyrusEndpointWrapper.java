@@ -94,6 +94,8 @@ import org.glassfish.tyrus.core.frame.BinaryFrame;
 import org.glassfish.tyrus.core.frame.Frame;
 import org.glassfish.tyrus.core.frame.TextFrame;
 import org.glassfish.tyrus.core.l10n.LocalizationMessages;
+import org.glassfish.tyrus.core.monitoring.ApplicationEventListener;
+import org.glassfish.tyrus.core.monitoring.EndpointEventListener;
 import org.glassfish.tyrus.spi.UpgradeRequest;
 import org.glassfish.tyrus.spi.UpgradeResponse;
 
@@ -131,6 +133,7 @@ public class TyrusEndpointWrapper {
     private final Method onOpen;
     private final Method onClose;
     private final Method onError;
+    private final EndpointEventListener endpointEventListener;
 
     private final ClusterContext clusterContext;
     private final Session dummySession;
@@ -138,36 +141,42 @@ public class TyrusEndpointWrapper {
     /**
      * Create {@link TyrusEndpointWrapper} for class that extends {@link Endpoint}.
      *
-     * @param endpointClass     endpoint class for which the wrapper is created.
-     * @param configuration     endpoint configuration.
-     * @param componentProvider component provider.
-     * @param container         container where the wrapper is running.
+     * @param endpointClass            endpoint class for which the wrapper is created.
+     * @param configuration            endpoint configuration.
+     * @param componentProvider        component provider.
+     * @param container                container where the wrapper is running.
+     * @param clusterContext           cluster context instance. {@code null} indicates standalone mode.
+     * @param endpointEventListener    endpoint event listener.
      */
     public TyrusEndpointWrapper(Class<? extends Endpoint> endpointClass, EndpointConfig configuration,
                                 ComponentProviderService componentProvider, WebSocketContainer container,
                                 String contextPath, ServerEndpointConfig.Configurator configurator,
-                                OnCloseListener onCloseListener, ClusterContext clusterContext) throws DeploymentException {
-        this(null, endpointClass, configuration, componentProvider, container, contextPath, configurator, onCloseListener, clusterContext);
+                                OnCloseListener onCloseListener, ClusterContext clusterContext,
+                                EndpointEventListener endpointEventListener) throws DeploymentException {
+        this(null, endpointClass, configuration, componentProvider, container, contextPath, configurator, onCloseListener, clusterContext, endpointEventListener);
     }
 
     /**
      * Create {@link TyrusEndpointWrapper} for {@link Endpoint} instance or {@link AnnotatedEndpoint} instance.
      *
-     * @param endpoint          endpoint instance for which the wrapper is created.
-     * @param configuration     endpoint configuration.
-     * @param componentProvider component provider.
-     * @param container         container where the wrapper is running.
-     * @param clusterContext    cluster context instance. {@code null} indicates standalone mode.
+     * @param endpoint                 endpoint instance for which the wrapper is created.
+     * @param configuration            endpoint configuration.
+     * @param componentProvider        component provider.
+     * @param container                container where the wrapper is running.
+     * @param clusterContext           cluster context instance. {@code null} indicates standalone mode.
+     * @param endpointEventListener    endpoint event listener.
      */
     public TyrusEndpointWrapper(Endpoint endpoint, EndpointConfig configuration, ComponentProviderService componentProvider, WebSocketContainer container,
-                                String contextPath, ServerEndpointConfig.Configurator configurator, OnCloseListener onCloseListener, ClusterContext clusterContext) throws DeploymentException {
-        this(endpoint, null, configuration, componentProvider, container, contextPath, configurator, onCloseListener, clusterContext);
+                                String contextPath, ServerEndpointConfig.Configurator configurator, OnCloseListener onCloseListener, ClusterContext clusterContext,
+                                EndpointEventListener endpointEventListener) throws DeploymentException {
+        this(endpoint, null, configuration, componentProvider, container, contextPath, configurator, onCloseListener, clusterContext, endpointEventListener);
     }
 
     private TyrusEndpointWrapper(Endpoint endpoint, Class<? extends Endpoint> endpointClass, EndpointConfig configuration,
                                  ComponentProviderService componentProvider, WebSocketContainer container,
                                  String contextPath, final ServerEndpointConfig.Configurator configurator,
-                                 OnCloseListener onCloseListener, final ClusterContext clusterContext) throws DeploymentException {
+                                 OnCloseListener onCloseListener, final ClusterContext clusterContext,
+                                 EndpointEventListener endpointEventListener) throws DeploymentException {
         this.endpointClass = endpointClass;
         this.endpoint = endpoint;
         this.container = container;
@@ -175,6 +184,12 @@ public class TyrusEndpointWrapper {
         this.configurator = configurator;
         this.onCloseListener = onCloseListener;
         this.clusterContext = clusterContext;
+
+        if (endpointEventListener != null) {
+            this.endpointEventListener = endpointEventListener;
+        } else {
+            this.endpointEventListener = EndpointEventListener.NO_OP;
+        }
 
         // server-side only
         if (configuration instanceof ServerEndpointConfig) {
@@ -563,6 +578,7 @@ public class TyrusEndpointWrapper {
                     upgradeRequest.getQueryString(), templateValues, upgradeRequest.getUserPrincipal(),
                     upgradeRequest.getParameterMap(), clusterContext, connectionId);
             webSocketToSession.put(socket, session);
+            socket.setMessageEventListener(endpointEventListener.onSessionOpened(session.getId()));
         }
 
         ErrorCollector collector = new ErrorCollector();
@@ -1038,6 +1054,7 @@ public class TyrusEndpointWrapper {
             }
 
             webSocketToSession.remove(socket);
+            endpointEventListener.onSessionClosed(session.getId());
             componentProvider.removeSession(session);
 
             if (onCloseListener != null) {

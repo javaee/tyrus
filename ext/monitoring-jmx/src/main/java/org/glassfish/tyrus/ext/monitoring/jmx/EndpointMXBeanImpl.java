@@ -39,71 +39,41 @@
  */
 package org.glassfish.tyrus.ext.monitoring.jmx;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
-import org.glassfish.tyrus.core.monitoring.ApplicationEventListener;
-import org.glassfish.tyrus.core.monitoring.EndpointEventListener;
-
 /**
- * MBean used for exposing application-level properties.
- * For monitoring in Grizzly server an instance should be passed
- * to the server in server properties.
- * <p/>
- * <pre>
- *     serverProperties.put(ApplicationEventListener.APPLICATION_EVENT_LISTENER, new ApplicationJmx());
- * </pre>
- * <p/>
- * For use in servlet container a class name should be passed as context parameter in web.xml.
- * <p/>
- * <pre>
- *      {@code
- *
- *      <context-param>
- *         <param-name>org.glassfish.tyrus.core.monitoring.ApplicationEventListener</param-name>
- *         <param-value>org.glassfish.tyrus.ext.monitoring.jmx.ApplicationJmx</param-value>
- *      </context-param>
- *      }
- *  <pre/>
- *
  * @author Petr Janouch (petr.janouch at oracle.com)
  */
-public class ApplicationJmx implements ApplicationMXBean, ApplicationEventListener {
+class EndpointMXBeanImpl extends MessageStatisticsMXBeanImpl implements EndpointMXBean {
 
-    private final Map<String, MonitoredEndpointProperties> endpoints = new ConcurrentHashMap<String, MonitoredEndpointProperties>();
-    private String applicationName;
+    private final String endpointPath;
+    private final String endpointClassName;
+    private final Callable<Integer> openSessionsCount;
+    private final Callable<Integer> maxOpenSessionsCount;
 
-    @Override
-    public List<MonitoredEndpointProperties> getEndpoints() {
-        return new ArrayList<MonitoredEndpointProperties>(endpoints.values());
+    public EndpointMXBeanImpl(MessageStatisticsSource sentMessageStatistics, MessageStatisticsSource receivedMessageStatistics, String endpointPath, String endpointClassName, Callable<Integer> openSessionsCount, Callable<Integer> maxOpenSessionsCount) {
+        super(sentMessageStatistics, receivedMessageStatistics);
+        this.endpointPath = endpointPath;
+        this.endpointClassName = endpointClassName;
+        this.openSessionsCount = openSessionsCount;
+        this.maxOpenSessionsCount = maxOpenSessionsCount;
     }
 
     @Override
-    public List<String> getEndpointPaths() {
-        return new ArrayList<String>(endpoints.keySet());
+    public String getEndpointPath() {
+        return endpointPath;
     }
 
     @Override
-    public void onApplicationInitialized(String applicationName) {
-        this.applicationName = applicationName;
-        MBeanPublisher.registerApplicationMBean(this, applicationName);
+    public String getEndpointClassName() {
+        return endpointClassName;
     }
 
     @Override
-    public void onApplicationDestroyed() {
-        MBeanPublisher.unregisterApplicationMBean(applicationName);
+    public int getOpenSessionsCount() {
+        return openSessionsCount.call();
     }
 
     @Override
-    public EndpointEventListener onEndpointRegistered(Class<?> endpointClass, String endpointPath) {
-        endpoints.put(endpointPath, new MonitoredEndpointProperties(endpointClass.getName(), endpointPath));
-        return EndpointEventListener.NO_OP;
-    }
-
-    @Override
-    public void onEndpointUnregistered(String endpointPath) {
-        endpoints.remove(endpointPath);
+    public int getMaximalOpenSessionsCount() {
+        return maxOpenSessionsCount.call();
     }
 }

@@ -39,45 +39,54 @@
  */
 package org.glassfish.tyrus.ext.monitoring.jmx;
 
-import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
-import org.glassfish.tyrus.core.Beta;
+import org.glassfish.tyrus.core.monitoring.MessageEventListener;
 
 /**
- * MXBean used for accessing monitored application properties - registered endpoints, number of currently open sessions,
- * maximal number of open sessions since the start of the monitoring and message statistics.
+ * This {@link org.glassfish.tyrus.ext.monitoring.jmx.EndpointMonitor} implementation represents the lowest level of
+ * monitoring hierarchy and does not create and hold {@link org.glassfish.tyrus.ext.monitoring.jmx.SessionMonitor}
+ * for opened sessions. It is used when monitoring on session level is turned off.
  *
  * @author Petr Janouch (petr.janouch at oracle.com)
- * @see MessageStatisticsMXBean
  */
-@Beta
-public interface ApplicationMXBean extends MessageStatisticsMXBean {
-    /**
-     * Get endpoint paths and class names for currently registered endpoints.
-     *
-     * @return endpoint paths and class names for currently registered endpoints.
-     */
-    public List<EndpointClassNamePathPair> getEndpoints();
+class SessionlessEndpointMonitor extends EndpointMonitor {
 
-    /**
-     * Get endpoint paths for currently registered endpoints.
-     *
-     * @return paths of registered endpoints.
-     */
-    public List<String> getEndpointPaths();
+    private final AtomicInteger openSessionsCount = new AtomicInteger();
 
-    /**
-     * Get number of currently open sessions.
-     *
-     * @return number of currently open sessions.
-     */
-    public int getOpenSessionsCount();
+    SessionlessEndpointMonitor(ApplicationMonitor applicationJmx, String applicationName, String endpointPath, String endpointClassName) {
+        super(applicationJmx, applicationName, endpointPath, endpointClassName);
+    }
 
-    /**
-     * Get the maximal number of open sessions since the start of monitoring.
-     *
-     * @return maximal number of open sessions since the start of monitoring.
-     */
-    public int getMaximalOpenSessionsCount();
+    @Override
+    protected Callable<Integer> getOpenSessionsCount() {
+        return new Callable<Integer>() {
+            @Override
+            public Integer call() {
+                return openSessionsCount.get();
+            }
+        };
+    }
 
+    @Override
+    public MessageEventListener onSessionOpened(String sessionId) {
+        applicationJmx.onSessionOpened();
+        openSessionsCount.incrementAndGet();
+
+        if (openSessionsCount.get() > maxOpenSessionsCount) {
+            synchronized (maxOpenSessionsCountLock) {
+                if (openSessionsCount.get() > maxOpenSessionsCount) {
+                    maxOpenSessionsCount = openSessionsCount.get();
+                }
+            }
+        }
+
+        return new MessageEventListenerImpl(this);
+    }
+
+    @Override
+    public void onSessionClosed(String sessionId) {
+        applicationJmx.onSessionClosed();
+        openSessionsCount.decrementAndGet();
+    }
 }
