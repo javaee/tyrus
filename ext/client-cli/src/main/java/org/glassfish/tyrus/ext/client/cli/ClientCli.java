@@ -56,7 +56,6 @@ import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
 
 import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.container.grizzly.client.GrizzlyClientSocket;
 
 import jline.TerminalFactory;
 import jline.console.ConsoleReader;
