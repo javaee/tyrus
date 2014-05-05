@@ -72,6 +72,7 @@
                 <jdk>[1.7,2)</jdk>
             </activation>
             <modules>
+                <module>client-jdk</module>
                 <module>websocket-ri-archive</module>
                 <module>websocket-ri-bundle</module>
             </modules>
