@@ -60,7 +60,6 @@ import org.glassfish.tyrus.test.standard_config.bean.TestEndpoint;
 import org.glassfish.tyrus.test.standard_config.message.StringContainer;
 import org.glassfish.tyrus.test.tools.TestContainer;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
@@ -159,7 +158,6 @@ public class DecodedObjectTest extends TestContainer {
     }
 
     @Test
-    @Ignore
     public void testExtendedDecoded() throws DeploymentException {
         Server server = startServer(TestEndpoint.class);
 
@@ -176,7 +174,7 @@ public class DecodedObjectTest extends TestContainer {
                 public void onOpen(Session session, EndpointConfig EndpointConfig) {
                     try {
                         System.out.println("#### onOpen Client side ####");
-                        session.addMessageHandler(new ObjectMessageHandler());
+                        // session.addMessageHandler(new ObjectMessageHandler());
                         session.addMessageHandler(new DecodedMessageHandler());
                         session.getBasicRemote().sendText(SENT_MESSAGE);
                         System.out.println("Sent message: " + SENT_MESSAGE);
@@ -186,7 +184,7 @@ public class DecodedObjectTest extends TestContainer {
                 }
             }, cec, getURI(TestEndpoint.class));
 
-            assertTrue(messageLatch.await(5000, TimeUnit.SECONDS));
+            assertTrue(messageLatch.await(5, TimeUnit.SECONDS));
             assertTrue("The received message is the same as the sent one", receivedMessage.equals("Extended " + SENT_MESSAGE));
             assertNull("The message was not received via the TextMessageHandler", receivedTextMessage);
         } catch (Exception e) {
@@ -250,17 +248,6 @@ public class DecodedObjectTest extends TestContainer {
             System.out.println("### DecodedMessageHandler ### " + customObject.getString());
             DecodedObjectTest.receivedMessage = customObject.getString();
             messageLatch.countDown();
-        }
-    }
-
-    class ObjectMessageHandler implements MessageHandler.Whole<Object> {
-
-        @Override
-        public void onMessage(Object customObject) {
-            if (customObject instanceof StringContainer) {
-                System.out.println("### ObjectMessageHandler ### " + customObject.toString());
-                DecodedObjectTest.receivedMessage = ((StringContainer) customObject).getString();
-            }
         }
     }
 }

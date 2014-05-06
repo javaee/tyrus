@@ -144,6 +144,71 @@ public class EncodedObjectTest extends TestContainer {
     }
 
     @Test
+    public void testExtendedEncodingReturnViaSession() throws DeploymentException {
+        final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
+        Server server = startServer(TestExtendedEncodeEndpoint.class);
+
+        try {
+            messageLatch = new CountDownLatch(1);
+
+            ClientManager client = createClient();
+            client.connectToServer(new TestEndpointAdapter() {
+                @Override
+                public void onMessage(String message) {
+                    receivedMessage = message;
+                    messageLatch.countDown();
+                    System.out.println("Received message = " + message);
+                }
+
+                @Override
+                public EndpointConfig getEndpointConfig() {
+                    return null;
+                }
+
+                @Override
+                public void onOpen(Session session) {
+                    try {
+                        session.addMessageHandler(new TestTextMessageHandler(this));
+                        session.getBasicRemote().sendText(SENT_MESSAGE);
+                        System.out.println("Sent message: " + SENT_MESSAGE);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }, cec, getURI(TestExtendedEncodeEndpoint.class));
+
+            messageLatch.await(5, TimeUnit.SECONDS);
+            assertEquals(SENT_MESSAGE, receivedMessage);
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            stopServer(server);
+        }
+    }
+
+    @ServerEndpoint(value = "/echo3ext", encoders = {StringContainerEncoder.class})
+    public static class TestExtendedEncodeEndpoint {
+        @OnOpen
+        public void onOpen() {
+            System.out.println("Client connected to the server!");
+        }
+
+        @OnMessage
+        public void helloWorld(String message, Session session) {
+            try {
+                System.out.println("##### Encode Test Bean: Received message: " + message);
+
+                session.getBasicRemote().sendObject(new StringContainer(message) {
+
+                });
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    @Test
     public void testEncodingReturnFromMethod() throws DeploymentException {
         final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
         Server server = startServer(TestEncodeBeanMethodReturn.class);

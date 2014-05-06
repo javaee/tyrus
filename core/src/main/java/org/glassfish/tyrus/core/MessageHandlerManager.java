@@ -316,8 +316,9 @@ class MessageHandlerManager {
 
     private boolean checkTextDecoders(Class<?> requiredType) {
         for (Class<? extends Decoder> decoderClass : decoders) {
-            if (isTextDecoder(decoderClass) && AnnotatedEndpoint.getDecoderClassType(decoderClass).isAssignableFrom(requiredType))
+            if (isTextDecoder(decoderClass) && requiredType.isAssignableFrom(AnnotatedEndpoint.getDecoderClassType(decoderClass))) {
                 return true;
+            }
         }
 
         return false;
@@ -325,8 +326,9 @@ class MessageHandlerManager {
 
     private boolean checkBinaryDecoders(Class<?> requiredType) {
         for (Class<? extends Decoder> decoderClass : decoders) {
-            if (isBinaryDecoder(decoderClass) && AnnotatedEndpoint.getDecoderClassType(decoderClass).isAssignableFrom(requiredType))
+            if (isBinaryDecoder(decoderClass) && requiredType.isAssignableFrom(AnnotatedEndpoint.getDecoderClassType(decoderClass))) {
                 return true;
+            }
         }
 
         return false;
