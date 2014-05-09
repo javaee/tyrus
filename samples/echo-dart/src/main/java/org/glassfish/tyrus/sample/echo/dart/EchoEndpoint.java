@@ -40,16 +40,26 @@
 
 package org.glassfish.tyrus.sample.echo.dart;
 
+import java.io.IOException;
+
 import javax.websocket.OnError;
 import javax.websocket.OnMessage;
+import javax.websocket.OnOpen;
+import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
 @ServerEndpoint("/echo")
 public class EchoEndpoint {
 
+    @OnOpen
+    public void onOpen(Session session) throws IOException {
+        session.getBasicRemote().sendText("onOpen");
+    }
+
     @OnMessage
-    public String echo(String message) {
-        return message + " (from your server)";
+    public void echo(Session session, String message) throws IOException {
+        session.getBasicRemote().sendText(message + " (from your server)");
+        session.close();
     }
 
     @OnError

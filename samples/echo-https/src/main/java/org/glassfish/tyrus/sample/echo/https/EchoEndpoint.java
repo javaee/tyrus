@@ -57,8 +57,9 @@ public class EchoEndpoint {
     }
 
     @OnMessage
-    public String echo(String message) {
-        return message + " (from your server)";
+    public void echo(Session session, String message) throws IOException {
+        session.getBasicRemote().sendText(message + " (from your server)");
+        session.close();
     }
 
     @OnError

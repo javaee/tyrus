@@ -3,7 +3,7 @@
 
     DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
 
-    Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+    Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
 
     The contents of this file are subject to the terms of either the GNU
     General Public License Version 2 only ("GPL") or the Common Development
@@ -46,9 +46,12 @@
 <body>
 <h1>Simple Lifecycle Sample</h1>
 
-<p>This application presents the simple lifecycle of the endpoint. The user can connect to an endpoint, send a message and disconnect from the endpoint. For each of the previous
-    the events the server sends a message confirming that the event occurred.
-    </p>
+<p>
+    This application presents the simple lifecycle of the endpoint. The user can
+    connect to an endpoint, send a message and disconnect from the endpoint.
+    For connect/onOpen and send/onMessage events the server sends a message
+    confirming that the event occurred.
+</p>
 
 <h2>Contents</h2>
 <p>The application utilizes endpoint <code>org.glassfish.tyrus.sample.simplelife.SimpleLifeBean</code> to receive messages and reply back.
