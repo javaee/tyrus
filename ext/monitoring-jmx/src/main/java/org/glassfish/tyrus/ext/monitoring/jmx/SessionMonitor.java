@@ -116,7 +116,7 @@ class SessionMonitor implements MessageListener {
         messageListener.onControlMessageReceived(length);
     }
 
-    private class MessageStatistics implements MessageStatisticsSource {
+    private static class MessageStatistics implements MessageStatisticsSource {
 
         /*
         volatile is enough in this case, because only one thread can sent or receive a message in a session

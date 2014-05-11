@@ -50,7 +50,7 @@ import javax.websocket.Session;
 
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.core.monitoring.ApplicationEventListener;
-import org.glassfish.tyrus.ext.monitoring.jmx.ApplicationMonitor;
+import org.glassfish.tyrus.ext.monitoring.jmx.SessionlessApplicationMonitor;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.tools.TestContainer;
 import org.glassfish.tyrus.tests.servlet.mbean.MonitoredEndpoint1;
@@ -72,7 +72,7 @@ public class MBeanTest extends TestContainer {
         Server server = null;
         try {
             setContextPath("/mbean-test");
-            getServerProperties().put(ApplicationEventListener.APPLICATION_EVENT_LISTENER, new ApplicationMonitor());
+            getServerProperties().put(ApplicationEventListener.APPLICATION_EVENT_LISTENER, new SessionlessApplicationMonitor());
             server = startServer(MonitoredEndpoint1.class, MonitoredEndpoint2.class);
             final CountDownLatch messageLatch = new CountDownLatch(1);
             final ClientManager client = createClient();
@@ -101,5 +101,4 @@ public class MBeanTest extends TestContainer {
             stopServer(server);
         }
     }
-
 }

@@ -64,10 +64,10 @@ class TestApplicationEventListener implements ApplicationEventListener {
      * Constructor.
      *
      * @param applicationEventListener wrapped application event listener.
-     * @param sessionOpenedLatch latch that is decreased when a session is opened.
-     * @param sessionClosedLatch latch that is decreased when a session is closed.
-     * @param messageSentLatch latch that is decreased when a message is sent.
-     * @param messageReceivedLatch latch that is decreased when a message is received.
+     * @param sessionOpenedLatch       latch that is decreased when a session is opened.
+     * @param sessionClosedLatch       latch that is decreased when a session is closed.
+     * @param messageSentLatch         latch that is decreased when a message is sent.
+     * @param messageReceivedLatch     latch that is decreased when a message is received.
      */
     TestApplicationEventListener(ApplicationEventListener applicationEventListener, CountDownLatch sessionOpenedLatch, CountDownLatch sessionClosedLatch, CountDownLatch messageSentLatch, CountDownLatch messageReceivedLatch) {
         this.applicationEventListener = applicationEventListener;

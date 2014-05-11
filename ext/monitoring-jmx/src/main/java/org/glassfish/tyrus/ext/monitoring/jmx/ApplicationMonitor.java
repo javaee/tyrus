@@ -60,29 +60,11 @@ import org.glassfish.tyrus.core.monitoring.EndpointEventListener;
  * if message statistics should be collected on session level or not. In the former case statistics will be collected
  * and exposed in MXBeans per session, endpoint and application. In the latter case statistics will be collected
  * and exposed in MXBeans only per endpoint and application, which is the default setting.
- * <p/>
- * For monitoring in Grizzly server an instance should be passed to the server in server properties.
- * <p/>
- * <pre>
- *     serverProperties.put(ApplicationEventListener.APPLICATION_EVENT_LISTENER, new ApplicationMonitor());
- * </pre>
- * <p/>
- * For use in servlet container the class name should be passed as context parameter in web.xml.
- * <p/>
- * <pre>
- *      {@code
- *
- *      <context-param>
- *         <param-name>org.glassfish.tyrus.core.monitoring.ApplicationEventListener</param-name>
- *         <param-value>org.glassfish.tyrus.ext.monitoring.jmx.ApplicationMonitor</param-value>
- *      </context-param>
- *      }
- *  <pre/>
  *
  * @author Petr Janouch (petr.janouch at oracle.com)
  * @see ApplicationEventListener
  */
-public class ApplicationMonitor implements ApplicationEventListener, MessageListener {
+class ApplicationMonitor implements ApplicationEventListener, MessageListener {
 
     private final Map<String, EndpointMonitor> endpoints = new ConcurrentHashMap<String, EndpointMonitor>();
     private final AtomicInteger openSessionsCount = new AtomicInteger(0);
@@ -100,10 +82,6 @@ public class ApplicationMonitor implements ApplicationEventListener, MessageList
     private volatile int maxOpenSessionCount = 0;
     private volatile String applicationName;
 
-    public ApplicationMonitor() {
-        monitorOnSessionLevel = false;
-    }
-
     /**
      * Constructor.
      *
@@ -112,7 +90,7 @@ public class ApplicationMonitor implements ApplicationEventListener, MessageList
      *                              If false, statistics will be collected and exposed in MXBeans only per endpoint
      *                              and application.
      */
-    public ApplicationMonitor(boolean monitorOnSessionLevel) {
+    ApplicationMonitor(boolean monitorOnSessionLevel) {
         this.monitorOnSessionLevel = monitorOnSessionLevel;
     }
 

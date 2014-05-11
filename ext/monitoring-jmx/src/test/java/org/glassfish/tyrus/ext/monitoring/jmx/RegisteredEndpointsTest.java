@@ -87,13 +87,13 @@ public class RegisteredEndpointsTest extends TestContainer {
         Server server2 = null;
         try {
             Map<String, Object> server1Properties = new HashMap<String, Object>();
-            ApplicationEventListener application1EventListener = new ApplicationMonitor(true);
+            ApplicationEventListener application1EventListener = new SessionAwareApplicationMonitor();
             server1Properties.put(ApplicationEventListener.APPLICATION_EVENT_LISTENER, application1EventListener);
             server1 = new Server("localhost", 8025, "/jmxTestApp", server1Properties, AnnotatedServerEndpoint1.class, AnnotatedServerEndpoint2.class);
             server1.start();
 
             Map<String, Object> server2Properties = new HashMap<String, Object>();
-            server2Properties.put(ApplicationEventListener.APPLICATION_EVENT_LISTENER, new ApplicationMonitor(true));
+            server2Properties.put(ApplicationEventListener.APPLICATION_EVENT_LISTENER, new SessionAwareApplicationMonitor());
             server2 = new Server("localhost", 8026, "/jmxTestApp2", server2Properties, AnnotatedServerEndpoint2.class, AnnotatedServerEndpoint3.class);
             server2.start();
 

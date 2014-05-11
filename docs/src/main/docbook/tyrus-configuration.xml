@@ -576,4 +576,114 @@ client.connectToServer(...)</programlisting>
             </para>
         </section>
     </section>
+    <section>
+        <title>JMX Monitoring</title>
+        <para>
+            Tyrus allows monitoring and accessing some runtime properties and metrics at the server side using JMX (Java management extension technology).
+            The monitoring API has been available since version 1.6 and the following properties are available at runtime
+            through MXBeans. Number of open sessions, maximal number of open session since the start of monitoring and
+            list of deployed endpoint class names and paths are available for each application. Endpoint class name and path
+            the endpoint is registered on, number of open session and maximal number of open sessions are available for each
+            endpoint. Apart from that message statistics are collected both per application and per individual endpoint.
+        </para>
+        <para>
+            The following message statistics are monitored for both sent and received messages:
+            <itemizedlist>
+                <listitem>messages count</listitem>
+                <listitem>messages count per second</listitem>
+                <listitem>average message size</listitem>
+                <listitem>smallest message size</listitem>
+                <listitem>largest message size</listitem>
+            </itemizedlist>
+            Moreover all of them are collected separately for text, binary and control messages and apart from the statistics being available
+            for the three separate categories, total numbers summing up statistics from the three types of messages are also available.
+        </para>
+        <para>
+            The collected metrics as well as the endpoint properties mentioned above are accessible at runtime through Tyrus MXBeans.
+            As has been already mention the information is available on both application and endpoint level with each application
+            or endpoint being represented with four MXBeans. One of those MXBeans contains total message statistics for both sent and received
+            messages as well as any properties specific for applications or endpoints such as endpoint path in the case of an endpoint.
+            The other three MXBeans contain information about sent and received text, binary and control messages.
+        </para>
+        <para>
+            When a user connects to a tyrus application MBean server using an JMX client such as JConsole, they will see
+            the following structure:
+            <itemizedlist>
+                <listitem>
+                    Application 1 - MXBean containing a list of deployed endpoint class names and paths, number of open sessions,
+                    maximal number of open sessions and total message statistics for the application.
+                    <itemizedlist>
+                        <listitem>
+                            message statistics - a directory containing message statistics MXBeans
+                            <itemizedlist>
+                                <listitem>text - MXBean containing text message statistics</listitem>
+                                <listitem>binary - MXBean containing binary message statistics</listitem>
+                                <listitem>control -  MXBean containing control message statistics</listitem>
+                            </itemizedlist>
+                        </listitem>
+                        <listitem>
+                            endpoints - a directory containing application endpoint MXBeans
+                            <itemizedlist>
+                                <listitem>
+                                    Endpoint 1 - MXBean containing Endpoint 1 class name and path, number of open sessions,
+                                    maximal number of open sessions and total message statistics for the endpoint.
+                                    <itemizedlist>
+                                        <listitem>text - MXBean containing text message statistics</listitem>
+                                        <listitem>binary - MXBean containing binary message statistics</listitem>
+                                        <listitem>control -  MXBean containing control message statistics</listitem>
+                                    </itemizedlist>
+                                </listitem>
+                                <listitem>
+                                    Endpoint 2
+                                </listitem>
+                            </itemizedlist>
+                        </listitem>
+                    </itemizedlist>
+                </listitem>
+                <listitem>Application 2</listitem>
+            </itemizedlist>
+        </para>
+        <para>
+            In fact the monitoring structure described above was a little bit simplistic, because there is an additional
+            monitoring level available, which causes message metrics being also available per session.
+            The monitoring structure is very similar to the one described above, with a small difference that there are
+            four MXBeans registered for each session, which contain text, binary, control and total message statistics.
+            In order to distinguish the two monitoring levels, they will be referred to as endpoint-level monitoring
+            and session-level monitoring.
+        </para>
+        <section>
+            <title>Configuration</title>
+            <para>
+                As has been already mentioned, monitoring is supported only on the server side and is disabled by default.
+                The following code sample shows, how endpoint-level monitoring can be enabled on Grizzly server:
+                <programlisting language="java" linenumbering="numbered">
+                    serverProperties.put(ApplicationEventListener.APPLICATION_EVENT_LISTENER, new SessionlessApplicationMonitor());
+                </programlisting>
+                Similarly endpoint-level monitoring can be enabled on Grizzly server in the following way:
+                <programlisting language="java" linenumbering="numbered">
+                    serverProperties.put(ApplicationEventListener.APPLICATION_EVENT_LISTENER, new SessionAwareApplicationMonitor());
+                </programlisting>
+                Monitoring can be configured on Glassfish in web.xml and the following code sample shows endpoint-level configuration:
+                <programlisting language="xml" linenumbering="numbered">&lt;web-app version="2.5" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"&gt;
+
+    &lt;context-param&gt;
+        &lt;param-name&gt;org.glassfish.tyrus.core.monitoring.ApplicationEventListener&lt;/param-name&gt;
+        &lt;param-value&gt;org.glassfish.tyrus.ext.monitoring.jmx.SessionlessApplicationMonitor&lt;/param-value&gt;
+    &lt;/context-param&gt;
+&lt;/web-app&gt;
+                </programlisting>
+                Similarly session-level monitoring can be configured on Glassfish in web.xml in the following way:
+                <programlisting language="xml" linenumbering="numbered">&lt;web-app version="2.5" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"&gt;
+
+    &lt;context-param&gt;
+        &lt;param-name&gt;org.glassfish.tyrus.core.monitoring.ApplicationEventListener&lt;/param-name&gt;
+        &lt;param-value&gt;org.glassfish.tyrus.ext.monitoring.jmx.SessionAwareApplicationMonitor&lt;/param-value&gt;
+    &lt;/context-param&gt;
+&lt;/web-app&gt;
+                </programlisting>
+            </para>
+        </section>
+    </section>
 </chapter>

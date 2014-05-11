@@ -59,7 +59,7 @@ class MBeanPublisher {
     private static final String APPLICATION_NAME_BASE = DOMAIN + ":type=";
     private static final String ENDPOINT_KEY = ",endpoint=";
     private static final String SESSION_KEY = ",session=";
-    private static final String MESSAGE_TYPE_KEY = ",messageType=";
+    private static final String MESSAGE_TYPE_KEY = ",message_type=";
     private static final String TEXT = "text";
     private static final String BINARY = "binary";
     private static final String CONTROL = "control";

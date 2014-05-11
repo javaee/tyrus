@@ -182,7 +182,13 @@ public class MessageStatisticsTest extends TestContainer {
             CountDownLatch messageReceivedLatch = new CountDownLatch(24);
 
             Map<String, Object> server1Properties = new HashMap<String, Object>();
-            ApplicationEventListener application1EventListener = new TestApplicationEventListener(new ApplicationMonitor(monitorOnSessionLevel), null, null, messageSentLatch, messageReceivedLatch);
+            ApplicationMonitor applicationMonitor;
+            if (monitorOnSessionLevel) {
+                applicationMonitor = new SessionAwareApplicationMonitor();
+            } else {
+                applicationMonitor = new SessionlessApplicationMonitor();
+            }
+            ApplicationEventListener application1EventListener = new TestApplicationEventListener(applicationMonitor, null, null, messageSentLatch, messageReceivedLatch);
             server1Properties.put(ApplicationEventListener.APPLICATION_EVENT_LISTENER, application1EventListener);
             server1 = new Server("localhost", 8025, "/jmxTestApp", server1Properties, ServerEndpoint1.class, ServerEndpoint2.class);
             server1.start();

@@ -131,7 +131,14 @@ public class MessageTypesTest extends TestContainer {
             CountDownLatch messageReceivedLatch = new CountDownLatch(11);
 
             setContextPath("/jmxTestApp");
-            ApplicationEventListener applicationEventListener = new TestApplicationEventListener(new ApplicationMonitor(monitorOnSessionLevel), null, null, messageSentLatch, messageReceivedLatch);
+
+            ApplicationMonitor applicationMonitor;
+            if (monitorOnSessionLevel) {
+                applicationMonitor = new SessionAwareApplicationMonitor();
+            } else {
+                applicationMonitor = new SessionlessApplicationMonitor();
+            }
+            ApplicationEventListener applicationEventListener = new TestApplicationEventListener(applicationMonitor, null, null, messageSentLatch, messageReceivedLatch);
             getServerProperties().put(ApplicationEventListener.APPLICATION_EVENT_LISTENER, applicationEventListener);
             server = startServer(AnnotatedServerEndpoint.class);
 
@@ -160,9 +167,9 @@ public class MessageTypesTest extends TestContainer {
             String messageStatisticsNameBase = endpointMxBeanNameBase + ",message_statistics=message_statistics";
 
             EndpointMXBean endpointBean = JMX.newMXBeanProxy(mBeanServer, new ObjectName(endpointMxBeanNameBase), EndpointMXBean.class);
-            MessageStatisticsMXBean textBean = JMX.newMXBeanProxy(mBeanServer, new ObjectName(messageStatisticsNameBase + ",messageType=text"), MessageStatisticsMXBean.class);
-            MessageStatisticsMXBean binaryBean = JMX.newMXBeanProxy(mBeanServer, new ObjectName(messageStatisticsNameBase + ",messageType=binary"), MessageStatisticsMXBean.class);
-            MessageStatisticsMXBean controlBean = JMX.newMXBeanProxy(mBeanServer, new ObjectName(messageStatisticsNameBase + ",messageType=control"), MessageStatisticsMXBean.class);
+            MessageStatisticsMXBean textBean = JMX.newMXBeanProxy(mBeanServer, new ObjectName(messageStatisticsNameBase + ",message_type=text"), MessageStatisticsMXBean.class);
+            MessageStatisticsMXBean binaryBean = JMX.newMXBeanProxy(mBeanServer, new ObjectName(messageStatisticsNameBase + ",message_type=binary"), MessageStatisticsMXBean.class);
+            MessageStatisticsMXBean controlBean = JMX.newMXBeanProxy(mBeanServer, new ObjectName(messageStatisticsNameBase + ",message_type=control"), MessageStatisticsMXBean.class);
 
             assertEquals(11, endpointBean.getReceivedMessagesCount());
             assertEquals(17, endpointBean.getSentMessagesCount());

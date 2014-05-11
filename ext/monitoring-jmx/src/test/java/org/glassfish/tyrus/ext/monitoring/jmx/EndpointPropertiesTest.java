@@ -89,7 +89,11 @@ public class EndpointPropertiesTest extends TestContainer {
         setContextPath("/jmxSessionTestApp");
         Server server = null;
         try {
-            getServerProperties().put(ApplicationEventListener.APPLICATION_EVENT_LISTENER, new ApplicationMonitor(monitorOnSessionLevel));
+            if (monitorOnSessionLevel) {
+                getServerProperties().put(ApplicationEventListener.APPLICATION_EVENT_LISTENER, new SessionAwareApplicationMonitor());
+            } else {
+                getServerProperties().put(ApplicationEventListener.APPLICATION_EVENT_LISTENER, new SessionlessApplicationMonitor());
+            }
             server = startServer(ApplicationConfig.class);
             MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
 

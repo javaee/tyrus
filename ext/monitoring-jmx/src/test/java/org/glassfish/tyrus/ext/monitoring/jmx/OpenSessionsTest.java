@@ -97,7 +97,13 @@ public class OpenSessionsTest extends TestContainer {
             CountDownLatch sessionClosedLatch = new CountDownLatch(1);
             CountDownLatch sessionOpenedLatch = new CountDownLatch(3);
 
-            ApplicationEventListener applicationEventListener = new TestApplicationEventListener(new ApplicationMonitor(monitorOnSessionLevel), sessionOpenedLatch, sessionClosedLatch, null, null);
+            ApplicationMonitor applicationMonitor;
+            if (monitorOnSessionLevel) {
+                applicationMonitor = new SessionAwareApplicationMonitor();
+            } else {
+                applicationMonitor = new SessionlessApplicationMonitor();
+            }
+            ApplicationEventListener applicationEventListener = new TestApplicationEventListener(applicationMonitor, sessionOpenedLatch, sessionClosedLatch, null, null);
             getServerProperties().put(ApplicationEventListener.APPLICATION_EVENT_LISTENER, applicationEventListener);
             server = startServer(AnnotatedServerEndpoint.class);
 

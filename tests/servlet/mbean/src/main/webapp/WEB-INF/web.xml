@@ -44,6 +44,6 @@
          xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd">
     <context-param>
         <param-name>org.glassfish.tyrus.core.monitoring.ApplicationEventListener</param-name>
-        <param-value>org.glassfish.tyrus.ext.monitoring.jmx.ApplicationMonitor</param-value>
+        <param-value>org.glassfish.tyrus.ext.monitoring.jmx.SessionlessApplicationMonitor</param-value>
     </context-param>
 </web-app>
