@@ -2,7 +2,7 @@
 
     DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
 
-    Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
+    Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
 
     The contents of this file are subject to the terms of either the GNU
     General Public License Version 2 only ("GPL") or the Common Development
@@ -46,31 +46,50 @@
 
     <parent>
         <groupId>org.glassfish.tyrus.tests</groupId>
-        <artifactId>tyrus-tests-project</artifactId>
+        <artifactId>tyrus-tests-e2e</artifactId>
         <version>1.6-SNAPSHOT</version>
     </parent>
 
-    <packaging>pom</packaging>
-    <artifactId>tyrus-tests-e2e</artifactId>
+    <packaging>war</packaging>
+    <artifactId>tyrus-tests-e2e-jdk8</artifactId>
 
-    <name>Tyrus End-to-End Tests</name>
+    <name>Tyrus End-to-End Java 8 Tests</name>
 
-    <modules>
-        <module>application-config</module>
-        <module>non-deployable</module>
-        <module>standard-config</module>
-    </modules>
+    <dependencies>
+        <dependency>
+            <groupId>org.glassfish.tyrus</groupId>
+            <artifactId>tyrus-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.tyrus</groupId>
+            <artifactId>tyrus-container-grizzly-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.tyrus</groupId>
+            <artifactId>tyrus-container-jdk-client</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.tyrus</groupId>
+            <artifactId>tyrus-server</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.tyrus.tests</groupId>
+            <artifactId>tyrus-test-tools</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 
-    <profiles>
-        <profile>
-            <id>jdk8</id>
-            <activation>
-                <jdk>[1.8,2)</jdk>
-            </activation>
-
-            <modules>
-                <module>jdk8</module>
-            </modules>
-        </profile>
-    </profiles>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <source>1.8</source>
+                    <target>1.8</target>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
 </project>

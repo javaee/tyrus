@@ -41,14 +41,11 @@ package org.glassfish.tyrus.core;
 
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.security.Principal;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -294,11 +291,63 @@ public class TyrusSession implements Session {
         return this.container;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * @deprecated please use {@link #addMessageHandler(Class, javax.websocket.MessageHandler.Whole)} or
+     * {@link #addMessageHandler(Class, javax.websocket.MessageHandler.Partial)}
+     */
     @Override
     public void addMessageHandler(MessageHandler handler) {
         checkConnectionState(State.CLOSED);
         synchronized (handlerManager) {
             handlerManager.addMessageHandler(handler);
+        }
+    }
+
+    /**
+     * Register to handle to incoming messages in this conversation. A maximum of one message handler per
+     * native websocket message type (text, binary, pong) may be added to each Session. I.e. a maximum
+     * of one message handler to handle incoming text messages a maximum of one message handler for
+     * handling incoming binary messages, and a maximum of one for handling incoming pong
+     * messages. For further details of which message handlers handle which of the native websocket
+     * message types please see {@link MessageHandler.Whole} and {@link MessageHandler.Partial}.
+     * Adding more than one of any one type will result in a runtime exception.
+     * <p/>
+     * <p>See {@link javax.websocket.Endpoint} for a usage example.
+     *
+     * @param clazz   type of the message processed by message handler to be registered.
+     * @param handler the MessageHandler to be added.
+     * @throws IllegalStateException if there is already a MessageHandler registered for the same native
+     *                               websocket message type as this handler.
+     */
+    public <T> void addMessageHandler(Class<T> clazz, MessageHandler.Whole<T> handler) {
+        checkConnectionState(State.CLOSED);
+        synchronized (handlerManager) {
+            handlerManager.addMessageHandler(clazz, handler);
+        }
+    }
+
+    /**
+     * Register to handle to incoming messages in this conversation. A maximum of one message handler per
+     * native websocket message type (text, binary, pong) may be added to each Session. I.e. a maximum
+     * of one message handler to handle incoming text messages a maximum of one message handler for
+     * handling incoming binary messages, and a maximum of one for handling incoming pong
+     * messages. For further details of which message handlers handle which of the native websocket
+     * message types please see {@link MessageHandler.Whole} and {@link MessageHandler.Partial}.
+     * Adding more than one of any one type will result in a runtime exception.
+     * <p/>
+     * <p>See {@link javax.websocket.Endpoint} for a usage example.
+     *
+     * @param clazz   type of the message processed by message handler to be registered.
+     * @param handler the MessageHandler to be added.
+     * @throws IllegalStateException if there is already a MessageHandler registered for the same native
+     *                               websocket message type as this handler.
+     */
+    public <T> void addMessageHandler(Class<T> clazz, MessageHandler.Partial<T> handler) {
+        checkConnectionState(State.CLOSED);
+        synchronized (handlerManager) {
+            handlerManager.addMessageHandler(clazz, handler);
         }
     }
 
@@ -448,11 +497,17 @@ public class TyrusSession implements Session {
             LOGGER.warning(LocalizationMessages.NO_DECODER_FOUND());
         }
 
+        List<Map.Entry<Class<?>, MessageHandler>> orderedMessageHandlers;
+        synchronized (handlerManager) {
+            orderedMessageHandlers = handlerManager.getOrderedWholeMessageHandlers();
+        }
+
         for (CoderWrapper<Decoder> decoder : availableDecoders) {
-            for (MessageHandler mh : getOrderedMessageHandlers()) {
-                Class<?> type;
-                if ((mh instanceof MessageHandler.Whole)
-                        && (type = MessageHandlerManager.getHandlerType(mh)).isAssignableFrom(decoder.getType())) {
+            for (Map.Entry<Class<?>, MessageHandler> entry : orderedMessageHandlers) {
+                MessageHandler mh = entry.getValue();
+
+                Class<?> type = entry.getKey();
+                if (type.isAssignableFrom(decoder.getType())) {
 
                     if (mh instanceof BasicMessageHandler) {
                         checkMessageSize(message, ((BasicMessageHandler) mh).getMaxMessageSize());
@@ -477,9 +532,14 @@ public class TyrusSession implements Session {
     }
 
     <T> MessageHandler.Whole<T> getMessageHandler(Class<T> c) {
-        for (MessageHandler mh : this.getOrderedMessageHandlers()) {
-            if (MessageHandlerManager.getHandlerType(mh) == c) {
-                return (MessageHandler.Whole<T>) mh;
+        List<Map.Entry<Class<?>, MessageHandler>> orderedMessageHandlers;
+        synchronized (handlerManager) {
+            orderedMessageHandlers = handlerManager.getOrderedWholeMessageHandlers();
+        }
+
+        for (Map.Entry<Class<?>, MessageHandler> entry : orderedMessageHandlers) {
+            if (entry.getKey() == c) {
+                return (MessageHandler.Whole<T>) entry.getValue();
             }
         }
 
@@ -551,16 +611,6 @@ public class TyrusSession implements Session {
 
     boolean isPongHandlerPreset() {
         return handlerManager.isPongHandlerPresent();
-    }
-
-    private List<MessageHandler> getOrderedMessageHandlers() {
-        Set<MessageHandler> handlers = this.getMessageHandlers();
-        ArrayList<MessageHandler> result = new ArrayList<MessageHandler>();
-
-        result.addAll(handlers);
-        Collections.sort(result, new MessageHandlerComparator());
-
-        return result;
     }
 
     State getState() {
@@ -648,34 +698,6 @@ public class TyrusSession implements Session {
          * {@link Session} has been already closed.
          */
         CLOSED
-    }
-
-    private static class MessageHandlerComparator implements Comparator<MessageHandler>, Serializable {
-
-        private static final long serialVersionUID = -5136634876439146784L;
-
-        @Override
-        public int compare(MessageHandler o1, MessageHandler o2) {
-            if (o1 instanceof MessageHandler.Whole) {
-                if (o2 instanceof MessageHandler.Whole) {
-                    Class<?> type1 = MessageHandlerManager.getHandlerType(o1);
-                    Class<?> type2 = MessageHandlerManager.getHandlerType(o2);
-
-                    if (type1.isAssignableFrom(type2)) {
-                        return 1;
-                    } else if (type2.isAssignableFrom(type1)) {
-                        return -1;
-                    } else {
-                        return 0;
-                    }
-                } else {
-                    return 1;
-                }
-            } else if (o2 instanceof MessageHandler.Whole) {
-                return 1;
-            }
-            return 0;
-        }
     }
 
     private class IdleTimeoutCommand implements Runnable {

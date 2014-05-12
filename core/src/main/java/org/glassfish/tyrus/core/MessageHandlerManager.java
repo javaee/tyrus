@@ -42,10 +42,12 @@ package org.glassfish.tyrus.core;
 
 import java.io.InputStream;
 import java.io.Reader;
+import java.io.Serializable;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -129,97 +131,123 @@ class MessageHandlerManager {
      */
     public void addMessageHandler(MessageHandler handler) throws IllegalStateException {
 
-        if (!(handler instanceof MessageHandler.Whole) && !(handler instanceof MessageHandler.Partial)) {
-            throwException(LocalizationMessages.MESSAGE_HANDLER_WHOLE_OR_PARTIAL());
-        }
-
         final Class<?> handlerClass = getHandlerType(handler);
 
         if (handler instanceof MessageHandler.Whole) { //WHOLE MESSAGE HANDLER
-            if (WHOLE_TEXT_HANDLER_TYPES.contains(handlerClass)) { // text
-                if (textHandlerPresent) {
-                    throwException(LocalizationMessages.MESSAGE_HANDLER_ALREADY_REGISTERED_TEXT());
-                } else {
-                    if (Reader.class.isAssignableFrom(handlerClass)) {
-                        readerHandlerPresent = true;
-                    }
-                    textHandlerPresent = true;
-                    textWholeHandlerPresent = true;
-                }
-            } else if (WHOLE_BINARY_HANDLER_TYPES.contains(handlerClass)) { // binary
-                if (binaryHandlerPresent) {
-                    throwException(LocalizationMessages.MESSAGE_HANDLER_ALREADY_REGISTERED_BINARY());
-                } else {
-                    if (InputStream.class.isAssignableFrom(handlerClass)) {
-                        inputStreamHandlerPresent = true;
-                    }
-                    binaryHandlerPresent = true;
-                    binaryWholeHandlerPresent = true;
-                }
-            } else if (PONG_HANDLER_TYPE == handlerClass) { // pong
-                if (pongHandlerPresent) {
-                    throwException(LocalizationMessages.MESSAGE_HANDLER_ALREADY_REGISTERED_PONG());
-                } else {
-                    pongHandlerPresent = true;
-                }
+            addMessageHandler(handlerClass, (MessageHandler.Whole) handler);
+        } else if (handler instanceof MessageHandler.Partial) { // PARTIAL MESSAGE HANDLER
+            addMessageHandler(handlerClass, (MessageHandler.Partial) handler);
+        } else {
+            throwException(LocalizationMessages.MESSAGE_HANDLER_WHOLE_OR_PARTIAL());
+        }
+    }
+
+    /**
+     * Add {@link MessageHandler.Whole} to the manager.
+     *
+     * @param clazz   type handled by {@link MessageHandler}.
+     * @param handler {@link MessageHandler} to be added.
+     * @throws IllegalStateException
+     */
+    public <T> void addMessageHandler(Class<T> clazz, MessageHandler.Whole<T> handler) throws IllegalStateException {
+        if (WHOLE_TEXT_HANDLER_TYPES.contains(clazz)) { // text
+            if (textHandlerPresent) {
+                throwException(LocalizationMessages.MESSAGE_HANDLER_ALREADY_REGISTERED_TEXT());
             } else {
-                boolean viable = false;
-
-                if (checkTextDecoders(handlerClass)) {//decodable text
-                    if (textHandlerPresent) {
-                        throwException(LocalizationMessages.MESSAGE_HANDLER_ALREADY_REGISTERED_TEXT());
-                    } else {
-                        textHandlerPresent = true;
-                        textWholeHandlerPresent = true;
-                        viable = true;
-                    }
+                if (Reader.class.isAssignableFrom(clazz)) {
+                    readerHandlerPresent = true;
                 }
-
-                if (checkBinaryDecoders(handlerClass)) {//decodable binary
-                    if (binaryHandlerPresent) {
-                        throwException(LocalizationMessages.MESSAGE_HANDLER_ALREADY_REGISTERED_BINARY());
-                    } else {
-                        binaryHandlerPresent = true;
-                        binaryWholeHandlerPresent = true;
-                        viable = true;
-                    }
-                }
-
-                if (!viable) {
-                    throwException(LocalizationMessages.MESSAGE_HANDLER_ALREADY_REGISTERED_TYPE(handlerClass));
-                }
+                textHandlerPresent = true;
+                textWholeHandlerPresent = true;
             }
-        } else { // PARTIAL MESSAGE HANDLER
+        } else if (WHOLE_BINARY_HANDLER_TYPES.contains(clazz)) { // binary
+            if (binaryHandlerPresent) {
+                throwException(LocalizationMessages.MESSAGE_HANDLER_ALREADY_REGISTERED_BINARY());
+            } else {
+                if (InputStream.class.isAssignableFrom(clazz)) {
+                    inputStreamHandlerPresent = true;
+                }
+                binaryHandlerPresent = true;
+                binaryWholeHandlerPresent = true;
+            }
+        } else if (PONG_HANDLER_TYPE == clazz) { // pong
+            if (pongHandlerPresent) {
+                throwException(LocalizationMessages.MESSAGE_HANDLER_ALREADY_REGISTERED_PONG());
+            } else {
+                pongHandlerPresent = true;
+            }
+        } else {
             boolean viable = false;
 
-            if (PARTIAL_TEXT_HANDLER_TYPE.equals(handlerClass)) { // text
+            if (checkTextDecoders(clazz)) {//decodable text
                 if (textHandlerPresent) {
                     throwException(LocalizationMessages.MESSAGE_HANDLER_ALREADY_REGISTERED_TEXT());
                 } else {
                     textHandlerPresent = true;
+                    textWholeHandlerPresent = true;
                     viable = true;
                 }
             }
 
-            if (PARTIAL_BINARY_HANDLER_TYPES.contains(handlerClass)) { // binary
+            if (checkBinaryDecoders(clazz)) {//decodable binary
                 if (binaryHandlerPresent) {
                     throwException(LocalizationMessages.MESSAGE_HANDLER_ALREADY_REGISTERED_BINARY());
                 } else {
                     binaryHandlerPresent = true;
+                    binaryWholeHandlerPresent = true;
                     viable = true;
                 }
             }
 
             if (!viable) {
-                throwException(LocalizationMessages.MESSAGE_HANDLER_PARTIAL_INVALID_TYPE(handlerClass.getName()));
+                throwException(LocalizationMessages.MESSAGE_HANDLER_ALREADY_REGISTERED_TYPE(clazz));
             }
         }
 
+        registerMessageHandler(clazz, handler);
+    }
+
+    /**
+     * Add {@link MessageHandler.Partial} to the manager.
+     *
+     * @param clazz   type handled by {@link MessageHandler}.
+     * @param handler {@link MessageHandler} to be added.
+     * @throws IllegalStateException
+     */
+    public <T> void addMessageHandler(Class<T> clazz, MessageHandler.Partial<T> handler) throws IllegalStateException {
+        boolean viable = false;
+
+        if (PARTIAL_TEXT_HANDLER_TYPE.equals(clazz)) { // text
+            if (textHandlerPresent) {
+                throwException(LocalizationMessages.MESSAGE_HANDLER_ALREADY_REGISTERED_TEXT());
+            } else {
+                textHandlerPresent = true;
+                viable = true;
+            }
+        }
+
+        if (PARTIAL_BINARY_HANDLER_TYPES.contains(clazz)) { // binary
+            if (binaryHandlerPresent) {
+                throwException(LocalizationMessages.MESSAGE_HANDLER_ALREADY_REGISTERED_BINARY());
+            } else {
+                binaryHandlerPresent = true;
+                viable = true;
+            }
+        }
+
+        if (!viable) {
+            throwException(LocalizationMessages.MESSAGE_HANDLER_PARTIAL_INVALID_TYPE(clazz.getName()));
+        }
+
+        registerMessageHandler(clazz, handler);
+    }
+
+    private <T> void registerMessageHandler(Class<T> clazz, MessageHandler handler) {
         // map of all registered handlers
-        if (registeredHandlers.containsKey(handlerClass)) {
-            throwException(LocalizationMessages.MESSAGE_HANDLER_ALREADY_REGISTERED_TYPE(handlerClass));
+        if (registeredHandlers.containsKey(clazz)) {
+            throwException(LocalizationMessages.MESSAGE_HANDLER_ALREADY_REGISTERED_TYPE(clazz));
         } else {
-            registeredHandlers.put(handlerClass, handler);
+            registeredHandlers.put(clazz, handler);
         }
 
         messageHandlerCache = null;
@@ -235,21 +263,20 @@ class MessageHandlerManager {
      * @param handler handler which will be removed.
      */
     public void removeMessageHandler(MessageHandler handler) {
-        boolean wasRegistered = false;
         Iterator<Map.Entry<Class<?>, MessageHandler>> iterator = registeredHandlers.entrySet().iterator();
-        final Class<?> handlerClass = getHandlerType(handler);
+        Class<?> handlerClass = null;
 
         while (iterator.hasNext()) {
             final Map.Entry<Class<?>, MessageHandler> next = iterator.next();
             if (next.getValue().equals(handler)) {
+                handlerClass = next.getKey();
                 iterator.remove();
                 messageHandlerCache = null;
-                wasRegistered = true;
                 break;
             }
         }
 
-        if (!wasRegistered) {
+        if (handlerClass == null) {
             return;
         }
 
@@ -295,6 +322,17 @@ class MessageHandlerManager {
         }
 
         return messageHandlerCache;
+    }
+
+    public List<Map.Entry<Class<?>, MessageHandler>> getOrderedWholeMessageHandlers() {
+        List<Map.Entry<Class<?>, MessageHandler>> result = new ArrayList<Map.Entry<Class<?>, MessageHandler>>();
+        for (final Map.Entry<Class<?>, MessageHandler> entry : registeredHandlers.entrySet()) {
+            if (entry.getValue() instanceof MessageHandler.Whole) {
+                result.add(entry);
+            }
+        }
+        Collections.sort(result, new MessageHandlerComparator());
+        return result;
     }
 
     static Class<?> getHandlerType(MessageHandler handler) {
@@ -368,5 +406,21 @@ class MessageHandlerManager {
 
     boolean isPongHandlerPresent() {
         return pongHandlerPresent;
+    }
+
+    private static class MessageHandlerComparator implements Comparator<Map.Entry<Class<?>, MessageHandler>>, Serializable {
+
+        private static final long serialVersionUID = -5136634876439146784L;
+
+        @Override
+        public int compare(Map.Entry<Class<?>, MessageHandler> o1, Map.Entry<Class<?>, MessageHandler> o2) {
+            if (o1.getKey().isAssignableFrom(o2.getKey())) {
+                return 1;
+            } else if (o2.getKey().isAssignableFrom(o1.getKey())) {
+                return -1;
+            } else {
+                return 0;
+            }
+        }
     }
 }

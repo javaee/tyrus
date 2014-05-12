@@ -59,7 +59,9 @@ import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.junit.Test;
+
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 
@@ -163,9 +165,7 @@ public class PingPongTest extends TestContainer {
                 }
             }, ClientEndpointConfig.Builder.create().build(), getURI(PingPongEndpoint.class));
 
-            messageLatch.await(2, TimeUnit.SECONDS);
-            assertEquals(0, messageLatch.getCount());
-
+            assertTrue(messageLatch.await(2, TimeUnit.SECONDS));
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
@@ -295,13 +295,14 @@ public class PingPongTest extends TestContainer {
                 session.getBasicRemote().sendPing(ByteBuffer.wrap("123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456".getBytes()));
                 fail();
             } catch (IllegalArgumentException e) {
+                // ignore
             }
             session.getBasicRemote().sendPong(ByteBuffer.wrap("12345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345".getBytes()));
             try {
                 session.getBasicRemote().sendPong(ByteBuffer.wrap("123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456".getBytes()));
                 fail();
             } catch (IllegalArgumentException e) {
-
+                // ignore
             }
 
         } catch (Exception e) {
