@@ -2,7 +2,7 @@
 
     DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
 
-    Copyright (c) 2011-2014 Oracle and/or its affiliates. All rights reserved.
+    Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
 
     The contents of this file are subject to the terms of either the GNU
     General Public License Version 2 only ("GPL") or the Common Development
@@ -44,30 +44,46 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.glassfish.tyrus.tests</groupId>
-        <artifactId>tyrus-tests-project</artifactId>
+        <groupId>org.glassfish.tyrus.tests.servlet</groupId>
+        <artifactId>tyrus-tests-servlet-project</artifactId>
         <version>1.7-SNAPSHOT</version>
     </parent>
 
-    <groupId>org.glassfish.tyrus.tests.servlet</groupId>
-    <artifactId>tyrus-tests-servlet-project</artifactId>
-    <packaging>pom</packaging>
-    <name>Tyrus Server Integration Tests</name>
+    <packaging>war</packaging>
+    <artifactId>tyrus-tests-servlet-inject</artifactId>
 
-    <modules>
-        <module>async</module>
-        <module>autobahn-server</module>
-        <module>basic</module>
-        <module>dynamic-deploy</module>
-        <module>noappconfig</module>
-        <module>oneappconfig</module>
-        <module>remote-endpoint-timeout</module>
-        <module>session</module>
-        <module>twoappconfig</module>
-        <module>mbean</module>
-        <module>inject</module>
-    </modules>
+    <name>Tyrus Servlet Inject Test</name>
 
     <dependencies>
+        <dependency>
+            <groupId>org.glassfish.tyrus</groupId>
+            <artifactId>tyrus-container-servlet</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>javax.websocket</groupId>
+            <artifactId>javax.websocket-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>javax.ejb</groupId>
+            <artifactId>javax.ejb-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.tyrus</groupId>
+            <artifactId>tyrus-container-grizzly-client</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.tyrus</groupId>
+            <artifactId>tyrus-container-jdk-client</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish.tyrus.tests</groupId>
+            <artifactId>tyrus-test-tools</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 </project>
