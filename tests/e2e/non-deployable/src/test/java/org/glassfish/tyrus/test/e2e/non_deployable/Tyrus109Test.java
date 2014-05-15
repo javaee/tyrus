@@ -37,19 +37,19 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.test.standard_config;
+package org.glassfish.tyrus.test.e2e.non_deployable;
 
-import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfig;
+import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfig;
-import javax.websocket.MessageHandler;
+import javax.websocket.OnError;
 import javax.websocket.OnMessage;
+import javax.websocket.OnOpen;
 import javax.websocket.Session;
-import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 
 import org.glassfish.tyrus.client.ClientManager;
@@ -58,74 +58,61 @@ import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 /**
- * https://java.net/jira/browse/TYRUS-203
- *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class Tyrus203 extends TestContainer{
+public class Tyrus109Test extends TestContainer {
 
-    @ServerEndpoint("/echo/{color}")
-    public static class EchoServerEndpoint {
+    @ServerEndpoint("/open109")
+    public static class OnOpenErrorTestEndpoint {
+        public volatile static Throwable throwable;
+        public volatile static Session session;
+        public volatile static int counter;
+
+        @OnOpen
+        public void open() {
+            throw new RuntimeException("testException");
+        }
+
         @OnMessage
-        public String echo(String message, @PathParam("color") String color) {
-            return color + ":" + message;
+        public String message(String message, Session session) {
+            // won't be called.
+            return message;
+        }
+
+        @OnError
+        public void handleError(Throwable throwable, Session session) {
+            counter++;
+            OnOpenErrorTestEndpoint.throwable = throwable;
+            OnOpenErrorTestEndpoint.session = session;
+            throw new RuntimeException(throwable);
         }
     }
 
     @Test
-    public void test() {
-        Server server = new Server(EchoServerEndpoint.class);
+    public void testErrorOnOpen() throws DeploymentException {
+        Server server = startServer(OnOpenErrorTestEndpoint.class);
 
         try {
-            server.start();
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
-            final CountDownLatch client1messageLatch = new CountDownLatch(1);
-            final CountDownLatch client2messageLatch = new CountDownLatch(1);
+            CountDownLatch messageLatch = new CountDownLatch(1);
             ClientManager client = createClient();
-            Session session1 = client.connectToServer(new Endpoint() {
+            client.connectToServer(new Endpoint() {
                 @Override
-                public void onOpen(final Session session, EndpointConfig configuration) {
-                    session.addMessageHandler(new MessageHandler.Whole<String>() {
-                        @Override
-                        public void onMessage(String message) {
-                            System.out.println(session.getId() + " Client1 @OnMessage -> " + message);
-                            if (message.equals("first:test")) {
-                                client1messageLatch.countDown();
-                            }
-                        }
-                    });
+                public void onOpen(Session session, EndpointConfig configuration) {
                     // do nothing
                 }
-            }, cec, new URI("ws://localhost:8025/websockets/tests/echo/first"));
+            }, cec, getURI(OnOpenErrorTestEndpoint.class));
 
-            Session session2 = client.connectToServer(new Endpoint() {
-                @Override
-                public void onOpen(final Session session, EndpointConfig configuration) {
-                    session.addMessageHandler(new MessageHandler.Whole<String>() {
-                        @Override
-                        public void onMessage(String message) {
-                            System.out.println(session.getId() + " Client2 @OnMessage -> " + message);
-                            if (message.equals("second:test")) {
-                                client2messageLatch.countDown();
-                            }
+            messageLatch.await(1, TimeUnit.SECONDS);
 
-                        }
-                    });
-                    // do nothing
-                }
-            }, cec, new URI("ws://localhost:8025/websockets/tests/echo/second"));
-
-            session1.getBasicRemote().sendText("test");
-            session2.getBasicRemote().sendText("test");
-
-            client1messageLatch.await(1, TimeUnit.SECONDS);
-            client2messageLatch.await(1, TimeUnit.SECONDS);
-
-            assertEquals(0, client1messageLatch.getCount());
-            assertEquals(0, client2messageLatch.getCount());
+            assertNotNull(OnOpenErrorTestEndpoint.session);
+            assertNotNull(OnOpenErrorTestEndpoint.throwable);
+            assertEquals(1, OnOpenErrorTestEndpoint.counter);
+            assertEquals("testException", OnOpenErrorTestEndpoint.throwable.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);

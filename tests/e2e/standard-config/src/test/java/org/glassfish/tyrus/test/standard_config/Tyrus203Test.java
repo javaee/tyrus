@@ -39,17 +39,17 @@
  */
 package org.glassfish.tyrus.test.standard_config;
 
-import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfig;
+import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfig;
-import javax.websocket.OnError;
+import javax.websocket.MessageHandler;
 import javax.websocket.OnMessage;
-import javax.websocket.OnOpen;
 import javax.websocket.Session;
+import javax.websocket.server.PathParam;
 import javax.websocket.server.ServerEndpoint;
 
 import org.glassfish.tyrus.client.ClientManager;
@@ -58,64 +58,73 @@ import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 /**
+ * https://java.net/jira/browse/TYRUS-203
+ *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class Tyrus109 extends TestContainer{
+public class Tyrus203Test extends TestContainer {
 
-    @ServerEndpoint("/open109")
-    public static class OnOpenErrorTestEndpoint {
-        public static Throwable throwable;
-        public static Session session;
-        public static int counter;
-
-        @OnOpen
-        public void open() {
-            throw new RuntimeException("testException");
-        }
-
+    @ServerEndpoint("/echo/{color}")
+    public static class EchoServerEndpoint {
         @OnMessage
-        public String message(String message, Session session) {
-            // won't be called.
-            return message;
-        }
-
-        @OnError
-        public void handleError(Throwable throwable, Session session) {
-            counter++;
-            OnOpenErrorTestEndpoint.throwable = throwable;
-            OnOpenErrorTestEndpoint.session = session;
-            throw new RuntimeException(throwable);
+        public String echo(String message, @PathParam("color") String color) {
+            return color + ":" + message;
         }
     }
 
     @Test
-    public void testErrorOnOpen() {
-        Server server = new Server(OnOpenErrorTestEndpoint.class);
+    public void test() throws DeploymentException {
+        Server server = startServer(EchoServerEndpoint.class);
 
         try {
-            server.start();
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
-            CountDownLatch messageLatch = new CountDownLatch(1);
+            final CountDownLatch client1messageLatch = new CountDownLatch(1);
+            final CountDownLatch client2messageLatch = new CountDownLatch(1);
             ClientManager client = createClient();
-            client.connectToServer(new Endpoint() {
+            Session session1 = client.connectToServer(new Endpoint() {
                 @Override
-                public void onOpen(Session session, EndpointConfig configuration) {
+                public void onOpen(final Session session, EndpointConfig configuration) {
+                    session.addMessageHandler(new MessageHandler.Whole<String>() {
+                        @Override
+                        public void onMessage(String message) {
+                            System.out.println(session.getId() + " Client1 @OnMessage -> " + message);
+                            if (message.equals("first:test")) {
+                                client1messageLatch.countDown();
+                            }
+                        }
+                    });
                     // do nothing
                 }
-            }, cec, new URI("ws://localhost:8025/websockets/tests/open109"));
+            }, cec, getURI("/echo/first"));
 
-            // TODO: is this really needed? Cannot we somehow force underlying protocol impl to connect immediately
-            // TODO: after connectToServer call?
-            messageLatch.await(1, TimeUnit.SECONDS);
+            Session session2 = client.connectToServer(new Endpoint() {
+                @Override
+                public void onOpen(final Session session, EndpointConfig configuration) {
+                    session.addMessageHandler(new MessageHandler.Whole<String>() {
+                        @Override
+                        public void onMessage(String message) {
+                            System.out.println(session.getId() + " Client2 @OnMessage -> " + message);
+                            if (message.equals("second:test")) {
+                                client2messageLatch.countDown();
+                            }
 
-            assertNotNull(OnOpenErrorTestEndpoint.session);
-            assertNotNull(OnOpenErrorTestEndpoint.throwable);
-            assertEquals(1, OnOpenErrorTestEndpoint.counter);
-            assertEquals("testException", OnOpenErrorTestEndpoint.throwable.getMessage());
+                        }
+                    });
+                    // do nothing
+                }
+            }, cec, getURI("/echo/second"));
+
+            session1.getBasicRemote().sendText("test");
+            session2.getBasicRemote().sendText("test");
+
+            client1messageLatch.await(3, TimeUnit.SECONDS);
+            client2messageLatch.await(3, TimeUnit.SECONDS);
+
+            assertEquals(0, client1messageLatch.getCount());
+            assertEquals(0, client2messageLatch.getCount());
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
