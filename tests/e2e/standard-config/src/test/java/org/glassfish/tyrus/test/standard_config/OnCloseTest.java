@@ -273,7 +273,7 @@ public class OnCloseTest extends TestContainer {
     }
 
     static int[] supportedCloseReasons = {
-            1000, 1001, 1002, 1003, 1007, 1008, 1009, 1010, 1011
+            1000, 1001, 1002, 1003, 1007, 1008, 1009, 1010, 1011, 1012, 1013
     };
 
     @ServerEndpoint(value = "/close5")
