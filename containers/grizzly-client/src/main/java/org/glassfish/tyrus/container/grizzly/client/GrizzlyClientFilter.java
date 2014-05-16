@@ -45,8 +45,6 @@ import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -100,6 +98,9 @@ class GrizzlyClientFilter extends BaseFilter {
     private static final Attribute<UpgradeRequest> UPGRADE_REQUEST = Grizzly.DEFAULT_ATTRIBUTE_BUILDER
             .createAttribute(GrizzlyClientFilter.class.getName() + ".UpgradeRequest");
 
+    private static final Attribute<TaskProcessor> TASK_PROCESSOR = Grizzly.DEFAULT_ATTRIBUTE_BUILDER
+            .createAttribute(TaskProcessor.class.getName() + ".TaskProcessor");
+
     private final boolean proxy;
     private final Filter sslFilter;
     private final HttpCodecFilter httpCodecFilter;
@@ -108,8 +109,6 @@ class GrizzlyClientFilter extends BaseFilter {
     private final ClientEngine.TimeoutHandler timeoutHandler;
     private final boolean sharedTransport;
     private final Map<String, String> proxyHeaders;
-
-    private final Queue<TaskProcessor.Task> taskQueue = new ConcurrentLinkedQueue<TaskProcessor.Task>();
 
     // ------------------------------------------------------------ Constructors
 
@@ -195,8 +194,8 @@ class GrizzlyClientFilter extends BaseFilter {
 
         final org.glassfish.tyrus.spi.Connection connection = TYRUS_CONNECTION.get(ctx.getConnection());
         if (connection != null) {
-            taskQueue.add(new CloseTask(connection, CloseReasons.CLOSED_ABNORMALLY.getCloseReason(), ctx.getConnection()));
-            TaskProcessor.processQueue(taskQueue, null);
+            TaskProcessor taskProcessor = TASK_PROCESSOR.get(ctx.getConnection());
+            taskProcessor.processTask(new CloseTask(connection, CloseReasons.CLOSED_ABNORMALLY.getCloseReason(), ctx.getConnection()));
         }
         return ctx.getStopAction();
     }
@@ -240,9 +239,8 @@ class GrizzlyClientFilter extends BaseFilter {
                 message.recycle();
                 final ReadHandler readHandler = tyrusConnection.getReadHandler();
 
-                taskQueue.add(new ProcessTask(webSocketBuffer, readHandler));
-
-                TaskProcessor.processQueue(taskQueue, null);
+                TaskProcessor taskProcessor = TASK_PROCESSOR.get(ctx.getConnection());
+                taskProcessor.processTask(new ProcessTask(webSocketBuffer, readHandler));
             }
             return ctx.getStopAction();
         }
@@ -343,6 +341,7 @@ class GrizzlyClientFilter extends BaseFilter {
         }
 
         TYRUS_CONNECTION.set(ctx.getConnection(), tyrusConnection);
+        TASK_PROCESSOR.set(ctx.getConnection(), new TaskProcessor());
 
         if (content.getContent().hasRemaining()) {
             return ctx.getRerunFilterAction();
@@ -438,6 +437,7 @@ class GrizzlyClientFilter extends BaseFilter {
         public void execute() {
             connection.close(closeReason);
             TYRUS_CONNECTION.remove(grizzlyConnection);
+            TASK_PROCESSOR.remove(grizzlyConnection);
         }
     }
 }

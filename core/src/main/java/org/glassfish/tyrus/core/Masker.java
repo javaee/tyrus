@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -44,8 +44,8 @@ import java.nio.ByteBuffer;
 
 class Masker {
     private volatile ByteBuffer buffer;
-    private byte[] mask;
-    private int index = 0;
+    private volatile byte[] mask;
+    private volatile int index = 0;
 
     public Masker(ByteBuffer buffer) {
         this.buffer = buffer;

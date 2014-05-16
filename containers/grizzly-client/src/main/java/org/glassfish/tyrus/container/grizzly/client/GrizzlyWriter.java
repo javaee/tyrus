@@ -40,8 +40,6 @@
 package org.glassfish.tyrus.container.grizzly.client;
 
 import java.nio.ByteBuffer;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -61,13 +59,13 @@ import static org.glassfish.tyrus.container.grizzly.client.TaskProcessor.Task;
  */
 public class GrizzlyWriter extends Writer {
 
-    private final Queue<Task> taskQueue = new ConcurrentLinkedQueue<Task>();
-
+    private final TaskProcessor taskProcessor;
     final org.glassfish.grizzly.Connection connection;
 
     public GrizzlyWriter(final org.glassfish.grizzly.Connection connection) {
         this.connection = connection;
         this.connection.configureBlocking(false);
+        this.taskProcessor = new TaskProcessor(new WriterCondition());
     }
 
     @Override
@@ -102,19 +100,10 @@ public class GrizzlyWriter extends Writer {
             }
         };
 
-        taskQueue.add(new WriteTask(connection, message, emptyCompletionHandler));
-        TaskProcessor.processQueue(taskQueue, new WriterCondition(connection, taskQueue));
+        taskProcessor.processTask(new WriteTask(connection, message, emptyCompletionHandler));
     }
 
-    private static class WriterCondition implements TaskProcessor.Condition {
-
-        private final Connection connection;
-        private final Queue<Task> taskQueue;
-
-        private WriterCondition(Connection connection, Queue<Task> taskQueue) {
-            this.connection = connection;
-            this.taskQueue = taskQueue;
-        }
+    private class WriterCondition implements TaskProcessor.Condition {
 
         @Override
         public boolean isValid() {
@@ -123,7 +112,7 @@ public class GrizzlyWriter extends Writer {
                     connection.notifyCanWrite(new WriteHandler() {
                         @Override
                         public void onWritePossible() throws Exception {
-                            TaskProcessor.processQueue(taskQueue, WriterCondition.this);
+                            taskProcessor.processTask();
                         }
 
                         @Override
@@ -145,8 +134,7 @@ public class GrizzlyWriter extends Writer {
 
     @Override
     public void close() {
-        taskQueue.add(new CloseTask(connection));
-        TaskProcessor.processQueue(taskQueue, null);
+        taskProcessor.processTask(new CloseTask(connection));
     }
 
     @Override

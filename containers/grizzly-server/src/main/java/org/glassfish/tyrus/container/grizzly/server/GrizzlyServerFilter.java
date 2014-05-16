@@ -45,8 +45,6 @@ import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -102,9 +100,11 @@ class GrizzlyServerFilter extends BaseFilter {
     private static final Attribute<org.glassfish.tyrus.spi.Connection> TYRUS_CONNECTION = Grizzly.DEFAULT_ATTRIBUTE_BUILDER
             .createAttribute(GrizzlyServerFilter.class.getName() + ".Connection");
 
+    private static final Attribute<TaskProcessor> TASK_PROCESSOR = Grizzly.DEFAULT_ATTRIBUTE_BUILDER
+            .createAttribute(TaskProcessor.class.getName() + ".TaskProcessor");
+
     private final ServerContainer serverContainer;
 
-    private final Queue<TaskProcessor.Task> taskQueue = new ConcurrentLinkedQueue<TaskProcessor.Task>();
 
     // ------------------------------------------------------------ Constructors
 
@@ -134,8 +134,8 @@ class GrizzlyServerFilter extends BaseFilter {
 
         final org.glassfish.tyrus.spi.Connection connection = getConnection(ctx);
         if (connection != null) {
-            taskQueue.add(new CloseTask(connection, CloseReasons.CLOSED_ABNORMALLY.getCloseReason(), ctx.getConnection()));
-            TaskProcessor.processQueue(taskQueue, null);
+            TaskProcessor taskProcessor = getTaskProcessor(ctx);
+            taskProcessor.processTask(new CloseTask(connection, CloseReasons.CLOSED_ABNORMALLY.getCloseReason(), ctx.getConnection()));
         }
         return ctx.getStopAction();
     }
@@ -198,26 +198,29 @@ class GrizzlyServerFilter extends BaseFilter {
             Buffer buffer = message.getContent();
             message.recycle();
             final ReadHandler readHandler = tyrusConnection.getReadHandler();
+            TaskProcessor taskProcessor = getTaskProcessor(ctx);
             if (!buffer.isComposite()) {
-                taskQueue.add(new ProcessTask(buffer.toByteBuffer(), readHandler));
+                taskProcessor.processTask(new ProcessTask(buffer.toByteBuffer(), readHandler));
             } else {
                 final ByteBufferArray byteBufferArray = buffer.toByteBufferArray();
                 final ByteBuffer[] array = byteBufferArray.getArray();
 
                 for (int i = 0; i < byteBufferArray.size(); i++) {
-                    taskQueue.add(new ProcessTask(array[i], readHandler));
+                    taskProcessor.processTask(new ProcessTask(array[i], readHandler));
                 }
 
                 byteBufferArray.recycle();
             }
-
-            TaskProcessor.processQueue(taskQueue, null);
         }
         return ctx.getStopAction();
     }
 
     private org.glassfish.tyrus.spi.Connection getConnection(FilterChainContext ctx) {
         return TYRUS_CONNECTION.get(ctx.getConnection());
+    }
+
+    private TaskProcessor getTaskProcessor(FilterChainContext ctx) {
+        return TASK_PROCESSOR.get(ctx.getConnection());
     }
 
     // --------------------------------------------------------- Private Methods
@@ -248,6 +251,7 @@ class GrizzlyServerFilter extends BaseFilter {
                 });
 
                 TYRUS_CONNECTION.set(grizzlyConnection, connection);
+                TASK_PROCESSOR.set(grizzlyConnection, new TaskProcessor());
 
                 grizzlyConnection.addCloseListener(new CloseListener() {
                     @Override
@@ -256,6 +260,7 @@ class GrizzlyServerFilter extends BaseFilter {
                         connection.close(CloseReasons.GOING_AWAY.getCloseReason());
                         // might not be necessary, connection is going to be recycled/freed anyway
                         TYRUS_CONNECTION.remove(grizzlyConnection);
+                        TASK_PROCESSOR.remove(grizzlyConnection);
                     }
                 });
 
@@ -328,18 +333,19 @@ class GrizzlyServerFilter extends BaseFilter {
     private class CloseTask extends TaskProcessor.Task {
         private final org.glassfish.tyrus.spi.Connection connection;
         private final CloseReason closeReason;
-        private final Connection grizllyConnection;
+        private final Connection grizzlyConnection;
 
         private CloseTask(org.glassfish.tyrus.spi.Connection connection, CloseReason closeReason, Connection grizzlyConnection) {
             this.connection = connection;
             this.closeReason = closeReason;
-            this.grizllyConnection = grizzlyConnection;
+            this.grizzlyConnection = grizzlyConnection;
         }
 
         @Override
         public void execute() {
             connection.close(closeReason);
-            TYRUS_CONNECTION.remove(grizllyConnection);
+            TYRUS_CONNECTION.remove(grizzlyConnection);
+            TASK_PROCESSOR.remove(grizzlyConnection);
         }
     }
 }

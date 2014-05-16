@@ -650,14 +650,14 @@ public final class ProtocolHandler {
     }
 
     private static class ParsingState {
-        int state = 0;
-        byte opcode = (byte) -1;
-        long length = -1;
-        boolean masked;
-        Masker masker;
-        boolean finalFragment;
-        boolean controlFrame;
-        private byte lengthCode = -1;
+        volatile int state = 0;
+        volatile byte opcode = (byte) -1;
+        volatile long length = -1;
+        volatile boolean masked;
+        volatile Masker masker;
+        volatile boolean finalFragment;
+        volatile boolean controlFrame;
+        volatile private byte lengthCode = -1;
 
         void recycle() {
             state = 0;
