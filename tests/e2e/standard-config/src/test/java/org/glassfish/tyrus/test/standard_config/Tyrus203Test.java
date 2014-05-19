@@ -129,7 +129,7 @@ public class Tyrus203Test extends TestContainer {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
         } finally {
-            server.stop();
+            stopServer(server);
         }
     }
 }
