@@ -94,7 +94,6 @@ import org.glassfish.tyrus.core.frame.BinaryFrame;
 import org.glassfish.tyrus.core.frame.Frame;
 import org.glassfish.tyrus.core.frame.TextFrame;
 import org.glassfish.tyrus.core.l10n.LocalizationMessages;
-import org.glassfish.tyrus.core.monitoring.ApplicationEventListener;
 import org.glassfish.tyrus.core.monitoring.EndpointEventListener;
 import org.glassfish.tyrus.spi.UpgradeRequest;
 import org.glassfish.tyrus.spi.UpgradeResponse;
@@ -141,12 +140,12 @@ public class TyrusEndpointWrapper {
     /**
      * Create {@link TyrusEndpointWrapper} for class that extends {@link Endpoint}.
      *
-     * @param endpointClass            endpoint class for which the wrapper is created.
-     * @param configuration            endpoint configuration.
-     * @param componentProvider        component provider.
-     * @param container                container where the wrapper is running.
-     * @param clusterContext           cluster context instance. {@code null} indicates standalone mode.
-     * @param endpointEventListener    endpoint event listener.
+     * @param endpointClass         endpoint class for which the wrapper is created.
+     * @param configuration         endpoint configuration.
+     * @param componentProvider     component provider.
+     * @param container             container where the wrapper is running.
+     * @param clusterContext        cluster context instance. {@code null} indicates standalone mode.
+     * @param endpointEventListener endpoint event listener.
      */
     public TyrusEndpointWrapper(Class<? extends Endpoint> endpointClass, EndpointConfig configuration,
                                 ComponentProviderService componentProvider, WebSocketContainer container,
@@ -159,12 +158,12 @@ public class TyrusEndpointWrapper {
     /**
      * Create {@link TyrusEndpointWrapper} for {@link Endpoint} instance or {@link AnnotatedEndpoint} instance.
      *
-     * @param endpoint                 endpoint instance for which the wrapper is created.
-     * @param configuration            endpoint configuration.
-     * @param componentProvider        component provider.
-     * @param container                container where the wrapper is running.
-     * @param clusterContext           cluster context instance. {@code null} indicates standalone mode.
-     * @param endpointEventListener    endpoint event listener.
+     * @param endpoint              endpoint instance for which the wrapper is created.
+     * @param configuration         endpoint configuration.
+     * @param componentProvider     component provider.
+     * @param container             container where the wrapper is running.
+     * @param clusterContext        cluster context instance. {@code null} indicates standalone mode.
+     * @param endpointEventListener endpoint event listener.
      */
     public TyrusEndpointWrapper(Endpoint endpoint, EndpointConfig configuration, ComponentProviderService componentProvider, WebSocketContainer container,
                                 String contextPath, ServerEndpointConfig.Configurator configurator, OnCloseListener onCloseListener, ClusterContext clusterContext,
@@ -579,6 +578,23 @@ public class TyrusEndpointWrapper {
                     upgradeRequest.getParameterMap(), clusterContext, connectionId);
             webSocketToSession.put(socket, session);
             socket.setMessageEventListener(endpointEventListener.onSessionOpened(session.getId()));
+
+            // test max open sessions
+            if (configuration instanceof TyrusServerEndpointConfig &&
+                    ((TyrusServerEndpointConfig) configuration).getMaxSessions() > 0 &&
+                    webSocketToSession.size() > ((TyrusServerEndpointConfig) configuration).getMaxSessions()) {
+                try {
+                    webSocketToSession.remove(socket);
+                    session.close(new CloseReason(CloseReason.CloseCodes.TRY_AGAIN_LATER,
+                            String.format("Maximal number of open sessions exceeded (%d)",
+                                    ((TyrusServerEndpointConfig) configuration).getMaxSessions())
+                    ));
+                } catch (IOException e) {
+                    LOGGER.log(Level.WARNING, e.getMessage(), e);
+                }
+                return session;
+            }
+
         }
 
         ErrorCollector collector = new ErrorCollector();

@@ -686,4 +686,43 @@ client.connectToServer(...)</programlisting>
             </para>
         </section>
     </section>
+    <section>
+        <title>Maximal number of open sessions on server-side</title>
+
+        <para>Can be useful to limit number of open sessions on server-side. When limit is exceeded onClose method
+            is invoked on client-side with close reason code 1013 - Try Again Later.
+            There are two ways in Tyrus to specify maximum number of open sessions.</para>
+
+        <para>Set maximum number of sessions via Builder
+            <programlisting language="java" linenumbering="numbered">
+TyrusServerEndpointConfig.Builder.create(LimitedSessionsEndpoint.class, "/max-sessions").maxSessions(100).build();
+            </programlisting>
+        </para>
+
+        <para>Set maximum number of sessions in the annotation
+            <programlisting language="java" linenumbering="numbered">
+import javax.websocket.OnOpen;
+import javax.websocket.Session;
+import javax.websocket.server.ServerEndpoint;
+
+import org.glassfish.tyrus.core.MaxSessions;
+
+/**
+ * Annotated endpoint.
+ */
+@MaxSessions(100)
+@ServerEndpoint(value = "/annotated")
+public static class LimitedSessionsEndpoint {
+    @OnOpen
+    public void onOpen(Session s) {
+        ...
+    }
+    ...
+}
+            </programlisting>
+        </para>
+
+        <para><emphasis>Note that closure of session due the session limit never invokes any method of
+            <code>javax.websocket.Endpoint</code> on server-side</emphasis></para>
+    </section>
 </chapter>

@@ -269,14 +269,24 @@ public class AnnotatedEndpoint extends Endpoint {
 
             decoderClasses.addAll(TyrusEndpointWrapper.getDefaultDecoders());
 
-            ServerEndpointConfig.Builder builder = ServerEndpointConfig.Builder.create(annotatedClass, wseAnnotation.value()).
-                    encoders(encoderClasses).decoders(decoderClasses).subprotocols(Arrays.asList(subProtocols));
+            final MaxSessions wseMaxSessionsAnnotation = annotatedClass.getAnnotation(MaxSessions.class);
 
-            if (!wseAnnotation.configurator().equals(ServerEndpointConfig.Configurator.class)) {
-                builder = builder.configurator(ReflectionHelper.getInstance(wseAnnotation.configurator(), collector));
+            if (wseMaxSessionsAnnotation != null) {
+                TyrusServerEndpointConfig.Builder builder = TyrusServerEndpointConfig.Builder.create(annotatedClass, wseAnnotation.value()).
+                        encoders(encoderClasses).decoders(decoderClasses).subprotocols(Arrays.asList(subProtocols));
+                if (!wseAnnotation.configurator().equals(ServerEndpointConfig.Configurator.class)) {
+                    builder = builder.configurator(ReflectionHelper.getInstance(wseAnnotation.configurator(), collector));
+                }
+                builder.maxSessions(wseMaxSessionsAnnotation.value());
+                return builder.build();
+            } else {
+                ServerEndpointConfig.Builder builder = ServerEndpointConfig.Builder.create(annotatedClass, wseAnnotation.value()).
+                        encoders(encoderClasses).decoders(decoderClasses).subprotocols(Arrays.asList(subProtocols));
+                if (!wseAnnotation.configurator().equals(ServerEndpointConfig.Configurator.class)) {
+                    builder = builder.configurator(ReflectionHelper.getInstance(wseAnnotation.configurator(), collector));
+                }
+                return builder.build();
             }
-
-            return builder.build();
 
             // client endpoint
         } else {
