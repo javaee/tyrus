@@ -102,7 +102,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
      * similarly as Wadl for REST services. Currently generated Wsadl contains only set of
      * endpoints and their endpoint paths. Wsadl is exposed on URI ending by "application.wsadl".
      * <p/>
-     * The value must be string, "true" means that the feature is enable, "false" that the feature
+     * The value must be string, {@code "true"} means that the feature is enable, {@code "false"} that the feature
      * is disabled.
      * <p/>
      * Default value is "false";

@@ -72,7 +72,17 @@ public class OnCloseTest extends TestContainer {
         public static Session session;
 
         @OnMessage
-        public String message(String message, Session session) {
+        public String message(String message, Session session) throws IOException {
+            // client side should receive close code 1000 and close reason "" (empty string), @see Session#close()
+            if (message.equals("quit1")) {
+                session.close();
+                return null;
+                // client side should receive close code 1000 and close reason "" (empty string)
+            } else if (message.equals("quit2")) {
+                session.close(new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, null));
+                return null;
+            }
+
             try {
                 session.close();
                 return null;
@@ -122,9 +132,108 @@ public class OnCloseTest extends TestContainer {
                 }
             }, cec, getURI(OnCloseEndpoint.class));
 
-            messageLatch.await(1, TimeUnit.SECONDS);
+            assertTrue(messageLatch.await(1, TimeUnit.SECONDS));
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            stopServer(server);
+        }
+    }
 
-            assertEquals(0L, messageLatch.getCount());
+    @Test
+    public void testOnCloseWithoutCloseReason() throws DeploymentException {
+        Server server = startServer(OnCloseEndpoint.class);
+
+        final CountDownLatch closeLatch = new CountDownLatch(1);
+
+        try {
+            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
+
+            ClientManager client = createClient();
+            client.connectToServer(new TestEndpointAdapter() {
+                @Override
+                public EndpointConfig getEndpointConfig() {
+                    return cec;
+                }
+
+                @Override
+                public void onOpen(Session session) {
+                    session.addMessageHandler(new TestTextMessageHandler(this));
+                    try {
+                        session.getBasicRemote().sendText("quit1");
+                    } catch (IOException e) {
+                        // do nothing.
+                    }
+                }
+
+                @Override
+                public void onClose(Session session, CloseReason closeReason) {
+                    if (closeReason != null &&
+                            closeReason.getCloseCode().getCode() == CloseReason.CloseCodes.NORMAL_CLOSURE.getCode() &&
+                            closeReason.getReasonPhrase().equals("")) {
+                        closeLatch.countDown();
+                    }
+                }
+
+                @Override
+                public void onMessage(String message) {
+                    // do nothing
+                }
+            }, cec, getURI(OnCloseEndpoint.class));
+
+            assertTrue(closeLatch.await(1, TimeUnit.SECONDS));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            stopServer(server);
+        }
+    }
+
+    @Test
+    public void testOnCloseWithCloseReasonWithoutReasonPhrase() throws DeploymentException {
+        Server server = startServer(OnCloseEndpoint.class);
+
+        final CountDownLatch closeLatch = new CountDownLatch(1);
+
+        try {
+            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
+
+            ClientManager client = createClient();
+            client.connectToServer(new TestEndpointAdapter() {
+                @Override
+                public EndpointConfig getEndpointConfig() {
+                    return cec;
+                }
+
+                @Override
+                public void onOpen(Session session) {
+                    session.addMessageHandler(new TestTextMessageHandler(this));
+                    try {
+                        session.getBasicRemote().sendText("quit2");
+                    } catch (IOException e) {
+                        // do nothing.
+                    }
+                }
+
+                @Override
+                public void onClose(Session session, CloseReason closeReason) {
+                    if (closeReason != null &&
+                            closeReason.getCloseCode().getCode() == CloseReason.CloseCodes.NORMAL_CLOSURE.getCode() &&
+                            closeReason.getReasonPhrase().equals("")) {
+                        closeLatch.countDown();
+                    }
+                }
+
+                @Override
+                public void onMessage(String message) {
+                    // do nothing
+                }
+            }, cec, getURI(OnCloseEndpoint.class));
+
+            assertTrue(closeLatch.await(1, TimeUnit.SECONDS));
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);

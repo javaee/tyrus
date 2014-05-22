@@ -212,12 +212,9 @@ public class TyrusSession implements Session {
             heartbeatTask.cancel(true);
         }
         changeStateToClosed();
-        basicRemote.close(CloseReasons.NORMAL_CLOSURE.getCloseReason());
+        basicRemote.close(new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, null));
     }
 
-    /**
-     * Closes the underlying connection this session is based upon.
-     */
     @Override
     public void close(CloseReason closeReason) throws IOException {
         if (heartbeatTask != null && !heartbeatTask.isCancelled()) {
