@@ -167,7 +167,8 @@ public class AnnotatedEndpoint extends Endpoint {
                         collector.addException(new DeploymentException(
                                 LocalizationMessages.ENDPOINT_MULTIPLE_METHODS(
                                         OnOpen.class.getSimpleName(), annotatedClass.getName(), onOpen.getName(), m.getName()
-                                )));
+                                )
+                        ));
                     }
                 } else if (a instanceof OnClose) {
                     if (onClose == null) {
@@ -181,7 +182,8 @@ public class AnnotatedEndpoint extends Endpoint {
                         collector.addException(new DeploymentException(
                                 LocalizationMessages.ENDPOINT_MULTIPLE_METHODS(
                                         OnClose.class.getSimpleName(), annotatedClass.getName(), onClose.getName(), m.getName()
-                                )));
+                                )
+                        ));
                     }
                 } else if (a instanceof OnError) {
                     if (onError == null) {
@@ -200,7 +202,8 @@ public class AnnotatedEndpoint extends Endpoint {
                         collector.addException(new DeploymentException(
                                 LocalizationMessages.ENDPOINT_MULTIPLE_METHODS(
                                         OnError.class.getSimpleName(), annotatedClass.getName(), onError.getName(), m.getName()
-                                )));
+                                )
+                        ));
                     }
                 } else if (a instanceof OnMessage) {
                     final long maxMessageSize = ((OnMessage) a).maxMessageSize();
@@ -444,6 +447,20 @@ public class AnnotatedEndpoint extends Endpoint {
         try {
             final Object endpoint = annotatedInstance != null ? annotatedInstance :
                     componentProvider.getInstance(annotatedClass, session, collector);
+
+            // TYRUS-325: Server do not close session properly if non-instantiable endpoint class is provided
+            if (callOnError && endpoint == null) {
+                if (!collector.isEmpty()) {
+                    Throwable t = collector.composeComprehensiveException();
+                    LOGGER.log(Level.FINE, t.getMessage(), t);
+                }
+                try {
+                    session.close(CloseReasons.UNEXPECTED_CONDITION.getCloseReason());
+                } catch (Exception e) {
+                    LOGGER.log(Level.FINEST, e.getMessage(), e);
+                }
+                return null;
+            }
 
             if (!collector.isEmpty()) {
                 throw collector.composeComprehensiveException();

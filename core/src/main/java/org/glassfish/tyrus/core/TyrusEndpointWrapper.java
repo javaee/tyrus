@@ -601,6 +601,25 @@ public class TyrusEndpointWrapper {
 
         final Object toCall = endpoint != null ? endpoint :
                 componentProvider.getInstance(endpointClass, session, collector);
+
+        // TYRUS-325: Server do not close session properly if non-instantiable endpoint class is provided
+        // programmatic non-instantiable endpoint has toCall null
+        if (toCall == null) {
+            if (!collector.isEmpty()) {
+                Throwable t = collector.composeComprehensiveException();
+                LOGGER.log(Level.FINE, t.getMessage(), t);
+            }
+            webSocketToSession.remove(session);
+            try {
+                session.close(CloseReasons.UNEXPECTED_CONDITION.getCloseReason());
+            } catch (IOException e) {
+                LOGGER.log(Level.FINEST, e.getMessage(), e);
+            }
+            return null;
+        }
+
+
+
         try {
             if (!collector.isEmpty()) {
                 throw collector.composeComprehensiveException();
