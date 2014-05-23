@@ -79,6 +79,10 @@ public class NoninstantiableEndpointTest extends TestContainer {
     public static final String PROGRAMMATIC = PATH_PREFIX + "-programmatic";
     public static final String ANNOTATED = PATH_PREFIX + "-annotated";
 
+    public NoninstantiableEndpointTest() {
+        this.setContextPath("/e2e-test-appconfig");
+    }
+
     public static class ServerDeployApplicationConfig extends TyrusServerConfiguration {
         public ServerDeployApplicationConfig() {
             super(new HashSet<Class<?>>() {{
