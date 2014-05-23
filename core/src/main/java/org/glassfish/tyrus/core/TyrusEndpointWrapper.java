@@ -207,7 +207,6 @@ public class TyrusEndpointWrapper {
             }
         };
 
-
         {
             final Class<? extends Endpoint> clazz = endpointClass == null ? endpoint.getClass() : endpointClass;
             Method onOpenMethod = null;
@@ -594,7 +593,6 @@ public class TyrusEndpointWrapper {
                 }
                 return session;
             }
-
         }
 
         ErrorCollector collector = new ErrorCollector();
@@ -617,8 +615,6 @@ public class TyrusEndpointWrapper {
             }
             return null;
         }
-
-
 
         try {
             if (!collector.isEmpty()) {
