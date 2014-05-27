@@ -81,7 +81,6 @@ import javax.websocket.server.ServerEndpointConfig;
 import org.glassfish.tyrus.core.cluster.BroadcastListener;
 import org.glassfish.tyrus.core.cluster.ClusterContext;
 import org.glassfish.tyrus.core.cluster.ClusterSession;
-import org.glassfish.tyrus.core.cluster.SessionListener;
 import org.glassfish.tyrus.core.coder.CoderWrapper;
 import org.glassfish.tyrus.core.coder.InputStreamDecoder;
 import org.glassfish.tyrus.core.coder.NoOpByteArrayCoder;
@@ -128,10 +127,10 @@ public class TyrusEndpointWrapper {
             new ConcurrentHashMap<String, ClusterSession>();
     private final ComponentProviderService componentProvider;
     private final ServerEndpointConfig.Configurator configurator;
-    private final OnCloseListener onCloseListener;
     private final Method onOpen;
     private final Method onClose;
     private final Method onError;
+    private final SessionListener sessionListener;
     private final EndpointEventListener endpointEventListener;
 
     private final ClusterContext clusterContext;
@@ -150,9 +149,9 @@ public class TyrusEndpointWrapper {
     public TyrusEndpointWrapper(Class<? extends Endpoint> endpointClass, EndpointConfig configuration,
                                 ComponentProviderService componentProvider, WebSocketContainer container,
                                 String contextPath, ServerEndpointConfig.Configurator configurator,
-                                OnCloseListener onCloseListener, ClusterContext clusterContext,
+                                SessionListener sessionListener, ClusterContext clusterContext,
                                 EndpointEventListener endpointEventListener) throws DeploymentException {
-        this(null, endpointClass, configuration, componentProvider, container, contextPath, configurator, onCloseListener, clusterContext, endpointEventListener);
+        this(null, endpointClass, configuration, componentProvider, container, contextPath, configurator, sessionListener, clusterContext, endpointEventListener);
     }
 
     /**
@@ -166,22 +165,22 @@ public class TyrusEndpointWrapper {
      * @param endpointEventListener endpoint event listener.
      */
     public TyrusEndpointWrapper(Endpoint endpoint, EndpointConfig configuration, ComponentProviderService componentProvider, WebSocketContainer container,
-                                String contextPath, ServerEndpointConfig.Configurator configurator, OnCloseListener onCloseListener, ClusterContext clusterContext,
+                                String contextPath, ServerEndpointConfig.Configurator configurator, SessionListener sessionListener, ClusterContext clusterContext,
                                 EndpointEventListener endpointEventListener) throws DeploymentException {
-        this(endpoint, null, configuration, componentProvider, container, contextPath, configurator, onCloseListener, clusterContext, endpointEventListener);
+        this(endpoint, null, configuration, componentProvider, container, contextPath, configurator, sessionListener, clusterContext, endpointEventListener);
     }
 
     private TyrusEndpointWrapper(Endpoint endpoint, Class<? extends Endpoint> endpointClass, EndpointConfig configuration,
                                  ComponentProviderService componentProvider, WebSocketContainer container,
                                  String contextPath, final ServerEndpointConfig.Configurator configurator,
-                                 OnCloseListener onCloseListener, final ClusterContext clusterContext,
+                                 SessionListener sessionListener, final ClusterContext clusterContext,
                                  EndpointEventListener endpointEventListener) throws DeploymentException {
         this.endpointClass = endpointClass;
         this.endpoint = endpoint;
         this.container = container;
         this.contextPath = contextPath;
         this.configurator = configurator;
-        this.onCloseListener = onCloseListener;
+        this.sessionListener = sessionListener;
         this.clusterContext = clusterContext;
 
         if (endpointEventListener != null) {
@@ -293,7 +292,7 @@ public class TyrusEndpointWrapper {
         if (clusterContext != null) {
             dummySession = new ClusterSession(null, null, null, null, null);
 
-            clusterContext.registerSessionListener(getEndpointPath(), new SessionListener() {
+            clusterContext.registerSessionListener(getEndpointPath(), new org.glassfish.tyrus.core.cluster.SessionListener() {
                 @Override
                 public void onSessionOpened(String sessionId) {
                     final Map<ClusterSession.DistributedMapKey, Object> distributedSessionProperties = clusterContext.getDistributedSessionProperties(sessionId);
@@ -558,7 +557,8 @@ public class TyrusEndpointWrapper {
      *
      * @param socket         {@link TyrusWebSocket} who has just connected to this web socket endpoint.
      * @param upgradeRequest request associated with accepted connection.
-     * @return TODO.
+     * @return Created {@link Session} instance or {@code null} when session was not created properly (max sessions
+     * limit on endpoint or application or issues with endpoint validation).
      */
     public Session onConnect(TyrusWebSocket socket, UpgradeRequest upgradeRequest, String subProtocol, List<Extension> extensions, String connectionId) {
         TyrusSession session = webSocketToSession.get(socket);
@@ -576,23 +576,33 @@ public class TyrusEndpointWrapper {
                     upgradeRequest.getQueryString(), templateValues, upgradeRequest.getUserPrincipal(),
                     upgradeRequest.getParameterMap(), clusterContext, connectionId);
             webSocketToSession.put(socket, session);
-            socket.setMessageEventListener(endpointEventListener.onSessionOpened(session.getId()));
 
-            // test max open sessions
-            if (configuration instanceof TyrusServerEndpointConfig &&
+
+            // max open session per endpoint exceeded?
+            boolean maxSessionPerEndpointExceeded = configuration instanceof TyrusServerEndpointConfig &&
                     ((TyrusServerEndpointConfig) configuration).getMaxSessions() > 0 &&
-                    webSocketToSession.size() > ((TyrusServerEndpointConfig) configuration).getMaxSessions()) {
+                    webSocketToSession.size() > ((TyrusServerEndpointConfig) configuration).getMaxSessions();
+
+            // test max open sessions per endpoint and per application
+            if (maxSessionPerEndpointExceeded || !sessionListener.onOpen()) {
                 try {
                     webSocketToSession.remove(socket);
-                    session.close(new CloseReason(CloseReason.CloseCodes.TRY_AGAIN_LATER,
-                            String.format("Maximal number of open sessions exceeded (%d)",
-                                    ((TyrusServerEndpointConfig) configuration).getMaxSessions())
-                    ));
+                    String refuseDetail;
+                    if (maxSessionPerEndpointExceeded) {
+                        refuseDetail = LocalizationMessages.MAX_SESSIONS_PER_ENDPOINT_EXCEEDED();
+                    } else {
+                        refuseDetail = LocalizationMessages.MAX_SESSIONS_PER_APP_EXCEEDED();
+                    }
+                    LOGGER.log(Level.FINE, "Session opening refused: " + refuseDetail);
+                    session.close(new CloseReason(CloseReason.CloseCodes.TRY_AGAIN_LATER, refuseDetail));
                 } catch (IOException e) {
                     LOGGER.log(Level.WARNING, e.getMessage(), e);
                 }
-                return session;
+                // session was not opened.
+                return null;
             }
+
+            socket.setMessageEventListener(endpointEventListener.onSessionOpened(session.getId()));
         }
 
         ErrorCollector collector = new ErrorCollector();
@@ -607,12 +617,14 @@ public class TyrusEndpointWrapper {
                 Throwable t = collector.composeComprehensiveException();
                 LOGGER.log(Level.FINE, t.getMessage(), t);
             }
-            webSocketToSession.remove(session);
+            webSocketToSession.remove(socket);
+            sessionListener.onClose(CloseReasons.UNEXPECTED_CONDITION.getCloseReason());
             try {
                 session.close(CloseReasons.UNEXPECTED_CONDITION.getCloseReason());
             } catch (IOException e) {
                 LOGGER.log(Level.FINEST, e.getMessage(), e);
             }
+            // session was not opened.
             return null;
         }
 
@@ -1087,10 +1099,7 @@ public class TyrusEndpointWrapper {
             webSocketToSession.remove(socket);
             endpointEventListener.onSessionClosed(session.getId());
             componentProvider.removeSession(session);
-
-            if (onCloseListener != null) {
-                onCloseListener.onClose(closeReason);
-            }
+            sessionListener.onClose(closeReason);
         }
     }
 
@@ -1355,14 +1364,31 @@ public class TyrusEndpointWrapper {
     }
 
     /**
-     * Close listener.
+     * Session listener.
+     *
+     * TODO: rename/consolidate with {@link org.glassfish.tyrus.core.monitoring.EndpointEventListener}?
      */
-    public interface OnCloseListener {
+    public abstract static class SessionListener {
+
         /**
-         * Invoked after {@link javax.websocket.OnClose} annotated method or {@link Endpoint#onClose(javax.websocket.Session, javax.websocket.CloseReason)} is invoked.
+         * Invoked before {@link javax.websocket.OnOpen} annotated method
+         * or {@link Endpoint#onOpen(javax.websocket.Session, javax.websocket.EndpointConfig)} is invoked.
+         *
+         * Default implementation always returns {@code true}.
+         *
+         * @return {@code true} if session can be opened or {@code false} if not.
+         */
+        public boolean onOpen() {
+            return true;
+        }
+
+        /**
+         * Invoked after {@link javax.websocket.OnClose} annotated method
+         * or {@link Endpoint#onClose(javax.websocket.Session, javax.websocket.CloseReason)} is invoked.
          *
          * @param closeReason close reason.
          */
-        void onClose(CloseReason closeReason);
+        public void onClose(CloseReason closeReason) {
+        }
     }
 }

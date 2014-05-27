@@ -53,6 +53,7 @@ import javax.websocket.server.ServerContainer;
 import javax.servlet.Filter;
 import javax.servlet.FilterChain;
 import javax.servlet.FilterConfig;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
@@ -111,16 +112,13 @@ class TyrusServletFilter implements Filter, HttpSessionListener {
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {
-        final String frameBufferSize = filterConfig.getServletContext().getInitParameter(TyrusHttpUpgradeHandler.FRAME_BUFFER_SIZE);
-        if (frameBufferSize != null) {
-            engine.setIncomingBufferSize(Integer.parseInt(frameBufferSize));
-        }
 
-        this.serverContainer = (org.glassfish.tyrus.server.TyrusServerContainer) filterConfig.getServletContext().getAttribute(ServerContainer.class.getName());
+        ServletContext servletContext = filterConfig.getServletContext();
+        this.serverContainer = (org.glassfish.tyrus.server.TyrusServerContainer) servletContext.getAttribute(ServerContainer.class.getName());
 
         try {
             // TODO? - port/contextPath .. is it really relevant here?
-            serverContainer.start(filterConfig.getServletContext().getContextPath(), 0);
+            serverContainer.start(servletContext.getContextPath(), 0);
         } catch (Exception e) {
             throw new ServletException("Web socket server initialization failed.", e);
         } finally {

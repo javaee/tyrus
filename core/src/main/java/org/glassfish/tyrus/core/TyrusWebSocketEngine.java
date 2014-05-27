@@ -48,6 +48,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -96,6 +97,16 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
     public static final String INCOMING_BUFFER_SIZE = "org.glassfish.tyrus.incomingBufferSize";
 
     /**
+     * Maximum number of open sessions on server application.
+     * <p/>
+     * The value must be {@link java.lang.Integer} or its primitive alternative.
+     * <p/>
+     * Default value is undefined, which means that TyrusWebSocketEngine do not limit
+     * number of sessions.
+     */
+    public static final String MAX_SESSIONS = "org.glassfish.tyrus.maxSessionsPerApp";
+
+    /**
      * Wsadl support.
      * <p/>
      * Wsadl is experimental feature which exposes endpoint configuration in form of XML file,
@@ -115,6 +126,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
 
     private static final UpgradeInfo NOT_APPLICABLE_UPGRADE_INFO = new NoConnectionUpgradeInfo(UpgradeStatus.NOT_APPLICABLE);
     private static final UpgradeInfo HANDSHAKE_FAILED_UPGRADE_INFO = new NoConnectionUpgradeInfo(UpgradeStatus.HANDSHAKE_FAILED);
+    private static final TyrusEndpointWrapper.SessionListener NO_OP_SESSION_LISTENER = new TyrusEndpointWrapper.SessionListener() {};
 
     private final Set<TyrusEndpointWrapper> endpointWrappers = Collections.newSetFromMap(new ConcurrentHashMap<TyrusEndpointWrapper, Boolean>());
     private final ComponentProviderService componentProviderService = ComponentProviderService.create();
@@ -124,6 +136,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
 
     private final ClusterContext clusterContext;
     private final ApplicationEventListener applicationEventListener;
+    private final TyrusEndpointWrapper.SessionListener sessionListener;
 
     /**
      * Create {@link org.glassfish.tyrus.core.TyrusWebSocketEngine.TyrusWebSocketEngineBuilder}
@@ -145,8 +158,11 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
      *                                 than this number. If null, default value will be used).
      * @param clusterContext           cluster context instance. {@code null} indicates standalone mode.
      * @param applicationEventListener listener used to collect monitored events.
+     * @param maxSessions              maximal number of open sessions per application. If {@code null}, no limit is applied.
      */
-    private TyrusWebSocketEngine(WebSocketContainer webSocketContainer, Integer incomingBufferSize, ClusterContext clusterContext, ApplicationEventListener applicationEventListener) {
+    private TyrusWebSocketEngine(WebSocketContainer webSocketContainer, Integer incomingBufferSize,
+                                 ClusterContext clusterContext, ApplicationEventListener applicationEventListener,
+                                 final Integer maxSessions) {
         if (incomingBufferSize != null) {
             this.incomingBufferSize = incomingBufferSize;
         }
@@ -158,6 +174,30 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
         } else {
             this.applicationEventListener = applicationEventListener;
         }
+        this.sessionListener = maxSessions == null ? NO_OP_SESSION_LISTENER : new TyrusEndpointWrapper.SessionListener() {
+            // Implementation of {@link org.glassfish.tyrus.core.TyrusEndpointWrapper.SessionListener} counting
+            // sessions.
+
+            private AtomicInteger counter = new AtomicInteger(0);
+
+            @Override
+            public boolean onOpen() {
+                if (hasAvailableSession()) {
+                    counter.incrementAndGet();
+                    return true;
+                }
+                return false;
+            }
+
+            @Override
+            public void onClose(CloseReason closeReason) {
+                counter.decrementAndGet();
+            }
+
+            private boolean hasAvailableSession() {
+                return counter.get() < maxSessions;
+            }
+        };
     }
 
     private static ProtocolHandler loadHandler(UpgradeRequest request) {
@@ -315,6 +355,12 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
         }
     }
 
+    /**
+     * Set incoming buffer size.
+     *
+     * @param incomingBufferSize buffer size in bytes.
+     * @deprecated Please use {@link org.glassfish.tyrus.core.TyrusWebSocketEngine.TyrusWebSocketEngineBuilder#incomingBufferSize(Integer)} instead.
+     */
     public void setIncomingBufferSize(int incomingBufferSize) {
         this.incomingBufferSize = incomingBufferSize;
     }
@@ -343,7 +389,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
         EndpointEventListener endpointEventListener = applicationEventListener.onEndpointRegistered(endpointPath, endpointClass);
 
         TyrusEndpointWrapper endpointWrapper = new TyrusEndpointWrapper(endpoint, config, componentProviderService, webSocketContainer,
-                contextPath, config instanceof ServerEndpointConfig ? ((ServerEndpointConfig) config).getConfigurator() : null, null, clusterContext, endpointEventListener);
+                contextPath, config instanceof ServerEndpointConfig ? ((ServerEndpointConfig) config).getConfigurator() : null, sessionListener, clusterContext, endpointEventListener);
 
         if (collector.isEmpty()) {
             register(endpointWrapper);
@@ -375,7 +421,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
             // we are pretty sure that endpoint class is javax.websocket.Endpoint descendant.
             //noinspection unchecked
             endpointWrapper = new TyrusEndpointWrapper((Class<? extends Endpoint>) endpointClass, serverConfig, componentProviderService,
-                    webSocketContainer, contextPath, serverConfig.getConfigurator(), null, clusterContext, endpointEventListener);
+                    webSocketContainer, contextPath, serverConfig.getConfigurator(), sessionListener, clusterContext, endpointEventListener);
         } else {
             final ErrorCollector collector = new ErrorCollector();
 
@@ -383,7 +429,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
             final EndpointConfig config = endpoint.getEndpointConfig();
 
             endpointWrapper = new TyrusEndpointWrapper(endpoint, config, componentProviderService, webSocketContainer,
-                    contextPath, config instanceof ServerEndpointConfig ? ((ServerEndpointConfig) config).getConfigurator() : null, null, clusterContext, endpointEventListener);
+                    contextPath, config instanceof ServerEndpointConfig ? ((ServerEndpointConfig) config).getConfigurator() : null, sessionListener, clusterContext, endpointEventListener);
 
             if (!collector.isEmpty()) {
                 applicationEventListener.onEndpointUnregistered(endpointWrapper.getServerEndpointPath());
@@ -566,6 +612,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
         private Integer incomingBufferSize = null;
         private ClusterContext clusterContext = null;
         private ApplicationEventListener applicationEventListener = null;
+        private Integer maxSessions = null;
 
         /**
          * Create new {@link org.glassfish.tyrus.core.TyrusWebSocketEngine} instance with
@@ -574,7 +621,8 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
          * @return new {@link org.glassfish.tyrus.core.TyrusWebSocketEngine} instance.
          */
         public TyrusWebSocketEngine build() {
-            return new TyrusWebSocketEngine(webSocketContainer, incomingBufferSize, clusterContext, applicationEventListener);
+            return new TyrusWebSocketEngine(webSocketContainer, incomingBufferSize, clusterContext,
+                    applicationEventListener, maxSessions);
         }
 
         TyrusWebSocketEngineBuilder(WebSocketContainer webSocketContainer) {
@@ -622,6 +670,17 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
          */
         public TyrusWebSocketEngineBuilder clusterContext(ClusterContext clusterContext) {
             this.clusterContext = clusterContext;
+            return this;
+        }
+
+        /**
+         * Set maximal number of open sessions on server application.
+         *
+         * @param maxSessions maximal number of open sessions. If {@code null}, no limit is applied.
+         * @return updated builder.
+         */
+        public TyrusWebSocketEngineBuilder maxSessions(Integer maxSessions) {
+            this.maxSessions = maxSessions;
             return this;
         }
     }

@@ -688,19 +688,42 @@ client.connectToServer(...)</programlisting>
     </section>
     <section>
         <title>Maximal number of open sessions on server-side</title>
-
         <para>Can be useful to limit number of open sessions on server-side. When limit is exceeded onClose method
-            is invoked on client-side with close reason code 1013 - Try Again Later.
-            There are two ways in Tyrus to specify maximum number of open sessions.</para>
+            is invoked on client-side with close reason code 1013 - Try Again Later.</para>
 
-        <para>Set maximum number of sessions via Builder
-            <programlisting language="java" linenumbering="numbered">
-TyrusServerEndpointConfig.Builder.create(LimitedSessionsEndpoint.class, "/max-sessions").maxSessions(100).build();
-            </programlisting>
-        </para>
+        <section>
+            <title>Per application</title>
 
-        <para>Set maximum number of sessions in the annotation
-            <programlisting language="java" linenumbering="numbered">
+            <para>web.xml</para>
+
+            <programlisting language="xml"><![CDATA[
+<web-app version="2.5" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
+
+    <context-param>
+        <param-name>org.glassfish.tyrus.maxSessionsPerApp</param-name>
+        <param-value>500</param-value>
+    </context-param>
+</web-app>
+            ]]></programlisting>
+
+            <para>Or start server manually with <code>org.glassfish.tyrus.maxSessionsPerApp</code> property</para>
+
+        </section>
+
+        <section>
+            <title>Per endpoint</title>
+
+            <para>There are two ways in Tyrus to specify maximum number of open sessions per endpoint.</para>
+
+            <para>Set maximum number of sessions via Builder
+                <programlisting language="java" linenumbering="numbered">
+                    TyrusServerEndpointConfig.Builder.create(LimitedSessionsEndpoint.class, "/max-sessions").maxSessions(100).build();
+                </programlisting>
+            </para>
+
+            <para>Set maximum number of sessions in the annotation
+                <programlisting language="java" linenumbering="numbered"><![CDATA[
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
@@ -718,11 +741,14 @@ public static class LimitedSessionsEndpoint {
         ...
     }
     ...
-}
-            </programlisting>
-        </para>
+}]]>
+                </programlisting>
+            </para>
 
-        <para><emphasis>Note that closure of session due the session limit never invokes any method of
-            <code>javax.websocket.Endpoint</code> on server-side</emphasis></para>
+            <para><emphasis>Note that closure of session due the session limit never invokes any method of
+                <code>javax.websocket.Endpoint</code> on server-side</emphasis></para>
+        </section>
     </section>
+
+
 </chapter>

@@ -91,11 +91,30 @@ public class TyrusServletContainerInitializer implements ServletContainerInitial
 
         classes.removeAll(FILTERED_CLASSES);
 
+        final Integer incommingBufferSize;
+        String incommingBufferSiteStr = ctx.getInitParameter(TyrusHttpUpgradeHandler.FRAME_BUFFER_SIZE);
+        if (incommingBufferSiteStr != null) {
+            incommingBufferSize = Integer.parseInt(incommingBufferSiteStr);
+        } else {
+            incommingBufferSize = null;
+        }
+
+        final Integer maxSessions;
+        String maxSessionsStr = ctx.getInitParameter(TyrusWebSocketEngine.MAX_SESSIONS);
+        if (maxSessionsStr != null) {
+            maxSessions = Integer.parseInt(maxSessionsStr);
+        } else {
+            maxSessions = null;
+        }
+
         final ApplicationEventListener applicationEventListener = createApplicationEventListener(ctx);
         final TyrusServerContainer serverContainer = new TyrusServerContainer(classes) {
 
             private final WebSocketEngine engine = TyrusWebSocketEngine.builder(this)
-                    .applicationEventListener(applicationEventListener).build();
+                    .applicationEventListener(applicationEventListener)
+                    .incomingBufferSize(incommingBufferSize)
+                    .maxSessions(maxSessions)
+                    .build();
 
             @Override
             public void register(Class<?> endpointClass) throws DeploymentException {

@@ -217,6 +217,7 @@ public class TestContainer {
         serviceSession.getBasicRemote().sendText(message);
         assertTrue(myServiceClientEndpoint.latch.await(1, TimeUnit.SECONDS));
         assertEquals(expectedResult, myServiceClientEndpoint.receivedMessage);
+        serviceSession.close();
     }
 
     /**

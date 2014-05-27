@@ -111,12 +111,13 @@ public class GrizzlyServerContainer extends ServerContainerFactory {
         final Integer incomingBufferSize = Utils.getProperty(localProperties, TyrusWebSocketEngine.INCOMING_BUFFER_SIZE, Integer.class);
         final ClusterContext clusterContext = Utils.getProperty(localProperties, ClusterContext.CLUSTER_CONTEXT, ClusterContext.class);
         final ApplicationEventListener applicationEventListener = Utils.getProperty(localProperties, ApplicationEventListener.APPLICATION_EVENT_LISTENER, ApplicationEventListener.class);
+        final Integer maxSessions = Utils.getProperty(localProperties, TyrusWebSocketEngine.MAX_SESSIONS, Integer.class);
 
         return new TyrusServerContainer((Set<Class<?>>) null) {
 
             private final WebSocketEngine engine = TyrusWebSocketEngine.builder(this)
                     .incomingBufferSize(incomingBufferSize).clusterContext(clusterContext)
-                    .applicationEventListener(applicationEventListener).build();
+                    .applicationEventListener(applicationEventListener).maxSessions(maxSessions).build();
 
             private HttpServer server;
             private String contextPath;

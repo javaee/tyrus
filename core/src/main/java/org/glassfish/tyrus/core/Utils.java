@@ -359,9 +359,20 @@ public class Utils {
     public static <T> T getProperty(Map<String, Object> properties, String key, Class<T> type, T defaultValue) {
         if (properties != null) {
             final Object o = properties.get(key);
-            if (o != null && type.isAssignableFrom(o.getClass())) {
-                //noinspection unchecked
-                return (T) o;
+            if (o != null) {
+                if (type.isAssignableFrom(o.getClass())) {
+                    //noinspection unchecked
+                    return (T) o;
+                } else if (type.equals(Integer.class)) {
+                    //noinspection unchecked
+                    return (T) Integer.valueOf(o.toString());
+                } else if (type.equals(Long.class)) {
+                    //noinspection unchecked
+                    return (T) Long.valueOf(o.toString());
+                } else if (type.equals(Boolean.class)) {
+                    //noinspection unchecked
+                    return (T) (Boolean) (o.toString().equals("1") || Boolean.valueOf(o.toString()));
+                }
             }
         }
 

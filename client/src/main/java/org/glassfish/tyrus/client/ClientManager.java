@@ -53,6 +53,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
 import javax.websocket.ClientEndpoint;
@@ -482,7 +483,8 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
 
                             try {
                                 TyrusEndpointWrapper clientEndpoint = new TyrusEndpointWrapper(endpoint, config, componentProvider,
-                                        webSocketContainer == null ? ClientManager.this : webSocketContainer, url, null, new TyrusEndpointWrapper.OnCloseListener() {
+                                        webSocketContainer == null ? ClientManager.this : webSocketContainer, url, null, new TyrusEndpointWrapper.SessionListener() {
+
                                     @Override
                                     public void onClose(CloseReason closeReason) {
                                         if (reconnectHandler.onDisconnect(closeReason)) {
