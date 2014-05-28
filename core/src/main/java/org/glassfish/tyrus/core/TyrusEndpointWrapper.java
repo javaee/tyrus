@@ -639,18 +639,14 @@ public class TyrusEndpointWrapper {
                 onOpen.invoke(toCall, session, configuration);
             }
         } catch (Throwable t) {
-            if (toCall != null) {
-                if (endpoint != null) {
-                    ((Endpoint) toCall).onError(session, t);
-                } else {
-                    try {
-                        onError.invoke(toCall, session, t);
-                    } catch (Exception e) {
-                        LOGGER.log(Level.WARNING, t.getMessage(), t);
-                    }
-                }
+            if (endpoint != null) {
+                ((Endpoint) toCall).onError(session, t);
             } else {
-                LOGGER.log(Level.WARNING, t.getMessage(), t);
+                try {
+                    onError.invoke(toCall, session, t);
+                } catch (Exception e) {
+                    LOGGER.log(Level.WARNING, t.getMessage(), t);
+                }
             }
         }
 
@@ -1365,7 +1361,7 @@ public class TyrusEndpointWrapper {
 
     /**
      * Session listener.
-     *
+     * <p/>
      * TODO: rename/consolidate with {@link org.glassfish.tyrus.core.monitoring.EndpointEventListener}?
      */
     public abstract static class SessionListener {
@@ -1373,7 +1369,7 @@ public class TyrusEndpointWrapper {
         /**
          * Invoked before {@link javax.websocket.OnOpen} annotated method
          * or {@link Endpoint#onOpen(javax.websocket.Session, javax.websocket.EndpointConfig)} is invoked.
-         *
+         * <p/>
          * Default implementation always returns {@code true}.
          *
          * @return {@code true} if session can be opened or {@code false} if not.
