@@ -55,8 +55,8 @@ public class ApplicationConfig implements ServerApplicationConfig {
     static final String[] PATHS = new String[]{"/echo1", "/echo2", "/echo3"};
     // session limit - also defined in web.xml
     static final int MAX_SESSIONS = 5;
-    public static CountDownLatch closeLatch = new CountDownLatch(MAX_SESSIONS);
-    public static CountDownLatch openLatch = new CountDownLatch(MAX_SESSIONS);
+    static CountDownLatch closeLatch = new CountDownLatch(MAX_SESSIONS);
+    static CountDownLatch openLatch = new CountDownLatch(MAX_SESSIONS);
 
     @Override
     public Set<ServerEndpointConfig> getEndpointConfigs(Set<Class<? extends Endpoint>> endpointClasses) {
