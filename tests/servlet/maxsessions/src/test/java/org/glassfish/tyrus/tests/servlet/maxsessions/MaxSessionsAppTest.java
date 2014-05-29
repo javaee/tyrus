@@ -60,9 +60,6 @@ import org.glassfish.tyrus.core.TyrusWebSocketEngine;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.server.TyrusServerConfiguration;
 import org.glassfish.tyrus.test.tools.TestContainer;
-import org.glassfish.tyrus.tests.servlet.maxsessions.ApplicationConfig;
-import org.glassfish.tyrus.tests.servlet.maxsessions.Echo;
-import org.glassfish.tyrus.tests.servlet.maxsessions.ServiceEndpoint;
 
 import org.junit.Test;
 import static org.junit.Assert.assertFalse;
@@ -196,5 +193,4 @@ public class MaxSessionsAppTest extends TestContainer {
             stopServer(server);
         }
     }
-
 }
