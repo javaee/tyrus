@@ -69,10 +69,13 @@ import org.glassfish.tyrus.spi.Writer;
 class ClientFilter extends Filter {
 
     private static final Logger LOGGER = Logger.getLogger(ClientFilter.class.getName());
+
     private final ClientEngine engine;
     private final URI uri;
     private final HttpResponseParser responseParser = new HttpResponseParser();
-    private final boolean proxy;
+    private final Map<String, String> proxyHeaders;
+
+    private volatile boolean proxy;
 
     private volatile Connection wsConnection;
     private volatile boolean connectedToProxy = false;
@@ -81,14 +84,14 @@ class ClientFilter extends Filter {
     /**
      * Constructor.
      *
-     * @param engine client engine instance.
-     * @param uri    URI to be used for creating {@link org.glassfish.tyrus.spi.UpgradeRequest}.
-     * @param proxy  {@code true} if the connection will be established via proxy, {@code false} otherwise.
+     * @param engine       client engine instance.
+     * @param uri          URI to be used for creating {@link org.glassfish.tyrus.spi.UpgradeRequest}.
+     * @param proxyHeaders map representing headers to be added to request sent to proxy (HTTP CONNECT).
      */
-    ClientFilter(ClientEngine engine, URI uri, boolean proxy) {
+    ClientFilter(ClientEngine engine, URI uri, Map<String, String> proxyHeaders) {
         this.engine = engine;
         this.uri = uri;
-        this.proxy = proxy;
+        this.proxyHeaders = proxyHeaders;
     }
 
     @Override
@@ -179,6 +182,15 @@ class ClientFilter extends Filter {
         wsConnection.close(CloseReasons.CLOSED_ABNORMALLY.getCloseReason());
     }
 
+    /**
+     * Set proxy flag.
+     * <p/>
+     * * @param proxy  {@code true} if the connection will be established via proxy, {@code false} otherwise.
+     */
+    public void setProxy(boolean proxy) {
+        this.proxy = proxy;
+    }
+
     private void closeConnection(Filter downstreamFilter) {
         downstreamFilter.close();
     }
@@ -261,12 +273,16 @@ class ClientFilter extends Filter {
             public Map<String, List<String>> getHeaders() {
                 URI uri = URI.create(upgradeRequest.getRequestUri());
                 Map<String, List<String>> headers = new HashMap<>();
+                if (proxyHeaders != null) {
+                    for (Map.Entry<String, String> entry : proxyHeaders.entrySet()) {
+                        headers.put(entry.getKey(), Collections.singletonList(entry.getValue()));
+                    }
+                }
                 headers.put("Host", Collections.singletonList(uri.getHost()));
                 headers.put("ProxyConnection", Collections.singletonList("keep-alive"));
                 headers.put("Connection", Collections.singletonList("keep-alive"));
                 return headers;
             }
-
         };
     }
 }

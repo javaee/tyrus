@@ -38,7 +38,7 @@
  * holder.
  */
 
-package org.glassfish.tyrus.container.jdk.client;
+package org.glassfish.tyrus.client;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -64,7 +64,6 @@ import javax.net.ssl.SSLEngine;
  * </pre>
  *
  * @author Alexey Stashok
- * @deprecated Please use {@link org.glassfish.tyrus.client.SslEngineConfigurator}.
  */
 public class SslEngineConfigurator {
     private final Object sync = new Object();

@@ -47,7 +47,9 @@ import java.net.SocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.channels.CompletionHandler;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
@@ -59,6 +61,10 @@ import javax.websocket.ClientEndpointConfig;
 import javax.websocket.DeploymentException;
 
 import org.glassfish.tyrus.client.ClientManager;
+import org.glassfish.tyrus.client.SslContextConfigurator;
+import org.glassfish.tyrus.client.SslEngineConfigurator;
+import org.glassfish.tyrus.core.Base64Utils;
+import org.glassfish.tyrus.core.Utils;
 import org.glassfish.tyrus.spi.ClientContainer;
 import org.glassfish.tyrus.spi.ClientEngine;
 
@@ -71,7 +77,7 @@ public class JdkClientContainer implements ClientContainer {
 
     private static final int SSL_INPUT_BUFFER_SIZE = 16_384;
     private static final int INPUT_BUFFER_SIZE = 2048;
-    private static final Logger logger = Logger.getLogger(JdkClientContainer.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(JdkClientContainer.class.getName());
 
     private final List<Proxy> proxies = new ArrayList<>();
 
@@ -86,40 +92,63 @@ public class JdkClientContainer implements ClientContainer {
 
         TransportFilter transportFilter;
 
-        boolean proxy = false;
-        String proxyUri = null;
-        if (properties.get(ClientManager.PROXY_URI) != null) {
-            proxy = true;
-            if (!(properties.get(ClientManager.PROXY_URI) instanceof String)) {
-                throw new DeploymentException("Proxy URI must be passed as String");
-            }
-            proxyUri = (String) properties.get(ClientManager.PROXY_URI);
-        }
-
-        final ClientFilter clientFilter = new ClientFilter(clientEngine, uri, proxy);
+        final ClientFilter clientFilter = new ClientFilter(clientEngine, uri, getProxyHeaders(properties));
         final TaskQueueFilter writeQueue = new TaskQueueFilter(clientFilter);
         if (uri.getScheme().equalsIgnoreCase("wss")) {
-            SslEngineConfigurator sslEngineConfigurator = (SslEngineConfigurator) properties.get(ClientManager.SSL_ENGINE_CONFIGURATOR);
+            Object sslEngineConfiguratorObject = properties.get(ClientManager.SSL_ENGINE_CONFIGURATOR);
+            if (!((sslEngineConfiguratorObject instanceof SslEngineConfigurator) ||
+                    (sslEngineConfiguratorObject instanceof org.glassfish.tyrus.container.jdk.client.SslEngineConfigurator))) {
+                // sslEngineConfiguratorObject is not instanceof any known usable configuration.
+                // log a warning and set it to null - using system defaults.
+
+                LOGGER.log(Level.WARNING, "Invalid '" + ClientManager.SSL_ENGINE_CONFIGURATOR + "' property value: " + sslEngineConfiguratorObject +
+                        ". Using system defaults.");
+                sslEngineConfiguratorObject = null;
+            }
+
+            SslFilter sslFilter;
+
             // if we are trying to access "wss" scheme and we don't have sslEngineConfigurator instance
             // we should try to create ssl connection using JVM properties.
-            if (sslEngineConfigurator == null) {
+            if (sslEngineConfiguratorObject == null) {
                 SslContextConfigurator defaultConfig = new SslContextConfigurator();
                 defaultConfig.retrieve(System.getProperties());
-                sslEngineConfigurator = new SslEngineConfigurator(defaultConfig, true, false, false);
+
+                String wlsSslTrustStore = (String) properties.get(ClientManager.WLS_SSL_TRUSTSTORE_PROPERTY);
+                String wlsSslTrustStorePassword = (String) properties.get(ClientManager.WLS_SSL_TRUSTSTORE_PWD_PROPERTY);
+
+                if (wlsSslTrustStore != null) {
+                    defaultConfig.setKeyStoreFile(wlsSslTrustStore);
+                    if (wlsSslTrustStorePassword != null) {
+                        defaultConfig.setKeyPassword(wlsSslTrustStorePassword);
+                    }
+                }
+
+                // client mode = true, needClientAuth = false, wantClientAuth = false
+                SslEngineConfigurator sslEngineConfigurator = new SslEngineConfigurator(defaultConfig, true, false, false);
+                String wlsSslProtocols = (String) properties.get(ClientManager.WLS_SSL_PROTOCOLS_PROPERTY);
+                if (wlsSslProtocols != null) {
+                    sslEngineConfigurator.setEnabledProtocols(wlsSslProtocols.split(","));
+                }
+                sslFilter = new SslFilter(writeQueue, sslEngineConfigurator);
+            } else {
+                // property is set, we need to figure out whether new or deprecated one is used and act accordingly.
+                if (sslEngineConfiguratorObject instanceof SslEngineConfigurator) {
+                    sslFilter = new SslFilter(writeQueue, (SslEngineConfigurator) sslEngineConfiguratorObject);
+                } else {
+                    // sslEngineConfiguratorObject cannot be null and is instance of
+                    // org.glassfish.tyrus.container.jdk.client.SslEngineConfigurator (
+                    sslFilter = new SslFilter(writeQueue, (org.glassfish.tyrus.container.jdk.client.SslEngineConfigurator) sslEngineConfiguratorObject);
+                }
             }
-            SslFilter sslConnection = new SslFilter(writeQueue, sslEngineConfigurator);
-            transportFilter = new TransportFilter(sslConnection, SSL_INPUT_BUFFER_SIZE);
+            transportFilter = new TransportFilter(sslFilter, SSL_INPUT_BUFFER_SIZE);
+
         } else {
             transportFilter = new TransportFilter(writeQueue, INPUT_BUFFER_SIZE);
         }
 
-        if (proxy) {
-            processProxy(proxyUri, uri);
-            connectThroughProxy(transportFilter, uri);
-            return;
-        }
-
-        transportFilter.connect(getServerAddress(uri), null);
+        processProxy(properties, uri);
+        connect(clientFilter, transportFilter, uri);
     }
 
     private SocketAddress getServerAddress(URI uri) {
@@ -136,12 +165,16 @@ public class JdkClientContainer implements ClientContainer {
         return new InetSocketAddress(uri.getHost(), port);
     }
 
-    private void connectThroughProxy(TransportFilter transportFilter, URI uri) throws DeploymentException {
+    private void connect(ClientFilter clientFilter, TransportFilter transportFilter, URI uri) throws DeploymentException, IOException {
         for (Proxy proxy : proxies) {
+            // Proxy.Type.DIRECT is always present and is always last.
             if (proxy.type() == Proxy.Type.DIRECT) {
-                throw new DeploymentException("No proxy found");
+                clientFilter.setProxy(false);
+                transportFilter.connect(getServerAddress(uri), null);
+                return;
             }
-            logger.log(Level.CONFIG, String.format("Connecting to '%s' via proxy '%s'.", uri, proxy));
+            clientFilter.setProxy(true);
+            LOGGER.log(Level.CONFIG, String.format("Connecting to '%s' via proxy '%s'.", uri, proxy));
             // default ProxySelector always returns proxies with unresolved addresses.
             SocketAddress proxyAddress = proxy.address();
             if (proxyAddress instanceof InetSocketAddress) {
@@ -158,7 +191,7 @@ public class JdkClientContainer implements ClientContainer {
                     @Override
                     public void completed(Void result, Void attachment) {
                         success.set(true);
-                        connectLatch.countDown();                   
+                        connectLatch.countDown();
                     }
 
                     @Override
@@ -171,27 +204,52 @@ public class JdkClientContainer implements ClientContainer {
                     return;
                 }
             } catch (IOException | InterruptedException e) {
-                logger.log(Level.FINE, "Connecting to " + proxyAddress + " failed", e);
+                LOGGER.log(Level.FINE, "Connecting to " + proxyAddress + " failed", e);
             }
         }
-        throw new DeploymentException("Failed to connect to all proxies.");
     }
 
-    private void processProxy(String proxyString, URI uri) {
-        URI proxyUri;
-        try {
-            if (proxyString != null) {
-                proxyUri = new URI(proxyString);
-                if (proxyUri.getHost() == null) {
-                    logger.log(Level.WARNING, String.format("Invalid proxy '%s'.", proxyString));
-                } else {
-                    // proxy set via properties
-                    int proxyPort = proxyUri.getPort() == -1 ? 80 : proxyUri.getPort();
-                    proxies.add(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyUri.getHost(), proxyPort)));
-                }
+    private void processProxy(Map<String, Object> properties, URI uri) throws DeploymentException {
+        String wlsProxyHost = null;
+        Integer wlsProxyPort = null;
+
+        Object value = properties.get(ClientManager.WLS_PROXY_HOST);
+        if (value != null) {
+            if (value instanceof String) {
+                wlsProxyHost = (String) value;
+            } else {
+                throw new DeploymentException(ClientManager.WLS_PROXY_HOST + " only accept String values.");
             }
-        } catch (URISyntaxException e) {
-            logger.log(Level.WARNING, String.format("Invalid proxy '%s'.", proxyString), e);
+        }
+
+        value = properties.get(ClientManager.WLS_PROXY_PORT);
+        if (value != null) {
+            if (value instanceof Integer) {
+                wlsProxyPort = (Integer) value;
+            } else {
+                throw new DeploymentException(ClientManager.WLS_PROXY_PORT + " only accept Integer values.");
+            }
+        }
+
+        if (wlsProxyHost != null) {
+            proxies.add(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(wlsProxyHost, wlsProxyPort == null ? 80 : wlsProxyPort)));
+        } else {
+            Object proxyString = properties.get(ClientManager.PROXY_URI);
+            try {
+                URI proxyUri;
+                if (proxyString != null) {
+                    proxyUri = new URI(proxyString.toString());
+                    if (proxyUri.getHost() == null) {
+                        LOGGER.log(Level.WARNING, String.format("Invalid proxy '%s'.", proxyString));
+                    } else {
+                        // proxy set via properties
+                        int proxyPort = proxyUri.getPort() == -1 ? 80 : proxyUri.getPort();
+                        proxies.add(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyUri.getHost(), proxyPort)));
+                    }
+                }
+            } catch (URISyntaxException e) {
+                LOGGER.log(Level.WARNING, String.format("Invalid proxy '%s'.", proxyString), e);
+            }
         }
 
         // ProxySelector
@@ -201,17 +259,18 @@ public class JdkClientContainer implements ClientContainer {
         addProxies(proxySelector, uri, "socket", proxies);
         addProxies(proxySelector, uri, "https", proxies);
         addProxies(proxySelector, uri, "http", proxies);
+        proxies.add(Proxy.NO_PROXY);
     }
 
     private void addProxies(ProxySelector proxySelector, URI uri, String scheme, List<Proxy> proxies) {
         for (Proxy p : proxySelector.select(getProxyUri(uri, scheme))) {
             switch (p.type()) {
                 case HTTP:
-                    logger.log(Level.FINE, String.format("Found proxy: '%s'", p));
+                    LOGGER.log(Level.FINE, String.format("Found proxy: '%s'", p));
                     proxies.add(p);
                     break;
                 case SOCKS:
-                    logger.log(Level.INFO, String.format("Socks proxy is not supported, please file new issue at https://java.net/jira/browse/TYRUS. Proxy '%s' will be ignored.", p));
+                    LOGGER.log(Level.INFO, String.format("Socks proxy is not supported, please file new issue at https://java.net/jira/browse/TYRUS. Proxy '%s' will be ignored.", p));
                     break;
                 default:
                     break;
@@ -223,8 +282,56 @@ public class JdkClientContainer implements ClientContainer {
         try {
             return new URI(scheme, wsUri.getUserInfo(), wsUri.getHost(), wsUri.getPort(), wsUri.getPath(), wsUri.getQuery(), wsUri.getFragment());
         } catch (URISyntaxException e) {
-            logger.log(Level.WARNING, String.format("Exception during generating proxy URI '%s'", wsUri), e);
+            LOGGER.log(Level.WARNING, String.format("Exception during generating proxy URI '%s'", wsUri), e);
             return wsUri;
         }
+    }
+
+    private Map<String, String> getProxyHeaders(Map<String, Object> properties) throws DeploymentException {
+        //noinspection unchecked
+        Map<String, String> proxyHeaders = Utils.getProperty(properties, ClientManager.PROXY_HEADERS, Map.class);
+
+        String wlsProxyUsername = null;
+        String wlsProxyPassword = null;
+
+        Object value = properties.get(ClientManager.WLS_PROXY_USERNAME);
+        if (value != null) {
+            if (value instanceof String) {
+                wlsProxyUsername = (String) value;
+            } else {
+                throw new DeploymentException(ClientManager.WLS_PROXY_USERNAME + " only accept String values.");
+            }
+        }
+
+        value = properties.get(ClientManager.WLS_PROXY_PASSWORD);
+        if (value != null) {
+            if (value instanceof String) {
+                wlsProxyPassword = (String) value;
+            } else {
+                throw new DeploymentException(ClientManager.WLS_PROXY_PASSWORD + " only accept String values.");
+            }
+        }
+
+        if (proxyHeaders == null) {
+            if (wlsProxyUsername != null && wlsProxyPassword != null) {
+                proxyHeaders = new HashMap<String, String>();
+                proxyHeaders.put("Proxy-Authorization", "Basic " +
+                        Base64Utils.encodeToString((wlsProxyUsername + ":" + wlsProxyPassword).getBytes(Charset.forName("UTF-8")), false));
+            }
+        } else {
+            boolean proxyAuthPresent = false;
+            for (Map.Entry<String, String> entry : proxyHeaders.entrySet()) {
+                if (entry.getKey().equalsIgnoreCase("Proxy-Authorization")) {
+                    proxyAuthPresent = true;
+                }
+            }
+
+            // if (proxyAuthPresent == true) then do nothing, proxy authorization header is already added.
+            if (!proxyAuthPresent && wlsProxyUsername != null && wlsProxyPassword != null) {
+                proxyHeaders.put("Proxy-Authorization", "Basic " +
+                        Base64Utils.encodeToString((wlsProxyUsername + ":" + wlsProxyPassword).getBytes(Charset.forName("UTF-8")), false));
+            }
+        }
+        return proxyHeaders;
     }
 }

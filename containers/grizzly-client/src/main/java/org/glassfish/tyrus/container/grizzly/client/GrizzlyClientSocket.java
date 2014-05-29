@@ -46,7 +46,9 @@ import java.net.ProxySelector;
 import java.net.SocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -58,6 +60,7 @@ import java.util.logging.Logger;
 import javax.websocket.DeploymentException;
 
 import org.glassfish.tyrus.client.ClientManager;
+import org.glassfish.tyrus.core.Base64Utils;
 import org.glassfish.tyrus.core.Utils;
 import org.glassfish.tyrus.spi.ClientEngine;
 
@@ -122,8 +125,9 @@ public class GrizzlyClientSocket {
      * WebSocket handshake headers, see {@link javax.websocket.ClientEndpointConfig.Configurator#beforeRequest(java.util.Map)}.
      *
      * @see javax.websocket.ClientEndpointConfig#getUserProperties()
+     * @deprecated please use {@link ClientManager#PROXY_HEADERS}
      */
-    public static final String PROXY_HEADERS = "org.glassfish.tyrus.client.proxy.headers";
+    public static final String PROXY_HEADERS = ClientManager.PROXY_HEADERS;
 
     /**
      * Client-side property to set custom worker {@link ThreadPoolConfig}.
@@ -160,17 +164,17 @@ public class GrizzlyClientSocket {
     /**
      * Create new instance.
      *
-     * @param uri       endpoint address.
-     * @param timeoutMs TODO
-     * @param engine    engine used for this websocket communication
+     * @param uri        endpoint address.
+     * @param timeoutMs  TODO
+     * @param engine     engine used for this websocket communication
+     * @param properties properties map. Cannot be {@code null}.
      */
     GrizzlyClientSocket(URI uri, long timeoutMs,
                         ClientEngine engine,
-                        Map<String, Object> properties) {
+                        Map<String, Object> properties) throws DeploymentException {
         this.uri = uri;
         this.timeoutMs = timeoutMs;
-        //noinspection unchecked
-        this.proxyHeaders = Utils.getProperty(properties, GrizzlyClientSocket.PROXY_HEADERS, Map.class);
+        this.proxyHeaders = getProxyHeaders(properties);
 
         SSLEngineConfigurator sslEngineConfigurator = (properties == null ? null : (SSLEngineConfigurator) properties.get(GrizzlyClientContainer.SSL_ENGINE_CONFIGURATOR));
         // if we are trying to access "wss" scheme and we don't have sslEngineConfigurator instance
@@ -207,7 +211,7 @@ public class GrizzlyClientSocket {
             throw e;
         }
 
-        socketAddress = processProxy((properties == null ? null : (String) properties.get(ClientManager.PROXY_URI)));
+        socketAddress = processProxy(properties);
     }
 
     /**
@@ -350,21 +354,95 @@ public class GrizzlyClientSocket {
         return transportBuilder.build();
     }
 
-    private SocketAddress processProxy(String proxyString) {
-        URI proxyUri;
-        try {
-            if (proxyString != null) {
-                proxyUri = new URI(proxyString);
-                if (proxyUri.getHost() == null) {
-                    LOGGER.log(Level.WARNING, String.format("Invalid proxy '%s'.", proxyString));
-                } else {
-                    // proxy set via properties
-                    int proxyPort = proxyUri.getPort() == -1 ? 80 : proxyUri.getPort();
-                    proxies.add(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyUri.getHost(), proxyPort)));
+    private Map<String, String> getProxyHeaders(Map<String, Object> properties) throws DeploymentException {
+        //noinspection unchecked
+        Map<String, String> proxyHeaders = Utils.getProperty(properties, ClientManager.PROXY_HEADERS, Map.class);
+
+        String wlsProxyUsername = null;
+        String wlsProxyPassword = null;
+
+        Object value = properties.get(ClientManager.WLS_PROXY_USERNAME);
+        if (value != null) {
+            if (value instanceof String) {
+                wlsProxyUsername = (String) value;
+            } else {
+                throw new DeploymentException(ClientManager.WLS_PROXY_USERNAME + " only accept String values.");
+            }
+        }
+
+        value = properties.get(ClientManager.WLS_PROXY_PASSWORD);
+        if (value != null) {
+            if (value instanceof String) {
+                wlsProxyPassword = (String) value;
+            } else {
+                throw new DeploymentException(ClientManager.WLS_PROXY_PASSWORD + " only accept String values.");
+            }
+        }
+
+        if (proxyHeaders == null) {
+            if (wlsProxyUsername != null && wlsProxyPassword != null) {
+                proxyHeaders = new HashMap<String, String>();
+                proxyHeaders.put("Proxy-Authorization", "Basic " +
+                        Base64Utils.encodeToString((wlsProxyUsername + ":" + wlsProxyPassword).getBytes(Charset.forName("UTF-8")), false));
+            }
+        } else {
+            boolean proxyAuthPresent = false;
+            for (Map.Entry<String, String> entry : proxyHeaders.entrySet()) {
+                if (entry.getKey().equalsIgnoreCase("Proxy-Authorization")) {
+                    proxyAuthPresent = true;
                 }
             }
-        } catch (URISyntaxException e) {
-            LOGGER.log(Level.WARNING, String.format("Invalid proxy '%s'.", proxyString), e);
+
+            // if (proxyAuthPresent == true) then do nothing, proxy authorization header is already added.
+            if (!proxyAuthPresent && wlsProxyUsername != null && wlsProxyPassword != null) {
+                proxyHeaders.put("Proxy-Authorization", "Basic " +
+                        Base64Utils.encodeToString((wlsProxyUsername + ":" + wlsProxyPassword).getBytes(Charset.forName("UTF-8")), false));
+            }
+        }
+        return proxyHeaders;
+    }
+
+    private SocketAddress processProxy(Map<String, Object> properties) throws DeploymentException {
+        String wlsProxyHost = null;
+        Integer wlsProxyPort = null;
+
+        Object value = properties.get(ClientManager.WLS_PROXY_HOST);
+        if (value != null) {
+            if (value instanceof String) {
+                wlsProxyHost = (String) value;
+            } else {
+                throw new DeploymentException(ClientManager.WLS_PROXY_HOST + " only accept String values.");
+            }
+        }
+
+        value = properties.get(ClientManager.WLS_PROXY_PORT);
+        if (value != null) {
+            if (value instanceof Integer) {
+                wlsProxyPort = (Integer) value;
+            } else {
+                throw new DeploymentException(ClientManager.WLS_PROXY_PORT + " only accept Integer values.");
+            }
+        }
+
+        if (wlsProxyHost != null) {
+            proxies.add(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(wlsProxyHost, wlsProxyPort == null ? 80 : wlsProxyPort)));
+        } else {
+            Object proxyString = properties.get(ClientManager.PROXY_URI);
+            try {
+                URI proxyUri;
+                if (proxyString != null) {
+                    proxyUri = new URI(proxyString.toString());
+                    if (proxyUri.getHost() == null) {
+                        LOGGER.log(Level.WARNING, String.format("Invalid proxy '%s'.", proxyString));
+                    } else {
+                        // proxy set via properties
+                        int proxyPort = proxyUri.getPort() == -1 ? 80 : proxyUri.getPort();
+                        proxies.add(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyUri.getHost(), proxyPort)));
+                    }
+                }
+            } catch (URISyntaxException e) {
+                LOGGER.log(Level.WARNING, String.format("Invalid proxy '%s'.", proxyString), e);
+            }
         }
 
         // ProxySelector

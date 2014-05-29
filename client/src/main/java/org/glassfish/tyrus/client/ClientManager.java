@@ -114,11 +114,33 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
     public static final String PROXY_URI = "org.glassfish.tyrus.client.proxy";
 
     /**
+     * Client-side user property to set additional proxy headers.
+     * <p/>
+     * Value is expected to be {@link Map}&lt{@link String}, {@link String}&gt and represent raw http headers
+     * to be added to initial request which is sent to proxy. Key corresponds to header name, value is header
+     * value.
+     * <p/>
+     * Sample below demonstrates use of this feature to set preemptive basic proxy authentication:
+     * <pre>
+     *     final HashMap<String, String> proxyHeaders = new HashMap<String, String>();
+     *     proxyHeaders.put("Proxy-Authorization", "Basic " + Base64Utils.encodeToString("username:password".getBytes(Charset.forName("UTF-8")), false));
+     *
+     *     client.getProperties().put(GrizzlyClientSocket.PROXY_HEADERS, proxyHeaders);
+     *     client.connectToServer(...);
+     * </pre>
+     * Please note that these headers will be used only when establishing proxy connection, for modifying
+     * WebSocket handshake headers, see {@link javax.websocket.ClientEndpointConfig.Configurator#beforeRequest(java.util.Map)}.
+     *
+     * @see javax.websocket.ClientEndpointConfig#getUserProperties()
+     */
+    public static final String PROXY_HEADERS = "org.glassfish.tyrus.client.proxy.headers";
+
+    /**
      * Property usable in {@link #getProperties()} as a key for SSL configuration.
      * <p/>
      * Value is expected to be either {@link org.glassfish.grizzly.ssl.SSLEngineConfigurator}
      * when configuring Grizzly client or
-     * {@link org.glassfish.tyrus.container.jdk.client.SslEngineConfigurator}
+     * {@link org.glassfish.tyrus.client.SslEngineConfigurator}
      * when configuring JDK client.
      * <p/>
      * Example configuration for JDK client:
@@ -142,6 +164,15 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
      * Uses Grizzly as transport implementation.
      */
     private static final String CONTAINER_PROVIDER_CLASSNAME = "org.glassfish.tyrus.container.grizzly.client.GrizzlyClientContainer";
+
+    public static final String WLS_PROXY_HOST = "weblogic.websocket.client.PROXY_HOST";
+    public static final String WLS_PROXY_PORT = "weblogic.websocket.client.PROXY_PORT";
+    public static final String WLS_PROXY_USERNAME = "weblogic.websocket.client.PROXY_USERNAME";
+    public static final String WLS_PROXY_PASSWORD = "weblogic.websocket.client.PROXY_PASSWORD";
+    public static final String WLS_SSL_PROTOCOLS_PROPERTY = "weblogic.websocket.client.SSL_PROTOCOLS";
+    public static final String WLS_SSL_TRUSTSTORE_PROPERTY = "weblogic.websocket.client.SSL_TRUSTSTORE";
+    public static final String WLS_SSL_TRUSTSTORE_PWD_PROPERTY = "weblogic.websocket.client.SSL_TRUSTSTORE_PWD";
+
     private static final Logger LOGGER = Logger.getLogger(ClientManager.class.getName());
     private final WebSocketContainer webSocketContainer;
     private final ClientContainer container;
@@ -403,8 +434,18 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                 final ErrorCollector collector = new ErrorCollector();
                 final ClientEndpointConfig config;
                 final Endpoint endpoint;
-                int incomingBufferSize = Utils.getProperty(copiedProperties, ClientContainer.INCOMING_BUFFER_SIZE,
-                        Integer.class, TyrusClientEngine.DEFAULT_INCOMING_BUFFER_SIZE);
+
+                // incoming buffer size - max frame size possible to receive.
+                Integer tyrusIncomingBufferSize = Utils.getProperty(properties, ClientContainer.INCOMING_BUFFER_SIZE, Integer.class);
+                Integer wlsIncomingBufferSize = Utils.getProperty(properties, ClientContainer.WLS_INCOMING_BUFFER_SIZE, Integer.class);
+                final int incomingBufferSize;
+                if (tyrusIncomingBufferSize == null && wlsIncomingBufferSize == null) {
+                    incomingBufferSize = TyrusClientEngine.DEFAULT_INCOMING_BUFFER_SIZE;
+                } else if (wlsIncomingBufferSize != null) {
+                    incomingBufferSize = wlsIncomingBufferSize;
+                } else {
+                    incomingBufferSize = tyrusIncomingBufferSize;
+                }
 
                 try {
                     if (o instanceof Endpoint) {
@@ -495,7 +536,8 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                                             }
                                         }
                                     }
-                                }, null, null);
+                                }, null, null
+                                );
 
                                 TyrusClientEngine clientEngine = new TyrusClientEngine(clientEndpoint, listener, copiedProperties);
 

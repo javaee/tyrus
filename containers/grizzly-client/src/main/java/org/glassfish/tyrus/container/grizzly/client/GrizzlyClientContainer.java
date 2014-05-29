@@ -47,6 +47,7 @@ import java.util.Map;
 import javax.websocket.ClientEndpointConfig;
 import javax.websocket.DeploymentException;
 
+import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.spi.ClientContainer;
 import org.glassfish.tyrus.spi.ClientEngine;
 
@@ -60,7 +61,7 @@ public class GrizzlyClientContainer implements ClientContainer {
     /**
      * @deprecated please use {@link org.glassfish.tyrus.client.ClientManager#SSL_ENGINE_CONFIGURATOR}.
      */
-    public static final String SSL_ENGINE_CONFIGURATOR = "org.glassfish.tyrus.client.sslEngineConfigurator";
+    public static final String SSL_ENGINE_CONFIGURATOR = ClientManager.SSL_ENGINE_CONFIGURATOR;
 
     /**
      * When set to {@code true} (boolean value), client runtime preserves used container and reuses it for outgoing

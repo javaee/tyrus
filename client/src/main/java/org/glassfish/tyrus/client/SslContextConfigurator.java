@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.container.jdk.client;
+package org.glassfish.tyrus.client;
 
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
@@ -81,7 +81,6 @@ import javax.net.ssl.TrustManagerFactory;
  * @author Hubert Iwaniuk
  * @author Bruno Harbulot
  * @author Marek Potociar (marek.potociar at oracle.com)
- * @deprecated Please use {@link org.glassfish.tyrus.client.SslContextConfigurator}.
  */
 public class SslContextConfigurator {
     /**

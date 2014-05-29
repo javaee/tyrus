@@ -43,12 +43,11 @@ import java.nio.ByteBuffer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import javax.websocket.DeploymentException;
-
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLEngineResult;
 import javax.net.ssl.SSLException;
 
+import org.glassfish.tyrus.client.SslEngineConfigurator;
 import org.glassfish.tyrus.spi.CompletionHandler;
 
 /**
@@ -79,9 +78,21 @@ class SslFilter extends Filter {
      * SSL Filter constructor, takes upstream filter as a parameter.
      *
      * @param upstreamFilter a filter that is positioned above the SSL filter.
-     * @throws DeploymentException when SSL context could not have been initialized.
      */
     SslFilter(Filter upstreamFilter, SslEngineConfigurator sslEngineConfigurator) {
+        this.upstreamFilter = upstreamFilter;
+        sslEngine = sslEngineConfigurator.createSSLEngine();
+        applicationInputBuffer = ByteBuffer.allocate(sslEngine.getSession().getApplicationBufferSize());
+        networkOutputBuffer = ByteBuffer.allocate(sslEngine.getSession().getPacketBufferSize());
+    }
+
+    /**
+     * SSL Filter constructor, takes upstream filter as a parameter.
+     *
+     * @param upstreamFilter a filter that is positioned above the SSL filter.
+     * @deprecated Please use {@link #SslFilter(Filter, org.glassfish.tyrus.client.SslEngineConfigurator)}.
+     */
+    SslFilter(Filter upstreamFilter, org.glassfish.tyrus.container.jdk.client.SslEngineConfigurator sslEngineConfigurator) {
         this.upstreamFilter = upstreamFilter;
         sslEngine = sslEngineConfigurator.createSSLEngine();
         applicationInputBuffer = ByteBuffer.allocate(sslEngine.getSession().getApplicationBufferSize());
