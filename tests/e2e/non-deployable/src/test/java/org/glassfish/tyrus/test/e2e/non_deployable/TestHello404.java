@@ -58,6 +58,9 @@ import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.junit.Assert;
 import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
@@ -92,9 +95,10 @@ public class TestHello404 extends TestContainer {
             }, cec, getURI("ws://localhost:8025/websockets/tests/echo404"));
             Assert.fail();
         } catch (Exception e) {
-            Assert.assertNotNull(e);
-            Assert.assertTrue(e instanceof DeploymentException);
-            Assert.assertTrue(e.getCause() instanceof HandshakeException);
+            assertNotNull(e);
+            assertTrue(e instanceof DeploymentException);
+            assertTrue(e.getCause() instanceof HandshakeException);
+            assertEquals(404, ((HandshakeException) e.getCause()).getHttpStatusCode());
         } finally {
             stopServer(server);
         }
@@ -114,5 +118,4 @@ public class TestHello404 extends TestContainer {
             return null;
         }
     }
-
 }

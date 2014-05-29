@@ -45,6 +45,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import javax.websocket.Extension;
 
@@ -54,6 +55,8 @@ import org.glassfish.tyrus.spi.UpgradeRequest;
 import org.glassfish.tyrus.spi.UpgradeResponse;
 
 /**
+ * Class responsible for performing and validating handshake.
+ *
  * @author Justin Lee
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
@@ -107,6 +110,98 @@ public final class Handshake {
         handshake.secKey = new SecKey();
 
         return handshake;
+    }
+
+    /**
+     * Client side only - get the {@link UpgradeRequest}.
+     *
+     * @return {@link UpgradeRequest} created on this HandShake.
+     */
+    public UpgradeRequest getRequest() {
+        return request;
+    }
+
+    /**
+     * Client side only - set the list of supported subprotocols.
+     *
+     * @param subProtocols list of supported subprotocol.
+     */
+    public void setSubProtocols(List<String> subProtocols) {
+        this.subProtocols = subProtocols;
+    }
+
+    /**
+     * Client side only - set the list of supported extensions.
+     *
+     * @param extensions list of supported extensions.
+     */
+    public void setExtensions(List<Extension> extensions) {
+        this.extensions = extensions;
+    }
+
+    /**
+     * Client side only - compose the {@link UpgradeRequest} and store it for further use.
+     *
+     * @return composed {@link UpgradeRequest}.
+     */
+    public UpgradeRequest prepareRequest() {
+        String host = serverHostName;
+        if (port != -1 && port != 80 && port != 443) {
+            host += ":" + port;
+        }
+
+        Map<String, List<String>> requestHeaders = request.getHeaders();
+
+        requestHeaders.put(UpgradeRequest.HOST, Collections.singletonList(host));
+        requestHeaders.put(UpgradeRequest.HOST, Collections.singletonList(host));
+        requestHeaders.put(UpgradeRequest.CONNECTION, Collections.singletonList(UpgradeRequest.UPGRADE));
+        requestHeaders.put(UpgradeRequest.UPGRADE, Collections.singletonList(UpgradeRequest.WEBSOCKET));
+
+        requestHeaders.put(UpgradeRequest.SEC_WEBSOCKET_KEY, Collections.singletonList(secKey.toString()));
+        requestHeaders.put(UpgradeRequest.SEC_WS_ORIGIN_HEADER, Collections.singletonList(getOrigin()));
+        requestHeaders.put(UpgradeRequest.SEC_WEBSOCKET_VERSION, Collections.singletonList(VERSION));
+
+        if (!getSubProtocols().isEmpty()) {
+            requestHeaders.put(UpgradeRequest.SEC_WEBSOCKET_PROTOCOL,
+                    Collections.singletonList(Utils.getHeaderFromList(subProtocols, null)));
+        }
+
+        if (!getExtensions().isEmpty()) {
+            requestHeaders.put(UpgradeRequest.SEC_WEBSOCKET_EXTENSIONS,
+                    Collections.singletonList(Utils.getHeaderFromList(getExtensions(), new Utils.Stringifier<Extension>() {
+                        @Override
+                        String toString(Extension extension) {
+                            return TyrusExtension.toString(extension);
+                        }
+                    }))
+            );
+        }
+
+        final String headerValue = request.getHeader(UpgradeRequest.SEC_WS_ORIGIN_HEADER);
+        requestHeaders.remove(UpgradeRequest.SEC_WS_ORIGIN_HEADER);
+        requestHeaders.put(UpgradeRequest.ORIGIN_HEADER, Collections.singletonList(headerValue));
+        return request;
+    }
+
+    /**
+     * Client side only - validate server response.
+     *
+     * @param response response to be validated.
+     * @throws org.glassfish.tyrus.core.HandshakeException when Http Status of received response is not 101 - Switching protocols.
+     */
+    public void validateServerResponse(UpgradeResponse response) {
+        if (RESPONSE_CODE_VALUE != response.getStatus()) {
+            throw new HandshakeException(response.getStatus(), LocalizationMessages.INVALID_RESPONSE_CODE(RESPONSE_CODE_VALUE, response.getStatus()));
+        }
+
+        checkForHeader(response.getFirstHeaderValue(UpgradeRequest.UPGRADE), UpgradeRequest.UPGRADE, UpgradeRequest.WEBSOCKET);
+        checkForHeader(response.getFirstHeaderValue(UpgradeRequest.CONNECTION), UpgradeRequest.CONNECTION, UpgradeRequest.UPGRADE);
+
+//        if (!getSubProtocols().isEmpty()) {
+//            checkForHeader(response.getHeaders(), WebSocketEngine.SEC_WS_PROTOCOL_HEADER, WebSocketEngine.SEC_WS_PROTOCOL_HEADER);
+//        }
+
+        secKey.validateServerKey(response.getFirstHeaderValue(UpgradeResponse.SEC_WEBSOCKET_ACCEPT));
     }
 
     /**
@@ -202,91 +297,6 @@ public final class Handshake {
 
     List<Extension> getExtensions() {
         return extensions;
-    }
-
-    /**
-     * Client side only - get the {@link UpgradeRequest}.
-     *
-     * @return {@link UpgradeRequest} created on this HandShake.
-     */
-    public UpgradeRequest getRequest() {
-        return request;
-    }
-
-    /**
-     * Client side only - set the list of supported subprotocols.
-     *
-     * @param subProtocols list of supported subprotocol.
-     */
-    public void setSubProtocols(List<String> subProtocols) {
-        this.subProtocols = subProtocols;
-    }
-
-    /**
-     * Client side only - set the list of supported extensions.
-     *
-     * @param extensions list of supported extensions.
-     */
-    public void setExtensions(List<Extension> extensions) {
-        this.extensions = extensions;
-    }
-
-    /**
-     * Client side only - Compose the {@link UpgradeRequest} and store it for further use.
-     *
-     * @return composed {@link UpgradeRequest}.
-     */
-    public UpgradeRequest prepareRequest() {
-        String host = serverHostName;
-        if (port != -1 && port != 80 && port != 443) {
-            host += ":" + port;
-        }
-
-        putSingleHeader(request, UpgradeRequest.HOST, host);
-        putSingleHeader(request, UpgradeRequest.CONNECTION, UpgradeRequest.UPGRADE);
-        putSingleHeader(request, UpgradeRequest.UPGRADE, UpgradeRequest.WEBSOCKET);
-
-        putSingleHeader(request, UpgradeRequest.SEC_WEBSOCKET_KEY, secKey.toString());
-        putSingleHeader(request, UpgradeRequest.SEC_WS_ORIGIN_HEADER, getOrigin());
-        putSingleHeader(request, UpgradeRequest.SEC_WEBSOCKET_VERSION, VERSION);
-
-        if (!getSubProtocols().isEmpty()) {
-            putSingleHeader(request, UpgradeRequest.SEC_WEBSOCKET_PROTOCOL, Utils.getHeaderFromList(subProtocols, null));
-        }
-
-        if (!getExtensions().isEmpty()) {
-            putSingleHeader(request, UpgradeRequest.SEC_WEBSOCKET_EXTENSIONS, Utils.getHeaderFromList(getExtensions(), new Utils.Stringifier<Extension>() {
-                @Override
-                String toString(Extension extension) {
-                    return TyrusExtension.toString(extension);
-                }
-            }));
-        }
-
-        final String headerValue = request.getHeader(UpgradeRequest.SEC_WS_ORIGIN_HEADER);
-        request.getHeaders().remove(UpgradeRequest.SEC_WS_ORIGIN_HEADER);
-        putSingleHeader(request, UpgradeRequest.ORIGIN_HEADER, headerValue);
-        return request;
-    }
-
-    private void putSingleHeader(UpgradeRequest request, String headerName, String headerValue) {
-        request.getHeaders().put(headerName, Arrays.asList(headerValue));
-    }
-
-    // client side
-    public void validateServerResponse(UpgradeResponse response) {
-        if (RESPONSE_CODE_VALUE != response.getStatus()) {
-            throw new HandshakeException(LocalizationMessages.INVALID_RESPONSE_CODE(RESPONSE_CODE_VALUE, response.getStatus()));
-        }
-
-        checkForHeader(response.getFirstHeaderValue(UpgradeRequest.UPGRADE), UpgradeRequest.UPGRADE, UpgradeRequest.WEBSOCKET);
-        checkForHeader(response.getFirstHeaderValue(UpgradeRequest.CONNECTION), UpgradeRequest.CONNECTION, UpgradeRequest.UPGRADE);
-
-//        if (!getSubProtocols().isEmpty()) {
-//            checkForHeader(response.getHeaders(), WebSocketEngine.SEC_WS_PROTOCOL_HEADER, WebSocketEngine.SEC_WS_PROTOCOL_HEADER);
-//        }
-
-        secKey.validateServerKey(response.getFirstHeaderValue(UpgradeResponse.SEC_WEBSOCKET_ACCEPT));
     }
 
     // server side
