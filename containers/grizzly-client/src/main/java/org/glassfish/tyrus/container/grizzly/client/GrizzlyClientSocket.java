@@ -338,6 +338,10 @@ public class GrizzlyClientSocket {
                 transportBuilder.setWorkerThreadPoolConfig(ThreadPoolConfig.defaultConfig());
             } else {
                 transportBuilder.setSelectorThreadPoolConfig(ThreadPoolConfig.defaultConfig().setMaxPoolSize(1).setCorePoolSize(1));
+                TCPNIOTransport transport = transportBuilder.build();
+                // TODO: remove once setSelectorRunnersCount is in builder
+                transport.setSelectorRunnersCount(1);
+                return transport;
             }
         } else {
             transportBuilder.setSelectorThreadPoolConfig(selectorThreadPoolConfig);
