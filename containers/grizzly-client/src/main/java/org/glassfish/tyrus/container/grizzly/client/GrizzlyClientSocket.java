@@ -176,7 +176,7 @@ public class GrizzlyClientSocket {
         this.timeoutMs = timeoutMs;
         this.proxyHeaders = getProxyHeaders(properties);
 
-        SSLEngineConfigurator sslEngineConfigurator = (properties == null ? null : (SSLEngineConfigurator) properties.get(GrizzlyClientContainer.SSL_ENGINE_CONFIGURATOR));
+        SSLEngineConfigurator sslEngineConfigurator = (SSLEngineConfigurator) properties.get(GrizzlyClientContainer.SSL_ENGINE_CONFIGURATOR);
         // if we are trying to access "wss" scheme and we don't have sslEngineConfigurator instance
         // we should try to create ssl connection using JVM properties.
         if (uri.getScheme().equalsIgnoreCase("wss") && sslEngineConfigurator == null) {
