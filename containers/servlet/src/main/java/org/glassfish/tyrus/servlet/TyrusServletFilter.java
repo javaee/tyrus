@@ -221,6 +221,7 @@ class TyrusServletFilter implements Filter, HttpSessionListener {
                         }
                     })
                     .parameterMap(httpServletRequest.getParameterMap())
+                    .remoteAddr(httpServletRequest.getRemoteAddr())
                     .build();
 
             Enumeration<String> headerNames = httpServletRequest.getHeaderNames();

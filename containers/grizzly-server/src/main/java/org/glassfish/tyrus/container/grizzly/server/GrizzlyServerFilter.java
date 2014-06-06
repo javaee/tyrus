@@ -301,6 +301,7 @@ class GrizzlyServerFilter extends BaseFilter {
                 .requestURI(URI.create(requestPacket.getRequestURI()))
                 .queryString(requestPacket.getQueryString())
                 .secure(requestPacket.isSecure())
+                .remoteAddr(requestPacket.getRemoteAddress())
                 .build();
 
         for (String name : requestPacket.getHeaders().names()) {

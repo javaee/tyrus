@@ -50,9 +50,9 @@
     </parent>
 
     <packaging>war</packaging>
-    <artifactId>tyrus-tests-servlet-maxsessions</artifactId>
+    <artifactId>tyrus-tests-servlet-maxsessions-per-remoteaddr</artifactId>
 
-    <name>Tyrus Servlet Max Session Tests</name>
+    <name>Tyrus Servlet Max Sessions Per Remote Address Tests</name>
 
     <dependencies>
         <dependency>

@@ -97,14 +97,24 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
     public static final String INCOMING_BUFFER_SIZE = "org.glassfish.tyrus.incomingBufferSize";
 
     /**
-     * Maximum number of open sessions on server application.
+     * Maximum number of open sessions per server application.
      * <p/>
-     * The value must be {@link java.lang.Integer} or its primitive alternative.
+     * The value must be positive {@link java.lang.Integer} or its primitive alternative. Negative value
+     * and zero are ignored.
      * <p/>
-     * Default value is undefined, which means that TyrusWebSocketEngine do not limit
-     * number of sessions.
+     * By default TyrusWebSocketEngine does not limit the number of open sessions per application.
      */
-    public static final String MAX_SESSIONS = "org.glassfish.tyrus.maxSessionsPerApp";
+    public static final String MAX_SESSIONS_PER_APP = "org.glassfish.tyrus.maxSessionsPerApp";
+
+    /**
+     * Maximum number of open sessions per unique remote address.
+     * <p/>
+     * The value must be positive {@link java.lang.Integer} or its primitive alternative. Negative value
+     * and zero are ignored.
+     * <p/>
+     * By default TyrusWebSocketEngine does not limit the number of open sessions per remote address.
+     */
+    public static final String MAX_SESSIONS_PER_REMOTE_ADDR = "org.glassfish.tyrus.maxSessionsPerRemoteAddr";
 
     /**
      * Wsadl support.
@@ -158,11 +168,12 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
      *                                 than this number. If null, default value will be used).
      * @param clusterContext           cluster context instance. {@code null} indicates standalone mode.
      * @param applicationEventListener listener used to collect monitored events.
-     * @param maxSessions              maximal number of open sessions per application. If {@code null}, no limit is applied.
+     * @param maxSessionsPerApp        maximal number of open sessions per application. If {@code null}, no limit is applied.
+     * @param maxSessionsPerRemoteAddr maximal number of open sessions per remote address. If {@code null}, no limit is applied.
      */
     private TyrusWebSocketEngine(WebSocketContainer webSocketContainer, Integer incomingBufferSize,
                                  ClusterContext clusterContext, ApplicationEventListener applicationEventListener,
-                                 final Integer maxSessions) {
+                                 final Integer maxSessionsPerApp, final Integer maxSessionsPerRemoteAddr) {
         if (incomingBufferSize != null) {
             this.incomingBufferSize = incomingBufferSize;
         }
@@ -174,28 +185,59 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
         } else {
             this.applicationEventListener = applicationEventListener;
         }
-        this.sessionListener = maxSessions == null ? NO_OP_SESSION_LISTENER : new TyrusEndpointWrapper.SessionListener() {
+        this.sessionListener = maxSessionsPerApp == null && maxSessionsPerRemoteAddr == null ?
+                NO_OP_SESSION_LISTENER : new TyrusEndpointWrapper.SessionListener() {
             // Implementation of {@link org.glassfish.tyrus.core.TyrusEndpointWrapper.SessionListener} counting
             // sessions.
 
-            private AtomicInteger counter = new AtomicInteger(0);
+            // limit per application counter
+            private final AtomicInteger counter = new AtomicInteger(0);
+
+            // limit per remote address counter
+            private final Map<String, AtomicInteger> remoteAddressCounters = new HashMap<String, AtomicInteger>();
 
             @Override
-            public boolean onOpen() {
-                if (hasAvailableSession()) {
-                    counter.incrementAndGet();
-                    return true;
+            public OnOpenResult onOpen(final TyrusSession session) {
+                if (maxSessionsPerApp != null) {
+                    synchronized (counter) {
+                        if (counter.get() >= maxSessionsPerApp) {
+                            return OnOpenResult.MAX_SESSIONS_PER_APP_EXCEEDED;
+                        } else {
+                            counter.incrementAndGet();
+                        }
+                    }
                 }
-                return false;
+
+                if (maxSessionsPerRemoteAddr != null) {
+                    synchronized (remoteAddressCounters) {
+                        AtomicInteger remoteAddressCounter = remoteAddressCounters.get(session.getRemoteAddr());
+                        if (remoteAddressCounter == null) {
+                            remoteAddressCounter = new AtomicInteger(1);
+                            remoteAddressCounters.put(session.getRemoteAddr(), remoteAddressCounter);
+                        } else if (remoteAddressCounter.get() >= maxSessionsPerRemoteAddr) {
+                            return OnOpenResult.MAX_SESSIONS_PER_REMOTE_ADDR_EXCEEDED;
+                        } else {
+                            remoteAddressCounter.incrementAndGet();
+                        }
+                    }
+                }
+
+                return OnOpenResult.SESSION_ALLOWED;
             }
 
             @Override
-            public void onClose(CloseReason closeReason) {
-                counter.decrementAndGet();
-            }
-
-            private boolean hasAvailableSession() {
-                return counter.get() < maxSessions;
+            public void onClose(final TyrusSession session, final CloseReason closeReason) {
+                if (maxSessionsPerApp != null) {
+                    counter.decrementAndGet();
+                }
+                if (maxSessionsPerRemoteAddr != null) {
+                    synchronized (remoteAddressCounters) {
+                        int remoteAddressCounter = remoteAddressCounters.get(session.getRemoteAddr()).decrementAndGet();
+                        if (remoteAddressCounter == 0) {
+                            remoteAddressCounters.remove(session.getRemoteAddr());
+                        }
+                    }
+                }
             }
         };
     }
@@ -612,7 +654,8 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
         private Integer incomingBufferSize = null;
         private ClusterContext clusterContext = null;
         private ApplicationEventListener applicationEventListener = null;
-        private Integer maxSessions = null;
+        private Integer maxSessionsPerApp = null;
+        private Integer maxSessionsPerRemoteAddr = null;
 
         /**
          * Create new {@link org.glassfish.tyrus.core.TyrusWebSocketEngine} instance with
@@ -621,8 +664,23 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
          * @return new {@link org.glassfish.tyrus.core.TyrusWebSocketEngine} instance.
          */
         public TyrusWebSocketEngine build() {
+            if (maxSessionsPerApp != null && maxSessionsPerApp <= 0) {
+                LOGGER.log(Level.CONFIG, "Invalid configuration value " + MAX_SESSIONS_PER_APP + " (" + maxSessionsPerApp + "), expected value greater than 0");
+                maxSessionsPerApp = null;
+            }
+
+            if (maxSessionsPerRemoteAddr != null && maxSessionsPerRemoteAddr <= 0) {
+                LOGGER.log(Level.CONFIG, "Invalid configuration value " + MAX_SESSIONS_PER_REMOTE_ADDR + " (" + maxSessionsPerRemoteAddr + "), expected value greater than 0");
+                maxSessionsPerRemoteAddr = null;
+            }
+
+            if (maxSessionsPerApp != null && maxSessionsPerRemoteAddr != null && maxSessionsPerApp < maxSessionsPerRemoteAddr) {
+                LOGGER.log(Level.FINE, String.format("Invalid configuration - value %s (%d) cannot be greater then %s (%d)",
+                        MAX_SESSIONS_PER_REMOTE_ADDR, maxSessionsPerRemoteAddr, MAX_SESSIONS_PER_APP, maxSessionsPerApp));
+            }
+
             return new TyrusWebSocketEngine(webSocketContainer, incomingBufferSize, clusterContext,
-                    applicationEventListener, maxSessions);
+                    applicationEventListener, maxSessionsPerApp, maxSessionsPerRemoteAddr);
         }
 
         TyrusWebSocketEngineBuilder(WebSocketContainer webSocketContainer) {
@@ -674,13 +732,25 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
         }
 
         /**
-         * Set maximal number of open sessions on server application.
+         * Set maximal number of open sessions per server application.
          *
-         * @param maxSessions maximal number of open sessions. If {@code null}, no limit is applied.
+         * @param maxSessionsPerApp maximal number of open sessions. If {@code null}, no limit is applied.
          * @return updated builder.
          */
-        public TyrusWebSocketEngineBuilder maxSessions(Integer maxSessions) {
-            this.maxSessions = maxSessions;
+        public TyrusWebSocketEngineBuilder maxSessionsPerApp(Integer maxSessionsPerApp) {
+            this.maxSessionsPerApp = maxSessionsPerApp;
+            return this;
+        }
+
+        /**
+         * Set maximal number of open sessions from remote address.
+         *
+         * @param maxSessionsPerRemoteAddr maximal number of open sessions from remote address.
+         *                                 If {@code null}, no limit is applied.
+         * @return updated builder.
+         */
+        public TyrusWebSocketEngineBuilder maxSessionsPerRemoteAddr(Integer maxSessionsPerRemoteAddr) {
+            this.maxSessionsPerRemoteAddr = maxSessionsPerRemoteAddr;
             return this;
         }
     }

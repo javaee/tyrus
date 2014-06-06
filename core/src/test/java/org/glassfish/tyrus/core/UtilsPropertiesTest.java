@@ -44,6 +44,7 @@ import java.util.Map;
 
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 /**
  * Tests {@link org.glassfish.tyrus.core.Utils} properties methods.
@@ -61,6 +62,7 @@ public class UtilsPropertiesTest {
         properties.put("BooleanAsString", "true");
         properties.put("Long", new Long(1));
         properties.put("LongAsString", "1");
+        properties.put("SomeString", "Some string");
     }
 
     @Test
@@ -85,6 +87,12 @@ public class UtilsPropertiesTest {
         assertEquals(properties.get("Boolean"), Utils.getProperty(properties, "BooleanAsString", Boolean.class));
         assertEquals(properties.get("Boolean"), Utils.getProperty(properties, "Integer", Boolean.class));
         assertEquals(properties.get("Boolean"), Utils.getProperty(properties, "IntegerAsString", Boolean.class));
+    }
+
+    @Test
+    public void testUnassignableValues() {
+        assertNull(Utils.getProperty(properties, "SomeString", Integer.class));
+        assertNull(Utils.getProperty(properties, "SomeString", Long.class));
     }
 
 }

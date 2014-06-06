@@ -106,6 +106,7 @@ public class TyrusSession implements Session {
     private final BinaryBuffer binaryBuffer = new BinaryBuffer();
     private final List<Extension> negotiatedExtensions;
     private final String negotiatedSubprotocol;
+    private final String remoteAddr;
 
     private final Map<ClusterSession.DistributedMapKey, Object> distributedPropertyMap;
 
@@ -123,7 +124,7 @@ public class TyrusSession implements Session {
                  String subprotocol, List<Extension> extensions, boolean isSecure,
                  URI requestURI, String queryString, Map<String, String> pathParameters, Principal principal,
                  Map<String, List<String>> requestParameterMap, final ClusterContext clusterContext,
-                 String connectionId) {
+                 String connectionId, final String remoteAddr) {
         this.container = container;
         this.endpointWrapper = endpointWrapper;
         this.negotiatedExtensions = extensions == null ? Collections.<Extension>emptyList() : Collections.unmodifiableList(extensions);
@@ -138,6 +139,7 @@ public class TyrusSession implements Session {
         this.userPrincipal = principal;
         this.requestParameterMap = requestParameterMap == null ? Collections.<String, List<String>>emptyMap() : Collections.unmodifiableMap(new HashMap<String, List<String>>(requestParameterMap));
         this.connectionId = connectionId;
+        this.remoteAddr = remoteAddr;
 
         if (container != null) {
             maxTextMessageBufferSize = container.getDefaultMaxTextMessageBufferSize();
@@ -669,6 +671,16 @@ public class TyrusSession implements Session {
         state.compareAndSet(State.RUNNING, State.CLOSED);
         state.compareAndSet(State.RECEIVING_BINARY, State.CLOSED);
         state.compareAndSet(State.RECEIVING_TEXT, State.CLOSED);
+    }
+
+    /**
+     * Get the Internet Protocol (IP) address of the client or last proxy that sent the request.
+     *
+     * @return a {@link String} containing the IP address of the client that sent the request or {@code null} when
+     * method is called on client-side
+     */
+    public String getRemoteAddr() {
+        return remoteAddr;
     }
 
     /**

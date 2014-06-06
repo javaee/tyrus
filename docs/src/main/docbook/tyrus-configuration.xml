@@ -688,42 +688,133 @@ client.connectToServer(...)</programlisting>
     </section>
     <section>
         <title>Maximal number of open sessions on server-side</title>
-        <para>Can be useful to limit number of open sessions on server-side. When limit is exceeded onClose method
-            is invoked on client-side with close reason code 1013 - Try Again Later.</para>
+        <para>
+            It can be useful to limit number of open sessions to save limited resources on a server hosting system.
+            Tyrus offers a few ways to limit the number of open sessions. The limits can be configured on different
+            "scope" or "domain".
+        </para>
+        <itemizedlist>
+            <listitem>
+                <simpara>per whole application</simpara>
+            </listitem>
+            <listitem>
+                <simpara>per endpoint</simpara>
+            </listitem>
+            <listitem>
+                <simpara>per remote address (client IP address[ or IP of the last proxy!])</simpara>
+            </listitem>
+        </itemizedlist>
+        <para>
+            If number of simultaneously open sessions exceeds any of these limits Tyrus server will close the session
+            with reason code 1013 - Try Again Later.
+        </para>
+        <para>
+            All types of the session limit mentioned above can be combined together. For example, let's say we want
+            an application with two endpoints. Overall limit per application will be 1000 open sessions and the first
+            one, non-critical endpoint, will be limited to 75 open sessions at maximum. So we might be sure the second
+            endpoint would serve up to 925-1000 sessions simultaneously, depends on how many open sessions keeps
+            the first endpoint (0-75).
+        </para>
+        <para>
+            Note that only positive integer numbers are expected as the means of these limits implies. Otherwise,
+            the value will be ignored and the limit will not be applied.
+        </para>
 
         <section>
-            <title>Per application</title>
+            <title>Maximal number of open sessions per application</title>
 
-            <para>web.xml</para>
+            <para>
+                This configuration property can be used to limit overall number of open sessions per whole application.
+                The main purpose of this configurable limit is to restrict how many resources the application can
+                consume.
+            </para>
 
-            <programlisting language="xml"><![CDATA[
-<web-app version="2.5" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+            <para>
+                The number of open sessions per whole application can be configured with property
+                <code>org.glassfish.tyrus.maxSessionsPerApp</code>. If the application is packaged in WAR, property can
+                be defined in <code>web.xml</code> as a <code><![CDATA[<context-param>]]></code>. Otherwise, start
+                standalone Tyrus server with <code>org.glassfish.tyrus.maxSessionsPerApp</code> property.
+            </para>
+            <para>
+                Note that only positive integer is allowed.
+            </para>
+
+            <para>Example configuration in web.xml</para>
+
+            <para>This example will set maximal number of open sessions per whole application to 500</para>
+
+            <programlisting language="xml" linenumbering="unnumbered">
+<![CDATA[
+<web-app version="2.5" xmlns="http://java.sun.com/xml/ns/javaee"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
-
     <context-param>
         <param-name>org.glassfish.tyrus.maxSessionsPerApp</param-name>
         <param-value>500</param-value>
     </context-param>
 </web-app>
-            ]]></programlisting>
-
-            <para>Or start server manually with <code>org.glassfish.tyrus.maxSessionsPerApp</code> property</para>
+]]>
+            </programlisting>
 
         </section>
 
         <section>
-            <title>Per endpoint</title>
+            <title>Maximal number of open sessions per remote address</title>
 
-            <para>There are two ways in Tyrus to specify maximum number of open sessions per endpoint.</para>
+            <para>
+                This configuration property can be used to limit a number of open sessions from every IP address of
+                the client or last proxy. The limit is specified as how many sessions is available for every unique
+                remote address. <code>Remote address</code> value is obtained from
+                <link xlink:href="http://docs.oracle.com/javaee/6/api/javax/servlet/ServletRequest.html#getRemoteAddr()">
+                ServletRequest#getRemoteAddr()</link>. If your server application is deployed as a WAR, add
+                <code>org.glassfish.tyrus.maxSessionsPerRemoteAddr</code> property as a parameter into
+                <code>web.xml</code> configuration. Otherwise start standalone Tyrus server with
+                <code>org.glassfish.tyrus.maxSessionsPerRemoteAddr</code> property.
+                Note that the only positive integer is allowed.
+            </para>
+            <para>
+                Note that only positive integer is allowed.
+            </para>
 
-            <para>Set maximum number of sessions via Builder
+            <para>Example configuration in web.xml</para>
+
+            <para>This example will set maximal number of open sessions from unique IP address or last proxy to 5</para>
+
+            <programlisting language="xml" linenumbering="unnumbered">
+<![CDATA[
+<web-app version="2.5" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
+    <context-param>
+        <param-name>org.glassfish.tyrus.maxSessionsPerRemoteAddr</param-name>
+        <param-value>5</param-value>
+    </context-param>
+</web-app>
+]]>
+            </programlisting>
+
+        </section>
+
+        <section>
+            <title>Maximal number of open sessions per endpoint</title>
+
+            <para>
+                There are two ways to define endpoints, programmatically and declaratively. In both cases we can
+                specify the maximum number of open sessions per specific server endpoint.
+            </para>
+            <para>
+                Note that only positive integer is allowed.
+            </para>
+            <para>
+                Set maximum number of sessions via Builder for programmatically defined endpoint:
                 <programlisting language="java" linenumbering="numbered">
-                    TyrusServerEndpointConfig.Builder.create(LimitedSessionsEndpoint.class, "/max-sessions").maxSessions(100).build();
+                    TyrusServerEndpointConfig.Builder.create(LimitedSessionsEndpoint.class, "/limited-sessions-endpoint").maxSessions(100).build();
                 </programlisting>
             </para>
 
-            <para>Set maximum number of sessions in the annotation
-                <programlisting language="java" linenumbering="numbered"><![CDATA[
+            <para>
+                Set maximum number of sessions in the annotation for declaratively defined endpoint:
+                <programlisting language="java" linenumbering="numbered">
+<![CDATA[
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
@@ -734,7 +825,7 @@ import org.glassfish.tyrus.core.MaxSessions;
  * Annotated endpoint.
  */
 @MaxSessions(100)
-@ServerEndpoint(value = "/annotated")
+@ServerEndpoint(value = "/limited-sessions-endpoint")
 public static class LimitedSessionsEndpoint {
     @OnOpen
     public void onOpen(Session s) {
@@ -744,10 +835,8 @@ public static class LimitedSessionsEndpoint {
 }]]>
                 </programlisting>
             </para>
-
-            <para><emphasis>Note that closure of session due the session limit never invokes any method of
-                <code>javax.websocket.Endpoint</code> on server-side</emphasis></para>
         </section>
+
     </section>
 
 

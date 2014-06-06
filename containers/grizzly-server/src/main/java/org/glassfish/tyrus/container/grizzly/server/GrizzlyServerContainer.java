@@ -111,13 +111,18 @@ public class GrizzlyServerContainer extends ServerContainerFactory {
         final Integer incomingBufferSize = Utils.getProperty(localProperties, TyrusWebSocketEngine.INCOMING_BUFFER_SIZE, Integer.class);
         final ClusterContext clusterContext = Utils.getProperty(localProperties, ClusterContext.CLUSTER_CONTEXT, ClusterContext.class);
         final ApplicationEventListener applicationEventListener = Utils.getProperty(localProperties, ApplicationEventListener.APPLICATION_EVENT_LISTENER, ApplicationEventListener.class);
-        final Integer maxSessions = Utils.getProperty(localProperties, TyrusWebSocketEngine.MAX_SESSIONS, Integer.class);
+        final Integer maxSessionsPerApp = Utils.getProperty(localProperties, TyrusWebSocketEngine.MAX_SESSIONS_PER_APP, Integer.class);
+        final Integer maxSessionsPerRemoteAddr = Utils.getProperty(localProperties, TyrusWebSocketEngine.MAX_SESSIONS_PER_REMOTE_ADDR, Integer.class);
 
         return new TyrusServerContainer((Set<Class<?>>) null) {
 
             private final WebSocketEngine engine = TyrusWebSocketEngine.builder(this)
-                    .incomingBufferSize(incomingBufferSize).clusterContext(clusterContext)
-                    .applicationEventListener(applicationEventListener).maxSessions(maxSessions).build();
+                    .incomingBufferSize(incomingBufferSize)
+                    .clusterContext(clusterContext)
+                    .applicationEventListener(applicationEventListener)
+                    .maxSessionsPerApp(maxSessionsPerApp)
+                    .maxSessionsPerRemoteAddr(maxSessionsPerRemoteAddr)
+                    .build();
 
             private HttpServer server;
             private String contextPath;
@@ -189,7 +194,7 @@ public class GrizzlyServerContainer extends ServerContainerFactory {
                     config.addHttpHandler(staticHandler);
                 }
 
-                if(applicationEventListener != null) {
+                if (applicationEventListener != null) {
                     applicationEventListener.onApplicationInitialized(rootPath);
                 }
 
@@ -201,7 +206,7 @@ public class GrizzlyServerContainer extends ServerContainerFactory {
             public void stop() {
                 super.stop();
                 server.shutdownNow();
-                if(applicationEventListener != null) {
+                if (applicationEventListener != null) {
                     applicationEventListener.onApplicationDestroyed();
                 }
             }

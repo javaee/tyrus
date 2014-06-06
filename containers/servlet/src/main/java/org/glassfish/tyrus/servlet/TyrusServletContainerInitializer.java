@@ -91,29 +91,56 @@ public class TyrusServletContainerInitializer implements ServletContainerInitial
 
         classes.removeAll(FILTERED_CLASSES);
 
-        final Integer incommingBufferSize;
+        Integer incommingBufferSize;
         String incommingBufferSiteStr = ctx.getInitParameter(TyrusHttpUpgradeHandler.FRAME_BUFFER_SIZE);
         if (incommingBufferSiteStr != null) {
-            incommingBufferSize = Integer.parseInt(incommingBufferSiteStr);
+            try {
+                incommingBufferSize = Integer.parseInt(incommingBufferSiteStr);
+            } catch (NumberFormatException e) {
+                LOGGER.log(Level.CONFIG, "Invalid configuration value [" + TyrusHttpUpgradeHandler.FRAME_BUFFER_SIZE + " = " + incommingBufferSiteStr + "], integer expected");
+                incommingBufferSize = null;
+            }
         } else {
             incommingBufferSize = null;
         }
 
-        final Integer maxSessions;
-        String maxSessionsStr = ctx.getInitParameter(TyrusWebSocketEngine.MAX_SESSIONS);
-        if (maxSessionsStr != null) {
-            maxSessions = Integer.parseInt(maxSessionsStr);
+        Integer maxSessionsPerApp;
+        String maxSessionsPerStr = ctx.getInitParameter(TyrusWebSocketEngine.MAX_SESSIONS_PER_APP);
+        if (maxSessionsPerStr != null) {
+            try {
+                maxSessionsPerApp = Integer.parseInt(maxSessionsPerStr);
+            } catch (NumberFormatException e) {
+                LOGGER.log(Level.CONFIG, "Invalid configuration value [" + TyrusWebSocketEngine.MAX_SESSIONS_PER_APP + " = " + maxSessionsPerStr + "], integer expected");
+                maxSessionsPerApp = null;
+            }
         } else {
-            maxSessions = null;
+            maxSessionsPerApp = null;
+        }
+
+        Integer maxSessionsPerRemoteAddr;
+        String maxSessionsPerRemoteAddrStr = ctx.getInitParameter(TyrusWebSocketEngine.MAX_SESSIONS_PER_REMOTE_ADDR);
+        if (maxSessionsPerRemoteAddrStr != null) {
+            try {
+                maxSessionsPerRemoteAddr = Integer.parseInt(maxSessionsPerRemoteAddrStr);
+            } catch (NumberFormatException e) {
+                LOGGER.log(Level.CONFIG, "Invalid configuration value [" + TyrusWebSocketEngine.MAX_SESSIONS_PER_REMOTE_ADDR + " = " + maxSessionsPerRemoteAddrStr + "], integer expected");
+                maxSessionsPerRemoteAddr = null;
+            }
+        } else {
+            maxSessionsPerRemoteAddr = null;
         }
 
         final ApplicationEventListener applicationEventListener = createApplicationEventListener(ctx);
+        final Integer finalIncommingBufferSize = incommingBufferSize;
+        final Integer finalMaxSessionsPerApp = maxSessionsPerApp;
+        final Integer finalMaxSessionsPerRemoteAddr = maxSessionsPerRemoteAddr;
         final TyrusServerContainer serverContainer = new TyrusServerContainer(classes) {
 
             private final WebSocketEngine engine = TyrusWebSocketEngine.builder(this)
                     .applicationEventListener(applicationEventListener)
-                    .incomingBufferSize(incommingBufferSize)
-                    .maxSessions(maxSessions)
+                    .incomingBufferSize(finalIncommingBufferSize)
+                    .maxSessionsPerApp(finalMaxSessionsPerApp)
+                    .maxSessionsPerRemoteAddr(finalMaxSessionsPerRemoteAddr)
                     .build();
 
             @Override

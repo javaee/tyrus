@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -64,6 +64,7 @@ public final class RequestContext extends UpgradeRequest {
     private final boolean secure;
     private final Principal userPrincipal;
     private final Builder.IsUserInRoleDelegate isUserInRoleDelegate;
+    private final String remoteAddr;
 
     private Map<String, List<String>> headers = new TreeMap<String, List<String>>(new Comparator<String>() {
         @Override
@@ -76,13 +77,15 @@ public final class RequestContext extends UpgradeRequest {
 
     private RequestContext(URI requestURI, String queryString,
                            Object httpSession, boolean secure, Principal userPrincipal,
-                           Builder.IsUserInRoleDelegate IsUserInRoleDelegate, Map<String, List<String>> parameterMap) {
+                           Builder.IsUserInRoleDelegate IsUserInRoleDelegate, String remoteAddr,
+                           Map<String, List<String>> parameterMap) {
         this.requestURI = requestURI;
         this.queryString = queryString;
         this.httpSession = httpSession;
         this.secure = secure;
         this.userPrincipal = userPrincipal;
         this.isUserInRoleDelegate = IsUserInRoleDelegate;
+        this.remoteAddr = remoteAddr;
         this.parameterMap = parameterMap;
     }
 
@@ -176,6 +179,16 @@ public final class RequestContext extends UpgradeRequest {
     }
 
     /**
+     * Get the Internet Protocol (IP) address of the client or last proxy that sent the request.
+     *
+     * @return a {@link String} containing the IP address of the client that sent the request or {@code null} when
+     * method is called on client-side
+     */
+    public String getRemoteAddr() {
+        return remoteAddr;
+    }
+
+    /**
      * {@link RequestContext} builder.
      */
     public static final class Builder {
@@ -187,6 +200,7 @@ public final class RequestContext extends UpgradeRequest {
         private Principal userPrincipal;
         private Builder.IsUserInRoleDelegate isUserInRoleDelegate;
         private Map<String, List<String>> parameterMap;
+        private String remoteAddr;
 
         /**
          * Create empty builder.
@@ -283,6 +297,16 @@ public final class RequestContext extends UpgradeRequest {
             return this;
         }
 
+        /**
+         * Set remote address.
+         *
+         * @param remoteAddr remote address to be set.
+         * @return updated {@link RequestContext.Builder} instance.
+         */
+        public Builder remoteAddr(String remoteAddr) {
+            this.remoteAddr = remoteAddr;
+            return this;
+        }
 
         /**
          * Build {@link RequestContext} from given properties.
@@ -291,7 +315,7 @@ public final class RequestContext extends UpgradeRequest {
          */
         public RequestContext build() {
             return new RequestContext(requestURI, queryString, httpSession, secure,
-                    userPrincipal, isUserInRoleDelegate,
+                    userPrincipal, isUserInRoleDelegate, remoteAddr,
                     parameterMap != null ? parameterMap : new HashMap<String, List<String>>());
         }
 
@@ -310,7 +334,7 @@ public final class RequestContext extends UpgradeRequest {
              *
              * @param role a String specifying the name of the role.
              * @return a boolean indicating whether the user making this request belongs to a given role; false if the
-             *         user has not been authenticated.
+             * user has not been authenticated.
              */
             public boolean isUserInRole(String role);
         }

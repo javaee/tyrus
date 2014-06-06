@@ -45,6 +45,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.glassfish.tyrus.core.l10n.LocalizationMessages;
 
@@ -54,6 +56,9 @@ import org.glassfish.tyrus.core.l10n.LocalizationMessages;
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 public class Utils {
+
+    private static final Logger LOGGER = Logger.getLogger(Utils.class.getName());
+
 
     /**
      * Define to {@link String} conversion for various types.
@@ -356,22 +361,32 @@ public class Utils {
      * @param defaultValue value returned when record does not exist in supplied map.
      * @return typed value or {@code null} if property is not set or value is not assignable.
      */
-    public static <T> T getProperty(Map<String, Object> properties, String key, Class<T> type, T defaultValue) {
+    public static <T> T getProperty(final Map<String, Object> properties, final String key, final Class<T> type, final T defaultValue) {
         if (properties != null) {
             final Object o = properties.get(key);
             if (o != null) {
-                if (type.isAssignableFrom(o.getClass())) {
-                    //noinspection unchecked
-                    return (T) o;
-                } else if (type.equals(Integer.class)) {
-                    //noinspection unchecked
-                    return (T) Integer.valueOf(o.toString());
-                } else if (type.equals(Long.class)) {
-                    //noinspection unchecked
-                    return (T) Long.valueOf(o.toString());
-                } else if (type.equals(Boolean.class)) {
-                    //noinspection unchecked
-                    return (T) (Boolean) (o.toString().equals("1") || Boolean.valueOf(o.toString()));
+                try {
+                    if (type.isAssignableFrom(o.getClass())) {
+                        //noinspection unchecked
+                        return (T) o;
+                    } else if (type.equals(Integer.class)) {
+                        //noinspection unchecked
+                        return (T) Integer.valueOf(o.toString());
+                    } else if (type.equals(Long.class)) {
+                        //noinspection unchecked
+                        return (T) Long.valueOf(o.toString());
+                    } else if (type.equals(Boolean.class)) {
+                        //noinspection unchecked
+                        return (T) (Boolean) (o.toString().equals("1") || Boolean.valueOf(o.toString()));
+                    } else {
+                        return null;
+                    }
+                } catch (final Throwable t) {
+                    LOGGER.log(Level.CONFIG,
+                            String.format("Invalid type of configuration property of %s (%s), %s cannot be cast to %s",
+                                    key, o.toString(), o.getClass().toString(), type.toString())
+                    );
+                    return null;
                 }
             }
         }

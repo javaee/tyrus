@@ -542,7 +542,7 @@ public class TyrusEndpointWrapper {
      */
     public Session createSessionForRemoteEndpoint(TyrusWebSocket socket, String subprotocol, List<Extension> extensions) {
         final TyrusSession session = new TyrusSession(container, socket, this, subprotocol, extensions, false,
-                getURI(contextPath, null), null, Collections.<String, String>emptyMap(), null, Collections.<String, List<String>>emptyMap(), null, null);
+                getURI(contextPath, null), null, Collections.<String, String>emptyMap(), null, Collections.<String, List<String>>emptyMap(), null, null, null);
         webSocketToSession.put(socket, session);
         return session;
     }
@@ -574,25 +574,36 @@ public class TyrusEndpointWrapper {
             session = new TyrusSession(container, socket, this, subProtocol, extensions, upgradeRequest.isSecure(),
                     getURI(upgradeRequest.getRequestURI().toString(), upgradeRequest.getQueryString()),
                     upgradeRequest.getQueryString(), templateValues, upgradeRequest.getUserPrincipal(),
-                    upgradeRequest.getParameterMap(), clusterContext, connectionId);
+                    upgradeRequest.getParameterMap(), clusterContext, connectionId,
+                    ((RequestContext) upgradeRequest).getRemoteAddr());
             webSocketToSession.put(socket, session);
-
 
             // max open session per endpoint exceeded?
             boolean maxSessionPerEndpointExceeded = configuration instanceof TyrusServerEndpointConfig &&
                     ((TyrusServerEndpointConfig) configuration).getMaxSessions() > 0 &&
                     webSocketToSession.size() > ((TyrusServerEndpointConfig) configuration).getMaxSessions();
 
+            SessionListener.OnOpenResult onOpenResult = sessionListener.onOpen(session);
+
             // test max open sessions per endpoint and per application
-            if (maxSessionPerEndpointExceeded || !sessionListener.onOpen()) {
+            if (maxSessionPerEndpointExceeded || !onOpenResult.equals(SessionListener.OnOpenResult.SESSION_ALLOWED)) {
                 try {
                     webSocketToSession.remove(socket);
-                    String refuseDetail;
+                    String refuseDetail = "";
+
                     if (maxSessionPerEndpointExceeded) {
                         refuseDetail = LocalizationMessages.MAX_SESSIONS_PER_ENDPOINT_EXCEEDED();
                     } else {
-                        refuseDetail = LocalizationMessages.MAX_SESSIONS_PER_APP_EXCEEDED();
+                        switch (onOpenResult) {
+                            case MAX_SESSIONS_PER_APP_EXCEEDED:
+                                refuseDetail = LocalizationMessages.MAX_SESSIONS_PER_APP_EXCEEDED();
+                                break;
+                            case MAX_SESSIONS_PER_REMOTE_ADDR_EXCEEDED:
+                                refuseDetail = LocalizationMessages.MAX_SESSIONS_PER_REMOTEADDR_EXCEEDED();
+                                break;
+                        }
                     }
+
                     LOGGER.log(Level.FINE, "Session opening refused: " + refuseDetail);
                     session.close(new CloseReason(CloseReason.CloseCodes.TRY_AGAIN_LATER, refuseDetail));
                 } catch (IOException e) {
@@ -618,7 +629,7 @@ public class TyrusEndpointWrapper {
                 LOGGER.log(Level.FINE, t.getMessage(), t);
             }
             webSocketToSession.remove(socket);
-            sessionListener.onClose(CloseReasons.UNEXPECTED_CONDITION.getCloseReason());
+            sessionListener.onClose(session, CloseReasons.UNEXPECTED_CONDITION.getCloseReason());
             try {
                 session.close(CloseReasons.UNEXPECTED_CONDITION.getCloseReason());
             } catch (IOException e) {
@@ -1095,7 +1106,7 @@ public class TyrusEndpointWrapper {
             webSocketToSession.remove(socket);
             endpointEventListener.onSessionClosed(session.getId());
             componentProvider.removeSession(session);
-            sessionListener.onClose(closeReason);
+            sessionListener.onClose(session, closeReason);
         }
     }
 
@@ -1367,15 +1378,38 @@ public class TyrusEndpointWrapper {
     public abstract static class SessionListener {
 
         /**
+         * Result of {@link org.glassfish.tyrus.core.TyrusEndpointWrapper.SessionListener#onOpen(TyrusSession)}.
+         */
+        public enum OnOpenResult {
+
+            /**
+             * Session can be open.
+             */
+            SESSION_ALLOWED,
+
+            /**
+             * Session cannot be open - the maximal number of open session per application exceeded.
+             */
+            MAX_SESSIONS_PER_APP_EXCEEDED,
+
+            /**
+             * Session cannot be open - the maximal number of open session per remote address exceeded.
+             */
+            MAX_SESSIONS_PER_REMOTE_ADDR_EXCEEDED
+        }
+
+        /**
          * Invoked before {@link javax.websocket.OnOpen} annotated method
          * or {@link Endpoint#onOpen(javax.websocket.Session, javax.websocket.EndpointConfig)} is invoked.
          * <p/>
-         * Default implementation always returns {@code true}.
+         * Default implementation always returns {@link org.glassfish.tyrus.core.TyrusEndpointWrapper.SessionListener.OnOpenResult#SESSION_ALLOWED}.
          *
-         * @return {@code true} if session can be opened or {@code false} if not.
+         * @param session current session object.
+         * @return {@link org.glassfish.tyrus.core.TyrusEndpointWrapper.SessionListener.OnOpenResult#SESSION_ALLOWED}
+         * if session can be opened or reason why not.
          */
-        public boolean onOpen() {
-            return true;
+        public OnOpenResult onOpen(final TyrusSession session) {
+            return OnOpenResult.SESSION_ALLOWED;
         }
 
         /**
@@ -1384,7 +1418,7 @@ public class TyrusEndpointWrapper {
          *
          * @param closeReason close reason.
          */
-        public void onClose(CloseReason closeReason) {
+        public void onClose(final TyrusSession session, final CloseReason closeReason) {
         }
     }
 }

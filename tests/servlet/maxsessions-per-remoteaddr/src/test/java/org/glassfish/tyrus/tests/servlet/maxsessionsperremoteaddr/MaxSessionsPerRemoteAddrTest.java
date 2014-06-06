@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.tests.servlet.maxsessions;
+package org.glassfish.tyrus.tests.servlet.maxsessionsperremoteaddr;
 
 import java.io.IOException;
 import java.net.URI;
@@ -72,15 +72,15 @@ import junit.framework.Assert;
  *
  * @author Ondrej Kosatka (ondrej.kosatka at oracle.com)
  */
-public class MaxSessionsAppTest extends TestContainer {
+public class MaxSessionsPerRemoteAddrTest extends TestContainer {
 
-    private static final String CONTEXT_PATH = "/max-sessions-per-app-test";
+    private static final String CONTEXT_PATH = "/max-sessions-per-remoteaddr-test";
 
     private static final int NUMBER_OF_ENDPOINTS = 3;
-    private static final int NUMBER_OF_CLIENTS_OVER_LIMIT = 3;
+    private static final int NUMBER_OF_CLIENTS_OVER_LIMIT = 7;
     private static final int NUMBER_OF_CLIENT_SESSIONS = ApplicationConfig.MAX_SESSIONS + NUMBER_OF_CLIENTS_OVER_LIMIT;
 
-    public MaxSessionsAppTest() {
+    public MaxSessionsPerRemoteAddrTest() {
         setContextPath(CONTEXT_PATH);
     }
 
@@ -96,7 +96,6 @@ public class MaxSessionsAppTest extends TestContainer {
         }
     }
 
-    //@Test
     public void maxSessions() throws DeploymentException, InterruptedException, IOException {
         final ClientManager client = createClient();
 
@@ -120,7 +119,7 @@ public class MaxSessionsAppTest extends TestContainer {
                     try {
                         session.getBasicRemote().sendText("Do or do not, there is no try.");
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        // session can be closed by server
                     }
                 }
 
@@ -181,16 +180,30 @@ public class MaxSessionsAppTest extends TestContainer {
     }
 
     @Test
+    public void maxSessionsSingle() throws DeploymentException, InterruptedException, IOException {
+        getServerProperties().put(TyrusWebSocketEngine.MAX_SESSIONS_PER_REMOTE_ADDR, ApplicationConfig.MAX_SESSIONS);
+
+        Server server = startServer(ServerDeployApplicationConfig.class);
+        try {
+            maxSessions();
+        } finally {
+            stopServer(server);
+        }
+    }
+
+    @Test
     public void maxSessionsDurable() throws DeploymentException, InterruptedException, IOException {
-        getServerProperties().put(TyrusWebSocketEngine.MAX_SESSIONS, ApplicationConfig.MAX_SESSIONS);
+        getServerProperties().put(TyrusWebSocketEngine.MAX_SESSIONS_PER_REMOTE_ADDR, ApplicationConfig.MAX_SESSIONS);
 
         Server server = startServer(ServerDeployApplicationConfig.class);
         try {
             for (int i = 0; i < 10; i++) {
                 maxSessions();
+                System.out.println("==================");
             }
         } finally {
             stopServer(server);
         }
     }
+
 }

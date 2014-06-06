@@ -53,7 +53,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
 import javax.websocket.ClientEndpoint;
@@ -72,6 +71,7 @@ import org.glassfish.tyrus.core.ErrorCollector;
 import org.glassfish.tyrus.core.ReflectionHelper;
 import org.glassfish.tyrus.core.TyrusEndpointWrapper;
 import org.glassfish.tyrus.core.TyrusFuture;
+import org.glassfish.tyrus.core.TyrusSession;
 import org.glassfish.tyrus.core.Utils;
 import org.glassfish.tyrus.spi.ClientContainer;
 import org.glassfish.tyrus.spi.ClientEngine;
@@ -527,7 +527,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                                         webSocketContainer == null ? ClientManager.this : webSocketContainer, url, null, new TyrusEndpointWrapper.SessionListener() {
 
                                     @Override
-                                    public void onClose(CloseReason closeReason) {
+                                    public void onClose(TyrusSession session, CloseReason closeReason) {
                                         if (reconnectHandler.onDisconnect(closeReason)) {
                                             try {
                                                 run();
