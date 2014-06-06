@@ -41,6 +41,7 @@ package org.glassfish.tyrus.ext.monitoring.jmx;
 
 
 import java.beans.ConstructorProperties;
+import java.io.Serializable;
 
 /**
  * Path and class name of an endpoint exposed by JMX.
@@ -48,7 +49,9 @@ import java.beans.ConstructorProperties;
  * @author Petr Janouch (petr.janouch at oracle.com)
  * @see {@link org.glassfish.tyrus.core.monitoring.ApplicationEventListener}.
  */
-public class EndpointClassNamePathPair {
+public class EndpointClassNamePathPair implements Serializable {
+
+    private static final long serialVersionUID = -4603130812747865355L;
 
     private final String endpointPath;
     private final String endpointClassName;

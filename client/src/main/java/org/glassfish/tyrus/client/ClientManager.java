@@ -73,6 +73,7 @@ import org.glassfish.tyrus.core.TyrusEndpointWrapper;
 import org.glassfish.tyrus.core.TyrusFuture;
 import org.glassfish.tyrus.core.TyrusSession;
 import org.glassfish.tyrus.core.Utils;
+import org.glassfish.tyrus.core.monitoring.EndpointEventListener;
 import org.glassfish.tyrus.spi.ClientContainer;
 import org.glassfish.tyrus.spi.ClientEngine;
 
@@ -457,7 +458,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                             endpoint = ReflectionHelper.getInstance(((Class<Endpoint>) o), collector);
                             config = configuration == null ? ClientEndpointConfig.Builder.create().build() : configuration;
                         } else if ((((Class<?>) o).getAnnotation(ClientEndpoint.class) != null)) {
-                            endpoint = AnnotatedEndpoint.fromClass((Class) o, componentProvider, false, incomingBufferSize, collector);
+                            endpoint = AnnotatedEndpoint.fromClass((Class) o, componentProvider, false, incomingBufferSize, collector, EndpointEventListener.NO_OP);
                             config = (ClientEndpointConfig) ((AnnotatedEndpoint) endpoint).getEndpointConfig();
                         } else {
                             collector.addException(new DeploymentException(String.format("Class %s in not Endpoint descendant and does not have @ClientEndpoint", ((Class<?>) o).getName())));

@@ -50,6 +50,20 @@ import org.glassfish.tyrus.core.Beta;
 @Beta
 public interface ApplicationEventListener {
 
+    /**
+     * A key used for registering a application event listener implementation.
+     * <p/>
+     * For monitoring in Grizzly server an instance should be passed to the server in server properties:
+     * <pre>
+     *     serverProperties.put(ApplicationEventListener.APPLICATION_EVENT_LISTENER, new MyApplicationEventListener());
+     * </pre>
+     * For use in servlet container the class name should be passed as a context parameter in web.xml:
+     * <pre>{@code
+     *     <context-param>
+     *         <param-name>org.glassfish.tyrus.core.monitoring.ApplicationEventListener</param-name>
+     *         <param-value>com.acme.MyApplicationEventListener</param-value>
+     *     </context-param>}</pre>
+     */
     public static final String APPLICATION_EVENT_LISTENER = "org.glassfish.tyrus.core.monitoring.ApplicationEventListener";
 
     /**

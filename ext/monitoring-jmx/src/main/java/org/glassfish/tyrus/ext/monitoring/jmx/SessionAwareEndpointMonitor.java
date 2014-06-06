@@ -42,6 +42,8 @@ package org.glassfish.tyrus.ext.monitoring.jmx;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.websocket.Session;
+
 import org.glassfish.tyrus.core.monitoring.MessageEventListener;
 
 /**
@@ -54,14 +56,14 @@ class SessionAwareEndpointMonitor extends EndpointMonitor {
 
     private final Map<String, SessionMonitor> sessions = new ConcurrentHashMap<String, SessionMonitor>();
 
-    SessionAwareEndpointMonitor(ApplicationMonitor applicationJmx, String applicationName, String endpointPath, String endpointClassName) {
-        super(applicationJmx, applicationName, endpointPath, endpointClassName);
+    SessionAwareEndpointMonitor(ApplicationMonitor applicationJmx, ApplicationMXBeanImpl applicationMXBean, String applicationName, String endpointPath, String endpointClassName) {
+        super(applicationJmx, applicationMXBean, applicationName, endpointPath, endpointClassName);
     }
 
     @Override
     public MessageEventListener onSessionOpened(String sessionId) {
-        SessionMonitor sessionJmx = new SessionMonitor(applicationName, endpointClassNamePathPair.getEndpointPath(), sessionId, this);
-        sessions.put(sessionId, sessionJmx);
+        SessionMonitor sessionMonitor = new SessionMonitor(applicationName, endpointClassNamePathPair.getEndpointPath(), sessionId, this, endpointMXBean);
+        sessions.put(sessionId, sessionMonitor);
 
         if (sessions.size() > maxOpenSessionsCount) {
             synchronized (maxOpenSessionsCountLock) {
@@ -71,16 +73,16 @@ class SessionAwareEndpointMonitor extends EndpointMonitor {
             }
         }
 
-        applicationJmx.onSessionOpened();
+        applicationMonitor.onSessionOpened();
 
-        return new MessageEventListenerImpl(sessionJmx);
+        return new MessageEventListenerImpl(sessionMonitor);
     }
 
     @Override
     public void onSessionClosed(String sessionId) {
         SessionMonitor session = sessions.remove(sessionId);
         session.unregister();
-        applicationJmx.onSessionClosed();
+        applicationMonitor.onSessionClosed();
     }
 
     @Override
@@ -91,5 +93,15 @@ class SessionAwareEndpointMonitor extends EndpointMonitor {
                 return sessions.size();
             }
         };
+    }
+
+    @Override
+    public void onError(Session session, Throwable t) {
+        if(session != null) {
+            SessionMonitor sessionMonitor = sessions.get(session.getId());
+            sessionMonitor.onError(t);
+        }
+
+        applicationMonitor.onError(t);
     }
 }

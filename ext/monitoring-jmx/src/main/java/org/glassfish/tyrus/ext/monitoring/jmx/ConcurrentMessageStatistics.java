@@ -39,13 +39,17 @@
  */
 package org.glassfish.tyrus.ext.monitoring.jmx;
 
+import java.io.Serializable;
+
 /**
  * An implementation of {@link org.glassfish.tyrus.ext.monitoring.jmx.MessageStatisticsSource} that allows concurrent
  * updates by many threads.
  *
  * @author Petr Janouch (petr.janouch at oracle.com)
  */
-class ConcurrentMessageStatistics implements MessageStatisticsSource {
+class ConcurrentMessageStatistics implements MessageStatisticsSource, Serializable {
+
+    private static final long serialVersionUID = -54010795753428605L;
 
     private final LongAdder messagesCount = new LongAdder();
     private final LongAdder messagesSize = new LongAdder();

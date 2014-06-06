@@ -40,10 +40,14 @@
 package org.glassfish.tyrus.ext.monitoring.jmx;
 
 import java.lang.management.ManagementFactory;
+import java.nio.ByteBuffer;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpoint;
+import javax.websocket.OnMessage;
+import javax.websocket.PongMessage;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
@@ -57,26 +61,36 @@ import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.junit.Test;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+
+import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.fail;
 
 /**
- * Tests that open sessions statistics (number of currently open sessions and maximal number of open sessions since
- * the beginning of monitoring) are collected correctly.
+ * Tests that MXBean tree can be traversed - all MXBeans can be accessed from {@link org.glassfish.tyrus.ext.monitoring.jmx.ApplicationMXBean}
  *
- * @author Petr Janouch (petr.janouch at oracle.com
+ * @author Petr Janouch (petr.janouch at oracle.com)
  */
-public class OpenSessionsTest extends TestContainer {
+public class MBeanTreeTest extends TestContainer {
 
-    @ServerEndpoint("/jmxSessionStatisticsEndpoint")
+    @ServerEndpoint("/serverEndpoint")
     public static class AnnotatedServerEndpoint {
 
+        @OnMessage
+        public void onMessage(String message, Session session) {
+        }
+
+        @OnMessage
+        public void onMessage(ByteBuffer data, Session session) {
+        }
+
+        @OnMessage
+        public void onMessage(PongMessage pong, Session session) {
+        }
     }
 
     @ClientEndpoint
     public static class AnnotatedClientEndpoint {
-
     }
 
     @Test
@@ -90,12 +104,9 @@ public class OpenSessionsTest extends TestContainer {
     }
 
     private void test(boolean monitorOnSessionLevel) {
-        ClientManager client = createClient();
-        setContextPath("/jmxSessionTestApp");
         Server server = null;
         try {
-            CountDownLatch sessionClosedLatch = new CountDownLatch(1);
-            CountDownLatch sessionOpenedLatch = new CountDownLatch(3);
+            setContextPath("/mBeanTreeTestApp");
 
             ApplicationMonitor applicationMonitor;
             if (monitorOnSessionLevel) {
@@ -103,27 +114,56 @@ public class OpenSessionsTest extends TestContainer {
             } else {
                 applicationMonitor = new SessionlessApplicationMonitor();
             }
-            ApplicationEventListener applicationEventListener = new TestApplicationEventListener(applicationMonitor, sessionOpenedLatch, sessionClosedLatch, null, null, null);
+
+            CountDownLatch receivedMessagesLatch = new CountDownLatch(6);
+
+            ApplicationEventListener applicationEventListener = new TestApplicationEventListener(applicationMonitor, null, null, null, receivedMessagesLatch, null);
             getServerProperties().put(ApplicationEventListener.APPLICATION_EVENT_LISTENER, applicationEventListener);
             server = startServer(AnnotatedServerEndpoint.class);
 
-            client.connectToServer(AnnotatedClientEndpoint.class, getURI(AnnotatedServerEndpoint.class));
-            Session session2 = client.connectToServer(AnnotatedClientEndpoint.class, getURI(AnnotatedServerEndpoint.class));
-            client.connectToServer(AnnotatedClientEndpoint.class, getURI(AnnotatedServerEndpoint.class));
-            assertTrue(sessionOpenedLatch.await(1, TimeUnit.SECONDS));
-            session2.close();
-            assertTrue(sessionClosedLatch.await(1, TimeUnit.SECONDS));
+            ClientManager client = createClient();
+            Session session = client.connectToServer(AnnotatedClientEndpoint.class, getURI(AnnotatedServerEndpoint.class));
 
+            // send different number of messages of each type so that it can be verified that a correct MXBean is accessed
+            session.getBasicRemote().sendBinary(ByteBuffer.wrap("Hello".getBytes()));
+            session.getBasicRemote().sendText("Hello 1");
+            session.getBasicRemote().sendText("Hello 2");
+            session.getBasicRemote().sendPong(null);
+            session.getBasicRemote().sendPong(null);
+            session.getBasicRemote().sendPong(null);
+
+            assertTrue(receivedMessagesLatch.await(1, TimeUnit.SECONDS));
+
+            String applicationMxBeanName = "org.glassfish.tyrus:type=/mBeanTreeTestApp";
             MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
-            String fullApplicationMXBeanName = "org.glassfish.tyrus:type=/jmxSessionTestApp";
-            ApplicationMXBean applicationBean = JMX.newMXBeanProxy(mBeanServer, new ObjectName(fullApplicationMXBeanName), ApplicationMXBean.class);
-            assertEquals(2, applicationBean.getOpenSessionsCount());
-            assertEquals(3, applicationBean.getMaximalOpenSessionsCount());
+            ApplicationMXBean applicationMXBean = JMX.newMXBeanProxy(mBeanServer, new ObjectName(applicationMxBeanName), ApplicationMXBean.class);
 
-            String fullEndpointMXBeanName = "org.glassfish.tyrus:type=/jmxSessionTestApp,endpoints=endpoints,endpoint=/jmxSessionStatisticsEndpoint";
-            EndpointMXBean endpointBean = JMX.newMXBeanProxy(mBeanServer, new ObjectName(fullEndpointMXBeanName), EndpointMXBean.class);
-            assertEquals(2, endpointBean.getOpenSessionsCount());
-            assertEquals(3, endpointBean.getMaximalOpenSessionsCount());
+            assertEquals(1, applicationMXBean.getBinaryMessageStatisticsMXBean().getReceivedMessagesCount());
+            assertEquals(2, applicationMXBean.getTextMessageStatisticsMXBean().getReceivedMessagesCount());
+            assertEquals(3, applicationMXBean.getControlMessageStatisticsMXBean().getReceivedMessagesCount());
+
+            List<EndpointMXBean> endpointMXBeans = applicationMXBean.getEndpointMXBeans();
+            assertEquals(1, endpointMXBeans.size());
+
+            EndpointMXBean endpointMXBean = endpointMXBeans.get(0);
+
+            assertEquals(1, endpointMXBean.getBinaryMessageStatisticsMXBean().getReceivedMessagesCount());
+            assertEquals(2, endpointMXBean.getTextMessageStatisticsMXBean().getReceivedMessagesCount());
+            assertEquals(3, endpointMXBean.getControlMessageStatisticsMXBean().getReceivedMessagesCount());
+
+            List<SessionMXBean> sessionMXBeans = endpointMXBean.getSessionMXBeans();
+            if (!monitorOnSessionLevel) {
+                assertTrue(sessionMXBeans.isEmpty());
+                return;
+            }
+
+            assertEquals(1, sessionMXBeans.size());
+            BaseMXBean sessionMXBean = sessionMXBeans.get(0);
+
+            assertEquals(1, sessionMXBean.getBinaryMessageStatisticsMXBean().getReceivedMessagesCount());
+            assertEquals(2, sessionMXBean.getTextMessageStatisticsMXBean().getReceivedMessagesCount());
+            assertEquals(3, sessionMXBean.getControlMessageStatisticsMXBean().getReceivedMessagesCount());
+
         } catch (Exception e) {
             e.printStackTrace();
             fail();

@@ -75,6 +75,7 @@ import javax.websocket.server.ServerEndpointConfig;
 
 import org.glassfish.tyrus.core.coder.PrimitiveDecoders;
 import org.glassfish.tyrus.core.l10n.LocalizationMessages;
+import org.glassfish.tyrus.core.monitoring.EndpointEventListener;
 
 /**
  * {@link Endpoint} descendant which represents deployed annotated endpoint.
@@ -96,21 +97,23 @@ public class AnnotatedEndpoint extends Endpoint {
     private final ParameterExtractor[] onErrorParameters;
     private final EndpointConfig configuration;
     private final ComponentProviderService componentProvider;
+    private final EndpointEventListener endpointEventListener;
 
     private final Set<MessageHandlerFactory> messageHandlerFactories = new HashSet<MessageHandlerFactory>();
 
     /**
      * Create {@link AnnotatedEndpoint} from class.
      *
-     * @param annotatedClass     annotated class.
-     * @param componentProvider  used for instantiating.
-     * @param isServerEndpoint   {@code true} iff annotated endpoint is deployed on server side.
-     * @param incomingBufferSize size limit of the incoming buffer
-     * @param collector          error collector.
+     * @param annotatedClass        annotated class.
+     * @param componentProvider     used for instantiating.
+     * @param isServerEndpoint      {@code true} iff annotated endpoint is deployed on server side.
+     * @param incomingBufferSize    size limit of the incoming buffer.
+     * @param collector             error collector.
+     * @param endpointEventListener listener of monitored endpoint events.
      * @return new instance.
      */
-    public static AnnotatedEndpoint fromClass(Class<?> annotatedClass, ComponentProviderService componentProvider, boolean isServerEndpoint, int incomingBufferSize, ErrorCollector collector) {
-        return new AnnotatedEndpoint(annotatedClass, null, componentProvider, isServerEndpoint, incomingBufferSize, collector);
+    public static AnnotatedEndpoint fromClass(Class<?> annotatedClass, ComponentProviderService componentProvider, boolean isServerEndpoint, int incomingBufferSize, ErrorCollector collector, EndpointEventListener endpointEventListener) {
+        return new AnnotatedEndpoint(annotatedClass, null, componentProvider, isServerEndpoint, incomingBufferSize, collector, endpointEventListener);
     }
 
     /**
@@ -126,14 +129,15 @@ public class AnnotatedEndpoint extends Endpoint {
     public static AnnotatedEndpoint fromInstance(Object annotatedInstance, ComponentProviderService componentProvider,
                                                  boolean isServerEndpoint, int incomingBufferSize, ErrorCollector collector) {
         return new AnnotatedEndpoint(annotatedInstance.getClass(), annotatedInstance, componentProvider, isServerEndpoint,
-                incomingBufferSize, collector);
+                incomingBufferSize, collector, EndpointEventListener.NO_OP);
     }
 
     private AnnotatedEndpoint(Class<?> annotatedClass, Object instance, ComponentProviderService componentProvider,
-                              Boolean isServerEndpoint, int incomingBufferSize, ErrorCollector collector) {
+                              Boolean isServerEndpoint, int incomingBufferSize, ErrorCollector collector, EndpointEventListener endpointEventListener) {
         this.configuration = createEndpointConfig(annotatedClass, isServerEndpoint, collector);
         this.annotatedInstance = instance;
         this.annotatedClass = annotatedClass;
+        this.endpointEventListener = endpointEventListener;
         this.componentProvider = isServerEndpoint ? new ComponentProviderService(componentProvider) {
             @Override
             public <T> Object getEndpointInstance(Class<T> endpointClass) throws InstantiationException {
@@ -504,6 +508,7 @@ public class AnnotatedEndpoint extends Endpoint {
         } else {
             LOGGER.log(Level.INFO, LocalizationMessages.ENDPOINT_UNHANDLED_EXCEPTION(annotatedClass.getCanonicalName()), thr);
         }
+        endpointEventListener.onError(session, thr);
     }
 
     //    @Override

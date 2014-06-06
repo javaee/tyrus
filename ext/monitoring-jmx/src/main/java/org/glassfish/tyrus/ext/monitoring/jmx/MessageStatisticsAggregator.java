@@ -39,12 +39,16 @@
  */
 package org.glassfish.tyrus.ext.monitoring.jmx;
 
+import java.io.Serializable;
+
 /**
  * Message statistics aggregator.
  *
  * @author Petr Janouch (petr.janouch at oracle.com)
  */
-class MessageStatisticsAggregator implements MessageStatisticsSource {
+class MessageStatisticsAggregator implements MessageStatisticsSource, Serializable {
+
+    private static final long serialVersionUID = -8122720652279530246L;
 
     private final MessageStatisticsSource[] messageStatisticsSources;
 

@@ -138,7 +138,7 @@ public class MessageTypesTest extends TestContainer {
             } else {
                 applicationMonitor = new SessionlessApplicationMonitor();
             }
-            ApplicationEventListener applicationEventListener = new TestApplicationEventListener(applicationMonitor, null, null, messageSentLatch, messageReceivedLatch);
+            ApplicationEventListener applicationEventListener = new TestApplicationEventListener(applicationMonitor, null, null, messageSentLatch, messageReceivedLatch, null);
             getServerProperties().put(ApplicationEventListener.APPLICATION_EVENT_LISTENER, applicationEventListener);
             server = startServer(AnnotatedServerEndpoint.class);
 

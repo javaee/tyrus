@@ -39,20 +39,27 @@
  */
 package org.glassfish.tyrus.ext.monitoring.jmx;
 
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @author Petr Janouch (petr.janouch at oracle.com)
  */
-class ApplicationMXBeanImpl extends MessageStatisticsMXBeanImpl implements ApplicationMXBean {
+class ApplicationMXBeanImpl extends BaseMXBeanImpl implements ApplicationMXBean, Serializable {
+
+    private static final long serialVersionUID = 5417841460238333390L;
 
     private final Callable<List<EndpointClassNamePathPair>> endpoints;
     private final Callable<List<String>> endpointPaths;
+    private final Map<String, EndpointMXBean> endpointMXBeans = new ConcurrentHashMap<String, EndpointMXBean>();
     private final Callable<Integer> openSessionsCount;
     private final Callable<Integer> maxOpenSessionsCount;
 
-    public ApplicationMXBeanImpl(MessageStatisticsSource sentMessageStatistics, MessageStatisticsSource receivedMessageStatistics, Callable<List<EndpointClassNamePathPair>> endpoints, Callable<List<String>> endpointPaths, Callable<Integer> openSessionsCount, Callable<Integer> maxOpenSessionsCount) {
-        super(sentMessageStatistics, receivedMessageStatistics);
+    public ApplicationMXBeanImpl(MessageStatisticsSource sentMessageStatistics, MessageStatisticsSource receivedMessageStatistics, Callable<List<EndpointClassNamePathPair>> endpoints, Callable<List<String>> endpointPaths, Callable<Integer> openSessionsCount, Callable<Integer> maxOpenSessionsCount, Callable<List<ErrorCount>> errorCounts, MessageStatisticsMXBean textMessageStatisticsMXBean, MessageStatisticsMXBean binaryMessageStatisticsMXBean, MessageStatisticsMXBean controlMessageStatisticsMXBean) {
+        super(sentMessageStatistics, receivedMessageStatistics, errorCounts, textMessageStatisticsMXBean, binaryMessageStatisticsMXBean, controlMessageStatisticsMXBean);
         this.endpoints = endpoints;
         this.endpointPaths = endpointPaths;
         this.openSessionsCount = openSessionsCount;
@@ -70,6 +77,11 @@ class ApplicationMXBeanImpl extends MessageStatisticsMXBeanImpl implements Appli
     }
 
     @Override
+    public List<EndpointMXBean> getEndpointMXBeans() {
+        return new ArrayList<EndpointMXBean>(endpointMXBeans.values());
+    }
+
+    @Override
     public int getOpenSessionsCount() {
         return openSessionsCount.call();
     }
@@ -77,5 +89,13 @@ class ApplicationMXBeanImpl extends MessageStatisticsMXBeanImpl implements Appli
     @Override
     public int getMaximalOpenSessionsCount() {
         return maxOpenSessionsCount.call();
+    }
+
+    void putEndpointMXBean(String endpointPath, EndpointMXBean endpointMXBean) {
+        endpointMXBeans.put(endpointPath, endpointMXBean);
+    }
+
+    void removeEndpointMXBean(String path) {
+        endpointMXBeans.remove(path);
     }
 }

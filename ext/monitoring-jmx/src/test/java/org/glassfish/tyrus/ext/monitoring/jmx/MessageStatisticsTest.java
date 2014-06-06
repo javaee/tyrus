@@ -188,13 +188,13 @@ public class MessageStatisticsTest extends TestContainer {
             } else {
                 applicationMonitor = new SessionlessApplicationMonitor();
             }
-            ApplicationEventListener application1EventListener = new TestApplicationEventListener(applicationMonitor, null, null, messageSentLatch, messageReceivedLatch);
+            ApplicationEventListener application1EventListener = new TestApplicationEventListener(applicationMonitor, null, null, messageSentLatch, messageReceivedLatch, null);
             server1Properties.put(ApplicationEventListener.APPLICATION_EVENT_LISTENER, application1EventListener);
             server1 = new Server("localhost", 8025, "/jmxTestApp", server1Properties, ServerEndpoint1.class, ServerEndpoint2.class);
             server1.start();
 
             Map<String, Object> server2Properties = new HashMap<String, Object>();
-            ApplicationEventListener application2EventListener = new TestApplicationEventListener(new ApplicationMonitor(monitorOnSessionLevel), null, null, messageSentLatch, messageReceivedLatch);
+            ApplicationEventListener application2EventListener = new TestApplicationEventListener(new ApplicationMonitor(monitorOnSessionLevel), null, null, messageSentLatch, messageReceivedLatch, null);
             server2Properties.put(ApplicationEventListener.APPLICATION_EVENT_LISTENER, application2EventListener);
             server2 = new Server("localhost", 8026, "/jmxTestApp2", server2Properties, ServerEndpoint2.class, ServerEndpoint3.class);
             server2.start();

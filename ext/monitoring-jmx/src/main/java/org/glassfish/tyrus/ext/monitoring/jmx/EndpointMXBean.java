@@ -39,6 +39,8 @@
  */
 package org.glassfish.tyrus.ext.monitoring.jmx;
 
+import java.util.List;
+
 import org.glassfish.tyrus.core.Beta;
 
 /**
@@ -49,7 +51,7 @@ import org.glassfish.tyrus.core.Beta;
  * @see MessageStatisticsMXBean
  */
 @Beta
-public interface EndpointMXBean extends MessageStatisticsMXBean {
+public interface EndpointMXBean extends BaseMXBean {
 
     /**
      * Get the path the endpoint is registered on.
@@ -79,4 +81,11 @@ public interface EndpointMXBean extends MessageStatisticsMXBean {
      */
     public int getMaximalOpenSessionsCount();
 
+    /**
+     * Get list of MXBeans representing currently open sessions. Return an empty list if monitoring is conducted only
+     * on endpoint level.
+     *
+     * @return list of MXBeans representing currently open sessions.
+     */
+    public List<SessionMXBean> getSessionMXBeans();
 }

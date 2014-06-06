@@ -39,14 +39,14 @@
  */
 package org.glassfish.tyrus.ext.monitoring.jmx;
 
-import java.io.IOException;
 import java.lang.management.ManagementFactory;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpoint;
+import javax.websocket.OnError;
 import javax.websocket.OnMessage;
-import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
@@ -61,55 +61,67 @@ import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+
+import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.fail;
 
 /**
- * Tests that messages sent from server in onOpen get counted in the message statistics.
+ * Tests that error statistics collected at session level are accessible.
+ * Complementary test to {@link org.glassfish.tyrus.ext.monitoring.jmx.ErrorStatisticsTest}
  *
  * @author Petr Janouch (petr.janouch at oracle.com)
  */
-public class MessageStatisticsInOnOpenTest extends TestContainer {
+public class SessionErrorTest extends TestContainer {
 
-    @ServerEndpoint("/jmxEndpoint")
+    @ServerEndpoint("/annotatedServerEndpoint")
     public static class AnnotatedServerEndpoint {
 
-        @OnOpen
-        public void onOpen(Session session) throws IOException {
-            session.getBasicRemote().sendText("Hello");
+        @OnMessage
+        public void onTextMessage(String message, Session session) throws Exception {
+            throw new Exception();
+        }
+
+        @OnError
+        public void onError(Throwable t) {
         }
     }
 
     @ClientEndpoint
     public static class AnnotatedClientEndpoint {
-
-        @OnMessage
-        public void onMessage(String message) {
-
-        }
     }
 
     @Test
     public void test() {
         Server server = null;
         try {
-            CountDownLatch messageSentLatch = new CountDownLatch(1);
+            setContextPath("/errorInSessionTestApp");
 
-            setContextPath("/jmxTestApp");
-            ApplicationEventListener applicationEventListener = new TestApplicationEventListener(new SessionlessApplicationMonitor(), null, null, messageSentLatch, null, null);
+            CountDownLatch errorCountDownLatch = new CountDownLatch(1);
+
+            ApplicationEventListener applicationEventListener = new TestApplicationEventListener(new SessionAwareApplicationMonitor(), null, null, null, null, errorCountDownLatch);
             getServerProperties().put(ApplicationEventListener.APPLICATION_EVENT_LISTENER, applicationEventListener);
             server = startServer(AnnotatedServerEndpoint.class);
 
             ClientManager client = createClient();
-            client.connectToServer(AnnotatedClientEndpoint.class, getURI(AnnotatedServerEndpoint.class));
+            Session session = client.connectToServer(AnnotatedClientEndpoint.class, getURI(AnnotatedServerEndpoint.class));
+            session.getBasicRemote().sendText("Hello");
 
-            assertTrue(messageSentLatch.await(1, TimeUnit.SECONDS));
+            assertTrue(errorCountDownLatch.await(1, TimeUnit.SECONDS));
 
+            String applicationMXBeanName = "org.glassfish.tyrus:type=/errorInSessionTestApp";
             MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
-            String fullApplicationMxBeanName = "org.glassfish.tyrus:type=/jmxTestApp";
-            ApplicationMXBean applicationBean = JMX.newMXBeanProxy(mBeanServer, new ObjectName(fullApplicationMxBeanName), ApplicationMXBean.class);
-            assertEquals(1, applicationBean.getSentMessagesCount());
+            ApplicationMXBean applicationMXBean = JMX.newMXBeanProxy(mBeanServer, new ObjectName(applicationMXBeanName), ApplicationMXBean.class);
+
+            List<EndpointMXBean> endpointMXBeans = applicationMXBean.getEndpointMXBeans();
+            assertEquals(1, endpointMXBeans.size());
+            List<SessionMXBean> sessionMXBeans = endpointMXBeans.get(0).getSessionMXBeans();
+            assertEquals(1, sessionMXBeans.size());
+
+            SessionMXBean sessionMXBean = sessionMXBeans.get(0);
+            assertEquals(1, sessionMXBean.getErrorCounts().size());
+
         } catch (Exception e) {
+            e.printStackTrace();
             fail();
         } finally {
             stopServer(server);

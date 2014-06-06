@@ -39,63 +39,52 @@
  */
 package org.glassfish.tyrus.ext.monitoring.jmx;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
+ * A class containing logic common for {@link org.glassfish.tyrus.ext.monitoring.jmx.ApplicationMonitor},
+ * {@link org.glassfish.tyrus.ext.monitoring.jmx.EndpointMonitor} and {@link org.glassfish.tyrus.ext.monitoring.jmx.SessionMonitor}.
+ *
  * @author Petr Janouch (petr.janouch at oracle.com)
  */
-class EndpointMXBeanImpl extends BaseMXBeanImpl implements EndpointMXBean, Serializable {
+class BaseMonitor {
 
-    private static final long serialVersionUID = 1362028955470529660L;
-    
-    private final String endpointPath;
-    private final String endpointClassName;
-    private final Callable<Integer> openSessionsCount;
-    private final Callable<Integer> maxOpenSessionsCount;
-    private final Map<String, SessionMXBean> sessionMXBeans = new ConcurrentHashMap<String, SessionMXBean>();
+    private final Map<String, AtomicLong> errorStatistics = new ConcurrentHashMap<String, AtomicLong>();
 
-    public EndpointMXBeanImpl(MessageStatisticsSource sentMessageStatistics, MessageStatisticsSource receivedMessageStatistics, String endpointPath, String endpointClassName, Callable<Integer> openSessionsCount, Callable<Integer> maxOpenSessionsCount, Callable<List<ErrorCount>> errorCounts, MessageStatisticsMXBean textMessageStatisticsMXBean, MessageStatisticsMXBean binaryMessageStatisticsMXBean, MessageStatisticsMXBean controlMessageStatisticsMXBean) {
-        super(sentMessageStatistics, receivedMessageStatistics, errorCounts, textMessageStatisticsMXBean, binaryMessageStatisticsMXBean, controlMessageStatisticsMXBean);
-        this.endpointPath = endpointPath;
-        this.endpointClassName = endpointClassName;
-        this.openSessionsCount = openSessionsCount;
-        this.maxOpenSessionsCount = maxOpenSessionsCount;
+    protected Callable<List<ErrorCount>> getErrorCounts() {
+        return new Callable<List<ErrorCount>>() {
+            @Override
+            public List<ErrorCount> call() {
+                final List<ErrorCount> errorCounts = new ArrayList<ErrorCount>();
+                for (Map.Entry<String, AtomicLong> errorCount : errorStatistics.entrySet()) {
+                    errorCounts.add(new ErrorCount(errorCount.getKey(), errorCount.getValue().get()));
+                }
+                return errorCounts;
+            }
+        };
     }
 
-    @Override
-    public String getEndpointPath() {
-        return endpointPath;
-    }
+    void onError(Throwable t) {
+        String throwableClassName;
+        if(t.getCause() == null) {
+            throwableClassName = t.getClass().getName();
+        } else {
+            throwableClassName = t.getCause().getClass().getName();
+        }
 
-    @Override
-    public String getEndpointClassName() {
-        return endpointClassName;
-    }
+        if (!errorStatistics.containsKey(throwableClassName)) {
+            synchronized (errorStatistics) {
+                if (!errorStatistics.containsKey(throwableClassName)) {
+                    errorStatistics.put(throwableClassName, new AtomicLong());
+                }
+            }
+        }
 
-    @Override
-    public int getOpenSessionsCount() {
-        return openSessionsCount.call();
-    }
-
-    @Override
-    public int getMaximalOpenSessionsCount() {
-        return maxOpenSessionsCount.call();
-    }
-
-    @Override
-    public List<SessionMXBean> getSessionMXBeans() {
-        return new ArrayList<SessionMXBean>(sessionMXBeans.values());
-    }
-
-    void putSessionMXBean(String sessionId, SessionMXBean sessionMXBean) {
-        sessionMXBeans.put(sessionId, sessionMXBean);
-    }
-
-    void removeSessionMXBean(String sessionId) {
-        sessionMXBeans.remove(sessionId);
+        AtomicLong throwableCounter = errorStatistics.get(throwableClassName);
+        throwableCounter.incrementAndGet();
     }
 }

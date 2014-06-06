@@ -47,7 +47,7 @@ package org.glassfish.tyrus.ext.monitoring.jmx;
  * @author Petr Janouch (petr.janouch at oracle.com)
  * @see org.glassfish.tyrus.core.monitoring.MessageEventListener
  */
-class SessionMonitor implements MessageListener {
+class SessionMonitor extends BaseMonitor implements MessageListener {
 
     private final MessageStatistics sentTextMessageStatistics = new MessageStatistics();
     private final MessageStatistics sentBinaryMessageStatistics = new MessageStatistics();
@@ -61,23 +61,30 @@ class SessionMonitor implements MessageListener {
     private final String endpointPath;
     private final String sessionId;
     private final MessageListener messageListener;
+    private final EndpointMXBeanImpl endpointMXBean;
 
-    SessionMonitor(String applicationName, String endpointPath, String sessionId, MessageListener messageListener) {
+    SessionMonitor(String applicationName, String endpointPath, String sessionId, MessageListener messageListener, EndpointMXBeanImpl endpointMXBean) {
         this.applicationName = applicationName;
         this.endpointPath = endpointPath;
         this.sessionId = sessionId;
         this.messageListener = messageListener;
+        this.endpointMXBean = endpointMXBean;
 
-        MessageStatisticsMXBean sessionMXBean = new MessageStatisticsMXBeanImpl(new MessageStatisticsAggregator(sentTextMessageStatistics, sentBinaryMessageStatistics, sentControlMessageStatistics), new MessageStatisticsAggregator(receivedTextMessageStatistics, receivedBinaryMessageStatistics, receivedControlMessageStatistics));
         MessageStatisticsMXBean textMessagesMXBean = new MessageStatisticsMXBeanImpl(sentTextMessageStatistics, receivedTextMessageStatistics);
         MessageStatisticsMXBean binaryMessagesMXBean = new MessageStatisticsMXBeanImpl(sentBinaryMessageStatistics, receivedBinaryMessageStatistics);
         MessageStatisticsMXBean controlMessagesMXBean = new MessageStatisticsMXBeanImpl(sentControlMessageStatistics, receivedControlMessageStatistics);
 
+        MessageStatisticsAggregator sentMessagesTotal = new MessageStatisticsAggregator(sentTextMessageStatistics, sentBinaryMessageStatistics, sentControlMessageStatistics);
+        MessageStatisticsAggregator receivedMessagesTotal = new MessageStatisticsAggregator(receivedTextMessageStatistics, receivedBinaryMessageStatistics, receivedControlMessageStatistics);
+        SessionMXBeanImpl sessionMXBean = new SessionMXBeanImpl(sentMessagesTotal, receivedMessagesTotal, getErrorCounts(), textMessagesMXBean, binaryMessagesMXBean, controlMessagesMXBean, sessionId);
+
+        endpointMXBean.putSessionMXBean(sessionId, sessionMXBean);
         MBeanPublisher.registerSessionMXBeans(applicationName, endpointPath, sessionId, sessionMXBean, textMessagesMXBean, binaryMessagesMXBean, controlMessagesMXBean);
     }
 
     void unregister() {
         MBeanPublisher.unregisterSessionMXBeans(applicationName, endpointPath, sessionId);
+        endpointMXBean.removeSessionMXBean(sessionId);
     }
 
     @Override

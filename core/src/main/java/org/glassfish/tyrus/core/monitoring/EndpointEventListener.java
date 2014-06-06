@@ -39,6 +39,8 @@
  */
 package org.glassfish.tyrus.core.monitoring;
 
+import javax.websocket.Session;
+
 import org.glassfish.tyrus.core.Beta;
 
 /**
@@ -65,6 +67,19 @@ public interface EndpointEventListener {
     void onSessionClosed(String sessionId);
 
     /**
+     * Called when an error has occurred.
+     * <p/>
+     * Errors that occur either during {@link javax.websocket.Endpoint#onOpen(javax.websocket.Session, javax.websocket.EndpointConfig)},
+     * {@link javax.websocket.Endpoint#onClose(javax.websocket.Session, javax.websocket.CloseReason)} and their annotated equivalent
+     * or when handling an incoming message, cause this listener to be called. It corresponds to the event of invocation of
+     * {@link javax.websocket.Endpoint#onError(javax.websocket.Session, Throwable)} and its annotated equivalent.
+     *
+     * @param session session
+     * @param t       throwable that has been thrown.
+     */
+    void onError(Session session, Throwable t);
+
+    /**
      * An instance of @EndpointEventListener that does not do anything.
      */
     public static final EndpointEventListener NO_OP = new EndpointEventListener() {
@@ -75,6 +90,11 @@ public interface EndpointEventListener {
 
         @Override
         public void onSessionClosed(String sessionId) {
+            // do nothing
+        }
+
+        @Override
+        public void onError(Session session, Throwable t) {
             // do nothing
         }
     };

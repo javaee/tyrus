@@ -41,6 +41,8 @@ package org.glassfish.tyrus.ext.monitoring.jmx;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
+import javax.websocket.Session;
+
 import org.glassfish.tyrus.core.monitoring.MessageEventListener;
 
 /**
@@ -54,8 +56,8 @@ class SessionlessEndpointMonitor extends EndpointMonitor {
 
     private final AtomicInteger openSessionsCount = new AtomicInteger();
 
-    SessionlessEndpointMonitor(ApplicationMonitor applicationJmx, String applicationName, String endpointPath, String endpointClassName) {
-        super(applicationJmx, applicationName, endpointPath, endpointClassName);
+    SessionlessEndpointMonitor(ApplicationMonitor applicationJmx, ApplicationMXBeanImpl applicationMXBean, String applicationName, String endpointPath, String endpointClassName) {
+        super(applicationJmx, applicationMXBean, applicationName, endpointPath, endpointClassName);
     }
 
     @Override
@@ -70,7 +72,7 @@ class SessionlessEndpointMonitor extends EndpointMonitor {
 
     @Override
     public MessageEventListener onSessionOpened(String sessionId) {
-        applicationJmx.onSessionOpened();
+        applicationMonitor.onSessionOpened();
         openSessionsCount.incrementAndGet();
 
         if (openSessionsCount.get() > maxOpenSessionsCount) {
@@ -86,7 +88,12 @@ class SessionlessEndpointMonitor extends EndpointMonitor {
 
     @Override
     public void onSessionClosed(String sessionId) {
-        applicationJmx.onSessionClosed();
+        applicationMonitor.onSessionClosed();
         openSessionsCount.decrementAndGet();
+    }
+
+    @Override
+    public void onError(Session session, Throwable t) {
+        applicationMonitor.onError(t);
     }
 }

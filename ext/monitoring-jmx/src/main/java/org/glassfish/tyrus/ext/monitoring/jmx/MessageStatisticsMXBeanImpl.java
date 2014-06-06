@@ -39,10 +39,14 @@
  */
 package org.glassfish.tyrus.ext.monitoring.jmx;
 
+import java.io.Serializable;
+
 /**
  * @author Petr Janouch (petr.janouch at oracle.com)
  */
-class MessageStatisticsMXBeanImpl implements MessageStatisticsMXBean {
+class MessageStatisticsMXBeanImpl implements MessageStatisticsMXBean, Serializable {
+
+    private static final long serialVersionUID = -2156995729320425363L;
 
     private final MessageStatisticsSource sentMessageStatistics;
     private final MessageStatisticsSource receivedMessageStatistics;

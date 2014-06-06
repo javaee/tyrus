@@ -41,14 +41,16 @@ package org.glassfish.tyrus.ext.monitoring.jmx;
 
 import java.util.concurrent.CountDownLatch;
 
+import javax.websocket.Session;
+
 import org.glassfish.tyrus.core.frame.TyrusFrame;
 import org.glassfish.tyrus.core.monitoring.ApplicationEventListener;
 import org.glassfish.tyrus.core.monitoring.EndpointEventListener;
 import org.glassfish.tyrus.core.monitoring.MessageEventListener;
 
 /**
- * {@link org.glassfish.tyrus.core.monitoring.ApplicationEventListener} wrapper that accepts four latches that are
- * decremented when message is sent, received, session opened or session closed.
+ * {@link org.glassfish.tyrus.core.monitoring.ApplicationEventListener} wrapper that accepts five latches that are
+ * decremented when message is sent, received, session opened, session closed or an error occurred.
  *
  * @author Petr Janouch (petr.janouch at oracle.com)
  */
@@ -59,6 +61,7 @@ class TestApplicationEventListener implements ApplicationEventListener {
     private final CountDownLatch sessionClosedLatch;
     private final CountDownLatch messageSentLatch;
     private final CountDownLatch messageReceivedLatch;
+    private final CountDownLatch errorLatch;
 
     /**
      * Constructor.
@@ -68,13 +71,15 @@ class TestApplicationEventListener implements ApplicationEventListener {
      * @param sessionClosedLatch       latch that is decreased when a session is closed.
      * @param messageSentLatch         latch that is decreased when a message is sent.
      * @param messageReceivedLatch     latch that is decreased when a message is received.
+     * @param errorLatch               latch that is decreased when an error has occurred.
      */
-    TestApplicationEventListener(ApplicationEventListener applicationEventListener, CountDownLatch sessionOpenedLatch, CountDownLatch sessionClosedLatch, CountDownLatch messageSentLatch, CountDownLatch messageReceivedLatch) {
+    TestApplicationEventListener(ApplicationEventListener applicationEventListener, CountDownLatch sessionOpenedLatch, CountDownLatch sessionClosedLatch, CountDownLatch messageSentLatch, CountDownLatch messageReceivedLatch, CountDownLatch errorLatch) {
         this.applicationEventListener = applicationEventListener;
         this.sessionOpenedLatch = sessionOpenedLatch;
         this.sessionClosedLatch = sessionClosedLatch;
         this.messageSentLatch = messageSentLatch;
         this.messageReceivedLatch = messageReceivedLatch;
+        this.errorLatch = errorLatch;
     }
 
     @Override
@@ -89,7 +94,7 @@ class TestApplicationEventListener implements ApplicationEventListener {
 
     @Override
     public EndpointEventListener onEndpointRegistered(String endpointPath, Class<?> endpointClass) {
-        return new TestEndpointEventListener(applicationEventListener.onEndpointRegistered(endpointPath, endpointClass), sessionOpenedLatch, sessionClosedLatch, messageSentLatch, messageReceivedLatch);
+        return new TestEndpointEventListener(applicationEventListener.onEndpointRegistered(endpointPath, endpointClass), sessionOpenedLatch, sessionClosedLatch, messageSentLatch, messageReceivedLatch, errorLatch);
     }
 
     @Override
@@ -104,13 +109,15 @@ class TestApplicationEventListener implements ApplicationEventListener {
         private final CountDownLatch sessionClosedLatch;
         private final CountDownLatch messageSentLatch;
         private final CountDownLatch messageReceivedLatch;
+        private final CountDownLatch errorLatch;
 
-        TestEndpointEventListener(EndpointEventListener endpointEventListener, CountDownLatch sessionOpenedLatch, CountDownLatch sessionClosedLatch, CountDownLatch messageSentLatch, CountDownLatch messageReceivedLatch) {
+        TestEndpointEventListener(EndpointEventListener endpointEventListener, CountDownLatch sessionOpenedLatch, CountDownLatch sessionClosedLatch, CountDownLatch messageSentLatch, CountDownLatch messageReceivedLatch, CountDownLatch errorLatch) {
             this.endpointEventListener = endpointEventListener;
             this.sessionOpenedLatch = sessionOpenedLatch;
             this.sessionClosedLatch = sessionClosedLatch;
             this.messageSentLatch = messageSentLatch;
             this.messageReceivedLatch = messageReceivedLatch;
+            this.errorLatch = errorLatch;
         }
 
         @Override
@@ -127,6 +134,14 @@ class TestApplicationEventListener implements ApplicationEventListener {
             endpointEventListener.onSessionClosed(sessionId);
             if (sessionClosedLatch != null) {
                 sessionClosedLatch.countDown();
+            }
+        }
+
+        @Override
+        public void onError(Session session, Throwable t) {
+            endpointEventListener.onError(session, t);
+            if (errorLatch != null) {
+                errorLatch.countDown();
             }
         }
     }

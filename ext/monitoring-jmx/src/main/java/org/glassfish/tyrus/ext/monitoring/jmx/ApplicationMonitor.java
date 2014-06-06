@@ -64,7 +64,7 @@ import org.glassfish.tyrus.core.monitoring.EndpointEventListener;
  * @author Petr Janouch (petr.janouch at oracle.com)
  * @see ApplicationEventListener
  */
-class ApplicationMonitor implements ApplicationEventListener, MessageListener {
+class ApplicationMonitor extends BaseMonitor implements ApplicationEventListener, MessageListener {
 
     private final Map<String, EndpointMonitor> endpoints = new ConcurrentHashMap<String, EndpointMonitor>();
     private final AtomicInteger openSessionsCount = new AtomicInteger(0);
@@ -81,6 +81,7 @@ class ApplicationMonitor implements ApplicationEventListener, MessageListener {
 
     private volatile int maxOpenSessionCount = 0;
     private volatile String applicationName;
+    private volatile ApplicationMXBeanImpl applicationMXBean;
 
     /**
      * Constructor.
@@ -98,10 +99,13 @@ class ApplicationMonitor implements ApplicationEventListener, MessageListener {
     public void onApplicationInitialized(String applicationName) {
         this.applicationName = applicationName;
 
-        ApplicationMXBeanImpl applicationMXBean = new ApplicationMXBeanImpl(new MessageStatisticsAggregator(sentTextMessageStatistics, sentBinaryMessageStatistics, sentControlMessageStatistics), new MessageStatisticsAggregator(receivedTextMessageStatistics, receivedBinaryMessageStatistics, receivedControlMessageStatistics), getEndpoints(), getEndpointPaths(), getOpenSessionsCount(), getMaxOpenSessionsCount());
         MessageStatisticsMXBeanImpl textMessagesMXBean = new MessageStatisticsMXBeanImpl(sentTextMessageStatistics, receivedTextMessageStatistics);
         MessageStatisticsMXBeanImpl controlMessagesMXBean = new MessageStatisticsMXBeanImpl(sentControlMessageStatistics, receivedControlMessageStatistics);
         MessageStatisticsMXBeanImpl binaryMessagesMXBean = new MessageStatisticsMXBeanImpl(sentBinaryMessageStatistics, receivedBinaryMessageStatistics);
+
+        MessageStatisticsAggregator sentTotalStatistics = new MessageStatisticsAggregator(sentTextMessageStatistics, sentBinaryMessageStatistics, sentControlMessageStatistics);
+        MessageStatisticsAggregator receivedTotalStatistics = new MessageStatisticsAggregator(receivedTextMessageStatistics, receivedBinaryMessageStatistics, receivedControlMessageStatistics);
+        applicationMXBean = new ApplicationMXBeanImpl(sentTotalStatistics, receivedTotalStatistics, getEndpoints(), getEndpointPaths(), getOpenSessionsCount(), getMaxOpenSessionsCount(), getErrorCounts(), textMessagesMXBean, binaryMessagesMXBean, controlMessagesMXBean);
 
         MBeanPublisher.registerApplicationMXBeans(applicationName, applicationMXBean, textMessagesMXBean, binaryMessagesMXBean, controlMessagesMXBean);
     }
@@ -115,9 +119,9 @@ class ApplicationMonitor implements ApplicationEventListener, MessageListener {
     public EndpointEventListener onEndpointRegistered(String endpointPath, Class<?> endpointClass) {
         EndpointMonitor endpointJmx;
         if (monitorOnSessionLevel) {
-            endpointJmx = new SessionAwareEndpointMonitor(this, applicationName, endpointPath, endpointClass.getName());
+            endpointJmx = new SessionAwareEndpointMonitor(this, applicationMXBean, applicationName, endpointPath, endpointClass.getName());
         } else {
-            endpointJmx = new SessionlessEndpointMonitor(this, applicationName, endpointPath, endpointClass.getName());
+            endpointJmx = new SessionlessEndpointMonitor(this, applicationMXBean, applicationName, endpointPath, endpointClass.getName());
 
         }
         endpoints.put(endpointPath, endpointJmx);
@@ -190,7 +194,6 @@ class ApplicationMonitor implements ApplicationEventListener, MessageListener {
             }
         };
     }
-
 
     void onSessionOpened() {
         openSessionsCount.incrementAndGet();

@@ -49,12 +49,15 @@ import org.glassfish.tyrus.core.monitoring.EndpointEventListener;
  * @author Petr Janouch (petr.janouch at oracle.com)
  * @see EndpointEventListener
  */
-abstract class EndpointMonitor implements EndpointEventListener, MessageListener {
+abstract class EndpointMonitor extends BaseMonitor implements EndpointEventListener, MessageListener {
 
     protected final EndpointClassNamePathPair endpointClassNamePathPair;
     protected final String applicationName;
     protected final Object maxOpenSessionsCountLock = new Object();
-    protected final ApplicationMonitor applicationJmx;
+    protected final ApplicationMonitor applicationMonitor;
+    protected final EndpointMXBeanImpl endpointMXBean;
+
+    private final ApplicationMXBeanImpl applicationMXBean;
 
     private final ConcurrentMessageStatistics sentTextMessageStatistics = new ConcurrentMessageStatistics();
     private final ConcurrentMessageStatistics sentBinaryMessageStatistics = new ConcurrentMessageStatistics();
@@ -66,23 +69,28 @@ abstract class EndpointMonitor implements EndpointEventListener, MessageListener
 
     protected volatile int maxOpenSessionsCount = 0;
 
-    EndpointMonitor(ApplicationMonitor applicationJmx, String applicationName, String endpointPath, String endpointClassName) {
+    EndpointMonitor(ApplicationMonitor applicationMonitor, ApplicationMXBeanImpl applicationMXBean, String applicationName, String endpointPath, String endpointClassName) {
         this.applicationName = applicationName;
         this.endpointClassNamePathPair = new EndpointClassNamePathPair(endpointPath, endpointClassName);
-        this.applicationJmx = applicationJmx;
+        this.applicationMonitor = applicationMonitor;
+        this.applicationMXBean = applicationMXBean;
 
-        EndpointMXBeanImpl endpointMXBean = new EndpointMXBeanImpl(new MessageStatisticsAggregator(sentTextMessageStatistics, sentBinaryMessageStatistics, sentControlMessageStatistics),
-                new MessageStatisticsAggregator(receivedTextMessageStatistics, receivedBinaryMessageStatistics, receivedControlMessageStatistics), endpointPath, endpointClassName, getOpenSessionsCount(), getMaxOpenSessionsCount());
         MessageStatisticsMXBeanImpl textMessagesMXBean = new MessageStatisticsMXBeanImpl(sentTextMessageStatistics, receivedTextMessageStatistics);
         MessageStatisticsMXBeanImpl binaryMessagesMXBean = new MessageStatisticsMXBeanImpl(sentBinaryMessageStatistics, receivedBinaryMessageStatistics);
         MessageStatisticsMXBeanImpl controlMessagesMXBean = new MessageStatisticsMXBeanImpl(sentControlMessageStatistics, receivedControlMessageStatistics);
 
+        MessageStatisticsAggregator sentTotalStatistics = new MessageStatisticsAggregator(sentTextMessageStatistics, sentBinaryMessageStatistics, sentControlMessageStatistics);
+        MessageStatisticsAggregator receivedTotalStatistics = new MessageStatisticsAggregator(receivedTextMessageStatistics, receivedBinaryMessageStatistics, receivedControlMessageStatistics);
+        endpointMXBean = new EndpointMXBeanImpl(sentTotalStatistics, receivedTotalStatistics, endpointPath, endpointClassName, getOpenSessionsCount(), getMaxOpenSessionsCount(), getErrorCounts(), textMessagesMXBean, binaryMessagesMXBean, controlMessagesMXBean);
+
         MBeanPublisher.registerEndpointMXBeans(applicationName, endpointPath, endpointMXBean, textMessagesMXBean, binaryMessagesMXBean, controlMessagesMXBean);
+        applicationMXBean.putEndpointMXBean(endpointPath, endpointMXBean);
     }
 
 
     void unregister() {
         MBeanPublisher.unregisterEndpointMXBeans(applicationName, endpointClassNamePathPair.getEndpointPath());
+        applicationMXBean.removeEndpointMXBean(endpointClassNamePathPair.getEndpointPath());
     }
 
     EndpointClassNamePathPair getEndpointClassNamePathPair() {
@@ -113,36 +121,36 @@ abstract class EndpointMonitor implements EndpointEventListener, MessageListener
     @Override
     public void onTextMessageSent(long length) {
         sentTextMessageStatistics.onMessage(length);
-        applicationJmx.onTextMessageSent(length);
+        applicationMonitor.onTextMessageSent(length);
     }
 
     @Override
     public void onBinaryMessageSent(long length) {
         sentBinaryMessageStatistics.onMessage(length);
-        applicationJmx.onBinaryMessageSent(length);
+        applicationMonitor.onBinaryMessageSent(length);
     }
 
     @Override
     public void onControlMessageSent(long length) {
         sentControlMessageStatistics.onMessage(length);
-        applicationJmx.onControlMessageSent(length);
+        applicationMonitor.onControlMessageSent(length);
     }
 
     @Override
     public void onTextMessageReceived(long length) {
         receivedTextMessageStatistics.onMessage(length);
-        applicationJmx.onTextMessageReceived(length);
+        applicationMonitor.onTextMessageReceived(length);
     }
 
     @Override
     public void onBinaryMessageReceived(long length) {
         receivedBinaryMessageStatistics.onMessage(length);
-        applicationJmx.onBinaryMessageReceived(length);
+        applicationMonitor.onBinaryMessageReceived(length);
     }
 
     @Override
     public void onControlMessageReceived(long length) {
         receivedControlMessageStatistics.onMessage(length);
-        applicationJmx.onControlMessageReceived(length);
+        applicationMonitor.onControlMessageReceived(length);
     }
 }

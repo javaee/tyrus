@@ -39,14 +39,13 @@
  */
 package org.glassfish.tyrus.ext.monitoring.jmx;
 
-import java.io.IOException;
 import java.lang.management.ManagementFactory;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpoint;
-import javax.websocket.OnMessage;
-import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
@@ -61,58 +60,85 @@ import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertTrue;
+import static junit.framework.Assert.fail;
 
 /**
- * Tests that messages sent from server in onOpen get counted in the message statistics.
+ * Tests that Session related MXBeans are cleaned after session is closed.
  *
  * @author Petr Janouch (petr.janouch at oracle.com)
  */
-public class MessageStatisticsInOnOpenTest extends TestContainer {
+public class SessionCleanUpTest extends TestContainer {
 
-    @ServerEndpoint("/jmxEndpoint")
+    @ServerEndpoint("/serverEndpoint")
     public static class AnnotatedServerEndpoint {
 
-        @OnOpen
-        public void onOpen(Session session) throws IOException {
-            session.getBasicRemote().sendText("Hello");
-        }
     }
 
     @ClientEndpoint
     public static class AnnotatedClientEndpoint {
 
-        @OnMessage
-        public void onMessage(String message) {
-
-        }
     }
 
     @Test
     public void test() {
         Server server = null;
         try {
-            CountDownLatch messageSentLatch = new CountDownLatch(1);
+            setContextPath("/serializationTestApp");
 
-            setContextPath("/jmxTestApp");
-            ApplicationEventListener applicationEventListener = new TestApplicationEventListener(new SessionlessApplicationMonitor(), null, null, messageSentLatch, null, null);
+            CountDownLatch sessionOpenedLatch = new CountDownLatch(1);
+            CountDownLatch sessionClosedLatch = new CountDownLatch(1);
+            ApplicationEventListener applicationEventListener = new TestApplicationEventListener(new SessionAwareApplicationMonitor(), sessionOpenedLatch, sessionClosedLatch, null, null, null);
             getServerProperties().put(ApplicationEventListener.APPLICATION_EVENT_LISTENER, applicationEventListener);
             server = startServer(AnnotatedServerEndpoint.class);
 
             ClientManager client = createClient();
-            client.connectToServer(AnnotatedClientEndpoint.class, getURI(AnnotatedServerEndpoint.class));
+            Session session = client.connectToServer(AnnotatedClientEndpoint.class, getURI(AnnotatedServerEndpoint.class));
+            assertTrue(sessionOpenedLatch.await(1, TimeUnit.SECONDS));
 
-            assertTrue(messageSentLatch.await(1, TimeUnit.SECONDS));
-
+            String applicationMxBeanName = "org.glassfish.tyrus:type=/serializationTestApp";
             MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
-            String fullApplicationMxBeanName = "org.glassfish.tyrus:type=/jmxTestApp";
-            ApplicationMXBean applicationBean = JMX.newMXBeanProxy(mBeanServer, new ObjectName(fullApplicationMxBeanName), ApplicationMXBean.class);
-            assertEquals(1, applicationBean.getSentMessagesCount());
+            ApplicationMXBean applicationMXBean = JMX.newMXBeanProxy(mBeanServer, new ObjectName(applicationMxBeanName), ApplicationMXBean.class);
+
+            assertEquals(1, applicationMXBean.getEndpointMXBeans().size());
+            EndpointMXBean endpointMXBean = applicationMXBean.getEndpointMXBeans().get(0);
+
+            assertEquals(1, endpointMXBean.getSessionMXBeans().size());
+            SessionMXBean sessionMXBean = endpointMXBean.getSessionMXBeans().get(0);
+
+            Set<String> registeredMXBeanNames = getRegisteredMXBeanNames();
+            String sessionMXBeanName = "org.glassfish.tyrus:type=/serializationTestApp,endpoints=endpoints,endpoint=/serverEndpoint,sessions=sessions,session=" + sessionMXBean.getSessionId();
+            String sessionMessageTypesNameBase = sessionMXBeanName + ",message_statistics=message_statistics,message_type=";
+            assertTrue(registeredMXBeanNames.contains(sessionMXBeanName));
+            assertTrue(registeredMXBeanNames.contains(sessionMessageTypesNameBase + "text"));
+            assertTrue(registeredMXBeanNames.contains(sessionMessageTypesNameBase + "binary"));
+            assertTrue(registeredMXBeanNames.contains(sessionMessageTypesNameBase + "control"));
+
+            session.close();
+            assertTrue(sessionClosedLatch.await(1, TimeUnit.SECONDS));
+
+            assertTrue(endpointMXBean.getSessionMXBeans().isEmpty());
+            registeredMXBeanNames = getRegisteredMXBeanNames();
+            assertFalse(registeredMXBeanNames.contains(sessionMXBeanName));
+            assertFalse(registeredMXBeanNames.contains(sessionMessageTypesNameBase + "text"));
+            assertFalse(registeredMXBeanNames.contains(sessionMessageTypesNameBase + "binary"));
+            assertFalse(registeredMXBeanNames.contains(sessionMessageTypesNameBase + "control"));
         } catch (Exception e) {
+            e.printStackTrace();
             fail();
         } finally {
             stopServer(server);
         }
+    }
+
+    private Set<String> getRegisteredMXBeanNames() {
+        MBeanServer mBeanServer = ManagementFactory.getPlatformMBeanServer();
+        Set<String> result = new HashSet<String>();
+        for (ObjectName name : mBeanServer.queryNames(null, null)) {
+            result.add(name.toString());
+        }
+        return result;
     }
 }

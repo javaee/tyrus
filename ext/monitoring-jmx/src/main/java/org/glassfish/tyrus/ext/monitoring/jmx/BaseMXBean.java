@@ -44,45 +44,40 @@ import java.util.List;
 import org.glassfish.tyrus.core.Beta;
 
 /**
- * MXBean used for accessing monitored application properties - registered endpoints, number of currently open sessions,
- * maximal number of open sessions since the start of the monitoring and message statistics.
+ * A parent MXBean for {@link org.glassfish.tyrus.ext.monitoring.jmx.ApplicationMXBean},
+ * {@link org.glassfish.tyrus.ext.monitoring.jmx.EndpointMXBean}
+ * and {@link org.glassfish.tyrus.ext.monitoring.jmx.SessionMXBean}.
  *
  * @author Petr Janouch (petr.janouch at oracle.com)
  */
 @Beta
-public interface ApplicationMXBean extends BaseMXBean {
-    /**
-     * Get endpoint paths and class names for currently registered endpoints.
-     *
-     * @return endpoint paths and class names for currently registered endpoints.
-     */
-    public List<EndpointClassNamePathPair> getEndpoints();
+public interface BaseMXBean extends MessageStatisticsMXBean {
 
     /**
-     * Get endpoint paths for currently registered endpoints.
+     * Get list of Throwable class name - count pairs, which represent errors and number of times they have occurred.
      *
-     * @return paths of registered endpoints.
+     * @return list of Throwable class name - count pairs, which represent errors and number of times they have occurred.
      */
-    public List<String> getEndpointPaths();
+    public List<ErrorCount> getErrorCounts();
 
     /**
-     * Get the number of sessions currently open on the endpoint.
+     * Get an MXBean containing statistics about text messages.
      *
-     * @return the number of sessions currently open on the endpoint.
+     * @return an MXBean containing statistics about text messages.
      */
-    public int getOpenSessionsCount();
+    public MessageStatisticsMXBean getTextMessageStatisticsMXBean();
 
     /**
-     * Get the maximal number of open sessions on the endpoint since the start of monitoring.
+     * Get an MXBean containing statistics about binary messages.
      *
-     * @return the maximal number of open sessions on the endpoint since the start of monitoring.
+     * @return an MXBean containing statistics about binary messages.
      */
-    public int getMaximalOpenSessionsCount();
+    public MessageStatisticsMXBean getBinaryMessageStatisticsMXBean();
 
     /**
-     * Get list of MXBeans representing registered endpoints.
+     * Get an MXBean containing statistics about control messages.
      *
-     * @return list of MXBeans representing registered endpoints.
+     * @return an MXBean containing statistics about control messages.
      */
-    public List<EndpointMXBean> getEndpointMXBeans();
+    public MessageStatisticsMXBean getControlMessageStatisticsMXBean();
 }
