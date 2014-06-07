@@ -56,11 +56,11 @@ public class UtilsPropertiesTest {
     private static final Map<String, Object> properties = new HashMap<String, Object>();
 
     static {
-        properties.put("Integer", new Integer(1));
+        properties.put("Integer", 1);
         properties.put("IntegerAsString", "1");
-        properties.put("Boolean", new Boolean(true));
+        properties.put("Boolean", true);
         properties.put("BooleanAsString", "true");
-        properties.put("Long", new Long(1));
+        properties.put("Long", (long) 1);
         properties.put("LongAsString", "1");
         properties.put("SomeString", "Some string");
     }
@@ -93,6 +93,7 @@ public class UtilsPropertiesTest {
     public void testUnassignableValues() {
         assertNull(Utils.getProperty(properties, "SomeString", Integer.class));
         assertNull(Utils.getProperty(properties, "SomeString", Long.class));
+        assertNull(Utils.getProperty(properties, "SomeString", UtilsPropertiesTest.class));
     }
 
 }

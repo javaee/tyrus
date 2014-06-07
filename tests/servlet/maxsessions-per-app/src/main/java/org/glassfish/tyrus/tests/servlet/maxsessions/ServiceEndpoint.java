@@ -63,9 +63,9 @@ public class ServiceEndpoint {
 
         if (message.startsWith("/echo")) {
             try {
-                if (ApplicationConfig.openLatch.await(1, TimeUnit.SECONDS) &&
-                        ApplicationConfig.closeLatch.await(1, TimeUnit.SECONDS)) {
-                    if (!Echo.forbiddenClose.get()) {
+                if (MaxSessionPerAppApplicationConfig.openLatch.await(1, TimeUnit.SECONDS) &&
+                        MaxSessionPerAppApplicationConfig.closeLatch.await(1, TimeUnit.SECONDS)) {
+                    if (!EchoEndpoint.forbiddenClose.get()) {
                         return POSITIVE;
                     }
                 }
@@ -82,9 +82,9 @@ public class ServiceEndpoint {
     }
 
     private void reset() {
-        Echo.forbiddenClose.set(false);
-        ApplicationConfig.openLatch = new CountDownLatch(ApplicationConfig.MAX_SESSIONS);
-        ApplicationConfig.closeLatch = new CountDownLatch(ApplicationConfig.MAX_SESSIONS);
+        EchoEndpoint.forbiddenClose.set(false);
+        MaxSessionPerAppApplicationConfig.openLatch = new CountDownLatch(MaxSessionPerAppApplicationConfig.MAX_SESSIONS_PER_APP);
+        MaxSessionPerAppApplicationConfig.closeLatch = new CountDownLatch(MaxSessionPerAppApplicationConfig.MAX_SESSIONS_PER_APP);
     }
 }
 

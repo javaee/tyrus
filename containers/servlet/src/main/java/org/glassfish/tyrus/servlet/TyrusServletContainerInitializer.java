@@ -91,56 +91,18 @@ public class TyrusServletContainerInitializer implements ServletContainerInitial
 
         classes.removeAll(FILTERED_CLASSES);
 
-        Integer incommingBufferSize;
-        String incommingBufferSiteStr = ctx.getInitParameter(TyrusHttpUpgradeHandler.FRAME_BUFFER_SIZE);
-        if (incommingBufferSiteStr != null) {
-            try {
-                incommingBufferSize = Integer.parseInt(incommingBufferSiteStr);
-            } catch (NumberFormatException e) {
-                LOGGER.log(Level.CONFIG, "Invalid configuration value [" + TyrusHttpUpgradeHandler.FRAME_BUFFER_SIZE + " = " + incommingBufferSiteStr + "], integer expected");
-                incommingBufferSize = null;
-            }
-        } else {
-            incommingBufferSize = null;
-        }
-
-        Integer maxSessionsPerApp;
-        String maxSessionsPerStr = ctx.getInitParameter(TyrusWebSocketEngine.MAX_SESSIONS_PER_APP);
-        if (maxSessionsPerStr != null) {
-            try {
-                maxSessionsPerApp = Integer.parseInt(maxSessionsPerStr);
-            } catch (NumberFormatException e) {
-                LOGGER.log(Level.CONFIG, "Invalid configuration value [" + TyrusWebSocketEngine.MAX_SESSIONS_PER_APP + " = " + maxSessionsPerStr + "], integer expected");
-                maxSessionsPerApp = null;
-            }
-        } else {
-            maxSessionsPerApp = null;
-        }
-
-        Integer maxSessionsPerRemoteAddr;
-        String maxSessionsPerRemoteAddrStr = ctx.getInitParameter(TyrusWebSocketEngine.MAX_SESSIONS_PER_REMOTE_ADDR);
-        if (maxSessionsPerRemoteAddrStr != null) {
-            try {
-                maxSessionsPerRemoteAddr = Integer.parseInt(maxSessionsPerRemoteAddrStr);
-            } catch (NumberFormatException e) {
-                LOGGER.log(Level.CONFIG, "Invalid configuration value [" + TyrusWebSocketEngine.MAX_SESSIONS_PER_REMOTE_ADDR + " = " + maxSessionsPerRemoteAddrStr + "], integer expected");
-                maxSessionsPerRemoteAddr = null;
-            }
-        } else {
-            maxSessionsPerRemoteAddr = null;
-        }
+        final Integer incomingBufferSize = getIntContextParam(ctx, TyrusHttpUpgradeHandler.FRAME_BUFFER_SIZE);
+        final Integer maxSessionsPerApp = getIntContextParam(ctx, TyrusWebSocketEngine.MAX_SESSIONS_PER_APP);
+        final Integer maxSessionsPerRemoteAddr = getIntContextParam(ctx, TyrusWebSocketEngine.MAX_SESSIONS_PER_REMOTE_ADDR);
 
         final ApplicationEventListener applicationEventListener = createApplicationEventListener(ctx);
-        final Integer finalIncommingBufferSize = incommingBufferSize;
-        final Integer finalMaxSessionsPerApp = maxSessionsPerApp;
-        final Integer finalMaxSessionsPerRemoteAddr = maxSessionsPerRemoteAddr;
         final TyrusServerContainer serverContainer = new TyrusServerContainer(classes) {
 
             private final WebSocketEngine engine = TyrusWebSocketEngine.builder(this)
                     .applicationEventListener(applicationEventListener)
-                    .incomingBufferSize(finalIncommingBufferSize)
-                    .maxSessionsPerApp(finalMaxSessionsPerApp)
-                    .maxSessionsPerRemoteAddr(finalMaxSessionsPerRemoteAddr)
+                    .incomingBufferSize(incomingBufferSize)
+                    .maxSessionsPerApp(maxSessionsPerApp)
+                    .maxSessionsPerRemoteAddr(maxSessionsPerRemoteAddr)
                     .build();
 
             @Override
@@ -175,6 +137,27 @@ public class TyrusServletContainerInitializer implements ServletContainerInitial
         if (applicationEventListener != null) {
             applicationEventListener.onApplicationInitialized(ctx.getContextPath());
         }
+    }
+
+    /**
+     * Get {@link Integer} parameter from {@link javax.servlet.ServletContext}.
+     *
+     * @param ctx       used to retrieve init parameter.
+     * @param paramName parameter name.
+     * @return parsed {@link Integer} value or {@code null} when the value is not integer or when the init parameter is
+     * not present.
+     */
+    private Integer getIntContextParam(ServletContext ctx, String paramName) {
+        String initParameter = ctx.getInitParameter(paramName);
+        if (initParameter != null) {
+            try {
+                return Integer.parseInt(initParameter);
+            } catch (NumberFormatException e) {
+                LOGGER.log(Level.CONFIG, "Invalid configuration value [" + paramName + " = " + initParameter + "], integer expected");
+            }
+        }
+
+        return null;
     }
 
     private ApplicationEventListener createApplicationEventListener(final ServletContext ctx) {

@@ -677,7 +677,7 @@ public class TyrusSession implements Session {
      * Get the Internet Protocol (IP) address of the client or last proxy that sent the request.
      *
      * @return a {@link String} containing the IP address of the client that sent the request or {@code null} when
-     * method is called on client-side
+     * method is called on client-side.
      */
     public String getRemoteAddr() {
         return remoteAddr;

@@ -78,7 +78,7 @@ public class MaxSessionsAppTest extends TestContainer {
 
     private static final int NUMBER_OF_ENDPOINTS = 3;
     private static final int NUMBER_OF_CLIENTS_OVER_LIMIT = 3;
-    private static final int NUMBER_OF_CLIENT_SESSIONS = ApplicationConfig.MAX_SESSIONS + NUMBER_OF_CLIENTS_OVER_LIMIT;
+    private static final int NUMBER_OF_CLIENT_SESSIONS = MaxSessionPerAppApplicationConfig.MAX_SESSIONS_PER_APP + NUMBER_OF_CLIENTS_OVER_LIMIT;
 
     public MaxSessionsAppTest() {
         setContextPath(CONTEXT_PATH);
@@ -89,8 +89,8 @@ public class MaxSessionsAppTest extends TestContainer {
             super(new HashSet<Class<?>>() {{
                 add(ServiceEndpoint.class);
             }}, new HashSet<ServerEndpointConfig>() {{
-                for (final String path : ApplicationConfig.PATHS) {
-                    add(TyrusServerEndpointConfig.Builder.create(Echo.class, path).build());
+                for (final String path : MaxSessionPerAppApplicationConfig.PATHS) {
+                    add(TyrusServerEndpointConfig.Builder.create(EchoEndpoint.class, path).build());
                 }
             }});
         }
@@ -99,7 +99,7 @@ public class MaxSessionsAppTest extends TestContainer {
     public void maxSessions() throws DeploymentException, InterruptedException, IOException {
         final ClientManager client = createClient();
 
-        final CountDownLatch closeNormalLatch = new CountDownLatch(ApplicationConfig.MAX_SESSIONS);
+        final CountDownLatch closeNormalLatch = new CountDownLatch(MaxSessionPerAppApplicationConfig.MAX_SESSIONS_PER_APP);
         final CountDownLatch closeOverLimitLatch = new CountDownLatch(NUMBER_OF_CLIENTS_OVER_LIMIT);
 
         final Session[] sessions = new Session[NUMBER_OF_CLIENT_SESSIONS];
@@ -140,7 +140,7 @@ public class MaxSessionsAppTest extends TestContainer {
 
         for (int i = 0; i < NUMBER_OF_CLIENT_SESSIONS; i++) {
             System.out.printf("session[%d] is open? %s\n", i, sessions[i].isOpen());
-            if (i < ApplicationConfig.MAX_SESSIONS) {
+            if (i < MaxSessionPerAppApplicationConfig.MAX_SESSIONS_PER_APP) {
                 assertTrue("Session in limit is closed!", sessions[i].isOpen());
                 sessions[i].close();
             } else {
@@ -181,7 +181,7 @@ public class MaxSessionsAppTest extends TestContainer {
 
     @Test
     public void maxSessionsSingle() throws DeploymentException, InterruptedException, IOException {
-        getServerProperties().put(TyrusWebSocketEngine.MAX_SESSIONS_PER_APP, ApplicationConfig.MAX_SESSIONS);
+        getServerProperties().put(TyrusWebSocketEngine.MAX_SESSIONS_PER_APP, MaxSessionPerAppApplicationConfig.MAX_SESSIONS_PER_APP);
 
         Server server = startServer(ServerDeployApplicationConfig.class);
         try {
@@ -194,7 +194,7 @@ public class MaxSessionsAppTest extends TestContainer {
 
     @Test
     public void maxSessionsDurable() throws DeploymentException, InterruptedException, IOException {
-        getServerProperties().put(TyrusWebSocketEngine.MAX_SESSIONS_PER_APP, ApplicationConfig.MAX_SESSIONS);
+        getServerProperties().put(TyrusWebSocketEngine.MAX_SESSIONS_PER_APP, MaxSessionPerAppApplicationConfig.MAX_SESSIONS_PER_APP);
 
         Server server = startServer(ServerDeployApplicationConfig.class);
         try {

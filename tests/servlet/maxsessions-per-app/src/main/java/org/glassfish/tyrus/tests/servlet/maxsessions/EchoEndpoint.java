@@ -37,40 +37,51 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.tests.servlet.maxsessionsperremoteaddr;
+package org.glassfish.tyrus.tests.servlet.maxsessions;
 
-import java.util.HashSet;
-import java.util.Set;
-import java.util.concurrent.CountDownLatch;
+import java.io.IOException;
+import java.util.concurrent.atomic.AtomicBoolean;
 
+import javax.websocket.CloseReason;
 import javax.websocket.Endpoint;
-import javax.websocket.server.ServerApplicationConfig;
-import javax.websocket.server.ServerEndpointConfig;
+import javax.websocket.EndpointConfig;
+import javax.websocket.MessageHandler;
+import javax.websocket.Session;
 
 /**
  * @author Ondrej Kosatka (ondrej.kosatka at oracle.com)
  */
-public class ApplicationConfig implements ServerApplicationConfig {
+public class EchoEndpoint extends Endpoint {
 
-    static final String[] PATHS = new String[]{"/echo1", "/echo2", "/echo3"};
-    // session limit - also defined in web.xml
-    static final int MAX_SESSIONS = 4;
-    static CountDownLatch closeLatch = new CountDownLatch(MAX_SESSIONS);
-    static CountDownLatch openLatch = new CountDownLatch(MAX_SESSIONS);
+    // onClose (on server-side) should be called only for successfully opened sessions
+    public static final AtomicBoolean forbiddenClose = new AtomicBoolean(false);
 
     @Override
-    public Set<ServerEndpointConfig> getEndpointConfigs(Set<Class<? extends Endpoint>> endpointClasses) {
-        return new HashSet<ServerEndpointConfig>() {{
-            for (int i = 0; i < PATHS.length; i++) {
-                add(ServerEndpointConfig.Builder.create(Echo.class, PATHS[i]).build());
-            }
-        }};
+    public void onOpen(final Session session, EndpointConfig config) {
+        MaxSessionPerAppApplicationConfig.openLatch.countDown();
+        try {
+            session.addMessageHandler(new MessageHandler.Whole<String>() {
+                @Override
+                public void onMessage(String message) {
+                    try {
+                        session.getBasicRemote().sendText(message);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+
+            session.getBasicRemote().sendText("Do or do not, there is no try.");
+        } catch (IOException e) {
+            // do nothing
+        }
     }
 
     @Override
-    public Set<Class<?>> getAnnotatedEndpointClasses(Set<Class<?>> scanned) {
-        return new HashSet<Class<?>>() {{
-            add(ServiceEndpoint.class);
-        }};
+    public void onClose(Session session, CloseReason closeReason) {
+        MaxSessionPerAppApplicationConfig.closeLatch.countDown();
+        if (closeReason.getCloseCode().getCode() == CloseReason.CloseCodes.TRY_AGAIN_LATER.getCode()) {
+            forbiddenClose.set(true);
+        }
     }
 }

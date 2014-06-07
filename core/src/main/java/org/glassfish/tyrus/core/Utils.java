@@ -59,7 +59,6 @@ public class Utils {
 
     private static final Logger LOGGER = Logger.getLogger(Utils.class.getName());
 
-
     /**
      * Define to {@link String} conversion for various types.
      *

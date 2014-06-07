@@ -99,20 +99,20 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
     /**
      * Maximum number of open sessions per server application.
      * <p/>
-     * The value must be positive {@link java.lang.Integer} or its primitive alternative. Negative value
+     * The value must be positive {@link java.lang.Integer} or its primitive alternative. Negative values
      * and zero are ignored.
      * <p/>
-     * By default TyrusWebSocketEngine does not limit the number of open sessions per application.
+     * The number of open sessions per application is not limited by default.
      */
     public static final String MAX_SESSIONS_PER_APP = "org.glassfish.tyrus.maxSessionsPerApp";
 
     /**
      * Maximum number of open sessions per unique remote address.
      * <p/>
-     * The value must be positive {@link java.lang.Integer} or its primitive alternative. Negative value
+     * The value must be positive {@link java.lang.Integer} or its primitive alternative. Negative values
      * and zero are ignored.
      * <p/>
-     * By default TyrusWebSocketEngine does not limit the number of open sessions per remote address.
+     * The number of open sessions per remote address is not limited by default.
      */
     public static final String MAX_SESSIONS_PER_REMOTE_ADDR = "org.glassfish.tyrus.maxSessionsPerRemoteAddr";
 
@@ -136,7 +136,8 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
 
     private static final UpgradeInfo NOT_APPLICABLE_UPGRADE_INFO = new NoConnectionUpgradeInfo(UpgradeStatus.NOT_APPLICABLE);
     private static final UpgradeInfo HANDSHAKE_FAILED_UPGRADE_INFO = new NoConnectionUpgradeInfo(UpgradeStatus.HANDSHAKE_FAILED);
-    private static final TyrusEndpointWrapper.SessionListener NO_OP_SESSION_LISTENER = new TyrusEndpointWrapper.SessionListener() {};
+    private static final TyrusEndpointWrapper.SessionListener NO_OP_SESSION_LISTENER = new TyrusEndpointWrapper.SessionListener() {
+    };
 
     private final Set<TyrusEndpointWrapper> endpointWrappers = Collections.newSetFromMap(new ConcurrentHashMap<TyrusEndpointWrapper, Boolean>());
     private final ComponentProviderService componentProviderService = ComponentProviderService.create();
@@ -665,17 +666,17 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
          */
         public TyrusWebSocketEngine build() {
             if (maxSessionsPerApp != null && maxSessionsPerApp <= 0) {
-                LOGGER.log(Level.CONFIG, "Invalid configuration value " + MAX_SESSIONS_PER_APP + " (" + maxSessionsPerApp + "), expected value greater than 0");
+                LOGGER.log(Level.CONFIG, "Invalid configuration value " + MAX_SESSIONS_PER_APP + " (" + maxSessionsPerApp + "), expected value greater than 0.");
                 maxSessionsPerApp = null;
             }
 
             if (maxSessionsPerRemoteAddr != null && maxSessionsPerRemoteAddr <= 0) {
-                LOGGER.log(Level.CONFIG, "Invalid configuration value " + MAX_SESSIONS_PER_REMOTE_ADDR + " (" + maxSessionsPerRemoteAddr + "), expected value greater than 0");
+                LOGGER.log(Level.CONFIG, "Invalid configuration value " + MAX_SESSIONS_PER_REMOTE_ADDR + " (" + maxSessionsPerRemoteAddr + "), expected value greater than 0.");
                 maxSessionsPerRemoteAddr = null;
             }
 
             if (maxSessionsPerApp != null && maxSessionsPerRemoteAddr != null && maxSessionsPerApp < maxSessionsPerRemoteAddr) {
-                LOGGER.log(Level.FINE, String.format("Invalid configuration - value %s (%d) cannot be greater then %s (%d)",
+                LOGGER.log(Level.FINE, String.format("Invalid configuration - value %s (%d) cannot be greater then %s (%d).",
                         MAX_SESSIONS_PER_REMOTE_ADDR, maxSessionsPerRemoteAddr, MAX_SESSIONS_PER_APP, maxSessionsPerApp));
             }
 

@@ -589,7 +589,7 @@ public class TyrusEndpointWrapper {
             if (maxSessionPerEndpointExceeded || !onOpenResult.equals(SessionListener.OnOpenResult.SESSION_ALLOWED)) {
                 try {
                     webSocketToSession.remove(socket);
-                    String refuseDetail = "";
+                    String refuseDetail;
 
                     if (maxSessionPerEndpointExceeded) {
                         refuseDetail = LocalizationMessages.MAX_SESSIONS_PER_ENDPOINT_EXCEEDED();
@@ -601,6 +601,9 @@ public class TyrusEndpointWrapper {
                             case MAX_SESSIONS_PER_REMOTE_ADDR_EXCEEDED:
                                 refuseDetail = LocalizationMessages.MAX_SESSIONS_PER_REMOTEADDR_EXCEEDED();
                                 break;
+                            default:
+                                // should not happen.
+                                refuseDetail = null;
                         }
                     }
 
@@ -1383,17 +1386,17 @@ public class TyrusEndpointWrapper {
         public enum OnOpenResult {
 
             /**
-             * Session can be open.
+             * Session can be opened.
              */
             SESSION_ALLOWED,
 
             /**
-             * Session cannot be open - the maximal number of open session per application exceeded.
+             * Session cannot be opened - the maximal number of open session per application exceeded.
              */
             MAX_SESSIONS_PER_APP_EXCEEDED,
 
             /**
-             * Session cannot be open - the maximal number of open session per remote address exceeded.
+             * Session cannot be opened - the maximal number of open session per remote address exceeded.
              */
             MAX_SESSIONS_PER_REMOTE_ADDR_EXCEEDED
         }
@@ -1404,7 +1407,7 @@ public class TyrusEndpointWrapper {
          * <p/>
          * Default implementation always returns {@link org.glassfish.tyrus.core.TyrusEndpointWrapper.SessionListener.OnOpenResult#SESSION_ALLOWED}.
          *
-         * @param session current session object.
+         * @param session session to be opened.
          * @return {@link org.glassfish.tyrus.core.TyrusEndpointWrapper.SessionListener.OnOpenResult#SESSION_ALLOWED}
          * if session can be opened or reason why not.
          */
@@ -1414,8 +1417,9 @@ public class TyrusEndpointWrapper {
 
         /**
          * Invoked after {@link javax.websocket.OnClose} annotated method
-         * or {@link Endpoint#onClose(javax.websocket.Session, javax.websocket.CloseReason)} is invoked.
+         * or {@link Endpoint#onClose(javax.websocket.Session, javax.websocket.CloseReason)} execution.
          *
+         * @param session     closed session.
          * @param closeReason close reason.
          */
         public void onClose(final TyrusSession session, final CloseReason closeReason) {

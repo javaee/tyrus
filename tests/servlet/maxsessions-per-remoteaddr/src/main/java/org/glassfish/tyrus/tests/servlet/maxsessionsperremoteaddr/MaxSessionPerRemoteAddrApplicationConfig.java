@@ -39,49 +39,38 @@
  */
 package org.glassfish.tyrus.tests.servlet.maxsessionsperremoteaddr;
 
-import java.io.IOException;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.CountDownLatch;
 
-import javax.websocket.CloseReason;
 import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfig;
-import javax.websocket.MessageHandler;
-import javax.websocket.Session;
+import javax.websocket.server.ServerApplicationConfig;
+import javax.websocket.server.ServerEndpointConfig;
 
 /**
  * @author Ondrej Kosatka (ondrej.kosatka at oracle.com)
  */
-public class Echo extends Endpoint {
+public class MaxSessionPerRemoteAddrApplicationConfig implements ServerApplicationConfig {
 
-    // onClose (on server-side) should be called only for successfully opened sessions
-    public static final AtomicBoolean forbiddenClose = new AtomicBoolean(false);
+    static final String[] PATHS = new String[]{"/echo1", "/echo2", "/echo3"};
+    // session limit - as defined in web.xml
+    static final int MAX_SESSIONS_PER_REMOTE_ADDR = 4;
+    static CountDownLatch closeLatch = new CountDownLatch(MAX_SESSIONS_PER_REMOTE_ADDR);
+    static CountDownLatch openLatch = new CountDownLatch(MAX_SESSIONS_PER_REMOTE_ADDR);
 
     @Override
-    public void onOpen(final Session session, EndpointConfig config) {
-        ApplicationConfig.openLatch.countDown();
-        try {
-            session.addMessageHandler(new MessageHandler.Whole<String>() {
-                @Override
-                public void onMessage(String message) {
-                    try {
-                        session.getBasicRemote().sendText(message);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
-
-            session.getBasicRemote().sendText("Do or do not, there is no try.");
-        } catch (IOException e) {
-            // do nothing
-        }
+    public Set<ServerEndpointConfig> getEndpointConfigs(Set<Class<? extends Endpoint>> endpointClasses) {
+        return new HashSet<ServerEndpointConfig>() {{
+            for (String PATH : PATHS) {
+                add(ServerEndpointConfig.Builder.create(EchoEndpoint.class, PATH).build());
+            }
+        }};
     }
 
     @Override
-    public void onClose(Session session, CloseReason closeReason) {
-        ApplicationConfig.closeLatch.countDown();
-        if (closeReason.getCloseCode().getCode() == CloseReason.CloseCodes.TRY_AGAIN_LATER.getCode()) {
-            forbiddenClose.set(true);
-        }
+    public Set<Class<?>> getAnnotatedEndpointClasses(Set<Class<?>> scanned) {
+        return new HashSet<Class<?>>() {{
+            add(ServiceEndpoint.class);
+        }};
     }
 }
