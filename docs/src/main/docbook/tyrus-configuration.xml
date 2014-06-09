@@ -45,89 +45,66 @@
          version="5.0"
          xml:lang="en"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xmlns:xi="http://www.w3.org/2001/XInclude"
          xmlns:xlink="http://www.w3.org/1999/xlink"
          xsi:schemaLocation="http://docbook.org/ns/docbook http://docbook.org/xml/5.0/xsd/docbook.xsd
                              http://www.w3.org/1999/xlink http://www.w3.org/1999/xlink.xsd"
          xml:id="tyrus-proprietary-config">
     <title>Tyrus proprietary configuration</title>
 
-    <para>Following settings do have influence on Tyrus behaviour and are
-        <emphasis>NOT</emphasis>
-        part of WebSocket
-        specification. If you are using following configurable options, your application might not be easily
-        transferable to
-        other WebSocket API implementation.
-    </para>
+    <para>Following settings do have influence on Tyrus behaviour and are <emphasis>NOT</emphasis> part of WebSocket
+    specification. If you are using following configurable options, your application might not be easily transferable to
+    other WebSocket API implementation.</para>
 
     <section>
         <title>Client-side SSL configuration</title>
 
-        <para>When accessing "wss" URLs, Tyrus client will pick up whatever keystore and truststore is actually set for
-            current JVM instance, but
-            that might not be always convenient. WebSocket API does not have this feature (yet, see<link
-                    xlink:href="https://java.net/jira/browse/WEBSOCKET_SPEC-210">WEBSOCKET_SPEC-210</link>),
-            so Tyrus exposed
-            <link xlink:href="https://grizzly.java.net/docs/2.3/apidocs/org/glassfish/grizzly/ssl/SSLEngineConfigurator.html">
-                SSLEngineConfigurator
-            </link>
-            class from Grizzly which can be used for specifying all SSL parameters
+        <para>When accessing "wss" URLs, Tyrus client will pick up whatever keystore and truststore is actually set for current JVM instance, but
+            that might not be always convenient. WebSocket API does not have this feature (yet, see <link xlink:href="https://java.net/jira/browse/WEBSOCKET_SPEC-210">WEBSOCKET_SPEC-210</link>),
+            so Tyrus exposed <link xlink:href="https://grizzly.java.net/docs/2.3/apidocs/org/glassfish/grizzly/ssl/SSLEngineConfigurator.html">SSLEngineConfigurator</link> class from Grizzly which can be used for specifying all SSL parameters
             to be used with current client instance. Additionally, WebSocket API does not have anything like a client,
             only WebSocketContainer and it does not have any properties, so you need to use Tyrus specific class -
-            <link xlink:href="https://tyrus.java.net/apidocs/&version;/org/glassfish/tyrus/client/ClientManager.html">
-                ClientManager</link>.
-        </para>
+            <link xlink:href="https://tyrus.java.net/apidocs/&version;/org/glassfish/tyrus/client/ClientManager.html">ClientManager</link>.</para>
 
-        <programlisting language="java" linenumbering="numbered">final ClientManager client =
-            ClientManager.createClient();
+        <programlisting language="java" linenumbering="numbered">final ClientManager client = ClientManager.createClient();
 
-            System.getProperties().put("javax.net.debug", "all");
-            System.getProperties().put(SSLContextConfigurator.KEY_STORE_FILE, "...");
-            System.getProperties().put(SSLContextConfigurator.TRUST_STORE_FILE, "...");
-            System.getProperties().put(SSLContextConfigurator.KEY_STORE_PASSWORD, "...");
-            System.getProperties().put(SSLContextConfigurator.TRUST_STORE_PASSWORD, "...");
-            final SSLContextConfigurator defaultConfig = new SSLContextConfigurator();
+System.getProperties().put("javax.net.debug", "all");
+System.getProperties().put(SSLContextConfigurator.KEY_STORE_FILE, "...");
+System.getProperties().put(SSLContextConfigurator.TRUST_STORE_FILE, "...");
+System.getProperties().put(SSLContextConfigurator.KEY_STORE_PASSWORD, "...");
+System.getProperties().put(SSLContextConfigurator.TRUST_STORE_PASSWORD, "...");
+final SSLContextConfigurator defaultConfig = new SSLContextConfigurator();
 
-            defaultConfig.retrieve(System.getProperties());
-            // or setup SSLContextConfigurator using its API.
+defaultConfig.retrieve(System.getProperties());
+    // or setup SSLContextConfigurator using its API.
 
-            SSLEngineConfigurator sslEngineConfigurator =
-            new SSLEngineConfigurator(defaultConfig, true, false, false);
-            client.getProperties().put(GrizzlyEngine.SSL_ENGINE_CONFIGURATOR,
-            sslEngineConfigurator);
-            client.connectToServer(... , ClientEndpointConfig.Builder.create().build(),
-            new URI("wss://localhost:8181/sample-echo/echo"));
-            }
-        </programlisting>
+SSLEngineConfigurator sslEngineConfigurator =
+    new SSLEngineConfigurator(defaultConfig, true, false, false);
+client.getProperties().put(GrizzlyEngine.SSL_ENGINE_CONFIGURATOR,
+    sslEngineConfigurator);
+client.connectToServer(... , ClientEndpointConfig.Builder.create().build(),
+    new URI("wss://localhost:8181/sample-echo/echo"));
+}</programlisting>
     </section>
 
     <section>
         <title>Asynchronous connectToServer methods</title>
         <para>WebSocketContainer.connectToServer(...) methods are by definition blocking - declared exceptions needs to
-            be thrown after connection attempt is made and it returns Session instance, which needs to be ready for
-            sending
-            messages and invoking other methods, which require already estabilished connection.
-        </para>
-        <para>Existing connectToServer methods are fine for lots of uses, but it might cause issue when you are
-            designing
-            application with highly responsible user interface. Tyrus introduces asynchronous variants to each
-            connectToServer
-            method (prefixed with "async"), which returns Future&lt;Session&gt;. These methods do only simple check for
-            provided
-            URL and the rest is executed in separate thread. All exceptions thrown during this phase are reported as
-            cause
-            of ExecutionException thrown when calling Future&lt;Session&gt;.get().
-        </para>
-        <para>Asynchronous connect methods are declared on Tyrus implementation of WebSocketContainer called
-            ClientManager.
-        </para>
+        be thrown after connection attempt is made and it returns Session instance, which needs to be ready for sending
+        messages and invoking other methods, which require already estabilished connection.</para>
+        <para>Existing connectToServer methods are fine for lots of uses, but it might cause issue when you are designing
+        application with highly responsible user interface. Tyrus introduces asynchronous variants to each connectToServer
+        method (prefixed with "async"), which returns Future&lt;Session&gt;. These methods do only simple check for provided
+        URL and the rest is executed in separate thread. All exceptions thrown during this phase are reported as cause
+        of ExecutionException thrown when calling Future&lt;Session&gt;.get().</para>
+        <para>Asynchronous connect methods are declared on Tyrus implementation of WebSocketContainer called ClientManager.</para>
 
-        <programlisting language="java" linenumbering="numbered">ClientManager client = ClientManager.createClient();
-            final Future&lt;Session&gt; future = client.asyncConnectToServer(ClientEndpoint.class, URI.create("..."));
-            try {
-            future.get();
-            } catch (...) {
-            }
-        </programlisting>
+<programlisting language="java" linenumbering="numbered">ClientManager client = ClientManager.createClient();
+  final Future&lt;Session&gt; future = client.asyncConnectToServer(ClientEndpoint.class, URI.create("..."));
+  try {
+    future.get();
+  } catch (...) {
+}</programlisting>
 
         <para>ClientManager contains async alternative to each connectToServer method.</para>
     </section>
@@ -135,34 +112,27 @@
     <section>
         <title>Optimized broadcast</title>
         <para>One of the typical usecases we've seen so far for WebSocket server-side endpoints is broadcasting messages
-            to all connected clients, something like:
-        </para>
+        to all connected clients, something like:</para>
 
-        <programlisting language="java" linenumbering="numbered">@OnMessage
-            public void onMessage(Session session, String message) throws IOException {
-            for (Session s : session.getOpenSessions()) {
-            s.getBasicRemote().sendText(message);
-            }
-            }
-        </programlisting>
+<programlisting language="java" linenumbering="numbered">@OnMessage
+public void onMessage(Session session, String message) throws IOException {
+  for (Session s : session.getOpenSessions()) {
+    s.getBasicRemote().sendText(message);
+  }
+}</programlisting>
 
         <para>Executing this code might cause serious load increase on your application server. Tyrus provides optimized
-            broadcast implementation, which takes advantage of the fact, that we are sending exactly same message to all
-            clients,
-            so dataframe can be created and serialized only once. Furthermore, Tyrus can iterate over set of opened
-            connections
-            faster than Session.getOpenSession().
-        </para>
+        broadcast implementation, which takes advantage of the fact, that we are sending exactly same message to all clients,
+        so dataframe can be created and serialized only once. Furthermore, Tyrus can iterate over set of opened connections
+        faster than Session.getOpenSession().</para>
 
-        <programlisting language="java" linenumbering="numbered">@OnMessage
-            public void onMessage(Session session, String message) {
-            ((TyrusSession) session).broadcast(message);
-            }
-        </programlisting>
+<programlisting language="java" linenumbering="numbered">@OnMessage
+public void onMessage(Session session, String message) {
+  ((TyrusSession) session).broadcast(message);
+}</programlisting>
 
         <para>Unfortunately, WebSocket API forbids anything else than Session in @OnMessage annotated method parameter,
-            so you cannot use TyrusSession there directly and you might need to perform instanceof check.
-        </para>
+        so you cannot use TyrusSession there directly and you might need to perform instanceof check.</para>
 
     </section>
 
@@ -170,397 +140,309 @@
         <title>Incoming buffer size</title>
 
         <para>Sevlet container buffers incoming WebSocket frames and there must be a size limit to precede OutOfMemory
-            Exception and potentially DDoS attacks.
-        </para>
+        Exception and potentially DDoS attacks.</para>
 
-        <para>Configuration property is named
-            <code>"org.glassfish.tyrus.servlet.incoming-buffer-size"</code>
-            and you can
-            set it in web.xml (this particular snipped sets the buffer size to 17000000 bytes (~16M payload):
-        </para>
+        <para>Configuration property is named <code>"org.glassfish.tyrus.servlet.incoming-buffer-size"</code> and you can
+        set it in web.xml (this particular snipped sets the buffer size to 17000000 bytes (~16M payload):</para>
 
-        <programlisting language="xml" linenumbering="numbered">&lt;web-app version="2.5"
-            xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-            xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"&gt;
+        <programlisting language="xml" linenumbering="numbered">&lt;web-app version="2.5" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"&gt;
 
-            &lt;context-param&gt;
-            &lt;param-name&gt;org.glassfish.tyrus.servlet.incoming-buffer-size&lt;/param-name&gt;
-            &lt;param-value&gt;17000000&lt;/param-value&gt;
-            &lt;/context-param&gt;
-            &lt;/web-app&gt;</programlisting>
+  &lt;context-param&gt;
+    &lt;param-name&gt;org.glassfish.tyrus.servlet.incoming-buffer-size&lt;/param-name&gt;
+    &lt;param-value&gt;17000000&lt;/param-value&gt;
+  &lt;/context-param&gt;
+&lt;/web-app&gt;</programlisting>
 
         <para>Default value is 4194315, which correspond to 4M plus few bytes to frame headers, so you should be able to
-            receive up to 4M long message without the need to care about this property.
-        </para>
+        receive up to 4M long message without the need to care about this property.</para>
 
         <para>Same issue is present on client side. There you can set this property via ClientManager:</para>
 
         <programlisting language="java" linenumbering="numbered">ClientManager client = ClientManager.createClient();
-            client.getProperties().put("org.glassfish.tyrus.incomingBufferSize", 6000000); // sets the incoming buffer
-            size to 6000000 bytes.
-            client.connectToServer( ... )
-        </programlisting>
+client.getProperties().put("org.glassfish.tyrus.incomingBufferSize", 6000000); // sets the incoming buffer size to 6000000 bytes.
+client.connectToServer( ... )</programlisting>
     </section>
 
     <section>
         <title>Shared client container</title>
 
-        <para>By default, WebSocket client implementation in Tyrus re-creates client runtime whenever
-            WebSocketContainer#connectToServer
+        <para>By default, WebSocket client implementation in Tyrus re-creates client runtime whenever WebSocketContainer#connectToServer
             is invoked. This approach gives us some perks like out-of-the-box isolation and relatively low thread count
             (currently we have 1 selector thread and 2 worker threads). Also it gives you the ability to stop the client
-            runtime – one Session instance is tied to exactly one client runtime, so we can stop it when Session is
-            closed.
+            runtime – one Session instance is tied to exactly one client runtime, so we can stop it when Session is closed.
             This seems as a good solution for most of WebSocket client use cases – you usually use java client from
-            application which uses it for communicating with server side and you typically don’t need more than 10
-            instances
-            (my personal estimate is that more than 90% applications won’t use more than 1 connection). There are
-            several
-            reasons for it – of it is just a client, it needs to preserve server resources – one WebSocket connection
-            means
+            application which uses it for communicating with server side and you typically don’t need more than 10 instances
+            (my personal estimate is that more than 90% applications won’t use more than 1 connection). There are several
+            reasons for it – of it is just a client, it needs to preserve server resources – one WebSocket connection means
             one TCP connection and we don’t really want clients to consume more than needed. Previous statement may be
-            invalidated by WebSocket multiplexing extension, but for now, it is still valid.
-        </para>
+            invalidated by WebSocket multiplexing extension, but for now, it is still valid.</para>
 
         <para>On the other hand, WebSocket client implementations in some other containers took another (also correct)
-            approach – they share client runtime for creating all client connections. That means they might not have
-            this
+            approach – they share client runtime for creating all client connections. That means they might not have this
             strict one session one runtime policy, they cannot really give user way how he to control system resources,
-            but surely it has another advantage – it can handle much more opened connections. Thread pools are share
-            among
+            but surely it has another advantage – it can handle much more opened connections. Thread pools are share among
             client sessions which may or may not have some unforeseen consequences, but if its implemented correctly, it
             should outperform Tyrus solution mentioned in previous paragraph in some use cases, like the one mentioned
-            in
-            <link xlink:href="https://java.net/jira/browse/TYRUS-275">TYRUS-275</link>
-            - performance tests. Reporter
-            created simple program which used WebSocket API to create clients and connect to remote endpoint and he
-            measured
-            how many clients can he create (or in other words: how many parallel client connections can be created; I
-            guess
-            that original test case is to measure possible number of concurrent clients on server side, but that does
-            not
-            really matter for this post). Tyrus implementation loose compared to some other and it was exactly because
-            it
-            did not have shared client runtime capability.
-        </para>
+            in <link xlink:href="https://java.net/jira/browse/TYRUS-275">TYRUS-275</link> - performance tests. Reporter
+            created simple program which used WebSocket API to create clients and connect to remote endpoint and he measured
+            how many clients can he create (or in other words: how many parallel client connections can be created; I guess
+            that original test case is to measure possible number of concurrent clients on server side, but that does not
+            really matter for this post). Tyrus implementation loose compared to some other and it was exactly because it
+            did not have shared client runtime capability.</para>
 
         <para>How can you use this feature?</para>
 
-        <programlisting language="java" linenumbering="numbered">ClientManager client = ClientManager.createClient();
+<programlisting language="java" linenumbering="numbered">ClientManager client = ClientManager.createClient();
 
-            client.getProperties().put(GrizzlyClientContainer.SHARED_CONTAINER, true);
-        </programlisting>
+client.getProperties().put(GrizzlyClientContainer.SHARED_CONTAINER, true);</programlisting>
 
         <para>You might also want to specify container idle timeout:</para>
 
-        <programlisting language="java" linenumbering="numbered">
-            client.getProperties().put(GrizzlyClientContainer.SHARED_CONTAINER_IDLE_TIMEOUT, 5);
-        </programlisting>
+<programlisting language="java" linenumbering="numbered">client.getProperties().put(GrizzlyClientContainer.SHARED_CONTAINER_IDLE_TIMEOUT, 5);</programlisting>
 
-        <para>Last but not least, you might want to specify thread pool sizes used by shared container (please use this
-            feature only when you do know what are you doing. Grizzly by default does not limit max number of used
-            threads, so if you do that, please make sure thread pool size fits your purpose):
-        </para>
+        <para>Last but not least, you might want to specify thread pool sizes used by shared container (please use this feature only when you do know what are you doing. Grizzly by default does not limit max number of used threads, so if you do that, please make sure thread pool size fits your purpose):</para>
 
-        <programlisting language="java" linenumbering="numbered">
-            client.getProperties().put(GrizzlyClientSocket.SELECTOR_THREAD_POOL_CONFIG,
-            ThreadPoolConfig.defaultConfig().setMaxPoolSize(3));
-            client.getProperties().put(GrizzlyClientSocket.WORKER_THREAD_POOL_CONFIG,
-            ThreadPoolConfig.defaultConfig().setMaxPoolSize(10));
-        </programlisting>
+<programlisting language="java" linenumbering="numbered">client.getProperties().put(GrizzlyClientSocket.SELECTOR_THREAD_POOL_CONFIG, ThreadPoolConfig.defaultConfig().setMaxPoolSize(3));
+client.getProperties().put(GrizzlyClientSocket.WORKER_THREAD_POOL_CONFIG, ThreadPoolConfig.defaultConfig().setMaxPoolSize(10));</programlisting>
     </section>
 
     <section>
         <title>WebSocket Extensions</title>
 
-        <para>Please note that Extensions support is considered to be experimental and any API can be changed anytime.
-            Also,
-            you should ask yourself at least twice whether you don't want to achieve your goal by other means -
-            WebSocket
-            Extension is very powerful and can easily break your application when not used with care or enough
-            expertise.
+        <para>Please note that Extensions support is considered to be experimental and any API can be changed anytime. Also,
+        you should ask yourself at least twice whether you don't want to achieve your goal by other means - WebSocket
+        Extension is very powerful and can easily break your application when not used with care or enough expertise.
         </para>
 
         <para>WebSocket frame used in ExtendedExtension:</para>
 
         <programlisting language="java" linenumbering="numbered">public class Frame {
 
-            public boolean isFin() { .. }
-            public boolean isRsv1() { .. }
-            public boolean isRsv2() { .. }
-            public boolean isRsv3() { .. }
-            public boolean isMask() { .. }
-            public byte getOpcode() { .. }
-            public long getPayloadLength() { .. }
-            public int getMaskingKey() { .. }
-            public byte[] getPayloadData() { .. }
-            public boolean isControlFrame() { .. }
+    public boolean isFin() { .. }
+    public boolean isRsv1() { .. }
+    public boolean isRsv2() { .. }
+    public boolean isRsv3() { .. }
+    public boolean isMask() { .. }
+    public byte getOpcode() { .. }
+    public long getPayloadLength() { .. }
+    public int getMaskingKey() { .. }
+    public byte[] getPayloadData() { .. }
+    public boolean isControlFrame() { .. }
 
-            public static Builder builder() { .. }
-            public static Builder builder(Frame frame) { .. }
+    public static Builder builder() { .. }
+    public static Builder builder(Frame frame) { .. }
 
-            public final static class Builder {
+    public final static class Builder {
 
-            public Builder() { .. }
-            public Builder(Frame frame) { .. }
-            public Frame build() { .. }
-            public Builder fin(boolean fin) { .. }
-            public Builder rsv1(boolean rsv1) { .. }
-            public Builder rsv2(boolean rsv2) { .. }
-            public Builder rsv3(boolean rsv3) { .. }
-            public Builder mask(boolean mask) { .. }
-            public Builder opcode(byte opcode) { .. }
-            public Builder payloadLength(long payloadLength) { .. }
-            public Builder maskingKey(int maskingKey) { .. }
-            public Builder payloadData(byte[] payloadData) { .. }
-            }
-        </programlisting>
+    public Builder() { .. }
+    public Builder(Frame frame) { .. }
+    public Frame build() { .. }
+    public Builder fin(boolean fin) { .. }
+    public Builder rsv1(boolean rsv1) { .. }
+    public Builder rsv2(boolean rsv2) { .. }
+    public Builder rsv3(boolean rsv3) { .. }
+    public Builder mask(boolean mask) { .. }
+    public Builder opcode(byte opcode) { .. }
+    public Builder payloadLength(long payloadLength) { .. }
+    public Builder maskingKey(int maskingKey) { .. }
+    public Builder payloadData(byte[] payloadData) { .. }
+}</programlisting>
 
         <para>Frame is immutable, so if you want to create new one, you need to create new builder, modify what you want
-            and build it:
-        </para>
+        and build it:</para>
 
-        <programlisting language="java" linenumbering="numbered">Frame newFrame =
-            Frame.builder(originalFrame).rsv1(true).build();
-        </programlisting>
+        <programlisting language="java" linenumbering="numbered">Frame newFrame = Frame.builder(originalFrame).rsv1(true).build();</programlisting>
 
-        <para>Note that there is only one convenience method: isControlFrame. Other information about frame type etc
-            needs
-            to be evaluated directly from opcode, simply because there might not be enough information to get the
-            correct
-            outcome or the information itself would not be very useful. For example: opcode 0×00 means continuation
-            frame,
+        <para>Note that there is only one convenience method: isControlFrame. Other information about frame type etc needs
+            to be evaluated directly from opcode, simply because there might not be enough information to get the correct
+            outcome or the information itself would not be very useful. For example: opcode 0×00 means continuation frame,
             but you don’t have any chance to get the information about actual type (text or binary) without intercepting
-            data from previous frames. Consider Frame class as raw representation as possible. isControlFrame() can be
-            also
+            data from previous frames. Consider Frame class as raw representation as possible. isControlFrame() can be also
             gathered from opcode, but it is at least always deterministic and it will be used by most of extension
             implementations. It is not usual to modify control frames as it might end with half closed connections or
-            unanswered ping messages.
-        </para>
+            unanswered ping messages.</para>
 
-        <para>ExtendedExtension representation needs to be able to handle extension parameter negotiation and actual
-            processing
-            of incoming and outgoing frames. It also should be compatible with existing javax.websocket.Extension class,
-            since we
-            want to re-use existing registration API and be able to return new extension instance included in response
-            from List&lt;Extension&gt; Session.getNegotiatedExtensions() call. Consider following:
-        </para>
+        <para>ExtendedExtension representation needs to be able to handle extension parameter negotiation and actual processing
+        of incoming and outgoing frames. It also should be compatible with existing javax.websocket.Extension class, since we
+        want to re-use existing registration API and be able to return new extension instance included in response
+        from List&lt;Extension&gt; Session.getNegotiatedExtensions() call. Consider following:</para>
 
         <programlisting language="java" linenumbering="numbered">public interface ExtendedExtension extends Extension {
 
-            Frame processIncoming(ExtensionContext context, Frame frame);
-            Frame processOutgoing(ExtensionContext context, Frame frame);
+    Frame processIncoming(ExtensionContext context, Frame frame);
+    Frame processOutgoing(ExtensionContext context, Frame frame);
 
-            List onExtensionNegotiation(ExtensionContext context, List requestedParameters);
-            void onHandshakeResponse(ExtensionContext context, List responseParameters);
+    List onExtensionNegotiation(ExtensionContext context, List requestedParameters);
+    void onHandshakeResponse(ExtensionContext context, List responseParameters);
 
-            void destroy(ExtensionContext context);
+    void destroy(ExtensionContext context);
 
-            interface ExtensionContext {
+    interface ExtensionContext {
 
-            Map&lt;String, Object> getProperties();
-            }
-            }
-        </programlisting>
+        Map&lt;String, Object> getProperties();
+    }
+}</programlisting>
 
         <para>ExtendedExtension is capable of processing frames and influence parameter values during the handshake.
             Extension is used on both client and server side and since the negotiation is only place where this fact
             applies, we needed to somehow differentiate these sides. On server side, only onExtensionNegotiation(..)
-            method is invoked and on client side onHandshakeResponse(..). Server side method is a must, client side
-            could
+            method is invoked and on client side onHandshakeResponse(..). Server side method is a must, client side could
             be somehow solved by implementing ClientEndpointConfig.Configurator#afterResponse(..) or calling
             Session.getNegotiatedExtenions(), but it won’t be as easy to get this information back to extension instance
             and even if it was, it won’t be very elegant. Also, you might suggest replacing processIncoming and
             processOutgoing methods by just oneprocess(Frame) method. That is also possible, but then you might have to
             assume current direction from frame instance or somehow from ExtensionContext, which is generally not a bad
-            idea, but it resulted it slightly less readable code.
-        </para>
+            idea, but it resulted it slightly less readable code.</para>
 
-        <para>ExtensionContext and related lifecycle method is there because original javax.websocket.Extension is
-            singleton
-            and ExtendedExtension must obey this fact. But it does not meet some requirements we stated previously, like
-            per
-            connection parameter negotiation and of course processing itself will most likely have some connection
-            state.
-            Lifecycle of ExtensionContext is defined as follows: ExtensionContext instance is created right before
-            onExtensionNegotiation
-            (server side) or onHandshakeResponse (client side) and destroyed after destroy method invocation. Obviously,
-            processIncoming
-            or processOutgoing cannot be called before ExtensionContext is created or after is destroyed. You can think
-            of handshake
-            related methods as @OnOpenand destroy as @OnClose.
-        </para>
+        <para>ExtensionContext and related lifecycle method is there because original javax.websocket.Extension is singleton
+        and ExtendedExtension must obey this fact. But it does not meet some requirements we stated previously, like per
+        connection parameter negotiation and of course processing itself will most likely have some connection state.
+        Lifecycle of ExtensionContext is defined as follows: ExtensionContext instance is created right before onExtensionNegotiation
+        (server side) or onHandshakeResponse (client side) and destroyed after destroy method invocation. Obviously, processIncoming
+        or processOutgoing cannot be called before ExtensionContext is created or after is destroyed. You can think of handshake
+        related methods as @OnOpenand destroy as @OnClose.</para>
 
-        <para>For those more familiar with WebSocket protocol: process*(ExtensionContext, Frame) is always invoked with
-            unmasked
-            frame, you don’t need to care about it. On the other side, payload is as it was received from the wire,
-            before any
+        <para>For those more familiar with WebSocket protocol: process*(ExtensionContext, Frame) is always invoked with unmasked
+        frame, you don’t need to care about it. On the other side, payload is as it was received from the wire, before any
             validation (UTF-8 check for text messages). This fact is particularly important when you are modifying text
-            message content, you need to make sure it is properly encoded in relation to other messages, because
-            encoding/decoding
-            process is stateful – remainder after UTF-8 coding is used as input to coding process for next message. If
-            you
-            want just test this feature and save yourself some headaches, don’t modify text message content or try
-            binary
-            messages instead.
-        </para>
+            message content, you need to make sure it is properly encoded in relation to other messages, because encoding/decoding
+            process is stateful – remainder after UTF-8 coding is used as input to coding process for next message. If you
+            want just test this feature and save yourself some headaches, don’t modify text message content or try binary
+            messages instead.</para>
 
         <section>
             <title>ExtendedExtension sample</title>
 
-            <para>Let’s say we want to create extension which will encrypt and decrypt first byte of every binary
-                message. Assume we have a key (one byte) and our symmetrical cipher will be XOR. (Just for simplicity (a
-                XOR key XOR key) = a, so encrypt() and decrypt() functions are the same).
-            </para>
-            <programlisting language="java" linenumbering="numbered">public class CryptoExtension implements
-                ExtendedExtension {
+        <para>Let’s say we want to create extension which will encrypt and decrypt first byte of every binary message. Assume we have a key (one byte) and our symmetrical cipher will be XOR. (Just for simplicity (a XOR key XOR key) = a, so encrypt() and decrypt() functions are the same).</para>
+            <programlisting language="java" linenumbering="numbered">public class CryptoExtension implements ExtendedExtension {
 
-                @Override
-                public Frame processIncoming(ExtensionContext context, Frame frame) {
-                return lameCrypt(context, frame);
-                }
+    @Override
+    public Frame processIncoming(ExtensionContext context, Frame frame) {
+         return lameCrypt(context, frame);
+    }
 
-                @Override
-                public Frame processOutgoing(ExtensionContext context, Frame frame) {
-                return lameCrypt(context, frame);
-                }
+    @Override
+    public Frame processOutgoing(ExtensionContext context, Frame frame) {
+        return lameCrypt(context, frame);
+    }
 
-                private Frame lameCrypt(ExtensionContext context, Frame frame) {
-                if(!frame.isControlFrame() &amp;&amp; (frame.getOpcode() == 0x02)) {
-                final byte[] payloadData = frame.getPayloadData();
-                payloadData[0] ^= (Byte)(context.getProperties().get("key"));
+    private Frame lameCrypt(ExtensionContext context, Frame frame) {
+        if(!frame.isControlFrame() &amp;&amp; (frame.getOpcode() == 0x02)) {
+            final byte[] payloadData = frame.getPayloadData();
+            payloadData[0] ^= (Byte)(context.getProperties().get("key"));
 
-                return Frame.builder(frame).payloadData(payloadData).build();
-                } else {
-                return frame;
-                }
-                }
+            return Frame.builder(frame).payloadData(payloadData).build();
+        } else {
+            return frame;
+        }
+    }
 
-                @Override
-                public List onExtensionNegotiation(ExtensionContext context,
-                List requestedParameters) {
-                init(context);
-                // no params.
-                return null;
-                }
+    @Override
+    public List onExtensionNegotiation(ExtensionContext context,
+                                       List requestedParameters) {
+        init(context);
+        // no params.
+        return null;
+    }
 
-                @Override
-                public void onHandshakeResponse(ExtensionContext context,
-                List responseParameters) {
-                init(context);
-                }
+    @Override
+    public void onHandshakeResponse(ExtensionContext context,
+    List responseParameters) {
+        init(context);
+    }
 
-                private void init(ExtensionContext context) {
-                context.getProperties().put("key", (byte)0x55);
-                }
+    private void init(ExtensionContext context) {
+        context.getProperties().put("key", (byte)0x55);
+    }
 
-                @Override
-                public void destroy(ExtensionContext context) {
-                context.getProperties().clear();
-                }
+    @Override
+    public void destroy(ExtensionContext context) {
+        context.getProperties().clear();
+    }
 
-                @Override
-                public String getName() {
-                return "lame-crypto-extension";
-                }
+    @Override
+    public String getName() {
+        return "lame-crypto-extension";
+    }
 
-                @Override
-                public List getParameters() {
-                // no params.
-                return null;
-                }
-                }
-            </programlisting>
+    @Override
+    public List getParameters() {
+        // no params.
+        return null;
+    }
+}</programlisting>
 
-            <para>You can see that ExtendedExtension is slightly more complicated that original Extension so the
-                implementation
-                has to be also not as straightforward.. on the other hand, it does something. Sample code above shows
-                possible
-                simplification mentioned earlier (one process method will be enough), but please take this as just
-                sample
-                implementation. Real world case is usually more complicated.
-            </para>
+        <para>You can see that ExtendedExtension is slightly more complicated that original Extension so the implementation
+            has to be also not as straightforward.. on the other hand, it does something. Sample code above shows possible
+            simplification mentioned earlier (one process method will be enough), but please take this as just sample
+            implementation. Real world case is usually more complicated.</para>
 
-            <para>Now when we have our CryptoExtension implemented, we want to use it. There is nothing new compared to
-                standard
-                WebSocket Java API, feel free to skip this part if you are already familiar with it. Only programmatic
-                version
-                will be demonstrated. It is possible to do it for annotated version as well, but it is little bit more
-                complicated
-                on the server side and I want to keep the code as compact as possible.
-            </para>
+        <para>Now when we have our CryptoExtension implemented, we want to use it. There is nothing new compared to standard
+            WebSocket Java API, feel free to skip this part if you are already familiar with it. Only programmatic version
+            will be demonstrated. It is possible to do it for annotated version as well, but it is little bit more complicated
+            on the server side and I want to keep the code as compact as possible.</para>
 
-            <para>Client registration</para>
+        <para>Client registration</para>
 
             <programlisting language="java" linenumbering="numbered">ArrayList extensions = new ArrayList();
-                extensions.add(new CryptoExtension());
+extensions.add(new CryptoExtension());
 
-                final ClientEndpointConfig clientConfiguration =
-                ClientEndpointConfig.Builder.create()
-                .extensions(extensions).build();
+final ClientEndpointConfig clientConfiguration =
+    ClientEndpointConfig.Builder.create()
+    .extensions(extensions).build();
 
-                WebSocketContainer client = ContainerProvider.getWebSocketContainer();
-                final Session session = client.connectToServer(new Endpoint() {
-                @Override
-                public void onOpen(Session session, EndpointConfig config) {
-                // ...
-                }
-                }, clientConfiguration, URI.create(/* ... */));
-            </programlisting>
+WebSocketContainer client = ContainerProvider.getWebSocketContainer();
+final Session session = client.connectToServer(new Endpoint() {
+    @Override
+    public void onOpen(Session session, EndpointConfig config) {
+        // ...
+    }
+}, clientConfiguration, URI.create(/* ... */));</programlisting>
 
-            <para>Server registration:</para>
+       <para>Server registration:</para>
 
-            <programlisting language="java" linenumbering="numbered">public class CryptoExtensionApplicationConfig
-                implements ServerApplicationConfig {
+       <programlisting language="java" linenumbering="numbered">public class CryptoExtensionApplicationConfig implements ServerApplicationConfig {
 
-                @Override
-                public Set getEndpointConfigs(Set&lt;Class&lt;? extends Endpoint>> endpointClasses) {
-                Set endpointConfigs = new HashSet();
-                endpointConfigs.add(
-                ServerEndpointConfig.Builder.create(EchoEndpoint.class, "/echo")
-                .extensions(Arrays.asList(new CryptoExtension())).build()
-                );
-                return endpointConfigs;
-                }
+    @Override
+    public Set getEndpointConfigs(Set&lt;Class&lt;? extends Endpoint>> endpointClasses) {
+        Set endpointConfigs = new HashSet();
+        endpointConfigs.add(
+            ServerEndpointConfig.Builder.create(EchoEndpoint.class, "/echo")
+            .extensions(Arrays.asList(new CryptoExtension())).build()
+        );
+        return endpointConfigs;
+    }
 
-                @Override
-                public Set&lt;Class&lt;?>> getAnnotatedEndpointClasses(Set&lt;Class&lt;?>> scanned) {
-                // all scanned endpoints will be used.
-                return scanned;
-                }
-                }
+    @Override
+    public Set&lt;Class&lt;?>> getAnnotatedEndpointClasses(Set&lt;Class&lt;?>> scanned) {
+        // all scanned endpoints will be used.
+        return scanned;
+    }
+}
 
-                public class EchoEndpoint extends Endpoint {
-                @Override
-                public void onOpen(Session session, EndpointConfig config) {
-                // ...
-                }
-                }
-            </programlisting>
+public class EchoEndpoint extends Endpoint {
+    @Override
+    public void onOpen(Session session, EndpointConfig config) {
+        // ...
+    }
+}</programlisting>
 
-            <para>CryptoExtensionApplicationConfig will be found by servlets scanning mechanism and automatically used
-                for
-                application configuration, no need to add anything (or even have) web.xml.
-            </para>
+            <para>CryptoExtensionApplicationConfig will be found by servlets scanning mechanism and automatically used for
+                application configuration, no need to add anything (or even have) web.xml.</para>
         </section>
 
         <section>
             <title>Per Message Deflate Extension</title>
 
             <para>The original goal of whole extension support was to implement Permessage extension as defined in
-                draft-ietf-hybi-permessage-compression-15 and we were able to achieve that goal. Well, not completely,
-                current
-                implementation ignores parameters. But it seems like it does not matter much, it was tested with Chrome
-                and it
-                works fine. Also it passes newest version of Autobahn test suite, which includes tests for this
-                extension.
-            </para>
+                draft-ietf-hybi-permessage-compression-15 and we were able to achieve that goal. Well, not completely, current
+                implementation ignores parameters. But it seems like it does not matter much, it was tested with Chrome and it
+                works fine. Also it passes newest version of Autobahn test suite, which includes tests for this extension.</para>
 
-            <para>see PerMessageDeflateExtension.java (compatible with draft-ietf-hybi-permessage-compression-15,
-                autobahn test suite) and
-                XWebKitDeflateExtension.java (compatible with Chrome and Firefox – same as previous, just different
-                extension name)
-            </para>
+            <para>see PerMessageDeflateExtension.java (compatible with draft-ietf-hybi-permessage-compression-15, autobahn test suite) and
+                XWebKitDeflateExtension.java (compatible with Chrome and Firefox – same as previous, just different extension name)
+                </para>
         </section>
     </section>
 
@@ -568,55 +450,48 @@
         <title>Client reconnect</title>
 
         <para>If you need semi-persistent client connection, you can always implement some reconnect logic by yourself,
-            but Tyrus Client offers useful feature which should be much easier to use. See short sample code:
-        </para>
+        but Tyrus Client offers useful feature which should be much easier to use. See short sample code:</para>
 
         <programlisting language="java" linenumbering="numbered">ClientManager client = ClientManager.createClient();
-            ClientManager.ReconnectHandler reconnectHandler = new ClientManager.ReconnectHandler() {
+ClientManager.ReconnectHandler reconnectHandler = new ClientManager.ReconnectHandler() {
 
-            private int counter = 0;
+  private int counter = 0;
 
-            @Override
-            public boolean onDisconnect(CloseReason closeReason) {
-            counter++;
-            if (counter &lt;= 3) {
-            System.out.println("### Reconnecting... (reconnect count: " + counter + ")");
-            return true;
-            } else {
-            return false;
-            }
-            }
+  @Override
+  public boolean onDisconnect(CloseReason closeReason) {
+    counter++;
+    if (counter &lt;= 3) {
+      System.out.println("### Reconnecting... (reconnect count: " + counter + ")");
+      return true;
+    } else {
+      return false;
+    }
+  }
 
-            @Override
-            public boolean onConnectFailure(Exception exception) {
-            counter++;
-            if (counter &lt;= 3) {
-            System.out.println("### Reconnecting... (reconnect count: " + counter + ") " + exception.getMessage());
+  @Override
+  public boolean onConnectFailure(Exception exception) {
+    counter++;
+    if (counter &lt;= 3) {
+      System.out.println("### Reconnecting... (reconnect count: " + counter + ") " + exception.getMessage());
 
-            // Thread.sleep(...) or something other "sleep-like" expression can be put here - you might want
-            // to do it here to avoid potential DDoS when you don't limit number of reconnects.
-            return true;
-            } else {
-            return false;
-            }
-            }
-            };
+      // Thread.sleep(...) or something other "sleep-like" expression can be put here - you might want
+      // to do it here to avoid potential DDoS when you don't limit number of reconnects.
+      return true;
+    } else {
+      return false;
+    }
+  }
+};
 
-            client.getProperties().put(ClientManager.RECONNECT_HANDLER, reconnectHandler);
+client.getProperties().put(ClientManager.RECONNECT_HANDLER, reconnectHandler);
 
-            client.connectToServer(...)
-        </programlisting>
+client.connectToServer(...)</programlisting>
 
-        <para>As you can see, ReconnectHandler contains two methods, onDisconnect and onConnectFailure. First will be
-            executed
-            whenever @OnClose annotated method (or Endpoint.onClose(..)) is executed on client side - this should happen
-            when
-            established connection is lost for any reason. You can find the reason in methods parameter. Other one,
-            called
-            onConnectFailure is invoked when client fails to connect to remote endpoint, for example due to temporary
-            network
-            issue or current high server load.
-        </para>
+        <para>As you can see, ReconnectHandler contains two methods, onDisconnect and onConnectFailure. First will be executed
+        whenever @OnClose annotated method (or Endpoint.onClose(..)) is executed on client side - this should happen when
+        established connection is lost for any reason. You can find the reason in methods parameter. Other one, called
+        onConnectFailure is invoked when client fails to connect to remote endpoint, for example due to temporary network
+        issue or current high server load.</para>
     </section>
     <section>
         <title>Client behind proxy</title>
@@ -633,12 +508,9 @@
     <section>
         <title>JDK 7 client</title>
         <para>
-            As has been said in previous chapters both Tyrus client and server were implemented on top of Grizzly NIO
-            framework.
-            This still remains true, but an alternative Tyrus Websocket client implementation based on Java 7
-            Asynchronous Channel
-            API has been available since version 1.6. There are two options how to switch between client
-            implementations.
+            As has been said in previous chapters both Tyrus client and server were implemented on top of Grizzly NIO framework.
+            This still remains true, but an alternative Tyrus Websocket client implementation based on Java 7 Asynchronous Channel
+            API has been available since version 1.6. There are two options how to switch between client implementations.
             If you do not mind using Tyrus specific API, the most straightforward way is to use:
             <programlisting language="java" linenumbering="numbered">
                 final ClientManager client = ClientManager.createClient(JdkClientContainer.class.getName());
@@ -646,13 +518,12 @@
             You just have to make sure that the dependency on JDK client is included in your project:
             <programlisting language="xml" linenumbering="unnumbered">
                 &lt;dependency&gt;
-                &lt;groupId&gt;org.glassfish.tyrus&lt;/groupId&gt;
-                &lt;artifactId&gt;tyrus-container-jdk-client&lt;/artifactId&gt;
-                &lt;version&gt;&version;&lt;/version&gt;
+                    &lt;groupId&gt;org.glassfish.tyrus&lt;/groupId&gt;
+                    &lt;artifactId&gt;tyrus-container-jdk-client&lt;/artifactId&gt;
+                    &lt;version&gt;&version;&lt;/version&gt;
                 &lt;/dependency&gt;
             </programlisting>
-            Grizzly client is the default option, so creating a client without any parameters will result in Grizzly
-            client being used.
+            Grizzly client is the default option, so creating a client without any parameters will result in Grizzly client being used.
         </para>
         <para>
             There is also an option how to use JDK client with the standard Websocket API.
@@ -679,25 +550,16 @@
         <section>
             <title>SSL configuration</title>
             <para>
-                Alike in case of Grizzly client, accessing "wss" URLs will cause Tyrus client to pick up whatever
-                keystore
+                Alike in case of Grizzly client, accessing "wss" URLs will cause Tyrus client to pick up whatever keystore
                 and truststore is actually set for the current JVM instance. However, specifying SSL parameters
                 to be used with JDK client instance is little different from Grizzly client, because Grizzly client uses
-                <link xlink:href="https://grizzly.java.net/docs/2.3/apidocs/org/glassfish/grizzly/ssl/SSLEngineConfigurator.html">
-                    SSLEngineConfigurator
-                </link>
+                <link xlink:href="https://grizzly.java.net/docs/2.3/apidocs/org/glassfish/grizzly/ssl/SSLEngineConfigurator.html">SSLEngineConfigurator</link>
                 end
-                <link xlink:href="https://grizzly.java.net/docs/2.3/apidocs/org/glassfish/grizzly/ssl/SSLContextConfigurator.html">
-                    SSLContextConfigurator
-                </link>
+                <link xlink:href="https://grizzly.java.net/docs/2.3/apidocs/org/glassfish/grizzly/ssl/SSLContextConfigurator.html">SSLContextConfigurator</link>
                 from Grizzly project. The main configuration principle stays the same for the JDK client, but classes
-                <link xlink:href="https://tyrus.java.net/apidocs/&version;/org/glassfish/tyrus/container/jdk/client/SslEngineConfigurator.html">
-                    SslEngineConfigurator
-                </link>
+                <link xlink:href="https://tyrus.java.net/apidocs/&version;/org/glassfish/tyrus/container/jdk/client/SslEngineConfigurator.html">SslEngineConfigurator</link>
                 and
-                <link xlink:href="https://tyrus.java.net/apidocs/&version;/org/glassfish/tyrus/container/jdk/client/SslContextConfigurator.html">
-                    SslContextConfigurator
-                </link>
+                <link xlink:href="https://tyrus.java.net/apidocs/&version;/org/glassfish/tyrus/container/jdk/client/SslContextConfigurator.html">SslContextConfigurator</link>
                 from Tyrus project must be used instead.
                 The following code sample shows an example of some SSL parameters configuration for the JDK client:
                 <programlisting language="java" linenumbering="numbered">
@@ -708,8 +570,7 @@
                     sslContextConfigurator.setKeyStoreFile("...");
                     sslContextConfigurator.setKeyStorePassword("...");
                     sslContextConfigurator.setKeyStoreType("...");
-                    SslEngineConfigurator sslEngineConfigurator = new SslEngineConfigurator(sslContextConfigurator,
-                    true, false, false);
+                    SslEngineConfigurator sslEngineConfigurator = new SslEngineConfigurator(sslContextConfigurator, true, false, false);
                     client.getProperties().put(ClientManager.SSL_ENGINE_CONFIGURATOR, sslEngineConfigurator);
                 </programlisting>
             </para>
@@ -718,15 +579,11 @@
     <section>
         <title>JMX Monitoring</title>
         <para>
-            Tyrus allows monitoring and accessing some runtime properties and metrics at the server side using JMX (Java
-            management extension technology).
-            The monitoring API has been available since version 1.6 and the following properties are available at
-            runtime
+            Tyrus allows monitoring and accessing some runtime properties and metrics at the server side using JMX (Java management extension technology).
+            The monitoring API has been available since version 1.6 and the following properties are available at runtime
             through MXBeans. Number of open sessions, maximal number of open session since the start of monitoring and
-            list of deployed endpoint class names and paths are available for each application. Endpoint class name and
-            path
-            the endpoint is registered on, number of open session and maximal number of open sessions are available for
-            each
+            list of deployed endpoint class names and paths are available for each application. Endpoint class name and path
+            the endpoint is registered on, number of open session and maximal number of open sessions are available for each
             endpoint. Apart from that message statistics are collected both per application and per individual endpoint.
         </para>
         <para>
@@ -738,20 +595,14 @@
                 <listitem>smallest message size</listitem>
                 <listitem>largest message size</listitem>
             </itemizedlist>
-            Moreover all of them are collected separately for text, binary and control messages and apart from the
-            statistics being available
-            for the three separate categories, total numbers summing up statistics from the three types of messages are
-            also available.
+            Moreover all of them are collected separately for text, binary and control messages and apart from the statistics being available
+            for the three separate categories, total numbers summing up statistics from the three types of messages are also available.
         </para>
         <para>
-            The collected metrics as well as the endpoint properties mentioned above are accessible at runtime through
-            Tyrus MXBeans.
-            As has been already mention the information is available on both application and endpoint level with each
-            application
-            or endpoint being represented with four MXBeans. One of those MXBeans contains total message statistics for
-            both sent and received
-            messages as well as any properties specific for applications or endpoints such as endpoint path in the case
-            of an endpoint.
+            The collected metrics as well as the endpoint properties mentioned above are accessible at runtime through Tyrus MXBeans.
+            As has been already mention the information is available on both application and endpoint level with each application
+            or endpoint being represented with four MXBeans. One of those MXBeans contains total message statistics for both sent and received
+            messages as well as any properties specific for applications or endpoints such as endpoint path in the case of an endpoint.
             The other three MXBeans contain information about sent and received text, binary and control messages.
         </para>
         <para>
@@ -759,8 +610,7 @@
             the following structure:
             <itemizedlist>
                 <listitem>
-                    Application 1 - MXBean containing a list of deployed endpoint class names and paths, number of open
-                    sessions,
+                    Application 1 - MXBean containing a list of deployed endpoint class names and paths, number of open sessions,
                     maximal number of open sessions and total message statistics for the application.
                     <itemizedlist>
                         <listitem>
@@ -768,20 +618,19 @@
                             <itemizedlist>
                                 <listitem>text - MXBean containing text message statistics</listitem>
                                 <listitem>binary - MXBean containing binary message statistics</listitem>
-                                <listitem>control - MXBean containing control message statistics</listitem>
+                                <listitem>control -  MXBean containing control message statistics</listitem>
                             </itemizedlist>
                         </listitem>
                         <listitem>
                             endpoints - a directory containing application endpoint MXBeans
                             <itemizedlist>
                                 <listitem>
-                                    Endpoint 1 - MXBean containing Endpoint 1 class name and path, number of open
-                                    sessions,
+                                    Endpoint 1 - MXBean containing Endpoint 1 class name and path, number of open sessions,
                                     maximal number of open sessions and total message statistics for the endpoint.
                                     <itemizedlist>
                                         <listitem>text - MXBean containing text message statistics</listitem>
                                         <listitem>binary - MXBean containing binary message statistics</listitem>
-                                        <listitem>control - MXBean containing control message statistics</listitem>
+                                        <listitem>control -  MXBean containing control message statistics</listitem>
                                     </itemizedlist>
                                 </listitem>
                                 <listitem>
@@ -805,42 +654,34 @@
         <section>
             <title>Configuration</title>
             <para>
-                As has been already mentioned, monitoring is supported only on the server side and is disabled by
-                default.
+                As has been already mentioned, monitoring is supported only on the server side and is disabled by default.
                 The following code sample shows, how endpoint-level monitoring can be enabled on Grizzly server:
                 <programlisting language="java" linenumbering="numbered">
-                    serverProperties.put(ApplicationEventListener.APPLICATION_EVENT_LISTENER, new
-                    SessionlessApplicationMonitor());
+                    serverProperties.put(ApplicationEventListener.APPLICATION_EVENT_LISTENER, new SessionlessApplicationMonitor());
                 </programlisting>
                 Similarly endpoint-level monitoring can be enabled on Grizzly server in the following way:
                 <programlisting language="java" linenumbering="numbered">
-                    serverProperties.put(ApplicationEventListener.APPLICATION_EVENT_LISTENER, new
-                    SessionAwareApplicationMonitor());
+                    serverProperties.put(ApplicationEventListener.APPLICATION_EVENT_LISTENER, new SessionAwareApplicationMonitor());
                 </programlisting>
-                Monitoring can be configured on Glassfish in web.xml and the following code sample shows endpoint-level
-                configuration:
-                <programlisting language="xml" linenumbering="numbered">&lt;web-app version="2.5"
-                    xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                    xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
-                    http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"&gt;
+                Monitoring can be configured on Glassfish in web.xml and the following code sample shows endpoint-level configuration:
+                <programlisting language="xml" linenumbering="numbered">&lt;web-app version="2.5" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"&gt;
 
-                    &lt;context-param&gt;
-                    &lt;param-name&gt;org.glassfish.tyrus.core.monitoring.ApplicationEventListener&lt;/param-name&gt;
-                    &lt;param-value&gt;org.glassfish.tyrus.ext.monitoring.jmx.SessionlessApplicationMonitor&lt;/param-value&gt;
-                    &lt;/context-param&gt;
-                    &lt;/web-app&gt;
+    &lt;context-param&gt;
+        &lt;param-name&gt;org.glassfish.tyrus.core.monitoring.ApplicationEventListener&lt;/param-name&gt;
+        &lt;param-value&gt;org.glassfish.tyrus.ext.monitoring.jmx.SessionlessApplicationMonitor&lt;/param-value&gt;
+    &lt;/context-param&gt;
+&lt;/web-app&gt;
                 </programlisting>
                 Similarly session-level monitoring can be configured on Glassfish in web.xml in the following way:
-                <programlisting language="xml" linenumbering="numbered">&lt;web-app version="2.5"
-                    xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-                    xsi:schemaLocation="http://java.sun.com/xml/ns/javaee
-                    http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"&gt;
+                <programlisting language="xml" linenumbering="numbered">&lt;web-app version="2.5" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                    xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"&gt;
 
-                    &lt;context-param&gt;
-                    &lt;param-name&gt;org.glassfish.tyrus.core.monitoring.ApplicationEventListener&lt;/param-name&gt;
-                    &lt;param-value&gt;org.glassfish.tyrus.ext.monitoring.jmx.SessionAwareApplicationMonitor&lt;/param-value&gt;
-                    &lt;/context-param&gt;
-                    &lt;/web-app&gt;
+    &lt;context-param&gt;
+        &lt;param-name&gt;org.glassfish.tyrus.core.monitoring.ApplicationEventListener&lt;/param-name&gt;
+        &lt;param-value&gt;org.glassfish.tyrus.ext.monitoring.jmx.SessionAwareApplicationMonitor&lt;/param-value&gt;
+    &lt;/context-param&gt;
+&lt;/web-app&gt;
                 </programlisting>
             </para>
         </section>
@@ -898,7 +739,7 @@
             <para>This example will set maximal number of open sessions per whole application to 500:</para>
 
             <programlisting language="xml" linenumbering="unnumbered">
-                <![CDATA[
+<![CDATA[
 <web-app version="2.5" xmlns="http://java.sun.com/xml/ns/javaee"
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
@@ -960,7 +801,7 @@
             <para>
                 Set maximum number of sessions in annotated endpoint:
                 <programlisting language="java" linenumbering="numbered">
-                    <![CDATA[
+<![CDATA[
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
