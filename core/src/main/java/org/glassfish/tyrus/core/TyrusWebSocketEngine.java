@@ -193,7 +193,8 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
             // sessions.
 
             // limit per application counter
-            private final AtomicInteger counter = new AtomicInteger(0);
+            private volatile int counter = 0;
+            private final Object counterLock = new Object();
 
             // limit per remote address counter
             private final Map<String, AtomicInteger> remoteAddressCounters = new HashMap<String, AtomicInteger>();
@@ -201,11 +202,11 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
             @Override
             public OnOpenResult onOpen(final TyrusSession session) {
                 if (maxSessionsPerApp != null) {
-                    synchronized (counter) {
-                        if (counter.get() >= maxSessionsPerApp) {
+                    synchronized (counterLock) {
+                        if (counter >= maxSessionsPerApp) {
                             return OnOpenResult.MAX_SESSIONS_PER_APP_EXCEEDED;
                         } else {
-                            counter.incrementAndGet();
+                            counter++;
                         }
                     }
                 }
@@ -230,7 +231,9 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
             @Override
             public void onClose(final TyrusSession session, final CloseReason closeReason) {
                 if (maxSessionsPerApp != null) {
-                    counter.decrementAndGet();
+                    synchronized (counterLock) {
+                        counter--;
+                    }
                 }
                 if (maxSessionsPerRemoteAddr != null) {
                     synchronized (remoteAddressCounters) {
