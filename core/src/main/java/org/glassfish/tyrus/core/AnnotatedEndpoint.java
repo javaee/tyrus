@@ -508,7 +508,7 @@ public class AnnotatedEndpoint extends Endpoint {
         } else {
             LOGGER.log(Level.INFO, LocalizationMessages.ENDPOINT_UNHANDLED_EXCEPTION(annotatedClass.getCanonicalName()), thr);
         }
-        endpointEventListener.onError(session, thr);
+        endpointEventListener.onError(session.getId(), thr);
     }
 
     //    @Override

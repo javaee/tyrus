@@ -41,8 +41,6 @@ package org.glassfish.tyrus.ext.monitoring.jmx;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import javax.websocket.Session;
-
 import org.glassfish.tyrus.core.monitoring.MessageEventListener;
 
 /**
@@ -93,7 +91,7 @@ class SessionlessEndpointMonitor extends EndpointMonitor {
     }
 
     @Override
-    public void onError(Session session, Throwable t) {
+    public void onError(String sessionId, Throwable t) {
         applicationMonitor.onError(t);
     }
 }

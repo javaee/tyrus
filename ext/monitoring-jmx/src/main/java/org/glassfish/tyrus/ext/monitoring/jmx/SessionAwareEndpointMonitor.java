@@ -42,8 +42,6 @@ package org.glassfish.tyrus.ext.monitoring.jmx;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.websocket.Session;
-
 import org.glassfish.tyrus.core.monitoring.MessageEventListener;
 
 /**
@@ -96,11 +94,9 @@ class SessionAwareEndpointMonitor extends EndpointMonitor {
     }
 
     @Override
-    public void onError(Session session, Throwable t) {
-        if(session != null) {
-            SessionMonitor sessionMonitor = sessions.get(session.getId());
-            sessionMonitor.onError(t);
-        }
+    public void onError(String sessionId, Throwable t) {
+        SessionMonitor sessionMonitor = sessions.get(sessionId);
+        sessionMonitor.onError(t);
 
         applicationMonitor.onError(t);
     }

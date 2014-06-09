@@ -41,8 +41,6 @@ package org.glassfish.tyrus.ext.monitoring.jmx;
 
 import java.util.concurrent.CountDownLatch;
 
-import javax.websocket.Session;
-
 import org.glassfish.tyrus.core.frame.TyrusFrame;
 import org.glassfish.tyrus.core.monitoring.ApplicationEventListener;
 import org.glassfish.tyrus.core.monitoring.EndpointEventListener;
@@ -138,8 +136,8 @@ class TestApplicationEventListener implements ApplicationEventListener {
         }
 
         @Override
-        public void onError(Session session, Throwable t) {
-            endpointEventListener.onError(session, t);
+        public void onError(String sessionId, Throwable t) {
+            endpointEventListener.onError(sessionId, t);
             if (errorLatch != null) {
                 errorLatch.countDown();
             }

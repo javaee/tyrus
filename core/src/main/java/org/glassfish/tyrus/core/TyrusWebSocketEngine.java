@@ -57,7 +57,6 @@ import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfig;
 import javax.websocket.Extension;
-import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
 import javax.websocket.server.ServerEndpointConfig;
 
@@ -782,8 +781,8 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
         }
 
         @Override
-        public void onError(Session session, Throwable t) {
-            endpointEventListener.onError(session, t);
+        public void onError(String sessionId, Throwable t) {
+            endpointEventListener.onError(sessionId, t);
         }
     }
 }

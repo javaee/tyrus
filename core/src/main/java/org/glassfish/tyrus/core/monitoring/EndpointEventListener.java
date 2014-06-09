@@ -39,8 +39,6 @@
  */
 package org.glassfish.tyrus.core.monitoring;
 
-import javax.websocket.Session;
-
 import org.glassfish.tyrus.core.Beta;
 
 /**
@@ -74,10 +72,10 @@ public interface EndpointEventListener {
      * or when handling an incoming message, cause this listener to be called. It corresponds to the event of invocation of
      * {@link javax.websocket.Endpoint#onError(javax.websocket.Session, Throwable)} and its annotated equivalent.
      *
-     * @param session session
-     * @param t       throwable that has been thrown.
+     * @param sessionId an ID of the session on which the error occurred.
+     * @param t         throwable that has been thrown.
      */
-    void onError(Session session, Throwable t);
+    void onError(String sessionId, Throwable t);
 
     /**
      * An instance of @EndpointEventListener that does not do anything.
@@ -94,7 +92,7 @@ public interface EndpointEventListener {
         }
 
         @Override
-        public void onError(Session session, Throwable t) {
+        public void onError(String sessionId, Throwable t) {
             // do nothing
         }
     };
