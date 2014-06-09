@@ -100,17 +100,40 @@ class SslFilter extends Filter {
     }
 
     @Override
-    void write(ByteBuffer applicationData, CompletionHandler<ByteBuffer> completionHandler) {
+    void write(final ByteBuffer applicationData, final CompletionHandler<ByteBuffer> completionHandler) {
         // before SSL is started write just passes through
         if (!sslStarted) {
             downstreamFilter.write(applicationData, completionHandler);
             return;
         }
+
+        synchronized (this) {
+            handleWrite(networkOutputBuffer, applicationData, downstreamFilter, completionHandler);
+        }
+    }
+
+    private void handleWrite(final ByteBuffer networkOutputBuffer, final ByteBuffer applicationData, final Filter downstreamFilter,
+                             final CompletionHandler<ByteBuffer> completionHandler) {
         try {
             networkOutputBuffer.clear();
+            // TODO: check the result
             sslEngine.wrap(applicationData, networkOutputBuffer);
             networkOutputBuffer.flip();
-            downstreamFilter.write(networkOutputBuffer, completionHandler);
+            downstreamFilter.write(networkOutputBuffer, new CompletionHandler<ByteBuffer>() {
+                @Override
+                public void completed(ByteBuffer result) {
+                    if (applicationData.hasRemaining()) {
+                        handleWrite(networkOutputBuffer, applicationData, downstreamFilter, completionHandler);
+                    } else {
+                        completionHandler.completed(applicationData);
+                    }
+                }
+
+                @Override
+                public void failed(Throwable throwable) {
+                    completionHandler.failed(throwable);
+                }
+            });
         } catch (SSLException e) {
             handleSslError(e);
         }
@@ -184,6 +207,7 @@ class SslFilter extends Filter {
                 do {
                     applicationInputBuffer.clear();
                     result = sslEngine.unwrap(networkData, applicationInputBuffer);
+                    // other statuses are OK or cannot be returned from unwrap.
                     if (result.getStatus() == SSLEngineResult.Status.BUFFER_UNDERFLOW) {
                         // needs more data from the network
                         return;

@@ -85,7 +85,6 @@ class TaskQueueFilter extends Filter {
             taskLock.set(false);
             return;
         }
-
         task.execute(this);
     }
 
@@ -204,6 +203,14 @@ class TaskQueueFilter extends Filter {
 
         CompletionHandler<ByteBuffer> getCompletionHandler() {
             return completionHandler;
+        }
+
+        @Override
+        public String toString() {
+            return "WriteTask{" +
+                    "data=" + data +
+                    ", completionHandler=" + completionHandler +
+                    '}';
         }
     }
 }

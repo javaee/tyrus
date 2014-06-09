@@ -115,4 +115,60 @@ public class EchoTest extends TestContainer {
             stopServer(server);
         }
     }
+
+    @Test
+    public void testEcho100k() throws DeploymentException, InterruptedException, IOException {
+        if (System.getProperty("tyrus.test.host") == null) {
+            return;
+        }
+
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < 1000; i++) {
+            sb.append("1234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890");
+        }
+
+        final String MESSAGE = sb.toString();
+
+        final Server server = startServer(EchoEndpoint.class);
+
+        final CountDownLatch messageLatch = new CountDownLatch(1);
+        final CountDownLatch onOpenLatch = new CountDownLatch(1);
+
+        try {
+            final ClientManager client = createClient();
+            client.connectToServer(new Endpoint() {
+                @Override
+                public void onOpen(Session session, EndpointConfig EndpointConfig) {
+                    try {
+                        session.addMessageHandler(new MessageHandler.Whole<String>() {
+                            @Override
+                            public void onMessage(String message) {
+                                System.out.println("### Received: " + message);
+
+                                if (message.equals(MESSAGE + " (from your server)")) {
+                                    messageLatch.countDown();
+                                } else if (message.equals("onOpen")) {
+                                    onOpenLatch.countDown();
+                                }
+                            }
+                        });
+
+                        session.getBasicRemote().sendText(MESSAGE);
+                    } catch (IOException e) {
+                        // do nothing
+                    }
+                }
+            }, ClientEndpointConfig.Builder.create().build(), getURI(EchoEndpoint.class, "wss"));
+
+            messageLatch.await(10, TimeUnit.SECONDS);
+            if (messageLatch.getCount() != 0 || onOpenLatch.getCount() != 0) {
+                fail();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            fail();
+        } finally {
+            stopServer(server);
+        }
+    }
 }
