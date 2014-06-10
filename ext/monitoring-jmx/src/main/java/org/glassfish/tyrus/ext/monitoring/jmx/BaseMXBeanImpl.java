@@ -54,7 +54,7 @@ class BaseMXBeanImpl extends MessageStatisticsMXBeanImpl implements BaseMXBean, 
     private final MessageStatisticsMXBean binaryMessageStatisticsMXBean;
     private final MessageStatisticsMXBean controlMessageStatisticsMXBean;
 
-    public BaseMXBeanImpl(MessageStatisticsSource sentMessageStatistics, MessageStatisticsSource receivedMessageStatistics, Callable<List<ErrorCount>> errorCounts, MessageStatisticsMXBean textMessageStatisticsMXBean, MessageStatisticsMXBean binaryMessageStatisticsMXBean, MessageStatisticsMXBean controlMessageStatisticsMXBean) {
+    BaseMXBeanImpl(MessageStatisticsSource sentMessageStatistics, MessageStatisticsSource receivedMessageStatistics, Callable<List<ErrorCount>> errorCounts, MessageStatisticsMXBean textMessageStatisticsMXBean, MessageStatisticsMXBean binaryMessageStatisticsMXBean, MessageStatisticsMXBean controlMessageStatisticsMXBean) {
         super(sentMessageStatistics, receivedMessageStatistics);
         this.errorCounts = errorCounts;
         this.textMessageStatisticsMXBean = textMessageStatisticsMXBean;

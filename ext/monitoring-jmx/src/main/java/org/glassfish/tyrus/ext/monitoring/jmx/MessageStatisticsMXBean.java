@@ -39,6 +39,8 @@
  */
 package org.glassfish.tyrus.ext.monitoring.jmx;
 
+import java.io.Serializable;
+
 import org.glassfish.tyrus.core.Beta;
 
 /**
@@ -47,7 +49,7 @@ import org.glassfish.tyrus.core.Beta;
  * @author Petr Janouch (petr.janouch at oracle.com)
  */
 @Beta
-public interface MessageStatisticsMXBean {
+public interface MessageStatisticsMXBean extends Serializable {
 
     /**
      * Get the total number of messages sent since the start of monitoring.

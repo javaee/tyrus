@@ -39,12 +39,14 @@
  */
 package org.glassfish.tyrus.ext.monitoring.jmx;
 
+import java.io.Serializable;
+
 /**
  * Equivalent of {@link java.util.concurrent.Callable} that does not throw an exception.
  *
  * @author Petr Janouch (petr.janouch at oracle.com)
  */
-interface Callable<T> {
+interface Callable<T> extends Serializable {
 
     /**
      * Compute and return result.

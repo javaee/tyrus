@@ -39,6 +39,8 @@
  */
 package org.glassfish.tyrus.ext.monitoring.jmx;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 /**
  * Listens to message events and collects session-level statistics for sent and received messages.
  * Creates and registers {@link org.glassfish.tyrus.ext.monitoring.jmx.MessageStatisticsMXBean} MXBeans for text,
@@ -128,13 +130,13 @@ class SessionMonitor extends BaseMonitor implements MessageListener {
         /*
         volatile is enough in this case, because only one thread can sent or receive a message in a session
          */
-        private volatile long messagesCount = 0;
+        private final AtomicLong messagesCount = new AtomicLong(0);
         private volatile long messagesSize = 0;
         private volatile long minimalMessageSize = Long.MAX_VALUE;
         private volatile long maximalMessageSize = 0;
 
         void onMessage(long size) {
-            messagesCount++;
+            messagesCount.incrementAndGet();
             messagesSize += size;
             if (minimalMessageSize > size) {
                 minimalMessageSize = size;
@@ -146,7 +148,7 @@ class SessionMonitor extends BaseMonitor implements MessageListener {
 
         @Override
         public long getMessagesCount() {
-            return messagesCount;
+            return messagesCount.get();
         }
 
         @Override

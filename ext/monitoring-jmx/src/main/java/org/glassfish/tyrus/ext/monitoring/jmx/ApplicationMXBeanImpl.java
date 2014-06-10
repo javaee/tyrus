@@ -42,7 +42,6 @@ package org.glassfish.tyrus.ext.monitoring.jmx;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -54,7 +53,7 @@ class ApplicationMXBeanImpl extends BaseMXBeanImpl implements ApplicationMXBean,
 
     private final Callable<List<EndpointClassNamePathPair>> endpoints;
     private final Callable<List<String>> endpointPaths;
-    private final Map<String, EndpointMXBean> endpointMXBeans = new ConcurrentHashMap<String, EndpointMXBean>();
+    private final ConcurrentHashMap<String, EndpointMXBean> endpointMXBeans = new ConcurrentHashMap<String, EndpointMXBean>();
     private final Callable<Integer> openSessionsCount;
     private final Callable<Integer> maxOpenSessionsCount;
 

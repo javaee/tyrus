@@ -54,8 +54,9 @@ import java.util.concurrent.atomic.AtomicLong;
 class BaseMonitor {
 
     private final Map<String, AtomicLong> errorStatistics = new ConcurrentHashMap<String, AtomicLong>();
+    private final Object errorStatisticsLock = new Object();
 
-    protected Callable<List<ErrorCount>> getErrorCounts() {
+    Callable<List<ErrorCount>> getErrorCounts() {
         return new Callable<List<ErrorCount>>() {
             @Override
             public List<ErrorCount> call() {
@@ -77,7 +78,7 @@ class BaseMonitor {
         }
 
         if (!errorStatistics.containsKey(throwableClassName)) {
-            synchronized (errorStatistics) {
+            synchronized (errorStatisticsLock) {
                 if (!errorStatistics.containsKey(throwableClassName)) {
                     errorStatistics.put(throwableClassName, new AtomicLong());
                 }

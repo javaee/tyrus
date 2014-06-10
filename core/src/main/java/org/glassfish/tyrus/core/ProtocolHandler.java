@@ -45,6 +45,7 @@ import java.nio.ByteBuffer;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -442,7 +443,7 @@ public final class ProtocolHandler {
         try {
             // this do { .. } while cycle was forced by findbugs check - complained about missing break statements.
             do {
-                switch (state.state) {
+                switch (state.state.get()) {
                     case 0:
                         if (buffer.remaining() < 2) {
                             // Don't have enough bytes to read opcode and lengthCode
@@ -468,7 +469,7 @@ public final class ProtocolHandler {
                         }
                         state.lengthCode = lengthCode;
 
-                        state.state++;
+                        state.state.incrementAndGet();
                         break;
                     case 1:
                         if (state.lengthCode <= 125) {
@@ -486,7 +487,7 @@ public final class ProtocolHandler {
                             state.masker.setBuffer(buffer);
                             state.length = decodeLength(state.masker.unmask(lengthBytes));
                         }
-                        state.state++;
+                        state.state.incrementAndGet();
                         break;
                     case 2:
                         if (state.masked) {
@@ -497,7 +498,7 @@ public final class ProtocolHandler {
                             state.masker.setBuffer(buffer);
                             state.masker.readMask();
                         }
-                        state.state++;
+                        state.state.incrementAndGet();
                         break;
                     case 3:
                         if (buffer.remaining() < state.length) {
@@ -650,7 +651,7 @@ public final class ProtocolHandler {
     }
 
     private static class ParsingState {
-        volatile int state = 0;
+        final AtomicInteger state = new AtomicInteger(0);
         volatile byte opcode = (byte) -1;
         volatile long length = -1;
         volatile boolean masked;
@@ -660,7 +661,7 @@ public final class ProtocolHandler {
         volatile private byte lengthCode = -1;
 
         void recycle() {
-            state = 0;
+            state.set(0);
             opcode = (byte) -1;
             length = -1;
             lengthCode = -1;

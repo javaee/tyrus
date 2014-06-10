@@ -51,11 +51,11 @@ import org.glassfish.tyrus.core.monitoring.EndpointEventListener;
  */
 abstract class EndpointMonitor extends BaseMonitor implements EndpointEventListener, MessageListener {
 
-    protected final EndpointClassNamePathPair endpointClassNamePathPair;
-    protected final String applicationName;
-    protected final Object maxOpenSessionsCountLock = new Object();
-    protected final ApplicationMonitor applicationMonitor;
-    protected final EndpointMXBeanImpl endpointMXBean;
+    final EndpointClassNamePathPair endpointClassNamePathPair;
+    final String applicationName;
+    final Object maxOpenSessionsCountLock = new Object();
+    final ApplicationMonitor applicationMonitor;
+    final EndpointMXBeanImpl endpointMXBean;
 
     private final ApplicationMXBeanImpl applicationMXBean;
 
