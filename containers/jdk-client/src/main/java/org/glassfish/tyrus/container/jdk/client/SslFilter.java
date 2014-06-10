@@ -107,9 +107,7 @@ class SslFilter extends Filter {
             return;
         }
 
-        synchronized (this) {
-            handleWrite(networkOutputBuffer, applicationData, downstreamFilter, completionHandler);
-        }
+        handleWrite(networkOutputBuffer, applicationData, downstreamFilter, completionHandler);
     }
 
     private void handleWrite(final ByteBuffer networkOutputBuffer, final ByteBuffer applicationData, final Filter downstreamFilter,

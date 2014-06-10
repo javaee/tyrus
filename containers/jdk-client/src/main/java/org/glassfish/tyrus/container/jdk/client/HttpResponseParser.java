@@ -93,6 +93,11 @@ class HttpResponseParser {
     }
 
     void appendData(ByteBuffer data) {
+        if (buffer == null) {
+            // parser was already destroyed.
+            return;
+        }
+
         int responseEndPosition = getEndPosition(data);
         if (responseEndPosition == -1) {
             buffer = Utils.appendBuffers(buffer, data, BUFFER_MAX_SIZE, BUFFER_STEP_SIZE);

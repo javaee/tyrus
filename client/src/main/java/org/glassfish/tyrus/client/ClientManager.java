@@ -438,7 +438,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
 
                 // incoming buffer size - max frame size possible to receive.
                 Integer tyrusIncomingBufferSize = Utils.getProperty(properties, ClientContainer.INCOMING_BUFFER_SIZE, Integer.class);
-                Integer wlsIncomingBufferSize = Utils.getProperty(properties, ClientContainer.WLS_INCOMING_BUFFER_SIZE, Integer.class);
+                Integer wlsIncomingBufferSize = configuration == null ? null : Utils.getProperty(configuration.getUserProperties(), ClientContainer.WLS_INCOMING_BUFFER_SIZE, Integer.class);
                 final int incomingBufferSize;
                 if (tyrusIncomingBufferSize == null && wlsIncomingBufferSize == null) {
                     incomingBufferSize = TyrusClientEngine.DEFAULT_INCOMING_BUFFER_SIZE;

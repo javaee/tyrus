@@ -96,53 +96,49 @@ public class JdkClientContainer implements ClientContainer {
         final TaskQueueFilter writeQueue = new TaskQueueFilter(clientFilter);
         if (uri.getScheme().equalsIgnoreCase("wss")) {
             Object sslEngineConfiguratorObject = properties.get(ClientManager.SSL_ENGINE_CONFIGURATOR);
-            if (!((sslEngineConfiguratorObject instanceof SslEngineConfigurator) ||
-                    (sslEngineConfiguratorObject instanceof org.glassfish.tyrus.container.jdk.client.SslEngineConfigurator))) {
-                // sslEngineConfiguratorObject is not instanceof any known usable configuration.
-                // log a warning and set it to null - using system defaults.
 
-                LOGGER.log(Level.WARNING, "Invalid '" + ClientManager.SSL_ENGINE_CONFIGURATOR + "' property value: " + sslEngineConfiguratorObject +
-                        ". Using system defaults.");
-                sslEngineConfiguratorObject = null;
+            SslFilter sslFilter = null;
+
+            if (sslEngineConfiguratorObject != null) {
+                // property is set, we need to figure out whether new or deprecated one is used and act accordingly.
+                if (sslEngineConfiguratorObject instanceof SslEngineConfigurator) {
+                    sslFilter = new SslFilter(writeQueue, (SslEngineConfigurator) sslEngineConfiguratorObject);
+                } else if (sslEngineConfiguratorObject instanceof org.glassfish.tyrus.container.jdk.client.SslEngineConfigurator) {
+                    sslFilter = new SslFilter(writeQueue, (org.glassfish.tyrus.container.jdk.client.SslEngineConfigurator) sslEngineConfiguratorObject);
+                } else {
+                    LOGGER.log(Level.WARNING, "Invalid '" + ClientManager.SSL_ENGINE_CONFIGURATOR + "' property value: " + sslEngineConfiguratorObject +
+                            ". Using system defaults.");
+                }
             }
-
-            SslFilter sslFilter;
 
             // if we are trying to access "wss" scheme and we don't have sslEngineConfigurator instance
             // we should try to create ssl connection using JVM properties.
-            if (sslEngineConfiguratorObject == null) {
+            if (sslFilter == null) {
                 SslContextConfigurator defaultConfig = new SslContextConfigurator();
                 defaultConfig.retrieve(System.getProperties());
 
-                String wlsSslTrustStore = (String) properties.get(ClientManager.WLS_SSL_TRUSTSTORE_PROPERTY);
-                String wlsSslTrustStorePassword = (String) properties.get(ClientManager.WLS_SSL_TRUSTSTORE_PWD_PROPERTY);
+                String wlsSslTrustStore = (String) cec.getUserProperties().get(ClientManager.WLS_SSL_TRUSTSTORE_PROPERTY);
+                String wlsSslTrustStorePassword = (String) cec.getUserProperties().get(ClientManager.WLS_SSL_TRUSTSTORE_PWD_PROPERTY);
 
                 if (wlsSslTrustStore != null) {
-                    defaultConfig.setKeyStoreFile(wlsSslTrustStore);
+                    defaultConfig.setTrustStoreFile(wlsSslTrustStore);
+
                     if (wlsSslTrustStorePassword != null) {
-                        defaultConfig.setKeyPassword(wlsSslTrustStorePassword);
+                        defaultConfig.setTrustStorePassword(wlsSslTrustStorePassword);
                     }
                 }
 
                 // client mode = true, needClientAuth = false, wantClientAuth = false
                 SslEngineConfigurator sslEngineConfigurator = new SslEngineConfigurator(defaultConfig, true, false, false);
-                String wlsSslProtocols = (String) properties.get(ClientManager.WLS_SSL_PROTOCOLS_PROPERTY);
+                String wlsSslProtocols = (String) cec.getUserProperties().get(ClientManager.WLS_SSL_PROTOCOLS_PROPERTY);
                 if (wlsSslProtocols != null) {
                     sslEngineConfigurator.setEnabledProtocols(wlsSslProtocols.split(","));
                 }
                 sslFilter = new SslFilter(writeQueue, sslEngineConfigurator);
-            } else {
-                // property is set, we need to figure out whether new or deprecated one is used and act accordingly.
-                if (sslEngineConfiguratorObject instanceof SslEngineConfigurator) {
-                    sslFilter = new SslFilter(writeQueue, (SslEngineConfigurator) sslEngineConfiguratorObject);
-                } else {
-                    // sslEngineConfiguratorObject cannot be null and is instance of
-                    // org.glassfish.tyrus.container.jdk.client.SslEngineConfigurator (
-                    sslFilter = new SslFilter(writeQueue, (org.glassfish.tyrus.container.jdk.client.SslEngineConfigurator) sslEngineConfiguratorObject);
-                }
             }
-            transportFilter = new TransportFilter(sslFilter, SSL_INPUT_BUFFER_SIZE);
 
+            // sslFilter is never null at this point.
+            transportFilter = new TransportFilter(sslFilter, SSL_INPUT_BUFFER_SIZE);
         } else {
             transportFilter = new TransportFilter(writeQueue, INPUT_BUFFER_SIZE);
         }
