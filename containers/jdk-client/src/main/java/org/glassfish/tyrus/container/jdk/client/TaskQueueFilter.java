@@ -94,7 +94,7 @@ class TaskQueueFilter extends Filter {
         taskQueue.offer(new Task() {
             @Override
             public void execute(TaskQueueFilter queueFilter) {
-                if (downstreamFilter == null) {
+                if (downstreamFilter != null) {
                     downstreamFilter.close();
                     downstreamFilter = null;
                 }

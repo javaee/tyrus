@@ -128,7 +128,7 @@ class HttpResponseParser {
         String reasonPhrase = firstLine.substring(statusCodeEndIndex + 1);
         int status;
         try {
-            status = Integer.valueOf(statusCode);
+            status = Integer.parseInt(statusCode);
         } catch (Exception e) {
             throw new ParseException("Invalid format of status code: " + statusCode);
         }
