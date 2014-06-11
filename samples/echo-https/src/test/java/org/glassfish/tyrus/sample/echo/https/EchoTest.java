@@ -136,31 +136,27 @@ public class EchoTest extends TestContainer {
 
         try {
             final ClientManager client = createClient();
-            client.connectToServer(new Endpoint() {
+            Session session = client.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig EndpointConfig) {
-                    try {
-                        session.addMessageHandler(new MessageHandler.Whole<String>() {
-                            @Override
-                            public void onMessage(String message) {
-                                System.out.println("### Received: " + message);
+                    session.addMessageHandler(new MessageHandler.Whole<String>() {
+                        @Override
+                        public void onMessage(String message) {
+                            System.out.println("### Received: " + message);
 
-                                if (message.equals(MESSAGE + " (from your server)")) {
-                                    messageLatch.countDown();
-                                } else if (message.equals("onOpen")) {
-                                    onOpenLatch.countDown();
-                                }
+                            if (message.equals(MESSAGE + " (from your server)")) {
+                                messageLatch.countDown();
+                            } else if (message.equals("onOpen")) {
+                                onOpenLatch.countDown();
                             }
-                        });
+                        }
+                    });
 
-                        session.getBasicRemote().sendText(MESSAGE);
-                    } catch (IOException e) {
-                        // do nothing
-                    }
                 }
             }, ClientEndpointConfig.Builder.create().build(), getURI(EchoEndpoint.class, "wss"));
+            session.getBasicRemote().sendText(MESSAGE);
 
-            messageLatch.await(10, TimeUnit.SECONDS);
+            messageLatch.await(60, TimeUnit.SECONDS);
             if (messageLatch.getCount() != 0 || onOpenLatch.getCount() != 0) {
                 fail();
             }
