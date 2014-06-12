@@ -584,19 +584,38 @@ client.connectToServer(...)</programlisting>
             through MXBeans. Number of open sessions, maximal number of open session since the start of monitoring and
             list of deployed endpoint class names and paths are available for each application. Endpoint class name and path
             the endpoint is registered on, number of open session and maximal number of open sessions are available for each
-            endpoint. Apart from that message statistics are collected both per application and per individual endpoint.
+            endpoint. Apart from that message as well as error statistics are collected both per application and per individual endpoint.
         </para>
         <para>
             The following message statistics are monitored for both sent and received messages:
             <itemizedlist>
-                <listitem>messages count</listitem>
-                <listitem>messages count per second</listitem>
-                <listitem>average message size</listitem>
-                <listitem>smallest message size</listitem>
-                <listitem>largest message size</listitem>
+                <listitem>
+                    <para>messages count</para>
+                </listitem>
+                <listitem>
+                    <para>messages count per second</para>
+                </listitem>
+                <listitem>
+                    <para>average message size</para>
+                </listitem>
+                <listitem>
+                    <para>smallest message size</para>
+                </listitem>
+                <listitem>
+                    <para>largest message size</para>
+                </listitem>
             </itemizedlist>
             Moreover all of them are collected separately for text, binary and control messages and apart from the statistics being available
             for the three separate categories, total numbers summing up statistics from the three types of messages are also available.
+        </para>
+        <para>
+            As has been already mentioned above, Tyrus also monitors errors on both application and endpoint level.
+            An error is identified by the Throwable class name that has been thrown. Statistics are collected about number of times each
+            Throwable has been thrown, so a list of errors together with a number of times each error occurred is available on both application and endpoint level.
+            The monitored errors correspond to invocation of @OnError method on an annotated endpoint or its equivalent on a programmatic endpoint
+            (The invocation of @OnError method is just an analogy and an error will be monitored even if no @OnError method is provided on the endpoint).
+            Errors that occur in @OnOpen, @OnClose methods and methods handling incoming messages are monitored. Errors that occurred during handshake
+            will not be among the monitored errors.
         </para>
         <para>
             The collected metrics as well as the endpoint properties mentioned above are accessible at runtime through Tyrus MXBeans.
@@ -610,37 +629,75 @@ client.connectToServer(...)</programlisting>
             the following structure:
             <itemizedlist>
                 <listitem>
-                    Application 1 - MXBean containing a list of deployed endpoint class names and paths, number of open sessions,
-                    maximal number of open sessions and total message statistics for the application.
+                    <para>
+                        Application 1 - MXBean containing a list of deployed endpoint class names and paths, number of open sessions,
+                        maximal number of open sessions, error and total message statistics for the application.
+                    </para>
                     <itemizedlist>
                         <listitem>
-                            message statistics - a directory containing message statistics MXBeans
+                            <para>
+                                message statistics - a directory containing message statistics MXBeans
+                            </para>
                             <itemizedlist>
-                                <listitem>text - MXBean containing text message statistics</listitem>
-                                <listitem>binary - MXBean containing binary message statistics</listitem>
-                                <listitem>control -  MXBean containing control message statistics</listitem>
+                                <listitem>
+                                    <para>
+                                        text - MXBean containing text message statistics
+                                    </para>
+                                </listitem>
+                                <listitem>
+                                    <para>
+                                        binary - MXBean containing binary message statistics
+                                    </para>
+                                </listitem>
+                                <listitem>
+                                    <para>
+                                        control -  MXBean containing control message statistics
+                                    </para>
+                                </listitem>
                             </itemizedlist>
                         </listitem>
                         <listitem>
-                            endpoints - a directory containing application endpoint MXBeans
+                            <para>
+                                endpoints - a directory containing application endpoint MXBeans
+                            </para>
                             <itemizedlist>
                                 <listitem>
-                                    Endpoint 1 - MXBean containing Endpoint 1 class name and path, number of open sessions,
-                                    maximal number of open sessions and total message statistics for the endpoint.
+                                    <para>
+                                        Endpoint 1 - MXBean containing Endpoint 1 class name and path, number of open sessions,
+                                        maximal number of open sessions, error and total message statistics for the endpoint.
+                                    </para>
                                     <itemizedlist>
-                                        <listitem>text - MXBean containing text message statistics</listitem>
-                                        <listitem>binary - MXBean containing binary message statistics</listitem>
-                                        <listitem>control -  MXBean containing control message statistics</listitem>
+                                        <listitem>
+                                            <para>
+                                                text - MXBean containing text message statistics
+                                            </para>
+                                        </listitem>
+                                        <listitem>
+                                            <para>
+                                                binary - MXBean containing binary message statistics
+                                            </para>
+                                        </listitem>
+                                        <listitem>
+                                            <para>
+                                                control -  MXBean containing control message statistics
+                                            </para>
+                                        </listitem>
                                     </itemizedlist>
                                 </listitem>
                                 <listitem>
-                                    Endpoint 2
+                                    <para>
+                                        Endpoint 2
+                                    </para>
                                 </listitem>
                             </itemizedlist>
                         </listitem>
                     </itemizedlist>
                 </listitem>
-                <listitem>Application 2</listitem>
+                <listitem>
+                    <para>
+                        Application 2
+                    </para>
+                </listitem>
             </itemizedlist>
         </para>
         <para>
