@@ -382,7 +382,7 @@ public class OnCloseTest extends TestContainer {
         }
     }
 
-    static int[] supportedServerCloseReasons = {
+    static int[] closeReasons = {
             1000, 1001, 1002, 1003, 1007, 1008, 1009, 1010, 1011, 1012, 1013
     };
 
@@ -418,7 +418,7 @@ public class OnCloseTest extends TestContainer {
 
     @Test
     public void testOnCloseServerInitiatedAll() throws DeploymentException {
-        for (int i : supportedServerCloseReasons) {
+        for (int i : closeReasons) {
             testOnCloseServerInitiated(i);
         }
     }
@@ -426,8 +426,7 @@ public class OnCloseTest extends TestContainer {
     public void testOnCloseServerInitiated(int supportedCode) throws DeploymentException {
         Server server = startServer(OnCloseAllSupportedReasonsEndpoint.class);
 
-        // close codes 1000 - 1015
-
+        // close codes 1000 - 1013
         final CountDownLatch messageLatch = new CountDownLatch(1);
 
         final int closeCode = supportedCode;
@@ -492,8 +491,8 @@ public class OnCloseTest extends TestContainer {
     @Test
     public void testOnCloseClientInitiated() throws DeploymentException {
 
-        // close codes 1000 - 1015
-        for (int i : supportedClientCloseReasons) {
+        // close codes 1000 - 1013
+        for (int i : closeReasons) {
             Server server = startServer(OnCloseAllSupportedReasonsClientInitEndpoint.class, ServiceEndpoint.class);
 
             final int closeCode = i;
@@ -511,7 +510,6 @@ public class OnCloseTest extends TestContainer {
                             session.close(new CloseReason(new CloseReason.CloseCode() {
                                 @Override
                                 public int getCode() {
-                                    // custom close codes (4000-4999)
                                     return closeCode;
                                 }
                             }, null));
@@ -558,7 +556,15 @@ public class OnCloseTest extends TestContainer {
                     return POSITIVE;
                 }
             } else { //testOnCloseClientInitiated, different test codes sent as a message
-                if (OnCloseAllSupportedReasonsClientInitEndpoint.closeReason.getCloseCode().getCode() == Integer.parseInt(message)) {
+                int i = Integer.parseInt(message);
+
+                if (i == 1012 || i == 1013) {
+                    if (OnCloseAllSupportedReasonsClientInitEndpoint.closeReason.getCloseCode().getCode() == 1000) {
+                        return POSITIVE;
+                    }
+                }
+
+                if (OnCloseAllSupportedReasonsClientInitEndpoint.closeReason.getCloseCode().getCode() == i) {
                     return POSITIVE;
                 }
             }
