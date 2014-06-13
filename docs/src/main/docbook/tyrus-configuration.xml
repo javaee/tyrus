@@ -499,8 +499,8 @@ client.connectToServer(...)</programlisting>
             Tyrus client supports traversing proxies, but it is Tyrus specific feature and its configuration is shown
             in the following code sample:
             <programlisting language="java" linenumbering="numbered">
-                ClientManager client = ClientManager.createClient();
-                client.getProperties().put(ClientManager.PROXY_URI, "http://my.proxy.com:80");
+ClientManager client = ClientManager.createClient();
+client.getProperties().put(ClientManager.PROXY_URI, "http://my.proxy.com:80");
             </programlisting>
             Value is expected to be proxy URI. Protocol part is currently ignored, but must be present.
         </para>
@@ -513,22 +513,22 @@ client.connectToServer(...)</programlisting>
             API has been available since version 1.6. There are two options how to switch between client implementations.
             If you do not mind using Tyrus specific API, the most straightforward way is to use:
             <programlisting language="java" linenumbering="numbered">
-                final ClientManager client = ClientManager.createClient(JdkClientContainer.class.getName());
+final ClientManager client = ClientManager.createClient(JdkClientContainer.class.getName());
             </programlisting>
             You just have to make sure that the dependency on JDK client is included in your project:
             <programlisting language="xml" linenumbering="unnumbered">
-                &lt;dependency&gt;
-                    &lt;groupId&gt;org.glassfish.tyrus&lt;/groupId&gt;
-                    &lt;artifactId&gt;tyrus-container-jdk-client&lt;/artifactId&gt;
-                    &lt;version&gt;&version;&lt;/version&gt;
-                &lt;/dependency&gt;
+&lt;dependency&gt;
+  &lt;groupId&gt;org.glassfish.tyrus&lt;/groupId&gt;
+  &lt;artifactId&gt;tyrus-container-jdk-client&lt;/artifactId&gt;
+  &lt;version&gt;&version;&lt;/version&gt;
+&lt;/dependency&gt;
             </programlisting>
             Grizzly client is the default option, so creating a client without any parameters will result in Grizzly client being used.
         </para>
         <para>
             There is also an option how to use JDK client with the standard Websocket API.
             <programlisting language="java" linenumbering="numbered">
-                final WebSocketContainer client = ContainerProvider.getWebSocketContainer();
+final WebSocketContainer client = ContainerProvider.getWebSocketContainer();
             </programlisting>
             The code listed above will scan class path for Websocket client implementations. A slight problem with this
             approach is that if there is more than one client on the classpath, the first one discovered will be used.
@@ -563,15 +563,16 @@ client.connectToServer(...)</programlisting>
                 from Tyrus project must be used instead.
                 The following code sample shows an example of some SSL parameters configuration for the JDK client:
                 <programlisting language="java" linenumbering="numbered">
-                    SslContextConfigurator sslContextConfigurator = new SslContextConfigurator();
-                    sslContextConfigurator.setTrustStoreFile("...");
-                    sslContextConfigurator.setTrustStorePassword("...");
-                    sslContextConfigurator.setTrustStoreType("...");
-                    sslContextConfigurator.setKeyStoreFile("...");
-                    sslContextConfigurator.setKeyStorePassword("...");
-                    sslContextConfigurator.setKeyStoreType("...");
-                    SslEngineConfigurator sslEngineConfigurator = new SslEngineConfigurator(sslContextConfigurator, true, false, false);
-                    client.getProperties().put(ClientManager.SSL_ENGINE_CONFIGURATOR, sslEngineConfigurator);
+SslContextConfigurator sslContextConfigurator = new SslContextConfigurator();
+sslContextConfigurator.setTrustStoreFile("...");
+sslContextConfigurator.setTrustStorePassword("...");
+sslContextConfigurator.setTrustStoreType("...");
+sslContextConfigurator.setKeyStoreFile("...");
+sslContextConfigurator.setKeyStorePassword("...");
+sslContextConfigurator.setKeyStoreType("...");
+SslEngineConfigurator sslEngineConfigurator = new SslEngineConfigurator(sslContextConfigurator, true, false, false);
+
+client.getProperties().put(ClientManager.SSL_ENGINE_CONFIGURATOR, sslEngineConfigurator);
                 </programlisting>
             </para>
         </section>
@@ -714,11 +715,11 @@ client.connectToServer(...)</programlisting>
                 As has been already mentioned, monitoring is supported only on the server side and is disabled by default.
                 The following code sample shows, how endpoint-level monitoring can be enabled on Grizzly server:
                 <programlisting language="java" linenumbering="numbered">
-                    serverProperties.put(ApplicationEventListener.APPLICATION_EVENT_LISTENER, new SessionlessApplicationMonitor());
+serverProperties.put(ApplicationEventListener.APPLICATION_EVENT_LISTENER, new SessionlessApplicationMonitor());
                 </programlisting>
                 Similarly endpoint-level monitoring can be enabled on Grizzly server in the following way:
                 <programlisting language="java" linenumbering="numbered">
-                    serverProperties.put(ApplicationEventListener.APPLICATION_EVENT_LISTENER, new SessionAwareApplicationMonitor());
+serverProperties.put(ApplicationEventListener.APPLICATION_EVENT_LISTENER, new SessionAwareApplicationMonitor());
                 </programlisting>
                 Monitoring can be configured on Glassfish in web.xml and the following code sample shows endpoint-level configuration:
                 <programlisting language="xml" linenumbering="numbered">&lt;web-app version="2.5" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -857,8 +858,7 @@ client.connectToServer(...)</programlisting>
 
             <para>
                 Set maximum number of sessions in annotated endpoint:
-                <programlisting language="java" linenumbering="numbered">
-<![CDATA[
+                <programlisting language="java" linenumbering="numbered"><![CDATA[
 import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
@@ -882,8 +882,8 @@ public static class LimitedSessionsEndpoint {
             <para>
                 Set maximum number of sessions for programmatic endpoint:
                 <programlisting language="java" linenumbering="numbered">
-                    TyrusServerEndpointConfig.Builder.create(LimitedSessionsEndpoint.class,
-                    "/limited-sessions-endpoint").maxSessions(100).build();
+TyrusServerEndpointConfig.Builder.create(LimitedSessionsEndpoint.class,
+  "/limited-sessions-endpoint").maxSessions(100).build();
                 </programlisting>
             </para>
             <para>
