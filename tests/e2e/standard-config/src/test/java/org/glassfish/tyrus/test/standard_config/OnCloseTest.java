@@ -73,6 +73,7 @@ public class OnCloseTest extends TestContainer {
 
         @OnMessage
         public String message(String message, Session session) throws IOException {
+
             // client side should receive close code 1000 and close reason "" (empty string), @see Session#close()
             if (message.equals("quit1")) {
                 session.close();
@@ -381,8 +382,12 @@ public class OnCloseTest extends TestContainer {
         }
     }
 
-    static int[] supportedCloseReasons = {
+    static int[] supportedServerCloseReasons = {
             1000, 1001, 1002, 1003, 1007, 1008, 1009, 1010, 1011, 1012, 1013
+    };
+
+    static int[] supportedClientCloseReasons = {
+            1000, 1001, 1002, 1003, 1007, 1008, 1009, 1010, 1011
     };
 
     @ServerEndpoint(value = "/close5")
@@ -413,7 +418,7 @@ public class OnCloseTest extends TestContainer {
 
     @Test
     public void testOnCloseServerInitiatedAll() throws DeploymentException {
-        for (int i : supportedCloseReasons) {
+        for (int i : supportedServerCloseReasons) {
             testOnCloseServerInitiated(i);
         }
     }
@@ -488,7 +493,7 @@ public class OnCloseTest extends TestContainer {
     public void testOnCloseClientInitiated() throws DeploymentException {
 
         // close codes 1000 - 1015
-        for (int i : supportedCloseReasons) {
+        for (int i : supportedClientCloseReasons) {
             Server server = startServer(OnCloseAllSupportedReasonsClientInitEndpoint.class, ServiceEndpoint.class);
 
             final int closeCode = i;

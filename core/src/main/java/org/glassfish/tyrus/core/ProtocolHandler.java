@@ -53,6 +53,7 @@ import javax.websocket.CloseReason;
 import javax.websocket.Extension;
 import javax.websocket.SendHandler;
 import javax.websocket.SendResult;
+import javax.websocket.server.HandshakeRequest;
 
 import org.glassfish.tyrus.core.extension.ExtendedExtension;
 import org.glassfish.tyrus.core.frame.BinaryFrame;
@@ -81,7 +82,7 @@ public final class ProtocolHandler {
 
     private static final Logger LOGGER = Logger.getLogger(ProtocolHandler.class.getName());
 
-    private final boolean maskData;
+    private final boolean client;
     private final ParsingState state = new ParsingState();
 
     private volatile TyrusWebSocket webSocket;
@@ -97,12 +98,25 @@ public final class ProtocolHandler {
     private volatile boolean hasExtensions = false;
     private volatile MessageEventListener messageEventListener = MessageEventListener.NO_OP;
 
-    ProtocolHandler(boolean maskData) {
-        this.maskData = maskData;
+    /**
+     * Constructor.
+     *
+     * @param client {@code true} when this instance is on client side, {@code false} when on
+     *               server side.
+     */
+    ProtocolHandler(boolean client) {
+        this.client = client;
     }
 
-    public void setWriter(Writer handler) {
-        this.writer = handler;
+    /**
+     * Set {@link Writer} instance.
+     * <p/>
+     * The set instance is used for "sending" all outgoing WebSocket frames.
+     *
+     * @param writer {@link Writer} to be set.
+     */
+    public void setWriter(Writer writer) {
+        this.writer = writer;
     }
 
     /**
@@ -116,18 +130,18 @@ public final class ProtocolHandler {
     }
 
     /**
-     * Server side.
+     * Server side handshake processing.
      *
-     * @param endpointWrapper  TODO.
-     * @param request          TODO.
-     * @param response         TODO.
-     * @param extensionContext TODO.
-     * @return TODO.
+     * @param endpointWrapper  endpoint related to the handshake (path is already matched).
+     * @param request          handshake request.
+     * @param response         handshake response.
+     * @param extensionContext extension context.
+     * @return server handshake object.
      */
     public Handshake handshake(TyrusEndpointWrapper endpointWrapper, UpgradeRequest request, UpgradeResponse response, ExtendedExtension.ExtensionContext extensionContext) {
         final Handshake handshake = Handshake.createServerHandshake(request, extensionContext);
         this.extensions = handshake.respond(request, response, endpointWrapper);
-        this.subProtocol = response.getFirstHeaderValue(UpgradeRequest.SEC_WEBSOCKET_PROTOCOL);
+        this.subProtocol = response.getFirstHeaderValue(HandshakeRequest.SEC_WEBSOCKET_PROTOCOL);
         this.extensionContext = extensionContext;
         hasExtensions = extensions != null && extensions.size() > 0;
         return handshake;
@@ -142,27 +156,27 @@ public final class ProtocolHandler {
     }
 
     /**
-     * Client side.
+     * Client side. Set WebSocket.
      *
-     * @param webSocket TODO.
+     * @param webSocket client WebSocket connection.
      */
     public void setWebSocket(TyrusWebSocket webSocket) {
         this.webSocket = webSocket;
     }
 
     /**
-     * Client side.
+     * Client side. Set extension context.
      *
-     * @param extensionContext TODO.
+     * @param extensionContext extension context.
      */
     public void setExtensionContext(ExtendedExtension.ExtensionContext extensionContext) {
         this.extensionContext = extensionContext;
     }
 
     /**
-     * Client side.
+     * Client side. Set extensions negotiated for this WebSocket session/connection.
      *
-     * @param extensions TODO.
+     * @param extensions list of negotiated extensions. Can be {@code null}.
      */
     public void setExtensions(List<Extension> extensions) {
         this.extensions = extensions;
@@ -264,8 +278,13 @@ public final class ProtocolHandler {
         final CloseFrame outgoingCloseFrame;
         final CloseReason closeReason = new CloseReason(CloseReason.CloseCodes.getCloseCode(code), reason);
 
-        if (code == CloseReason.CloseCodes.NO_STATUS_CODE.getCode() || code == CloseReason.CloseCodes.CLOSED_ABNORMALLY.getCode()
-                || code == CloseReason.CloseCodes.TLS_HANDSHAKE_FAILURE.getCode()) {
+        if (code == CloseReason.CloseCodes.NO_STATUS_CODE.getCode() ||
+                code == CloseReason.CloseCodes.CLOSED_ABNORMALLY.getCode() ||
+                code == CloseReason.CloseCodes.TLS_HANDSHAKE_FAILURE.getCode() ||
+                // client side cannot send SERVICE_RESTART or TRY_AGAIN_LATER
+                // will be replaced with NORMAL_CLOSURE
+                (client && (code == CloseReason.CloseCodes.SERVICE_RESTART.getCode() ||
+                        code == CloseReason.CloseCodes.TRY_AGAIN_LATER.getCode()))) {
             outgoingCloseFrame = new CloseFrame(new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, reason));
         } else {
             outgoingCloseFrame = new CloseFrame(closeReason);
@@ -415,12 +434,13 @@ public final class ProtocolHandler {
         // TODO - in that case, we will need to NOT store dataframe inmemory - introduce maskingByteStream or
         // TODO   maskingByteBuffer
         final int payloadLength = (int) frame.getPayloadLength();
-        int length = 1 + lengthBytes.length + payloadLength + (maskData ? MASK_SIZE : 0);
-        int payloadStart = 1 + lengthBytes.length + (maskData ? MASK_SIZE : 0);
+        int length = 1 + lengthBytes.length + payloadLength + (client ? MASK_SIZE : 0);
+        int payloadStart = 1 + lengthBytes.length + (client ? MASK_SIZE : 0);
         final byte[] packet = new byte[length];
         packet[0] = opcode;
         System.arraycopy(lengthBytes, 0, packet, 1, lengthBytes.length);
-        if (maskData) {
+        // if client, then we need to mask data.
+        if (client) {
             Masker masker = new Masker(frame.getMaskingKey());
             packet[1] |= 0x80;
             masker.mask(packet, payloadStart, bytes, payloadLength);
@@ -576,6 +596,17 @@ public final class ProtocolHandler {
         // TODO - investigate whether it can be removed; (this effectively denies lazy decoding)
         if (tyrusFrame instanceof TextFrame) {
             remainder = ((TextFrame) tyrusFrame).getRemainder();
+        }
+
+        // server should not allow receiving 1012 or 1013 from the client
+        // (SERVICE_RESTART and TRY_AGAIN_LATER does not make sense from the client side.
+        if (!client) {
+            if (tyrusFrame.isControlFrame() && tyrusFrame instanceof CloseFrame) {
+                CloseReason.CloseCode closeCode = ((CloseFrame) tyrusFrame).getCloseReason().getCloseCode();
+                if (closeCode.equals(CloseReason.CloseCodes.SERVICE_RESTART) || closeCode.equals(CloseReason.CloseCodes.TRY_AGAIN_LATER)) {
+                    throw new ProtocolException("Illegal close code: " + closeCode);
+                }
+            }
         }
 
         tyrusFrame.respond(socket);
