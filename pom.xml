@@ -187,7 +187,6 @@
     <modules>
         <module>archetypes</module>
         <module>bom</module>
-        <module>bundles</module>
         <module>client</module>
         <module>containers</module>
         <module>core</module>
@@ -459,6 +458,12 @@
                     </plugins>
                 </pluginManagement>
             </build>
+        </profile>
+        <profile>
+            <id>bundles</id>
+            <modules>
+                <module>bundles</module>
+            </modules>
         </profile>
     </profiles>
 
