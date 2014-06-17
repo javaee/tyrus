@@ -61,6 +61,7 @@ import javax.websocket.ClientEndpointConfig;
 import javax.websocket.DeploymentException;
 
 import org.glassfish.tyrus.client.ClientManager;
+import org.glassfish.tyrus.client.ClientProperties;
 import org.glassfish.tyrus.client.SslContextConfigurator;
 import org.glassfish.tyrus.client.SslEngineConfigurator;
 import org.glassfish.tyrus.core.Base64Utils;
@@ -230,7 +231,7 @@ public class JdkClientContainer implements ClientContainer {
         if (wlsProxyHost != null) {
             proxies.add(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(wlsProxyHost, wlsProxyPort == null ? 80 : wlsProxyPort)));
         } else {
-            Object proxyString = properties.get(ClientManager.PROXY_URI);
+            Object proxyString = properties.get(ClientProperties.PROXY_URI);
             try {
                 URI proxyUri;
                 if (proxyString != null) {

@@ -186,7 +186,7 @@ public class TyrusClientEngine implements ClientEngine {
             listener.onSessionCreated(sessionForRemoteEndpoint);
 
             // incoming buffer size - max frame size possible to receive.
-            Integer tyrusIncomingBufferSize = Utils.getProperty(properties, ClientContainer.INCOMING_BUFFER_SIZE, Integer.class);
+            Integer tyrusIncomingBufferSize = Utils.getProperty(properties, ClientProperties.INCOMING_BUFFER_SIZE, Integer.class);
             Integer wlsIncomingBufferSize = Utils.getProperty(endpointWrapper.getEndpointConfig().getUserProperties(), ClientContainer.WLS_INCOMING_BUFFER_SIZE, Integer.class);
             final Integer incomingBufferSize;
             if (tyrusIncomingBufferSize == null && wlsIncomingBufferSize == null) {

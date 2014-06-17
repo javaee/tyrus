@@ -60,6 +60,7 @@ import java.util.logging.Logger;
 import javax.websocket.DeploymentException;
 
 import org.glassfish.tyrus.client.ClientManager;
+import org.glassfish.tyrus.client.ClientProperties;
 import org.glassfish.tyrus.core.Base64Utils;
 import org.glassfish.tyrus.core.Utils;
 import org.glassfish.tyrus.spi.ClientEngine;
@@ -176,7 +177,7 @@ public class GrizzlyClientSocket {
         this.timeoutMs = timeoutMs;
         this.proxyHeaders = getProxyHeaders(properties);
 
-        SSLEngineConfigurator sslEngineConfigurator = (SSLEngineConfigurator) properties.get(GrizzlyClientContainer.SSL_ENGINE_CONFIGURATOR);
+        SSLEngineConfigurator sslEngineConfigurator = (SSLEngineConfigurator) properties.get(ClientProperties.SSL_ENGINE_CONFIGURATOR);
         // if we are trying to access "wss" scheme and we don't have sslEngineConfigurator instance
         // we should try to create ssl connection using JVM properties.
         if (uri.getScheme().equalsIgnoreCase("wss") && sslEngineConfigurator == null) {
@@ -427,7 +428,7 @@ public class GrizzlyClientSocket {
         if (wlsProxyHost != null) {
             proxies.add(new Proxy(Proxy.Type.HTTP, new InetSocketAddress(wlsProxyHost, wlsProxyPort == null ? 80 : wlsProxyPort)));
         } else {
-            Object proxyString = properties.get(ClientManager.PROXY_URI);
+            Object proxyString = properties.get(ClientProperties.PROXY_URI);
             try {
                 URI proxyUri;
                 if (proxyString != null) {

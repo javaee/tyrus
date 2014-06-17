@@ -80,7 +80,7 @@ defaultConfig.retrieve(System.getProperties());
 
 SSLEngineConfigurator sslEngineConfigurator =
     new SSLEngineConfigurator(defaultConfig, true, false, false);
-client.getProperties().put(GrizzlyEngine.SSL_ENGINE_CONFIGURATOR,
+client.getProperties().put(ClientProperties.SSL_ENGINE_CONFIGURATOR,
     sslEngineConfigurator);
 client.connectToServer(... , ClientEndpointConfig.Builder.create().build(),
     new URI("wss://localhost:8181/sample-echo/echo"));
@@ -483,7 +483,7 @@ ClientManager.ReconnectHandler reconnectHandler = new ClientManager.ReconnectHan
   }
 };
 
-client.getProperties().put(ClientManager.RECONNECT_HANDLER, reconnectHandler);
+client.getProperties().put(ClientProperties.RECONNECT_HANDLER, reconnectHandler);
 
 client.connectToServer(...)</programlisting>
 
@@ -500,7 +500,7 @@ client.connectToServer(...)</programlisting>
             in the following code sample:
             <programlisting language="java" linenumbering="numbered">
 ClientManager client = ClientManager.createClient();
-client.getProperties().put(ClientManager.PROXY_URI, "http://my.proxy.com:80");
+client.getProperties().put(ClientProperties.PROXY_URI, "http://my.proxy.com:80");
             </programlisting>
             Value is expected to be proxy URI. Protocol part is currently ignored, but must be present.
         </para>
@@ -572,7 +572,7 @@ sslContextConfigurator.setKeyStorePassword("...");
 sslContextConfigurator.setKeyStoreType("...");
 SslEngineConfigurator sslEngineConfigurator = new SslEngineConfigurator(sslContextConfigurator, true, false, false);
 
-client.getProperties().put(ClientManager.SSL_ENGINE_CONFIGURATOR, sslEngineConfigurator);
+client.getProperties().put(ClientProperties.SSL_ENGINE_CONFIGURATOR, sslEngineConfigurator);
                 </programlisting>
             </para>
         </section>

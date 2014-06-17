@@ -89,15 +89,19 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
      * Property usable in {@link #getProperties()}.
      * <p/>
      * Value must be {@code int} and represents handshake timeout in milliseconds. Default value is 30000 (30 seconds).
+     *
+     * @deprecated please use {@link org.glassfish.tyrus.client.ClientProperties#HANDSHAKE_TIMEOUT}.
      */
-    public static final String HANDSHAKE_TIMEOUT = "org.glassfish.tyrus.client.ClientManager.ContainerTimeout";
+    public static final String HANDSHAKE_TIMEOUT = ClientProperties.HANDSHAKE_TIMEOUT;
 
     /**
      * Property usable in {@link #getProperties()}.
      * <p/>
      * Value must be {@link org.glassfish.tyrus.client.ClientManager.ReconnectHandler} instance.
+     *
+     * @deprecated please use {@link org.glassfish.tyrus.client.ClientProperties#RECONNECT_HANDLER}.
      */
-    public static final String RECONNECT_HANDLER = "org.glassfish.tyrus.client.ClientManager.ReconnectHandler";
+    public static final String RECONNECT_HANDLER = ClientProperties.RECONNECT_HANDLER;
 
     /**
      * Client-side user property to set proxy URI.
@@ -111,8 +115,9 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
      * </pre>
      *
      * @see javax.websocket.ClientEndpointConfig#getUserProperties()
+     * @deprecated please use {@link org.glassfish.tyrus.client.ClientProperties#PROXY_URI}.
      */
-    public static final String PROXY_URI = "org.glassfish.tyrus.client.proxy";
+    public static final String PROXY_URI = ClientProperties.PROXY_URI;
 
     /**
      * Client-side user property to set additional proxy headers.
@@ -133,8 +138,9 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
      * WebSocket handshake headers, see {@link javax.websocket.ClientEndpointConfig.Configurator#beforeRequest(java.util.Map)}.
      *
      * @see javax.websocket.ClientEndpointConfig#getUserProperties()
+     * @deprecated please use {@link org.glassfish.tyrus.client.ClientProperties#PROXY_HEADERS}.
      */
-    public static final String PROXY_HEADERS = "org.glassfish.tyrus.client.proxy.headers";
+    public static final String PROXY_HEADERS = ClientProperties.PROXY_HEADERS;
 
     /**
      * Property usable in {@link #getProperties()} as a key for SSL configuration.
@@ -156,8 +162,10 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
      *      SslEngineConfigurator sslEngineConfigurator = new SslEngineConfigurator(sslContextConfigurator, true, false, false);
      *      client.getProperties().put(ClientManager.SSL_ENGINE_CONFIGURATOR, sslEngineConfigurator);
      * </pre>
+     *
+     * @deprecated please use {@link org.glassfish.tyrus.client.ClientProperties#SSL_ENGINE_CONFIGURATOR}.
      */
-    public static final String SSL_ENGINE_CONFIGURATOR = "org.glassfish.tyrus.client.sslEngineConfigurator";
+    public static final String SSL_ENGINE_CONFIGURATOR = ClientProperties.SSL_ENGINE_CONFIGURATOR;
 
     /**
      * Default {@link org.glassfish.tyrus.spi.ServerContainerFactory} class name.
@@ -437,7 +445,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                 final Endpoint endpoint;
 
                 // incoming buffer size - max frame size possible to receive.
-                Integer tyrusIncomingBufferSize = Utils.getProperty(properties, ClientContainer.INCOMING_BUFFER_SIZE, Integer.class);
+                Integer tyrusIncomingBufferSize = Utils.getProperty(properties, ClientProperties.INCOMING_BUFFER_SIZE, Integer.class);
                 Integer wlsIncomingBufferSize = configuration == null ? null : Utils.getProperty(configuration.getUserProperties(), ClientContainer.WLS_INCOMING_BUFFER_SIZE, Integer.class);
                 final int incomingBufferSize;
                 if (tyrusIncomingBufferSize == null && wlsIncomingBufferSize == null) {
@@ -480,7 +488,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                     return;
                 }
 
-                final Object o = copiedProperties.get(RECONNECT_HANDLER);
+                final Object o = copiedProperties.get(ClientProperties.RECONNECT_HANDLER);
                 final ReconnectHandler reconnectHandler;
                 if (o != null && o instanceof ReconnectHandler) {
                     reconnectHandler = (ReconnectHandler) o;
@@ -587,7 +595,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
     }
 
     private int getHandshakeTimeout() {
-        final Object o = properties.get(HANDSHAKE_TIMEOUT);
+        final Object o = properties.get(ClientProperties.HANDSHAKE_TIMEOUT);
         if (o != null && o instanceof Integer) {
             return (Integer) o;
         } else {

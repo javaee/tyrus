@@ -56,6 +56,8 @@ public interface ClientContainer {
      * Property name for maximal incoming buffer size.
      * <p/>
      * Can be set in properties map (see {@link #openClientSocket(String, javax.websocket.ClientEndpointConfig, java.util.Map, ClientEngine)}).
+     *
+     * @deprecated please use {@link org.glassfish.tyrus.client.ClientProperties#INCOMING_BUFFER_SIZE}.
      */
     public static final String INCOMING_BUFFER_SIZE = "org.glassfish.tyrus.incomingBufferSize";
 

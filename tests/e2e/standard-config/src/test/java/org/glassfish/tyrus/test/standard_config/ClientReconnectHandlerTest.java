@@ -56,6 +56,7 @@ import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
 import org.glassfish.tyrus.client.ClientManager;
+import org.glassfish.tyrus.client.ClientProperties;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.tools.TestContainer;
 
@@ -100,7 +101,7 @@ public class ClientReconnectHandlerTest extends TestContainer {
                 }
             };
 
-            client.getProperties().put(ClientManager.RECONNECT_HANDLER, reconnectHandler);
+            client.getProperties().put(ClientProperties.RECONNECT_HANDLER, reconnectHandler);
 
             client.connectToServer(new Endpoint() {
                 @Override
@@ -147,7 +148,7 @@ public class ClientReconnectHandlerTest extends TestContainer {
                 }
             };
 
-            client.getProperties().put(ClientManager.RECONNECT_HANDLER, reconnectHandler);
+            client.getProperties().put(ClientProperties.RECONNECT_HANDLER, reconnectHandler);
 
             try {
                 client.connectToServer(new Endpoint() {

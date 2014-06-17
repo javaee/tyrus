@@ -54,6 +54,7 @@ import javax.websocket.OnMessage;
 import javax.websocket.server.ServerEndpoint;
 
 import org.glassfish.tyrus.client.ClientManager;
+import org.glassfish.tyrus.client.ClientProperties;
 import org.glassfish.tyrus.core.AnnotatedEndpoint;
 import org.glassfish.tyrus.core.TyrusWebSocketEngine;
 import org.glassfish.tyrus.core.l10n.LocalizationMessages;
@@ -160,7 +161,7 @@ public class MaxMessageSizeDeploymentTest extends TestContainer {
         try {
             ClientManager client = createClient();
             Map<String, Object> properties = client.getProperties();
-            properties.put(ClientContainer.INCOMING_BUFFER_SIZE, 1);
+            properties.put(ClientProperties.INCOMING_BUFFER_SIZE, 1);
             final AtomicBoolean warningLogged = new AtomicBoolean(false);
             LoggerHandler handler = new LoggerHandler() {
                 @Override
@@ -197,7 +198,7 @@ public class MaxMessageSizeDeploymentTest extends TestContainer {
         try {
             ClientManager client = createClient();
             Map<String, Object> properties = client.getProperties();
-            properties.put(ClientContainer.INCOMING_BUFFER_SIZE, 3);
+            properties.put(ClientProperties.INCOMING_BUFFER_SIZE, 3);
             final AtomicBoolean warningLogged = new AtomicBoolean(false);
             LoggerHandler handler = new LoggerHandler() {
                 @Override
