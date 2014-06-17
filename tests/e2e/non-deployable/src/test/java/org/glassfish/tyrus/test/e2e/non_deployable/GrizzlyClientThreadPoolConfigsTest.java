@@ -56,8 +56,9 @@ import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
 import org.glassfish.tyrus.client.ClientManager;
+import org.glassfish.tyrus.client.ClientProperties;
 import org.glassfish.tyrus.container.grizzly.client.GrizzlyClientContainer;
-import org.glassfish.tyrus.container.grizzly.client.GrizzlyClientSocket;
+import org.glassfish.tyrus.container.grizzly.client.GrizzlyClientProperties;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.tools.TestContainer;
 
@@ -74,7 +75,7 @@ public class GrizzlyClientThreadPoolConfigsTest extends TestContainer {
 
     @Test
     public void testCustomThreadFactories() throws DeploymentException {
-        if (System.getProperties().getProperty(GrizzlyClientContainer.SHARED_CONTAINER) != null) {
+        if (System.getProperties().getProperty(ClientProperties.SHARED_CONTAINER) != null) {
             // test not valid with shared container.
             return;
         }
@@ -91,7 +92,7 @@ public class GrizzlyClientThreadPoolConfigsTest extends TestContainer {
 
             ClientManager client = ClientManager.createClient(GrizzlyClientContainer.class.getName());
 
-            client.getProperties().put(GrizzlyClientSocket.WORKER_THREAD_POOL_CONFIG, ThreadPoolConfig.defaultConfig().setThreadFactory(new ThreadFactory() {
+            client.getProperties().put(GrizzlyClientProperties.WORKER_THREAD_POOL_CONFIG, ThreadPoolConfig.defaultConfig().setThreadFactory(new ThreadFactory() {
                 @Override
                 public Thread newThread(Runnable r) {
                     Logger.getLogger(GrizzlyClientThreadPoolConfigsTest.class.getName()).log(Level.INFO, "Worker thread factory called: " + r);
@@ -100,7 +101,7 @@ public class GrizzlyClientThreadPoolConfigsTest extends TestContainer {
                 }
             }));
 
-            client.getProperties().put(GrizzlyClientSocket.SELECTOR_THREAD_POOL_CONFIG, ThreadPoolConfig.defaultConfig().setThreadFactory(new ThreadFactory() {
+            client.getProperties().put(GrizzlyClientProperties.SELECTOR_THREAD_POOL_CONFIG, ThreadPoolConfig.defaultConfig().setThreadFactory(new ThreadFactory() {
                 @Override
                 public Thread newThread(Runnable r) {
                     Logger.getLogger(GrizzlyClientThreadPoolConfigsTest.class.getName()).log(Level.INFO, "Selector thread factory called: " + r);

@@ -49,7 +49,7 @@ import javax.websocket.DeploymentException;
 import javax.websocket.Session;
 
 import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.container.grizzly.client.GrizzlyClientContainer;
+import org.glassfish.tyrus.client.ClientProperties;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.standard_config.bean.EchoEndpoint;
 import org.glassfish.tyrus.test.tools.TestContainer;
@@ -111,8 +111,8 @@ public class SharedContainerTimeoutTest extends TestContainer {
             ClientManager client = createClient();
 
             // this is the interesting part.
-            client.getProperties().put(GrizzlyClientContainer.SHARED_CONTAINER, true);
-            client.getProperties().put(GrizzlyClientContainer.SHARED_CONTAINER_IDLE_TIMEOUT, 5);
+            client.getProperties().put(ClientProperties.SHARED_CONTAINER, true);
+            client.getProperties().put(ClientProperties.SHARED_CONTAINER_IDLE_TIMEOUT, 5);
 
             final Session session = client.connectToServer(new TestEndpointAdapter() {
 

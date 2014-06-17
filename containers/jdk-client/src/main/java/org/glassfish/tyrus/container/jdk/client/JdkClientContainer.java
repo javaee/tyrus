@@ -96,7 +96,7 @@ public class JdkClientContainer implements ClientContainer {
         final ClientFilter clientFilter = new ClientFilter(clientEngine, uri, getProxyHeaders(properties));
         final TaskQueueFilter writeQueue = new TaskQueueFilter(clientFilter);
         if (uri.getScheme().equalsIgnoreCase("wss")) {
-            Object sslEngineConfiguratorObject = properties.get(ClientManager.SSL_ENGINE_CONFIGURATOR);
+            Object sslEngineConfiguratorObject = properties.get(ClientProperties.SSL_ENGINE_CONFIGURATOR);
 
             SslFilter sslFilter = null;
 
@@ -107,7 +107,7 @@ public class JdkClientContainer implements ClientContainer {
                 } else if (sslEngineConfiguratorObject instanceof org.glassfish.tyrus.container.jdk.client.SslEngineConfigurator) {
                     sslFilter = new SslFilter(writeQueue, (org.glassfish.tyrus.container.jdk.client.SslEngineConfigurator) sslEngineConfiguratorObject);
                 } else {
-                    LOGGER.log(Level.WARNING, "Invalid '" + ClientManager.SSL_ENGINE_CONFIGURATOR + "' property value: " + sslEngineConfiguratorObject +
+                    LOGGER.log(Level.WARNING, "Invalid '" + ClientProperties.SSL_ENGINE_CONFIGURATOR + "' property value: " + sslEngineConfiguratorObject +
                             ". Using system defaults.");
                 }
             }
@@ -286,7 +286,7 @@ public class JdkClientContainer implements ClientContainer {
 
     private Map<String, String> getProxyHeaders(Map<String, Object> properties) throws DeploymentException {
         //noinspection unchecked
-        Map<String, String> proxyHeaders = Utils.getProperty(properties, ClientManager.PROXY_HEADERS, Map.class);
+        Map<String, String> proxyHeaders = Utils.getProperty(properties, ClientProperties.PROXY_HEADERS, Map.class);
 
         String wlsProxyUsername = null;
         String wlsProxyPassword = null;

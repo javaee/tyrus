@@ -47,7 +47,6 @@ import java.util.Map;
 import javax.websocket.ClientEndpointConfig;
 import javax.websocket.DeploymentException;
 
-import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.client.ClientProperties;
 import org.glassfish.tyrus.spi.ClientContainer;
 import org.glassfish.tyrus.spi.ClientEngine;
@@ -61,23 +60,26 @@ public class GrizzlyClientContainer implements ClientContainer {
     /**
      * @deprecated please use {@link org.glassfish.tyrus.client.ClientProperties#SSL_ENGINE_CONFIGURATOR}.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public static final String SSL_ENGINE_CONFIGURATOR = ClientProperties.SSL_ENGINE_CONFIGURATOR;
 
     /**
      * When set to {@code true} (boolean value), client runtime preserves used container and reuses it for outgoing
      * connections.
      *
-     * @see #SHARED_CONTAINER_IDLE_TIMEOUT
+     * @see ClientProperties#SHARED_CONTAINER_IDLE_TIMEOUT
      * @deprecated please use {@link org.glassfish.tyrus.client.ClientProperties#SHARED_CONTAINER}.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public static final String SHARED_CONTAINER = ClientProperties.SHARED_CONTAINER;
 
     /**
      * Container idle timeout in seconds (Integer value).
      *
-     * @see #SHARED_CONTAINER
+     * @see ClientProperties#SHARED_CONTAINER
      * @deprecated please use {@link org.glassfish.tyrus.client.ClientProperties#SHARED_CONTAINER_IDLE_TIMEOUT}.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public static final String SHARED_CONTAINER_IDLE_TIMEOUT = ClientProperties.SHARED_CONTAINER_IDLE_TIMEOUT;
 
     //The same value Grizzly is using for socket timeout.

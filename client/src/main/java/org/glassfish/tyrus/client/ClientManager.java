@@ -92,6 +92,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
      *
      * @deprecated please use {@link org.glassfish.tyrus.client.ClientProperties#HANDSHAKE_TIMEOUT}.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public static final String HANDSHAKE_TIMEOUT = ClientProperties.HANDSHAKE_TIMEOUT;
 
     /**
@@ -101,6 +102,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
      *
      * @deprecated please use {@link org.glassfish.tyrus.client.ClientProperties#RECONNECT_HANDLER}.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public static final String RECONNECT_HANDLER = ClientProperties.RECONNECT_HANDLER;
 
     /**
@@ -117,6 +119,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
      * @see javax.websocket.ClientEndpointConfig#getUserProperties()
      * @deprecated please use {@link org.glassfish.tyrus.client.ClientProperties#PROXY_URI}.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public static final String PROXY_URI = ClientProperties.PROXY_URI;
 
     /**
@@ -140,6 +143,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
      * @see javax.websocket.ClientEndpointConfig#getUserProperties()
      * @deprecated please use {@link org.glassfish.tyrus.client.ClientProperties#PROXY_HEADERS}.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public static final String PROXY_HEADERS = ClientProperties.PROXY_HEADERS;
 
     /**
@@ -165,6 +169,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
      *
      * @deprecated please use {@link org.glassfish.tyrus.client.ClientProperties#SSL_ENGINE_CONFIGURATOR}.
      */
+    @SuppressWarnings("UnusedDeclaration")
     public static final String SSL_ENGINE_CONFIGURATOR = ClientProperties.SSL_ENGINE_CONFIGURATOR;
 
     /**

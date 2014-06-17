@@ -103,9 +103,10 @@ public class GrizzlyClientSocket {
      * </pre>
      *
      * @see javax.websocket.ClientEndpointConfig#getUserProperties()
-     * @deprecated please use {@link org.glassfish.tyrus.client.ClientManager#PROXY_URI}.
+     * @deprecated please use {@link org.glassfish.tyrus.client.ClientProperties#PROXY_URI}.
      */
-    public static final String PROXY_URI = ClientManager.PROXY_URI;
+    @SuppressWarnings("UnusedDeclaration")
+    public static final String PROXY_URI = ClientProperties.PROXY_URI;
 
     /**
      * Client-side user property to set additional proxy headers.
@@ -126,23 +127,30 @@ public class GrizzlyClientSocket {
      * WebSocket handshake headers, see {@link javax.websocket.ClientEndpointConfig.Configurator#beforeRequest(java.util.Map)}.
      *
      * @see javax.websocket.ClientEndpointConfig#getUserProperties()
-     * @deprecated please use {@link ClientManager#PROXY_HEADERS}
+     * @deprecated please use {@link org.glassfish.tyrus.client.ClientProperties#PROXY_HEADERS}
      */
-    public static final String PROXY_HEADERS = ClientManager.PROXY_HEADERS;
+    @SuppressWarnings("UnusedDeclaration")
+    public static final String PROXY_HEADERS = ClientProperties.PROXY_HEADERS;
 
     /**
      * Client-side property to set custom worker {@link ThreadPoolConfig}.
      * <p/>
      * Value is expected to be instance of {@link ThreadPoolConfig}, can be {@code null} (it won't be used).
+     *
+     * @deprecated please use {@link org.glassfish.tyrus.container.grizzly.client.GrizzlyClientProperties#WORKER_THREAD_POOL_CONFIG}.
      */
-    public static final String WORKER_THREAD_POOL_CONFIG = "org.glassfish.tyrus.client.grizzly.workerThreadPoolConfig";
+    @SuppressWarnings("UnusedDeclaration")
+    public static final String WORKER_THREAD_POOL_CONFIG = GrizzlyClientProperties.WORKER_THREAD_POOL_CONFIG;
 
     /**
      * Client-side property to set custom selector {@link ThreadPoolConfig}.
      * <p/>
      * Value is expected to be instance of {@link ThreadPoolConfig}, can be {@code null} (it won't be used).
+     *
+     * @deprecated please use {@link org.glassfish.tyrus.container.grizzly.client.GrizzlyClientProperties#SELECTOR_THREAD_POOL_CONFIG}.
      */
-    public static final String SELECTOR_THREAD_POOL_CONFIG = "org.glassfish.tyrus.client.grizzly.selectorThreadPoolConfig";
+    @SuppressWarnings("UnusedDeclaration")
+    public static final String SELECTOR_THREAD_POOL_CONFIG = GrizzlyClientProperties.SELECTOR_THREAD_POOL_CONFIG;
 
     private static final Logger LOGGER = Logger.getLogger(GrizzlyClientSocket.class.getName());
 
@@ -188,12 +196,12 @@ public class GrizzlyClientSocket {
 
         try {
             this.clientSSLEngineConfigurator = sslEngineConfigurator;
-            this.workerThreadPoolConfig = Utils.getProperty(properties, GrizzlyClientSocket.WORKER_THREAD_POOL_CONFIG, ThreadPoolConfig.class);
-            this.selectorThreadPoolConfig = Utils.getProperty(properties, GrizzlyClientSocket.SELECTOR_THREAD_POOL_CONFIG, ThreadPoolConfig.class);
-            Boolean shared = Utils.getProperty(properties, GrizzlyClientContainer.SHARED_CONTAINER, Boolean.class);
+            this.workerThreadPoolConfig = Utils.getProperty(properties, GrizzlyClientProperties.WORKER_THREAD_POOL_CONFIG, ThreadPoolConfig.class);
+            this.selectorThreadPoolConfig = Utils.getProperty(properties, GrizzlyClientProperties.SELECTOR_THREAD_POOL_CONFIG, ThreadPoolConfig.class);
+            Boolean shared = Utils.getProperty(properties, ClientProperties.SHARED_CONTAINER, Boolean.class);
             if (shared == null || !shared) {
                 // TODO introduce some better (generic) way how to configure client from system properties.
-                final String property = System.getProperty(GrizzlyClientContainer.SHARED_CONTAINER);
+                final String property = System.getProperty(ClientProperties.SHARED_CONTAINER);
                 if (property != null && property.equals("true")) {
                     shared = true;
                 }
@@ -203,7 +211,7 @@ public class GrizzlyClientSocket {
                 GrizzlyTransportTimeoutFilter.touch();
             }
 
-            final Integer sharedTransportTimeoutProperty = Utils.getProperty(properties, GrizzlyClientContainer.SHARED_CONTAINER_IDLE_TIMEOUT, Integer.class);
+            final Integer sharedTransportTimeoutProperty = Utils.getProperty(properties, ClientProperties.SHARED_CONTAINER_IDLE_TIMEOUT, Integer.class);
             // default value for shared transport timeout is 30.
             sharedTransportTimeout = (sharedTransport && sharedTransportTimeoutProperty != null) ? sharedTransportTimeoutProperty : 30;
             this.engine = engine;
@@ -357,7 +365,7 @@ public class GrizzlyClientSocket {
 
     private Map<String, String> getProxyHeaders(Map<String, Object> properties) throws DeploymentException {
         //noinspection unchecked
-        Map<String, String> proxyHeaders = Utils.getProperty(properties, ClientManager.PROXY_HEADERS, Map.class);
+        Map<String, String> proxyHeaders = Utils.getProperty(properties, ClientProperties.PROXY_HEADERS, Map.class);
 
         String wlsProxyUsername = null;
         String wlsProxyPassword = null;
