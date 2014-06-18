@@ -348,7 +348,7 @@ public class GrizzlyClientSocket {
         if (selectorThreadPoolConfig == null) {
             if (sharedTransport) {
                 // if the container is shared, we don't want to limit thread pool size by default.
-                transportBuilder.setWorkerThreadPoolConfig(ThreadPoolConfig.defaultConfig());
+                transportBuilder.setSelectorThreadPoolConfig(ThreadPoolConfig.defaultConfig());
             } else {
                 transportBuilder.setSelectorThreadPoolConfig(ThreadPoolConfig.defaultConfig().setMaxPoolSize(1).setCorePoolSize(1));
                 TCPNIOTransport transport = transportBuilder.build();
