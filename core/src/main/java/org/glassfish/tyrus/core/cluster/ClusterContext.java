@@ -168,6 +168,16 @@ public abstract class ClusterContext {
     public abstract void broadcastBinary(String endpointPath, byte[] data);
 
     /**
+     * Get information about session state.
+     *
+     * @param sessionId    remote session id.
+     * @param endpointPath endpoint path identifying sessions alignment to the endpoint.
+     * @return {@code true} when session is opened, {@code false} otherwise.
+     * @see javax.websocket.Session#isOpen()
+     */
+    public abstract boolean isSessionOpen(String sessionId, String endpointPath);
+
+    /**
      * Close remote session.
      *
      * @param sessionId remote session id.

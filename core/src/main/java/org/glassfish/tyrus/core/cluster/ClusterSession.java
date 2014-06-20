@@ -69,6 +69,7 @@ import javax.websocket.WebSocketContainer;
 
 import org.glassfish.tyrus.core.TyrusEndpointWrapper;
 import org.glassfish.tyrus.core.Utils;
+
 import static org.glassfish.tyrus.core.Utils.checkNotNull;
 
 /**
@@ -83,18 +84,96 @@ public class ClusterSession implements Session {
     private final String sessionId;
     private final ClusterContext clusterContext;
     private final Map<DistributedMapKey, Object> distributedPropertyMap;
+    private final TyrusEndpointWrapper endpointWrapper;
 
     public static enum DistributedMapKey implements Serializable {
+        /**
+         * Negotiated subprotocol.
+         * <p/>
+         * Value must be {@link String}.
+         *
+         * @see javax.websocket.Session#getNegotiatedSubprotocol()
+         */
         NEGOTIATED_SUBPROTOCOL("negotiatedSubprotocol"),
+        /**
+         * Negotiated extensions.
+         * <p/>
+         * Value must be {@link List}&lt;{@link Extension}&gt;.
+         *
+         * @see javax.websocket.Session#getNegotiatedExtensions()
+         */
         NEGOTIATED_EXTENSIONS("negotiatedExtensions"),
+        /**
+         * Secure flag.
+         * <p/>
+         * Value must be {@link boolean} or {@link java.lang.Boolean}.
+         *
+         * @see javax.websocket.Session#isSecure()
+         */
         SECURE("secure"),
+        /**
+         * Max idle timeout.
+         * <p/>
+         * Value must be {@link long} or {@link java.lang.Long}.
+         *
+         * @see javax.websocket.Session#getMaxIdleTimeout()
+         */
         MAX_IDLE_TIMEOUT("maxIdleTimeout"),
+        /**
+         * Max binary buffer size.
+         * <p/>
+         * Value must be {@link int} or {@link java.lang.Integer}.
+         *
+         * @see javax.websocket.Session#getMaxBinaryMessageBufferSize()
+         */
         MAX_BINARY_MESSAGE_BUFFER_SIZE("maxBinaryBufferSize"),
+        /**
+         * Max text buffer size.
+         * <p/>
+         * Value must be {@link int} or {@link java.lang.Integer}.
+         *
+         * @see javax.websocket.Session#getMaxTextMessageBufferSize()
+         */
         MAX_TEXT_MESSAGE_BUFFER_SIZE("maxTextBufferSize"),
+        /**
+         * Request URI.
+         * <p/>
+         * Value must be {@link URI}.
+         *
+         * @see javax.websocket.Session#getRequestURI()
+         */
         REQUEST_URI("requestURI"),
+        /**
+         * Request Parameter map.
+         * <p/>
+         * Value must be {@link java.util.Map}&lt;{@link String}, {@link java.util.List}&lt;{@link String}&gt;&gt;.
+         *
+         * @see javax.websocket.Session#getRequestParameterMap()
+         */
         REQUEST_PARAMETER_MAP("requestParameterMap"),
+        /**
+         * Query string.
+         * <p/>
+         * Value must be {@link String}.
+         *
+         * @see javax.websocket.Session#getQueryString()
+         */
         QUERY_STRING("queryString"),
+        /**
+         * Path parameters.
+         * <p/>
+         * Value must be {@link java.util.Map}&lt;{@link String}, {@link String}&gt;.
+         *
+         * @see javax.websocket.Session#getPathParameters()
+         */
         PATH_PARAMETERS("pathParameters"),
+        /**
+         * User principal.
+         * <p/>
+         * Value must be {@link java.security.Principal}.
+         *
+         * @see javax.websocket.Session#getUserPrincipal()
+         */
         USER_PRINCIPAL("userPrincipal");
 
         private final String key;
@@ -126,6 +205,7 @@ public class ClusterSession implements Session {
         this.sessionId = sessionId;
         this.clusterContext = clusterContext;
         this.distributedPropertyMap = distributedPropertyMap;
+        this.endpointWrapper = endpointWrapper;
 
         this.basicRemote = new RemoteEndpoint.Basic() {
             @Override
@@ -568,9 +648,7 @@ public class ClusterSession implements Session {
 
     @Override
     public boolean isOpen() {
-        // unsupportedException? isOpen is not very usable in clustered scenario; the call itself can be invoked on
-        // the real session, but the result will be meaningless in the time it gets back to original invoker.
-        return true;
+        return clusterContext.isSessionOpen(sessionId, endpointWrapper.getEndpointPath());
     }
 
     @Override
@@ -671,8 +749,7 @@ public class ClusterSession implements Session {
 
     @Override
     public Map<String, Object> getUserProperties() {
-        //noinspection unchecked
-        return (Map<String, Object>) clusterContext.getDistributedUserProperties(sessionId);
+        return clusterContext.getDistributedUserProperties(sessionId);
     }
 
     @Override
