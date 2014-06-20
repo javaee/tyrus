@@ -106,7 +106,7 @@ public class ClusterSession implements Session {
         /**
          * Secure flag.
          * <p/>
-         * Value must be {@link boolean} or {@link java.lang.Boolean}.
+         * Value must be {@code boolean} or {@link java.lang.Boolean}.
          *
          * @see javax.websocket.Session#isSecure()
          */
@@ -114,7 +114,7 @@ public class ClusterSession implements Session {
         /**
          * Max idle timeout.
          * <p/>
-         * Value must be {@link long} or {@link java.lang.Long}.
+         * Value must be {@code long} or {@link java.lang.Long}.
          *
          * @see javax.websocket.Session#getMaxIdleTimeout()
          */
@@ -122,7 +122,7 @@ public class ClusterSession implements Session {
         /**
          * Max binary buffer size.
          * <p/>
-         * Value must be {@link int} or {@link java.lang.Integer}.
+         * Value must be {@code int} or {@link java.lang.Integer}.
          *
          * @see javax.websocket.Session#getMaxBinaryMessageBufferSize()
          */
@@ -130,7 +130,7 @@ public class ClusterSession implements Session {
         /**
          * Max text buffer size.
          * <p/>
-         * Value must be {@link int} or {@link java.lang.Integer}.
+         * Value must be {@code int} or {@link java.lang.Integer}.
          *
          * @see javax.websocket.Session#getMaxTextMessageBufferSize()
          */
