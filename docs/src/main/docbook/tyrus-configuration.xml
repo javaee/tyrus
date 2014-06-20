@@ -195,16 +195,16 @@ client.connectToServer( ... )</programlisting>
 
 <programlisting language="java" linenumbering="numbered">ClientManager client = ClientManager.createClient();
 
-client.getProperties().put(GrizzlyClientContainer.SHARED_CONTAINER, true);</programlisting>
+client.getProperties().put(ClientProperties.SHARED_CONTAINER, true);</programlisting>
 
         <para>You might also want to specify container idle timeout:</para>
 
-<programlisting language="java" linenumbering="numbered">client.getProperties().put(GrizzlyClientContainer.SHARED_CONTAINER_IDLE_TIMEOUT, 5);</programlisting>
+<programlisting language="java" linenumbering="numbered">client.getProperties().put(ClientProperties.SHARED_CONTAINER_IDLE_TIMEOUT, 5);</programlisting>
 
         <para>Last but not least, you might want to specify thread pool sizes used by shared container (please use this feature only when you do know what are you doing. Grizzly by default does not limit max number of used threads, so if you do that, please make sure thread pool size fits your purpose):</para>
 
-<programlisting language="java" linenumbering="numbered">client.getProperties().put(GrizzlyClientSocket.SELECTOR_THREAD_POOL_CONFIG, ThreadPoolConfig.defaultConfig().setMaxPoolSize(3));
-client.getProperties().put(GrizzlyClientSocket.WORKER_THREAD_POOL_CONFIG, ThreadPoolConfig.defaultConfig().setMaxPoolSize(10));</programlisting>
+<programlisting language="java" linenumbering="numbered">client.getProperties().put(GrizzlyClientProperties.SELECTOR_THREAD_POOL_CONFIG, ThreadPoolConfig.defaultConfig().setMaxPoolSize(3));
+client.getProperties().put(GrizzlyClientProperties.WORKER_THREAD_POOL_CONFIG, ThreadPoolConfig.defaultConfig().setMaxPoolSize(10));</programlisting>
     </section>
 
     <section>
