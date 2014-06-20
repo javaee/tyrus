@@ -64,6 +64,7 @@ import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.client.ClientProperties;
 import org.glassfish.tyrus.client.SslContextConfigurator;
 import org.glassfish.tyrus.client.SslEngineConfigurator;
+import org.glassfish.tyrus.client.ThreadPoolConfig;
 import org.glassfish.tyrus.core.Base64Utils;
 import org.glassfish.tyrus.core.Utils;
 import org.glassfish.tyrus.spi.ClientContainer;
@@ -95,6 +96,24 @@ public class JdkClientContainer implements ClientContainer {
 
         final ClientFilter clientFilter = new ClientFilter(clientEngine, uri, getProxyHeaders(properties));
         final TaskQueueFilter writeQueue = new TaskQueueFilter(clientFilter);
+
+        ThreadPoolConfig threadPoolConfig = Utils.getProperty(properties, ClientProperties.WORKER_THREAD_POOL_CONFIG, ThreadPoolConfig.class);
+        if (threadPoolConfig == null) {
+            threadPoolConfig = ThreadPoolConfig.defaultConfig();
+        }
+        // weblogic.websocket.client.max-aio-threads has priority over what is in thread pool config
+        String wlsMaxThreadsStr = System.getProperty(ClientManager.WLS_MAX_THREADS);
+        if (wlsMaxThreadsStr != null) {
+            try {
+                int wlsMaxThreads = Integer.valueOf(wlsMaxThreadsStr);
+                threadPoolConfig.setMaxPoolSize(wlsMaxThreads);
+            } catch (Exception e) {
+                LOGGER.log(Level.CONFIG, String.format("Invalid type of configuration property of %s , %s cannot be cast to Integer", ClientManager.WLS_MAX_THREADS, wlsMaxThreadsStr));
+            }
+        }
+
+        Integer containerIdleTimeout = Utils.getProperty(properties, ClientProperties.SHARED_CONTAINER_IDLE_TIMEOUT, Integer.class);
+
         if (uri.getScheme().equalsIgnoreCase("wss")) {
             Object sslEngineConfiguratorObject = properties.get(ClientProperties.SSL_ENGINE_CONFIGURATOR);
 
@@ -139,9 +158,9 @@ public class JdkClientContainer implements ClientContainer {
             }
 
             // sslFilter is never null at this point.
-            transportFilter = new TransportFilter(sslFilter, SSL_INPUT_BUFFER_SIZE);
+            transportFilter = new TransportFilter(sslFilter, SSL_INPUT_BUFFER_SIZE, threadPoolConfig, containerIdleTimeout);
         } else {
-            transportFilter = new TransportFilter(writeQueue, INPUT_BUFFER_SIZE);
+            transportFilter = new TransportFilter(writeQueue, INPUT_BUFFER_SIZE, threadPoolConfig, containerIdleTimeout);
         }
 
         processProxy(properties, uri);

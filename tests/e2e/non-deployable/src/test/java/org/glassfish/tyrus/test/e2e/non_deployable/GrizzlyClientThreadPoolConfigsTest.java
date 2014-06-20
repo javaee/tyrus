@@ -75,6 +75,10 @@ public class GrizzlyClientThreadPoolConfigsTest extends TestContainer {
 
     @Test
     public void testCustomThreadFactories() throws DeploymentException {
+        /*
+            Also setting client.getProperties().put(ClientProperties.SHARED_CONTAINER, ... ) is supported - if a test running
+            before this test does that, this test might fail.
+         */
         if (System.getProperties().getProperty(ClientProperties.SHARED_CONTAINER) != null) {
             // test not valid with shared container.
             return;

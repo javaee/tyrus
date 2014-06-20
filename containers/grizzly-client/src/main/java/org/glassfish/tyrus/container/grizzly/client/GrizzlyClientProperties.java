@@ -51,6 +51,9 @@ public final class GrizzlyClientProperties {
      * Client-side property to set custom worker {@link org.glassfish.grizzly.threadpool.ThreadPoolConfig}.
      * <p/>
      * Value is expected to be instance of {@link org.glassfish.grizzly.threadpool.ThreadPoolConfig}, can be {@code null} (it won't be used).
+     * <p/>
+     * If both {@link #WORKER_THREAD_POOL_CONFIG} nad  {@link org.glassfish.tyrus.client.ClientProperties#WORKER_THREAD_POOL_CONFIG}
+     * are set, configuration set in {@link #WORKER_THREAD_POOL_CONFIG} will be used.
      */
     public static final String WORKER_THREAD_POOL_CONFIG = "org.glassfish.tyrus.client.grizzly.workerThreadPoolConfig";
 

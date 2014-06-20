@@ -44,89 +44,124 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfig;
-import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
 import javax.websocket.OnMessage;
-import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.client.ClientProperties;
+import org.glassfish.tyrus.client.ThreadPoolConfig;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.tools.TestContainer;
 
+import org.junit.BeforeClass;
 import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+
+import junit.framework.Assert;
 
 /**
  * @author Petr Janouch (petr.janouch at oracle.com)
  */
-public class EchoTest extends TestContainer {
+public class ThreadPoolSizeLimitsTest extends TestContainer {
+
+    @BeforeClass
+    public static void beforeTest() {
+        try {
+            // thread pool idle timeout is set to 1s for JDK client - we let thread pool created by previous test be destroyed
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            Assert.fail();
+        }
+    }
 
     @Test
-    public void testEcho() throws IOException, DeploymentException, InterruptedException {
-        final Server server = startServer(EchoEndpoint.class);
+    public void testBorderValues() {
+        ThreadPoolConfig config = ThreadPoolConfig.defaultConfig();
+        try {
+            config.setCorePoolSize(-1);
+            fail();
+        } catch (Exception e) {
+            // do nothing
+        }
 
-        final CountDownLatch messageLatch = new CountDownLatch(1);
-        final CountDownLatch onOpenLatch = new CountDownLatch(1);
+        config.setCorePoolSize(0);
+        assertEquals(0, config.getCorePoolSize());
 
         try {
-            final ClientManager client = ClientManager.createClient(JdkClientContainer.class.getName());
-            /**
-             * present because of {@link org.glassfish.tyrus.container.jdk.client.ThreadPoolSizeTest}
-             */
+            config.setMaxPoolSize(1);
+            fail();
+        } catch (Exception e) {
+            // do nothing
+        }
+
+        config.setMaxPoolSize(2);
+        assertEquals(2, config.getMaxPoolSize());
+
+        config.setQueueLimit(-2);
+        assertEquals(-1, config.getQueueLimit());
+
+        config.setQueueLimit(0);
+        assertEquals(0, config.getQueueLimit());
+    }
+
+
+    /**
+     * Tests that client with max two threads in the thread pool will work.
+     */
+    @Test
+    public void testSmallestMaximalSize() {
+        Server server = null;
+        try {
+            server = startServer(AnnotatedServerEndpoint.class);
+
+            final CountDownLatch messageLatch = new CountDownLatch(1);
+
+            ClientManager client = ClientManager.createClient(JdkClientContainer.class.getName());
             client.getProperties().put(ClientProperties.SHARED_CONTAINER_IDLE_TIMEOUT, 1);
+            ThreadPoolConfig config = ThreadPoolConfig.defaultConfig().setMaxPoolSize(2);
+            client.getProperties().put(ClientProperties.WORKER_THREAD_POOL_CONFIG, config);
+
             client.connectToServer(new Endpoint() {
                 @Override
-                public void onOpen(Session session, EndpointConfig EndpointConfig) {
+                public void onOpen(Session session, EndpointConfig config) {
+                    session.addMessageHandler(new MessageHandler.Whole<String>() {
+
+                        @Override
+                        public void onMessage(String message) {
+                            messageLatch.countDown();
+                        }
+                    });
 
                     try {
-                        session.addMessageHandler(new MessageHandler.Whole<String>() {
-                            @Override
-                            public void onMessage(String message) {
-                                System.out.println("### Received: " + message);
-
-                                if (message.equals("Do or do not, there is no try. (from your server)")) {
-                                    messageLatch.countDown();
-                                } else if (message.equals("onOpen")) {
-                                    onOpenLatch.countDown();
-                                }
-                            }
-                        });
-
-                        session.getBasicRemote().sendText("Do or do not, there is no try.");
+                        session.getBasicRemote().sendText("Hi");
                     } catch (IOException e) {
-                        // do nothing
+                        e.printStackTrace();
+                        fail();
                     }
                 }
-            }, ClientEndpointConfig.Builder.create().build(), getURI(EchoEndpoint.class));
+            }, ClientEndpointConfig.Builder.create().build(), getURI(AnnotatedServerEndpoint.class));
 
             assertTrue(messageLatch.await(1, TimeUnit.SECONDS));
-            assertTrue(onOpenLatch.await(1, TimeUnit.SECONDS));
-
         } catch (Exception e) {
-            e.printStackTrace();
             fail();
         } finally {
             stopServer(server);
         }
     }
 
-    @ServerEndpoint("/echo")
-    public static class EchoEndpoint {
+    @ServerEndpoint("/threadPoolLimitsEndpoint")
+    public static class AnnotatedServerEndpoint {
+
         @OnMessage
         public String onMessage(String message) {
-            System.out.println("# server echoed: " + message);
-            return message + " (from your server)";
-        }
-
-        @OnOpen
-        public void onOpen(Session session) throws IOException {
-            session.getBasicRemote().sendText("onOpen");
+            return message;
         }
     }
 }

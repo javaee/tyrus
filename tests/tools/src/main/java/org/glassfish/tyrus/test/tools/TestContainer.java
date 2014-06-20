@@ -55,6 +55,7 @@ import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
 import org.glassfish.tyrus.client.ClientManager;
+import org.glassfish.tyrus.client.ClientProperties;
 import org.glassfish.tyrus.server.Server;
 
 import static junit.framework.Assert.assertEquals;
@@ -176,10 +177,19 @@ public class TestContainer {
      */
     protected ClientManager createClient() {
         final String clientContainerClassName = System.getProperty("tyrus.test.container.client");
-        if(clientContainerClassName != null) {
-            return ClientManager.createClient(clientContainerClassName);
+        if (clientContainerClassName != null) {
+            final ClientManager client = ClientManager.createClient(clientContainerClassName);
+
+            /**
+             * present because of {@link org.glassfish.tyrus.container.jdk.client.ThreadPoolSizeTest}
+             */
+            if (clientContainerClassName.equals("org.glassfish.tyrus.container.jdk.client.JdkClientContainer")) {
+                client.getProperties().put(ClientProperties.SHARED_CONTAINER_IDLE_TIMEOUT, 1);
+            }
+            return client;
+        } else {
+            return ClientManager.createClient();
         }
-        return ClientManager.createClient();
     }
 
     /**

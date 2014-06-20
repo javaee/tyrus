@@ -186,6 +186,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
     public static final String WLS_SSL_PROTOCOLS_PROPERTY = "weblogic.websocket.client.SSL_PROTOCOLS";
     public static final String WLS_SSL_TRUSTSTORE_PROPERTY = "weblogic.websocket.client.SSL_TRUSTSTORE";
     public static final String WLS_SSL_TRUSTSTORE_PWD_PROPERTY = "weblogic.websocket.client.SSL_TRUSTSTORE_PWD";
+    public static final String WLS_MAX_THREADS = "weblogic.websocket.client.max-aio-threads";
 
     private static final Logger LOGGER = Logger.getLogger(ClientManager.class.getName());
     private final WebSocketContainer webSocketContainer;

@@ -196,8 +196,9 @@ public class GrizzlyClientSocket {
 
         try {
             this.clientSSLEngineConfigurator = sslEngineConfigurator;
-            this.workerThreadPoolConfig = Utils.getProperty(properties, GrizzlyClientProperties.WORKER_THREAD_POOL_CONFIG, ThreadPoolConfig.class);
+            this.workerThreadPoolConfig = getWorkerThreadPoolConfig(properties);
             this.selectorThreadPoolConfig = Utils.getProperty(properties, GrizzlyClientProperties.SELECTOR_THREAD_POOL_CONFIG, ThreadPoolConfig.class);
+
             Boolean shared = Utils.getProperty(properties, ClientProperties.SHARED_CONTAINER, Boolean.class);
             if (shared == null || !shared) {
                 // TODO introduce some better (generic) way how to configure client from system properties.
@@ -221,6 +222,37 @@ public class GrizzlyClientSocket {
         }
 
         socketAddress = processProxy(properties);
+    }
+
+    private ThreadPoolConfig getWorkerThreadPoolConfig(Map<String, Object> properties) {
+        if (properties.containsKey(GrizzlyClientProperties.WORKER_THREAD_POOL_CONFIG)) {
+            return Utils.getProperty(properties, GrizzlyClientProperties.WORKER_THREAD_POOL_CONFIG, ThreadPoolConfig.class);
+        } else if (properties.containsKey(ClientProperties.WORKER_THREAD_POOL_CONFIG)) {
+            Object threadPoolConfig = Utils.getProperty(properties, ClientProperties.WORKER_THREAD_POOL_CONFIG, Object.class);
+
+            if (threadPoolConfig instanceof org.glassfish.tyrus.client.ThreadPoolConfig) {
+                org.glassfish.tyrus.client.ThreadPoolConfig clientThreadPoolConfig = (org.glassfish.tyrus.client.ThreadPoolConfig) threadPoolConfig;
+                ThreadPoolConfig grizzlyThreadPoolConfig = ThreadPoolConfig.defaultConfig();
+                grizzlyThreadPoolConfig.setMaxPoolSize(clientThreadPoolConfig.getMaxPoolSize())
+                        .setCorePoolSize(clientThreadPoolConfig.getCorePoolSize())
+                        .setPriority(clientThreadPoolConfig.getPriority())
+                        .setDaemon(clientThreadPoolConfig.isDaemon())
+                        .setKeepAliveTime(clientThreadPoolConfig.getKeepAliveTime(TimeUnit.MILLISECONDS), TimeUnit.MILLISECONDS)
+                        .setInitialClassLoader(clientThreadPoolConfig.getInitialClassLoader())
+                        .setPoolName(clientThreadPoolConfig.getPoolName())
+                        .setQueue(clientThreadPoolConfig.getQueue())
+                        .setQueueLimit(clientThreadPoolConfig.getQueueLimit())
+                        .setThreadFactory(clientThreadPoolConfig.getThreadFactory());
+                return grizzlyThreadPoolConfig;
+            } else if (threadPoolConfig instanceof ThreadPoolConfig) {
+                return (ThreadPoolConfig) threadPoolConfig;
+            } else {
+                LOGGER.log(Level.CONFIG, String.format("Invalid type of configuration property of %s (%s), %s cannot be cast to %s or %s",
+                        ClientProperties.WORKER_THREAD_POOL_CONFIG, threadPoolConfig.toString(), threadPoolConfig.getClass().toString(),
+                        ThreadPoolConfig.class.toString(), org.glassfish.tyrus.client.ThreadPoolConfig.class.toString()));
+            }
+        }
+        return null;
     }
 
     /**
