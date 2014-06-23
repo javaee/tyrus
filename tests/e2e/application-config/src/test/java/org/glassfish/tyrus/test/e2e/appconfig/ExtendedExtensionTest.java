@@ -105,7 +105,14 @@ public class ExtendedExtensionTest extends TestContainer {
         }
     }
 
-    final static byte[] MESSAGE = {'h', 'e', 'l', 'l', 'o'};
+    /**
+     * {@link org.glassfish.tyrus.test.e2e.appconfig.ExtendedExtensionTest.Constants#MESSAGE} cannot be directly in
+     * {@link org.glassfish.tyrus.test.e2e.appconfig.ExtendedExtensionTest}, because {@link org.glassfish.tyrus.test.tools.TestContainer}
+     * is not be available at runtime.
+     */
+    private static class Constants {
+        final static byte[] MESSAGE = {'h', 'e', 'l', 'l', 'o'};
+    }
 
     @Test
     public void extendedExtensionTest() throws DeploymentException {
@@ -129,14 +136,14 @@ public class ExtendedExtensionTest extends TestContainer {
                         @Override
                         public void onMessage(byte[] message) {
                             System.out.println("client onMessage.");
-                            if (Arrays.equals(MESSAGE, message)) {
+                            if (Arrays.equals(Constants.MESSAGE, message)) {
                                 messageLatch.countDown();
                             }
                         }
                     });
 
                     try {
-                        session.getBasicRemote().sendObject(MESSAGE);
+                        session.getBasicRemote().sendObject(Constants.MESSAGE);
                     } catch (IOException e) {
                         e.printStackTrace();
                     } catch (EncodeException e) {
@@ -169,9 +176,9 @@ public class ExtendedExtensionTest extends TestContainer {
                     try {
                         print("server onMessage.");
 
-                        if ((message[0] ^ TestExtendedExtension.MASK) == MESSAGE[0] &&
-                                (message[1] ^ TestExtendedExtension.MASK) == MESSAGE[1] &&
-                                Arrays.equals(Arrays.copyOfRange(message, 2, 4), Arrays.copyOfRange(MESSAGE, 2, 4))) {
+                        if ((message[0] ^ TestExtendedExtension.MASK) == Constants.MESSAGE[0] &&
+                                (message[1] ^ TestExtendedExtension.MASK) == Constants.MESSAGE[1] &&
+                                Arrays.equals(Arrays.copyOfRange(message, 2, 4), Arrays.copyOfRange(Constants.MESSAGE, 2, 4))) {
                             session.getBasicRemote().sendObject(message);
                         }
                     } catch (IOException e) {
@@ -314,14 +321,14 @@ public class ExtendedExtensionTest extends TestContainer {
                         public void onMessage(byte[] message) {
                             System.out.println("client onMessage.");
 
-                            if (Arrays.equals(MESSAGE, message)) {
+                            if (Arrays.equals(Constants.MESSAGE, message)) {
                                 messageLatch.countDown();
                             }
                         }
                     });
 
                     try {
-                        session.getBasicRemote().sendObject(MESSAGE);
+                        session.getBasicRemote().sendObject(Constants.MESSAGE);
                     } catch (IOException e) {
                         e.printStackTrace();
                     } catch (EncodeException e) {
@@ -356,9 +363,9 @@ public class ExtendedExtensionTest extends TestContainer {
 
             frame = super.processIncoming(context, frame);
             if (index == 0) {
-                assertEquals(frame.getPayloadData()[1], (MESSAGE[1] ^ MASK));
+                assertEquals(frame.getPayloadData()[1], (Constants.MESSAGE[1] ^ MASK));
             } else if (index == 1) {
-                assertEquals(frame.getPayloadData()[0], MESSAGE[0]);
+                assertEquals(frame.getPayloadData()[0], Constants.MESSAGE[0]);
             } else {
                 throw new IllegalArgumentException();
             }
@@ -376,11 +383,11 @@ public class ExtendedExtensionTest extends TestContainer {
         }
 
         private void check(Frame frame) {
-            if (!Arrays.equals(Arrays.copyOfRange(frame.getPayloadData(), index, MESSAGE.length), Arrays.copyOfRange(MESSAGE, index, MESSAGE.length))) {
+            if (!Arrays.equals(Arrays.copyOfRange(frame.getPayloadData(), index, Constants.MESSAGE.length), Arrays.copyOfRange(Constants.MESSAGE, index, Constants.MESSAGE.length))) {
                 throw new IllegalArgumentException();
             } else {
                 for (int i = 0; i < index; i++) {
-                    if (frame.getPayloadData()[i] != (MESSAGE[i] ^ MASK)) {
+                    if (frame.getPayloadData()[i] != (Constants.MESSAGE[i] ^ MASK)) {
                         throw new IllegalArgumentException();
                     }
                 }
@@ -411,11 +418,11 @@ public class ExtendedExtensionTest extends TestContainer {
 
             // no junit on server side.
             if (index == 2) {
-                if (frame.getPayloadData()[3] != (MESSAGE[3] ^ MASK)) {
+                if (frame.getPayloadData()[3] != (Constants.MESSAGE[3] ^ MASK)) {
                     throw new IllegalArgumentException();
                 }
             } else if (index == 3) {
-                if (frame.getPayloadData()[2] != MESSAGE[2]) {
+                if (frame.getPayloadData()[2] != Constants.MESSAGE[2]) {
                     throw new IllegalArgumentException();
                 }
             } else {
@@ -427,11 +434,11 @@ public class ExtendedExtensionTest extends TestContainer {
         }
 
         private void check(Frame frame) {
-            if (!Arrays.equals(Arrays.copyOfRange(frame.getPayloadData(), index, MESSAGE.length), Arrays.copyOfRange(MESSAGE, index, MESSAGE.length))) {
+            if (!Arrays.equals(Arrays.copyOfRange(frame.getPayloadData(), index, Constants.MESSAGE.length), Arrays.copyOfRange(Constants.MESSAGE, index, Constants.MESSAGE.length))) {
                 throw new IllegalArgumentException();
             } else {
                 for (int i = 0; i < index; i++) {
-                    if (frame.getPayloadData()[i] != (MESSAGE[i] ^ MASK)) {
+                    if (frame.getPayloadData()[i] != (Constants.MESSAGE[i] ^ MASK)) {
                         throw new IllegalArgumentException();
                     }
                 }
@@ -450,10 +457,10 @@ public class ExtendedExtensionTest extends TestContainer {
                     try {
                         print("server onMessage.");
 
-                        if ((message[0] ^ TestExtendedExtension.MASK) == MESSAGE[0] &&
-                                (message[1] ^ TestExtendedExtension.MASK) == MESSAGE[1] &&
-                                (message[2] ^ TestExtendedExtension.MASK) == MESSAGE[2] &&
-                                (message[3] ^ TestExtendedExtension.MASK) == MESSAGE[3]
+                        if ((message[0] ^ TestExtendedExtension.MASK) == Constants.MESSAGE[0] &&
+                                (message[1] ^ TestExtendedExtension.MASK) == Constants.MESSAGE[1] &&
+                                (message[2] ^ TestExtendedExtension.MASK) == Constants.MESSAGE[2] &&
+                                (message[3] ^ TestExtendedExtension.MASK) == Constants.MESSAGE[3]
                                 ) {
                             session.getBasicRemote().sendObject(message);
                         }
