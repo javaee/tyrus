@@ -133,7 +133,7 @@ public class HeartbeatTest extends TestContainer {
         try {
             final CountDownLatch pongLatch = new CountDownLatch(3);
             ClientManager client = createClient();
-            client.connectToServer(new Endpoint() {
+            Session session = client.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig config) {
                     session.addMessageHandler(new MessageHandler.Whole<PongMessage>() {
@@ -146,6 +146,7 @@ public class HeartbeatTest extends TestContainer {
             }, ClientEndpointConfig.Builder.create().build(), getURI(HeartbeatServerEndpoint.class));
             assertTrue(pongLatch.await(3, TimeUnit.SECONDS));
 
+            session.close();
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
@@ -227,5 +228,4 @@ public class HeartbeatTest extends TestContainer {
             stopServer(server);
         }
     }
-
 }

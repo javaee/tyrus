@@ -210,18 +210,14 @@ public class TyrusSession implements Session {
 
     @Override
     public void close() throws IOException {
-        if (heartbeatTask != null && !heartbeatTask.isCancelled()) {
-            heartbeatTask.cancel(true);
-        }
+        cancelHeartBeatTask();
         changeStateToClosed();
         basicRemote.close(new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, null));
     }
 
     @Override
     public void close(CloseReason closeReason) throws IOException {
-        if (heartbeatTask != null && !heartbeatTask.isCancelled()) {
-            heartbeatTask.cancel(true);
-        }
+        cancelHeartBeatTask();
         checkConnectionState(State.CLOSED);
         changeStateToClosed();
         basicRemote.close(closeReason);
@@ -439,9 +435,7 @@ public class TyrusSession implements Session {
     public void setHeartbeatInterval(long heartbeatInterval) {
         checkConnectionState(State.CLOSED);
         this.heartbeatInterval = heartbeatInterval;
-        if (heartbeatTask != null && !heartbeatTask.isCancelled()) {
-            heartbeatTask.cancel(true);
-        }
+        cancelHeartBeatTask();
 
         if (heartbeatInterval < 1) {
             return;
@@ -629,6 +623,10 @@ public class TyrusSession implements Session {
         if (!state.equals(this.state.get())) {
             checkConnectionState(State.CLOSED);
             this.state.set(state);
+
+            if (state.equals(State.CLOSED)) {
+                cancelHeartBeatTask();
+            }
         }
     }
 
@@ -671,6 +669,12 @@ public class TyrusSession implements Session {
         state.compareAndSet(State.RUNNING, State.CLOSED);
         state.compareAndSet(State.RECEIVING_BINARY, State.CLOSED);
         state.compareAndSet(State.RECEIVING_TEXT, State.CLOSED);
+    }
+
+    private void cancelHeartBeatTask() {
+        if (heartbeatTask != null && !heartbeatTask.isCancelled()) {
+            heartbeatTask.cancel(true);
+        }
     }
 
     /**
@@ -737,6 +741,8 @@ public class TyrusSession implements Session {
                 } catch (IOException e) {
                     LOGGER.log(Level.FINE, "Pong could not have been sent " + e.getMessage());
                 }
+            } else {
+                cancelHeartBeatTask();
             }
         }
     }
