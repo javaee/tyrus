@@ -51,15 +51,57 @@ import javax.websocket.server.HandshakeRequest;
  */
 public abstract class UpgradeRequest implements HandshakeRequest {
 
+    /**
+     * Expected value in HTTP handshake "Upgrade" header.
+     * <p/>
+     * (Registered in RFC 6455).
+     */
     public static final String WEBSOCKET = "websocket";
+
+    /**
+     * HTTP reason phrase for successful handshake response.
+     */
     public static final String RESPONSE_CODE_MESSAGE = "Switching Protocols";
+
+    /**
+     * HTTP "Upgrade" header name and "Connection" header expected value.
+     */
     public static final String UPGRADE = "Upgrade";
+
+    /**
+     * HTTP "Connection" header name.
+     */
     public static final String CONNECTION = "Connection";
+
+    /**
+     * HTTP "Host" header name.
+     */
     public static final String HOST = "Host";
-    public static final String SERVER_KEY_HASH = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+
+    /**
+     * WebSocket origin header name from previous versions.
+     * <p/>
+     * Keeping here only for backwards compatibility, not used anymore.
+     */
+    @SuppressWarnings("UnusedDeclaration")
     public static final String SEC_WS_ORIGIN_HEADER = "Sec-WebSocket-Origin";
+
+    /**
+     * HTTP "Origin" header name.
+     */
     public static final String ORIGIN_HEADER = "Origin";
+
+    /**
+     * Tyrus cluster connection ID header name.
+     */
     public static final String CLUSTER_CONNECTION_ID_HEADER = "tyrus-cluster-connection-id";
+
+    /**
+     * Server key hash used to compute "Sec-WebSocket-Accept" header value.
+     * <p/>
+     * Defined in RFC 6455.
+     */
+    public static final String SERVER_KEY_HASH = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
     /**
      * Returns the value of the specified request header name. If there are
