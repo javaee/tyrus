@@ -531,7 +531,7 @@ public class TyrusSession implements Session {
         }
 
         for (Map.Entry<Class<?>, MessageHandler> entry : orderedMessageHandlers) {
-            if (entry.getKey() == c) {
+            if (entry.getKey().equals(c)) {
                 return (MessageHandler.Whole<T>) entry.getValue();
             }
         }
