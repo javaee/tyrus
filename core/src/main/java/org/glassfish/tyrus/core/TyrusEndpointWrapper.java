@@ -1071,6 +1071,15 @@ public class TyrusEndpointWrapper {
 
         session.setState(TyrusSession.State.CLOSED);
 
+        if (clusterContext != null) {
+            clusterContext.removeSession(session.getId(), getEndpointPath());
+
+            // TODO: check the close reason or something more descriptive to get the info
+            // TODO: about the proper reason. We don't want to destroy userProperties in case
+            // TODO: of node failure.
+            clusterContext.destroyDistributedUserProperties(session.getConnectionId());
+        }
+
         ErrorCollector collector = new ErrorCollector();
 
         final Object toCall = endpoint != null ? endpoint :
@@ -1103,14 +1112,6 @@ public class TyrusEndpointWrapper {
             endpointEventListener.onError(session.getId(), t);
         } finally {
             session.setState(TyrusSession.State.CLOSED);
-            if (clusterContext != null) {
-                clusterContext.removeSession(session.getId(), getEndpointPath());
-
-                // TODO: check the close reason or something more descriptive to get the info
-                // TODO: about the proper reason. We don't want to destroy userProperties in case
-                // TODO: of node failure.
-                clusterContext.destroyDistributedUserProperties(session.getConnectionId());
-            }
 
             webSocketToSession.remove(socket);
             endpointEventListener.onSessionClosed(session.getId());
