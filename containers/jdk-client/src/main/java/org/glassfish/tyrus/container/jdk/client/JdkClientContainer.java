@@ -105,7 +105,7 @@ public class JdkClientContainer implements ClientContainer {
         String wlsMaxThreadsStr = System.getProperty(ClientManager.WLS_MAX_THREADS);
         if (wlsMaxThreadsStr != null) {
             try {
-                int wlsMaxThreads = Integer.valueOf(wlsMaxThreadsStr);
+                int wlsMaxThreads = Integer.parseInt(wlsMaxThreadsStr);
                 threadPoolConfig.setMaxPoolSize(wlsMaxThreads);
             } catch (Exception e) {
                 LOGGER.log(Level.CONFIG, String.format("Invalid type of configuration property of %s , %s cannot be cast to Integer", ClientManager.WLS_MAX_THREADS, wlsMaxThreadsStr));
