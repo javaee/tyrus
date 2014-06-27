@@ -127,7 +127,7 @@ public class ThreadPoolSizeTest extends TestContainer {
             }
 
             // wait for all threads to get blocked
-            assertTrue(messagesLatch.await(1, TimeUnit.SECONDS));
+            assertTrue(messagesLatch.await(5, TimeUnit.SECONDS));
             // wait some more time (we test nothing gets delivered in this interval)
             Thread.sleep(1000);
             // assert number of delivered messages is equal to the thread pool size

@@ -127,11 +127,11 @@ public class EnqueuedTasksTest extends TestContainer {
             }
 
             // 10 tasks got enqueued
-            assertTrue(enqueueLatch.await(3, TimeUnit.SECONDS));
+            assertTrue(enqueueLatch.await(5, TimeUnit.SECONDS));
             // let the blocked threads go
             blockingLatch.countDown();
             // check everything got delivered
-            assertTrue(totalMessagesLatch.await(3, TimeUnit.SECONDS));
+            assertTrue(totalMessagesLatch.await(5, TimeUnit.SECONDS));
         } catch (Exception e) {
             e.printStackTrace();
             fail();
