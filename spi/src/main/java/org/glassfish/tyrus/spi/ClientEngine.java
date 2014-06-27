@@ -52,24 +52,22 @@ public interface ClientEngine {
      * Create upgrade request and register {@link TimeoutHandler}.
      *
      * @param uri            URI of remote endpoint.
-     * @param timeoutHandler handshake timeout handler. {@link org.glassfish.tyrus.spi.ClientEngine.TimeoutHandler#handleTimeout()}
-     *                       is invoked if {@link #processResponse(UpgradeResponse, Writer, org.glassfish.tyrus.spi.Connection.CloseListener)}
+     * @param timeoutHandler handshake timeout handler. {@link TimeoutHandler#handleTimeout()}
+     *                       is invoked if {@link #processResponse(UpgradeResponse, Writer, Connection.CloseListener)}
      *                       is not called within handshake timeout.
      * @return request to be send on the wire.
      */
     public UpgradeRequest createUpgradeRequest(URI uri, TimeoutHandler timeoutHandler);
 
     /**
-     * Process handshake response.
+     * Process handshake and return {@link ClientEngine.UpgradeInfo} with handshake status ({@link ClientEngine.UpgradeStatus}).
      *
      * @param upgradeResponse response to be processed.
      * @param writer          used for sending dataframes from client endpoint.
      * @param closeListener   will be called when connection is closed, will be set as listener of returned {@link Connection}.
-     * @return Tyrus connection representation. Handles all incoming data.
-     * @see org.glassfish.tyrus.spi.Connection#getReadHandler()
-     * @see ReadHandler
+     * @return info with upgrade status.
      */
-    public Connection processResponse(UpgradeResponse upgradeResponse, final Writer writer, final Connection.CloseListener closeListener);
+    public UpgradeInfo processResponse(UpgradeResponse upgradeResponse, final Writer writer, final Connection.CloseListener closeListener);
 
     /**
      * Indicates to container that handshake timeout was reached.
@@ -80,4 +78,68 @@ public interface ClientEngine {
          */
         public void handleTimeout();
     }
+
+    /**
+     * Upgrade process status holder.
+     * <p/>
+     * Provides information about handshake/upgrade process ({@link #getUpgradeStatus()}), creates {@link UpgradeRequest}
+     * ({@link #getUpgradeRequest()}) which should be send
+     * (when {@link #getUpgradeStatus()} returns {@link ClientEngine.UpgradeStatus#NEXT_UPGRADE_REQUEST_REQUIRED})
+     * and finally creates {@link Connection} ({@link #createConnection()}) when {@link ClientEngine.UpgradeStatus}
+     * is {@link ClientEngine.UpgradeStatus#SUCCESS}.
+     */
+    public interface UpgradeInfo {
+
+        /**
+         * Get {@link ClientEngine.UpgradeStatus}.
+         *
+         * @return {@link ClientEngine.UpgradeStatus}.
+         */
+        UpgradeStatus getUpgradeStatus();
+
+        /**
+         * Get {@link UpgradeRequest} when {@link #getUpgradeStatus()} returns
+         * {@link ClientEngine.UpgradeStatus#NEXT_UPGRADE_REQUEST_REQUIRED}, otherwise return
+         * {@code null}.
+         *
+         * @return {@link org.glassfish.tyrus.spi.UpgradeRequest} or {@code null}.
+         */
+        UpgradeRequest getUpgradeRequest();
+
+        /**
+         * Create {@link Connection} when {@link #getUpgradeStatus()} returns {@link ClientEngine.UpgradeStatus#SUCCESS},
+         * otherwise return {@code null}.
+         *
+         * @return websocket connection or {@code null}.
+         */
+        Connection createConnection();
+
+    }
+
+    /**
+     * Status of upgrade process.
+     * Returned by {@link #processResponse(UpgradeResponse, Writer, Connection.CloseListener)}.
+     */
+    public enum UpgradeStatus {
+
+        /**
+         * If upgrade process requires another {@code upgrade request}. New instance of
+         * {@link UpgradeRequest} could be obtain by calling
+         * {@link ClientEngine.UpgradeInfo#getUpgradeRequest()}.
+         */
+        NEXT_UPGRADE_REQUEST_REQUIRED,
+
+        /**
+         * Upgrade process failed.
+         */
+        UPGRADE_REQUEST_FAILED,
+
+        /**
+         * Upgrade process was successful. Client can create connection ({@link ClientEngine.UpgradeInfo#createConnection()}).
+         *
+         * @see Connection
+         */
+        SUCCESS,
+    }
+
 }

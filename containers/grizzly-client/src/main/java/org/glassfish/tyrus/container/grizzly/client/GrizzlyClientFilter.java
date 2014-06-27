@@ -49,8 +49,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.websocket.CloseReason;
+import javax.websocket.DeploymentException;
 
 import org.glassfish.tyrus.core.CloseReasons;
+import org.glassfish.tyrus.core.HandshakeException;
 import org.glassfish.tyrus.core.TyrusUpgradeResponse;
 import org.glassfish.tyrus.core.Utils;
 import org.glassfish.tyrus.spi.ClientEngine;
@@ -101,6 +103,9 @@ class GrizzlyClientFilter extends BaseFilter {
     private static final Attribute<TaskProcessor> TASK_PROCESSOR = Grizzly.DEFAULT_ATTRIBUTE_BUILDER
             .createAttribute(TaskProcessor.class.getName() + ".TaskProcessor");
 
+    private static final Attribute<Boolean> PROXY_CONNECTED = Grizzly.DEFAULT_ATTRIBUTE_BUILDER
+            .createAttribute(GrizzlyClientFilter.class.getName() + ".ProxyConnected");
+
     private final boolean proxy;
     private final Filter sslFilter;
     private final HttpCodecFilter httpCodecFilter;
@@ -109,6 +114,7 @@ class GrizzlyClientFilter extends BaseFilter {
     private final ClientEngine.TimeoutHandler timeoutHandler;
     private final boolean sharedTransport;
     private final Map<String, String> proxyHeaders;
+    private final GrizzlyConnectionCallback grizzlyConnectionCallback;
 
     // ------------------------------------------------------------ Constructors
 
@@ -121,7 +127,8 @@ class GrizzlyClientFilter extends BaseFilter {
     /* package */ GrizzlyClientFilter(ClientEngine engine, boolean proxy,
                                       Filter sslFilter, HttpCodecFilter httpCodecFilter,
                                       URI uri, ClientEngine.TimeoutHandler timeoutHandler, boolean sharedTransport,
-                                      Map<String, String> proxyHeaders) {
+                                      Map<String, String> proxyHeaders,
+                                      GrizzlyConnectionCallback grizzlyConnectionCallback) {
         this.engine = engine;
         this.proxy = proxy;
         this.sslFilter = sslFilter;
@@ -130,6 +137,7 @@ class GrizzlyClientFilter extends BaseFilter {
         this.timeoutHandler = timeoutHandler;
         this.sharedTransport = sharedTransport;
         this.proxyHeaders = proxyHeaders;
+        this.grizzlyConnectionCallback = grizzlyConnectionCallback;
     }
 
     // ----------------------------------------------------- Methods from Filter
@@ -148,9 +156,17 @@ class GrizzlyClientFilter extends BaseFilter {
 
         final UpgradeRequest upgradeRequest = engine.createUpgradeRequest(uri, timeoutHandler);
 
+        if (proxy) {
+            PROXY_CONNECTED.set(ctx.getConnection(), false);
+        }
+
+        return sendRequest(ctx, upgradeRequest);
+    }
+
+    private NextAction sendRequest(FilterChainContext ctx, UpgradeRequest upgradeRequest) {
         HttpRequestPacket.Builder builder = HttpRequestPacket.builder();
 
-        if (proxy) {
+        if (proxy && !PROXY_CONNECTED.get(ctx.getConnection())) {
             UPGRADE_REQUEST.set(ctx.getConnection(), upgradeRequest);
 
             final URI requestURI = URI.create(upgradeRequest.getRequestUri());
@@ -251,8 +267,10 @@ class GrizzlyClientFilter extends BaseFilter {
         final HttpStatus httpStatus = ((HttpResponsePacket) message.getHttpHeader()).getHttpStatus();
 
         if (httpStatus.getStatusCode() != 101) {
-            if (proxy) {
+            if (proxy && !PROXY_CONNECTED.get(grizzlyConnection)) {
                 if (httpStatus == HttpStatus.OK_200) {
+
+                    PROXY_CONNECTED.set(grizzlyConnection, true);
 
                     // TYRUS-221: Proxy handshake is complete, we need to enable SSL layer for secure ("wss")
                     // connections now.
@@ -280,18 +298,6 @@ class GrizzlyClientFilter extends BaseFilter {
             return ctx.getInvokeAction();
         }
 
-        final String ATTR_NAME = "org.glassfish.tyrus.container.grizzly.WebSocketFilter.HANDSHAKE_PROCESSED";
-
-        final AttributeHolder attributeHolder = ctx.getAttributes();
-        if (attributeHolder != null) {
-            final Object attribute = attributeHolder.getAttribute(ATTR_NAME);
-            if (attribute != null) {
-                // handshake was already performed on this context.
-                return ctx.getInvokeAction();
-            } else {
-                attributeHolder.setAttribute(ATTR_NAME, true);
-            }
-        }
         // Handle handshake
         return handleHandshake(ctx, message);
     }
@@ -323,7 +329,7 @@ class GrizzlyClientFilter extends BaseFilter {
             }
         };
 
-        final org.glassfish.tyrus.spi.Connection tyrusConnection = engine.processResponse(
+        ClientEngine.UpgradeInfo upgradeInfo = engine.processResponse(
                 getUpgradeResponse((HttpResponsePacket) content.getHttpHeader()),
                 grizzlyWriter,
                 new org.glassfish.tyrus.spi.Connection.CloseListener() {
@@ -336,12 +342,44 @@ class GrizzlyClientFilter extends BaseFilter {
                 }
         );
 
-        if (tyrusConnection == null) {
-            return ctx.getStopAction();
+
+        org.glassfish.tyrus.spi.Connection tyrusConnection;
+
+        switch (upgradeInfo.getUpgradeStatus()) {
+            case UPGRADE_REQUEST_FAILED:
+                grizzlyWriter.close();
+                return ctx.getStopAction();
+            case NEXT_UPGRADE_REQUEST_REQUIRED:
+                grizzlyWriter.close();
+                try {
+                    grizzlyConnectionCallback.connect();
+                } catch (DeploymentException e) {
+                    throw new HandshakeException("Reconnect failed");
+                }
+                return ctx.getInvokeAction();
+            case SUCCESS:
+                tyrusConnection = upgradeInfo.createConnection();
+                break;
+            default:
+                return ctx.getStopAction();
         }
 
         TYRUS_CONNECTION.set(ctx.getConnection(), tyrusConnection);
         TASK_PROCESSOR.set(ctx.getConnection(), new TaskProcessor());
+
+        final String ATTR_NAME = "org.glassfish.tyrus.container.grizzly.WebSocketFilter.HANDSHAKE_PROCESSED";
+
+        final AttributeHolder attributeHolder = ctx.getAttributes();
+        if (attributeHolder != null) {
+            final Object attribute = attributeHolder.getAttribute(ATTR_NAME);
+            if (attribute != null) {
+                // handshake was already performed on this context.
+                return ctx.getInvokeAction();
+            } else {
+                attributeHolder.setAttribute(ATTR_NAME, true);
+            }
+        }
+
 
         if (content.getContent().hasRemaining()) {
             return ctx.getRerunFilterAction();

@@ -155,7 +155,6 @@ public final class Handshake {
         Map<String, List<String>> requestHeaders = request.getHeaders();
 
         requestHeaders.put(UpgradeRequest.HOST, Collections.singletonList(host));
-        requestHeaders.put(UpgradeRequest.HOST, Collections.singletonList(host));
         requestHeaders.put(UpgradeRequest.CONNECTION, Collections.singletonList(UpgradeRequest.UPGRADE));
         requestHeaders.put(UpgradeRequest.UPGRADE, Collections.singletonList(UpgradeRequest.WEBSOCKET));
 

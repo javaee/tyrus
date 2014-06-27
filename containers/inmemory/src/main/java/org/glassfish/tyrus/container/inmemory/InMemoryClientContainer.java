@@ -133,7 +133,8 @@ public class InMemoryClientContainer implements ClientContainer {
                 final InMemoryWriter serverWriter = new InMemoryWriter();
 
                 final Connection serverConnection = upgradeInfo.createConnection(serverWriter, null);
-                final Connection clientConnection = clientEngine.processResponse(upgradeResponse, clientWriter, null);
+                final ClientEngine.UpgradeInfo clientUpgradeInfo = clientEngine.processResponse(upgradeResponse, clientWriter, null);
+                final Connection clientConnection = clientUpgradeInfo.createConnection();
 
                 if (clientConnection == null) {
                     throw new DeploymentException("");

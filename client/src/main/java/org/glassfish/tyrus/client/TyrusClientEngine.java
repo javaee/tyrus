@@ -57,6 +57,7 @@ import javax.websocket.WebSocketContainer;
 import javax.websocket.server.HandshakeRequest;
 
 import org.glassfish.tyrus.core.Handshake;
+import org.glassfish.tyrus.core.HandshakeException;
 import org.glassfish.tyrus.core.ProtocolHandler;
 import org.glassfish.tyrus.core.RequestContext;
 import org.glassfish.tyrus.core.TyrusEndpointWrapper;
@@ -68,6 +69,7 @@ import org.glassfish.tyrus.core.WebSocketException;
 import org.glassfish.tyrus.core.extension.ExtendedExtension;
 import org.glassfish.tyrus.core.frame.CloseFrame;
 import org.glassfish.tyrus.core.frame.Frame;
+import org.glassfish.tyrus.core.l10n.LocalizationMessages;
 import org.glassfish.tyrus.spi.ClientContainer;
 import org.glassfish.tyrus.spi.ClientEngine;
 import org.glassfish.tyrus.spi.Connection;
@@ -98,8 +100,9 @@ public class TyrusClientEngine implements ClientEngine {
     private final ClientHandshakeListener listener;
     private final Map<String, Object> properties;
 
-    private Handshake clientHandShake = null;
+    private volatile Handshake clientHandShake = null;
     private volatile TimeoutHandler timeoutHandler = null;
+    private volatile TyrusClientEngineState lastTyrusClientEngineState = TyrusClientEngineState.INIT;
 
 
     /**
@@ -136,111 +139,152 @@ public class TyrusClientEngine implements ClientEngine {
     }
 
     @Override
-    public Connection processResponse(UpgradeResponse upgradeResponse, final Writer writer, final Connection.CloseListener closeListener) {
+    public UpgradeInfo processResponse(final UpgradeResponse upgradeResponse, final Writer writer, final Connection.CloseListener closeListener) {
 
-        try {
-            clientHandShake.validateServerResponse(upgradeResponse);
-
-            final TyrusWebSocket socket = new TyrusWebSocket(protocolHandler, endpointWrapper);
-            final List<Extension> handshakeResponseExtensions = TyrusExtension.fromHeaders(upgradeResponse.getHeaders().get(HandshakeRequest.SEC_WEBSOCKET_EXTENSIONS));
-            final List<Extension> extensions = new ArrayList<Extension>();
-
-            final ExtendedExtension.ExtensionContext extensionContext = new ExtendedExtension.ExtensionContext() {
-
-                private final Map<String, Object> properties = new HashMap<String, Object>();
-
-                @Override
-                public Map<String, Object> getProperties() {
-                    return properties;
-                }
-            };
-
-            for (Extension responseExtension : handshakeResponseExtensions) {
-                for (Extension installedExtension : ((ClientEndpointConfig) endpointWrapper.getEndpointConfig()).getExtensions()) {
-                    if (responseExtension.getName() != null && responseExtension.getName().equals(installedExtension.getName())) {
-
-                        if (installedExtension instanceof ExtendedExtension) {
-                            ((ExtendedExtension) installedExtension).onHandshakeResponse(extensionContext, responseExtension.getParameters());
+        switch (lastTyrusClientEngineState) {
+            case INIT:
+                // initial state - nothing has been sent
+                switch (upgradeResponse.getStatus()) {
+                    case 101:
+                        // and now the connection has been upgraded
+                        lastTyrusClientEngineState = TyrusClientEngineState.SUCCESS;
+                        try {
+                            return getUpgradeInfo(upgradeResponse, writer, closeListener);
+                        } catch (HandshakeException e) {
+                            listener.onError(e);
+                            return null;
                         }
-
-                        extensions.add(installedExtension);
-                    }
+                    default:
+                        lastTyrusClientEngineState = TyrusClientEngineState.FAILED;
+                        HandshakeException e = new HandshakeException(upgradeResponse.getStatus(),
+                                LocalizationMessages.INVALID_RESPONSE_CODE(101, upgradeResponse.getStatus()));
+                        listener.onError(e);
+                        return UPGRADE_INFO_FAILED;
                 }
-            }
-
-            final Session sessionForRemoteEndpoint = endpointWrapper.createSessionForRemoteEndpoint(
-                    socket,
-                    upgradeResponse.getFirstHeaderValue(HandshakeRequest.SEC_WEBSOCKET_PROTOCOL),
-                    extensions);
-
-            ((ClientEndpointConfig) endpointWrapper.getEndpointConfig()).getConfigurator().afterResponse(upgradeResponse);
-
-            protocolHandler.setWriter(writer);
-            protocolHandler.setWebSocket(socket);
-            protocolHandler.setExtensions(extensions);
-            protocolHandler.setExtensionContext(extensionContext);
-
-            // subprotocol and extensions are already set -- TODO: introduce new method (onClientConnect)?
-            socket.onConnect(this.clientHandShake.getRequest(), null, null, null);
-
-            listener.onSessionCreated(sessionForRemoteEndpoint);
-
-            // incoming buffer size - max frame size possible to receive.
-            Integer tyrusIncomingBufferSize = Utils.getProperty(properties, ClientProperties.INCOMING_BUFFER_SIZE, Integer.class);
-            Integer wlsIncomingBufferSize = Utils.getProperty(endpointWrapper.getEndpointConfig().getUserProperties(), ClientContainer.WLS_INCOMING_BUFFER_SIZE, Integer.class);
-            final Integer incomingBufferSize;
-            if (tyrusIncomingBufferSize == null && wlsIncomingBufferSize == null) {
-                incomingBufferSize = DEFAULT_INCOMING_BUFFER_SIZE;
-            } else if (wlsIncomingBufferSize != null) {
-                incomingBufferSize = wlsIncomingBufferSize;
-            } else {
-                incomingBufferSize = tyrusIncomingBufferSize;
-            }
-
-            return new Connection() {
-
-                private final ReadHandler readHandler = new TyrusReadHandler(protocolHandler, socket,
-                        incomingBufferSize,
-                        sessionForRemoteEndpoint.getNegotiatedExtensions(),
-                        extensionContext);
-
-                @Override
-                public ReadHandler getReadHandler() {
-                    return readHandler;
-                }
-
-                @Override
-                public Writer getWriter() {
-                    return writer;
-                }
-
-                @Override
-                public CloseListener getCloseListener() {
-                    return closeListener;
-                }
-
-                @Override
-                public void close(CloseReason reason) {
-                    try {
-                        writer.close();
-                    } catch (IOException e) {
-                        Logger.getLogger(this.getClass().getName()).log(Level.WARNING, e.getMessage(), e);
-                    }
-
-                    socket.close(reason.getCloseCode().getCode(), reason.getReasonPhrase());
-
-                    for (Extension extension : sessionForRemoteEndpoint.getNegotiatedExtensions()) {
-                        if (extension instanceof ExtendedExtension) {
-                            ((ExtendedExtension) extension).destroy(extensionContext);
-                        }
-                    }
-
-                }
-            };
-        } catch (Throwable e) {
-            listener.onError(e);
-            return null;
+            default:
+                lastTyrusClientEngineState = TyrusClientEngineState.FAILED;
+                HandshakeException e = new HandshakeException(upgradeResponse.getStatus(),
+                        LocalizationMessages.INVALID_RESPONSE_CODE(101, upgradeResponse.getStatus()));
+                listener.onError(e);
+                return UPGRADE_INFO_FAILED;
         }
+    }
+
+    private UpgradeInfo getUpgradeInfo(UpgradeResponse upgradeResponse, final Writer writer, final Connection.CloseListener closeListener) {
+        clientHandShake.validateServerResponse(upgradeResponse);
+
+        final TyrusWebSocket socket = new TyrusWebSocket(protocolHandler, endpointWrapper);
+        final List<Extension> handshakeResponseExtensions = TyrusExtension.fromHeaders(upgradeResponse.getHeaders().get(HandshakeRequest.SEC_WEBSOCKET_EXTENSIONS));
+        final List<Extension> extensions = new ArrayList<Extension>();
+
+        final ExtendedExtension.ExtensionContext extensionContext = new ExtendedExtension.ExtensionContext() {
+
+            private final Map<String, Object> properties = new HashMap<String, Object>();
+
+            @Override
+            public Map<String, Object> getProperties() {
+                return properties;
+            }
+        };
+
+        for (Extension responseExtension : handshakeResponseExtensions) {
+            for (Extension installedExtension : ((ClientEndpointConfig) endpointWrapper.getEndpointConfig()).getExtensions()) {
+                if (responseExtension.getName() != null && responseExtension.getName().equals(installedExtension.getName())) {
+
+                    if (installedExtension instanceof ExtendedExtension) {
+                        ((ExtendedExtension) installedExtension).onHandshakeResponse(extensionContext, responseExtension.getParameters());
+                    }
+
+                    extensions.add(installedExtension);
+                }
+            }
+        }
+
+        final Session sessionForRemoteEndpoint = endpointWrapper.createSessionForRemoteEndpoint(
+                socket,
+                upgradeResponse.getFirstHeaderValue(HandshakeRequest.SEC_WEBSOCKET_PROTOCOL),
+                extensions);
+
+        ((ClientEndpointConfig) endpointWrapper.getEndpointConfig()).getConfigurator().afterResponse(upgradeResponse);
+
+        protocolHandler.setWriter(writer);
+        protocolHandler.setWebSocket(socket);
+        protocolHandler.setExtensions(extensions);
+        protocolHandler.setExtensionContext(extensionContext);
+
+        // subprotocol and extensions are already set -- TODO: introduce new method (onClientConnect)?
+        socket.onConnect(this.clientHandShake.getRequest(), null, null, null);
+
+        listener.onSessionCreated(sessionForRemoteEndpoint);
+
+        // incoming buffer size - max frame size possible to receive.
+        Integer tyrusIncomingBufferSize = Utils.getProperty(properties, ClientProperties.INCOMING_BUFFER_SIZE, Integer.class);
+        Integer wlsIncomingBufferSize = Utils.getProperty(endpointWrapper.getEndpointConfig().getUserProperties(), ClientContainer.WLS_INCOMING_BUFFER_SIZE, Integer.class);
+        final Integer incomingBufferSize;
+        if (tyrusIncomingBufferSize == null && wlsIncomingBufferSize == null) {
+            incomingBufferSize = DEFAULT_INCOMING_BUFFER_SIZE;
+        } else if (wlsIncomingBufferSize != null) {
+            incomingBufferSize = wlsIncomingBufferSize;
+        } else {
+            incomingBufferSize = tyrusIncomingBufferSize;
+        }
+
+        return new UpgradeInfo() {
+            @Override
+            public UpgradeStatus getUpgradeStatus() {
+                return UpgradeStatus.SUCCESS;
+            }
+
+            @Override
+            public UpgradeRequest getUpgradeRequest() {
+                return null;
+            }
+
+            @Override
+            public Connection createConnection() {
+                return new Connection() {
+
+                    private final ReadHandler readHandler = new TyrusReadHandler(protocolHandler, socket,
+                            incomingBufferSize,
+                            sessionForRemoteEndpoint.getNegotiatedExtensions(),
+                            extensionContext);
+
+                    @Override
+                    public ReadHandler getReadHandler() {
+                        return readHandler;
+                    }
+
+                    @Override
+                    public Writer getWriter() {
+                        return writer;
+                    }
+
+                    @Override
+                    public CloseListener getCloseListener() {
+                        return closeListener;
+                    }
+
+                    @Override
+                    public void close(CloseReason reason) {
+                        try {
+                            writer.close();
+                        } catch (IOException e) {
+                            Logger.getLogger(this.getClass().getName()).log(Level.WARNING, e.getMessage(), e);
+                        }
+
+                        socket.close(reason.getCloseCode().getCode(), reason.getReasonPhrase());
+
+                        for (Extension extension : sessionForRemoteEndpoint.getNegotiatedExtensions()) {
+                            if (extension instanceof ExtendedExtension) {
+                                ((ExtendedExtension) extension).destroy(extensionContext);
+                            }
+                        }
+
+                    }
+                };
+
+            }
+        };
     }
 
     /**
@@ -343,4 +387,36 @@ public class TyrusClientEngine implements ClientEngine {
             }
         }
     }
+
+    private static final UpgradeInfo UPGRADE_INFO_FAILED = new UpgradeInfo() {
+
+        @Override
+        public UpgradeStatus getUpgradeStatus() {
+            return UpgradeStatus.UPGRADE_REQUEST_FAILED;
+        }
+
+        @Override
+        public UpgradeRequest getUpgradeRequest() {
+            return null;
+        }
+
+        @Override
+        public Connection createConnection() {
+            return null;
+        }
+    };
+
+    /**
+     * State controls flow in {@link #processResponse(UpgradeResponse, Writer, Connection.CloseListener)}
+     * and depends on upgrade response status code and previous state.
+     */
+    private enum TyrusClientEngineState {
+
+        INIT,
+
+        FAILED,
+
+        SUCCESS
+    }
+
 }
