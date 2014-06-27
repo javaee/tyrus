@@ -85,16 +85,16 @@ public final class ThreadPoolConfig {
         return DEFAULT.copy();
     }
 
-    protected String poolName;
-    protected int corePoolSize;
-    protected int maxPoolSize;
-    protected Queue<Runnable> queue;
-    protected int queueLimit = -1;
-    protected long keepAliveTimeMillis;
-    protected ThreadFactory threadFactory;
-    protected int priority = Thread.MAX_PRIORITY;
-    protected boolean isDaemon;
-    protected ClassLoader initialClassLoader;
+    private String poolName;
+    private int corePoolSize;
+    private int maxPoolSize;
+    private Queue<Runnable> queue;
+    private int queueLimit = -1;
+    private long keepAliveTimeMillis;
+    private ThreadFactory threadFactory;
+    private int priority = Thread.MAX_PRIORITY;
+    private boolean isDaemon;
+    private ClassLoader initialClassLoader;
 
 
     private ThreadPoolConfig(String poolName, int corePoolSize, int maxPoolSize, Queue<Runnable> queue, int queueLimit, long keepAliveTime, TimeUnit timeUnit, ThreadFactory threadFactory, int priority, boolean isDaemon, ClassLoader initialClassLoader) {
