@@ -127,15 +127,17 @@ public class EnqueuedTasksTest extends TestContainer {
             }
 
             // 10 tasks got enqueued
-            assertTrue(enqueueLatch.await(1, TimeUnit.SECONDS));
+            assertTrue(enqueueLatch.await(3, TimeUnit.SECONDS));
             // let the blocked threads go
             blockingLatch.countDown();
             // check everything got delivered
-            assertTrue(totalMessagesLatch.await(1, TimeUnit.SECONDS));
+            assertTrue(totalMessagesLatch.await(3, TimeUnit.SECONDS));
         } catch (Exception e) {
             e.printStackTrace();
             fail();
         } finally {
+            // just to be sure there are no blocked threads left.
+            blockingLatch.countDown();
             stopServer(server);
         }
     }
@@ -154,7 +156,7 @@ public class EnqueuedTasksTest extends TestContainer {
 
         @OnMessage
         public void onMessage(String message) throws InterruptedException {
-            blockingLatch.await(1, TimeUnit.SECONDS);
+            blockingLatch.await();
 
             if (totalMessagesLatch != null) {
                 totalMessagesLatch.countDown();

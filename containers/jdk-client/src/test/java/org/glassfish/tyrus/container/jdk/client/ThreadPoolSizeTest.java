@@ -129,15 +129,15 @@ public class ThreadPoolSizeTest extends TestContainer {
             // wait for all threads to get blocked
             assertTrue(messagesLatch.await(1, TimeUnit.SECONDS));
             // wait some more time (we test nothing gets delivered in this interval)
-            Thread.sleep(300);
+            Thread.sleep(1000);
             // assert number of delivered messages is equal to the thread pool size
             assertEquals(maxThreadPoolSize, messagesCounter.get());
-            // let the blocked threads go
-            blockingLatch.countDown();
         } catch (Exception e) {
             e.printStackTrace();
             fail();
         } finally {
+            // let the blocked threads go
+            blockingLatch.countDown();
             stopServer(server);
         }
     }
@@ -156,15 +156,16 @@ public class ThreadPoolSizeTest extends TestContainer {
 
         @OnMessage
         public void onMessage(String message) throws InterruptedException {
-            if (messagesLatch != null) {
-                messagesLatch.countDown();
-            }
 
             if (messagesCounter != null) {
                 messagesCounter.incrementAndGet();
             }
 
-            blockingLatch.await(1, TimeUnit.SECONDS);
+            if (messagesLatch != null) {
+                messagesLatch.countDown();
+            }
+
+            blockingLatch.await();
         }
     }
 }
