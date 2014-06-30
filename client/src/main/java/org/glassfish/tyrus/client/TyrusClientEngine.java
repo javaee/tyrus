@@ -102,8 +102,7 @@ public class TyrusClientEngine implements ClientEngine {
 
     private volatile Handshake clientHandShake = null;
     private volatile TimeoutHandler timeoutHandler = null;
-    private volatile TyrusClientEngineState lastTyrusClientEngineState = TyrusClientEngineState.INIT;
-
+    private volatile TyrusClientEngineState clientEngineState = TyrusClientEngineState.INIT;
 
     /**
      * Create {@link org.glassfish.tyrus.spi.WebSocketEngine} instance based on passed {@link WebSocketContainer} and with configured maximal
@@ -139,30 +138,29 @@ public class TyrusClientEngine implements ClientEngine {
     }
 
     @Override
-    public UpgradeInfo processResponse(final UpgradeResponse upgradeResponse, final Writer writer, final Connection.CloseListener closeListener) {
+    public ClientUpgradeInfo processResponse(final UpgradeResponse upgradeResponse, final Writer writer, final Connection.CloseListener closeListener) {
 
-        switch (lastTyrusClientEngineState) {
+        switch (clientEngineState) {
             case INIT:
-                // initial state - nothing has been sent
                 switch (upgradeResponse.getStatus()) {
                     case 101:
-                        // and now the connection has been upgraded
-                        lastTyrusClientEngineState = TyrusClientEngineState.SUCCESS;
+                        // the connection has been upgraded
+                        clientEngineState = TyrusClientEngineState.SUCCESS;
                         try {
-                            return getUpgradeInfo(upgradeResponse, writer, closeListener);
+                            return processUpgradeResponse(upgradeResponse, writer, closeListener);
                         } catch (HandshakeException e) {
                             listener.onError(e);
                             return null;
                         }
                     default:
-                        lastTyrusClientEngineState = TyrusClientEngineState.FAILED;
+                        clientEngineState = TyrusClientEngineState.FAILED;
                         HandshakeException e = new HandshakeException(upgradeResponse.getStatus(),
                                 LocalizationMessages.INVALID_RESPONSE_CODE(101, upgradeResponse.getStatus()));
                         listener.onError(e);
                         return UPGRADE_INFO_FAILED;
                 }
             default:
-                lastTyrusClientEngineState = TyrusClientEngineState.FAILED;
+                clientEngineState = TyrusClientEngineState.FAILED;
                 HandshakeException e = new HandshakeException(upgradeResponse.getStatus(),
                         LocalizationMessages.INVALID_RESPONSE_CODE(101, upgradeResponse.getStatus()));
                 listener.onError(e);
@@ -170,7 +168,18 @@ public class TyrusClientEngine implements ClientEngine {
         }
     }
 
-    private UpgradeInfo getUpgradeInfo(UpgradeResponse upgradeResponse, final Writer writer, final Connection.CloseListener closeListener) {
+    /**
+     * Process upgrade response. This method should be called only when the response HTTP status code is {@code 101}.
+     *
+     * @param upgradeResponse upgrade response received from client container.
+     * @param writer          writer instance to be used for sending websocket frames.
+     * @param closeListener   client container connection listener.
+     * @return client upgrade info with {@link ClientUpgradeStatus#SUCCESS} status.
+     * @throws HandshakeException when there is a problem with passed {@link UpgradeResponse}.
+     */
+    private ClientUpgradeInfo processUpgradeResponse(UpgradeResponse upgradeResponse,
+                                                     final Writer writer,
+                                                     final Connection.CloseListener closeListener) throws HandshakeException {
         clientHandShake.validateServerResponse(upgradeResponse);
 
         final TyrusWebSocket socket = new TyrusWebSocket(protocolHandler, endpointWrapper);
@@ -229,10 +238,10 @@ public class TyrusClientEngine implements ClientEngine {
             incomingBufferSize = tyrusIncomingBufferSize;
         }
 
-        return new UpgradeInfo() {
+        return new ClientUpgradeInfo() {
             @Override
-            public UpgradeStatus getUpgradeStatus() {
-                return UpgradeStatus.SUCCESS;
+            public ClientUpgradeStatus getUpgradeStatus() {
+                return ClientUpgradeStatus.SUCCESS;
             }
 
             @Override
@@ -388,11 +397,11 @@ public class TyrusClientEngine implements ClientEngine {
         }
     }
 
-    private static final UpgradeInfo UPGRADE_INFO_FAILED = new UpgradeInfo() {
+    private static final ClientUpgradeInfo UPGRADE_INFO_FAILED = new ClientUpgradeInfo() {
 
         @Override
-        public UpgradeStatus getUpgradeStatus() {
-            return UpgradeStatus.UPGRADE_REQUEST_FAILED;
+        public ClientUpgradeStatus getUpgradeStatus() {
+            return ClientUpgradeStatus.UPGRADE_REQUEST_FAILED;
         }
 
         @Override
@@ -410,13 +419,21 @@ public class TyrusClientEngine implements ClientEngine {
      * State controls flow in {@link #processResponse(UpgradeResponse, Writer, Connection.CloseListener)}
      * and depends on upgrade response status code and previous state.
      */
-    private enum TyrusClientEngineState {
+    private static enum TyrusClientEngineState {
 
+        /**
+         * Initial state.
+         */
         INIT,
 
+        /**
+         * Handshake failed.
+         */
         FAILED,
 
+        /**
+         * Handshake succeeded.
+         */
         SUCCESS
     }
-
 }

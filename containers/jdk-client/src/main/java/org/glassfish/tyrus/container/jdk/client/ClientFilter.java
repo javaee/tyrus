@@ -46,6 +46,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -53,6 +54,7 @@ import javax.websocket.CloseReason;
 
 import org.glassfish.tyrus.core.CloseReasons;
 import org.glassfish.tyrus.core.TyrusUpgradeResponse;
+import org.glassfish.tyrus.core.l10n.LocalizationMessages;
 import org.glassfish.tyrus.spi.ClientEngine;
 import org.glassfish.tyrus.spi.ClientEngine.TimeoutHandler;
 import org.glassfish.tyrus.spi.CompletionHandler;
@@ -74,6 +76,7 @@ class ClientFilter extends Filter {
     private final URI uri;
     private final HttpResponseParser responseParser = new HttpResponseParser();
     private final Map<String, String> proxyHeaders;
+    private final Callable<Void> jdkConnector;
 
     private volatile boolean proxy;
 
@@ -81,21 +84,20 @@ class ClientFilter extends Filter {
     private volatile boolean connectedToProxy = false;
     private volatile UpgradeRequest upgradeRequest;
 
-    private final JdkConnectionCallback jdkConnectionCallback;
 
     /**
      * Constructor.
      *
-     * @param engine                    client engine instance.
-     * @param uri                       URI to be used for creating {@link org.glassfish.tyrus.spi.UpgradeRequest}.
-     * @param proxyHeaders              map representing headers to be added to request sent to proxy (HTTP CONNECT).
-     * @param jdkConnectionCallback callback to connecting with modified {@link UpgradeRequest} if necessary.
+     * @param engine       client engine instance.
+     * @param uri          URI to be used for creating {@link org.glassfish.tyrus.spi.UpgradeRequest}.
+     * @param proxyHeaders map representing headers to be added to request sent to proxy (HTTP CONNECT).
+     * @param jdkConnector callback to connecting with modified {@link UpgradeRequest} if necessary.
      */
-    ClientFilter(ClientEngine engine, URI uri, Map<String, String> proxyHeaders, JdkConnectionCallback jdkConnectionCallback) {
+    ClientFilter(ClientEngine engine, URI uri, Map<String, String> proxyHeaders, Callable<Void> jdkConnector) {
         this.engine = engine;
         this.uri = uri;
         this.proxyHeaders = proxyHeaders;
-        this.jdkConnectionCallback = jdkConnectionCallback;
+        this.jdkConnector = jdkConnector;
     }
 
     @Override
@@ -167,7 +169,7 @@ class ClientFilter extends Filter {
 
             JdkWriter writer = new JdkWriter(downstreamFilter);
 
-            ClientEngine.UpgradeInfo upgradeInfo = engine.processResponse(
+            ClientEngine.ClientUpgradeInfo clientUpgradeInfo = engine.processResponse(
                     tyrusUpgradeResponse,
                     writer,
                     new CloseListener() {
@@ -179,14 +181,20 @@ class ClientFilter extends Filter {
                     }
             );
 
-            switch (upgradeInfo.getUpgradeStatus()) {
-                case NEXT_UPGRADE_REQUEST_REQUIRED:
+            switch (clientUpgradeInfo.getUpgradeStatus()) {
+                case ANOTHER_UPGRADE_REQUEST_REQUIRED:
                     closeConnection(downstreamFilter);
-                    jdkConnectionCallback.connect();
+                    try {
+                        jdkConnector.call();
+                    } catch (Exception e) {
+                        // TODO: we might want to pass this exception directly to the user (to be thrown
+                        // TODO: as result of "connectToServer" method call.
+                        LOGGER.log(Level.WARNING, LocalizationMessages.CLIENT_CANNOT_CONNECT(uri.toString()));
+                    }
                     break;
                 case SUCCESS:
                     responseParser.destroy();
-                    wsConnection = upgradeInfo.createConnection();
+                    wsConnection = clientUpgradeInfo.createConnection();
                     break;
                 case UPGRADE_REQUEST_FAILED:
                     closeConnection(downstreamFilter);

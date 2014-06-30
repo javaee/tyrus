@@ -51,6 +51,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -169,7 +170,7 @@ public class GrizzlyClientSocket {
 
     private static volatile TCPNIOTransport transport;
     private static final Object TRANSPORT_LOCK = new Object();
-    private final GrizzlyConnectionCallback grizzlyConnectionCallback;
+    private final Callable<Void> grizzlyConnector;
 
     /**
      * Create new instance.
@@ -224,27 +225,43 @@ public class GrizzlyClientSocket {
 
         socketAddress = processProxy(properties);
 
-        grizzlyConnectionCallback = new GrizzlyConnectionCallback() {
+        grizzlyConnector = new Callable<Void>() {
 
             @Override
-            public void connect() throws DeploymentException {
+            public Void call() throws Exception {
                 try {
                     GrizzlyClientSocket.this._connect();
                 } catch (IOException e) {
                     LOGGER.log(Level.SEVERE, "Connect to server endpoint failed.", e);
                     closeTransport(transport);
                     throw new DeploymentException(e.getMessage());
-                } catch (DeploymentException e) {
+                } catch (Exception e) {
                     LOGGER.log(Level.SEVERE, "Connect to server endpoint failed.", e);
                     closeTransport(transport);
                     throw e;
                 }
+
+                return null;
             }
         };
     }
 
-    public void connect() throws DeploymentException {
-        grizzlyConnectionCallback.connect();
+    /**
+     * Connect
+     *
+     * @throws DeploymentException
+     * @throws IOException
+     */
+    public void connect() throws DeploymentException, IOException {
+        try {
+            grizzlyConnector.call();
+        } catch (DeploymentException e) {
+            throw e;
+        } catch (IOException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new DeploymentException(e.getMessage(), e);
+        }
     }
 
     private ThreadPoolConfig getWorkerThreadPoolConfig(Map<String, Object> properties) {
@@ -344,7 +361,7 @@ public class GrizzlyClientSocket {
                     break;
             }
 
-            connectorHandler.setProcessor(createFilterChain(engine, null, clientSSLEngineConfigurator, !(proxy.type() == Proxy.Type.DIRECT), uri, timeoutHandler, sharedTransport, sharedTransportTimeout, proxyHeaders, grizzlyConnectionCallback));
+            connectorHandler.setProcessor(createFilterChain(engine, null, clientSSLEngineConfigurator, !(proxy.type() == Proxy.Type.DIRECT), uri, timeoutHandler, sharedTransport, sharedTransportTimeout, proxyHeaders, grizzlyConnector));
 
             connectionGrizzlyFuture = connectorHandler.connect(connectAddress);
 
@@ -584,7 +601,7 @@ public class GrizzlyClientSocket {
                                                ClientEngine.TimeoutHandler timeoutHandler,
                                                boolean sharedTransport, Integer sharedTransportTimeout,
                                                Map<String, String> proxyHeaders,
-                                               GrizzlyConnectionCallback grizzlyConnectionCallback) {
+                                               Callable<Void> grizzlyConnector) {
         FilterChainBuilder clientFilterChainBuilder = FilterChainBuilder.stateless();
         Filter sslFilter = null;
 
@@ -606,7 +623,7 @@ public class GrizzlyClientSocket {
 
 
         clientFilterChainBuilder.add(new GrizzlyClientFilter(engine, proxy,
-                sslFilter, httpCodecFilter, uri, timeoutHandler, sharedTransport, proxyHeaders, grizzlyConnectionCallback));
+                sslFilter, httpCodecFilter, uri, timeoutHandler, sharedTransport, proxyHeaders, grizzlyConnector));
 
         return clientFilterChainBuilder.build();
     }

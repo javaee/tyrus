@@ -45,6 +45,7 @@ import java.net.URI;
  * Facade for handling client operations from containers.
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
+ * @author Ondrej Kosatka (ondrej.kosatka at oracle.com)
  */
 public interface ClientEngine {
 
@@ -60,74 +61,89 @@ public interface ClientEngine {
     public UpgradeRequest createUpgradeRequest(URI uri, TimeoutHandler timeoutHandler);
 
     /**
-     * Process handshake and return {@link ClientEngine.UpgradeInfo} with handshake status ({@link ClientEngine.UpgradeStatus}).
+     * Process handshake and return {@link ClientUpgradeInfo} with handshake status ({@link ClientUpgradeStatus}).
      *
      * @param upgradeResponse response to be processed.
      * @param writer          used for sending dataframes from client endpoint.
-     * @param closeListener   will be called when connection is closed, will be set as listener of returned {@link Connection}.
+     * @param closeListener   will be called when connection is closed, will be set as listener of returned
+     *                        {@link Connection}.
      * @return info with upgrade status.
      */
-    public UpgradeInfo processResponse(UpgradeResponse upgradeResponse, final Writer writer, final Connection.CloseListener closeListener);
+    public ClientUpgradeInfo processResponse(UpgradeResponse upgradeResponse,
+                                             final Writer writer,
+                                             final Connection.CloseListener closeListener);
 
     /**
      * Indicates to container that handshake timeout was reached.
      */
     public interface TimeoutHandler {
         /**
-         * Invoked when timeout is reached. Container is supposed to clean all resources related to {@link ClientEngine} instance.
+         * Invoked when timeout is reached. Container is supposed to clean all resources related to {@link ClientEngine}
+         * instance.
          */
         public void handleTimeout();
     }
 
     /**
-     * Upgrade process status holder.
+     * Upgrade process result.
      * <p/>
-     * Provides information about handshake/upgrade process ({@link #getUpgradeStatus()}), creates {@link UpgradeRequest}
-     * ({@link #getUpgradeRequest()}) which should be send
-     * (when {@link #getUpgradeStatus()} returns {@link ClientEngine.UpgradeStatus#NEXT_UPGRADE_REQUEST_REQUIRED})
-     * and finally creates {@link Connection} ({@link #createConnection()}) when {@link ClientEngine.UpgradeStatus}
-     * is {@link ClientEngine.UpgradeStatus#SUCCESS}.
+     * Provides information about upgrade process. There are three possible states which can be reported:
+     * <ul>
+     * <li>{@link ClientUpgradeStatus#ANOTHER_UPGRADE_REQUEST_REQUIRED}</li>
+     * <li>{@link ClientUpgradeStatus#UPGRADE_REQUEST_FAILED}</li>
+     * <li>{@link ClientUpgradeStatus#SUCCESS}</li>
+     * </ul>
+     * <p/>
+     * When {@link #getUpgradeStatus()} returns {@link ClientUpgradeStatus#SUCCESS}, client container can create
+     * {@link Connection} and start processing read events from the underlying connection and report them to Tyrus
+     * runtime.
+     * <p/>
+     * When {@link #getUpgradeStatus()} returns {@link ClientUpgradeStatus#UPGRADE_REQUEST_FAILED}, client container
+     * HAS TO close all resources related to currently processed {@link UpgradeResponse}.
+     * <p/>
+     * When {@link #getUpgradeStatus()} returns {@link ClientUpgradeStatus#ANOTHER_UPGRADE_REQUEST_REQUIRED}, client
+     * container HAS TO close all resources related to currently processed {@link UpgradeResponse}, open new TCP
+     * connection and send {@link UpgradeRequest} obtained from method {@link #getUpgradeRequest()}.
      */
-    public interface UpgradeInfo {
+    public interface ClientUpgradeInfo {
 
         /**
-         * Get {@link ClientEngine.UpgradeStatus}.
+         * Get {@link ClientUpgradeStatus}.
          *
-         * @return {@link ClientEngine.UpgradeStatus}.
+         * @return {@link ClientUpgradeStatus}.
          */
-        UpgradeStatus getUpgradeStatus();
+        ClientUpgradeStatus getUpgradeStatus();
 
         /**
-         * Get {@link UpgradeRequest} when {@link #getUpgradeStatus()} returns
-         * {@link ClientEngine.UpgradeStatus#NEXT_UPGRADE_REQUEST_REQUIRED}, otherwise return
-         * {@code null}.
+         * Get next {@link UpgradeRequest} when {@link #getUpgradeStatus()} returns
+         * {@link ClientUpgradeStatus#ANOTHER_UPGRADE_REQUEST_REQUIRED}.
          *
-         * @return {@link org.glassfish.tyrus.spi.UpgradeRequest} or {@code null}.
+         * @return next {@link UpgradeRequest} or {@code null}, when {@link #getUpgradeStatus()} does not return
+         * {@link ClientUpgradeStatus#ANOTHER_UPGRADE_REQUEST_REQUIRED}.
          */
         UpgradeRequest getUpgradeRequest();
 
         /**
-         * Create {@link Connection} when {@link #getUpgradeStatus()} returns {@link ClientEngine.UpgradeStatus#SUCCESS},
-         * otherwise return {@code null}.
+         * Create new {@link Connection} when {@link #getUpgradeStatus()} returns {@link ClientUpgradeStatus#SUCCESS}.
          *
-         * @return websocket connection or {@code null}.
+         * @return new {@link Connection} instance or {@code null}, when {@link #getUpgradeStatus()} does not return
+         * {@link ClientUpgradeStatus#}.
          */
         Connection createConnection();
-
     }
 
     /**
      * Status of upgrade process.
      * Returned by {@link #processResponse(UpgradeResponse, Writer, Connection.CloseListener)}.
      */
-    public enum UpgradeStatus {
+    public enum ClientUpgradeStatus {
 
         /**
-         * If upgrade process requires another {@code upgrade request}. New instance of
-         * {@link UpgradeRequest} could be obtain by calling
-         * {@link ClientEngine.UpgradeInfo#getUpgradeRequest()}.
+         * Client engine needs to send another request.
+         *
+         * @see ClientUpgradeInfo#getUpgradeRequest()
          */
-        NEXT_UPGRADE_REQUEST_REQUIRED,
+        ANOTHER_UPGRADE_REQUEST_REQUIRED,
 
         /**
          * Upgrade process failed.
@@ -135,11 +151,10 @@ public interface ClientEngine {
         UPGRADE_REQUEST_FAILED,
 
         /**
-         * Upgrade process was successful. Client can create connection ({@link ClientEngine.UpgradeInfo#createConnection()}).
+         * Upgrade process was successful.
          *
-         * @see Connection
+         * @see ClientUpgradeInfo#createConnection()
          */
         SUCCESS,
     }
-
 }

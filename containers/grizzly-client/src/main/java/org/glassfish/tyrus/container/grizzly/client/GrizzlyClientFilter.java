@@ -45,11 +45,11 @@ import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.websocket.CloseReason;
-import javax.websocket.DeploymentException;
 
 import org.glassfish.tyrus.core.CloseReasons;
 import org.glassfish.tyrus.core.HandshakeException;
@@ -114,7 +114,7 @@ class GrizzlyClientFilter extends BaseFilter {
     private final ClientEngine.TimeoutHandler timeoutHandler;
     private final boolean sharedTransport;
     private final Map<String, String> proxyHeaders;
-    private final GrizzlyConnectionCallback grizzlyConnectionCallback;
+    private final Callable<Void> grizzlyConnector;
 
     // ------------------------------------------------------------ Constructors
 
@@ -128,7 +128,7 @@ class GrizzlyClientFilter extends BaseFilter {
                                       Filter sslFilter, HttpCodecFilter httpCodecFilter,
                                       URI uri, ClientEngine.TimeoutHandler timeoutHandler, boolean sharedTransport,
                                       Map<String, String> proxyHeaders,
-                                      GrizzlyConnectionCallback grizzlyConnectionCallback) {
+                                      Callable<Void> grizzlyConnector) {
         this.engine = engine;
         this.proxy = proxy;
         this.sslFilter = sslFilter;
@@ -137,7 +137,7 @@ class GrizzlyClientFilter extends BaseFilter {
         this.timeoutHandler = timeoutHandler;
         this.sharedTransport = sharedTransport;
         this.proxyHeaders = proxyHeaders;
-        this.grizzlyConnectionCallback = grizzlyConnectionCallback;
+        this.grizzlyConnector = grizzlyConnector;
     }
 
     // ----------------------------------------------------- Methods from Filter
@@ -329,7 +329,7 @@ class GrizzlyClientFilter extends BaseFilter {
             }
         };
 
-        ClientEngine.UpgradeInfo upgradeInfo = engine.processResponse(
+        ClientEngine.ClientUpgradeInfo clientUpgradeInfo = engine.processResponse(
                 getUpgradeResponse((HttpResponsePacket) content.getHttpHeader()),
                 grizzlyWriter,
                 new org.glassfish.tyrus.spi.Connection.CloseListener() {
@@ -345,20 +345,20 @@ class GrizzlyClientFilter extends BaseFilter {
 
         org.glassfish.tyrus.spi.Connection tyrusConnection;
 
-        switch (upgradeInfo.getUpgradeStatus()) {
+        switch (clientUpgradeInfo.getUpgradeStatus()) {
             case UPGRADE_REQUEST_FAILED:
                 grizzlyWriter.close();
                 return ctx.getStopAction();
-            case NEXT_UPGRADE_REQUEST_REQUIRED:
+            case ANOTHER_UPGRADE_REQUEST_REQUIRED:
                 grizzlyWriter.close();
                 try {
-                    grizzlyConnectionCallback.connect();
-                } catch (DeploymentException e) {
+                    grizzlyConnector.call();
+                } catch (Exception e) {
                     throw new HandshakeException("Reconnect failed");
                 }
                 return ctx.getInvokeAction();
             case SUCCESS:
-                tyrusConnection = upgradeInfo.createConnection();
+                tyrusConnection = clientUpgradeInfo.createConnection();
                 break;
             default:
                 return ctx.getStopAction();

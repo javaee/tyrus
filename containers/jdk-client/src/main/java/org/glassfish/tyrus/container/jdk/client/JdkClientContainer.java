@@ -52,6 +52,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -66,7 +67,6 @@ import org.glassfish.tyrus.client.SslEngineConfigurator;
 import org.glassfish.tyrus.client.ThreadPoolConfig;
 import org.glassfish.tyrus.core.Base64Utils;
 import org.glassfish.tyrus.core.Utils;
-import org.glassfish.tyrus.core.l10n.LocalizationMessages;
 import org.glassfish.tyrus.spi.ClientContainer;
 import org.glassfish.tyrus.spi.ClientEngine;
 
@@ -114,30 +114,40 @@ public class JdkClientContainer implements ClientContainer {
         processProxy(properties, uri);
 
         final ThreadPoolConfig finalThreadPoolConfig = threadPoolConfig;
-        final JdkConnectionCallback jdkConnectionCallback = new JdkConnectionCallback() {
+        final Callable<Void> jdkConnector = new Callable<Void>() {
 
             @Override
-            public void connect() {
-                try {
-                    final TransportFilter transportFilter;
-                    final ClientFilter clientFilter = createClientFilter(properties, clientEngine, uri, this);
-                    final TaskQueueFilter writeQueue = createTaskQueueFilter(clientFilter);
+            public Void call() throws Exception {
+                final TransportFilter transportFilter;
+                final ClientFilter clientFilter = createClientFilter(properties, clientEngine, uri, this);
+                final TaskQueueFilter writeQueue = createTaskQueueFilter(clientFilter);
 
-                    if (secure) {
-                        SslFilter sslFilter = createSslFilter(cec, properties, writeQueue);
-                        transportFilter = createTransportFilter(sslFilter, SSL_INPUT_BUFFER_SIZE, finalThreadPoolConfig, containerIdleTimeout);
-                    } else {
-                        transportFilter = createTransportFilter(writeQueue, INPUT_BUFFER_SIZE, finalThreadPoolConfig, containerIdleTimeout);
-                    }
-
-                    _connect(clientFilter, transportFilter, uri);
-                } catch (DeploymentException | IOException e) {
-                    LOGGER.log(Level.WARNING, LocalizationMessages.CLIENT_CANNOT_CONNECT(uri.toString()));
+                if (secure) {
+                    SslFilter sslFilter = createSslFilter(cec, properties, writeQueue);
+                    transportFilter = createTransportFilter(sslFilter, SSL_INPUT_BUFFER_SIZE, finalThreadPoolConfig, containerIdleTimeout);
+                } else {
+                    transportFilter = createTransportFilter(writeQueue, INPUT_BUFFER_SIZE, finalThreadPoolConfig, containerIdleTimeout);
                 }
+
+                _connect(clientFilter, transportFilter, uri);
+
+                return null;
             }
         };
 
-        jdkConnectionCallback.connect();
+        try {
+            jdkConnector.call();
+        } catch (Exception e) {
+            if (e instanceof DeploymentException) {
+                throw (DeploymentException) e;
+            }
+
+            if (e instanceof IOException) {
+                throw (IOException) e;
+            }
+
+            throw new DeploymentException(e.getMessage(), e);
+        }
     }
 
     private SslFilter createSslFilter(ClientEndpointConfig cec, Map<String, Object> properties, TaskQueueFilter writeQueue) {
@@ -193,8 +203,8 @@ public class JdkClientContainer implements ClientContainer {
         return new TaskQueueFilter(clientFilter);
     }
 
-    private ClientFilter createClientFilter(Map<String, Object> properties, ClientEngine clientEngine, URI uri, JdkConnectionCallback jdkConnectionCallback) throws DeploymentException {
-        return new ClientFilter(clientEngine, uri, getProxyHeaders(properties), jdkConnectionCallback);
+    private ClientFilter createClientFilter(Map<String, Object> properties, ClientEngine clientEngine, URI uri, Callable<Void> jdkConnector) throws DeploymentException {
+        return new ClientFilter(clientEngine, uri, getProxyHeaders(properties), jdkConnector);
     }
 
     private SocketAddress getServerAddress(URI uri) {
