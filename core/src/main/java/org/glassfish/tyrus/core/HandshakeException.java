@@ -41,12 +41,12 @@
 package org.glassfish.tyrus.core;
 
 /**
- * {@link RuntimeException}, which describes the error, occurred during the handshake phase.
+ * {@link Exception}, which describes the error, occurred during the handshake phase.
  *
  * @author Alexey Stashok
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class HandshakeException extends RuntimeException {
+public class HandshakeException extends Exception {
 
     private final int httpStatusCode;
 

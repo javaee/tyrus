@@ -185,9 +185,9 @@ public final class Handshake {
      * Client side only - validate server response.
      *
      * @param response response to be validated.
-     * @throws org.glassfish.tyrus.core.HandshakeException when Http Status of received response is not 101 - Switching protocols.
+     * @throws HandshakeException when HTTP Status of received response is not 101 - Switching protocols.
      */
-    public void validateServerResponse(UpgradeResponse response) {
+    public void validateServerResponse(UpgradeResponse response) throws HandshakeException {
         if (RESPONSE_CODE_VALUE != response.getStatus()) {
             throw new HandshakeException(response.getStatus(), LocalizationMessages.INVALID_RESPONSE_CODE(RESPONSE_CODE_VALUE, response.getStatus()));
         }
@@ -208,8 +208,9 @@ public final class Handshake {
      * @param request          received handshake request.
      * @param extensionContext extension context.
      * @return created handshake.
+     * @throws HandshakeException when there is problem with received {@link UpgradeRequest}.
      */
-    static Handshake createServerHandshake(UpgradeRequest request, ExtendedExtension.ExtensionContext extensionContext) {
+    static Handshake createServerHandshake(UpgradeRequest request, ExtendedExtension.ExtensionContext extensionContext) throws HandshakeException {
         final Handshake handshake = new Handshake();
 
         handshake.incomingRequest = request;
@@ -250,11 +251,11 @@ public final class Handshake {
         return handshake;
     }
 
-    private static void checkForHeader(String currentValue, String header, String validValue) {
+    private static void checkForHeader(String currentValue, String header, String validValue) throws HandshakeException {
         validate(header, validValue, currentValue);
     }
 
-    private static void validate(String header, String validValue, String value) {
+    private static void validate(String header, String validValue, String value) throws HandshakeException {
         // http://java.net/jira/browse/TYRUS-55
         // Firefox workaround (it sends "Connections: keep-alive, upgrade").
         if (header.equalsIgnoreCase(UpgradeRequest.CONNECTION)) {

@@ -1294,13 +1294,13 @@ public class TyrusEndpointWrapper {
      * Server side check for protocol specific information to determine whether the request can be upgraded.
      * <p/>
      * The default implementation will check for the presence of the
-     * <code>Upgrade</code> header with a value of <code>WebSocket</code>.
+     * {@code Upgrade} header with a value of {@code WebSocket}.
      *
-     * @param request TODO
-     * @return <code>true</code> if the request should be upgraded to a
-     * WebSocket connection
+     * @param request received {@link UpgradeRequest}.
+     * @return {@code true} if the request should be upgraded to a WebSocket connection.
+     * @throws HandshakeException when origin verification check returns {@code false}.
      */
-    public final boolean upgrade(UpgradeRequest request) {
+    public final boolean upgrade(UpgradeRequest request) throws HandshakeException {
         final String upgradeHeader = request.getHeader(UpgradeRequest.UPGRADE);
         if (request.getHeaders().get(UpgradeRequest.UPGRADE) != null &&
                 // RFC 6455, paragraph 4.2.1.3

@@ -52,9 +52,9 @@ import java.util.logging.Logger;
 import javax.websocket.CloseReason;
 
 import org.glassfish.tyrus.core.CloseReasons;
-import org.glassfish.tyrus.core.HandshakeException;
 import org.glassfish.tyrus.core.TyrusUpgradeResponse;
 import org.glassfish.tyrus.core.Utils;
+import org.glassfish.tyrus.core.l10n.LocalizationMessages;
 import org.glassfish.tyrus.spi.ClientEngine;
 import org.glassfish.tyrus.spi.ReadHandler;
 import org.glassfish.tyrus.spi.UpgradeRequest;
@@ -342,7 +342,6 @@ class GrizzlyClientFilter extends BaseFilter {
                 }
         );
 
-
         org.glassfish.tyrus.spi.Connection tyrusConnection;
 
         switch (clientUpgradeInfo.getUpgradeStatus()) {
@@ -354,7 +353,9 @@ class GrizzlyClientFilter extends BaseFilter {
                 try {
                     grizzlyConnector.call();
                 } catch (Exception e) {
-                    throw new HandshakeException("Reconnect failed");
+                    // TODO: we might want to pass this exception directly to the user (to be thrown
+                    // TODO: as result of "connectToServer" method call.
+                    LOGGER.log(Level.WARNING, LocalizationMessages.CLIENT_CANNOT_CONNECT(uri.toString()));
                 }
                 return ctx.getInvokeAction();
             case SUCCESS:

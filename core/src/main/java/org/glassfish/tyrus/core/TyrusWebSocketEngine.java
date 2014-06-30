@@ -262,7 +262,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
                 Arrays.asList(Version.getSupportedWireProtocolVersions()));
     }
 
-    TyrusEndpointWrapper getEndpointWrapper(UpgradeRequest request) {
+    TyrusEndpointWrapper getEndpointWrapper(UpgradeRequest request) throws HandshakeException {
         if (endpointWrappers.isEmpty()) {
             return null;
         }
@@ -287,42 +287,52 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
     @Override
     public UpgradeInfo upgrade(final UpgradeRequest request, final UpgradeResponse response) {
 
+        final TyrusEndpointWrapper endpointWrapper;
         try {
-            final TyrusEndpointWrapper endpointWrapper = getEndpointWrapper(request);
-            if (endpointWrapper != null) {
-                final ProtocolHandler protocolHandler = loadHandler(request);
-                if (protocolHandler == null) {
-                    handleUnsupportedVersion(request, response);
-                    return HANDSHAKE_FAILED_UPGRADE_INFO;
-                }
-
-                final ExtendedExtension.ExtensionContext extensionContext = new ExtendedExtension.ExtensionContext() {
-
-                    private final Map<String, Object> properties = new HashMap<String, Object>();
-
-                    @Override
-                    public Map<String, Object> getProperties() {
-                        return properties;
-                    }
-                };
-
-                protocolHandler.handshake(endpointWrapper, request, response, extensionContext);
-
-                if (clusterContext != null && request.getHeaders().get(UpgradeRequest.CLUSTER_CONNECTION_ID_HEADER) == null) {
-                    // TODO: we might need to introduce some property to check whether we should put this header into the response.
-                    response.getHeaders().put(UpgradeRequest.CLUSTER_CONNECTION_ID_HEADER, Collections.singletonList(clusterContext.createConnectionId()));
-                }
-
-                return new SuccessfulUpgradeInfo(endpointWrapper, protocolHandler, incomingBufferSize, request, response, extensionContext);
-            }
+            endpointWrapper = getEndpointWrapper(request);
         } catch (HandshakeException e) {
-            LOGGER.log(Level.SEVERE, e.getMessage(), e);
-            response.setStatus(e.getHttpStatusCode());
-            return HANDSHAKE_FAILED_UPGRADE_INFO;
+            return handleHandshakeException(e, response);
+        }
+
+        if (endpointWrapper != null) {
+            final ProtocolHandler protocolHandler = loadHandler(request);
+            if (protocolHandler == null) {
+                handleUnsupportedVersion(request, response);
+                return HANDSHAKE_FAILED_UPGRADE_INFO;
+            }
+
+            final ExtendedExtension.ExtensionContext extensionContext = new ExtendedExtension.ExtensionContext() {
+
+                private final Map<String, Object> properties = new HashMap<String, Object>();
+
+                @Override
+                public Map<String, Object> getProperties() {
+                    return properties;
+                }
+            };
+
+            try {
+                protocolHandler.handshake(endpointWrapper, request, response, extensionContext);
+            } catch (HandshakeException e) {
+                return handleHandshakeException(e, response);
+            }
+
+            if (clusterContext != null && request.getHeaders().get(UpgradeRequest.CLUSTER_CONNECTION_ID_HEADER) == null) {
+                // TODO: we might need to introduce some property to check whether we should put this header into the response.
+                response.getHeaders().put(UpgradeRequest.CLUSTER_CONNECTION_ID_HEADER, Collections.singletonList(clusterContext.createConnectionId()));
+            }
+
+            return new SuccessfulUpgradeInfo(endpointWrapper, protocolHandler, incomingBufferSize, request, response, extensionContext);
         }
 
         response.setStatus(500);
         return NOT_APPLICABLE_UPGRADE_INFO;
+    }
+
+    private UpgradeInfo handleHandshakeException(HandshakeException handshakeException, UpgradeResponse response) {
+        LOGGER.log(Level.SEVERE, handshakeException.getMessage(), handshakeException);
+        response.setStatus(handshakeException.getHttpStatusCode());
+        return HANDSHAKE_FAILED_UPGRADE_INFO;
     }
 
     private static class TyrusReadHandler implements ReadHandler {

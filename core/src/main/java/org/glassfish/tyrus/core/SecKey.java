@@ -74,7 +74,13 @@ class SecKey {
         return Base64Utils.encodeToString(bytes, false);
     }
 
-    public SecKey(String base64) {
+    /**
+     * Constructor.
+     *
+     * @param base64 sec key to be represented as {@link SecKey} instance.
+     * @throws HandshakeException when the provided key is {@code null}.
+     */
+    public SecKey(String base64) throws HandshakeException {
         if (base64 == null) {
             throw new HandshakeException(LocalizationMessages.SEC_KEY_NULL_NOT_ALLOWED());
         }
@@ -125,8 +131,9 @@ class SecKey {
      * Validate provided server key.
      *
      * @param serverKey server key to be validated.
+     * @throws HandshakeException when the server key is invalid.
      */
-    public void validateServerKey(String serverKey) {
+    public void validateServerKey(String serverKey) throws HandshakeException {
         final SecKey key = generateServerKey(this);
         if (!key.getSecKey().equals(serverKey)) {
             throw new HandshakeException(LocalizationMessages.SEC_KEY_INVALID_SERVER());

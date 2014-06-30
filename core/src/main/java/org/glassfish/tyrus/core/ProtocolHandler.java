@@ -137,8 +137,12 @@ public final class ProtocolHandler {
      * @param response         handshake response.
      * @param extensionContext extension context.
      * @return server handshake object.
+     * @throws HandshakeException when there is problem with received {@link UpgradeRequest}.
      */
-    public Handshake handshake(TyrusEndpointWrapper endpointWrapper, UpgradeRequest request, UpgradeResponse response, ExtendedExtension.ExtensionContext extensionContext) {
+    public Handshake handshake(TyrusEndpointWrapper endpointWrapper,
+                               UpgradeRequest request,
+                               UpgradeResponse response,
+                               ExtendedExtension.ExtensionContext extensionContext) throws HandshakeException {
         final Handshake handshake = Handshake.createServerHandshake(request, extensionContext);
         this.extensions = handshake.respond(request, response, endpointWrapper);
         this.subProtocol = response.getFirstHeaderValue(HandshakeRequest.SEC_WEBSOCKET_PROTOCOL);
