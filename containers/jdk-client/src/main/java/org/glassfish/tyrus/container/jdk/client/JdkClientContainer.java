@@ -54,6 +54,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -240,12 +241,14 @@ public class JdkClientContainer implements ClientContainer {
                     proxyAddress = new InetSocketAddress(inetSocketAddress.getHostName(), inetSocketAddress.getPort());
                 }
             }
+            final AtomicBoolean success = new AtomicBoolean(false);
             final CountDownLatch connectLatch = new CountDownLatch(1);
             try {
                 final SocketAddress finalProxyAddress = proxyAddress;
                 transportFilter.connect(proxyAddress, new CompletionHandler<Void, Void>() {
                     @Override
                     public void completed(Void result, Void attachment) {
+                        success.set(true);
                         connectLatch.countDown();
                     }
 
@@ -256,6 +259,9 @@ public class JdkClientContainer implements ClientContainer {
                     }
                 });
                 connectLatch.await();
+                if (success.get()) {
+                    return;
+                }
             } catch (IOException | InterruptedException e) {
                 LOGGER.log(Level.FINE, "Connecting to " + proxyAddress + " failed", e);
             }

@@ -153,6 +153,8 @@ class ClientFilter extends Filter {
                 LOGGER.log(Level.SEVERE, "Parsing HTTP handshake response failed", e);
                 closeConnection(downstreamFilter);
                 return;
+            } finally {
+                responseParser.clear();
             }
 
             if (proxy && !connectedToProxy) {
