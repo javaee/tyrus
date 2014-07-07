@@ -78,7 +78,17 @@ import org.glassfish.tyrus.spi.ClientEngine;
  */
 public class JdkClientContainer implements ClientContainer {
 
-    private static final int SSL_INPUT_BUFFER_SIZE = 16_384;
+    /**
+     * Input buffer that is used by {@link org.glassfish.tyrus.container.jdk.client.TransportFilter} when SSL is turned on.
+     * The size cannot be smaller than a maximal size of a SSL packet, which is 16kB for payload + header, because
+     * {@link org.glassfish.tyrus.container.jdk.client.SslFilter} does not have its own buffer for buffering incoming
+     * data and therefore the entire SSL packet must fit into {@link org.glassfish.tyrus.container.jdk.client.TransportFilter}
+     * input buffer.
+     */
+    private static final int SSL_INPUT_BUFFER_SIZE = 17_000;
+    /**
+     * Input buffer that is used by {@link org.glassfish.tyrus.container.jdk.client.TransportFilter} when SSL is not turned on.
+     */
     private static final int INPUT_BUFFER_SIZE = 2048;
     private static final Logger LOGGER = Logger.getLogger(JdkClientContainer.class.getName());
 

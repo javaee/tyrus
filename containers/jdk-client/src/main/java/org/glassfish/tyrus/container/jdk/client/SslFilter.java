@@ -40,6 +40,7 @@
 package org.glassfish.tyrus.container.jdk.client;
 
 import java.nio.ByteBuffer;
+import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -70,9 +71,14 @@ class SslFilter extends Filter {
     private final ByteBuffer networkOutputBuffer;
     private final Filter upstreamFilter;
     private final SSLEngine sslEngine;
+    /**
+     * Lock to ensure that only one thread will work with {@link #sslEngine} state machine during the handshake phase.
+     */
+    private final Object handshakeLock = new Object();
 
     private volatile Filter downstreamFilter;
     private volatile boolean sslStarted = false;
+    private volatile boolean handshakeCompleted = false;
 
     /**
      * SSL Filter constructor, takes upstream filter as a parameter.
@@ -178,27 +184,33 @@ class SslFilter extends Filter {
         try {
             // SSL handshake logic
             if (hs != SSLEngineResult.HandshakeStatus.FINISHED && hs != SSLEngineResult.HandshakeStatus.NOT_HANDSHAKING) {
-                if (hs != SSLEngineResult.HandshakeStatus.NEED_UNWRAP) {
-                    return;
-                }
-                SSLEngineResult result;
-                while (true) {
-                    result = sslEngine.unwrap(networkData, applicationInputBuffer);
-                    if (result.getStatus() == SSLEngineResult.Status.BUFFER_UNDERFLOW) {
-                        // needs more data from the network
+                synchronized (handshakeLock) {
+
+                    if (hs != SSLEngineResult.HandshakeStatus.NEED_UNWRAP) {
                         return;
                     }
-                    if (result.getHandshakeStatus() == SSLEngineResult.HandshakeStatus.FINISHED) {
-                        upstreamFilter.onSslHandshakeCompleted();
-                        return;
-                    }
-                    if (!networkData.hasRemaining() || result.getHandshakeStatus() != SSLEngineResult.HandshakeStatus.NEED_UNWRAP) {
-                        // all data has been read or the engine needs to do something else than read
-                        break;
+
+                    SSLEngineResult result;
+                    while (true) {
+                        result = sslEngine.unwrap(networkData, applicationInputBuffer);
+                        if (result.getStatus() == SSLEngineResult.Status.BUFFER_UNDERFLOW) {
+                            // needs more data from the network
+                            return;
+                        }
+                        if (result.getHandshakeStatus() == SSLEngineResult.HandshakeStatus.FINISHED) {
+                            handshakeCompleted = true;
+                            upstreamFilter.onSslHandshakeCompleted();
+                            return;
+                        }
+                        if (!networkData.hasRemaining() || result.getHandshakeStatus() != SSLEngineResult.HandshakeStatus.NEED_UNWRAP) {
+                            // all data has been read or the engine needs to do something else than read
+                            break;
+                        }
                     }
                 }
                 // write or do tasks (for instance validating certificates)
                 doHandshakeStep(downstreamFilter);
+
             } else {
                 // Encrypting received data
                 SSLEngineResult result;
@@ -225,43 +237,60 @@ class SslFilter extends Filter {
     }
 
     private void doHandshakeStep(final Filter filter) {
-        SSLEngineResult.HandshakeStatus hs = sslEngine.getHandshakeStatus();
         try {
-            switch (hs) {
-                // needs to write data to the network
-                case NEED_WRAP: {
-                    networkOutputBuffer.clear();
-                    sslEngine.wrap(networkOutputBuffer, networkOutputBuffer);
-                    networkOutputBuffer.flip();
-                    filter.write(networkOutputBuffer, new CompletionHandler<ByteBuffer>() {
-                        @Override
-                        public void failed(Throwable throwable) {
-                            handleSslError(throwable);
-                        }
+            synchronized (handshakeLock) {
+                while (true) {
+                    SSLEngineResult.HandshakeStatus hs = sslEngine.getHandshakeStatus();
 
-                        @Override
-                        public void completed(ByteBuffer result) {
-                            if (sslEngine.getHandshakeStatus() == SSLEngineResult.HandshakeStatus.NEED_UNWRAP) {
-                                return;
-                            }
-                            doHandshakeStep(filter);
-                        }
-                    });
-                    break;
-                }
-                // needs to execute long running task (for instance validating certificates)
-                case NEED_TASK: {
-                    Runnable delegatedTask;
-                    while ((delegatedTask = sslEngine.getDelegatedTask()) != null) {
-                        delegatedTask.run();
-                    }
-                    if (sslEngine.getHandshakeStatus() == SSLEngineResult.HandshakeStatus.NEED_UNWRAP) {
-                        LOGGER.log(Level.SEVERE, "SSL handshake error has occurred - more data needed for validating the certificate");
-                        upstreamFilter.onConnectionClosed();
+                    if (handshakeCompleted || (hs != SSLEngineResult.HandshakeStatus.NEED_WRAP && hs != SSLEngineResult.HandshakeStatus.NEED_TASK)) {
                         return;
                     }
-                    doHandshakeStep(filter);
-                    break;
+
+                    switch (hs) {
+                        // needs to write data to the network
+                        case NEED_WRAP: {
+                            networkOutputBuffer.clear();
+                            sslEngine.wrap(networkOutputBuffer, networkOutputBuffer);
+                            networkOutputBuffer.flip();
+                            /**
+                             *  Latch to make the write operation synchronous. If it was asynchronous, the {@link #handshakeLock}
+                             *  will be released before the write is completed and another thread arriving form
+                             *  {@link #onRead(Filter, java.nio.ByteBuffer)} will be allowed to write resulting in
+                             *  {@link java.nio.channels.WritePendingException}. This is only concern during the handshake
+                             *  phase as {@link org.glassfish.tyrus.container.jdk.client.TaskQueueFilter} ensures that
+                             *  only one write operation is allowed at a time during "data transfer" phase.
+                             */
+                            final CountDownLatch writeLatch = new CountDownLatch(1);
+                            filter.write(networkOutputBuffer, new CompletionHandler<ByteBuffer>() {
+                                @Override
+                                public void failed(Throwable throwable) {
+                                    writeLatch.countDown();
+                                    handleSslError(throwable);
+                                }
+
+                                @Override
+                                public void completed(ByteBuffer result) {
+                                    writeLatch.countDown();
+                                }
+                            });
+
+                            writeLatch.await();
+                            break;
+                        }
+                        // needs to execute long running task (for instance validating certificates)
+                        case NEED_TASK: {
+                            Runnable delegatedTask;
+                            while ((delegatedTask = sslEngine.getDelegatedTask()) != null) {
+                                delegatedTask.run();
+                            }
+                            if (sslEngine.getHandshakeStatus() == SSLEngineResult.HandshakeStatus.NEED_UNWRAP) {
+                                LOGGER.log(Level.SEVERE, "SSL handshake error has occurred - more data needed for validating the certificate");
+                                upstreamFilter.onConnectionClosed();
+                                return;
+                            }
+                            break;
+                        }
+                    }
                 }
             }
         } catch (Exception e) {
