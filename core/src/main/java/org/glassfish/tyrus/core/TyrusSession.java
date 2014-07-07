@@ -316,6 +316,7 @@ public class TyrusSession implements Session {
      * @throws IllegalStateException if there is already a MessageHandler registered for the same native
      *                               websocket message type as this handler.
      */
+    @Override
     public <T> void addMessageHandler(Class<T> clazz, MessageHandler.Whole<T> handler) {
         checkConnectionState(State.CLOSED);
         synchronized (handlerManager) {
@@ -339,6 +340,7 @@ public class TyrusSession implements Session {
      * @throws IllegalStateException if there is already a MessageHandler registered for the same native
      *                               websocket message type as this handler.
      */
+    @Override
     public <T> void addMessageHandler(Class<T> clazz, MessageHandler.Partial<T> handler) {
         checkConnectionState(State.CLOSED);
         synchronized (handlerManager) {

@@ -151,7 +151,7 @@
     </contributors>
 
     <properties>
-        <websocket-api.version>1.0</websocket-api.version>
+        <websocket-api.version>1.1-SNAPSHOT</websocket-api.version>
         <websocket.api.build_number>18</websocket.api.build_number>
 
         <servlet.api.version>3.1.0</servlet.api.version>
@@ -173,7 +173,7 @@
         <packages.private>org.glassfish.*</packages.private>
 
         <!-- Non Final properties for impl jar -->
-        <apijar.bundle.version>${websocket-api.version}</apijar.bundle.version>
+        <apijar.bundle.version>1.0.99.b01</apijar.bundle.version>
         <impljar.bundle.specversion>${spec_version}.99.b${build_number}</impljar.bundle.specversion>
         <impljar.maven.version>${new_impl_version}-b${build_number}</impljar.maven.version>
         <impljar.bundle.version>${spec_version}.99.b${build_number}</impljar.bundle.version>

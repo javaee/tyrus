@@ -607,6 +607,28 @@ public class ClusterSession implements Session {
     /**
      * Not supported (yet?).
      *
+     * @param clazz   nothing.
+     * @param handler nothing.
+     * @param <T>     nothing.
+     */
+    @Override
+    public <T> void addMessageHandler(Class<T> clazz, MessageHandler.Whole<T> handler) {
+    }
+
+    /**
+     * Not supported (yet?).
+     *
+     * @param clazz   nothing.
+     * @param handler nothing.
+     * @param <T>     nothing.
+     */
+    @Override
+    public <T> void addMessageHandler(Class<T> clazz, MessageHandler.Partial<T> handler) {
+    }
+
+    /**
+     * Not supported (yet?).
+     *
      * @return nothing.
      */
     @Override
