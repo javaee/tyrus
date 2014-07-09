@@ -221,9 +221,9 @@ public abstract class ClusterContext {
     public abstract String createConnectionId();
 
     /**
-     * Initializes cluster session.
+     * Register local session.
      * <p/>
-     * Used for registering local session - session id will be broadcasted to other nodes which will call {@link #getDistributedSessionProperties(String)}
+     * Session id will be broadcasted to other nodes which will call {@link #getDistributedSessionProperties(String)}
      * and process its values. The map must be ready before this method is invoked.
      *
      * @param sessionId    session id to be registered.
@@ -231,7 +231,7 @@ public abstract class ClusterContext {
      * @param listener     session event listener. When remote node sends a message to this session, it will be invoked.
      * @see org.glassfish.tyrus.core.cluster.SessionEventListener
      */
-    public abstract void initClusteredSession(String sessionId, String endpointPath, SessionEventListener listener);
+    public abstract void registerSession(String sessionId, String endpointPath, SessionEventListener listener);
 
     /**
      * Register session listener.
@@ -266,7 +266,7 @@ public abstract class ClusterContext {
      * @param sessionId remote session id.
      * @return distributed map containing session properties.
      */
-    public abstract Map<ClusterSession.DistributedMapKey, Object> getDistributedSessionProperties(String sessionId);
+    public abstract Map<RemoteSession.DistributedMapKey, Object> getDistributedSessionProperties(String sessionId);
 
     /**
      * Get the map containing session user properties to be shared among nodes.

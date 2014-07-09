@@ -51,6 +51,7 @@ import java.io.Writer;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.security.Principal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -72,7 +73,9 @@ import javax.websocket.Encoder;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfig;
 import javax.websocket.Extension;
+import javax.websocket.MessageHandler;
 import javax.websocket.PongMessage;
+import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
 import javax.websocket.server.HandshakeRequest;
@@ -80,7 +83,7 @@ import javax.websocket.server.ServerEndpointConfig;
 
 import org.glassfish.tyrus.core.cluster.BroadcastListener;
 import org.glassfish.tyrus.core.cluster.ClusterContext;
-import org.glassfish.tyrus.core.cluster.ClusterSession;
+import org.glassfish.tyrus.core.cluster.RemoteSession;
 import org.glassfish.tyrus.core.coder.CoderWrapper;
 import org.glassfish.tyrus.core.coder.InputStreamDecoder;
 import org.glassfish.tyrus.core.coder.NoOpByteArrayCoder;
@@ -123,8 +126,8 @@ public class TyrusEndpointWrapper {
     private final Endpoint endpoint;
     private final Map<TyrusWebSocket, TyrusSession> webSocketToSession =
             new ConcurrentHashMap<TyrusWebSocket, TyrusSession>();
-    private final Map<String, ClusterSession> clusteredSessions =
-            new ConcurrentHashMap<String, ClusterSession>();
+    private final Map<String, RemoteSession> clusteredSessions =
+            new ConcurrentHashMap<String, RemoteSession>();
     private final ComponentProviderService componentProvider;
     private final ServerEndpointConfig.Configurator configurator;
     private final Method onOpen;
@@ -134,7 +137,6 @@ public class TyrusEndpointWrapper {
     private final EndpointEventListener endpointEventListener;
 
     private final ClusterContext clusterContext;
-    private final Session dummySession;
 
     /**
      * Create {@link TyrusEndpointWrapper} for class that extends {@link Endpoint}.
@@ -290,13 +292,11 @@ public class TyrusEndpointWrapper {
 
         // clustered mode
         if (clusterContext != null) {
-            dummySession = new ClusterSession(null, null, null, null, null);
-
             clusterContext.registerSessionListener(getEndpointPath(), new org.glassfish.tyrus.core.cluster.SessionListener() {
                 @Override
                 public void onSessionOpened(String sessionId) {
-                    final Map<ClusterSession.DistributedMapKey, Object> distributedSessionProperties = clusterContext.getDistributedSessionProperties(sessionId);
-                    clusteredSessions.put(sessionId, new ClusterSession(sessionId, clusterContext, distributedSessionProperties, TyrusEndpointWrapper.this, dummySession));
+                    final Map<RemoteSession.DistributedMapKey, Object> distributedSessionProperties = clusterContext.getDistributedSessionProperties(sessionId);
+                    clusteredSessions.put(sessionId, new RemoteSession(sessionId, clusterContext, distributedSessionProperties, TyrusEndpointWrapper.this, dummySession));
                 }
 
                 @Override
@@ -318,11 +318,9 @@ public class TyrusEndpointWrapper {
             });
 
             for (String sessionId : clusterContext.getRemoteSessionIds(getEndpointPath())) {
-                final Map<ClusterSession.DistributedMapKey, Object> distributedSessionProperties = clusterContext.getDistributedSessionProperties(sessionId);
-                clusteredSessions.put(sessionId, new ClusterSession(sessionId, clusterContext, distributedSessionProperties, this, dummySession));
+                final Map<RemoteSession.DistributedMapKey, Object> distributedSessionProperties = clusterContext.getDistributedSessionProperties(sessionId);
+                clusteredSessions.put(sessionId, new RemoteSession(sessionId, clusterContext, distributedSessionProperties, this, dummySession));
             }
-        } else {
-            dummySession = null;
         }
     }
 
@@ -477,7 +475,7 @@ public class TyrusEndpointWrapper {
      * @see javax.websocket.server.ServerEndpoint#value()
      * @see javax.websocket.server.ServerEndpointConfig#getPath()
      */
-    public String getServerEndpointPath() {
+    String getServerEndpointPath() {
         return serverEndpointPath;
     }
 
@@ -487,7 +485,7 @@ public class TyrusEndpointWrapper {
      * @param clientExtensions names of the extensions' supported by client.
      * @return names of extensions supported by both client and class that implements this one.
      */
-    public List<Extension> getNegotiatedExtensions(List<Extension> clientExtensions) {
+    List<Extension> getNegotiatedExtensions(List<Extension> clientExtensions) {
         if (configuration instanceof ServerEndpointConfig) {
             return configurator.getNegotiatedExtensions(((ServerEndpointConfig) configuration).getExtensions(), clientExtensions);
         } else {
@@ -501,7 +499,7 @@ public class TyrusEndpointWrapper {
      * @param clientProtocols sub-protocols supported by client.
      * @return negotiated sub-protocol, {@code null} if none found.
      */
-    public String getNegotiatedProtocol(List<String> clientProtocols) {
+    String getNegotiatedProtocol(List<String> clientProtocols) {
         if (configuration instanceof ServerEndpointConfig) {
             return configurator.getNegotiatedSubprotocol(((ServerEndpointConfig) configuration).getSubprotocols(), clientProtocols);
         } else {
@@ -510,12 +508,11 @@ public class TyrusEndpointWrapper {
     }
 
     /**
-     * Get the endpoint's open {@link Session}s.
+     * Get the set of open {@link Session}.
      *
-     * @param tyrusSession only for clustering purpose (local encoder will be used when needed).
      * @return open sessions.
      */
-    public Set<Session> getOpenSessions(final TyrusSession tyrusSession) {
+    Set<Session> getOpenSessions() {
         Set<Session> result = new HashSet<Session>();
 
         for (Session session : webSocketToSession.values()) {
@@ -523,6 +520,12 @@ public class TyrusEndpointWrapper {
                 result.add(session);
             }
         }
+
+        return Collections.unmodifiableSet(result);
+    }
+
+    Set<RemoteSession> getRemoteSessions() {
+        Set<RemoteSession> result = new HashSet<RemoteSession>();
 
         // clustered mode
         if (clusterContext != null) {
@@ -560,7 +563,7 @@ public class TyrusEndpointWrapper {
      * @return Created {@link Session} instance or {@code null} when session was not created properly (max sessions
      * limit on endpoint or application or issues with endpoint validation).
      */
-    public Session onConnect(TyrusWebSocket socket, UpgradeRequest upgradeRequest, String subProtocol, List<Extension> extensions, String connectionId) {
+    Session onConnect(TyrusWebSocket socket, UpgradeRequest upgradeRequest, String subProtocol, List<Extension> extensions, String connectionId) {
         TyrusSession session = webSocketToSession.get(socket);
         // session is null on Server; client always has session instance at this point.
         if (session == null) {
@@ -675,7 +678,7 @@ public class TyrusEndpointWrapper {
      * @param socket       {@link TyrusWebSocket} who sent the message.
      * @param messageBytes the message.
      */
-    public void onMessage(TyrusWebSocket socket, ByteBuffer messageBytes) {
+    void onMessage(TyrusWebSocket socket, ByteBuffer messageBytes) {
         TyrusSession session = getSession(socket);
 
         if (session == null) {
@@ -727,7 +730,7 @@ public class TyrusEndpointWrapper {
      * @param socket        {@link TyrusWebSocket} who sent the message.
      * @param messageString the message.
      */
-    public void onMessage(TyrusWebSocket socket, String messageString) {
+    void onMessage(TyrusWebSocket socket, String messageString) {
         TyrusSession session = getSession(socket);
 
         if (session == null) {
@@ -783,7 +786,7 @@ public class TyrusEndpointWrapper {
      * @param partialString the String message.
      * @param last          to indicate if this is the last partial string in the sequence
      */
-    public void onPartialMessage(TyrusWebSocket socket, String partialString, boolean last) {
+    void onPartialMessage(TyrusWebSocket socket, String partialString, boolean last) {
         TyrusSession session = getSession(socket);
 
         if (session == null) {
@@ -882,7 +885,7 @@ public class TyrusEndpointWrapper {
      * @param partialBytes the piece of the binary message.
      * @param last         to indicate if this is the last partial byte buffer in the sequence
      */
-    public void onPartialMessage(TyrusWebSocket socket, ByteBuffer partialBytes, boolean last) {
+    void onPartialMessage(TyrusWebSocket socket, ByteBuffer partialBytes, boolean last) {
         TyrusSession session = getSession(socket);
 
         if (session == null) {
@@ -1002,7 +1005,7 @@ public class TyrusEndpointWrapper {
      * @param socket {@link TyrusWebSocket} who sent the message.
      * @param bytes  the message.
      */
-    public void onPong(TyrusWebSocket socket, final ByteBuffer bytes) {
+    void onPong(TyrusWebSocket socket, final ByteBuffer bytes) {
         TyrusSession session = getSession(socket);
 
         if (session == null) {
@@ -1039,7 +1042,7 @@ public class TyrusEndpointWrapper {
      * @param socket {@link TyrusWebSocket} who sent the message.
      * @param bytes  the message.
      */
-    public void onPing(TyrusWebSocket socket, ByteBuffer bytes) {
+    void onPing(TyrusWebSocket socket, ByteBuffer bytes) {
         TyrusSession session = getSession(socket);
 
         if (session == null) {
@@ -1062,7 +1065,7 @@ public class TyrusEndpointWrapper {
      *
      * @param socket {@link TyrusWebSocket} who has just closed the connection.
      */
-    public void onClose(TyrusWebSocket socket, CloseReason closeReason) {
+    void onClose(TyrusWebSocket socket, CloseReason closeReason) {
         TyrusSession session = getSession(socket);
 
         if (session == null) {
@@ -1136,7 +1139,7 @@ public class TyrusEndpointWrapper {
      * @return map of sessions and futures for user to get the information about status of the message. Messages send
      * from other cluster nodes are not included.
      */
-    public Map<Session, Future<?>> broadcast(final String message) {
+    Map<Session, Future<?>> broadcast(final String message) {
         return broadcast(message, false);
     }
 
@@ -1192,7 +1195,7 @@ public class TyrusEndpointWrapper {
      * @return map of sessions and futures for user to get the information about status of the message. Messages send
      * from other cluster nodes are not included.
      */
-    public Map<Session, Future<?>> broadcast(final ByteBuffer message) {
+    Map<Session, Future<?>> broadcast(final ByteBuffer message) {
         return broadcast(message, false);
     }
 
@@ -1280,17 +1283,6 @@ public class TyrusEndpointWrapper {
         }
     }
 
-    @Override
-    public String toString() {
-        final StringBuilder sb = new StringBuilder();
-        sb.append("TyrusEndpointWrapper");
-        sb.append("{endpointClass=").append(endpointClass);
-        sb.append(", endpoint=").append(endpoint);
-        sb.append(", contextPath='").append(contextPath).append('\'');
-        sb.append('}');
-        return sb.toString();
-    }
-
     /**
      * Server side check for protocol specific information to determine whether the request can be upgraded.
      * <p/>
@@ -1301,7 +1293,7 @@ public class TyrusEndpointWrapper {
      * @return {@code true} if the request should be upgraded to a WebSocket connection.
      * @throws HandshakeException when origin verification check returns {@code false}.
      */
-    public final boolean upgrade(UpgradeRequest request) throws HandshakeException {
+    final boolean upgrade(UpgradeRequest request) throws HandshakeException {
         final String upgradeHeader = request.getHeader(UpgradeRequest.UPGRADE);
         if (request.getHeaders().get(UpgradeRequest.UPGRADE) != null &&
                 // RFC 6455, paragraph 4.2.1.3
@@ -1329,7 +1321,7 @@ public class TyrusEndpointWrapper {
      *                {@link TyrusWebSocket}.
      * @return TODO
      */
-    public TyrusWebSocket createSocket(final ProtocolHandler handler) {
+    TyrusWebSocket createSocket(final ProtocolHandler handler) {
         return new TyrusWebSocket(handler, this);
     }
 
@@ -1343,7 +1335,7 @@ public class TyrusEndpointWrapper {
      * @return {@code true} if the WebSocket should be closed otherwise
      * {@code false}.
      */
-    public boolean onError(TyrusWebSocket socket, Throwable t) {
+    boolean onError(TyrusWebSocket socket, Throwable t) {
         Logger.getLogger(TyrusEndpointWrapper.class.getName()).log(Level.WARNING, LocalizationMessages.UNEXPECTED_ERROR_CONNECTION_CLOSE(), t);
         return true;
     }
@@ -1356,7 +1348,7 @@ public class TyrusEndpointWrapper {
      * @param request  original request which caused this handshake.
      * @param response response to be send.
      */
-    public void onHandShakeResponse(UpgradeRequest request, UpgradeResponse response) {
+    void onHandShakeResponse(UpgradeRequest request, UpgradeResponse response) {
         final EndpointConfig configuration = getEndpointConfig();
 
         if (configuration instanceof ServerEndpointConfig) {
@@ -1378,6 +1370,17 @@ public class TyrusEndpointWrapper {
         }
 
         return null;
+    }
+
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder();
+        sb.append("TyrusEndpointWrapper");
+        sb.append("{endpointClass=").append(endpointClass);
+        sb.append(", endpoint=").append(endpoint);
+        sb.append(", contextPath='").append(contextPath).append('\'');
+        sb.append('}');
+        return sb.toString();
     }
 
     /**
@@ -1432,4 +1435,145 @@ public class TyrusEndpointWrapper {
         public void onClose(final TyrusSession session, final CloseReason closeReason) {
         }
     }
+
+    /**
+     * Used only as a placeholder to get encoder instances from {@link ComponentProvider}.
+     */
+    private static final Session dummySession = new Session() {
+        @Override
+        public WebSocketContainer getContainer() {
+            return null;
+        }
+
+        @Override
+        public void addMessageHandler(MessageHandler handler) throws IllegalStateException {
+        }
+
+        @Override
+        public <T> void addMessageHandler(Class<T> clazz, MessageHandler.Whole<T> handler) {
+        }
+
+        @Override
+        public <T> void addMessageHandler(Class<T> clazz, MessageHandler.Partial<T> handler) {
+        }
+
+        @Override
+        public Set<MessageHandler> getMessageHandlers() {
+            return null;
+        }
+
+        @Override
+        public void removeMessageHandler(MessageHandler handler) {
+        }
+
+        @Override
+        public String getProtocolVersion() {
+            return null;
+        }
+
+        @Override
+        public String getNegotiatedSubprotocol() {
+            return null;
+        }
+
+        @Override
+        public List<Extension> getNegotiatedExtensions() {
+            return null;
+        }
+
+        @Override
+        public boolean isSecure() {
+            return false;
+        }
+
+        @Override
+        public boolean isOpen() {
+            return false;
+        }
+
+        @Override
+        public long getMaxIdleTimeout() {
+            return 0;
+        }
+
+        @Override
+        public void setMaxIdleTimeout(long milliseconds) {
+        }
+
+        @Override
+        public void setMaxBinaryMessageBufferSize(int length) {
+        }
+
+        @Override
+        public int getMaxBinaryMessageBufferSize() {
+            return 0;
+        }
+
+        @Override
+        public void setMaxTextMessageBufferSize(int length) {
+        }
+
+        @Override
+        public int getMaxTextMessageBufferSize() {
+            return 0;
+        }
+
+        @Override
+        public RemoteEndpoint.Async getAsyncRemote() {
+            return null;
+        }
+
+        @Override
+        public RemoteEndpoint.Basic getBasicRemote() {
+            return null;
+        }
+
+        @Override
+        public String getId() {
+            return null;
+        }
+
+        @Override
+        public void close() throws IOException {
+        }
+
+        @Override
+        public void close(CloseReason closeReason) throws IOException {
+        }
+
+        @Override
+        public URI getRequestURI() {
+            return null;
+        }
+
+        @Override
+        public Map<String, List<String>> getRequestParameterMap() {
+            return null;
+        }
+
+        @Override
+        public String getQueryString() {
+            return null;
+        }
+
+        @Override
+        public Map<String, String> getPathParameters() {
+            return null;
+        }
+
+        @Override
+        public Map<String, Object> getUserProperties() {
+            return null;
+        }
+
+        @Override
+        public Principal getUserPrincipal() {
+            return null;
+        }
+
+        @Override
+        public Set<Session> getOpenSessions() {
+            return null;
+        }
+    };
 }

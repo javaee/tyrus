@@ -41,6 +41,7 @@
 package org.glassfish.tyrus.core.cluster;
 
 import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Serializable;
@@ -51,7 +52,6 @@ import java.nio.ByteBuffer;
 import java.security.Principal;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -60,12 +60,10 @@ import java.util.concurrent.TimeoutException;
 import javax.websocket.CloseReason;
 import javax.websocket.EncodeException;
 import javax.websocket.Extension;
-import javax.websocket.MessageHandler;
 import javax.websocket.RemoteEndpoint;
 import javax.websocket.SendHandler;
 import javax.websocket.SendResult;
 import javax.websocket.Session;
-import javax.websocket.WebSocketContainer;
 
 import org.glassfish.tyrus.core.TyrusEndpointWrapper;
 import org.glassfish.tyrus.core.Utils;
@@ -73,11 +71,11 @@ import org.glassfish.tyrus.core.Utils;
 import static org.glassfish.tyrus.core.Utils.checkNotNull;
 
 /**
- * Cluster session represents session present on another node.
+ * Remote session represents session present on another node.
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class ClusterSession implements Session {
+public class RemoteSession implements Closeable {
 
     private final RemoteEndpoint.Basic basicRemote;
     private final RemoteEndpoint.Async asyncRemote;
@@ -196,11 +194,11 @@ public class ClusterSession implements Session {
      * @param endpointWrapper used just to get encoders/decoders.
      * @param session         used just to get encoders/decoders.
      */
-    public ClusterSession(final String sessionId,
-                          final ClusterContext clusterContext,
-                          final Map<DistributedMapKey, Object> distributedPropertyMap,
-                          final TyrusEndpointWrapper endpointWrapper,
-                          final Session session) {
+    public RemoteSession(final String sessionId,
+                         final ClusterContext clusterContext,
+                         final Map<DistributedMapKey, Object> distributedPropertyMap,
+                         final TyrusEndpointWrapper endpointWrapper,
+                         final Session session) {
 
         this.sessionId = sessionId;
         this.clusterContext = clusterContext;
@@ -584,213 +582,213 @@ public class ClusterSession implements Session {
     }
 
     /**
-     * Not supported (yet?).
+     * Get the version of the websocket protocol currently being used. This is taken
+     * as the value of the Sec-WebSocket-Version header used in the opening handshake. i.e. "13".
      *
-     * @return nothing.
+     * @return the protocol version.
      */
-    @Override
-    public WebSocketContainer getContainer() {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * Not supported (yet?).
-     *
-     * @param handler nothing.
-     * @throws IllegalStateException newer.
-     */
-    @Override
-    public void addMessageHandler(MessageHandler handler) throws IllegalStateException {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * Not supported (yet?).
-     *
-     * @param clazz   nothing.
-     * @param handler nothing.
-     * @param <T>     nothing.
-     */
-    @Override
-    public <T> void addMessageHandler(Class<T> clazz, MessageHandler.Whole<T> handler) {
-    }
-
-    /**
-     * Not supported (yet?).
-     *
-     * @param clazz   nothing.
-     * @param handler nothing.
-     * @param <T>     nothing.
-     */
-    @Override
-    public <T> void addMessageHandler(Class<T> clazz, MessageHandler.Partial<T> handler) {
-    }
-
-    /**
-     * Not supported (yet?).
-     *
-     * @return nothing.
-     */
-    @Override
-    public Set<MessageHandler> getMessageHandlers() {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * Not supported (yet?).
-     *
-     * @param handler nothing.
-     */
-    @Override
-    public void removeMessageHandler(MessageHandler handler) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public String getProtocolVersion() {
         return "13";
     }
 
-    @Override
+    /**
+     * Get the sub protocol agreed during the websocket handshake for this conversation.
+     *
+     * @return the negotiated subprotocol, or the empty string if there isn't one.
+     */
     public String getNegotiatedSubprotocol() {
         return (String) distributedPropertyMap.get(DistributedMapKey.NEGOTIATED_SUBPROTOCOL);
     }
 
-    @Override
+    /**
+     * Get the list of extensions currently in use for this conversation.
+     *
+     * @return the negotiated extensions.
+     */
     public List<Extension> getNegotiatedExtensions() {
         //noinspection unchecked
         return (List<Extension>) distributedPropertyMap.get(DistributedMapKey.NEGOTIATED_EXTENSIONS);
     }
 
-    @Override
+    /**
+     * Get the information about secure transport.
+     *
+     * @return {@code true} when the underlying socket is using a secure transport, {@code false} otherwise.
+     */
     public boolean isSecure() {
         //noinspection unchecked
         return (Boolean) distributedPropertyMap.get(DistributedMapKey.SECURE);
     }
 
-    @Override
+    /**
+     * Get the information about session state.
+     *
+     * @return {@code true} when the underlying socket is open, {@code false} otherwise.
+     */
     public boolean isOpen() {
         return clusterContext.isSessionOpen(sessionId, endpointWrapper.getEndpointPath());
     }
 
-    @Override
+    /**
+     * Get the number of milliseconds before this conversation may be closed by the
+     * container if it is inactive, i.e. no messages are either sent or received in that time.
+     *
+     * @return the timeout in milliseconds.
+     */
     public long getMaxIdleTimeout() {
         //noinspection unchecked
         return (Long) distributedPropertyMap.get(DistributedMapKey.MAX_IDLE_TIMEOUT);
     }
 
     /**
-     * Remote setters are not supported (yet?).
+     * Get the maximum length of incoming binary messages that this Session can buffer. If
+     * the implementation receives a binary message that it cannot buffer because it
+     * is too large, it must close the session with a close code of {@link CloseReason.CloseCodes#TOO_BIG}.
      *
-     * @param milliseconds nothing.
+     * @return the maximum binary message size that can be buffered.
      */
-    @Override
-    public void setMaxIdleTimeout(long milliseconds) {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * Remote setters are not supported (yet?).
-     *
-     * @param length nothing.
-     */
-    @Override
-    public void setMaxBinaryMessageBufferSize(int length) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public int getMaxBinaryMessageBufferSize() {
         //noinspection unchecked
         return (Integer) distributedPropertyMap.get(DistributedMapKey.MAX_BINARY_MESSAGE_BUFFER_SIZE);
     }
 
     /**
-     * Remote setters are not supported (yet?).
+     * Get the maximum length of incoming text messages that this Session can buffer. If
+     * the implementation receives a text message that it cannot buffer because it
+     * is too large, it must close the session with a close code of {@link CloseReason.CloseCodes#TOO_BIG}.
      *
-     * @param length nothing.
+     * @return the maximum text message size that can be buffered.
      */
-    @Override
-    public void setMaxTextMessageBufferSize(int length) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
     public int getMaxTextMessageBufferSize() {
         //noinspection unchecked
         return (Integer) distributedPropertyMap.get(DistributedMapKey.MAX_TEXT_MESSAGE_BUFFER_SIZE);
     }
 
-    @Override
+    /**
+     * Get a reference a {@link RemoteEndpoint.Async} object representing the peer of this conversation
+     * that is able to send messages asynchronously to the peer.
+     *
+     * @return the remote endpoint representation.
+     */
     public RemoteEndpoint.Async getAsyncRemote() {
         return asyncRemote;
     }
 
-    @Override
+    /**
+     * Get a reference a {@link RemoteEndpoint.Basic} object representing the peer of this conversation
+     * that is able to send messages synchronously to the peer.
+     *
+     * @return the remote endpoint representation.
+     */
     public RemoteEndpoint.Basic getBasicRemote() {
         return basicRemote;
     }
 
-    @Override
+    /**
+     * Get a string containing the unique identifier assigned to this session.
+     * The identifier is assigned by the web socket implementation and is implementation dependent.
+     *
+     * @return the unique identifier for this session instance.
+     */
     public String getId() {
         return sessionId;
     }
 
+    /**
+     * Close the current conversation with a normal status code and no reason phrase.
+     *
+     * @throws IOException if there was a connection error closing the connection.
+     */
     @Override
     public void close() throws IOException {
         clusterContext.close(sessionId);
     }
 
-    @Override
+    /**
+     * Close the current conversation, giving a reason for the closure. The close
+     * call causes the implementation to attempt notify the client of the close as
+     * soon as it can. This may cause the sending of unsent messages immediately
+     * prior to the close notification. After the close notification has been sent
+     * the implementation notifies the endpoint's onClose method. Note the websocket
+     * specification defines the acceptable uses of status codes and reason phrases.
+     * If the application cannot determine a suitable close code to use for the closeReason,
+     * it is recommended to use {@link CloseReason.CloseCodes#NO_STATUS_CODE}.
+     *
+     * @param closeReason the reason for the closure.
+     * @throws IOException if there was a connection error closing the connection.
+     */
     public void close(CloseReason closeReason) throws IOException {
         clusterContext.close(sessionId, closeReason);
     }
 
-    @Override
+    /**
+     * Get the {@link URI} under which this session was opened, including
+     * the query string if there is one.
+     *
+     * @return the request URI.
+     */
     public URI getRequestURI() {
         //noinspection unchecked
         return (URI) distributedPropertyMap.get(DistributedMapKey.REQUEST_URI);
     }
 
-    @Override
+    /**
+     * Get the request parameters associated with the request this session
+     * was opened under.
+     *
+     * @return the unmodifiable map of the request parameters.
+     */
     public Map<String, List<String>> getRequestParameterMap() {
         //noinspection unchecked
         return (Map<String, List<String>>) distributedPropertyMap.get(DistributedMapKey.REQUEST_PARAMETER_MAP);
     }
 
-    @Override
+    /**
+     * Get the query string associated with the request this session
+     * was opened under.
+     *
+     * @return the query string.
+     */
     public String getQueryString() {
         return (String) distributedPropertyMap.get(DistributedMapKey.QUERY_STRING);
     }
 
-    @Override
+    /**
+     * Get a map of the path parameter names and values used associated with the
+     * request this session was opened under.
+     *
+     * @return the unmodifiable map of path parameters. The key of the map is the parameter name,
+     * the values in the map are the parameter values.
+     */
     public Map<String, String> getPathParameters() {
         //noinspection unchecked
         return (Map<String, String>) distributedPropertyMap.get(DistributedMapKey.PATH_PARAMETERS);
     }
 
-    @Override
+    /**
+     * Get a Map that the developer may
+     * use to store application specific information relating to this session
+     * instance. The developer may retrieve information from this Map at any time
+     * between the opening of the session and during the onClose() method. But outside
+     * that time, any information stored using this Map may no longer be kept by the
+     * container.
+     * <p/>
+     * Values of this map MUST BE {@link Serializable}.
+     *
+     * @return an editable Map of application data.
+     */
     public Map<String, Object> getUserProperties() {
         return clusterContext.getDistributedUserProperties(sessionId);
     }
 
-    @Override
+    /**
+     * Get the authenticated user for this session or {@code null} if no user is authenticated for this session.
+     *
+     * @return the user principal.
+     */
     public Principal getUserPrincipal() {
         //noinspection unchecked
         return (Principal) distributedPropertyMap.get(DistributedMapKey.USER_PRINCIPAL);
-    }
-
-    /**
-     * Not supported.
-     * <p/>
-     * Session.getOpenSessions()."get(<remoteIndex>)".getOpenSessions() .. why would anyone try to do that?
-     *
-     * @return nothing.
-     */
-    @Override
-    public Set<Session> getOpenSessions() {
-        // Session.getOpenSessions()."get(<remoteIndex>)".getOpenSessions() .. why would anyone try to do that?
-        throw new UnsupportedOperationException();
     }
 
     @Override

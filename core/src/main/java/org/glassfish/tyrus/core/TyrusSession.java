@@ -69,7 +69,7 @@ import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
 
 import org.glassfish.tyrus.core.cluster.ClusterContext;
-import org.glassfish.tyrus.core.cluster.ClusterSession;
+import org.glassfish.tyrus.core.cluster.RemoteSession;
 import org.glassfish.tyrus.core.cluster.SessionEventListener;
 import org.glassfish.tyrus.core.coder.CoderWrapper;
 import org.glassfish.tyrus.core.l10n.LocalizationMessages;
@@ -108,7 +108,7 @@ public class TyrusSession implements Session {
     private final String negotiatedSubprotocol;
     private final String remoteAddr;
 
-    private final Map<ClusterSession.DistributedMapKey, Object> distributedPropertyMap;
+    private final Map<RemoteSession.DistributedMapKey, Object> distributedPropertyMap;
 
     private volatile long maxIdleTimeout = 0;
     private volatile ScheduledFuture<?> idleTimeoutFuture = null;
@@ -152,23 +152,23 @@ public class TyrusSession implements Session {
         if (clusterContext != null) {
             id = clusterContext.createSessionId();
             distributedPropertyMap = clusterContext.getDistributedSessionProperties(id);
-            distributedPropertyMap.put(ClusterSession.DistributedMapKey.NEGOTIATED_SUBPROTOCOL, negotiatedSubprotocol);
-            distributedPropertyMap.put(ClusterSession.DistributedMapKey.NEGOTIATED_EXTENSIONS, negotiatedExtensions);
-            distributedPropertyMap.put(ClusterSession.DistributedMapKey.SECURE, isSecure);
-            distributedPropertyMap.put(ClusterSession.DistributedMapKey.MAX_IDLE_TIMEOUT, maxIdleTimeout);
-            distributedPropertyMap.put(ClusterSession.DistributedMapKey.MAX_BINARY_MESSAGE_BUFFER_SIZE, maxBinaryMessageBufferSize);
-            distributedPropertyMap.put(ClusterSession.DistributedMapKey.MAX_TEXT_MESSAGE_BUFFER_SIZE, maxTextMessageBufferSize);
-            distributedPropertyMap.put(ClusterSession.DistributedMapKey.REQUEST_URI, requestURI);
-            distributedPropertyMap.put(ClusterSession.DistributedMapKey.REQUEST_PARAMETER_MAP, requestParameterMap);
-            distributedPropertyMap.put(ClusterSession.DistributedMapKey.QUERY_STRING, queryString == null ? "" : queryString);
-            distributedPropertyMap.put(ClusterSession.DistributedMapKey.PATH_PARAMETERS, this.pathParameters);
+            distributedPropertyMap.put(RemoteSession.DistributedMapKey.NEGOTIATED_SUBPROTOCOL, negotiatedSubprotocol);
+            distributedPropertyMap.put(RemoteSession.DistributedMapKey.NEGOTIATED_EXTENSIONS, negotiatedExtensions);
+            distributedPropertyMap.put(RemoteSession.DistributedMapKey.SECURE, isSecure);
+            distributedPropertyMap.put(RemoteSession.DistributedMapKey.MAX_IDLE_TIMEOUT, maxIdleTimeout);
+            distributedPropertyMap.put(RemoteSession.DistributedMapKey.MAX_BINARY_MESSAGE_BUFFER_SIZE, maxBinaryMessageBufferSize);
+            distributedPropertyMap.put(RemoteSession.DistributedMapKey.MAX_TEXT_MESSAGE_BUFFER_SIZE, maxTextMessageBufferSize);
+            distributedPropertyMap.put(RemoteSession.DistributedMapKey.REQUEST_URI, requestURI);
+            distributedPropertyMap.put(RemoteSession.DistributedMapKey.REQUEST_PARAMETER_MAP, requestParameterMap);
+            distributedPropertyMap.put(RemoteSession.DistributedMapKey.QUERY_STRING, queryString == null ? "" : queryString);
+            distributedPropertyMap.put(RemoteSession.DistributedMapKey.PATH_PARAMETERS, this.pathParameters);
             if (userPrincipal != null) {
-                distributedPropertyMap.put(ClusterSession.DistributedMapKey.USER_PRINCIPAL, userPrincipal);
+                distributedPropertyMap.put(RemoteSession.DistributedMapKey.USER_PRINCIPAL, userPrincipal);
             }
 
             userProperties = clusterContext.getDistributedUserProperties(connectionId);
 
-            clusterContext.initClusteredSession(id, endpointWrapper.getEndpointPath(), new SessionEventListener(this));
+            clusterContext.registerSession(id, endpointWrapper.getEndpointPath(), new SessionEventListener(this));
         } else {
             id = UUID.randomUUID().toString();
             userProperties = new HashMap<String, Object>();
@@ -176,11 +176,6 @@ public class TyrusSession implements Session {
         }
     }
 
-    /**
-     * Web Socket protocol version used.
-     *
-     * @return protocol version
-     */
     @Override
     public String getProtocolVersion() {
         return "13"; // TODO
@@ -233,7 +228,7 @@ public class TyrusSession implements Session {
         checkConnectionState(State.CLOSED);
         this.maxBinaryMessageBufferSize = maxBinaryMessageBufferSize;
         if (distributedPropertyMap != null) {
-            distributedPropertyMap.put(ClusterSession.DistributedMapKey.MAX_BINARY_MESSAGE_BUFFER_SIZE, maxBinaryMessageBufferSize);
+            distributedPropertyMap.put(RemoteSession.DistributedMapKey.MAX_BINARY_MESSAGE_BUFFER_SIZE, maxBinaryMessageBufferSize);
         }
     }
 
@@ -247,13 +242,24 @@ public class TyrusSession implements Session {
         checkConnectionState(State.CLOSED);
         this.maxTextMessageBufferSize = maxTextMessageBufferSize;
         if (distributedPropertyMap != null) {
-            distributedPropertyMap.put(ClusterSession.DistributedMapKey.MAX_TEXT_MESSAGE_BUFFER_SIZE, maxTextMessageBufferSize);
+            distributedPropertyMap.put(RemoteSession.DistributedMapKey.MAX_TEXT_MESSAGE_BUFFER_SIZE, maxTextMessageBufferSize);
         }
     }
 
     @Override
     public Set<Session> getOpenSessions() {
-        return endpointWrapper.getOpenSessions(this);
+        return endpointWrapper.getOpenSessions();
+    }
+
+    /**
+     * Get set of remote sessions.
+     * <p/>
+     * Remote sessions are websocket sessions which are bound to another node in the cluster.
+     *
+     * @return set of remote sessions or empty set, when not running in cluster environment.
+     */
+    public Set<RemoteSession> getRemoteSessions() {
+        return endpointWrapper.getRemoteSessions();
     }
 
     @Override
@@ -272,7 +278,7 @@ public class TyrusSession implements Session {
         this.maxIdleTimeout = maxIdleTimeout;
         restartIdleTimeoutExecutor();
         if (distributedPropertyMap != null) {
-            distributedPropertyMap.put(ClusterSession.DistributedMapKey.MAX_IDLE_TIMEOUT, maxIdleTimeout);
+            distributedPropertyMap.put(RemoteSession.DistributedMapKey.MAX_IDLE_TIMEOUT, maxIdleTimeout);
         }
     }
 
@@ -409,7 +415,7 @@ public class TyrusSession implements Session {
     }
 
     /**
-     * Broadcasts binary message to all connected clients.
+     * Broadcasts binary message to all connected clients, including remote sessions (if any).
      *
      * @param message message to be broadcasted.
      * @return map of sessions and futures for user to get the information about status of the message.
