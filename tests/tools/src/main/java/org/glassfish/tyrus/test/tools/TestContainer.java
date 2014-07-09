@@ -110,7 +110,14 @@ public class TestContainer {
         return defaultHost;
     }
 
-    private int getPort() {
+    /**
+     * Get port used for creating remote endpoint {@link URI}.
+     *
+     * Can be overridden by {@link TestContainer} descendants.
+     *
+     * @return port used for creating remote endpoint {@link URI}.
+     */
+    protected int getPort() {
         final String port = System.getProperty("tyrus.test.port");
         if (port != null) {
             try {

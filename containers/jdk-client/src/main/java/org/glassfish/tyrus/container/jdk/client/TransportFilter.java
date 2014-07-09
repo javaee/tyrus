@@ -43,6 +43,7 @@ import java.io.IOException;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousChannelGroup;
+import java.nio.channels.AsynchronousCloseException;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
 import java.util.Queue;
@@ -216,6 +217,13 @@ class TransportFilter extends Filter {
     }
 
     private void read(final ByteBuffer inputBuffer) {
+        /**
+         * It must be checked that the channel has not been closed by {@link #close()} method.
+         */
+        if (!socketChannel.isOpen()) {
+            return;
+        }
+
         socketChannel.read(inputBuffer, null, new CompletionHandler<Integer, Void>() {
             @Override
             public void completed(Integer bytesRead, Void result) {
@@ -232,6 +240,14 @@ class TransportFilter extends Filter {
 
             @Override
             public void failed(Throwable exc, Void result) {
+                /**
+                 * Reading from the channel will fail if it is closing. In such cases {@link AsynchronousCloseException}
+                 * is thrown. This should not be logged and no action undertaken.
+                 */
+                if (exc instanceof AsynchronousCloseException) {
+                    return;
+                }
+                
                 LOGGER.log(Level.SEVERE, "Reading from a socket has failed", exc.getMessage());
                 upstreamFilter.onConnectionClosed();
             }

@@ -190,6 +190,8 @@ class SslFilter extends Filter {
                         return;
                     }
 
+                    applicationInputBuffer.clear();
+
                     SSLEngineResult result;
                     while (true) {
                         result = sslEngine.unwrap(networkData, applicationInputBuffer);

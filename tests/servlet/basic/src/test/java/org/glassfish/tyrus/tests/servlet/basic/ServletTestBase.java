@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -37,7 +37,6 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-
 package org.glassfish.tyrus.tests.servlet.basic;
 
 import java.io.IOException;
@@ -64,22 +63,26 @@ import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.junit.Test;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 /**
  * Primarily meant to test servlet integration, might be someday used for simple stress testing.
  *
+ * Tests are executed from descendant classes, which must implement {@link #getScheme()} method. This is used to enable
+ * testing with {@code ws} and {@code wss} schemes.
+ *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class ServletTest extends TestContainer {
+public abstract class ServletTestBase extends TestContainer {
 
     private static final String CONTEXT_PATH = "/servlet-test";
 
-    public ServletTest() {
+    public ServletTestBase() {
         setContextPath(CONTEXT_PATH);
     }
+
+    protected abstract String getScheme();
 
     @Test
     public void testPlainEchoShort() throws DeploymentException, InterruptedException, IOException {
@@ -106,7 +109,7 @@ public class ServletTest extends TestContainer {
                         // do nothing
                     }
                 }
-            }, ClientEndpointConfig.Builder.create().build(), getURI(PlainEchoEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
+            }, ClientEndpointConfig.Builder.create().build(), getURI(PlainEchoEndpoint.class.getAnnotation(ServerEndpoint.class).value(), getScheme()));
 
             messageLatch.await(1, TimeUnit.SECONDS);
             assertEquals(0, messageLatch.getCount());
@@ -142,7 +145,7 @@ public class ServletTest extends TestContainer {
                         // do nothing
                     }
                 }
-            }, ClientEndpointConfig.Builder.create().build(), getURI(PlainEchoEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
+            }, ClientEndpointConfig.Builder.create().build(), getURI(PlainEchoEndpoint.class.getAnnotation(ServerEndpoint.class).value(), getScheme()));
 
             messageLatch.await(20, TimeUnit.SECONDS);
             assertEquals(0, messageLatch.getCount());
@@ -177,7 +180,7 @@ public class ServletTest extends TestContainer {
                             // do nothing
                         }
                     }
-                }, ClientEndpointConfig.Builder.create().build(), getURI(PlainEchoEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
+                }, ClientEndpointConfig.Builder.create().build(), getURI(PlainEchoEndpoint.class.getAnnotation(ServerEndpoint.class).value(), getScheme()));
 
                 // TODO - remove when possible.
                 Thread.sleep(100);
@@ -210,7 +213,7 @@ public class ServletTest extends TestContainer {
                             }
                         });
                     }
-                }, ClientEndpointConfig.Builder.create().build(), getURI(PlainEchoEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
+                }, ClientEndpointConfig.Builder.create().build(), getURI(PlainEchoEndpoint.class.getAnnotation(ServerEndpoint.class).value(), getScheme()));
 
                 session.getBasicRemote().sendText("Do or do not, there is no try.");
                 // TODO - remove when possible.
@@ -264,7 +267,7 @@ public class ServletTest extends TestContainer {
                         // do nothing
                     }
                 }
-            }, ClientEndpointConfig.Builder.create().build(), getURI(PlainEchoEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
+            }, ClientEndpointConfig.Builder.create().build(), getURI(PlainEchoEndpoint.class.getAnnotation(ServerEndpoint.class).value(), getScheme()));
 
             messageLatch.await(1, TimeUnit.SECONDS);
             assertEquals(0, messageLatch.getCount());
@@ -300,7 +303,7 @@ public class ServletTest extends TestContainer {
                         // do nothing
                     }
                 }
-            }, ClientEndpointConfig.Builder.create().build(), getURI(PlainEchoEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
+            }, ClientEndpointConfig.Builder.create().build(), getURI(PlainEchoEndpoint.class.getAnnotation(ServerEndpoint.class).value(), getScheme()));
 
             messageLatch.await(10, TimeUnit.SECONDS);
             assertEquals(0, messageLatch.getCount());
@@ -335,7 +338,7 @@ public class ServletTest extends TestContainer {
                             // do nothing
                         }
                     }
-                }, ClientEndpointConfig.Builder.create().build(), getURI(PlainEchoEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
+                }, ClientEndpointConfig.Builder.create().build(), getURI(PlainEchoEndpoint.class.getAnnotation(ServerEndpoint.class).value(), getScheme()));
 
                 // TODO - remove when possible.
                 Thread.sleep(300);
@@ -357,7 +360,7 @@ public class ServletTest extends TestContainer {
         try {
             final ClientManager client = createClient();
 
-            URI uri = getURI(RequestUriEndpoint.class.getAnnotation(ServerEndpoint.class).value());
+            URI uri = getURI(RequestUriEndpoint.class.getAnnotation(ServerEndpoint.class).value(), getScheme());
             uri = URI.create(uri.toString() + "?test=1;aaa");
 
             client.connectToServer(new Endpoint() {
@@ -395,7 +398,7 @@ public class ServletTest extends TestContainer {
         try {
             final ClientManager client = createClient();
 
-            URI uri = getURI(OnOpenCloseEndpoint.class.getAnnotation(ServerEndpoint.class).value());
+            URI uri = getURI(OnOpenCloseEndpoint.class.getAnnotation(ServerEndpoint.class).value(), getScheme());
 
             client.connectToServer(new Endpoint() {
                 @Override
@@ -442,7 +445,7 @@ public class ServletTest extends TestContainer {
                         }
                     });
                 }
-            }, ClientEndpointConfig.Builder.create().build(), getURI(MultiEchoEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
+            }, ClientEndpointConfig.Builder.create().build(), getURI(MultiEchoEndpoint.class.getAnnotation(ServerEndpoint.class).value(), getScheme()));
 
             session.getBasicRemote().sendText(text);
 
@@ -482,7 +485,7 @@ public class ServletTest extends TestContainer {
                             }
                         });
                     }
-                }, ClientEndpointConfig.Builder.create().build(), getURI(TyrusBroadcastEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
+                }, ClientEndpointConfig.Builder.create().build(), getURI(TyrusBroadcastEndpoint.class.getAnnotation(ServerEndpoint.class).value(), getScheme()));
                 System.out.println("Client " + i + " connected.");
                 sessions.add(session);
             }
@@ -497,7 +500,7 @@ public class ServletTest extends TestContainer {
             assertEquals(0, messageLatch.getCount());
             System.out.println("***** Tyrus broadcast - text ***** " + (System.currentTimeMillis() - l));
         } finally {
-            for(Session session : sessions) {
+            for (Session session : sessions) {
                 session.close();
             }
 
@@ -541,7 +544,7 @@ public class ServletTest extends TestContainer {
 
 
                     }
-                }, ClientEndpointConfig.Builder.create().build(), getURI(TyrusBroadcastEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
+                }, ClientEndpointConfig.Builder.create().build(), getURI(TyrusBroadcastEndpoint.class.getAnnotation(ServerEndpoint.class).value(), getScheme()));
                 System.out.println("Client " + i + " connected.");
                 sessions.add(session);
             }
@@ -556,7 +559,7 @@ public class ServletTest extends TestContainer {
             assertEquals(0, messageLatch.getCount());
             System.out.println("***** Tyrus broadcast - binary ***** " + (System.currentTimeMillis() - l));
         } finally {
-            for(Session session : sessions) {
+            for (Session session : sessions) {
                 session.close();
             }
 
@@ -593,7 +596,7 @@ public class ServletTest extends TestContainer {
                             }
                         });
                     }
-                }, ClientEndpointConfig.Builder.create().build(), getURI(WebSocketBroadcastEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
+                }, ClientEndpointConfig.Builder.create().build(), getURI(WebSocketBroadcastEndpoint.class.getAnnotation(ServerEndpoint.class).value(), getScheme()));
                 System.out.println("Client " + i + " connected.");
                 sessions.add(session);
             }
@@ -610,7 +613,7 @@ public class ServletTest extends TestContainer {
             System.out.println("***** WebSocket broadcast ***** " + (System.currentTimeMillis() - l));
 
         } finally {
-            for(Session session : sessions) {
+            for (Session session : sessions) {
                 session.close();
             }
 
@@ -648,7 +651,7 @@ public class ServletTest extends TestContainer {
                             }
                         });
                     }
-                }, ClientEndpointConfig.Builder.create().build(), getURI(TyrusBroadcastEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
+                }, ClientEndpointConfig.Builder.create().build(), getURI(TyrusBroadcastEndpoint.class.getAnnotation(ServerEndpoint.class).value(), getScheme()));
                 System.out.println("Client " + i + " connected.");
                 sessions.add(session);
             }
@@ -663,7 +666,7 @@ public class ServletTest extends TestContainer {
             assertEquals(0, messageLatch.getCount());
             System.out.println("***** Tyrus broadcast - text ***** " + (System.currentTimeMillis() - l));
         } finally {
-            for(Session session : sessions) {
+            for (Session session : sessions) {
                 session.close();
             }
 
@@ -701,7 +704,7 @@ public class ServletTest extends TestContainer {
                             }
                         });
                     }
-                }, ClientEndpointConfig.Builder.create().build(), getURI(TyrusBroadcastEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
+                }, ClientEndpointConfig.Builder.create().build(), getURI(TyrusBroadcastEndpoint.class.getAnnotation(ServerEndpoint.class).value(), getScheme()));
                 System.out.println("Client " + i + " connected.");
                 sessions.add(session);
             }
@@ -716,7 +719,7 @@ public class ServletTest extends TestContainer {
             assertEquals(0, messageLatch.getCount());
             System.out.println("***** Tyrus broadcast - binary ***** " + (System.currentTimeMillis() - l));
         } finally {
-            for(Session session : sessions) {
+            for (Session session : sessions) {
                 session.close();
             }
 
@@ -754,7 +757,7 @@ public class ServletTest extends TestContainer {
                             }
                         });
                     }
-                }, ClientEndpointConfig.Builder.create().build(), getURI(WebSocketBroadcastEndpoint.class.getAnnotation(ServerEndpoint.class).value()));
+                }, ClientEndpointConfig.Builder.create().build(), getURI(WebSocketBroadcastEndpoint.class.getAnnotation(ServerEndpoint.class).value(), getScheme()));
                 System.out.println("Client " + i + " connected.");
                 sessions.add(session);
             }
@@ -771,7 +774,7 @@ public class ServletTest extends TestContainer {
             System.out.println("***** WebSocket broadcast ***** " + (System.currentTimeMillis() - l));
 
         } finally {
-            for(Session session : sessions) {
+            for (Session session : sessions) {
                 session.close();
             }
 
