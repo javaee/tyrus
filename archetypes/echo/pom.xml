@@ -44,7 +44,7 @@
     <parent>
         <groupId>org.glassfish.tyrus.archetypes</groupId>
         <artifactId>tyrus-archetypes-project</artifactId>
-        <version>1.8-b01</version>
+        <version>1.8-SNAPSHOT</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <description>
