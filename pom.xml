@@ -151,7 +151,7 @@
     </contributors>
 
     <properties>
-        <websocket-api.version>1.1-SNAPSHOT</websocket-api.version>
+        <websocket-api.version>1.1-b01</websocket-api.version>
         <websocket.api.build_number>18</websocket.api.build_number>
 
         <servlet.api.version>3.1.0</servlet.api.version>
@@ -465,6 +465,20 @@
             </modules>
         </profile>
     </profiles>
+
+    <repositories>
+        <repository>
+            <id>jvnet-nexus-promoted</id>
+            <name>Java.net Promoted Repositories</name>
+            <url>https://maven.java.net/content/repositories/promoted/</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
 
     <reporting>
         <excludeDefaults>true</excludeDefaults>
