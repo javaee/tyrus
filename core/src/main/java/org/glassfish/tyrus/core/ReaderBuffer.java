@@ -40,6 +40,7 @@
 
 package org.glassfish.tyrus.core;
 
+import java.io.IOException;
 import java.io.Reader;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -70,12 +71,13 @@ class ReaderBuffer {
 
     private static final Logger LOGGER = Logger.getLogger(ReaderBuffer.class.getName());
 
-    private boolean receivedLast = false;
-    private int bufferSize;
-    private int currentlyBuffered;
-    private StringBuffer buffer;
-    private BufferedStringReader reader = null;
-    private MessageHandler.Whole<Reader> messageHandler;
+    private volatile boolean receivedLast = false;
+    private volatile int bufferSize;
+    private volatile int currentlyBuffered;
+    private volatile StringBuffer buffer;
+    private volatile BufferedStringReader reader = null;
+    private volatile MessageHandler.Whole<Reader> messageHandler;
+    private volatile boolean sessionClosed = false;
 
     /**
      * Constructor.
@@ -91,7 +93,7 @@ class ReaderBuffer {
      *
      * @return next received chars.
      */
-    public char[] getNextChars(int number) {
+    public char[] getNextChars(int number) throws IOException {
         lock.lock();
         try {
             if (buffer.length() == 0) {
@@ -101,11 +103,16 @@ class ReaderBuffer {
                     this.currentlyBuffered = 0;
                     return null;
                 } else { // there's more to come...so wait here...
+                    // don't let the reader block on a closed session
+                    checkClosedSession();
+
                     boolean interrupted;
                     do {
                         interrupted = false;
                         try {
                             condition.await();
+
+                            checkClosedSession();
                         } catch (InterruptedException e) {
                             interrupted = true;
                         }
@@ -191,5 +198,22 @@ class ReaderBuffer {
         buffering.set(true);
         currentlyBuffered = 0;
         buffer.delete(0, buffer.length());
+    }
+
+    void onSessionClosed() {
+        sessionClosed = true;
+        lock.lock();
+        try {
+            // wake up blocked thread
+            condition.signalAll();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private void checkClosedSession() throws IOException {
+        if (sessionClosed) {
+            throw new IOException("Websocket session has been closed.");
+        }
     }
 }

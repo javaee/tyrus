@@ -205,14 +205,14 @@ public class TyrusSession implements Session {
 
     @Override
     public void close() throws IOException {
-        cancelHeartBeatTask();
+        cleanAfterClose();
         changeStateToClosed();
         basicRemote.close(new CloseReason(CloseReason.CloseCodes.NORMAL_CLOSURE, null));
     }
 
     @Override
     public void close(CloseReason closeReason) throws IOException {
-        cancelHeartBeatTask();
+        cleanAfterClose();
         checkConnectionState(State.CLOSED);
         changeStateToClosed();
         basicRemote.close(closeReason);
@@ -633,7 +633,7 @@ public class TyrusSession implements Session {
             this.state.set(state);
 
             if (state.equals(State.CLOSED)) {
-                cancelHeartBeatTask();
+                cleanAfterClose();
             }
         }
     }
@@ -683,6 +683,18 @@ public class TyrusSession implements Session {
         if (heartbeatTask != null && !heartbeatTask.isCancelled()) {
             heartbeatTask.cancel(true);
         }
+    }
+
+    private void cleanAfterClose() {
+        if (readerBuffer != null) {
+            readerBuffer.onSessionClosed();
+        }
+
+        if (inputStreamBuffer != null) {
+            inputStreamBuffer.onSessionClosed();
+        }
+
+        cancelHeartBeatTask();
     }
 
     /**
