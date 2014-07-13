@@ -376,6 +376,12 @@ public final class ProtocolHandler {
 
     byte checkForLastFrame(Frame frame) {
         byte local = frame.getOpcode();
+
+        if (frame.isControlFrame()) {
+            local |= 0x80;
+            return local;
+        }
+
         if (!frame.isFin()) {
             if (outFragmentedType != 0) {
                 local = 0x00;

@@ -57,7 +57,6 @@ import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.tools.TestContainer;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -70,14 +69,6 @@ import static org.junit.Assert.fail;
  * @author Petr Janouch (petr.janouch at oracle.com)
  */
 public class BlockingInputTest extends TestContainer {
-    /**
-     * Latch waiting for the blocked thread to be released.
-     */
-    private static volatile CountDownLatch threadReleasedLatch = null;
-    /**
-     * Latch waiting for a message from the server.
-     */
-    private static volatile CountDownLatch messageLatch = null;
 
     /**
      * Test that a thread blocked in {@link java.io.Reader} on the client side gets released if the session is closed by the client.
@@ -86,12 +77,12 @@ public class BlockingInputTest extends TestContainer {
     public void testReaderCloseByClient() {
         Server server = null;
         try {
-            threadReleasedLatch = new CountDownLatch(1);
-            messageLatch = new CountDownLatch(1);
+            CountDownLatch threadReleasedLatch = new CountDownLatch(1);
+            CountDownLatch messageLatch = new CountDownLatch(1);
 
             server = startServer(AnnotatedServerTextEndpoint.class);
             ClientManager client = createClient();
-            Session session = client.connectToServer(CloseByClientEndpoint.class, getURI(AnnotatedServerTextEndpoint.class));
+            Session session = client.connectToServer(new CloseByClientEndpoint(threadReleasedLatch, messageLatch), getURI(AnnotatedServerTextEndpoint.class));
 
             assertTrue(messageLatch.await(1, TimeUnit.SECONDS));
             // give the client endpoint some time to get blocked
@@ -113,12 +104,12 @@ public class BlockingInputTest extends TestContainer {
     public void testInputStreamCloseByClient() {
         Server server = null;
         try {
-            threadReleasedLatch = new CountDownLatch(1);
-            messageLatch = new CountDownLatch(1);
+            CountDownLatch threadReleasedLatch = new CountDownLatch(1);
+            CountDownLatch messageLatch = new CountDownLatch(1);
 
             server = startServer(AnnotatedServerBinaryEndpoint.class);
             ClientManager client = createClient();
-            Session session = client.connectToServer(CloseByClientEndpoint.class, getURI(AnnotatedServerBinaryEndpoint.class));
+            Session session = client.connectToServer(new CloseByClientEndpoint(threadReleasedLatch, messageLatch), getURI(AnnotatedServerBinaryEndpoint.class));
 
             assertTrue(messageLatch.await(1, TimeUnit.SECONDS));
             // give the client endpoint some time to get blocked
@@ -140,11 +131,11 @@ public class BlockingInputTest extends TestContainer {
     public void testReaderCloseByServer() {
         Server server = null;
         try {
-            threadReleasedLatch = new CountDownLatch(1);
+            CountDownLatch threadReleasedLatch = new CountDownLatch(1);
 
             server = startServer(AnnotatedServerTextEndpoint.class);
             ClientManager client = createClient();
-            client.connectToServer(CloseByServerEndpoint.class, getURI(AnnotatedServerTextEndpoint.class));
+            client.connectToServer(new CloseByServerEndpoint(threadReleasedLatch), getURI(AnnotatedServerTextEndpoint.class));
 
             assertTrue(threadReleasedLatch.await(1, TimeUnit.SECONDS));
         } catch (Exception e) {
@@ -158,17 +149,15 @@ public class BlockingInputTest extends TestContainer {
     /**
      * Test that a thread blocked in {@link java.io.InputStream} on the client side gets released if the session is closed by the server.
      */
-    // TODO ignored because of bug TYRUS-341
-    @Ignore
     @Test
     public void testInputStreamCloseByServer() {
         Server server = null;
         try {
-            threadReleasedLatch = new CountDownLatch(1);
+            CountDownLatch threadReleasedLatch = new CountDownLatch(1);
 
             server = startServer(AnnotatedServerBinaryEndpoint.class);
             ClientManager client = createClient();
-            client.connectToServer(CloseByServerEndpoint.class, getURI(AnnotatedServerBinaryEndpoint.class));
+            client.connectToServer(new CloseByServerEndpoint(threadReleasedLatch), getURI(AnnotatedServerBinaryEndpoint.class));
 
             assertTrue(threadReleasedLatch.await(1, TimeUnit.SECONDS));
         } catch (Exception e) {
@@ -186,11 +175,11 @@ public class BlockingInputTest extends TestContainer {
     public void testReaderWithClosedSession() {
         Server server = null;
         try {
-            threadReleasedLatch = new CountDownLatch(1);
+            CountDownLatch threadReleasedLatch = new CountDownLatch(1);
 
             server = startServer(AnnotatedServerTextEndpoint.class);
             ClientManager client = createClient();
-            client.connectToServer(ReadFromClosedSessionEndpoint.class, getURI(AnnotatedServerTextEndpoint.class));
+            client.connectToServer(new ReadFromClosedSessionEndpoint(threadReleasedLatch), getURI(AnnotatedServerTextEndpoint.class));
 
             assertTrue(threadReleasedLatch.await(1, TimeUnit.SECONDS));
         } catch (Exception e) {
@@ -208,11 +197,11 @@ public class BlockingInputTest extends TestContainer {
     public void testInputStreamWithClosedSession() {
         Server server = null;
         try {
-            threadReleasedLatch = new CountDownLatch(1);
+            CountDownLatch threadReleasedLatch = new CountDownLatch(1);
 
             server = startServer(AnnotatedServerBinaryEndpoint.class);
             ClientManager client = createClient();
-            client.connectToServer(ReadFromClosedSessionEndpoint.class, getURI(AnnotatedServerBinaryEndpoint.class));
+            client.connectToServer(new ReadFromClosedSessionEndpoint(threadReleasedLatch), getURI(AnnotatedServerBinaryEndpoint.class));
 
             assertTrue(threadReleasedLatch.await(1, TimeUnit.SECONDS));
         } catch (Exception e) {
@@ -258,6 +247,15 @@ public class BlockingInputTest extends TestContainer {
     @ClientEndpoint
     public static class CloseByServerEndpoint {
 
+        /**
+         * Latch waiting for the blocked thread to be released.
+         */
+        private final CountDownLatch threadReleasedLatch;
+
+        public CloseByServerEndpoint(CountDownLatch threadReleasedLatch) {
+            this.threadReleasedLatch = threadReleasedLatch;
+        }
+
         @OnMessage
         public void onMessage(Session session, Reader reader) throws IOException {
             reader.read();
@@ -286,6 +284,20 @@ public class BlockingInputTest extends TestContainer {
     @ClientEndpoint
     public static class CloseByClientEndpoint {
 
+        /**
+         * Latch waiting for the blocked thread to be released.
+         */
+        private final CountDownLatch threadReleasedLatch;
+        /**
+         * Latch waiting for a message from the server.
+         */
+        private final CountDownLatch messageLatch;
+
+        public CloseByClientEndpoint(CountDownLatch threadReleasedLatch, CountDownLatch messageLatch) {
+            this.threadReleasedLatch = threadReleasedLatch;
+            this.messageLatch = messageLatch;
+        }
+
         @OnMessage
         public void onMessage(Session session, Reader reader) throws IOException {
             reader.read();
@@ -311,6 +323,15 @@ public class BlockingInputTest extends TestContainer {
 
     @ClientEndpoint
     public static class ReadFromClosedSessionEndpoint {
+
+        /**
+         * Latch waiting for the blocked thread to be released.
+         */
+        private final CountDownLatch threadReleasedLatch;
+
+        public ReadFromClosedSessionEndpoint(CountDownLatch threadReleasedLatch) {
+            this.threadReleasedLatch = threadReleasedLatch;
+        }
 
         @OnMessage
         public void onMessage(Session session, Reader reader) throws IOException {
