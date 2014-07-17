@@ -103,7 +103,7 @@ public interface ClientEngine {
      * <p/>
      * When {@link #getUpgradeStatus()} returns {@link ClientUpgradeStatus#ANOTHER_UPGRADE_REQUEST_REQUIRED}, client
      * container HAS TO close all resources related to currently processed {@link UpgradeResponse}, open new TCP
-     * connection and send {@link UpgradeRequest} obtained from method {@link #getUpgradeRequest()}.
+     * connection and send {@link UpgradeRequest} obtained from method {@link #createUpgradeRequest(URI, TimeoutHandler)}.
      */
     public interface ClientUpgradeInfo {
 
@@ -113,15 +113,6 @@ public interface ClientEngine {
          * @return {@link ClientUpgradeStatus}.
          */
         ClientUpgradeStatus getUpgradeStatus();
-
-        /**
-         * Get next {@link UpgradeRequest} when {@link #getUpgradeStatus()} returns
-         * {@link ClientUpgradeStatus#ANOTHER_UPGRADE_REQUEST_REQUIRED}.
-         *
-         * @return next {@link UpgradeRequest} or {@code null}, when {@link #getUpgradeStatus()} does not return
-         * {@link ClientUpgradeStatus#ANOTHER_UPGRADE_REQUEST_REQUIRED}.
-         */
-        UpgradeRequest getUpgradeRequest();
 
         /**
          * Create new {@link Connection} when {@link #getUpgradeStatus()} returns {@link ClientUpgradeStatus#SUCCESS}.
@@ -141,7 +132,7 @@ public interface ClientEngine {
         /**
          * Client engine needs to send another request.
          *
-         * @see ClientUpgradeInfo#getUpgradeRequest()
+         * @see #createUpgradeRequest(URI, TimeoutHandler)
          */
         ANOTHER_UPGRADE_REQUEST_REQUIRED,
 

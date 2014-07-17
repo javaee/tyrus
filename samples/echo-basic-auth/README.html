@@ -1,0 +1,150 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!--
+
+    DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
+
+    Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+
+    The contents of this file are subject to the terms of either the GNU
+    General Public License Version 2 only ("GPL") or the Common Development
+    and Distribution License("CDDL") (collectively, the "License").  You
+    may not use this file except in compliance with the License.  You can
+    obtain a copy of the License at
+    http://glassfish.java.net/public/CDDL+GPL_1_1.html
+    or packager/legal/LICENSE.txt.  See the License for the specific
+    language governing permissions and limitations under the License.
+
+    When distributing the software, include this License Header Notice in each
+    file and include the License file at packager/legal/LICENSE.txt.
+
+    GPL Classpath Exception:
+    Oracle designates this particular file as subject to the "Classpath"
+    exception as provided by Oracle in the GPL Version 2 section of the License
+    file that accompanied this code.
+
+    Modifications:
+    If applicable, add the following below the License Header, with the fields
+    enclosed by brackets [] replaced by your own identifying information:
+    "Portions Copyright [year] [name of copyright owner]"
+
+    Contributor(s):
+    If you wish your version of this file to be governed by only the CDDL or
+    only the GPL Version 2, indicate your decision by adding "[Contributor]
+    elects to include this software in this distribution under the [CDDL or GPL
+    Version 2] license."  If you don't indicate a single choice of license, a
+    recipient has the option to distribute your version of this file under
+    either the CDDL, the GPL Version 2 or to extend the choice of license to
+    its licensees as provided above.  However, if you add GPL Version 2 code
+    and therefore, elected the GPL Version 2 license, then the option applies
+    only if the new code is made subject to such option by the copyright
+    holder.
+
+-->
+<html>
+
+<head><title>Basic Authentication Sample</title></head>
+
+<body>
+<h1>Basic Authentication Sample</h1>
+
+<p>This sample demonstrates how to configure Tyrus client to connect on access protected server endpoint over HTTPS.</p>
+
+<h2>Contents</h2>
+
+<p>
+    The application utilizes access protected endpoint <code>org.glassfish.tyrus.sample.echo.auth.BasicAuthEchoEndpoint</code>
+    to receive messages, add the text and send it back.
+    Server endpoint is configured in web.xml to be under access protected resource and Authentication scheme is set to Basic.
+    Transport guarantee is set to CONFIDENTIAL, which basically means over HTTPS.
+</p>
+
+<p>
+    Configuration of client is quite simple, have a look at <code>org.glassfish.tyrus.sample.echo.auth.SampleBasicAuthTest</code>.
+    If you use Basic or Digest Authentication scheme only <code>ClientProperties.CREDENTIALS</code> property must be set
+    on client and that's it.
+    Hint: It might be useful to deploy some static content into protected area with your server endpoint. If your
+    client does not work at the first attempt you can simply test server configuration in web browser.
+</p>
+
+<h2>Running the Example with <a href="https://glassfish.java.net">Glassfish</a></h2>
+
+<p>Run the example as follows:</p>
+<ul>
+    <li>
+        <p>Create war package</p>
+        <blockquote><code>mvn clean package</code></blockquote>
+    </li>
+    <li>
+        <p>Setup GlassFish 4.0 (installed at <code>AS_HOME=&lt;install_dir&gt;/glassfish4</code>):
+        <ul>
+            <li>Add new security realm called "<code>ws-realm</code>"
+                <ul>
+                    <li>Start GlassFish using asadmin <code>$AS_HOME/bin/asadmin start-domain</code></li>
+                    <li>Access Admin console, assuming the use of default admin port, at
+                        <a href="http://localhost:4848">http://localhost:4848</a>
+                    </li>
+                    <li>Navigate in Admin console to: <code>Configurations -&gt; server-config -&gt; Security -&gt;
+                        Realms</code>,
+                        click on "<code>New...</code>"
+                        <table border="1px">
+                            <tr>
+                                <th>Name</th>
+                                <td><code>ws-realm</code></td>
+                            </tr>
+                            <tr>
+                                <th>Class Name</th>
+                                <td><code>com.sun.enterprise.security.auth.realm.file.FileRealm</code></td>
+                            </tr>
+                            <tr>
+                                <th>JAAS context</th>
+                                <td><code>ws-realm</code></td>
+                            </tr>
+                            <tr>
+                                <th>Key File</th>
+                                <td><code>${com.sun.aas.instanceRoot}/config/ws-realm-keyfile</code></td>
+                            </tr>
+                        </table>
+                    </li>
+                    <li>Create user and set password for user <code>ws_user</code> (click on "<code>ws-realm</code>" -&gt;
+                        "<code>Manage Users</code>" -&gt; "<code>New...</code>");
+                        <ul>
+                            <li><strong>Ensure</strong> "<code>User ID:</code>" set to "<code>ws_user</code>"
+                                <strong>and</strong>
+                                "<code>Group List:</code>" set to "<code>ws_users</code>"
+                            </li>
+                            <li>Enter password <strong><code>password</code></strong> in "<code>New Password:</code>"
+                                and
+                                "<code>Confirm New Password:</code>" text fields
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+            <li>Check <code>web.xml</code> and <code>glassfish-web.xml</code> to understand how role mappings are
+                configured.
+                <a href="http://blogs.oracle.com/bobby/entry/simplified_security_role_mapping">This blog</a> is also
+                helpful
+                in helping to clarify role mappings.
+            </li>
+            <li>deploy:
+                <blockquote><code>$AS_MAIN/bin/asadmin start-domain</code></blockquote>
+                <blockquote><code>$AS_MAIN/bin/asadmin deploy ./target/*war</code></blockquote>
+            </li>
+            <li>Run tests in echo-basic-auth module:
+                <blockquote><code>mvn clean test -Djavax.net.ssl.trustStore=$AS_MAIN/domains/domain1/config/cacerts.jks
+                    -Djavax.net.ssl.trustStorePassword=changeit -Dtyrus.test.host=localhost -DskipTests=false
+                    -Dtyrus.test.port=8181 -Djavax.net.debug=all</code></blockquote>
+            </li>
+            <li>From a web browser, visit:
+                <blockquote><code><a href="https://localhost:8181/sample-echo-basic-auth">https://localhost:8181/sample-echo-basic-auth</a></code>
+                </blockquote>
+                <ul>
+                    <li>Enter either Username <code>ws_user</code> and Password <code>password</code>
+                </ul>
+            </li>
+        </ul>
+</ul>
+
+</body>
+</html>
+

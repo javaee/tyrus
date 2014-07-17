@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -53,6 +53,11 @@ import javax.websocket.HandshakeResponse;
 public abstract class UpgradeResponse implements HandshakeResponse {
 
     /**
+     * Header containing challenge with authentication scheme and parameters.
+     */
+    public static final String WWW_AUTHENTICATE = "WWW-Authenticate";
+
+    /**
      * Gets the current HTTP status code of this response.
      *
      * @return the current HTTP status code.
@@ -68,7 +73,7 @@ public abstract class UpgradeResponse implements HandshakeResponse {
 
     /**
      * Get HTTP reason phrase.
-     *
+     * <p/>
      * TODO remove ?? we are using only for "Switching Protocols" and that is
      * TODO standard status code 101
      */
@@ -94,10 +99,10 @@ public abstract class UpgradeResponse implements HandshakeResponse {
      *
      * @param name header name.
      * @return the value of the response header with the given name,
-     *         null if no header with the given name has been set
-     *         on this response.
-     *         TODO rename to getHeader(String name) ?? similar to
-     *         TODO HttpServletResponse#getHeader(String)
+     * null if no header with the given name has been set
+     * on this response.
+     * TODO rename to getHeader(String name) ?? similar to
+     * TODO HttpServletResponse#getHeader(String)
      */
     public String getFirstHeaderValue(String name) {
         final List<String> stringList = getHeaders().get(name);

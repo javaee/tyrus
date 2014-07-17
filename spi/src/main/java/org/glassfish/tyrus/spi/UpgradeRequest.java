@@ -104,6 +104,11 @@ public abstract class UpgradeRequest implements HandshakeRequest {
     public static final String SERVER_KEY_HASH = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 
     /**
+     * HTTP "Authorization" header name.
+     */
+    public static final String AUTHORIZATION = "Authorization";
+
+    /**
      * Returns the value of the specified request header name. If there are
      * multiple headers with the same name, this method returns the first
      * header in the request. The header name is case insensitive.

@@ -891,4 +891,185 @@ TyrusServerEndpointConfig.Builder.create(LimitedSessionsEndpoint.class,
             </para>
         </section>
     </section>
+    <section>
+        <title>Client HTTP Authentication</title>
+        <para>
+            For server endpoints which is protected by HTTP authentication, Tyrus provides a mechanism to authenticate
+            client.
+            When client receives HTTP response status code<code>401 - Unauthorized</code>, then Tyrus extracts required
+            scheme from
+            <code>WWW-Authenticate</code>
+            challenge. Then it chooses an
+            authenticator from a map of registered authenticators and uses configured<code>credentials</code>.
+            If no proper authenticator is found or credentials are missing, then
+            <code>AuthenticationException</code>
+            is thrown before the handshake can be done.
+            There are implementations of the two most used authentication schemes in Tyrus: BASIC and DIGEST, but it is
+            also possible to implement your own authenticator and register it with a configuration builder
+            <code>org.glassfish.tyrus.client.auth.AuthConfig.Builder</code>
+            or even to override default BASIC or DIGEST
+            auth implementations.
+            If no
+            <code>org.glassfish.tyrus.client.auth.AuthConfig</code>
+            client property is set, then default
+            configuration is used. It is constructed as you can see bellow: BASIC and DIGEST internal implementations
+            are
+            enabled by default.
+        </para>
+        <para>
+            Please note that Basic Authentication scheme should be used over HTTPS connection only.
+        </para>
+        <section>
+            <title>Credentials</title>
+            <para>
+                Credentials are required for both implemented authentication schemes in Tyrus. You can pass an instance
+                into ClientManager as a property:
+                <programlisting language="java" linenumbering="numbered">
+                    <![CDATA[
+  client.getProperties().put(ClientProperties.CREDENTIALS, new Credentials("ws_user", "password".getBytes(AuthConfig.CHARACTER_SET));
+                    ]]>
+                </programlisting>
+            </para>
+        </section>
+
+        <section>
+            <title>Auth Configuration</title>
+            <para>
+                <code>org.glassfish.tyrus.client.auth.AuthConfig</code>
+                provides a way to configure of HTTP authentication schemes.
+                Creating an instance of
+                <code>org.glassfish.tyrus.client.auth.AuthConfig</code>
+                is optional.
+                If you don't specify AuthConfig, then default instance will be created like in following code listing
+            </para>
+            <para>
+                <programlisting language="java" linenumbering="numbered">
+                    <![CDATA[
+  AuthConfig authConfig = AuthConfig.Builder.create().build();
+  ClientManager client = ClientManager.createClient();
+  client.getProperties().put(ClientProperties.AUTH_CONFIG, authConfig);
+                    ]]>
+                </programlisting>
+            </para>
+            <para>
+                If authentication is required after an initial upgrade request, Tyrus chooses a proper authentication
+                scheme based on a received challenge from server. There are two HTTP authentication scheme implemented
+                and registered
+                by default.
+            </para>
+        </section>
+
+        <section>
+            <title>User defined authenticator</title>
+            <para>
+                Tyrus provides an option to implement your own client HTTP authenticator by extending
+                <code>org.glassfish.tyrus.client.auth.Authenticator</code>
+                and implementing<code>generateAuthorizationHeader</code>.
+                Request URI,
+                <code>WWW-Authenticate</code>
+                response header and provided
+                <code>Credentials</code>
+                are
+                passed as parameters. Method must return response to authentication challenge as it is required by HTTP
+                server.
+                An instance of the implemented class must be passed to the Tyrus configuration with
+                <code>org.glassfish.tyrus.client.auth.AuthConfig.Builder#setAuthScheme(String scheme, Authenticator
+                    userDefinedAuthenticator)
+                </code>
+                and created
+                <code>AuthConfig</code>
+                instance must be put into client properties.
+            </para>
+            <para>Authenticator.java</para>
+            <programlisting language="java" linenumbering="numbered">
+                <![CDATA[
+package org.glassfish.tyrus.client;
+
+import java.net.URI;
+
+/**
+ * Http Authentication provider.
+ * Class generates authorization token as a input for {@code Authorization} HTTP request header.
+ *
+ * @author Ondrej Kosatka (ondrej.kosatka at oracle.com)
+ */
+public abstract class Authenticator {
+
+    /**
+     * Generates authorization tokens as a input for {@code Authorization} HTTP request header.
+     * @param uri URI is needed for generating authorization tokens for some authentication scheme (DIGEST: {@link DigestAuthenticator})
+     * @param wwwAuthenticateHeader a value of header {@code WWW-Authenticate} from HTTP response.
+     * @param credentials credentials.
+     * @return generated {@link String} value of {@code Authorization}.
+     * @throws AuthenticationException if is not possible to create auth token.
+     */
+    public abstract String generateAuthorizationHeader(final URI uri, final String wwwAuthenticateHeader, final Credentials credentials) throws AuthenticationException;
+
+}
+                ]]>
+            </programlisting>
+        </section>
+
+        <section>
+            <title>Examples</title>
+            <para>
+                The simplest way to setup Tyrus authentication is by adding client property
+                <code>ClientProperties.CREDENTIALS</code>
+                <programlisting language="java" linenumbering="numbered">
+                    <![CDATA[
+  client.getProperties().put(ClientProperties.CREDENTIALS, new Credentials("ws_user", "password");
+                    ]]>
+                </programlisting>
+            </para>
+            <para>
+                How to configure Tyrus with suppressing Basic authentication, even if server side challenges Basic
+                authentication scheme.
+                <programlisting language="java" linenumbering="numbered">
+                    <![CDATA[
+  AuthConfig authConfig = AuthConfig.Builder.create().
+                               disableBasicAuth().
+                               build();
+  Credentials credentials = new Credentials("ws_user", "password");
+  client.getProperties().put(ClientProperties.AUTH_CONFIG, authConfig);
+  client.getProperties().put(ClientProperties.CREDENTIALS, credentials);
+                    ]]>
+                </programlisting>
+            </para>
+            <para>
+                How to configure Tyrus using user defined DIGEST authentication and Tyrus Basic authentication. User
+                defined
+                authentication provider
+                <code>MyOwnDigestAuthenticator</code>
+                must extend<code>org.glassfish.tyrus.client.auth.Authenticator</code>.
+                <programlisting language="java" linenumbering="numbered">
+                    <![CDATA[
+  AuthConfig authConfig = AuthConfig.Builder.create().
+                               putAuthProvider("Digest", new MyOwnDigestAuthenticator()).
+                               build();
+  Credentials credentials = new Credentials("ws_user", "password");
+  client.getProperties().put(ClientProperties.AUTH_CONFIG, authConfig);
+  client.getProperties().put(ClientProperties.CREDENTIALS, credentials);
+                ]]>
+                </programlisting>
+            </para>
+            <para>
+                How to configure Tyrus using user defined NTLM authentication and suppress Tyrus Basic authentication,
+                even if server side challenges Basic authentication scheme.. User defined
+                authentication provider
+                <code>MyOwnNTLMAuthenticator</code>
+                must extend<code>org.glassfish.tyrus.client.auth.Authenticator</code>.
+                <programlisting language="java" linenumbering="numbered">
+                    <![CDATA[
+  AuthConfig authConfig = AuthConfig.Builder.create().
+                               disableBasicAuth().
+                               putAuthProvider("NTLM", new MyOwnNTLMAuthenticator()).
+                               build();
+  Credentials credentials = new Credentials("ws_user", "password");
+  client.getProperties().put(ClientProperties.AUTH_CONFIG, authConfig);
+  client.getProperties().put(ClientProperties.CREDENTIALS, credentials);
+                ]]>
+                </programlisting>
+            </para>
+        </section>
+    </section>
 </chapter>

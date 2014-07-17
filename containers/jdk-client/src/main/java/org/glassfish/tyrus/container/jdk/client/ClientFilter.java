@@ -82,7 +82,6 @@ class ClientFilter extends Filter {
 
     private volatile Connection wsConnection;
     private volatile boolean connectedToProxy = false;
-    private volatile UpgradeRequest upgradeRequest;
 
 
     /**
@@ -102,14 +101,14 @@ class ClientFilter extends Filter {
 
     @Override
     public void onConnect(final Filter downstreamFilter) {
-        upgradeRequest = engine.createUpgradeRequest(uri, new TimeoutHandler() {
+
+        final UpgradeRequest upgradeRequest = engine.createUpgradeRequest(uri, new TimeoutHandler() {
             @Override
             public void handleTimeout() {
                 downstreamFilter.close();
             }
         });
-
-        final JdkUpgradeRequest handshakeUpgradeRequest = getJdkUpgradeRequest(downstreamFilter);
+        final JdkUpgradeRequest handshakeUpgradeRequest = getJdkUpgradeRequest(upgradeRequest, downstreamFilter);
 
         sendRequest(downstreamFilter, handshakeUpgradeRequest);
     }
@@ -123,7 +122,7 @@ class ClientFilter extends Filter {
         });
     }
 
-    private JdkUpgradeRequest getJdkUpgradeRequest(Filter downstreamFilter) {
+    private JdkUpgradeRequest getJdkUpgradeRequest(final UpgradeRequest upgradeRequest, final Filter downstreamFilter) {
         final JdkUpgradeRequest handshakeUpgradeRequest;
         if (!proxy) {
             downstreamFilter.startSsl();
@@ -165,7 +164,7 @@ class ClientFilter extends Filter {
                 }
                 connectedToProxy = true;
                 downstreamFilter.startSsl();
-                sendRequest(downstreamFilter, createHandshakeUpgradeRequest(upgradeRequest));
+                sendRequest(downstreamFilter, createHandshakeUpgradeRequest(engine.createUpgradeRequest(uri, null)));
                 return;
             }
 
@@ -195,7 +194,6 @@ class ClientFilter extends Filter {
                     }
                     break;
                 case SUCCESS:
-                    responseParser.destroy();
                     wsConnection = clientUpgradeInfo.createConnection();
                     break;
                 case UPGRADE_REQUEST_FAILED:
