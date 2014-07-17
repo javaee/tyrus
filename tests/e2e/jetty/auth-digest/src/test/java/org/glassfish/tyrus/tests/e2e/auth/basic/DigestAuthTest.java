@@ -77,7 +77,6 @@ public class DigestAuthTest extends TestContainer {
         setContextPath(CONTEXT_PATH);
     }
 
-
     @Test
     public void testAuthorizationSuccessAuthConfig() throws DeploymentException, InterruptedException, IOException, AuthenticationException {
         final AuthConfig authConfig = AuthConfig.Builder.create().build();
@@ -115,7 +114,6 @@ public class DigestAuthTest extends TestContainer {
         assertEquals(0, messageLatch.getCount());
     }
 
-
     @Test
     public void testAuthorizationSuccessCredentials() throws DeploymentException, InterruptedException, IOException, AuthenticationException {
 
@@ -150,5 +148,4 @@ public class DigestAuthTest extends TestContainer {
         messageLatch.await(1, TimeUnit.SECONDS);
         assertEquals(0, messageLatch.getCount());
     }
-
 }

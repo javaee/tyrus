@@ -52,7 +52,6 @@ import java.util.logging.Logger;
 import javax.websocket.CloseReason;
 
 import org.glassfish.tyrus.core.CloseReasons;
-import org.glassfish.tyrus.core.HandshakeException;
 import org.glassfish.tyrus.core.TyrusUpgradeResponse;
 import org.glassfish.tyrus.core.Utils;
 import org.glassfish.tyrus.core.l10n.LocalizationMessages;
@@ -157,7 +156,8 @@ class GrizzlyClientFilter extends BaseFilter {
 
         final UpgradeRequest upgradeRequest = engine.createUpgradeRequest(uri, timeoutHandler);
         if (upgradeRequest == null) {
-            ctx.fail(new HandshakeException(LocalizationMessages.AUTHENTICATION_FAILED()));
+            // close the connection (if exists) and current transport instance.
+            new GrizzlyWriter(ctx.getConnection()).close();
             return ctx.getStopAction();
         }
 
@@ -352,7 +352,6 @@ class GrizzlyClientFilter extends BaseFilter {
         switch (clientUpgradeInfo.getUpgradeStatus()) {
             case UPGRADE_REQUEST_FAILED:
                 grizzlyWriter.close();
-                ctx.fail(new HandshakeException(LocalizationMessages.AUTHENTICATION_FAILED()));
                 return ctx.getStopAction();
             case ANOTHER_UPGRADE_REQUEST_REQUIRED:
                 grizzlyWriter.close();

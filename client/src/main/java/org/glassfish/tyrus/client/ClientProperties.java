@@ -67,7 +67,7 @@ public final class ClientProperties {
     public static final String RECONNECT_HANDLER = "org.glassfish.tyrus.client.ClientManager.ReconnectHandler";
 
     /**
-     * Client-side user property to set proxy URI.
+     * User property to set proxy URI.
      * <p/>
      * Value is expected to be {@link String} and represent proxy URI. Protocol part is currently ignored
      * but must be present ({@link java.net.URI#URI(String)} is used for parsing).
@@ -82,7 +82,7 @@ public final class ClientProperties {
     public static final String PROXY_URI = "org.glassfish.tyrus.client.proxy";
 
     /**
-     * Client-side user property to set additional proxy headers.
+     * User property to set additional proxy headers.
      * <p/>
      * Value is expected to be {@link java.util.Map}&lt{@link String}, {@link String}&gt and represent raw http headers
      * to be added to initial request which is sent to proxy. Key corresponds to header name, value is header
@@ -145,7 +145,7 @@ public final class ClientProperties {
     public static final String SHARED_CONTAINER = "org.glassfish.tyrus.client.sharedContainer";
 
     /**
-     * Container idle timeout in seconds (Integer value).
+     * Container idle timeout in seconds ({@link Integer} value).
      * <p/>
      * When the timeout elapses, the shared thread pool will be destroyed.
      *
@@ -154,7 +154,7 @@ public final class ClientProperties {
     public static final String SHARED_CONTAINER_IDLE_TIMEOUT = "org.glassfish.tyrus.client.sharedContainerIdleTimeout";
 
     /**
-     * Client-side user property to set worker thread pool configuration.
+     * User property to set worker thread pool configuration.
      * <p/>
      * An instance of {@link org.glassfish.tyrus.client.ThreadPoolConfig} is expected for both JDK
      * and Grizzly client. Instance of {@link org.glassfish.grizzly.threadpool.ThreadPoolConfig}, can be used
@@ -168,10 +168,10 @@ public final class ClientProperties {
     public static final String WORKER_THREAD_POOL_CONFIG = "org.glassfish.tyrus.client.workerThreadPoolConfig";
 
     /**
-     * Client-side authentication configuration. If no AuthConfig is specified then default configuration will be used,
+     * Authentication configuration. If no AuthConfig is specified then default configuration will be used,
      * containing both Basic and Digest provided authenticators.
      * <p/>
-     * An instance of {@link AuthConfig} is expected.
+     * Value must be {@link AuthConfig} instance.
      * <p/>
      * Sample below demonstrates how to use this property:
      * <pre>
@@ -185,9 +185,9 @@ public final class ClientProperties {
     public static final String AUTH_CONFIG = "org.glassfish.tyrus.client.http.auth.AuthConfig";
 
     /**
-     * Client-side authentication credentials.
+     * Authentication credentials.
      * <p/>
-     * An instance of {@link Credentials} is expected.
+     * Value must be {@link Credentials} instance.
      * <p/>
      * Provided authenticators (both Basic and Digest) require this property set,
      * otherwise {@link AuthenticationException} will be thrown during a handshake.

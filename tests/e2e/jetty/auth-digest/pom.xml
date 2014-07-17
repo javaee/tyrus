@@ -57,15 +57,11 @@
 
     <dependencies>
         <dependency>
-            <groupId>org.glassfish.tyrus</groupId>
-            <artifactId>tyrus-core</artifactId>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
             <groupId>javax.websocket</groupId>
             <artifactId>javax.websocket-api</artifactId>
             <scope>provided</scope>
         </dependency>
+
         <dependency>
             <groupId>org.glassfish.tyrus</groupId>
             <artifactId>tyrus-container-grizzly-client</artifactId>
@@ -83,10 +79,6 @@
         </dependency>
     </dependencies>
 
-    <properties>
-        <skipTests>false</skipTests>
-    </properties>
-
     <build>
         <plugins>
             <plugin>
@@ -97,7 +89,6 @@
                 <groupId>org.eclipse.jetty</groupId>
                 <artifactId>jetty-maven-plugin</artifactId>
                 <configuration>
-                    <skip>${skipTests}</skip>
                     <!-- define login service for jetty and the realm to be used -->
                     <loginServices>
                         <loginService implementation="org.eclipse.jetty.security.HashLoginService">
@@ -110,9 +101,6 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <configuration>
-                    <skipExec>${skipTests}</skipExec>
-                </configuration>
             </plugin>
         </plugins>
     </build>

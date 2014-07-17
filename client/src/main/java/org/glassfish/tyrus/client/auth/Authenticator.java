@@ -42,34 +42,40 @@ package org.glassfish.tyrus.client.auth;
 
 import java.net.URI;
 
+import javax.websocket.DeploymentException;
+import javax.websocket.WebSocketContainer;
+
 import org.glassfish.tyrus.client.ClientProperties;
+import org.glassfish.tyrus.core.Beta;
 import org.glassfish.tyrus.spi.UpgradeRequest;
 import org.glassfish.tyrus.spi.UpgradeResponse;
 
 /**
- * Http Authentication provider. Implement this abstract class to provide client authentication.
+ * Authenticator provides a way how to plug-in custom authentication provider.
  * <p/>
- * The only method to implement {@link #generateAuthorizationHeader(URI, String, Credentials)} generates
- * authorization response from given request URI, HTTP response {@link UpgradeResponse#WWW_AUTHENTICATE} and {@link Credentials}
- * for {@link UpgradeRequest#AUTHORIZATION} HTTP request header. An instance of implementing
- * class must be registered by calling {@link AuthConfig.Builder#registerAuthProvider(String, Authenticator)}.
+ * Authenticator is called when server-side returns HTTP 401 as a reply to handshake response. Tyrus client then looks
+ * for authenticator instance registered to authentication scheme provided by server.
  *
  * @author Ondrej Kosatka (ondrej.kosatka at oracle.com)
- * @see AuthConfig
  * @see AuthConfig.Builder#registerAuthProvider(String, Authenticator)
  * @see ClientProperties#AUTH_CONFIG
  * @see ClientProperties#CREDENTIALS
  */
+@Beta
 public abstract class Authenticator {
 
     /**
-     * Generates authorization tokens which will be put into {@code Authorization} HTTP request header.
+     * Generate value used as "{@value UpgradeRequest#AUTHORIZATION}" header value for next request.
+     * <p/>
+     * Thrown {@link AuthenticationException} will be wrapped as {@link DeploymentException} and thrown as a result of
+     * {@link WebSocketContainer}.connectToServer(...) method call.
      *
-     * @param uri                   contains URI of server endpoint. URI is needed for generating authorization response in some authentication scheme (for example DIGEST).
-     * @param wwwAuthenticateHeader a value of header {@code WWW-Authenticate} received in HTTP response to upgrade request.
-     * @param credentials           credentials passed by property {@link ClientProperties#CREDENTIALS}.
-     * @return generated {@link String} value for {@code Authorization} header which will be put into HTTP upgrade request.
-     * @throws AuthenticationException if it is not possible to create {@code Authorization} header.
+     * @param uri                   Uri of the server endpoint.
+     * @param wwwAuthenticateHeader "{@value UpgradeResponse#WWW_AUTHENTICATE}" header value received in a handshake response.
+     * @param credentials           credentials passed by property {@link ClientProperties#CREDENTIALS}. Can be {@code null}
+     *                              when there were no {@link Credentials} registered.
+     * @return value for {@value UpgradeRequest#AUTHORIZATION} header which will be put into next handshake request.
+     * @throws AuthenticationException when it is not possible to create "{@value UpgradeRequest#AUTHORIZATION}" header.
      */
     public abstract String generateAuthorizationHeader(final URI uri, final String wwwAuthenticateHeader, final Credentials credentials) throws AuthenticationException;
 

@@ -45,15 +45,20 @@ import java.util.Collections;
 import java.util.Map;
 import java.util.TreeMap;
 
+import org.glassfish.tyrus.client.ClientManager;
+import org.glassfish.tyrus.core.Beta;
+
 /**
- * Authentication configuration class contains a map of authentication schemes and assigned authenticators. An instance of
- * this class must be create by {@link AuthConfig.Builder}. Basic and Digest Authentication schemes authenticators
- * have been implemented in Tyrus. Other authenticators can be plugged in easily via {@link AuthConfig.Builder}.
- * Whether alternative implementation of Basic and Digest or other not-implemented schemes.
+ * AuthConfig serves as a configuration of HTTP authentication.
+ * <p/>
+ * An instance of this class can be created by {@link AuthConfig} and it must be registered to property bag in
+ * {@link ClientManager}.
  *
  * @author Ondrej Kosatka (ondrej.kosatka at oracle.com)
  * @see Authenticator
+ * @see ClientManager#getProperties()
  */
+@Beta
 public class AuthConfig {
 
     /**
@@ -71,26 +76,27 @@ public class AuthConfig {
      */
     static final String DIGEST = "Digest";
 
-    protected final Map<String, Authenticator> authenticators;
-
+    private final Map<String, Authenticator> authenticators;
 
     private AuthConfig(Map<String, Authenticator> authenticators) {
-        this.authenticators = authenticators;
+        TreeMap<String, Authenticator> map = new TreeMap<String, Authenticator>(String.CASE_INSENSITIVE_ORDER);
+        map.putAll(authenticators);
+        this.authenticators = Collections.unmodifiableMap(map);
     }
 
     /**
-     * Get a map of authenticators, where case insensitive authentication scheme to {@link Authenticator}.
+     * Get an unmodifiable map of authenticators, where case insensitive authentication scheme to {@link Authenticator}.
      *
-     * @return map of authenticators. Case insensitive authentication scheme is mapped to {@link Authenticator}.
+     * @return unmodifiable map of authenticators. Case insensitive authentication scheme is mapped to {@link Authenticator}.
      */
     public Map<String, Authenticator> getAuthenticators() {
         return authenticators;
     }
 
     /**
-     * Create a {@link Builder} instance for constructing {@link AuthConfig}.
+     * Create new {@link Builder} instance, which contains provided Basic and Digest authenticators.
      *
-     * @return a builder instance.
+     * @return builder instance.
      */
     public static Builder builder() {
         return Builder.create();
@@ -99,19 +105,15 @@ public class AuthConfig {
     /**
      * The AuthConfig.Builder is a class used for creating an instance of {@link AuthConfig} for purpose of HTTP Authentication.
      * <p/>
-     * Here is an example:
-     * <p/>
-     * Building an authentication configuration enhanced with user defined NTLM authentication and overridden Basic Authentication
-     * <p/>
+     * Example 1 - building an authentication configuration enhanced with user defined NTLM authentication and overridden
+     * Basic Authentication:
      * <pre><code>
      * AuthConfig authConfig = AuthConfig.Builder.create().
      *                          registerAuthProvider("NTLM", myAuthenticator).
      *                          registerAuthProvider("Basic", myBasicAuthenticator).
      *                          build();
      * </code></pre>
-     * <p/>
-     * Building an authentication configuration with Basic scheme disabled
-     * <p/>
+     * Example 2 - Building an authentication configuration with disabled Basic scheme authenticator:
      * <pre><code>
      * AuthConfig authConfig = AuthConfig.Builder.create().
      *                          disableProvidedBasicAuth().
@@ -123,7 +125,7 @@ public class AuthConfig {
      */
     public final static class Builder {
 
-        private Map<String, Authenticator> authenticators = Collections.synchronizedSortedMap(new TreeMap<String, Authenticator>(String.CASE_INSENSITIVE_ORDER));
+        private final Map<String, Authenticator> authenticators = new TreeMap<String, Authenticator>(String.CASE_INSENSITIVE_ORDER);
 
         private Builder() {
             authenticators.put(BASIC, new BasicAuthenticator());
@@ -131,29 +133,35 @@ public class AuthConfig {
         }
 
         /**
-         * Create an empty {@link AuthConfig} instance.
+         * Create new {@link Builder} instance, which contains provided Basic and Digest authenticators.
          *
-         * @return an empty {@link AuthConfig} instance.
+         * @return {@link AuthConfig.Builder} instance.
          */
         public static Builder create() {
             return new Builder();
         }
 
         /**
-         * Register user defined {@link Authenticator} with scheme as a key. The key is case insensitive.
+         * Register {@link Authenticator} for provided authentication scheme.
+         * <p/>
+         * Only one {@link Authenticator} for one authentication scheme can be registered. If current builder instance
+         * already contains {@link Authenticator} for provided scheme, existing authenticator will be replaced. Note
+         * that schemes are compared in case insensitive manner.
          *
-         * @param userDefinedAuthenticator user defined {@link Authenticator}.
-         * @return updated {@link AuthConfig} instance.
+         * @param scheme        authentication scheme for which the registered authenticator will be used. Scheme is
+         *                      compared case insensitive.
+         * @param authenticator {@link Authenticator} instance to be registered.
+         * @return updated {@link AuthConfig.Builder} instance.
          */
-        public final Builder registerAuthProvider(final String scheme, final Authenticator userDefinedAuthenticator) {
-            this.authenticators.put(scheme, userDefinedAuthenticator);
+        public final Builder registerAuthProvider(final String scheme, final Authenticator authenticator) {
+            this.authenticators.put(scheme, authenticator);
             return this;
         }
 
         /**
-         * Disable Basic Authenticator provided by Tyrus.
+         * Disable provided Basic {@link Authenticator}.
          *
-         * @return updated {@link AuthConfig} instance.
+         * @return updated {@link AuthConfig.Builder} instance.
          */
         public final Builder disableProvidedBasicAuth() {
             if (authenticators.get(BASIC) != null && authenticators.get(BASIC) instanceof BasicAuthenticator) {
@@ -163,9 +171,9 @@ public class AuthConfig {
         }
 
         /**
-         * Disable Digest Authenticator provided by Tyrus.
+         * Disable provided Digest {@link Authenticator}.
          *
-         * @return updated {@link AuthConfig} instance.
+         * @return updated {@link AuthConfig.Builder} instance.
          */
         public final Builder disableProvidedDigestAuth() {
             if (authenticators.get(DIGEST) != null && authenticators.get(DIGEST) instanceof DigestAuthenticator) {
@@ -182,7 +190,5 @@ public class AuthConfig {
         public AuthConfig build() {
             return new AuthConfig(authenticators);
         }
-
-
     }
 }

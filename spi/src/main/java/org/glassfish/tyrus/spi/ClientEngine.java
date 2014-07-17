@@ -56,7 +56,8 @@ public interface ClientEngine {
      * @param timeoutHandler handshake timeout handler. {@link TimeoutHandler#handleTimeout()}
      *                       is invoked if {@link #processResponse(UpgradeResponse, Writer, Connection.CloseListener)}
      *                       is not called within handshake timeout.
-     * @return request to be send on the wire.
+     * @return request to be send on the wire or {@code null}, when the request cannot be created. When {@code null} is
+     * returned, client should free all resources tied to current connection.
      */
     public UpgradeRequest createUpgradeRequest(URI uri, TimeoutHandler timeoutHandler);
 

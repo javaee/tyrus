@@ -60,10 +60,11 @@ public class HandshakeException extends Exception {
     }
 
     /**
-     * Construct a <tt>HandshakeException</tt>.
+     * Constructor.
      *
      * @param httpStatusCode http status code to be set to response.
-     * @param message        error description
+     * @param message        the detail message. The detail message is saved for
+     *                       later retrieval by the {@link #getMessage()} method.
      */
     public HandshakeException(int httpStatusCode, String message) {
         super(message);

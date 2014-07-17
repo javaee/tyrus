@@ -708,6 +708,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
      * instances or synchronize connectToServer method invocations.
      *
      * @return map containing container properties.
+     * @see ClientProperties
      */
     public Map<String, Object> getProperties() {
         return properties;

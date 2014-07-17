@@ -128,38 +128,54 @@ public class TyrusClientEngine implements ClientEngine {
 
     @Override
     public UpgradeRequest createUpgradeRequest(URI uri, TimeoutHandler timeoutHandler) {
-        this.timeoutHandler = timeoutHandler;
-        clientHandShake = Handshake.createClientHandshake(RequestContext.Builder.create().requestURI(uri).build());
 
-        ClientEndpointConfig config = (ClientEndpointConfig) endpointWrapper.getEndpointConfig();
+        switch (clientEngineState) {
+            case INIT: {
+                ClientEndpointConfig config = (ClientEndpointConfig) endpointWrapper.getEndpointConfig();
+                this.timeoutHandler = timeoutHandler;
 
-        clientHandShake.setExtensions(config.getExtensions());
-        clientHandShake.setSubProtocols(config.getPreferredSubprotocols());
+                clientHandShake = Handshake.createClientHandshake(RequestContext.Builder.create().requestURI(uri).build());
+                clientHandShake.setExtensions(config.getExtensions());
+                clientHandShake.setSubProtocols(config.getPreferredSubprotocols());
+                clientHandShake.prepareRequest();
 
-        clientHandShake.prepareRequest();
+                UpgradeRequest upgradeRequest = clientHandShake.getRequest();
+                config.getConfigurator().beforeRequest(upgradeRequest.getHeaders());
 
-        if (clientEngineState.getAuthenticator() != null) {
-            String authorizationHeader;
-            try {
-                final Credentials credentials = (Credentials) properties.get(ClientProperties.CREDENTIALS);
-                authorizationHeader = clientEngineState.getAuthenticator().generateAuthorizationHeader(uri, clientEngineState.getWwwAuthenticateHeader(), credentials);
-            } catch (AuthenticationException e) {
-                listener.onError(e);
-                return null;
+                clientEngineState = TyrusClientEngineState.FIRST_UPGRARE_REQUEST;
+                return upgradeRequest;
             }
-            clientHandShake.getRequest().getHeaders().put(UpgradeRequest.AUTHORIZATION, Collections.singletonList(authorizationHeader));
+
+            case IN_PROGRESS: {
+                ClientEndpointConfig config = (ClientEndpointConfig) endpointWrapper.getEndpointConfig();
+                UpgradeRequest upgradeRequest = clientHandShake.getRequest();
+
+                if (clientEngineState.getAuthenticator() != null) {
+                    String authorizationHeader;
+                    try {
+                        final Credentials credentials = (Credentials) properties.get(ClientProperties.CREDENTIALS);
+                        authorizationHeader = clientEngineState.getAuthenticator().generateAuthorizationHeader(uri, clientEngineState.getWwwAuthenticateHeader(), credentials);
+                    } catch (AuthenticationException e) {
+                        listener.onError(e);
+                        return null;
+                    }
+                    upgradeRequest.getHeaders().put(UpgradeRequest.AUTHORIZATION, Collections.singletonList(authorizationHeader));
+                }
+
+                config.getConfigurator().beforeRequest(upgradeRequest.getHeaders());
+                return upgradeRequest;
+            }
+
+            default:
+                throw new IllegalStateException();
         }
-
-        config.getConfigurator().beforeRequest(clientHandShake.getRequest().getHeaders());
-
-        return clientHandShake.getRequest();
     }
 
     @Override
     public ClientUpgradeInfo processResponse(final UpgradeResponse upgradeResponse, final Writer writer, final Connection.CloseListener closeListener) {
 
         switch (clientEngineState) {
-            case INIT:
+            case FIRST_UPGRARE_REQUEST:
             case IN_PROGRESS:
                 switch (upgradeResponse.getStatus()) {
                     case 101:
@@ -169,37 +185,32 @@ public class TyrusClientEngine implements ClientEngine {
                             return processUpgradeResponse(upgradeResponse, writer, closeListener);
                         } catch (HandshakeException e) {
                             listener.onError(e);
+                            clientEngineState = TyrusClientEngineState.FAILED;
                             return UPGRADE_INFO_FAILED;
                         }
                     case 401:
                         if (clientEngineState == TyrusClientEngineState.IN_PROGRESS) {
                             listener.onError(new AuthenticationException(LocalizationMessages.AUTHENTICATION_FAILED()));
+                            clientEngineState = TyrusClientEngineState.FAILED;
                             return UPGRADE_INFO_FAILED;
                         }
-
-                        clientEngineState = TyrusClientEngineState.IN_PROGRESS;
 
                         AuthConfig authConfig = Utils.getProperty(properties, ClientProperties.AUTH_CONFIG, AuthConfig.class, AuthConfig.Builder.create().build());
                         if (authConfig == null) {
                             listener.onError(new AuthenticationException(LocalizationMessages.AUTHENTICATION_FAILED()));
+                            clientEngineState = TyrusClientEngineState.FAILED;
                             return UPGRADE_INFO_FAILED;
                         }
 
                         String wwwAuthenticateHeader = null;
                         final List<String> header = upgradeResponse.getHeaders().get(UpgradeResponse.WWW_AUTHENTICATE);
                         if (header != null) {
-                            StringBuilder b = new StringBuilder();
-                            for (int i = 0; i < header.size(); i++) {
-                                if (i > 0) {
-                                    b.append(',');
-                                }
-                                b.append(header.get(i));
-                            }
-                            wwwAuthenticateHeader = b.toString();
+                            wwwAuthenticateHeader = Utils.getHeaderFromList(header);
                         }
 
                         if (wwwAuthenticateHeader == null || wwwAuthenticateHeader.equals("")) {
                             listener.onError(new AuthenticationException(LocalizationMessages.AUTHENTICATION_FAILED()));
+                            clientEngineState = TyrusClientEngineState.FAILED;
                             return UPGRADE_INFO_FAILED;
                         }
 
@@ -209,9 +220,11 @@ public class TyrusClientEngine implements ClientEngine {
                         final Authenticator authenticator = authConfig.getAuthenticators().get(scheme);
                         if (authenticator == null) {
                             listener.onError(new AuthenticationException(LocalizationMessages.AUTHENTICATION_FAILED()));
+                            clientEngineState = TyrusClientEngineState.FAILED;
                             return UPGRADE_INFO_FAILED;
                         }
 
+                        clientEngineState = TyrusClientEngineState.IN_PROGRESS;
                         clientEngineState.setAuthenticator(authenticator);
                         clientEngineState.setWwwAuthenticateHeader(wwwAuthenticateHeader);
 
@@ -223,12 +236,9 @@ public class TyrusClientEngine implements ClientEngine {
                         listener.onError(e);
                         return UPGRADE_INFO_FAILED;
                 }
+            case FAILED:
             default:
-                clientEngineState = TyrusClientEngineState.FAILED;
-                HandshakeException e = new HandshakeException(upgradeResponse.getStatus(),
-                        LocalizationMessages.INVALID_RESPONSE_CODE(101, upgradeResponse.getStatus()));
-                listener.onError(e);
-                return UPGRADE_INFO_FAILED;
+                throw new IllegalStateException();
         }
     }
 
@@ -494,9 +504,14 @@ public class TyrusClientEngine implements ClientEngine {
         INIT,
 
         /**
+         * Set after first {@link TyrusClientEngine#createUpgradeRequest(URI, TimeoutHandler)} invocation.
+         */
+        FIRST_UPGRARE_REQUEST,
+
+        /**
          * In progress.
          */
-        IN_PROGRESS(),
+        IN_PROGRESS,
 
         /**
          * Handshake failed.
@@ -508,22 +523,22 @@ public class TyrusClientEngine implements ClientEngine {
          */
         SUCCESS;
 
-        private Authenticator authenticator;
-        private String wwwAuthenticateHeader;
+        private volatile Authenticator authenticator;
+        private volatile String wwwAuthenticateHeader;
 
-        public Authenticator getAuthenticator() {
+        Authenticator getAuthenticator() {
             return authenticator;
         }
 
-        public void setAuthenticator(Authenticator authenticator) {
+        void setAuthenticator(Authenticator authenticator) {
             this.authenticator = authenticator;
         }
 
-        public String getWwwAuthenticateHeader() {
+        String getWwwAuthenticateHeader() {
             return wwwAuthenticateHeader;
         }
 
-        public void setWwwAuthenticateHeader(String wwwAuthenticateHeader) {
+        void setWwwAuthenticateHeader(String wwwAuthenticateHeader) {
             this.wwwAuthenticateHeader = wwwAuthenticateHeader;
         }
     }

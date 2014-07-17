@@ -62,13 +62,6 @@ final class BasicAuthenticator extends Authenticator {
         }
         String username = credentials.getUsername();
         byte[] password = credentials.getPassword();
-        if (username == null) {
-            username = "";
-        }
-
-        if (password == null) {
-            password = new byte[0];
-        }
 
         final byte[] prefix = (username + ":").getBytes(AuthConfig.CHARACTER_SET);
         final byte[] usernamePassword = new byte[prefix.length + password.length];

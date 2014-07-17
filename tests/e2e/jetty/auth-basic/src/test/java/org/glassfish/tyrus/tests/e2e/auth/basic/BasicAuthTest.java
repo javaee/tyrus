@@ -78,7 +78,6 @@ public class BasicAuthTest extends TestContainer {
         setContextPath(CONTEXT_PATH);
     }
 
-
     @Test
     public void testAuthorizationSuccessAuthConfig() throws DeploymentException, InterruptedException, IOException, AuthenticationException {
         final AuthConfig authConfig = AuthConfig.Builder.create().build();
@@ -185,5 +184,4 @@ public class BasicAuthTest extends TestContainer {
             assertTrue("Client should throw an AuthorizationException", e.getCause() instanceof AuthenticationException);
         }
     }
-
 }

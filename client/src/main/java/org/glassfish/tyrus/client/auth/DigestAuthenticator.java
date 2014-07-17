@@ -67,7 +67,6 @@ final class DigestAuthenticator extends Authenticator {
 
     private SecureRandom randomGenerator;
 
-
     DigestAuthenticator() {
         try {
             randomGenerator = SecureRandom.getInstance("SHA1PRNG");

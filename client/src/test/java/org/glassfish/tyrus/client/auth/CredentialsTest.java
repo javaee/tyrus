@@ -40,75 +40,61 @@
 
 package org.glassfish.tyrus.client.auth;
 
-import org.glassfish.tyrus.client.ClientProperties;
-import org.glassfish.tyrus.core.Beta;
-import org.glassfish.tyrus.core.l10n.LocalizationMessages;
+import org.junit.Test;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 
 /**
- * Credentials can be used when configuring authentication properties used during client handshake.
- *
- * @author Ondrej Kosatka (ondrej.kosatka at oracle.com)
- * @see ClientProperties#CREDENTIALS
+ * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-@Beta
-public final class Credentials {
+public class CredentialsTest {
 
-    private final String username;
-    private final byte[] password;
+    private final static String USERNAME = "username";
+    private final static String PASSWORD_STRING = "password";
+    private final static byte[] PASSWORD_BYTE_ARRAY = {0x01, 0x02, 0x03, 0x04};
 
-    /**
-     * Create new credentials.
-     *
-     * @param username Username. Cannot be {@code null}.
-     * @param password Password as byte array. Cannot be {@code null}.
-     */
-    public Credentials(String username, byte[] password) {
-        if (username == null) {
-            throw new IllegalArgumentException(LocalizationMessages.ARGUMENT_NOT_NULL("username"));
-        }
+    @Test
+    public void testGetUsername() throws Exception {
+        Credentials credentials = new Credentials(USERNAME, PASSWORD_STRING);
 
-        if (password == null) {
-            throw new IllegalArgumentException(LocalizationMessages.ARGUMENT_NOT_NULL("password"));
-        }
-
-        this.username = username;
-        this.password = password;
+        assertEquals(USERNAME, credentials.getUsername());
     }
 
-    /**
-     * Create new credentials.
-     *
-     * @param username Username. Cannot be {@code null}.
-     * @param password Password. Cannot be {@code null}.
-     */
-    public Credentials(String username, String password) {
-        if (username == null) {
-            throw new IllegalArgumentException(LocalizationMessages.ARGUMENT_NOT_NULL("username"));
-        }
+    @Test
+    public void testGetPasswordString() throws Exception {
+        Credentials credentials = new Credentials(USERNAME, PASSWORD_STRING);
 
-        if (password == null) {
-            throw new IllegalArgumentException(LocalizationMessages.ARGUMENT_NOT_NULL("password"));
-        }
-
-        this.username = username;
-        this.password = password.getBytes(AuthConfig.CHARACTER_SET);
+        assertArrayEquals(PASSWORD_STRING.getBytes(AuthConfig.CHARACTER_SET), credentials.getPassword());
     }
 
-    /**
-     * Get the username.
-     *
-     * @return username.
-     */
-    public String getUsername() {
-        return username;
+    @Test
+    public void testGetPasswordByteArray() throws Exception {
+        Credentials credentials = new Credentials(USERNAME, PASSWORD_BYTE_ARRAY);
+
+        assertEquals(PASSWORD_BYTE_ARRAY, credentials.getPassword());
     }
 
-    /**
-     * Get the password as byte array.
-     *
-     * @return Password string in byte array representation.
-     */
-    public byte[] getPassword() {
-        return password;
+    @Test(expected = IllegalArgumentException.class)
+    public void testNullUsername1() {
+        //noinspection ResultOfObjectAllocationIgnored
+        new Credentials(null, PASSWORD_STRING);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testNullUsername2() {
+        //noinspection ResultOfObjectAllocationIgnored
+        new Credentials(null, PASSWORD_BYTE_ARRAY);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testNullPassword1() {
+        //noinspection ResultOfObjectAllocationIgnored
+        new Credentials(USERNAME, (String) null);
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void testNullPassword2() {
+        //noinspection ResultOfObjectAllocationIgnored
+        new Credentials(USERNAME, (byte[]) null);
     }
 }

@@ -83,7 +83,6 @@ class ClientFilter extends Filter {
     private volatile Connection wsConnection;
     private volatile boolean connectedToProxy = false;
 
-
     /**
      * Constructor.
      *
@@ -164,7 +163,12 @@ class ClientFilter extends Filter {
                 }
                 connectedToProxy = true;
                 downstreamFilter.startSsl();
-                sendRequest(downstreamFilter, createHandshakeUpgradeRequest(engine.createUpgradeRequest(uri, null)));
+                sendRequest(downstreamFilter, createHandshakeUpgradeRequest(engine.createUpgradeRequest(uri, new TimeoutHandler() {
+                    @Override
+                    public void handleTimeout() {
+                        downstreamFilter.close();
+                    }
+                })));
                 return;
             }
 
