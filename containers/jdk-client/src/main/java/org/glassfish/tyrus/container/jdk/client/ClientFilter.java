@@ -199,6 +199,11 @@ class ClientFilter extends Filter {
                     break;
                 case SUCCESS:
                     wsConnection = clientUpgradeInfo.createConnection();
+
+                    if (data.hasRemaining()) {
+                        wsConnection.getReadHandler().handle(data);
+                    }
+
                     break;
                 case UPGRADE_REQUEST_FAILED:
                     closeConnection(downstreamFilter);
