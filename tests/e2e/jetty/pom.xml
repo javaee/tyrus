@@ -98,21 +98,6 @@
                 <pluginManagement>
                     <plugins>
                         <plugin>
-                            <groupId>org.apache.maven.plugins</groupId>
-                            <artifactId>maven-war-plugin</artifactId>
-                            <configuration>
-                                <failOnMissingWebXml>false</failOnMissingWebXml>
-                                <webResources>
-                                    <resource>
-                                        <directory>${basedir}/target/test-classes</directory>
-                                        <targetPath>WEB-INF/classes</targetPath>
-                                    </resource>
-                                </webResources>
-                                <packagingExcludes>%regex[WEB-INF/lib/(?!tyrus-test-tools.*$).*]
-                                </packagingExcludes>
-                            </configuration>
-                        </plugin>
-                        <plugin>
                             <groupId>org.eclipse.jetty</groupId>
                             <artifactId>jetty-maven-plugin</artifactId>
                             <version>9.2.1.v20140609</version>
