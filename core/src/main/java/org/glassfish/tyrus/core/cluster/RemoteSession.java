@@ -41,7 +41,6 @@
 package org.glassfish.tyrus.core.cluster;
 
 import java.io.ByteArrayOutputStream;
-import java.io.Closeable;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Serializable;
@@ -52,6 +51,7 @@ import java.nio.ByteBuffer;
 import java.security.Principal;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -60,10 +60,12 @@ import java.util.concurrent.TimeoutException;
 import javax.websocket.CloseReason;
 import javax.websocket.EncodeException;
 import javax.websocket.Extension;
+import javax.websocket.MessageHandler;
 import javax.websocket.RemoteEndpoint;
 import javax.websocket.SendHandler;
 import javax.websocket.SendResult;
 import javax.websocket.Session;
+import javax.websocket.WebSocketContainer;
 
 import org.glassfish.tyrus.core.TyrusEndpointWrapper;
 import org.glassfish.tyrus.core.Utils;
@@ -71,11 +73,11 @@ import org.glassfish.tyrus.core.Utils;
 import static org.glassfish.tyrus.core.Utils.checkNotNull;
 
 /**
- * Remote session represents session present on another node.
+ * Remote session represents session originating from another node.
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class RemoteSession implements Closeable {
+public class RemoteSession implements Session {
 
     private final RemoteEndpoint.Basic basicRemote;
     private final RemoteEndpoint.Async asyncRemote;
@@ -587,6 +589,7 @@ public class RemoteSession implements Closeable {
      *
      * @return the protocol version.
      */
+    @Override
     public String getProtocolVersion() {
         return "13";
     }
@@ -596,6 +599,7 @@ public class RemoteSession implements Closeable {
      *
      * @return the negotiated subprotocol, or the empty string if there isn't one.
      */
+    @Override
     public String getNegotiatedSubprotocol() {
         return (String) distributedPropertyMap.get(DistributedMapKey.NEGOTIATED_SUBPROTOCOL);
     }
@@ -605,6 +609,7 @@ public class RemoteSession implements Closeable {
      *
      * @return the negotiated extensions.
      */
+    @Override
     public List<Extension> getNegotiatedExtensions() {
         //noinspection unchecked
         return (List<Extension>) distributedPropertyMap.get(DistributedMapKey.NEGOTIATED_EXTENSIONS);
@@ -615,6 +620,7 @@ public class RemoteSession implements Closeable {
      *
      * @return {@code true} when the underlying socket is using a secure transport, {@code false} otherwise.
      */
+    @Override
     public boolean isSecure() {
         //noinspection unchecked
         return (Boolean) distributedPropertyMap.get(DistributedMapKey.SECURE);
@@ -625,6 +631,7 @@ public class RemoteSession implements Closeable {
      *
      * @return {@code true} when the underlying socket is open, {@code false} otherwise.
      */
+    @Override
     public boolean isOpen() {
         return clusterContext.isSessionOpen(sessionId, endpointWrapper.getEndpointPath());
     }
@@ -635,6 +642,7 @@ public class RemoteSession implements Closeable {
      *
      * @return the timeout in milliseconds.
      */
+    @Override
     public long getMaxIdleTimeout() {
         //noinspection unchecked
         return (Long) distributedPropertyMap.get(DistributedMapKey.MAX_IDLE_TIMEOUT);
@@ -647,6 +655,7 @@ public class RemoteSession implements Closeable {
      *
      * @return the maximum binary message size that can be buffered.
      */
+    @Override
     public int getMaxBinaryMessageBufferSize() {
         //noinspection unchecked
         return (Integer) distributedPropertyMap.get(DistributedMapKey.MAX_BINARY_MESSAGE_BUFFER_SIZE);
@@ -659,6 +668,7 @@ public class RemoteSession implements Closeable {
      *
      * @return the maximum text message size that can be buffered.
      */
+    @Override
     public int getMaxTextMessageBufferSize() {
         //noinspection unchecked
         return (Integer) distributedPropertyMap.get(DistributedMapKey.MAX_TEXT_MESSAGE_BUFFER_SIZE);
@@ -670,6 +680,7 @@ public class RemoteSession implements Closeable {
      *
      * @return the remote endpoint representation.
      */
+    @Override
     public RemoteEndpoint.Async getAsyncRemote() {
         return asyncRemote;
     }
@@ -680,6 +691,7 @@ public class RemoteSession implements Closeable {
      *
      * @return the remote endpoint representation.
      */
+    @Override
     public RemoteEndpoint.Basic getBasicRemote() {
         return basicRemote;
     }
@@ -690,6 +702,7 @@ public class RemoteSession implements Closeable {
      *
      * @return the unique identifier for this session instance.
      */
+    @Override
     public String getId() {
         return sessionId;
     }
@@ -717,6 +730,7 @@ public class RemoteSession implements Closeable {
      * @param closeReason the reason for the closure.
      * @throws IOException if there was a connection error closing the connection.
      */
+    @Override
     public void close(CloseReason closeReason) throws IOException {
         clusterContext.close(sessionId, closeReason);
     }
@@ -727,6 +741,7 @@ public class RemoteSession implements Closeable {
      *
      * @return the request URI.
      */
+    @Override
     public URI getRequestURI() {
         //noinspection unchecked
         return (URI) distributedPropertyMap.get(DistributedMapKey.REQUEST_URI);
@@ -738,6 +753,7 @@ public class RemoteSession implements Closeable {
      *
      * @return the unmodifiable map of the request parameters.
      */
+    @Override
     public Map<String, List<String>> getRequestParameterMap() {
         //noinspection unchecked
         return (Map<String, List<String>>) distributedPropertyMap.get(DistributedMapKey.REQUEST_PARAMETER_MAP);
@@ -749,6 +765,7 @@ public class RemoteSession implements Closeable {
      *
      * @return the query string.
      */
+    @Override
     public String getQueryString() {
         return (String) distributedPropertyMap.get(DistributedMapKey.QUERY_STRING);
     }
@@ -760,6 +777,7 @@ public class RemoteSession implements Closeable {
      * @return the unmodifiable map of path parameters. The key of the map is the parameter name,
      * the values in the map are the parameter values.
      */
+    @Override
     public Map<String, String> getPathParameters() {
         //noinspection unchecked
         return (Map<String, String>) distributedPropertyMap.get(DistributedMapKey.PATH_PARAMETERS);
@@ -777,6 +795,7 @@ public class RemoteSession implements Closeable {
      *
      * @return an editable Map of application data.
      */
+    @Override
     public Map<String, Object> getUserProperties() {
         return clusterContext.getDistributedUserProperties(sessionId);
     }
@@ -786,6 +805,7 @@ public class RemoteSession implements Closeable {
      *
      * @return the user principal.
      */
+    @Override
     public Principal getUserPrincipal() {
         //noinspection unchecked
         return (Principal) distributedPropertyMap.get(DistributedMapKey.USER_PRINCIPAL);
@@ -797,5 +817,107 @@ public class RemoteSession implements Closeable {
                 "sessionId='" + sessionId + '\'' +
                 ", clusterContext=" + clusterContext +
                 '}';
+    }
+
+    /**
+     * This method is not supported on {@link RemoteSession}. Each invocation will throw an {@link UnsupportedOperationException}.
+     *
+     * @return nothing.
+     */
+    @Override
+    public WebSocketContainer getContainer() {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * This method is not supported on {@link RemoteSession}. Each invocation will throw an {@link UnsupportedOperationException}.
+     *
+     * @param handler nothing.
+     */
+    @Override
+    public void addMessageHandler(MessageHandler handler) throws IllegalStateException {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * This method is not supported on {@link RemoteSession}. Each invocation will throw an {@link UnsupportedOperationException}.
+     *
+     * @param clazz   nothing.
+     * @param handler nothing.
+     */
+    @Override
+    public <T> void addMessageHandler(Class<T> clazz, MessageHandler.Whole<T> handler) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * This method is not supported on {@link RemoteSession}. Each invocation will throw an {@link UnsupportedOperationException}.
+     *
+     * @param clazz   nothing.
+     * @param handler nothing.
+     */
+    @Override
+    public <T> void addMessageHandler(Class<T> clazz, MessageHandler.Partial<T> handler) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * This method is not supported on {@link RemoteSession}. Each invocation will throw an {@link UnsupportedOperationException}.
+     *
+     * @return nothing.
+     */
+    @Override
+    public Set<MessageHandler> getMessageHandlers() {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * This method is not supported on {@link RemoteSession}. Each invocation will throw an {@link UnsupportedOperationException}.
+     *
+     * @param handler nothing.
+     */
+    @Override
+    public void removeMessageHandler(MessageHandler handler) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * This method is not supported on {@link RemoteSession}. Each invocation will throw an {@link UnsupportedOperationException}.
+     *
+     * @param milliseconds nothing.
+     */
+    @Override
+    public void setMaxIdleTimeout(long milliseconds) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * This method is not supported on {@link RemoteSession}. Each invocation will throw an {@link UnsupportedOperationException}.
+     *
+     * @param length nothing.
+     */
+    @Override
+    public void setMaxBinaryMessageBufferSize(int length) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * This method is not supported on {@link RemoteSession}. Each invocation will throw an {@link UnsupportedOperationException}.
+     *
+     * @param length nothing.
+     */
+    @Override
+    public void setMaxTextMessageBufferSize(int length) {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * This method is not supported on {@link RemoteSession}. Each invocation will throw an {@link UnsupportedOperationException}.
+     *
+     * @return nothing.
+     */
+    @Override
+    public Set<Session> getOpenSessions() {
+        throw new UnsupportedOperationException();
     }
 }
