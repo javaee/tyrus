@@ -46,7 +46,6 @@ import java.net.ProxySelector;
 import java.net.SocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.channels.CompletionHandler;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -54,7 +53,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -70,6 +69,7 @@ import org.glassfish.tyrus.core.Base64Utils;
 import org.glassfish.tyrus.core.Utils;
 import org.glassfish.tyrus.spi.ClientContainer;
 import org.glassfish.tyrus.spi.ClientEngine;
+import org.glassfish.tyrus.spi.CompletionHandler;
 
 /**
  * {@link org.glassfish.tyrus.spi.ClientContainer} implementation based on Java 7 NIO API.
@@ -129,18 +129,21 @@ public class JdkClientContainer implements ClientContainer {
 
             @Override
             public Void call() throws Exception {
-                final TransportFilter transportFilter;
-                final ClientFilter clientFilter = createClientFilter(properties, clientEngine, uri, this);
-                final TaskQueueFilter writeQueue = createTaskQueueFilter(clientFilter);
+                final TaskQueueFilter writeQueue;
 
                 if (secure) {
-                    SslFilter sslFilter = createSslFilter(cec, properties, writeQueue);
-                    transportFilter = createTransportFilter(sslFilter, SSL_INPUT_BUFFER_SIZE, finalThreadPoolConfig, containerIdleTimeout);
+                    TransportFilter transportFilter = createTransportFilter(SSL_INPUT_BUFFER_SIZE, finalThreadPoolConfig, containerIdleTimeout);
+                    SslFilter sslFilter = createSslFilter(cec, properties, transportFilter, uri);
+                    writeQueue = createTaskQueueFilter(sslFilter);
+
                 } else {
-                    transportFilter = createTransportFilter(writeQueue, INPUT_BUFFER_SIZE, finalThreadPoolConfig, containerIdleTimeout);
+                    TransportFilter transportFilter = createTransportFilter(INPUT_BUFFER_SIZE, finalThreadPoolConfig, containerIdleTimeout);
+                    writeQueue = createTaskQueueFilter(transportFilter);
                 }
 
-                _connect(clientFilter, transportFilter, uri);
+                final ClientFilter clientFilter = createClientFilter(properties, writeQueue, clientEngine, uri, this);
+
+                _connect(clientFilter, uri);
 
                 return null;
             }
@@ -161,7 +164,7 @@ public class JdkClientContainer implements ClientContainer {
         }
     }
 
-    private SslFilter createSslFilter(ClientEndpointConfig cec, Map<String, Object> properties, TaskQueueFilter writeQueue) {
+    private SslFilter createSslFilter(ClientEndpointConfig cec, Map<String, Object> properties, TransportFilter transportFilter, URI uri) {
         Object sslEngineConfiguratorObject = properties.get(ClientProperties.SSL_ENGINE_CONFIGURATOR);
 
         SslFilter sslFilter = null;
@@ -169,9 +172,9 @@ public class JdkClientContainer implements ClientContainer {
         if (sslEngineConfiguratorObject != null) {
             // property is set, we need to figure out whether new or deprecated one is used and act accordingly.
             if (sslEngineConfiguratorObject instanceof SslEngineConfigurator) {
-                sslFilter = new SslFilter(writeQueue, (SslEngineConfigurator) sslEngineConfiguratorObject);
+                sslFilter = new SslFilter(transportFilter, (SslEngineConfigurator) sslEngineConfiguratorObject, uri.getHost());
             } else if (sslEngineConfiguratorObject instanceof org.glassfish.tyrus.container.jdk.client.SslEngineConfigurator) {
-                sslFilter = new SslFilter(writeQueue, (org.glassfish.tyrus.container.jdk.client.SslEngineConfigurator) sslEngineConfiguratorObject);
+                sslFilter = new SslFilter(transportFilter, (org.glassfish.tyrus.container.jdk.client.SslEngineConfigurator) sslEngineConfiguratorObject);
             } else {
                 LOGGER.log(Level.WARNING, "Invalid '" + ClientProperties.SSL_ENGINE_CONFIGURATOR + "' property value: " + sslEngineConfiguratorObject +
                         ". Using system defaults.");
@@ -201,21 +204,21 @@ public class JdkClientContainer implements ClientContainer {
             if (wlsSslProtocols != null) {
                 sslEngineConfigurator.setEnabledProtocols(wlsSslProtocols.split(","));
             }
-            sslFilter = new SslFilter(writeQueue, sslEngineConfigurator);
+            sslFilter = new SslFilter(transportFilter, sslEngineConfigurator, uri.getHost());
         }
         return sslFilter;
     }
 
-    private TransportFilter createTransportFilter(Filter filter, int sslInputBufferSize, ThreadPoolConfig threadPoolConfig, int containerIdleTimeout) {
-        return new TransportFilter(filter, sslInputBufferSize, threadPoolConfig, containerIdleTimeout);
+    private TransportFilter createTransportFilter(int sslInputBufferSize, ThreadPoolConfig threadPoolConfig, int containerIdleTimeout) {
+        return new TransportFilter(sslInputBufferSize, threadPoolConfig, containerIdleTimeout);
     }
 
-    private TaskQueueFilter createTaskQueueFilter(ClientFilter clientFilter) {
-        return new TaskQueueFilter(clientFilter);
+    private TaskQueueFilter createTaskQueueFilter(Filter downstreamFilter) {
+        return new TaskQueueFilter(downstreamFilter);
     }
 
-    private ClientFilter createClientFilter(Map<String, Object> properties, ClientEngine clientEngine, URI uri, Callable<Void> jdkConnector) throws DeploymentException {
-        return new ClientFilter(clientEngine, uri, getProxyHeaders(properties), jdkConnector);
+    private ClientFilter createClientFilter(Map<String, Object> properties, Filter downstreamFilter, ClientEngine clientEngine, URI uri, Callable<Void> jdkConnector) throws DeploymentException {
+        return new ClientFilter(downstreamFilter, clientEngine, uri, getProxyHeaders(properties), jdkConnector);
     }
 
     private SocketAddress getServerAddress(URI uri) {
@@ -232,15 +235,19 @@ public class JdkClientContainer implements ClientContainer {
         return new InetSocketAddress(uri.getHost(), port);
     }
 
-    private void _connect(ClientFilter clientFilter, TransportFilter transportFilter, URI uri) throws DeploymentException, IOException {
+    private void _connect(ClientFilter clientFilter, URI uri) throws DeploymentException, IOException {
         for (Proxy proxy : proxies) {
             // Proxy.Type.DIRECT is always present and is always last.
             if (proxy.type() == Proxy.Type.DIRECT) {
-                clientFilter.setProxy(false);
-                transportFilter.connect(getServerAddress(uri), null);
+                SocketAddress serverAddress = getServerAddress(uri);
+                try {
+                    connectSynchronously(clientFilter, serverAddress, false);
+                } catch (Throwable throwable) {
+                    throw new DeploymentException("Connection attempt to " + serverAddress + " has failed", throwable);
+                }
                 return;
             }
-            clientFilter.setProxy(true);
+
             LOGGER.log(Level.CONFIG, String.format("Connecting to '%s' via proxy '%s'.", uri, proxy));
             // default ProxySelector always returns proxies with unresolved addresses.
             SocketAddress proxyAddress = proxy.address();
@@ -250,31 +257,47 @@ public class JdkClientContainer implements ClientContainer {
                     // resolve the address.
                     proxyAddress = new InetSocketAddress(inetSocketAddress.getHostName(), inetSocketAddress.getPort());
                 }
-            }
-            final AtomicBoolean success = new AtomicBoolean(false);
-            final CountDownLatch connectLatch = new CountDownLatch(1);
-            try {
-                final SocketAddress finalProxyAddress = proxyAddress;
-                transportFilter.connect(proxyAddress, new CompletionHandler<Void, Void>() {
-                    @Override
-                    public void completed(Void result, Void attachment) {
-                        success.set(true);
-                        connectLatch.countDown();
-                    }
 
-                    @Override
-                    public void failed(Throwable exc, Void attachment) {
-                        LOGGER.log(Level.FINE, "Connecting to " + finalProxyAddress + " failed", exc);
-                        connectLatch.countDown();
-                    }
-                });
-                connectLatch.await();
-                if (success.get()) {
-                    return;
+                try {
+                    connectSynchronously(clientFilter, proxyAddress, true);
+                } catch (Throwable t) {
+                    LOGGER.log(Level.FINE, "Connecting to " + proxyAddress + " failed", t);
                 }
-            } catch (IOException | InterruptedException e) {
-                LOGGER.log(Level.FINE, "Connecting to " + proxyAddress + " failed", e);
             }
+
+        }
+    }
+
+    /**
+     * {@link org.glassfish.tyrus.container.jdk.client.ClientFilter#connect(java.net.SocketAddress, boolean, CompletionHandler)}
+     * is asynchronous, this method will block until it either succeeds or fails.
+     */
+    private void connectSynchronously(ClientFilter clientFilter, final SocketAddress address, boolean proxy) throws Throwable {
+        final AtomicReference<Throwable> exception = new AtomicReference<>(null);
+        final CountDownLatch connectLatch = new CountDownLatch(1);
+
+        try {
+            clientFilter.connect(address, proxy, new CompletionHandler<Void>() {
+                @Override
+                public void completed(Void result) {
+                    connectLatch.countDown();
+                }
+
+                @Override
+                public void failed(Throwable exc) {
+                    exception.set(exc);
+                    connectLatch.countDown();
+                }
+            });
+
+            connectLatch.await();
+
+            if (exception.get() != null) {
+                throw exception.get();
+            }
+
+        } catch (InterruptedException e) {
+            LOGGER.log(Level.SEVERE, "The thread waiting for client to connect has been interrupted before the connection has finished");
         }
     }
 
@@ -383,7 +406,7 @@ public class JdkClientContainer implements ClientContainer {
 
         if (proxyHeaders == null) {
             if (wlsProxyUsername != null && wlsProxyPassword != null) {
-                proxyHeaders = new HashMap<String, String>();
+                proxyHeaders = new HashMap<>();
                 proxyHeaders.put("Proxy-Authorization", "Basic " +
                         Base64Utils.encodeToString((wlsProxyUsername + ":" + wlsProxyPassword).getBytes(Charset.forName("UTF-8")), false));
             }

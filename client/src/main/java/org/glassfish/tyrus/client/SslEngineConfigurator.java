@@ -43,6 +43,7 @@ package org.glassfish.tyrus.client;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLEngine;
 
@@ -100,6 +101,15 @@ public class SslEngineConfigurator {
      * Has the enabled Cipher configured.
      */
     private boolean isCipherConfigured = false;
+    /**
+     * {@code true} if host should be verified.
+     */
+    private boolean hostVerificationEnabled = true;
+
+    /**
+     * A custom hostname verifier.
+     */
+    private HostnameVerifier hostnameVerifier = null;
 
     /**
      * Create SSL Engine configuration basing on passed {@link SSLContext}.
@@ -111,7 +121,7 @@ public class SslEngineConfigurator {
     }
 
     /**
-     * Create SSL Engine configuration basing on passed {@link SSLContext},
+     * Create SSL Engine configuration based on passed {@link SSLContext},
      * using passed client mode, need/want client auth parameters.
      *
      * @param sslContext     {@link SSLContext}.
@@ -132,9 +142,9 @@ public class SslEngineConfigurator {
     }
 
     /**
-     * Create SSL Engine configuration basing on passed {@link SslContextConfigurator}.
+     * Create SSL Engine configuration based on passed {@link SslContextConfigurator}.
      * This constructor makes possible to initialize SSLEngine and SSLContext in lazy
-     * fashion on first {@link #createSSLEngine()} call.
+     * fashion on first {@link #createSSLEngine(String)} call.
      *
      * @param sslContextConfiguration {@link SslContextConfigurator}.
      */
@@ -145,7 +155,7 @@ public class SslEngineConfigurator {
     /**
      * Create SSL Engine configuration basing on passed {@link SslContextConfigurator}.
      * This constructor makes possible to initialize SSLEngine and SSLContext in lazy
-     * fashion on first {@link #createSSLEngine()} call.
+     * fashion on first {@link #createSSLEngine(String)} call.
      *
      * @param sslContextConfiguration {@link SslContextConfigurator}.
      * @param clientMode              will be configured to work in client mode.
@@ -184,11 +194,13 @@ public class SslEngineConfigurator {
     }
 
     /**
-     * Create and configure {@link SSLEngine}, basing on current settings.
+     * Create and configure {@link SSLEngine}, based on current settings.
      *
+     * @param serverHost server host, which will be used to verify authenticity of the server (the provided host name will
+     *                   compared to the host in the certificate provided by the server).
      * @return {@link SSLEngine}.
      */
-    public SSLEngine createSSLEngine() {
+    public SSLEngine createSSLEngine(String serverHost) {
         if (sslContext == null) {
             synchronized (sync) {
                 if (sslContext == null) {
@@ -197,7 +209,9 @@ public class SslEngineConfigurator {
             }
         }
 
-        final SSLEngine sslEngine = sslContext.createSSLEngine();
+        /* the port is not part of host name verification, it is present in the constructor because of Kerberos (which is not
+        supported by Tyrus) */
+        final SSLEngine sslEngine = sslContext.createSSLEngine(serverHost, -1);
         configure(sslEngine);
 
         return sslEngine;
@@ -314,6 +328,49 @@ public class SslEngineConfigurator {
         return this;
     }
 
+    /**
+     * Get the hostname verification state.
+     *
+     * @return {@code true} if the hostname verification is enabled, {@code false} otherwise.
+     */
+    public boolean isHostVerificationEnabled() {
+        return hostVerificationEnabled;
+    }
+
+    /**
+     * Set hostname verification.
+     *
+     * @param hostVerificationEnabled when {@code true}, servers hostname will be verified using JDK default
+     *                                {@link HostnameVerifier}. When {@code false}, hostname verification won't be
+     *                                performed unless custom {@link HostnameVerifier} is set.
+     * @see #setHostnameVerifier(HostnameVerifier)
+     */
+    public void setHostVerificationEnabled(boolean hostVerificationEnabled) {
+        this.hostVerificationEnabled = hostVerificationEnabled;
+    }
+
+    /**
+     * Get custom hostname verifier.
+     *
+     * @return user provided hostname verifier instance.
+     */
+    public HostnameVerifier getHostnameVerifier() {
+        return hostnameVerifier;
+    }
+
+    /**
+     * Set custom hostname verifier.
+     * <p/>
+     * When custom {@link HostnameVerifier} instance is registered, it will be used to perform hostname verification,
+     * no matter on the state of hostname verification flag (see {@link #isHostVerificationEnabled()}) and JDK default
+     * hostname verifier won't be used.
+     *
+     * @param hostnameVerifier custom hostname verifier.
+     */
+    public void setHostnameVerifier(HostnameVerifier hostnameVerifier) {
+        this.hostnameVerifier = hostnameVerifier;
+    }
+
     public SSLContext getSslContext() {
         if (sslContext == null) {
             synchronized (sync) {
@@ -408,6 +465,7 @@ public class SslEngineConfigurator {
         sb.append(", wantClientAuth=").append(wantClientAuth);
         sb.append(", isProtocolConfigured=").append(isProtocolConfigured);
         sb.append(", isCipherConfigured=").append(isCipherConfigured);
+        sb.append(", hostVerificationEnabled=").append(hostVerificationEnabled);
         sb.append('}');
         return sb.toString();
     }

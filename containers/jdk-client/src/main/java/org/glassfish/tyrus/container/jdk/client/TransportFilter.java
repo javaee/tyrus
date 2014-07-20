@@ -67,8 +67,8 @@ import org.glassfish.tyrus.client.ThreadPoolConfig;
 /**
  * Writes and reads data to and from a socket. Only one {@link #write(java.nio.ByteBuffer, org.glassfish.tyrus.spi.CompletionHandler)}
  * method call can be processed at a time. Only one {@link #read(java.nio.ByteBuffer)} operation is supported at a time,
- * another one is started only after the previous one has completed. Blocking in {@link #onRead(Filter, java.nio.ByteBuffer)}
- * or {@link #onConnect(Filter)} method will result in data not being read from a socket until these methods have completed.
+ * another one is started only after the previous one has completed. Blocking in {@link #onRead(java.nio.ByteBuffer)}
+ * or {@link #onConnect()} method will result in data not being read from a socket until these methods have completed.
  *
  * @author Petr Janouch (petr.janouch at oracle.com)
  */
@@ -82,22 +82,20 @@ class TransportFilter extends Filter {
     private static volatile AsynchronousChannelGroup channelGroup;
     private static volatile ScheduledFuture<?> closeWaitTask;
 
-    private final Filter upstreamFilter;
     private final int inputBufferSize;
     private final ThreadPoolConfig threadPoolConfig;
     private final Integer containerIdleTimeout;
 
     private volatile AsynchronousSocketChannel socketChannel;
+    private volatile Filter upstreamFilter;
 
     /**
-     * @param upstreamFilter       a {@link org.glassfish.tyrus.container.jdk.client.Filter} positioned on top of this filter.
      * @param inputBufferSize      size of buffer to be allocated for reading data from a socket.
      * @param threadPoolConfig     thread pool configuration used for creating thread pool.
      * @param containerIdleTimeout idle time after which the shared thread pool will be destroyed.
      *                             If {@code null} default value will be used. The default value is 30 seconds.
      */
-    TransportFilter(Filter upstreamFilter, int inputBufferSize, ThreadPoolConfig threadPoolConfig, Integer containerIdleTimeout) {
-        this.upstreamFilter = upstreamFilter;
+    TransportFilter(int inputBufferSize, ThreadPoolConfig threadPoolConfig, Integer containerIdleTimeout) {
         this.inputBufferSize = inputBufferSize;
         this.threadPoolConfig = threadPoolConfig;
         this.containerIdleTimeout = containerIdleTimeout;
@@ -139,6 +137,8 @@ class TransportFilter extends Filter {
                 scheduleClose();
             }
         }
+
+        upstreamFilter = null;
     }
 
     @Override
@@ -146,38 +146,34 @@ class TransportFilter extends Filter {
         upstreamFilter.onSslHandshakeCompleted();
     }
 
-    /**
-     * Initiates connection to a server.
-     *
-     * @param serverAddress     an address of the server the client should connect to.
-     * @param completionHandler a {@link org.glassfish.tyrus.spi.CompletionHandler} to be called when connection
-     *                          succeeds or fails.
-     * @throws IOException if I/O error occurs.
-     */
-    public void connect(SocketAddress serverAddress, final CompletionHandler<Void, Void> completionHandler) throws IOException {
-        synchronized (TransportFilter.class) {
-            initializeChannelGroup();
-            socketChannel = AsynchronousSocketChannel.open(channelGroup);
-            openedConnections.incrementAndGet();
+    @Override
+    public void connect(SocketAddress serverAddress, Filter upstreamFilter) {
+        this.upstreamFilter = upstreamFilter;
+
+        try {
+            synchronized (TransportFilter.class) {
+                initializeChannelGroup();
+                socketChannel = AsynchronousSocketChannel.open(channelGroup);
+                openedConnections.incrementAndGet();
+            }
+        } catch (IOException e) {
+            upstreamFilter.onError(e);
+            return;
         }
-        socketChannel.connect(serverAddress, null, new CompletionHandler<Void, Void>() {
+
+        socketChannel.connect(serverAddress, upstreamFilter, new CompletionHandler<Void, Filter>() {
 
             @Override
-            public void completed(Void result, Void result2) {
+            public void completed(Void result, Filter upstreamFilter) {
                 final ByteBuffer inputBuffer = ByteBuffer.allocate(inputBufferSize);
-                upstreamFilter.onConnect(TransportFilter.this);
+                upstreamFilter.onConnect();
                 read(inputBuffer);
-                if (completionHandler != null) {
-                    completionHandler.completed(null, null);
-                }
             }
 
             @Override
-            public void failed(Throwable exc, Void result) {
-                LOGGER.log(Level.INFO, "Connection failed", exc.getMessage());
-                if (completionHandler != null) {
-                    completionHandler.failed(exc, null);
-                }
+            public void failed(Throwable exc, Filter upstreamFilter) {
+                upstreamFilter.onError(exc);
+
                 try {
                     socketChannel.close();
                 } catch (IOException e) {
@@ -227,13 +223,18 @@ class TransportFilter extends Filter {
         socketChannel.read(inputBuffer, null, new CompletionHandler<Integer, Void>() {
             @Override
             public void completed(Integer bytesRead, Void result) {
+                // upstreamFilter might have just be set to null by close method
+                if (upstreamFilter == null) {
+                    return;
+                }
+
                 // connection closed by the server
                 if (bytesRead == -1) {
                     TransportFilter.this.upstreamFilter.onConnectionClosed();
                     return;
                 }
                 inputBuffer.flip();
-                TransportFilter.this.upstreamFilter.onRead(TransportFilter.this, inputBuffer);
+                TransportFilter.this.upstreamFilter.onRead(inputBuffer);
                 inputBuffer.compact();
                 read(inputBuffer);
             }
@@ -247,9 +248,13 @@ class TransportFilter extends Filter {
                 if (exc instanceof AsynchronousCloseException) {
                     return;
                 }
-                
-                LOGGER.log(Level.SEVERE, "Reading from a socket has failed", exc.getMessage());
-                upstreamFilter.onConnectionClosed();
+
+                // upstreamFilter might have just be set to null by close method
+                if (upstreamFilter == null) {
+                    return;
+                }
+
+                upstreamFilter.onError(exc);
             }
         });
     }

@@ -39,14 +39,15 @@
  */
 package org.glassfish.tyrus.container.jdk.client;
 
+import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CountDownLatch;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
+import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLEngine;
 import javax.net.ssl.SSLEngineResult;
 import javax.net.ssl.SSLException;
+import javax.net.ssl.SSLParameters;
 
 import org.glassfish.tyrus.client.SslEngineConfigurator;
 import org.glassfish.tyrus.spi.CompletionHandler;
@@ -54,40 +55,60 @@ import org.glassfish.tyrus.spi.CompletionHandler;
 /**
  * A filter that adds SSL support to the transport.
  * <p/>
- * {@link #write(java.nio.ByteBuffer, org.glassfish.tyrus.spi.CompletionHandler)} and {@link #onRead(Filter, java.nio.ByteBuffer)}
+ * {@link #write(java.nio.ByteBuffer, org.glassfish.tyrus.spi.CompletionHandler)} and {@link #onRead(java.nio.ByteBuffer)}
  * calls are passed through until {@link #startSsl()} method is called, after which SSL handshake is started.
  * When SSL handshake is being initiated, all data passed in {@link #write(java.nio.ByteBuffer, org.glassfish.tyrus.spi.CompletionHandler)}
  * method are stored until SSL handshake completes, after which they will be encrypted and passed to a downstream filter.
  * After SSL handshake has completed, all data passed in write method will be encrypted and data passed in
- * {@link #onRead(Filter, java.nio.ByteBuffer)} method will be decrypted.
+ * {@link #onRead(java.nio.ByteBuffer)} method will be decrypted.
  *
  * @author Petr Janouch (petr.janouch at oracle.com)
  */
 class SslFilter extends Filter {
 
-    private static final Logger LOGGER = Logger.getLogger(SslFilter.class.getName());
-
     private final ByteBuffer applicationInputBuffer;
     private final ByteBuffer networkOutputBuffer;
-    private final Filter upstreamFilter;
     private final SSLEngine sslEngine;
+    private final HostnameVerifier customHostnameVerifier;
+    private final String serverHost;
+    private final Filter downstreamFilter;
     /**
      * Lock to ensure that only one thread will work with {@link #sslEngine} state machine during the handshake phase.
      */
     private final Object handshakeLock = new Object();
 
-    private volatile Filter downstreamFilter;
+    private volatile Filter upstreamFilter;
     private volatile boolean sslStarted = false;
     private volatile boolean handshakeCompleted = false;
 
     /**
      * SSL Filter constructor, takes upstream filter as a parameter.
      *
-     * @param upstreamFilter a filter that is positioned above the SSL filter.
+     * @param downstreamFilter      a filter that is positioned under the SSL filter.
+     * @param sslEngineConfigurator configuration of SSL engine.
+     * @param serverHost            server host (hostname or IP address), which will be used to verify authenticity of
+     *                              the server (the provided host will be compared against the host in the certificate
+     *                              provided by the server). IP address and hostname cannot be used interchangeably -
+     *                              if a certificate contains hostname and an IP address of the server is provided here,
+     *                              the verification will fail.
      */
-    SslFilter(Filter upstreamFilter, SslEngineConfigurator sslEngineConfigurator) {
-        this.upstreamFilter = upstreamFilter;
-        sslEngine = sslEngineConfigurator.createSSLEngine();
+    SslFilter(Filter downstreamFilter, SslEngineConfigurator sslEngineConfigurator, String serverHost) {
+        this.downstreamFilter = downstreamFilter;
+        this.serverHost = serverHost;
+        sslEngine = sslEngineConfigurator.createSSLEngine(serverHost);
+        customHostnameVerifier = sslEngineConfigurator.getHostnameVerifier();
+
+        /**
+         * Enable server host verification.
+         * This can be moved to {@link SslEngineConfigurator} with the rest of {@link SSLEngine} configuration
+         * when {@link SslEngineConfigurator} supports Java 7.
+         */
+        if (sslEngineConfigurator.isHostVerificationEnabled() && sslEngineConfigurator.getHostnameVerifier() == null) {
+            SSLParameters sslParameters = sslEngine.getSSLParameters();
+            sslParameters.setEndpointIdentificationAlgorithm("HTTPS");
+            sslEngine.setSSLParameters(sslParameters);
+        }
+
         applicationInputBuffer = ByteBuffer.allocate(sslEngine.getSession().getApplicationBufferSize());
         networkOutputBuffer = ByteBuffer.allocate(sslEngine.getSession().getPacketBufferSize());
     }
@@ -95,14 +116,16 @@ class SslFilter extends Filter {
     /**
      * SSL Filter constructor, takes upstream filter as a parameter.
      *
-     * @param upstreamFilter a filter that is positioned above the SSL filter.
-     * @deprecated Please use {@link #SslFilter(Filter, org.glassfish.tyrus.client.SslEngineConfigurator)}.
+     * @param downstreamFilter a filter that is positioned under the SSL filter.
+     * @deprecated Please use {@link #SslFilter(Filter, org.glassfish.tyrus.client.SslEngineConfigurator, String)}.
      */
-    SslFilter(Filter upstreamFilter, org.glassfish.tyrus.container.jdk.client.SslEngineConfigurator sslEngineConfigurator) {
-        this.upstreamFilter = upstreamFilter;
+    SslFilter(Filter downstreamFilter, org.glassfish.tyrus.container.jdk.client.SslEngineConfigurator sslEngineConfigurator) {
+        this.downstreamFilter = downstreamFilter;
         sslEngine = sslEngineConfigurator.createSSLEngine();
         applicationInputBuffer = ByteBuffer.allocate(sslEngine.getSession().getApplicationBufferSize());
         networkOutputBuffer = ByteBuffer.allocate(sslEngine.getSession().getPacketBufferSize());
+        customHostnameVerifier = null;
+        serverHost = null;
     }
 
     @Override
@@ -147,7 +170,6 @@ class SslFilter extends Filter {
     void close() {
         if (!sslStarted) {
             downstreamFilter.close();
-            downstreamFilter = null;
             return;
         }
         sslEngine.closeOutbound();
@@ -156,28 +178,40 @@ class SslFilter extends Filter {
             @Override
             public void completed(ByteBuffer result) {
                 downstreamFilter.close();
-                downstreamFilter = null;
+                upstreamFilter = null;
             }
 
             @Override
             public void failed(Throwable throwable) {
                 downstreamFilter.close();
-                downstreamFilter = null;
+                upstreamFilter = null;
             }
         });
     }
 
     @Override
-    void onConnect(final Filter downstreamFilter) {
-        this.downstreamFilter = downstreamFilter;
-        upstreamFilter.onConnect(this);
+    void connect(SocketAddress serverAddress, Filter upstreamFilter) {
+        this.upstreamFilter = upstreamFilter;
+        downstreamFilter.connect(serverAddress, this);
     }
 
     @Override
-    void onRead(Filter downstreamFilter, ByteBuffer networkData) {
+    void onConnect() {
+        upstreamFilter.onConnect();
+    }
+
+    @Override
+    void onRead(ByteBuffer networkData) {
+        /**
+         * {@code upstreamFilter == null} means that there is {@link Filter#close()} propagating from the upper layers.
+         */
+        if (upstreamFilter == null) {
+            return;
+        }
+
         // before SSL is started read just passes through
         if (!sslStarted) {
-            upstreamFilter.onRead(this, networkData);
+            upstreamFilter.onRead(networkData);
             return;
         }
         SSLEngineResult.HandshakeStatus hs = sslEngine.getHandshakeStatus();
@@ -201,6 +235,12 @@ class SslFilter extends Filter {
                         }
                         if (result.getHandshakeStatus() == SSLEngineResult.HandshakeStatus.FINISHED) {
                             handshakeCompleted = true;
+
+                            // apply a custom host verifier if present
+                            if (customHostnameVerifier != null && !customHostnameVerifier.verify(serverHost, sslEngine.getSession())) {
+                                handleSslError(new SSLException("Server host name verification using " + customHostnameVerifier.getClass() + " has failed"));
+                            }
+
                             upstreamFilter.onSslHandshakeCompleted();
                             return;
                         }
@@ -225,7 +265,7 @@ class SslFilter extends Filter {
                         return;
                     }
                     applicationInputBuffer.flip();
-                    upstreamFilter.onRead(downstreamFilter, applicationInputBuffer);
+                    upstreamFilter.onRead(applicationInputBuffer);
                 } while (networkData.hasRemaining());
             }
         } catch (SSLException e) {
@@ -286,8 +326,7 @@ class SslFilter extends Filter {
                                 delegatedTask.run();
                             }
                             if (sslEngine.getHandshakeStatus() == SSLEngineResult.HandshakeStatus.NEED_UNWRAP) {
-                                LOGGER.log(Level.SEVERE, "SSL handshake error has occurred - more data needed for validating the certificate");
-                                upstreamFilter.onConnectionClosed();
+                                handleSslError(new SSLException("SSL handshake error has occurred - more data needed for validating the certificate"));
                                 return;
                             }
                             break;
@@ -300,9 +339,13 @@ class SslFilter extends Filter {
         }
     }
 
-    private void handleSslError(Throwable e) {
-        LOGGER.log(Level.SEVERE, "SSL error has occurred", e);
-        upstreamFilter.onConnectionClosed();
+    private void handleSslError(Throwable t) {
+        upstreamFilter.onError(t);
+    }
+
+    @Override
+    void onError(Throwable t) {
+        upstreamFilter.onError(t);
     }
 
     @Override
@@ -315,5 +358,4 @@ class SslFilter extends Filter {
             handleSslError(e);
         }
     }
-
 }

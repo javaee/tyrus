@@ -60,9 +60,17 @@ import java.util.logging.Logger;
 
 import javax.websocket.DeploymentException;
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLEngine;
+import javax.net.ssl.SSLException;
+import javax.net.ssl.SSLParameters;
+
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.client.ClientProperties;
+import org.glassfish.tyrus.client.SslEngineConfigurator;
 import org.glassfish.tyrus.core.Base64Utils;
+import org.glassfish.tyrus.core.TyrusFuture;
 import org.glassfish.tyrus.core.Utils;
 import org.glassfish.tyrus.spi.ClientEngine;
 
@@ -79,6 +87,7 @@ import org.glassfish.grizzly.filterchain.TransportFilter;
 import org.glassfish.grizzly.nio.transport.TCPNIOConnectorHandler;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransport;
 import org.glassfish.grizzly.nio.transport.TCPNIOTransportBuilder;
+import org.glassfish.grizzly.ssl.SSLConnectionContext;
 import org.glassfish.grizzly.ssl.SSLContextConfigurator;
 import org.glassfish.grizzly.ssl.SSLEngineConfigurator;
 import org.glassfish.grizzly.ssl.SSLFilter;
@@ -159,7 +168,7 @@ public class GrizzlyClientSocket {
 
     private final URI uri;
     private final long timeoutMs;
-    private final SSLEngineConfigurator clientSSLEngineConfigurator;
+    private final ExtendedSSLEngineConfigurator clientSSLEngineConfigurator;
     private final ThreadPoolConfig workerThreadPoolConfig;
     private final ThreadPoolConfig selectorThreadPoolConfig;
     private final ClientEngine engine;
@@ -187,17 +196,8 @@ public class GrizzlyClientSocket {
         this.timeoutMs = timeoutMs;
         this.proxyHeaders = getProxyHeaders(properties);
 
-        SSLEngineConfigurator sslEngineConfigurator = (SSLEngineConfigurator) properties.get(ClientProperties.SSL_ENGINE_CONFIGURATOR);
-        // if we are trying to access "wss" scheme and we don't have sslEngineConfigurator instance
-        // we should try to create ssl connection using JVM properties.
-        if (uri.getScheme().equalsIgnoreCase("wss") && sslEngineConfigurator == null) {
-            SSLContextConfigurator defaultConfig = new SSLContextConfigurator();
-            defaultConfig.retrieve(System.getProperties());
-            sslEngineConfigurator = new SSLEngineConfigurator(defaultConfig, true, false, false);
-        }
-
         try {
-            this.clientSSLEngineConfigurator = sslEngineConfigurator;
+            this.clientSSLEngineConfigurator = getSSLEngineConfigurator(properties, uri.getHost());
             this.workerThreadPoolConfig = getWorkerThreadPoolConfig(properties);
             this.selectorThreadPoolConfig = Utils.getProperty(properties, GrizzlyClientProperties.SELECTOR_THREAD_POOL_CONFIG, ThreadPoolConfig.class);
 
@@ -361,14 +361,31 @@ public class GrizzlyClientSocket {
                     break;
             }
 
-            connectorHandler.setProcessor(createFilterChain(engine, null, clientSSLEngineConfigurator, !(proxy.type() == Proxy.Type.DIRECT), uri, timeoutHandler, sharedTransport, sharedTransportTimeout, proxyHeaders, grizzlyConnector));
+            // this will block until the SSL engine handshake is complete, so SSL handshake error can be handled here
+            TyrusFuture sslHandshakeFuture = null;
+            if (clientSSLEngineConfigurator != null) {
+                sslHandshakeFuture = new TyrusFuture();
+            }
+            connectorHandler.setProcessor(createFilterChain(engine, null, clientSSLEngineConfigurator, !(proxy.type() == Proxy.Type.DIRECT), uri, timeoutHandler, sharedTransport, sharedTransportTimeout, proxyHeaders, grizzlyConnector, sslHandshakeFuture));
 
             connectionGrizzlyFuture = connectorHandler.connect(connectAddress);
 
             try {
                 final Connection connection = connectionGrizzlyFuture.get(timeoutMs, TimeUnit.MILLISECONDS);
 
+                // wait for the SSL handshake to finish and handle error, if they occur
+                if (sslHandshakeFuture != null) {
+                    try {
+                        sslHandshakeFuture.get(timeoutMs, TimeUnit.MILLISECONDS);
+                    } catch (ExecutionException e) {
+                        throw new DeploymentException("SSL handshake has failed", e.getCause());
+                    } catch (Exception e) {
+                        LOGGER.log(Level.CONFIG, String.format("Connection to '%s' failed.", uri), e);
+                    }
+                }
+
                 LOGGER.log(Level.CONFIG, String.format("Connected to '%s'.", connection.getPeerAddress()));
+
                 return;
             } catch (InterruptedException interruptedException) {
                 LOGGER.log(Level.CONFIG, String.format("Connection to '%s' failed.", uri), interruptedException);
@@ -595,19 +612,51 @@ public class GrizzlyClientSocket {
 
     private static Processor createFilterChain(ClientEngine engine,
                                                SSLEngineConfigurator serverSSLEngineConfigurator,
-                                               SSLEngineConfigurator clientSSLEngineConfigurator,
+                                               final ExtendedSSLEngineConfigurator clientSSLEngineConfigurator,
                                                boolean proxy,
-                                               URI uri,
+                                               final URI uri,
                                                ClientEngine.TimeoutHandler timeoutHandler,
                                                boolean sharedTransport, Integer sharedTransportTimeout,
                                                Map<String, String> proxyHeaders,
-                                               Callable<Void> grizzlyConnector) {
+                                               Callable<Void> grizzlyConnector,
+                                               final TyrusFuture<Void> sslHandshakeFuture) {
         FilterChainBuilder clientFilterChainBuilder = FilterChainBuilder.stateless();
         Filter sslFilter = null;
 
         clientFilterChainBuilder.add(new TransportFilter());
         if (serverSSLEngineConfigurator != null || clientSSLEngineConfigurator != null) {
-            sslFilter = new SSLFilter(serverSSLEngineConfigurator, clientSSLEngineConfigurator);
+            sslFilter = new SSLFilter(serverSSLEngineConfigurator, clientSSLEngineConfigurator) {
+                {
+                    addHandshakeListener(new HandshakeListener() {
+                        @Override
+                        public void onStart(Connection connection) {
+                            // do nothing
+                        }
+
+                        @Override
+                        public void onComplete(Connection connection) {
+                            final SSLConnectionContext sslCtx = obtainSslConnectionContext(connection);
+                            final SSLEngine sslEngine = sslCtx.getSslEngine();
+
+                            // apply a custom host name verifier if present
+                            HostnameVerifier customHostnameVerifier = clientSSLEngineConfigurator.hostnameVerifier;
+                            if (customHostnameVerifier != null && !customHostnameVerifier.verify(uri.getHost(), sslEngine.getSession())) {
+                                sslHandshakeFuture.setFailure(new SSLException("Server host name verification using " + customHostnameVerifier.getClass() + " has failed"));
+                                connection.terminateSilently();
+                            } else {
+                                sslHandshakeFuture.setResult(null);
+                            }
+                        }
+                    });
+                }
+
+                @Override
+                protected void notifyHandshakeFailed(Connection connection, Throwable t) {
+                    sslHandshakeFuture.setFailure(t);
+                    connection.terminateSilently();
+                }
+            };
+
             if (proxy) {
                 sslFilter = new FilterWrapper(sslFilter);
             }
@@ -662,6 +711,36 @@ public class GrizzlyClientSocket {
             }
             transport = null;
         }
+    }
+
+    private ExtendedSSLEngineConfigurator getSSLEngineConfigurator(Map<String, Object> properties, String host) {
+        Object configuratorObject = properties.get(ClientProperties.SSL_ENGINE_CONFIGURATOR);
+
+        if (configuratorObject == null) {
+            // if we are trying to access "wss" scheme and we don't have sslEngineConfigurator instance
+            // we should try to create ssl connection using JVM properties.
+            if (uri.getScheme().equalsIgnoreCase("wss")) {
+                final SSLContextConfigurator defaultConfig = new SSLContextConfigurator();
+                defaultConfig.retrieve(System.getProperties());
+                return new ExtendedSSLEngineConfigurator(defaultConfig.createSSLContext(), host);
+            } else {
+                return null;
+            }
+        }
+
+        if (configuratorObject instanceof SSLEngineConfigurator) {
+            return new ExtendedSSLEngineConfigurator((SSLEngineConfigurator) configuratorObject, host);
+        }
+
+        if (configuratorObject instanceof SslEngineConfigurator) {
+            return new ExtendedSSLEngineConfigurator((SslEngineConfigurator) configuratorObject, host);
+        }
+
+        // if we have reached here the ssl engine configuration property is set, but is of incompatible type
+        LOGGER.log(Level.CONFIG, String.format("Invalid type of configuration property of %s (%s), %s cannot be cast to %s or %s",
+                ClientProperties.SSL_ENGINE_CONFIGURATOR, configuratorObject.toString(), configuratorObject.getClass().toString(),
+                SSLEngineConfigurator.class.toString(), SslEngineConfigurator.class.toString()));
+        return null;
     }
 
     /**
@@ -749,6 +828,64 @@ public class GrizzlyClientSocket {
             } else {
                 ctx.getInvokeAction();
             }
+        }
+    }
+
+    private static class ExtendedSSLEngineConfigurator extends SSLEngineConfigurator {
+        private final HostnameVerifier hostnameVerifier;
+        private final boolean hostVerificationEnabled;
+        private final String peerHost;
+
+        ExtendedSSLEngineConfigurator(SSLContext sslContext, String peerHost) {
+            super(sslContext, true, false, false);
+            this.hostnameVerifier = null;
+            this.hostVerificationEnabled = true;
+            this.peerHost = peerHost;
+        }
+
+        ExtendedSSLEngineConfigurator(SSLEngineConfigurator sslEngineConfigurator, String peerHost) {
+            super(sslEngineConfigurator.getSslContext(), sslEngineConfigurator.isClientMode(), sslEngineConfigurator.isNeedClientAuth(), sslEngineConfigurator.isWantClientAuth());
+            this.hostnameVerifier = null;
+            this.hostVerificationEnabled = true;
+            this.peerHost = peerHost;
+        }
+
+        ExtendedSSLEngineConfigurator(SslEngineConfigurator sslEngineConfigurator, String peerHost) {
+            super(sslEngineConfigurator.getSslContext(), sslEngineConfigurator.isClientMode(), sslEngineConfigurator.isNeedClientAuth(), sslEngineConfigurator.isWantClientAuth());
+            this.hostnameVerifier = sslEngineConfigurator.getHostnameVerifier();
+            this.hostVerificationEnabled = sslEngineConfigurator.isHostVerificationEnabled();
+            this.peerHost = peerHost;
+        }
+
+        @Override
+        public SSLEngine createSSLEngine() {
+            /* the port is not part of host name verification, it is present in the constructor because of Kerberos (which is not
+            supported by Tyrus) */
+            SSLEngine sslEngine = super.createSSLEngine(peerHost, -1);
+
+            if (hostVerificationEnabled && hostnameVerifier == null) {
+                try {
+                    // JDK 6
+                    Class<?> aClass = Class.forName("com.sun.net.ssl.internal.ssl.SSLEngineImpl");
+
+                    aClass.getMethod("trySetHostnameVerification", String.class).invoke(sslEngine, "HTTPS");
+
+                } catch (ClassNotFoundException e) {
+                    // not JDK 6 (hopefully 7+)
+
+                    SSLParameters sslParameters = sslEngine.getSSLParameters();
+                    try {
+                        SSLParameters.class.getMethod("setEndpointIdentificationAlgorithm", String.class).invoke(sslParameters, "HTTPS");
+                        sslEngine.setSSLParameters(sslParameters);
+                    } catch (Exception exc) {
+                        LOGGER.log(Level.CONFIG, "An error has occurred during SSL configuration, host name verification might not be configured properly", exc);
+                    }
+                } catch (Exception e) {
+                    LOGGER.log(Level.CONFIG, "An error has occurred during SSL configuration, host name verification might not be configured properly", e);
+                }
+            }
+
+            return sslEngine;
         }
     }
 }

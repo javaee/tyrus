@@ -102,7 +102,7 @@ public class TestContainer {
         }
     }
 
-    private String getHost() {
+    protected String getHost() {
         final String host = System.getProperty("tyrus.test.host");
         if (host != null) {
             return host;

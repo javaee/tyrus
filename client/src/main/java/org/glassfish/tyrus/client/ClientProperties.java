@@ -106,10 +106,13 @@ public final class ClientProperties {
     /**
      * Property usable in {@link ClientManager#getProperties()} as a key for SSL configuration.
      * <p/>
-     * Value is expected to be either {@link org.glassfish.grizzly.ssl.SSLEngineConfigurator}
-     * when configuring Grizzly client or
-     * {@link org.glassfish.tyrus.client.SslEngineConfigurator}
-     * when configuring JDK client.
+     * Value is expected to be either {@link org.glassfish.grizzly.ssl.SSLEngineConfigurator} or
+     * {@link org.glassfish.tyrus.client.SslEngineConfigurator} when configuring Grizzly client or only
+     * {@link org.glassfish.tyrus.client.SslEngineConfigurator} when configuring JDK client.
+     * <p/>
+     * The advantage of using {@link org.glassfish.tyrus.client.SslEngineConfigurator} with Grizzly client is that
+     * {@link org.glassfish.tyrus.client.SslEngineConfigurator} allows configuration of host name verification
+     * (which is turned on by default)
      * <p/>
      * Example configuration for JDK client:
      * <pre>

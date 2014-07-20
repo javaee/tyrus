@@ -39,6 +39,7 @@
  */
 package org.glassfish.tyrus.container.jdk.client;
 
+import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -63,12 +64,23 @@ class TaskQueueFilter extends Filter {
 
     private final Queue<Task> taskQueue = new ConcurrentLinkedQueue<>();
     private final AtomicBoolean taskLock = new AtomicBoolean(false);
-    private final Filter upstreamFilter;
+    private final Filter downstreamFilter;
 
-    private volatile Filter downstreamFilter;
+    private volatile Filter upstreamFilter;
 
-    TaskQueueFilter(Filter upstreamFilter) {
+    /**
+     * Constructor.
+     *
+     * @param downstreamFilter a filter that is positioned directly under this filter.
+     */
+    TaskQueueFilter(Filter downstreamFilter) {
+        this.downstreamFilter = downstreamFilter;
+    }
+
+    @Override
+    void connect(SocketAddress serverAddress, Filter upstreamFilter) {
         this.upstreamFilter = upstreamFilter;
+        downstreamFilter.connect(serverAddress, this);
     }
 
     @Override
@@ -96,7 +108,7 @@ class TaskQueueFilter extends Filter {
             public void execute(TaskQueueFilter queueFilter) {
                 if (downstreamFilter != null) {
                     downstreamFilter.close();
-                    downstreamFilter = null;
+                    upstreamFilter = null;
                 }
                 processTask();
             }
@@ -124,25 +136,36 @@ class TaskQueueFilter extends Filter {
     }
 
     @Override
-    void onConnect(Filter connection) {
-        this.downstreamFilter = connection;
-        upstreamFilter.onConnect(this);
+    void onConnect() {
+        upstreamFilter.onConnect();
     }
 
     @Override
-    void onRead(Filter filter, ByteBuffer buffer) {
-        upstreamFilter.onRead(this, buffer);
+    void onRead(ByteBuffer buffer) {
+        /**
+         * {@code upstreamFilter == null} means that there is {@link Filter#close()} propagating from the upper layers.
+         */
+        if (upstreamFilter == null) {
+            return;
+        }
+
+        upstreamFilter.onRead(buffer);
     }
 
     @Override
     void onConnectionClosed() {
         upstreamFilter.onConnectionClosed();
-        close();
     }
 
     @Override
     void onSslHandshakeCompleted() {
+        upstreamFilter.onSslHandshakeCompleted();
         processTask();
+    }
+
+    @Override
+    void onError(Throwable t) {
+        upstreamFilter.onError(t);
     }
 
     /**

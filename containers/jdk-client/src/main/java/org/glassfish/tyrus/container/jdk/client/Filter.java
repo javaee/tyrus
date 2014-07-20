@@ -39,6 +39,7 @@
  */
 package org.glassfish.tyrus.container.jdk.client;
 
+import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 
 import org.glassfish.tyrus.spi.CompletionHandler;
@@ -52,7 +53,7 @@ import org.glassfish.tyrus.spi.CompletionHandler;
 class Filter {
 
     /**
-     * Performs write operation for this filter and invokes write method on the next filter in the filter chain.
+     * Perform write operation for this filter and invokes write method on the next filter in the filter chain.
      *
      * @param data              on which write operation is performed.
      * @param completionHandler will be invoked when the write operation is completed or has failed.
@@ -61,7 +62,7 @@ class Filter {
     }
 
     /**
-     * Closes the filter, invokes close operation on the next filter in the filter chain.
+     * Close the filter, invokes close operation on the next filter in the filter chain.
      * <p/>
      * The filter is expected to clean up any allocated resources and pass the invocation to downstream filter.
      */
@@ -69,31 +70,37 @@ class Filter {
     }
 
     /**
-     * Signals to turn on SSL, it is passed on in the filter chain until a filter responsible for SSL is reached.
+     * Signal to turn on SSL, it is passed on in the filter chain until a filter responsible for SSL is reached.
      */
     void startSsl() {
     }
 
     /**
+     * Initiate connect.
+     *
+     * @param address        an address where to connect (server or proxy).
+     * @param upstreamFilter a filter positioned upstream.
+     */
+    void connect(SocketAddress address, Filter upstreamFilter) {
+    }
+
+    /**
      * An event listener that is called when a connection is set up.
      * This event travels up in the filter chain.
-     *
-     * @param downstreamFilter a filter that is positioned directly under the current filter in the filter chain.
      */
-    void onConnect(Filter downstreamFilter) {
+    void onConnect() {
     }
 
     /**
      * An event listener that is called when some data is read.
      *
-     * @param downstreamFilter a filter that is positioned directly under the current filter in the filter chain.
-     * @param data             that has been read.
+     * @param data that has been read.
      */
-    void onRead(Filter downstreamFilter, ByteBuffer data) {
+    void onRead(ByteBuffer data) {
     }
 
     /**
-     * An event listener that is called when the connection is closed.
+     * An event listener that is called when the connection is closed by the peer.
      */
     void onConnectionClosed() {
     }
@@ -102,6 +109,15 @@ class Filter {
      * An event listener that is called, when SSL completes its handshake.
      */
     void onSslHandshakeCompleted() {
+    }
 
+    /**
+     * An event listener that is called when an error has occurred.
+     * <p/>
+     * Errors travel in direction from downstream filter to upstream filter.
+     *
+     * @param t an error that has occurred.
+     */
+    void onError(Throwable t) {
     }
 }
