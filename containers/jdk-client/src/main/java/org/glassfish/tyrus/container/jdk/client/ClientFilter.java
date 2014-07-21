@@ -115,13 +115,19 @@ class ClientFilter extends Filter {
 
     @Override
     public void onConnect() {
-        final UpgradeRequest upgradeRequest = engine.createUpgradeRequest(uri, new TimeoutHandler() {
-            @Override
-            public void handleTimeout() {
-                downstreamFilter.close();
-            }
-        });
-        final JdkUpgradeRequest handshakeUpgradeRequest = getJdkUpgradeRequest(upgradeRequest, downstreamFilter);
+        final JdkUpgradeRequest handshakeUpgradeRequest;
+
+        if (proxy) {
+            handshakeUpgradeRequest = createProxyUpgradeRequest(uri);
+        } else {
+            UpgradeRequest upgradeRequest = engine.createUpgradeRequest(uri, new TimeoutHandler() {
+                @Override
+                public void handleTimeout() {
+                    downstreamFilter.close();
+                }
+            });
+            handshakeUpgradeRequest = getJdkUpgradeRequest(upgradeRequest, downstreamFilter);
+        }
 
         sendRequest(downstreamFilter, handshakeUpgradeRequest);
     }
@@ -136,14 +142,8 @@ class ClientFilter extends Filter {
     }
 
     private JdkUpgradeRequest getJdkUpgradeRequest(final UpgradeRequest upgradeRequest, final Filter downstreamFilter) {
-        final JdkUpgradeRequest handshakeUpgradeRequest;
-        if (!proxy) {
-            downstreamFilter.startSsl();
-            handshakeUpgradeRequest = createHandshakeUpgradeRequest(upgradeRequest);
-        } else {
-            handshakeUpgradeRequest = createProxyUpgradeRequest(upgradeRequest);
-        }
-        return handshakeUpgradeRequest;
+        downstreamFilter.startSsl();
+        return createHandshakeUpgradeRequest(upgradeRequest);
     }
 
     @Override
@@ -312,8 +312,8 @@ class ClientFilter extends Filter {
         };
     }
 
-    private JdkUpgradeRequest createProxyUpgradeRequest(final UpgradeRequest upgradeRequest) {
-        return new JdkUpgradeRequest(upgradeRequest) {
+    private JdkUpgradeRequest createProxyUpgradeRequest(final URI uri) {
+        return new JdkUpgradeRequest(null) {
 
             @Override
             public String getHttpMethod() {
@@ -322,14 +322,12 @@ class ClientFilter extends Filter {
 
             @Override
             public String getRequestUri() {
-                URI uri = URI.create(upgradeRequest.getRequestUri());
                 final int requestPort = uri.getPort() == -1 ? (uri.getScheme().equals("wss") ? 443 : 80) : uri.getPort();
                 return String.format("%s:%d", uri.getHost(), requestPort);
             }
 
             @Override
             public Map<String, List<String>> getHeaders() {
-                URI uri = URI.create(upgradeRequest.getRequestUri());
                 Map<String, List<String>> headers = new HashMap<>();
                 if (proxyHeaders != null) {
                     for (Map.Entry<String, String> entry : proxyHeaders.entrySet()) {

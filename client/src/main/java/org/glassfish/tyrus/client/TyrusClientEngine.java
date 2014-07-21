@@ -142,7 +142,7 @@ public class TyrusClientEngine implements ClientEngine {
                 UpgradeRequest upgradeRequest = clientHandShake.getRequest();
                 config.getConfigurator().beforeRequest(upgradeRequest.getHeaders());
 
-                clientEngineState = TyrusClientEngineState.FIRST_UPGRARE_REQUEST;
+                clientEngineState = TyrusClientEngineState.FIRST_UPGRADE_REQUEST;
                 return upgradeRequest;
             }
 
@@ -175,7 +175,7 @@ public class TyrusClientEngine implements ClientEngine {
     public ClientUpgradeInfo processResponse(final UpgradeResponse upgradeResponse, final Writer writer, final Connection.CloseListener closeListener) {
 
         switch (clientEngineState) {
-            case FIRST_UPGRARE_REQUEST:
+            case FIRST_UPGRADE_REQUEST:
             case IN_PROGRESS:
                 switch (upgradeResponse.getStatus()) {
                     case 101:
@@ -506,7 +506,7 @@ public class TyrusClientEngine implements ClientEngine {
         /**
          * Set after first {@link TyrusClientEngine#createUpgradeRequest(URI, TimeoutHandler)} invocation.
          */
-        FIRST_UPGRARE_REQUEST,
+        FIRST_UPGRADE_REQUEST,
 
         /**
          * In progress.

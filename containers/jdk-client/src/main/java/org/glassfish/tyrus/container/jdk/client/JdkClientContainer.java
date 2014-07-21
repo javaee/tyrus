@@ -260,6 +260,7 @@ public class JdkClientContainer implements ClientContainer {
 
                 try {
                     connectSynchronously(clientFilter, proxyAddress, true);
+                    return;
                 } catch (Throwable t) {
                     LOGGER.log(Level.FINE, "Connecting to " + proxyAddress + " failed", t);
                 }
