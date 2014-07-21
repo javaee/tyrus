@@ -57,7 +57,6 @@ import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.tools.TestContainer;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -70,7 +69,7 @@ import static org.junit.Assert.fail;
  */
 public class ControlFrameInDataStreamTest extends TestContainer {
 
-    private static String CLOSE_PHRASE = "Just checking this gets delivered";
+    private static final String CLOSE_PHRASE = "Just checking this gets delivered";
 
     /**
      * Test that a pong message inside a stream of text partial messages gets delivered.
@@ -98,7 +97,6 @@ public class ControlFrameInDataStreamTest extends TestContainer {
      * Test that a close message inside a stream of text partial messages gets delivered.
      */
     @Test
-    @Ignore("blocks GF tests - TYRUS-343")
     public void testCloseMessageInTextStream() {
         Server server = null;
         try {
@@ -143,7 +141,6 @@ public class ControlFrameInDataStreamTest extends TestContainer {
      * Test that a close message inside a stream of binary partial messages gets delivered.
      */
     @Test
-    @Ignore("blocks GF tests - TYRUS-343")
     public void testCloseMessageInBinaryStream() {
         Server server = null;
         try {
