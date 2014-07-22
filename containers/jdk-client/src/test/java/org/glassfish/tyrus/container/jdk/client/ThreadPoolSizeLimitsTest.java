@@ -44,6 +44,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfig;
+import javax.websocket.CloseReason;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
@@ -57,29 +58,15 @@ import org.glassfish.tyrus.client.ThreadPoolConfig;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.tools.TestContainer;
 
-import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import junit.framework.Assert;
-
 /**
  * @author Petr Janouch (petr.janouch at oracle.com)
  */
 public class ThreadPoolSizeLimitsTest extends TestContainer {
-
-    @BeforeClass
-    public static void beforeTest() {
-        try {
-            // thread pool idle timeout is set to 1s for JDK client - we let thread pool created by previous test be destroyed
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            Assert.fail();
-        }
-    }
 
     @Test
     public void testBorderValues() {
@@ -111,20 +98,20 @@ public class ThreadPoolSizeLimitsTest extends TestContainer {
         assertEquals(0, config.getQueueLimit());
     }
 
-
     /**
      * Tests that client with max two threads in the thread pool will work.
      */
     @Test
     public void testSmallestMaximalSize() {
+        final CountDownLatch messageLatch = new CountDownLatch(1);
+        final CountDownLatch sessionCloseLatch = new CountDownLatch(1);
+
         Server server = null;
         try {
             server = startServer(AnnotatedServerEndpoint.class);
 
-            final CountDownLatch messageLatch = new CountDownLatch(1);
 
             ClientManager client = ClientManager.createClient(JdkClientContainer.class.getName());
-            client.getProperties().put(ClientProperties.SHARED_CONTAINER_IDLE_TIMEOUT, 1);
             ThreadPoolConfig config = ThreadPoolConfig.defaultConfig().setMaxPoolSize(2);
             client.getProperties().put(ClientProperties.WORKER_THREAD_POOL_CONFIG, config);
 
@@ -146,13 +133,26 @@ public class ThreadPoolSizeLimitsTest extends TestContainer {
                         fail();
                     }
                 }
+
+                @Override
+                public void onClose(Session session, CloseReason closeReason) {
+                    sessionCloseLatch.countDown();
+                }
             }, ClientEndpointConfig.Builder.create().build(), getURI(AnnotatedServerEndpoint.class));
 
             assertTrue(messageLatch.await(1, TimeUnit.SECONDS));
         } catch (Exception e) {
+            e.printStackTrace();
             fail();
         } finally {
             stopServer(server);
+            try {
+                /* Tests in the package are sensitive to freeing resources. Unclosed sessions might hinder the next test
+                (if the next test requires a fresh client thread pool) */
+                assertTrue(sessionCloseLatch.await(5, TimeUnit.SECONDS));
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 

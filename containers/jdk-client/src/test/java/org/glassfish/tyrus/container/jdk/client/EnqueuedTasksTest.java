@@ -47,6 +47,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpoint;
+import javax.websocket.OnClose;
 import javax.websocket.OnMessage;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
@@ -57,10 +58,10 @@ import org.glassfish.tyrus.client.ThreadPoolConfig;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.tools.TestContainer;
 
-import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.assertTrue;
 
+import junit.framework.Assert;
 import static junit.framework.Assert.fail;
 
 /**
@@ -73,52 +74,39 @@ import static junit.framework.Assert.fail;
  */
 public class EnqueuedTasksTest extends TestContainer {
 
-    public static volatile CountDownLatch blockingLatch = null;
-    public static volatile CountDownLatch totalMessagesLatch = null;
-
-    @Before
-    public void beforeTest() {
-        try {
-            // thread pool idle timeout is set to 1s for JDK client - we let thread pool created by previous test be destroyed
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            fail();
-        }
-    }
-
     @Test
     public void testUserProvidedQueue() {
         ThreadPoolConfig threadPoolConfig = ThreadPoolConfig.defaultConfig();
-        threadPoolConfig.setQueue(new LinkedList<Runnable>());
-        testEnqueuedTasksGetExecuted(threadPoolConfig);
+        CountDownLatch enqueueLatch = new CountDownLatch(10);
+        threadPoolConfig.setQueue(new CountingQueue(enqueueLatch));
+        testEnqueuedTasksGetExecuted(threadPoolConfig, enqueueLatch);
     }
 
     @Test
     public void testDefaultQueue() {
         ThreadPoolConfig threadPoolConfig = ThreadPoolConfig.defaultConfig();
-        testEnqueuedTasksGetExecuted(threadPoolConfig);
+        testEnqueuedTasksGetExecuted(threadPoolConfig, null);
     }
 
-    private void testEnqueuedTasksGetExecuted(ThreadPoolConfig threadPoolConfig) {
+    private void testEnqueuedTasksGetExecuted(ThreadPoolConfig threadPoolConfig, CountDownLatch enqueueLatch) {
+        CountDownLatch blockingLatch = new CountDownLatch(1);
+        CountDownLatch totalMessagesLatch = new CountDownLatch(20);
+        CountDownLatch sessionCloseLatch = new CountDownLatch(20);
         Server server = null;
         try {
-            blockingLatch = new CountDownLatch(1);
-            totalMessagesLatch = new CountDownLatch(20);
-            CountDownLatch enqueueLatch = new CountDownLatch(10);
-
             server = startServer(AnnotatedServerEndpoint.class);
 
             ClientManager client = ClientManager.createClient(JdkClientContainer.class.getName());
-            threadPoolConfig.setMaxPoolSize(10)
-                    .setQueue(new CountingQueue(enqueueLatch));
+            threadPoolConfig.setMaxPoolSize(10);
             client.getProperties().put(ClientProperties.WORKER_THREAD_POOL_CONFIG, threadPoolConfig);
             client.getProperties().put(ClientProperties.SHARED_CONTAINER_IDLE_TIMEOUT, 1);
 
             List<Session> sessions = new ArrayList<>();
 
+            BlockingClientEndpoint clientEndpoint = new BlockingClientEndpoint(blockingLatch, totalMessagesLatch, sessionCloseLatch);
+
             for (int i = 0; i < 20; i++) {
-                Session session = client.connectToServer(BlockingClientEndpoint.class, getURI(AnnotatedServerEndpoint.class));
+                Session session = client.connectToServer(clientEndpoint, getURI(AnnotatedServerEndpoint.class));
                 sessions.add(session);
             }
 
@@ -126,8 +114,13 @@ public class EnqueuedTasksTest extends TestContainer {
                 session.getAsyncRemote().sendText("hi");
             }
 
-            // 10 tasks got enqueued
-            assertTrue(enqueueLatch.await(5, TimeUnit.SECONDS));
+            if (enqueueLatch == null) {
+                // if latch counting enqueued tasks is not present (case when using default queue), just wait some time
+                Thread.sleep(2000);
+            } else {
+                // 10 tasks got enqueued
+                assertTrue(enqueueLatch.await(5, TimeUnit.SECONDS));
+            }
             // let the blocked threads go
             blockingLatch.countDown();
             // check everything got delivered
@@ -139,6 +132,13 @@ public class EnqueuedTasksTest extends TestContainer {
             // just to be sure there are no blocked threads left.
             blockingLatch.countDown();
             stopServer(server);
+            try {
+                /* Tests in the package are sensitive to freeing resources. Unclosed sessions might hinder the next test
+                (if the next test requires a fresh client thread pool) */
+                Assert.assertTrue(sessionCloseLatch.await(5, TimeUnit.SECONDS));
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -154,6 +154,16 @@ public class EnqueuedTasksTest extends TestContainer {
     @ClientEndpoint
     public static class BlockingClientEndpoint {
 
+        private final CountDownLatch blockingLatch;
+        private final CountDownLatch totalMessagesLatch;
+        private final CountDownLatch sessionCloseLatch;
+
+        BlockingClientEndpoint(CountDownLatch blockingLatch, CountDownLatch totalMessagesLatch, CountDownLatch sessionCloseLatch) {
+            this.blockingLatch = blockingLatch;
+            this.totalMessagesLatch = totalMessagesLatch;
+            this.sessionCloseLatch = sessionCloseLatch;
+        }
+
         @OnMessage
         public void onMessage(String message) throws InterruptedException {
             blockingLatch.await();
@@ -161,6 +171,11 @@ public class EnqueuedTasksTest extends TestContainer {
             if (totalMessagesLatch != null) {
                 totalMessagesLatch.countDown();
             }
+        }
+
+        @OnClose
+        public void onClose(Session session) {
+            sessionCloseLatch.countDown();
         }
     }
 

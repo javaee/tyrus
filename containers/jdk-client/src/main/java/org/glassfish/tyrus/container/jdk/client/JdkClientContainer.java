@@ -209,7 +209,7 @@ public class JdkClientContainer implements ClientContainer {
         return sslFilter;
     }
 
-    private TransportFilter createTransportFilter(int sslInputBufferSize, ThreadPoolConfig threadPoolConfig, int containerIdleTimeout) {
+    private TransportFilter createTransportFilter(int sslInputBufferSize, ThreadPoolConfig threadPoolConfig, Integer containerIdleTimeout) {
         return new TransportFilter(sslInputBufferSize, threadPoolConfig, containerIdleTimeout);
     }
 

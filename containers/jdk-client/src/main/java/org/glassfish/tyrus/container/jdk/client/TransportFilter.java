@@ -82,6 +82,15 @@ class TransportFilter extends Filter {
     private static volatile AsynchronousChannelGroup channelGroup;
     private static volatile ScheduledFuture<?> closeWaitTask;
 
+    /**
+     * {@link org.glassfish.tyrus.client.ThreadPoolConfig} current {@link #channelGroup} has been created with.
+     */
+    private static volatile ThreadPoolConfig currentThreadPoolConfig;
+    /**
+     * Idle timeout that will be used when closing current {@link #channelGroup}
+     */
+    private static volatile Integer currentContainerIdleTimeout;
+
     private final int inputBufferSize;
     private final ThreadPoolConfig threadPoolConfig;
     private final Integer containerIdleTimeout;
@@ -90,6 +99,12 @@ class TransportFilter extends Filter {
     private volatile Filter upstreamFilter;
 
     /**
+     * Constructor.
+     * <p/>
+     * If the channel group is not active (all connections have been closed and the shutdown timeout is running) and a new
+     * transport is created with tread pool configuration different from the one of the current thread pool, the current
+     * thread pool will be shut down and a new one created with the new configuration.
+     *
      * @param inputBufferSize      size of buffer to be allocated for reading data from a socket.
      * @param threadPoolConfig     thread pool configuration used for creating thread pool.
      * @param containerIdleTimeout idle time after which the shared thread pool will be destroyed.
@@ -152,6 +167,7 @@ class TransportFilter extends Filter {
 
         try {
             synchronized (TransportFilter.class) {
+                updateThreadPoolConfig();
                 initializeChannelGroup();
                 socketChannel = AsynchronousSocketChannel.open(channelGroup);
                 openedConnections.incrementAndGet();
@@ -183,6 +199,32 @@ class TransportFilter extends Filter {
         });
     }
 
+    private void updateThreadPoolConfig() {
+
+        // the channel group is active, no change in configuration
+        if (openedConnections.get() != 0) {
+            return;
+        }
+
+        Integer closeWait = containerIdleTimeout == null ? DEFAULT_CONNECTION_CLOSE_WAIT : containerIdleTimeout;
+        // check if the new configuration is different from the one of the current container
+        if (!threadPoolConfig.equals(currentThreadPoolConfig) || !closeWait.equals(currentContainerIdleTimeout)) {
+
+            currentThreadPoolConfig = threadPoolConfig;
+            currentContainerIdleTimeout = closeWait;
+
+            if (channelGroup == null) {
+                // the channel group has not been initialized (this is a first client) - no need to shut it down
+                return;
+            }
+
+            closeWaitTask.cancel(true);
+            closeWaitTask = null;
+            channelGroup.shutdown();
+            channelGroup = null;
+        }
+    }
+
     private void initializeChannelGroup() throws IOException {
         if (closeWaitTask != null) {
             closeWaitTask.cancel(true);
@@ -196,6 +238,7 @@ class TransportFilter extends Filter {
         if (threadFactory == null) {
             threadFactory = new TransportThreadFactory(threadPoolConfig);
         }
+
         ExecutorService executor;
         if (threadPoolConfig.getQueue() != null) {
             executor = new SynchronizedQueuingExecutor(threadPoolConfig.getCorePoolSize(), threadPoolConfig.getMaxPoolSize(), threadPoolConfig.getKeepAliveTime(TimeUnit.MILLISECONDS), TimeUnit.MILLISECONDS, threadPoolConfig.getQueue(), threadFactory);
@@ -230,9 +273,13 @@ class TransportFilter extends Filter {
 
                 // connection closed by the server
                 if (bytesRead == -1) {
-                    TransportFilter.this.upstreamFilter.onConnectionClosed();
+                    // close will set TransportFilter.this.upstreamFilter to null
+                    Filter upstreamFilter = TransportFilter.this.upstreamFilter;
+                    close();
+                    upstreamFilter.onConnectionClosed();
                     return;
                 }
+
                 inputBuffer.flip();
                 TransportFilter.this.upstreamFilter.onRead(inputBuffer);
                 inputBuffer.compact();
@@ -260,7 +307,6 @@ class TransportFilter extends Filter {
     }
 
     private void scheduleClose() {
-        int closeWait = containerIdleTimeout == null ? DEFAULT_CONNECTION_CLOSE_WAIT : containerIdleTimeout;
         closeWaitTask = connectionCloseScheduler.schedule(new Runnable() {
             @Override
             public void run() {
@@ -273,7 +319,7 @@ class TransportFilter extends Filter {
                     closeWaitTask = null;
                 }
             }
-        }, closeWait, TimeUnit.SECONDS);
+        }, currentContainerIdleTimeout, TimeUnit.SECONDS);
     }
 
     /**

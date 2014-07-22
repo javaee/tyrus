@@ -403,4 +403,64 @@ public final class ThreadPoolConfig {
                 + "  isDaemon: " + isDaemon + "\r\n"
                 + "  initialClassLoader: " + initialClassLoader;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        ThreadPoolConfig that = (ThreadPoolConfig) o;
+
+        if (corePoolSize != that.corePoolSize) {
+            return false;
+        }
+        if (isDaemon != that.isDaemon) {
+            return false;
+        }
+        if (keepAliveTimeMillis != that.keepAliveTimeMillis) {
+            return false;
+        }
+        if (maxPoolSize != that.maxPoolSize) {
+            return false;
+        }
+        if (priority != that.priority) {
+            return false;
+        }
+        if (queueLimit != that.queueLimit) {
+            return false;
+        }
+        if (initialClassLoader != null ? !initialClassLoader.equals(that.initialClassLoader) : that.initialClassLoader != null) {
+            return false;
+        }
+        if (poolName != null ? !poolName.equals(that.poolName) : that.poolName != null) {
+            return false;
+        }
+        if (queue != null ? !queue.equals(that.queue) : that.queue != null) {
+            return false;
+        }
+        if (threadFactory != null ? !threadFactory.equals(that.threadFactory) : that.threadFactory != null) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = poolName != null ? poolName.hashCode() : 0;
+        result = 31 * result + corePoolSize;
+        result = 31 * result + maxPoolSize;
+        result = 31 * result + (queue != null ? queue.hashCode() : 0);
+        result = 31 * result + queueLimit;
+        result = 31 * result + (int) (keepAliveTimeMillis ^ (keepAliveTimeMillis >>> 32));
+        result = 31 * result + (threadFactory != null ? threadFactory.hashCode() : 0);
+        result = 31 * result + priority;
+        result = 31 * result + (isDaemon ? 1 : 0);
+        result = 31 * result + (initialClassLoader != null ? initialClassLoader.hashCode() : 0);
+        return result;
+    }
 }

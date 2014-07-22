@@ -46,6 +46,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.websocket.ClientEndpoint;
+import javax.websocket.OnClose;
 import javax.websocket.OnMessage;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
@@ -56,7 +57,6 @@ import org.glassfish.tyrus.client.ThreadPoolConfig;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.tools.TestContainer;
 
-import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.assertTrue;
 
@@ -71,21 +71,6 @@ import static junit.framework.Assert.fail;
  * @author Petr Janouch (petr.janouch at oracle.com)
  */
 public class ThreadPoolSizeTest extends TestContainer {
-
-    public static volatile AtomicInteger messagesCounter = null;
-    public static volatile CountDownLatch blockingLatch = null;
-    public static volatile CountDownLatch messagesLatch = null;
-
-    @Before
-    public void beforeTest() {
-        try {
-            // thread pool idle timeout is set to 1s for JDK client - we let thread pool created by previous test be destroyed
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            fail();
-        }
-    }
 
     @Test
     public void testDefaultMaxThreadPoolSize() {
@@ -107,18 +92,20 @@ public class ThreadPoolSizeTest extends TestContainer {
 
     private void testMaxThreadPoolSize(int maxThreadPoolSize, ClientManager client) {
         Server server = null;
+        List<Session> sessions = new ArrayList<>();
+
+        AtomicInteger messagesCounter = new AtomicInteger(0);
+        CountDownLatch blockingLatch = new CountDownLatch(1);
+        CountDownLatch messagesLatch = new CountDownLatch(maxThreadPoolSize);
+        CountDownLatch sessionCloseLatch = new CountDownLatch(maxThreadPoolSize + 10);
         try {
-            messagesCounter = new AtomicInteger(0);
-            blockingLatch = new CountDownLatch(1);
-            messagesLatch = new CountDownLatch(maxThreadPoolSize);
             server = startServer(AnnotatedServerEndpoint.class);
 
             client.getProperties().put(ClientProperties.SHARED_CONTAINER_IDLE_TIMEOUT, 1);
-
-            List<Session> sessions = new ArrayList<>();
+            BlockingClientEndpoint clientEndpoint = new BlockingClientEndpoint(messagesCounter, messagesLatch, blockingLatch, sessionCloseLatch);
 
             for (int i = 0; i < maxThreadPoolSize + 10; i++) {
-                Session session = client.connectToServer(BlockingClientEndpoint.class, getURI(AnnotatedServerEndpoint.class));
+                Session session = client.connectToServer(clientEndpoint, getURI(AnnotatedServerEndpoint.class));
                 sessions.add(session);
             }
 
@@ -139,6 +126,14 @@ public class ThreadPoolSizeTest extends TestContainer {
             // let the blocked threads go
             blockingLatch.countDown();
             stopServer(server);
+
+            try {
+                /* Tests in the package are sensitive to freeing resources. Unclosed sessions might hinder the next test
+                (if the next test requires a fresh client thread pool) */
+                assertTrue(sessionCloseLatch.await(5, TimeUnit.SECONDS));
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -154,6 +149,18 @@ public class ThreadPoolSizeTest extends TestContainer {
     @ClientEndpoint
     public static class BlockingClientEndpoint {
 
+        private final AtomicInteger messagesCounter;
+        private final CountDownLatch messagesLatch;
+        private final CountDownLatch blockingLatch;
+        private final CountDownLatch sessionCloseLatch;
+
+        BlockingClientEndpoint(AtomicInteger messagesCounter, CountDownLatch messagesLatch, CountDownLatch blockingLatch, CountDownLatch sessionCloseLatch) {
+            this.messagesCounter = messagesCounter;
+            this.messagesLatch = messagesLatch;
+            this.blockingLatch = blockingLatch;
+            this.sessionCloseLatch = sessionCloseLatch;
+        }
+
         @OnMessage
         public void onMessage(String message) throws InterruptedException {
 
@@ -166,6 +173,11 @@ public class ThreadPoolSizeTest extends TestContainer {
             }
 
             blockingLatch.await();
+        }
+
+        @OnClose
+        public void onClose(Session session) {
+            sessionCloseLatch.countDown();
         }
     }
 }

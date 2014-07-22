@@ -44,6 +44,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfig;
+import javax.websocket.CloseReason;
 import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfig;
@@ -54,13 +55,14 @@ import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
 import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.client.ClientProperties;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.junit.Test;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+
+import junit.framework.Assert;
 
 /**
  * @author Petr Janouch (petr.janouch at oracle.com)
@@ -73,13 +75,10 @@ public class EchoTest extends TestContainer {
 
         final CountDownLatch messageLatch = new CountDownLatch(1);
         final CountDownLatch onOpenLatch = new CountDownLatch(1);
+        final CountDownLatch sessionCloseLatch = new CountDownLatch(1);
 
         try {
             final ClientManager client = ClientManager.createClient(JdkClientContainer.class.getName());
-            /**
-             * present because of {@link org.glassfish.tyrus.container.jdk.client.ThreadPoolSizeTest}
-             */
-            client.getProperties().put(ClientProperties.SHARED_CONTAINER_IDLE_TIMEOUT, 1);
             client.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig EndpointConfig) {
@@ -103,6 +102,11 @@ public class EchoTest extends TestContainer {
                         // do nothing
                     }
                 }
+
+                @Override
+                public void onClose(Session session, CloseReason closeReason) {
+                    sessionCloseLatch.countDown();
+                }
             }, ClientEndpointConfig.Builder.create().build(), getURI(EchoEndpoint.class));
 
             assertTrue(messageLatch.await(1, TimeUnit.SECONDS));
@@ -113,6 +117,13 @@ public class EchoTest extends TestContainer {
             fail();
         } finally {
             stopServer(server);
+            try {
+                /* Tests in the package are sensitive to freeing resources. Unclosed sessions might hinder the next test
+                (if the next test requires a fresh client thread pool) */
+                Assert.assertTrue(sessionCloseLatch.await(5, TimeUnit.SECONDS));
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         }
     }
 
