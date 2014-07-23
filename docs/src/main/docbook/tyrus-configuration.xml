@@ -61,9 +61,15 @@
 
         <para>When accessing "wss" URLs, Tyrus client will pick up whatever keystore and truststore is actually set for current JVM instance, but
             that might not be always convenient. WebSocket API does not have this feature (yet, see <link xlink:href="https://java.net/jira/browse/WEBSOCKET_SPEC-210">WEBSOCKET_SPEC-210</link>),
-            so Tyrus exposed <link xlink:href="https://grizzly.java.net/docs/2.3/apidocs/org/glassfish/grizzly/ssl/SSLEngineConfigurator.html">SSLEngineConfigurator</link> class from Grizzly which can be used for specifying all SSL parameters
-            to be used with current client instance. Additionally, WebSocket API does not have anything like a client,
-            only WebSocketContainer and it does not have any properties, so you need to use Tyrus specific class -
+            so Tyrus exposed two SSL configuration classes <link xlink:href="https://grizzly.java.net/docs/2.3/apidocs/org/glassfish/grizzly/ssl/SSLEngineConfigurator.html">SSLEngineConfigurator</link>
+            and <link xlink:href="https://tyrus.java.net/apidocs/&version;/org/glassfish/tyrus/client/SslEngineConfigurator.html">SslEngineConfigurator</link>
+            , which can be used for specifying all SSL parameters to be used with current client instance. The former configuration class
+            belongs to Grizzly configuration API and therefore works only with Grizzly client. The latter configuration class
+            works with both Grizzly and JDK client and offers some extensions over the Grizzly SSLEngineConfigurator
+            allowing more control of host verification during the SSL handshake. For more details
+            please refer to the following subsection dealing with host verification.
+
+            Additionally, WebSocket API does not have anything like a client, only WebSocketContainer and it does not have any properties, so you need to use Tyrus specific class -
             <link xlink:href="https://tyrus.java.net/apidocs/&version;/org/glassfish/tyrus/client/ClientManager.html">ClientManager</link>.</para>
 
         <programlisting language="java" linenumbering="numbered">final ClientManager client = ClientManager.createClient();
@@ -85,6 +91,50 @@ client.getProperties().put(ClientProperties.SSL_ENGINE_CONFIGURATOR,
 client.connectToServer(... , ClientEndpointConfig.Builder.create().build(),
     new URI("wss://localhost:8181/sample-echo/echo"));
 }</programlisting>
+        <para>
+            If there seems to be a problem with Tyrus SSL connection, it is strongly recommended to use -Djavax.net.debug=all
+            system property as it provides invaluable information for troubleshooting.
+        </para>
+
+        <section>
+            <title>Host verification</title>
+            <para>
+                One of the key steps when establishing SSL connections is verifying that the host on the certificate
+                sent by the server matches the host Tyrus client tries to connect to and thus preventing a possibility of
+                a man-in-the-middle attack. Host verification is turned on by default in Tyrus, which means that Tyrus
+                will automatically check that the host provided in the URI in
+                <programlisting language="java" linenumbering="numbered">client.connectToServer(... , new URI("wss://target-server:8181/application/endpoint"));
+                </programlisting> matches exactly the host the certificate has been issued for. Exact match is
+                the key word in the previous sentence as host can be either hostname or IP address and those two cannot be used
+                interchangeably. For instance when a certificate has been issued for "localhost", establishing an SSL connection
+                to "wss://127.0.0.1:8181/application/endpoint" will fail as the host does not match the one in the certificate.
+            </para>
+            <para>
+                The default host verification can be too restrictive for some cases and therefore Tyrus provides users
+                with means to to either disable the host verification (highly unrecommended in production) or to implement
+                their own host verifier. Providing custom host verifier will disable the default one. It is also important
+                to note that Grizzly specific
+                <link xlink:href="https://grizzly.java.net/docs/2.3/apidocs/org/glassfish/grizzly/ssl/SSLEngineConfigurator.html">SSLEngineConfigurator</link>
+                does not provide these options and for modifying the default host name verification policy
+                <link xlink:href="https://tyrus.java.net/apidocs/&version;/org/glassfish/tyrus/client/SslEngineConfigurator.html">SslEngineConfigurator</link>
+                must be used instead. The following sample shows how to disable host name verification:
+                <programlisting language="java" linenumbering="numbered">SslEngineConfigurator sslEngineConfigurator = new SslEngineConfigurator(new SslContextConfigurator());
+sslEngineConfigurator.setHostVerificationEnabled(false)
+client.getProperties().put(ClientProperties.SSL_ENGINE_CONFIGURATOR, sslEngineConfigurator);
+                </programlisting>
+                The following sample shows how to register a custom host verifier:
+                <programlisting language="java" linenumbering="numbered">SslEngineConfigurator sslEngineConfigurator = new SslEngineConfigurator(new SslContextConfigurator());
+sslEngineConfigurator.setHostnameVerifier(new HostnameVerifier() {
+    @Override
+    public boolean verify(String host, SSLSession sslSession) {
+        Certificate certificate = sslSession.getPeerCertificates()[0];
+        // validate the host in the certificate
+    }
+});
+client.getProperties().put(ClientProperties.SSL_ENGINE_CONFIGURATOR, sslEngineConfigurator);
+                </programlisting>
+            </para>
+        </section>
     </section>
 
     <section>
@@ -551,16 +601,17 @@ final WebSocketContainer client = ContainerProvider.getWebSocketContainer();
             <title>SSL configuration</title>
             <para>
                 Alike in case of Grizzly client, accessing "wss" URLs will cause Tyrus client to pick up whatever keystore
-                and truststore is actually set for the current JVM instance. However, specifying SSL parameters
-                to be used with JDK client instance is little different from Grizzly client, because Grizzly client uses
+                and trust store is actually set for the current JVM instance. However, specifying SSL parameters
+                to be used with JDK client instance is little different from Grizzly client, because Grizzly client supports
+                both
                 <link xlink:href="https://grizzly.java.net/docs/2.3/apidocs/org/glassfish/grizzly/ssl/SSLEngineConfigurator.html">SSLEngineConfigurator</link>
                 end
                 <link xlink:href="https://grizzly.java.net/docs/2.3/apidocs/org/glassfish/grizzly/ssl/SSLContextConfigurator.html">SSLContextConfigurator</link>
-                from Grizzly project. The main configuration principle stays the same for the JDK client, but classes
-                <link xlink:href="https://tyrus.java.net/apidocs/&version;/org/glassfish/tyrus/container/jdk/client/SslEngineConfigurator.html">SslEngineConfigurator</link>
+                from Grizzly project and
+                <link xlink:href="https://tyrus.java.net/apidocs/&version;/org/glassfish/tyrus/client/SslEngineConfigurator.html">SslEngineConfigurator</link>
                 and
-                <link xlink:href="https://tyrus.java.net/apidocs/&version;/org/glassfish/tyrus/container/jdk/client/SslContextConfigurator.html">SslContextConfigurator</link>
-                from Tyrus project must be used instead.
+                <link xlink:href="https://tyrus.java.net/apidocs/&version;/org/glassfish/tyrus/client/SslContextConfigurator.html">SslContextConfigurator</link>
+                from Tyrus project, but JDK client supports only the Tyrus version of these classes.
                 The following code sample shows an example of some SSL parameters configuration for the JDK client:
                 <programlisting language="java" linenumbering="numbered">
 SslContextConfigurator sslContextConfigurator = new SslContextConfigurator();
