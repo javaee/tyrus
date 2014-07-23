@@ -162,6 +162,7 @@ public class TyrusSession implements Session {
             distributedPropertyMap.put(RemoteSession.DistributedMapKey.REQUEST_PARAMETER_MAP, requestParameterMap);
             distributedPropertyMap.put(RemoteSession.DistributedMapKey.QUERY_STRING, queryString == null ? "" : queryString);
             distributedPropertyMap.put(RemoteSession.DistributedMapKey.PATH_PARAMETERS, this.pathParameters);
+            distributedPropertyMap.put(RemoteSession.DistributedMapKey.CONNECTION_ID, this.connectionId);
             if (userPrincipal != null) {
                 distributedPropertyMap.put(RemoteSession.DistributedMapKey.USER_PRINCIPAL, userPrincipal);
             }

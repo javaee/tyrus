@@ -174,7 +174,13 @@ public class RemoteSession implements Session {
          *
          * @see javax.websocket.Session#getUserPrincipal()
          */
-        USER_PRINCIPAL("userPrincipal");
+        USER_PRINCIPAL("userPrincipal"),
+        /**
+         * Cluster connection Id. (internal property).
+         * <p/>
+         * Value must be {@link String}.
+         */
+        CONNECTION_ID("connectionId");
 
         private final String key;
 
