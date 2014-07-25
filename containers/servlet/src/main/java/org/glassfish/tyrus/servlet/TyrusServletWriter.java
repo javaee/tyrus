@@ -132,13 +132,13 @@ class TyrusServletWriter extends Writer implements WriteListener {
         if (queue.isEmpty() && servletOutputStream.isReady()) {
             _write(buffer, completionHandler);
         } else {
+            final QueuedFrame queuedFrame = new QueuedFrame(completionHandler, buffer);
+            queue.offer(queuedFrame);
+
             if (!isListenerSet) {
                 isListenerSet = true;
                 servletOutputStream.setWriteListener(this);
             }
-
-            final QueuedFrame queuedFrame = new QueuedFrame(completionHandler, buffer);
-            queue.offer(queuedFrame);
         }
     }
 
