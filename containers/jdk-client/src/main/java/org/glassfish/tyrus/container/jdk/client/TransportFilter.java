@@ -65,7 +65,7 @@ import org.glassfish.tyrus.client.ThreadPoolConfig;
 
 /**
  * Writes and reads data to and from a socket. Only one {@link #write(java.nio.ByteBuffer, org.glassfish.tyrus.spi.CompletionHandler)}
- * method call can be processed at a time. Only one {@link #read(java.nio.ByteBuffer)} operation is supported at a time,
+ * method call can be processed at a time. Only one {@link #_read(java.nio.ByteBuffer)} operation is supported at a time,
  * another one is started only after the previous one has completed. Blocking in {@link #onRead(java.nio.ByteBuffer)}
  * or {@link #onConnect()} method will result in data not being read from a socket until these methods have completed.
  *
@@ -95,7 +95,6 @@ class TransportFilter extends Filter {
     private final Integer containerIdleTimeout;
 
     private volatile AsynchronousSocketChannel socketChannel;
-    private volatile Filter upstreamFilter;
 
     /**
      * Constructor.
@@ -110,6 +109,7 @@ class TransportFilter extends Filter {
      *                             If {@code null} default value will be used. The default value is 30 seconds.
      */
     TransportFilter(int inputBufferSize, ThreadPoolConfig threadPoolConfig, Integer containerIdleTimeout) {
+        super(null);
         this.inputBufferSize = inputBufferSize;
         this.threadPoolConfig = threadPoolConfig;
         this.containerIdleTimeout = containerIdleTimeout;
@@ -157,11 +157,11 @@ class TransportFilter extends Filter {
 
     @Override
     void startSsl() {
-        upstreamFilter.onSslHandshakeCompleted();
+        onSslHandshakeCompleted();
     }
 
     @Override
-    public void connect(SocketAddress serverAddress, Filter upstreamFilter) {
+    public void handleConnect(SocketAddress serverAddress, Filter upstreamFilter) {
         this.upstreamFilter = upstreamFilter;
 
         try {
@@ -172,22 +172,22 @@ class TransportFilter extends Filter {
                 openedConnections.incrementAndGet();
             }
         } catch (IOException e) {
-            upstreamFilter.onError(e);
+            onError(e);
             return;
         }
 
-        socketChannel.connect(serverAddress, upstreamFilter, new CompletionHandler<Void, Filter>() {
+        socketChannel.connect(serverAddress, null, new CompletionHandler<Void, Void>() {
 
             @Override
-            public void completed(Void result, Filter upstreamFilter) {
+            public void completed(Void result, Void nothing) {
                 final ByteBuffer inputBuffer = ByteBuffer.allocate(inputBufferSize);
-                upstreamFilter.onConnect();
-                read(inputBuffer);
+                onConnect();
+                _read(inputBuffer);
             }
 
             @Override
-            public void failed(Throwable exc, Filter upstreamFilter) {
-                upstreamFilter.onError(exc);
+            public void failed(Throwable exc, Void nothing) {
+                onError(exc);
 
                 try {
                     socketChannel.close();
@@ -229,32 +229,31 @@ class TransportFilter extends Filter {
             closeWaitTask.cancel(true);
             closeWaitTask = null;
         }
-        if (channelGroup != null) {
-            return;
-        }
 
-        ThreadFactory threadFactory = threadPoolConfig.getThreadFactory();
-        if (threadFactory == null) {
-            threadFactory = new TransportThreadFactory(threadPoolConfig);
-        }
-
-        ExecutorService executor;
-        if (threadPoolConfig.getQueue() != null) {
-            executor = new QueuingExecutor(threadPoolConfig.getCorePoolSize(), threadPoolConfig.getMaxPoolSize(), threadPoolConfig.getKeepAliveTime(TimeUnit.MILLISECONDS), TimeUnit.MILLISECONDS, threadPoolConfig.getQueue(), false, threadFactory);
-        } else {
-            int taskQueueLimit = threadPoolConfig.getQueueLimit();
-            if (taskQueueLimit == -1) {
-                taskQueueLimit = Integer.MAX_VALUE;
+        if (channelGroup == null) {
+            ThreadFactory threadFactory = threadPoolConfig.getThreadFactory();
+            if (threadFactory == null) {
+                threadFactory = new TransportThreadFactory(threadPoolConfig);
             }
 
-            executor = new QueuingExecutor(threadPoolConfig.getCorePoolSize(), threadPoolConfig.getMaxPoolSize(), threadPoolConfig.getKeepAliveTime(TimeUnit.MILLISECONDS), TimeUnit.MILLISECONDS, new LinkedBlockingDeque<Runnable>(taskQueueLimit), true, threadFactory);
-        }
+            ExecutorService executor;
+            if (threadPoolConfig.getQueue() != null) {
+                executor = new QueuingExecutor(threadPoolConfig.getCorePoolSize(), threadPoolConfig.getMaxPoolSize(), threadPoolConfig.getKeepAliveTime(TimeUnit.MILLISECONDS), TimeUnit.MILLISECONDS, threadPoolConfig.getQueue(), false, threadFactory);
+            } else {
+                int taskQueueLimit = threadPoolConfig.getQueueLimit();
+                if (taskQueueLimit == -1) {
+                    taskQueueLimit = Integer.MAX_VALUE;
+                }
 
-        // Thread pool is owned by the channel group and will be shut down when channel group is shut down
-        channelGroup = AsynchronousChannelGroup.withCachedThreadPool(executor, threadPoolConfig.getCorePoolSize());
+                executor = new QueuingExecutor(threadPoolConfig.getCorePoolSize(), threadPoolConfig.getMaxPoolSize(), threadPoolConfig.getKeepAliveTime(TimeUnit.MILLISECONDS), TimeUnit.MILLISECONDS, new LinkedBlockingDeque<Runnable>(taskQueueLimit), true, threadFactory);
+            }
+
+            // Thread pool is owned by the channel group and will be shut down when channel group is shut down
+            channelGroup = AsynchronousChannelGroup.withCachedThreadPool(executor, threadPoolConfig.getCorePoolSize());
+        }
     }
 
-    private void read(final ByteBuffer inputBuffer) {
+    private void _read(final ByteBuffer inputBuffer) {
         /**
          * It must be checked that the channel has not been closed by {@link #close()} method.
          */
@@ -265,10 +264,6 @@ class TransportFilter extends Filter {
         socketChannel.read(inputBuffer, null, new CompletionHandler<Integer, Void>() {
             @Override
             public void completed(Integer bytesRead, Void result) {
-                // upstreamFilter might have just be set to null by close method
-                if (upstreamFilter == null) {
-                    return;
-                }
 
                 // connection closed by the server
                 if (bytesRead == -1) {
@@ -280,9 +275,9 @@ class TransportFilter extends Filter {
                 }
 
                 inputBuffer.flip();
-                TransportFilter.this.upstreamFilter.onRead(inputBuffer);
+                onRead(inputBuffer);
                 inputBuffer.compact();
-                read(inputBuffer);
+                _read(inputBuffer);
             }
 
             @Override
@@ -295,12 +290,7 @@ class TransportFilter extends Filter {
                     return;
                 }
 
-                // upstreamFilter might have just be set to null by close method
-                if (upstreamFilter == null) {
-                    return;
-                }
-
-                upstreamFilter.onError(exc);
+                onError(exc);
             }
         });
     }

@@ -39,7 +39,6 @@
  */
 package org.glassfish.tyrus.container.jdk.client;
 
-import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -64,9 +63,6 @@ class TaskQueueFilter extends Filter {
 
     private final Queue<Task> taskQueue = new ConcurrentLinkedQueue<>();
     private final AtomicBoolean taskLock = new AtomicBoolean(false);
-    private final Filter downstreamFilter;
-
-    private volatile Filter upstreamFilter;
 
     /**
      * Constructor.
@@ -74,13 +70,7 @@ class TaskQueueFilter extends Filter {
      * @param downstreamFilter a filter that is positioned directly under this filter.
      */
     TaskQueueFilter(Filter downstreamFilter) {
-        this.downstreamFilter = downstreamFilter;
-    }
-
-    @Override
-    void connect(SocketAddress serverAddress, Filter upstreamFilter) {
-        this.upstreamFilter = upstreamFilter;
-        downstreamFilter.connect(serverAddress, this);
+        super(downstreamFilter);
     }
 
     @Override
@@ -136,36 +126,8 @@ class TaskQueueFilter extends Filter {
     }
 
     @Override
-    void onConnect() {
-        upstreamFilter.onConnect();
-    }
-
-    @Override
-    void onRead(ByteBuffer buffer) {
-        /**
-         * {@code upstreamFilter == null} means that there is {@link Filter#close()} propagating from the upper layers.
-         */
-        if (upstreamFilter == null) {
-            return;
-        }
-
-        upstreamFilter.onRead(buffer);
-    }
-
-    @Override
-    void onConnectionClosed() {
-        upstreamFilter.onConnectionClosed();
-    }
-
-    @Override
-    void onSslHandshakeCompleted() {
-        upstreamFilter.onSslHandshakeCompleted();
+    void processSslHandshakeCompleted() {
         processTask();
-    }
-
-    @Override
-    void onError(Throwable t) {
-        upstreamFilter.onError(t);
     }
 
     /**
@@ -194,11 +156,6 @@ class TaskQueueFilter extends Filter {
 
         @Override
         public void execute(final TaskQueueFilter queueFilter) {
-            // if downstream filter is null, this task has been enqueued after close task
-            if (queueFilter.downstreamFilter == null) {
-                getCompletionHandler().failed(new Throwable("Connection has been closed"));
-                return;
-            }
             queueFilter.downstreamFilter.write(getData(), new CompletionHandler<ByteBuffer>() {
 
                 @Override

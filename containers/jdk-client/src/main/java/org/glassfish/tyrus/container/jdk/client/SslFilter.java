@@ -39,7 +39,6 @@
  */
 package org.glassfish.tyrus.container.jdk.client;
 
-import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.util.concurrent.CountDownLatch;
 
@@ -71,13 +70,12 @@ class SslFilter extends Filter {
     private final SSLEngine sslEngine;
     private final HostnameVerifier customHostnameVerifier;
     private final String serverHost;
-    private final Filter downstreamFilter;
+
     /**
      * Lock to ensure that only one thread will work with {@link #sslEngine} state machine during the handshake phase.
      */
     private final Object handshakeLock = new Object();
 
-    private volatile Filter upstreamFilter;
     private volatile boolean sslStarted = false;
     private volatile boolean handshakeCompleted = false;
 
@@ -93,7 +91,7 @@ class SslFilter extends Filter {
      *                              the verification will fail.
      */
     SslFilter(Filter downstreamFilter, SslEngineConfigurator sslEngineConfigurator, String serverHost) {
-        this.downstreamFilter = downstreamFilter;
+        super(downstreamFilter);
         this.serverHost = serverHost;
         sslEngine = sslEngineConfigurator.createSSLEngine(serverHost);
         customHostnameVerifier = sslEngineConfigurator.getHostnameVerifier();
@@ -120,7 +118,7 @@ class SslFilter extends Filter {
      * @deprecated Please use {@link #SslFilter(Filter, org.glassfish.tyrus.client.SslEngineConfigurator, String)}.
      */
     SslFilter(Filter downstreamFilter, org.glassfish.tyrus.container.jdk.client.SslEngineConfigurator sslEngineConfigurator) {
-        this.downstreamFilter = downstreamFilter;
+        super(downstreamFilter);
         sslEngine = sslEngineConfigurator.createSSLEngine();
         applicationInputBuffer = ByteBuffer.allocate(sslEngine.getSession().getApplicationBufferSize());
         networkOutputBuffer = ByteBuffer.allocate(sslEngine.getSession().getPacketBufferSize());
@@ -190,29 +188,11 @@ class SslFilter extends Filter {
     }
 
     @Override
-    void connect(SocketAddress serverAddress, Filter upstreamFilter) {
-        this.upstreamFilter = upstreamFilter;
-        downstreamFilter.connect(serverAddress, this);
-    }
-
-    @Override
-    void onConnect() {
-        upstreamFilter.onConnect();
-    }
-
-    @Override
-    void onRead(ByteBuffer networkData) {
-        /**
-         * {@code upstreamFilter == null} means that there is {@link Filter#close()} propagating from the upper layers.
-         */
-        if (upstreamFilter == null) {
-            return;
-        }
+    boolean processRead(ByteBuffer networkData) {
 
         // before SSL is started read just passes through
         if (!sslStarted) {
-            upstreamFilter.onRead(networkData);
-            return;
+            return true;
         }
         SSLEngineResult.HandshakeStatus hs = sslEngine.getHandshakeStatus();
         try {
@@ -221,7 +201,7 @@ class SslFilter extends Filter {
                 synchronized (handshakeLock) {
 
                     if (hs != SSLEngineResult.HandshakeStatus.NEED_UNWRAP) {
-                        return;
+                        return false;
                     }
 
                     applicationInputBuffer.clear();
@@ -231,7 +211,7 @@ class SslFilter extends Filter {
                         result = sslEngine.unwrap(networkData, applicationInputBuffer);
                         if (result.getStatus() == SSLEngineResult.Status.BUFFER_UNDERFLOW) {
                             // needs more data from the network
-                            return;
+                            return false;
                         }
                         if (result.getHandshakeStatus() == SSLEngineResult.HandshakeStatus.FINISHED) {
                             handshakeCompleted = true;
@@ -241,8 +221,8 @@ class SslFilter extends Filter {
                                 handleSslError(new SSLException("Server host name verification using " + customHostnameVerifier.getClass() + " has failed"));
                             }
 
-                            upstreamFilter.onSslHandshakeCompleted();
-                            return;
+                            onSslHandshakeCompleted();
+                            return false;
                         }
                         if (!networkData.hasRemaining() || result.getHandshakeStatus() != SSLEngineResult.HandshakeStatus.NEED_UNWRAP) {
                             // all data has been read or the engine needs to do something else than read
@@ -262,20 +242,19 @@ class SslFilter extends Filter {
                     // other statuses are OK or cannot be returned from unwrap.
                     if (result.getStatus() == SSLEngineResult.Status.BUFFER_UNDERFLOW) {
                         // needs more data from the network
-                        return;
+                        return false;
                     }
                     applicationInputBuffer.flip();
-                    upstreamFilter.onRead(applicationInputBuffer);
+                    if (upstreamFilter != null) {
+                        upstreamFilter.onRead(applicationInputBuffer);
+                    }
                 } while (networkData.hasRemaining());
             }
         } catch (SSLException e) {
             handleSslError(e);
         }
-    }
 
-    @Override
-    void onConnectionClosed() {
-        upstreamFilter.onConnectionClosed();
+        return false;
     }
 
     private void doHandshakeStep(final Filter filter) {
@@ -340,12 +319,7 @@ class SslFilter extends Filter {
     }
 
     private void handleSslError(Throwable t) {
-        upstreamFilter.onError(t);
-    }
-
-    @Override
-    void onError(Throwable t) {
-        upstreamFilter.onError(t);
+        onError(t);
     }
 
     @Override

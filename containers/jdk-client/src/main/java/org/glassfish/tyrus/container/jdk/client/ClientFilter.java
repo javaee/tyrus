@@ -78,7 +78,6 @@ class ClientFilter extends Filter {
     private final HttpResponseParser responseParser = new HttpResponseParser();
     private final Map<String, String> proxyHeaders;
     private final Callable<Void> jdkConnector;
-    private final Filter downstreamFilter;
 
     private volatile boolean proxy;
     private volatile Connection wsConnection;
@@ -95,7 +94,7 @@ class ClientFilter extends Filter {
      * @param jdkConnector     callback to connecting with modified {@link UpgradeRequest} if necessary.
      */
     ClientFilter(Filter downstreamFilter, ClientEngine engine, URI uri, Map<String, String> proxyHeaders, Callable<Void> jdkConnector) {
-        this.downstreamFilter = downstreamFilter;
+        super(downstreamFilter);
         this.engine = engine;
         this.uri = uri;
         this.proxyHeaders = proxyHeaders;
@@ -114,7 +113,7 @@ class ClientFilter extends Filter {
     }
 
     @Override
-    public void onConnect() {
+    public void processConnect() {
         final JdkUpgradeRequest handshakeUpgradeRequest;
 
         if (proxy) {
@@ -147,13 +146,13 @@ class ClientFilter extends Filter {
     }
 
     @Override
-    public void onRead(ByteBuffer data) {
+    public boolean processRead(ByteBuffer data) {
         if (wsConnection == null) {
 
             responseParser.appendData(data);
 
             if (!responseParser.isComplete()) {
-                return;
+                return false;
             }
 
             TyrusUpgradeResponse tyrusUpgradeResponse;
@@ -163,7 +162,7 @@ class ClientFilter extends Filter {
             } catch (ParseException e) {
                 LOGGER.log(Level.SEVERE, "Parsing HTTP handshake response failed", e);
                 closeConnection();
-                return;
+                return false;
             } finally {
                 responseParser.clear();
             }
@@ -172,7 +171,7 @@ class ClientFilter extends Filter {
                 if (tyrusUpgradeResponse.getStatus() != 200) {
                     LOGGER.log(Level.SEVERE, "Could not connect to proxy: " + tyrusUpgradeResponse.getStatus());
                     closeConnection();
-                    return;
+                    return false;
                 }
                 connectedToProxy = true;
                 downstreamFilter.startSsl();
@@ -182,7 +181,7 @@ class ClientFilter extends Filter {
                         downstreamFilter.close();
                     }
                 })));
-                return;
+                return false;
             }
 
             JdkWriter writer = new JdkWriter(downstreamFilter);
@@ -227,10 +226,12 @@ class ClientFilter extends Filter {
         } else {
             wsConnection.getReadHandler().handle(data);
         }
+
+        return false;
     }
 
     @Override
-    public void onConnectionClosed() {
+    public void processConnectionClosed() {
         LOGGER.log(Level.FINE, "Connection has been closed by the server");
 
         if (wsConnection == null) {
@@ -241,7 +242,7 @@ class ClientFilter extends Filter {
     }
 
     @Override
-    void onError(Throwable t) {
+    void processError(Throwable t) {
         // connectCompletionHandler != null means that we are still in "connecting state".
         if (connectCompletionHandler != null) {
             downstreamFilter.close();
@@ -258,7 +259,7 @@ class ClientFilter extends Filter {
     }
 
     @Override
-    void onSslHandshakeCompleted() {
+    void processSslHandshakeCompleted() {
         // the connection is considered established at this point
         connectCompletionHandler.completed(null);
         connectCompletionHandler = null;
