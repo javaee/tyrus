@@ -47,7 +47,6 @@ import java.nio.channels.AsynchronousCloseException;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
 import java.util.Queue;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingDeque;
@@ -241,14 +240,14 @@ class TransportFilter extends Filter {
 
         ExecutorService executor;
         if (threadPoolConfig.getQueue() != null) {
-            executor = new SynchronizedQueuingExecutor(threadPoolConfig.getCorePoolSize(), threadPoolConfig.getMaxPoolSize(), threadPoolConfig.getKeepAliveTime(TimeUnit.MILLISECONDS), TimeUnit.MILLISECONDS, threadPoolConfig.getQueue(), threadFactory);
+            executor = new QueuingExecutor(threadPoolConfig.getCorePoolSize(), threadPoolConfig.getMaxPoolSize(), threadPoolConfig.getKeepAliveTime(TimeUnit.MILLISECONDS), TimeUnit.MILLISECONDS, threadPoolConfig.getQueue(), false, threadFactory);
         } else {
             int taskQueueLimit = threadPoolConfig.getQueueLimit();
             if (taskQueueLimit == -1) {
                 taskQueueLimit = Integer.MAX_VALUE;
             }
 
-            executor = new QueuingExecutor(threadPoolConfig.getCorePoolSize(), threadPoolConfig.getMaxPoolSize(), threadPoolConfig.getKeepAliveTime(TimeUnit.MILLISECONDS), TimeUnit.MILLISECONDS, taskQueueLimit, threadFactory);
+            executor = new QueuingExecutor(threadPoolConfig.getCorePoolSize(), threadPoolConfig.getMaxPoolSize(), threadPoolConfig.getKeepAliveTime(TimeUnit.MILLISECONDS), TimeUnit.MILLISECONDS, new LinkedBlockingDeque<Runnable>(taskQueueLimit), true, threadFactory);
         }
 
         // Thread pool is owned by the channel group and will be shut down when channel group is shut down
@@ -354,81 +353,23 @@ class TransportFilter extends Filter {
     }
 
     /**
-     * A thread pool executor that prefers creating new working threads over queueing tasks until the maximum poll size
-     * has been reached.
-     * </p>
-     * The difference from {@link org.glassfish.tyrus.container.jdk.client.TransportFilter.QueuingExecutor}, is that
-     * a it is used when an user-provided queue is used for queuing the tasks. The access to the Queue has to be synchronized,
-     * because it is not guaranteed tha the user has provided a thread safe {@link java.util.Queue} implementation.
-     */
-    private static class SynchronizedQueuingExecutor extends ThreadPoolExecutor {
-
-        private final Queue<Runnable> taskQueue;
-
-        SynchronizedQueuingExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit, Queue<Runnable> taskQueue, ThreadFactory threadFactory) {
-            super(corePoolSize, maximumPoolSize, keepAliveTime, unit, new SynchronousQueue<Runnable>(), threadFactory);
-            this.taskQueue = taskQueue;
-        }
-
-        @Override
-        public void execute(Runnable task) {
-            submitTask(task);
-        }
-
-        /**
-         * Submit a task for execution, if the maximum thread limit has been reached and all the threads are occupied,
-         * enqueue the task. The task is not executed by the current thread, but by a thread from the thread pool.
-         *
-         * @param task to be executed.
-         */
-        private void submitTask(Runnable task) {
-            synchronized (taskQueue) {
-                try {
-                    super.execute(task);
-                } catch (RejectedExecutionException e) {
-                    /* All threads are occupied, try enqueuing the task.
-                     * Each thread from the thread pool checks the queue after it has finished executing a task.
-                     */
-                    if (!taskQueue.offer(task)) {
-                        throw new RejectedExecutionException("A limit of Tyrus client thread pool queue has been reached.", e);
-                    }
-                }
-            }
-        }
-
-        @Override
-        protected void afterExecute(Runnable r, Throwable t) {
-            super.afterExecute(r, t);
-            synchronized (taskQueue) {
-                // Try if a task has been enqueued while all threads were busy.
-                Runnable queuedTask = taskQueue.poll();
-                if (queuedTask != null) {
-                    submitTask(queuedTask);
-                }
-            }
-        }
-    }
-
-    /**
-     * A thread pool executor that prefers creating new working threads over queueing tasks until the maximum poll size
-     * has been reached.
-     * <p/>
-     * The difference from {@link org.glassfish.tyrus.container.jdk.client.TransportFilter.SynchronizedQueuingExecutor}
-     * is that it uses {@link java.util.concurrent.LinkedBlockingDeque} as the task queue implementation and therefore
-     * the access to the task queue does not have to be synchronized.
+     * A thread pool executor that prefers creating new worker threads over queueing tasks until the maximum poll size
+     * has been reached, after which it will start queueing tasks.
      */
     private static class QueuingExecutor extends ThreadPoolExecutor {
 
-        private final BlockingQueue<Runnable> taskQueue;
+        private final Queue<Runnable> taskQueue;
+        private final boolean threadSafeQueue;
 
-        QueuingExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit, int queueCapacity, ThreadFactory threadFactory) {
-            super(corePoolSize, maximumPoolSize, keepAliveTime, unit, new SynchronousQueue<Runnable>(), threadFactory);
-            this.taskQueue = new LinkedBlockingDeque<>(queueCapacity);
-        }
-
-        @Override
-        public void execute(Runnable task) {
-            submitTask(task);
+        /**
+         * Constructor.
+         *
+         * @param threadSafeQueue indicates if {@link #taskQueue} is thread safe or not.
+         */
+        QueuingExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit, Queue<Runnable> taskQueue, boolean threadSafeQueue, ThreadFactory threadFactory) {
+            super(corePoolSize, maximumPoolSize, keepAliveTime, unit, new HandOffQueue(taskQueue, threadSafeQueue), threadFactory);
+            this.taskQueue = taskQueue;
+            this.threadSafeQueue = threadSafeQueue;
         }
 
         /**
@@ -437,44 +378,115 @@ class TransportFilter extends Filter {
          *
          * @param task to be executed.
          */
-        private void submitTask(Runnable task) {
+        @Override
+        public void execute(Runnable task) {
             try {
                 super.execute(task);
             } catch (RejectedExecutionException e) {
-                /* All threads are occupied, try enqueuing the task.
-                 * Each thread from the thread pool checks the queue after it has finished executing a task.
+
+                /* execution has been rejected either because the executor has been shut down or all worker threads are
+                 * busy - check the former one
                  */
-                if (!taskQueue.offer(task)) {
-                    throw new RejectedExecutionException("A limit of Tyrus client thread pool queue has been reached.", e);
+                if (isShutdown()) {
+                    throw new RejectedExecutionException("The thread pool executor has been shut down", e);
                 }
 
-               /*
-                * There is one improbable situation that could possibly cause that a task could stay in the queue indefinitely,
-                * if all the threads have finished their tasks in the interval between this tasks has been rejected and it has
-                * been successfully enqueued. If this has happened the task must be dequeued and an attempt to execute it should
-                * be repeated.
-                */
-                if (getActiveCount() == 0) {
+                /* All threads are occupied, try enqueuing the task.
+                 * Each worker thread checks the queue after it has finished executing its task.
+                 */
+                if (threadSafeQueue) {
+                    if (!taskQueue.offer(task)) {
+                        throw new RejectedExecutionException("A limit of Tyrus client thread pool queue has been reached.", e);
+                    }
+                } else {
+                    synchronized (taskQueue) {
+                        if (!taskQueue.offer(task)) {
+                            throw new RejectedExecutionException("A limit of Tyrus client thread pool queue has been reached.", e);
+                        }
+                    }
+                }
+
+                /**
+                 * There is a small time interval between a worker thread checks {@link #taskQueue} and it starts to block
+                 * waiting for a new tasks to be submitted (Ideally checking that the {@link #taskQueue} is empty and starting to
+                 * block at the task hand off queue would be atomic). This can be detected by the situation when a thread submitting
+                 * a new tasks has been rejected, but not all worker threads are active (However this does not indicate exclusively
+                 * the problematic situation).
+                 */
+                if (getActiveCount() < getMaximumPoolSize()) {
                     /*
                      * There is no guarantee that the same tasks that has been enqueued above will be dequeued,
                      * but trying to execute one arbitrary task by everyone in this situation is enough to clear the queue.
                      */
-                    Runnable dequeuedTask = taskQueue.poll();
+                    Runnable dequeuedTask;
+                    if (threadSafeQueue) {
+                        dequeuedTask = taskQueue.poll();
+                    } else {
+                        synchronized (taskQueue) {
+                            dequeuedTask = taskQueue.poll();
+                        }
+                    }
 
+                    // check if the task has not been consumed by a worker thread after all
                     if (dequeuedTask != null) {
-                        submitTask(dequeuedTask);
+                        execute(dequeuedTask);
                     }
                 }
             }
         }
 
-        @Override
-        protected void afterExecute(Runnable r, Throwable t) {
-            super.afterExecute(r, t);
-            // Try if a task has been enqueued while all threads were busy.
-            Runnable queuedTask = taskQueue.poll();
-            if (queuedTask != null) {
-                submitTask(queuedTask);
+        /**
+         * Synchronous queue that tries to empty {@link #taskQueue} before it blocks waiting for new tasks to be submitted.
+         * It is passed to {@link ThreadPoolExecutor}, where it is used used to hand off tasks from task-submitting
+         * thread to worker threads.
+         */
+        private static class HandOffQueue extends SynchronousQueue<Runnable> {
+
+            private static final long serialVersionUID = -1607064661828834847L;
+            private final Queue<Runnable> taskQueue;
+            private final boolean threadSafeQueue;
+
+            private HandOffQueue(Queue<Runnable> taskQueue, boolean threadSafeQueue) {
+                this.taskQueue = taskQueue;
+                this.threadSafeQueue = threadSafeQueue;
+            }
+
+            @Override
+            public Runnable take() throws InterruptedException {
+                // try to empty the task queue
+                Runnable task;
+                if (threadSafeQueue) {
+                    task = taskQueue.poll();
+                } else {
+                    synchronized (taskQueue) {
+                        task = taskQueue.poll();
+                    }
+                }
+                if (task != null) {
+                    return task;
+                }
+
+                // block and wait for a task to be submitted
+                return super.take();
+            }
+
+            @Override
+            public Runnable poll(long timeout, TimeUnit unit) throws InterruptedException {
+                // try to empty the task queue
+                Runnable task;
+                if (threadSafeQueue) {
+                    task = taskQueue.poll();
+                } else {
+                    synchronized (taskQueue) {
+                        task = taskQueue.poll();
+                    }
+                }
+                if (task != null) {
+                    return task;
+                }
+
+                // block and wait for a task to be submitted
+                return super.poll(timeout, unit);
             }
         }
     }
