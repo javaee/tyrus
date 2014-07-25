@@ -108,6 +108,15 @@
 
     <developers>
         <developer>
+            <id>ondrejkosatka</id>
+            <name>Ondřej Košatka</name>
+            <organization>Oracle Corporation</organization>
+            <organizationUrl>http://www.oracle.com</organizationUrl>
+            <roles>
+                <role>developer</role>
+            </roles>
+        </developer>
+        <developer>
             <id>petrjanouch</id>
             <name>Petr Janouch</name>
             <organization>Oracle Corporation</organization>
