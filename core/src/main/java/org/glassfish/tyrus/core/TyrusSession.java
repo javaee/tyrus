@@ -41,6 +41,7 @@ package org.glassfish.tyrus.core;
 
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
@@ -109,6 +110,7 @@ public class TyrusSession implements Session {
     private final String remoteAddr;
 
     private final Map<RemoteSession.DistributedMapKey, Object> distributedPropertyMap;
+    private final Map<String, Object> distributedUserProperties;
 
     private volatile long maxIdleTimeout = 0;
     private volatile ScheduledFuture<?> idleTimeoutFuture = null;
@@ -167,14 +169,16 @@ public class TyrusSession implements Session {
                 distributedPropertyMap.put(RemoteSession.DistributedMapKey.USER_PRINCIPAL, userPrincipal);
             }
 
-            userProperties = clusterContext.getDistributedUserProperties(connectionId);
+            distributedUserProperties = clusterContext.getDistributedUserProperties(connectionId);
 
             clusterContext.registerSession(id, endpointWrapper.getEndpointPath(), new SessionEventListener(this));
         } else {
             id = UUID.randomUUID().toString();
-            userProperties = new HashMap<String, Object>();
             distributedPropertyMap = null;
+            distributedUserProperties = null;
         }
+
+        userProperties = new HashMap<String, Object>();
     }
 
     @Override
@@ -388,6 +392,21 @@ public class TyrusSession implements Session {
     @Override
     public Map<String, Object> getUserProperties() {
         return userProperties;
+    }
+
+    /**
+     * Get distributed properties.
+     * <p/>
+     * Values put into this map must be {@link Serializable} or serializable by other, implementation-dependent alternative.
+     * <p/>
+     * Content of this map is synchronized among all cluster nodes, so putting an entry on any of the nodes will be visible
+     * on all other nodes which have reference to current session (in form of {@link TyrusSession} or {@link RemoteSession}).
+     *
+     * @return map of distributed properties or {@code null} when not part of the cluster.
+     * @see RemoteSession#getDistributedProperties()
+     */
+    public Map<String, Object> getDistributedProperties() {
+        return distributedUserProperties;
     }
 
     @Override

@@ -68,6 +68,7 @@ import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
 
 import org.glassfish.tyrus.core.TyrusEndpointWrapper;
+import org.glassfish.tyrus.core.TyrusSession;
 import org.glassfish.tyrus.core.Utils;
 
 import static org.glassfish.tyrus.core.Utils.checkNotNull;
@@ -78,6 +79,8 @@ import static org.glassfish.tyrus.core.Utils.checkNotNull;
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 public class RemoteSession implements Session {
+
+    private final static Integer SYNC_SEND_TIMEOUT = 5;
 
     private final RemoteEndpoint.Basic basicRemote;
     private final RemoteEndpoint.Async asyncRemote;
@@ -192,6 +195,7 @@ public class RemoteSession implements Session {
         public String toString() {
             return key;
         }
+
     }
 
     /**
@@ -253,7 +257,7 @@ public class RemoteSession implements Session {
              */
             private void processFuture(Future<?> future) throws IOException {
                 try {
-                    future.get();
+                    future.get(SYNC_SEND_TIMEOUT, TimeUnit.SECONDS);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 } catch (ExecutionException e) {
@@ -262,6 +266,8 @@ public class RemoteSession implements Session {
                     } else {
                         throw new IOException(e.getCause());
                     }
+                } catch (TimeoutException e) {
+                    throw new IOException(e.getCause());
                 }
             }
 
@@ -790,19 +796,28 @@ public class RemoteSession implements Session {
     }
 
     /**
-     * Get a Map that the developer may
-     * use to store application specific information relating to this session
-     * instance. The developer may retrieve information from this Map at any time
-     * between the opening of the session and during the onClose() method. But outside
-     * that time, any information stored using this Map may no longer be kept by the
-     * container.
-     * <p/>
-     * Values of this map MUST BE {@link Serializable}.
+     * This method is not supported on {@link RemoteSession}. Each invocation will throw an {@link UnsupportedOperationException}.
      *
-     * @return an editable Map of application data.
+     * @return nothing.
+     * @see #getDistributedProperties()
      */
     @Override
     public Map<String, Object> getUserProperties() {
+        throw new UnsupportedOperationException();
+    }
+
+    /**
+     * Get distributed properties.
+     * <p/>
+     * Values put into this map must be {@link Serializable} or serializable by other, implementation-dependent alternative.
+     * <p/>
+     * Content of this map is synchronized among all cluster nodes, so putting an entry on any of the nodes will be visible
+     * on all other nodes which have reference to current session (in form of {@link TyrusSession} or {@link RemoteSession}).
+     *
+     * @return map of distributed properties.
+     * @see TyrusSession#getDistributedProperties()
+     */
+    public Map<String, Object> getDistributedProperties() {
         return clusterContext.getDistributedUserProperties(sessionId);
     }
 
