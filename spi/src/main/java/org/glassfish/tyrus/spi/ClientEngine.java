@@ -39,8 +39,6 @@
  */
 package org.glassfish.tyrus.spi;
 
-import java.net.URI;
-
 /**
  * Facade for handling client operations from containers.
  *
@@ -52,14 +50,13 @@ public interface ClientEngine {
     /**
      * Create upgrade request and register {@link TimeoutHandler}.
      *
-     * @param uri            URI of remote endpoint.
      * @param timeoutHandler handshake timeout handler. {@link TimeoutHandler#handleTimeout()}
      *                       is invoked if {@link #processResponse(UpgradeResponse, Writer, Connection.CloseListener)}
      *                       is not called within handshake timeout.
      * @return request to be send on the wire or {@code null}, when the request cannot be created. When {@code null} is
      * returned, client should free all resources tied to current connection.
      */
-    public UpgradeRequest createUpgradeRequest(URI uri, TimeoutHandler timeoutHandler);
+    public UpgradeRequest createUpgradeRequest(TimeoutHandler timeoutHandler);
 
     /**
      * Process handshake and return {@link ClientUpgradeInfo} with handshake status ({@link ClientUpgradeStatus}).
@@ -104,7 +101,7 @@ public interface ClientEngine {
      * <p/>
      * When {@link #getUpgradeStatus()} returns {@link ClientUpgradeStatus#ANOTHER_UPGRADE_REQUEST_REQUIRED}, client
      * container HAS TO close all resources related to currently processed {@link UpgradeResponse}, open new TCP
-     * connection and send {@link UpgradeRequest} obtained from method {@link #createUpgradeRequest(URI, TimeoutHandler)}.
+     * connection and send {@link UpgradeRequest} obtained from method {@link #createUpgradeRequest(TimeoutHandler)}.
      */
     public interface ClientUpgradeInfo {
 
@@ -133,7 +130,7 @@ public interface ClientEngine {
         /**
          * Client engine needs to send another request.
          *
-         * @see #createUpgradeRequest(URI, TimeoutHandler)
+         * @see #createUpgradeRequest(TimeoutHandler)
          */
         ANOTHER_UPGRADE_REQUEST_REQUIRED,
 

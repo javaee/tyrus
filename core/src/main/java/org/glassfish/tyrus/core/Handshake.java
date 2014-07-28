@@ -343,4 +343,26 @@ public final class Handshake {
 
         return negotiatedExtensions;
     }
+
+    /**
+     * Update request {@link URI} and related fields.
+     *
+     * @param requestUri new request {@link URI}.
+     */
+    public void updateRequestUri(URI requestUri) {
+        final boolean secure = requestUri.getScheme().equalsIgnoreCase("wss");
+        this.request = RequestContext.Builder.create().requestURI(requestUri).secure(secure).build();
+
+        this.resourcePath = requestUri.getPath();
+        if ("".equals(this.resourcePath)) {
+            this.resourcePath = "/";
+        }
+        if (requestUri.getQuery() != null) {
+            this.resourcePath += "?" + requestUri.getQuery();
+        }
+        this.serverHostName = requestUri.getHost();
+        this.secure = secure;
+        this.port = requestUri.getPort();
+        this.origin = appendPort(new StringBuilder(requestUri.getHost()), this.port, this.secure).toString();
+    }
 }

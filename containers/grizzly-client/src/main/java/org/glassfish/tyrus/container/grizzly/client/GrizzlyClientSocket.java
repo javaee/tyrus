@@ -72,7 +72,9 @@ import org.glassfish.tyrus.client.SslEngineConfigurator;
 import org.glassfish.tyrus.core.Base64Utils;
 import org.glassfish.tyrus.core.TyrusFuture;
 import org.glassfish.tyrus.core.Utils;
+import org.glassfish.tyrus.core.l10n.LocalizationMessages;
 import org.glassfish.tyrus.spi.ClientEngine;
+import org.glassfish.tyrus.spi.UpgradeRequest;
 
 import org.glassfish.grizzly.Connection;
 import org.glassfish.grizzly.GrizzlyFuture;
@@ -197,7 +199,7 @@ public class GrizzlyClientSocket {
         this.proxyHeaders = getProxyHeaders(properties);
 
         try {
-            this.clientSSLEngineConfigurator = getSSLEngineConfigurator(properties, uri.getHost());
+            this.clientSSLEngineConfigurator = getSSLEngineConfigurator(properties);
             this.workerThreadPoolConfig = getWorkerThreadPoolConfig(properties);
             this.selectorThreadPoolConfig = Utils.getProperty(properties, GrizzlyClientProperties.SELECTOR_THREAD_POOL_CONFIG, ThreadPoolConfig.class);
 
@@ -219,7 +221,7 @@ public class GrizzlyClientSocket {
             sharedTransportTimeout = (sharedTransport && sharedTransportTimeoutProperty != null) ? sharedTransportTimeoutProperty : 30;
             this.engine = engine;
         } catch (RuntimeException e) {
-            e.printStackTrace();
+            LOGGER.log(Level.SEVERE, LocalizationMessages.CLIENT_CANNOT_CONNECT(uri), e);
             throw e;
         }
 
@@ -339,14 +341,16 @@ public class GrizzlyClientSocket {
                 }
             };
 
+            final UpgradeRequest upgradeRequest = engine.createUpgradeRequest(timeoutHandler);
+
             final SocketAddress connectAddress;
             switch (proxy.type()) {
                 case DIRECT:
-                    connectAddress = socketAddress;
-                    LOGGER.log(Level.CONFIG, String.format("Connecting to '%s' (no proxy).", uri));
+                    connectAddress = new InetSocketAddress(upgradeRequest.getRequestURI().getHost(), upgradeRequest.getRequestURI().getPort());
+                    LOGGER.log(Level.CONFIG, String.format("Connecting to '%s' (no proxy).", upgradeRequest.getRequestUri()));
                     break;
                 default:
-                    LOGGER.log(Level.CONFIG, String.format("Connecting to '%s' via proxy '%s'.", uri, proxy));
+                    LOGGER.log(Level.CONFIG, String.format("Connecting to '%s' via proxy '%s'.", upgradeRequest.getRequestUri(), proxy));
 
                     // default ProxySelector always returns proxies with unresolved addresses.
                     SocketAddress address = proxy.address();
@@ -366,7 +370,7 @@ public class GrizzlyClientSocket {
             if (clientSSLEngineConfigurator != null) {
                 sslHandshakeFuture = new TyrusFuture();
             }
-            connectorHandler.setProcessor(createFilterChain(engine, null, clientSSLEngineConfigurator, !(proxy.type() == Proxy.Type.DIRECT), uri, timeoutHandler, sharedTransport, sharedTransportTimeout, proxyHeaders, grizzlyConnector, sslHandshakeFuture));
+            connectorHandler.setProcessor(createFilterChain(engine, null, clientSSLEngineConfigurator, !(proxy.type() == Proxy.Type.DIRECT), upgradeRequest.getRequestURI(), sharedTransport, sharedTransportTimeout, proxyHeaders, grizzlyConnector, sslHandshakeFuture, upgradeRequest));
 
             connectionGrizzlyFuture = connectorHandler.connect(connectAddress);
 
@@ -380,7 +384,7 @@ public class GrizzlyClientSocket {
                     } catch (ExecutionException e) {
                         throw new DeploymentException("SSL handshake has failed", e.getCause());
                     } catch (Exception e) {
-                        LOGGER.log(Level.CONFIG, String.format("Connection to '%s' failed.", uri), e);
+                        LOGGER.log(Level.CONFIG, String.format("Connection to '%s' failed.", upgradeRequest.getRequestUri()), e);
                     }
                 }
 
@@ -388,19 +392,19 @@ public class GrizzlyClientSocket {
 
                 return;
             } catch (InterruptedException interruptedException) {
-                LOGGER.log(Level.CONFIG, String.format("Connection to '%s' failed.", uri), interruptedException);
+                LOGGER.log(Level.CONFIG, String.format("Connection to '%s' failed.", upgradeRequest.getRequestUri()), interruptedException);
                 closeTransport(privateTransport);
             } catch (TimeoutException timeoutException) {
-                LOGGER.log(Level.CONFIG, String.format("Connection to '%s' failed.", uri), timeoutException);
+                LOGGER.log(Level.CONFIG, String.format("Connection to '%s' failed.", upgradeRequest.getRequestUri()), timeoutException);
                 closeTransport(privateTransport);
             } catch (ExecutionException executionException) {
-                LOGGER.log(Level.CONFIG, String.format("Connection to '%s' failed.", uri), executionException);
+                LOGGER.log(Level.CONFIG, String.format("Connection to '%s' failed.", upgradeRequest.getRequestUri()), executionException);
 
                 IOException ioException = null;
                 final Throwable cause = executionException.getCause();
                 if ((cause != null) && (cause instanceof IOException)) {
                     ioException = (IOException) cause;
-                    ProxySelector.getDefault().connectFailed(uri, socketAddress, ioException);
+                    ProxySelector.getDefault().connectFailed(upgradeRequest.getRequestURI(), socketAddress, ioException);
                 }
 
                 closeTransport(privateTransport);
@@ -615,11 +619,11 @@ public class GrizzlyClientSocket {
                                                final ExtendedSSLEngineConfigurator clientSSLEngineConfigurator,
                                                boolean proxy,
                                                final URI uri,
-                                               ClientEngine.TimeoutHandler timeoutHandler,
                                                boolean sharedTransport, Integer sharedTransportTimeout,
                                                Map<String, String> proxyHeaders,
                                                Callable<Void> grizzlyConnector,
-                                               final TyrusFuture<Void> sslHandshakeFuture) {
+                                               final TyrusFuture<Void> sslHandshakeFuture,
+                                               final UpgradeRequest upgradeRequest) {
         FilterChainBuilder clientFilterChainBuilder = FilterChainBuilder.stateless();
         Filter sslFilter = null;
 
@@ -672,7 +676,7 @@ public class GrizzlyClientSocket {
 
 
         clientFilterChainBuilder.add(new GrizzlyClientFilter(engine, proxy,
-                sslFilter, httpCodecFilter, uri, timeoutHandler, sharedTransport, proxyHeaders, grizzlyConnector));
+                sslFilter, httpCodecFilter, uri, sharedTransport, proxyHeaders, grizzlyConnector, upgradeRequest));
 
         return clientFilterChainBuilder.build();
     }
@@ -713,7 +717,7 @@ public class GrizzlyClientSocket {
         }
     }
 
-    private ExtendedSSLEngineConfigurator getSSLEngineConfigurator(Map<String, Object> properties, String host) {
+    private ExtendedSSLEngineConfigurator getSSLEngineConfigurator(Map<String, Object> properties) {
         Object configuratorObject = properties.get(ClientProperties.SSL_ENGINE_CONFIGURATOR);
 
         if (configuratorObject == null) {
@@ -722,18 +726,18 @@ public class GrizzlyClientSocket {
             if (uri.getScheme().equalsIgnoreCase("wss")) {
                 final SSLContextConfigurator defaultConfig = new SSLContextConfigurator();
                 defaultConfig.retrieve(System.getProperties());
-                return new ExtendedSSLEngineConfigurator(defaultConfig.createSSLContext(), host);
+                return new ExtendedSSLEngineConfigurator(defaultConfig.createSSLContext(), uri.getHost());
             } else {
                 return null;
             }
         }
 
         if (configuratorObject instanceof SSLEngineConfigurator) {
-            return new ExtendedSSLEngineConfigurator((SSLEngineConfigurator) configuratorObject, host);
+            return new ExtendedSSLEngineConfigurator((SSLEngineConfigurator) configuratorObject, uri.getHost());
         }
 
         if (configuratorObject instanceof SslEngineConfigurator) {
-            return new ExtendedSSLEngineConfigurator((SslEngineConfigurator) configuratorObject, host);
+            return new ExtendedSSLEngineConfigurator((SslEngineConfigurator) configuratorObject, uri.getHost());
         }
 
         // if we have reached here the ssl engine configuration property is set, but is of incompatible type

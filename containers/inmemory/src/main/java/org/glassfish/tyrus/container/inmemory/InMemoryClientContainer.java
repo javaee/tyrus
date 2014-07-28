@@ -81,7 +81,7 @@ public class InMemoryClientContainer implements ClientContainer {
 
     @Override
     public void openClientSocket(String url, ClientEndpointConfig cec, Map<String, Object> properties, ClientEngine clientEngine) throws DeploymentException, IOException {
-        final UpgradeRequest upgradeRequest = clientEngine.createUpgradeRequest(URI.create(url), null);
+        final UpgradeRequest upgradeRequest = clientEngine.createUpgradeRequest(null);
 
         final ServerApplicationConfig serverApplicationConfig = getServerApplicationConfig(cec);
         final TyrusServerContainer tyrusServerContainer = new TyrusServerContainer(serverApplicationConfig) {

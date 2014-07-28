@@ -111,10 +111,10 @@ class GrizzlyClientFilter extends BaseFilter {
     private final HttpCodecFilter httpCodecFilter;
     private final ClientEngine engine;
     private final URI uri;
-    private final ClientEngine.TimeoutHandler timeoutHandler;
     private final boolean sharedTransport;
     private final Map<String, String> proxyHeaders;
     private final Callable<Void> grizzlyConnector;
+    private final UpgradeRequest upgradeRequest;
 
     // ------------------------------------------------------------ Constructors
 
@@ -126,18 +126,19 @@ class GrizzlyClientFilter extends BaseFilter {
      */
     /* package */ GrizzlyClientFilter(ClientEngine engine, boolean proxy,
                                       Filter sslFilter, HttpCodecFilter httpCodecFilter,
-                                      URI uri, ClientEngine.TimeoutHandler timeoutHandler, boolean sharedTransport,
+                                      URI uri, boolean sharedTransport,
                                       Map<String, String> proxyHeaders,
-                                      Callable<Void> grizzlyConnector) {
+                                      Callable<Void> grizzlyConnector,
+                                      UpgradeRequest upgradeRequest) {
         this.engine = engine;
         this.proxy = proxy;
         this.sslFilter = sslFilter;
         this.httpCodecFilter = httpCodecFilter;
         this.uri = uri;
-        this.timeoutHandler = timeoutHandler;
         this.sharedTransport = sharedTransport;
         this.proxyHeaders = proxyHeaders;
         this.grizzlyConnector = grizzlyConnector;
+        this.upgradeRequest = upgradeRequest;
     }
 
     // ----------------------------------------------------- Methods from Filter
@@ -154,7 +155,6 @@ class GrizzlyClientFilter extends BaseFilter {
     public NextAction handleConnect(final FilterChainContext ctx) {
         LOGGER.log(Level.FINEST, "handleConnect");
 
-        final UpgradeRequest upgradeRequest = engine.createUpgradeRequest(uri, timeoutHandler);
         if (upgradeRequest == null) {
             // close the connection (if exists) and current transport instance.
             new GrizzlyWriter(ctx.getConnection()).close();

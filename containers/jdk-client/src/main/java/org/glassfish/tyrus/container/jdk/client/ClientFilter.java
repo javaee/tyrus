@@ -119,7 +119,7 @@ class ClientFilter extends Filter {
         if (proxy) {
             handshakeUpgradeRequest = createProxyUpgradeRequest(uri);
         } else {
-            UpgradeRequest upgradeRequest = engine.createUpgradeRequest(uri, new TimeoutHandler() {
+            UpgradeRequest upgradeRequest = engine.createUpgradeRequest(new TimeoutHandler() {
                 @Override
                 public void handleTimeout() {
                     downstreamFilter.close();
@@ -175,7 +175,7 @@ class ClientFilter extends Filter {
                 }
                 connectedToProxy = true;
                 downstreamFilter.startSsl();
-                sendRequest(downstreamFilter, createHandshakeUpgradeRequest(engine.createUpgradeRequest(uri, new TimeoutHandler() {
+                sendRequest(downstreamFilter, createHandshakeUpgradeRequest(engine.createUpgradeRequest(new TimeoutHandler() {
                     @Override
                     public void handleTimeout() {
                         downstreamFilter.close();

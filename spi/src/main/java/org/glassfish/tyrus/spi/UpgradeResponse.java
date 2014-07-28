@@ -58,6 +58,11 @@ public abstract class UpgradeResponse implements HandshakeResponse {
     public static final String WWW_AUTHENTICATE = "WWW-Authenticate";
 
     /**
+     * Header containing a new URI when {@link #getStatus()} .
+     */
+    public static final String LOCATION = "Location";
+
+    /**
      * Get the current HTTP status code of this response.
      *
      * @return the current HTTP status code.
