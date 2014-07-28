@@ -1208,37 +1208,37 @@ public class TyrusEndpointWrapper {
 
         if (!local && clusterContext != null) {
             clusterContext.broadcastBinary(getEndpointPath(), byteArrayMessage);
-        }
+        } else {
+            for (Map.Entry<TyrusWebSocket, TyrusSession> e : webSocketToSession.entrySet()) {
+                if (e.getValue().isOpen()) {
 
-        for (Map.Entry<TyrusWebSocket, TyrusSession> e : webSocketToSession.entrySet()) {
-            if (e.getValue().isOpen()) {
+                    final TyrusWebSocket webSocket = e.getKey();
+                    final ProtocolHandler protocolHandler = webSocket.getProtocolHandler();
 
-                final TyrusWebSocket webSocket = e.getKey();
-                final ProtocolHandler protocolHandler = webSocket.getProtocolHandler();
+                    // we need to let protocol handler execute extensions if there are any
+                    if (protocolHandler.hasExtensions()) {
+                        byte[] tempFrame;
 
-                // we need to let protocol handler execute extensions if there are any
-                if (protocolHandler.hasExtensions()) {
-                    byte[] tempFrame;
-
-                    final Frame dataFrame = new BinaryFrame(byteArrayMessage, false, true);
-                    final ByteBuffer byteBuffer = webSocket.getProtocolHandler().frame(dataFrame);
-                    tempFrame = new byte[byteBuffer.remaining()];
-                    byteBuffer.get(tempFrame);
-
-                    final Future<Frame> frameFuture = webSocket.sendRawFrame(ByteBuffer.wrap(tempFrame));
-                    futures.put(e.getValue(), frameFuture);
-
-                } else {
-
-                    if (frame == null) {
                         final Frame dataFrame = new BinaryFrame(byteArrayMessage, false, true);
                         final ByteBuffer byteBuffer = webSocket.getProtocolHandler().frame(dataFrame);
-                        frame = new byte[byteBuffer.remaining()];
-                        byteBuffer.get(frame);
-                    }
+                        tempFrame = new byte[byteBuffer.remaining()];
+                        byteBuffer.get(tempFrame);
 
-                    final Future<Frame> frameFuture = webSocket.sendRawFrame(ByteBuffer.wrap(frame));
-                    futures.put(e.getValue(), frameFuture);
+                        final Future<Frame> frameFuture = webSocket.sendRawFrame(ByteBuffer.wrap(tempFrame));
+                        futures.put(e.getValue(), frameFuture);
+
+                    } else {
+
+                        if (frame == null) {
+                            final Frame dataFrame = new BinaryFrame(byteArrayMessage, false, true);
+                            final ByteBuffer byteBuffer = webSocket.getProtocolHandler().frame(dataFrame);
+                            frame = new byte[byteBuffer.remaining()];
+                            byteBuffer.get(frame);
+                        }
+
+                        final Future<Frame> frameFuture = webSocket.sendRawFrame(ByteBuffer.wrap(frame));
+                        futures.put(e.getValue(), frameFuture);
+                    }
                 }
             }
         }
