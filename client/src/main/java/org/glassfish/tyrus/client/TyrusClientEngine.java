@@ -110,7 +110,7 @@ public class TyrusClientEngine implements ClientEngine {
     private final Map<String, Object> properties;
     private final URI uri;
     private final Boolean redirectEnabled;
-    private final Integer redirectThreshold;
+    private final int redirectThreshold;
 
     private volatile Handshake clientHandShake = null;
     private volatile TimeoutHandler timeoutHandler = null;
@@ -139,7 +139,11 @@ public class TyrusClientEngine implements ClientEngine {
         this.redirectUriHistory = Collections.synchronizedSet(new HashSet<URI>(DEFAULT_REDIRECT_THRESHOLD));
 
         this.redirectEnabled = Utils.getProperty(properties, ClientProperties.REDIRECT_ENABLED, Boolean.class, false);
-        this.redirectThreshold = Utils.getProperty(properties, ClientProperties.REDIRECT_THRESHOLD, Integer.class, DEFAULT_REDIRECT_THRESHOLD);
+        Integer redirectThreshold = Utils.getProperty(properties, ClientProperties.REDIRECT_THRESHOLD, Integer.class, DEFAULT_REDIRECT_THRESHOLD);
+        if(redirectThreshold == null) {
+            redirectThreshold = DEFAULT_REDIRECT_THRESHOLD;
+        }
+        this.redirectThreshold = redirectThreshold;
     }
 
     @Override
@@ -166,11 +170,15 @@ public class TyrusClientEngine implements ClientEngine {
 
                 final URI requestUri = clientEngineState.getLocation();
 
-                clientHandShake.updateRequestUri(requestUri);
-                clientHandShake.prepareRequest();
+                RequestContext requestContext = RequestContext.Builder
+                        .create(clientHandShake.getRequest())
+                        .requestURI(requestUri)
+                        .secure("wss".equalsIgnoreCase(requestUri.getScheme()))
+                        .build();
+                Handshake.updateHostAndOrigin(requestContext);
 
                 clientEngineState = TyrusClientEngineState.UPGRADE_REQUEST_CREATED;
-                return clientHandShake.getRequest();
+                return requestContext;
             }
             case AUTH_REQUIRED: {
                 UpgradeRequest upgradeRequest = clientHandShake.getRequest();
@@ -247,20 +255,23 @@ public class TyrusClientEngine implements ClientEngine {
                             location = new URI(locationString);
                             int port = location.getPort();
                             String scheme = location.getScheme();
-                            if (location.getScheme().equalsIgnoreCase("http")) {
+                            if ("http".equalsIgnoreCase(scheme)) {
                                 scheme = "ws";
                             }
-                            if (location.getScheme().equalsIgnoreCase("https")) {
+                            if ("https".equalsIgnoreCase(scheme)) {
                                 scheme = "wss";
                             }
                             if (port == -1) {
-                                if (scheme.equalsIgnoreCase("wss")) {
+                                if ("wss".equalsIgnoreCase(scheme)) {
                                     port = 443;
                                 } else {
                                     port = 80;
                                 }
                             }
                             location = new URI(scheme, location.getUserInfo(), location.getHost(), port, location.getPath(), location.getQuery(), location.getFragment());
+
+                            // TODO: check for relative URIs and resolve them
+                            // TODO: check for valid scheme (it can be {@code null}); related to ^
                         } catch (URISyntaxException e) {
                             clientEngineState = TyrusClientEngineState.FAILED;
                             listener.onError(new RedirectException(upgradeResponse.getStatus(), LocalizationMessages.HANDSHAKE_HTTP_REDIRECTION_NEW_LOCATION_ERROR(locationString)));
@@ -276,11 +287,6 @@ public class TyrusClientEngine implements ClientEngine {
                         }
 
                         // maximal number of redirection
-                        if (redirectThreshold == null) {
-                            clientEngineState = TyrusClientEngineState.FAILED;
-                            listener.onError(new RedirectException(upgradeResponse.getStatus(), LocalizationMessages.HANDSHAKE_HTTP_REDIRECTION_MAX_REDIRECTION_INVALID(properties.get(ClientProperties.REDIRECT_THRESHOLD).getClass().getName())));
-                            return UPGRADE_INFO_FAILED;
-                        }
                         if (redirectUriHistory.size() > redirectThreshold) {
                             clientEngineState = TyrusClientEngineState.FAILED;
                             listener.onError(new RedirectException(upgradeResponse.getStatus(), LocalizationMessages.HANDSHAKE_HTTP_REDIRECTION_MAX_REDIRECTION(redirectThreshold)));

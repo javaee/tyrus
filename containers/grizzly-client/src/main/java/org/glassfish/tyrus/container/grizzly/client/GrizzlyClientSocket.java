@@ -343,10 +343,15 @@ public class GrizzlyClientSocket {
 
             final UpgradeRequest upgradeRequest = engine.createUpgradeRequest(timeoutHandler);
 
-            final SocketAddress connectAddress;
+            SocketAddress connectAddress;
             switch (proxy.type()) {
                 case DIRECT:
-                    connectAddress = new InetSocketAddress(upgradeRequest.getRequestURI().getHost(), upgradeRequest.getRequestURI().getPort());
+                    try {
+                        connectAddress = new InetSocketAddress(upgradeRequest.getRequestURI().getHost(), upgradeRequest.getRequestURI().getPort());
+                    } catch (IllegalArgumentException e) {
+                        throw new DeploymentException(e.getMessage(), e);
+                    }
+
                     LOGGER.log(Level.CONFIG, String.format("Connecting to '%s' (no proxy).", upgradeRequest.getRequestUri()));
                     break;
                 default:
@@ -723,7 +728,7 @@ public class GrizzlyClientSocket {
         if (configuratorObject == null) {
             // if we are trying to access "wss" scheme and we don't have sslEngineConfigurator instance
             // we should try to create ssl connection using JVM properties.
-            if (uri.getScheme().equalsIgnoreCase("wss")) {
+            if ("wss".equalsIgnoreCase(uri.getScheme())) {
                 final SSLContextConfigurator defaultConfig = new SSLContextConfigurator();
                 defaultConfig.retrieve(System.getProperties());
                 return new ExtendedSSLEngineConfigurator(defaultConfig.createSSLContext(), uri.getHost());

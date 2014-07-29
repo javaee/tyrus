@@ -42,9 +42,8 @@ package org.glassfish.tyrus.test.e2e.non_deployable;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -87,16 +86,16 @@ public class RedirectTest extends TestContainer {
     private static final int REDIRECTION_PORT = 8026;
     private static final String REDIRECTION_URI = "ws://localhost:" + REDIRECTION_PORT;
     private static final String REDIRECTION_PATH = "/redirect";
-    private static final Set<HttpStatus> statuses = Collections.unmodifiableSet(new HashSet<HttpStatus>() {{
-        add(HttpStatus.MULTIPLE_CHOICES_300);
-        add(HttpStatus.MOVED_PERMANENTLY_301);
-        add(HttpStatus.FOUND_302);
-        add(HttpStatus.SEE_OTHER_303);
-        add(HttpStatus.TEMPORARY_REDIRECT_307);
-        add(HttpStatus.PERMANENT_REDIRECT_308);
-    }});
+    private static final List<HttpStatus> statuses = Arrays.asList(
+            HttpStatus.MULTIPLE_CHOICES_300,
+            HttpStatus.MOVED_PERMANENTLY_301,
+            HttpStatus.FOUND_302,
+            HttpStatus.SEE_OTHER_303,
+            HttpStatus.TEMPORARY_REDIRECT_307,
+            HttpStatus.PERMANENT_REDIRECT_308
+    );
 
-    private static final HttpStatus UUNSUPPORTED_HTTP_STATUS = HttpStatus.NOT_MODIFIED_304;
+    private static final HttpStatus UNSUPPORTED_HTTP_STATUS = HttpStatus.NOT_MODIFIED_304;
 
     public RedirectTest() {
         setContextPath("/redirect-echo");
@@ -166,7 +165,7 @@ public class RedirectTest extends TestContainer {
         try {
             server = startServer(RedirectedEchoEndpoint.class);
 
-            testRedirectUnsupported3xx(UUNSUPPORTED_HTTP_STATUS);
+            testRedirectUnsupported3xx(UNSUPPORTED_HTTP_STATUS);
         } finally {
             if (server != null) {
                 server.stop();

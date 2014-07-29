@@ -49,34 +49,30 @@ import org.glassfish.tyrus.core.HandshakeException;
 import org.glassfish.tyrus.spi.UpgradeResponse;
 
 /**
- * This exception is set as a cause of {@link DeploymentException} when any of the following Redirection HTTP response
- * status codes (300, 301, 302, 303, 307, 308) was received and {@link WebSocketContainer}.connectToServer(...)
- * fails because of any of the following reasons:
+ * This exception is set as a cause of {@link DeploymentException} thrown from {@link WebSocketContainer}.connectToServer(...)
+ * when any of the Redirect HTTP response status codes (300, 301, 302, 303, 307, 308) is received as a handshake response and:
  * <ul>
  * <li>
- * {@link ClientProperties#REDIRECT_ENABLED} property is not set to {@code true}.
+ * {@link ClientProperties#REDIRECT_ENABLED} is not enabled
  * </li>
  * <li>
- * Value of {@link ClientProperties#REDIRECT_THRESHOLD} is not assignable to {@link Integer}.
+ * or the chained redirection count exceeds the value of {@link ClientProperties#REDIRECT_THRESHOLD}
  * </li>
  * <li>
- * Number of chained redirection exceeds a value of {@link ClientProperties#REDIRECT_THRESHOLD}. (Default value
- * is 5).
+ * or Infinite redirection loop is detected
  * </li>
  * <li>
- * Infinite redirection loop is detected.
- * </li>
- * <li>
- * {@value UpgradeResponse#LOCATION} response header is missing, is empty or does not contain a valid {@link URI}.
+ * or {@value UpgradeResponse#LOCATION} response header is missing, empty or does not contain a valid {@link URI}.
  * </li>
  * </ul>
- * <p/>
  *
  * @author Ondrej Kosatka (ondrej.kosatka at oracle.com)
  * @see ClientProperties#REDIRECT_ENABLED
  * @see ClientProperties#REDIRECT_THRESHOLD
  */
 public class RedirectException extends HandshakeException {
+
+    private static final long serialVersionUID = 4357724300486801294L;
 
     /**
      * Constructor.

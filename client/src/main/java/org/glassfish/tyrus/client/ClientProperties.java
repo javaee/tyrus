@@ -211,15 +211,16 @@ public final class ClientProperties {
     public static final String CREDENTIALS = "org.glassfish.tyrus.client.http.auth.Credentials";
 
     /**
-     * Property for enabling HTTP redirection during a HTTP handshake (boolean value).
-     * When set to {@code true}, HTTP redirection is enabled. Default value is {@code false}.
+     * HTTP Redirect support.
      * <p/>
-     * If this property is enabled ({@code true}) and one of the following redirection HTTP response status code (3xx) is received
-     * during a handshake, client sends upgrade request automatically to the new {@link URI} contained in header
-     * {@value UpgradeResponse#LOCATION} of HTTP response. Number of redirection is limited by property
+     * Value is expected to be {@code boolean}. Default value is {@code false}.
+     * <p/>
+     * When set to {@code true} and one of the following redirection HTTP response status code (3xx) is received
+     * during a handshake, client will attempt to connect to the {@link URI} contained in
+     * {@value UpgradeResponse#LOCATION} header from handshake response. Number of redirection is limited by property
      * {@link #REDIRECT_THRESHOLD} (integer value), while default value is {@value TyrusClientEngine#DEFAULT_REDIRECT_THRESHOLD}.
      * <p/>
-     * Automatically redirected response codes
+     * List of supported HTTP status codes:
      * <ul>
      * <li>{@code 300 - Multiple Choices}</li>
      * <li>{@code 301 - Moved permanently}</li>
@@ -234,16 +235,14 @@ public final class ClientProperties {
     public static final String REDIRECT_ENABLED = "org.glassfish.tyrus.client.http.redirect.enabled";
 
     /**
-     * The maximal number of HTTP redirection during a handshake (positive {@link Integer} value). Default value is
-     * {@value TyrusClientEngine#DEFAULT_REDIRECT_THRESHOLD}.
+     * The maximal number of redirects during single handshake.
+     * <p/>
+     * Value is expected to be positive {@link Integer}. Default value is {@value TyrusClientEngine#DEFAULT_REDIRECT_THRESHOLD}.
      * <p/>
      * HTTP redirection must be enabled by property {@link #REDIRECT_ENABLED}, otherwise {@code REDIRECT_THRESHOLD} is not applied.
-     * If {@link #REDIRECT_ENABLED} property is enabled ({@code true}) and one of the redirection HTTP response status code
-     * (see list of response codes {@link #REDIRECT_ENABLED}) is received, the value must be positive {@link java.lang.Integer} to proceed
-     * HTTP redirect, otherwise {@link RedirectException} is thrown.
-     * If maximal number of redirection is exceeded, {@link RedirectException} is thrown.
      *
      * @see #REDIRECT_ENABLED
+     * @see RedirectException
      */
     public static final String REDIRECT_THRESHOLD = "org.glassfish.tyrus.client.http.redirect.threshold";
 }

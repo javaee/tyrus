@@ -67,21 +67,17 @@ public final class Handshake {
     private static final int RESPONSE_CODE_VALUE = 101;
     private static final String VERSION = "13";
 
-    private boolean secure;
-    private String origin;
-    private String serverHostName;
-    private int port = 80;
-    private String resourcePath;
     private List<String> subProtocols = new ArrayList<String>();
     private List<Extension> extensions = new ArrayList<Extension>(); // client extensions
-    // client side request!
-    private UpgradeRequest request;
+    // client side handshake request
+    private RequestContext request;
+    // server side handshake request
     private UpgradeRequest incomingRequest;
     private ExtendedExtension.ExtensionContext extensionContext;
     private SecKey secKey;
 
     /**
-     * @see #createClientHandshake(org.glassfish.tyrus.spi.UpgradeRequest)
+     * @see #createClientHandshake(org.glassfish.tyrus.core.RequestContext)
      * @see #createServerHandshake(org.glassfish.tyrus.spi.UpgradeRequest, org.glassfish.tyrus.core.extension.ExtendedExtension.ExtensionContext)
      */
     private Handshake() {
@@ -93,22 +89,9 @@ public final class Handshake {
      * @param webSocketRequest request representation to be modified for use as WebSocket handshake request.
      * @return handshake instance.
      */
-    public static Handshake createClientHandshake(UpgradeRequest webSocketRequest) {
+    public static Handshake createClientHandshake(RequestContext webSocketRequest) {
         final Handshake handshake = new Handshake();
         handshake.request = webSocketRequest;
-
-        final URI uri = webSocketRequest.getRequestURI();
-        handshake.resourcePath = uri.getPath();
-        if ("".equals(handshake.resourcePath)) {
-            handshake.resourcePath = "/";
-        }
-        if (uri.getQuery() != null) {
-            handshake.resourcePath += "?" + uri.getQuery();
-        }
-        handshake.serverHostName = uri.getHost();
-        handshake.secure = webSocketRequest.isSecure();
-        handshake.port = uri.getPort();
-        handshake.origin = appendPort(new StringBuilder(uri.getHost()), handshake.port, handshake.secure).toString();
         handshake.secKey = new SecKey();
 
         return handshake;
@@ -119,7 +102,7 @@ public final class Handshake {
      *
      * @return {@link UpgradeRequest} created on this HandShake.
      */
-    public UpgradeRequest getRequest() {
+    public RequestContext getRequest() {
         return request;
     }
 
@@ -147,29 +130,25 @@ public final class Handshake {
      * @return composed {@link UpgradeRequest}.
      */
     public UpgradeRequest prepareRequest() {
-        String host = serverHostName;
-        if (port != -1 && port != 80 && port != 443) {
-            host += ":" + port;
-        }
 
         Map<String, List<String>> requestHeaders = request.getHeaders();
 
-        requestHeaders.put(UpgradeRequest.HOST, Collections.singletonList(host));
+        updateHostAndOrigin(request);
+
         requestHeaders.put(UpgradeRequest.CONNECTION, Collections.singletonList(UpgradeRequest.UPGRADE));
         requestHeaders.put(UpgradeRequest.UPGRADE, Collections.singletonList(UpgradeRequest.WEBSOCKET));
 
         requestHeaders.put(HandshakeRequest.SEC_WEBSOCKET_KEY, Collections.singletonList(secKey.toString()));
-        requestHeaders.put(UpgradeRequest.ORIGIN_HEADER, Collections.singletonList(getOrigin()));
         requestHeaders.put(HandshakeRequest.SEC_WEBSOCKET_VERSION, Collections.singletonList(VERSION));
 
-        if (!getSubProtocols().isEmpty()) {
+        if (!subProtocols.isEmpty()) {
             requestHeaders.put(HandshakeRequest.SEC_WEBSOCKET_PROTOCOL,
                     Collections.singletonList(Utils.getHeaderFromList(subProtocols, null)));
         }
 
-        if (!getExtensions().isEmpty()) {
+        if (!extensions.isEmpty()) {
             requestHeaders.put(HandshakeRequest.SEC_WEBSOCKET_EXTENSIONS,
-                    Collections.singletonList(Utils.getHeaderFromList(getExtensions(), new Utils.Stringifier<Extension>() {
+                    Collections.singletonList(Utils.getHeaderFromList(extensions, new Utils.Stringifier<Extension>() {
                         @Override
                         String toString(Extension extension) {
                             return TyrusExtension.toString(extension);
@@ -203,6 +182,31 @@ public final class Handshake {
     }
 
     /**
+     * Client side only - Generate host and origin header and put them to the upgrade request headers.
+     *
+     * @param upgradeRequest upgrade request to be updated.
+     */
+    public static void updateHostAndOrigin(final UpgradeRequest upgradeRequest) {
+        URI requestUri = upgradeRequest.getRequestURI();
+
+        String host = requestUri.getHost();
+        int port = requestUri.getPort();
+        if (upgradeRequest.isSecure()) {
+            if (port != 443 && port != -1) {
+                host += ":" + port;
+            }
+        } else {
+            if (port != 80 && port != -1) {
+                host += ":" + port;
+            }
+        }
+
+        Map<String, List<String>> requestHeaders = upgradeRequest.getHeaders();
+        requestHeaders.put(UpgradeRequest.HOST, Collections.singletonList(host));
+        requestHeaders.put(UpgradeRequest.ORIGIN_HEADER, Collections.singletonList(host));
+    }
+
+    /**
      * Server-side handshake.
      *
      * @param request          received handshake request.
@@ -218,8 +222,6 @@ public final class Handshake {
         checkForHeader(request.getHeader(UpgradeRequest.UPGRADE), UpgradeRequest.UPGRADE, "WebSocket");
         checkForHeader(request.getHeader(UpgradeRequest.CONNECTION), UpgradeRequest.CONNECTION, UpgradeRequest.UPGRADE);
 
-        handshake.origin = request.getHeader(UpgradeRequest.ORIGIN_HEADER);
-
         // TODO - trim?
         final String protocolHeader = request.getHeader(HandshakeRequest.SEC_WEBSOCKET_PROTOCOL);
         handshake.subProtocols = (protocolHeader == null ? Collections.<String>emptyList() : Arrays.asList(protocolHeader.split(",")));
@@ -228,19 +230,17 @@ public final class Handshake {
             throw new HandshakeException(LocalizationMessages.HEADERS_MISSING());
         }
 
-        handshake.resourcePath = request.getRequestUri();
-        final String queryString = request.getQueryString();
-        if (queryString != null) {
-            if (!queryString.isEmpty()) {
-                handshake.resourcePath += "?" + queryString;
-            }
-//            Parameters queryParameters = new Parameters();
-//            queryParameters.processParameters(queryString);
-//            final Set<String> names = queryParameters.getParameterNames();
-//            for (String name : names) {
-//                queryParams.put(name, queryParameters.getParameterValues(name));
+//        final String queryString = request.getQueryString();
+//        if (queryString != null) {
+//            if (!queryString.isEmpty()) {
 //            }
-        }
+////            Parameters queryParameters = new Parameters();
+////            queryParameters.processParameters(queryString);
+////            final Set<String> names = queryParameters.getParameterNames();
+////            for (String name : names) {
+////                queryParams.put(name, queryParameters.getParameterValues(name));
+////            }
+//        }
 
         List<String> value = request.getHeaders().get(HandshakeRequest.SEC_WEBSOCKET_EXTENSIONS);
         if (value != null) {
@@ -263,35 +263,10 @@ public final class Handshake {
                 throw new HandshakeException(LocalizationMessages.INVALID_HEADER(header, value));
             }
         } else {
-            if (!value.equalsIgnoreCase(validValue)) {
+            if (!validValue.equalsIgnoreCase(value)) {
                 throw new HandshakeException(LocalizationMessages.INVALID_HEADER(header, value));
             }
         }
-    }
-
-    private static StringBuilder appendPort(StringBuilder builder, int port, boolean secure) {
-        if (secure) {
-            if (port != 443 && port != -1) {
-                builder.append(':').append(port);
-            }
-        } else {
-            if (port != 80 && port != -1) {
-                builder.append(':').append(port);
-            }
-        }
-        return builder;
-    }
-
-    String getOrigin() {
-        return origin;
-    }
-
-    List<String> getSubProtocols() {
-        return subProtocols;
-    }
-
-    List<Extension> getExtensions() {
-        return extensions;
     }
 
     // server side
@@ -342,27 +317,5 @@ public final class Handshake {
         endpointWrapper.onHandShakeResponse(incomingRequest, response);
 
         return negotiatedExtensions;
-    }
-
-    /**
-     * Update request {@link URI} and related fields.
-     *
-     * @param requestUri new request {@link URI}.
-     */
-    public void updateRequestUri(URI requestUri) {
-        final boolean secure = requestUri.getScheme().equalsIgnoreCase("wss");
-        this.request = RequestContext.Builder.create().requestURI(requestUri).secure(secure).build();
-
-        this.resourcePath = requestUri.getPath();
-        if ("".equals(this.resourcePath)) {
-            this.resourcePath = "/";
-        }
-        if (requestUri.getQuery() != null) {
-            this.resourcePath += "?" + requestUri.getQuery();
-        }
-        this.serverHostName = requestUri.getHost();
-        this.secure = secure;
-        this.port = requestUri.getPort();
-        this.origin = appendPort(new StringBuilder(requestUri.getHost()), this.port, this.secure).toString();
     }
 }

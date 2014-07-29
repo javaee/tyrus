@@ -43,7 +43,6 @@ import java.net.URI;
 import java.security.Principal;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -66,19 +65,13 @@ public final class RequestContext extends UpgradeRequest {
     private final Builder.IsUserInRoleDelegate isUserInRoleDelegate;
     private final String remoteAddr;
 
-    private Map<String, List<String>> headers = new TreeMap<String, List<String>>(new Comparator<String>() {
-        @Override
-        public int compare(String o1, String o2) {
-            return o1.toLowerCase().compareTo(o2.toLowerCase());
-        }
-    });
-
+    private Map<String, List<String>> headers;
     private Map<String, List<String>> parameterMap;
 
     private RequestContext(URI requestURI, String queryString,
                            Object httpSession, boolean secure, Principal userPrincipal,
                            Builder.IsUserInRoleDelegate IsUserInRoleDelegate, String remoteAddr,
-                           Map<String, List<String>> parameterMap) {
+                           Map<String, List<String>> parameterMap, Map<String, List<String>> headers) {
         this.requestURI = requestURI;
         this.queryString = queryString;
         this.httpSession = httpSession;
@@ -87,6 +80,11 @@ public final class RequestContext extends UpgradeRequest {
         this.isUserInRoleDelegate = IsUserInRoleDelegate;
         this.remoteAddr = remoteAddr;
         this.parameterMap = parameterMap;
+        this.headers = new TreeMap<String, List<String>>(String.CASE_INSENSITIVE_ORDER);
+
+        if(headers != null) {
+            this.headers.putAll(headers);
+        }
     }
 
     /**
@@ -201,6 +199,7 @@ public final class RequestContext extends UpgradeRequest {
         private Builder.IsUserInRoleDelegate isUserInRoleDelegate;
         private Map<String, List<String>> parameterMap;
         private String remoteAddr;
+        private Map<String, List<String>> headers;
 
         /**
          * Create empty builder.
@@ -209,6 +208,28 @@ public final class RequestContext extends UpgradeRequest {
          */
         public static Builder create() {
             return new Builder();
+        }
+
+        /**
+         * Create builder instance based on provided {@link RequestContext}.
+         *
+         * @param requestContext request context.
+         * @return builder instance.
+         */
+        public static Builder create(RequestContext requestContext) {
+            Builder builder = new Builder();
+
+            builder.requestURI = requestContext.requestURI;
+            builder.queryString = requestContext.queryString;
+            builder.httpSession = requestContext.httpSession;
+            builder.secure = requestContext.secure;
+            builder.userPrincipal = requestContext.userPrincipal;
+            builder.isUserInRoleDelegate = requestContext.isUserInRoleDelegate;
+            builder.parameterMap = requestContext.parameterMap;
+            builder.remoteAddr = requestContext.remoteAddr;
+            builder.headers = requestContext.headers;
+
+            return builder;
         }
 
         /**
@@ -316,7 +337,7 @@ public final class RequestContext extends UpgradeRequest {
         public RequestContext build() {
             return new RequestContext(requestURI, queryString, httpSession, secure,
                     userPrincipal, isUserInRoleDelegate, remoteAddr,
-                    parameterMap != null ? parameterMap : new HashMap<String, List<String>>());
+                    parameterMap != null ? parameterMap : new HashMap<String, List<String>>(), headers);
         }
 
         /**

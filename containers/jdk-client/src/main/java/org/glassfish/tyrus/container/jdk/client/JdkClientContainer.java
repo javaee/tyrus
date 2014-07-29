@@ -103,7 +103,7 @@ public class JdkClientContainer implements ClientContainer {
             throw new DeploymentException("Invalid URI.", e);
         }
 
-        final boolean secure = uri.getScheme().equalsIgnoreCase("wss");
+        final boolean secure = "wss".equalsIgnoreCase(uri.getScheme());
 
         ThreadPoolConfig threadPoolConfig = Utils.getProperty(properties, ClientProperties.WORKER_THREAD_POOL_CONFIG, ThreadPoolConfig.class);
         if (threadPoolConfig == null) {
@@ -221,7 +221,7 @@ public class JdkClientContainer implements ClientContainer {
         return new ClientFilter(downstreamFilter, clientEngine, uri, getProxyHeaders(properties), jdkConnector);
     }
 
-    private SocketAddress getServerAddress(URI uri) {
+    private SocketAddress getServerAddress(URI uri) throws DeploymentException {
         int port = uri.getPort();
         if (port == -1) {
             String scheme = uri.getScheme();
@@ -232,7 +232,12 @@ public class JdkClientContainer implements ClientContainer {
                 port = 443;
             }
         }
-        return new InetSocketAddress(uri.getHost(), port);
+
+        try {
+            return new InetSocketAddress(uri.getHost(), port);
+        } catch (IllegalArgumentException e) {
+            throw new DeploymentException(e.getMessage(), e);
+        }
     }
 
     private void _connect(ClientFilter clientFilter, URI uri) throws DeploymentException, IOException {
