@@ -391,7 +391,9 @@ public class TyrusExtension implements Extension, Serializable {
     /**
      * WebSocket {@link Parameter} implementation.
      */
-    public static class TyrusParameter implements Parameter {
+    public static class TyrusParameter implements Parameter, Serializable {
+
+        private static final long serialVersionUID = -6818457211703933087L;
 
         private final String name;
         private final String value;
