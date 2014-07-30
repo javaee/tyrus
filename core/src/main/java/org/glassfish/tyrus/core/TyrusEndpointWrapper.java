@@ -1145,42 +1145,43 @@ public class TyrusEndpointWrapper {
 
     private Map<Session, Future<?>> broadcast(final String message, boolean local) {
 
+        final Map<Session, Future<?>> futures = new HashMap<Session, Future<?>>();
+
         if (!local && clusterContext != null) {
             clusterContext.broadcastText(getEndpointPath(), message);
-        }
+        } else {
+            byte[] frame = null;
 
-        final Map<Session, Future<?>> futures = new HashMap<Session, Future<?>>();
-        byte[] frame = null;
+            for (Map.Entry<TyrusWebSocket, TyrusSession> e : webSocketToSession.entrySet()) {
+                if (e.getValue().isOpen()) {
 
-        for (Map.Entry<TyrusWebSocket, TyrusSession> e : webSocketToSession.entrySet()) {
-            if (e.getValue().isOpen()) {
+                    final TyrusWebSocket webSocket = e.getKey();
+                    final ProtocolHandler protocolHandler = webSocket.getProtocolHandler();
 
-                final TyrusWebSocket webSocket = e.getKey();
-                final ProtocolHandler protocolHandler = webSocket.getProtocolHandler();
+                    // we need to let protocol handler execute extensions if there are any
+                    if (protocolHandler.hasExtensions()) {
+                        byte[] tempFrame;
 
-                // we need to let protocol handler execute extensions if there are any
-                if (protocolHandler.hasExtensions()) {
-                    byte[] tempFrame;
-
-                    final Frame dataFrame = new TextFrame(message, false, true);
-                    final ByteBuffer byteBuffer = webSocket.getProtocolHandler().frame(dataFrame);
-                    tempFrame = new byte[byteBuffer.remaining()];
-                    byteBuffer.get(tempFrame);
-
-                    final Future<Frame> frameFuture = webSocket.sendRawFrame(ByteBuffer.wrap(tempFrame));
-                    futures.put(e.getValue(), frameFuture);
-
-                } else {
-
-                    if (frame == null) {
                         final Frame dataFrame = new TextFrame(message, false, true);
                         final ByteBuffer byteBuffer = webSocket.getProtocolHandler().frame(dataFrame);
-                        frame = new byte[byteBuffer.remaining()];
-                        byteBuffer.get(frame);
-                    }
+                        tempFrame = new byte[byteBuffer.remaining()];
+                        byteBuffer.get(tempFrame);
 
-                    final Future<Frame> frameFuture = webSocket.sendRawFrame(ByteBuffer.wrap(frame));
-                    futures.put(e.getValue(), frameFuture);
+                        final Future<Frame> frameFuture = webSocket.sendRawFrame(ByteBuffer.wrap(tempFrame));
+                        futures.put(e.getValue(), frameFuture);
+
+                    } else {
+
+                        if (frame == null) {
+                            final Frame dataFrame = new TextFrame(message, false, true);
+                            final ByteBuffer byteBuffer = webSocket.getProtocolHandler().frame(dataFrame);
+                            frame = new byte[byteBuffer.remaining()];
+                            byteBuffer.get(frame);
+                        }
+
+                        final Future<Frame> frameFuture = webSocket.sendRawFrame(ByteBuffer.wrap(frame));
+                        futures.put(e.getValue(), frameFuture);
+                    }
                 }
             }
         }
@@ -1202,13 +1203,12 @@ public class TyrusEndpointWrapper {
     private Map<Session, Future<?>> broadcast(final ByteBuffer message, boolean local) {
 
         final Map<Session, Future<?>> futures = new HashMap<Session, Future<?>>();
-        byte[] frame = null;
-
         byte[] byteArrayMessage = Utils.getRemainingArray(message);
 
         if (!local && clusterContext != null) {
             clusterContext.broadcastBinary(getEndpointPath(), byteArrayMessage);
         } else {
+            byte[] frame = null;
             for (Map.Entry<TyrusWebSocket, TyrusSession> e : webSocketToSession.entrySet()) {
                 if (e.getValue().isOpen()) {
 
