@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2010-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -39,9 +39,6 @@
  */
 
 /**
- * Common classes that provide support for URI templates,
- * encoding/decoding of URI components and multivalued collections.
- *
- * Taken from Jersey 2 - org.glassfish.jersey.uri.
+ * Tyrus EJB integration with Glassfish (and possibly other compatible containers).
  */
-package org.glassfish.tyrus.core.uri.internal;
+package org.glassfish.tyrus.gf.ejb;
