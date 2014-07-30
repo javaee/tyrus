@@ -85,6 +85,7 @@ public class RemoteSession implements Session {
     private final RemoteEndpoint.Basic basicRemote;
     private final RemoteEndpoint.Async asyncRemote;
     private final String sessionId;
+    private final String connectionId;
     private final ClusterContext clusterContext;
     private final Map<DistributedMapKey, Object> distributedPropertyMap;
     private final TyrusEndpointWrapper endpointWrapper;
@@ -216,6 +217,8 @@ public class RemoteSession implements Session {
         this.clusterContext = clusterContext;
         this.distributedPropertyMap = distributedPropertyMap;
         this.endpointWrapper = endpointWrapper;
+
+        this.connectionId = distributedPropertyMap.get(DistributedMapKey.CONNECTION_ID).toString();
 
         this.basicRemote = new RemoteEndpoint.Basic() {
             @Override
@@ -818,7 +821,7 @@ public class RemoteSession implements Session {
      * @see TyrusSession#getDistributedProperties()
      */
     public Map<String, Object> getDistributedProperties() {
-        return clusterContext.getDistributedUserProperties(sessionId);
+        return clusterContext.getDistributedUserProperties(connectionId);
     }
 
     /**
@@ -834,7 +837,7 @@ public class RemoteSession implements Session {
 
     @Override
     public String toString() {
-        return "ClusterSession{" +
+        return "RemoteSession{" +
                 "sessionId='" + sessionId + '\'' +
                 ", clusterContext=" + clusterContext +
                 '}';
