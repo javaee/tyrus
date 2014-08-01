@@ -630,7 +630,7 @@ public class TyrusSession implements Session {
         return handlerManager.isInputStreamHandlerPresent();
     }
 
-    boolean isPongHandlerPreset() {
+    boolean isPongHandlerPresent() {
         return handlerManager.isPongHandlerPresent();
     }
 

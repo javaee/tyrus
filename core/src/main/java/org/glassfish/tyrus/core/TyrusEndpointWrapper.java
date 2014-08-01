@@ -1015,18 +1015,41 @@ public class TyrusEndpointWrapper {
 
         session.restartIdleTimeoutExecutor();
 
-        if (session.isPongHandlerPreset()) {
-            session.notifyPongHandler(new PongMessage() {
-                @Override
-                public ByteBuffer getApplicationData() {
-                    return bytes;
-                }
+        if (session.isPongHandlerPresent()) {
+            try {
+                session.notifyPongHandler(new PongMessage() {
+                    @Override
+                    public ByteBuffer getApplicationData() {
+                        return bytes;
+                    }
 
-                @Override
-                public String toString() {
-                    return "PongMessage: " + bytes;
+                    @Override
+                    public String toString() {
+                        return "PongMessage: " + bytes;
+                    }
+                });
+            } catch (Throwable t) {
+                if (!processThrowable(t, session)) {
+                    ErrorCollector collector = new ErrorCollector();
+                    final Object toCall = endpoint != null ? endpoint :
+                            componentProvider.getInstance(endpointClass, session, collector);
+                    if (toCall != null) {
+                        if (endpoint != null) {
+                            ((Endpoint) toCall).onError(session, t);
+                        } else {
+                            try {
+                                onError.invoke(toCall, session, t);
+                            } catch (Exception e) {
+                                LOGGER.log(Level.WARNING, t.getMessage(), t);
+                            }
+                        }
+                    } else if (!collector.isEmpty()) {
+                        final DeploymentException deploymentException = collector.composeComprehensiveException();
+                        LOGGER.log(Level.WARNING, deploymentException.getMessage(), deploymentException);
+                    }
+                    endpointEventListener.onError(session.getId(), t);
                 }
-            });
+            }
         } else {
             LOGGER.log(Level.FINE, String.format("Unhandled pong message. Session: '%s'", session));
         }

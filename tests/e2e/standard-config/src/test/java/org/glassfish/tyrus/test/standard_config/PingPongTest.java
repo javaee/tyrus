@@ -41,6 +41,7 @@ package org.glassfish.tyrus.test.standard_config;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -49,7 +50,9 @@ import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
+import javax.websocket.OnError;
 import javax.websocket.OnMessage;
+import javax.websocket.OnOpen;
 import javax.websocket.PongMessage;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
@@ -59,7 +62,6 @@ import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.junit.Test;
-
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -308,6 +310,58 @@ public class PingPongTest extends TestContainer {
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            stopServer(server);
+        }
+    }
+
+    @ServerEndpoint("/pongHandlerException")
+    public static class PongHandlerExceptionEndpoint implements MessageHandler.Whole<PongMessage> {
+
+        private volatile Session session;
+
+        @OnOpen
+        public void onOpen(Session session) {
+            this.session = session;
+            session.addMessageHandler(PongMessage.class, this);
+        }
+
+        @Override
+        public void onMessage(PongMessage message) {
+            session.addMessageHandler(PongMessage.class, this);
+        }
+
+        @OnError
+        public void onError(Session session, Throwable t) throws IOException {
+            session.getBasicRemote().sendText("exception");
+        }
+    }
+
+    @Test
+    public void testPongHandlerException() throws DeploymentException, IOException, InterruptedException {
+        Server server = startServer(PongHandlerExceptionEndpoint.class);
+
+        try {
+            ClientManager client = createClient();
+            final CountDownLatch messageLatch = new CountDownLatch(1);
+
+            final Session session = client.connectToServer(new Endpoint() {
+                @Override
+                public void onOpen(Session session, EndpointConfig config) {
+                    session.addMessageHandler(String.class, new MessageHandler.Whole<String>() {
+                        @Override
+                        public void onMessage(String message) {
+                            if ("exception".equals(message)) {
+                                messageLatch.countDown();
+                            }
+                        }
+                    });
+                }
+            }, ClientEndpointConfig.Builder.create().build(), getURI(PongHandlerExceptionEndpoint.class));
+
+            session.getBasicRemote().sendPong(ByteBuffer.wrap("asdfghjkl".getBytes(Charset.defaultCharset())));
+
+            assertTrue(messageLatch.await(5, TimeUnit.SECONDS));
         } finally {
             stopServer(server);
         }
