@@ -72,7 +72,6 @@ import org.glassfish.tyrus.client.SslEngineConfigurator;
 import org.glassfish.tyrus.core.Base64Utils;
 import org.glassfish.tyrus.core.TyrusFuture;
 import org.glassfish.tyrus.core.Utils;
-import org.glassfish.tyrus.core.l10n.LocalizationMessages;
 import org.glassfish.tyrus.spi.ClientEngine;
 import org.glassfish.tyrus.spi.UpgradeRequest;
 
@@ -168,38 +167,36 @@ public class GrizzlyClientSocket {
 
     private final List<Proxy> proxies = new ArrayList<Proxy>();
 
-    private final URI uri;
     private final long timeoutMs;
-    private final ExtendedSSLEngineConfigurator clientSSLEngineConfigurator;
     private final ThreadPoolConfig workerThreadPoolConfig;
     private final ThreadPoolConfig selectorThreadPoolConfig;
-    private final ClientEngine engine;
+    private final ClientEngine clientEngine;
     private final boolean sharedTransport;
     private final Integer sharedTransportTimeout;
-    private final SocketAddress socketAddress;
     private final Map<String, String> proxyHeaders;
+    private final Map<String, Object> properties;
 
     private static volatile TCPNIOTransport transport;
     private static final Object TRANSPORT_LOCK = new Object();
     private final Callable<Void> grizzlyConnector;
 
+    private volatile TCPNIOTransport privateTransport;
+
     /**
      * Create new instance.
      *
-     * @param uri        endpoint address.
-     * @param timeoutMs  TODO
-     * @param engine     engine used for this websocket communication
-     * @param properties properties map. Cannot be {@code null}.
+     * @param timeoutMs    TODO
+     * @param clientEngine engine used for this websocket communication
+     * @param properties   properties map. Cannot be {@code null}.
      */
-    GrizzlyClientSocket(URI uri, long timeoutMs,
-                        ClientEngine engine,
+    GrizzlyClientSocket(long timeoutMs,
+                        ClientEngine clientEngine,
                         Map<String, Object> properties) throws DeploymentException {
-        this.uri = uri;
         this.timeoutMs = timeoutMs;
+        this.properties = properties;
         this.proxyHeaders = getProxyHeaders(properties);
 
         try {
-            this.clientSSLEngineConfigurator = getSSLEngineConfigurator(properties);
             this.workerThreadPoolConfig = getWorkerThreadPoolConfig(properties);
             this.selectorThreadPoolConfig = Utils.getProperty(properties, GrizzlyClientProperties.SELECTOR_THREAD_POOL_CONFIG, ThreadPoolConfig.class);
 
@@ -219,30 +216,16 @@ public class GrizzlyClientSocket {
             final Integer sharedTransportTimeoutProperty = Utils.getProperty(properties, ClientProperties.SHARED_CONTAINER_IDLE_TIMEOUT, Integer.class);
             // default value for shared transport timeout is 30.
             sharedTransportTimeout = (sharedTransport && sharedTransportTimeoutProperty != null) ? sharedTransportTimeoutProperty : 30;
-            this.engine = engine;
+            this.clientEngine = clientEngine;
         } catch (RuntimeException e) {
-            LOGGER.log(Level.SEVERE, LocalizationMessages.CLIENT_CANNOT_CONNECT(uri), e);
-            throw e;
+            throw new DeploymentException(e.getMessage(), e);
         }
-
-        socketAddress = processProxy(properties);
 
         grizzlyConnector = new Callable<Void>() {
 
             @Override
             public Void call() throws Exception {
-                try {
-                    GrizzlyClientSocket.this._connect();
-                } catch (IOException e) {
-                    LOGGER.log(Level.SEVERE, "Connect to server endpoint failed.", e);
-                    closeTransport(transport);
-                    throw new DeploymentException(e.getMessage());
-                } catch (Exception e) {
-                    LOGGER.log(Level.SEVERE, "Connect to server endpoint failed.", e);
-                    closeTransport(transport);
-                    throw e;
-                }
-
+                GrizzlyClientSocket.this._connect();
                 return null;
             }
         };
@@ -301,7 +284,7 @@ public class GrizzlyClientSocket {
      * Connects to the given {@link URI}.
      */
     private void _connect() throws IOException, DeploymentException {
-        TCPNIOTransport privateTransport = null;
+        // TCPNIOTransport privateTransport = null;
 
         try {
             if (sharedTransport) {
@@ -315,6 +298,19 @@ public class GrizzlyClientSocket {
             throw e;
         }
 
+
+        final ClientEngine.TimeoutHandler timeoutHandler = sharedTransport ? null : new ClientEngine.TimeoutHandler() {
+            @Override
+            public void handleTimeout() {
+                closeTransport(privateTransport);
+            }
+        };
+
+        final UpgradeRequest upgradeRequest = clientEngine.createUpgradeRequest(timeoutHandler);
+        URI requestURI = upgradeRequest.getRequestURI();
+
+        SocketAddress socketAddress = processProxy(requestURI, properties);
+
         for (Proxy proxy : proxies) {
             try {
                 if (!sharedTransport) {
@@ -322,7 +318,6 @@ public class GrizzlyClientSocket {
                     privateTransport.start();
                 }
             } catch (IOException e) {
-                LOGGER.log(Level.SEVERE, "Transport failed to start.", e);
                 throw e;
             }
 
@@ -333,30 +328,20 @@ public class GrizzlyClientSocket {
 
             GrizzlyFuture<Connection> connectionGrizzlyFuture;
 
-            final TCPNIOTransport finalPrivateTransport = privateTransport;
-            final ClientEngine.TimeoutHandler timeoutHandler = sharedTransport ? null : new ClientEngine.TimeoutHandler() {
-                @Override
-                public void handleTimeout() {
-                    closeTransport(finalPrivateTransport);
-                }
-            };
-
-            final UpgradeRequest upgradeRequest = engine.createUpgradeRequest(timeoutHandler);
-
             SocketAddress connectAddress;
-            URI requestURI = upgradeRequest.getRequestURI();
             switch (proxy.type()) {
                 case DIRECT:
                     try {
                         connectAddress = new InetSocketAddress(requestURI.getHost(), Utils.getWsPort(requestURI));
                     } catch (IllegalArgumentException e) {
+                        closeTransport(privateTransport);
                         throw new DeploymentException(e.getMessage(), e);
                     }
 
-                    LOGGER.log(Level.CONFIG, String.format("Connecting to '%s' (no proxy).", upgradeRequest.getRequestUri()));
+                    LOGGER.log(Level.CONFIG, String.format("Connecting to '%s' (no proxy).", requestURI));
                     break;
                 default:
-                    LOGGER.log(Level.CONFIG, String.format("Connecting to '%s' via proxy '%s'.", upgradeRequest.getRequestUri(), proxy));
+                    LOGGER.log(Level.CONFIG, String.format("Connecting to '%s' via proxy '%s'.", requestURI, proxy));
 
                     // default ProxySelector always returns proxies with unresolved addresses.
                     SocketAddress address = proxy.address();
@@ -373,10 +358,14 @@ public class GrizzlyClientSocket {
 
             // this will block until the SSL engine handshake is complete, so SSL handshake error can be handled here
             TyrusFuture sslHandshakeFuture = null;
+            ExtendedSSLEngineConfigurator clientSSLEngineConfigurator = getSSLEngineConfigurator(requestURI, properties);
             if (clientSSLEngineConfigurator != null) {
                 sslHandshakeFuture = new TyrusFuture();
             }
-            connectorHandler.setProcessor(createFilterChain(engine, null, clientSSLEngineConfigurator, !(proxy.type() == Proxy.Type.DIRECT), requestURI, sharedTransport, sharedTransportTimeout, proxyHeaders, grizzlyConnector, sslHandshakeFuture, upgradeRequest));
+
+            connectorHandler.setProcessor(createFilterChain(clientEngine, null, clientSSLEngineConfigurator,
+                    !(proxy.type() == Proxy.Type.DIRECT), requestURI, sharedTransport, sharedTransportTimeout,
+                    proxyHeaders, grizzlyConnector, sslHandshakeFuture, upgradeRequest));
 
             connectionGrizzlyFuture = connectorHandler.connect(connectAddress);
 
@@ -390,7 +379,7 @@ public class GrizzlyClientSocket {
                     } catch (ExecutionException e) {
                         throw new DeploymentException("SSL handshake has failed", e.getCause());
                     } catch (Exception e) {
-                        LOGGER.log(Level.CONFIG, String.format("Connection to '%s' failed.", upgradeRequest.getRequestUri()), e);
+                        throw new DeploymentException(String.format("Connection to '%s' failed.", requestURI), e.getCause());
                     }
                 }
 
@@ -398,13 +387,13 @@ public class GrizzlyClientSocket {
 
                 return;
             } catch (InterruptedException interruptedException) {
-                LOGGER.log(Level.CONFIG, String.format("Connection to '%s' failed.", upgradeRequest.getRequestUri()), interruptedException);
+                LOGGER.log(Level.CONFIG, String.format("Connection to '%s' failed.", requestURI), interruptedException);
                 closeTransport(privateTransport);
             } catch (TimeoutException timeoutException) {
-                LOGGER.log(Level.CONFIG, String.format("Connection to '%s' failed.", upgradeRequest.getRequestUri()), timeoutException);
+                LOGGER.log(Level.CONFIG, String.format("Connection to '%s' failed.", requestURI), timeoutException);
                 closeTransport(privateTransport);
             } catch (ExecutionException executionException) {
-                LOGGER.log(Level.CONFIG, String.format("Connection to '%s' failed.", upgradeRequest.getRequestUri()), executionException);
+                LOGGER.log(Level.CONFIG, String.format("Connection to '%s' failed.", requestURI), executionException);
 
                 IOException ioException = null;
                 final Throwable cause = executionException.getCause();
@@ -510,7 +499,7 @@ public class GrizzlyClientSocket {
         return proxyHeaders;
     }
 
-    private SocketAddress processProxy(Map<String, Object> properties) throws DeploymentException {
+    private SocketAddress processProxy(URI uri, Map<String, Object> properties) throws DeploymentException {
         String wlsProxyHost = null;
         Integer wlsProxyPort = null;
 
@@ -714,7 +703,7 @@ public class GrizzlyClientSocket {
         }
     }
 
-    private ExtendedSSLEngineConfigurator getSSLEngineConfigurator(Map<String, Object> properties) {
+    private ExtendedSSLEngineConfigurator getSSLEngineConfigurator(URI uri, Map<String, Object> properties) {
         Object configuratorObject = properties.get(ClientProperties.SSL_ENGINE_CONFIGURATOR);
 
         if (configuratorObject == null) {

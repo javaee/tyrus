@@ -80,7 +80,7 @@ public class InMemoryClientContainer implements ClientContainer {
     public static final String SERVER_CONFIG = "org.glassfish.tyrus.container.inmemory.ServerConfig";
 
     @Override
-    public void openClientSocket(String url, ClientEndpointConfig cec, Map<String, Object> properties, ClientEngine clientEngine) throws DeploymentException, IOException {
+    public void openClientSocket(ClientEndpointConfig cec, Map<String, Object> properties, ClientEngine clientEngine) throws DeploymentException, IOException {
         final UpgradeRequest upgradeRequest = clientEngine.createUpgradeRequest(null);
 
         final ServerApplicationConfig serverApplicationConfig = getServerApplicationConfig(cec);

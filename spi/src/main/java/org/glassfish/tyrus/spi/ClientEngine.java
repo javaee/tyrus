@@ -66,10 +66,22 @@ public interface ClientEngine {
      * @param closeListener   will be called when connection is closed, will be set as listener of returned
      *                        {@link Connection}.
      * @return info with upgrade status.
+     * @see #processError(Throwable)
      */
     public ClientUpgradeInfo processResponse(UpgradeResponse upgradeResponse,
                                              final Writer writer,
                                              final Connection.CloseListener closeListener);
+
+    /**
+     * Process error.
+     * <p/>
+     * This method can be called any time when client encounters an error which cannot be handled in the container before
+     * {@link ClientUpgradeStatus#SUCCESS} is returned from {@link #processResponse(UpgradeResponse, Writer, Connection.CloseListener)}.
+     *
+     * @param t encountered error.
+     * @see #processResponse(UpgradeResponse, Writer, Connection.CloseListener)
+     */
+    public void processError(Throwable t);
 
     /**
      * Indicates to container that handshake timeout was reached.

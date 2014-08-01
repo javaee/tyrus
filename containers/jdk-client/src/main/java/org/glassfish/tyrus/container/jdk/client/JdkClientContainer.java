@@ -46,9 +46,7 @@ import java.net.ProxySelector;
 import java.net.SocketAddress;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -65,11 +63,11 @@ import org.glassfish.tyrus.client.ClientProperties;
 import org.glassfish.tyrus.client.SslContextConfigurator;
 import org.glassfish.tyrus.client.SslEngineConfigurator;
 import org.glassfish.tyrus.client.ThreadPoolConfig;
-import org.glassfish.tyrus.core.Base64Utils;
 import org.glassfish.tyrus.core.Utils;
 import org.glassfish.tyrus.spi.ClientContainer;
 import org.glassfish.tyrus.spi.ClientEngine;
 import org.glassfish.tyrus.spi.CompletionHandler;
+import org.glassfish.tyrus.spi.UpgradeRequest;
 
 /**
  * {@link org.glassfish.tyrus.spi.ClientContainer} implementation based on Java 7 NIO API.
@@ -92,18 +90,9 @@ public class JdkClientContainer implements ClientContainer {
     private static final int INPUT_BUFFER_SIZE = 2048;
     private static final Logger LOGGER = Logger.getLogger(JdkClientContainer.class.getName());
 
-    private final List<Proxy> proxies = new ArrayList<>();
-
     @Override
-    public void openClientSocket(final String url, final ClientEndpointConfig cec, final Map<String, Object> properties, final ClientEngine clientEngine) throws DeploymentException, IOException {
-        final URI uri;
-        try {
-            uri = new URI(url);
-        } catch (URISyntaxException e) {
-            throw new DeploymentException("Invalid URI.", e);
-        }
+    public void openClientSocket(final ClientEndpointConfig cec, final Map<String, Object> properties, final ClientEngine clientEngine) throws DeploymentException, IOException {
 
-        final boolean secure = "wss".equalsIgnoreCase(uri.getScheme());
 
         ThreadPoolConfig threadPoolConfig = Utils.getProperty(properties, ClientProperties.WORKER_THREAD_POOL_CONFIG, ThreadPoolConfig.class);
         if (threadPoolConfig == null) {
@@ -122,14 +111,22 @@ public class JdkClientContainer implements ClientContainer {
 
         final Integer containerIdleTimeout = Utils.getProperty(properties, ClientProperties.SHARED_CONTAINER_IDLE_TIMEOUT, Integer.class);
 
-        processProxy(properties, uri);
-
         final ThreadPoolConfig finalThreadPoolConfig = threadPoolConfig;
         final Callable<Void> jdkConnector = new Callable<Void>() {
 
             @Override
-            public Void call() throws Exception {
+            public Void call() throws DeploymentException {
+
                 final TaskQueueFilter writeQueue;
+
+                TimeoutHandlerProxy timeoutHandlerProxy = new TimeoutHandlerProxy();
+
+                final UpgradeRequest upgradeRequest = clientEngine.createUpgradeRequest(timeoutHandlerProxy);
+
+                final URI uri = upgradeRequest.getRequestURI();
+
+                List<Proxy> proxies = processProxy(properties, uri);
+                final boolean secure = "wss".equalsIgnoreCase(uri.getScheme());
 
                 if (secure) {
                     TransportFilter transportFilter = createTransportFilter(SSL_INPUT_BUFFER_SIZE, finalThreadPoolConfig, containerIdleTimeout);
@@ -141,10 +138,50 @@ public class JdkClientContainer implements ClientContainer {
                     writeQueue = createTaskQueueFilter(transportFilter);
                 }
 
-                final ClientFilter clientFilter = createClientFilter(properties, writeQueue, clientEngine, uri, this);
+                final ClientFilter clientFilter = createClientFilter(properties, writeQueue, clientEngine, this, upgradeRequest);
+                timeoutHandlerProxy.setHandler(new ClientEngine.TimeoutHandler() {
+                    @Override
+                    public void handleTimeout() {
+                        writeQueue.close();
+                    }
+                });
 
-                _connect(clientFilter, uri);
+                // private void _connect(ClientFilter clientFilter, URI uri) throws DeploymentException, IOException {
+                for (Proxy proxy : proxies) {
+                    // Proxy.Type.DIRECT is always present and is always last.
+                    if (proxy.type() == Proxy.Type.DIRECT) {
+                        SocketAddress serverAddress = getServerAddress(uri);
+                        try {
+                            connectSynchronously(clientFilter, serverAddress, false);
+                        } catch (Throwable throwable) {
+                            throw new DeploymentException("Connection attempt to " + serverAddress + " has failed", throwable);
+                        }
+                        // connected.
+                        return null;
+                    }
 
+                    LOGGER.log(Level.CONFIG, String.format("Connecting to '%s' via proxy '%s'.", uri, proxy));
+                    // default ProxySelector always returns proxies with unresolved addresses.
+                    SocketAddress proxyAddress = proxy.address();
+                    if (proxyAddress instanceof InetSocketAddress) {
+                        InetSocketAddress inetSocketAddress = (InetSocketAddress) proxyAddress;
+                        if (inetSocketAddress.isUnresolved()) {
+                            // resolve the address.
+                            proxyAddress = new InetSocketAddress(inetSocketAddress.getHostName(), inetSocketAddress.getPort());
+                        }
+
+                        try {
+                            connectSynchronously(clientFilter, proxyAddress, true);
+                            // connected.
+                            return null;
+                        } catch (Throwable t) {
+                            LOGGER.log(Level.FINE, "Connecting to " + proxyAddress + " failed", t);
+                            clientFilter.close();
+                        }
+                    }
+                }
+
+                // won't happen.
                 return null;
             }
         };
@@ -217,8 +254,8 @@ public class JdkClientContainer implements ClientContainer {
         return new TaskQueueFilter(downstreamFilter);
     }
 
-    private ClientFilter createClientFilter(Map<String, Object> properties, Filter downstreamFilter, ClientEngine clientEngine, URI uri, Callable<Void> jdkConnector) throws DeploymentException {
-        return new ClientFilter(downstreamFilter, clientEngine, uri, getProxyHeaders(properties), jdkConnector);
+    private ClientFilter createClientFilter(Map<String, Object> properties, Filter downstreamFilter, ClientEngine clientEngine, Callable<Void> jdkConnector, UpgradeRequest upgradeRequest) throws DeploymentException {
+        return new ClientFilter(downstreamFilter, clientEngine, properties, jdkConnector, upgradeRequest);
     }
 
     private SocketAddress getServerAddress(URI uri) throws DeploymentException {
@@ -228,40 +265,6 @@ public class JdkClientContainer implements ClientContainer {
             return new InetSocketAddress(uri.getHost(), port);
         } catch (IllegalArgumentException e) {
             throw new DeploymentException(e.getMessage(), e);
-        }
-    }
-
-    private void _connect(ClientFilter clientFilter, URI uri) throws DeploymentException, IOException {
-        for (Proxy proxy : proxies) {
-            // Proxy.Type.DIRECT is always present and is always last.
-            if (proxy.type() == Proxy.Type.DIRECT) {
-                SocketAddress serverAddress = getServerAddress(uri);
-                try {
-                    connectSynchronously(clientFilter, serverAddress, false);
-                } catch (Throwable throwable) {
-                    throw new DeploymentException("Connection attempt to " + serverAddress + " has failed", throwable);
-                }
-                return;
-            }
-
-            LOGGER.log(Level.CONFIG, String.format("Connecting to '%s' via proxy '%s'.", uri, proxy));
-            // default ProxySelector always returns proxies with unresolved addresses.
-            SocketAddress proxyAddress = proxy.address();
-            if (proxyAddress instanceof InetSocketAddress) {
-                InetSocketAddress inetSocketAddress = (InetSocketAddress) proxyAddress;
-                if (inetSocketAddress.isUnresolved()) {
-                    // resolve the address.
-                    proxyAddress = new InetSocketAddress(inetSocketAddress.getHostName(), inetSocketAddress.getPort());
-                }
-
-                try {
-                    connectSynchronously(clientFilter, proxyAddress, true);
-                    return;
-                } catch (Throwable t) {
-                    LOGGER.log(Level.FINE, "Connecting to " + proxyAddress + " failed", t);
-                }
-            }
-
         }
     }
 
@@ -289,16 +292,19 @@ public class JdkClientContainer implements ClientContainer {
 
             connectLatch.await();
 
-            if (exception.get() != null) {
-                throw exception.get();
+            Throwable throwable = exception.get();
+            if (throwable != null) {
+                throw throwable;
             }
 
         } catch (InterruptedException e) {
-            LOGGER.log(Level.SEVERE, "The thread waiting for client to connect has been interrupted before the connection has finished");
+            Thread.currentThread().interrupt();
+            throw new DeploymentException("The thread waiting for client to connect has been interrupted before the connection has finished", e);
         }
     }
 
-    private void processProxy(Map<String, Object> properties, URI uri) throws DeploymentException {
+    private List<Proxy> processProxy(Map<String, Object> properties, URI uri) throws DeploymentException {
+        final List<Proxy> proxies = new ArrayList<>();
         String wlsProxyHost = null;
         Integer wlsProxyPort = null;
 
@@ -349,6 +355,8 @@ public class JdkClientContainer implements ClientContainer {
         addProxies(proxySelector, uri, "https", proxies);
         addProxies(proxySelector, uri, "http", proxies);
         proxies.add(Proxy.NO_PROXY);
+
+        return proxies;
     }
 
     private void addProxies(ProxySelector proxySelector, URI uri, String scheme, List<Proxy> proxies) {
@@ -376,52 +384,19 @@ public class JdkClientContainer implements ClientContainer {
         }
     }
 
-    private Map<String, String> getProxyHeaders(Map<String, Object> properties) throws DeploymentException {
-        //noinspection unchecked
-        Map<String, String> proxyHeaders = Utils.getProperty(properties, ClientProperties.PROXY_HEADERS, Map.class);
+    private static class TimeoutHandlerProxy implements ClientEngine.TimeoutHandler {
 
-        String wlsProxyUsername = null;
-        String wlsProxyPassword = null;
+        private volatile ClientEngine.TimeoutHandler handler;
 
-        Object value = properties.get(ClientManager.WLS_PROXY_USERNAME);
-        if (value != null) {
-            if (value instanceof String) {
-                wlsProxyUsername = (String) value;
-            } else {
-                throw new DeploymentException(ClientManager.WLS_PROXY_USERNAME + " only accept String values.");
+        @Override
+        public void handleTimeout() {
+            if (handler != null) {
+                handler.handleTimeout();
             }
         }
 
-        value = properties.get(ClientManager.WLS_PROXY_PASSWORD);
-        if (value != null) {
-            if (value instanceof String) {
-                wlsProxyPassword = (String) value;
-            } else {
-                throw new DeploymentException(ClientManager.WLS_PROXY_PASSWORD + " only accept String values.");
-            }
+        public void setHandler(ClientEngine.TimeoutHandler handler) {
+            this.handler = handler;
         }
-
-        if (proxyHeaders == null) {
-            if (wlsProxyUsername != null && wlsProxyPassword != null) {
-                proxyHeaders = new HashMap<>();
-                proxyHeaders.put("Proxy-Authorization", "Basic " +
-                        Base64Utils.encodeToString((wlsProxyUsername + ":" + wlsProxyPassword).getBytes(Charset.forName("UTF-8")), false));
-            }
-        } else {
-            boolean proxyAuthPresent = false;
-            for (Map.Entry<String, String> entry : proxyHeaders.entrySet()) {
-                if (entry.getKey().equalsIgnoreCase("Proxy-Authorization")) {
-                    proxyAuthPresent = true;
-                }
-            }
-
-            // if (proxyAuthPresent == true) then do nothing, proxy authorization header is already added.
-            if (!proxyAuthPresent && wlsProxyUsername != null && wlsProxyPassword != null) {
-                proxyHeaders.put("Proxy-Authorization", "Basic " +
-                        Base64Utils.encodeToString((wlsProxyUsername + ":" + wlsProxyPassword).getBytes(Charset.forName("UTF-8")), false));
-            }
-        }
-        return proxyHeaders;
     }
-
 }

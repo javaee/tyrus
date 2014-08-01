@@ -88,7 +88,7 @@ public class ClientManagerTest {
     public static class NoopContainer implements ClientContainer {
 
         @Override
-        public void openClientSocket(String url, ClientEndpointConfig cec,
+        public void openClientSocket(ClientEndpointConfig cec,
                                      Map<String, Object> properties,
                                      ClientEngine clientEngine) throws DeploymentException, IOException {
         }

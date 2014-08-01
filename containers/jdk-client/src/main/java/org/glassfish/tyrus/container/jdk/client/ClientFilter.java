@@ -43,6 +43,7 @@ import java.io.IOException;
 import java.net.SocketAddress;
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -52,13 +53,15 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.websocket.CloseReason;
+import javax.websocket.DeploymentException;
 
+import org.glassfish.tyrus.client.ClientManager;
+import org.glassfish.tyrus.client.ClientProperties;
+import org.glassfish.tyrus.core.Base64Utils;
 import org.glassfish.tyrus.core.CloseReasons;
 import org.glassfish.tyrus.core.TyrusUpgradeResponse;
 import org.glassfish.tyrus.core.Utils;
-import org.glassfish.tyrus.core.l10n.LocalizationMessages;
 import org.glassfish.tyrus.spi.ClientEngine;
-import org.glassfish.tyrus.spi.ClientEngine.TimeoutHandler;
 import org.glassfish.tyrus.spi.CompletionHandler;
 import org.glassfish.tyrus.spi.Connection;
 import org.glassfish.tyrus.spi.Connection.CloseListener;
@@ -74,10 +77,10 @@ class ClientFilter extends Filter {
 
     private static final Logger LOGGER = Logger.getLogger(ClientFilter.class.getName());
 
-    private final ClientEngine engine;
-    private final URI uri;
+    private final ClientEngine clientEngine;
     private final HttpResponseParser responseParser = new HttpResponseParser();
     private final Map<String, String> proxyHeaders;
+    private final UpgradeRequest upgradeRequest;
     private final Callable<Void> jdkConnector;
 
     private volatile boolean proxy;
@@ -89,17 +92,19 @@ class ClientFilter extends Filter {
      * Constructor.
      *
      * @param downstreamFilter a filer that is positioned directly under this filter.
-     * @param engine           client engine instance.
-     * @param uri              URI to be used for creating {@link org.glassfish.tyrus.spi.UpgradeRequest}.
-     * @param proxyHeaders     map representing headers to be added to request sent to proxy (HTTP CONNECT).
+     * @param clientEngine     client engine instance.
+     * @param properties       client properties.
      * @param jdkConnector     callback to connecting with modified {@link UpgradeRequest} if necessary.
+     * @param upgradeRequest   upgrade request to be used for this client session.
      */
-    ClientFilter(Filter downstreamFilter, ClientEngine engine, URI uri, Map<String, String> proxyHeaders, Callable<Void> jdkConnector) {
+    // * @param proxyHeaders     map representing headers to be added to request sent to proxy (HTTP CONNECT).
+    ClientFilter(Filter downstreamFilter, ClientEngine clientEngine, Map<String, Object> properties, Callable<Void> jdkConnector, UpgradeRequest upgradeRequest)
+            throws DeploymentException {
         super(downstreamFilter);
-        this.engine = engine;
-        this.uri = uri;
-        this.proxyHeaders = proxyHeaders;
+        this.clientEngine = clientEngine;
+        this.proxyHeaders = getProxyHeaders(properties);
         this.jdkConnector = jdkConnector;
+        this.upgradeRequest = upgradeRequest;
     }
 
     /**
@@ -118,14 +123,8 @@ class ClientFilter extends Filter {
         final JdkUpgradeRequest handshakeUpgradeRequest;
 
         if (proxy) {
-            handshakeUpgradeRequest = createProxyUpgradeRequest(uri);
+            handshakeUpgradeRequest = createProxyUpgradeRequest(upgradeRequest.getRequestURI());
         } else {
-            UpgradeRequest upgradeRequest = engine.createUpgradeRequest(new TimeoutHandler() {
-                @Override
-                public void handleTimeout() {
-                    downstreamFilter.close();
-                }
-            });
             handshakeUpgradeRequest = getJdkUpgradeRequest(upgradeRequest, downstreamFilter);
         }
 
@@ -176,18 +175,13 @@ class ClientFilter extends Filter {
                 }
                 connectedToProxy = true;
                 downstreamFilter.startSsl();
-                sendRequest(downstreamFilter, createHandshakeUpgradeRequest(engine.createUpgradeRequest(new TimeoutHandler() {
-                    @Override
-                    public void handleTimeout() {
-                        downstreamFilter.close();
-                    }
-                })));
+                sendRequest(downstreamFilter, createHandshakeUpgradeRequest(upgradeRequest));
                 return false;
             }
 
             JdkWriter writer = new JdkWriter(downstreamFilter);
 
-            ClientEngine.ClientUpgradeInfo clientUpgradeInfo = engine.processResponse(
+            ClientEngine.ClientUpgradeInfo clientUpgradeInfo = clientEngine.processResponse(
                     tyrusUpgradeResponse,
                     writer,
                     new CloseListener() {
@@ -205,9 +199,8 @@ class ClientFilter extends Filter {
                     try {
                         jdkConnector.call();
                     } catch (Exception e) {
-                        // TODO: we might want to pass this exception directly to the user (to be thrown
-                        // TODO: as result of "connectToServer" method call.
-                        LOGGER.log(Level.WARNING, LocalizationMessages.CLIENT_CANNOT_CONNECT(uri.toString()));
+                        closeConnection();
+                        clientEngine.processError(e);
                     }
                     break;
                 case SUCCESS:
@@ -264,6 +257,11 @@ class ClientFilter extends Filter {
         // the connection is considered established at this point
         connectCompletionHandler.completed(null);
         connectCompletionHandler = null;
+    }
+
+    @Override
+    void close() {
+        closeConnection();
     }
 
     private void closeConnection() {
@@ -342,5 +340,54 @@ class ClientFilter extends Filter {
                 return headers;
             }
         };
+    }
+
+
+    private static Map<String, String> getProxyHeaders(Map<String, Object> properties) throws DeploymentException {
+        //noinspection unchecked
+        Map<String, String> proxyHeaders = Utils.getProperty(properties, ClientProperties.PROXY_HEADERS, Map.class);
+
+        String wlsProxyUsername = null;
+        String wlsProxyPassword = null;
+
+        Object value = properties.get(ClientManager.WLS_PROXY_USERNAME);
+        if (value != null) {
+            if (value instanceof String) {
+                wlsProxyUsername = (String) value;
+            } else {
+                throw new DeploymentException(ClientManager.WLS_PROXY_USERNAME + " only accept String values.");
+            }
+        }
+
+        value = properties.get(ClientManager.WLS_PROXY_PASSWORD);
+        if (value != null) {
+            if (value instanceof String) {
+                wlsProxyPassword = (String) value;
+            } else {
+                throw new DeploymentException(ClientManager.WLS_PROXY_PASSWORD + " only accept String values.");
+            }
+        }
+
+        if (proxyHeaders == null) {
+            if (wlsProxyUsername != null && wlsProxyPassword != null) {
+                proxyHeaders = new HashMap<>();
+                proxyHeaders.put("Proxy-Authorization", "Basic " +
+                        Base64Utils.encodeToString((wlsProxyUsername + ":" + wlsProxyPassword).getBytes(Charset.forName("UTF-8")), false));
+            }
+        } else {
+            boolean proxyAuthPresent = false;
+            for (Map.Entry<String, String> entry : proxyHeaders.entrySet()) {
+                if (entry.getKey().equalsIgnoreCase("Proxy-Authorization")) {
+                    proxyAuthPresent = true;
+                }
+            }
+
+            // if (proxyAuthPresent == true) then do nothing, proxy authorization header is already added.
+            if (!proxyAuthPresent && wlsProxyUsername != null && wlsProxyPassword != null) {
+                proxyHeaders.put("Proxy-Authorization", "Basic " +
+                        Base64Utils.encodeToString((wlsProxyUsername + ":" + wlsProxyPassword).getBytes(Charset.forName("UTF-8")), false));
+            }
+        }
+        return proxyHeaders;
     }
 }

@@ -54,7 +54,6 @@ import javax.websocket.CloseReason;
 import org.glassfish.tyrus.core.CloseReasons;
 import org.glassfish.tyrus.core.TyrusUpgradeResponse;
 import org.glassfish.tyrus.core.Utils;
-import org.glassfish.tyrus.core.l10n.LocalizationMessages;
 import org.glassfish.tyrus.spi.ClientEngine;
 import org.glassfish.tyrus.spi.ReadHandler;
 import org.glassfish.tyrus.spi.UpgradeRequest;
@@ -358,9 +357,7 @@ class GrizzlyClientFilter extends BaseFilter {
                 try {
                     grizzlyConnector.call();
                 } catch (Exception e) {
-                    // TODO: we might want to pass this exception directly to the user (to be thrown
-                    // TODO: as result of "connectToServer" method call.
-                    LOGGER.log(Level.WARNING, LocalizationMessages.CLIENT_CANNOT_CONNECT(uri.toString()));
+                    engine.processError(e);
                 }
                 return ctx.getInvokeAction();
             case SUCCESS:
@@ -370,8 +367,8 @@ class GrizzlyClientFilter extends BaseFilter {
                 return ctx.getStopAction();
         }
 
-        TYRUS_CONNECTION.set(ctx.getConnection(), tyrusConnection);
         TASK_PROCESSOR.set(ctx.getConnection(), new TaskProcessor());
+        TYRUS_CONNECTION.set(ctx.getConnection(), tyrusConnection);
 
         final String ATTR_NAME = "org.glassfish.tyrus.container.grizzly.WebSocketFilter.HANDSHAKE_PROCESSED";
 

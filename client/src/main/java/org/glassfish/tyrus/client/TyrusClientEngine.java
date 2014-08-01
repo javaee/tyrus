@@ -108,7 +108,7 @@ public class TyrusClientEngine implements ClientEngine {
     private final TyrusEndpointWrapper endpointWrapper;
     private final ClientHandshakeListener listener;
     private final Map<String, Object> properties;
-    private final URI uri;
+    private final URI connectToServerUriParam;
     private final Boolean redirectEnabled;
     private final int redirectThreshold;
 
@@ -122,19 +122,20 @@ public class TyrusClientEngine implements ClientEngine {
      * Create {@link org.glassfish.tyrus.spi.WebSocketEngine} instance based on passed {@link WebSocketContainer} and with configured maximal
      * incoming buffer size.
      *
-     * @param endpointWrapper wrapped client endpoint.
-     * @param listener        used for reporting back the outcome of handshake. {@link ClientHandshakeListener#onSessionCreated(javax.websocket.Session)}
-     *                        is invoked if handshake is completed and provided {@link Session} is open and ready to be
-     *                        returned from {@link WebSocketContainer#connectToServer(Class, javax.websocket.ClientEndpointConfig, java.net.URI)}
-     *                        (and alternatives) call.
-     * @param properties      passed container properties, see {@link org.glassfish.tyrus.client.ClientManager#getProperties()}.
-     * @param uri             to which the client is connecting.
+     * @param endpointWrapper         wrapped client endpoint.
+     * @param listener                used for reporting back the outcome of handshake. {@link ClientHandshakeListener#onSessionCreated(javax.websocket.Session)}
+     *                                is invoked if handshake is completed and provided {@link Session} is open and ready to be
+     *                                returned from {@link WebSocketContainer#connectToServer(Class, javax.websocket.ClientEndpointConfig, java.net.URI)}
+     *                                (and alternatives) call.
+     * @param properties              passed container properties, see {@link org.glassfish.tyrus.client.ClientManager#getProperties()}.
+     * @param connectToServerUriParam to which the client is connecting.
      */
-    /* package */ TyrusClientEngine(TyrusEndpointWrapper endpointWrapper, ClientHandshakeListener listener, Map<String, Object> properties, URI uri) {
+    /* package */ TyrusClientEngine(TyrusEndpointWrapper endpointWrapper, ClientHandshakeListener listener,
+                                    Map<String, Object> properties, URI connectToServerUriParam) {
         this.endpointWrapper = endpointWrapper;
         this.listener = listener;
         this.properties = properties;
-        this.uri = uri;
+        this.connectToServerUriParam = connectToServerUriParam;
 
         this.redirectUriHistory = Collections.synchronizedSet(new HashSet<URI>(DEFAULT_REDIRECT_THRESHOLD));
 
@@ -154,7 +155,10 @@ public class TyrusClientEngine implements ClientEngine {
                 ClientEndpointConfig config = (ClientEndpointConfig) endpointWrapper.getEndpointConfig();
                 this.timeoutHandler = timeoutHandler;
 
-                clientHandShake = Handshake.createClientHandshake(RequestContext.Builder.create().requestURI(uri).secure(uri.getScheme().equals("wss")).build());
+                clientHandShake = Handshake.createClientHandshake(RequestContext.Builder.create()
+                        .requestURI(connectToServerUriParam)
+                        .secure("wss".equals(connectToServerUriParam.getScheme()))
+                        .build());
                 clientHandShake.setExtensions(config.getExtensions());
                 clientHandShake.setSubProtocols(config.getPreferredSubprotocols());
                 clientHandShake.prepareRequest();
@@ -211,6 +215,10 @@ public class TyrusClientEngine implements ClientEngine {
         switch (clientEngineState) {
             case AUTH_UPGRADE_REQUEST_CREATED:
             case UPGRADE_REQUEST_CREATED:
+                if(upgradeResponse == null) {
+                    throw new IllegalArgumentException(LocalizationMessages.ARGUMENT_NOT_NULL("upgradeResponse"));
+                }
+
                 switch (upgradeResponse.getStatus()) {
                     case 101:
                         // the connection has been upgraded
@@ -291,15 +299,15 @@ public class TyrusClientEngine implements ClientEngine {
                         return UPGRADE_INFO_ANOTHER_REQUEST_REQUIRED;
                     case 401:
                         if (clientEngineState == TyrusClientEngineState.AUTH_UPGRADE_REQUEST_CREATED) {
-                            listener.onError(new AuthenticationException(LocalizationMessages.AUTHENTICATION_FAILED()));
                             clientEngineState = TyrusClientEngineState.FAILED;
+                            listener.onError(new AuthenticationException(LocalizationMessages.AUTHENTICATION_FAILED()));
                             return UPGRADE_INFO_FAILED;
                         }
 
                         AuthConfig authConfig = Utils.getProperty(properties, ClientProperties.AUTH_CONFIG, AuthConfig.class, AuthConfig.Builder.create().build());
                         if (authConfig == null) {
-                            listener.onError(new AuthenticationException(LocalizationMessages.AUTHENTICATION_FAILED()));
                             clientEngineState = TyrusClientEngineState.FAILED;
+                            listener.onError(new AuthenticationException(LocalizationMessages.AUTHENTICATION_FAILED()));
                             return UPGRADE_INFO_FAILED;
                         }
 
@@ -310,8 +318,8 @@ public class TyrusClientEngine implements ClientEngine {
                         }
 
                         if (wwwAuthenticateHeader == null || wwwAuthenticateHeader.equals("")) {
-                            listener.onError(new AuthenticationException(LocalizationMessages.AUTHENTICATION_FAILED()));
                             clientEngineState = TyrusClientEngineState.FAILED;
+                            listener.onError(new AuthenticationException(LocalizationMessages.AUTHENTICATION_FAILED()));
                             return UPGRADE_INFO_FAILED;
                         }
 
@@ -320,8 +328,8 @@ public class TyrusClientEngine implements ClientEngine {
 
                         final Authenticator authenticator = authConfig.getAuthenticators().get(scheme);
                         if (authenticator == null) {
-                            listener.onError(new AuthenticationException(LocalizationMessages.AUTHENTICATION_FAILED()));
                             clientEngineState = TyrusClientEngineState.FAILED;
+                            listener.onError(new AuthenticationException(LocalizationMessages.AUTHENTICATION_FAILED()));
                             return UPGRADE_INFO_FAILED;
                         }
 
@@ -342,6 +350,18 @@ public class TyrusClientEngine implements ClientEngine {
             default:
                 redirectUriHistory.clear();
                 throw new IllegalStateException();
+        }
+    }
+
+    @Override
+    public void processError(Throwable t) {
+        if (clientEngineState == TyrusClientEngineState.SUCCESS) {
+            throw new IllegalStateException();
+        }
+
+        if (clientEngineState != TyrusClientEngineState.FAILED) {
+            clientEngineState = TyrusClientEngineState.FAILED;
+            listener.onError(t);
         }
     }
 

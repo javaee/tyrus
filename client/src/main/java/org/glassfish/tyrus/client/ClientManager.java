@@ -554,16 +554,27 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                                 }, null, null
                                 );
 
-                                TyrusClientEngine clientEngine = new TyrusClientEngine(clientEndpoint, listener, copiedProperties, URI.create(url));
+                                final URI uri;
+                                try {
+                                    uri = new URI(url);
+                                } catch (URISyntaxException e) {
+                                    throw new DeploymentException("Invalid URI.", e);
+                                }
 
-                                container.openClientSocket(url, config, copiedProperties, clientEngine);
+                                TyrusClientEngine clientEngine = new TyrusClientEngine(clientEndpoint, listener, copiedProperties, uri);
+
+                                container.openClientSocket(config, copiedProperties, clientEngine);
 
                                 try {
                                     final boolean countedDown = responseLatch.await(handshakeTimeout, TimeUnit.MILLISECONDS);
                                     if (countedDown) {
                                         final Throwable exception = listener.getThrowable();
                                         if (exception != null) {
-                                            throw new DeploymentException("Handshake error.", exception);
+                                            if(exception instanceof DeploymentException) {
+                                                throw (DeploymentException)exception;
+                                            } else {
+                                                throw new DeploymentException("Handshake error.", exception);
+                                            }
                                         }
 
                                         future.setResult(listener.getSession());

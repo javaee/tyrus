@@ -97,6 +97,60 @@ public class TyrusClientEngineTest {
     }
 
     @Test
+    public void testErrorFlow1() throws DeploymentException, HandshakeException {
+        ClientEngine engine = getClientEngine(Collections.<String, Object>emptyMap());
+
+        UpgradeRequest upgradeRequest = engine.createUpgradeRequest(null);
+        assertNotNull("", upgradeRequest);
+
+        engine.processError(new Exception());
+
+        try {
+            engine.createUpgradeRequest(null);
+            fail("createUpgradeRequest after processError must fail.");
+        } catch (IllegalStateException e) {
+            // ok
+        }
+    }
+
+    @Test
+    public void testErrorFlow2() throws DeploymentException, HandshakeException {
+        ClientEngine engine = getClientEngine(Collections.<String, Object>emptyMap());
+
+        UpgradeRequest upgradeRequest = engine.createUpgradeRequest(null);
+        assertNotNull("", upgradeRequest);
+
+        engine.processError(new Exception());
+
+        try {
+            engine.processResponse(null, null, null);
+            fail("processResponse after processError must fail.");
+        } catch (IllegalStateException e) {
+            // ok
+        }
+    }
+
+    @Test
+    public void testErrorFlow3() throws DeploymentException, HandshakeException {
+        ClientEngine engine = getClientEngine(Collections.<String, Object>emptyMap());
+
+        UpgradeRequest upgradeRequest = engine.createUpgradeRequest(null);
+        assertNotNull("", upgradeRequest);
+
+        String secWebsocketKey = upgradeRequest.getHeader(HandshakeRequest.SEC_WEBSOCKET_KEY);
+
+        ClientEngine.ClientUpgradeInfo clientUpgradeInfo = engine.processResponse(getUpgradeResponse(generateServerKey(secWebsocketKey)), null, null);
+        assertTrue(clientUpgradeInfo.getUpgradeStatus().toString(), clientUpgradeInfo.getUpgradeStatus() == ClientEngine.ClientUpgradeStatus.SUCCESS);
+
+        try {
+            engine.processError(new Exception());
+            fail("processError after ClientEngine.ClientUpgradeStatus.SUCCESS must fail.");
+        } catch (IllegalStateException e) {
+            // ok
+        }
+    }
+
+    @Test
     public void testAuthFlow() throws DeploymentException, HandshakeException {
         Map<String, Object> properties = new HashMap<String, Object>();
         properties.put(ClientProperties.CREDENTIALS, new Credentials("username", "password"));

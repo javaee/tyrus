@@ -55,7 +55,7 @@ public interface ClientContainer {
     /**
      * Property name for maximal incoming buffer size.
      * <p/>
-     * Can be set in properties map (see {@link #openClientSocket(String, javax.websocket.ClientEndpointConfig, java.util.Map, ClientEngine)}).
+     * Can be set in properties map (see {@link #openClientSocket(javax.websocket.ClientEndpointConfig, java.util.Map, ClientEngine)}).
      *
      * @deprecated please use {@link org.glassfish.tyrus.client.ClientProperties#INCOMING_BUFFER_SIZE}.
      */
@@ -69,17 +69,16 @@ public interface ClientContainer {
      * Called from ClientManager when {@link javax.websocket.WebSocketContainer#connectToServer(Class, javax.websocket.ClientEndpointConfig, java.net.URI)}
      * is invoked.
      *
-     * @param url          address where remote service is deployed.
      * @param cec          endpoint configuration. SPI consumer can access user properties, {@link javax.websocket.ClientEndpointConfig.Configurator},
      *                     extensions and subprotocol configuration, etc..
      * @param properties   properties passed from client container. Don't mix up this with {@link javax.websocket.ClientEndpointConfig#getUserProperties()},
      *                     these are Tyrus proprietary.
      * @param clientEngine one instance equals to one connection, cannot be reused. Implementation is expected to call
-     *                     {@link ClientEngine#createUpgradeRequest(java.net.URI, org.glassfish.tyrus.spi.ClientEngine.TimeoutHandler)}
+     *                     {@link ClientEngine#createUpgradeRequest(ClientEngine.TimeoutHandler)}
      *                     and {@link ClientEngine#processResponse(UpgradeResponse, Writer, org.glassfish.tyrus.spi.Connection.CloseListener)}
      *                     (in that order).
      */
-    public void openClientSocket(String url, ClientEndpointConfig cec,
+    public void openClientSocket(ClientEndpointConfig cec,
                                  Map<String, Object> properties,
                                  ClientEngine clientEngine) throws DeploymentException, IOException;
 }

@@ -86,18 +86,12 @@ public class GrizzlyClientContainer implements ClientContainer {
     private static final long CLIENT_SOCKET_TIMEOUT = 30000;
 
     @Override
-    public void openClientSocket(String url, ClientEndpointConfig cec,
+    public void openClientSocket(ClientEndpointConfig cec,
                                  Map<String, Object> properties,
                                  ClientEngine clientEngine
     ) throws DeploymentException, IOException {
-        URI uri;
 
-        try {
-            uri = new URI(url);
-        } catch (URISyntaxException e) {
-            throw new DeploymentException("Invalid URI.", e);
-        }
 
-        new GrizzlyClientSocket(uri, CLIENT_SOCKET_TIMEOUT, clientEngine, properties).connect();
+        new GrizzlyClientSocket(CLIENT_SOCKET_TIMEOUT, clientEngine, properties).connect();
     }
 }
