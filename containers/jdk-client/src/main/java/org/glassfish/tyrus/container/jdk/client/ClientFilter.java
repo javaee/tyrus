@@ -55,6 +55,7 @@ import javax.websocket.CloseReason;
 
 import org.glassfish.tyrus.core.CloseReasons;
 import org.glassfish.tyrus.core.TyrusUpgradeResponse;
+import org.glassfish.tyrus.core.Utils;
 import org.glassfish.tyrus.core.l10n.LocalizationMessages;
 import org.glassfish.tyrus.spi.ClientEngine;
 import org.glassfish.tyrus.spi.ClientEngine.TimeoutHandler;
@@ -323,7 +324,7 @@ class ClientFilter extends Filter {
 
             @Override
             public String getRequestUri() {
-                final int requestPort = uri.getPort() == -1 ? (uri.getScheme().equals("wss") ? 443 : 80) : uri.getPort();
+                final int requestPort = Utils.getWsPort(uri);
                 return String.format("%s:%d", uri.getHost(), requestPort);
             }
 

@@ -174,8 +174,8 @@ class GrizzlyClientFilter extends BaseFilter {
         if (proxy && !PROXY_CONNECTED.get(ctx.getConnection())) {
             UPGRADE_REQUEST.set(ctx.getConnection(), upgradeRequest);
 
-            final URI requestURI = URI.create(upgradeRequest.getRequestUri());
-            final int requestPort = requestURI.getPort() == -1 ? (requestURI.getScheme().equals("wss") ? 443 : 80) : requestURI.getPort();
+            URI requestURI = upgradeRequest.getRequestURI();
+            final int requestPort = Utils.getWsPort(requestURI);
 
             builder = builder.uri(String.format("%s:%d", requestURI.getHost(), requestPort));
             builder = builder.protocol(Protocol.HTTP_1_1);
@@ -273,7 +273,7 @@ class GrizzlyClientFilter extends BaseFilter {
 
         if (httpStatus.getStatusCode() != 101) {
             if (proxy && !PROXY_CONNECTED.get(grizzlyConnection)) {
-                if (httpStatus == HttpStatus.OK_200) {
+                if (httpStatus.equals(HttpStatus.OK_200)) {
 
                     PROXY_CONNECTED.set(grizzlyConnection, true);
 

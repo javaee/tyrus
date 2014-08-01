@@ -140,7 +140,7 @@ public class TyrusClientEngine implements ClientEngine {
 
         this.redirectEnabled = Utils.getProperty(properties, ClientProperties.REDIRECT_ENABLED, Boolean.class, false);
         Integer redirectThreshold = Utils.getProperty(properties, ClientProperties.REDIRECT_THRESHOLD, Integer.class, DEFAULT_REDIRECT_THRESHOLD);
-        if(redirectThreshold == null) {
+        if (redirectThreshold == null) {
             redirectThreshold = DEFAULT_REDIRECT_THRESHOLD;
         }
         this.redirectThreshold = redirectThreshold;
@@ -253,7 +253,6 @@ public class TyrusClientEngine implements ClientEngine {
                         URI location;
                         try {
                             location = new URI(locationString);
-                            int port = location.getPort();
                             String scheme = location.getScheme();
                             if ("http".equalsIgnoreCase(scheme)) {
                                 scheme = "ws";
@@ -261,13 +260,7 @@ public class TyrusClientEngine implements ClientEngine {
                             if ("https".equalsIgnoreCase(scheme)) {
                                 scheme = "wss";
                             }
-                            if (port == -1) {
-                                if ("wss".equalsIgnoreCase(scheme)) {
-                                    port = 443;
-                                } else {
-                                    port = 80;
-                                }
-                            }
+                            int port = Utils.getWsPort(location, scheme);
                             location = new URI(scheme, location.getUserInfo(), location.getHost(), port, location.getPath(), location.getQuery(), location.getFragment());
 
                             // TODO: check for relative URIs and resolve them

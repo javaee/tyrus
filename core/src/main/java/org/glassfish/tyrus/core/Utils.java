@@ -39,6 +39,7 @@
  */
 package org.glassfish.tyrus.core;
 
+import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -391,5 +392,42 @@ public class Utils {
         }
 
         return defaultValue;
+    }
+
+    /**
+     * Get port from provided {@link URI}.
+     * <p/>
+     * Expected schemes are {@code "ws"} and {@code "wss"} and this method will return {@code 80} or
+     * {@code 443} when the port is not explicitly set in the provided {@link URI}.
+     *
+     * @param uri provided uri.
+     * @return port number which should be used for creating connections/etc.
+     */
+    public static int getWsPort(URI uri) {
+        return getWsPort(uri, uri.getScheme());
+    }
+
+    /**
+     * Get port from provided {@link URI}.
+     * <p/>
+     * Expected schemes are {@code "ws"} and {@code "wss"} and this method will return {@code 80} or
+     * {@code 443} when the port is not explicitly set in the provided {@link URI}.
+     *
+     * @param uri    provided uri.
+     * @param scheme scheme to be used when checking for {@code "ws"} and {@code "wss"}.
+     * @return port number which should be used for creating connections/etc.
+     */
+    public static int getWsPort(URI uri, String scheme) {
+        if (uri.getPort() == -1) {
+            if ("wss".equals(scheme)) {
+                return 443;
+            } else if ("ws".equals(scheme)) {
+                return 80;
+            }
+        } else {
+            return uri.getPort();
+        }
+
+        return -1;
     }
 }

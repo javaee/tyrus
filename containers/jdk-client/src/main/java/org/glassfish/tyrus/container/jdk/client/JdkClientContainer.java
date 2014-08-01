@@ -222,16 +222,7 @@ public class JdkClientContainer implements ClientContainer {
     }
 
     private SocketAddress getServerAddress(URI uri) throws DeploymentException {
-        int port = uri.getPort();
-        if (port == -1) {
-            String scheme = uri.getScheme();
-            assert scheme != null && (scheme.equals("ws") || scheme.equals("wss"));
-            if (scheme.equals("ws")) {
-                port = 80;
-            } else if (scheme.equals("wss")) {
-                port = 443;
-            }
-        }
+        int port = Utils.getWsPort(uri);
 
         try {
             return new InetSocketAddress(uri.getHost(), port);

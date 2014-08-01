@@ -344,10 +344,11 @@ public class GrizzlyClientSocket {
             final UpgradeRequest upgradeRequest = engine.createUpgradeRequest(timeoutHandler);
 
             SocketAddress connectAddress;
+            URI requestURI = upgradeRequest.getRequestURI();
             switch (proxy.type()) {
                 case DIRECT:
                     try {
-                        connectAddress = new InetSocketAddress(upgradeRequest.getRequestURI().getHost(), upgradeRequest.getRequestURI().getPort());
+                        connectAddress = new InetSocketAddress(requestURI.getHost(), Utils.getWsPort(requestURI));
                     } catch (IllegalArgumentException e) {
                         throw new DeploymentException(e.getMessage(), e);
                     }
@@ -375,7 +376,7 @@ public class GrizzlyClientSocket {
             if (clientSSLEngineConfigurator != null) {
                 sslHandshakeFuture = new TyrusFuture();
             }
-            connectorHandler.setProcessor(createFilterChain(engine, null, clientSSLEngineConfigurator, !(proxy.type() == Proxy.Type.DIRECT), upgradeRequest.getRequestURI(), sharedTransport, sharedTransportTimeout, proxyHeaders, grizzlyConnector, sslHandshakeFuture, upgradeRequest));
+            connectorHandler.setProcessor(createFilterChain(engine, null, clientSSLEngineConfigurator, !(proxy.type() == Proxy.Type.DIRECT), requestURI, sharedTransport, sharedTransportTimeout, proxyHeaders, grizzlyConnector, sslHandshakeFuture, upgradeRequest));
 
             connectionGrizzlyFuture = connectorHandler.connect(connectAddress);
 
@@ -409,7 +410,7 @@ public class GrizzlyClientSocket {
                 final Throwable cause = executionException.getCause();
                 if ((cause != null) && (cause instanceof IOException)) {
                     ioException = (IOException) cause;
-                    ProxySelector.getDefault().connectFailed(upgradeRequest.getRequestURI(), socketAddress, ioException);
+                    ProxySelector.getDefault().connectFailed(requestURI, socketAddress, ioException);
                 }
 
                 closeTransport(privateTransport);
@@ -562,16 +563,7 @@ public class GrizzlyClientSocket {
         proxies.add(Proxy.NO_PROXY);
 
         // compute direct address in case no proxy is found
-        int port = uri.getPort();
-        if (port == -1) {
-            String scheme = uri.getScheme();
-            assert scheme != null && (scheme.equals("ws") || scheme.equals("wss"));
-            if (scheme.equals("ws")) {
-                port = 80;
-            } else if (scheme.equals("wss")) {
-                port = 443;
-            }
-        }
+        int port = Utils.getWsPort(uri);
         if (LOGGER.isLoggable(Level.FINE)) {
             LOGGER.log(Level.FINE, String.format(String.format("Not using proxy for URI '%s'.", uri)));
         }
