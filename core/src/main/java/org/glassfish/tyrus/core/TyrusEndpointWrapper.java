@@ -1100,10 +1100,10 @@ public class TyrusEndpointWrapper {
         if (clusterContext != null) {
             clusterContext.removeSession(session.getId(), getEndpointPath());
 
-            // TODO: check the close reason or something more descriptive to get the info
-            // TODO: about the proper reason. We don't want to destroy userProperties in case
-            // TODO: of node failure.
-            clusterContext.destroyDistributedUserProperties(session.getConnectionId());
+            // close code is not 1006 = the close was initiated from the user code
+            if (!CloseReason.CloseCodes.CLOSED_ABNORMALLY.equals(closeReason.getCloseCode())) {
+                clusterContext.destroyDistributedUserProperties(session.getConnectionId());
+            }
         }
 
         ErrorCollector collector = new ErrorCollector();

@@ -80,7 +80,7 @@ import static org.glassfish.tyrus.core.Utils.checkNotNull;
  */
 public class RemoteSession implements Session {
 
-    private final static Integer SYNC_SEND_TIMEOUT = 5;
+    private final static Integer SYNC_SEND_TIMEOUT = 30;
 
     private final RemoteEndpoint.Basic basicRemote;
     private final RemoteEndpoint.Async asyncRemote;
