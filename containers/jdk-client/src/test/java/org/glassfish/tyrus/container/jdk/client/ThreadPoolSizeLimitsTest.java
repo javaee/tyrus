@@ -82,14 +82,14 @@ public class ThreadPoolSizeLimitsTest extends TestContainer {
         assertEquals(0, config.getCorePoolSize());
 
         try {
-            config.setMaxPoolSize(1);
+            config.setMaxPoolSize(2);
             fail();
         } catch (Exception e) {
             // do nothing
         }
 
-        config.setMaxPoolSize(2);
-        assertEquals(2, config.getMaxPoolSize());
+        config.setMaxPoolSize(3);
+        assertEquals(3, config.getMaxPoolSize());
 
         config.setQueueLimit(-2);
         assertEquals(-1, config.getQueueLimit());
@@ -112,7 +112,7 @@ public class ThreadPoolSizeLimitsTest extends TestContainer {
 
 
             ClientManager client = ClientManager.createClient(JdkClientContainer.class.getName());
-            ThreadPoolConfig config = ThreadPoolConfig.defaultConfig().setMaxPoolSize(2);
+            ThreadPoolConfig config = ThreadPoolConfig.defaultConfig().setMaxPoolSize(3);
             client.getProperties().put(ClientProperties.WORKER_THREAD_POOL_CONFIG, config);
 
             client.connectToServer(new Endpoint() {

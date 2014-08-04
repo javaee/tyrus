@@ -255,14 +255,14 @@ public final class ThreadPoolConfig {
     /**
      * Set max thread pool size. The default is The default is {@code Math.max(Runtime.getRuntime().availableProcessors(), 20)}.
      * <p/>
-     * Cannot be smaller than 2.
+     * Cannot be smaller than 3.
      *
      * @param maxPoolSize the max thread pool size.
      * @return the {@link ThreadPoolConfig} with the new max pool size set.
      */
     public ThreadPoolConfig setMaxPoolSize(int maxPoolSize) {
-        if (maxPoolSize < 2) {
-            throw new IllegalArgumentException("Max thread pool size cannot be smaller than 2");
+        if (maxPoolSize < 3) {
+            throw new IllegalArgumentException("Max thread pool size cannot be smaller than 3");
         }
 
         this.maxPoolSize = maxPoolSize;
