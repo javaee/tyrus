@@ -45,7 +45,7 @@
     <parent>
         <groupId>org.glassfish.tyrus</groupId>
         <artifactId>tyrus-project</artifactId>
-        <version>1.8-SNAPSHOT</version>
+        <version>1.8</version>
     </parent>
 
     <artifactId>tyrus-documentation</artifactId>
