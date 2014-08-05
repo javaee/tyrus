@@ -49,6 +49,14 @@
 
 <p>This sample demonstrates how to configure Tyrus client to connect on access protected server endpoint over HTTPS.</p>
 
+<p><i>
+    Please note that we were able to run this sample only on Firefox (v27.01). Safari (v7.0.5)
+    do not apply the exception to use unverified SSL certificate to WebSocket connection, which results in immediate
+    end with reported error similar to "Invalid certificate chain". Chrome (v37) for some reason does not pass credentials
+    (acquired from initial request) to new websocket connection, so it ends up with "401" HTTP response code without any
+    way how the user can provide authentication info.
+</i></p>
+
 <h2>Contents</h2>
 
 <p>
