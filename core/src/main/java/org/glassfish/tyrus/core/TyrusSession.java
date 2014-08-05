@@ -428,7 +428,7 @@ public class TyrusSession implements Session {
      * Broadcasts text message to all connected clients.
      *
      * @param message message to be broadcasted.
-     * @return map of sessions and futures for user to get the information about status of the message.
+     * @return map of local sessions and futures for user to get the information about status of the message.
      */
     public Map<Session, Future<?>> broadcast(String message) {
         return endpointWrapper.broadcast(message);
@@ -438,7 +438,7 @@ public class TyrusSession implements Session {
      * Broadcasts binary message to all connected clients, including remote sessions (if any).
      *
      * @param message message to be broadcasted.
-     * @return map of sessions and futures for user to get the information about status of the message.
+     * @return map of local sessions and futures for user to get the information about status of the message.
      */
     public Map<Session, Future<?>> broadcast(ByteBuffer message) {
         return endpointWrapper.broadcast(message);

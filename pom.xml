@@ -165,7 +165,7 @@
         <websocket.api.build_number>18</websocket.api.build_number>
 
         <servlet.api.version>3.1.0</servlet.api.version>
-        <grizzly.version>2.3.14</grizzly.version>
+        <grizzly.version>2.3.15</grizzly.version>
         <javax.ejb-api.version>3.2</javax.ejb-api.version>
         <cdi-api.version>1.1</cdi-api.version>
 
