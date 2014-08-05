@@ -169,7 +169,15 @@ public class TestContainer {
      */
     protected URI getURI(String endpointPath, String scheme) {
         try {
-            return new URI(scheme == null ? "ws" : scheme, null, getHost(), getPort(), contextPath + endpointPath, null, null);
+            String currentScheme = scheme == null ? "ws" : scheme;
+            int port = getPort();
+
+            if ((port == 80 && "ws".equalsIgnoreCase(currentScheme))
+                    || (port == 443 && "wss".equalsIgnoreCase(currentScheme))) {
+                port = -1;
+            }
+
+            return new URI(currentScheme, null, getHost(), port, contextPath + endpointPath, null, null);
         } catch (URISyntaxException e) {
             e.printStackTrace();
             return null;

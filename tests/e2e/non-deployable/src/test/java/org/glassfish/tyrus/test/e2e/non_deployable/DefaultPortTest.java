@@ -57,18 +57,15 @@ import javax.websocket.server.ServerEndpoint;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.tools.TestContainer;
 
-import org.junit.Ignore;
+import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assume.assumeTrue;
 
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 public class DefaultPortTest extends TestContainer {
-
-    public DefaultPortTest() {
-        setDefaultPort(80);
-    }
 
     @ServerEndpoint(value = "/default-port-echo")
     public static class EchoEndpoint {
@@ -78,14 +75,19 @@ public class DefaultPortTest extends TestContainer {
         }
     }
 
-    @Ignore("need root to open port 80")
+    @Before
+    public void before() {
+        assumeTrue(getPort() == 80);
+    }
+
     @Test
     public void testDefaultWsPort() throws DeploymentException {
+
         Server server = startServer(EchoEndpoint.class);
 
         final CountDownLatch messageLatch = new CountDownLatch(1);
 
-        final URI uri = URI.create("ws://localhost/e2e-test/default-port-echo");
+        final URI uri = getURI(EchoEndpoint.class);
 
         try {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
@@ -117,5 +119,4 @@ public class DefaultPortTest extends TestContainer {
             stopServer(server);
         }
     }
-
 }
