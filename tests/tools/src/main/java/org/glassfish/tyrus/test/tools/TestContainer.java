@@ -82,7 +82,7 @@ public class TestContainer {
     protected Server startServer(Class<?>... endpointClasses) throws DeploymentException {
         final String host = System.getProperty("tyrus.test.host");
         if (host == null) {
-            final Server server = new Server(defaultHost, defaultPort, contextPath, serverProperties, endpointClasses);
+            final Server server = new Server(defaultHost, getPort(), contextPath, serverProperties, endpointClasses);
             server.start();
             return server;
         } else {
