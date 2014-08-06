@@ -160,6 +160,68 @@ public class RedirectTest extends TestContainer {
     }
 
     @Test
+    public void testRelativePath() throws InterruptedException, DeploymentException, AuthenticationException, IOException {
+        Server server = null;
+        try {
+            server = startServer(RedirectedEchoEndpoint.class);
+
+            for (HttpStatus httpstatus : statuses) {
+                testRelativePath(httpstatus);
+            }
+        } finally {
+            if (server != null) {
+                server.stop();
+            }
+        }
+    }
+
+    private void testRelativePath(HttpStatus httpStatus) throws InterruptedException, IOException, AuthenticationException, DeploymentException {
+        HttpServer httpServer = null;
+        try {
+            httpServer = createHttpServer(REDIRECTION_PORT);
+            httpServer.getServerConfiguration().addHttpHandler(new RedirectHandler(httpStatus, REDIRECTION_PATH + 1), REDIRECTION_PATH + 0);
+            httpServer.getServerConfiguration().addHttpHandler(new RedirectHandler(httpStatus, REDIRECTION_URI + REDIRECTION_PATH + 2), REDIRECTION_PATH + 1);
+            httpServer.getServerConfiguration().addHttpHandler(new RedirectHandler(httpStatus, "/la/la/la/.././../.." + REDIRECTION_PATH + 3), REDIRECTION_PATH + 2);
+            httpServer.getServerConfiguration().addHttpHandler(new RedirectHandler(httpStatus, "http://127.0.0.1:8026" + REDIRECTION_PATH + 4), REDIRECTION_PATH + 3);
+            httpServer.getServerConfiguration().addHttpHandler(new RedirectHandler(httpStatus, "ws://localhost:8025/redirect-echo/echo"), REDIRECTION_PATH + 4);
+            httpServer.start();
+
+            final ClientManager client = createClient();
+            client.getProperties().put(ClientProperties.REDIRECT_ENABLED, true);
+            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
+
+            final CountDownLatch messageLatch = new CountDownLatch(1);
+
+            client.connectToServer(new Endpoint() {
+                @Override
+                public void onOpen(Session session, EndpointConfig EndpointConfig) {
+                    try {
+                        session.addMessageHandler(new MessageHandler.Whole<String>() {
+                            @Override
+                            public void onMessage(String message) {
+                                System.out.println("received message: " + message);
+                                assertEquals(message, "Do or do not, there is no try.");
+                                messageLatch.countDown();
+                            }
+                        });
+
+                        session.getBasicRemote().sendText("Do or do not, there is no try.");
+                    } catch (IOException e) {
+                        // do nothing
+                    }
+                }
+            }, cec, URI.create(REDIRECTION_URI + REDIRECTION_PATH + 0));
+
+            messageLatch.await(1, TimeUnit.SECONDS);
+            assertEquals(0, messageLatch.getCount());
+        } finally {
+            if (httpServer != null) {
+                httpServer.shutdownNow();
+            }
+        }
+    }
+
+    @Test
     public void testRedirectUnsupported3xx() throws InterruptedException, DeploymentException, AuthenticationException, IOException {
         Server server = null;
         try {

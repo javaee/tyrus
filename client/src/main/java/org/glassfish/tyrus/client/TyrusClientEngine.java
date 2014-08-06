@@ -115,6 +115,7 @@ public class TyrusClientEngine implements ClientEngine {
     private volatile Handshake clientHandShake = null;
     private volatile TimeoutHandler timeoutHandler = null;
     private volatile TyrusClientEngineState clientEngineState = TyrusClientEngineState.INIT;
+    private volatile URI redirectLocation = null;
 
     private final Set<URI> redirectUriHistory;
 
@@ -172,7 +173,7 @@ public class TyrusClientEngine implements ClientEngine {
             case REDIRECT_REQUIRED: {
                 this.timeoutHandler = timeoutHandler;
 
-                final URI requestUri = clientEngineState.getLocation();
+                final URI requestUri = redirectLocation;
 
                 RequestContext requestContext = RequestContext.Builder
                         .create(clientHandShake.getRequest())
@@ -215,7 +216,7 @@ public class TyrusClientEngine implements ClientEngine {
         switch (clientEngineState) {
             case AUTH_UPGRADE_REQUEST_CREATED:
             case UPGRADE_REQUEST_CREATED:
-                if(upgradeResponse == null) {
+                if (upgradeResponse == null) {
                     throw new IllegalArgumentException(LocalizationMessages.ARGUMENT_NOT_NULL("upgradeResponse"));
                 }
 
@@ -271,8 +272,17 @@ public class TyrusClientEngine implements ClientEngine {
                             int port = Utils.getWsPort(location, scheme);
                             location = new URI(scheme, location.getUserInfo(), location.getHost(), port, location.getPath(), location.getQuery(), location.getFragment());
 
-                            // TODO: check for relative URIs and resolve them
-                            // TODO: check for valid scheme (it can be {@code null}); related to ^
+                            if (!location.isAbsolute()) {
+                                // location is not absolute, we need to resolve it.
+                                URI baseUri = redirectLocation == null ? connectToServerUriParam : redirectLocation;
+                                location = baseUri.resolve(location.normalize());
+
+                                if (LOGGER.isLoggable(Level.FINEST)) {
+                                    LOGGER.finest("HTTP Redirect - Base URI for resolving target location: " + baseUri);
+                                    LOGGER.finest("HTTP Redirect - Location URI header: " + locationString);
+                                    LOGGER.finest("HTTP Redirect - Normalized and resolved Location URI header against base URI: " + location);
+                                }
+                            }
                         } catch (URISyntaxException e) {
                             clientEngineState = TyrusClientEngineState.FAILED;
                             listener.onError(new RedirectException(upgradeResponse.getStatus(), LocalizationMessages.HANDSHAKE_HTTP_REDIRECTION_NEW_LOCATION_ERROR(locationString)));
@@ -295,7 +305,7 @@ public class TyrusClientEngine implements ClientEngine {
                         }
 
                         clientEngineState = TyrusClientEngineState.REDIRECT_REQUIRED;
-                        clientEngineState.setLocation(location);
+                        redirectLocation = location;
                         return UPGRADE_INFO_ANOTHER_REQUEST_REQUIRED;
                     case 401:
                         if (clientEngineState == TyrusClientEngineState.AUTH_UPGRADE_REQUEST_CREATED) {
@@ -669,7 +679,6 @@ public class TyrusClientEngine implements ClientEngine {
 
         private volatile Authenticator authenticator;
         private volatile String wwwAuthenticateHeader;
-        private volatile URI location;
 
         Authenticator getAuthenticator() {
             return authenticator;
@@ -685,14 +694,6 @@ public class TyrusClientEngine implements ClientEngine {
 
         void setWwwAuthenticateHeader(String wwwAuthenticateHeader) {
             this.wwwAuthenticateHeader = wwwAuthenticateHeader;
-        }
-
-        URI getLocation() {
-            return location;
-        }
-
-        void setLocation(URI location) {
-            this.location = location;
         }
     }
 }
