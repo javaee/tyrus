@@ -396,11 +396,14 @@ class GrizzlyClientFilter extends BaseFilter {
         TyrusUpgradeResponse tyrusUpgradeResponse = new TyrusUpgradeResponse();
 
         for (String name : httpResponsePacket.getHeaders().names()) {
-            final List<String> values = tyrusUpgradeResponse.getHeaders().get(name);
-            if (values == null) {
-                tyrusUpgradeResponse.getHeaders().put(name, Utils.parseHeaderValue(httpResponsePacket.getHeader(name)));
-            } else {
-                values.addAll(Utils.parseHeaderValue(httpResponsePacket.getHeader(name)));
+            for (String headerValue : httpResponsePacket.getHeaders().values(name)) {
+
+                final List<String> values = tyrusUpgradeResponse.getHeaders().get(name);
+                if (values == null) {
+                    tyrusUpgradeResponse.getHeaders().put(name, Utils.parseHeaderValue(headerValue.trim()));
+                } else {
+                    values.addAll(Utils.parseHeaderValue(headerValue.trim()));
+                }
             }
         }
 

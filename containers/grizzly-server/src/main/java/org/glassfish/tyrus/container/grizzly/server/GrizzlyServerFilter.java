@@ -305,11 +305,14 @@ class GrizzlyServerFilter extends BaseFilter {
                 .build();
 
         for (String name : requestPacket.getHeaders().names()) {
-            final List<String> values = requestContext.getHeaders().get(name);
-            if (values == null) {
-                requestContext.getHeaders().put(name, Utils.parseHeaderValue(requestPacket.getHeader(name).trim()));
-            } else {
-                values.addAll(Utils.parseHeaderValue(requestPacket.getHeader(name).trim()));
+            for (String headerValue : requestPacket.getHeaders().values(name)) {
+
+                final List<String> values = requestContext.getHeaders().get(name);
+                if (values == null) {
+                    requestContext.getHeaders().put(name, Utils.parseHeaderValue(headerValue.trim()));
+                } else {
+                    values.addAll(Utils.parseHeaderValue(headerValue.trim()));
+                }
             }
         }
 

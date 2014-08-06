@@ -229,11 +229,16 @@ class TyrusServletFilter implements Filter, HttpSessionListener {
             while (headerNames.hasMoreElements()) {
                 String name = headerNames.nextElement();
 
-                final List<String> values = requestContext.getHeaders().get(name);
-                if (values == null) {
-                    requestContext.getHeaders().put(name, Utils.parseHeaderValue(httpServletRequest.getHeader(name).trim()));
-                } else {
-                    values.addAll(Utils.parseHeaderValue(httpServletRequest.getHeader(name).trim()));
+                Enumeration<String> headerValues = httpServletRequest.getHeaders(name);
+
+                while (headerValues.hasMoreElements()) {
+
+                    final List<String> values = requestContext.getHeaders().get(name);
+                    if (values == null) {
+                        requestContext.getHeaders().put(name, Utils.parseHeaderValue(headerValues.nextElement().trim()));
+                    } else {
+                        values.addAll(Utils.parseHeaderValue(headerValues.nextElement().trim()));
+                    }
                 }
             }
 

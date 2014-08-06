@@ -144,7 +144,12 @@ class HttpResponseParser {
             if (separatorIndex != -1) {
                 String headerKey = headerLine.substring(0, separatorIndex);
                 String headerValue = headerLine.substring(separatorIndex + 1);
-                headers.put(headerKey, headerValue);
+
+                if (headers.containsKey(headerKey)) {
+                    headers.put(headerKey, headers.get(headerKey) + ", " + headerValue);
+                } else {
+                    headers.put(headerKey, headerValue);
+                }
             }
         }
         return headers;
