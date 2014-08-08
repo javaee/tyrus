@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -44,6 +44,7 @@ import java.io.IOException;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
@@ -61,8 +62,16 @@ import org.glassfish.grizzly.filterchain.NextAction;
 class GrizzlyTransportTimeoutFilter extends BaseFilter {
 
     private static final Logger LOGGER = Logger.getLogger(GrizzlyTransportTimeoutFilter.class.getName());
-    private static final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor();
     private static final AtomicInteger connectionCounter = new AtomicInteger(0);
+    private static final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor(new ThreadFactory() {
+        @Override
+        public Thread newThread(Runnable r) {
+            Thread thread = new Thread(r);
+            thread.setName("tyrus-grizzly-container-idle-timeout");
+            thread.setDaemon(true);
+            return thread;
+        }
+    });
 
     /**
      * Should be updated whenever you don't want to the container to be stopped. (lastAccessed + timeout) is used

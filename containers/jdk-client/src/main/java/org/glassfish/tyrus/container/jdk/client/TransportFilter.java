@@ -76,7 +76,15 @@ class TransportFilter extends Filter {
     private static final Logger LOGGER = Logger.getLogger(TransportFilter.class.getName());
     private static final int DEFAULT_CONNECTION_CLOSE_WAIT = 30;
     private static final AtomicInteger openedConnections = new AtomicInteger(0);
-    private static final ScheduledExecutorService connectionCloseScheduler = Executors.newSingleThreadScheduledExecutor();
+    private static final ScheduledExecutorService connectionCloseScheduler = Executors.newSingleThreadScheduledExecutor(new ThreadFactory() {
+        @Override
+        public Thread newThread(Runnable r) {
+            Thread thread = new Thread(r);
+            thread.setName("tyrus-jdk-container-idle-timeout");
+            thread.setDaemon(true);
+            return thread;
+        }
+    });
 
     private static volatile AsynchronousChannelGroup channelGroup;
     private static volatile ScheduledFuture<?> closeWaitTask;
