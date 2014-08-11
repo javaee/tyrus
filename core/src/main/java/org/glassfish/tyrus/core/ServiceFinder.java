@@ -50,19 +50,15 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.security.AccessController;
+import java.security.PrivilegedActionException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Enumeration;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ListIterator;
-import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.jar.Attributes;
-import java.util.jar.Manifest;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -162,14 +158,7 @@ import org.glassfish.tyrus.core.l10n.LocalizationMessages;
 public final class ServiceFinder<T> implements Iterable<T> {
 
     private static final Logger LOGGER = Logger.getLogger(ServiceFinder.class.getName());
-    private static final String MANIFEST = "META-INF/MANIFEST.MF";
-    private static final String MODULE_VERSION = "META-INF/jersey-module-version";
     private static final String PREFIX = "META-INF/services/";
-    private static final String BUNDLE_VERSION_ATTRIBUTE = "Bundle-Version";
-    private static final String BUNDLE_SYMBOLIC_NAME_ATTRIBUTE = "Bundle-SymbolicName";
-    private static final String BUNDLE_VERSION = getBundleAttribute(BUNDLE_VERSION_ATTRIBUTE);
-    private static final String BUNDLE_SYMBOLIC_NAME = getBundleAttribute(BUNDLE_SYMBOLIC_NAME_ATTRIBUTE);
-    private static final String MODULE_VERSION_VALUE = getModuleVersion();
     private final Class<T> serviceClass;
     private final String serviceName;
     private final ClassLoader classLoader;
@@ -184,195 +173,6 @@ public final class ServiceFinder<T> implements Iterable<T> {
             osgiRegistry.hookUp();
         } else {
             LOGGER.log(Level.CONFIG, "Running in a non-OSGi environment");
-        }
-    }
-
-    private static String getBundleAttribute(String attributeName) {
-        try {
-            final String version = getManifest(ServiceFinder.class).
-                    getMainAttributes().
-                    getValue(attributeName);
-            if (LOGGER.isLoggable(Level.FINE)) {
-                LOGGER.log(Level.FINE, String.format("ServiceFinder %s: %s", attributeName, version));
-            }
-            return version;
-        } catch (Exception ex) {
-            LOGGER.log(Level.FINE, "Error loading META-INF/MANIFEST.MF associated with " + ServiceFinder.class.getName(), ex);
-            return null;
-        }
-    }
-
-    private static String getModuleVersion() {
-        try {
-            String resource = ServiceFinder.class.getName().replace(".", "/") + ".class";
-            URI uri = getResource(ServiceFinder.class.getClassLoader(), resource);
-            if (uri == null) {
-                LOGGER.log(Level.FINE, "Error getting {0} class as a resource", ServiceFinder.class.getName());
-                return null;
-            }
-
-            return getJerseyModuleVersion(getManifestURI(resource, uri));
-        } catch (Exception ioe) {
-            LOGGER.log(Level.FINE, "Error loading META-INF/jersey-module-version associated with " + ServiceFinder.class.getName(), ioe);
-            return null;
-        }
-    }
-
-    private static final Map<URI, Boolean> manifestURIs = new HashMap<URI, Boolean>();
-
-    private static Enumeration<URI> filterServiceURIsWithVersion(String serviceName, Enumeration<URI> serviceURIs) {
-        if (BUNDLE_VERSION == null || !serviceURIs.hasMoreElements()) {
-            return serviceURIs;
-        }
-
-        final List<URI> uris = Collections.list(serviceURIs);
-        final ListIterator<URI> li = uris.listIterator();
-        while (li.hasNext()) {
-            final URI uri = li.next();
-            try {
-                final URI manifestURI = getManifestURI(serviceName, uri);
-
-                synchronized (manifestURIs) {
-                    Boolean keep = manifestURIs.get(manifestURI);
-                    if (keep != null) {
-                        if (!keep) {
-                            if (LOGGER.isLoggable(Level.CONFIG)) {
-                                LOGGER.log(Level.CONFIG, "Ignoring service URL: {0}", uri);
-                            }
-                            li.remove();
-                        } else {
-                            if (LOGGER.isLoggable(Level.FINE)) {
-                                LOGGER.log(Level.FINE, "Including service URL: {0}", uri);
-                            }
-                        }
-                    } else {
-                        if (!compatibleManifest(manifestURI)) {
-                            if (LOGGER.isLoggable(Level.CONFIG)) {
-                                LOGGER.log(Level.CONFIG, "Ignoring service URL: {0}", uri);
-                            }
-                            li.remove();
-                            manifestURIs.put(manifestURI, false);
-                        } else {
-                            if (LOGGER.isLoggable(Level.FINE)) {
-                                LOGGER.log(Level.FINE, "Including service URL: {0}", uri);
-                            }
-                            manifestURIs.put(manifestURI, true);
-                        }
-                    }
-                }
-            } catch (IOException ex) {
-                LOGGER.log(Level.FINE, "Error loading META-INF/MANIFEST.MF associated with " + uri, ex);
-            }
-        }
-        return Collections.enumeration(uris);
-    }
-
-    private static boolean compatibleManifest(URI manifestURI) throws IOException {
-        final Attributes as = getManifest(manifestURI).getMainAttributes();
-        final String symbolicName = as.getValue(BUNDLE_SYMBOLIC_NAME_ATTRIBUTE);
-        final String version = as.getValue(BUNDLE_VERSION_ATTRIBUTE);
-
-        if (LOGGER.isLoggable(Level.FINE)) {
-            LOGGER.log(Level.FINE, "Checking META-INF/MANIFEST.MF URL: {0}\n  "
-                    + BUNDLE_SYMBOLIC_NAME_ATTRIBUTE
-                    + ": {1}\n  "
-                    + BUNDLE_VERSION_ATTRIBUTE
-                    + ": {2}",
-                    new Object[]{manifestURI, symbolicName, version});
-        }
-
-        if (symbolicName != null
-                && symbolicName.startsWith("com.sun.jersey")
-                && !BUNDLE_VERSION.equals(version)) {
-            return false;
-        } else {
-            String moduleVersion = getJerseyModuleVersion(manifestURI);
-
-            if (moduleVersion != null
-                    && (!moduleVersion.equals(MODULE_VERSION_VALUE)
-                    || (symbolicName != null
-                    && (BUNDLE_SYMBOLIC_NAME.startsWith("com.sun.jersey") ^ symbolicName.startsWith("com.sun.jersey"))))) {
-                return false;
-            }
-
-            return true;
-        }
-    }
-
-    private static String getJerseyModuleVersion(URI manifestURI) {
-        BufferedReader reader = null;
-        try {
-            URL moduleVersionURL = new URL(manifestURI.toString().replace(MANIFEST, MODULE_VERSION));
-
-            reader = new BufferedReader(new InputStreamReader(moduleVersionURL.openStream(), "UTF-8"));
-            return reader.readLine();
-        } catch (IOException ioe) {
-            LOGGER.log(Level.FINE, "Error loading META-INF/jersey-module-version associated with " + ServiceFinder.class.getName(), ioe);
-            return null;
-        } finally {
-            if (reader != null) {
-                try {
-                    reader.close();
-                } catch (IOException ex) {
-                    Logger.getLogger(ServiceFinder.class.getName()).log(Level.FINE, "Error closing manifest located at URL: " + manifestURI, ex);
-                }
-            }
-        }
-    }
-
-    private static Manifest getManifest(Class c) throws IOException, URISyntaxException {
-        final String resource = c.getName().replace(".", "/") + ".class";
-        URI uri = getResource(c.getClassLoader(), resource);
-        if (uri == null) {
-            throw new IOException("Resource not found: " + resource);
-        }
-
-        return getManifest(resource, uri);
-    }
-
-    private static Manifest getManifest(String name, URI serviceURI) throws IOException {
-        return getManifest(getManifestURI(name, serviceURI));
-    }
-
-    private static URI getManifestURI(String name, URI serviceURI) throws IOException {
-        return URI.create(serviceURI.toString().replace(name, MANIFEST));
-    }
-
-    private static Manifest getManifest(URI uri) throws IOException {
-        final InputStream in = uri.toURL().openStream();
-        try {
-            return new Manifest(in);
-        } finally {
-            in.close();
-        }
-    }
-
-    private static URI getResource(ClassLoader loader, String name) throws IOException, URISyntaxException {
-        if (loader == null) {
-            return getResource(name);
-        } else {
-            final URL resource = loader.getResource(name);
-            if (resource != null) {
-                return resource.toURI();
-            } else {
-                return getResource(name);
-            }
-        }
-    }
-
-    private static URI getResource(String name) throws IOException, URISyntaxException {
-        if (ServiceFinder.class.getClassLoader() != null) {
-            final URL resource = ServiceFinder.class.getClassLoader().getResource(name);
-            if (resource != null) {
-                return resource.toURI();
-            }
-            return null;
-        } else {
-            final URL systemResource = ClassLoader.getSystemResource(name);
-            if (systemResource != null) {
-                return systemResource.toURI();
-            }
-            return null;
         }
     }
 
@@ -413,6 +213,10 @@ public final class ServiceFinder<T> implements Iterable<T> {
         } else {
             return transformEnumeration(ClassLoader.getSystemResources(name));
         }
+    }
+
+    private static ClassLoader _getContextClassLoader() {
+        return AccessController.doPrivileged(ReflectionHelper.getContextClassLoaderPA());
     }
 
     /**
@@ -506,7 +310,7 @@ public final class ServiceFinder<T> implements Iterable<T> {
     public static <T> ServiceFinder<T> find(Class<T> service)
             throws ServiceConfigurationError {
         return find(service,
-                Thread.currentThread().getContextClassLoader(),
+                _getContextClassLoader(),
                 false);
     }
 
@@ -533,7 +337,7 @@ public final class ServiceFinder<T> implements Iterable<T> {
     public static <T> ServiceFinder<T> find(Class<T> service,
                                             boolean ignoreOnClassNotFound) throws ServiceConfigurationError {
         return find(service,
-                Thread.currentThread().getContextClassLoader(),
+                _getContextClassLoader(),
                 ignoreOnClassNotFound);
     }
 
@@ -549,7 +353,7 @@ public final class ServiceFinder<T> implements Iterable<T> {
      *                                   or names a provider class that cannot be found and instantiated
      */
     public static ServiceFinder<?> find(String serviceName) throws ServiceConfigurationError {
-        return new ServiceFinder<Object>(Object.class, serviceName, Thread.currentThread().getContextClassLoader(), false);
+        return new ServiceFinder<Object>(Object.class, serviceName, _getContextClassLoader(), false);
     }
 
     /**
@@ -778,8 +582,7 @@ public final class ServiceFinder<T> implements Iterable<T> {
             if (configs == null) {
                 try {
                     final String fullName = PREFIX + serviceName;
-                    configs = filterServiceURIsWithVersion(fullName,
-                            getResources(loader, fullName));
+                    configs = getResources(loader, fullName);
                 } catch (IOException x) {
                     fail(serviceName, ": " + x);
                 }
@@ -802,32 +605,36 @@ public final class ServiceFinder<T> implements Iterable<T> {
                 nextName = pending.next();
                 if (ignoreOnClassNotFound) {
                     try {
-                        ReflectionHelper.classForNameWithException(nextName, loader);
+                        AccessController.doPrivileged(ReflectionHelper.classForNameWithExceptionPEA(nextName, loader));
                     } catch (ClassNotFoundException ex) {
-                        // Provider implementation not found
-                        if (LOGGER.isLoggable(Level.CONFIG)) {
-                            LOGGER.log(Level.CONFIG,
-                                    LocalizationMessages.PROVIDER_NOT_FOUND(nextName, service));
+                        handleClassNotFoundException();
+                    } catch (PrivilegedActionException pae) {
+                        final Throwable thrown = pae.getException();
+                        if (thrown instanceof ClassNotFoundException) {
+                            handleClassNotFoundException();
+                        } else if (thrown instanceof NoClassDefFoundError) {
+                            // Dependent class of provider not found
+                            if (LOGGER.isLoggable(Level.CONFIG)) {
+                                // This assumes that ex.getLocalizedMessage() returns
+                                // the name of a dependent class that is not found
+                                LOGGER.log(Level.CONFIG,
+                                        LocalizationMessages.DEPENDENT_CLASS_OF_PROVIDER_NOT_FOUND(
+                                                thrown.getLocalizedMessage(), nextName, service));
+                            }
+                            nextName = null;
+                        } else if (thrown instanceof ClassFormatError) {
+                            // Dependent class of provider not found
+                            if (LOGGER.isLoggable(Level.CONFIG)) {
+                                LOGGER.log(Level.CONFIG,
+                                        LocalizationMessages.DEPENDENT_CLASS_OF_PROVIDER_FORMAT_ERROR(
+                                                thrown.getLocalizedMessage(), nextName, service));
+                            }
+                            nextName = null;
+                        } else if (thrown instanceof RuntimeException) {
+                            throw (RuntimeException) thrown;
+                        } else {
+                            throw new IllegalStateException(thrown);
                         }
-                        nextName = null;
-                    } catch (NoClassDefFoundError ex) {
-                        // Dependent class of provider not found
-                        if (LOGGER.isLoggable(Level.CONFIG)) {
-                            // This assumes that ex.getLocalizedMessage() returns
-                            // the name of a dependent class that is not found
-                            LOGGER.log(Level.CONFIG,
-                                    LocalizationMessages.DEPENDENT_CLASS_OF_PROVIDER_NOT_FOUND(
-                                            ex.getLocalizedMessage(), nextName, service));
-                        }
-                        nextName = null;
-                    } catch (ClassFormatError ex) {
-                        // Dependent class of provider not found
-                        if (LOGGER.isLoggable(Level.CONFIG)) {
-                            LOGGER.log(Level.CONFIG,
-                                    LocalizationMessages.DEPENDENT_CLASS_OF_PROVIDER_FORMAT_ERROR(
-                                            ex.getLocalizedMessage(), nextName, service));
-                        }
-                        nextName = null;
                     }
                 }
             }
@@ -836,6 +643,15 @@ public final class ServiceFinder<T> implements Iterable<T> {
 
         public void remove() {
             throw new UnsupportedOperationException();
+        }
+
+        private void handleClassNotFoundException() {
+            // Provider implementation not found
+            if (LOGGER.isLoggable(Level.CONFIG)) {
+                LOGGER.log(Level.CONFIG,
+                        LocalizationMessages.PROVIDER_NOT_FOUND(nextName, service));
+            }
+            nextName = null;
         }
     }
 
@@ -858,22 +674,38 @@ public final class ServiceFinder<T> implements Iterable<T> {
             String cn = nextName;
             nextName = null;
             try {
-                return ReflectionHelper.classForNameWithException(cn, loader);
+
+                Class<T> tClass = AccessController.doPrivileged(ReflectionHelper.<T>classForNameWithExceptionPEA(cn, loader));
+
+                if (LOGGER.isLoggable(Level.FINEST)) {
+                    LOGGER.log(Level.FINEST, "Loading next class: " + tClass.getName());
+                }
+
+                return tClass;
+
             } catch (ClassNotFoundException ex) {
                 fail(serviceName,
                         LocalizationMessages.PROVIDER_NOT_FOUND(cn, service));
-            } catch (NoClassDefFoundError ex) {
-                fail(serviceName,
-                        LocalizationMessages.DEPENDENT_CLASS_OF_PROVIDER_NOT_FOUND(
-                                ex.getLocalizedMessage(), cn, service));
-            } catch (ClassFormatError ex) {
-                fail(serviceName,
-                        LocalizationMessages.DEPENDENT_CLASS_OF_PROVIDER_FORMAT_ERROR(
-                                ex.getLocalizedMessage(), cn, service));
-            } catch (Exception x) {
-                fail(serviceName,
-                        LocalizationMessages.PROVIDER_CLASS_COULD_NOT_BE_LOADED(cn, service, x.getLocalizedMessage()),
-                        x);
+            } catch (PrivilegedActionException pae) {
+
+                final Throwable thrown = pae.getCause();
+
+                if (thrown instanceof ClassNotFoundException) {
+                    fail(serviceName,
+                            LocalizationMessages.PROVIDER_NOT_FOUND(cn, service));
+                } else if (thrown instanceof NoClassDefFoundError) {
+                    fail(serviceName,
+                            LocalizationMessages.DEPENDENT_CLASS_OF_PROVIDER_NOT_FOUND(
+                                    thrown.getLocalizedMessage(), cn, service));
+                } else if (thrown instanceof ClassFormatError) {
+                    fail(serviceName,
+                            LocalizationMessages.DEPENDENT_CLASS_OF_PROVIDER_FORMAT_ERROR(
+                                    thrown.getLocalizedMessage(), cn, service));
+                } else {
+                    fail(serviceName,
+                            LocalizationMessages.PROVIDER_CLASS_COULD_NOT_BE_LOADED(cn, service, thrown.getLocalizedMessage()),
+                            thrown);
+                }
             }
 
             return null;    /* This cannot happen */
@@ -908,19 +740,29 @@ public final class ServiceFinder<T> implements Iterable<T> {
                 }
                 nextName = pending.next();
                 try {
-                    t = service.cast(ReflectionHelper.classForNameWithException(nextName, loader).newInstance());
-                } catch (ClassNotFoundException ex) {
+                    t = service.cast(AccessController.doPrivileged(
+                            ReflectionHelper.classForNameWithExceptionPEA(nextName, loader)).newInstance());
+
+                } catch (InstantiationException ex) {
                     if (ignoreOnClassNotFound) {
-                        // Provider implementation not found
-                        if (LOGGER.isLoggable(Level.WARNING)) {
-                            LOGGER.log(Level.WARNING,
-                                    LocalizationMessages.PROVIDER_NOT_FOUND(nextName, service));
+                        if (LOGGER.isLoggable(Level.CONFIG)) {
+                            LOGGER.log(Level.CONFIG,
+                                    LocalizationMessages.PROVIDER_COULD_NOT_BE_CREATED(nextName, service,
+                                            ex.getLocalizedMessage()));
                         }
                         nextName = null;
                     } else {
                         fail(serviceName,
-                                LocalizationMessages.PROVIDER_NOT_FOUND(nextName, service));
+                                LocalizationMessages.PROVIDER_COULD_NOT_BE_CREATED(nextName, service, ex.getLocalizedMessage()),
+                                ex);
                     }
+                } catch (IllegalAccessException ex) {
+                    fail(serviceName,
+                            LocalizationMessages.PROVIDER_COULD_NOT_BE_CREATED(nextName, service, ex.getLocalizedMessage()),
+                            ex);
+
+                } catch (ClassNotFoundException ex) {
+                    handleClassNotFoundException();
                 } catch (NoClassDefFoundError ex) {
                     // Dependent class of provider not found
                     if (ignoreOnClassNotFound) {
@@ -937,24 +779,30 @@ public final class ServiceFinder<T> implements Iterable<T> {
                                 LocalizationMessages.DEPENDENT_CLASS_OF_PROVIDER_NOT_FOUND(ex.getLocalizedMessage(), nextName, service),
                                 ex);
                     }
-                } catch (ClassFormatError ex) {
-                    // Dependent class of provider not found
-                    if (ignoreOnClassNotFound) {
-                        if (LOGGER.isLoggable(Level.CONFIG)) {
-                            LOGGER.log(Level.CONFIG,
-                                    LocalizationMessages.DEPENDENT_CLASS_OF_PROVIDER_FORMAT_ERROR(
-                                            ex.getLocalizedMessage(), nextName, service));
+
+                } catch (PrivilegedActionException pae) {
+                    final Throwable cause = pae.getCause();
+                    if (cause instanceof ClassNotFoundException) {
+                        handleClassNotFoundException();
+                    } else if (cause instanceof ClassFormatError) {
+                        // Dependent class of provider not found
+                        if (ignoreOnClassNotFound) {
+                            if (LOGGER.isLoggable(Level.CONFIG)) {
+                                LOGGER.log(Level.CONFIG,
+                                        LocalizationMessages.DEPENDENT_CLASS_OF_PROVIDER_FORMAT_ERROR(
+                                                cause.getLocalizedMessage(), nextName, service));
+                            }
+                            nextName = null;
+                        } else {
+                            fail(serviceName,
+                                    LocalizationMessages.DEPENDENT_CLASS_OF_PROVIDER_FORMAT_ERROR(cause.getLocalizedMessage(), nextName, service),
+                                    cause);
                         }
-                        nextName = null;
                     } else {
                         fail(serviceName,
-                                LocalizationMessages.DEPENDENT_CLASS_OF_PROVIDER_FORMAT_ERROR(ex.getLocalizedMessage(), nextName, service),
-                                ex);
+                                LocalizationMessages.PROVIDER_COULD_NOT_BE_CREATED(nextName, service, cause.getLocalizedMessage()),
+                                cause);
                     }
-                } catch (Exception ex) {
-                    fail(serviceName,
-                            LocalizationMessages.PROVIDER_COULD_NOT_BE_CREATED(nextName, service, ex.getLocalizedMessage()),
-                            ex);
                 }
             }
             return true;
@@ -965,9 +813,25 @@ public final class ServiceFinder<T> implements Iterable<T> {
             if (!hasNext()) {
                 throw new NoSuchElementException();
             }
-            String cn = nextName;
             nextName = null;
+            if (LOGGER.isLoggable(Level.FINEST)) {
+                LOGGER.log(Level.FINEST, "Loading next object: " + t.getClass().getName());
+            }
             return t;
+        }
+
+        private void handleClassNotFoundException() throws ServiceConfigurationError {
+            if (ignoreOnClassNotFound) {
+                // Provider implementation not found
+                if (LOGGER.isLoggable(Level.CONFIG)) {
+                    LOGGER.log(Level.CONFIG,
+                            LocalizationMessages.PROVIDER_NOT_FOUND(nextName, service));
+                }
+                nextName = null;
+            } else {
+                fail(serviceName,
+                        LocalizationMessages.PROVIDER_NOT_FOUND(nextName, service));
+            }
         }
     }
 
@@ -977,6 +841,7 @@ public final class ServiceFinder<T> implements Iterable<T> {
      * The default implementation looks up provider classes from META-INF/services
      * files, see {@link DefaultServiceIteratorProvider}.
      * This implementation may be overridden by invoking
+     * {@link ServiceFinder#setIteratorProvider(ServiceIteratorProvider)}
      */
     public static abstract class ServiceIteratorProvider {
 

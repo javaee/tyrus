@@ -330,7 +330,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
     }
 
     private UpgradeInfo handleHandshakeException(HandshakeException handshakeException, UpgradeResponse response) {
-        LOGGER.log(Level.SEVERE, handshakeException.getMessage(), handshakeException);
+        LOGGER.log(Level.CONFIG, handshakeException.getMessage(), handshakeException);
         response.setStatus(handshakeException.getHttpStatusCode());
         return HANDSHAKE_FAILED_UPGRADE_INFO;
     }

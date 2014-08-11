@@ -52,6 +52,7 @@ import java.lang.reflect.Type;
 import java.lang.reflect.TypeVariable;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
+import java.security.PrivilegedExceptionAction;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -243,24 +244,80 @@ public class ReflectionHelper {
     }
 
     /**
+     * Get privileged exception action to obtain Class from given class name.
+     * If run using security manager, the returned privileged exception action
+     * must be invoked within a doPrivileged block.
+     * <p/>
+     * The actual context class loader will be utilized if accessible and non-null.
+     * Otherwise the defining class loader of the calling class will be utilized.
+     *
+     * @param <T>  class type.
+     * @param name class name.
+     * @return privileged exception action to obtain the Class.
+     *         The action could throw {@link ClassNotFoundException} or return {@code null} if the class cannot be found.
+     *
+     * @see AccessController#doPrivileged(java.security.PrivilegedExceptionAction)
+     */
+    public static <T> PrivilegedExceptionAction<Class<T>> classForNameWithExceptionPEA(final String name) throws ClassNotFoundException {
+        return classForNameWithExceptionPEA(name, getContextClassLoader());
+    }
+
+    /**
+     * Get privileged exception action to obtain Class from given class name.
+     * If run using security manager, the returned privileged exception action
+     * must be invoked within a doPrivileged block.
+     *
+     * @param <T>  class type.
+     * @param name class name.
+     * @param cl   class loader to use, if {@code null} then the defining class loader
+     *             of the calling class will be utilized.
+     * @return privileged exception action to obtain the Class.
+     * The action throws {@link ClassNotFoundException}
+     * or returns {@code null} if the class cannot be found.
+     * @see AccessController#doPrivileged(java.security.PrivilegedExceptionAction)
+     */
+    @SuppressWarnings("unchecked")
+    public static <T> PrivilegedExceptionAction<Class<T>> classForNameWithExceptionPEA(final String name, final ClassLoader cl) throws ClassNotFoundException {
+        return new PrivilegedExceptionAction<Class<T>>() {
+            @Override
+            public Class<T> run() throws ClassNotFoundException {
+                if (cl != null) {
+                    try {
+                        return (Class<T>) Class.forName(name, false, cl);
+                    } catch (ClassNotFoundException ex) {
+                        // ignored on purpose
+                    }
+                }
+                return (Class<T>) Class.forName(name);
+            }
+        };
+    }
+
+    /**
      * Get the context class loader.
      *
-     * @return the context class loader, otherwise null security privilages
-     * are not set.
+     * @return the context class loader, otherwise {@code null} if not set.
      */
-    public static ClassLoader getContextClassLoader() {
-        return AccessController.doPrivileged(
-                new PrivilegedAction<ClassLoader>() {
-                    @Override
-                    public ClassLoader run() {
-                        ClassLoader cl = null;
-                        try {
-                            cl = Thread.currentThread().getContextClassLoader();
-                        } catch (SecurityException ex) {
-                        }
-                        return cl;
-                    }
-                });
+    private static ClassLoader getContextClassLoader() {
+        return AccessController.doPrivileged(getContextClassLoaderPA());
+    }
+
+    /**
+     * Get privileged action to obtain context class loader.
+     * If run using security manager, the returned privileged action
+     * must be invoked within a doPrivileged block.
+     *
+     * @return privileged action to obtain the actual context class loader.
+     * The action could return {@code null} if context class loader has not been set.
+     * @see AccessController#doPrivileged(java.security.PrivilegedAction)
+     */
+    public static PrivilegedAction<ClassLoader> getContextClassLoaderPA() {
+        return new PrivilegedAction<ClassLoader>() {
+            @Override
+            public ClassLoader run() {
+                return Thread.currentThread().getContextClassLoader();
+            }
+        };
     }
 
     /**
