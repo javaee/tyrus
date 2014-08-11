@@ -46,8 +46,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Array;
 import java.lang.reflect.ReflectPermission;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.security.AccessController;
@@ -176,42 +174,24 @@ public final class ServiceFinder<T> implements Iterable<T> {
         }
     }
 
-    private static Enumeration<URI> getResources(ClassLoader loader, String name) throws IOException {
+    private static Enumeration<URL> getResources(ClassLoader loader, String name) throws IOException {
         if (loader == null) {
             return getResources(name);
         } else {
             final Enumeration<URL> resources = loader.getResources(name);
             if ((resources != null) && resources.hasMoreElements()) {
-                return transformEnumeration(resources);
+                return resources;
             } else {
                 return getResources(name);
             }
         }
     }
 
-    private static Enumeration<URI> transformEnumeration(final Enumeration<URL> original) {
-        return new Enumeration<URI>() {
-            @Override
-            public boolean hasMoreElements() {
-                return original.hasMoreElements();
-            }
-
-            @Override
-            public URI nextElement() {
-                try {
-                    return original.nextElement().toURI();
-                } catch (URISyntaxException e) {
-                    return null;
-                }
-            }
-        };
-    }
-
-    private static Enumeration<URI> getResources(String name) throws IOException {
+    private static Enumeration<URL> getResources(String name) throws IOException {
         if (ServiceFinder.class.getClassLoader() != null) {
-            return transformEnumeration(ServiceFinder.class.getClassLoader().getResources(name));
+            return ServiceFinder.class.getClassLoader().getResources(name);
         } else {
-            return transformEnumeration(ClassLoader.getSystemResources(name));
+            return ClassLoader.getSystemResources(name);
         }
     }
 
@@ -406,19 +386,6 @@ public final class ServiceFinder<T> implements Iterable<T> {
     }
 
     /**
-     * Returns discovered classes incrementally.
-     *
-     * @return An <tt>Iterator</tt> that yields provider classes for the given
-     * service, in some arbitrary order.  The iterator will throw a
-     * <tt>ServiceConfigurationError</tt> if a provider-configuration
-     * file violates the specified format or if a provider class cannot
-     * be found.
-     */
-    private Iterator<Class<T>> classIterator() {
-        return ServiceIteratorProvider.getInstance().createClassIterator(serviceClass, serviceName, classLoader, ignoreOnClassNotFound);
-    }
-
-    /**
      * Returns discovered objects all at once.
      *
      * @return can be empty but never null.
@@ -445,7 +412,8 @@ public final class ServiceFinder<T> implements Iterable<T> {
     public Class<T>[] toClassArray() throws ServiceConfigurationError {
         List<Class<T>> result = new ArrayList<Class<T>>();
 
-        Iterator<Class<T>> i = classIterator();
+        final ServiceIteratorProvider iteratorProvider = ServiceIteratorProvider.getInstance();
+        Iterator<Class<T>> i = iteratorProvider.createClassIterator(serviceClass, serviceName, classLoader, ignoreOnClassNotFound);
         while (i.hasNext()) {
             result.add(i.next());
         }
@@ -464,7 +432,7 @@ public final class ServiceFinder<T> implements Iterable<T> {
         throw new ServiceConfigurationError(serviceName + ": " + msg);
     }
 
-    private static void fail(String serviceName, URI u, int line, String msg)
+    private static void fail(String serviceName, URL u, int line, String msg)
             throws ServiceConfigurationError {
         fail(serviceName, u + ":" + line + ": " + msg);
     }
@@ -474,7 +442,7 @@ public final class ServiceFinder<T> implements Iterable<T> {
      * on the line to both the names list and the returned set iff the name is
      * not already a member of the returned set.
      */
-    private static int parseLine(String serviceName, URI u, BufferedReader r, int lc,
+    private static int parseLine(String serviceName, URL u, BufferedReader r, int lc,
                                  List<String> names, Set<String> returned)
             throws IOException, ServiceConfigurationError {
         String ln = r.readLine();
@@ -525,13 +493,13 @@ public final class ServiceFinder<T> implements Iterable<T> {
      *                                   if a configuration-file format error is detected
      */
     @SuppressWarnings({"StatementWithEmptyBody"})
-    private static Iterator<String> parse(String serviceName, URI u, Set<String> returned)
+    private static Iterator<String> parse(String serviceName, URL u, Set<String> returned)
             throws ServiceConfigurationError {
         InputStream in = null;
         BufferedReader r = null;
         ArrayList<String> names = new ArrayList<String>();
         try {
-            URLConnection uConn = u.toURL().openConnection();
+            URLConnection uConn = u.openConnection();
             uConn.setUseCaches(false);
             in = uConn.getInputStream();
             r = new BufferedReader(new InputStreamReader(in, "utf-8"));
@@ -562,9 +530,9 @@ public final class ServiceFinder<T> implements Iterable<T> {
         final String serviceName;
         final ClassLoader loader;
         final boolean ignoreOnClassNotFound;
-        Enumeration<URI> configs = null;
+        Enumeration<URL> configs = null;
         Iterator<String> pending = null;
-        final Set<String> returned = new TreeSet<String>();
+        Set<String> returned = new TreeSet<String>();
         String nextName = null;
 
         private AbstractLazyIterator(
