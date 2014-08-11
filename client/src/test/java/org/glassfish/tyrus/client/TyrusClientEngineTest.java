@@ -195,6 +195,30 @@ public class TyrusClientEngineTest {
     }
 
     @Test
+    public void testRetryAfterFlow() throws DeploymentException, HandshakeException {
+        Map<String, Object> properties = new HashMap<String, Object>();
+        ClientEngine engine = getClientEngine(properties);
+
+        UpgradeRequest upgradeRequest = engine.createUpgradeRequest(null);
+        assertNotNull("", upgradeRequest);
+
+        ClientEngine.ClientUpgradeInfo clientUpgradeInfo = engine.processResponse(getRetryAfterResponse("20"), null, null);
+        assertTrue(clientUpgradeInfo.getUpgradeStatus().toString(), clientUpgradeInfo.getUpgradeStatus() == ClientEngine.ClientUpgradeStatus.UPGRADE_REQUEST_FAILED);
+
+        properties = new HashMap<String, Object>();
+        engine = getClientEngine(properties);
+
+        upgradeRequest = engine.createUpgradeRequest(null);
+        assertNotNull("", upgradeRequest);
+
+        String secWebsocketKey = upgradeRequest.getHeader(HandshakeRequest.SEC_WEBSOCKET_KEY);
+
+        clientUpgradeInfo = engine.processResponse(getUpgradeResponse(generateServerKey(secWebsocketKey)), null, null);
+        assertTrue(clientUpgradeInfo.getUpgradeStatus().toString(), clientUpgradeInfo.getUpgradeStatus() == ClientEngine.ClientUpgradeStatus.SUCCESS);
+
+    }
+
+    @Test
     public void testRedirectAndAuthFlow() throws DeploymentException, HandshakeException {
         Map<String, Object> properties = new HashMap<String, Object>();
         properties.put(ClientProperties.REDIRECT_ENABLED, true);
@@ -387,6 +411,13 @@ public class TyrusClientEngineTest {
         headers.put(UpgradeResponse.LOCATION, Collections.singletonList(requestUri));
 
         return getUpgradeResponse(301, headers);
+    }
+
+    private UpgradeResponse getRetryAfterResponse(final String retryAfter) {
+        Map<String, List<String>> headers = new HashMap<String, List<String>>();
+        headers.put(UpgradeResponse.RETRY_AFTER, Collections.singletonList(retryAfter));
+
+        return getUpgradeResponse(503, headers);
     }
 
     private UpgradeResponse getUpgradeResponse(final int statusCode, final Map<String, List<String>> headers, final String serverKey) {

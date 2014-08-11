@@ -63,6 +63,11 @@ public abstract class UpgradeResponse implements HandshakeResponse {
     public static final String LOCATION = "Location";
 
     /**
+     * Header containing period or date in which we can try to connect again.
+     */
+    public static final String RETRY_AFTER = "Retry-After";
+
+    /**
      * Get the current HTTP status code of this response.
      *
      * @return the current HTTP status code.

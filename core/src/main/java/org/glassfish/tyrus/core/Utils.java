@@ -41,7 +41,10 @@ package org.glassfish.tyrus.core;
 
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -429,5 +432,34 @@ public class Utils {
         }
 
         return -1;
+    }
+
+    /**
+     * Parse HTTP date.
+     * <p/>
+     * HTTP applications have historically allowed three different formats for the representation of date/time stamps:
+     * <ul>
+     * <li>{@code Sun, 06 Nov 1994 08:49:37 GMT} (RFC 822, updated by RFC 1123)</li>
+     * <li>{@code Sunday, 06-Nov-94 08:49:37 GMT} (RFC 850, obsoleted by RFC 1036)</li>
+     * <li>{@code Sun Nov  6 08:49:37 1994} (ANSI C's asctime() format)</li>
+     * </ul>
+     *
+     * @param stringValue String value to be parsed.
+     * @return A <code>Date</code> parsed from the string.
+     * @throws ParseException if the specified string cannot be parsed in neither of all three HTTP date formats.
+     */
+    public static Date parseHttpDate(String stringValue) throws ParseException {
+        SimpleDateFormat formatRfc1123 = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss zzz");
+        try {
+            return formatRfc1123.parse(stringValue);
+        } catch (ParseException e) {
+            SimpleDateFormat formatRfc1036 = new SimpleDateFormat("EEE, dd-MMM-yy HH:mm:ss zzz");
+            try {
+                return formatRfc1036.parse(stringValue);
+            } catch (ParseException e1) {
+                SimpleDateFormat formatAnsiCAsc = new SimpleDateFormat("EEE MMM d HH:mm:ss yyyy");
+                return formatAnsiCAsc.parse(stringValue);
+            }
+        }
     }
 }

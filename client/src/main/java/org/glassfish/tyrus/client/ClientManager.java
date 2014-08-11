@@ -53,6 +53,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
 import javax.websocket.ClientEndpoint;
@@ -169,7 +170,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
      *
      * @deprecated please use {@link org.glassfish.tyrus.client.ClientProperties#SSL_ENGINE_CONFIGURATOR}.
      */
-    @SuppressWarnings("UnusedDeclaration")
+    @SuppressWarnings({"UnusedDeclaration", "JavadocReference"})
     public static final String SSL_ENGINE_CONFIGURATOR = ClientProperties.SSL_ENGINE_CONFIGURATOR;
 
     /**
@@ -495,14 +496,19 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                 }
 
                 final Object o = copiedProperties.get(ClientProperties.RECONNECT_HANDLER);
-                final ReconnectHandler reconnectHandler;
+                final ReconnectHandler originReconnectHandler;
                 if (o != null && o instanceof ReconnectHandler) {
-                    reconnectHandler = (ReconnectHandler) o;
+                    originReconnectHandler = (ReconnectHandler) o;
                 } else {
-                    reconnectHandler = new ReconnectHandler();
+                    originReconnectHandler = new ReconnectHandler();
                 }
 
+                final boolean retryAfterEnabled = Utils.getProperty(properties, ClientProperties.RETRY_AFTER_SERVICE_UNAVAILABLE_ENABLED, Boolean.class, false);
+
                 Runnable connector = new Runnable() {
+
+                    final ReconnectHandler reconnectHandler = new RetryAfterReconnectHandler(this, future, originReconnectHandler, retryAfterEnabled);
+
                     @Override
                     public void run() {
 
@@ -595,7 +601,6 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                                 throw new DeploymentException("Handshake response not received.");
                             } catch (Exception e) {
                                 if (!reconnectHandler.onConnectFailure(e)) {
-                                    future.setFailure(e);
                                     return;
                                 }
                             }
@@ -792,5 +797,53 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
         public boolean onConnectFailure(Exception exception) {
             return false;
         }
+    }
+
+    private class RetryAfterReconnectHandler extends ReconnectHandler {
+
+        public static final int RETRY_AFTER_THRESHOLD = 5;
+        static final int RETRY_AFTER_MAX_DELAY = 120;
+        private final AtomicInteger retryCounter = new AtomicInteger(0);
+        private final ReconnectHandler userReconnectHandler;
+        private final Runnable reconnectRunnable;
+        private final TyrusFuture<Session> future;
+        private final boolean retryAfterEnabled;
+
+
+        RetryAfterReconnectHandler(final Runnable reconnectRunnable, TyrusFuture<Session> future, final ReconnectHandler userReconnectHandler, boolean retryAfterEnabled) {
+            assert userReconnectHandler != null;
+            this.userReconnectHandler = userReconnectHandler;
+            this.reconnectRunnable = reconnectRunnable;
+            this.future = future;
+            this.retryAfterEnabled = retryAfterEnabled;
+        }
+
+        @Override
+        public boolean onDisconnect(CloseReason closeReason) {
+            return userReconnectHandler.onDisconnect(closeReason);
+        }
+
+        @Override
+        public boolean onConnectFailure(final Exception exception) {
+            if (retryAfterEnabled) {
+                Throwable t = exception;
+                if (t instanceof DeploymentException) {
+                    t = t.getCause();
+                    if (t != null && t instanceof RetryAfterException && ((RetryAfterException) t).getDelay() != null) {
+                        if (retryCounter.getAndIncrement() < RETRY_AFTER_THRESHOLD && ((RetryAfterException) t).getDelay() <= RETRY_AFTER_MAX_DELAY) {
+                            long delay = ((RetryAfterException) t).getDelay() < 0 ? 0 : ((RetryAfterException) t).getDelay();
+                            getScheduledExecutorService().schedule(reconnectRunnable, delay, TimeUnit.SECONDS);
+                            return false;
+                        }
+                    }
+                }
+            }
+            boolean result = userReconnectHandler.onConnectFailure(exception);
+            if (!result) {
+                future.setFailure(exception);
+            }
+            return result;
+        }
+
     }
 }

@@ -140,7 +140,7 @@ client.getProperties().put(ClientProperties.SSL_ENGINE_CONFIGURATOR, sslEngineCo
         <title>Asynchronous connectToServer methods</title>
         <para>WebSocketContainer.connectToServer(...) methods are by definition blocking - declared exceptions needs to
         be thrown after connection attempt is made and it returns Session instance, which needs to be ready for sending
-        messages and invoking other methods, which require already estabilished connection.</para>
+        messages and invoking other methods, which require already established connection.</para>
         <para>Existing connectToServer methods are fine for lots of uses, but it might cause issue when you are designing
         application with highly responsible user interface. Tyrus introduces asynchronous variants to each connectToServer
         method (prefixed with "async"), which returns Future&lt;Session&gt;. These methods do only simple check for provided
@@ -1216,6 +1216,77 @@ public abstract class Authenticator {
                     </listitem>
                 </itemizedlist>
             </para>
+        </section>
+    </section>
+    <section>
+        <title>Client support for HTTP status 503 - Service Unavailable with Retry-After header</title>
+        <para>
+            The server can be temporarily overloaded or down for maintenance, therefore it could response with HTTP
+            response status code
+            <code>503 - Service Unavailable</code>
+            and
+            <code>Retry-After</code>
+            header.
+            Tyrus offers feature which tries to reconnect to the server after delay specified in the
+            <code>Retry-After</code>
+            header. According to RFC 2616 the value must be decimal integer (representing delay in seconds) or HTTP
+            date.
+        </para>
+        <para>This feature must be explicitly enabled.</para>
+        <para>
+            Feature is implemented by extending<code>ReconnectHandler</code>. This implementation wraps calling of
+            origin<code>ReconnectHandler</code>, which could be default or user-defined. By enabling this feature,
+            method
+            <code>public boolean onDisconnect(CloseReason closeReason)</code>
+            call origin ReconnectHandler only,
+            but
+            <code>public boolean onConnectFailure(final Exception exception)</code>
+            checks a cause of the
+            <code>exception</code>
+            and if it is<code>RetryAfterException</code>, performs following tests
+            and if all of them are true, schedules reconnect in time specified by the delay and returns false without
+            calling
+            origin<code>ReconnectHandler</code>. Otherwise
+            <code>onConnectFailure</code>
+            of the origin
+            <code>ReconnectHandler</code>
+            is called. If this feature is not enabled (default is disabled) then calling
+            of the origin
+            <code>ReconnectHandler</code>
+            is not affected at all.
+            <itemizedlist>
+                <listitem>
+                    <para>
+                        <code>Retry-After</code>
+                        header is present in response
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>
+                        <code>Retry-After</code>
+                        header can be parsed
+                    </para>
+                </listitem>
+                <listitem>
+                    <para>number of attempts does not exceed 5</para>
+                </listitem>
+                <listitem>
+                    <para>delay to reconnect does not exceed 300 seconds</para>
+                </listitem>
+            </itemizedlist>
+        </para>
+        <section>
+            <title>Configuration</title>
+            <para>
+                Configuration is really simple:
+                <programlisting language="java" linenumbering="numbered">
+                    <![CDATA[
+            final ClientManager client = ClientManager.createClient();
+            client.getProperties().put(ClientProperties.RETRY_AFTER_SERVICE_UNAVAILABLE_ENABLED, true);
+]]>
+                </programlisting>
+            </para>
+            <para>Default value is false.</para>
         </section>
     </section>
 </chapter>

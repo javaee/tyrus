@@ -66,6 +66,9 @@ public final class ClientProperties {
      * Property usable in {@link ClientManager#getProperties()}.
      * <p/>
      * Value must be {@link org.glassfish.tyrus.client.ClientManager.ReconnectHandler} instance.
+     * <p/>
+     *
+     * @see ClientProperties#RETRY_AFTER_SERVICE_UNAVAILABLE_ENABLED
      */
     public static final String RECONNECT_HANDLER = "org.glassfish.tyrus.client.ClientManager.ReconnectHandler";
 
@@ -245,4 +248,30 @@ public final class ClientProperties {
      * @see RedirectException
      */
     public static final String REDIRECT_THRESHOLD = "org.glassfish.tyrus.client.http.redirect.threshold";
+
+    /**
+     * HTTP Service Unavailable - {@value UpgradeResponse#RETRY_AFTER} reconnect support.
+     * <p/>
+     * Value is expected to be {@code boolean}. Default value is {@code false}.
+     * <p/>
+     * When set to {@code true} and HTTP response code {@code 503 - Service Unavailable} is received, client will attempt
+     * to reconnect after delay specified in {@value UpgradeResponse#RETRY_AFTER} header from handshake response. According to
+     * RFC 2616 the value must be decimal integer (representing delay in seconds) or {@code http-date}.
+     * <p/>
+     * Tyrus client will try to reconnect after this delay if:
+     * <ul>
+     * <li>{@value UpgradeResponse#RETRY_AFTER} header is present and is not empty</li>
+     * <li>{@value UpgradeResponse#RETRY_AFTER} header can be parsed</li>
+     * <li>number of reconnection attempts does not exceed 5</li>
+     * <li>delay is not longer then 300 seconds</li>
+     * </ul>
+     * <p/>
+     * Otherwise origin {@link ClientManager.ReconnectHandler#onConnectFailure(Exception)} (user-defined or default) is invoked.
+     *
+     * @see RetryAfterException
+     * @see ClientProperties#RECONNECT_HANDLER
+     * @see ClientManager.ReconnectHandler
+     * @see ClientManager.ReconnectHandler#onConnectFailure(Exception)
+     */
+    public static final String RETRY_AFTER_SERVICE_UNAVAILABLE_ENABLED = "org.glassfish.tyrus.client.http.retryAfter.enabled";
 }

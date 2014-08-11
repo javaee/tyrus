@@ -43,8 +43,10 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -348,6 +350,35 @@ public class TyrusClientEngine implements ClientEngine {
                         clientEngineState.setWwwAuthenticateHeader(wwwAuthenticateHeader);
 
                         return UPGRADE_INFO_ANOTHER_REQUEST_REQUIRED;
+                    case 503:
+
+                        // get Retry-After header
+                        String retryAfterString = null;
+                        final List<String> retryAfterHeader = upgradeResponse.getHeaders().get(UpgradeResponse.RETRY_AFTER);
+                        if (retryAfterHeader != null) {
+                            retryAfterString = Utils.getHeaderFromList(retryAfterHeader);
+                        }
+
+                        Long delay;
+                        if (retryAfterString != null) {
+                            try {
+                                // parse http date
+                                Date date = Utils.parseHttpDate(retryAfterString);
+                                delay = (date.getTime() - System.currentTimeMillis()) / 1000;
+                            } catch (ParseException e) {
+                                try {
+                                    // it could be interval in seconds
+                                    delay = Long.parseLong(retryAfterString);
+                                } catch (IllegalArgumentException iae) {
+                                    delay = null;
+                                }
+                            }
+                        } else {
+                            delay = null;
+                        }
+
+                        listener.onError(new RetryAfterException(LocalizationMessages.HANDSHAKE_HTTP_RETRY_AFTER_MESSAGE(), delay));
+                        return UPGRADE_INFO_FAILED;
                     default:
                         clientEngineState = TyrusClientEngineState.FAILED;
                         HandshakeException e = new HandshakeException(upgradeResponse.getStatus(),
