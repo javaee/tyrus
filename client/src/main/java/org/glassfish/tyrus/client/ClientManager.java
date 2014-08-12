@@ -150,7 +150,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
     /**
      * Property usable in {@link #getProperties()} as a key for SSL configuration.
      * <p/>
-     * Value is expected to be either {@link org.glassfish.grizzly.ssl.SSLEngineConfigurator}
+     * Value is expected to be either {@code org.glassfish.grizzly.ssl.SSLEngineConfigurator}
      * when configuring Grizzly client or
      * {@link org.glassfish.tyrus.client.SslEngineConfigurator}
      * when configuring JDK client.
@@ -170,7 +170,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
      *
      * @deprecated please use {@link org.glassfish.tyrus.client.ClientProperties#SSL_ENGINE_CONFIGURATOR}.
      */
-    @SuppressWarnings({"UnusedDeclaration", "JavadocReference"})
+    @SuppressWarnings("UnusedDeclaration")
     public static final String SSL_ENGINE_CONFIGURATOR = ClientProperties.SSL_ENGINE_CONFIGURATOR;
 
     /**
@@ -452,7 +452,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                 final Endpoint endpoint;
 
                 // incoming buffer size - max frame size possible to receive.
-                Integer tyrusIncomingBufferSize = Utils.getProperty(properties, ClientProperties.INCOMING_BUFFER_SIZE, Integer.class);
+                Integer tyrusIncomingBufferSize = Utils.getProperty(copiedProperties, ClientProperties.INCOMING_BUFFER_SIZE, Integer.class);
                 Integer wlsIncomingBufferSize = configuration == null ? null : Utils.getProperty(configuration.getUserProperties(), ClientContainer.WLS_INCOMING_BUFFER_SIZE, Integer.class);
                 final int incomingBufferSize;
                 if (tyrusIncomingBufferSize == null && wlsIncomingBufferSize == null) {
@@ -495,19 +495,15 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                     return;
                 }
 
-                final Object o = copiedProperties.get(ClientProperties.RECONNECT_HANDLER);
-                final ReconnectHandler originReconnectHandler;
-                if (o != null && o instanceof ReconnectHandler) {
-                    originReconnectHandler = (ReconnectHandler) o;
-                } else {
-                    originReconnectHandler = new ReconnectHandler();
-                }
+                final boolean retryAfterEnabled = Utils.getProperty(copiedProperties, ClientProperties.RETRY_AFTER_SERVICE_UNAVAILABLE, Boolean.class, false);
+                final ReconnectHandler userReconnectHandler = Utils.getProperty(copiedProperties, ClientProperties.RECONNECT_HANDLER, ReconnectHandler.class);
 
-                final boolean retryAfterEnabled = Utils.getProperty(properties, ClientProperties.RETRY_AFTER_SERVICE_UNAVAILABLE_ENABLED, Boolean.class, false);
+                final Runnable connector = new Runnable() {
 
-                Runnable connector = new Runnable() {
-
-                    final ReconnectHandler reconnectHandler = new RetryAfterReconnectHandler(this, future, originReconnectHandler, retryAfterEnabled);
+                    private final ReconnectHandler reconnectHandler =
+                            retryAfterEnabled ?
+                                    new RetryAfterReconnectHandler(userReconnectHandler) :
+                                    userReconnectHandler;
 
                     @Override
                     public void run() {
@@ -544,16 +540,19 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                             };
 
                             try {
+                                final Runnable that = this;
+
                                 TyrusEndpointWrapper clientEndpoint = new TyrusEndpointWrapper(endpoint, config, componentProvider,
                                         webSocketContainer == null ? ClientManager.this : webSocketContainer, url, null, new TyrusEndpointWrapper.SessionListener() {
 
                                     @Override
                                     public void onClose(TyrusSession session, CloseReason closeReason) {
-                                        if (reconnectHandler.onDisconnect(closeReason)) {
-                                            try {
+                                        if (reconnectHandler != null && reconnectHandler.onDisconnect(closeReason)) {
+                                            long delay = reconnectHandler.getDelay();
+                                            if (delay <= 0) {
                                                 run();
-                                            } catch (Exception e) {
-                                                // do nothing (exception is already handled in call() method itself).
+                                            } else {
+                                                getScheduledExecutorService().schedule(that, delay, TimeUnit.SECONDS);
                                             }
                                         }
                                     }
@@ -576,8 +575,8 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                                     if (countedDown) {
                                         final Throwable exception = listener.getThrowable();
                                         if (exception != null) {
-                                            if(exception instanceof DeploymentException) {
-                                                throw (DeploymentException)exception;
+                                            if (exception instanceof DeploymentException) {
+                                                throw (DeploymentException) exception;
                                             } else {
                                                 throw new DeploymentException("Handshake error.", exception);
                                             }
@@ -600,12 +599,19 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
 
                                 throw new DeploymentException("Handshake response not received.");
                             } catch (Exception e) {
-                                if (!reconnectHandler.onConnectFailure(e)) {
+                                if (reconnectHandler == null || !reconnectHandler.onConnectFailure(e)) {
+                                    future.setFailure(e);
                                     return;
+                                } else {
+                                    long delay = reconnectHandler.getDelay();
+                                    if (delay > 0) {
+                                        getScheduledExecutorService().schedule(this, delay, TimeUnit.SECONDS);
+                                        return;
+                                    }
                                 }
                             }
-
-                        } while (true);
+                        }
+                        while (true);
                     }
                 };
 
@@ -774,6 +780,8 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
      */
     public static class ReconnectHandler {
 
+        private final static long RECONNECT_DELAY = 5L;
+
         /**
          * Called after {@link javax.websocket.OnClose} annotated method (or {@link Endpoint#onClose(javax.websocket.Session, javax.websocket.CloseReason)}
          * is invoked.
@@ -797,53 +805,65 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
         public boolean onConnectFailure(Exception exception) {
             return false;
         }
+
+        /**
+         * Get reconnect delay.
+         * <p/>
+         * Called after {@link #onDisconnect(CloseReason)} or {@link #onConnectFailure(Exception)} when {@code true} is
+         * returned. When positive value is returned, next connection attempt will be made after that number of seconds.
+         * <p/>
+         * Default implementation returns {@value #RECONNECT_DELAY}.
+         *
+         * @return reconnect delay in seconds.
+         */
+        public long getDelay() {
+            return RECONNECT_DELAY;
+        }
     }
 
-    private class RetryAfterReconnectHandler extends ReconnectHandler {
+    private static class RetryAfterReconnectHandler extends ReconnectHandler {
 
-        public static final int RETRY_AFTER_THRESHOLD = 5;
-        static final int RETRY_AFTER_MAX_DELAY = 120;
+        private static final int RETRY_AFTER_THRESHOLD = 5;
+        private static final int RETRY_AFTER_MAX_DELAY = 300;
+
         private final AtomicInteger retryCounter = new AtomicInteger(0);
         private final ReconnectHandler userReconnectHandler;
-        private final Runnable reconnectRunnable;
-        private final TyrusFuture<Session> future;
-        private final boolean retryAfterEnabled;
 
+        private long delay = 0;
 
-        RetryAfterReconnectHandler(final Runnable reconnectRunnable, TyrusFuture<Session> future, final ReconnectHandler userReconnectHandler, boolean retryAfterEnabled) {
-            assert userReconnectHandler != null;
+        RetryAfterReconnectHandler(final ReconnectHandler userReconnectHandler) {
             this.userReconnectHandler = userReconnectHandler;
-            this.reconnectRunnable = reconnectRunnable;
-            this.future = future;
-            this.retryAfterEnabled = retryAfterEnabled;
         }
 
         @Override
         public boolean onDisconnect(CloseReason closeReason) {
-            return userReconnectHandler.onDisconnect(closeReason);
+            return userReconnectHandler != null && userReconnectHandler.onDisconnect(closeReason);
         }
 
         @Override
         public boolean onConnectFailure(final Exception exception) {
-            if (retryAfterEnabled) {
-                Throwable t = exception;
-                if (t instanceof DeploymentException) {
-                    t = t.getCause();
-                    if (t != null && t instanceof RetryAfterException && ((RetryAfterException) t).getDelay() != null) {
-                        if (retryCounter.getAndIncrement() < RETRY_AFTER_THRESHOLD && ((RetryAfterException) t).getDelay() <= RETRY_AFTER_MAX_DELAY) {
-                            long delay = ((RetryAfterException) t).getDelay() < 0 ? 0 : ((RetryAfterException) t).getDelay();
-                            getScheduledExecutorService().schedule(reconnectRunnable, delay, TimeUnit.SECONDS);
-                            return false;
+            Throwable t = exception;
+            if (t instanceof DeploymentException) {
+                t = t.getCause();
+                if (t != null && t instanceof RetryAfterException) {
+                    RetryAfterException retryAfterException = (RetryAfterException) t;
+                    if (retryAfterException.getDelay() != null) {
+                        if (retryCounter.getAndIncrement() < RETRY_AFTER_THRESHOLD &&
+                                retryAfterException.getDelay() <= RETRY_AFTER_MAX_DELAY) {
+
+                            delay = retryAfterException.getDelay() < 0 ? 0 : retryAfterException.getDelay();
+                            return true;
                         }
                     }
                 }
             }
-            boolean result = userReconnectHandler.onConnectFailure(exception);
-            if (!result) {
-                future.setFailure(exception);
-            }
-            return result;
+
+            return userReconnectHandler != null && userReconnectHandler.onConnectFailure(exception);
         }
 
+        @Override
+        public long getDelay() {
+            return delay;
+        }
     }
 }

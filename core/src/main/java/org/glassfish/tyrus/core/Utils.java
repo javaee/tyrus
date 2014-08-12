@@ -445,7 +445,7 @@ public class Utils {
      * </ul>
      *
      * @param stringValue String value to be parsed.
-     * @return A <code>Date</code> parsed from the string.
+     * @return A {@link Date} parsed from the string.
      * @throws ParseException if the specified string cannot be parsed in neither of all three HTTP date formats.
      */
     public static Date parseHttpDate(String stringValue) throws ParseException {

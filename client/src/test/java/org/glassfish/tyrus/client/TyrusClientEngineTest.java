@@ -169,7 +169,6 @@ public class TyrusClientEngineTest {
 
         clientUpgradeInfo = engine.processResponse(getUpgradeResponse(generateServerKey(secWebsocketKey)), null, null);
         assertTrue(clientUpgradeInfo.getUpgradeStatus().toString(), clientUpgradeInfo.getUpgradeStatus() == ClientEngine.ClientUpgradeStatus.SUCCESS);
-
     }
 
     @Test
@@ -191,7 +190,6 @@ public class TyrusClientEngineTest {
 
         clientUpgradeInfo = engine.processResponse(getUpgradeResponse(generateServerKey(secWebsocketKey)), null, null);
         assertTrue(clientUpgradeInfo.getUpgradeStatus().toString(), clientUpgradeInfo.getUpgradeStatus() == ClientEngine.ClientUpgradeStatus.SUCCESS);
-
     }
 
     @Test
@@ -215,7 +213,6 @@ public class TyrusClientEngineTest {
 
         clientUpgradeInfo = engine.processResponse(getUpgradeResponse(generateServerKey(secWebsocketKey)), null, null);
         assertTrue(clientUpgradeInfo.getUpgradeStatus().toString(), clientUpgradeInfo.getUpgradeStatus() == ClientEngine.ClientUpgradeStatus.SUCCESS);
-
     }
 
     @Test
@@ -244,7 +241,6 @@ public class TyrusClientEngineTest {
 
         clientUpgradeInfo = engine.processResponse(getUpgradeResponse(generateServerKey(secWebsocketKey)), null, null);
         assertTrue("Another request should be required", clientUpgradeInfo.getUpgradeStatus() == ClientEngine.ClientUpgradeStatus.SUCCESS);
-
     }
 
     @Test
@@ -273,7 +269,6 @@ public class TyrusClientEngineTest {
 
         clientUpgradeInfo = engine.processResponse(getUpgradeResponse(generateServerKey(secWebsocketKey)), null, null);
         assertTrue("Another request should be required", clientUpgradeInfo.getUpgradeStatus() == ClientEngine.ClientUpgradeStatus.SUCCESS);
-
     }
 
     @Test
@@ -516,5 +511,4 @@ public class TyrusClientEngineTest {
             throw new HandshakeException(e.getMessage());
         }
     }
-
 }

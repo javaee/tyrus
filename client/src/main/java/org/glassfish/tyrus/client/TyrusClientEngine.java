@@ -369,7 +369,7 @@ public class TyrusClientEngine implements ClientEngine {
                                 try {
                                     // it could be interval in seconds
                                     delay = Long.parseLong(retryAfterString);
-                                } catch (IllegalArgumentException iae) {
+                                } catch (NumberFormatException iae) {
                                     delay = null;
                                 }
                             }

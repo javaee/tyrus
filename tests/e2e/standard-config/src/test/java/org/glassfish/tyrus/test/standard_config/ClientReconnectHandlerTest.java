@@ -99,6 +99,11 @@ public class ClientReconnectHandlerTest extends TestContainer {
                         return false;
                     }
                 }
+
+                @Override
+                public long getDelay() {
+                    return 0;
+                }
             };
 
             client.getProperties().put(ClientProperties.RECONNECT_HANDLER, reconnectHandler);
@@ -145,6 +150,11 @@ public class ClientReconnectHandlerTest extends TestContainer {
                         messageLatch.countDown();
                         return false;
                     }
+                }
+
+                @Override
+                public long getDelay() {
+                    return 0;
                 }
             };
 

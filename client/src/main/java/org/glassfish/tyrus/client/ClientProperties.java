@@ -41,11 +41,15 @@ package org.glassfish.tyrus.client;
 
 
 import java.net.URI;
+import java.util.Map;
+
+import javax.websocket.ClientEndpointConfig;
 
 import org.glassfish.tyrus.client.auth.AuthConfig;
 import org.glassfish.tyrus.client.auth.AuthenticationException;
 import org.glassfish.tyrus.client.auth.Authenticator;
 import org.glassfish.tyrus.client.auth.Credentials;
+import org.glassfish.tyrus.spi.ClientEngine;
 import org.glassfish.tyrus.spi.UpgradeResponse;
 
 /**
@@ -68,7 +72,7 @@ public final class ClientProperties {
      * Value must be {@link org.glassfish.tyrus.client.ClientManager.ReconnectHandler} instance.
      * <p/>
      *
-     * @see ClientProperties#RETRY_AFTER_SERVICE_UNAVAILABLE_ENABLED
+     * @see ClientProperties#RETRY_AFTER_SERVICE_UNAVAILABLE
      */
     public static final String RECONNECT_HANDLER = "org.glassfish.tyrus.client.ClientManager.ReconnectHandler";
 
@@ -112,7 +116,7 @@ public final class ClientProperties {
     /**
      * Property usable in {@link ClientManager#getProperties()} as a key for SSL configuration.
      * <p/>
-     * Value is expected to be either {@link org.glassfish.grizzly.ssl.SSLEngineConfigurator} or
+     * Value is expected to be either {@code org.glassfish.grizzly.ssl.SSLEngineConfigurator} or
      * {@link org.glassfish.tyrus.client.SslEngineConfigurator} when configuring Grizzly client or only
      * {@link org.glassfish.tyrus.client.SslEngineConfigurator} when configuring JDK client.
      * <p/>
@@ -138,7 +142,7 @@ public final class ClientProperties {
     /**
      * Property name for maximal incoming buffer size.
      * <p/>
-     * Can be set in properties map (see {@link org.glassfish.tyrus.spi.ClientContainer#openClientSocket(String, javax.websocket.ClientEndpointConfig, java.util.Map, org.glassfish.tyrus.spi.ClientEngine)}).
+     * Can be set in properties map (see {@link org.glassfish.tyrus.spi.ClientContainer#openClientSocket(ClientEndpointConfig, Map, ClientEngine)}).
      */
     public static final String INCOMING_BUFFER_SIZE = "org.glassfish.tyrus.incomingBufferSize";
 
@@ -166,7 +170,7 @@ public final class ClientProperties {
      * User property to set worker thread pool configuration.
      * <p/>
      * An instance of {@link org.glassfish.tyrus.client.ThreadPoolConfig} is expected for both JDK
-     * and Grizzly client. Instance of {@link org.glassfish.grizzly.threadpool.ThreadPoolConfig}, can be used
+     * and Grizzly client. Instance of {@code org.glassfish.grizzly.threadpool.ThreadPoolConfig}, can be used
      * for Grizzly client.
      * <p/>
      * Sample below demonstrates how to use this property:
@@ -235,7 +239,7 @@ public final class ClientProperties {
      *
      * @see #REDIRECT_THRESHOLD
      */
-    public static final String REDIRECT_ENABLED = "org.glassfish.tyrus.client.http.redirect.enabled";
+    public static final String REDIRECT_ENABLED = "org.glassfish.tyrus.client.http.redirect";
 
     /**
      * The maximal number of redirects during single handshake.
@@ -266,12 +270,11 @@ public final class ClientProperties {
      * <li>delay is not longer then 300 seconds</li>
      * </ul>
      * <p/>
-     * Otherwise origin {@link ClientManager.ReconnectHandler#onConnectFailure(Exception)} (user-defined or default) is invoked.
      *
      * @see RetryAfterException
      * @see ClientProperties#RECONNECT_HANDLER
      * @see ClientManager.ReconnectHandler
      * @see ClientManager.ReconnectHandler#onConnectFailure(Exception)
      */
-    public static final String RETRY_AFTER_SERVICE_UNAVAILABLE_ENABLED = "org.glassfish.tyrus.client.http.retryAfter.enabled";
+    public static final String RETRY_AFTER_SERVICE_UNAVAILABLE = "org.glassfish.tyrus.client.http.retryAfter";
 }

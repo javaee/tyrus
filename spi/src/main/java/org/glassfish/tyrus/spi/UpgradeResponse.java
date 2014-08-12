@@ -63,7 +63,7 @@ public abstract class UpgradeResponse implements HandshakeResponse {
     public static final String LOCATION = "Location";
 
     /**
-     * Header containing period or date in which we can try to connect again.
+     * Header containing delay or date in which client can try to reconnect to the server.
      */
     public static final String RETRY_AFTER = "Retry-After";
 

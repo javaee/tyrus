@@ -130,7 +130,7 @@ public class RetryAfterTest extends TestContainer {
             final CountDownLatch messageLatch = new CountDownLatch(1);
 
             client.getProperties().put(ClientProperties.REDIRECT_ENABLED, true);
-            client.getProperties().put(ClientProperties.RETRY_AFTER_SERVICE_UNAVAILABLE_ENABLED, true);
+            client.getProperties().put(ClientProperties.RETRY_AFTER_SERVICE_UNAVAILABLE, true);
 
             client.connectToServer(new Endpoint() {
                 @Override
@@ -278,7 +278,7 @@ public class RetryAfterTest extends TestContainer {
 
             client.getProperties().put(ClientProperties.REDIRECT_ENABLED, true);
             if (retryAfterEnabled != null) {
-                client.getProperties().put(ClientProperties.RETRY_AFTER_SERVICE_UNAVAILABLE_ENABLED, retryAfterEnabled);
+                client.getProperties().put(ClientProperties.RETRY_AFTER_SERVICE_UNAVAILABLE, retryAfterEnabled);
             }
 
             client.connectToServer(new Endpoint() {
@@ -329,7 +329,7 @@ public class RetryAfterTest extends TestContainer {
 
             client.getProperties().put(ClientProperties.REDIRECT_ENABLED, true);
             if (retryAfterEnabled != null) {
-                client.getProperties().put(ClientProperties.RETRY_AFTER_SERVICE_UNAVAILABLE_ENABLED, retryAfterEnabled);
+                client.getProperties().put(ClientProperties.RETRY_AFTER_SERVICE_UNAVAILABLE, retryAfterEnabled);
             }
 
             client.connectToServer(new Endpoint() {
@@ -394,7 +394,7 @@ public class RetryAfterTest extends TestContainer {
             final CountDownLatch messageLatch = new CountDownLatch(1);
 
             client.getProperties().put(ClientProperties.REDIRECT_ENABLED, true);
-            client.getProperties().put(ClientProperties.RETRY_AFTER_SERVICE_UNAVAILABLE_ENABLED, true);
+            client.getProperties().put(ClientProperties.RETRY_AFTER_SERVICE_UNAVAILABLE, true);
 
             client.connectToServer(new Endpoint() {
                 @Override
@@ -452,7 +452,7 @@ public class RetryAfterTest extends TestContainer {
             final CountDownLatch reconnectHandlerLatch = new CountDownLatch(1);
 
             client.getProperties().put(ClientProperties.REDIRECT_ENABLED, true);
-            client.getProperties().put(ClientProperties.RETRY_AFTER_SERVICE_UNAVAILABLE_ENABLED, true);
+            client.getProperties().put(ClientProperties.RETRY_AFTER_SERVICE_UNAVAILABLE, true);
             client.getProperties().put(ClientProperties.RECONNECT_HANDLER, new ClientManager.ReconnectHandler() {
                 @Override
                 public boolean onConnectFailure(Exception e) {

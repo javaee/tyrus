@@ -48,11 +48,11 @@ import org.glassfish.tyrus.spi.UpgradeResponse;
 
 /**
  * This exception is set as a cause of {@link DeploymentException} thrown from {@link WebSocketContainer}.connectToServer(...)
- * when HTTP response status codes {@code 503 - Service Unavailable} is receive.
+ * when HTTP response status code {@code 503 - Service Unavailable} is received.
  *
  * @author Ondrej Kosatka (ondrej.kosatka at oracle.com)
  * @see ClientManager.ReconnectHandler
- * @see ClientProperties#RETRY_AFTER_SERVICE_UNAVAILABLE_ENABLED
+ * @see ClientProperties#RETRY_AFTER_SERVICE_UNAVAILABLE
  */
 public class RetryAfterException extends HandshakeException {
 
@@ -62,7 +62,7 @@ public class RetryAfterException extends HandshakeException {
      * Constructor.
      *
      * @param message the detail message. The detail message is saved for later retrieval by the {@link #getMessage()} method.
-     * @param delay   a delay to the time received handshake response in {@value UpgradeResponse#RETRY_AFTER} header.
+     * @param delay   a delay to the time received handshake response in  header.
      */
     public RetryAfterException(String message, Long delay) {
         super(503, message);
@@ -71,13 +71,11 @@ public class RetryAfterException extends HandshakeException {
 
     /**
      * Get a delay specified in {@value UpgradeResponse#RETRY_AFTER} response header in seconds.
-     * <p/>
-     * Delay is null if response does not contain Retry-After or could not be parsed as long ot http-date.
      *
-     * @return a delay in seconds.
+     * @return a delay in seconds or {@code null} when response does not contain {@value UpgradeResponse#RETRY_AFTER} or
+     * the value cannot be parsed as long ot {@code http-date}.
      */
     public Long getDelay() {
         return delay;
     }
-
 }
