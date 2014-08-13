@@ -68,6 +68,11 @@ public abstract class UpgradeResponse implements HandshakeResponse {
     public static final String RETRY_AFTER = "Retry-After";
 
     /**
+     * Prefix of headers used for including tracing information into handshake response.
+     */
+    public static final String TRACING_HEADER_PREFIX = "X-Tyrus-Tracing-";
+
+    /**
      * Get the current HTTP status code of this response.
      *
      * @return the current HTTP status code.

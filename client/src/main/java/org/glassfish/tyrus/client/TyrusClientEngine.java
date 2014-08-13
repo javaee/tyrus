@@ -66,6 +66,7 @@ import org.glassfish.tyrus.client.auth.AuthConfig;
 import org.glassfish.tyrus.client.auth.AuthenticationException;
 import org.glassfish.tyrus.client.auth.Authenticator;
 import org.glassfish.tyrus.client.auth.Credentials;
+import org.glassfish.tyrus.core.DebugContext;
 import org.glassfish.tyrus.core.Handshake;
 import org.glassfish.tyrus.core.HandshakeException;
 import org.glassfish.tyrus.core.ProtocolHandler;
@@ -113,6 +114,8 @@ public class TyrusClientEngine implements ClientEngine {
     private final URI connectToServerUriParam;
     private final Boolean redirectEnabled;
     private final int redirectThreshold;
+    private final DebugContext debugContext;
+    private final boolean logUpgradeMessages;
 
     private volatile Handshake clientHandShake = null;
     private volatile TimeoutHandler timeoutHandler = null;
@@ -132,9 +135,10 @@ public class TyrusClientEngine implements ClientEngine {
      *                                (and alternatives) call.
      * @param properties              passed container properties, see {@link org.glassfish.tyrus.client.ClientManager#getProperties()}.
      * @param connectToServerUriParam to which the client is connecting.
+     * @param debugContext            debug context.
      */
     /* package */ TyrusClientEngine(TyrusEndpointWrapper endpointWrapper, ClientHandshakeListener listener,
-                                    Map<String, Object> properties, URI connectToServerUriParam) {
+                                    Map<String, Object> properties, URI connectToServerUriParam, DebugContext debugContext) {
         this.endpointWrapper = endpointWrapper;
         this.listener = listener;
         this.properties = properties;
@@ -148,6 +152,14 @@ public class TyrusClientEngine implements ClientEngine {
             redirectThreshold = DEFAULT_REDIRECT_THRESHOLD;
         }
         this.redirectThreshold = redirectThreshold;
+
+        this.debugContext = debugContext;
+        this.logUpgradeMessages = Utils.getProperty(properties, ClientProperties.LOG_UPGRADE_MESSAGES, Boolean.class, false);
+
+        debugContext.appendLogMessage(LOGGER, Level.FINE, DebugContext.Type.OTHER, "Redirect enabled: ", redirectEnabled);
+        if (redirectEnabled) {
+            debugContext.appendLogMessage(LOGGER, Level.FINE, DebugContext.Type.OTHER, "Redirect threshold: ", redirectThreshold);
+        }
     }
 
     @Override
@@ -170,6 +182,7 @@ public class TyrusClientEngine implements ClientEngine {
                 config.getConfigurator().beforeRequest(upgradeRequest.getHeaders());
 
                 clientEngineState = TyrusClientEngineState.UPGRADE_REQUEST_CREATED;
+                logUpgradeRequest(upgradeRequest);
                 return upgradeRequest;
             }
             case REDIRECT_REQUIRED: {
@@ -185,15 +198,22 @@ public class TyrusClientEngine implements ClientEngine {
                 Handshake.updateHostAndOrigin(requestContext);
 
                 clientEngineState = TyrusClientEngineState.UPGRADE_REQUEST_CREATED;
+                logUpgradeRequest(requestContext);
                 return requestContext;
             }
             case AUTH_REQUIRED: {
                 UpgradeRequest upgradeRequest = clientHandShake.getRequest();
 
                 if (clientEngineState.getAuthenticator() != null) {
+
+                    if (LOGGER.isLoggable(Level.CONFIG)) {
+                        debugContext.appendLogMessage(LOGGER, Level.CONFIG, DebugContext.Type.MESSAGE_OUT, "Using authenticator: ", clientEngineState.getAuthenticator().getClass().getName());
+                    }
+
                     String authorizationHeader;
                     try {
                         final Credentials credentials = (Credentials) properties.get(ClientProperties.CREDENTIALS);
+                        debugContext.appendLogMessage(LOGGER, Level.CONFIG, DebugContext.Type.MESSAGE_OUT, "Using credentials: ", credentials);
                         authorizationHeader = clientEngineState.getAuthenticator().generateAuthorizationHeader(upgradeRequest.getRequestURI(), clientEngineState.getWwwAuthenticateHeader(), credentials);
                     } catch (AuthenticationException e) {
                         listener.onError(e);
@@ -203,6 +223,7 @@ public class TyrusClientEngine implements ClientEngine {
                 }
 
                 clientEngineState = TyrusClientEngineState.AUTH_UPGRADE_REQUEST_CREATED;
+                logUpgradeRequest(upgradeRequest);
                 return upgradeRequest;
             }
 
@@ -214,6 +235,14 @@ public class TyrusClientEngine implements ClientEngine {
 
     @Override
     public ClientUpgradeInfo processResponse(final UpgradeResponse upgradeResponse, final Writer writer, final Connection.CloseListener closeListener) {
+
+        if (LOGGER.isLoggable(Level.FINE)) {
+            debugContext.appendLogMessage(LOGGER, Level.FINE, DebugContext.Type.MESSAGE_IN, "Received handshake response: \n" + Utils.stringifyUpgradeResponse(upgradeResponse));
+        } else {
+            if (logUpgradeMessages) {
+                debugContext.appendStandardOutputMessage(DebugContext.Type.MESSAGE_IN, "Received handshake response: \n" + Utils.stringifyUpgradeResponse(upgradeResponse));
+            }
+        }
 
         switch (clientEngineState) {
             case AUTH_UPGRADE_REQUEST_CREATED:
@@ -317,6 +346,7 @@ public class TyrusClientEngine implements ClientEngine {
                         }
 
                         AuthConfig authConfig = Utils.getProperty(properties, ClientProperties.AUTH_CONFIG, AuthConfig.class, AuthConfig.Builder.create().build());
+                        debugContext.appendLogMessage(LOGGER, Level.FINE, DebugContext.Type.MESSAGE_OUT, "Using authentication config: ", authConfig);
                         if (authConfig == null) {
                             clientEngineState = TyrusClientEngineState.FAILED;
                             listener.onError(new AuthenticationException(LocalizationMessages.AUTHENTICATION_FAILED()));
@@ -338,6 +368,7 @@ public class TyrusClientEngine implements ClientEngine {
                         final String[] tokens = wwwAuthenticateHeader.trim().split("\\s+", 2);
                         final String scheme = tokens[0];
 
+                        debugContext.appendLogMessage(LOGGER, Level.FINE, DebugContext.Type.MESSAGE_OUT, "Using authentication scheme: ", scheme);
                         final Authenticator authenticator = authConfig.getAuthenticators().get(scheme);
                         if (authenticator == null) {
                             clientEngineState = TyrusClientEngineState.FAILED;
@@ -406,6 +437,16 @@ public class TyrusClientEngine implements ClientEngine {
         }
     }
 
+    private void logUpgradeRequest(UpgradeRequest upgradeRequest) {
+        if (LOGGER.isLoggable(Level.FINE)) {
+            debugContext.appendLogMessage(LOGGER, Level.FINE, DebugContext.Type.MESSAGE_OUT, "Sending handshake request:\n" + Utils.stringifyUpgradeRequest(upgradeRequest));
+        } else {
+            if (logUpgradeMessages) {
+                debugContext.appendStandardOutputMessage(DebugContext.Type.MESSAGE_OUT, "Sending handshake request:\n" + Utils.stringifyUpgradeRequest(upgradeRequest));
+            }
+        }
+    }
+
     /**
      * Process upgrade response. This method should be called only when the response HTTP status code is {@code 101}.
      *
@@ -443,6 +484,7 @@ public class TyrusClientEngine implements ClientEngine {
                     }
 
                     extensions.add(installedExtension);
+                    debugContext.appendLogMessage(LOGGER, Level.FINE, DebugContext.Type.OTHER, "Installed extension: ", installedExtension.getName());
                 }
             }
         }
@@ -450,7 +492,8 @@ public class TyrusClientEngine implements ClientEngine {
         final Session sessionForRemoteEndpoint = endpointWrapper.createSessionForRemoteEndpoint(
                 socket,
                 upgradeResponse.getFirstHeaderValue(HandshakeRequest.SEC_WEBSOCKET_PROTOCOL),
-                extensions);
+                extensions,
+                debugContext);
 
         ((ClientEndpointConfig) endpointWrapper.getEndpointConfig()).getConfigurator().afterResponse(upgradeResponse);
 
@@ -460,7 +503,7 @@ public class TyrusClientEngine implements ClientEngine {
         protocolHandler.setExtensionContext(extensionContext);
 
         // subprotocol and extensions are already set -- TODO: introduce new method (onClientConnect)?
-        socket.onConnect(this.clientHandShake.getRequest(), null, null, null);
+        socket.onConnect(this.clientHandShake.getRequest(), null, null, null, debugContext);
 
         listener.onSessionCreated(sessionForRemoteEndpoint);
 
@@ -475,6 +518,8 @@ public class TyrusClientEngine implements ClientEngine {
         } else {
             incomingBufferSize = tyrusIncomingBufferSize;
         }
+
+        debugContext.appendLogMessage(LOGGER, Level.FINE, DebugContext.Type.OTHER, "Incoming buffer size: ", incomingBufferSize);
 
         return new ClientUpgradeInfo() {
             @Override

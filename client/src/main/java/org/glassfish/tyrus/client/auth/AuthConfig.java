@@ -102,6 +102,25 @@ public class AuthConfig {
         return Builder.create();
     }
 
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("AuthConfig{");
+        boolean first = true;
+        for (Map.Entry<String, Authenticator> authenticator : authenticators.entrySet()) {
+            if (first) {
+                first = false;
+            } else {
+                sb.append(", ");
+            }
+            sb.append(authenticator.getKey());
+            sb.append("->");
+            sb.append(authenticator.getValue().getClass().getName());
+        }
+        sb.append("}");
+        return sb.toString();
+    }
+
     /**
      * The AuthConfig.Builder is a class used for creating an instance of {@link AuthConfig} for purpose of HTTP Authentication.
      * <p/>

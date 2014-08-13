@@ -44,6 +44,7 @@ import java.nio.ByteBuffer;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
@@ -53,6 +54,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.glassfish.tyrus.core.l10n.LocalizationMessages;
+import org.glassfish.tyrus.spi.UpgradeRequest;
+import org.glassfish.tyrus.spi.UpgradeResponse;
 
 /**
  * Utility methods shared among Tyrus modules.
@@ -364,6 +367,7 @@ public class Utils {
      * @param defaultValue value returned when record does not exist in supplied map.
      * @return typed value or {@code null} if property is not set or value is not assignable.
      */
+    @SuppressWarnings("unchecked")
     public static <T> T getProperty(final Map<String, Object> properties, final String key, final Class<T> type, final T defaultValue) {
         if (properties != null) {
             final Object o = properties.get(key);
@@ -381,6 +385,12 @@ public class Utils {
                     } else if (type.equals(Boolean.class)) {
                         //noinspection unchecked
                         return (T) (Boolean) (o.toString().equals("1") || Boolean.valueOf(o.toString()));
+                    } else if (type.isEnum()) {
+                        try {
+                            return (T) Enum.valueOf((Class<? extends Enum>) type, o.toString().trim().toUpperCase());
+                        } catch (Exception e) {
+                            return defaultValue;
+                        }
                     } else {
                         return null;
                     }
@@ -461,5 +471,68 @@ public class Utils {
                 return formatAnsiCAsc.parse(stringValue);
             }
         }
+    }
+
+    private static final List<String> FILTERED_HEADERS = Arrays.asList(UpgradeRequest.AUTHORIZATION);
+
+    /**
+     * Converts upgrade request to a HTTP-formatted string.
+     *
+     * @param upgradeRequest upgrade request to be formatted.
+     * @return stringified upgrade request.
+     */
+    public static String stringifyUpgradeRequest(UpgradeRequest upgradeRequest) {
+        if (upgradeRequest == null) {
+            return null;
+        }
+
+        StringBuilder request = new StringBuilder();
+        request.append("GET ");
+        request.append(upgradeRequest.getRequestUri());
+        request.append("\n");
+        appendHeaders(request, upgradeRequest.getHeaders());
+        return request.toString();
+    }
+
+    /**
+     * Converts upgrade response to a HTTP-formatted string.
+     *
+     * @param upgradeResponse upgrade request to be formatted.
+     * @return stringified upgrade request.
+     */
+    public static String stringifyUpgradeResponse(UpgradeResponse upgradeResponse) {
+        if (upgradeResponse == null) {
+            return null;
+        }
+        StringBuilder request = new StringBuilder();
+        request.append(upgradeResponse.getStatus());
+        request.append("\n");
+        appendHeaders(request, upgradeResponse.getHeaders());
+        return request.toString();
+    }
+
+    private static void appendHeaders(StringBuilder message, Map<String, List<String>> headers) {
+        for (Map.Entry<String, List<String>> header : headers.entrySet()) {
+            StringBuilder value = new StringBuilder();
+            for (String valuePart : header.getValue()) {
+                if (value.length() != 0) {
+                    value.append(", ");
+                }
+                value.append(valuePart);
+            }
+            appendHeader(message, header.getKey(), value.toString());
+        }
+    }
+
+    private static void appendHeader(StringBuilder message, String key, String value) {
+        message.append(key);
+        message.append(": ");
+        for (String filteredHeader : FILTERED_HEADERS) {
+            if (filteredHeader.equals(key)) {
+                value = "*****";
+            }
+        }
+        message.append(value);
+        message.append("\n");
     }
 }

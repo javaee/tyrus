@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -42,6 +42,10 @@ package org.glassfish.tyrus.core.uri;
 import java.io.Serializable;
 import java.util.Comparator;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import org.glassfish.tyrus.core.DebugContext;
 
 /**
  * The comparator is used to order the best matches in a list.
@@ -49,10 +53,12 @@ import java.util.List;
  * @author dannycoward
  */
 class MatchComparator implements Comparator<Match>, Serializable {
-    private final static boolean noisy = false;
 
-    private void debug(String message) {
-        if (noisy) System.out.println(message);
+    private Logger LOGGER = Logger.getLogger(MatchComparator.class.getName());
+    private DebugContext debugContext;
+
+    MatchComparator(DebugContext debugContext) {
+        this.debugContext = debugContext;
     }
 
     // m1 wins = return -1
@@ -60,21 +66,23 @@ class MatchComparator implements Comparator<Match>, Serializable {
     // neither wins = return 0
     @Override
     public int compare(Match m1, Match m2) {
-        debug("COMPARE: " + m1 + " with " + m2);
+        debugContext.appendTraceMessage(LOGGER, Level.FINER, DebugContext.Type.MESSAGE_IN, "Choosing better match from ", m1, " and ", m2);
         boolean m1exact = m1.isExact();
         boolean m2exact = m2.isExact();
 
         if (m1exact) {
             if (m2exact) { // both exact matches, no-one wins
-                debug("COMPARED: SAME");
+                debugContext.appendTraceMessage(LOGGER, Level.FINER, DebugContext.Type.MESSAGE_IN, "Both ", m1, " and ", m2, " are exact matches");
                 return 0;
             } else { // m2not exact, m1 is, m1 wins
-                debug("COMPARED: M1 wins");
+                debugContext.appendTraceMessage(LOGGER, Level.FINER, DebugContext.Type.MESSAGE_IN, m1, " is an exact match");
+                // m1 is exact match
                 return -1; // m1 wins
             }
         } else { // m1 is not exact, m2 is, m2 wins
             if (m2exact) {
-                debug("COMPARED: M2 wins");
+                debugContext.appendTraceMessage(LOGGER, Level.FINER, DebugContext.Type.MESSAGE_IN, m2, " is an exact match");
+                //m 2 is exact match
                 return 1; //m2 is exact, m1 isn't, so m2 wins
             } else { // neither are exact !
                 // iterate through the variable segment indices, left to right
@@ -87,38 +95,33 @@ class MatchComparator implements Comparator<Match>, Serializable {
                 List<Integer> m2Indices = m2.getVariableSegmentIndices();
 
                 for (int i = 0; i < Math.max(m1Indices.size(), m2Indices.size()); i++) {
-                    debug("Index: " + i);
 
                     if (i > m2Indices.size() - 1) {
-                        debug("COMPARED: M2 wins - 1");
-                        return 1; //m2 wins because m1 has more variables to go.
+                        debugContext.appendTraceMessage(LOGGER, Level.FINER, DebugContext.Type.MESSAGE_IN, m2, " is a  better match, because ", m1, " has more variables");
+                        //m2 wins because m1 has more variables to go.
+                        return 1;
                     } else if (i > m1Indices.size() - 1) {
-                        debug("COMPARED: M1 wins - 1");
+                        debugContext.appendTraceMessage(LOGGER, Level.FINER, DebugContext.Type.MESSAGE_IN, m1, " is a  better match, because ", m2, " has more variables");
+                        // m1 wins because m2 has more variables to go
                         return -1; // m1 wins because m2 has more variables to go
                     } else {
                         int m1Index = m1Indices.get(i);
                         int m2Index = m2Indices.get(i);
-                        debug("m1Index is " + m1Index + " m2Index is " + m2Index);
                         if (m1Index > m2Index) {
                             // m1 wins as it has a larger exact path
-                            debug("COMPARED: M1 wins - 2");
+                            debugContext.appendTraceMessage(LOGGER, Level.FINER, DebugContext.Type.MESSAGE_IN, m1, " is a  better match, because it has longer exact path");
                             return -1;
                         } else if (m2Index > m1Index) {
                             // m2 wins as it has a larger exact path
-                            debug("COMPARED: M2 wins -2");
+                            debugContext.appendTraceMessage(LOGGER, Level.FINER, DebugContext.Type.MESSAGE_IN, m2, " is a  better match, because it has longer exact path");
                             return 1;
-                        } else {
-                            // continue...
                         }
-
                     }
                 }
                 // both had same indices
-                debug("COMPARED: EQUAL");
                 return 0;
             }
         }
-
         // can't get here
     }
 }

@@ -47,6 +47,7 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.glassfish.tyrus.core.DebugContext;
 import org.glassfish.tyrus.core.TyrusEndpointWrapper;
 import org.glassfish.tyrus.core.uri.internal.PathSegment;
 import org.glassfish.tyrus.core.uri.internal.UriComponent;
@@ -154,11 +155,7 @@ public class Match {
 
     @Override
     public String toString() {
-        if (this.isExact()) {
-            return "Match(exact, path:" + getPath() + ")";
-        } else {
-            return "Match(path:" + getPath() + " params: " + this.paramsToString() + " idices: " + this.variableSegmentIndices + ")";
-        }
+        return endpointWrapper.getEndpointPath();
     }
 
     private String paramsToString() {
@@ -189,7 +186,7 @@ public class Match {
      * @return TODO
      */
     public static Match getBestMatch(String incoming, Set<TyrusEndpointWrapper> thingsWithPath) {
-        List<Match> sortedMatches = getAllMatches(incoming, thingsWithPath);
+        List<Match> sortedMatches = getAllMatches(incoming, thingsWithPath, new DebugContext());
         if (sortedMatches.isEmpty()) {
             return null;
         } else {
@@ -198,25 +195,25 @@ public class Match {
     }
 
     /**
-     * Return a list of all matches, in order of match preference, best match last.
+     * Return a list of all endpoints with path matching the request path. The endpoints are in order of match preference, best match first.
      *
-     * @param incoming       TODO
-     * @param thingsWithPath TODO
-     * @return TODO
+     * @param incoming       request path.
+     * @param thingsWithPath endpoints.
+     * @param debugContext   debug context.
+     * @return a list of all endpoints with path matching the request path. The endpoints are in order of match preference, best match first.
      */
-    public static List<Match> getAllMatches(String incoming, Set<TyrusEndpointWrapper> thingsWithPath) {
+    public static List<Match> getAllMatches(String incoming, Set<TyrusEndpointWrapper> thingsWithPath, DebugContext debugContext) {
         Set<Match> matches = new HashSet<Match>();
         for (TyrusEndpointWrapper nextThingWithPath : thingsWithPath) {
-            Match m = matchPath(incoming, nextThingWithPath);
+            Match m = matchPath(incoming, nextThingWithPath, debugContext);
             if (m != null) {
                 matches.add(m);
             }
         }
         List<Match> sortedMatches = new ArrayList<Match>();
         sortedMatches.addAll(matches);
-        debug("Unsorted: " + sortedMatches);
-        Collections.sort(sortedMatches, new MatchComparator());
-        debug("Sorted: " + sortedMatches);
+        Collections.sort(sortedMatches, new MatchComparator(debugContext));
+        debugContext.appendTraceMessage(LOGGER, Level.FINE, DebugContext.Type.MESSAGE_IN, "Endpoints matched to the request URI: ", sortedMatches);
         return sortedMatches;
     }
 
@@ -271,10 +268,12 @@ public class Match {
         return eq;
     }
 
-    private static Match matchPath(String incoming, TyrusEndpointWrapper hasPath) {
+    private static Match matchPath(String incoming, TyrusEndpointWrapper hasPath, DebugContext debugContext) {
+        debugContext.appendTraceMessage(LOGGER, Level.FINE, DebugContext.Type.MESSAGE_IN, "Matching request URI ", incoming, " against ", hasPath.getEndpointPath());
         List<PathSegment> incomingList = UriComponent.decodePath(incoming, true);
         List<PathSegment> pathList = UriComponent.decodePath(hasPath.getEndpointPath(), true);
         if (incomingList.size() != pathList.size()) {
+            debugContext.appendTraceMessage(LOGGER, Level.FINE, DebugContext.Type.MESSAGE_IN, "URIs ", incoming, " and ", hasPath.getEndpointPath(), " have different length");
             return null;
         } else {
             Match m = new Match(hasPath);
@@ -289,9 +288,9 @@ public class Match {
                     somethingMatched = true;
                     m.addParameter(getVariableName(pathSegment), incomingSegment, i);
                 } else {
+                    debugContext.appendTraceMessage(LOGGER, Level.FINE, DebugContext.Type.MESSAGE_IN, "Segment \"", pathSegment, "\" does not match");
                     return null; // no match
                 }
-
             }
             if (somethingMatched) {
                 return m;

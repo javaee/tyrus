@@ -49,6 +49,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.websocket.CloseReason;
@@ -57,7 +58,6 @@ import javax.websocket.SendHandler;
 import javax.websocket.SendResult;
 
 import org.glassfish.tyrus.core.l10n.LocalizationMessages;
-
 import static org.glassfish.tyrus.core.Utils.checkNotNull;
 
 /**
@@ -92,6 +92,9 @@ public abstract class TyrusRemoteEndpoint implements javax.websocket.RemoteEndpo
         @Override
         public void sendText(String text) throws IOException {
             checkNotNull(text, "text");
+
+            session.getDebugContext().appendLogMessage(LOGGER, Level.FINEST, DebugContext.Type.MESSAGE_OUT, "Sending text message: ", text);
+
             final Future<?> future = webSocket.sendText(text);
             try {
                 processFuture(future);
@@ -103,6 +106,9 @@ public abstract class TyrusRemoteEndpoint implements javax.websocket.RemoteEndpo
         @Override
         public void sendBinary(ByteBuffer data) throws IOException {
             checkNotNull(data, "data");
+
+            session.getDebugContext().appendLogMessage(LOGGER, Level.FINEST, DebugContext.Type.MESSAGE_OUT, "Sending binary message");
+
             final Future<?> future = webSocket.sendBinary(Utils.getRemainingArray(data));
             try {
                 processFuture(future);
@@ -114,6 +120,9 @@ public abstract class TyrusRemoteEndpoint implements javax.websocket.RemoteEndpo
         @Override
         public void sendText(String partialMessage, boolean isLast) throws IOException {
             checkNotNull(partialMessage, "partialMessage");
+
+            session.getDebugContext().appendLogMessage(LOGGER, Level.FINEST, DebugContext.Type.MESSAGE_OUT, "Sending partial text message: ", partialMessage);
+
             final Future<?> future = webSocket.sendText(partialMessage, isLast);
             try {
                 processFuture(future);
@@ -125,6 +134,9 @@ public abstract class TyrusRemoteEndpoint implements javax.websocket.RemoteEndpo
         @Override
         public void sendBinary(ByteBuffer partialByte, boolean isLast) throws IOException {
             checkNotNull(partialByte, "partialByte");
+
+            session.getDebugContext().appendLogMessage(LOGGER, Level.FINEST, DebugContext.Type.MESSAGE_OUT, "Sending partial binary message");
+
             final Future<?> future = webSocket.sendBinary(Utils.getRemainingArray(partialByte), isLast);
             try {
                 processFuture(future);
@@ -269,10 +281,12 @@ public abstract class TyrusRemoteEndpoint implements javax.websocket.RemoteEndpo
 
             switch (type) {
                 case TEXT:
+                    session.getDebugContext().appendLogMessage(LOGGER, Level.FINEST, DebugContext.Type.MESSAGE_OUT, "Sending text message: ", message);
                     result = webSocket.sendText((String) message);
                     break;
 
                 case BINARY:
+                    session.getDebugContext().appendLogMessage(LOGGER, Level.FINEST, DebugContext.Type.MESSAGE_OUT, "Sending binary message");
                     result = webSocket.sendBinary(Utils.getRemainingArray((ByteBuffer) message));
                     break;
 
@@ -350,6 +364,7 @@ public abstract class TyrusRemoteEndpoint implements javax.websocket.RemoteEndpo
     Future<?> sendSyncObject(Object o) {
         Object toSend;
         try {
+            session.getDebugContext().appendLogMessage(LOGGER, Level.FINEST, DebugContext.Type.MESSAGE_OUT, "Sending object: ", o);
             toSend = endpointWrapper.doEncode(session, o);
         } catch (final Exception e) {
             return new Future<Object>() {

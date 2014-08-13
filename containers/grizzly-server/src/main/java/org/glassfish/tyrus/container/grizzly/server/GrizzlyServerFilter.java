@@ -95,7 +95,7 @@ import org.glassfish.grizzly.memory.ByteBufferArray;
  */
 class GrizzlyServerFilter extends BaseFilter {
 
-    private static final Logger logger = Grizzly.logger(GrizzlyServerFilter.class);
+    private static final Logger LOGGER = Grizzly.logger(GrizzlyServerFilter.class);
 
     private static final Attribute<org.glassfish.tyrus.spi.Connection> TYRUS_CONNECTION = Grizzly.DEFAULT_ATTRIBUTE_BUILDER
             .createAttribute(GrizzlyServerFilter.class.getName() + ".Connection");
@@ -159,8 +159,8 @@ class GrizzlyServerFilter extends BaseFilter {
 
         final org.glassfish.tyrus.spi.Connection tyrusConnection = getConnection(ctx);
 
-        if (logger.isLoggable(Level.FINE)) {
-            logger.log(Level.FINE, "handleRead websocket: {0} content-size={1} headers=\n{2}",
+        if (LOGGER.isLoggable(Level.FINEST)) {
+            LOGGER.log(Level.FINEST, "handleRead websocket: {0} content-size={1} headers=\n{2}",
                     new Object[]{tyrusConnection, message.getContent().remaining(), message.getHttpHeader()});
         }
 
@@ -272,6 +272,7 @@ class GrizzlyServerFilter extends BaseFilter {
                 return ctx.getStopAction();
 
             case NOT_APPLICABLE:
+                writeTraceHeaders(ctx, upgradeResponse);
                 return ctx.getInvokeAction();
         }
 
@@ -291,6 +292,16 @@ class GrizzlyServerFilter extends BaseFilter {
         }
 
         ctx.write(HttpContent.builder(responsePacket).build());
+    }
+
+    private void writeTraceHeaders(FilterChainContext ctx, UpgradeResponse upgradeResponse) {
+        final HttpResponsePacket responsePacket = ((HttpRequestPacket) ((HttpContent) ctx.getMessage()).getHttpHeader()).getResponse();
+
+        for (Map.Entry<String, List<String>> entry : upgradeResponse.getHeaders().entrySet()) {
+            if (entry.getKey().contains(UpgradeResponse.TRACING_HEADER_PREFIX)) {
+                responsePacket.setHeader(entry.getKey(), Utils.getHeaderFromList(entry.getValue()));
+            }
+        }
     }
 
     private static UpgradeRequest createWebSocketRequest(final HttpContent requestContent) {

@@ -109,6 +109,7 @@ public class TyrusSession implements Session, DistributedSession {
     private final List<Extension> negotiatedExtensions;
     private final String negotiatedSubprotocol;
     private final String remoteAddr;
+    private final DebugContext debugContext;
 
     private final Map<RemoteSession.DistributedMapKey, Object> distributedPropertyMap;
     private final Map<String, Object> distributedUserProperties;
@@ -127,7 +128,7 @@ public class TyrusSession implements Session, DistributedSession {
                  String subprotocol, List<Extension> extensions, boolean isSecure,
                  URI requestURI, String queryString, Map<String, String> pathParameters, Principal principal,
                  Map<String, List<String>> requestParameterMap, final ClusterContext clusterContext,
-                 String connectionId, final String remoteAddr) {
+                 String connectionId, final String remoteAddr, DebugContext debugContext) {
         this.container = container;
         this.endpointWrapper = endpointWrapper;
         this.negotiatedExtensions = extensions == null ? Collections.<Extension>emptyList() : Collections.unmodifiableList(extensions);
@@ -143,6 +144,7 @@ public class TyrusSession implements Session, DistributedSession {
         this.requestParameterMap = requestParameterMap == null ? Collections.<String, List<String>>emptyMap() : Collections.unmodifiableMap(new HashMap<String, List<String>>(requestParameterMap));
         this.connectionId = connectionId;
         this.remoteAddr = remoteAddr;
+        this.debugContext = debugContext;
 
         if (container != null) {
             maxTextMessageBufferSize = container.getDefaultMaxTextMessageBufferSize();
@@ -179,6 +181,7 @@ public class TyrusSession implements Session, DistributedSession {
             distributedUserProperties = new HashMap<String, Object>();
         }
 
+        debugContext.setSessionId(id);
         userProperties = new HashMap<String, Object>();
     }
 
@@ -651,6 +654,10 @@ public class TyrusSession implements Session, DistributedSession {
 
     String getConnectionId() {
         return connectionId;
+    }
+
+    DebugContext getDebugContext() {
+        return debugContext;
     }
 
     /**

@@ -277,4 +277,15 @@ public final class ClientProperties {
      * @see ClientManager.ReconnectHandler#onConnectFailure(Exception)
      */
     public static final String RETRY_AFTER_SERVICE_UNAVAILABLE = "org.glassfish.tyrus.client.http.retryAfter";
+
+    /**
+     * User property to configure logging of upgrade messages.
+     * <p/>
+     * Value is expected to be {@code boolean}. Default value is {@code false}.
+     * <p/>
+     * When set to {@code true} upgrade request and response messages will be logged regardless of the logging
+     * level configuration. When the logging is configured to {@link java.util.logging.Level#FINE} or lower,
+     * this setting will have no effect as at this level HTTP headers will be logged anyway.
+     */
+    public static final String LOG_UPGRADE_MESSAGES = "org.glassfish.tyrus.client.http.logUpgradeMessages";
 }

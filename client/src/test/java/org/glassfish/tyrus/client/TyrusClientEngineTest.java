@@ -59,6 +59,7 @@ import javax.websocket.server.HandshakeRequest;
 
 import org.glassfish.tyrus.client.auth.Credentials;
 import org.glassfish.tyrus.core.Base64Utils;
+import org.glassfish.tyrus.core.DebugContext;
 import org.glassfish.tyrus.core.HandshakeException;
 import org.glassfish.tyrus.core.TyrusEndpointWrapper;
 import org.glassfish.tyrus.core.l10n.LocalizationMessages;
@@ -67,7 +68,10 @@ import org.glassfish.tyrus.spi.UpgradeRequest;
 import org.glassfish.tyrus.spi.UpgradeResponse;
 
 import org.junit.Test;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * @author Ondrej Kosatka (ondrej.kosatka at oracle.com)
@@ -482,7 +486,7 @@ public class TyrusClientEngineTest {
             public void onError(Throwable exception) {
 
             }
-        }, properties, URI.create(requestUri));
+        }, properties, URI.create(requestUri), new DebugContext());
     }
 
     private static class TestEndpoint extends Endpoint {

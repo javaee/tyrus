@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -103,6 +103,7 @@ public class TyrusServerConfiguration implements ServerApplicationConfig {
         final Set<Class<? extends Endpoint>> scannedProgramatics = new HashSet<Class<? extends Endpoint>>();
         final Set<Class<?>> scannedAnnotateds = new HashSet<Class<?>>();
 
+
         for (Iterator<Class<?>> it = classes.iterator(); it.hasNext(); ) {
             Class<?> cls = it.next();
 
@@ -139,13 +140,49 @@ public class TyrusServerConfiguration implements ServerApplicationConfig {
             if (c.isAnnotationPresent(ServerEndpoint.class)) {
                 annotatedClasses.add(c);
 
-            } else if(ServerApplicationConfig.class.isAssignableFrom(c)) {
+            } else if (ServerApplicationConfig.class.isAssignableFrom(c)) {
                 ServerApplicationConfig config = (ServerApplicationConfig) ReflectionHelper.getInstance(c, errorCollector);
                 configurations.add(config);
 
-            // nothing else is expected/supported.
+                // nothing else is expected/supported.
             } else {
                 errorCollector.addException(new DeploymentException(String.format("Class %s is not ServerApplicationConfig descendant nor has @ServerEndpoint annotation.", c.getName())));
+            }
+        }
+
+        if (LOGGER.isLoggable(Level.CONFIG)) {
+            StringBuilder logMessage = new StringBuilder();
+
+            if (!configurations.isEmpty()) {
+                logMessage.append("Found server application configs:\n");
+            }
+
+            for (ServerApplicationConfig serverApplicationConfig : configurations) {
+                logMessage.append("\t").append(serverApplicationConfig.getClass().getName()).append("\n");
+            }
+
+            if (!scannedProgramatics.isEmpty()) {
+                logMessage.append("Found programmatic endpoints:\n");
+            }
+
+            for (Class<? extends Endpoint> endpoint : scannedProgramatics) {
+                logMessage.append("\t").append(endpoint.getName()).append("\n");
+            }
+
+            if (!scannedAnnotateds.isEmpty() || !annotatedClasses.isEmpty()) {
+                logMessage.append("Found annotated endpoints:\n");
+            }
+
+            for (Class<?> endpoint : scannedAnnotateds) {
+                logMessage.append("\t").append(endpoint.getName()).append("\n");
+            }
+
+            for (Class<?> endpoint : annotatedClasses) {
+                logMessage.append("\t").append(endpoint.getName()).append("\n");
+            }
+
+            if (!logMessage.toString().equals("")) {
+                LOGGER.config(logMessage.toString());
             }
         }
 

@@ -109,6 +109,22 @@ public abstract class UpgradeRequest implements HandshakeRequest {
     public static final String AUTHORIZATION = "Authorization";
 
     /**
+     * If this header is present in the handshake request and the tracing type is configured to "ON_DEMAND", tracing
+     * headers will be sent in the handshake response. The value of the header is no taken into account.
+     * <p/>
+     * Setting this header does not have any effect if the tracing type is configured to "ALL" or "OFF".
+     */
+    public static final String ENABLE_TRACING_HEADER = "X-Tyrus-Tracing-Accept";
+
+    /**
+     * This header allows temporarily changing tracing threshold. If present in the handshake request, the tracing
+     * threshold will be changed for the handshake the request is part of.
+     * <p/>
+     * The expected values are "SUMMARY" or "TRACE", of which "TRACE" will provide more fine-grained information.
+     */
+    public static final String TRACING_THRESHOLD = "X-Tyrus-Tracing-Threshold";
+
+    /**
      * Returns the value of the specified request header name. If there are
      * multiple headers with the same name, this method returns the first
      * header in the request. The header name is case insensitive.

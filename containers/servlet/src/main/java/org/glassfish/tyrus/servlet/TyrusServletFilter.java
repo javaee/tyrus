@@ -71,6 +71,7 @@ import org.glassfish.tyrus.core.TyrusUpgradeResponse;
 import org.glassfish.tyrus.core.TyrusWebSocketEngine;
 import org.glassfish.tyrus.core.Utils;
 import org.glassfish.tyrus.core.wsadl.model.Application;
+import org.glassfish.tyrus.spi.UpgradeResponse;
 import org.glassfish.tyrus.spi.WebSocketEngine;
 import org.glassfish.tyrus.spi.Writer;
 
@@ -246,9 +247,11 @@ class TyrusServletFilter implements Filter, HttpSessionListener {
             final WebSocketEngine.UpgradeInfo upgradeInfo = engine.upgrade(requestContext, tyrusUpgradeResponse);
             switch (upgradeInfo.getStatus()) {
                 case HANDSHAKE_FAILED:
+                    appendTraceHeaders(httpServletResponse, tyrusUpgradeResponse);
                     httpServletResponse.sendError(tyrusUpgradeResponse.getStatus());
                     break;
                 case NOT_APPLICABLE:
+                    appendTraceHeaders(httpServletResponse, tyrusUpgradeResponse);
                     filterChain.doFilter(request, response);
                     break;
                 case SUCCESS:
@@ -293,6 +296,14 @@ class TyrusServletFilter implements Filter, HttpSessionListener {
             }
 
             filterChain.doFilter(request, response);
+        }
+    }
+
+    private void appendTraceHeaders(HttpServletResponse httpServletResponse, TyrusUpgradeResponse tyrusUpgradeResponse) {
+        for (Map.Entry<String, List<String>> entry : tyrusUpgradeResponse.getHeaders().entrySet()) {
+            if (entry.getKey().contains(UpgradeResponse.TRACING_HEADER_PREFIX)) {
+                httpServletResponse.addHeader(entry.getKey(), Utils.getHeaderFromList(entry.getValue()));
+            }
         }
     }
 

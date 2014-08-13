@@ -111,4 +111,8 @@ public final class Credentials {
     public byte[] getPassword() {
         return password;
     }
+
+    public String toString() {
+        return "Credentials{username: " + username + ", password: *****}";
+    }
 }

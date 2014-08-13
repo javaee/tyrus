@@ -58,6 +58,7 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.HandlesTypes;
 
+import org.glassfish.tyrus.core.DebugContext;
 import org.glassfish.tyrus.core.TyrusWebSocketEngine;
 import org.glassfish.tyrus.core.monitoring.ApplicationEventListener;
 import org.glassfish.tyrus.server.TyrusServerContainer;
@@ -94,6 +95,8 @@ public class TyrusServletContainerInitializer implements ServletContainerInitial
         final Integer incomingBufferSize = getIntContextParam(ctx, TyrusHttpUpgradeHandler.FRAME_BUFFER_SIZE);
         final Integer maxSessionsPerApp = getIntContextParam(ctx, TyrusWebSocketEngine.MAX_SESSIONS_PER_APP);
         final Integer maxSessionsPerRemoteAddr = getIntContextParam(ctx, TyrusWebSocketEngine.MAX_SESSIONS_PER_REMOTE_ADDR);
+        final DebugContext.TracingType tracingType = getEnumContextParam(ctx, TyrusWebSocketEngine.TRACING_TYPE, DebugContext.TracingType.class, DebugContext.TracingType.OFF);
+        final DebugContext.TracingThreshold tracingThreshold = getEnumContextParam(ctx, TyrusWebSocketEngine.TRACING_THRESHOLD, DebugContext.TracingThreshold.class, DebugContext.TracingThreshold.TRACE);
 
         final ApplicationEventListener applicationEventListener = createApplicationEventListener(ctx);
         final TyrusServerContainer serverContainer = new TyrusServerContainer(classes) {
@@ -103,6 +106,8 @@ public class TyrusServletContainerInitializer implements ServletContainerInitial
                     .incomingBufferSize(incomingBufferSize)
                     .maxSessionsPerApp(maxSessionsPerApp)
                     .maxSessionsPerRemoteAddr(maxSessionsPerRemoteAddr)
+                    .tracingType(tracingType)
+                    .tracingThreshold(tracingThreshold)
                     .build();
 
             @Override
@@ -122,9 +127,10 @@ public class TyrusServletContainerInitializer implements ServletContainerInitial
         };
         ctx.setAttribute(ServerContainer.class.getName(), serverContainer);
         String wsadlEnabledParam = ctx.getInitParameter(TyrusWebSocketEngine.WSADL_SUPPORT);
+        boolean wsadlEnabled = wsadlEnabledParam != null && wsadlEnabledParam.equalsIgnoreCase("true");
+        LOGGER.config("WSADL enabled: " + wsadlEnabled);
 
-        TyrusServletFilter filter = new TyrusServletFilter((TyrusWebSocketEngine) serverContainer.getWebSocketEngine(),
-                wsadlEnabledParam != null && wsadlEnabledParam.equalsIgnoreCase("true"));
+        TyrusServletFilter filter = new TyrusServletFilter((TyrusWebSocketEngine) serverContainer.getWebSocketEngine(), wsadlEnabled);
 
         // HttpSessionListener registration
         ctx.addListener(filter);
@@ -158,6 +164,22 @@ public class TyrusServletContainerInitializer implements ServletContainerInitial
         }
 
         return null;
+    }
+
+    private <T extends Enum<T>> T getEnumContextParam(ServletContext ctx, String paramName, Class<T> type, T defaultValue) {
+        String initParameter = ctx.getInitParameter(paramName);
+
+        if (initParameter == null) {
+            return defaultValue;
+        }
+
+        try {
+            return Enum.valueOf(type, initParameter.trim().toUpperCase());
+        } catch (Exception e) {
+            LOGGER.log(Level.CONFIG, "Invalid configuration value [" + paramName + " = " + initParameter + "]");
+        }
+
+        return defaultValue;
     }
 
     private ApplicationEventListener createApplicationEventListener(final ServletContext ctx) {
