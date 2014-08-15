@@ -41,13 +41,13 @@ package org.glassfish.tyrus.core;
 
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.security.Principal;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -70,6 +70,7 @@ import javax.websocket.Session;
 import javax.websocket.WebSocketContainer;
 
 import org.glassfish.tyrus.core.cluster.ClusterContext;
+import org.glassfish.tyrus.core.cluster.DistributedSession;
 import org.glassfish.tyrus.core.cluster.RemoteSession;
 import org.glassfish.tyrus.core.cluster.SessionEventListener;
 import org.glassfish.tyrus.core.coder.CoderWrapper;
@@ -83,7 +84,7 @@ import org.glassfish.tyrus.core.l10n.LocalizationMessages;
  * @author Martin Matula (martin.matula at oracle.com)
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class TyrusSession implements Session {
+public class TyrusSession implements Session, DistributedSession {
 
     private static final Logger LOGGER = Logger.getLogger(TyrusSession.class.getName());
 
@@ -175,7 +176,7 @@ public class TyrusSession implements Session {
         } else {
             id = UUID.randomUUID().toString();
             distributedPropertyMap = null;
-            distributedUserProperties = null;
+            distributedUserProperties = new HashMap<String, Object>();
         }
 
         userProperties = new HashMap<String, Object>();
@@ -253,7 +254,10 @@ public class TyrusSession implements Session {
 
     @Override
     public Set<Session> getOpenSessions() {
-        return endpointWrapper.getOpenSessions();
+        Set<Session> openSessions = new HashSet<Session>();
+        openSessions.addAll(endpointWrapper.getOpenSessions());
+
+        return Collections.unmodifiableSet(openSessions);
     }
 
     /**
@@ -265,6 +269,23 @@ public class TyrusSession implements Session {
      */
     public Set<RemoteSession> getRemoteSessions() {
         return endpointWrapper.getRemoteSessions();
+    }
+
+    /**
+     * Get set of all sessions opened to the same endpoint.
+     * <p/>
+     * Set returned from this method contains all "local" and {@link RemoteSession remote} sessions (if any).
+     *
+     * @return set of distributed sessions.
+     * @see RemoteSession
+     */
+    public Set<DistributedSession> getAllSessions() {
+        Set<DistributedSession> result = new HashSet<DistributedSession>();
+
+        result.addAll(endpointWrapper.getOpenSessions());
+        result.addAll(endpointWrapper.getRemoteSessions());
+
+        return Collections.unmodifiableSet(result);
     }
 
     @Override
@@ -394,17 +415,7 @@ public class TyrusSession implements Session {
         return userProperties;
     }
 
-    /**
-     * Get distributed properties.
-     * <p/>
-     * Values put into this map must be {@link Serializable} or serializable by other, implementation-dependent alternative.
-     * <p/>
-     * Content of this map is synchronized among all cluster nodes, so putting an entry on any of the nodes will be visible
-     * on all other nodes which have reference to current session (in form of {@link TyrusSession} or {@link RemoteSession}).
-     *
-     * @return map of distributed properties or {@code null} when not part of the cluster.
-     * @see RemoteSession#getDistributedProperties()
-     */
+    @Override
     public Map<String, Object> getDistributedProperties() {
         return distributedUserProperties;
     }

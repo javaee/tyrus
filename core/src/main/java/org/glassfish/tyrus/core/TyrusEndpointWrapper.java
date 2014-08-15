@@ -508,14 +508,14 @@ public class TyrusEndpointWrapper {
     }
 
     /**
-     * Get the set of open {@link Session}.
+     * Get the set of open {@link TyrusSession}.
      *
      * @return open sessions.
      */
-    Set<Session> getOpenSessions() {
-        Set<Session> result = new HashSet<Session>();
+    Set<TyrusSession> getOpenSessions() {
+        Set<TyrusSession> result = new HashSet<TyrusSession>();
 
-        for (Session session : webSocketToSession.values()) {
+        for (TyrusSession session : webSocketToSession.values()) {
             if (session.isOpen()) {
                 result.add(session);
             }
