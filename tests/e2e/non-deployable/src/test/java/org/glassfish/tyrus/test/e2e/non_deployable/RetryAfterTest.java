@@ -75,6 +75,7 @@ import static org.junit.Assert.*;
 
 /**
  * RetryAfter tests.
+ * Cannot be moved to standard tests due the need of programmatic configuration of HTTP response.
  *
  * @author Ondrej Kosatka (ondrej.kosatka at oracle.com)
  */

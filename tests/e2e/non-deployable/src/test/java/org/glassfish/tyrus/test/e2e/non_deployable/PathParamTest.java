@@ -75,6 +75,9 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 /**
+ * Tests @PathParam annotation in @OnMessage method signature.
+ * Cannot be moved to standard tests due the expected deployment exception.
+ *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */

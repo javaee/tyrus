@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -37,18 +37,13 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.test.e2e.non_deployable;
+
+package org.glassfish.tyrus.test.standard_config;
 
 import java.io.IOException;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfig;
-import javax.websocket.DecodeException;
-import javax.websocket.Decoder;
 import javax.websocket.DeploymentException;
-import javax.websocket.EncodeException;
-import javax.websocket.Encoder;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfig;
 import javax.websocket.MessageHandler;
@@ -57,37 +52,30 @@ import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
 import org.glassfish.tyrus.client.ClientManager;
-import org.glassfish.tyrus.core.coder.CoderAdapter;
+import org.glassfish.tyrus.core.HandshakeException;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.tools.TestContainer;
 
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.junit.Assert;
 import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 /**
- * Tests the JSON format.
- *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class JsonTest extends TestContainer {
+public class TestHello404 extends TestContainer {
 
-    private CountDownLatch messageLatch;
-
-    private String receivedMessage;
-
-    private static final String SENT_MESSAGE = "{NAME : Danny}";
-
-    private final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
+    private static final String SENT_MESSAGE = "Hello World";
 
     @Test
-    public void testJson() throws DeploymentException {
-        Server server = startServer(JsonTestEndpoint.class);
-
-        messageLatch = new CountDownLatch(1);
+    public void testHello404() throws DeploymentException {
+        Server server = startServer(EchoEndpoint.class);
 
         try {
+            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
+
             ClientManager client = createClient();
             client.connectToServer(new Endpoint() {
                 @Override
@@ -96,79 +84,38 @@ public class JsonTest extends TestContainer {
                         session.addMessageHandler(new MessageHandler.Whole<String>() {
                             @Override
                             public void onMessage(String message) {
-                                System.out.println("Received message: " + message);
-                                receivedMessage = message;
-                                messageLatch.countDown();
                             }
                         });
                         session.getBasicRemote().sendText(SENT_MESSAGE);
+                        System.out.println("Hello message sent.");
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                 }
-            }, cec, getURI(JsonTestEndpoint.class));
-            messageLatch.await(5, TimeUnit.SECONDS);
-            Assert.assertTrue("The received message is {REPLY : Danny}", receivedMessage.equals("{\"REPLY\":\"Danny\"}"));
+            }, cec, getURI("invalid-endpoint-path", "ws"));
+            Assert.fail();
         } catch (Exception e) {
-            e.printStackTrace();
-            throw new RuntimeException(e.getMessage(), e);
+            assertNotNull(e);
+            assertTrue(e instanceof DeploymentException);
+            assertTrue(e.getCause() instanceof HandshakeException);
+            assertEquals(404, ((HandshakeException) e.getCause()).getHttpStatusCode());
         } finally {
             stopServer(server);
         }
     }
 
-    /**
-     * @author Danny Coward (danny.coward at oracle.com)
-     */
-    @ServerEndpoint(
-            value = "/json2",
-            encoders = {JsonEncoder.class},
-            decoders = {JsonDecoder.class}
-    )
-    public static class JsonTestEndpoint {
+    @ServerEndpoint(value = "/test-hello-404-echo-endpoint")
+    public static class EchoEndpoint {
 
         @OnMessage
-        public JSONObject helloWorld(JSONObject message) {
-            JSONObject reply = new JSONObject();
-            try {
-                String name = message.getString("NAME");
-                reply.put("REPLY", name);
-                return reply;
-            } catch (JSONException e) {
-                return reply;
+        public String doThat(String message, Session session) {
+
+            // TYRUS-141
+            if (session.getNegotiatedSubprotocol() != null) {
+                return message;
             }
-        }
 
-    }
-
-    /**
-     * @author Danny Coward (danny.coward at oracle.com)
-     */
-    public static class JsonDecoder extends CoderAdapter implements Decoder.Text<JSONObject> {
-
-        @Override
-        public JSONObject decode(String s) throws DecodeException {
-            try {
-                return new JSONObject(s);
-            } catch (JSONException je) {
-                throw new DecodeException(s, "JSON not decoded");
-            }
-        }
-
-        @Override
-        public boolean willDecode(String s) {
-            return true;
-        }
-    }
-
-    /**
-     * @author Danny Coward (danny.coward at oracle.com)
-     */
-    public static class JsonEncoder extends CoderAdapter implements Encoder.Text<JSONObject> {
-
-        @Override
-        public String encode(JSONObject o) throws EncodeException {
-            return o.toString();
+            return null;
         }
     }
 }

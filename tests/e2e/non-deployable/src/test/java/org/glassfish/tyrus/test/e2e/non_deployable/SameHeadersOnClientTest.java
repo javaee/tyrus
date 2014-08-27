@@ -71,6 +71,7 @@ import static org.junit.Assert.fail;
 
 /**
  * Tests a situation when a handshake response contains the same header twice with different values.
+ * Cannot be moved to standard tests due the need to modify HTTP response.
  *
  * @author Petr Janouch (petr.janouch at oracle.com)
  */

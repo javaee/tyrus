@@ -68,8 +68,14 @@
             <artifactId>tyrus-container-jdk-client</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.json</groupId>
-            <artifactId>json</artifactId>
+            <groupId>javax.json</groupId>
+            <artifactId>javax.json-api</artifactId>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.glassfish</groupId>
+            <artifactId>javax.json</artifactId>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.glassfish.tyrus.tests</groupId>
@@ -96,7 +102,8 @@
                                     <targetPath>WEB-INF/classes</targetPath>
                                 </resource>
                             </webResources>
-                            <packagingExcludes>%regex[WEB-INF/lib/(?!tyrus-test-tools-1.3-SNAPSHOT.jar$).*]
+                            <packagingExcludes>
+                                %regex[WEB-INF/lib/(?!(tyrus-test-tools|json).*.jar$).*]
                             </packagingExcludes>
                         </configuration>
                     </plugin>

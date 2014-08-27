@@ -62,11 +62,8 @@ import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.tools.TestContainer;
 
-import org.junit.Ignore;
 import org.junit.Test;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
@@ -75,7 +72,7 @@ public class SessionTimeoutTest extends TestContainer {
 
     @ServerEndpoint(value = "/timeout3")
     public static class SessionTimeoutEndpoint {
-        private final static AtomicBoolean onClosedCalled = new AtomicBoolean(false);
+        private final static CountDownLatch onClosedCalled = new CountDownLatch(1);
         private static final long TIMEOUT = 300;
 
         @OnOpen
@@ -87,7 +84,7 @@ public class SessionTimeoutTest extends TestContainer {
         public void onClose(CloseReason closeReason) {
             //TYRUS-230
             if (closeReason.getCloseCode() == CloseReason.CloseCodes.CLOSED_ABNORMALLY) {
-                onClosedCalled.set(true);
+                onClosedCalled.countDown();
             }
         }
     }
@@ -131,13 +128,17 @@ public class SessionTimeoutTest extends TestContainer {
     public static class ServiceEndpoint {
 
         @OnMessage
-        public String onMessage(String message) {
+        public String onMessage(String message) throws InterruptedException {
             if (message.equals("SessionTimeoutEndpoint")) {
-                if (SessionTimeoutEndpoint.onClosedCalled.get()) {
+                if (SessionTimeoutEndpoint.onClosedCalled.await(1, TimeUnit.SECONDS)) {
                     return POSITIVE;
                 }
             } else if (message.equals("SessionNoTimeoutEndpoint")) {
                 if (!SessionNoTimeoutEndpoint.onClosedCalled.get()) {
+                    return POSITIVE;
+                }
+            } else if (message.equals("SessionTimeoutChangedEndpoint")) {
+                if (SessionTimeoutChangedEndpoint.latch.await(1, TimeUnit.SECONDS) && SessionTimeoutChangedEndpoint.closedNormally.get()) {
                     return POSITIVE;
                 }
             }
@@ -224,7 +225,8 @@ public class SessionTimeoutTest extends TestContainer {
 
     @ServerEndpoint(value = "/timeout4")
     public static class SessionTimeoutChangedEndpoint {
-        private static CountDownLatch latch = new CountDownLatch(1);
+        public static final CountDownLatch latch = new CountDownLatch(1);
+        public static final AtomicBoolean closedNormally = new AtomicBoolean(false);
         private long timeoutSetTime;
         private static final long TIMEOUT1 = 300;
         private static final long TIMEOUT2 = 700;
@@ -248,15 +250,14 @@ public class SessionTimeoutTest extends TestContainer {
 
         @OnClose
         public void onClose() {
-            assertTrue(System.currentTimeMillis() - timeoutSetTime - TIMEOUT2 < 20);
+            closedNormally.set(System.currentTimeMillis() - timeoutSetTime - TIMEOUT2 < 20);
             latch.countDown();
         }
     }
 
     @Test
-    @Ignore("TODO: rewrite test; issues on linux/win8")
     public void testSessionTimeoutChanged() throws DeploymentException {
-        Server server = startServer(SessionTimeoutChangedEndpoint.class);
+        Server server = startServer(SessionTimeoutChangedEndpoint.class, ServiceEndpoint.class);
 
         try {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
@@ -284,7 +285,7 @@ public class SessionTimeoutTest extends TestContainer {
                 }
             }, cec, getURI(SessionTimeoutChangedEndpoint.class));
 
-            assertTrue(SessionNoTimeoutEndpoint.onClosedCalled.get());
+            testViaServiceEndpoint(client, ServiceEndpoint.class, POSITIVE, "SessionTimeoutChangedEndpoint");
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);

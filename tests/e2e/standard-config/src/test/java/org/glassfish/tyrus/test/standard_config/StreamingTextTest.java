@@ -37,7 +37,7 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.test.e2e.non_deployable;
+package org.glassfish.tyrus.test.standard_config;
 
 import java.io.IOException;
 import java.util.concurrent.CountDownLatch;

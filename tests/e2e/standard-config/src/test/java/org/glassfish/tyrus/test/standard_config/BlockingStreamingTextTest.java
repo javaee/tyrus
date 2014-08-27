@@ -42,7 +42,6 @@ package org.glassfish.tyrus.test.standard_config;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.Writer;
-import java.net.URI;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -59,7 +58,6 @@ import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.junit.Assert;
-import org.junit.Ignore;
 import org.junit.Test;
 
 /**
@@ -70,20 +68,19 @@ import org.junit.Test;
  */
 public class BlockingStreamingTextTest extends TestContainer{
 
-    @Ignore
     @Test
     public void testBlockingStreamingTextServer() {
         final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
-        Server server = new Server(BlockingStreamingTextEndpoint.class);
+        Server server = null;
 
         try {
-            server.start();
+            server = startServer(BlockingStreamingTextEndpoint.class);
             CountDownLatch messageLatch = new CountDownLatch(1);
 
             BlockingStreamingTextClient bstc = new BlockingStreamingTextClient(messageLatch);
             ClientManager client = createClient();
-            client.connectToServer(bstc, cec, new URI("ws://localhost:8025/websockets/tests/blockingstreaming"));
+            client.connectToServer(bstc, cec, getURI(BlockingStreamingTextEndpoint.class));
 
             messageLatch.await(5, TimeUnit.SECONDS);
             System.out.println("SENT: " + bstc.sentMessage);
@@ -93,7 +90,7 @@ public class BlockingStreamingTextTest extends TestContainer{
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
         } finally {
-            server.stop();
+            stopServer(server);
         }
     }
 
@@ -101,9 +98,9 @@ public class BlockingStreamingTextTest extends TestContainer{
      * @author Danny Coward (danny.coward at oracle.com)
      * @author Martin Matula (martin.matula at oracle.com)
      */
-    @ServerEndpoint(value = "/blockingstreaming")
-    public static class BlockingStreamingTextEndpoint extends Endpoint {
-        class MyCharacterStreamHandler implements MessageHandler.Partial<Reader> {
+    @ServerEndpoint(value = "/blocking-streaming")
+    public static class BlockingStreamingTextEndpoint {
+        class MyCharacterStreamHandler implements MessageHandler.Whole<Reader> {
             Session session;
 
             MyCharacterStreamHandler(Session session) {
@@ -111,7 +108,7 @@ public class BlockingStreamingTextTest extends TestContainer{
             }
 
             @Override
-            public void onMessage(Reader r, boolean isLast) {
+            public void onMessage(Reader r) {
                 System.out.println("BLOCKINGSTREAMSERVER: on message reader called");
                 StringBuilder sb = new StringBuilder();
                 try {
@@ -135,9 +132,8 @@ public class BlockingStreamingTextTest extends TestContainer{
             }
         }
 
-        @Override
         @OnOpen
-        public void onOpen(Session session, EndpointConfig EndpointConfig) {
+        public void onOpen(final Session session) {
             System.out.println("BLOCKINGSERVER opened !");
             session.addMessageHandler(new MyCharacterStreamHandler(session));
         }
@@ -162,11 +158,11 @@ public class BlockingStreamingTextTest extends TestContainer{
 
             send(session);
 
-            session.addMessageHandler(new MessageHandler.Partial<Reader>() {
+            session.addMessageHandler(new MessageHandler.Whole<Reader>() {
                 final StringBuilder sb = new StringBuilder();
 
                 @Override
-                public void onMessage(Reader r, boolean isLast) {
+                public void onMessage(Reader r) {
                     System.out.println("BLOCKINGCLIENT onMessage called ");
                     try {
                         int i;
@@ -198,7 +194,7 @@ public class BlockingStreamingTextTest extends TestContainer{
                 session.getBasicRemote().sendText(part, true);
                 sb.append(part);
                 sentMessage = sb.toString();
-                System.out.println("BLOCKINGCLIENT: Sent" + sentMessage);
+                System.out.println("BLOCKINGCLIENT Sent: " + sentMessage);
             } catch (Exception e) {
                 e.printStackTrace();
             }

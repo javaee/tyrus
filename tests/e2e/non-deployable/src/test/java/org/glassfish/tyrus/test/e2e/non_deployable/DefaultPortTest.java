@@ -63,6 +63,8 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
 /**
+ * Cannot be moved to standard tests due the need to run server on default port.
+ *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 public class DefaultPortTest extends TestContainer {

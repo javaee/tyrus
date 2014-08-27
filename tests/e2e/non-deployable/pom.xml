@@ -68,10 +68,6 @@
             <artifactId>tyrus-container-jdk-client</artifactId>
         </dependency>
         <dependency>
-            <groupId>org.json</groupId>
-            <artifactId>json</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.glassfish.tyrus.tests</groupId>
             <artifactId>tyrus-test-tools</artifactId>
         </dependency>

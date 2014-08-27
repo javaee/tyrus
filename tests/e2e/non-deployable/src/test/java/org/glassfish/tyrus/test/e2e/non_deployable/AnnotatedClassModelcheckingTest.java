@@ -61,9 +61,11 @@ import org.junit.Test;
 import junit.framework.Assert;
 
 /**
+ * Cannot be moved to standard tests due the expected deployment exception.
+ *
  * @author Stepan Kopriva (stepan.kopriva at oracle.com)
  */
-public class AnnotatedClassModelcheckingTest extends TestContainer{
+public class AnnotatedClassModelcheckingTest extends TestContainer {
 
     private void testServerPositive(Class<?> testedBean) {
         testServer(testedBean, false);
@@ -74,15 +76,15 @@ public class AnnotatedClassModelcheckingTest extends TestContainer{
     }
 
     private void testServer(Class<?> testedBean, boolean shouldThrowException) {
-        Server server = new Server(testedBean);
+        Server server = null;
         boolean exceptionThrown = false;
 
         try {
-            server.start();
+            server = startServer(testedBean);
         } catch (DeploymentException e) {
             exceptionThrown = true;
         } finally {
-            server.stop();
+            stopServer(server);
             Assert.assertEquals(shouldThrowException, exceptionThrown);
         }
     }

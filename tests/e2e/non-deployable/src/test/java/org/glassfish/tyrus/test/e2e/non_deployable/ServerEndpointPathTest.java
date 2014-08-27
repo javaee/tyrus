@@ -60,6 +60,8 @@ import org.junit.Assert;
 import org.junit.Test;
 
 /**
+ * Cannot be moved to standard tests due the expected deployment exception.
+ *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 public class ServerEndpointPathTest extends TestContainer {

@@ -58,6 +58,8 @@ import org.junit.Test;
 import static org.junit.Assert.assertTrue;
 
 /**
+ * Tests {@link CloseReason} in client's {@code onClose} method after stopping server.
+ *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
 public class OnCloseTest extends TestContainer {

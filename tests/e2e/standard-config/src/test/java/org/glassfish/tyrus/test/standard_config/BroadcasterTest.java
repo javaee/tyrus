@@ -41,26 +41,24 @@
 package org.glassfish.tyrus.test.standard_config;
 
 import java.io.IOException;
-import java.net.URI;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfig;
+import javax.websocket.DeploymentException;
 import javax.websocket.EncodeException;
 import javax.websocket.EndpointConfig;
+import javax.websocket.MessageHandler;
 import javax.websocket.OnMessage;
-import javax.websocket.OnOpen;
 import javax.websocket.RemoteEndpoint;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
 import org.glassfish.tyrus.client.ClientManager;
+import org.glassfish.tyrus.core.TyrusSession;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.tools.TestContainer;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import static org.junit.Assert.assertTrue;
 
@@ -69,26 +67,24 @@ import static org.junit.Assert.assertTrue;
  *
  * @author Martin Matula (martin.matula at oracle.com)
  */
-public class BroadcasterTest extends TestContainer{
+public class BroadcasterTest extends TestContainer {
     private static final String SENT_MESSAGE = "Hello World";
 
     private final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
-    @Ignore
     @Test
-    public void testBroadcaster() {
+    public void testBroadcaster() throws DeploymentException {
         final CountDownLatch messageLatch = new CountDownLatch(2);
-        Server server = new Server(BroadcasterTestEndpoint.class);
+        Server server = startServer(BroadcasterTestEndpoint.class);
 
         try {
-            server.start();
             final TEndpointAdapter ea1 = new TEndpointAdapter(messageLatch);
             final TEndpointAdapter ea2 = new TEndpointAdapter(messageLatch);
 
             final ClientManager client1 = createClient();
-            client1.connectToServer(ea1, cec, new URI("ws://localhost:8025/websockets/tests/broadcast"));
+            client1.connectToServer(ea1, cec, getURI(BroadcasterTestEndpoint.class));
             final ClientManager client2 = createClient();
-            client2.connectToServer(ea2, cec, new URI("ws://localhost:8025/websockets/tests/broadcast"));
+            client2.connectToServer(ea2, cec, getURI(BroadcasterTestEndpoint.class));
 
             synchronized (ea1) {
                 if (ea1.peer == null) {
@@ -110,7 +106,45 @@ public class BroadcasterTest extends TestContainer{
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
         } finally {
-            server.stop();
+            stopServer(server);
+        }
+    }
+
+    @Test
+    public void testTyrusBroadcaster() throws DeploymentException {
+        final CountDownLatch messageLatch = new CountDownLatch(2);
+        Server server = startServer(TyrusBroadcasterTestEndpoint.class);
+
+        try {
+            final TEndpointAdapter ea1 = new TEndpointAdapter(messageLatch);
+            final TEndpointAdapter ea2 = new TEndpointAdapter(messageLatch);
+
+            final ClientManager client1 = createClient();
+            client1.connectToServer(ea1, cec, getURI(TyrusBroadcasterTestEndpoint.class));
+            final ClientManager client2 = createClient();
+            client2.connectToServer(ea2, cec, getURI(TyrusBroadcasterTestEndpoint.class));
+
+            synchronized (ea1) {
+                if (ea1.peer == null) {
+                    ea1.wait();
+                }
+            }
+
+            synchronized (ea2) {
+                if (ea2.peer == null) {
+                    ea2.wait();
+                }
+            }
+
+            ea1.peer.sendText(SENT_MESSAGE);
+
+            assertTrue("Timeout reached. Message latch value: " + messageLatch.getCount(),
+                    messageLatch.await(5, TimeUnit.SECONDS));
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            stopServer(server);
         }
     }
 
@@ -131,6 +165,13 @@ public class BroadcasterTest extends TestContainer{
         public synchronized void onOpen(Session session) {
             this.peer = session.getBasicRemote();
             notifyAll();
+
+            session.addMessageHandler(new MessageHandler.Whole<String>() {
+                @Override
+                public void onMessage(String message) {
+                    TEndpointAdapter.this.onMessage(message);
+                }
+            });
         }
 
         @Override
@@ -146,18 +187,20 @@ public class BroadcasterTest extends TestContainer{
     @ServerEndpoint(value = "/broadcast")
     public static class BroadcasterTestEndpoint {
 
-        private final Set<Session> connections = new HashSet<Session>();
-
-        @OnOpen
-        public void onOpen(Session session) {
-            connections.add(session);
+        @OnMessage
+        public void message(String message, Session session) throws IOException, EncodeException {
+            for (Session s : session.getOpenSessions()) {
+                s.getBasicRemote().sendText(message);
+            }
         }
+    }
+
+    @ServerEndpoint(value = "/tyrus-broadcast")
+    public static class TyrusBroadcasterTestEndpoint {
 
         @OnMessage
         public void message(String message, Session session) throws IOException, EncodeException {
-            for (Session s : connections) {
-                s.getBasicRemote().sendText(message);
-            }
+            ((TyrusSession) session).broadcast(message);
         }
     }
 }

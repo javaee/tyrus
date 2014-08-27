@@ -167,6 +167,8 @@
         <grizzly.version>2.3.15</grizzly.version>
         <javax.ejb-api.version>3.2</javax.ejb-api.version>
         <cdi-api.version>1.1</cdi-api.version>
+        <json-api.version>1.0</json-api.version>
+        <json-impl.version>1.0.4</json-impl.version>
 
         <api_package>javax.websocket</api_package>
         <impl_namespace>org.glassfish</impl_namespace>
@@ -539,6 +541,16 @@
                 <groupId>javax.enterprise</groupId>
                 <artifactId>cdi-api</artifactId>
                 <version>${cdi-api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>javax.json</groupId>
+                <artifactId>javax.json-api</artifactId>
+                <version>${json-api.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.glassfish</groupId>
+                <artifactId>javax.json</artifactId>
+                <version>${json-impl.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.glassfish.grizzly</groupId>

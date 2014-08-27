@@ -37,12 +37,13 @@
  * only if the new code is made subject to such option by the copyright
  * holder.
  */
-package org.glassfish.tyrus.test.e2e.non_deployable;
+package org.glassfish.tyrus.test.standard_config;
 
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfig;
+import javax.websocket.CloseReason;
 import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfig;
@@ -57,8 +58,6 @@ import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.junit.Test;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
@@ -69,7 +68,7 @@ public class Tyrus109Test extends TestContainer {
     public static class OnOpenErrorTestEndpoint {
         public volatile static Throwable throwable;
         public volatile static Session session;
-        public volatile static int counter;
+        public static CountDownLatch errorLatch = new CountDownLatch(1);
 
         @OnOpen
         public void open() {
@@ -84,40 +83,74 @@ public class Tyrus109Test extends TestContainer {
 
         @OnError
         public void handleError(Throwable throwable, Session session) {
-            counter++;
             OnOpenErrorTestEndpoint.throwable = throwable;
             OnOpenErrorTestEndpoint.session = session;
+            errorLatch.countDown();
             throw new RuntimeException(throwable);
+        }
+    }
+
+    @ServerEndpoint("/tyrus-109-test-service-endpoint")
+    public static class ServiceEndpoint {
+
+        @OnMessage
+        public String onMessage(String message) throws InterruptedException {
+            if ("throwable".equals(message)) {
+                if (OnOpenErrorTestEndpoint.throwable != null) {
+                    return POSITIVE;
+                }
+            }
+            if ("session".equals(message)) {
+                if (OnOpenErrorTestEndpoint.session != null) {
+                    return POSITIVE;
+                }
+            }
+            if ("errorLatch".equals(message)) {
+                if (OnOpenErrorTestEndpoint.errorLatch.await(1, TimeUnit.SECONDS)) {
+                    return POSITIVE;
+                }
+            }
+            if ("exceptionMessage".equals(message)) {
+                if (OnOpenErrorTestEndpoint.throwable.getMessage().equals("testException")) {
+                    return POSITIVE;
+                }
+            }
+            return NEGATIVE;
         }
     }
 
     @Test
     public void testErrorOnOpen() throws DeploymentException {
-        Server server = startServer(OnOpenErrorTestEndpoint.class);
+        Server server = startServer(OnOpenErrorTestEndpoint.class, ServiceEndpoint.class);
 
         try {
             final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
 
-            CountDownLatch messageLatch = new CountDownLatch(1);
+            final CountDownLatch closeLatch = new CountDownLatch(1);
             ClientManager client = createClient();
             client.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig configuration) {
                     // do nothing
                 }
+
+                @Override
+                public void onClose(Session session, CloseReason closeReason) {
+                    closeLatch.countDown();
+                }
             }, cec, getURI(OnOpenErrorTestEndpoint.class));
 
-            messageLatch.await(1, TimeUnit.SECONDS);
+            closeLatch.await(1, TimeUnit.SECONDS);
 
-            assertNotNull(OnOpenErrorTestEndpoint.session);
-            assertNotNull(OnOpenErrorTestEndpoint.throwable);
-            assertEquals(1, OnOpenErrorTestEndpoint.counter);
-            assertEquals("testException", OnOpenErrorTestEndpoint.throwable.getMessage());
+            testViaServiceEndpoint(client, ServiceEndpoint.class, POSITIVE, "errorLatch");
+            testViaServiceEndpoint(client, ServiceEndpoint.class, POSITIVE, "session");
+            testViaServiceEndpoint(client, ServiceEndpoint.class, POSITIVE, "throwable");
+            testViaServiceEndpoint(client, ServiceEndpoint.class, POSITIVE, "exceptionMessage");
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);
         } finally {
-            server.stop();
+            stopServer(server);
         }
     }
 }

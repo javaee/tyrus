@@ -80,7 +80,7 @@ public class ClientReconnectHandlerTest extends TestContainer {
     public void testReconnectDisconnect() throws DeploymentException {
         final Server server = startServer(DisconnectingEndpoint.class);
         try {
-            final CountDownLatch messageLatch = new CountDownLatch(1);
+            final CountDownLatch onDisconnectLatch = new CountDownLatch(1);
 
             ClientManager client = createClient();
 
@@ -95,7 +95,7 @@ public class ClientReconnectHandlerTest extends TestContainer {
                         System.out.println("### Reconnecting... (reconnect count: " + i + ")");
                         return true;
                     } else {
-                        messageLatch.countDown();
+                        onDisconnectLatch.countDown();
                         return false;
                     }
                 }
@@ -119,7 +119,7 @@ public class ClientReconnectHandlerTest extends TestContainer {
                 }
             }, ClientEndpointConfig.Builder.create().build(), getURI(DisconnectingEndpoint.class));
 
-            assertTrue(messageLatch.await(3, TimeUnit.SECONDS));
+            assertTrue(onDisconnectLatch.await(3, TimeUnit.SECONDS));
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e.getMessage(), e);

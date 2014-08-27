@@ -59,7 +59,6 @@ import org.glassfish.tyrus.core.AnnotatedEndpoint;
 import org.glassfish.tyrus.core.TyrusWebSocketEngine;
 import org.glassfish.tyrus.core.l10n.LocalizationMessages;
 import org.glassfish.tyrus.server.Server;
-import org.glassfish.tyrus.spi.ClientContainer;
 import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.junit.Test;
@@ -69,6 +68,7 @@ import static org.junit.Assert.assertTrue;
 /**
  * Tests warnings logged when max message size given in {@link javax.websocket.OnMessage} is larger than max message
  * size specified in a container.
+ * Cannot be moved to standard tests due the need to handle server logger.
  *
  * @author Petr Janouch (petr.janouch at oracle.com)
  */
