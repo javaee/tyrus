@@ -406,6 +406,15 @@ public class TyrusWebSocket {
         protocolHandler.setMessageEventListener(messageEventListener);
     }
 
+    /**
+     * Get message event listener.
+     *
+     * @return message event listener.
+     */
+    MessageEventListener getMessageEventListener() {
+        return messageEventListener;
+    }
+
     private void checkConnectedState() {
         if (!isConnected()) {
             throw new RuntimeException(LocalizationMessages.SOCKET_NOT_CONNECTED());

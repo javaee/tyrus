@@ -95,6 +95,7 @@ import org.glassfish.tyrus.core.coder.ToStringEncoder;
 import org.glassfish.tyrus.core.frame.BinaryFrame;
 import org.glassfish.tyrus.core.frame.Frame;
 import org.glassfish.tyrus.core.frame.TextFrame;
+import org.glassfish.tyrus.core.frame.TyrusFrame;
 import org.glassfish.tyrus.core.l10n.LocalizationMessages;
 import org.glassfish.tyrus.core.monitoring.EndpointEventListener;
 import org.glassfish.tyrus.spi.UpgradeRequest;
@@ -1174,6 +1175,7 @@ public class TyrusEndpointWrapper {
             clusterContext.broadcastText(getEndpointPath(), message);
         } else {
             byte[] frame = null;
+            long payloadLength = 0;
 
             for (Map.Entry<TyrusWebSocket, TyrusSession> e : webSocketToSession.entrySet()) {
                 if (e.getValue().isOpen()) {
@@ -1192,6 +1194,7 @@ public class TyrusEndpointWrapper {
 
                         final Future<Frame> frameFuture = webSocket.sendRawFrame(ByteBuffer.wrap(tempFrame));
                         futures.put(e.getValue(), frameFuture);
+                        webSocket.getMessageEventListener().onFrameSent(TyrusFrame.FrameType.TEXT, dataFrame.getPayloadLength());
 
                     } else {
 
@@ -1200,10 +1203,12 @@ public class TyrusEndpointWrapper {
                             final ByteBuffer byteBuffer = webSocket.getProtocolHandler().frame(dataFrame);
                             frame = new byte[byteBuffer.remaining()];
                             byteBuffer.get(frame);
+                            payloadLength = dataFrame.getPayloadLength();
                         }
 
                         final Future<Frame> frameFuture = webSocket.sendRawFrame(ByteBuffer.wrap(frame));
                         futures.put(e.getValue(), frameFuture);
+                        webSocket.getMessageEventListener().onFrameSent(TyrusFrame.FrameType.TEXT, payloadLength);
                     }
                 }
             }
@@ -1232,6 +1237,8 @@ public class TyrusEndpointWrapper {
             clusterContext.broadcastBinary(getEndpointPath(), byteArrayMessage);
         } else {
             byte[] frame = null;
+            long payloadLength = 0;
+
             for (Map.Entry<TyrusWebSocket, TyrusSession> e : webSocketToSession.entrySet()) {
                 if (e.getValue().isOpen()) {
 
@@ -1249,6 +1256,7 @@ public class TyrusEndpointWrapper {
 
                         final Future<Frame> frameFuture = webSocket.sendRawFrame(ByteBuffer.wrap(tempFrame));
                         futures.put(e.getValue(), frameFuture);
+                        webSocket.getMessageEventListener().onFrameSent(TyrusFrame.FrameType.BINARY, dataFrame.getPayloadLength());
 
                     } else {
 
@@ -1257,10 +1265,12 @@ public class TyrusEndpointWrapper {
                             final ByteBuffer byteBuffer = webSocket.getProtocolHandler().frame(dataFrame);
                             frame = new byte[byteBuffer.remaining()];
                             byteBuffer.get(frame);
+                            payloadLength = dataFrame.getPayloadLength();
                         }
 
                         final Future<Frame> frameFuture = webSocket.sendRawFrame(ByteBuffer.wrap(frame));
                         futures.put(e.getValue(), frameFuture);
+                        webSocket.getMessageEventListener().onFrameSent(TyrusFrame.FrameType.BINARY, payloadLength);
                     }
                 }
             }
