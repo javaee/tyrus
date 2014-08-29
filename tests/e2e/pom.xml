@@ -56,7 +56,6 @@
 
     <modules>
         <module>application-config</module>
-        <module>jetty</module>
         <module>non-deployable</module>
         <module>standard-config</module>
     </modules>
@@ -67,9 +66,17 @@
             <activation>
                 <jdk>[1.8,2)</jdk>
             </activation>
-
             <modules>
                 <module>jdk8</module>
+            </modules>
+        </profile>
+        <profile>
+            <id>jdk7</id>
+            <activation>
+                <jdk>[1.7,2)</jdk>
+            </activation>
+            <modules>
+                <module>jetty</module>
             </modules>
         </profile>
     </profiles>
