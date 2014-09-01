@@ -1098,15 +1098,6 @@ public class TyrusEndpointWrapper {
 
         session.setState(TyrusSession.State.CLOSED);
 
-        if (clusterContext != null) {
-            clusterContext.removeSession(session.getId(), getEndpointPath());
-
-            // close code is not 1006 = the close was initiated from the user code
-            if (!CloseReason.CloseCodes.CLOSED_ABNORMALLY.equals(closeReason.getCloseCode())) {
-                clusterContext.destroyDistributedUserProperties(session.getConnectionId());
-            }
-        }
-
         ErrorCollector collector = new ErrorCollector();
 
         final Object toCall = endpoint != null ? endpoint :
@@ -1138,6 +1129,16 @@ public class TyrusEndpointWrapper {
             }
             endpointEventListener.onError(session.getId(), t);
         } finally {
+            if (clusterContext != null) {
+                clusterContext.removeSession(session.getId(), getEndpointPath());
+
+                // close code is not 1006 = the close was initiated from the user code
+                if (!(CloseReason.CloseCodes.CLOSED_ABNORMALLY.equals(closeReason.getCloseCode()) ||
+                        CloseReason.CloseCodes.GOING_AWAY.equals(closeReason.getCloseCode()))) {
+                    clusterContext.destroyDistributedUserProperties(session.getConnectionId());
+                }
+            }
+
             session.setState(TyrusSession.State.CLOSED);
 
             webSocketToSession.remove(socket);
