@@ -336,15 +336,6 @@
                             <_nodefaultversion>false</_nodefaultversion>
                         </instructions>
                     </configuration>
-                    <executions>
-                        <execution>
-                            <id>osgi-bundle</id>
-                            <phase>package</phase>
-                            <goals>
-                                <goal>bundle</goal>
-                            </goals>
-                        </execution>
-                    </executions>
                 </plugin>
                 <plugin>
                     <groupId>org.apache.maven.plugins</groupId>

@@ -53,13 +53,6 @@
     <name>Tyrus Test Tools</name>
 
     <build>
-        <resources>
-            <resource>
-                <directory>${basedir}/src/main/resources</directory>
-                <filtering>true</filtering>
-            </resource>
-        </resources>
-
         <plugins>
             <plugin>
                 <groupId>org.apache.felix</groupId>
@@ -68,7 +61,7 @@
                 <extensions>true</extensions>
                 <configuration>
                     <instructions>
-                        <Export-Package>org.glassfish.tyrus.*;version=${project.version}</Export-Package>
+                        <Export-Package>org.glassfish.tyrus.test.tools.*;version=${project.version}</Export-Package>
                         <Import-Package>javax.websocket;version=${apijar.bundle.version},javax.websocket.server;version=${apijar.bundle.version},*</Import-Package>
                     </instructions>
                     <unpackBundle>true</unpackBundle>
