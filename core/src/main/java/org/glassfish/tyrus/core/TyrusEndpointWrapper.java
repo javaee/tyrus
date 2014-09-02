@@ -270,14 +270,26 @@ public class TyrusEndpointWrapper {
 
         for (Class<? extends Decoder> decoderClass : this.configuration.getDecoders()) {
             Class<?> type = getDecoderClassType(decoderClass);
-            decoders.add(new CoderWrapper<Decoder>(decoderClass, type));
+            if (getDefaultDecoders().contains(decoderClass)) {
+                try {
+                    decoders.add(new CoderWrapper<Decoder>(ReflectionHelper.getInstance(decoderClass), type));
+                } catch (ReflectiveOperationException e) {
+                    throw new DeploymentException(e.getMessage(), e);
+                }
+            } else {
+                decoders.add(new CoderWrapper<Decoder>(decoderClass, type));
+            }
         }
 
         //this wrapper represents endpoint which is not annotated endpoint
         if (endpoint == null || !(endpoint instanceof AnnotatedEndpoint)) {
             for (Class<? extends Decoder> decoderClass : getDefaultDecoders()) {
                 Class<?> type = getDecoderClassType(decoderClass);
-                decoders.add(new CoderWrapper<Decoder>(decoderClass, type));
+                try {
+                    decoders.add(new CoderWrapper<Decoder>(ReflectionHelper.getInstance(decoderClass), type));
+                } catch (ReflectiveOperationException e) {
+                    throw new DeploymentException(e.getMessage(), e);
+                }
             }
         }
 
@@ -286,10 +298,10 @@ public class TyrusEndpointWrapper {
             encoders.add(new CoderWrapper<Encoder>(encoderClass, type));
         }
 
-        encoders.add(new CoderWrapper<Encoder>(NoOpTextCoder.class, String.class));
-        encoders.add(new CoderWrapper<Encoder>(NoOpByteBufferCoder.class, ByteBuffer.class));
-        encoders.add(new CoderWrapper<Encoder>(NoOpByteArrayCoder.class, byte[].class));
-        encoders.add(new CoderWrapper<Encoder>(ToStringEncoder.class, Object.class));
+        encoders.add(new CoderWrapper<Encoder>(new NoOpTextCoder(), String.class));
+        encoders.add(new CoderWrapper<Encoder>(new NoOpByteBufferCoder(), ByteBuffer.class));
+        encoders.add(new CoderWrapper<Encoder>(new NoOpByteArrayCoder(), byte[].class));
+        encoders.add(new CoderWrapper<Encoder>(new ToStringEncoder(), Object.class));
 
         // clustered mode
         if (clusterContext != null) {
