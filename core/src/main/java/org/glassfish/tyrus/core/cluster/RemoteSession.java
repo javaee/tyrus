@@ -222,28 +222,28 @@ public class RemoteSession implements Session, DistributedSession {
         this.basicRemote = new RemoteEndpoint.Basic() {
             @Override
             public void sendText(String text) throws IOException {
-                checkNotNull(text, "Argument 'text' cannot be null.");
+                checkNotNull(text, "text");
                 final Future<?> future = clusterContext.sendText(sessionId, text);
                 processFuture(future);
             }
 
             @Override
             public void sendBinary(ByteBuffer data) throws IOException {
-                checkNotNull(data, "Argument 'data' cannot be null.");
+                checkNotNull(data, "data");
                 final Future<?> future = clusterContext.sendBinary(sessionId, Utils.getRemainingArray(data));
                 processFuture(future);
             }
 
             @Override
             public void sendText(String partialMessage, boolean isLast) throws IOException {
-                checkNotNull(partialMessage, "Argument 'partialMessage' cannot be null.");
+                checkNotNull(partialMessage, "partialMessage");
                 final Future<?> future = clusterContext.sendText(sessionId, partialMessage, isLast);
                 processFuture(future);
             }
 
             @Override
             public void sendBinary(ByteBuffer partialByte, boolean isLast) throws IOException {
-                checkNotNull(partialByte, "Argument 'partialByte' cannot be null.");
+                checkNotNull(partialByte, "partialByte");
                 final Future<?> future = clusterContext.sendBinary(sessionId, Utils.getRemainingArray(partialByte), isLast);
                 processFuture(future);
             }
@@ -300,7 +300,7 @@ public class RemoteSession implements Session, DistributedSession {
                 // TODO 2: using current session encoders and then sending to remote session
                 // TODO 2: uncertain what happens when current session is closed anytime during the process
 
-                checkNotNull(data, "Argument 'data' cannot be null.");
+                checkNotNull(data, "data");
 
                 final Future<Void> future;
                 final Object toSend = endpointWrapper.doEncode(session, data);
@@ -437,27 +437,27 @@ public class RemoteSession implements Session, DistributedSession {
 
             @Override
             public void sendText(String text, SendHandler handler) {
-                checkNotNull(text, "Argument 'text' cannot be null.");
-                checkNotNull(handler, "Argument 'handler' cannot be null.");
+                checkNotNull(text, "text");
+                checkNotNull(handler, "handler");
                 clusterContext.sendText(sessionId, text, handler);
             }
 
             @Override
             public Future<Void> sendText(String text) {
-                checkNotNull(text, "Argument 'text' cannot be null.");
+                checkNotNull(text, "text");
                 return clusterContext.sendText(sessionId, text);
             }
 
             @Override
             public Future<Void> sendBinary(ByteBuffer data) {
-                checkNotNull(data, "Argument 'data' cannot be null.");
+                checkNotNull(data, "data");
                 return clusterContext.sendBinary(sessionId, Utils.getRemainingArray(data));
             }
 
             @Override
             public void sendBinary(ByteBuffer data, SendHandler handler) {
-                checkNotNull(data, "Argument 'data' cannot be null.");
-                checkNotNull(handler, "Argument 'handler' cannot be null.");
+                checkNotNull(data, "data");
+                checkNotNull(handler, "handler");
                 clusterContext.sendBinary(sessionId, Utils.getRemainingArray(data), handler);
             }
 
@@ -472,7 +472,7 @@ public class RemoteSession implements Session, DistributedSession {
                 // TODO 2: using current session encoders and then sending to remote session
                 // TODO 2: uncertain what happens when current session is closed anytime during the process
 
-                checkNotNull(data, "Argument 'data' cannot be null.");
+                checkNotNull(data, "data");
 
                 final Future<Void> future;
                 final Object toSend;
@@ -536,7 +536,7 @@ public class RemoteSession implements Session, DistributedSession {
                 // TODO 2: using current session encoders and then sending to remote session
                 // TODO 2: uncertain what happens when current session is closed anytime during the process
 
-                checkNotNull(data, "Argument 'data' cannot be null.");
+                checkNotNull(data, "data");
 
                 if (data instanceof String) {
                     clusterContext.sendText(sessionId, (String) data, handler);

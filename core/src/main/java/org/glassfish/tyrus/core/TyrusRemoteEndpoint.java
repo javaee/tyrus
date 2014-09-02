@@ -57,6 +57,7 @@ import javax.websocket.SendHandler;
 import javax.websocket.SendResult;
 
 import org.glassfish.tyrus.core.l10n.LocalizationMessages;
+
 import static org.glassfish.tyrus.core.Utils.checkNotNull;
 
 /**
@@ -90,7 +91,7 @@ public abstract class TyrusRemoteEndpoint implements javax.websocket.RemoteEndpo
 
         @Override
         public void sendText(String text) throws IOException {
-            checkNotNull(text, LocalizationMessages.ARGUMENT_NOT_NULL("text"));
+            checkNotNull(text, "text");
             final Future<?> future = webSocket.sendText(text);
             try {
                 processFuture(future);
@@ -101,7 +102,7 @@ public abstract class TyrusRemoteEndpoint implements javax.websocket.RemoteEndpo
 
         @Override
         public void sendBinary(ByteBuffer data) throws IOException {
-            checkNotNull(data, LocalizationMessages.ARGUMENT_NOT_NULL("data"));
+            checkNotNull(data, "data");
             final Future<?> future = webSocket.sendBinary(Utils.getRemainingArray(data));
             try {
                 processFuture(future);
@@ -112,7 +113,7 @@ public abstract class TyrusRemoteEndpoint implements javax.websocket.RemoteEndpo
 
         @Override
         public void sendText(String partialMessage, boolean isLast) throws IOException {
-            checkNotNull(partialMessage, LocalizationMessages.ARGUMENT_NOT_NULL("partialMessage"));
+            checkNotNull(partialMessage, "partialMessage");
             final Future<?> future = webSocket.sendText(partialMessage, isLast);
             try {
                 processFuture(future);
@@ -123,7 +124,7 @@ public abstract class TyrusRemoteEndpoint implements javax.websocket.RemoteEndpo
 
         @Override
         public void sendBinary(ByteBuffer partialByte, boolean isLast) throws IOException {
-            checkNotNull(partialByte, LocalizationMessages.ARGUMENT_NOT_NULL("partialByte"));
+            checkNotNull(partialByte, "partialByte");
             final Future<?> future = webSocket.sendBinary(Utils.getRemainingArray(partialByte), isLast);
             try {
                 processFuture(future);
@@ -157,7 +158,7 @@ public abstract class TyrusRemoteEndpoint implements javax.websocket.RemoteEndpo
 
         @Override
         public void sendObject(Object data) throws IOException, EncodeException {
-            checkNotNull(data, LocalizationMessages.ARGUMENT_NOT_NULL("data"));
+            checkNotNull(data, "data");
             final Future<?> future = sendSyncObject(data);
             try {
                 future.get();
@@ -199,45 +200,45 @@ public abstract class TyrusRemoteEndpoint implements javax.websocket.RemoteEndpo
 
         @Override
         public void sendText(String text, SendHandler handler) {
-            checkNotNull(text, LocalizationMessages.ARGUMENT_NOT_NULL("text"));
-            checkNotNull(handler, LocalizationMessages.ARGUMENT_NOT_NULL("handler"));
+            checkNotNull(text, "text");
+            checkNotNull(handler, "handler");
             session.restartIdleTimeoutExecutor();
             sendAsync(text, handler, AsyncMessageType.TEXT);
         }
 
         @Override
         public Future<Void> sendText(String text) {
-            checkNotNull(text, LocalizationMessages.ARGUMENT_NOT_NULL("text"));
+            checkNotNull(text, "text");
             session.restartIdleTimeoutExecutor();
             return sendAsync(text, AsyncMessageType.TEXT);
         }
 
         @Override
         public Future<Void> sendBinary(ByteBuffer data) {
-            checkNotNull(data, LocalizationMessages.ARGUMENT_NOT_NULL("data"));
+            checkNotNull(data, "data");
             session.restartIdleTimeoutExecutor();
             return sendAsync(data, AsyncMessageType.BINARY);
         }
 
         @Override
         public void sendBinary(ByteBuffer data, SendHandler handler) {
-            checkNotNull(data, LocalizationMessages.ARGUMENT_NOT_NULL("data"));
-            checkNotNull(handler, LocalizationMessages.ARGUMENT_NOT_NULL("handler"));
+            checkNotNull(data, "data");
+            checkNotNull(handler, "handler");
             session.restartIdleTimeoutExecutor();
             sendAsync(data, handler, AsyncMessageType.BINARY);
         }
 
         @Override
         public void sendObject(Object data, SendHandler handler) {
-            checkNotNull(data, LocalizationMessages.ARGUMENT_NOT_NULL("data"));
-            checkNotNull(handler, LocalizationMessages.ARGUMENT_NOT_NULL("handler"));
+            checkNotNull(data, "data");
+            checkNotNull(handler, "handler");
             session.restartIdleTimeoutExecutor();
             sendAsync(data, handler, AsyncMessageType.OBJECT);
         }
 
         @Override
         public Future<Void> sendObject(Object data) {
-            checkNotNull(data, LocalizationMessages.ARGUMENT_NOT_NULL("data"));
+            checkNotNull(data, "data");
             session.restartIdleTimeoutExecutor();
             return sendAsync(data, AsyncMessageType.OBJECT);
         }
