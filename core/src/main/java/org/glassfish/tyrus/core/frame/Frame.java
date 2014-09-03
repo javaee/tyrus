@@ -40,8 +40,6 @@
 
 package org.glassfish.tyrus.core.frame;
 
-import java.security.SecureRandom;
-
 /**
  * WebSocket frame representation.
  * <p/>
@@ -62,7 +60,7 @@ public class Frame {
 
     private final byte opcode;
     private final long payloadLength;
-    private final int maskingKey;
+    private final Integer maskingKey;
 
     private final byte[] payloadData;
 
@@ -89,7 +87,7 @@ public class Frame {
         this.controlFrame = (opcode & 0x08) == 0x08;
     }
 
-    private Frame(boolean fin, boolean rsv1, boolean rsv2, boolean rsv3, boolean mask, byte opcode, long payloadLength, int maskingKey, byte[] payloadData) {
+    private Frame(boolean fin, boolean rsv1, boolean rsv2, boolean rsv3, boolean mask, byte opcode, long payloadLength, Integer maskingKey, byte[] payloadData) {
         this.fin = fin;
         this.rsv1 = rsv1;
         this.rsv2 = rsv2;
@@ -169,9 +167,9 @@ public class Frame {
     /**
      * Get masking key.
      *
-     * @return masking key (32 bit value).
+     * @return masking key (32 bit value) or {@code null} when the frame should not be masked.
      */
-    public int getMaskingKey() {
+    public Integer getMaskingKey() {
         return maskingKey;
     }
 
@@ -246,7 +244,7 @@ public class Frame {
 
         private byte opcode;
         private long payloadLength;
-        private int maskingKey = new SecureRandom().nextInt();
+        private Integer maskingKey = null;
 
         private byte[] payloadData;
 
@@ -364,12 +362,12 @@ public class Frame {
         }
 
         /**
-         * Set masking key. Default value is {@code new SecureRandom().nextInt();}.
+         * Set masking key. Default value is {@code null}.
          *
          * @param maskingKey masking key.
          * @return updated {@link Frame.Builder} instance.
          */
-        public Builder maskingKey(int maskingKey) {
+        public Builder maskingKey(Integer maskingKey) {
             this.maskingKey = maskingKey;
             return this;
         }

@@ -42,6 +42,7 @@ package org.glassfish.tyrus.core;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Future;
@@ -83,6 +84,7 @@ public final class ProtocolHandler {
     private static final Logger LOGGER = Logger.getLogger(ProtocolHandler.class.getName());
 
     private final boolean client;
+    private final SecureRandom secureRandom = new SecureRandom();
     private final ParsingState state = new ParsingState();
 
     private volatile TyrusWebSocket webSocket;
@@ -414,12 +416,17 @@ public final class ProtocolHandler {
 
     public ByteBuffer frame(Frame frame) {
 
+        if (client) {
+            frame = Frame.builder(frame).maskingKey(secureRandom.nextInt()).mask(true).build();
+        }
+
         if (extensions != null && extensions.size() > 0) {
             for (Extension extension : extensions) {
                 if (extension instanceof ExtendedExtension) {
                     try {
                         frame = ((ExtendedExtension) extension).processOutgoing(extensionContext, frame);
                     } catch (Throwable t) {
+                        // TODO: define ExtendedExtension exception handling.
                         LOGGER.log(Level.FINE, LocalizationMessages.EXTENSION_EXCEPTION(extension.getName(), t.getMessage()), t);
                     }
                 }
@@ -451,7 +458,13 @@ public final class ProtocolHandler {
         System.arraycopy(lengthBytes, 0, packet, 1, lengthBytes.length);
         // if client, then we need to mask data.
         if (client) {
-            Masker masker = new Masker(frame.getMaskingKey());
+            Integer maskingKey = frame.getMaskingKey();
+            if (maskingKey == null) {
+                // TODO: improve validation/exception handling
+                // TODO: related to ExtendedExtension
+                throw new ProtocolException("Masking key cannot be null when sending message from client to server.");
+            }
+            Masker masker = new Masker(maskingKey);
             packet[1] |= 0x80;
             masker.mask(packet, payloadStart, bytes, payloadLength);
             System.arraycopy(masker.getMask(), 0, packet, payloadStart - MASK_SIZE,
