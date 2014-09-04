@@ -250,7 +250,11 @@ client.getProperties().put(ClientProperties.SHARED_CONTAINER, true);</programlis
 
 <programlisting language="java" linenumbering="numbered">client.getProperties().put(ClientProperties.SHARED_CONTAINER_IDLE_TIMEOUT, 5);</programlisting>
 
-        <para>Last but not least, you might want to specify thread pool sizes used by shared container (please use this feature only when you do know what are you doing. Grizzly by default does not limit max number of used threads, so if you do that, please make sure thread pool size fits your purpose):</para>
+        <para>Last but not least, you might want to specify thread pool sizes used by shared container (please use this feature only when you do know what are you doing. Grizzly by default does not limit max number of used threads,
+            so if you do that, please make sure thread pool size fits your purpose). Even though the default unlimited thread pool size is sufficient for the vast majority of client usages, it is also important ot note that
+            if the max. thread pool size is not specified and the clients which share the thread pool receive a large number of messages at the same moment, a new thread can be created for each of the received messages
+            which might demand large amount of system resources and might even lead to a program failure if the required resources are not available. Therefore for particularly busy clients setting the max thread pool
+            size can be only recommended. The following example shows how to set the maximal thread poll size.</para>
 
 <programlisting language="java" linenumbering="numbered">client.getProperties().put(GrizzlyClientProperties.SELECTOR_THREAD_POOL_CONFIG, ThreadPoolConfig.defaultConfig().setMaxPoolSize(3));
 client.getProperties().put(GrizzlyClientProperties.WORKER_THREAD_POOL_CONFIG, ThreadPoolConfig.defaultConfig().setMaxPoolSize(10));</programlisting>

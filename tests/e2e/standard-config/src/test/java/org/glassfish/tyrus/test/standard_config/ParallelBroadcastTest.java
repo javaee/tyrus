@@ -55,6 +55,7 @@ import javax.websocket.server.ServerEndpoint;
 
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.client.ClientProperties;
+import org.glassfish.tyrus.client.ThreadPoolConfig;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.tools.TestContainer;
 
@@ -83,8 +84,12 @@ public class ParallelBroadcastTest extends TestContainer {
         CountDownLatch messageLatch = new CountDownLatch(SESSIONS_COUNT);
         try {
             server = startServer(BroadcastServerEndpoint.class);
-            ClientManager client = ClientManager.createClient();
+            ClientManager client = createClient();
             client.getProperties().put(ClientProperties.SHARED_CONTAINER, true);
+
+            // The number of threads has to be limited, because all the clients will receive the broadcast simultaneously,
+            // which might lead to creating too many threads and consequently a test failure.
+            client.getProperties().put(ClientProperties.WORKER_THREAD_POOL_CONFIG, ThreadPoolConfig.defaultConfig().setMaxPoolSize(20));
 
             for (int i = 0; i < SESSIONS_COUNT - 1; i++) {
                 client.connectToServer(new AnnotatedClientEndpoint(messageLatch, messageCounter), getURI(BroadcastServerEndpoint.class));
