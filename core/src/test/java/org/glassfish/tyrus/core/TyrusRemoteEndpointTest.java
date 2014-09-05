@@ -326,7 +326,7 @@ public class TyrusRemoteEndpointTest {
         private int lastSentMessageSize;
 
         private TestRemoteEndpoint() {
-            super(new ProtocolHandler(false), null);
+            super(new ProtocolHandler(false, null), null);
         }
 
         @Override

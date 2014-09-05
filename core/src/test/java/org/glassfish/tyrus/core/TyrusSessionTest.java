@@ -476,8 +476,7 @@ public class TyrusSessionTest {
     private static class TestRemoteEndpoint extends TyrusWebSocket {
 
         private TestRemoteEndpoint() {
-            super(new ProtocolHandler(false), null);
+            super(new ProtocolHandler(false, null), null);
         }
     }
-
 }

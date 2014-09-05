@@ -302,7 +302,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
     private static ProtocolHandler loadHandler(UpgradeRequest request) {
         for (Version version : Version.values()) {
             if (version.validate(request)) {
-                return version.createHandler(false);
+                return version.createHandler(false, null);
             }
         }
         return null;

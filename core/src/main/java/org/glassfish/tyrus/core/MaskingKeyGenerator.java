@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -40,47 +40,32 @@
 
 package org.glassfish.tyrus.core;
 
-import org.glassfish.tyrus.spi.UpgradeRequest;
-
 /**
- * TODO
+ * Can be implemented to generate masking keys.
+ * <p/>
+ * The implementation must be thread safe.
+ * <p/>
+ * Tyrus by default uses the following implementation:
+ * <pre>
+ *     new MaskingKeyGenerator() {
+ *
+ *          private final SecureRandom secureRandom = new SecureRandom();
+ *
+ *          public int nextInt() {
+ *              return secureRandom.nextInt();
+ *          }
+ *      };
+ * </pre>
+ *
+ * @author Petr Janouch (petr.janouch at oracle.com)
  */
-public enum Version {
+@Beta
+public interface MaskingKeyGenerator {
 
-    DRAFT17("13") {
-        @Override
-        public ProtocolHandler createHandler(boolean mask, MaskingKeyGenerator maskingKeyGenerator) {
-            return new ProtocolHandler(mask, maskingKeyGenerator);
-        }
-
-        @Override
-        public boolean validate(UpgradeRequest request) {
-            return this.wireProtocolVersion.equals(request.getHeader(UpgradeRequest.SEC_WEBSOCKET_VERSION));
-        }
-    };
-
-    public abstract ProtocolHandler createHandler(boolean mask, MaskingKeyGenerator maskingKeyGenerator);
-
-    public abstract boolean validate(UpgradeRequest request);
-
-    final String wireProtocolVersion;
-
-    private Version(final String wireProtocolVersion) {
-        this.wireProtocolVersion = wireProtocolVersion;
-    }
-
-    @Override
-    public String toString() {
-        return name();
-    }
-
-    public static String getSupportedWireProtocolVersions() {
-        final StringBuilder sb = new StringBuilder();
-        for (Version v : Version.values()) {
-            if (v.wireProtocolVersion.length() > 0) {
-                sb.append(v.wireProtocolVersion).append(", ");
-            }
-        }
-        return sb.substring(0, sb.length() - 2);
-    }
+    /**
+     * Return next random int similarly to {@link java.util.Random#nextInt()}.
+     *
+     * @return next random value.
+     */
+    int nextInt();
 }

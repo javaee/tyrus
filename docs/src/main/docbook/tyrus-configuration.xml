@@ -258,6 +258,38 @@ client.getProperties().put(ClientProperties.SHARED_CONTAINER, true);</programlis
 
 <programlisting language="java" linenumbering="numbered">client.getProperties().put(GrizzlyClientProperties.SELECTOR_THREAD_POOL_CONFIG, ThreadPoolConfig.defaultConfig().setMaxPoolSize(3));
 client.getProperties().put(GrizzlyClientProperties.WORKER_THREAD_POOL_CONFIG, ThreadPoolConfig.defaultConfig().setMaxPoolSize(10));</programlisting>
+
+        <section>
+            <title>Custom masking key generator</title>
+            <para>
+                As a security measure, all frames originating on a websocket client have to be masked with a random 4B value, which must be generated for each frame.
+                Moreover to fully comply with the security requirements of RFC 6455, a masking key of a frame must not be predictable from masking keys of previous frames
+                and therefore Tyrus uses <code>java.security.SecureRandom</code> as a default masking key generator. While this is perfectly OK for most Tyrus client use cases,
+                usage of <code>java.security.SecureRandom</code> might prove to be a performance issue, when the client is used for instance for highly parallel stress testing,
+                as it uses a synchronized singleton as a random entropy provider in its internals.
+            </para>
+            <para>
+                To overcome the limitations mentioned above, Tyrus allows replacing the default <code>java.security.SecureRandom</code> with more scalable masking key generator.
+                Please, be aware that there might be security implications if you decide not to use a cryptographically secure random number generator
+                in production like the one in the following sample. Moreover the supplied random number generator should be also thread safe.
+                The following example shows, how a custom masking key generator can be configured:
+                <programlisting language="java" linenumbering="numbered">ClientManager client = ClientManager.createClient();
+client.getProperties().put(ClientProperties.MASKING_KEY_GENERATOR, new MaskingKeyGenerator() {
+
+    private final Random random = new Random();
+
+    @Override
+    public int nextInt() {
+        return random.nextInt();
+    }
+});</programlisting>
+            </para>
+            <para>
+                It is also important to note that the scalability issue connected to the default masking key generator is not limited to the shared container client configuration,
+                but it is discussed in this section as it is assumed that shared container is used for highly parallel clients handling a lot of traffic, where the method
+                of masking key generation starts to matter.
+            </para>
+        </section>
     </section>
 
     <section>

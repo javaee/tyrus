@@ -84,7 +84,7 @@ public final class ProtocolHandler {
     private static final Logger LOGGER = Logger.getLogger(ProtocolHandler.class.getName());
 
     private final boolean client;
-    private final SecureRandom secureRandom = new SecureRandom();
+    private final MaskingKeyGenerator maskingKeyGenerator;
     private final ParsingState state = new ParsingState();
 
     private volatile TyrusWebSocket webSocket;
@@ -103,11 +103,34 @@ public final class ProtocolHandler {
     /**
      * Constructor.
      *
-     * @param client {@code true} when this instance is on client side, {@code false} when on
-     *               server side.
+     * @param client              {@code true} when this instance is on client side, {@code false} when on
+     *                            server side.
+     * @param maskingKeyGenerator random number generator that will be used for generating masking keys. Masking keys
+     *                            are required only on the client side and {@code maskingKeyGenerator} should be
+     *                            {@code null} on the server side. If {@code null} on the client side, {@link java.security.SecureRandom}
+     *                            will be used by default.
      */
-    ProtocolHandler(boolean client) {
+    ProtocolHandler(boolean client, MaskingKeyGenerator maskingKeyGenerator) {
         this.client = client;
+
+        if (client) {
+            if (maskingKeyGenerator != null) {
+                this.maskingKeyGenerator = maskingKeyGenerator;
+            } else {
+                this.maskingKeyGenerator = new MaskingKeyGenerator() {
+
+                    private final SecureRandom secureRandom = new SecureRandom();
+
+                    @Override
+                    public int nextInt() {
+                        return secureRandom.nextInt();
+                    }
+                };
+            }
+        } else {
+            // masking key is not used on the server
+            this.maskingKeyGenerator = null;
+        }
     }
 
     /**
@@ -417,7 +440,7 @@ public final class ProtocolHandler {
     public ByteBuffer frame(Frame frame) {
 
         if (client) {
-            frame = Frame.builder(frame).maskingKey(secureRandom.nextInt()).mask(true).build();
+            frame = Frame.builder(frame).maskingKey(maskingKeyGenerator.nextInt()).mask(true).build();
         }
 
         if (extensions != null && extensions.size() > 0) {

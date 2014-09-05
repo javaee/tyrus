@@ -288,4 +288,21 @@ public final class ClientProperties {
      * this setting will have no effect as at this level HTTP upgrade messages will be logged anyway.
      */
     public static final String LOG_HTTP_UPGRADE = "org.glassfish.tyrus.client.http.logUpgrade";
+
+    /**
+     * Property name for registering a custom masking key generator. The expected value is an instance of
+     * {@link org.glassfish.tyrus.core.MaskingKeyGenerator}.
+     * <p/>
+     * As a security measure, all frames originating on websocket client have to be masked with random 4B value, which
+     * should be freshly generated for each frame. Moreover to fully comply with the security requirements of RFC 6455,
+     * a masking key of a frame must not be predictable from masking keys of previous frames and therefore Tyrus uses
+     * {@link java.security.SecureRandom} as a default masking key generator. While this is perfectly OK for most Tyrus
+     * client use cases, usage of {@link java.security.SecureRandom} might prove to be a performance issue,
+     * when the client is used for instance for highly parallel stress testing as {@link java.security.SecureRandom}
+     * uses a synchronized singleton as a random entropy provider in its internals.
+     * <p/>
+     * This property allows replacing the default {@link java.security.SecureRandom} with a more scalable provider
+     * of masking keys.
+     */
+    public static final String MASKING_KEY_GENERATOR = "org.glassfish.tyrus.client.maskingKeyGenerator";
 }

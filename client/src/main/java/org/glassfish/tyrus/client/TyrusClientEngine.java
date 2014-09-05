@@ -69,6 +69,7 @@ import org.glassfish.tyrus.client.auth.Credentials;
 import org.glassfish.tyrus.core.DebugContext;
 import org.glassfish.tyrus.core.Handshake;
 import org.glassfish.tyrus.core.HandshakeException;
+import org.glassfish.tyrus.core.MaskingKeyGenerator;
 import org.glassfish.tyrus.core.ProtocolHandler;
 import org.glassfish.tyrus.core.RequestContext;
 import org.glassfish.tyrus.core.TyrusEndpointWrapper;
@@ -107,7 +108,7 @@ public class TyrusClientEngine implements ClientEngine {
     private static final int BUFFER_STEP_SIZE = 256;
     private static final int DEFAULT_REDIRECT_THRESHOLD = 5;
 
-    private final ProtocolHandler protocolHandler = DEFAULT_VERSION.createHandler(true);
+    private final ProtocolHandler protocolHandler;
     private final TyrusEndpointWrapper endpointWrapper;
     private final ClientHandshakeListener listener;
     private final Map<String, Object> properties;
@@ -143,6 +144,9 @@ public class TyrusClientEngine implements ClientEngine {
         this.listener = listener;
         this.properties = properties;
         this.connectToServerUriParam = connectToServerUriParam;
+
+        MaskingKeyGenerator maskingKeyGenerator = Utils.getProperty(properties, ClientProperties.MASKING_KEY_GENERATOR, MaskingKeyGenerator.class, null);
+        protocolHandler = DEFAULT_VERSION.createHandler(true, maskingKeyGenerator);
 
         this.redirectUriHistory = Collections.synchronizedSet(new HashSet<URI>(DEFAULT_REDIRECT_THRESHOLD));
 
