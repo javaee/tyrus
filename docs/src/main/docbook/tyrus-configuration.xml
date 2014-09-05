@@ -638,6 +638,167 @@ client.getProperties().put(ClientProperties.SSL_ENGINE_CONFIGURATOR, sslEngineCo
         </section>
     </section>
     <section>
+        <title>Tracing support</title>
+        <para>
+            Apart from logging, Tyrus supports another useful means for debugging and diagnosing a deployed application which will
+            be referred to as tracing on the following lines. Tracing consists of including vital information about handshake
+            handling into a handshake response. The provided information includes among other things an insight into how Tyrus matches
+            handshake request URI against the URI of the deployed endpoints and how the best matching endpoint is selected.
+            The tracing information is included in a handshake response as a content of HTTP headers with
+            <code>X-Tyrus-Tracing-</code> as the header names prefix.
+            All the tracing information will also be available in the server log if the appropriate logging level is set.
+            If it is still unclear, how Tyrus tracing works, please refer to the subsection with title Tracing Examples.
+        </para>
+        <section>
+            <title>Configuration</title>
+            <para>
+                Tracing support is disabled by default. You can enable it either "globally" for all application handshake requests
+                or selectively per handshake request. The tracing support activation is controlled by setting the
+                <code>org.glassfish.tyrus.server.tracingType</code> configuration property. The property value is expected to be one of the following:
+
+                <itemizedlist>
+                    <listitem>
+                        <para>OFF - tracing support is disabled (default value).</para>
+                    </listitem>
+                    <listitem>
+                        <para>ON_DEMAND - tracing support is in a stand-by mode; it is enabled selectively per handshake, via a special
+                            X-Tyrus-Tracing-Accept HTTP header in a handshake request.</para>
+                    </listitem>
+                    <listitem>
+                        <para>ALL - tracing support is enabled for all handshake requests.</para>
+                    </listitem>
+                </itemizedlist>
+
+                The level of detail of the information provided by Tyrus tracing facility - the tracing threshold - can be customized.
+                The tracing threshold can be set at the application level via <code>org.glassfish.tyrus.server.tracingThreshold</code>
+                application configuration property in both Glassfish and Grizzly as will be shown in the following samples,
+                or at a request level, via X-Tyrus-Tracing-Threshold HTTP header in a handshake request. The request-level configuration
+                overrides any application level setting. There are 2 supported levels of detail for Tyrus tracing:
+
+                <itemizedlist>
+                    <listitem>
+                        <para>SUMMARY - very basic summary information about handshake processing</para>
+                    </listitem>
+                    <listitem>
+                        <para>TRACE - detailed information about  handshake processing (default threshold value).</para>
+                    </listitem>
+                </itemizedlist>
+            </para>
+                <section>
+                    <title>Global configuration examples</title>
+                    <para>
+                        As has been already said, tracing is disabled by default. The following code sample shows, how <code>ON_DEMAND</code> tracing with
+                        level set to <code>SUMMARY</code> can be enabled on Grizzly server:
+                        <programlisting language="java" linenumbering="numbered">
+                            serverProperties.put(TyrusWebSocketEngine.TRACING_TYPE, ON_DEMAND);
+                            serverProperties.put(TyrusWebSocketEngine.TRACING_THRESHOLD, SUMMARY);
+                        </programlisting>
+                        Similarly <code>ALL</code> tracing with level set to <code>TRACE</code> (the default) can be enabled on Glassfish server in web.xml:
+                        <programlisting language="xml" linenumbering="numbered">&lt;web-app version="2.5" xmlns="http://java.sun.com/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"&gt;
+
+    &lt;context-param&gt;
+        &lt;param-name&gt;org.glassfish.tyrus.server.tracingType&lt;/param-name&gt;
+        &lt;param-value&gt;ALL&lt;/param-value&gt;
+    &lt;/context-param&gt;
+&lt;/web-app&gt;</programlisting>
+
+                        It has been also already mentioned that the tracing threshold configured on application level can be overridden per handshake request as
+                        will be shown in the following section.
+                    </para>
+                </section>
+            <section>
+                <title>Configuring tracing via handshake request headers</title>
+                <para>
+                    Whenever the tracing support is active (ON_DEMAND or ALL) you can customize the tracing behaviour by including one or more of the following request HTTP headers
+                    in the individual handshake requests:
+
+                    <itemizedlist>
+                        <listitem>
+                            <para>X-Tyrus-Tracing-Accept - used to enable the tracing support for the particular request. It is applied only when the application-level tracing support is configured to
+                                ON_DEMAND mode. The value of the header is not used by the Tyrus tracing facility and as such it can be any arbitrary (even empty) string.</para>
+                        </listitem>
+                        <listitem>
+                            <para>X-Tyrus-Tracing-Threshold - used to override the tracing threshold. Allowed values are: SUMMARY, TRACE.</para>
+                        </listitem>
+                    </itemizedlist>
+                </para>
+            </section>
+        </section>
+        <section>
+            <title>Tracing Examples</title>
+            <para>
+                An example of a handshake request to a server in <code>ON_DEMAND</code> tracing mode requesting <code>SUMMARY</code> tracing information:
+                <screen linenumbering="numbered"><![CDATA[GET /endpoint/b HTTP/1.1
+Connection: Upgrade
+Host: localhost:8025
+Origin: localhost:8025
+Sec-WebSocket-Key: YrFldD8nhRW+6hJ2K/TMqw==
+Sec-WebSocket-Version: 13
+Upgrade: websocket
+X-Tyrus-Tracing-Accept: Whatever
+X-Tyrus-Tracing-Threshold: SUMMARY]]></screen>
+                An example of a possible response to the request above:
+                <screen linenumbering="numbered"><![CDATA[HTTP/1.1 404 Not found
+x-tyrus-tracing-00 : [0 ms] Matching request URI /samples-debug/endpoint/b against /samples-debug/endpoint/{a}/b
+x-tyrus-tracing-01 : [0 ms] URIs /samples-debug/endpoint/b and /samples-debug/endpoint/{a}/b have different length
+x-tyrus-tracing-02 : [0 ms] Matching request URI /samples-debug/endpoint/b against /samples-debug/endpoint/{a}/{b}
+x-tyrus-tracing-03 : [0 ms] URIs /samples-debug/endpoint/b and /samples-debug/endpoint/{a}/{b} have different length
+x-tyrus-tracing-04 : [0 ms] Matching request URI /samples-debug/endpoint/b against /samples-debug/endpoint/a/b
+x-tyrus-tracing-05 : [1 ms] URIs /samples-debug/endpoint/b and /samples-debug/endpoint/a/b have different length
+x-tyrus-tracing-06 : [1 ms] Matching request URI /samples-debug/endpoint/b against /samples-debug/endpoint/a/a
+x-tyrus-tracing-07 : [1 ms] URIs /samples-debug/endpoint/b and /samples-debug/endpoint/a/a have different length
+x-tyrus-tracing-08 : [1 ms] Matching request URI /samples-debug/endpoint/b against /samples-debug/endpoint/a
+x-tyrus-tracing-09 : [1 ms] Segment "a" does not match
+x-tyrus-tracing-10 : [1 ms] Matching request URI /samples-debug/endpoint/b against /samples-debug/endpoint/a/{b}
+x-tyrus-tracing-11 : [1 ms] URIs /samples-debug/endpoint/b and /samples-debug/endpoint/a/{b} have different length
+x-tyrus-tracing-12 : [3 ms] Endpoints matched to the request URI: []]]></screen>
+                The time in the square brackets in the sample above is the time since the handshake request has been received.
+            </para>
+            <para>
+                An example of a possible handshake response from a server in <code>ALL</code> tracing mode with tracing threshold set to <code>TRACE</code>:
+                <screen linenumbering="numbered"><![CDATA[HTTP/1.1 101
+connection: Upgrade
+sec-websocket-accept: C8/QbF4Mx9sX31sihUcnI19yqto=
+upgrade: websocket
+x-tyrus-tracing-00 : [0 ms] Matching request URI /samples-debug/endpoint/a/b against /samples-debug/endpoint/{a}/b
+x-tyrus-tracing-01 : [0 ms] Matching request URI /samples-debug/endpoint/a/b against /samples-debug/endpoint/{a}/{b}
+x-tyrus-tracing-02 : [0 ms] Matching request URI /samples-debug/endpoint/a/b against /samples-debug/endpoint/a/b
+x-tyrus-tracing-03 : [1 ms] Matching request URI /samples-debug/endpoint/a/b against /samples-debug/endpoint/a/a
+x-tyrus-tracing-04 : [1 ms] Segment "a" does not match
+x-tyrus-tracing-05 : [1 ms] Matching request URI /samples-debug/endpoint/a/b against /samples-debug/endpoint/a
+x-tyrus-tracing-06 : [1 ms] URIs /samples-debug/endpoint/a/b and /samples-debug/endpoint/a have different length
+x-tyrus-tracing-07 : [1 ms] Matching request URI /samples-debug/endpoint/a/b against /samples-debug/endpoint/a/{b}
+x-tyrus-tracing-08 : [3 ms] Choosing better match from /samples-debug/endpoint/{a}/b and /samples-debug/endpoint/a/b
+x-tyrus-tracing-09 : [3 ms] /samples-debug/endpoint/a/b is an exact match
+x-tyrus-tracing-10 : [3 ms] Choosing better match from /samples-debug/endpoint/a/{b} and /samples-debug/endpoint/{a}/b
+x-tyrus-tracing-11 : [3 ms] /samples-debug/endpoint/a/{b} is a  better match, because it has longer exact path
+x-tyrus-tracing-12 : [3 ms] Choosing better match from /samples-debug/endpoint/a/{b} and /samples-debug/endpoint/{a}/b
+x-tyrus-tracing-13 : [3 ms] /samples-debug/endpoint/a/{b} is a  better match, because it has longer exact path
+x-tyrus-tracing-14 : [3 ms] Choosing better match from /samples-debug/endpoint/a/{b} and /samples-debug/endpoint/a/b
+x-tyrus-tracing-15 : [3 ms] /samples-debug/endpoint/a/b is an exact match
+x-tyrus-tracing-16 : [3 ms] Choosing better match from /samples-debug/endpoint/{a}/{b} and /samples-debug/endpoint/a/{b}
+x-tyrus-tracing-17 : [4 ms] /samples-debug/endpoint/a/{b} is a  better match, because it has longer exact path
+x-tyrus-tracing-18 : [4 ms] Choosing better match from /samples-debug/endpoint/{a}/{b} and /samples-debug/endpoint/{a}/b
+x-tyrus-tracing-19 : [4 ms] /samples-debug/endpoint/{a}/b is a  better match, because /samples-debug/endpoint/{a}/{b} has more variables
+x-tyrus-tracing-20 : [4 ms] Endpoints matched to the request URI: [/samples-debug/endpoint/a/b, /samples-debug/endpoint/a/{b}, /samples-debug/endpoint/{a}/b, /samples-debug/endpoint/{a}/{b}]
+x-tyrus-tracing-21 : [4 ms] Endpoint selected as a match to the handshake URI: /samples-debug/endpoint/a/b ]]></screen>
+            </para>
+        </section>
+    </section>
+    <section>
+        <title>Client handshake request and response logging</title>
+        <para>
+            Tyrus client offers a possibility, how to enable printing of handshake requests and responses to standard output without having to configure Java logging,
+            which is essential when debugging a misbehaving websocket application. This feature is particularly useful with tracing enabled. The following sample shows,
+            how the handshake logging can be enabled:
+            <programlisting language="java" linenumbering="numbered">
+                ClientManager client = ClientManager.createClient();
+                client.getProperties().put(ClientProperties.LOG_UPGRADE_MESSAGES, true);
+            </programlisting>
+        </para>
+    </section>
+    <section>
         <title>JMX Monitoring</title>
         <para>
             Tyrus allows monitoring and accessing some runtime properties and metrics at the server side using JMX (Java management extension technology).
