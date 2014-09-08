@@ -43,6 +43,7 @@ package org.glassfish.tyrus.core;
 import java.nio.ByteBuffer;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
@@ -60,6 +61,7 @@ import org.glassfish.tyrus.core.frame.TextFrame;
 import org.glassfish.tyrus.core.frame.TyrusFrame;
 import org.glassfish.tyrus.core.l10n.LocalizationMessages;
 import org.glassfish.tyrus.core.monitoring.MessageEventListener;
+import org.glassfish.tyrus.spi.Connection;
 import org.glassfish.tyrus.spi.UpgradeRequest;
 
 /**
@@ -132,13 +134,18 @@ public class TyrusWebSocket {
      * This callback will be invoked when the opening handshake between both
      * endpoints has been completed.
      *
-     * @param upgradeRequest request associated with this socket.
+     * @param upgradeRequest       request associated with this socket.
+     * @param subProtocol          used subprotocol.
+     * @param extensions           used extensions.
+     * @param connectionId         connection id obtained from request or response header {@value UpgradeRequest#CLUSTER_CONNECTION_ID_HEADER}.
+     * @param connectionProperties connection related properties like remote/local IP addresses, port numbers or hostnames.
+     * @param debugContext         debug context.
      */
-    public void onConnect(UpgradeRequest upgradeRequest, String subProtocol, List<Extension> extensions, String connectionId, DebugContext debugContext) {
+    public void onConnect(UpgradeRequest upgradeRequest, String subProtocol, List<Extension> extensions, String connectionId, Map<Connection.ConnectionPropertyKey, Object> connectionProperties, DebugContext debugContext) {
         state.set(State.CONNECTED);
 
         if (endpointWrapper != null) {
-            endpointWrapper.onConnect(this, upgradeRequest, subProtocol, extensions, connectionId, debugContext);
+            endpointWrapper.onConnect(this, upgradeRequest, subProtocol, extensions, connectionId, connectionProperties, debugContext);
         }
 
         onConnectLatch.countDown();

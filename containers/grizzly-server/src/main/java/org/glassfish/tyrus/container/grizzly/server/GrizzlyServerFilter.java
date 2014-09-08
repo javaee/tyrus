@@ -41,6 +41,7 @@
 package org.glassfish.tyrus.container.grizzly.server;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -243,12 +244,18 @@ class GrizzlyServerFilter extends BaseFilter {
                 final Connection grizzlyConnection = ctx.getConnection();
                 write(ctx, upgradeRequest, upgradeResponse);
 
-                final org.glassfish.tyrus.spi.Connection connection = upgradeInfo.createConnection(new GrizzlyWriter(ctx.getConnection()), new org.glassfish.tyrus.spi.Connection.CloseListener() {
-                    @Override
-                    public void close(CloseReason reason) {
-                        grizzlyConnection.close();
-                    }
-                });
+                Map<org.glassfish.tyrus.spi.Connection.ConnectionPropertyKey, Object> connectionProperties = Utils.getConnectionProperties(
+                        (InetSocketAddress) ctx.getConnection().getLocalAddress(),
+                        (InetSocketAddress) ctx.getConnection().getPeerAddress());
+
+                final org.glassfish.tyrus.spi.Connection connection = upgradeInfo.createConnection(new GrizzlyWriter(ctx.getConnection()),
+                        new org.glassfish.tyrus.spi.Connection.CloseListener() {
+                            @Override
+                            public void close(CloseReason reason) {
+                                grizzlyConnection.close();
+                            }
+                        },
+                        connectionProperties);
 
                 TYRUS_CONNECTION.set(grizzlyConnection, connection);
                 TASK_PROCESSOR.set(grizzlyConnection, new TaskProcessor());
@@ -312,7 +319,6 @@ class GrizzlyServerFilter extends BaseFilter {
                 .requestURI(URI.create(requestPacket.getRequestURI()))
                 .queryString(requestPacket.getQueryString())
                 .secure(requestPacket.isSecure())
-                .remoteAddr(requestPacket.getRemoteAddress())
                 .build();
 
         for (String name : requestPacket.getHeaders().names()) {

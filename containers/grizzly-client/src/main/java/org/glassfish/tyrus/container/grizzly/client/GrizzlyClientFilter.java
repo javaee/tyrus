@@ -41,6 +41,7 @@
 package org.glassfish.tyrus.container.grizzly.client;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -368,7 +369,10 @@ class GrizzlyClientFilter extends BaseFilter {
                 }
                 return ctx.getInvokeAction();
             case SUCCESS:
-                tyrusConnection = clientUpgradeInfo.createConnection();
+                Map<org.glassfish.tyrus.spi.Connection.ConnectionPropertyKey, Object> connectionProperties = Utils.getConnectionProperties(
+                        (InetSocketAddress) ctx.getConnection().getLocalAddress(),
+                        (InetSocketAddress) ctx.getAddress());
+                tyrusConnection = clientUpgradeInfo.createConnection(connectionProperties);
                 break;
             default:
                 return ctx.getStopAction();

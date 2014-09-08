@@ -41,7 +41,9 @@ package org.glassfish.tyrus.servlet;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.Collections;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -71,6 +73,7 @@ import org.glassfish.tyrus.core.TyrusUpgradeResponse;
 import org.glassfish.tyrus.core.TyrusWebSocketEngine;
 import org.glassfish.tyrus.core.Utils;
 import org.glassfish.tyrus.core.wsadl.model.Application;
+import org.glassfish.tyrus.spi.Connection;
 import org.glassfish.tyrus.spi.UpgradeResponse;
 import org.glassfish.tyrus.spi.WebSocketEngine;
 import org.glassfish.tyrus.spi.Writer;
@@ -176,8 +179,8 @@ class TyrusServletFilter implements Filter, HttpSessionListener {
         }
 
         @Override
-        public void preInit(WebSocketEngine.UpgradeInfo upgradeInfo, Writer writer, boolean authenticated) {
-            handler.preInit(upgradeInfo, writer, authenticated);
+        public void preInit(WebSocketEngine.UpgradeInfo upgradeInfo, Writer writer, boolean authenticated, Map<Connection.ConnectionPropertyKey, Object> connectionProperties) {
+            handler.preInit(upgradeInfo, writer, authenticated, connectionProperties);
         }
 
         @Override
@@ -222,7 +225,6 @@ class TyrusServletFilter implements Filter, HttpSessionListener {
                         }
                     })
                     .parameterMap(httpServletRequest.getParameterMap())
-                    .remoteAddr(httpServletRequest.getRemoteAddr())
                     .build();
 
             Enumeration<String> headerNames = httpServletRequest.getHeaderNames();
@@ -263,7 +265,15 @@ class TyrusServletFilter implements Filter, HttpSessionListener {
                         handler.setIncomingBufferSize(Integer.parseInt(frameBufferSize));
                     }
 
-                    handler.preInit(upgradeInfo, webSocketConnection, httpServletRequest.getUserPrincipal() != null);
+                    Map<Connection.ConnectionPropertyKey, Object> connectionProperties = new HashMap<>(6);
+                    connectionProperties.put(Connection.ConnectionPropertyKey.REMOTE_ADDR, httpServletRequest.getRemoteAddr());
+                    connectionProperties.put(Connection.ConnectionPropertyKey.REMOTE_HOSTNAME, httpServletRequest.getRemoteHost());
+                    connectionProperties.put(Connection.ConnectionPropertyKey.REMOTE_PORT, httpServletRequest.getRemotePort());
+                    connectionProperties.put(Connection.ConnectionPropertyKey.LOCAL_ADDR, httpServletRequest.getLocalAddr());
+                    connectionProperties.put(Connection.ConnectionPropertyKey.LOCAL_HOSTNAME, httpServletRequest.getLocalName());
+                    connectionProperties.put(Connection.ConnectionPropertyKey.LOCAL_PORT, httpServletRequest.getLocalPort());
+
+                    handler.preInit(upgradeInfo, webSocketConnection, httpServletRequest.getUserPrincipal() != null, Collections.unmodifiableMap(connectionProperties));
 
                     if (requestContext.getHttpSession() != null) {
                         sessionToHandler.put((HttpSession) requestContext.getHttpSession(), handler);

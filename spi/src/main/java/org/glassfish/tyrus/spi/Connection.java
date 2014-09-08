@@ -40,6 +40,9 @@
 
 package org.glassfish.tyrus.spi;
 
+import java.net.InetAddress;
+import java.util.Map;
+
 import javax.websocket.CloseReason;
 
 /**
@@ -50,27 +53,112 @@ import javax.websocket.CloseReason;
 public interface Connection {
 
     /**
+     * Connection property map key.
+     *
+     * @see ClientEngine.ClientUpgradeInfo#createConnection(Map)
+     * @see WebSocketEngine.UpgradeInfo#createConnection(Writer, CloseListener, Map)
+     */
+    public static enum ConnectionPropertyKey {
+        /**
+         * {@link InetAddress} instance representing a remote address.
+         * <p/>
+         * An expected value is {@link InetAddress}.
+         * Property should be passed in {@code connectionProperties} map.
+         */
+        REMOTE_INET_ADDRESS("org.glassfish.tyrus.core.remoteInetAddress"),
+
+        /**
+         * Remote IP address.
+         * <p/>
+         * An expected value is non-empty {@link String}.
+         * Property should be passed in {@code connectionProperties} map.
+         */
+        REMOTE_ADDR("org.glassfish.tyrus.core.remoteAddr"),
+
+        /**
+         * Remote hostname.
+         * <p/>
+         * An expected value is non-empty {@link String}.
+         * Property should be passed in {@code connectionProperties} map.
+         */
+        REMOTE_HOSTNAME("org.glassfish.tyrus.core.remoteHostName"),
+
+        /**
+         * Remote port number.
+         * <p/>
+         * An expected value is {@link Integer} greater than 0.
+         * Property should be passed in {@code connectionProperties} map.
+         */
+        REMOTE_PORT("org.glassfish.tyrus.core.remotePort"),
+
+        /**
+         * {@link InetAddress} instance representing a local address.
+         * <p/>
+         * An expected value is {@link InetAddress}.
+         * Property should be passed in {@code connectionProperties} map.
+         */
+
+        LOCAL_INET_ADDRESS("org.glassfish.tyrus.core.localInetAddress"),
+
+        /**
+         * Local IP address.
+         * <p/>
+         * An expected value is non-empty {@link String}.
+         * Property should be passed in {@code connectionProperties} map.
+         */
+        LOCAL_ADDR("org.glassfish.tyrus.core.localAddr"),
+
+        /**
+         * Local hostname.
+         * <p/>
+         * An expected value is non-empty {@link String}.
+         * Property should be passed in {@code connectionProperties} map.
+         */
+        LOCAL_HOSTNAME("org.glassfish.tyrus.core.localHostName"),
+
+        /**
+         * Local port number.
+         * <p/>
+         * An expected value is {@link Integer} greater than 0.
+         * Property should be passed in {@code connectionProperties} map.
+         */
+        LOCAL_PORT("org.glassfish.tyrus.core.localPort");
+
+        private final String key;
+
+        private ConnectionPropertyKey(final String key) {
+            this.key = key;
+        }
+
+        @Override
+        public String toString() {
+            return this.key;
+        }
+
+    }
+
+    /**
      * Returns a read handler. A transport can pass websocket data to
      * tyrus using the handler.
      *
-     * @return tryus read handler that handles websocket data.
+     * @return tyrus read handler that handles websocket data.
      */
     ReadHandler getReadHandler();
 
     /**
      * Returns the same writer that is passed for creating connection in
-     * {@link WebSocketEngine.UpgradeInfo#createConnection(Writer, CloseListener)}
+     * {@link WebSocketEngine.UpgradeInfo#createConnection(Writer, CloseListener, Map)}
      * The transport writer that actually writes websocket data
      * to underlying connection.
      *
      * @return transport writer that actually writes websocket data
-     *         to underlying connection.
+     * to underlying connection.
      */
     Writer getWriter();
 
     /**
      * Returns the same close listener that is passed for creating connection in
-     * {@link WebSocketEngine.UpgradeInfo#createConnection(Writer, CloseListener)}.
+     * {@link WebSocketEngine.UpgradeInfo#createConnection(Writer, CloseListener, Map)}.
      * <p/>
      * This transport close listener receives connection close notifications
      * from Tyrus.

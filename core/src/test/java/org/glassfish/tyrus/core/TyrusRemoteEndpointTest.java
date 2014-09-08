@@ -316,7 +316,8 @@ public class TyrusRemoteEndpointTest {
     }
 
     private TyrusSession createTestSession(TyrusWebSocket webSocket, TyrusEndpointWrapper endpointWrapper) {
-        return new TyrusSession(null, webSocket, endpointWrapper, null, null, true, null, null, Collections.<String, String>emptyMap(), null, new HashMap<String, List<String>>(), null, null, null, new DebugContext());
+        return new TyrusSession(null, webSocket, endpointWrapper, null, null, true, null, null, Collections.<String, String>emptyMap(),
+                null, new HashMap<String, List<String>>(), null, null, null, null, null, -1, null, null, null, -1, new DebugContext());
     }
 
     private class TestRemoteEndpoint extends TyrusWebSocket {

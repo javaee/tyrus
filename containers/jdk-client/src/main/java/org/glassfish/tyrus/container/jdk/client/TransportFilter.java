@@ -40,12 +40,14 @@
 package org.glassfish.tyrus.container.jdk.client;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.AsynchronousChannelGroup;
 import java.nio.channels.AsynchronousCloseException;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
+import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -62,12 +64,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.glassfish.tyrus.client.ThreadPoolConfig;
+import org.glassfish.tyrus.core.Utils;
+import org.glassfish.tyrus.spi.Connection;
 
 /**
  * Writes and reads data to and from a socket. Only one {@link #write(java.nio.ByteBuffer, org.glassfish.tyrus.spi.CompletionHandler)}
  * method call can be processed at a time. Only one {@link #_read(java.nio.ByteBuffer)} operation is supported at a time,
  * another one is started only after the previous one has completed. Blocking in {@link #onRead(java.nio.ByteBuffer)}
- * or {@link #onConnect()} method will result in data not being read from a socket until these methods have completed.
+ * or {@link #onConnect(Map)} method will result in data not being read from a socket until these methods have completed.
  *
  * @author Petr Janouch (petr.janouch at oracle.com)
  */
@@ -188,8 +192,16 @@ class TransportFilter extends Filter {
 
             @Override
             public void completed(Void result, Void nothing) {
+                Map<Connection.ConnectionPropertyKey, Object> connectionProperties;
+                try {
+                    connectionProperties = Utils.getConnectionProperties(
+                            (InetSocketAddress) socketChannel.getLocalAddress(),
+                            (InetSocketAddress) socketChannel.getRemoteAddress());
+                } catch (IOException e) {
+                    throw new IllegalStateException(e);
+                }
+                onConnect(connectionProperties);
                 final ByteBuffer inputBuffer = ByteBuffer.allocate(inputBufferSize);
-                onConnect();
                 _read(inputBuffer);
             }
 
