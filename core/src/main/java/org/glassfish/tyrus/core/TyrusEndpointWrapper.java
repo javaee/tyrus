@@ -59,7 +59,10 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -113,6 +116,12 @@ import org.glassfish.tyrus.spi.UpgradeResponse;
 public class TyrusEndpointWrapper {
 
     private final static Logger LOGGER = Logger.getLogger(TyrusEndpointWrapper.class.getName());
+
+    /**
+     * Used as threshold for parallel broadcast. When the sessions are divided between threads, number of sessions
+     * per thread should not be lower than this constant.
+     */
+    private final static int MIN_SESSIONS_PER_THREAD = 16;
     /**
      * The container for this session.
      */
@@ -136,48 +145,51 @@ public class TyrusEndpointWrapper {
     private final Method onError;
     private final SessionListener sessionListener;
     private final EndpointEventListener endpointEventListener;
+    private final boolean parallelBroadcastEnabled;
 
     private final ClusterContext clusterContext;
 
     /**
      * Create {@link TyrusEndpointWrapper} for class that extends {@link Endpoint}.
      *
-     * @param endpointClass         endpoint class for which the wrapper is created.
-     * @param configuration         endpoint configuration.
-     * @param componentProvider     component provider.
-     * @param container             container where the wrapper is running.
-     * @param clusterContext        cluster context instance. {@code null} indicates standalone mode.
-     * @param endpointEventListener endpoint event listener.
+     * @param endpointClass            endpoint class for which the wrapper is created.
+     * @param configuration            endpoint configuration.
+     * @param componentProvider        component provider.
+     * @param container                container where the wrapper is running.
+     * @param clusterContext           cluster context instance. {@code null} indicates standalone mode.
+     * @param endpointEventListener    endpoint event listener.
+     * @param parallelBroadcastEnabled {@code true} if parallel broadcast should be enabled, {@code true} is default.
      */
     public TyrusEndpointWrapper(Class<? extends Endpoint> endpointClass, EndpointConfig configuration,
                                 ComponentProviderService componentProvider, WebSocketContainer container,
                                 String contextPath, ServerEndpointConfig.Configurator configurator,
                                 SessionListener sessionListener, ClusterContext clusterContext,
-                                EndpointEventListener endpointEventListener) throws DeploymentException {
-        this(null, endpointClass, configuration, componentProvider, container, contextPath, configurator, sessionListener, clusterContext, endpointEventListener);
+                                EndpointEventListener endpointEventListener, Boolean parallelBroadcastEnabled) throws DeploymentException {
+        this(null, endpointClass, configuration, componentProvider, container, contextPath, configurator, sessionListener, clusterContext, endpointEventListener, parallelBroadcastEnabled);
     }
 
     /**
      * Create {@link TyrusEndpointWrapper} for {@link Endpoint} instance or {@link AnnotatedEndpoint} instance.
      *
-     * @param endpoint              endpoint instance for which the wrapper is created.
-     * @param configuration         endpoint configuration.
-     * @param componentProvider     component provider.
-     * @param container             container where the wrapper is running.
-     * @param clusterContext        cluster context instance. {@code null} indicates standalone mode.
-     * @param endpointEventListener endpoint event listener.
+     * @param endpoint                 endpoint instance for which the wrapper is created.
+     * @param configuration            endpoint configuration.
+     * @param componentProvider        component provider.
+     * @param container                container where the wrapper is running.
+     * @param clusterContext           cluster context instance. {@code null} indicates standalone mode.
+     * @param endpointEventListener    endpoint event listener.
+     * @param parallelBroadcastEnabled {@code true} if parallel broadcast should be enabled, {@code true} is default.
      */
     public TyrusEndpointWrapper(Endpoint endpoint, EndpointConfig configuration, ComponentProviderService componentProvider, WebSocketContainer container,
                                 String contextPath, ServerEndpointConfig.Configurator configurator, SessionListener sessionListener, ClusterContext clusterContext,
-                                EndpointEventListener endpointEventListener) throws DeploymentException {
-        this(endpoint, null, configuration, componentProvider, container, contextPath, configurator, sessionListener, clusterContext, endpointEventListener);
+                                EndpointEventListener endpointEventListener, Boolean parallelBroadcastEnabled) throws DeploymentException {
+        this(endpoint, null, configuration, componentProvider, container, contextPath, configurator, sessionListener, clusterContext, endpointEventListener, parallelBroadcastEnabled);
     }
 
     private TyrusEndpointWrapper(Endpoint endpoint, Class<? extends Endpoint> endpointClass, EndpointConfig configuration,
                                  ComponentProviderService componentProvider, WebSocketContainer container,
                                  String contextPath, final ServerEndpointConfig.Configurator configurator,
                                  SessionListener sessionListener, final ClusterContext clusterContext,
-                                 EndpointEventListener endpointEventListener) throws DeploymentException {
+                                 EndpointEventListener endpointEventListener, Boolean parallelBroadcastEnabled) throws DeploymentException {
         this.endpointClass = endpointClass;
         this.endpoint = endpoint;
         this.container = container;
@@ -190,6 +202,12 @@ public class TyrusEndpointWrapper {
             this.endpointEventListener = endpointEventListener;
         } else {
             this.endpointEventListener = EndpointEventListener.NO_OP;
+        }
+
+        if (parallelBroadcastEnabled == null) {
+            this.parallelBroadcastEnabled = true;
+        } else {
+            this.parallelBroadcastEnabled = parallelBroadcastEnabled;
         }
 
         // server-side only
@@ -1223,18 +1241,26 @@ public class TyrusEndpointWrapper {
 
     private Map<Session, Future<?>> broadcast(final String message, boolean local) {
 
-        final Map<Session, Future<?>> futures = new HashMap<Session, Future<?>>();
-
         if (!local && clusterContext != null) {
             clusterContext.broadcastText(getEndpointPath(), message);
+            return new HashMap<Session, Future<?>>();
         } else {
-            byte[] frame = null;
-            long payloadLength = 0;
 
-            for (Map.Entry<TyrusWebSocket, TyrusSession> e : webSocketToSession.entrySet()) {
-                if (e.getValue().isOpen()) {
+            if (webSocketToSession.isEmpty()) {
+                return new HashMap<Session, Future<?>>();
+            }
 
-                    final TyrusWebSocket webSocket = e.getKey();
+            TyrusWebSocket webSocket = webSocketToSession.keySet().iterator().next();
+            final Frame dataFrame = new TextFrame(message, false, true);
+            final ByteBuffer byteBuffer = webSocket.getProtocolHandler().frame(dataFrame);
+            final byte[] frame = new byte[byteBuffer.remaining()];
+            byteBuffer.get(frame);
+            final long payloadLength = dataFrame.getPayloadLength();
+
+            SessionCallable broadcastCallable = new SessionCallable() {
+
+                @Override
+                public Future<?> call(TyrusWebSocket webSocket, TyrusSession session) {
                     final ProtocolHandler protocolHandler = webSocket.getProtocolHandler();
 
                     // we need to let protocol handler execute extensions if there are any
@@ -1247,28 +1273,31 @@ public class TyrusEndpointWrapper {
                         byteBuffer.get(tempFrame);
 
                         final Future<Frame> frameFuture = webSocket.sendRawFrame(ByteBuffer.wrap(tempFrame));
-                        futures.put(e.getValue(), frameFuture);
                         webSocket.getMessageEventListener().onFrameSent(TyrusFrame.FrameType.TEXT, dataFrame.getPayloadLength());
-
+                        return frameFuture;
                     } else {
-
-                        if (frame == null) {
-                            final Frame dataFrame = new TextFrame(message, false, true);
-                            final ByteBuffer byteBuffer = webSocket.getProtocolHandler().frame(dataFrame);
-                            frame = new byte[byteBuffer.remaining()];
-                            byteBuffer.get(frame);
-                            payloadLength = dataFrame.getPayloadLength();
-                        }
-
                         final Future<Frame> frameFuture = webSocket.sendRawFrame(ByteBuffer.wrap(frame));
-                        futures.put(e.getValue(), frameFuture);
                         webSocket.getMessageEventListener().onFrameSent(TyrusFrame.FrameType.TEXT, payloadLength);
+                        return frameFuture;
                     }
                 }
-            }
-        }
+            };
 
-        return futures;
+            if (parallelBroadcastEnabled) {
+                return executeInParallel(broadcastCallable);
+            }
+
+            Map<Session, Future<?>> futures = new HashMap<Session, Future<?>>();
+
+            for (Map.Entry<TyrusWebSocket, TyrusSession> e : webSocketToSession.entrySet()) {
+                if (e.getValue().isOpen()) {
+                    Future<?> future = broadcastCallable.call(e.getKey(), e.getValue());
+                    futures.put(e.getValue(), future);
+                }
+            }
+
+            return futures;
+        }
     }
 
     /**
@@ -1284,19 +1313,29 @@ public class TyrusEndpointWrapper {
 
     private Map<Session, Future<?>> broadcast(final ByteBuffer message, boolean local) {
 
-        final Map<Session, Future<?>> futures = new HashMap<Session, Future<?>>();
-        byte[] byteArrayMessage = Utils.getRemainingArray(message);
+        final byte[] byteArrayMessage = Utils.getRemainingArray(message);
 
         if (!local && clusterContext != null) {
             clusterContext.broadcastBinary(getEndpointPath(), byteArrayMessage);
+            // TODO: fix for cluster case
+            return new HashMap<Session, Future<?>>();
         } else {
-            byte[] frame = null;
-            long payloadLength = 0;
 
-            for (Map.Entry<TyrusWebSocket, TyrusSession> e : webSocketToSession.entrySet()) {
-                if (e.getValue().isOpen()) {
+            if (webSocketToSession.isEmpty()) {
+                return new HashMap<Session, Future<?>>();
+            }
 
-                    final TyrusWebSocket webSocket = e.getKey();
+            TyrusWebSocket webSocket = webSocketToSession.keySet().iterator().next();
+            final Frame dataFrame = new BinaryFrame(byteArrayMessage, false, true);
+            final ByteBuffer byteBuffer = webSocket.getProtocolHandler().frame(dataFrame);
+            final byte[] frame = new byte[byteBuffer.remaining()];
+            byteBuffer.get(frame);
+            final long payloadLength = dataFrame.getPayloadLength();
+
+            SessionCallable broadcastCallable = new SessionCallable() {
+
+                @Override
+                public Future<?> call(TyrusWebSocket webSocket, TyrusSession session) {
                     final ProtocolHandler protocolHandler = webSocket.getProtocolHandler();
 
                     // we need to let protocol handler execute extensions if there are any
@@ -1309,28 +1348,106 @@ public class TyrusEndpointWrapper {
                         byteBuffer.get(tempFrame);
 
                         final Future<Frame> frameFuture = webSocket.sendRawFrame(ByteBuffer.wrap(tempFrame));
-                        futures.put(e.getValue(), frameFuture);
                         webSocket.getMessageEventListener().onFrameSent(TyrusFrame.FrameType.BINARY, dataFrame.getPayloadLength());
-
+                        return frameFuture;
                     } else {
-
-                        if (frame == null) {
-                            final Frame dataFrame = new BinaryFrame(byteArrayMessage, false, true);
-                            final ByteBuffer byteBuffer = webSocket.getProtocolHandler().frame(dataFrame);
-                            frame = new byte[byteBuffer.remaining()];
-                            byteBuffer.get(frame);
-                            payloadLength = dataFrame.getPayloadLength();
-                        }
-
                         final Future<Frame> frameFuture = webSocket.sendRawFrame(ByteBuffer.wrap(frame));
-                        futures.put(e.getValue(), frameFuture);
                         webSocket.getMessageEventListener().onFrameSent(TyrusFrame.FrameType.BINARY, payloadLength);
+                        return frameFuture;
                     }
                 }
+            };
+
+            if (parallelBroadcastEnabled) {
+                return executeInParallel(broadcastCallable);
+            }
+
+            Map<Session, Future<?>> futures = new HashMap<Session, Future<?>>();
+
+            for (Map.Entry<TyrusWebSocket, TyrusSession> e : webSocketToSession.entrySet()) {
+                if (e.getValue().isOpen()) {
+                    Future<?> future = broadcastCallable.call(e.getKey(), e.getValue());
+                    futures.put(e.getValue(), future);
+                }
+            }
+
+            return futures;
+        }
+    }
+
+    /**
+     * Divides open sessions into subsets on which an operation passed as {@code broadcastCallable} will be executed in parallel.
+     *
+     * @param broadcastCallable operation to be executed on open sessions.
+     * @return futures of the operations executed on each session.
+     */
+    private Map<Session, Future<?>> executeInParallel(final SessionCallable broadcastCallable) {
+        final List<Map.Entry<TyrusWebSocket, TyrusSession>> sessions = new ArrayList<Map.Entry<TyrusWebSocket, TyrusSession>>();
+
+        for (Map.Entry<TyrusWebSocket, TyrusSession> e : webSocketToSession.entrySet()) {
+            if (e.getValue().isOpen()) {
+                sessions.add(e);
+            }
+        }
+
+        if (sessions.isEmpty()) {
+            return new HashMap<Session, Future<?>>();
+        }
+
+        ExecutorService executor = ((BaseContainer) sessions.get(0).getValue().getContainer()).getExecutorService();
+        Map<Future<Map<Session, Future<?>>>, int[]> submitFutures = new HashMap<Future<Map<Session, Future<?>>>, int[]>();
+
+        int sessionCount = sessions.size();
+        int maxThreadCount = sessionCount / MIN_SESSIONS_PER_THREAD == 0 ? 1 : sessionCount / MIN_SESSIONS_PER_THREAD;
+        int threadCount = Math.min(Runtime.getRuntime().availableProcessors(), maxThreadCount);
+
+        for (int i = 0; i < threadCount; i++) {
+
+            final int lowerBound = (sessionCount + threadCount - 1) / threadCount * i;
+            final int upperBound = Math.min((sessionCount + threadCount - 1) / threadCount * (i + 1), sessionCount);
+
+            Future<Map<Session, Future<?>>> submitFuture = executor.submit(new Callable<Map<Session, Future<?>>>() {
+
+                @Override
+                public Map<Session, Future<?>> call() throws Exception {
+                    Map<Session, Future<?>> futures = new HashMap<Session, Future<?>>();
+
+                    for (int j = lowerBound; j < upperBound; j++) {
+                        Map.Entry<TyrusWebSocket, TyrusSession> e = sessions.get(j);
+                        Future<?> future = broadcastCallable.call(e.getKey(), e.getValue());
+                        futures.put(e.getValue(), future);
+                    }
+                    return futures;
+                }
+            });
+
+            submitFutures.put(submitFuture, new int[]{lowerBound, upperBound});
+        }
+
+        final Map<Session, Future<?>> futures = new HashMap<Session, Future<?>>();
+
+        for (Future<Map<Session, Future<?>>> submitFuture : submitFutures.keySet()) {
+            try {
+                futures.putAll(submitFuture.get());
+            } catch (InterruptedException e) {
+                handleSubmitException(futures, sessions, submitFutures.get(submitFuture), e);
+            } catch (ExecutionException e) {
+                handleSubmitException(futures, sessions, submitFutures.get(submitFuture), e);
             }
         }
 
         return futures;
+    }
+
+    private void handleSubmitException(Map<Session, Future<?>> futures,
+                                       List<Map.Entry<TyrusWebSocket, TyrusSession>> sessions,
+                                       int[] bounds, Exception e) {
+
+        for (int j = bounds[0]; j < bounds[1]; j++) {
+            TyrusFuture<Void> future = new TyrusFuture<Void>();
+            future.setFailure(e);
+            futures.put(sessions.get(j).getValue(), future);
+        }
     }
 
     /**
@@ -1689,4 +1806,9 @@ public class TyrusEndpointWrapper {
             return null;
         }
     };
+
+    private static interface SessionCallable {
+
+        Future<?> call(TyrusWebSocket tyrusWebSocket, TyrusSession session);
+    }
 }

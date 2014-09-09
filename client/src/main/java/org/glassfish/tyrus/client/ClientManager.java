@@ -560,7 +560,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                                             }
                                         }
                                     }
-                                }, null, null
+                                }, null, null, null
                                 );
 
                                 final URI uri;

@@ -475,7 +475,7 @@ public class TyrusClientEngineTest {
     private ClientEngine getClientEngine(final String requestUri, final Map<String, Object> properties) throws DeploymentException {
         Endpoint endpoint = new TestEndpoint();
         ClientEndpointConfig endpointConfig = ClientEndpointConfig.Builder.create().build();
-        TyrusEndpointWrapper endpointWrapper = new TyrusEndpointWrapper(endpoint, endpointConfig, null, null, "/path", null, null, null, null);
+        TyrusEndpointWrapper endpointWrapper = new TyrusEndpointWrapper(endpoint, endpointConfig, null, null, "/path", null, null, null, null, null);
         return new TyrusClientEngine(endpointWrapper, new TyrusClientEngine.ClientHandshakeListener() {
             @Override
             public void onSessionCreated(Session session) {

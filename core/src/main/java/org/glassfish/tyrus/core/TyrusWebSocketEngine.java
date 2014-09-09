@@ -150,6 +150,20 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
     @Beta
     public static final String WSADL_SUPPORT = "org.glassfish.tyrus.server.wsadl";
 
+    /**
+     * Parallel broadcast support.
+     * <p/>
+     * {@link org.glassfish.tyrus.core.TyrusSession#broadcast(String)} and {@link org.glassfish.tyrus.core.TyrusSession#broadcast(java.nio.ByteBuffer)}
+     * operations are by default executed in parallel. The parallel execution of broadcast can be disabled by setting
+     * this server property to {@code false}.
+     * <p/>
+     * Expected value is {@code true} or {@code false} and the default value is {@code true}.
+     *
+     * @see org.glassfish.tyrus.core.TyrusSession#broadcast(String).
+     * @see org.glassfish.tyrus.core.TyrusSession#broadcast(java.nio.ByteBuffer).
+     */
+    public static final String PARALLEL_BROADCAST_ENABLED = "org.glassfish.tyrus.server.parallelBroadcastEnabled";
+
     private static final int BUFFER_STEP_SIZE = 256;
     private static final Logger LOGGER = Logger.getLogger(TyrusWebSocketEngine.class.getName());
 
@@ -167,6 +181,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
     private final ClusterContext clusterContext;
     private final ApplicationEventListener applicationEventListener;
     private final TyrusEndpointWrapper.SessionListener sessionListener;
+    private final Boolean parallelBroadcastEnabled;
 
     private final DebugContext.TracingType tracingType;
     private final DebugContext.TracingThreshold tracingThreshold;
@@ -195,15 +210,18 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
      * @param maxSessionsPerRemoteAddr maximal number of open sessions per remote address. If {@code null}, no limit is applied.
      * @param tracingType              type of tracing.
      * @param tracingThreshold         tracing threshold.
+     * @param parallelBroadcastEnabled {@code true} if parallel broadcast should be enabled, {@code true} is default.
      */
     private TyrusWebSocketEngine(WebSocketContainer webSocketContainer, Integer incomingBufferSize,
                                  ClusterContext clusterContext, ApplicationEventListener applicationEventListener,
-                                 final Integer maxSessionsPerApp, final Integer maxSessionsPerRemoteAddr, DebugContext.TracingType tracingType, DebugContext.TracingThreshold tracingThreshold) {
+                                 final Integer maxSessionsPerApp, final Integer maxSessionsPerRemoteAddr,
+                                 DebugContext.TracingType tracingType, DebugContext.TracingThreshold tracingThreshold, Boolean parallelBroadcastEnabled) {
         if (incomingBufferSize != null) {
             this.incomingBufferSize = incomingBufferSize;
         }
         this.webSocketContainer = webSocketContainer;
         this.clusterContext = clusterContext;
+        this.parallelBroadcastEnabled = parallelBroadcastEnabled;
         if (applicationEventListener == null) {
             // create dummy instance in order not to have to check null pointer
             this.applicationEventListener = ApplicationEventListener.NO_OP;
@@ -215,6 +233,8 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
         LOGGER.config("Incoming buffer size: " + this.incomingBufferSize);
         LOGGER.config("Max sessions per app: " + maxSessionsPerApp);
         LOGGER.config("Max sessions per remote address: " + maxSessionsPerRemoteAddr);
+        // parallel broadcast is enabled by default, so null means true
+        LOGGER.config("Parallel broadcast enabled: " + (parallelBroadcastEnabled == null || parallelBroadcastEnabled));
 
         this.tracingType = tracingType;
         this.tracingThreshold = tracingThreshold;
@@ -555,7 +575,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
         EndpointConfig config = endpoint.getEndpointConfig();
 
         TyrusEndpointWrapper endpointWrapper = new TyrusEndpointWrapper(endpoint, config, componentProviderService, webSocketContainer,
-                contextPath, config instanceof ServerEndpointConfig ? ((ServerEndpointConfig) config).getConfigurator() : null, sessionListener, clusterContext, endpointEventListenerWrapper);
+                contextPath, config instanceof ServerEndpointConfig ? ((ServerEndpointConfig) config).getConfigurator() : null, sessionListener, clusterContext, endpointEventListenerWrapper, parallelBroadcastEnabled);
 
         if (collector.isEmpty()) {
             register(endpointWrapper);
@@ -590,7 +610,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
             // we are pretty sure that endpoint class is javax.websocket.Endpoint descendant.
             //noinspection unchecked
             endpointWrapper = new TyrusEndpointWrapper((Class<? extends Endpoint>) endpointClass, serverConfig, componentProviderService,
-                    webSocketContainer, contextPath, serverConfig.getConfigurator(), sessionListener, clusterContext, endpointEventListenerWrapper);
+                    webSocketContainer, contextPath, serverConfig.getConfigurator(), sessionListener, clusterContext, endpointEventListenerWrapper, parallelBroadcastEnabled);
         } else {
             final ErrorCollector collector = new ErrorCollector();
 
@@ -598,7 +618,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
             final EndpointConfig config = endpoint.getEndpointConfig();
 
             endpointWrapper = new TyrusEndpointWrapper(endpoint, config, componentProviderService, webSocketContainer,
-                    contextPath, config instanceof ServerEndpointConfig ? ((ServerEndpointConfig) config).getConfigurator() : null, sessionListener, clusterContext, endpointEventListenerWrapper);
+                    contextPath, config instanceof ServerEndpointConfig ? ((ServerEndpointConfig) config).getConfigurator() : null, sessionListener, clusterContext, endpointEventListenerWrapper, parallelBroadcastEnabled);
 
             if (!collector.isEmpty()) {
                 throw collector.composeComprehensiveException();
@@ -790,6 +810,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
         private Integer maxSessionsPerRemoteAddr = null;
         private DebugContext.TracingType tracingType = null;
         private DebugContext.TracingThreshold tracingThreshold = null;
+        private Boolean parallelBroadcastEnabled = null;
 
         /**
          * Create new {@link org.glassfish.tyrus.core.TyrusWebSocketEngine} instance with
@@ -814,7 +835,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
             }
 
             return new TyrusWebSocketEngine(webSocketContainer, incomingBufferSize, clusterContext,
-                    applicationEventListener, maxSessionsPerApp, maxSessionsPerRemoteAddr, tracingType, tracingThreshold);
+                    applicationEventListener, maxSessionsPerApp, maxSessionsPerRemoteAddr, tracingType, tracingThreshold, parallelBroadcastEnabled);
         }
 
         TyrusWebSocketEngineBuilder(WebSocketContainer webSocketContainer) {
@@ -907,6 +928,11 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
          */
         public TyrusWebSocketEngineBuilder tracingThreshold(DebugContext.TracingThreshold tracingThreshold) {
             this.tracingThreshold = tracingThreshold;
+            return this;
+        }
+
+        public TyrusWebSocketEngineBuilder parallelBroadcastEnabled(Boolean parallelBroadcastEnabled) {
+            this.parallelBroadcastEnabled = parallelBroadcastEnabled;
             return this;
         }
     }

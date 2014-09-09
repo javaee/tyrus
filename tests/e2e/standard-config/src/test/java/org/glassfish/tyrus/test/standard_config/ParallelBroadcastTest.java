@@ -40,6 +40,7 @@
 
 package org.glassfish.tyrus.test.standard_config;
 
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -56,10 +57,13 @@ import javax.websocket.server.ServerEndpoint;
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.client.ClientProperties;
 import org.glassfish.tyrus.client.ThreadPoolConfig;
+import org.glassfish.tyrus.core.TyrusSession;
+import org.glassfish.tyrus.core.TyrusWebSocketEngine;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.tools.TestContainer;
 
 import org.junit.Test;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -77,8 +81,11 @@ public class ParallelBroadcastTest extends TestContainer {
      */
     public static final int THREAD_COUNT = 7;
 
+    /**
+     * Test broadcasting by iterating over all sessions.
+     */
     @Test
-    public void testParallelBroadcastOnServer() {
+    public void testParallelBroadcast() {
         Server server = null;
         AtomicInteger messageCounter = new AtomicInteger(0);
         CountDownLatch messageLatch = new CountDownLatch(SESSIONS_COUNT);
@@ -92,10 +99,10 @@ public class ParallelBroadcastTest extends TestContainer {
             client.getProperties().put(ClientProperties.WORKER_THREAD_POOL_CONFIG, ThreadPoolConfig.defaultConfig().setMaxPoolSize(20));
 
             for (int i = 0; i < SESSIONS_COUNT - 1; i++) {
-                client.connectToServer(new AnnotatedClientEndpoint(messageLatch, messageCounter), getURI(BroadcastServerEndpoint.class));
+                client.connectToServer(new TextClientEndpoint(messageLatch, messageCounter), getURI(BroadcastServerEndpoint.class));
             }
 
-            Session session = client.connectToServer(new AnnotatedClientEndpoint(messageLatch, messageCounter), getURI(BroadcastServerEndpoint.class));
+            Session session = client.connectToServer(new TextClientEndpoint(messageLatch, messageCounter), getURI(BroadcastServerEndpoint.class));
             session.getBasicRemote().sendText("Broadcast request");
 
             assertTrue(messageLatch.await(30, TimeUnit.SECONDS));
@@ -108,19 +115,157 @@ public class ParallelBroadcastTest extends TestContainer {
         }
     }
 
+    /**
+     * Test Tyrus text broadcast, which is parallel by default.
+     * <p/>
+     * The number of threads used for the broadcast is {@code Math.min(Runtime.getRuntime().availableProcessors(), sessions.size() / 16)}.
+     */
+    @Test
+    public void testTyrusParallelTextBroadcast() {
+        testTyrusTextBroadcast();
+    }
+
+    /**
+     * Test Tyrus binary broadcast, which is parallel by default.
+     * <p/>
+     * The number of threads used for the broadcast is {@code Math.min(Runtime.getRuntime().availableProcessors(), sessions.size() / 16)}.
+     */
+    @Test
+    public void testTyrusParallelBinaryBroadcast() {
+        testTyrusBinaryBroadcast();
+    }
+
+    /**
+     * Test Tyrus text broadcast with parallel execution being disabled.
+     * <p/>
+     * The parallel broadcast is disabled only on Grizzly server.
+     */
+    @Test
+    public void testTyrusNonParallelTextBroadcast() {
+        // TODO: test on glassfish (servlet tests)
+        if (System.getProperty("tyrus.test.host") != null) {
+            return;
+        }
+
+        getServerProperties().put(TyrusWebSocketEngine.PARALLEL_BROADCAST_ENABLED, false);
+        testTyrusTextBroadcast();
+    }
+
+    /**
+     * Test Tyrus binary broadcast with parallel execution being disabled.
+     * <p/>
+     * The parallel broadcast is disabled only on Grizzly server.
+     */
+    @Test
+    public void testTyrusNonParallelBinaryBroadcast() {
+        // TODO: test on glassfish (servlet tests)
+        if (System.getProperty("tyrus.test.host") != null) {
+            return;
+        }
+
+        getServerProperties().put(TyrusWebSocketEngine.PARALLEL_BROADCAST_ENABLED, false);
+        testTyrusBinaryBroadcast();
+    }
+
+    private void testTyrusTextBroadcast() {
+        Server server = null;
+        AtomicInteger messageCounter = new AtomicInteger(0);
+        CountDownLatch messageLatch = new CountDownLatch(SESSIONS_COUNT);
+        try {
+            server = startServer(TyrusTextBroadcastServerEndpoint.class);
+            ClientManager client = createClient();
+            client.getProperties().put(ClientProperties.SHARED_CONTAINER, true);
+
+            // The number of threads has to be limited, because all the clients will receive the broadcast simultaneously,
+            // which might lead to creating too many threads and consequently a test failure.
+            client.getProperties().put(ClientProperties.WORKER_THREAD_POOL_CONFIG, ThreadPoolConfig.defaultConfig().setMaxPoolSize(20));
+
+            for (int i = 0; i < SESSIONS_COUNT - 1; i++) {
+                client.connectToServer(new TextClientEndpoint(messageLatch, messageCounter), getURI(TyrusTextBroadcastServerEndpoint.class));
+            }
+
+            Session session = client.connectToServer(new TextClientEndpoint(messageLatch, messageCounter), getURI(TyrusTextBroadcastServerEndpoint.class));
+            session.getBasicRemote().sendText("Broadcast request");
+
+            assertTrue(messageLatch.await(30, TimeUnit.SECONDS));
+
+            Thread.sleep(2000);
+
+            assertEquals(SESSIONS_COUNT, messageCounter.get());
+        } catch (Exception e) {
+            e.printStackTrace();
+            fail();
+        } finally {
+            System.out.println("Received messages: " + messageCounter + "/" + SESSIONS_COUNT);
+            stopServer(server);
+        }
+    }
+
+    private void testTyrusBinaryBroadcast() {
+        Server server = null;
+        AtomicInteger messageCounter = new AtomicInteger(0);
+        CountDownLatch messageLatch = new CountDownLatch(SESSIONS_COUNT);
+        try {
+            server = startServer(TyrusBinaryBroadcastServerEndpoint.class);
+            ClientManager client = createClient();
+            client.getProperties().put(ClientProperties.SHARED_CONTAINER, true);
+
+            // The number of threads has to be limited, because all the clients will receive the broadcast simultaneously,
+            // which might lead to creating too many threads and consequently a test failure.
+            client.getProperties().put(ClientProperties.WORKER_THREAD_POOL_CONFIG, ThreadPoolConfig.defaultConfig().setMaxPoolSize(20));
+
+            for (int i = 0; i < SESSIONS_COUNT - 1; i++) {
+                client.connectToServer(new BinaryClientEndpoint(messageLatch, messageCounter), getURI(TyrusBinaryBroadcastServerEndpoint.class));
+            }
+
+            Session session = client.connectToServer(new BinaryClientEndpoint(messageLatch, messageCounter), getURI(TyrusBinaryBroadcastServerEndpoint.class));
+            session.getBasicRemote().sendText("Broadcast request");
+
+            assertTrue(messageLatch.await(30, TimeUnit.SECONDS));
+
+            Thread.sleep(2000);
+
+            assertEquals(SESSIONS_COUNT, messageCounter.get());
+        } catch (Exception e) {
+            e.printStackTrace();
+            fail();
+        } finally {
+            System.out.println("Received messages: " + messageCounter + "/" + SESSIONS_COUNT);
+            stopServer(server);
+        }
+    }
+
     @ClientEndpoint
-    public static class AnnotatedClientEndpoint {
+    public static class TextClientEndpoint {
 
         private final CountDownLatch messageLatch;
         private final AtomicInteger messageCounter;
 
-        public AnnotatedClientEndpoint(CountDownLatch messageLatch, AtomicInteger messageCounter) {
+        public TextClientEndpoint(CountDownLatch messageLatch, AtomicInteger messageCounter) {
             this.messageLatch = messageLatch;
             this.messageCounter = messageCounter;
         }
 
         @OnMessage
         public void onMessage(String message) {
+            messageCounter.incrementAndGet();
+            messageLatch.countDown();
+        }
+    }
+
+    @ClientEndpoint
+    public static class BinaryClientEndpoint {
+
+        private final CountDownLatch messageLatch;
+        private final AtomicInteger messageCounter;
+
+        public BinaryClientEndpoint(CountDownLatch messageLatch, AtomicInteger messageCounter) {
+            this.messageLatch = messageLatch;
+            this.messageCounter = messageCounter;
+        }
+
+        @OnMessage
+        public void onMessage(ByteBuffer message) {
             messageCounter.incrementAndGet();
             messageLatch.countDown();
         }
@@ -149,6 +294,24 @@ public class ParallelBroadcastTest extends TestContainer {
                     }
                 });
             }
+        }
+    }
+
+    @ServerEndpoint("/parallelTyrusTextBroadcastEndpoint")
+    public static class TyrusTextBroadcastServerEndpoint {
+
+        @OnMessage
+        public void onMessage(Session session, String message) {
+            ((TyrusSession) session).broadcast("Hi from server");
+        }
+    }
+
+    @ServerEndpoint("/parallelTyrusBinaryBroadcastEndpoint")
+    public static class TyrusBinaryBroadcastServerEndpoint {
+
+        @OnMessage
+        public void onMessage(Session session, String message) {
+            ((TyrusSession) session).broadcast(ByteBuffer.wrap("Hi from server".getBytes()));
         }
     }
 }

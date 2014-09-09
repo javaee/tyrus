@@ -56,7 +56,7 @@ public class TestWebSocketEndpoint extends TyrusEndpointWrapper {
     private final String path;
 
     public TestWebSocketEndpoint(String path) throws DeploymentException {
-        super(TestEndpoint.class, null, ComponentProviderService.createClient(), null, null, null, null, null, null);
+        super(TestEndpoint.class, null, ComponentProviderService.createClient(), null, null, null, null, null, null, null);
         this.path = path;
     }
 

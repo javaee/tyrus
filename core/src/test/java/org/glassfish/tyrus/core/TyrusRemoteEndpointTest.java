@@ -88,7 +88,7 @@ public class TyrusRemoteEndpointTest {
 
     public TyrusRemoteEndpointTest() {
         try {
-            endpointWrapper = new TyrusEndpointWrapper(EchoEndpoint.class, null, ComponentProviderService.create(), new TestContainer(), null, null, null, null, null);
+            endpointWrapper = new TyrusEndpointWrapper(EchoEndpoint.class, null, ComponentProviderService.create(), new TestContainer(), null, null, null, null, null, null);
         } catch (DeploymentException e) {
             // do nothing.
         }

@@ -96,6 +96,7 @@ public class TyrusServletContainerInitializer implements ServletContainerInitial
         final Integer incomingBufferSize = getIntContextParam(ctx, TyrusHttpUpgradeHandler.FRAME_BUFFER_SIZE);
         final Integer maxSessionsPerApp = getIntContextParam(ctx, TyrusWebSocketEngine.MAX_SESSIONS_PER_APP);
         final Integer maxSessionsPerRemoteAddr = getIntContextParam(ctx, TyrusWebSocketEngine.MAX_SESSIONS_PER_REMOTE_ADDR);
+        final Boolean parallelBroadcastEnabled = getBooleanContextParam(ctx, TyrusWebSocketEngine.PARALLEL_BROADCAST_ENABLED);
         final DebugContext.TracingType tracingType = getEnumContextParam(ctx, TyrusWebSocketEngine.TRACING_TYPE, DebugContext.TracingType.class, DebugContext.TracingType.OFF);
         final DebugContext.TracingThreshold tracingThreshold = getEnumContextParam(ctx, TyrusWebSocketEngine.TRACING_THRESHOLD, DebugContext.TracingThreshold.class, DebugContext.TracingThreshold.TRACE);
 
@@ -107,6 +108,7 @@ public class TyrusServletContainerInitializer implements ServletContainerInitial
                     .incomingBufferSize(incomingBufferSize)
                     .maxSessionsPerApp(maxSessionsPerApp)
                     .maxSessionsPerRemoteAddr(maxSessionsPerRemoteAddr)
+                    .parallelBroadcastEnabled(parallelBroadcastEnabled)
                     .tracingType(tracingType)
                     .tracingThreshold(tracingThreshold)
                     .build();
@@ -127,11 +129,14 @@ public class TyrusServletContainerInitializer implements ServletContainerInitial
             }
         };
         ctx.setAttribute(ServerContainer.class.getName(), serverContainer);
-        String wsadlEnabledParam = ctx.getInitParameter(TyrusWebSocketEngine.WSADL_SUPPORT);
-        boolean wsadlEnabled = wsadlEnabledParam != null && wsadlEnabledParam.equalsIgnoreCase("true");
+        Boolean wsadlEnabled = getBooleanContextParam(ctx, TyrusWebSocketEngine.WSADL_SUPPORT);
+        if (wsadlEnabled == null) {
+            wsadlEnabled = false;
+        }
         LOGGER.config("WSADL enabled: " + wsadlEnabled);
 
-        TyrusServletFilter filter = new TyrusServletFilter((TyrusWebSocketEngine) serverContainer.getWebSocketEngine(), wsadlEnabled);
+        TyrusServletFilter filter = new TyrusServletFilter((TyrusWebSocketEngine) serverContainer.getWebSocketEngine(),
+                wsadlEnabled);
 
         // HttpSessionListener registration
         ctx.addListener(filter);
@@ -162,6 +167,32 @@ public class TyrusServletContainerInitializer implements ServletContainerInitial
             } catch (NumberFormatException e) {
                 LOGGER.log(Level.CONFIG, "Invalid configuration value [" + paramName + " = " + initParameter + "], integer expected");
             }
+        }
+
+        return null;
+    }
+
+    /**
+     * Get {@link java.lang.Boolean} parameter from {@link javax.servlet.ServletContext}.
+     *
+     * @param ctx       used to retrieve init parameter.
+     * @param paramName parameter name.
+     * @return parsed {@link java.lang.Boolean} value or {@code null} when the value is not boolean or when the init parameter is
+     * not present.
+     */
+    private Boolean getBooleanContextParam(ServletContext ctx, String paramName) {
+        String initParameter = ctx.getInitParameter(paramName);
+        if (initParameter != null) {
+            if (initParameter.equalsIgnoreCase("true")) {
+                return true;
+            }
+
+            if (initParameter.equalsIgnoreCase("false")) {
+                return false;
+            }
+
+            LOGGER.log(Level.CONFIG, "Invalid configuration value [" + paramName + " = " + initParameter + "], boolean expected");
+            return null;
         }
 
         return null;

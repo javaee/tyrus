@@ -70,7 +70,7 @@ public class TyrusSessionTest {
 
     public TyrusSessionTest() {
         try {
-            endpointWrapper = new TyrusEndpointWrapper(EchoEndpoint.class, null, ComponentProviderService.create(), null, null, null, null, null, null);
+            endpointWrapper = new TyrusEndpointWrapper(EchoEndpoint.class, null, ComponentProviderService.create(), null, null, null, null, null, null, null);
         } catch (DeploymentException e) {
             // do nothing.
         }

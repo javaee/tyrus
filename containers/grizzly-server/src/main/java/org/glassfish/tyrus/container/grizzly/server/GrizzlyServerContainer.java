@@ -114,6 +114,7 @@ public class GrizzlyServerContainer extends ServerContainerFactory {
         final ApplicationEventListener applicationEventListener = Utils.getProperty(localProperties, ApplicationEventListener.APPLICATION_EVENT_LISTENER, ApplicationEventListener.class);
         final Integer maxSessionsPerApp = Utils.getProperty(localProperties, TyrusWebSocketEngine.MAX_SESSIONS_PER_APP, Integer.class);
         final Integer maxSessionsPerRemoteAddr = Utils.getProperty(localProperties, TyrusWebSocketEngine.MAX_SESSIONS_PER_REMOTE_ADDR, Integer.class);
+        final Boolean parallelBroadcastEnabled = Utils.getProperty(localProperties, TyrusWebSocketEngine.PARALLEL_BROADCAST_ENABLED, Boolean.class);
         final DebugContext.TracingType tracingType = Utils.getProperty(localProperties, TyrusWebSocketEngine.TRACING_TYPE, DebugContext.TracingType.class, DebugContext.TracingType.OFF);
         final DebugContext.TracingThreshold tracingThreshold = Utils.getProperty(localProperties, TyrusWebSocketEngine.TRACING_THRESHOLD, DebugContext.TracingThreshold.class, DebugContext.TracingThreshold.TRACE);
 
@@ -125,6 +126,7 @@ public class GrizzlyServerContainer extends ServerContainerFactory {
                     .applicationEventListener(applicationEventListener)
                     .maxSessionsPerApp(maxSessionsPerApp)
                     .maxSessionsPerRemoteAddr(maxSessionsPerRemoteAddr)
+                    .parallelBroadcastEnabled(parallelBroadcastEnabled)
                     .tracingType(tracingType)
                     .tracingThreshold(tracingThreshold)
                     .build();
