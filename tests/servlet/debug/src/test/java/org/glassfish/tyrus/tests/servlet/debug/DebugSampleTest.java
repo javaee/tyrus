@@ -47,6 +47,7 @@ import java.nio.ByteBuffer;
 import java.security.MessageDigest;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -338,7 +339,7 @@ public class DebugSampleTest extends TestContainer {
                 }
             }, getTraceConfigurator(traceHeaderLatch), getURI(Endpoint4.class));
 
-            assertTrue(traceHeaderLatch.await(1, TimeUnit.SECONDS));
+            assertTrue(traceHeaderLatch.await(3, TimeUnit.SECONDS));
         } catch (Exception e) {
             e.printStackTrace();
             fail();
@@ -410,6 +411,7 @@ public class DebugSampleTest extends TestContainer {
 
                     boolean authenticated = false;
 
+                    @Override
                     public void service(Request request, Response response) throws Exception {
                         if (authenticated) {
                             response.setStatus(101);
@@ -427,7 +429,7 @@ public class DebugSampleTest extends TestContainer {
                                 final byte[] digest = instance.digest();
                                 String responseKey = Base64Utils.encodeToString(digest, false);
 
-                                response.addHeader(UpgradeResponse.SEC_WEBSOCKET_ACCEPT, responseKey);
+                                response.addHeader(HandshakeResponse.SEC_WEBSOCKET_ACCEPT, responseKey);
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
@@ -443,6 +445,7 @@ public class DebugSampleTest extends TestContainer {
         return server;
     }
 
+    @SuppressWarnings("UnusedDeclaration")
     public static class DebugTestFormatter extends Formatter {
 
         @Override
@@ -500,7 +503,7 @@ public class DebugSampleTest extends TestContainer {
             @Override
             public void afterResponse(HandshakeResponse hr) {
                 for (Map.Entry<String, List<String>> header : hr.getHeaders().entrySet()) {
-                    if (header.getKey().contains(UpgradeResponse.TRACING_HEADER_PREFIX.toLowerCase())) {
+                    if (header.getKey().toLowerCase(Locale.US).contains(UpgradeResponse.TRACING_HEADER_PREFIX.toLowerCase(Locale.US))) {
                         traceHeaderLatch.countDown();
                     }
                 }
