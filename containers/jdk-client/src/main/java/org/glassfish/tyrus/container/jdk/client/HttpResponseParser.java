@@ -58,14 +58,14 @@ class HttpResponseParser {
     private static final String ENCODING = "ISO-8859-1";
     private static final String LINE_SEPARATOR = "\r\n";
     private static final int BUFFER_STEP_SIZE = 256;
-    private static final int BUFFER_MAX_SIZE = 1024;
+    private static final int BUFFER_MAX_SIZE = 16384;
 
     private volatile boolean complete = false;
     private volatile ByteBuffer buffer;
     private volatile State findEndState = State.INIT;
 
     HttpResponseParser() {
-        buffer = ByteBuffer.allocate(BUFFER_MAX_SIZE);
+        buffer = ByteBuffer.allocate(1024);
         buffer.flip(); //buffer created for read
     }
 
