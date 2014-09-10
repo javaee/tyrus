@@ -422,6 +422,11 @@ public class GrizzlyClientSocket {
         // TYRUS-188: lots of threads were created for every single client instance.
         TCPNIOTransportBuilder transportBuilder = TCPNIOTransportBuilder.newInstance();
 
+        /* This is set by Grizzly to true by default, but during some tests which created a lot of short-lived clients,
+           a BindException has been thrown repeatedly by the Grizzly connect method. Setting this property to false
+           removed the problem.*/
+        transportBuilder.setReuseAddress(false);
+
         if (workerThreadPoolConfig == null) {
             if (sharedTransport) {
                 // if the container is shared, we don't want to limit thread pool size by default.
