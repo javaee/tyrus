@@ -794,7 +794,7 @@ x-tyrus-tracing-21 : [4 ms] Endpoint selected as a match to the handshake URI: /
             how the handshake logging can be enabled:
             <programlisting language="java" linenumbering="numbered">
                 ClientManager client = ClientManager.createClient();
-                client.getProperties().put(ClientProperties.LOG_UPGRADE_MESSAGES, true);
+                client.getProperties().put(ClientProperties.LOG_HTTP_UPGRADE, true);
             </programlisting>
         </para>
     </section>

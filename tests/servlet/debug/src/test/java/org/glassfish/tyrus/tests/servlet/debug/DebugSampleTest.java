@@ -195,7 +195,7 @@ public class DebugSampleTest extends TestContainer {
 
         try {
             final ClientManager client = createClient();
-            client.getProperties().put(ClientProperties.LOG_UPGRADE_MESSAGES, true);
+            client.getProperties().put(ClientProperties.LOG_HTTP_UPGRADE, true);
 
             client.connectToServer(new Endpoint() {
                 @Override
@@ -331,7 +331,7 @@ public class DebugSampleTest extends TestContainer {
         CountDownLatch traceHeaderLatch = new CountDownLatch(1);
         try {
             final ClientManager client = createClient();
-            client.getProperties().put(ClientProperties.LOG_UPGRADE_MESSAGES, true);
+            client.getProperties().put(ClientProperties.LOG_HTTP_UPGRADE, true);
             client.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig endpointConfig) {
@@ -386,7 +386,7 @@ public class DebugSampleTest extends TestContainer {
 
         try {
             final ClientManager client = createClient();
-            client.getProperties().put(ClientProperties.LOG_UPGRADE_MESSAGES, true);
+            client.getProperties().put(ClientProperties.LOG_HTTP_UPGRADE, true);
             client.connectToServer(new Endpoint() {
                 @Override
                 public void onOpen(Session session, EndpointConfig endpointConfig) {

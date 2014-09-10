@@ -154,7 +154,7 @@ public class TyrusClientEngine implements ClientEngine {
         this.redirectThreshold = redirectThreshold;
 
         this.debugContext = debugContext;
-        this.logUpgradeMessages = Utils.getProperty(properties, ClientProperties.LOG_UPGRADE_MESSAGES, Boolean.class, false);
+        this.logUpgradeMessages = Utils.getProperty(properties, ClientProperties.LOG_HTTP_UPGRADE, Boolean.class, false);
 
         debugContext.appendLogMessage(LOGGER, Level.FINE, DebugContext.Type.OTHER, "Redirect enabled: ", redirectEnabled);
         if (redirectEnabled) {
