@@ -41,6 +41,7 @@
 package org.glassfish.tyrus.servlet;
 
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -174,7 +175,7 @@ public class TyrusServletContainerInitializer implements ServletContainerInitial
         }
 
         try {
-            return Enum.valueOf(type, initParameter.trim().toUpperCase());
+            return Enum.valueOf(type, initParameter.trim().toUpperCase(Locale.US));
         } catch (Exception e) {
             LOGGER.log(Level.CONFIG, "Invalid configuration value [" + paramName + " = " + initParameter + "]");
         }

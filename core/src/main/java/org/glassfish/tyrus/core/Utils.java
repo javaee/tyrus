@@ -387,7 +387,7 @@ public class Utils {
                         return (T) (Boolean) (o.toString().equals("1") || Boolean.valueOf(o.toString()));
                     } else if (type.isEnum()) {
                         try {
-                            return (T) Enum.valueOf((Class<? extends Enum>) type, o.toString().trim().toUpperCase());
+                            return (T) Enum.valueOf((Class<? extends Enum>) type, o.toString().trim().toUpperCase(Locale.US));
                         } catch (Exception e) {
                             return defaultValue;
                         }

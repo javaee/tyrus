@@ -158,17 +158,6 @@ public class Match {
         return endpointWrapper.getEndpointPath();
     }
 
-    private String paramsToString() {
-        StringBuilder sb = new StringBuilder();
-        for (String nextName : this.parameterNames) {
-            sb.append(nextName).append("=").append(this.getParameterValue(nextName));
-            if (this.parameterNames.indexOf(nextName) != this.parameterNames.size() - 1) {
-                sb.append(",");
-            }
-        }
-        return sb.toString();
-    }
-
     /**
      * TODO.
      *
