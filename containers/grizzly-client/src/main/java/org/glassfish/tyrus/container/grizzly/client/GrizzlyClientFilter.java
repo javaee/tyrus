@@ -115,6 +115,8 @@ class GrizzlyClientFilter extends BaseFilter {
     private final Callable<Void> grizzlyConnector;
     private final UpgradeRequest upgradeRequest;
 
+    private volatile boolean done = false;
+
     // ------------------------------------------------------------ Constructors
 
     /**
@@ -215,6 +217,7 @@ class GrizzlyClientFilter extends BaseFilter {
         final org.glassfish.tyrus.spi.Connection connection = TYRUS_CONNECTION.get(ctx.getConnection());
         if (connection != null) {
             TaskProcessor taskProcessor = TASK_PROCESSOR.get(ctx.getConnection());
+            done = true;
             taskProcessor.processTask(new CloseTask(connection, CloseReasons.CLOSED_ABNORMALLY.getCloseReason(), ctx.getConnection()));
         }
         return ctx.getStopAction();
@@ -234,6 +237,10 @@ class GrizzlyClientFilter extends BaseFilter {
     @Override
     @SuppressWarnings("unchecked")
     public NextAction handleRead(FilterChainContext ctx) throws IOException {
+        if (done) {
+            return ctx.getStopAction();
+        }
+
         // Get the parsed HttpContent (we assume prev. filter was HTTP)
         final HttpContent message = ctx.getMessage();
 
