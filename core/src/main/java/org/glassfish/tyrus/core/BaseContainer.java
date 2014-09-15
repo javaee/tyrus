@@ -61,26 +61,78 @@ public abstract class BaseContainer extends ExecutorServiceProvider implements W
 
     private static final Logger LOGGER = Logger.getLogger(BaseContainer.class.getName());
 
-    private final ExecutorService executorService;
-    private final ScheduledExecutorService scheduledExecutorService;
+    private final ExecutorService managedExecutorService;
+    private final ScheduledExecutorService managedScheduledExecutorService;
+    private final ThreadFactory threadFactory;
+    /**
+     * This lock ensures that only one instance of each type of executors will be created and it also prevents a situation
+     * when a client is given an executor that is just about to be shut down.
+     */
+    private final Object EXECUTORS_CLEAN_UP_LOCK = new Object();
 
-    private boolean shutdownExecutorService = true;
-    private boolean shutdownScheduledExecutorService = true;
-
-    private ThreadFactory threadFactory = null;
+    private volatile ExecutorService executorService = null;
+    private volatile ScheduledExecutorService scheduledExecutorService = null;
 
     public BaseContainer() {
-        this.executorService = newExecutorService();
-        this.scheduledExecutorService = newScheduledExecutorService();
+        this.managedExecutorService = lookupManagedExecutorService();
+        this.managedScheduledExecutorService = lookupManagedScheduledExecutorService();
+
+        if (managedExecutorService == null || managedScheduledExecutorService == null) {
+            // at least one of the managed executor services is null, a local one will be created instead
+            threadFactory = new DaemonThreadFactory();
+        } else {
+            // only managed executor services will be used, the thread factory won't be needed.
+            threadFactory = null;
+        }
     }
 
+    /**
+     * Returns a container-managed {@link java.util.concurrent.ExecutorService} registered under
+     * {@code java:comp/DefaultManagedExecutorService} or if the lookup has failed, it returns a
+     * {@link java.util.concurrent.ExecutorService} created and managed by this instance of
+     * {@link org.glassfish.tyrus.core.BaseContainer}.
+     *
+     * @return executor service.
+     */
     @Override
     public ExecutorService getExecutorService() {
+        if (managedExecutorService != null) {
+            return managedExecutorService;
+        }
+
+        if (executorService == null) {
+            synchronized (EXECUTORS_CLEAN_UP_LOCK) {
+                if (executorService == null) {
+                    executorService = Executors.newCachedThreadPool(threadFactory);
+                }
+            }
+        }
+
         return executorService;
     }
 
+    /**
+     * Returns a container-managed {@link java.util.concurrent.ScheduledExecutorService} registered under
+     * {@code java:comp/DefaultManagedScheduledExecutorService} or if the lookup has failed it returns a
+     * {@link java.util.concurrent.ScheduledExecutorService} created and managed by this instance of
+     * {@link org.glassfish.tyrus.core.BaseContainer}.
+     *
+     * @return scheduled executor service.
+     */
     @Override
     public ScheduledExecutorService getScheduledExecutorService() {
+        if (managedScheduledExecutorService != null) {
+            return managedScheduledExecutorService;
+        }
+
+        if (scheduledExecutorService == null) {
+            synchronized (EXECUTORS_CLEAN_UP_LOCK) {
+                if (scheduledExecutorService == null) {
+                    scheduledExecutorService = Executors.newScheduledThreadPool(10, threadFactory);
+                }
+            }
+        }
+
         return scheduledExecutorService;
     }
 
@@ -89,18 +141,35 @@ public abstract class BaseContainer extends ExecutorServiceProvider implements W
      * shut down.
      */
     public void shutdown() {
-        if (shutdownExecutorService) {
+        if (executorService != null) {
             executorService.shutdown();
+            executorService = null;
         }
 
-        if (shutdownScheduledExecutorService) {
-            scheduledExecutorService.shutdown();
+        if (scheduledExecutorService != null) {
+            scheduledExecutorService.shutdownNow();
+            scheduledExecutorService = null;
         }
     }
 
-    private ExecutorService newExecutorService() {
-        ExecutorService es = null;
+    /**
+     * Release executor services managed by this instance if the condition passed in the parameter is fulfilled.
+     * Executor services obtained via JNDI lookup won't be shut down.
+     *
+     * @param shutDownCondition condition that will be evaluated before executor services are released and they will be
+     *                          released only if the condition is evaluated to {@code true}. The condition will be
+     *                          evaluated in a synchronized block in order to make the process of its evaluation
+     *                          and executor services release an atomic operation.
+     */
+    protected void shutdown(ShutDownCondition shutDownCondition) {
+        synchronized (EXECUTORS_CLEAN_UP_LOCK) {
+            if (shutDownCondition.evaluate()) {
+                shutdown();
+            }
+        }
+    }
 
+    private ExecutorService lookupManagedExecutorService() {
         // Get the default ManagedExecutorService, if available
         try {
             // TYRUS-256: Tyrus client on Android
@@ -108,8 +177,7 @@ public abstract class BaseContainer extends ExecutorServiceProvider implements W
             final Object o = aClass.newInstance();
 
             final Method lookupMethod = aClass.getMethod("lookup", String.class);
-            es = (ExecutorService) lookupMethod.invoke(o, "java:comp/DefaultManagedExecutorService");
-            shutdownExecutorService = false;
+            return (ExecutorService) lookupMethod.invoke(o, "java:comp/DefaultManagedExecutorService");
         } catch (Exception e) {
             // ignore
             if (LOGGER.isLoggable(Level.FINE)) {
@@ -119,27 +187,17 @@ public abstract class BaseContainer extends ExecutorServiceProvider implements W
             // ignore - JDK8 compact2 profile - http://openjdk.java.net/jeps/161
         }
 
-        if (es == null) {
-            if (threadFactory == null) {
-                threadFactory = new DaemonThreadFactory();
-            }
-            es = Executors.newCachedThreadPool(threadFactory);
-        }
-
-        return es;
+        return null;
     }
 
-    private ScheduledExecutorService newScheduledExecutorService() {
-        ScheduledExecutorService service = null;
-
+    private ScheduledExecutorService lookupManagedScheduledExecutorService() {
         try {
             // TYRUS-256: Tyrus client on Android
             final Class<?> aClass = Class.forName("javax.naming.InitialContext");
             final Object o = aClass.newInstance();
 
             final Method lookupMethod = aClass.getMethod("lookup", String.class);
-            service = (ScheduledExecutorService) lookupMethod.invoke(o, "java:comp/DefaultManagedScheduledExecutorService");
-            shutdownScheduledExecutorService = false;
+            return (ScheduledExecutorService) lookupMethod.invoke(o, "java:comp/DefaultManagedScheduledExecutorService");
         } catch (Exception e) {
             // ignore
             if (LOGGER.isLoggable(Level.FINE)) {
@@ -149,15 +207,7 @@ public abstract class BaseContainer extends ExecutorServiceProvider implements W
             // ignore - JDK8 compact2 profile - http://openjdk.java.net/jeps/161
         }
 
-        if (service == null) {
-            if (threadFactory == null) {
-                threadFactory = new DaemonThreadFactory();
-            }
-
-            service = Executors.newScheduledThreadPool(10, threadFactory);
-        }
-
-        return service;
+        return null;
     }
 
     private static class DaemonThreadFactory implements ThreadFactory {
@@ -180,5 +230,10 @@ public abstract class BaseContainer extends ExecutorServiceProvider implements W
             }
             return t;
         }
+    }
+
+    protected static interface ShutDownCondition {
+
+        boolean evaluate();
     }
 }

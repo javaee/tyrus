@@ -68,6 +68,10 @@
             <artifactId>tyrus-container-jdk-client</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.glassfish.tyrus</groupId>
+            <artifactId>tyrus-container-inmemory</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.glassfish.tyrus.tests</groupId>
             <artifactId>tyrus-test-tools</artifactId>
         </dependency>

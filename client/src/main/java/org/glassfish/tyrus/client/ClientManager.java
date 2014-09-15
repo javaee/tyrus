@@ -195,6 +195,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
     private final ClientContainer container;
     private final ComponentProviderService componentProvider;
     private final Map<String, Object> properties = new HashMap<String, Object>();
+    private final ClientActivityListener clientActivityListener;
 
     private volatile long defaultAsyncSendTimeout;
     private volatile long defaultMaxSessionIdleTimeout;
@@ -271,6 +272,32 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
             throw new RuntimeException(collector.composeComprehensiveException());
         }
         this.webSocketContainer = webSocketContainer;
+
+        //TODO this could be replaced by a "standalone" counter and one method. Keep or get rid of?
+        this.clientActivityListener = new ClientActivityListener() {
+
+            private final AtomicInteger activeClientCounter = new AtomicInteger(0);
+
+            @Override
+            public void onConnectionInitiated() {
+                activeClientCounter.incrementAndGet();
+            }
+
+            @Override
+            public void onConnectionTerminated() {
+                // if this is the last active client it needs to destroy the container executors
+                if (activeClientCounter.decrementAndGet() == 0) {
+                    ClientManager.this.shutdown(new ShutDownCondition() {
+                        @Override
+                        public boolean evaluate() {
+                            /* the condition is evaluated in synchronized block -> check that nothing changed while
+                            the thread was waiting for the lock */
+                            return activeClientCounter.get() == 0;
+                        }
+                    });
+                }
+            }
+        };
     }
 
     @Override
@@ -280,7 +307,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                     "Class %s does not have @ClientEndpoint", annotatedEndpointClass.getName()));
         }
         try {
-            return connectToServer(annotatedEndpointClass, null, path.toString(), new SameThreadExecutorService()).get();
+            return connectToServer(annotatedEndpointClass, null, path.toString(), true).get();
         } catch (InterruptedException e) {
             throw new DeploymentException(e.getMessage(), e);
         } catch (ExecutionException e) {
@@ -298,7 +325,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
     @Override
     public Session connectToServer(Class<? extends Endpoint> endpointClass, ClientEndpointConfig cec, URI path) throws DeploymentException, IOException {
         try {
-            return connectToServer(endpointClass, cec, path.toString(), new SameThreadExecutorService()).get();
+            return connectToServer(endpointClass, cec, path.toString(), true).get();
         } catch (InterruptedException e) {
             throw new DeploymentException(e.getMessage(), e);
         } catch (ExecutionException e) {
@@ -316,7 +343,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
     @Override
     public Session connectToServer(Endpoint endpointInstance, ClientEndpointConfig cec, URI path) throws DeploymentException, IOException {
         try {
-            return connectToServer(endpointInstance, cec, path.toString(), new SameThreadExecutorService()).get();
+            return connectToServer(endpointInstance, cec, path.toString(), true).get();
         } catch (InterruptedException e) {
             throw new DeploymentException(e.getMessage(), e);
         } catch (ExecutionException e) {
@@ -334,7 +361,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
     @Override
     public Session connectToServer(Object obj, URI path) throws DeploymentException, IOException {
         try {
-            return connectToServer(obj, null, path.toString(), new SameThreadExecutorService()).get();
+            return connectToServer(obj, null, path.toString(), true).get();
         } catch (InterruptedException e) {
             throw new DeploymentException(e.getMessage(), e);
         } catch (ExecutionException e) {
@@ -365,7 +392,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
             throw new DeploymentException(String.format("Class argument in connectToServer(Class, URI) is to be annotated endpoint class." +
                     "Class %s does not have @ClientEndpoint", annotatedEndpointClass.getName()));
         }
-        return connectToServer(annotatedEndpointClass, null, path.toString(), getExecutorService());
+        return connectToServer(annotatedEndpointClass, null, path.toString(), false);
     }
 
     /**
@@ -382,7 +409,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
      * @see WebSocketContainer#connectToServer(Class, javax.websocket.ClientEndpointConfig, java.net.URI)
      */
     public Future<Session> asyncConnectToServer(Class<? extends Endpoint> endpointClass, ClientEndpointConfig cec, URI path) throws DeploymentException {
-        return connectToServer(endpointClass, cec, path.toString(), getExecutorService());
+        return connectToServer(endpointClass, cec, path.toString(), false);
     }
 
     /**
@@ -399,7 +426,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
      * @see WebSocketContainer#connectToServer(javax.websocket.Endpoint, javax.websocket.ClientEndpointConfig, java.net.URI)
      */
     public Future<Session> asyncConnectToServer(Endpoint endpointInstance, ClientEndpointConfig cec, URI path) throws DeploymentException {
-        return connectToServer(endpointInstance, cec, path.toString(), getExecutorService());
+        return connectToServer(endpointInstance, cec, path.toString(), false);
     }
 
     /**
@@ -416,7 +443,7 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
      * @see WebSocketContainer#connectToServer(Object, java.net.URI)
      */
     public Future<Session> asyncConnectToServer(Object obj, URI path) throws DeploymentException {
-        return connectToServer(obj, null, path.toString(), getExecutorService());
+        return connectToServer(obj, null, path.toString(), false);
     }
 
     /**
@@ -425,12 +452,32 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
      * @param o             the endpoint.
      * @param configuration of the endpoint.
      * @param url           to which the client will connect.
+     * @param synchronous   if {@code true} connect will be executed synchronously, if {@code false} connect will be executed asynchronously.
      * @return Future which will return {@link Session} instance when available.
      * @throws DeploymentException if the endpoint or provided URL is not valid.
      */
-    Future<Session> connectToServer(final Object o, final ClientEndpointConfig configuration, final String url, final ExecutorService executorService) throws DeploymentException {
+    Future<Session> connectToServer(final Object o, final ClientEndpointConfig configuration, final String url, boolean synchronous) throws DeploymentException {
         final Map<String, Object> copiedProperties = new HashMap<String, Object>(properties);
-        final TyrusFuture<Session> future = new TyrusFuture<Session>();
+
+        /* Client activity listener must be called before an executor service is obtained from the container, otherwise
+         the counter of active client won't be increased and the executor service might be shut down */
+        clientActivityListener.onConnectionInitiated();
+
+        final ExecutorService executorService;
+        if (synchronous) {
+            executorService = new SameThreadExecutorService();
+        } else {
+            executorService = getExecutorService();
+        }
+
+        final TyrusFuture<Session> future = new TyrusFuture<Session>() {
+            @Override
+            public void setFailure(Throwable throwable) {
+                super.setFailure(throwable);
+                // make sure that the number of active clients decreases each time an attempt to connect fails
+                clientActivityListener.onConnectionTerminated();
+            }
+        };
 
         try {
             URI uri = new URI(url);
@@ -558,6 +605,8 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
                                             } else {
                                                 getScheduledExecutorService().schedule(that, delay, TimeUnit.SECONDS);
                                             }
+                                        } else {
+                                            clientActivityListener.onConnectionTerminated();
                                         }
                                     }
                                 }, null, null, null
@@ -869,5 +918,24 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
         public long getDelay() {
             return delay;
         }
+    }
+
+    /**
+     * A listener listening for events that indicate when a client has started to be active and when it stopped to be active.
+     * It is used to determine the number of active clients.
+     */
+    private static interface ClientActivityListener {
+
+        /**
+         * A connection has been initiated -> the number of active clients increases.
+         */
+        void onConnectionInitiated();
+
+        /**
+         * A connection has been terminated -> the number of active clients decreases.
+         * <p/>
+         * This should be called either when the session is closed or an attempt to connect to the server fails.
+         */
+        void onConnectionTerminated();
     }
 }

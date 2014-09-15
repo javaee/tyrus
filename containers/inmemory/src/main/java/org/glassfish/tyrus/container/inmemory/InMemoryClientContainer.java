@@ -51,6 +51,7 @@ import javax.websocket.DeploymentException;
 import javax.websocket.server.ServerApplicationConfig;
 import javax.websocket.server.ServerEndpointConfig;
 
+import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.core.RequestContext;
 import org.glassfish.tyrus.core.TyrusUpgradeResponse;
 import org.glassfish.tyrus.core.TyrusWebSocketEngine;
@@ -80,12 +81,14 @@ public class InMemoryClientContainer implements ClientContainer {
     public static final String SERVER_CONFIG = "org.glassfish.tyrus.container.inmemory.ServerConfig";
 
     @Override
-    public void openClientSocket(ClientEndpointConfig cec, Map<String, Object> properties, ClientEngine clientEngine) throws DeploymentException, IOException {
+    public void openClientSocket(ClientEndpointConfig cec, Map<String, Object> properties, final ClientEngine clientEngine) throws DeploymentException, IOException {
         final UpgradeRequest upgradeRequest = clientEngine.createUpgradeRequest(null);
 
         final ServerApplicationConfig serverApplicationConfig = getServerApplicationConfig(cec);
         final TyrusServerContainer tyrusServerContainer = new TyrusServerContainer(serverApplicationConfig) {
-            private final WebSocketEngine webSocketEngine = TyrusWebSocketEngine.builder(getClientManager()).build();
+            private final WebSocketEngine webSocketEngine = TyrusWebSocketEngine.builder(this).build();
+
+            private ClientManager clientManager = null;
 
             @Override
             public void register(Class<?> endpointClass) throws DeploymentException {
@@ -100,6 +103,16 @@ public class InMemoryClientContainer implements ClientContainer {
             @Override
             public WebSocketEngine getWebSocketEngine() {
                 return webSocketEngine;
+            }
+
+            // This has to be overridden, because Grizzly container is used by default
+            @Override
+            protected synchronized ClientManager getClientManager() {
+                if (clientManager == null) {
+                    clientManager = ClientManager.createClient(InMemoryClientContainer.class.getName(), this);
+                }
+
+                return clientManager;
             }
         };
 
@@ -124,13 +137,25 @@ public class InMemoryClientContainer implements ClientContainer {
         final WebSocketEngine.UpgradeInfo upgradeInfo = tyrusServerContainer.getWebSocketEngine().upgrade(requestContext, upgradeResponse);
         switch (upgradeInfo.getStatus()) {
             case HANDSHAKE_FAILED:
+                tyrusServerContainer.shutdown();
                 throw new DeploymentException("");
             case NOT_APPLICABLE:
+                tyrusServerContainer.shutdown();
                 throw new DeploymentException("");
             case SUCCESS:
 
-                final InMemoryWriter clientWriter = new InMemoryWriter();
-                final InMemoryWriter serverWriter = new InMemoryWriter();
+                final InMemoryWriter clientWriter = new InMemoryWriter() {
+                    @Override
+                    public void close() throws IOException {
+                        tyrusServerContainer.shutdown();
+                    }
+                };
+                final InMemoryWriter serverWriter = new InMemoryWriter() {
+                    @Override
+                    public void close() throws IOException {
+                        tyrusServerContainer.shutdown();
+                    }
+                };
 
                 final Connection serverConnection = upgradeInfo.createConnection(serverWriter, null);
                 final ClientEngine.ClientUpgradeInfo clientClientUpgradeInfo = clientEngine.processResponse(upgradeResponse, clientWriter, null);
@@ -154,8 +179,7 @@ public class InMemoryClientContainer implements ClientContainer {
         throw new DeploymentException("ServerApplicationConfig not present.");
     }
 
-
-    private static class InMemoryWriter extends Writer {
+    private static abstract class InMemoryWriter extends Writer {
 
         private final List<ByteBuffer> cache = new ArrayList<ByteBuffer>();
         private volatile ReadHandler readHandler = null;
@@ -171,11 +195,6 @@ public class InMemoryClientContainer implements ClientContainer {
 
                 completionHandler.completed(buffer);
             }
-        }
-
-        @Override
-        public void close() throws IOException {
-            // do nothing.
         }
 
         private void setReadHandler(ReadHandler readHandler) {

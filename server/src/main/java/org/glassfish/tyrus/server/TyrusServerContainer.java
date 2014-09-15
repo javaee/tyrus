@@ -118,8 +118,7 @@ public abstract class TyrusServerContainer extends BaseContainer implements Serv
      */
     @Override
     public void start(String rootPath, int port) throws IOException, DeploymentException {
-        ServerApplicationConfig configuration = new TyrusServerConfiguration((classes == null ? Collections.<Class<?>>emptySet() : classes),
-                dynamicallyAddedClasses, dynamicallyAddedEndpointConfigs, this.collector);
+        ServerApplicationConfig configuration = new TyrusServerConfiguration(classes, dynamicallyAddedClasses, dynamicallyAddedEndpointConfigs, this.collector);
 
         // start the underlying server
         try {
@@ -160,7 +159,7 @@ public abstract class TyrusServerContainer extends BaseContainer implements Serv
 
     /**
      * Undeploy all endpoints and stop underlying {@link org.glassfish.tyrus.spi.ServerContainer}.
-     *
+     * <p/>
      * Release all created threadpools / executor services.
      */
     @Override
