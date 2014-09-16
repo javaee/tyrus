@@ -149,22 +149,23 @@ class ClientFilter extends Filter {
     public boolean processRead(ByteBuffer data) {
         if (wsConnection == null) {
 
-            responseParser.appendData(data);
-
-            if (!responseParser.isComplete()) {
-                return false;
-            }
-
             TyrusUpgradeResponse tyrusUpgradeResponse;
-
             try {
-                tyrusUpgradeResponse = responseParser.parseUpgradeResponse();
+                responseParser.appendData(data);
+
+                if (!responseParser.isComplete()) {
+                    return false;
+                }
+
+                try {
+                    tyrusUpgradeResponse = responseParser.parseUpgradeResponse();
+                } finally {
+                    responseParser.clear();
+                }
             } catch (ParseException e) {
-                LOGGER.log(Level.SEVERE, "Parsing HTTP handshake response failed", e);
+                clientEngine.processError(e);
                 closeConnection();
                 return false;
-            } finally {
-                responseParser.clear();
             }
 
             if (proxy && !connectedToProxy) {

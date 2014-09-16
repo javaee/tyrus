@@ -58,7 +58,8 @@ class HttpResponseParser {
     private static final String ENCODING = "ISO-8859-1";
     private static final String LINE_SEPARATOR = "\r\n";
     private static final int BUFFER_STEP_SIZE = 256;
-    private static final int BUFFER_MAX_SIZE = 16384;
+    // this is package private because of the test
+    static final int BUFFER_MAX_SIZE = 16384;
 
     private volatile boolean complete = false;
     private volatile ByteBuffer buffer;
@@ -92,7 +93,7 @@ class HttpResponseParser {
         return complete;
     }
 
-    void appendData(ByteBuffer data) {
+    void appendData(ByteBuffer data) throws ParseException {
         if (buffer == null) {
             // parser was already destroyed.
             return;
@@ -100,15 +101,24 @@ class HttpResponseParser {
 
         int responseEndPosition = getEndPosition(data);
         if (responseEndPosition == -1) {
+            checkResponseSize(data);
             buffer = Utils.appendBuffers(buffer, data, BUFFER_MAX_SIZE, BUFFER_STEP_SIZE);
             return;
         }
+
         int limit = data.limit();
         data.limit(responseEndPosition + 1);
+        checkResponseSize(data);
         buffer = Utils.appendBuffers(buffer, data, BUFFER_MAX_SIZE, BUFFER_STEP_SIZE);
         data.limit(limit);
         data.position(responseEndPosition + 1);
         complete = true;
+    }
+
+    private void checkResponseSize(ByteBuffer partToBeAppended) throws ParseException {
+        if (buffer.remaining() + partToBeAppended.remaining() > BUFFER_MAX_SIZE) {
+            throw new ParseException("Upgrade response too big, sizes only up to " + BUFFER_MAX_SIZE + "B are supported.");
+        }
     }
 
     private void parseFirstLine(String[] responseLines, TyrusUpgradeResponse tyrusUpgradeResponse) throws ParseException {
