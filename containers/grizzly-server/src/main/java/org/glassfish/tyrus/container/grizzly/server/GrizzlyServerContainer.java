@@ -183,7 +183,7 @@ public class GrizzlyServerContainer extends ServerContainerFactory {
 
                 // idle timeout set to indefinite.
                 server.getListener("grizzly").getKeepAlive().setIdleTimeoutInSeconds(-1);
-                server.getListener("grizzly").registerAddOn(new WebSocketAddOn(this));
+                server.getListener("grizzly").registerAddOn(new WebSocketAddOn(this, contextPath));
 
                 final WebSocketEngine webSocketEngine = getWebSocketEngine();
 

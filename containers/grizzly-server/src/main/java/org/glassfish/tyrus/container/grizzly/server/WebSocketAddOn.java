@@ -58,9 +58,11 @@ import org.glassfish.grizzly.http.server.NetworkListener;
 public class WebSocketAddOn implements AddOn {
 
     private final ServerContainer serverContainer;
+    private final String contextPath;
 
-    WebSocketAddOn(ServerContainer serverContainer) {
+    WebSocketAddOn(ServerContainer serverContainer, String contextPath) {
         this.serverContainer = serverContainer;
+        this.contextPath = contextPath;
     }
 
     @Override
@@ -70,7 +72,7 @@ public class WebSocketAddOn implements AddOn {
 
         if (httpServerFilterIdx >= 0) {
             // Insert the WebSocketFilter right before HttpServerFilter
-            builder.add(httpServerFilterIdx, new GrizzlyServerFilter(serverContainer));
+            builder.add(httpServerFilterIdx, new GrizzlyServerFilter(serverContainer, contextPath));
         }
     }
 }
