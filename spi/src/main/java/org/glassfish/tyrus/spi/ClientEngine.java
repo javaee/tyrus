@@ -132,24 +132,24 @@ public interface ClientEngine {
          * @param connectionProperties connection related properties like remote/local IP addresses, port numbers or hostnames.
          *                             Required properties:
          *                             <ul>
-         *                             <li>{@link Connection.ConnectionPropertyKey#REMOTE_ADDR}</li>
-         *                             <li>{@link Connection.ConnectionPropertyKey#REMOTE_HOSTNAME}</li>
-         *                             <li>{@link Connection.ConnectionPropertyKey#REMOTE_PORT}</li>
-         *                             <li>{@link Connection.ConnectionPropertyKey#LOCAL_ADDR}</li>
-         *                             <li>{@link Connection.ConnectionPropertyKey#LOCAL_HOSTNAME}</li>
-         *                             <li>{@link Connection.ConnectionPropertyKey#LOCAL_PORT}</li>
+         *                             <li>{@link Connection.ConnectionProperties#REMOTE_ADDRESS}</li>
+         *                             <li>{@link Connection.ConnectionProperties#REMOTE_HOSTNAME}</li>
+         *                             <li>{@link Connection.ConnectionProperties#REMOTE_PORT}</li>
+         *                             <li>{@link Connection.ConnectionProperties#LOCAL_ADDRESS}</li>
+         *                             <li>{@link Connection.ConnectionProperties#LOCAL_HOSTNAME}</li>
+         *                             <li>{@link Connection.ConnectionProperties#LOCAL_PORT}</li>
          *                             </ul>
          *                             Optional properties:
          *                             <ul>
-         *                             <li>{@link Connection.ConnectionPropertyKey#REMOTE_INET_ADDRESS}</li>
-         *                             <li>{@link Connection.ConnectionPropertyKey#LOCAL_INET_ADDRESS}</li>
+         *                             <li>{@link Connection.ConnectionProperties#REMOTE_INET_ADDRESS}</li>
+         *                             <li>{@link Connection.ConnectionProperties#LOCAL_INET_ADDRESS}</li>
          *                             </ul>
          * @return new {@link Connection} instance or {@code null}, when {@link #getUpgradeStatus()} does not return
          * {@link ClientUpgradeStatus#SUCCESS}.
          * @throws IllegalArgumentException if any of required properties in connectionProperties is {@code null} or is empty
          *                                  or any of supported properties is not an instance of required type.
          */
-        Connection createConnection(Map<Connection.ConnectionPropertyKey, Object> connectionProperties);
+        Connection createConnection(Map<Connection.ConnectionProperties, Object> connectionProperties);
     }
 
     /**

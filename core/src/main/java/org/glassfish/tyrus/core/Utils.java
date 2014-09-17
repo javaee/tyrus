@@ -549,17 +549,17 @@ public class Utils {
      * @param remoteAddress remote address.
      * @return a map od connection properties with all supported entries.
      */
-    public static Map<Connection.ConnectionPropertyKey, Object> getConnectionProperties(final InetSocketAddress localAddress, final InetSocketAddress remoteAddress) {
-        Map<Connection.ConnectionPropertyKey, Object> connectionProperties = new HashMap<Connection.ConnectionPropertyKey, Object>(8);
-        connectionProperties.put(Connection.ConnectionPropertyKey.LOCAL_INET_ADDRESS, localAddress.getAddress());
-        connectionProperties.put(Connection.ConnectionPropertyKey.LOCAL_ADDR, localAddress.getAddress().getHostAddress());
-        connectionProperties.put(Connection.ConnectionPropertyKey.LOCAL_HOSTNAME, localAddress.getHostName());
-        connectionProperties.put(Connection.ConnectionPropertyKey.LOCAL_PORT, localAddress.getPort());
+    public static Map<Connection.ConnectionProperties, Object> getConnectionProperties(final InetSocketAddress localAddress, final InetSocketAddress remoteAddress) {
+        Map<Connection.ConnectionProperties, Object> connectionProperties = new HashMap<Connection.ConnectionProperties, Object>(8);
+        connectionProperties.put(Connection.ConnectionProperties.LOCAL_INET_ADDRESS, localAddress.getAddress());
+        connectionProperties.put(Connection.ConnectionProperties.LOCAL_ADDRESS, localAddress.getAddress().getHostAddress());
+        connectionProperties.put(Connection.ConnectionProperties.LOCAL_HOSTNAME, localAddress.getHostName());
+        connectionProperties.put(Connection.ConnectionProperties.LOCAL_PORT, localAddress.getPort());
 
-        connectionProperties.put(Connection.ConnectionPropertyKey.REMOTE_INET_ADDRESS, remoteAddress.getAddress());
-        connectionProperties.put(Connection.ConnectionPropertyKey.REMOTE_ADDR, remoteAddress.getAddress().getHostAddress());
-        connectionProperties.put(Connection.ConnectionPropertyKey.REMOTE_HOSTNAME, remoteAddress.getHostName());
-        connectionProperties.put(Connection.ConnectionPropertyKey.REMOTE_PORT, remoteAddress.getPort());
+        connectionProperties.put(Connection.ConnectionProperties.REMOTE_INET_ADDRESS, remoteAddress.getAddress());
+        connectionProperties.put(Connection.ConnectionProperties.REMOTE_ADDRESS, remoteAddress.getAddress().getHostAddress());
+        connectionProperties.put(Connection.ConnectionProperties.REMOTE_HOSTNAME, remoteAddress.getHostName());
+        connectionProperties.put(Connection.ConnectionProperties.REMOTE_PORT, remoteAddress.getPort());
         return Collections.unmodifiableMap(connectionProperties);
     }
 
@@ -571,94 +571,94 @@ public class Utils {
      * <p/>
      * Required properties:
      * <ul>
-     * <li>{@link Connection.ConnectionPropertyKey#REMOTE_ADDR}</li>
-     * <li>{@link Connection.ConnectionPropertyKey#REMOTE_HOSTNAME}</li>
-     * <li>{@link Connection.ConnectionPropertyKey#REMOTE_PORT}</li>
-     * <li>{@link Connection.ConnectionPropertyKey#LOCAL_ADDR}</li>
-     * <li>{@link Connection.ConnectionPropertyKey#LOCAL_HOSTNAME}</li>
-     * <li>{@link Connection.ConnectionPropertyKey#LOCAL_PORT}</li>
+     * <li>{@link Connection.ConnectionProperties#REMOTE_ADDRESS}</li>
+     * <li>{@link Connection.ConnectionProperties#REMOTE_HOSTNAME}</li>
+     * <li>{@link Connection.ConnectionProperties#REMOTE_PORT}</li>
+     * <li>{@link Connection.ConnectionProperties#LOCAL_ADDRESS}</li>
+     * <li>{@link Connection.ConnectionProperties#LOCAL_HOSTNAME}</li>
+     * <li>{@link Connection.ConnectionProperties#LOCAL_PORT}</li>
      * </ul>
      * Optional properties:
      * <ul>
-     * <li>{@link Connection.ConnectionPropertyKey#REMOTE_INET_ADDRESS}</li>
-     * <li>{@link Connection.ConnectionPropertyKey#LOCAL_INET_ADDRESS}</li>
+     * <li>{@link Connection.ConnectionProperties#REMOTE_INET_ADDRESS}</li>
+     * <li>{@link Connection.ConnectionProperties#LOCAL_INET_ADDRESS}</li>
      * </ul>
      *
      * @param connectionProperties connection properties map.
      * @throws IllegalArgumentException if any of required properties in connectionProperties is {@code null} or is empty
      *                                  or any of supported properties is not an instance of required type.
      */
-    public static void validateConnectionProperties(Map<Connection.ConnectionPropertyKey, Object> connectionProperties) throws IllegalArgumentException {
+    public static void validateConnectionProperties(Map<Connection.ConnectionProperties, Object> connectionProperties) throws IllegalArgumentException {
         StringBuilder sb = new StringBuilder();
 
-        Object o = connectionProperties.get(Connection.ConnectionPropertyKey.REMOTE_INET_ADDRESS);
+        Object o = connectionProperties.get(Connection.ConnectionProperties.REMOTE_INET_ADDRESS);
         if (o != null && !(o instanceof InetAddress)) {
-            sb.append(String.format(LocalizationMessages.PROPERTY_VALIDATION_TYPE(Connection.ConnectionPropertyKey.REMOTE_INET_ADDRESS, InetAddress.class.getName(), o.getClass().getName())));
+            sb.append(String.format(LocalizationMessages.PROPERTY_VALIDATION_TYPE(Connection.ConnectionProperties.REMOTE_INET_ADDRESS, InetAddress.class.getName(), o.getClass().getName())));
         }
 
-        o = connectionProperties.get(Connection.ConnectionPropertyKey.LOCAL_INET_ADDRESS);
+        o = connectionProperties.get(Connection.ConnectionProperties.LOCAL_INET_ADDRESS);
         if (o != null && !(o instanceof InetAddress)) {
-            sb.append(String.format(LocalizationMessages.PROPERTY_VALIDATION_TYPE(Connection.ConnectionPropertyKey.LOCAL_INET_ADDRESS, InetAddress.class.getName(), o.getClass().getName())));
+            sb.append(String.format(LocalizationMessages.PROPERTY_VALIDATION_TYPE(Connection.ConnectionProperties.LOCAL_INET_ADDRESS, InetAddress.class.getName(), o.getClass().getName())));
         }
 
         String remoteAddr = null;
         try {
-            remoteAddr = (String) connectionProperties.get(Connection.ConnectionPropertyKey.REMOTE_ADDR);
+            remoteAddr = (String) connectionProperties.get(Connection.ConnectionProperties.REMOTE_ADDRESS);
             if (remoteAddr == null || remoteAddr.equals("")) {
-                sb.append(String.format(LocalizationMessages.PROPERTY_VALIDATION_NOT_EMPTY(Connection.ConnectionPropertyKey.REMOTE_ADDR)));
+                sb.append(String.format(LocalizationMessages.PROPERTY_VALIDATION_NOT_EMPTY(Connection.ConnectionProperties.REMOTE_ADDRESS)));
             }
         } catch (ClassCastException e) {
-            sb.append(String.format(LocalizationMessages.PROPERTY_VALIDATION_TYPE(Connection.ConnectionPropertyKey.REMOTE_ADDR, String.class.getName(), remoteAddr.getClass().getName()), e.getMessage()));
+            sb.append(String.format(LocalizationMessages.PROPERTY_VALIDATION_TYPE(Connection.ConnectionProperties.REMOTE_ADDRESS, String.class.getName(), remoteAddr.getClass().getName()), e.getMessage()));
         }
 
         String localAddr = null;
         try {
-            localAddr = (String) connectionProperties.get(Connection.ConnectionPropertyKey.LOCAL_ADDR);
+            localAddr = (String) connectionProperties.get(Connection.ConnectionProperties.LOCAL_ADDRESS);
             if (localAddr == null || localAddr.equals("")) {
-                sb.append(String.format(LocalizationMessages.PROPERTY_VALIDATION_NOT_EMPTY(Connection.ConnectionPropertyKey.LOCAL_ADDR)));
+                sb.append(String.format(LocalizationMessages.PROPERTY_VALIDATION_NOT_EMPTY(Connection.ConnectionProperties.LOCAL_ADDRESS)));
             }
         } catch (ClassCastException e) {
-            sb.append(String.format(LocalizationMessages.PROPERTY_VALIDATION_TYPE(Connection.ConnectionPropertyKey.LOCAL_ADDR, String.class.getName(), localAddr.getClass().getName()), e.getMessage()));
+            sb.append(String.format(LocalizationMessages.PROPERTY_VALIDATION_TYPE(Connection.ConnectionProperties.LOCAL_ADDRESS, String.class.getName(), localAddr.getClass().getName()), e.getMessage()));
         }
 
         String remoteHostName = null;
         try {
-            remoteHostName = (String) connectionProperties.get(Connection.ConnectionPropertyKey.REMOTE_HOSTNAME);
+            remoteHostName = (String) connectionProperties.get(Connection.ConnectionProperties.REMOTE_HOSTNAME);
             if (remoteHostName == null || remoteHostName.equals("")) {
-                sb.append(String.format(LocalizationMessages.PROPERTY_VALIDATION_NOT_EMPTY(Connection.ConnectionPropertyKey.REMOTE_HOSTNAME)));
+                sb.append(String.format(LocalizationMessages.PROPERTY_VALIDATION_NOT_EMPTY(Connection.ConnectionProperties.REMOTE_HOSTNAME)));
             }
         } catch (ClassCastException e) {
-            sb.append(String.format(LocalizationMessages.PROPERTY_VALIDATION_TYPE(Connection.ConnectionPropertyKey.REMOTE_HOSTNAME, String.class.getName(), remoteHostName.getClass().getName()), e.getMessage()));
+            sb.append(String.format(LocalizationMessages.PROPERTY_VALIDATION_TYPE(Connection.ConnectionProperties.REMOTE_HOSTNAME, String.class.getName(), remoteHostName.getClass().getName()), e.getMessage()));
         }
 
         String localHostName = null;
         try {
-            localHostName = (String) connectionProperties.get(Connection.ConnectionPropertyKey.LOCAL_HOSTNAME);
+            localHostName = (String) connectionProperties.get(Connection.ConnectionProperties.LOCAL_HOSTNAME);
             if (localHostName == null || localHostName.equals("")) {
-                sb.append(String.format(LocalizationMessages.PROPERTY_VALIDATION_NOT_EMPTY(Connection.ConnectionPropertyKey.LOCAL_HOSTNAME)));
+                sb.append(String.format(LocalizationMessages.PROPERTY_VALIDATION_NOT_EMPTY(Connection.ConnectionProperties.LOCAL_HOSTNAME)));
             }
         } catch (ClassCastException e) {
-            sb.append(String.format(LocalizationMessages.PROPERTY_VALIDATION_TYPE(Connection.ConnectionPropertyKey.LOCAL_HOSTNAME, String.class.getName(), localHostName.getClass().getName()), e.getMessage()));
+            sb.append(String.format(LocalizationMessages.PROPERTY_VALIDATION_TYPE(Connection.ConnectionProperties.LOCAL_HOSTNAME, String.class.getName(), localHostName.getClass().getName()), e.getMessage()));
         }
 
         Integer remotePort = null;
         try {
-            remotePort = (Integer) connectionProperties.get(Connection.ConnectionPropertyKey.REMOTE_PORT);
+            remotePort = (Integer) connectionProperties.get(Connection.ConnectionProperties.REMOTE_PORT);
             if (remotePort == null || remotePort <= 0) {
-                sb.append(String.format(LocalizationMessages.PROPERTY_VALIDATION_POSITIVE_INTEGER(Connection.ConnectionPropertyKey.REMOTE_PORT)));
+                sb.append(String.format(LocalizationMessages.PROPERTY_VALIDATION_POSITIVE_INTEGER(Connection.ConnectionProperties.REMOTE_PORT)));
             }
         } catch (ClassCastException e) {
-            sb.append(String.format(LocalizationMessages.PROPERTY_VALIDATION_TYPE(Connection.ConnectionPropertyKey.REMOTE_PORT, Integer.class.getName(), remotePort.getClass().getName()), e.getMessage()));
+            sb.append(String.format(LocalizationMessages.PROPERTY_VALIDATION_TYPE(Connection.ConnectionProperties.REMOTE_PORT, Integer.class.getName(), remotePort.getClass().getName()), e.getMessage()));
         }
 
         Integer localPort = null;
         try {
-            localPort = (Integer) connectionProperties.get(Connection.ConnectionPropertyKey.LOCAL_PORT);
+            localPort = (Integer) connectionProperties.get(Connection.ConnectionProperties.LOCAL_PORT);
             if (localPort == null || localPort <= 0) {
-                sb.append(String.format(LocalizationMessages.PROPERTY_VALIDATION_POSITIVE_INTEGER(Connection.ConnectionPropertyKey.LOCAL_PORT)));
+                sb.append(String.format(LocalizationMessages.PROPERTY_VALIDATION_POSITIVE_INTEGER(Connection.ConnectionProperties.LOCAL_PORT)));
             }
         } catch (ClassCastException e) {
-            sb.append(String.format(LocalizationMessages.PROPERTY_VALIDATION_TYPE(Connection.ConnectionPropertyKey.LOCAL_PORT, Integer.class.getName(), localPort.getClass().getName()), e.getMessage()));
+            sb.append(String.format(LocalizationMessages.PROPERTY_VALIDATION_TYPE(Connection.ConnectionProperties.LOCAL_PORT, Integer.class.getName(), localPort.getClass().getName()), e.getMessage()));
         }
 
         if (sb.length() > 0) {

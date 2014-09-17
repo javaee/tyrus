@@ -68,11 +68,14 @@ import javax.websocket.OnMessage;
 import javax.websocket.SendHandler;
 import javax.websocket.SendResult;
 import javax.websocket.Session;
+import javax.websocket.WebSocketContainer;
 import javax.websocket.server.ServerEndpoint;
 
 import org.glassfish.tyrus.core.frame.Frame;
 
+import org.junit.After;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -85,6 +88,7 @@ public class TyrusRemoteEndpointTest {
     private final byte[] sentBytes = {'a', 'b', 'c'};
     private final byte[] sentBytesComplete = {'a', 'b', 'c', 'a', 'b', 'c'};
     private TyrusEndpointWrapper endpointWrapper;
+    private BaseContainer container;
 
     public TyrusRemoteEndpointTest() {
         try {
@@ -94,11 +98,21 @@ public class TyrusRemoteEndpointTest {
         }
     }
 
+    @Before
+    public void before() {
+        container = createContainer();
+    }
+
+    @After
+    public void after() {
+        container.shutdown();
+    }
+
     @Test
     public void testGetSendStream() throws IOException {
 
         TestRemoteEndpoint tre = new TestRemoteEndpoint();
-        TyrusSession testSession = createTestSession(tre, endpointWrapper);
+        TyrusSession testSession = createTestSession(container, tre, endpointWrapper);
         TyrusRemoteEndpoint.Basic rew = new TyrusRemoteEndpoint.Basic(testSession, tre, endpointWrapper);
         OutputStream stream = rew.getSendStream();
 
@@ -120,7 +134,7 @@ public class TyrusRemoteEndpointTest {
     public void testGetSendStreamWriteArrayWhole() throws IOException {
 
         TestRemoteEndpoint tre = new TestRemoteEndpoint();
-        TyrusSession testSession = createTestSession(tre, endpointWrapper);
+        TyrusSession testSession = createTestSession(container, tre, endpointWrapper);
         TyrusRemoteEndpoint.Basic rew = new TyrusRemoteEndpoint.Basic(testSession, tre, endpointWrapper);
         OutputStream stream = rew.getSendStream();
 
@@ -136,7 +150,7 @@ public class TyrusRemoteEndpointTest {
     public void testGetSendStreamWriteArrayPerPartes() throws IOException {
 
         TestRemoteEndpoint tre = new TestRemoteEndpoint();
-        TyrusSession testSession = createTestSession(tre, endpointWrapper);
+        TyrusSession testSession = createTestSession(container, tre, endpointWrapper);
         TyrusRemoteEndpoint.Basic rew = new TyrusRemoteEndpoint.Basic(testSession, tre, endpointWrapper);
         OutputStream stream = rew.getSendStream();
 
@@ -157,7 +171,7 @@ public class TyrusRemoteEndpointTest {
 
         char[] toSend = sentString.toCharArray();
         TestRemoteEndpoint tre = new TestRemoteEndpoint();
-        TyrusSession testSession = createTestSession(tre, endpointWrapper);
+        TyrusSession testSession = createTestSession(container, tre, endpointWrapper);
         TyrusRemoteEndpoint.Basic rew = new TyrusRemoteEndpoint.Basic(testSession, tre, endpointWrapper);
         Writer writer = rew.getSendWriter();
 
@@ -177,7 +191,7 @@ public class TyrusRemoteEndpointTest {
     @Test(expected = IllegalArgumentException.class)
     public void testBasicSendText() throws IOException {
         TestRemoteEndpoint tre = new TestRemoteEndpoint();
-        TyrusSession testSession = createTestSession(tre, endpointWrapper);
+        TyrusSession testSession = createTestSession(container, tre, endpointWrapper);
         TyrusRemoteEndpoint.Basic rew = new TyrusRemoteEndpoint.Basic(testSession, tre, endpointWrapper);
 
         rew.sendText(null);
@@ -186,7 +200,7 @@ public class TyrusRemoteEndpointTest {
     @Test(expected = IllegalArgumentException.class)
     public void testBasicSendBinary() throws IOException {
         TestRemoteEndpoint tre = new TestRemoteEndpoint();
-        TyrusSession testSession = createTestSession(tre, endpointWrapper);
+        TyrusSession testSession = createTestSession(container, tre, endpointWrapper);
         TyrusRemoteEndpoint.Basic rew = new TyrusRemoteEndpoint.Basic(testSession, tre, endpointWrapper);
 
         rew.sendBinary(null);
@@ -195,7 +209,7 @@ public class TyrusRemoteEndpointTest {
     @Test(expected = IllegalArgumentException.class)
     public void testBasicSendPartialText() throws IOException {
         TestRemoteEndpoint tre = new TestRemoteEndpoint();
-        TyrusSession testSession = createTestSession(tre, endpointWrapper);
+        TyrusSession testSession = createTestSession(container, tre, endpointWrapper);
         TyrusRemoteEndpoint.Basic rew = new TyrusRemoteEndpoint.Basic(testSession, tre, endpointWrapper);
 
         rew.sendText(null, false);
@@ -204,7 +218,7 @@ public class TyrusRemoteEndpointTest {
     @Test(expected = IllegalArgumentException.class)
     public void testBasicSendPartialBinary() throws IOException {
         TestRemoteEndpoint tre = new TestRemoteEndpoint();
-        TyrusSession testSession = createTestSession(tre, endpointWrapper);
+        TyrusSession testSession = createTestSession(container, tre, endpointWrapper);
         TyrusRemoteEndpoint.Basic rew = new TyrusRemoteEndpoint.Basic(testSession, tre, endpointWrapper);
 
         rew.sendBinary(null, false);
@@ -213,7 +227,7 @@ public class TyrusRemoteEndpointTest {
     @Test(expected = IllegalArgumentException.class)
     public void testBasicSendObject() throws IOException, EncodeException {
         TestRemoteEndpoint tre = new TestRemoteEndpoint();
-        TyrusSession testSession = createTestSession(tre, endpointWrapper);
+        TyrusSession testSession = createTestSession(container, tre, endpointWrapper);
         TyrusRemoteEndpoint.Basic rew = new TyrusRemoteEndpoint.Basic(testSession, tre, endpointWrapper);
 
         rew.sendObject(null);
@@ -222,7 +236,7 @@ public class TyrusRemoteEndpointTest {
     @Test(expected = IllegalArgumentException.class)
     public void testAsyncSendTextHandler1() throws IOException {
         TestRemoteEndpoint tre = new TestRemoteEndpoint();
-        TyrusSession testSession = createTestSession(tre, endpointWrapper);
+        TyrusSession testSession = createTestSession(container, tre, endpointWrapper);
         TyrusRemoteEndpoint.Async rew = new TyrusRemoteEndpoint.Async(testSession, tre, endpointWrapper);
 
         rew.sendText(null, new SendHandler() {
@@ -236,7 +250,7 @@ public class TyrusRemoteEndpointTest {
     @Test(expected = IllegalArgumentException.class)
     public void testAsyncSendTextHandler2() throws IOException {
         TestRemoteEndpoint tre = new TestRemoteEndpoint();
-        TyrusSession testSession = createTestSession(tre, endpointWrapper);
+        TyrusSession testSession = createTestSession(container, tre, endpointWrapper);
         TyrusRemoteEndpoint.Async rew = new TyrusRemoteEndpoint.Async(testSession, tre, endpointWrapper);
 
         rew.sendText("We are all here to do what we are all here to do...", null);
@@ -245,7 +259,7 @@ public class TyrusRemoteEndpointTest {
     @Test(expected = IllegalArgumentException.class)
     public void testAsyncSendTextFuture() throws IOException {
         TestRemoteEndpoint tre = new TestRemoteEndpoint();
-        TyrusSession testSession = createTestSession(tre, endpointWrapper);
+        TyrusSession testSession = createTestSession(container, tre, endpointWrapper);
         TyrusRemoteEndpoint.Async rew = new TyrusRemoteEndpoint.Async(testSession, tre, endpointWrapper);
 
         rew.sendText(null);
@@ -254,7 +268,7 @@ public class TyrusRemoteEndpointTest {
     @Test(expected = IllegalArgumentException.class)
     public void testAsyncSendBinaryHandler1() throws IOException {
         TestRemoteEndpoint tre = new TestRemoteEndpoint();
-        TyrusSession testSession = createTestSession(tre, endpointWrapper);
+        TyrusSession testSession = createTestSession(container, tre, endpointWrapper);
         TyrusRemoteEndpoint.Async rew = new TyrusRemoteEndpoint.Async(testSession, tre, endpointWrapper);
 
         rew.sendBinary(null, new SendHandler() {
@@ -268,7 +282,7 @@ public class TyrusRemoteEndpointTest {
     @Test(expected = IllegalArgumentException.class)
     public void testAsyncSendBinaryHandler2() throws IOException {
         TestRemoteEndpoint tre = new TestRemoteEndpoint();
-        TyrusSession testSession = createTestSession(tre, endpointWrapper);
+        TyrusSession testSession = createTestSession(container, tre, endpointWrapper);
         TyrusRemoteEndpoint.Async rew = new TyrusRemoteEndpoint.Async(testSession, tre, endpointWrapper);
 
         rew.sendBinary(ByteBuffer.wrap("We are all here to do what we are all here to do...".getBytes("UTF-8")), null);
@@ -277,7 +291,7 @@ public class TyrusRemoteEndpointTest {
     @Test(expected = IllegalArgumentException.class)
     public void testAsyncSendBinaryFuture() throws IOException {
         TestRemoteEndpoint tre = new TestRemoteEndpoint();
-        TyrusSession testSession = createTestSession(tre, endpointWrapper);
+        TyrusSession testSession = createTestSession(container, tre, endpointWrapper);
         TyrusRemoteEndpoint.Async rew = new TyrusRemoteEndpoint.Async(testSession, tre, endpointWrapper);
 
         rew.sendBinary(null);
@@ -286,7 +300,7 @@ public class TyrusRemoteEndpointTest {
     @Test(expected = IllegalArgumentException.class)
     public void testAsyncSendObjectHandler1() throws IOException {
         TestRemoteEndpoint tre = new TestRemoteEndpoint();
-        TyrusSession testSession = createTestSession(tre, endpointWrapper);
+        TyrusSession testSession = createTestSession(container, tre, endpointWrapper);
         TyrusRemoteEndpoint.Async rew = new TyrusRemoteEndpoint.Async(testSession, tre, endpointWrapper);
 
         rew.sendObject(null, new SendHandler() {
@@ -300,7 +314,7 @@ public class TyrusRemoteEndpointTest {
     @Test(expected = IllegalArgumentException.class)
     public void testAsyncSendObjectHandler2() throws IOException {
         TestRemoteEndpoint tre = new TestRemoteEndpoint();
-        TyrusSession testSession = createTestSession(tre, endpointWrapper);
+        TyrusSession testSession = createTestSession(container, tre, endpointWrapper);
         TyrusRemoteEndpoint.Async rew = new TyrusRemoteEndpoint.Async(testSession, tre, endpointWrapper);
 
         rew.sendObject("We are all here to do what we are all here to do...", null);
@@ -309,15 +323,84 @@ public class TyrusRemoteEndpointTest {
     @Test(expected = IllegalArgumentException.class)
     public void testAsyncSendObjectFuture() throws IOException {
         TestRemoteEndpoint tre = new TestRemoteEndpoint();
-        TyrusSession testSession = createTestSession(tre, endpointWrapper);
+        TyrusSession testSession = createTestSession(container, tre, endpointWrapper);
         TyrusRemoteEndpoint.Async rew = new TyrusRemoteEndpoint.Async(testSession, tre, endpointWrapper);
 
         rew.sendObject(null);
     }
 
-    private TyrusSession createTestSession(TyrusWebSocket webSocket, TyrusEndpointWrapper endpointWrapper) {
-        return new TyrusSession(null, webSocket, endpointWrapper, null, null, true, null, null, Collections.<String, String>emptyMap(),
+    private TyrusSession createTestSession(WebSocketContainer container, TyrusWebSocket webSocket, TyrusEndpointWrapper endpointWrapper) {
+        return new TyrusSession(container, webSocket, endpointWrapper, null, null, true, null, null, Collections.<String, String>emptyMap(),
                 null, new HashMap<String, List<String>>(), null, null, null, null, null, -1, null, null, null, -1, new DebugContext());
+    }
+
+    private BaseContainer createContainer() {
+        return new BaseContainer() {
+            @Override
+            public long getDefaultAsyncSendTimeout() {
+                return 0;
+            }
+
+            @Override
+            public void setAsyncSendTimeout(long timeoutmillis) {
+
+            }
+
+            @Override
+            public Session connectToServer(Object annotatedEndpointInstance, URI path) throws DeploymentException, IOException {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public Session connectToServer(Class<?> annotatedEndpointClass, URI path) throws DeploymentException, IOException {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public Session connectToServer(Endpoint endpointInstance, ClientEndpointConfig cec, URI path) throws DeploymentException, IOException {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public Session connectToServer(Class<? extends Endpoint> endpointClass, ClientEndpointConfig cec, URI path) throws DeploymentException, IOException {
+                throw new UnsupportedOperationException();
+            }
+
+            @Override
+            public long getDefaultMaxSessionIdleTimeout() {
+                return 0;
+            }
+
+            @Override
+            public void setDefaultMaxSessionIdleTimeout(long timeout) {
+
+            }
+
+            @Override
+            public int getDefaultMaxBinaryMessageBufferSize() {
+                return 0;
+            }
+
+            @Override
+            public void setDefaultMaxBinaryMessageBufferSize(int max) {
+
+            }
+
+            @Override
+            public int getDefaultMaxTextMessageBufferSize() {
+                return 0;
+            }
+
+            @Override
+            public void setDefaultMaxTextMessageBufferSize(int max) {
+
+            }
+
+            @Override
+            public Set<Extension> getInstalledExtensions() {
+                return Collections.emptySet();
+            }
+        };
     }
 
     private class TestRemoteEndpoint extends TyrusWebSocket {

@@ -179,7 +179,7 @@ class TyrusServletFilter implements Filter, HttpSessionListener {
         }
 
         @Override
-        public void preInit(WebSocketEngine.UpgradeInfo upgradeInfo, Writer writer, boolean authenticated, Map<Connection.ConnectionPropertyKey, Object> connectionProperties) {
+        public void preInit(WebSocketEngine.UpgradeInfo upgradeInfo, Writer writer, boolean authenticated, Map<Connection.ConnectionProperties, Object> connectionProperties) {
             handler.preInit(upgradeInfo, writer, authenticated, connectionProperties);
         }
 
@@ -265,13 +265,13 @@ class TyrusServletFilter implements Filter, HttpSessionListener {
                         handler.setIncomingBufferSize(Integer.parseInt(frameBufferSize));
                     }
 
-                    Map<Connection.ConnectionPropertyKey, Object> connectionProperties = new HashMap<>(6);
-                    connectionProperties.put(Connection.ConnectionPropertyKey.REMOTE_ADDR, httpServletRequest.getRemoteAddr());
-                    connectionProperties.put(Connection.ConnectionPropertyKey.REMOTE_HOSTNAME, httpServletRequest.getRemoteHost());
-                    connectionProperties.put(Connection.ConnectionPropertyKey.REMOTE_PORT, httpServletRequest.getRemotePort());
-                    connectionProperties.put(Connection.ConnectionPropertyKey.LOCAL_ADDR, httpServletRequest.getLocalAddr());
-                    connectionProperties.put(Connection.ConnectionPropertyKey.LOCAL_HOSTNAME, httpServletRequest.getLocalName());
-                    connectionProperties.put(Connection.ConnectionPropertyKey.LOCAL_PORT, httpServletRequest.getLocalPort());
+                    Map<Connection.ConnectionProperties, Object> connectionProperties = new HashMap<Connection.ConnectionProperties, Object>(6);
+                    connectionProperties.put(Connection.ConnectionProperties.REMOTE_ADDRESS, httpServletRequest.getRemoteAddr());
+                    connectionProperties.put(Connection.ConnectionProperties.REMOTE_HOSTNAME, httpServletRequest.getRemoteHost());
+                    connectionProperties.put(Connection.ConnectionProperties.REMOTE_PORT, httpServletRequest.getRemotePort());
+                    connectionProperties.put(Connection.ConnectionProperties.LOCAL_ADDRESS, httpServletRequest.getLocalAddr());
+                    connectionProperties.put(Connection.ConnectionProperties.LOCAL_HOSTNAME, httpServletRequest.getLocalName());
+                    connectionProperties.put(Connection.ConnectionProperties.LOCAL_PORT, httpServletRequest.getLocalPort());
 
                     handler.preInit(upgradeInfo, webSocketConnection, httpServletRequest.getUserPrincipal() != null, Collections.unmodifiableMap(connectionProperties));
 

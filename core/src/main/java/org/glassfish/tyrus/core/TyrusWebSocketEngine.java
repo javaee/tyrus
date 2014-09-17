@@ -663,7 +663,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
         }
 
         @Override
-        public Connection createConnection(Writer writer, Connection.CloseListener closeListener, Map<Connection.ConnectionPropertyKey, Object> connectionProperties) {
+        public Connection createConnection(Writer writer, Connection.CloseListener closeListener, Map<Connection.ConnectionProperties, Object> connectionProperties) {
             return null;
         }
     }
@@ -695,11 +695,11 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
         }
 
         @Override
-        public Connection createConnection(Writer writer, Connection.CloseListener closeListener, Map<Connection.ConnectionPropertyKey, Object> connectionProperties) {
+        public Connection createConnection(Writer writer, Connection.CloseListener closeListener, Map<Connection.ConnectionProperties, Object> connectionProperties) {
 
             Utils.validateConnectionProperties(connectionProperties);
 
-            TyrusConnection tyrusConnection = new TyrusConnection(endpointWrapper, protocolHandler, incomingBufferSize, writer, closeListener, 
+            TyrusConnection tyrusConnection = new TyrusConnection(endpointWrapper, protocolHandler, incomingBufferSize, writer, closeListener,
                     upgradeRequest, upgradeResponse, extensionContext, connectionProperties, debugContext);
             debugContext.flush();
             return tyrusConnection;
@@ -744,7 +744,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
 
         TyrusConnection(TyrusEndpointWrapper endpointWrapper, ProtocolHandler protocolHandler, int incomingBufferSize, Writer writer,
                         CloseListener closeListener, UpgradeRequest upgradeRequest, UpgradeResponse upgradeResponse,
-                        ExtendedExtension.ExtensionContext extensionContext, Map<ConnectionPropertyKey, Object> connectionProperties, DebugContext debugContext) {
+                        ExtendedExtension.ExtensionContext extensionContext, Map<ConnectionProperties, Object> connectionProperties, DebugContext debugContext) {
             protocolHandler.setWriter(writer);
             extensions = protocolHandler.getExtensions();
             this.socket = endpointWrapper.createSocket(protocolHandler);

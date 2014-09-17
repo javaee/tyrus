@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -53,88 +53,69 @@ import javax.websocket.CloseReason;
 public interface Connection {
 
     /**
-     * Connection property map key.
+     * Connection properties, used as a key in map passed to {@code createConnection} invocation in
+     * {@link ClientEngine.ClientUpgradeInfo} and {@link WebSocketEngine.UpgradeInfo}.
      *
      * @see ClientEngine.ClientUpgradeInfo#createConnection(Map)
      * @see WebSocketEngine.UpgradeInfo#createConnection(Writer, CloseListener, Map)
      */
-    public static enum ConnectionPropertyKey {
+    public static enum ConnectionProperties {
+
         /**
          * {@link InetAddress} instance representing a remote address.
          * <p/>
-         * An expected value is {@link InetAddress}.
-         * Property should be passed in {@code connectionProperties} map.
+         * Value must be an instance of {@link InetAddress}.
          */
-        REMOTE_INET_ADDRESS("org.glassfish.tyrus.core.remoteInetAddress"),
+        REMOTE_INET_ADDRESS,
 
         /**
          * Remote IP address.
          * <p/>
-         * An expected value is non-empty {@link String}.
-         * Property should be passed in {@code connectionProperties} map.
+         * Value must be a non-empty {@link String}.
          */
-        REMOTE_ADDR("org.glassfish.tyrus.core.remoteAddr"),
+        REMOTE_ADDRESS,
 
         /**
          * Remote hostname.
          * <p/>
-         * An expected value is non-empty {@link String}.
-         * Property should be passed in {@code connectionProperties} map.
+         * Value must be a non-empty {@link String}.
          */
-        REMOTE_HOSTNAME("org.glassfish.tyrus.core.remoteHostName"),
+        REMOTE_HOSTNAME,
 
         /**
          * Remote port number.
          * <p/>
-         * An expected value is {@link Integer} greater than 0.
-         * Property should be passed in {@code connectionProperties} map.
+         * Value must be an {@link Integer} greater than 0.
          */
-        REMOTE_PORT("org.glassfish.tyrus.core.remotePort"),
+        REMOTE_PORT,
 
         /**
          * {@link InetAddress} instance representing a local address.
          * <p/>
-         * An expected value is {@link InetAddress}.
-         * Property should be passed in {@code connectionProperties} map.
+         * Value must be an instance of {@link InetAddress}.
          */
-
-        LOCAL_INET_ADDRESS("org.glassfish.tyrus.core.localInetAddress"),
+        LOCAL_INET_ADDRESS,
 
         /**
          * Local IP address.
          * <p/>
-         * An expected value is non-empty {@link String}.
-         * Property should be passed in {@code connectionProperties} map.
+         * Value must be a non-empty {@link String}.
          */
-        LOCAL_ADDR("org.glassfish.tyrus.core.localAddr"),
+        LOCAL_ADDRESS,
 
         /**
          * Local hostname.
          * <p/>
-         * An expected value is non-empty {@link String}.
-         * Property should be passed in {@code connectionProperties} map.
+         * Value must be a non-empty {@link String}.
          */
-        LOCAL_HOSTNAME("org.glassfish.tyrus.core.localHostName"),
+        LOCAL_HOSTNAME,
 
         /**
          * Local port number.
          * <p/>
-         * An expected value is {@link Integer} greater than 0.
-         * Property should be passed in {@code connectionProperties} map.
+         * Value must be an {@link Integer} greater than 0.
          */
-        LOCAL_PORT("org.glassfish.tyrus.core.localPort");
-
-        private final String key;
-
-        private ConnectionPropertyKey(final String key) {
-            this.key = key;
-        }
-
-        @Override
-        public String toString() {
-            return this.key;
-        }
-
+        LOCAL_PORT
     }
 
     /**
@@ -166,7 +147,7 @@ public interface Connection {
     CloseListener getCloseListener();
 
     /**
-     * Notifies tyrus that underlying transport is closing the connection.
+     * Notifies Tyrus that underlying transport is closing the connection.
      *
      * @param reason for closing the actual connection.
      */

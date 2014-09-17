@@ -141,7 +141,7 @@ public class TyrusWebSocket {
      * @param connectionProperties connection related properties like remote/local IP addresses, port numbers or hostnames.
      * @param debugContext         debug context.
      */
-    public void onConnect(UpgradeRequest upgradeRequest, String subProtocol, List<Extension> extensions, String connectionId, Map<Connection.ConnectionPropertyKey, Object> connectionProperties, DebugContext debugContext) {
+    public void onConnect(UpgradeRequest upgradeRequest, String subProtocol, List<Extension> extensions, String connectionId, Map<Connection.ConnectionProperties, Object> connectionProperties, DebugContext debugContext) {
         state.set(State.CONNECTED);
 
         if (endpointWrapper != null) {

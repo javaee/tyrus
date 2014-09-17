@@ -667,7 +667,7 @@ public class GrizzlyClientSocket {
 
 
         clientFilterChainBuilder.add(new GrizzlyClientFilter(engine, proxy,
-                sslFilter, httpCodecFilter, uri, sharedTransport, proxyHeaders, grizzlyConnector, upgradeRequest));
+                sslFilter, httpCodecFilter, sharedTransport, proxyHeaders, grizzlyConnector, upgradeRequest));
 
         return clientFilterChainBuilder.build();
     }

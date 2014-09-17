@@ -118,7 +118,7 @@ class Filter {
      *
      * @param connectionProperties connection related properties like local/remote IP addresses, port numbers and hostnames.
      */
-    final void onConnect(Map<Connection.ConnectionPropertyKey, Object> connectionProperties) {
+    final void onConnect(Map<Connection.ConnectionProperties, Object> connectionProperties) {
         processConnect(connectionProperties);
 
         if (upstreamFilter != null) {
@@ -203,7 +203,7 @@ class Filter {
      * @param connectionProperties connection related properties like local/remote IP addresses, port numbers and hostnames.
      * @see #onConnect(Map)
      */
-    void processConnect(Map<Connection.ConnectionPropertyKey, Object> connectionProperties) {
+    void processConnect(Map<Connection.ConnectionProperties, Object> connectionProperties) {
     }
 
     /**

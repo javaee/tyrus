@@ -42,7 +42,6 @@ package org.glassfish.tyrus.test.standard_config;
 
 import java.io.IOException;
 import java.io.StringReader;
-import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Collections;
 import java.util.concurrent.CountDownLatch;
@@ -159,10 +158,10 @@ public class SessionInfoTest extends TestContainer {
             TyrusSession tyrusSession = (TyrusSession) session;
             printSessionInfo(tyrusSession, "SERVER");
             JsonObject jsonObject = Json.createObjectBuilder()
-                    .add(Connection.ConnectionPropertyKey.LOCAL_ADDR.toString(), tyrusSession.getLocalAddr())
-                    .add(Connection.ConnectionPropertyKey.LOCAL_PORT.toString(), tyrusSession.getLocalPort())
-                    .add(Connection.ConnectionPropertyKey.REMOTE_ADDR.toString(), tyrusSession.getRemoteAddr())
-                    .add(Connection.ConnectionPropertyKey.REMOTE_PORT.toString(), tyrusSession.getRemotePort())
+                    .add(Connection.ConnectionProperties.LOCAL_ADDRESS.toString(), tyrusSession.getLocalAddr())
+                    .add(Connection.ConnectionProperties.LOCAL_PORT.toString(), tyrusSession.getLocalPort())
+                    .add(Connection.ConnectionProperties.REMOTE_ADDRESS.toString(), tyrusSession.getRemoteAddr())
+                    .add(Connection.ConnectionProperties.REMOTE_PORT.toString(), tyrusSession.getRemotePort())
                     .build();
             System.out.println(jsonObject);
             session.getBasicRemote().sendObject(jsonObject);
@@ -190,12 +189,12 @@ public class SessionInfoTest extends TestContainer {
                     session.addMessageHandler(new MessageHandler.Whole<JsonObject>() {
                         @Override
                         public void onMessage(JsonObject info) {
-                            if (info.getString(Connection.ConnectionPropertyKey.LOCAL_ADDR.toString()).equals(tyrusSession.getRemoteAddr())
-                                    && info.getString(Connection.ConnectionPropertyKey.REMOTE_ADDR.toString()).equals(tyrusSession.getLocalAddr())) {
+                            if (info.getString(Connection.ConnectionProperties.LOCAL_ADDRESS.toString()).equals(tyrusSession.getRemoteAddr())
+                                    && info.getString(Connection.ConnectionProperties.REMOTE_ADDRESS.toString()).equals(tyrusSession.getLocalAddr())) {
                                 crossCheckIPAdressLatch.countDown();
                             }
-                            if (info.getInt(Connection.ConnectionPropertyKey.LOCAL_PORT.toString()) == tyrusSession.getRemotePort()
-                                    && info.getInt(Connection.ConnectionPropertyKey.REMOTE_PORT.toString()) == tyrusSession.getLocalPort()) {
+                            if (info.getInt(Connection.ConnectionProperties.LOCAL_PORT.toString()) == tyrusSession.getRemotePort()
+                                    && info.getInt(Connection.ConnectionProperties.REMOTE_PORT.toString()) == tyrusSession.getLocalPort()) {
                                 crossCheckPortLatch.countDown();
                             }
                         }
@@ -224,14 +223,14 @@ public class SessionInfoTest extends TestContainer {
     }
 
     private static void printSessionInfo(TyrusSession tyrusSession, String prefix) {
-        InetAddress remoteInetAddress = tyrusSession.getRemoteInetAddress();
-        System.out.println(prefix + " remoteAddr: " + tyrusSession.getRemoteAddr());
-        System.out.println(prefix + " remoteHost: " + tyrusSession.getRemoteHostName());
-        System.out.println(prefix + " remotePort: " + tyrusSession.getRemotePort());
-        InetAddress localInetAddress = tyrusSession.getLocalInetAddress();
-        System.out.println(prefix + " localAddr: " + tyrusSession.getLocalAddr());
-        System.out.println(prefix + " localName: " + tyrusSession.getLocalHostName());
-        System.out.println(prefix + " localPort: " + tyrusSession.getLocalPort());
+        System.out.println(prefix + " remoteInetAddress : " + tyrusSession.getRemoteInetAddress());
+        System.out.println(prefix + " remoteAddr        : " + tyrusSession.getRemoteAddr());
+        System.out.println(prefix + " remoteHost        : " + tyrusSession.getRemoteHostName());
+        System.out.println(prefix + " remotePort        : " + tyrusSession.getRemotePort());
+        System.out.println(prefix + " localInetAddress  : " + tyrusSession.getLocalInetAddress());
+        System.out.println(prefix + " localAddr         : " + tyrusSession.getLocalAddr());
+        System.out.println(prefix + " localName         : " + tyrusSession.getLocalHostName());
+        System.out.println(prefix + " localPort         : " + tyrusSession.getLocalPort());
     }
 
     public static class JsonEncoder extends CoderAdapter implements Encoder.Text<JsonObject> {
@@ -245,8 +244,7 @@ public class SessionInfoTest extends TestContainer {
         @Override
         public JsonObject decode(String s) throws DecodeException {
             try {
-                JsonObject jsonObject = Json.createReader(new StringReader(s)).readObject();
-                return jsonObject;
+                return Json.createReader(new StringReader(s)).readObject();
             } catch (JsonException je) {
                 throw new DecodeException(s, "JSON not decoded", je);
             }

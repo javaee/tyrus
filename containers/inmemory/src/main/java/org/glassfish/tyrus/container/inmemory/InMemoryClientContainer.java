@@ -159,7 +159,7 @@ public class InMemoryClientContainer implements ClientContainer {
                     }
                 };
 
-                final Map<Connection.ConnectionPropertyKey, Object> connectionProperties = Utils.getConnectionProperties(new InetSocketAddress(1), new InetSocketAddress(1));
+                final Map<Connection.ConnectionProperties, Object> connectionProperties = Utils.getConnectionProperties(new InetSocketAddress(1), new InetSocketAddress(1));
 
                 final Connection serverConnection = upgradeInfo.createConnection(serverWriter, null, connectionProperties);
                 final ClientEngine.ClientUpgradeInfo clientClientUpgradeInfo = clientEngine.processResponse(upgradeResponse, clientWriter, null);

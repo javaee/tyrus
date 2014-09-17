@@ -91,6 +91,8 @@ public class TyrusSession implements Session, DistributedSession {
     private static final Logger LOGGER = Logger.getLogger(TyrusSession.class.getName());
 
     private final WebSocketContainer container;
+    private final ScheduledExecutorService service;
+
     private final TyrusEndpointWrapper endpointWrapper;
     private final TyrusRemoteEndpoint.Basic basicRemote;
     private final TyrusRemoteEndpoint.Async asyncRemote;
@@ -125,11 +127,12 @@ public class TyrusSession implements Session, DistributedSession {
 
     private volatile long maxIdleTimeout = 0;
     private volatile ScheduledFuture<?> idleTimeoutFuture = null;
-    private int maxBinaryMessageBufferSize = Integer.MAX_VALUE;
-    private int maxTextMessageBufferSize = Integer.MAX_VALUE;
-    private ScheduledExecutorService service;
+    private volatile int maxBinaryMessageBufferSize = Integer.MAX_VALUE;
+    private volatile int maxTextMessageBufferSize = Integer.MAX_VALUE;
+
     private ReaderBuffer readerBuffer;
     private InputStreamBuffer inputStreamBuffer;
+
     private volatile long heartbeatInterval;
     private volatile ScheduledFuture<?> heartbeatTask;
 
@@ -183,12 +186,10 @@ public class TyrusSession implements Session, DistributedSession {
         }
         this.debugContext = debugContext;
 
-        if (container != null) {
-            maxTextMessageBufferSize = container.getDefaultMaxTextMessageBufferSize();
-            maxBinaryMessageBufferSize = container.getDefaultMaxBinaryMessageBufferSize();
-            service = ((ExecutorServiceProvider) container).getScheduledExecutorService();
-            setMaxIdleTimeout(container.getDefaultMaxSessionIdleTimeout());
-        }
+        maxTextMessageBufferSize = container.getDefaultMaxTextMessageBufferSize();
+        maxBinaryMessageBufferSize = container.getDefaultMaxBinaryMessageBufferSize();
+        service = ((ExecutorServiceProvider) container).getScheduledExecutorService();
+        setMaxIdleTimeout(container.getDefaultMaxSessionIdleTimeout());
 
         // cluster context is always null on client side
         if (clusterContext != null) {

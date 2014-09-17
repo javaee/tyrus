@@ -192,13 +192,14 @@ class TransportFilter extends Filter {
 
             @Override
             public void completed(Void result, Void nothing) {
-                Map<Connection.ConnectionPropertyKey, Object> connectionProperties;
+                Map<Connection.ConnectionProperties, Object> connectionProperties;
                 try {
                     connectionProperties = Utils.getConnectionProperties(
                             (InetSocketAddress) socketChannel.getLocalAddress(),
                             (InetSocketAddress) socketChannel.getRemoteAddress());
                 } catch (IOException e) {
-                    throw new IllegalStateException(e);
+                    onError(e);
+                    return;
                 }
                 onConnect(connectionProperties);
                 final ByteBuffer inputBuffer = ByteBuffer.allocate(inputBufferSize);

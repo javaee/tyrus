@@ -131,46 +131,46 @@ public class UtilsTest {
         Utils.validateConnectionProperties(createConnectionPropertiesMissingPort());
     }
 
-    private Map<Connection.ConnectionPropertyKey, Object> createValidConnectionProperties() throws UnknownHostException {
-        Map<Connection.ConnectionPropertyKey, Object> connectionProperties = new HashMap<Connection.ConnectionPropertyKey, Object>(8);
-        connectionProperties.put(Connection.ConnectionPropertyKey.LOCAL_INET_ADDRESS, InetAddress.getByName("127.0.0.1"));
-        connectionProperties.put(Connection.ConnectionPropertyKey.LOCAL_ADDR, "127.0.0.1");
-        connectionProperties.put(Connection.ConnectionPropertyKey.LOCAL_HOSTNAME, "localhost");
-        connectionProperties.put(Connection.ConnectionPropertyKey.LOCAL_PORT, 1);
-        connectionProperties.put(Connection.ConnectionPropertyKey.REMOTE_INET_ADDRESS, InetAddress.getByName("127.0.0.1"));
-        connectionProperties.put(Connection.ConnectionPropertyKey.REMOTE_ADDR, "127.0.0.1");
-        connectionProperties.put(Connection.ConnectionPropertyKey.REMOTE_HOSTNAME, "localhost");
-        connectionProperties.put(Connection.ConnectionPropertyKey.REMOTE_PORT, 1);
+    private Map<Connection.ConnectionProperties, Object> createValidConnectionProperties() throws UnknownHostException {
+        Map<Connection.ConnectionProperties, Object> connectionProperties = new HashMap<Connection.ConnectionProperties, Object>(8);
+        connectionProperties.put(Connection.ConnectionProperties.LOCAL_INET_ADDRESS, InetAddress.getByName("127.0.0.1"));
+        connectionProperties.put(Connection.ConnectionProperties.LOCAL_ADDRESS, "127.0.0.1");
+        connectionProperties.put(Connection.ConnectionProperties.LOCAL_HOSTNAME, "localhost");
+        connectionProperties.put(Connection.ConnectionProperties.LOCAL_PORT, 1);
+        connectionProperties.put(Connection.ConnectionProperties.REMOTE_INET_ADDRESS, InetAddress.getByName("127.0.0.1"));
+        connectionProperties.put(Connection.ConnectionProperties.REMOTE_ADDRESS, "127.0.0.1");
+        connectionProperties.put(Connection.ConnectionProperties.REMOTE_HOSTNAME, "localhost");
+        connectionProperties.put(Connection.ConnectionProperties.REMOTE_PORT, 1);
         return connectionProperties;
     }
 
-    private Map<Connection.ConnectionPropertyKey, Object> createConnectionPropertiesInvalidRemoteInetAddress() throws UnknownHostException {
-        Map<Connection.ConnectionPropertyKey, Object> connectionProperties = createValidConnectionProperties();
-        connectionProperties.put(Connection.ConnectionPropertyKey.LOCAL_INET_ADDRESS, "127.0.0.1");
+    private Map<Connection.ConnectionProperties, Object> createConnectionPropertiesInvalidRemoteInetAddress() throws UnknownHostException {
+        Map<Connection.ConnectionProperties, Object> connectionProperties = createValidConnectionProperties();
+        connectionProperties.put(Connection.ConnectionProperties.LOCAL_INET_ADDRESS, "127.0.0.1");
         return connectionProperties;
     }
 
-    private Map<Connection.ConnectionPropertyKey, Object> createConnectionPropertiesNullHostname() throws UnknownHostException {
-        Map<Connection.ConnectionPropertyKey, Object> connectionProperties = createValidConnectionProperties();
-        connectionProperties.put(Connection.ConnectionPropertyKey.LOCAL_HOSTNAME, null);
+    private Map<Connection.ConnectionProperties, Object> createConnectionPropertiesNullHostname() throws UnknownHostException {
+        Map<Connection.ConnectionProperties, Object> connectionProperties = createValidConnectionProperties();
+        connectionProperties.put(Connection.ConnectionProperties.LOCAL_HOSTNAME, null);
         return connectionProperties;
     }
 
-    private Map<Connection.ConnectionPropertyKey, Object> createConnectionPropertiesNullInetAddress() throws UnknownHostException {
-        Map<Connection.ConnectionPropertyKey, Object> connectionProperties = createValidConnectionProperties();
-        connectionProperties.put(Connection.ConnectionPropertyKey.LOCAL_INET_ADDRESS, null);
+    private Map<Connection.ConnectionProperties, Object> createConnectionPropertiesNullInetAddress() throws UnknownHostException {
+        Map<Connection.ConnectionProperties, Object> connectionProperties = createValidConnectionProperties();
+        connectionProperties.put(Connection.ConnectionProperties.LOCAL_INET_ADDRESS, null);
         return connectionProperties;
     }
 
-    private Map<Connection.ConnectionPropertyKey, Object> createConnectionPropertiesMissingInetAddress() throws UnknownHostException {
-        Map<Connection.ConnectionPropertyKey, Object> connectionProperties = createValidConnectionProperties();
-        connectionProperties.remove(Connection.ConnectionPropertyKey.LOCAL_INET_ADDRESS);
+    private Map<Connection.ConnectionProperties, Object> createConnectionPropertiesMissingInetAddress() throws UnknownHostException {
+        Map<Connection.ConnectionProperties, Object> connectionProperties = createValidConnectionProperties();
+        connectionProperties.remove(Connection.ConnectionProperties.LOCAL_INET_ADDRESS);
         return connectionProperties;
     }
 
-    private Map<Connection.ConnectionPropertyKey, Object> createConnectionPropertiesMissingPort() throws UnknownHostException {
-        Map<Connection.ConnectionPropertyKey, Object> connectionProperties = createValidConnectionProperties();
-        connectionProperties.remove(Connection.ConnectionPropertyKey.LOCAL_PORT);
+    private Map<Connection.ConnectionProperties, Object> createConnectionPropertiesMissingPort() throws UnknownHostException {
+        Map<Connection.ConnectionProperties, Object> connectionProperties = createValidConnectionProperties();
+        connectionProperties.remove(Connection.ConnectionProperties.LOCAL_PORT);
         return connectionProperties;
     }
 

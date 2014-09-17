@@ -244,7 +244,7 @@ class GrizzlyServerFilter extends BaseFilter {
                 final Connection grizzlyConnection = ctx.getConnection();
                 write(ctx, upgradeRequest, upgradeResponse);
 
-                Map<org.glassfish.tyrus.spi.Connection.ConnectionPropertyKey, Object> connectionProperties = Utils.getConnectionProperties(
+                Map<org.glassfish.tyrus.spi.Connection.ConnectionProperties, Object> connectionProperties = Utils.getConnectionProperties(
                         (InetSocketAddress) ctx.getConnection().getLocalAddress(),
                         (InetSocketAddress) ctx.getConnection().getPeerAddress());
 

@@ -74,7 +74,6 @@ import org.glassfish.tyrus.core.ProtocolHandler;
 import org.glassfish.tyrus.core.RequestContext;
 import org.glassfish.tyrus.core.TyrusEndpointWrapper;
 import org.glassfish.tyrus.core.TyrusExtension;
-import org.glassfish.tyrus.core.TyrusSession;
 import org.glassfish.tyrus.core.TyrusWebSocket;
 import org.glassfish.tyrus.core.Utils;
 import org.glassfish.tyrus.core.Version;
@@ -522,11 +521,11 @@ public class TyrusClientEngine implements ClientEngine {
             }
 
             @Override
-            public Connection createConnection(Map<Connection.ConnectionPropertyKey, Object> connectionProperties) {
+            public Connection createConnection(Map<Connection.ConnectionProperties, Object> connectionProperties) {
 
                 Utils.validateConnectionProperties(connectionProperties);
 
-                final TyrusSession sessionForRemoteEndpoint = endpointWrapper.createSessionForRemoteEndpoint(
+                final Session sessionForRemoteEndpoint = endpointWrapper.createSessionForRemoteEndpoint(
                         socket,
                         upgradeResponse.getFirstHeaderValue(HandshakeRequest.SEC_WEBSOCKET_PROTOCOL),
                         extensions,
@@ -692,7 +691,7 @@ public class TyrusClientEngine implements ClientEngine {
         }
 
         @Override
-        public Connection createConnection(Map<Connection.ConnectionPropertyKey, Object> connectionProperties) {
+        public Connection createConnection(Map<Connection.ConnectionProperties, Object> connectionProperties) {
             return null;
         }
     };
@@ -705,7 +704,7 @@ public class TyrusClientEngine implements ClientEngine {
         }
 
         @Override
-        public Connection createConnection(Map<Connection.ConnectionPropertyKey, Object> connectionProperties) {
+        public Connection createConnection(Map<Connection.ConnectionProperties, Object> connectionProperties) {
             return null;
         }
     };
