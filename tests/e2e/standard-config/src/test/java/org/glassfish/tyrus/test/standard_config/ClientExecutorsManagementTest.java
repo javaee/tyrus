@@ -365,7 +365,7 @@ public class ClientExecutorsManagementTest extends TestContainer {
         return server;
     }
 
-    @ServerEndpoint("/resourcesEchoEndpoint")
+    @ServerEndpoint("/clientExecutorsEchoEndpoint")
     public static class AnnotatedServerEndpoint {
 
     }
@@ -388,7 +388,7 @@ public class ClientExecutorsManagementTest extends TestContainer {
     public static class FaultyEndpoint {
     }
 
-    @ServerEndpoint("/resourcesEchoEndpoint")
+    @ServerEndpoint("/clientExecutorsReconnectEndpoint")
     public static class ReconnectServerEndpoint {
 
         @OnMessage
@@ -397,7 +397,7 @@ public class ClientExecutorsManagementTest extends TestContainer {
         }
     }
 
-    @ServerEndpoint("/resourcesManagedContainerEndpoint")
+    @ServerEndpoint("/managedContainerEndpoint")
     public static class ManagedContainerEndpoint {
 
         @OnMessage
