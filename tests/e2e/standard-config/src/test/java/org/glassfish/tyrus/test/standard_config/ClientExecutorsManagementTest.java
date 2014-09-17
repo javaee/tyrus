@@ -175,7 +175,7 @@ public class ClientExecutorsManagementTest extends TestContainer {
             HttpServer lazyServer = getLazyServer(blockResponseLatch);
             clientManager.getProperties().put(ClientProperties.HANDSHAKE_TIMEOUT, 2000);
             try {
-                clientManager.connectToServer(AnnotatedClientEndpoint.class, URI.create("ws://localhost:8025/lazyServer"));
+                clientManager.connectToServer(AnnotatedClientEndpoint.class, URI.create("ws://localhost:8026/lazyServer"));
                 fail();
             } catch (Exception e) {
                 // exception is expected
@@ -352,7 +352,7 @@ public class ClientExecutorsManagementTest extends TestContainer {
     }
 
     private HttpServer getLazyServer(final CountDownLatch blockResponseLatch) throws IOException {
-        HttpServer server = HttpServer.createSimpleServer("/lazyServer", "localhost", 8025);
+        HttpServer server = HttpServer.createSimpleServer("/lazyServer", "localhost", 8026);
         server.getServerConfiguration().addHttpHandler(
                 new HttpHandler() {
                     public void service(Request request, Response response) throws Exception {
