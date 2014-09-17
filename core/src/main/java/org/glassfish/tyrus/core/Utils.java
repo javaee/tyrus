@@ -66,6 +66,8 @@ import org.glassfish.tyrus.spi.UpgradeResponse;
  * Utility methods shared among Tyrus modules.
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
+ * @author Petr Janouch (petr.janouch at oracle.com)
+ * @author Ondrej Kosatka (ondrej.kosatka at oracle.com)
  */
 public class Utils {
 
@@ -601,68 +603,41 @@ public class Utils {
             sb.append(String.format(LocalizationMessages.PROPERTY_VALIDATION_TYPE(Connection.ConnectionProperties.LOCAL_INET_ADDRESS, InetAddress.class.getName(), o.getClass().getName())));
         }
 
-        String remoteAddr = null;
-        try {
-            remoteAddr = (String) connectionProperties.get(Connection.ConnectionProperties.REMOTE_ADDRESS);
-            if (remoteAddr == null || remoteAddr.equals("")) {
-                sb.append(String.format(LocalizationMessages.PROPERTY_VALIDATION_NOT_EMPTY(Connection.ConnectionProperties.REMOTE_ADDRESS)));
-            }
-        } catch (ClassCastException e) {
-            sb.append(String.format(LocalizationMessages.PROPERTY_VALIDATION_TYPE(Connection.ConnectionProperties.REMOTE_ADDRESS, String.class.getName(), remoteAddr.getClass().getName()), e.getMessage()));
+        validateStringConnectionProperty(connectionProperties, Connection.ConnectionProperties.REMOTE_ADDRESS, sb);
+        validateStringConnectionProperty(connectionProperties, Connection.ConnectionProperties.LOCAL_ADDRESS, sb);
+        validateStringConnectionProperty(connectionProperties, Connection.ConnectionProperties.REMOTE_HOSTNAME, sb);
+        validateStringConnectionProperty(connectionProperties, Connection.ConnectionProperties.LOCAL_HOSTNAME, sb);
+
+        o = connectionProperties.get(Connection.ConnectionProperties.REMOTE_PORT);
+        boolean isInteger = o instanceof Integer;
+        if (o == null || (isInteger && ((Integer) o <= 0))) {
+            sb.append(String.format(LocalizationMessages.PROPERTY_VALIDATION_POSITIVE_INTEGER(Connection.ConnectionProperties.REMOTE_PORT)));
+        } else if (!isInteger) {
+            sb.append(LocalizationMessages.PROPERTY_VALIDATION_TYPE(Connection.ConnectionProperties.REMOTE_PORT, Integer.class.getName(), o.getClass().getName()));
         }
 
-        String localAddr = null;
-        try {
-            localAddr = (String) connectionProperties.get(Connection.ConnectionProperties.LOCAL_ADDRESS);
-            if (localAddr == null || localAddr.equals("")) {
-                sb.append(String.format(LocalizationMessages.PROPERTY_VALIDATION_NOT_EMPTY(Connection.ConnectionProperties.LOCAL_ADDRESS)));
-            }
-        } catch (ClassCastException e) {
-            sb.append(String.format(LocalizationMessages.PROPERTY_VALIDATION_TYPE(Connection.ConnectionProperties.LOCAL_ADDRESS, String.class.getName(), localAddr.getClass().getName()), e.getMessage()));
-        }
-
-        String remoteHostName = null;
-        try {
-            remoteHostName = (String) connectionProperties.get(Connection.ConnectionProperties.REMOTE_HOSTNAME);
-            if (remoteHostName == null || remoteHostName.equals("")) {
-                sb.append(String.format(LocalizationMessages.PROPERTY_VALIDATION_NOT_EMPTY(Connection.ConnectionProperties.REMOTE_HOSTNAME)));
-            }
-        } catch (ClassCastException e) {
-            sb.append(String.format(LocalizationMessages.PROPERTY_VALIDATION_TYPE(Connection.ConnectionProperties.REMOTE_HOSTNAME, String.class.getName(), remoteHostName.getClass().getName()), e.getMessage()));
-        }
-
-        String localHostName = null;
-        try {
-            localHostName = (String) connectionProperties.get(Connection.ConnectionProperties.LOCAL_HOSTNAME);
-            if (localHostName == null || localHostName.equals("")) {
-                sb.append(String.format(LocalizationMessages.PROPERTY_VALIDATION_NOT_EMPTY(Connection.ConnectionProperties.LOCAL_HOSTNAME)));
-            }
-        } catch (ClassCastException e) {
-            sb.append(String.format(LocalizationMessages.PROPERTY_VALIDATION_TYPE(Connection.ConnectionProperties.LOCAL_HOSTNAME, String.class.getName(), localHostName.getClass().getName()), e.getMessage()));
-        }
-
-        Integer remotePort = null;
-        try {
-            remotePort = (Integer) connectionProperties.get(Connection.ConnectionProperties.REMOTE_PORT);
-            if (remotePort == null || remotePort <= 0) {
-                sb.append(String.format(LocalizationMessages.PROPERTY_VALIDATION_POSITIVE_INTEGER(Connection.ConnectionProperties.REMOTE_PORT)));
-            }
-        } catch (ClassCastException e) {
-            sb.append(String.format(LocalizationMessages.PROPERTY_VALIDATION_TYPE(Connection.ConnectionProperties.REMOTE_PORT, Integer.class.getName(), remotePort.getClass().getName()), e.getMessage()));
-        }
-
-        Integer localPort = null;
-        try {
-            localPort = (Integer) connectionProperties.get(Connection.ConnectionProperties.LOCAL_PORT);
-            if (localPort == null || localPort <= 0) {
-                sb.append(String.format(LocalizationMessages.PROPERTY_VALIDATION_POSITIVE_INTEGER(Connection.ConnectionProperties.LOCAL_PORT)));
-            }
-        } catch (ClassCastException e) {
-            sb.append(String.format(LocalizationMessages.PROPERTY_VALIDATION_TYPE(Connection.ConnectionProperties.LOCAL_PORT, Integer.class.getName(), localPort.getClass().getName()), e.getMessage()));
+        o = connectionProperties.get(Connection.ConnectionProperties.LOCAL_PORT);
+        isInteger = o instanceof Integer;
+        if (o == null || (isInteger && ((Integer) o <= 0))) {
+            sb.append(String.format(LocalizationMessages.PROPERTY_VALIDATION_POSITIVE_INTEGER(Connection.ConnectionProperties.LOCAL_PORT)));
+        } else if (!isInteger) {
+            sb.append(LocalizationMessages.PROPERTY_VALIDATION_TYPE(Connection.ConnectionProperties.LOCAL_PORT, Integer.class.getName(), o.getClass().getName()));
         }
 
         if (sb.length() > 0) {
             throw new IllegalArgumentException(sb.toString());
         }
+    }
+
+    private static void validateStringConnectionProperty(Map<Connection.ConnectionProperties, Object> connectionProperties,
+                                                         Connection.ConnectionProperties property,
+                                                         StringBuilder sb) {
+        Object o = connectionProperties.get(property);
+        if (o == null || o.equals("")) {
+            sb.append(LocalizationMessages.PROPERTY_VALIDATION_NOT_EMPTY(property));
+        } else if (!(o instanceof String)) {
+            sb.append(LocalizationMessages.PROPERTY_VALIDATION_TYPE(property, String.class.getName(), o.getClass().getName()));
+        }
+
     }
 }
