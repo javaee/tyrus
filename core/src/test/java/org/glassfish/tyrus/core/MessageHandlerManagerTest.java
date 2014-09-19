@@ -44,6 +44,7 @@ import java.io.InputStream;
 import java.io.Reader;
 import java.nio.ByteBuffer;
 import java.util.Arrays;
+import java.util.Collections;
 
 import javax.websocket.DecodeException;
 import javax.websocket.Decoder;
@@ -52,10 +53,13 @@ import javax.websocket.PongMessage;
 
 import org.glassfish.tyrus.core.coder.CoderAdapter;
 import org.glassfish.tyrus.core.coder.CoderWrapper;
+import org.glassfish.tyrus.core.l10n.LocalizationMessages;
 
 import org.junit.Test;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
@@ -112,10 +116,10 @@ public class MessageHandlerManagerTest {
             }
         });
 
-        messageHandlerManager.addMessageHandler(new MessageHandler.Partial<Reader>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Whole<Reader>() {
 
             @Override
-            public void onMessage(Reader reader, boolean b) {
+            public void onMessage(Reader reader) {
 
             }
         });
@@ -131,24 +135,31 @@ public class MessageHandlerManagerTest {
             }
         });
 
-        messageHandlerManager.addMessageHandler(new MessageHandler.Partial<Reader>() {
+        messageHandlerManager.addMessageHandler(new MessageHandler.Whole<Reader>() {
 
             @Override
-            public void onMessage(Reader reader, boolean b) {
+            public void onMessage(Reader reader) {
 
             }
         });
     }
 
-    @Test(expected = IllegalStateException.class)
+    @Test
     public void noDecoderTest() {
         MessageHandlerManager messageHandlerManager = new MessageHandlerManager();
 
-        messageHandlerManager.addMessageHandler(new MessageHandler.Whole<MessageHandlerManagerTest>() {
-            @Override
-            public void onMessage(MessageHandlerManagerTest message) {
-            }
-        });
+        try {
+            messageHandlerManager.addMessageHandler(new MessageHandler.Whole<MessageHandlerManagerTest>() {
+                @Override
+                public void onMessage(MessageHandlerManagerTest message) {
+                }
+            });
+
+            fail("IllegalStateException was expected.");
+        } catch (IllegalStateException e) {
+            assertNotNull(e.getMessage());
+            assertTrue(e.getMessage().equals(LocalizationMessages.MESSAGE_HANDLER_DECODER_NOT_REGISTERED(MessageHandlerManagerTest.class)));
+        }
     }
 
     public static class TestTextDecoder extends CoderAdapter implements Decoder.Text<MessageHandlerManagerTest> {
@@ -268,7 +279,7 @@ public class MessageHandlerManagerTest {
 
     @Test(expected = IllegalStateException.class)
     public void multipleBasicDecodable() {
-        MessageHandlerManager messageHandlerManager = new MessageHandlerManager(Arrays.<Class<? extends Decoder>>asList(TestTextDecoder.class));
+        MessageHandlerManager messageHandlerManager = new MessageHandlerManager(Collections.<Class<? extends Decoder>>singletonList(TestTextDecoder.class));
 
         messageHandlerManager.addMessageHandler(new MessageHandler.Whole<MessageHandlerManagerTest>() {
             @Override
@@ -397,7 +408,7 @@ public class MessageHandlerManagerTest {
 
     @Test
     public void addRemoveAddHandlers() {
-        MessageHandlerManager messageHandlerManager = new MessageHandlerManager(Arrays.<Class<? extends Decoder>>asList(TestTextDecoder.class));
+        MessageHandlerManager messageHandlerManager = new MessageHandlerManager(Collections.<Class<? extends Decoder>>singletonList(TestTextDecoder.class));
 
 
         final MessageHandler.Whole<String> handler1 = new MessageHandler.Whole<String>() {

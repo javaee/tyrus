@@ -170,7 +170,7 @@ class MessageHandlerManager {
                 binaryHandlerPresent = true;
                 binaryWholeHandlerPresent = true;
             }
-        } else if (PONG_HANDLER_TYPE == clazz) { // pong
+        } else if (PONG_HANDLER_TYPE.equals(clazz)) { // pong
             if (pongHandlerPresent) {
                 throwException(LocalizationMessages.MESSAGE_HANDLER_ALREADY_REGISTERED_PONG());
             } else {
@@ -200,7 +200,7 @@ class MessageHandlerManager {
             }
 
             if (!viable) {
-                throwException(LocalizationMessages.MESSAGE_HANDLER_ALREADY_REGISTERED_TYPE(clazz));
+                throwException(LocalizationMessages.MESSAGE_HANDLER_DECODER_NOT_REGISTERED(clazz));
             }
         }
 
@@ -289,7 +289,7 @@ class MessageHandlerManager {
                 binaryHandlerPresent = false;
                 binaryWholeHandlerPresent = false;
 
-            } else if (PONG_HANDLER_TYPE == handlerClass) { // pong
+            } else if (PONG_HANDLER_TYPE.equals(handlerClass)) { // pong
                 pongHandlerPresent = false;
             } else {
                 if (checkTextDecoders(handlerClass)) {//decodable text
