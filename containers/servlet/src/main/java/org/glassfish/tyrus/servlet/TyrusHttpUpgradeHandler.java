@@ -42,7 +42,6 @@ package org.glassfish.tyrus.servlet;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -88,7 +87,6 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
     private Connection connection;
     private WebSocketEngine.UpgradeInfo upgradeInfo;
     private Writer writer;
-    private Map<Connection.ConnectionProperties, Object> connectionProperties;
 
 
     private boolean authenticated = false;
@@ -119,16 +117,15 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
                     LOGGER.log(Level.FINE, e.getMessage(), e);
                 }
             }
-        }, connectionProperties);
+        });
 
         connectionLatch.countDown();
     }
 
-    public void preInit(WebSocketEngine.UpgradeInfo upgradeInfo, Writer writer, boolean authenticated, Map<Connection.ConnectionProperties, Object> connectionProperties) {
+    public void preInit(WebSocketEngine.UpgradeInfo upgradeInfo, Writer writer, boolean authenticated) {
         this.upgradeInfo = upgradeInfo;
         this.writer = writer;
         this.authenticated = authenticated;
-        this.connectionProperties = connectionProperties;
     }
 
     @Override
@@ -157,7 +154,7 @@ public class TyrusHttpUpgradeHandler implements HttpUpgradeHandler, ReadListener
                             incomingBufferSize));
                 }
 
-                fillBuf(toRead);
+                available -= fillBuf(toRead);
 
                 if (buf != null) {
 

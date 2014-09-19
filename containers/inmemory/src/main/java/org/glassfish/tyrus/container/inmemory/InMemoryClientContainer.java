@@ -40,7 +40,6 @@
 package org.glassfish.tyrus.container.inmemory;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -56,7 +55,6 @@ import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.core.RequestContext;
 import org.glassfish.tyrus.core.TyrusUpgradeResponse;
 import org.glassfish.tyrus.core.TyrusWebSocketEngine;
-import org.glassfish.tyrus.core.Utils;
 import org.glassfish.tyrus.server.TyrusServerContainer;
 import org.glassfish.tyrus.spi.ClientContainer;
 import org.glassfish.tyrus.spi.ClientEngine;
@@ -159,12 +157,9 @@ public class InMemoryClientContainer implements ClientContainer {
                     }
                 };
 
-                final Map<Connection.ConnectionProperties, Object> connectionProperties = Utils.getConnectionProperties(new InetSocketAddress(1), new InetSocketAddress(1));
-
-                final Connection serverConnection = upgradeInfo.createConnection(serverWriter, null, connectionProperties);
+                final Connection serverConnection = upgradeInfo.createConnection(serverWriter, null);
                 final ClientEngine.ClientUpgradeInfo clientClientUpgradeInfo = clientEngine.processResponse(upgradeResponse, clientWriter, null);
-
-                final Connection clientConnection = clientClientUpgradeInfo.createConnection(connectionProperties);
+                final Connection clientConnection = clientClientUpgradeInfo.createConnection();
 
                 if (clientConnection == null) {
                     throw new DeploymentException("");

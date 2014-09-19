@@ -63,23 +63,26 @@ public final class RequestContext extends UpgradeRequest {
     private final boolean secure;
     private final Principal userPrincipal;
     private final Builder.IsUserInRoleDelegate isUserInRoleDelegate;
+    private final String remoteAddr;
 
     private Map<String, List<String>> headers;
     private Map<String, List<String>> parameterMap;
 
-    private RequestContext(URI requestURI, String queryString, Object httpSession, boolean secure, Principal userPrincipal,
-                           Builder.IsUserInRoleDelegate IsUserInRoleDelegate, Map<String, List<String>> parameterMap,
-                           Map<String, List<String>> headers) {
+    private RequestContext(URI requestURI, String queryString,
+                           Object httpSession, boolean secure, Principal userPrincipal,
+                           Builder.IsUserInRoleDelegate IsUserInRoleDelegate, String remoteAddr,
+                           Map<String, List<String>> parameterMap, Map<String, List<String>> headers) {
         this.requestURI = requestURI;
         this.queryString = queryString;
         this.httpSession = httpSession;
         this.secure = secure;
         this.userPrincipal = userPrincipal;
         this.isUserInRoleDelegate = IsUserInRoleDelegate;
+        this.remoteAddr = remoteAddr;
         this.parameterMap = parameterMap;
         this.headers = new TreeMap<String, List<String>>(String.CASE_INSENSITIVE_ORDER);
 
-        if (headers != null) {
+        if(headers != null) {
             this.headers.putAll(headers);
         }
     }
@@ -174,6 +177,16 @@ public final class RequestContext extends UpgradeRequest {
     }
 
     /**
+     * Get the Internet Protocol (IP) address of the client or last proxy that sent the request.
+     *
+     * @return a {@link String} containing the IP address of the client that sent the request or {@code null} when
+     * method is called on client-side.
+     */
+    public String getRemoteAddr() {
+        return remoteAddr;
+    }
+
+    /**
      * {@link RequestContext} builder.
      */
     public static final class Builder {
@@ -185,6 +198,7 @@ public final class RequestContext extends UpgradeRequest {
         private Principal userPrincipal;
         private Builder.IsUserInRoleDelegate isUserInRoleDelegate;
         private Map<String, List<String>> parameterMap;
+        private String remoteAddr;
         private Map<String, List<String>> headers;
 
         /**
@@ -212,6 +226,7 @@ public final class RequestContext extends UpgradeRequest {
             builder.userPrincipal = requestContext.userPrincipal;
             builder.isUserInRoleDelegate = requestContext.isUserInRoleDelegate;
             builder.parameterMap = requestContext.parameterMap;
+            builder.remoteAddr = requestContext.remoteAddr;
             builder.headers = requestContext.headers;
 
             return builder;
@@ -304,12 +319,24 @@ public final class RequestContext extends UpgradeRequest {
         }
 
         /**
+         * Set remote address.
+         *
+         * @param remoteAddr remote address to be set.
+         * @return updated {@link RequestContext.Builder} instance.
+         */
+        public Builder remoteAddr(String remoteAddr) {
+            this.remoteAddr = remoteAddr;
+            return this;
+        }
+
+        /**
          * Build {@link RequestContext} from given properties.
          *
          * @return created {@link RequestContext}.
          */
         public RequestContext build() {
-            return new RequestContext(requestURI, queryString, httpSession, secure, userPrincipal, isUserInRoleDelegate,
+            return new RequestContext(requestURI, queryString, httpSession, secure,
+                    userPrincipal, isUserInRoleDelegate, remoteAddr,
                     parameterMap != null ? parameterMap : new HashMap<String, List<String>>(), headers);
         }
 

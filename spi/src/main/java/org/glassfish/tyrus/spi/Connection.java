@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -40,9 +40,6 @@
 
 package org.glassfish.tyrus.spi;
 
-import java.net.InetAddress;
-import java.util.Map;
-
 import javax.websocket.CloseReason;
 
 /**
@@ -53,93 +50,27 @@ import javax.websocket.CloseReason;
 public interface Connection {
 
     /**
-     * Connection properties, used as a key in map passed to {@code createConnection} invocation in
-     * {@link ClientEngine.ClientUpgradeInfo} and {@link WebSocketEngine.UpgradeInfo}.
-     *
-     * @see ClientEngine.ClientUpgradeInfo#createConnection(Map)
-     * @see WebSocketEngine.UpgradeInfo#createConnection(Writer, CloseListener, Map)
-     */
-    public static enum ConnectionProperties {
-
-        /**
-         * {@link InetAddress} instance representing a remote address.
-         * <p/>
-         * Value must be an instance of {@link InetAddress}.
-         */
-        REMOTE_INET_ADDRESS,
-
-        /**
-         * Remote IP address.
-         * <p/>
-         * Value must be a non-empty {@link String}.
-         */
-        REMOTE_ADDRESS,
-
-        /**
-         * Remote hostname.
-         * <p/>
-         * Value must be a non-empty {@link String}.
-         */
-        REMOTE_HOSTNAME,
-
-        /**
-         * Remote port number.
-         * <p/>
-         * Value must be an {@link Integer} greater than 0.
-         */
-        REMOTE_PORT,
-
-        /**
-         * {@link InetAddress} instance representing a local address.
-         * <p/>
-         * Value must be an instance of {@link InetAddress}.
-         */
-        LOCAL_INET_ADDRESS,
-
-        /**
-         * Local IP address.
-         * <p/>
-         * Value must be a non-empty {@link String}.
-         */
-        LOCAL_ADDRESS,
-
-        /**
-         * Local hostname.
-         * <p/>
-         * Value must be a non-empty {@link String}.
-         */
-        LOCAL_HOSTNAME,
-
-        /**
-         * Local port number.
-         * <p/>
-         * Value must be an {@link Integer} greater than 0.
-         */
-        LOCAL_PORT
-    }
-
-    /**
      * Returns a read handler. A transport can pass websocket data to
      * tyrus using the handler.
      *
-     * @return tyrus read handler that handles websocket data.
+     * @return tryus read handler that handles websocket data.
      */
     ReadHandler getReadHandler();
 
     /**
      * Returns the same writer that is passed for creating connection in
-     * {@link WebSocketEngine.UpgradeInfo#createConnection(Writer, CloseListener, Map)}
+     * {@link WebSocketEngine.UpgradeInfo#createConnection(Writer, CloseListener)}
      * The transport writer that actually writes websocket data
      * to underlying connection.
      *
      * @return transport writer that actually writes websocket data
-     * to underlying connection.
+     *         to underlying connection.
      */
     Writer getWriter();
 
     /**
      * Returns the same close listener that is passed for creating connection in
-     * {@link WebSocketEngine.UpgradeInfo#createConnection(Writer, CloseListener, Map)}.
+     * {@link WebSocketEngine.UpgradeInfo#createConnection(Writer, CloseListener)}.
      * <p/>
      * This transport close listener receives connection close notifications
      * from Tyrus.
@@ -147,7 +78,7 @@ public interface Connection {
     CloseListener getCloseListener();
 
     /**
-     * Notifies Tyrus that underlying transport is closing the connection.
+     * Notifies tyrus that underlying transport is closing the connection.
      *
      * @param reason for closing the actual connection.
      */

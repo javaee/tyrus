@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2013-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -38,8 +38,6 @@
  * holder.
  */
 package org.glassfish.tyrus.spi;
-
-import java.util.Map;
 
 import javax.websocket.DeploymentException;
 import javax.websocket.server.ServerEndpointConfig;
@@ -88,30 +86,14 @@ public interface WebSocketEngine {
          * onConnect lifecycle method on the endpoint during the invocation
          * of this method.
          *
-         * @param writer               transport writer that actually writes tyrus websocket
-         *                             data to underlying connection.
-         * @param closeListener        transport listener for receiving tyrus close
-         *                             notifications.
-         * @param connectionProperties connection related properties like remote/local IP addresses, port numbers or hostnames.
-         *                             Required properties:
-         *                             <ul>
-         *                             <li>{@link Connection.ConnectionProperties#REMOTE_ADDRESS}</li>
-         *                             <li>{@link Connection.ConnectionProperties#REMOTE_HOSTNAME}</li>
-         *                             <li>{@link Connection.ConnectionProperties#REMOTE_PORT}</li>
-         *                             <li>{@link Connection.ConnectionProperties#LOCAL_ADDRESS}</li>
-         *                             <li>{@link Connection.ConnectionProperties#LOCAL_HOSTNAME}</li>
-         *                             <li>{@link Connection.ConnectionProperties#LOCAL_PORT}</li>
-         *                             </ul>
-         *                             Optional properties:
-         *                             <ul>
-         *                             <li>{@link Connection.ConnectionProperties#REMOTE_INET_ADDRESS}</li>
-         *                             <li>{@link Connection.ConnectionProperties#LOCAL_INET_ADDRESS}</li>
-         *                             </ul>
-         * @return upgraded connection if the upgrade is successful otherwise null.
-         * @throws IllegalArgumentException if any of required properties in connectionProperties is {@code null} or is empty
-         *                                  or any of supported properties is not an instance of required type.
+         * @param writer        transport writer that actually writes tyrus websocket
+         *                      data to underlying connection.
+         * @param closeListener transport listener for receiving tyrus close
+         *                      notifications.
+         * @return upgraded connection if the upgrade is successful
+         *         otherwise null.
          */
-        Connection createConnection(Writer writer, CloseListener closeListener, Map<Connection.ConnectionProperties, Object> connectionProperties);
+        Connection createConnection(Writer writer, CloseListener closeListener);
     }
 
     /**

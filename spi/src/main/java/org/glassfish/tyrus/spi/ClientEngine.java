@@ -39,8 +39,6 @@
  */
 package org.glassfish.tyrus.spi;
 
-import java.util.Map;
-
 /**
  * Facade for handling client operations from containers.
  *
@@ -129,27 +127,10 @@ public interface ClientEngine {
         /**
          * Create new {@link Connection} when {@link #getUpgradeStatus()} returns {@link ClientUpgradeStatus#SUCCESS}.
          *
-         * @param connectionProperties connection related properties like remote/local IP addresses, port numbers or hostnames.
-         *                             Required properties:
-         *                             <ul>
-         *                             <li>{@link Connection.ConnectionProperties#REMOTE_ADDRESS}</li>
-         *                             <li>{@link Connection.ConnectionProperties#REMOTE_HOSTNAME}</li>
-         *                             <li>{@link Connection.ConnectionProperties#REMOTE_PORT}</li>
-         *                             <li>{@link Connection.ConnectionProperties#LOCAL_ADDRESS}</li>
-         *                             <li>{@link Connection.ConnectionProperties#LOCAL_HOSTNAME}</li>
-         *                             <li>{@link Connection.ConnectionProperties#LOCAL_PORT}</li>
-         *                             </ul>
-         *                             Optional properties:
-         *                             <ul>
-         *                             <li>{@link Connection.ConnectionProperties#REMOTE_INET_ADDRESS}</li>
-         *                             <li>{@link Connection.ConnectionProperties#LOCAL_INET_ADDRESS}</li>
-         *                             </ul>
          * @return new {@link Connection} instance or {@code null}, when {@link #getUpgradeStatus()} does not return
-         * {@link ClientUpgradeStatus#SUCCESS}.
-         * @throws IllegalArgumentException if any of required properties in connectionProperties is {@code null} or is empty
-         *                                  or any of supported properties is not an instance of required type.
+         * {@link ClientUpgradeStatus#}.
          */
-        Connection createConnection(Map<Connection.ConnectionProperties, Object> connectionProperties);
+        Connection createConnection();
     }
 
     /**
@@ -173,7 +154,7 @@ public interface ClientEngine {
         /**
          * Upgrade process was successful.
          *
-         * @see ClientUpgradeInfo#createConnection(Map)
+         * @see ClientUpgradeInfo#createConnection()
          */
         SUCCESS
     }

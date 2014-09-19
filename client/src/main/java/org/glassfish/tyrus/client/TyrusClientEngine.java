@@ -460,7 +460,7 @@ public class TyrusClientEngine implements ClientEngine {
      * @return client upgrade info with {@link ClientUpgradeStatus#SUCCESS} status.
      * @throws HandshakeException when there is a problem with passed {@link UpgradeResponse}.
      */
-    private ClientUpgradeInfo processUpgradeResponse(final UpgradeResponse upgradeResponse,
+    private ClientUpgradeInfo processUpgradeResponse(UpgradeResponse upgradeResponse,
                                                      final Writer writer,
                                                      final Connection.CloseListener closeListener) throws HandshakeException {
         clientHandShake.validateServerResponse(upgradeResponse);
@@ -493,12 +493,23 @@ public class TyrusClientEngine implements ClientEngine {
             }
         }
 
+        final Session sessionForRemoteEndpoint = endpointWrapper.createSessionForRemoteEndpoint(
+                socket,
+                upgradeResponse.getFirstHeaderValue(HandshakeRequest.SEC_WEBSOCKET_PROTOCOL),
+                extensions,
+                debugContext);
+
         ((ClientEndpointConfig) endpointWrapper.getEndpointConfig()).getConfigurator().afterResponse(upgradeResponse);
 
         protocolHandler.setWriter(writer);
         protocolHandler.setWebSocket(socket);
         protocolHandler.setExtensions(extensions);
         protocolHandler.setExtensionContext(extensionContext);
+
+        // subprotocol and extensions are already set -- TODO: introduce new method (onClientConnect)?
+        socket.onConnect(this.clientHandShake.getRequest(), null, null, null, debugContext);
+
+        listener.onSessionCreated(sessionForRemoteEndpoint);
 
         // incoming buffer size - max frame size possible to receive.
         Integer tyrusIncomingBufferSize = Utils.getProperty(properties, ClientProperties.INCOMING_BUFFER_SIZE, Integer.class);
@@ -521,22 +532,7 @@ public class TyrusClientEngine implements ClientEngine {
             }
 
             @Override
-            public Connection createConnection(Map<Connection.ConnectionProperties, Object> connectionProperties) {
-
-                Utils.validateConnectionProperties(connectionProperties);
-
-                final Session sessionForRemoteEndpoint = endpointWrapper.createSessionForRemoteEndpoint(
-                        socket,
-                        upgradeResponse.getFirstHeaderValue(HandshakeRequest.SEC_WEBSOCKET_PROTOCOL),
-                        extensions,
-                        connectionProperties,
-                        debugContext);
-
-                // subprotocol and extensions are already set -- TODO: introduce new method (onClientConnect)?
-                socket.onConnect(TyrusClientEngine.this.clientHandShake.getRequest(), null, null, null, connectionProperties, debugContext);
-
-                listener.onSessionCreated(sessionForRemoteEndpoint);
-
+            public Connection createConnection() {
                 return new Connection() {
 
                     private final ReadHandler readHandler = new TyrusReadHandler(protocolHandler, socket,
@@ -691,7 +687,7 @@ public class TyrusClientEngine implements ClientEngine {
         }
 
         @Override
-        public Connection createConnection(Map<Connection.ConnectionProperties, Object> connectionProperties) {
+        public Connection createConnection() {
             return null;
         }
     };
@@ -704,7 +700,7 @@ public class TyrusClientEngine implements ClientEngine {
         }
 
         @Override
-        public Connection createConnection(Map<Connection.ConnectionProperties, Object> connectionProperties) {
+        public Connection createConnection() {
             return null;
         }
     };

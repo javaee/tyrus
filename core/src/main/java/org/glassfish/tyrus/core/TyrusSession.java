@@ -41,9 +41,7 @@ package org.glassfish.tyrus.core;
 
 
 import java.io.IOException;
-import java.net.InetAddress;
 import java.net.URI;
-import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.security.Principal;
@@ -91,8 +89,6 @@ public class TyrusSession implements Session, DistributedSession {
     private static final Logger LOGGER = Logger.getLogger(TyrusSession.class.getName());
 
     private final WebSocketContainer container;
-    private final ScheduledExecutorService service;
-
     private final TyrusEndpointWrapper endpointWrapper;
     private final TyrusRemoteEndpoint.Basic basicRemote;
     private final TyrusRemoteEndpoint.Async asyncRemote;
@@ -112,14 +108,7 @@ public class TyrusSession implements Session, DistributedSession {
     private final BinaryBuffer binaryBuffer = new BinaryBuffer();
     private final List<Extension> negotiatedExtensions;
     private final String negotiatedSubprotocol;
-    private final InetAddress remoteInetAddress;
     private final String remoteAddr;
-    private final String remoteHostName;
-    private final int remotePort;
-    private final InetAddress localInetAddress;
-    private final String localAddr;
-    private final String localHostName;
-    private final int localPort;
     private final DebugContext debugContext;
 
     private final Map<RemoteSession.DistributedMapKey, Object> distributedPropertyMap;
@@ -127,21 +116,19 @@ public class TyrusSession implements Session, DistributedSession {
 
     private volatile long maxIdleTimeout = 0;
     private volatile ScheduledFuture<?> idleTimeoutFuture = null;
-    private volatile int maxBinaryMessageBufferSize = Integer.MAX_VALUE;
-    private volatile int maxTextMessageBufferSize = Integer.MAX_VALUE;
-
+    private int maxBinaryMessageBufferSize = Integer.MAX_VALUE;
+    private int maxTextMessageBufferSize = Integer.MAX_VALUE;
+    private ScheduledExecutorService service;
     private ReaderBuffer readerBuffer;
     private InputStreamBuffer inputStreamBuffer;
-
     private volatile long heartbeatInterval;
     private volatile ScheduledFuture<?> heartbeatTask;
 
     TyrusSession(WebSocketContainer container, TyrusWebSocket socket, TyrusEndpointWrapper endpointWrapper,
-                 String subprotocol, List<Extension> extensions, boolean isSecure, URI requestURI, String queryString, Map<String,
-            String> pathParameters, Principal principal, Map<String, List<String>> requestParameterMap,
-                 final ClusterContext clusterContext, String connectionId, final InetAddress remoteInetAddress, final String remoteAddr,
-                 final String remoteHostName, final int remotePort, final InetAddress localInetAddress, final String localAddr,
-                 final String localHostName, final int localPort, DebugContext debugContext) {
+                 String subprotocol, List<Extension> extensions, boolean isSecure,
+                 URI requestURI, String queryString, Map<String, String> pathParameters, Principal principal,
+                 Map<String, List<String>> requestParameterMap, final ClusterContext clusterContext,
+                 String connectionId, final String remoteAddr, DebugContext debugContext) {
         this.container = container;
         this.endpointWrapper = endpointWrapper;
         this.negotiatedExtensions = extensions == null ? Collections.<Extension>emptyList() : Collections.unmodifiableList(extensions);
@@ -157,39 +144,14 @@ public class TyrusSession implements Session, DistributedSession {
         this.requestParameterMap = requestParameterMap == null ? Collections.<String, List<String>>emptyMap() : Collections.unmodifiableMap(new HashMap<String, List<String>>(requestParameterMap));
         this.connectionId = connectionId;
         this.remoteAddr = remoteAddr;
-        this.remoteHostName = remoteHostName;
-        this.remotePort = remotePort;
-        this.localAddr = localAddr;
-        this.localHostName = localHostName;
-        this.localPort = localPort;
-        if (localInetAddress != null) {
-            this.localInetAddress = localInetAddress;
-        } else {
-            InetAddress inetAddress;
-            try {
-                inetAddress = InetAddress.getByName(localAddr);
-            } catch (UnknownHostException e) {
-                inetAddress = null;
-            }
-            this.localInetAddress = inetAddress;
-        }
-        if (remoteInetAddress != null) {
-            this.remoteInetAddress = remoteInetAddress;
-        } else {
-            InetAddress inetAddress;
-            try {
-                inetAddress = InetAddress.getByName(remoteAddr);
-            } catch (UnknownHostException e) {
-                inetAddress = null;
-            }
-            this.remoteInetAddress = inetAddress;
-        }
         this.debugContext = debugContext;
 
-        maxTextMessageBufferSize = container.getDefaultMaxTextMessageBufferSize();
-        maxBinaryMessageBufferSize = container.getDefaultMaxBinaryMessageBufferSize();
-        service = ((ExecutorServiceProvider) container).getScheduledExecutorService();
-        setMaxIdleTimeout(container.getDefaultMaxSessionIdleTimeout());
+        if (container != null) {
+            maxTextMessageBufferSize = container.getDefaultMaxTextMessageBufferSize();
+            maxBinaryMessageBufferSize = container.getDefaultMaxBinaryMessageBufferSize();
+            service = ((ExecutorServiceProvider) container).getScheduledExecutorService();
+            setMaxIdleTimeout(container.getDefaultMaxSessionIdleTimeout());
+        }
 
         // cluster context is always null on client side
         if (clusterContext != null) {
@@ -780,75 +742,13 @@ public class TyrusSession implements Session, DistributedSession {
     }
 
     /**
-     * Get {@link InetAddress} instance representing a remote address.
+     * Get the Internet Protocol (IP) address of the client or last proxy that sent the request.
      *
-     * @return an {@link InetAddress} instance representing a remote address.
-     */
-    public InetAddress getRemoteInetAddress() {
-        return remoteInetAddress;
-    }
-
-    /**
-     * Get the remote Internet Protocol (IP) address (or last proxy that sent the request when called on server-side).
-     *
-     * @return a {@link String} containing the remote IP address.
+     * @return a {@link String} containing the IP address of the client that sent the request or {@code null} when
+     * method is called on client-side.
      */
     public String getRemoteAddr() {
         return remoteAddr;
-    }
-
-    /**
-     * Get the remote hostname (or hostname of the last proxy that sent the request when called on server-side).
-     *
-     * @return a {@link String} containing the remote hostname.
-     */
-    public String getRemoteHostName() {
-        return remoteHostName;
-    }
-
-    /**
-     * Get the remote port number (or port number of the last proxy that sent the request when called on server-side).
-     *
-     * @return a {@link Integer} containing the port number.
-     */
-    public int getRemotePort() {
-        return remotePort;
-    }
-
-    /**
-     * Get {@link InetAddress} instance representing a local address.
-     *
-     * @return an {@link InetAddress} instance representing a local address.
-     */
-    public InetAddress getLocalInetAddress() {
-        return localInetAddress;
-    }
-
-    /**
-     * Get the local Internet Protocol (IP) address.
-     *
-     * @return a {@link String} containing the local IP address.
-     */
-    public String getLocalAddr() {
-        return localAddr;
-    }
-
-    /**
-     * Get the local hostname.
-     *
-     * @return a {@link String} containing the local hostname.
-     */
-    public String getLocalHostName() {
-        return localHostName;
-    }
-
-    /**
-     * Get the local port number.
-     *
-     * @return a {@link Integer} containing the local port number.
-     */
-    public int getLocalPort() {
-        return localPort;
     }
 
     /**

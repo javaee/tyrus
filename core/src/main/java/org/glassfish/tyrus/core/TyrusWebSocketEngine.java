@@ -663,7 +663,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
         }
 
         @Override
-        public Connection createConnection(Writer writer, Connection.CloseListener closeListener, Map<Connection.ConnectionProperties, Object> connectionProperties) {
+        public Connection createConnection(Writer writer, Connection.CloseListener closeListener) {
             return null;
         }
     }
@@ -695,12 +695,8 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
         }
 
         @Override
-        public Connection createConnection(Writer writer, Connection.CloseListener closeListener, Map<Connection.ConnectionProperties, Object> connectionProperties) {
-
-            Utils.validateConnectionProperties(connectionProperties);
-
-            TyrusConnection tyrusConnection = new TyrusConnection(endpointWrapper, protocolHandler, incomingBufferSize, writer, closeListener,
-                    upgradeRequest, upgradeResponse, extensionContext, connectionProperties, debugContext);
+        public Connection createConnection(Writer writer, Connection.CloseListener closeListener) {
+            TyrusConnection tyrusConnection = new TyrusConnection(endpointWrapper, protocolHandler, incomingBufferSize, writer, closeListener, upgradeRequest, upgradeResponse, extensionContext, debugContext);
             debugContext.flush();
             return tyrusConnection;
         }
@@ -742,9 +738,8 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
         private final ExtendedExtension.ExtensionContext extensionContext;
         private final List<Extension> extensions;
 
-        TyrusConnection(TyrusEndpointWrapper endpointWrapper, ProtocolHandler protocolHandler, int incomingBufferSize, Writer writer,
-                        CloseListener closeListener, UpgradeRequest upgradeRequest, UpgradeResponse upgradeResponse,
-                        ExtendedExtension.ExtensionContext extensionContext, Map<ConnectionProperties, Object> connectionProperties, DebugContext debugContext) {
+        TyrusConnection(TyrusEndpointWrapper endpointWrapper, ProtocolHandler protocolHandler, int incomingBufferSize, Writer writer, CloseListener closeListener,
+                        UpgradeRequest upgradeRequest, UpgradeResponse upgradeResponse, ExtendedExtension.ExtensionContext extensionContext, DebugContext debugContext) {
             protocolHandler.setWriter(writer);
             extensions = protocolHandler.getExtensions();
             this.socket = endpointWrapper.createSocket(protocolHandler);
@@ -758,7 +753,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
                 connectionId = upgradeResponse.getFirstHeaderValue(UpgradeRequest.CLUSTER_CONNECTION_ID_HEADER);
             }
 
-            this.socket.onConnect(upgradeRequest, protocolHandler.getSubProtocol(), extensions, connectionId, connectionProperties, debugContext);
+            this.socket.onConnect(upgradeRequest, protocolHandler.getSubProtocol(), extensions, connectionId, debugContext);
 
             this.readHandler = new TyrusReadHandler(protocolHandler, socket, endpointWrapper, incomingBufferSize, extensionContext, debugContext);
             this.writer = writer;

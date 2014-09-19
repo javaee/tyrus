@@ -39,17 +39,13 @@
  */
 package org.glassfish.tyrus.core;
 
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
@@ -58,7 +54,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import org.glassfish.tyrus.core.l10n.LocalizationMessages;
-import org.glassfish.tyrus.spi.Connection;
 import org.glassfish.tyrus.spi.UpgradeRequest;
 import org.glassfish.tyrus.spi.UpgradeResponse;
 
@@ -66,8 +61,6 @@ import org.glassfish.tyrus.spi.UpgradeResponse;
  * Utility methods shared among Tyrus modules.
  *
  * @author Pavel Bucek (pavel.bucek at oracle.com)
- * @author Petr Janouch (petr.janouch at oracle.com)
- * @author Ondrej Kosatka (ondrej.kosatka at oracle.com)
  */
 public class Utils {
 
@@ -541,103 +534,5 @@ public class Utils {
         }
         message.append(value);
         message.append("\n");
-    }
-
-    /**
-     * Create connection properties map with all supported entries. Data are collected from {@link InetSocketAddress}
-     * instances representing local and remote address.
-     *
-     * @param localAddress  local address.
-     * @param remoteAddress remote address.
-     * @return a map od connection properties with all supported entries.
-     */
-    public static Map<Connection.ConnectionProperties, Object> getConnectionProperties(final InetSocketAddress localAddress, final InetSocketAddress remoteAddress) {
-        Map<Connection.ConnectionProperties, Object> connectionProperties = new HashMap<Connection.ConnectionProperties, Object>(8);
-        connectionProperties.put(Connection.ConnectionProperties.LOCAL_INET_ADDRESS, localAddress.getAddress());
-        connectionProperties.put(Connection.ConnectionProperties.LOCAL_ADDRESS, localAddress.getAddress().getHostAddress());
-        connectionProperties.put(Connection.ConnectionProperties.LOCAL_HOSTNAME, localAddress.getHostName());
-        connectionProperties.put(Connection.ConnectionProperties.LOCAL_PORT, localAddress.getPort());
-
-        connectionProperties.put(Connection.ConnectionProperties.REMOTE_INET_ADDRESS, remoteAddress.getAddress());
-        connectionProperties.put(Connection.ConnectionProperties.REMOTE_ADDRESS, remoteAddress.getAddress().getHostAddress());
-        connectionProperties.put(Connection.ConnectionProperties.REMOTE_HOSTNAME, remoteAddress.getHostName());
-        connectionProperties.put(Connection.ConnectionProperties.REMOTE_PORT, remoteAddress.getPort());
-        return Collections.unmodifiableMap(connectionProperties);
-    }
-
-    /**
-     * Validate connection properties.
-     * <p/>
-     * Method checks that all required properties are not {@code null} and/or are not empty or are instance of required
-     * types.
-     * <p/>
-     * Required properties:
-     * <ul>
-     * <li>{@link Connection.ConnectionProperties#REMOTE_ADDRESS}</li>
-     * <li>{@link Connection.ConnectionProperties#REMOTE_HOSTNAME}</li>
-     * <li>{@link Connection.ConnectionProperties#REMOTE_PORT}</li>
-     * <li>{@link Connection.ConnectionProperties#LOCAL_ADDRESS}</li>
-     * <li>{@link Connection.ConnectionProperties#LOCAL_HOSTNAME}</li>
-     * <li>{@link Connection.ConnectionProperties#LOCAL_PORT}</li>
-     * </ul>
-     * Optional properties:
-     * <ul>
-     * <li>{@link Connection.ConnectionProperties#REMOTE_INET_ADDRESS}</li>
-     * <li>{@link Connection.ConnectionProperties#LOCAL_INET_ADDRESS}</li>
-     * </ul>
-     *
-     * @param connectionProperties connection properties map.
-     * @throws IllegalArgumentException if any of required properties in connectionProperties is {@code null} or is empty
-     *                                  or any of supported properties is not an instance of required type.
-     */
-    public static void validateConnectionProperties(Map<Connection.ConnectionProperties, Object> connectionProperties) throws IllegalArgumentException {
-        StringBuilder sb = new StringBuilder();
-
-        Object o = connectionProperties.get(Connection.ConnectionProperties.REMOTE_INET_ADDRESS);
-        if (o != null && !(o instanceof InetAddress)) {
-            sb.append(String.format(LocalizationMessages.PROPERTY_VALIDATION_TYPE(Connection.ConnectionProperties.REMOTE_INET_ADDRESS, InetAddress.class.getName(), o.getClass().getName())));
-        }
-
-        o = connectionProperties.get(Connection.ConnectionProperties.LOCAL_INET_ADDRESS);
-        if (o != null && !(o instanceof InetAddress)) {
-            sb.append(String.format(LocalizationMessages.PROPERTY_VALIDATION_TYPE(Connection.ConnectionProperties.LOCAL_INET_ADDRESS, InetAddress.class.getName(), o.getClass().getName())));
-        }
-
-        validateStringConnectionProperty(connectionProperties, Connection.ConnectionProperties.REMOTE_ADDRESS, sb);
-        validateStringConnectionProperty(connectionProperties, Connection.ConnectionProperties.LOCAL_ADDRESS, sb);
-        validateStringConnectionProperty(connectionProperties, Connection.ConnectionProperties.REMOTE_HOSTNAME, sb);
-        validateStringConnectionProperty(connectionProperties, Connection.ConnectionProperties.LOCAL_HOSTNAME, sb);
-
-        o = connectionProperties.get(Connection.ConnectionProperties.REMOTE_PORT);
-        boolean isInteger = o instanceof Integer;
-        if (o == null || (isInteger && ((Integer) o <= 0))) {
-            sb.append(String.format(LocalizationMessages.PROPERTY_VALIDATION_POSITIVE_INTEGER(Connection.ConnectionProperties.REMOTE_PORT)));
-        } else if (!isInteger) {
-            sb.append(LocalizationMessages.PROPERTY_VALIDATION_TYPE(Connection.ConnectionProperties.REMOTE_PORT, Integer.class.getName(), o.getClass().getName()));
-        }
-
-        o = connectionProperties.get(Connection.ConnectionProperties.LOCAL_PORT);
-        isInteger = o instanceof Integer;
-        if (o == null || (isInteger && ((Integer) o <= 0))) {
-            sb.append(String.format(LocalizationMessages.PROPERTY_VALIDATION_POSITIVE_INTEGER(Connection.ConnectionProperties.LOCAL_PORT)));
-        } else if (!isInteger) {
-            sb.append(LocalizationMessages.PROPERTY_VALIDATION_TYPE(Connection.ConnectionProperties.LOCAL_PORT, Integer.class.getName(), o.getClass().getName()));
-        }
-
-        if (sb.length() > 0) {
-            throw new IllegalArgumentException(sb.toString());
-        }
-    }
-
-    private static void validateStringConnectionProperty(Map<Connection.ConnectionProperties, Object> connectionProperties,
-                                                         Connection.ConnectionProperties property,
-                                                         StringBuilder sb) {
-        Object o = connectionProperties.get(property);
-        if (o == null || o.equals("")) {
-            sb.append(LocalizationMessages.PROPERTY_VALIDATION_NOT_EMPTY(property));
-        } else if (!(o instanceof String)) {
-            sb.append(LocalizationMessages.PROPERTY_VALIDATION_TYPE(property, String.class.getName(), o.getClass().getName()));
-        }
-
     }
 }

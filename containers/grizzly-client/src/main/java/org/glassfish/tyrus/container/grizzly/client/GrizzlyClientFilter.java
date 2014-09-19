@@ -41,7 +41,6 @@
 package org.glassfish.tyrus.container.grizzly.client;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.net.URI;
 import java.nio.ByteBuffer;
 import java.util.List;
@@ -110,6 +109,7 @@ class GrizzlyClientFilter extends BaseFilter {
     private final Filter sslFilter;
     private final HttpCodecFilter httpCodecFilter;
     private final ClientEngine engine;
+    private final URI uri;
     private final boolean sharedTransport;
     private final Map<String, String> proxyHeaders;
     private final Callable<Void> grizzlyConnector;
@@ -127,7 +127,7 @@ class GrizzlyClientFilter extends BaseFilter {
      */
     /* package */ GrizzlyClientFilter(ClientEngine engine, boolean proxy,
                                       Filter sslFilter, HttpCodecFilter httpCodecFilter,
-                                      boolean sharedTransport,
+                                      URI uri, boolean sharedTransport,
                                       Map<String, String> proxyHeaders,
                                       Callable<Void> grizzlyConnector,
                                       UpgradeRequest upgradeRequest) {
@@ -135,6 +135,7 @@ class GrizzlyClientFilter extends BaseFilter {
         this.proxy = proxy;
         this.sslFilter = sslFilter;
         this.httpCodecFilter = httpCodecFilter;
+        this.uri = uri;
         this.sharedTransport = sharedTransport;
         this.proxyHeaders = proxyHeaders;
         this.grizzlyConnector = grizzlyConnector;
@@ -367,10 +368,7 @@ class GrizzlyClientFilter extends BaseFilter {
                 }
                 return ctx.getInvokeAction();
             case SUCCESS:
-                Map<org.glassfish.tyrus.spi.Connection.ConnectionProperties, Object> connectionProperties = Utils.getConnectionProperties(
-                        (InetSocketAddress) ctx.getConnection().getLocalAddress(),
-                        (InetSocketAddress) ctx.getAddress());
-                tyrusConnection = clientUpgradeInfo.createConnection(connectionProperties);
+                tyrusConnection = clientUpgradeInfo.createConnection();
                 break;
             default:
                 return ctx.getStopAction();
