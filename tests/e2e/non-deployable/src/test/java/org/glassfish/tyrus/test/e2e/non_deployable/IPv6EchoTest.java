@@ -57,7 +57,6 @@ import javax.websocket.server.ServerEndpoint;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.tools.TestContainer;
 
-import org.junit.Ignore;
 import org.junit.Test;
 import static org.junit.Assert.assertTrue;
 
@@ -75,7 +74,6 @@ public class IPv6EchoTest extends TestContainer {
     }
 
     @Test
-    @Ignore("test became unstable for some reason. TODO XXX FIXME")
     public void testIPv6() throws DeploymentException {
         Server server = startServer(EchoEndpoint.class);
 
