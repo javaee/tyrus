@@ -47,6 +47,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import javax.websocket.ClientEndpointConfig;
+import javax.websocket.CloseReason;
 import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfig;
@@ -105,18 +106,14 @@ public class ErrorTest extends TestContainer {
             throw new RuntimeException("testException");
         }
 
-        @OnMessage
-        public String message(String message, Session session) {
-            // won't be called.
-            return "message";
-        }
-
         @OnError
         public void handleError(Throwable throwable, Session session) {
             OnOpenErrorTestEndpoint.throwable = throwable;
             OnOpenErrorTestEndpoint.session = session;
 
-            ON_ERROR_LATCH.countDown();
+            if (throwable.getClass().equals(RuntimeException.class) && throwable.getMessage().equals("testException")) {
+                ON_ERROR_LATCH.countDown();
+            }
         }
     }
 
@@ -166,17 +163,14 @@ public class ErrorTest extends TestContainer {
             throw new RuntimeException("testException");
         }
 
-        @OnMessage
-        public String message(String message, Session session) {
-            // won't be called.
-            return "message";
-        }
-
         @OnError
         public void handleError(Throwable throwable, Session session) {
             OnCloseErrorTestEndpoint.throwable = throwable;
             OnCloseErrorTestEndpoint.session = session;
-            ON_ERROR_LATCH.countDown();
+
+            if (throwable.getClass().equals(RuntimeException.class) && throwable.getMessage().equals("testException")) {
+                ON_ERROR_LATCH.countDown();
+            }
         }
     }
 
@@ -205,6 +199,30 @@ public class ErrorTest extends TestContainer {
         }
     }
 
+    @Test
+    public void testErrorOnCloseProgrammatic() throws DeploymentException {
+        Server server = startServer(OnCloseExceptionEndpointServerApplicationConfig.class, ServerDeployApplicationConfig.class);
+
+        try {
+            final ClientEndpointConfig cec = ClientEndpointConfig.Builder.create().build();
+
+            ClientManager client = createClient();
+            final Session session = client.connectToServer(new Endpoint() {
+                @Override
+                public void onOpen(Session session, EndpointConfig config) {
+                }
+            }, cec, getURI("/closeprogrammatic"));
+            session.close();
+
+            testViaServiceEndpoint(client, ServiceEndpoint.class, POSITIVE, "OnCloseExceptionEndpoint");
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            stopServer(server);
+        }
+    }
+
     @ServerEndpoint(value = "/serviceerrortest")
     public static class ServiceEndpoint {
 
@@ -215,6 +233,13 @@ public class ErrorTest extends TestContainer {
                 final boolean await = OnCloseErrorTestEndpoint.ON_ERROR_LATCH.await(3, TimeUnit.SECONDS);
 
                 if (await && OnCloseErrorTestEndpoint.throwable != null && OnCloseErrorTestEndpoint.session != null) {
+                    return POSITIVE;
+                }
+            } else if (message.equals("OnCloseExceptionEndpoint")) {
+
+                final boolean await = OnCloseExceptionEndpoint.ON_ERROR_LATCH.await(3, TimeUnit.SECONDS);
+
+                if (await && OnCloseExceptionEndpoint.throwable != null && OnCloseExceptionEndpoint.session != null) {
                     return POSITIVE;
                 }
             } else if (message.equals("OnOpenErrorTestEndpoint")) {
@@ -244,11 +269,44 @@ public class ErrorTest extends TestContainer {
         }
     }
 
+    public static class OnCloseExceptionEndpointServerApplicationConfig extends TyrusServerConfiguration {
+        public OnCloseExceptionEndpointServerApplicationConfig() {
+            super(Collections.<Class<?>>emptySet(),
+                    Collections.singleton(ServerEndpointConfig.Builder.create(OnCloseExceptionEndpoint.class, "/closeprogrammatic").build()));
+        }
+    }
+
+    public static class OnCloseExceptionEndpoint extends Endpoint {
+
+        public static volatile Throwable throwable;
+        public static volatile Session session;
+
+        public static final CountDownLatch ON_ERROR_LATCH = new CountDownLatch(1);
+
+        @Override
+        public void onOpen(Session session, EndpointConfig config) {
+        }
+
+        @Override
+        public void onClose(Session session, CloseReason closeReason) {
+            throw new RuntimeException("testException");
+        }
+
+        @Override
+        public void onError(Session session, Throwable thr) {
+            OnCloseExceptionEndpoint.throwable = thr;
+            OnCloseExceptionEndpoint.session = session;
+
+            if (thr.getClass().equals(RuntimeException.class) && thr.getMessage().equals("testException")) {
+                ON_ERROR_LATCH.countDown();
+            }
+        }
+    }
+
     public static class OnOpenExceptionEndpointServerApplicationConfig extends TyrusServerConfiguration {
         public OnOpenExceptionEndpointServerApplicationConfig() {
-            super(Collections.<Class<?>>emptySet(), new HashSet<ServerEndpointConfig>() {{
-                add(ServerEndpointConfig.Builder.create(OnOpenExceptionEndpoint.class, "/openprogrammatic").build());
-            }});
+            super(Collections.<Class<?>>emptySet(),
+                    Collections.singleton(ServerEndpointConfig.Builder.create(OnOpenExceptionEndpoint.class, "/openprogrammatic").build()));
         }
     }
 
@@ -268,7 +326,10 @@ public class ErrorTest extends TestContainer {
         public void onError(Session session, Throwable thr) {
             OnOpenExceptionEndpoint.throwable = thr;
             OnOpenExceptionEndpoint.session = session;
-            ON_ERROR_LATCH.countDown();
+
+            if (thr.getClass().equals(RuntimeException.class) && thr.getMessage().equals("testException")) {
+                ON_ERROR_LATCH.countDown();
+            }
         }
     }
 
@@ -303,9 +364,8 @@ public class ErrorTest extends TestContainer {
 
     public static class OnMessageExceptionEndpointServerApplicationConfig extends TyrusServerConfiguration {
         public OnMessageExceptionEndpointServerApplicationConfig() {
-            super(Collections.<Class<?>>emptySet(), new HashSet<ServerEndpointConfig>() {{
-                add(ServerEndpointConfig.Builder.create(OnMessageExceptionEndpoint.class, "/openonmessageexception").build());
-            }});
+            super(Collections.<Class<?>>emptySet(),
+                    Collections.singleton(ServerEndpointConfig.Builder.create(OnMessageExceptionEndpoint.class, "/openonmessageexception").build()));
         }
     }
 
@@ -331,7 +391,9 @@ public class ErrorTest extends TestContainer {
             OnMessageExceptionEndpoint.throwable = thr;
             OnMessageExceptionEndpoint.session = session;
 
-            ON_ERROR_LATCH.countDown();
+            if (thr.getClass().equals(RuntimeException.class) && thr.getMessage().equals("testException")) {
+                ON_ERROR_LATCH.countDown();
+            }
         }
     }
 

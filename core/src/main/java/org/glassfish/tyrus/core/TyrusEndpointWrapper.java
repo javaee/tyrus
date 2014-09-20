@@ -48,6 +48,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.nio.ByteBuffer;
@@ -146,6 +147,7 @@ public class TyrusEndpointWrapper {
     private final SessionListener sessionListener;
     private final EndpointEventListener endpointEventListener;
     private final boolean parallelBroadcastEnabled;
+    private final boolean programmaticEndpoint;
 
     private final ClusterContext clusterContext;
 
@@ -192,6 +194,7 @@ public class TyrusEndpointWrapper {
                                  EndpointEventListener endpointEventListener, Boolean parallelBroadcastEnabled) throws DeploymentException {
         this.endpointClass = endpointClass;
         this.endpoint = endpoint;
+        this.programmaticEndpoint = (endpoint != null);
         this.container = container;
         this.contextPath = contextPath;
         this.configurator = configurator;
@@ -255,7 +258,7 @@ public class TyrusEndpointWrapper {
                 throw new DeploymentException(e.getMessage(), e);
             }
 
-            if (endpoint != null) {
+            if (programmaticEndpoint) {
                 this.onOpen = onOpenMethod;
                 this.onClose = onCloseMethod;
                 this.onError = onErrorMethod;
@@ -684,7 +687,7 @@ public class TyrusEndpointWrapper {
 
         ErrorCollector collector = new ErrorCollector();
 
-        final Object toCall = endpoint != null ? endpoint :
+        final Object toCall = programmaticEndpoint ? endpoint :
                 componentProvider.getInstance(endpointClass, session, collector);
 
         // TYRUS-325: Server do not close session properly if non-instantiable endpoint class is provided
@@ -710,13 +713,17 @@ public class TyrusEndpointWrapper {
                 throw collector.composeComprehensiveException();
             }
 
-            if (endpoint != null) {
+            if (programmaticEndpoint) {
                 ((Endpoint) toCall).onOpen(session, configuration);
             } else {
-                onOpen.invoke(toCall, session, configuration);
+                try {
+                    onOpen.invoke(toCall, session, configuration);
+                } catch (InvocationTargetException e) {
+                    throw e.getCause();
+                }
             }
         } catch (Throwable t) {
-            if (endpoint != null) {
+            if (programmaticEndpoint) {
                 ((Endpoint) toCall).onError(session, t);
             } else {
                 try {
@@ -764,10 +771,10 @@ public class TyrusEndpointWrapper {
         } catch (Throwable t) {
             if (!processThrowable(t, session)) {
                 ErrorCollector collector = new ErrorCollector();
-                final Object toCall = endpoint != null ? endpoint :
+                final Object toCall = programmaticEndpoint ? endpoint :
                         componentProvider.getInstance(endpointClass, session, collector);
                 if (toCall != null) {
-                    if (endpoint != null) {
+                    if (programmaticEndpoint) {
                         ((Endpoint) toCall).onError(session, t);
                     } else {
                         try {
@@ -818,10 +825,10 @@ public class TyrusEndpointWrapper {
         } catch (Throwable t) {
             if (!processThrowable(t, session)) {
                 ErrorCollector collector = new ErrorCollector();
-                final Object toCall = endpoint != null ? endpoint :
+                final Object toCall = programmaticEndpoint ? endpoint :
                         componentProvider.getInstance(endpointClass, session, collector);
                 if (toCall != null) {
-                    if (endpoint != null) {
+                    if (programmaticEndpoint) {
                         ((Endpoint) toCall).onError(session, t);
                     } else {
                         try {
@@ -919,10 +926,10 @@ public class TyrusEndpointWrapper {
         } catch (Throwable t) {
             if (!processThrowable(t, session)) {
                 ErrorCollector collector = new ErrorCollector();
-                final Object toCall = endpoint != null ? endpoint :
+                final Object toCall = programmaticEndpoint ? endpoint :
                         componentProvider.getInstance(endpointClass, session, collector);
                 if (toCall != null) {
-                    if (endpoint != null) {
+                    if (programmaticEndpoint) {
                         ((Endpoint) toCall).onError(session, t);
                     } else {
                         try {
@@ -1020,10 +1027,10 @@ public class TyrusEndpointWrapper {
         } catch (Throwable t) {
             if (!processThrowable(t, session)) {
                 ErrorCollector collector = new ErrorCollector();
-                final Object toCall = endpoint != null ? endpoint :
+                final Object toCall = programmaticEndpoint ? endpoint :
                         componentProvider.getInstance(endpointClass, session, collector);
                 if (toCall != null) {
-                    if (endpoint != null) {
+                    if (programmaticEndpoint) {
                         ((Endpoint) toCall).onError(session, t);
                     } else {
                         try {
@@ -1101,10 +1108,10 @@ public class TyrusEndpointWrapper {
             } catch (Throwable t) {
                 if (!processThrowable(t, session)) {
                     ErrorCollector collector = new ErrorCollector();
-                    final Object toCall = endpoint != null ? endpoint :
+                    final Object toCall = programmaticEndpoint ? endpoint :
                             componentProvider.getInstance(endpointClass, session, collector);
                     if (toCall != null) {
-                        if (endpoint != null) {
+                        if (programmaticEndpoint) {
                             ((Endpoint) toCall).onError(session, t);
                         } else {
                             try {
@@ -1171,7 +1178,7 @@ public class TyrusEndpointWrapper {
 
         ErrorCollector collector = new ErrorCollector();
 
-        final Object toCall = endpoint != null ? endpoint :
+        final Object toCall = programmaticEndpoint ? endpoint :
                 componentProvider.getInstance(endpointClass, session, collector);
 
         try {
@@ -1179,14 +1186,18 @@ public class TyrusEndpointWrapper {
                 throw collector.composeComprehensiveException();
             }
 
-            if (endpoint != null) {
+            if (programmaticEndpoint) {
                 ((Endpoint) toCall).onClose(session, closeReason);
             } else {
-                onClose.invoke(toCall, session, closeReason);
+                try {
+                    onClose.invoke(toCall, session, closeReason);
+                } catch (InvocationTargetException e) {
+                    throw e.getCause();
+                }
             }
         } catch (Throwable t) {
             if (toCall != null) {
-                if (endpoint != null) {
+                if (programmaticEndpoint) {
                     ((Endpoint) toCall).onError(session, t);
                 } else {
                     try {
