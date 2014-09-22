@@ -324,8 +324,8 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
         for (Match m : Match.getAllMatches(requestPath, endpointWrappers, debugContext)) {
             final TyrusEndpointWrapper endpointWrapper = m.getEndpointWrapper();
 
-            for (String name : m.getParameterNames()) {
-                request.getParameterMap().put(name, Arrays.asList(m.getParameterValue(name)));
+            for (Map.Entry<String, String> parameter : m.getParameters().entrySet()) {
+                request.getParameterMap().put(parameter.getKey(), Arrays.asList(parameter.getValue()));
             }
 
             if (endpointWrapper.upgrade(request)) {

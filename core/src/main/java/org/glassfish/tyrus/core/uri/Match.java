@@ -41,8 +41,9 @@ package org.glassfish.tyrus.core.uri;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -56,26 +57,18 @@ import org.glassfish.tyrus.core.uri.internal.UriComponent;
  * Defines a match on an endpoint. The match is either exact, or is not exact.
  * If the match is not exact, it means that some of the path segments on the endpoint
  * are variables. In this case, the Match object carries the indices of the variable
- * segments in the endpoint path, the names and the values.
+ * segments in the endpoint path, the map of the parameter names and values.
  *
  * @author dannycoward
  */
 public class Match {
 
     private final TyrusEndpointWrapper endpointWrapper; // the endpoint that has the path
-    private final List<String> parameterNames = new ArrayList<String>();
-    private final List<String> parameterValues = new ArrayList<String>();
+    private final Map<String, String> parameters = new HashMap<String, String>();
     //list of all segment indices in the path with variables
     private final List<Integer> variableSegmentIndices = new ArrayList<Integer>();
 
     private static final Logger LOGGER = Logger.getLogger(Match.class.getName());
-    private static final boolean noisy = false;
-
-    private static void debug(String message) {
-        if (noisy) {
-            LOGGER.log(Level.INFO, message);
-        }
-    }
 
     /**
      * Constructor.
@@ -87,23 +80,19 @@ public class Match {
     }
 
     /**
-     * Get path.
-     *
-     * @return path.
-     */
-    public String getPath() {
-        return this.endpointWrapper.getEndpointPath();
-    }
-
-    /**
      * Get variable segment indices (indexes).
      *
-     * @return list of indices.
+     * @return list of variable segment indices.
      */
-    public List<Integer> getVariableSegmentIndices() {
+    List<Integer> getVariableSegmentIndices() {
         return this.variableSegmentIndices;
     }
 
+    /**
+     * Get the index of the left most path variable.
+     *
+     * @return the index of the left most path variable.
+     */
     int getLowestVariableSegmentIndex() {
         if (this.getVariableSegmentIndices().isEmpty()) {
             return -1;
@@ -120,34 +109,23 @@ public class Match {
      * @param index parameter index.
      */
     void addParameter(String name, String value, int index) {
-        this.parameterNames.add(name);
-        this.parameterValues.add(value);
+        this.parameters.put(name, value);
         this.variableSegmentIndices.add(index);
     }
 
     /**
-     * Get parameter names.
+     * Get map of parameter names-value pairs.
      *
-     * @return list of parameter names.
+     * @return map of parameter names-value pairs.
      */
-    public List<String> getParameterNames() {
-        return this.parameterNames;
+    public Map<String, String> getParameters() {
+        return parameters;
     }
 
     /**
-     * Get value of given parameter.
+     * Get endpoint wrapper.
      *
-     * @param name parameter name.
-     * @return value of given parameter.
-     */
-    public String getParameterValue(String name) {
-        return this.parameterValues.get(this.parameterNames.indexOf(name));
-    }
-
-    /**
-     * Get {@link TyrusEndpointWrapper}.
-     *
-     * @return web socket application of this {@link Math}.
+     * @return endpoint wrapper.
      */
     public TyrusEndpointWrapper getEndpointWrapper() {
         return this.endpointWrapper;
@@ -159,86 +137,72 @@ public class Match {
     }
 
     /**
-     * TODO.
+     * {@code true} if the path of the matched endpoint does not contain any variables, {@code false} otherwise.
      *
-     * @return TODO.
+     * @return {@code true} if the path of the matched endpoint does not contain any variables, {@code false} otherwise.
      */
-    public boolean isExact() {
+    boolean isExact() {
         return this.getLowestVariableSegmentIndex() == -1;
-    }
-
-    /**
-     * Returns null, or a Match object
-     *
-     * @param incoming       TODO
-     * @param thingsWithPath TODO
-     * @return TODO
-     */
-    public static Match getBestMatch(String incoming, Set<TyrusEndpointWrapper> thingsWithPath) {
-        List<Match> sortedMatches = getAllMatches(incoming, thingsWithPath, new DebugContext());
-        if (sortedMatches.isEmpty()) {
-            return null;
-        } else {
-            return sortedMatches.get(0);
-        }
     }
 
     /**
      * Return a list of all endpoints with path matching the request path. The endpoints are in order of match preference, best match first.
      *
-     * @param incoming       request path.
-     * @param thingsWithPath endpoints.
-     * @param debugContext   debug context.
+     * @param requestPath  request path.
+     * @param endpoints    endpoints.
+     * @param debugContext debug context.
      * @return a list of all endpoints with path matching the request path. The endpoints are in order of match preference, best match first.
      */
-    public static List<Match> getAllMatches(String incoming, Set<TyrusEndpointWrapper> thingsWithPath, DebugContext debugContext) {
-        Set<Match> matches = new HashSet<Match>();
-        for (TyrusEndpointWrapper nextThingWithPath : thingsWithPath) {
-            Match m = matchPath(incoming, nextThingWithPath, debugContext);
+    public static List<Match> getAllMatches(String requestPath, Set<TyrusEndpointWrapper> endpoints, DebugContext debugContext) {
+        List<Match> matches = new ArrayList<Match>();
+
+        for (TyrusEndpointWrapper endpoint : endpoints) {
+            Match m = matchPath(requestPath, endpoint, debugContext);
+
             if (m != null) {
                 matches.add(m);
             }
         }
-        List<Match> sortedMatches = new ArrayList<Match>();
-        sortedMatches.addAll(matches);
-        Collections.sort(sortedMatches, new MatchComparator(debugContext));
-        debugContext.appendTraceMessage(LOGGER, Level.FINE, DebugContext.Type.MESSAGE_IN, "Endpoints matched to the request URI: ", sortedMatches);
-        return sortedMatches;
+
+        Collections.sort(matches, new MatchComparator(debugContext));
+        debugContext.appendTraceMessage(LOGGER, Level.FINE, DebugContext.Type.MESSAGE_IN, "Endpoints matched to the request URI: ", matches);
+        return matches;
     }
 
-    private static List<String> asEquivalenceList(String path) {
-        List<String> eList = new ArrayList<String>();
-        List<PathSegment> asSegments = UriComponent.decodePath(path, true);
-        for (PathSegment next : asSegments) {
-            if (isVariable(next.getPath())) {
-                eList.add("{x}");
-            } else {
-                eList.add(next.getPath());
-            }
-        }
-        return eList;
-    }
+    private static Match matchPath(String requestPath, TyrusEndpointWrapper endpoint, DebugContext debugContext) {
+        debugContext.appendTraceMessage(LOGGER, Level.FINE, DebugContext.Type.MESSAGE_IN, "Matching request URI ", requestPath, " against ", endpoint.getEndpointPath());
+        List<PathSegment> requestPathSegments = UriComponent.decodePath(requestPath, true);
+        List<PathSegment> endpointPathSegments = UriComponent.decodePath(endpoint.getEndpointPath(), true);
 
-    /**
-     * Check for equivalent path.
-     *
-     * @param paths list of paths.
-     * @return {@code true} if at least one path in given list is equivalent with current one, {@code false} otherwise.
-     */
-    public static boolean checkForEquivalents(List<String> paths) {
+        if (requestPathSegments.size() != endpointPathSegments.size()) {
+            debugContext.appendTraceMessage(LOGGER, Level.FINE, DebugContext.Type.MESSAGE_IN, "URIs ", requestPath, " and ", endpoint.getEndpointPath(), " have different length");
+            return null;
+        } else {
+            Match m = new Match(endpoint);
+            boolean somethingMatched = false;
 
-        for (int i = 0; i < paths.size(); i++) {
-            String nextPath = paths.get(i);
-            for (int j = 0; j < paths.size(); j++) {
-                if (j != i) {
-                    if (isEquivalent(nextPath, paths.get(j))) {
-                        debug("two the same!!: " + nextPath + " is equivalent to " + paths.get(j));
-                        return true;
-                    }
+            for (int i = 0; i < requestPathSegments.size(); i++) {
+                String requestSegment = requestPathSegments.get(i).getPath();
+                String endpointSegment = endpointPathSegments.get(i).getPath();
+
+                if (requestSegment.equals(endpointSegment)) {
+                    somethingMatched = true;
+                    // continue...
+                } else if (isVariable(endpointSegment)) {
+                    somethingMatched = true;
+                    m.addParameter(getVariableName(endpointSegment), requestSegment, i);
+                } else {
+                    debugContext.appendTraceMessage(LOGGER, Level.FINE, DebugContext.Type.MESSAGE_IN, "Segment \"", endpointSegment, "\" does not match");
+                    return null; // no match
                 }
             }
+
+            if (somethingMatched) {
+                return m;
+            } else {
+                return null;
+            }
         }
-        return false;
     }
 
     /**
@@ -249,45 +213,27 @@ public class Match {
      * @return {@code true} when provided path are equivalent, {@code false} otherwise.
      */
     public static boolean isEquivalent(String path1, String path2) {
-        debug("isEquivalent ? " + path1 + " and " + path2);
         List<String> path1EList = asEquivalenceList(path1);
         List<String> path2EList = asEquivalenceList(path2);
-        boolean eq = path1EList.equals(path2EList);
-        debug("isEquivalent ? " + eq);
-        return eq;
+        return path1EList.equals(path2EList);
     }
 
-    private static Match matchPath(String incoming, TyrusEndpointWrapper hasPath, DebugContext debugContext) {
-        debugContext.appendTraceMessage(LOGGER, Level.FINE, DebugContext.Type.MESSAGE_IN, "Matching request URI ", incoming, " against ", hasPath.getEndpointPath());
-        List<PathSegment> incomingList = UriComponent.decodePath(incoming, true);
-        List<PathSegment> pathList = UriComponent.decodePath(hasPath.getEndpointPath(), true);
-        if (incomingList.size() != pathList.size()) {
-            debugContext.appendTraceMessage(LOGGER, Level.FINE, DebugContext.Type.MESSAGE_IN, "URIs ", incoming, " and ", hasPath.getEndpointPath(), " have different length");
-            return null;
-        } else {
-            Match m = new Match(hasPath);
-            boolean somethingMatched = false;
-            for (int i = 0; i < incomingList.size(); i++) {
-                String incomingSegment = incomingList.get(i).getPath();
-                String pathSegment = pathList.get(i).getPath();
-                if (incomingSegment.equals(pathSegment)) {
-                    somethingMatched = true;
-                    // continue...
-                } else if (isVariable(pathSegment)) {
-                    somethingMatched = true;
-                    m.addParameter(getVariableName(pathSegment), incomingSegment, i);
-                } else {
-                    debugContext.appendTraceMessage(LOGGER, Level.FINE, DebugContext.Type.MESSAGE_IN, "Segment \"", pathSegment, "\" does not match");
-                    return null; // no match
-                }
-            }
-            if (somethingMatched) {
-                return m;
-            } else {
-                return null;
-            }
+    /**
+     * Decodes the path and replaces all variables with {x}.
+     */
+    private static List<String> asEquivalenceList(String path) {
+        List<String> equivalenceList = new ArrayList<String>();
+        List<PathSegment> segments = UriComponent.decodePath(path, true);
 
+        for (PathSegment next : segments) {
+            if (isVariable(next.getPath())) {
+                equivalenceList.add("{x}");
+            } else {
+                equivalenceList.add(next.getPath());
+            }
         }
+
+        return equivalenceList;
     }
 
     private static boolean isVariable(String segment) {

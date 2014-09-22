@@ -39,36 +39,52 @@
  */
 package org.glassfish.tyrus.core.uri;
 
+import org.junit.Test;
 
-import javax.websocket.DeploymentException;
-import javax.websocket.Endpoint;
-import javax.websocket.EndpointConfig;
-import javax.websocket.Session;
-
-import org.glassfish.tyrus.core.ComponentProviderService;
-import org.glassfish.tyrus.core.TyrusEndpointWrapper;
+import static junit.framework.Assert.assertFalse;
+import static junit.framework.Assert.assertTrue;
 
 /**
- * @author Pavel Bucek (pavel.bucek at oracle.com)
+ * @author dannycoward
+ * @author Petr Janouch (petr.janouch at oracle.com)
  */
-public class TestWebSocketEndpoint extends TyrusEndpointWrapper {
+public class EquivalentPathsTest {
 
-    private final String path;
-
-    public TestWebSocketEndpoint(String path) throws DeploymentException {
-        super(TestEndpoint.class, null, ComponentProviderService.createClient(), null, null, null, null, null, null, null);
-        this.path = path;
+    @Test
+    public void testBasic() {
+        assertTrue(checkForEquivalents("/a/b", "/a/b", "/a/b/c"));
     }
 
-    @Override
-    public String getEndpointPath() {
-        return path;
+    @Test
+    public void testTemplates() {
+        assertFalse(checkForEquivalents("/a/{var2}", "/a/b", "/b/{var29}"));
     }
 
-    public static class TestEndpoint extends Endpoint {
-        @Override
-        public void onOpen(Session session, EndpointConfig config) {
+    @Test
+    public void testMorePaths() {
+        assertTrue(checkForEquivalents("/a/{var2}/c", "/a/{var2}", "/b/{var2}/c", "/b/{var2}/{var3}", "/a/{m}"));
+    }
 
+    /**
+     * Check for equivalent path.
+     *
+     * @param paths list of paths.
+     * @return {@code true} if at least two path in given list are equivalent, {@code false} otherwise.
+     */
+    private boolean checkForEquivalents(String... paths) {
+        for (int i = 0; i < paths.length; i++) {
+            String nextPath = paths[i];
+
+            for (int j = 0; j < paths.length; j++) {
+
+                if (j != i) {
+                    if (Match.isEquivalent(nextPath, paths[j])) {
+                        return true;
+                    }
+                }
+            }
         }
+
+        return false;
     }
 }
