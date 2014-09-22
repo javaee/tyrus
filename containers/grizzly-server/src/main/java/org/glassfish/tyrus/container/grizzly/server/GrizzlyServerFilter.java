@@ -43,6 +43,7 @@ package org.glassfish.tyrus.container.grizzly.server;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.ByteBuffer;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
@@ -82,7 +83,9 @@ import org.glassfish.grizzly.http.HttpRequestPacket;
 import org.glassfish.grizzly.http.HttpResponsePacket;
 import org.glassfish.grizzly.http.HttpServerFilter;
 import org.glassfish.grizzly.http.Protocol;
+import org.glassfish.grizzly.http.util.Parameters;
 import org.glassfish.grizzly.memory.ByteBufferArray;
+import org.glassfish.grizzly.utils.Charsets;
 
 /**
  * WebSocket {@link Filter} implementation, which supposed to be placed into a {@link FilterChain} right after HTTP
@@ -241,7 +244,7 @@ class GrizzlyServerFilter extends BaseFilter {
         switch (upgradeInfo.getStatus()) {
             case SUCCESS:
                 final Connection grizzlyConnection = ctx.getConnection();
-                write(ctx, upgradeRequest, upgradeResponse);
+                write(ctx, upgradeResponse);
 
                 final org.glassfish.tyrus.spi.Connection connection = upgradeInfo.createConnection(new GrizzlyWriter(ctx.getConnection()), new org.glassfish.tyrus.spi.Connection.CloseListener() {
                     @Override
@@ -267,7 +270,7 @@ class GrizzlyServerFilter extends BaseFilter {
                 return ctx.getStopAction();
 
             case HANDSHAKE_FAILED:
-                write(ctx, upgradeRequest, upgradeResponse);
+                write(ctx, upgradeResponse);
                 content.recycle();
                 return ctx.getStopAction();
 
@@ -279,7 +282,7 @@ class GrizzlyServerFilter extends BaseFilter {
         return ctx.getStopAction();
     }
 
-    private void write(FilterChainContext ctx, UpgradeRequest request, UpgradeResponse response) {
+    private void write(FilterChainContext ctx, UpgradeResponse response) {
         final HttpResponsePacket responsePacket = ((HttpRequestPacket) ((HttpContent) ctx.getMessage()).getHttpHeader()).getResponse();
         responsePacket.setProtocol(Protocol.HTTP_1_1);
         responsePacket.setStatus(response.getStatus());
@@ -308,9 +311,21 @@ class GrizzlyServerFilter extends BaseFilter {
 
         final HttpRequestPacket requestPacket = (HttpRequestPacket) requestContent.getHttpHeader();
 
+        Parameters parameters = new Parameters();
+
+        parameters.setQuery(requestPacket.getQueryStringDC());
+        parameters.setQueryStringEncoding(Charsets.UTF8_CHARSET);
+
+        Map<String, String[]> parameterMap = new HashMap<String, String[]>();
+
+        for (String paramName : parameters.getParameterNames()) {
+            parameterMap.put(paramName, parameters.getParameterValues(paramName));
+        }
+
         final RequestContext requestContext = RequestContext.Builder.create()
                 .requestURI(URI.create(requestPacket.getRequestURI()))
                 .queryString(requestPacket.getQueryString())
+                .parameterMap(parameterMap)
                 .secure(requestPacket.isSecure())
                 .remoteAddr(requestPacket.getRemoteAddress())
                 .build();
