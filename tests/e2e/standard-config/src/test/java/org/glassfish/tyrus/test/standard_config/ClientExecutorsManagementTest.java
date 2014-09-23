@@ -50,10 +50,12 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import javax.websocket.ClientEndpoint;
 import javax.websocket.CloseReason;
+import javax.websocket.ContainerProvider;
 import javax.websocket.DeploymentException;
 import javax.websocket.Endpoint;
 import javax.websocket.EndpointConfig;
 import javax.websocket.OnMessage;
+import javax.websocket.OnOpen;
 import javax.websocket.Session;
 import javax.websocket.server.ServerEndpoint;
 
@@ -368,6 +370,11 @@ public class ClientExecutorsManagementTest extends TestContainer {
     @ServerEndpoint("/clientExecutorsEchoEndpoint")
     public static class AnnotatedServerEndpoint {
 
+        @OnOpen
+        public void onOpen(Session session) {
+            session.setMaxIdleTimeout(0);
+        }
+
     }
 
     @ClientEndpoint
@@ -402,16 +409,17 @@ public class ClientExecutorsManagementTest extends TestContainer {
 
         @OnMessage
         public void onMessage(Session session, String message) throws IOException, DeploymentException {
-            ClientManager clientManager = ClientManager.createClient();
-            Session s = clientManager.connectToServer(AnnotatedClientEndpoint.class, URI.create(message));
-            ExecutorService executorService = clientManager.getExecutorService();
-            ScheduledExecutorService scheduledExecutorService = clientManager.getScheduledExecutorService();
+            // one option for obtaining a container
+            Session s = ContainerProvider.getWebSocketContainer().connectToServer(AnnotatedClientEndpoint.class, URI.create(message));
             s.close();
 
-            // check that the managed executors have not been closed
-            if (!executorService.isShutdown() && !scheduledExecutorService.isShutdown()) {
-                session.getBasicRemote().sendText("OK");
-            }
+            // another option for obtaining a container
+            s = session.getContainer().connectToServer(AnnotatedClientEndpoint.class, URI.create(message));
+            s.close();
+
+            /* An IllegalStateException is thrown if any of the lifecycle operations are invoked on a managed executor
+            service, so if the test gets here it means Tyrus does not try to shut down the managed executor service */
+            session.getBasicRemote().sendText("OK");
         }
     }
 }

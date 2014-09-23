@@ -64,6 +64,7 @@ import org.glassfish.tyrus.test.tools.TestContainer;
 import org.junit.Test;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 /**
  * Tests warnings logged when max message size given in {@link javax.websocket.OnMessage} is larger than max message
@@ -181,7 +182,8 @@ public class MaxMessageSizeDeploymentTest extends TestContainer {
             logger.removeHandler(handler);
 
         } catch (IOException e) {
-
+            e.printStackTrace();
+            fail();
         } finally {
             stopServer(server);
         }
@@ -214,7 +216,8 @@ public class MaxMessageSizeDeploymentTest extends TestContainer {
             logger.removeHandler(handler);
 
         } catch (IOException e) {
-
+            e.printStackTrace();
+            fail();
         } finally {
             stopServer(server);
         }
