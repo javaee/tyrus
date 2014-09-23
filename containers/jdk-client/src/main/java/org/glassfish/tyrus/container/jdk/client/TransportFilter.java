@@ -46,6 +46,8 @@ import java.nio.channels.AsynchronousChannelGroup;
 import java.nio.channels.AsynchronousCloseException;
 import java.nio.channels.AsynchronousSocketChannel;
 import java.nio.channels.CompletionHandler;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.Queue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -335,15 +337,26 @@ class TransportFilter extends Filter {
 
         @Override
         public Thread newThread(Runnable r) {
-            Thread thread = new Thread(r);
+            final Thread thread = new Thread(r);
             thread.setName(THREAD_NAME_BASE + threadCounter.incrementAndGet());
             thread.setPriority(threadPoolConfig.getPriority());
             thread.setDaemon(threadPoolConfig.isDaemon());
 
-            if (threadPoolConfig.getInitialClassLoader() == null) {
-                thread.setContextClassLoader(this.getClass().getClassLoader());
-            } else {
-                thread.setContextClassLoader(threadPoolConfig.getInitialClassLoader());
+            try {
+                AccessController.doPrivileged(new PrivilegedAction<Void>() {
+                    @Override
+                    public Void run() {
+                        if (threadPoolConfig.getInitialClassLoader() == null) {
+                            thread.setContextClassLoader(this.getClass().getClassLoader());
+                        } else {
+                            thread.setContextClassLoader(threadPoolConfig.getInitialClassLoader());
+                        }
+                        return null;
+                    }
+                });
+            } catch (Throwable t) {
+                // just log - client still can work without setting context class loader
+                LOGGER.log(Level.WARNING, "Cannot set thread context class loader.", t);
             }
 
             return thread;
