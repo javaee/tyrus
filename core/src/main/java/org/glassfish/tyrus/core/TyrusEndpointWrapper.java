@@ -294,7 +294,7 @@ public class TyrusEndpointWrapper {
             if (getDefaultDecoders().contains(decoderClass)) {
                 try {
                     decoders.add(new CoderWrapper<Decoder>(ReflectionHelper.getInstance(decoderClass), type));
-                } catch (ReflectiveOperationException e) {
+                } catch (Exception e) {
                     throw new DeploymentException(e.getMessage(), e);
                 }
             } else {
@@ -308,7 +308,7 @@ public class TyrusEndpointWrapper {
                 Class<?> type = getDecoderClassType(decoderClass);
                 try {
                     decoders.add(new CoderWrapper<Decoder>(ReflectionHelper.getInstance(decoderClass), type));
-                } catch (ReflectiveOperationException e) {
+                } catch (Exception e) {
                     throw new DeploymentException(e.getMessage(), e);
                 }
             }
