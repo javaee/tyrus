@@ -109,22 +109,28 @@ public class TyrusWebSocket {
     }
 
     /**
-     * This callback will be invoked when the remote end-point sent a closing
+     * This callback will be invoked when the remote endpoint sent a closing
      * frame.
      *
-     * @param frame the close frame from the remote end-point.
+     * The execution of this method is synchronized using {@link ProtocolHandler} instance; see TYRUS-385. Prevents
+     * multiple invocations, especially from container/user code.
+     *
+     * @param frame the close frame from the remote endpoint.
      */
-    public synchronized void onClose(CloseFrame frame) {
-        final CloseReason closeReason = frame.getCloseReason();
+    public void onClose(CloseFrame frame) {
 
-        if (endpointWrapper != null) {
-            endpointWrapper.onClose(this, closeReason);
-        }
-        if (state.compareAndSet(State.CONNECTED, State.CLOSING)) {
-            protocolHandler.close(closeReason.getCloseCode().getCode(), closeReason.getReasonPhrase());
-        } else {
-            state.set(State.CLOSED);
-            protocolHandler.doClose();
+        synchronized (protocolHandler) {
+            final CloseReason closeReason = frame.getCloseReason();
+
+            if (endpointWrapper != null) {
+                endpointWrapper.onClose(this, closeReason);
+            }
+            if (state.compareAndSet(State.CONNECTED, State.CLOSING)) {
+                protocolHandler.close(closeReason.getCloseCode().getCode(), closeReason.getReasonPhrase());
+            } else {
+                state.set(State.CLOSED);
+                protocolHandler.doClose();
+            }
         }
     }
 
@@ -148,7 +154,7 @@ public class TyrusWebSocket {
      * This callback will be invoked when a fragmented binary message has
      * been received.
      *
-     * @param frame the binary data received from the remote end-point.
+     * @param frame the binary data received from the remote endpoint.
      * @param last  flag indicating whether or not the payload received is the
      *              final fragment of a message.
      */
@@ -164,7 +170,7 @@ public class TyrusWebSocket {
      * This callback will be invoked when a fragmented textual message has
      * been received.
      *
-     * @param frame the text received from the remote end-point.
+     * @param frame the text received from the remote endpoint.
      * @param last  flag indicating whether or not the payload received is the
      *              final fragment of a message.
      */
@@ -179,7 +185,7 @@ public class TyrusWebSocket {
     /**
      * This callback will be invoked when a binary message has been received.
      *
-     * @param frame the binary data received from the remote end-point.
+     * @param frame the binary data received from the remote endpoint.
      */
     public void onMessage(BinaryFrame frame) {
         awaitOnConnect();
@@ -192,7 +198,7 @@ public class TyrusWebSocket {
     /**
      * This callback will be invoked when a text message has been received.
      *
-     * @param frame the text received from the remote end-point.
+     * @param frame the text received from the remote endpoint.
      */
     public void onMessage(TextFrame frame) {
         awaitOnConnect();
@@ -203,10 +209,10 @@ public class TyrusWebSocket {
     }
 
     /**
-     * This callback will be invoked when the remote end-point has sent a ping
+     * This callback will be invoked when the remote endpoint has sent a ping
      * frame.
      *
-     * @param frame the ping frame from the remote end-point.
+     * @param frame the ping frame from the remote endpoint.
      */
     public void onPing(PingFrame frame) {
         awaitOnConnect();
@@ -217,10 +223,10 @@ public class TyrusWebSocket {
     }
 
     /**
-     * This callback will be invoked when the remote end-point has sent a pong
+     * This callback will be invoked when the remote endpoint has sent a pong
      * frame.
      *
-     * @param frame the pong frame from the remote end-point.
+     * @param frame the pong frame from the remote endpoint.
      */
     public void onPong(PongFrame frame) {
         awaitOnConnect();

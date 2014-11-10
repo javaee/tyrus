@@ -303,7 +303,7 @@ public final class ProtocolHandler {
         }
     }
 
-    public Future<Frame> close(final int code, final String reason) {
+    public synchronized Future<Frame> close(final int code, final String reason) {
         final CloseFrame outgoingCloseFrame;
         final CloseReason closeReason = new CloseReason(CloseReason.CloseCodes.getCloseCode(code), reason);
 
@@ -424,7 +424,7 @@ public final class ProtocolHandler {
         return local;
     }
 
-    public void doClose() {
+    void doClose() {
         final Writer localWriter = writer;
         if (localWriter == null) {
             throw new IllegalStateException(LocalizationMessages.CONNECTION_NULL());
@@ -437,7 +437,7 @@ public final class ProtocolHandler {
         }
     }
 
-    public ByteBuffer frame(Frame frame) {
+    ByteBuffer frame(Frame frame) {
 
         if (client) {
             frame = Frame.builder(frame).maskingKey(maskingKeyGenerator.nextInt()).mask(true).build();
