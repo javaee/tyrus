@@ -57,6 +57,7 @@ import javax.websocket.server.ServerEndpoint;
 import org.glassfish.tyrus.server.Server;
 import org.glassfish.tyrus.test.tools.TestContainer;
 
+import org.junit.Ignore;
 import org.junit.Test;
 import static org.junit.Assert.assertTrue;
 
@@ -74,6 +75,7 @@ public class IPv6EchoTest extends TestContainer {
     }
 
     @Test
+    @Ignore("jdk@yosemite bug - does not correctly apply ::1 as non-proxiable host.")
     public void testIPv6() throws DeploymentException {
         Server server = startServer(EchoEndpoint.class);
 
