@@ -189,6 +189,8 @@ public class ClientManager extends BaseContainer implements WebSocketContainer {
     public static final String WLS_SSL_TRUSTSTORE_PROPERTY = "weblogic.websocket.client.SSL_TRUSTSTORE";
     public static final String WLS_SSL_TRUSTSTORE_PWD_PROPERTY = "weblogic.websocket.client.SSL_TRUSTSTORE_PWD";
     public static final String WLS_MAX_THREADS = "weblogic.websocket.client.max-aio-threads";
+    public static final String WLS_IGNORE_HOSTNAME_VERIFICATION = "weblogic.security.SSL.ignoreHostnameVerification";
+    public static final String WLS_HOSTNAME_VERIFIER_CLASS = "weblogic.security.SSL.HostnameVerifier";
 
     private static final Logger LOGGER = Logger.getLogger(ClientManager.class.getName());
     private final WebSocketContainer webSocketContainer;

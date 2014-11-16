@@ -58,11 +58,14 @@ import java.util.logging.Logger;
 import javax.websocket.ClientEndpointConfig;
 import javax.websocket.DeploymentException;
 
+import javax.net.ssl.HostnameVerifier;
+
 import org.glassfish.tyrus.client.ClientManager;
 import org.glassfish.tyrus.client.ClientProperties;
 import org.glassfish.tyrus.client.SslContextConfigurator;
 import org.glassfish.tyrus.client.SslEngineConfigurator;
 import org.glassfish.tyrus.client.ThreadPoolConfig;
+import org.glassfish.tyrus.core.ReflectionHelper;
 import org.glassfish.tyrus.core.Utils;
 import org.glassfish.tyrus.spi.ClientContainer;
 import org.glassfish.tyrus.spi.ClientEngine;
@@ -79,6 +82,7 @@ public class JdkClientContainer implements ClientContainer {
     /**
      * Input buffer that is used by {@link org.glassfish.tyrus.container.jdk.client.TransportFilter} when SSL is turned on.
      * The size cannot be smaller than a maximal size of a SSL packet, which is 16kB for payload + header, because
+     * {@link org.glassfish.tyrus.container.jdk.client.SslFilter} does not have its own buffer for buffering incoming
      * {@link org.glassfish.tyrus.container.jdk.client.SslFilter} does not have its own buffer for buffering incoming
      * data and therefore the entire SSL packet must fit into {@link org.glassfish.tyrus.container.jdk.client.TransportFilter}
      * input buffer.
@@ -241,6 +245,33 @@ public class JdkClientContainer implements ClientContainer {
             if (wlsSslProtocols != null) {
                 sslEngineConfigurator.setEnabledProtocols(wlsSslProtocols.split(","));
             }
+
+            // {@value ClientManager.WLS_IGNORE_HOSTNAME_VERIFICATION} system property
+            String wlsIgnoreHostnameVerification = System.getProperties().getProperty(ClientManager.WLS_IGNORE_HOSTNAME_VERIFICATION);
+            if ("true".equalsIgnoreCase(wlsIgnoreHostnameVerification)) {
+                sslEngineConfigurator.setHostVerificationEnabled(false);
+            } else {
+
+                // if hostname verification is not ignored, Tyrus looks for {@value ClientManager.WLS_HOSTNAME_VERIFIER_CLASS}.
+                // If that is found and the class can be instantiated properly, it will be used as Hostname
+                // Verifier instance; if not, we will use the default one.
+                final String className = System.getProperties().getProperty(ClientManager.WLS_HOSTNAME_VERIFIER_CLASS);
+                if (className != null && !className.isEmpty()) {
+                    //noinspection unchecked
+                    final Class<HostnameVerifier> hostnameVerifierClass = (Class<HostnameVerifier>) ReflectionHelper.classForName(className);
+                    if (hostnameVerifierClass != null) {
+                        try {
+                            final HostnameVerifier hostnameVerifier = ReflectionHelper.getInstance(hostnameVerifierClass);
+                            sslEngineConfigurator.setHostnameVerifier(hostnameVerifier);
+                        } catch (IllegalAccessException | InstantiationException e) {
+                            LOGGER.log(Level.INFO, String.format("Cannot instantiate class set as a value of '%s' property: %s",
+                                    ClientManager.WLS_HOSTNAME_VERIFIER_CLASS, className), e);
+                        }
+                    }
+                }
+
+            }
+
             sslFilter = new SslFilter(transportFilter, sslEngineConfigurator, uri.getHost());
         }
         return sslFilter;

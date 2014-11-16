@@ -263,81 +263,108 @@ public class SslContextConfigurator {
      * Sets the <em>trust</em> store provider name.
      *
      * @param trustStoreProvider <em>Trust</em> store provider to set.
+     * @return updated {@link SslContextConfigurator} instance.
      */
-    public void setTrustStoreProvider(String trustStoreProvider) {
+    public SslContextConfigurator setTrustStoreProvider(String trustStoreProvider) {
         this.trustStoreProvider = trustStoreProvider;
+
+        return this;
     }
 
     /**
      * Sets the <em>key</em> store provider name.
      *
      * @param keyStoreProvider <em>Key</em> store provider to set.
+     * @return updated {@link SslContextConfigurator} instance.
      */
-    public void setKeyStoreProvider(String keyStoreProvider) {
+    public SslContextConfigurator setKeyStoreProvider(String keyStoreProvider) {
         this.keyStoreProvider = keyStoreProvider;
+
+        return this;
     }
 
     /**
      * Type of <em>trust</em> store.
      *
      * @param trustStoreType Type of <em>trust</em> store to set.
+     * @return updated {@link SslContextConfigurator} instance.
      */
-    public void setTrustStoreType(String trustStoreType) {
+    public SslContextConfigurator setTrustStoreType(String trustStoreType) {
         this.trustStoreType = trustStoreType;
+
+        return this;
     }
 
     /**
      * Type of <em>key</em> store.
      *
      * @param keyStoreType Type of <em>key</em> store to set.
+     * @return updated {@link SslContextConfigurator} instance.
      */
-    public void setKeyStoreType(String keyStoreType) {
+    public SslContextConfigurator setKeyStoreType(String keyStoreType) {
         this.keyStoreType = keyStoreType;
+
+        return this;
     }
 
     /**
      * Password of <em>trust</em> store.
      *
      * @param trustStorePassword Password of <em>trust</em> store to set.
+     * @return updated {@link SslContextConfigurator} instance.
      */
-    public void setTrustStorePassword(String trustStorePassword) {
+    public SslContextConfigurator setTrustStorePassword(String trustStorePassword) {
         this.trustStorePassword = trustStorePassword.toCharArray();
+
+        return this;
     }
 
     /**
      * Password of <em>key</em> store.
      *
      * @param keyStorePassword Password of <em>key</em> store to set.
+     * @return updated {@link SslContextConfigurator} instance.
      */
-    public void setKeyStorePassword(String keyStorePassword) {
+    public SslContextConfigurator setKeyStorePassword(String keyStorePassword) {
         this.keyStorePassword = keyStorePassword.toCharArray();
+
+        return this;
     }
 
     /**
      * Password of <em>key</em> store.
      *
      * @param keyStorePassword Password of <em>key</em> store to set.
+     * @return updated {@link SslContextConfigurator} instance.
      */
-    public void setKeyStorePassword(char[] keyStorePassword) {
+    public SslContextConfigurator setKeyStorePassword(char[] keyStorePassword) {
         this.keyStorePassword = keyStorePassword.clone();
+
+        return this;
     }
 
     /**
      * Password of the key in the <em>key</em> store.
      *
      * @param keyPassword Password of <em>key</em> to set.
+     * @return updated {@link SslContextConfigurator} instance.
      */
-    public void setKeyPassword(String keyPassword) {
+    public SslContextConfigurator setKeyPassword(String keyPassword) {
         this.keyPassword = keyPassword.toCharArray();
+
+        return this;
     }
 
     /**
      * Password of the key in the <em>key</em> store.
      *
      * @param keyPassword Password of <em>key</em> to set.
+     * @return updated {@link SslContextConfigurator} instance.
      */
-    public void setKeyPassword(char[] keyPassword) {
+    public SslContextConfigurator setKeyPassword(char[] keyPassword) {
         this.keyPassword = keyPassword.clone();
+
+        return this;
     }
 
     /**
@@ -347,10 +374,13 @@ public class SslContextConfigurator {
      * {@link #setTrustStoreBytes(byte[])}.
      *
      * @param trustStoreFile File name of trust store.
+     * @return updated {@link SslContextConfigurator} instance.
      */
-    public void setTrustStoreFile(String trustStoreFile) {
+    public SslContextConfigurator setTrustStoreFile(String trustStoreFile) {
         this.trustStoreFile = trustStoreFile;
         this.trustStoreBytes = null;
+
+        return this;
     }
 
     /**
@@ -359,10 +389,13 @@ public class SslContextConfigurator {
      * {@link #setTrustStoreFile(java.lang.String)}.
      *
      * @param trustStoreBytes trust store payload.
+     * @return updated {@link SslContextConfigurator} instance.
      */
-    public void setTrustStoreBytes(byte[] trustStoreBytes) {
+    public SslContextConfigurator setTrustStoreBytes(byte[] trustStoreBytes) {
         this.trustStoreBytes = trustStoreBytes.clone();
         this.trustStoreFile = null;
+
+        return this;
     }
 
     /**
@@ -372,10 +405,13 @@ public class SslContextConfigurator {
      * {@link #setKeyStoreBytes(byte[])}.
      *
      * @param keyStoreFile File name of key store.
+     * @return updated {@link SslContextConfigurator} instance.
      */
-    public void setKeyStoreFile(String keyStoreFile) {
+    public SslContextConfigurator setKeyStoreFile(String keyStoreFile) {
         this.keyStoreFile = keyStoreFile;
         this.keyStoreBytes = null;
+
+        return this;
     }
 
     /**
@@ -384,29 +420,38 @@ public class SslContextConfigurator {
      * {@link #setKeyStoreFile(java.lang.String)}.
      *
      * @param keyStoreBytes key store payload.
+     * @return updated {@link SslContextConfigurator} instance.
      */
-    public void setKeyStoreBytes(byte[] keyStoreBytes) {
+    public SslContextConfigurator setKeyStoreBytes(byte[] keyStoreBytes) {
         this.keyStoreBytes = keyStoreBytes.clone();
         this.keyStoreFile = null;
+
+        return this;
     }
 
     /**
      * Sets the trust manager factory algorithm.
      *
      * @param trustManagerFactoryAlgorithm the trust manager factory algorithm.
+     * @return updated {@link SslContextConfigurator} instance.
      */
-    public void setTrustManagerFactoryAlgorithm(
+    public SslContextConfigurator setTrustManagerFactoryAlgorithm(
             String trustManagerFactoryAlgorithm) {
         this.trustManagerFactoryAlgorithm = trustManagerFactoryAlgorithm;
+
+        return this;
     }
 
     /**
      * Sets the key manager factory algorithm.
      *
      * @param keyManagerFactoryAlgorithm the key manager factory algorithm.
+     * @return updated {@link SslContextConfigurator} instance.
      */
-    public void setKeyManagerFactoryAlgorithm(String keyManagerFactoryAlgorithm) {
+    public SslContextConfigurator setKeyManagerFactoryAlgorithm(String keyManagerFactoryAlgorithm) {
         this.keyManagerFactoryAlgorithm = keyManagerFactoryAlgorithm;
+
+        return this;
     }
 
     /**
@@ -414,9 +459,12 @@ public class SslContextConfigurator {
      * this is null.
      *
      * @param securityProtocol Protocol for {@link javax.net.ssl.SSLContext#getProtocol()}.
+     * @return updated {@link SslContextConfigurator} instance.
      */
-    public void setSecurityProtocol(String securityProtocol) {
+    public SslContextConfigurator setSecurityProtocol(String securityProtocol) {
         this.securityProtocol = securityProtocol;
+
+        return this;
     }
 
     /**
@@ -556,6 +604,11 @@ public class SslContextConfigurator {
         return valid;
     }
 
+    /**
+     * Create {@link SSLContext} from current configuration.
+     *
+     * @return created {@link SSLContext}.
+     */
     public SSLContext createSSLContext() {
         SSLContext sslContext = null;
 
@@ -676,7 +729,13 @@ public class SslContextConfigurator {
         return sslContext;
     }
 
-    public void retrieve(Properties props) {
+    /**
+     * Retrieve settings from (system) properties.
+     *
+     * @param props property map (usually taken from {@link System#getProperties()}).
+     * @return updated {@link SslContextConfigurator} instance.
+     */
+    public SslContextConfigurator retrieve(Properties props) {
         trustStoreProvider = props.getProperty(TRUST_STORE_PROVIDER);
         keyStoreProvider = props.getProperty(KEY_STORE_PROVIDER);
 
@@ -702,5 +761,7 @@ public class SslContextConfigurator {
         keyStoreBytes = null;
 
         securityProtocol = "TLS";
+
+        return this;
     }
 }

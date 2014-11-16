@@ -173,18 +173,23 @@ public class SslEngineConfigurator {
         this.wantClientAuth = wantClientAuth;
     }
 
-    public SslEngineConfigurator(SslEngineConfigurator pattern) {
-        this.sslContextConfiguration = pattern.sslContextConfiguration;
-        this.sslContext = pattern.sslContext;
-        this.clientMode = pattern.clientMode;
-        this.needClientAuth = pattern.needClientAuth;
-        this.wantClientAuth = pattern.wantClientAuth;
+    /**
+     * Copy constructor.
+     *
+     * @param original original {@link SslEngineConfigurator} instance to be copied.
+     */
+    public SslEngineConfigurator(SslEngineConfigurator original) {
+        this.sslContextConfiguration = original.sslContextConfiguration;
+        this.sslContext = original.sslContext;
+        this.clientMode = original.clientMode;
+        this.needClientAuth = original.needClientAuth;
+        this.wantClientAuth = original.wantClientAuth;
 
-        this.enabledCipherSuites = pattern.enabledCipherSuites;
-        this.enabledProtocols = pattern.enabledProtocols;
+        this.enabledCipherSuites = original.enabledCipherSuites;
+        this.enabledProtocols = original.enabledProtocols;
 
-        this.isCipherConfigured = pattern.isCipherConfigured;
-        this.isProtocolConfigured = pattern.isProtocolConfigured;
+        this.isCipherConfigured = original.isCipherConfigured;
+        this.isProtocolConfigured = original.isProtocolConfigured;
     }
 
     /**
@@ -218,7 +223,7 @@ public class SslEngineConfigurator {
     }
 
     /**
-     * Configure passed {@link SSLEngine}, using current configurator settings
+     * Configure passed {@link SSLEngine}, using current configurator settings, excluding Hostname Verification.
      *
      * @param sslEngine {@link SSLEngine} to configure.
      * @return configured {@link SSLEngine}.
@@ -267,44 +272,88 @@ public class SslEngineConfigurator {
      * @param clientMode <tt>true</tt>, if {@link SSLEngine} will be configured
      *                   to work in <tt>client</tt> mode, or <tt>false</tt> for <tt>server</tt>
      *                   mode.
+     * @return updated {@link SslEngineConfigurator}.
      */
     public SslEngineConfigurator setClientMode(boolean clientMode) {
         this.clientMode = clientMode;
         return this;
     }
 
-
+    /**
+     * Get "need client auth" property.
+     *
+     * @return need client auth property value;
+     */
     public boolean isNeedClientAuth() {
         return needClientAuth;
     }
 
+    /**
+     * Set "need client auth" property.
+     *
+     * @param needClientAuth    value to be set.
+     * @return updated {@link SslEngineConfigurator}.
+     */
     public SslEngineConfigurator setNeedClientAuth(boolean needClientAuth) {
         this.needClientAuth = needClientAuth;
         return this;
     }
 
+    /**
+     * Get "want client auth" property.
+     *
+     * @return need client auth property value;
+     */
     public boolean isWantClientAuth() {
         return wantClientAuth;
     }
 
+    /**
+     * Set "want client auth" property.
+     *
+     * @param wantClientAuth    value to be set.
+     * @return updated {@link SslEngineConfigurator}.
+     */
     public SslEngineConfigurator setWantClientAuth(boolean wantClientAuth) {
         this.wantClientAuth = wantClientAuth;
         return this;
     }
 
+    /**
+     * Get enabled cipher suites.
+     *
+     * @return {@link String} array with enabled cipher suites.
+     */
     public String[] getEnabledCipherSuites() {
         return enabledCipherSuites.clone();
     }
 
+    /**
+     * Set enabled cipher suites.
+     *
+     * @param enabledCipherSuites {@link String} array with cipher suites.
+     * @return updated {@link SslEngineConfigurator}.
+     */
     public SslEngineConfigurator setEnabledCipherSuites(String[] enabledCipherSuites) {
         this.enabledCipherSuites = enabledCipherSuites.clone();
         return this;
     }
 
+    /**
+     * Get enabled protocols.
+     *
+     * @return {@link String} array with enabled protocols.
+     */
     public String[] getEnabledProtocols() {
         return enabledProtocols.clone();
     }
 
+    /**
+     * Set enabled protocols.
+     *
+     * @param enabledProtocols {@link String} array with protocols.
+     * @return updated {@link SslEngineConfigurator}.
+     */
     public SslEngineConfigurator setEnabledProtocols(String[] enabledProtocols) {
         this.enabledProtocols = enabledProtocols.clone();
         return this;
@@ -343,10 +392,13 @@ public class SslEngineConfigurator {
      * @param hostVerificationEnabled when {@code true}, servers hostname will be verified using JDK default
      *                                {@link HostnameVerifier}. When {@code false}, hostname verification won't be
      *                                performed unless custom {@link HostnameVerifier} is set.
+     * @return updated {@link SslEngineConfigurator}.
      * @see #setHostnameVerifier(HostnameVerifier)
      */
-    public void setHostVerificationEnabled(boolean hostVerificationEnabled) {
+    public SslEngineConfigurator setHostVerificationEnabled(boolean hostVerificationEnabled) {
         this.hostVerificationEnabled = hostVerificationEnabled;
+
+        return this;
     }
 
     /**
@@ -367,10 +419,17 @@ public class SslEngineConfigurator {
      *
      * @param hostnameVerifier custom hostname verifier.
      */
-    public void setHostnameVerifier(HostnameVerifier hostnameVerifier) {
+    public SslEngineConfigurator setHostnameVerifier(HostnameVerifier hostnameVerifier) {
         this.hostnameVerifier = hostnameVerifier;
+
+        return this;
     }
 
+    /**
+     * Create {@link SSLContext} and store it for further invocation of this method.
+     *
+     * @return
+     */
     public SSLContext getSslContext() {
         if (sslContext == null) {
             synchronized (sync) {
