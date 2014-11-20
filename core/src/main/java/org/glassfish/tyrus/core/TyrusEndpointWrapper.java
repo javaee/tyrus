@@ -208,7 +208,7 @@ public class TyrusEndpointWrapper {
         }
 
         if (parallelBroadcastEnabled == null) {
-            this.parallelBroadcastEnabled = true;
+            this.parallelBroadcastEnabled = false;
         } else {
             this.parallelBroadcastEnabled = parallelBroadcastEnabled;
         }

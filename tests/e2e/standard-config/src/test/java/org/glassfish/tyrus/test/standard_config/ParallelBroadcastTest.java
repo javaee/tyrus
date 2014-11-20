@@ -122,6 +122,7 @@ public class ParallelBroadcastTest extends TestContainer {
      */
     @Test
     public void testTyrusParallelTextBroadcast() {
+        getServerProperties().put(TyrusWebSocketEngine.PARALLEL_BROADCAST_ENABLED, true);
         testTyrusTextBroadcast();
     }
 
@@ -132,6 +133,7 @@ public class ParallelBroadcastTest extends TestContainer {
      */
     @Test
     public void testTyrusParallelBinaryBroadcast() {
+        getServerProperties().put(TyrusWebSocketEngine.PARALLEL_BROADCAST_ENABLED, true);
         testTyrusBinaryBroadcast();
     }
 

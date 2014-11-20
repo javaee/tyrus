@@ -157,7 +157,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
      * operations are by default executed in parallel. The parallel execution of broadcast can be disabled by setting
      * this server property to {@code false}.
      * <p/>
-     * Expected value is {@code true} or {@code false} and the default value is {@code true}.
+     * Expected value is {@code true} or {@code false} and the default value is {@code false}.
      *
      * @see org.glassfish.tyrus.core.TyrusSession#broadcast(String).
      * @see org.glassfish.tyrus.core.TyrusSession#broadcast(java.nio.ByteBuffer).
@@ -234,7 +234,7 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
         LOGGER.config("Max sessions per app: " + maxSessionsPerApp);
         LOGGER.config("Max sessions per remote address: " + maxSessionsPerRemoteAddr);
         // parallel broadcast is enabled by default, so null means true
-        LOGGER.config("Parallel broadcast enabled: " + (parallelBroadcastEnabled == null || parallelBroadcastEnabled));
+        LOGGER.config("Parallel broadcast enabled: " + (parallelBroadcastEnabled != null && parallelBroadcastEnabled));
 
         this.tracingType = tracingType;
         this.tracingThreshold = tracingThreshold;

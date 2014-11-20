@@ -441,8 +441,9 @@ public class TyrusSession implements Session, DistributedSession {
     /**
      * Broadcasts text message to all connected clients.
      * <p/>
-     * The broadcast is executed in parallel by default. This can be changed by setting
-     * {@link org.glassfish.tyrus.core.TyrusWebSocketEngine#PARALLEL_BROADCAST_ENABLED} to {@code false} in server properties
+     * The broadcast can be executed in parallel, which can be enabled by setting
+     * {@link org.glassfish.tyrus.core.TyrusWebSocketEngine#PARALLEL_BROADCAST_ENABLED}
+     * to {@code true} in server properties.
      *
      * @param message message to be broadcasted.
      * @return map of local sessions and futures for user to get the information about status of the message.
@@ -454,8 +455,9 @@ public class TyrusSession implements Session, DistributedSession {
     /**
      * Broadcasts binary message to all connected clients, including remote sessions (if any).
      * </p>
-     * The broadcast is executed in parallel by default. This can be changed by setting
-     * {@link org.glassfish.tyrus.core.TyrusWebSocketEngine#PARALLEL_BROADCAST_ENABLED} to {@code false} in server properties.
+     * The broadcast can be executed in parallel, which can be enabled by setting
+     * {@link org.glassfish.tyrus.core.TyrusWebSocketEngine#PARALLEL_BROADCAST_ENABLED}
+     * to {@code true} in server properties.
      *
      * @param message message to be broadcasted.
      * @return map of local sessions and futures for user to get the information about status of the message.
