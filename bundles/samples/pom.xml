@@ -132,7 +132,7 @@
                         </goals>
                         <configuration>
                             <stripVersion>true</stripVersion>
-                            <includeGroupIds>org.glassfish.tyrus.samples</includeGroupIds>
+                            <includeGroupIds>org.glassfish.tyrus.sample</includeGroupIds>
                             <classifier>project-src</classifier>
                             <type>zip</type>
                             <outputDirectory>${project.build.directory}/dependency/samples</outputDirectory>
