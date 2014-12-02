@@ -45,8 +45,6 @@ import java.io.Reader;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.websocket.CloseReason;
-import javax.websocket.OnClose;
 import javax.websocket.OnError;
 import javax.websocket.OnMessage;
 import javax.websocket.OnOpen;
@@ -133,10 +131,4 @@ public class SharedCollectionEndpoint {
         System.out.println("# onError");
         t.printStackTrace();
     }
-
-    @OnClose
-    public void onClose(Session s, CloseReason closeReason) {
-        System.out.println("# onClose ");
-    }
-
 }
