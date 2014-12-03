@@ -93,7 +93,9 @@ public class PerMessageDeflateExtension implements ExtendedExtension {
             LOGGER.fine("Incoming frame: " + frame);
         }
 
-        if (frame.isRsv1() && !frame.isControlFrame()) {
+        // per-message-deflate draft, chapter 8.2.3.1:
+        // "Note that the RSV1 bit is set only on the first frame."
+        if ((frame.isRsv1() || frame.getOpcode() == 0x00) && !frame.isControlFrame()) {
             // Decompress the bytes
             final int payloadLength = (int) frame.getPayloadLength();
 
@@ -107,11 +109,13 @@ public class PerMessageDeflateExtension implements ExtendedExtension {
                 wholeResultLength += tmp;
             }
 
-            tmp = processCompressed(decompresser, TAIL, 4, wholeResult);
-            if (tmp == -1) {
-                return frame;
-            } else {
-                wholeResultLength += tmp;
+            if (frame.isFin()) {
+                tmp = processCompressed(decompresser, TAIL, 4, wholeResult);
+                if (tmp == -1) {
+                    return frame;
+                } else {
+                    wholeResultLength += tmp;
+                }
             }
 
             byte[] completeResult = new byte[wholeResultLength];
@@ -195,7 +199,8 @@ public class PerMessageDeflateExtension implements ExtendedExtension {
             }
 
             boolean strip = false;
-            if (completeResult[completeResult.length - 4] == TAIL[0] &&
+            if (completeResult.length >= 4 &&
+                    completeResult[completeResult.length - 4] == TAIL[0] &&
                     completeResult[completeResult.length - 3] == TAIL[1] &&
                     completeResult[completeResult.length - 2] == TAIL[2] &&
                     completeResult[completeResult.length - 1] == TAIL[3]

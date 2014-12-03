@@ -87,55 +87,73 @@ public class TyrusServerEndpointConfigurator extends ServerEndpointConfig.Config
             for (final Extension requestedExtension : requested) {
                 for (Extension extension : installed) {
                     final String name = extension.getName();
-                    // exception have the same name = are equal. Params should not be taken into account.
+
                     if (name != null && name.equals(requestedExtension.getName())) {
-                        if (extension instanceof ExtendedExtension) {
-                            final ExtendedExtension extendedExtension = (ExtendedExtension) extension;
-                            result.add(new ExtendedExtension() {
-                                @Override
-                                public Frame processIncoming(ExtensionContext context, Frame frame) {
-                                    return extendedExtension.processIncoming(context, frame);
-                                }
 
-                                @Override
-                                public Frame processOutgoing(ExtensionContext context, Frame frame) {
-                                    return extendedExtension.processOutgoing(context, frame);
-                                }
+                        /**
+                         * Per message compression - draft 19
+                         * https://tools.ietf.org/html/draft-ietf-hybi-permessage-compression-19
+                         *
+                         * Extensions header can contain multiple declarations of the same extension with various
+                         * parameters. The result have to contain only one result; depends on servers choice.
+                         *
+                         * {@see ExtendedExtension#onExtensionNegotiation(ExtendedExtension.ExtensionContext, List)}
+                         */
+                        boolean alreadyAdded = false;
 
-                                /**
-                                 * TODO.
-                                 *
-                                 * @param context TODO
-                                 * @param requestedParameters TODO
-                                 * @return TODO
-                                 */
-                                @Override
-                                public List<Parameter> onExtensionNegotiation(ExtensionContext context, List<Parameter> requestedParameters) {
-                                    return extendedExtension.onExtensionNegotiation(context, requestedExtension.getParameters());
-                                }
+                        for (Extension e : result) {
+                            if (e.getName().equals(name)) {
+                                alreadyAdded = true;
+                            }
+                        }
 
-                                @Override
-                                public void onHandshakeResponse(ExtensionContext context, List<Parameter> responseParameters) {
-                                    extendedExtension.onHandshakeResponse(context, responseParameters);
-                                }
+                        if (!alreadyAdded) {
+                            if (extension instanceof ExtendedExtension) {
+                                final ExtendedExtension extendedExtension = (ExtendedExtension) extension;
+                                result.add(new ExtendedExtension() {
+                                    @Override
+                                    public Frame processIncoming(ExtensionContext context, Frame frame) {
+                                        return extendedExtension.processIncoming(context, frame);
+                                    }
 
-                                @Override
-                                public void destroy(ExtensionContext context) {
-                                    extendedExtension.destroy(context);
-                                }
+                                    @Override
+                                    public Frame processOutgoing(ExtensionContext context, Frame frame) {
+                                        return extendedExtension.processOutgoing(context, frame);
+                                    }
 
-                                @Override
-                                public String getName() {
-                                    return name;
-                                }
+                                    /**
+                                     * {@inheritDoc}
+                                     * <p/>
+                                     * Please note the TODO. {@link ExtendedExtension#onExtensionNegotiation(ExtensionContext, List)}
+                                     */
+                                    @Override
+                                    public List<Parameter> onExtensionNegotiation(ExtensionContext context, List<Parameter> requestedParameters) {
+                                        return extendedExtension.onExtensionNegotiation(context, requestedExtension.getParameters());
+                                    }
 
-                                @Override
-                                public List<Parameter> getParameters() {
-                                    return extendedExtension.getParameters();
-                                }
-                            });
-                        } else {
-                            result.add(requestedExtension);
+                                    @Override
+                                    public void onHandshakeResponse(ExtensionContext context, List<Parameter> responseParameters) {
+                                        extendedExtension.onHandshakeResponse(context, responseParameters);
+                                    }
+
+                                    @Override
+                                    public void destroy(ExtensionContext context) {
+                                        extendedExtension.destroy(context);
+                                    }
+
+                                    @Override
+                                    public String getName() {
+                                        return name;
+                                    }
+
+                                    @Override
+                                    public List<Parameter> getParameters() {
+                                        return extendedExtension.getParameters();
+                                    }
+                                });
+                            } else {
+                                result.add(requestedExtension);
+                            }
                         }
                     }
                 }

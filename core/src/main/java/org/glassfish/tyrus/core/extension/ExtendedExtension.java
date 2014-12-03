@@ -117,6 +117,12 @@ public interface ExtendedExtension extends Extension {
     /**
      * Parameter negotiation. Executed before handshake response is sent to the client (server only). Returned
      * list of parameters will be present in handshake response headers.
+     * <p/>
+     * TODO: Seems like list of all "requested" extensions should be passed (at least all with the same name) - the
+     * TODO: extension implementation should be able to choose which version (parameter set) will be used for the
+     * TODO: established WebSocket session. (We should also properly describe that this method will be called only once
+     * TODO: per extension per websocket session and have the possibility to NOT add this extension to negotiated
+     * TODO: extensions).
      *
      * @param context             extension context.
      * @param requestedParameters requested parameters (from handshake request).
@@ -125,7 +131,7 @@ public interface ExtendedExtension extends Extension {
     List<Parameter> onExtensionNegotiation(ExtensionContext context, List<Parameter> requestedParameters);
 
     /**
-     * Called only client side when handshake response arrives.
+     * Called only on the client side when handshake response arrives.
      * <p/>
      * Can be used to process extension parameters returned from server side.
      *

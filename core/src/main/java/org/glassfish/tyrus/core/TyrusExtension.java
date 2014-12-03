@@ -376,7 +376,8 @@ public class TyrusExtension implements Extension, Serializable {
 
             if ((name.length() > 0) && (next != ParserState.ERROR)) {
                 if (paramName.length() > 0) {
-                    params.add(new TyrusParameter(paramName.toString().trim(), paramValue.toString()));
+                    final String paramValueString = paramValue.toString();
+                    params.add(new TyrusParameter(paramName.toString().trim(), paramValueString.equals("") ? null : paramValueString));
                 }
                 extensions.add(new TyrusExtension(name.toString().trim(), params));
                 params.clear();
