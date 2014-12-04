@@ -212,7 +212,7 @@ Tyrus.Collection.Map = function (url, updateListener) {
     self.keySet = function () {
         var result = [];
 
-        for (key in map) {
+        for (var key in map) {
             if (map.hasOwnProperty(key)) {
                 result[key] = key;
             }
@@ -222,11 +222,3 @@ Tyrus.Collection.Map = function (url, updateListener) {
     };
 
 };
-
-
-
-
-
-
-
-

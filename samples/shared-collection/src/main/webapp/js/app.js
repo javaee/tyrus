@@ -51,6 +51,7 @@ window.boardUpdate = function () {
         "</span><span class='remove'></span></div>";
 
     for (var key in window.collection.keySet()) {
+        //noinspection JSUnfilteredForInLoop
         var val = window.collection.get(key);
         content += "<div class='item' onclick='document.getElementById(\"key\").value = \"" + key + "\"; document.getElementById(\"value\").value = \"" + val + "\"'>" +
             "<span class='key'>" + key +
