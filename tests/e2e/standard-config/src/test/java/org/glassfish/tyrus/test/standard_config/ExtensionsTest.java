@@ -68,13 +68,15 @@ import static org.junit.Assert.assertEquals;
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
+@SuppressWarnings("serial")
 public class ExtensionsTest extends TestContainer {
 
-    private static final CountDownLatch messageLatch = new CountDownLatch(4);
     private static final String SENT_MESSAGE = "Always pass on what you have learned.";
 
-    @ServerEndpoint(value = "/echo4", configurator = MyServerConfigurator.class)
-    public static class TestEndpoint {
+    private static final String MULTIPLE_REQUEST_EXTENSION_NAME = "testExtension";
+
+    @ServerEndpoint(value = "/extensionsTest", configurator = MyServerConfigurator.class)
+    public static class ExtensionsTestEndpoint {
         @OnOpen
         public void onOpen(Session s) {
             for (Extension extension : s.getNegotiatedExtensions()) {
@@ -103,7 +105,7 @@ public class ExtensionsTest extends TestContainer {
 
     @Test
     public void testExtensions() throws DeploymentException {
-        Server server = startServer(TestEndpoint.class);
+        Server server = startServer(ExtensionsTestEndpoint.class);
 
         try {
             final List<Extension.Parameter> list1 = new ArrayList<Extension.Parameter>() {{
@@ -124,10 +126,11 @@ public class ExtensionsTest extends TestContainer {
 
             final ClientEndpointConfig clientConfiguration = ClientEndpointConfig.Builder.create().extensions(extensions).build();
 
+            final CountDownLatch messageLatch = new CountDownLatch(4);
             ClientManager client = createClient();
-            ExtensionsClientEndpoint clientEndpoint = new ExtensionsClientEndpoint();
+            ExtensionsClientEndpoint clientEndpoint = new ExtensionsClientEndpoint(messageLatch);
             client.connectToServer(clientEndpoint, clientConfiguration,
-                    getURI(TestEndpoint.class));
+                    getURI(ExtensionsTestEndpoint.class));
 
             messageLatch.await(1, TimeUnit.SECONDS);
             assertEquals(0, messageLatch.getCount());
@@ -141,7 +144,13 @@ public class ExtensionsTest extends TestContainer {
     }
 
     private static class ExtensionsClientEndpoint extends Endpoint {
+
+        private final CountDownLatch messageLatch;
         private volatile String receivedMessage;
+
+        private ExtensionsClientEndpoint(CountDownLatch messageLatch) {
+            this.messageLatch = messageLatch;
+        }
 
         @Override
         public void onOpen(final Session session, EndpointConfig EndpointConfig) {
@@ -154,6 +163,108 @@ public class ExtensionsTest extends TestContainer {
                             if (extension.getName().equals("ext1") || extension.getName().equals("ext2")) {
                                 messageLatch.countDown();
                             }
+                        }
+                    }
+                });
+
+                session.getBasicRemote().sendText(SENT_MESSAGE);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        String getReceivedMessage() {
+            return receivedMessage;
+        }
+    }
+
+    @ServerEndpoint(value = "/multipleRequestExtensionsTest", configurator = MultipleRequestExtensionsConfigurator.class)
+    public static class MultipleRequestExtensionsTestEndpoint {
+        @OnOpen
+        public void onOpen(Session s) {
+            final List<Extension> negotiatedExtensions = s.getNegotiatedExtensions();
+            if (negotiatedExtensions.size() == 1 && negotiatedExtensions.get(0).getName().equals(MULTIPLE_REQUEST_EXTENSION_NAME)) {
+                try {
+                    s.getBasicRemote().sendText(SENT_MESSAGE);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        @OnMessage
+        public String onMessage(String message) {
+            return message;
+        }
+    }
+
+    public static class MultipleRequestExtensionsConfigurator extends ServerEndpointConfig.Configurator {
+
+        private static final List<Extension> installedExtensions = new ArrayList<Extension>() {{
+            add(new TyrusExtension(MULTIPLE_REQUEST_EXTENSION_NAME));
+        }};
+
+        @Override
+        public List<Extension> getNegotiatedExtensions(List<Extension> installed, List<Extension> requested) {
+            return super.getNegotiatedExtensions(installedExtensions, requested);
+        }
+    }
+
+    @Test
+    public void testMultipleRequestExtensions() throws DeploymentException {
+        Server server = startServer(MultipleRequestExtensionsTestEndpoint.class);
+
+        // parameter list is not relevant for this testcase
+        final List<Extension.Parameter> parameterList = new ArrayList<Extension.Parameter>() {{
+            add(new TyrusExtension.TyrusParameter("prop1", "val1"));
+            add(new TyrusExtension.TyrusParameter("prop2", "val2"));
+            add(new TyrusExtension.TyrusParameter("prop3", "val3"));
+        }};
+
+        try {
+            ArrayList<Extension> extensions = new ArrayList<Extension>();
+            extensions.add(new TyrusExtension(MULTIPLE_REQUEST_EXTENSION_NAME, null));
+            extensions.add(new TyrusExtension(MULTIPLE_REQUEST_EXTENSION_NAME, parameterList));
+
+            final ClientEndpointConfig clientConfiguration = ClientEndpointConfig.Builder.create().extensions(extensions).build();
+
+            ClientManager client = createClient();
+            final CountDownLatch clientLatch = new CountDownLatch(2);
+            MultipleRequestExtensionsClientEndpoint clientEndpoint =
+                    new MultipleRequestExtensionsClientEndpoint(clientLatch);
+            client.connectToServer(clientEndpoint, clientConfiguration,
+                    getURI(MultipleRequestExtensionsTestEndpoint.class));
+
+            clientLatch.await(1, TimeUnit.SECONDS);
+            assertEquals(0, clientLatch.getCount());
+            assertEquals(SENT_MESSAGE, clientEndpoint.getReceivedMessage());
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new RuntimeException(e.getMessage(), e);
+        } finally {
+            stopServer(server);
+        }
+    }
+
+    private static class MultipleRequestExtensionsClientEndpoint extends Endpoint {
+
+        private final CountDownLatch messageLatch;
+        private volatile String receivedMessage;
+
+        private MultipleRequestExtensionsClientEndpoint(CountDownLatch messageLatch) {
+            this.messageLatch = messageLatch;
+        }
+
+        @Override
+        public void onOpen(final Session session, EndpointConfig EndpointConfig) {
+            try {
+                session.addMessageHandler(new MessageHandler.Whole<String>() {
+                    @Override
+                    public void onMessage(String message) {
+                        receivedMessage = message;
+                        final List<Extension> negotiatedExtensions = session.getNegotiatedExtensions();
+                        if (negotiatedExtensions.size() == 1 && negotiatedExtensions.get(0).getName().equals(MULTIPLE_REQUEST_EXTENSION_NAME)) {
+                            messageLatch.countDown();
                         }
                     }
                 });

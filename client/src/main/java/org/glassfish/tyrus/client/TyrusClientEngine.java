@@ -481,14 +481,28 @@ public class TyrusClientEngine implements ClientEngine {
 
         for (Extension responseExtension : handshakeResponseExtensions) {
             for (Extension installedExtension : ((ClientEndpointConfig) endpointWrapper.getEndpointConfig()).getExtensions()) {
-                if (responseExtension.getName() != null && responseExtension.getName().equals(installedExtension.getName())) {
+                final String responseExtensionName = responseExtension.getName();
+                if (responseExtensionName != null && responseExtensionName.equals(installedExtension.getName())) {
 
-                    if (installedExtension instanceof ExtendedExtension) {
-                        ((ExtendedExtension) installedExtension).onHandshakeResponse(extensionContext, responseExtension.getParameters());
+                    /**
+                     * @see TyrusServerEndpointConfigurator#getNegotiatedExtensions(...)
+                     */
+                    boolean alreadyAdded = false;
+
+                    for(Extension extension : extensions) {
+                        if(extension.getName().equals(responseExtensionName)) {
+                            alreadyAdded = true;
+                        }
                     }
 
-                    extensions.add(installedExtension);
-                    debugContext.appendLogMessage(LOGGER, Level.FINE, DebugContext.Type.OTHER, "Installed extension: ", installedExtension.getName());
+                    if(!alreadyAdded) {
+                        if (installedExtension instanceof ExtendedExtension) {
+                            ((ExtendedExtension) installedExtension).onHandshakeResponse(extensionContext, responseExtension.getParameters());
+                        }
+
+                        extensions.add(installedExtension);
+                        debugContext.appendLogMessage(LOGGER, Level.FINE, DebugContext.Type.OTHER, "Installed extension: ", installedExtension.getName());
+                    }
                 }
             }
         }

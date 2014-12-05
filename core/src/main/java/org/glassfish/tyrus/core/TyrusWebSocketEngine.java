@@ -385,7 +385,9 @@ public class TyrusWebSocketEngine implements WebSocketEngine {
                 return handleHandshakeException(e, response);
             }
 
-            logExtensionsAndSubprotocol(protocolHandler, debugContext);
+            if (LOGGER.isLoggable(Level.FINE)) {
+                logExtensionsAndSubprotocol(protocolHandler, debugContext);
+            }
 
             if (clusterContext != null && request.getHeaders().get(UpgradeRequest.CLUSTER_CONNECTION_ID_HEADER) == null) {
                 // TODO: we might need to introduce some property to check whether we should put this header into the response.
