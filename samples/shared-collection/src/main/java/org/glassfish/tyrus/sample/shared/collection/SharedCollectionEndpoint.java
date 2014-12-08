@@ -42,8 +42,10 @@ package org.glassfish.tyrus.sample.shared.collection;
 
 import java.io.IOException;
 import java.io.Reader;
+import java.util.Deque;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedDeque;
 
 import javax.websocket.OnError;
 import javax.websocket.OnMessage;
@@ -62,6 +64,9 @@ import javax.json.JsonObjectBuilder;
 public class SharedCollectionEndpoint {
 
     private static final Map<String, String> map = new ConcurrentHashMap<String, String>();
+    private static final Deque<Tuple<Session, JsonObject>> broadcastQueue = new ConcurrentLinkedDeque<Tuple<Session, JsonObject>>();
+
+    private volatile boolean broadcasting = false;
 
     static {
         map.put("Red Leader", "Garven Dreis");
@@ -113,22 +118,59 @@ public class SharedCollectionEndpoint {
     }
 
     private void broadcast(Session s, JsonObject object) {
-        final String message = object.toString();
+        broadcastQueue.add(new Tuple<Session, JsonObject>(s, object));
 
-        for (Session session : s.getOpenSessions()) {
-            if (!session.getId().equals(s.getId())) {
-                try {
-                    session.getBasicRemote().sendText(message);
-                } catch (IOException e) {
-                    // we don't care about that for now.
+        processQueue();
+    }
+
+    private void processQueue() {
+
+        if (broadcasting) {
+            return;
+        }
+
+        synchronized (broadcastQueue) {
+            broadcasting = true;
+
+            if (!broadcastQueue.isEmpty()) {
+                while (!broadcastQueue.isEmpty()) {
+                    final Tuple<Session, JsonObject> t = broadcastQueue.remove();
+
+                    final Session s = t.first;
+                    final String message = t.second.toString();
+
+                    for (Session session : s.getOpenSessions()) {
+                        if (!session.getId().equals(s.getId())) {
+                            try {
+                                session.getBasicRemote().sendText(message);
+                            } catch (IOException e) {
+                                // we don't care about that for now.
+                            }
+                        }
+                    }
                 }
             }
+        }
+
+        broadcasting = false;
+        if (!broadcastQueue.isEmpty()) {
+            processQueue();
         }
     }
 
     @OnError
-    public void onError(Session s, Throwable t) {
+    public void onError(Throwable t) {
         System.out.println("# onError");
         t.printStackTrace();
+    }
+
+    private static class Tuple<T, U> {
+        public final T first;
+        public final U second;
+
+        private Tuple(T first, U second) {
+            this.first = first;
+            this.second = second;
+        }
     }
 }
