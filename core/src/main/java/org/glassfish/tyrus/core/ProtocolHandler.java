@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -46,7 +46,11 @@ import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -72,7 +76,7 @@ import org.glassfish.tyrus.spi.Writer;
 /**
  * Tyrus protocol handler.
  * <p/>
- * Responsible for framing and unframing raw websocket frames.
+ * Responsible for framing and unframing raw websocket frames. Tyrus creates exactly one instance per Session.
  */
 public final class ProtocolHandler {
 
@@ -82,23 +86,59 @@ public final class ProtocolHandler {
     public static final int MASK_SIZE = 4;
 
     private static final Logger LOGGER = Logger.getLogger(ProtocolHandler.class.getName());
+    private static final int SEND_TIMEOUT = 3000; // millis.
 
     private final boolean client;
     private final MaskingKeyGenerator maskingKeyGenerator;
-    private final ParsingState state = new ParsingState();
+    private final ParsingState parsingState = new ParsingState();
 
     private volatile TyrusWebSocket webSocket;
     private volatile byte outFragmentedType;
     private volatile Writer writer;
     private volatile byte inFragmentedType;
     private volatile boolean processingFragment;
-    private volatile boolean sendingFragment = false;
     private volatile String subProtocol = null;
     private volatile List<Extension> extensions;
     private volatile ExtendedExtension.ExtensionContext extensionContext;
     private volatile ByteBuffer remainder = null;
     private volatile boolean hasExtensions = false;
     private volatile MessageEventListener messageEventListener = MessageEventListener.NO_OP;
+    private volatile SendingFragmentState sendingFragment = SendingFragmentState.IDLE;
+
+    /**
+     * Synchronizes all public send* (including stream variants) methods.
+     *
+     * The reason for this lock is that we need to have consistent value in {#sendingFragment} field to be able to
+     * determine the sending state of this particular instance/session.
+     */
+    private final Lock lock = new ReentrantLock();
+
+    /**
+     * If partial message is being send and we want to send partial message with different type or other whole message,
+     * we need to wait until "idleCondition" is signalled.
+     */
+    private final Condition idleCondition = lock.newCondition();
+
+    /**
+     * Sending state.
+     */
+    private static enum SendingFragmentState {
+
+        /**
+         * Session is idle - no partial message in progress.
+         */
+        IDLE,
+
+        /**
+         * Sending partial text message - final frame was not yet sent.
+         */
+        SENDING_TEXT,
+
+        /**
+         * Sending partial binary message - final frame was not yet sent.
+         */
+        SENDING_BINARY
+    }
 
     /**
      * Constructor.
@@ -176,11 +216,21 @@ public final class ProtocolHandler {
         return handshake;
     }
 
-    List<Extension> getExtensions() {
+    /* package */ List<Extension> getExtensions() {
         return extensions;
     }
 
-    String getSubProtocol() {
+    /**
+     * Client side. Set extensions negotiated for this WebSocket session/connection.
+     *
+     * @param extensions list of negotiated extensions. Can be {@code null}.
+     */
+    public void setExtensions(List<Extension> extensions) {
+        this.extensions = extensions;
+        this.hasExtensions = extensions != null && extensions.size() > 0;
+    }
+
+    /* package */ String getSubProtocol() {
         return subProtocol;
     }
 
@@ -203,16 +253,6 @@ public final class ProtocolHandler {
     }
 
     /**
-     * Client side. Set extensions negotiated for this WebSocket session/connection.
-     *
-     * @param extensions list of negotiated extensions. Can be {@code null}.
-     */
-    public void setExtensions(List<Extension> extensions) {
-        this.extensions = extensions;
-        this.hasExtensions = extensions != null && extensions.size() > 0;
-    }
-
-    /**
      * Set message event listener.
      *
      * @param messageEventListener message event listener.
@@ -221,85 +261,193 @@ public final class ProtocolHandler {
         this.messageEventListener = messageEventListener;
     }
 
-    public final Future<Frame> send(TyrusFrame frame, boolean useTimeout) {
-        return send(frame, null, useTimeout);
-    }
-
-    public final Future<Frame> send(TyrusFrame frame) {
+    /**
+     * Not message frames - ping/pong/...
+     */
+    /* package */
+    final Future<Frame> send(TyrusFrame frame) {
         return send(frame, null, true);
     }
 
-    Future<Frame> send(TyrusFrame frame,
-                       CompletionHandler<Frame> completionHandler, Boolean useTimeout) {
+    private Future<Frame> send(TyrusFrame frame,
+                               CompletionHandler<Frame> completionHandler, Boolean useTimeout) {
         return write(frame, completionHandler, useTimeout);
     }
 
-    Future<Frame> send(ByteBuffer frame,
-                       CompletionHandler<Frame> completionHandler, Boolean useTimeout) {
+    private Future<Frame> send(ByteBuffer frame,
+                               CompletionHandler<Frame> completionHandler, Boolean useTimeout) {
         return write(frame, completionHandler, useTimeout);
     }
 
     public Future<Frame> send(byte[] data) {
-        return send(new BinaryFrame(data, false, true), null, true);
+        lock.lock();
+        try {
+            checkSendingFragment();
+
+            return send(new BinaryFrame(data, false, true), null, true);
+        } finally {
+            lock.unlock();
+        }
     }
 
     public void send(final byte[] data, final SendHandler handler) {
-        send(new BinaryFrame(data, false, true), new CompletionHandler<Frame>() {
-            @Override
-            public void failed(Throwable throwable) {
-                handler.onResult(new SendResult(throwable));
-            }
+        lock.lock();
 
-            @Override
-            public void completed(Frame result) {
-                handler.onResult(new SendResult());
-            }
-        }, true);
+        try {
+            checkSendingFragment();
+
+            send(new BinaryFrame(data, false, true), new CompletionHandler<Frame>() {
+                @Override
+                public void failed(Throwable throwable) {
+                    handler.onResult(new SendResult(throwable));
+                }
+
+                @Override
+                public void completed(Frame result) {
+                    handler.onResult(new SendResult());
+                }
+            }, true);
+        } finally {
+            lock.unlock();
+        }
     }
 
     public Future<Frame> send(String data) {
-        return send(new TextFrame(data, false, true));
+        lock.lock();
+
+        try {
+            checkSendingFragment();
+            return send(new TextFrame(data, false, true));
+        } finally {
+            lock.unlock();
+        }
     }
 
     public void send(final String data, final SendHandler handler) {
-        send(new TextFrame(data, false, true), new CompletionHandler<Frame>() {
-            @Override
-            public void failed(Throwable throwable) {
-                handler.onResult(new SendResult(throwable));
-            }
+        lock.lock();
 
-            @Override
-            public void completed(Frame result) {
-                handler.onResult(new SendResult());
-            }
-        }, true);
+        try {
+            checkSendingFragment();
+
+            send(new TextFrame(data, false, true), new CompletionHandler<Frame>() {
+                @Override
+                public void failed(Throwable throwable) {
+                    handler.onResult(new SendResult(throwable));
+                }
+
+                @Override
+                public void completed(Frame result) {
+                    handler.onResult(new SendResult());
+                }
+            }, true);
+        } finally {
+            lock.unlock();
+        }
     }
 
+    /**
+     * Raw frame is always whole (not partial).
+     *
+     * @param data serialized frame.
+     * @return send future.
+     */
     public Future<Frame> sendRawFrame(ByteBuffer data) {
-        return send(data, null, true);
+        lock.lock();
+
+        try {
+            checkSendingFragment();
+
+            return send(data, null, true);
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    /**
+     * Check whether current {@link ProtocolHandler} is sending a partial message.
+     * <p/>
+     * If yes, wait for {@value ProtocolHandler#SEND_TIMEOUT} and if the message still cannot be sent, throw
+     * {@link IllegalStateException}.
+     */
+    private void checkSendingFragment() {
+        final long timeout = System.currentTimeMillis() + SEND_TIMEOUT;
+
+        // idleCondition can be signalled but other thread could be scheduled before this one; of that thread starts
+        // sending another partial message, we should wait again for the condition to be signalled.
+        while (sendingFragment != SendingFragmentState.IDLE) {
+            final long currentTimeMillis = System.currentTimeMillis();
+
+            // timeout already reached.
+            if(currentTimeMillis >= timeout) {
+                throw new IllegalStateException();
+            }
+
+            try {
+                if (!idleCondition.await(timeout - currentTimeMillis, TimeUnit.MILLISECONDS)) {
+                    throw new IllegalStateException();
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new IllegalStateException(e);
+            }
+        }
     }
 
     public Future<Frame> stream(boolean last, byte[] bytes, int off, int len) {
-        if (sendingFragment) {
-            if (last) {
-                sendingFragment = false;
+        lock.lock();
+
+        try {
+            switch (sendingFragment) {
+                case SENDING_BINARY:
+                    Future<Frame> frameFuture = send(new BinaryFrame(Arrays.copyOfRange(bytes, off, off + len), true, last));
+                    if (last) {
+                        sendingFragment = SendingFragmentState.IDLE;
+                        idleCondition.signalAll();
+                    }
+                    return frameFuture;
+
+                case SENDING_TEXT:
+                    checkSendingFragment();
+                    // it is ok to let this "pass" to default case, since the result of "checkSendingFragment" can be
+                    // only IllegalStateException or sendingFragment = SendingFragmentState.IDLE.
+
+                default:
+                    // IDLE
+                    sendingFragment = (last ? SendingFragmentState.IDLE : SendingFragmentState.SENDING_BINARY);
+                    return send(new BinaryFrame(Arrays.copyOfRange(bytes, off, off + len), false, last));
             }
-            return send(new BinaryFrame(Arrays.copyOfRange(bytes, off, off + len), true, last));
-        } else {
-            sendingFragment = !last;
-            return send(new BinaryFrame(Arrays.copyOfRange(bytes, off, off + len), false, last));
+
+        } finally {
+            lock.unlock();
         }
     }
 
     public Future<Frame> stream(boolean last, String fragment) {
-        if (sendingFragment) {
-            if (last) {
-                sendingFragment = false;
+        lock.lock();
+
+        try {
+            switch (sendingFragment) {
+                case SENDING_TEXT:
+                    Future<Frame> frameFuture = send(new TextFrame(fragment, true, last));
+                    if (last) {
+                        sendingFragment = SendingFragmentState.IDLE;
+                        idleCondition.signalAll();
+                    }
+                    return frameFuture;
+
+                case SENDING_BINARY:
+                    checkSendingFragment();
+                    // it is ok to let this "pass" to default case, since the result of "checkSendingFragment" can be
+                    // only IllegalStateException or sendingFragment = SendingFragmentState.IDLE.
+
+                default:
+                    // IDLE
+                    sendingFragment = (last ? SendingFragmentState.IDLE : SendingFragmentState.SENDING_TEXT);
+                    return send(new TextFrame(fragment, false, last));
             }
-            return send(new TextFrame(fragment, true, last));
-        } else {
-            sendingFragment = !last;
-            return send(new TextFrame(fragment, false, last));
+
+        } finally {
+            lock.unlock();
         }
     }
 
@@ -360,7 +508,7 @@ public final class ProtocolHandler {
      * @param bytes byte array to be converted.
      * @return converted byte array.
      */
-    long decodeLength(byte[] bytes) {
+    private long decodeLength(byte[] bytes) {
         return Utils.toLong(bytes, 0, bytes.length);
     }
 
@@ -373,7 +521,7 @@ public final class ProtocolHandler {
      * @param length the payload size
      * @return the array
      */
-    byte[] encodeLength(final long length) {
+    private byte[] encodeLength(final long length) {
         byte[] lengthBytes;
         if (length <= 125) {
             lengthBytes = new byte[1];
@@ -393,13 +541,13 @@ public final class ProtocolHandler {
         return lengthBytes;
     }
 
-    void validate(final byte fragmentType, byte opcode) {
+    private void validate(final byte fragmentType, byte opcode) {
         if (opcode != 0 && opcode != fragmentType && !isControlFrame(opcode)) {
             throw new ProtocolException(LocalizationMessages.SEND_MESSAGE_INFRAGMENT());
         }
     }
 
-    byte checkForLastFrame(Frame frame) {
+    private byte checkForLastFrame(Frame frame) {
         byte local = frame.getOpcode();
 
         if (frame.isControlFrame()) {
@@ -424,7 +572,7 @@ public final class ProtocolHandler {
         return local;
     }
 
-    void doClose() {
+    /* package */ void doClose() {
         final Writer localWriter = writer;
         if (localWriter == null) {
             throw new IllegalStateException(LocalizationMessages.CONNECTION_NULL());
@@ -437,7 +585,7 @@ public final class ProtocolHandler {
         }
     }
 
-    ByteBuffer frame(Frame frame) {
+    /* package */ ByteBuffer frame(Frame frame) {
 
         if (client) {
             frame = Frame.builder(frame).maskingKey(maskingKeyGenerator.nextInt()).mask(true).build();
@@ -509,7 +657,7 @@ public final class ProtocolHandler {
         try {
             // this do { .. } while cycle was forced by findbugs check - complained about missing break statements.
             do {
-                switch (state.state.get()) {
+                switch (parsingState.state.get()) {
                     case 0:
                         if (buffer.remaining() < 2) {
                             // Don't have enough bytes to read opcode and lengthCode
@@ -519,84 +667,84 @@ public final class ProtocolHandler {
                         byte opcode = buffer.get();
 
 
-                        state.finalFragment = isBitSet(opcode, 7);
-                        state.controlFrame = isControlFrame(opcode);
-                        state.opcode = (byte) (opcode & 0x7f);
-                        if (!state.finalFragment && state.controlFrame) {
+                        parsingState.finalFragment = isBitSet(opcode, 7);
+                        parsingState.controlFrame = isControlFrame(opcode);
+                        parsingState.opcode = (byte) (opcode & 0x7f);
+                        if (!parsingState.finalFragment && parsingState.controlFrame) {
                             throw new ProtocolException(LocalizationMessages.CONTROL_FRAME_FRAGMENTED());
                         }
 
                         byte lengthCode = buffer.get();
 
-                        state.masked = (lengthCode & 0x80) == 0x80;
-                        state.masker = new Masker(buffer);
-                        if (state.masked) {
+                        parsingState.masked = (lengthCode & 0x80) == 0x80;
+                        parsingState.masker = new Masker(buffer);
+                        if (parsingState.masked) {
                             lengthCode ^= 0x80;
                         }
-                        state.lengthCode = lengthCode;
+                        parsingState.lengthCode = lengthCode;
 
-                        state.state.incrementAndGet();
+                        parsingState.state.incrementAndGet();
                         break;
                     case 1:
-                        if (state.lengthCode <= 125) {
-                            state.length = state.lengthCode;
+                        if (parsingState.lengthCode <= 125) {
+                            parsingState.length = parsingState.lengthCode;
                         } else {
-                            if (state.controlFrame) {
+                            if (parsingState.controlFrame) {
                                 throw new ProtocolException(LocalizationMessages.CONTROL_FRAME_LENGTH());
                             }
 
-                            final int lengthBytes = state.lengthCode == 126 ? 2 : 8;
+                            final int lengthBytes = parsingState.lengthCode == 126 ? 2 : 8;
                             if (buffer.remaining() < lengthBytes) {
                                 // Don't have enough bytes to read length
                                 return null;
                             }
-                            state.masker.setBuffer(buffer);
-                            state.length = decodeLength(state.masker.unmask(lengthBytes));
+                            parsingState.masker.setBuffer(buffer);
+                            parsingState.length = decodeLength(parsingState.masker.unmask(lengthBytes));
                         }
-                        state.state.incrementAndGet();
+                        parsingState.state.incrementAndGet();
                         break;
                     case 2:
-                        if (state.masked) {
+                        if (parsingState.masked) {
                             if (buffer.remaining() < MASK_SIZE) {
                                 // Don't have enough bytes to read mask
                                 return null;
                             }
-                            state.masker.setBuffer(buffer);
-                            state.masker.readMask();
+                            parsingState.masker.setBuffer(buffer);
+                            parsingState.masker.readMask();
                         }
-                        state.state.incrementAndGet();
+                        parsingState.state.incrementAndGet();
                         break;
                     case 3:
-                        if (buffer.remaining() < state.length) {
+                        if (buffer.remaining() < parsingState.length) {
                             return null;
                         }
 
-                        state.masker.setBuffer(buffer);
-                        final byte[] data = state.masker.unmask((int) state.length);
-                        if (data.length != state.length) {
-                            throw new ProtocolException(LocalizationMessages.DATA_UNEXPECTED_LENGTH(data.length, state.length));
+                        parsingState.masker.setBuffer(buffer);
+                        final byte[] data = parsingState.masker.unmask((int) parsingState.length);
+                        if (data.length != parsingState.length) {
+                            throw new ProtocolException(LocalizationMessages.DATA_UNEXPECTED_LENGTH(data.length, parsingState.length));
                         }
 
                         final Frame frame = Frame.builder()
-                                .fin(state.finalFragment)
-                                .rsv1(isBitSet(state.opcode, 6))
-                                .rsv2(isBitSet(state.opcode, 5))
-                                .rsv3(isBitSet(state.opcode, 4))
-                                .opcode((byte) (state.opcode & 0xf))
-                                .payloadLength(state.length)
+                                .fin(parsingState.finalFragment)
+                                .rsv1(isBitSet(parsingState.opcode, 6))
+                                .rsv2(isBitSet(parsingState.opcode, 5))
+                                .rsv3(isBitSet(parsingState.opcode, 4))
+                                .opcode((byte) (parsingState.opcode & 0xf))
+                                .payloadLength(parsingState.length)
                                 .payloadData(data)
                                 .build();
 
-                        state.recycle();
+                        parsingState.recycle();
 
                         return frame;
                     default:
                         // Should never get here
-                        throw new IllegalStateException(LocalizationMessages.UNEXPECTED_STATE(state.state));
+                        throw new IllegalStateException(LocalizationMessages.UNEXPECTED_STATE(parsingState.state));
                 }
             } while (true);
         } catch (Exception e) {
-            state.recycle();
+            parsingState.recycle();
             throw (RuntimeException) e;
         }
     }

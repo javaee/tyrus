@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2011-2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2011-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -58,6 +58,7 @@ import javax.websocket.SendHandler;
 import javax.websocket.SendResult;
 
 import org.glassfish.tyrus.core.l10n.LocalizationMessages;
+
 import static org.glassfish.tyrus.core.Utils.checkNotNull;
 
 /**
@@ -269,8 +270,8 @@ public abstract class TyrusRemoteEndpoint implements javax.websocket.RemoteEndpo
         /**
          * Sends the message asynchronously.
          * <p/>
-         * IMPORTANT NOTE: There is no need to start new thread here. All writer are by default asynchronous, only
-         * difference between sync and async writer are that sync send should wait for future.get().
+         * IMPORTANT NOTE: There is no need to start new thread here. All writer operations are by default asynchronous,
+         * the only difference between sync and async writer are that sync send should wait for future.get().
          *
          * @param message message to be sent
          * @param type    message type
