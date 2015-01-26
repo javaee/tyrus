@@ -1,7 +1,7 @@
 /*
 * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
 *
-* Copyright (c) 2011-2014 Oracle and/or its affiliates. All rights reserved.
+* Copyright (c) 2011-2015 Oracle and/or its affiliates. All rights reserved.
 *
 * The contents of this file are subject to the terms of either the GNU
 * General Public License Version 2 only ("GPL") or the Common Development
@@ -310,15 +310,12 @@ public class GrizzlyClientSocket {
         URI requestURI = upgradeRequest.getRequestURI();
 
         SocketAddress socketAddress = processProxy(requestURI, properties);
+        Throwable exception = null;
 
         for (Proxy proxy : proxies) {
-            try {
-                if (!sharedTransport) {
-                    privateTransport = createTransport(workerThreadPoolConfig, selectorThreadPoolConfig);
-                    privateTransport.start();
-                }
-            } catch (IOException e) {
-                throw e;
+            if (!sharedTransport) {
+                privateTransport = createTransport(workerThreadPoolConfig, selectorThreadPoolConfig);
+                privateTransport.start();
             }
 
             final TCPNIOConnectorHandler connectorHandler = new TCPNIOConnectorHandler(sharedTransport ? transport : privateTransport) {
@@ -388,29 +385,27 @@ public class GrizzlyClientSocket {
                 return;
             } catch (InterruptedException interruptedException) {
                 LOGGER.log(Level.CONFIG, String.format("Connection to '%s' failed.", requestURI), interruptedException);
+                exception = interruptedException;
                 closeTransport(privateTransport);
             } catch (TimeoutException timeoutException) {
                 LOGGER.log(Level.CONFIG, String.format("Connection to '%s' failed.", requestURI), timeoutException);
+                exception = timeoutException;
                 closeTransport(privateTransport);
             } catch (ExecutionException executionException) {
                 LOGGER.log(Level.CONFIG, String.format("Connection to '%s' failed.", requestURI), executionException);
 
-                IOException ioException = null;
-                final Throwable cause = executionException.getCause();
-                if ((cause != null) && (cause instanceof IOException)) {
-                    ioException = (IOException) cause;
+                IOException ioException;
+                exception = executionException.getCause();
+                if ((exception != null) && (exception instanceof IOException)) {
+                    ioException = (IOException) exception;
                     ProxySelector.getDefault().connectFailed(requestURI, socketAddress, ioException);
                 }
 
                 closeTransport(privateTransport);
-
-                if (ioException != null) {
-                    throw ioException;
-                }
             }
         }
 
-        throw new DeploymentException("Connection failed.");
+        throw new DeploymentException("Connection failed.", exception);
     }
 
     private static TCPNIOTransport createTransport(ThreadPoolConfig workerThreadPoolConfig, ThreadPoolConfig selectorThreadPoolConfig) {
@@ -554,7 +549,9 @@ public class GrizzlyClientSocket {
         addProxies(proxySelector, uri, "socket", proxies);
         addProxies(proxySelector, uri, "https", proxies);
         addProxies(proxySelector, uri, "http", proxies);
-        proxies.add(Proxy.NO_PROXY);
+        if (proxies.isEmpty()) {
+            proxies.add(Proxy.NO_PROXY);
+        }
 
         // compute direct address in case no proxy is found
         int port = Utils.getWsPort(uri);
@@ -745,7 +742,7 @@ public class GrizzlyClientSocket {
     static class FilterWrapper implements Filter {
 
         private final Filter filter;
-        private boolean enabled = false;
+        private boolean enabled;
 
         FilterWrapper(Filter filter) {
             this.filter = filter;

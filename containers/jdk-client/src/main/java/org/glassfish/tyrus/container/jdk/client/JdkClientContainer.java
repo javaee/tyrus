@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -150,18 +150,18 @@ public class JdkClientContainer implements ClientContainer {
                     }
                 });
 
-                // private void _connect(ClientFilter clientFilter, URI uri) throws DeploymentException, IOException {
+                Throwable exception = null;
+
                 for (Proxy proxy : proxies) {
-                    // Proxy.Type.DIRECT is always present and is always last.
                     if (proxy.type() == Proxy.Type.DIRECT) {
                         SocketAddress serverAddress = getServerAddress(uri);
                         try {
                             connectSynchronously(clientFilter, serverAddress, false);
+                            // connected.
+                            return null;
                         } catch (Throwable throwable) {
-                            throw new DeploymentException("Connection attempt to " + serverAddress + " has failed", throwable);
+                            exception = throwable;
                         }
-                        // connected.
-                        return null;
                     }
 
                     LOGGER.log(Level.CONFIG, String.format("Connecting to '%s' via proxy '%s'.", uri, proxy));
@@ -181,12 +181,12 @@ public class JdkClientContainer implements ClientContainer {
                         } catch (Throwable t) {
                             LOGGER.log(Level.FINE, "Connecting to " + proxyAddress + " failed", t);
                             clientFilter.close();
+                            exception = t;
                         }
                     }
                 }
 
-                // won't happen.
-                return null;
+                throw new DeploymentException("Connection failed.", exception);
             }
         };
 
@@ -385,7 +385,9 @@ public class JdkClientContainer implements ClientContainer {
         addProxies(proxySelector, uri, "socket", proxies);
         addProxies(proxySelector, uri, "https", proxies);
         addProxies(proxySelector, uri, "http", proxies);
-        proxies.add(Proxy.NO_PROXY);
+        if (proxies.isEmpty()) {
+            proxies.add(Proxy.NO_PROXY);
+        }
 
         return proxies;
     }
