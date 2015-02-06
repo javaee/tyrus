@@ -40,7 +40,7 @@
 
 -->
 
-# Bitcoin market
+# Bitcoin Xchange
 
 ### Application description
 
