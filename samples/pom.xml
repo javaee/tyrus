@@ -120,6 +120,7 @@
                 <jdk>[1.7,2)</jdk>
             </activation>
             <modules>
+                <module>btc-xchange</module>
                 <module>shared-collection</module>
             </modules>
         </profile>
