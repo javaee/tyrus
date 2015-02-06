@@ -46,6 +46,8 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.websocket.CloseReason;
 import javax.websocket.Extension;
@@ -73,8 +75,10 @@ public class TyrusWebSocket {
     private final ProtocolHandler protocolHandler;
     private final CountDownLatch onConnectLatch = new CountDownLatch(1);
     private final EnumSet<State> connected = EnumSet.range(State.CONNECTED, State.CLOSING);
-    //TODO try refactoring to make immutable.
+    //TODO refactor to make this class immutable.
     private final AtomicReference<State> state = new AtomicReference<State>(State.NEW);
+    private final Lock lock = new ReentrantLock();
+
     private volatile MessageEventListener messageEventListener = MessageEventListener.NO_OP;
 
     /**
@@ -111,25 +115,29 @@ public class TyrusWebSocket {
     /**
      * This callback will be invoked when the remote endpoint sent a closing
      * frame.
-     *
+     * <p/>
      * The execution of this method is synchronized using {@link ProtocolHandler} instance; see TYRUS-385. Prevents
      * multiple invocations, especially from container/user code.
      *
      * @param frame the close frame from the remote endpoint.
      */
     public void onClose(CloseFrame frame) {
+        boolean locked = lock.tryLock();
+        if (locked) {
+            try {
+                final CloseReason closeReason = frame.getCloseReason();
 
-        synchronized (protocolHandler) {
-            final CloseReason closeReason = frame.getCloseReason();
-
-            if (endpointWrapper != null) {
-                endpointWrapper.onClose(this, closeReason);
-            }
-            if (state.compareAndSet(State.CONNECTED, State.CLOSING)) {
-                protocolHandler.close(closeReason.getCloseCode().getCode(), closeReason.getReasonPhrase());
-            } else {
-                state.set(State.CLOSED);
-                protocolHandler.doClose();
+                if (endpointWrapper != null) {
+                    endpointWrapper.onClose(this, closeReason);
+                }
+                if (state.compareAndSet(State.CONNECTED, State.CLOSING)) {
+                    protocolHandler.close(closeReason.getCloseCode().getCode(), closeReason.getReasonPhrase());
+                } else {
+                    state.set(State.CLOSED);
+                    protocolHandler.doClose();
+                }
+            } finally {
+                lock.unlock();
             }
         }
     }
