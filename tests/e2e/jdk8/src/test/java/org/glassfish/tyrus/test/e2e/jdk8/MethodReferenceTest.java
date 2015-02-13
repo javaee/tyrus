@@ -65,32 +65,32 @@ import static org.junit.Assert.fail;
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-public class DefaultMethodTest extends TestContainer {
+public class MethodReferenceTest extends TestContainer {
 
-    public static interface EchoInterface {
+    private final CountDownLatch messageLatchWhole = new CountDownLatch(1);
+    private final CountDownLatch onCloseLatchWhole = new CountDownLatch(1);
+    private final CountDownLatch messageLatchPartial = new CountDownLatch(1);
+    private final CountDownLatch onCloseLatchPartial = new CountDownLatch(1);
+
+    @ServerEndpoint("/methodReferenceTestEchoWhole")
+    public static class EchoWholeEndpoint {
 
         @OnMessage
-        public default void echo(Session session, String message) throws IOException {
+        public void echo(Session session, String message) throws IOException {
             session.getBasicRemote().sendText(message + " (from your server)");
             session.close();
         }
-    }
-
-    @ServerEndpoint("/defaultMethodTestEcho")
-    public static class EchoEndpoint implements EchoInterface {
 
         @OnError
         public void onError(Throwable t) {
             t.printStackTrace();
+
         }
     }
 
     @Test
-    public void defaultMethodTest() throws DeploymentException, InterruptedException, IOException {
-        final Server server = startServer(EchoEndpoint.class);
-
-        final CountDownLatch messageLatch = new CountDownLatch(1);
-        final CountDownLatch onCloseLatch = new CountDownLatch(1);
+    public void echoWhole() throws DeploymentException, InterruptedException, IOException {
+        final Server server = startServer(EchoWholeEndpoint.class);
 
         try {
             final ClientManager client = createClient();
@@ -99,14 +99,7 @@ public class DefaultMethodTest extends TestContainer {
                 public void onOpen(Session session, EndpointConfig EndpointConfig) {
 
                     try {
-                        session.addMessageHandler(String.class, message -> {
-                            System.out.println("### Received: " + message);
-
-                            if (message.equals("Do or do not, there is no try. (from your server)")) {
-                                messageLatch.countDown();
-                            }
-                        });
-
+                        session.addMessageHandler(String.class, MethodReferenceTest.this::onMessageWhole);
                         session.getBasicRemote().sendText("Do or do not, there is no try.");
                     } catch (IOException e) {
                         // do nothing
@@ -116,13 +109,13 @@ public class DefaultMethodTest extends TestContainer {
                 @Override
                 public void onClose(Session session, CloseReason closeReason) {
                     System.out.println("### Client session closed: " + closeReason);
-                    onCloseLatch.countDown();
+                    onCloseLatchWhole.countDown();
                 }
 
-            }, ClientEndpointConfig.Builder.create().build(), getURI(EchoEndpoint.class));
+            }, ClientEndpointConfig.Builder.create().build(), getURI(EchoWholeEndpoint.class));
 
-            assertTrue(messageLatch.await(1, TimeUnit.SECONDS));
-            assertTrue(onCloseLatch.await(1, TimeUnit.SECONDS));
+            assertTrue(messageLatchWhole.await(1, TimeUnit.SECONDS));
+            assertTrue(onCloseLatchWhole.await(1, TimeUnit.SECONDS));
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -132,4 +125,73 @@ public class DefaultMethodTest extends TestContainer {
         }
     }
 
+    public void onMessageWhole(String message) {
+        System.out.println("### Received: " + message);
+
+        if (message.equals("Do or do not, there is no try. (from your server)")) {
+            messageLatchWhole.countDown();
+        }
+    }
+
+    @ServerEndpoint("/methodReferenceTestEchoPartial")
+    public static class EchoPartialEndpoint {
+
+        @OnMessage
+        public void echo(Session session, String message) throws IOException {
+            session.getBasicRemote().sendText(message + " (from your server)", false);
+            session.getBasicRemote().sendText("", true);
+            session.close();
+        }
+
+        @OnError
+        public void onError(Throwable t) {
+            t.printStackTrace();
+
+        }
+    }
+
+    @Test
+    public void echoPartial() throws DeploymentException, InterruptedException, IOException {
+        final Server server = startServer(EchoPartialEndpoint.class);
+
+        try {
+            final ClientManager client = createClient();
+            client.connectToServer(new Endpoint() {
+                @Override
+                public void onOpen(Session session, EndpointConfig EndpointConfig) {
+
+                    try {
+                        session.addMessageHandler(String.class, MethodReferenceTest.this::onMessagePartial);
+                        session.getBasicRemote().sendText("Do or do not, there is no try.");
+                    } catch (IOException e) {
+                        // do nothing
+                    }
+                }
+
+                @Override
+                public void onClose(Session session, CloseReason closeReason) {
+                    System.out.println("### Client session closed: " + closeReason);
+                    onCloseLatchPartial.countDown();
+                }
+
+            }, ClientEndpointConfig.Builder.create().build(), getURI(EchoPartialEndpoint.class));
+
+            assertTrue(messageLatchPartial.await(1, TimeUnit.SECONDS));
+            assertTrue(onCloseLatchPartial.await(1, TimeUnit.SECONDS));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            fail();
+        } finally {
+            stopServer(server);
+        }
+    }
+
+    public void onMessagePartial(String message, boolean last) {
+        System.out.println("### Received: " + message + " " + last);
+
+        if (message.equals("Do or do not, there is no try. (from your server)") && !last) {
+            messageLatchPartial.countDown();
+        }
+    }
 }

@@ -67,7 +67,7 @@ import static org.junit.Assert.fail;
  */
 public class LambdaTest extends TestContainer {
 
-    @ServerEndpoint("/echo")
+    @ServerEndpoint("/lambdaTestEchoWhole")
     public static class EchoWholeEndpoint {
 
         @OnMessage
@@ -130,7 +130,7 @@ public class LambdaTest extends TestContainer {
         }
     }
 
-    @ServerEndpoint("/echo")
+    @ServerEndpoint("/lambdaTestEchoPartial")
     public static class EchoPartialEndpoint {
 
         @OnMessage
