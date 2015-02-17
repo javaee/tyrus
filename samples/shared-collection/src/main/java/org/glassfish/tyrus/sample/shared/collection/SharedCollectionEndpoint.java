@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2014 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -44,7 +44,6 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.Deque;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 import javax.websocket.OnError;
@@ -60,27 +59,20 @@ import javax.json.JsonObjectBuilder;
 /**
  * @author Pavel Bucek (pavel.bucek at oracle.com)
  */
-@ServerEndpoint("/tyrus-collection")
+@ServerEndpoint("/ws/collection")
 public class SharedCollectionEndpoint {
 
-    private static final Map<String, String> map = new ConcurrentHashMap<String, String>();
     private static final Deque<Tuple<Session, JsonObject>> broadcastQueue = new ConcurrentLinkedDeque<Tuple<Session, JsonObject>>();
-
-    private volatile boolean broadcasting = false;
-
-    static {
-        map.put("Red Leader", "Garven Dreis");
-        map.put("Red Two", "Wedge Antilles");
-        map.put("Red Three", "Biggs Darklighter");
-        map.put("Red Four", "John D. Branon");
-        map.put("Red Five", "Luke Skywalker");
-    }
+    private static volatile Session session = null;
+    private static volatile boolean broadcasting = false;
 
     @OnOpen
     public void onOpen(Session s) {
+        SharedCollectionEndpoint.session = s;
+
         final JsonObjectBuilder mapRepresentation = Json.createObjectBuilder();
 
-        for (Map.Entry<String, String> entry : map.entrySet()) {
+        for (Map.Entry<String, String> entry : SharedCollection.map.entrySet()) {
             mapRepresentation.add(entry.getKey(), entry.getValue());
         }
 
@@ -96,65 +88,66 @@ public class SharedCollectionEndpoint {
     }
 
     @OnMessage
-    public void onMessage(Session s, Reader message) {
+    public void onMessage(Reader message) {
         final JsonObject jsonObject = Json.createReader(message).readObject();
         final String event = jsonObject.getString("event");
 
         switch (event) {
             case "put":
-                map.put(jsonObject.getString("key"), jsonObject.getString("value"));
-                broadcast(s, jsonObject);
+                SharedCollection.map.put(jsonObject.getString("key"), jsonObject.getString("value"));
+                SharedCollection.broadcast(jsonObject);
                 break;
             case "remove":
-                map.remove(jsonObject.getString("key"));
-                broadcast(s, jsonObject);
+                SharedCollection.map.remove(jsonObject.getString("key"));
+                SharedCollection.broadcast(jsonObject);
                 break;
             case "clear":
-                map.clear();
-                broadcast(s, jsonObject);
+                SharedCollection.map.clear();
+                SharedCollection.broadcast(jsonObject);
                 break;
         }
-
     }
 
-    private void broadcast(Session s, JsonObject object) {
-        broadcastQueue.add(new Tuple<Session, JsonObject>(s, object));
+    static void broadcast(JsonObject object) {
+        broadcastQueue.add(new Tuple<Session, JsonObject>(null, object));
 
         processQueue();
     }
 
-    private void processQueue() {
+    private static void processQueue() {
 
         if (broadcasting) {
             return;
         }
 
-        synchronized (broadcastQueue) {
-            broadcasting = true;
+        try {
+            synchronized (broadcastQueue) {
+                broadcasting = true;
 
-            if (!broadcastQueue.isEmpty()) {
-                while (!broadcastQueue.isEmpty()) {
-                    final Tuple<Session, JsonObject> t = broadcastQueue.remove();
+                if (!broadcastQueue.isEmpty()) {
+                    while (!broadcastQueue.isEmpty()) {
+                        final Tuple<Session, JsonObject> t = broadcastQueue.remove();
 
-                    final Session s = t.first;
-                    final String message = t.second.toString();
+                        final Session s = SharedCollectionEndpoint.session;
+                        final String message = t.second.toString();
 
-                    for (Session session : s.getOpenSessions()) {
-                        if (!session.getId().equals(s.getId())) {
+                        for (Session session : s.getOpenSessions()) {
+                            // if (!session.getId().equals(s.getId())) {
                             try {
                                 session.getBasicRemote().sendText(message);
                             } catch (IOException e) {
                                 // we don't care about that for now.
                             }
+                            // }
                         }
                     }
                 }
             }
-        }
-
-        broadcasting = false;
-        if (!broadcastQueue.isEmpty()) {
-            processQueue();
+        } finally {
+            broadcasting = false;
+            if (!broadcastQueue.isEmpty()) {
+                processQueue();
+            }
         }
     }
 

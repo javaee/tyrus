@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
 
     DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
@@ -40,17 +40,23 @@
     holder.
 
 -->
-<html>
-<head>
-    <title>Tyrus Shared Collection Sample</title>
-    <link rel="stylesheet" href="css/style.css"/>
-    <script src="js/tyrus-collection.js"></script>
-    <script src="js/app.js"></script>
-</head>
-<body>
-<h2>Tyrus Shared Collection Sample</h2>
+<web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
+         version="3.1">
 
-<a href="./index.ws.html">WebSocket</a><br/>
-<a href="./index.rest.html">Rest + SSE (works only when deployed on Glassfish/WLS)</a>
-</body>
-</html>
+    <servlet>
+        <servlet-name>JerseyServlet</servlet-name>
+        <servlet-class>org.glassfish.jersey.servlet.ServletContainer</servlet-class>
+        <init-param>
+            <param-name>jersey.config.server.provider.classnames</param-name>
+            <param-value>org.glassfish.tyrus.sample.shared.collection.SharedCollectionResource</param-value>
+        </init-param>
+        <load-on-startup>1</load-on-startup>
+        <async-supported>true</async-supported>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>JerseyServlet</servlet-name>
+        <url-pattern>/rest/*</url-pattern>
+    </servlet-mapping>
+</web-app>

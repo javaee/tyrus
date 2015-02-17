@@ -3,7 +3,7 @@
 
     DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
 
-    Copyright (c) 2015 Oracle and/or its affiliates. All rights reserved.
+    Copyright (c) 2014-2015 Oracle and/or its affiliates. All rights reserved.
 
     The contents of this file are subject to the terms of either the GNU
     General Public License Version 2 only ("GPL") or the Common Development
@@ -48,9 +48,24 @@
     <script src="js/app.js"></script>
 </head>
 <body>
-<h2>Tyrus Shared Collection Sample</h2>
+<h2>Tyrus Shared Collection Sample - WebSocket</h2>
 
-<a href="./index.ws.html">WebSocket</a><br/>
-<a href="./index.rest.html">Rest + SSE (works only when deployed on Glassfish/WLS)</a>
+<div id="board"></div>
+
+<fieldset>
+    <legend>Add or Update</legend>
+    <label for="key">Key: </label><input type="text" id="key"/>
+    <label for="value">Value: </label><input type="text" id="value" oninput="window.change();"/>
+    <button onclick="window.collection.put(document.getElementById('key').value, document.getElementById('value').value);">
+        Submit
+    </button>
+</fieldset>
+
+<script lang="javascript">
+    window.collection = new Tyrus.Collection.Map(window.wsUri, window.boardUpdate);
+</script>
+
+<button onclick="window.test()">PerfTest</button>
+
 </body>
 </html>

@@ -38,9 +38,19 @@
  * holder.
  */
 
-window.getRootUri = function () {
-    return "ws://" + (document.location.hostname == "" ? "localhost" : document.location.hostname) + ":" +
-        (document.location.port == "" ? "8085" : document.location.port);
+/**
+ * Get root Uri.
+ *
+ * @param {string} protocol
+ * @returns {string}
+ */
+window.getRootUri = function (protocol) {
+    if (!protocol || protocol === null || typeof protocol !== "string") {
+        throw new Error("Parameter 'postUrl' must be present and must be a string.")
+    }
+
+    return protocol + "://" + (document.location.hostname == "" ? "localhost" : document.location.hostname) +
+        ":" + (document.location.port == "" ? "8085" : document.location.port);
 };
 
 window.boardUpdate = function () {
@@ -64,11 +74,25 @@ window.boardUpdate = function () {
 
 window.change = function () {
     var key = document.getElementById("key").value;
-    if(key && key !== null && key !== "") {
+    if (key && key !== null && key !== "") {
         window.collection.put(key, document.getElementById("value").value);
     }
 };
 
-window.wsUri = window.getRootUri() + "/sample-shared-collection/tyrus-collection";
+window.wsUri = window.getRootUri("ws") + "/sample-shared-collection/ws/collection";
+window.restUri = window.getRootUri("http") + "/sample-shared-collection/rest/collection";
 
-window.collection = new Tyrus.Collection.Map(window.wsUri, window.boardUpdate);
+window.test = function () {
+    console.time("test");
+    var exceptions = 0;
+    for (i = 0; i < 10000; i++) {
+        try {
+            window.collection.put("test", i.toString());
+        } catch (excetion) {
+            exceptions++;
+            // console.log(excetion);
+        }
+    }
+    console.timeEnd("test");
+    console.log("exceptions: " + exceptions)
+};
