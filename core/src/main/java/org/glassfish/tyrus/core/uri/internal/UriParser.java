@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2012-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -142,6 +142,9 @@ class UriParser {
         this.parserExecuted = true;
         this.ci = new CharacterIterator(input);
         if (!ci.hasNext()) {
+            // empty string on input -> set both SSP and path to ""
+            this.path = "";
+            this.ssp = "";
             return;
         }
         ci.next();
@@ -154,7 +157,17 @@ class UriParser {
         this.opaque = false;
         if (ci.current() == ':') {
             // absolute
+            if (comp == null) {
+                throw new IllegalArgumentException(
+                        String.format("Expected scheme name at index %d: \"%s\"", ci.pos(), input));
+            }
             scheme = comp;
+            if (!ci.hasNext()) {
+                // empty SSP/path -> set both SSP and path to ""
+                this.path = "";
+                this.ssp = "";
+                return;
+            }
             char c = ci.next();
             if (c == '/') {
                 // hierarchical

@@ -1,7 +1,7 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS HEADER.
  *
- * Copyright (c) 2010-2013 Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2010-2015 Oracle and/or its affiliates. All rights reserved.
  *
  * The contents of this file are subject to the terms of either the GNU
  * General Public License Version 2 only ("GPL") or the Common Development
@@ -54,6 +54,7 @@ import java.util.regex.PatternSyntaxException;
  * A URI template parser that parses JAX-RS specific URI templates.
  *
  * @author Paul Sandoz
+ * @author Gerard Davison (gerard.davison at oracle.com)
  */
 public class UriTemplateParser {
     /* package */ static final int[] EMPTY_INT_ARRAY = new int[0];
@@ -85,6 +86,8 @@ public class UriTemplateParser {
     private final List<Integer> groupCounts = new ArrayList<Integer>();
     private final Map<String, Pattern> nameToPattern = new HashMap<String, Pattern>();
     private int numOfExplicitRegexes;
+    private int skipGroup;
+
     private int literalCharacters;
 
     /**
@@ -95,8 +98,8 @@ public class UriTemplateParser {
      *                                  or does not conform to a JAX-RS URI template.
      */
     public UriTemplateParser(final String template) throws IllegalArgumentException {
-        if (template == null || template.length() == 0) {
-            throw new IllegalArgumentException();
+        if (template == null || template.isEmpty()) {
+            throw new IllegalArgumentException("Template is null or has zero length");
         }
 
         this.template = template;
@@ -106,7 +109,8 @@ public class UriTemplateParser {
         } catch (PatternSyntaxException ex) {
             throw new IllegalArgumentException("Invalid syntax for the template expression '"
                     + regex + "'",
-                    ex);
+                    ex
+            );
         }
     }
 
@@ -130,7 +134,7 @@ public class UriTemplateParser {
 
     /**
      * Get the normalized template.
-     * <p/>
+     * <p>
      * A normalized template is a template without any explicit regular
      * expressions.
      *
@@ -169,7 +173,7 @@ public class UriTemplateParser {
 
     /**
      * Get the group indexes to capturing groups.
-     * <p/>
+     * <p>
      * Any nested capturing groups will be ignored and the
      * the group index will refer to the top-level capturing
      * groups associated with the templates variables.
@@ -181,17 +185,13 @@ public class UriTemplateParser {
             return EMPTY_INT_ARRAY;
         }
 
-        int[] indexes = new int[names.size() + 1];
-        indexes[0] = 1;
+        int[] indexes = new int[names.size()];
+        indexes[0] = 0 + groupCounts.get(0);
         for (int i = 1; i < indexes.length; i++) {
-            indexes[i] = indexes[i - 1] + groupCounts.get(i - 1);
+            indexes[i] = indexes[i - 1] + groupCounts.get(i);
         }
-        for (int i = 0; i < indexes.length; i++) {
-            if (indexes[i] != i + 1) {
-                return indexes;
-            }
-        }
-        return EMPTY_INT_ARRAY;
+
+        return indexes;
     }
 
     /**
@@ -201,6 +201,22 @@ public class UriTemplateParser {
      */
     public final int getNumberOfExplicitRegexes() {
         return numOfExplicitRegexes;
+    }
+
+    /**
+     * Get the number of regular expression groups
+     *
+     * @return the number of regular expressions groups
+     *
+     * @since 2.9
+     */
+    public final int getNumberOfRegexGroups() {
+        if (groupCounts.isEmpty()) {
+            return 0;
+        } else {
+            int[] groupIndex = getGroupIndexes();
+            return groupIndex[groupIndex.length - 1] + skipGroup;
+        }
     }
 
     /**
@@ -228,7 +244,7 @@ public class UriTemplateParser {
                 char c = ci.next();
                 if (c == '{') {
                     processLiteralCharacters();
-                    parseName(ci);
+                    skipGroup = parseName(ci, skipGroup);
                 } else {
                     literalCharactersBuffer.append(c);
                 }
@@ -281,21 +297,28 @@ public class UriTemplateParser {
 
         for (char c = 'a'; c <= 'f'; c++) {
             // initialize table values: table[a] = ([aA]) ...
-            table[c] = new StringBuffer().append("[").append(c).append((char) (c - 'a' + 'A')).append("]").toString();
+            table[c] = "[" + c + (char) (c - 'a' + 'A') + "]";
         }
 
         for (char c = 'A'; c <= 'F'; c++) {
             // initialize table values: table[A] = ([aA]) ...
-            table[c] = new StringBuffer().append("[").append((char) (c - 'A' + 'a')).append(c).append("]").toString();
+            table[c] = "[" + (char) (c - 'A' + 'a') + c + "]";
         }
         return table;
     }
 
-
-    private void parseName(final CharacterIterator ci) {
+    private int parseName(final CharacterIterator ci, int skipGroup) {
         char c = consumeWhiteSpace(ci);
 
+        char paramType = 'p'; // Normal path param unless otherwise stated
         StringBuilder nameBuffer = new StringBuilder();
+
+        // Look for query or matrix types
+        if (c == '?' || c == ';') {
+            paramType = c;
+            c = ci.next();
+        }
+
         if (Character.isLetterOrDigit(c) || c == '_') {
             // Template name character
             nameBuffer.append(c);
@@ -311,7 +334,10 @@ public class UriTemplateParser {
             if (Character.isLetterOrDigit(c) || c == '_' || c == '-' || c == '.') {
                 // Template name character
                 nameBuffer.append(c);
-            } else if (c == ':') {
+            } else if (c == ',' && paramType != 'p') {
+                // separator allowed for non-path parameter names
+                nameBuffer.append(c);
+            } else if (c == ':' && paramType == 'p') {
                 nameRegexString = parseRegex(ci);
                 break;
             } else if (c == '}') {
@@ -334,33 +360,80 @@ public class UriTemplateParser {
                         + "' at position " + ci.pos() + " is not allowed as part of a name");
             }
         }
-        String name = nameBuffer.toString();
-        names.add(name);
 
+        String name = nameBuffer.toString();
+        Pattern namePattern;
         try {
-            if (nameRegexString.length() > 0) {
-                numOfExplicitRegexes++;
-            }
-            Pattern namePattern = (nameRegexString.length() == 0)
-                    ? TEMPLATE_VALUE_PATTERN : Pattern.compile(nameRegexString);
-            if (nameToPattern.containsKey(name)) {
-                if (!nameToPattern.get(name).equals(namePattern)) {
+            if (paramType == '?' || paramType == ';') {
+                String[] subNames = name.split(",\\s?");
+
+                // Build up the regex for each of these properties
+                StringBuilder regexBuilder = new StringBuilder(paramType == '?' ? "\\?" : ";");
+                String separator = paramType == '?' ? "\\&" : ";/\\?";
+
+                // Start a group because each parameter could repeat
+//                names.add("__" + (paramType == '?' ? "query" : "matrix"));
+
+                boolean first = true;
+
+                regexBuilder.append("(");
+                for (String subName : subNames) {
+                    regexBuilder.append("(&?");
+                    regexBuilder.append(subName);
+                    regexBuilder.append("(=([^");
+                    regexBuilder.append(separator);
+                    regexBuilder.append("]*))?");
+                    regexBuilder.append(")");
+                    if (!first) {
+                        regexBuilder.append("|");
+                    }
+
+                    names.add(subName);
+                    groupCounts.add(
+                            first ? 5 : 3);
+                    first = false;
+                }
+
+//                groupCounts.add(1);
+                skipGroup = 1;
+
+                // Knock of last bar
+                regexBuilder.append(")*");
+
+                namePattern = Pattern.compile(regexBuilder.toString());
+
+                // Make sure we display something useful
+                name = paramType + name;
+            } else {
+                names.add(name);
+                //               groupCounts.add(1 + skipGroup);
+
+                if (!nameRegexString.isEmpty()) {
+                    numOfExplicitRegexes++;
+                }
+                namePattern = (nameRegexString.isEmpty())
+                        ? TEMPLATE_VALUE_PATTERN : Pattern.compile(nameRegexString);
+                if (nameToPattern.containsKey(name)) {
+                    if (!nameToPattern.get(name).equals(namePattern)) {
                     throw new IllegalArgumentException("The name '" + name
                             + "' is declared "
                             + "more than once with different regular expressions");
+                    }
+                } else {
+                    nameToPattern.put(name, namePattern);
                 }
-            } else {
-                nameToPattern.put(name, namePattern);
-            }
 
-            // Determine group count of pattern
-            Matcher m = namePattern.matcher("");
-            int g = m.groupCount();
-            groupCounts.add(g + 1);
+                // Determine group count of pattern
+                Matcher m = namePattern.matcher("");
+                int g = m.groupCount();
+                groupCounts.add(1 + skipGroup);
+                skipGroup = g;
+            }
 
             regex.append('(').
                     append(namePattern).
                     append(')');
+
             normalizedTemplate.append('{').
                     append(name).
                     append('}');
@@ -369,6 +442,9 @@ public class UriTemplateParser {
                     + "' associated with the name '" + name + "'",
                     ex);
         }
+
+        // Tell the next time through the loop how many to skip
+        return skipGroup;
     }
 
     private String parseRegex(final CharacterIterator ci) {
